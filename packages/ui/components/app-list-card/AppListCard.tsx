@@ -92,7 +92,6 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
             style={{
               lineHeight: "1.5em",
               maxHeight: "4.5em", // Shows exactly 3 lines of text
-              textOverflow: "ellipsis",
               wordBreak: "break-word",
             }}>
             {description && description.length > 140 ? `${description.substring(0, 140).trim()}...` : description}

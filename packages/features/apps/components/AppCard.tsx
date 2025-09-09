@@ -123,7 +123,6 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
         style={{
           lineHeight: "1.5em",
           maxHeight: "4.5em", // Shows exactly 3 lines of text
-          textOverflow: "ellipsis",
           wordBreak: "break-word",
         }}>
         {app.description ? (app.description.length > 140 ? `${app.description.substring(0, 140).trim()}...` : app.description) : ""}
