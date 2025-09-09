@@ -5,7 +5,6 @@ import { prisma } from "@calcom/prisma";
 
 import { createAttributes } from "./organizationHelpers";
 import { createRoundRobinTeamEventType } from "./teamHelpers";
-import { Prisma } from "@calcom/prisma/client";
 
 /**
  * Configuration for form fields
@@ -16,7 +15,7 @@ interface FieldConfig {
   label: string;
   identifier?: string;
   required?: boolean;
-  options: { id: string; label: string }[];
+  options?: { id: string; label: string }[];
   selectText?: string;
 }
 
@@ -30,8 +29,11 @@ interface RouteConfig {
     value: string;
   };
   isFallback?: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   queryValue?: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   attributesQueryValue?: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fallbackAttributesQueryValue?: any;
 }
 
@@ -130,6 +132,7 @@ export async function createRoutingForm(config: CreateRoutingFormConfig) {
     const teamEventsConfig = config.attributeRouting.teamEvents;
 
     // Create team events
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const teamEvents: { [key: string]: any } = {};
     for (const eventConfig of teamEventsConfig) {
       const eventType = await createRoundRobinTeamEventType({
@@ -150,10 +153,8 @@ export async function createRoutingForm(config: CreateRoutingFormConfig) {
       throw new Error("Attributes not found");
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const skillAttribute = attributes.find((attr) => attr.name === "Skills")!;
-    const locationAttribute = attributes.find((attr) => attr.name === "Location")!;
-
-    console.log("Attributes", JSON.stringify(attributes, null, 2));
 
     const javascriptEventRoute = {
       id: "8a898988-89ab-4cde-b012-31823f708642",
@@ -318,7 +319,8 @@ export async function createRoutingForm(config: CreateRoutingFormConfig) {
           },
         ],
         fields: (
-          (config.form?.fields || [
+          config.form?.fields ||
+          ([
             {
               id: form.formFieldLocation.id,
               type: "select",
@@ -337,7 +339,6 @@ export async function createRoutingForm(config: CreateRoutingFormConfig) {
               id: form.formFieldEmail.id,
               type: "email",
               label: "Email",
-              options: [],
               required: true,
             },
             {
@@ -345,7 +346,6 @@ export async function createRoutingForm(config: CreateRoutingFormConfig) {
               identifier: "name",
               type: "text",
               label: "Name",
-              options: [],
               required: false,
             },
             {
@@ -353,10 +353,9 @@ export async function createRoutingForm(config: CreateRoutingFormConfig) {
               type: "number",
               label: "Rating",
               required: false,
-              options: [],
             },
-          ]).map(field => ({ ...field }))
-        ),
+          ] satisfies FieldConfig[])
+        ).map((field) => ({ ...field })),
         team: {
           connect: {
             id: teamId,
@@ -386,7 +385,8 @@ export async function createRoutingForm(config: CreateRoutingFormConfig) {
     const form = await prisma.app_RoutingForms_Form.create({
       data: {
         routes: (
-          config.form?.routes || [
+          config.form?.routes ||
+          ([
             {
               id: "8a898988-89ab-4cde-b012-31823f708642",
               action: { type: "eventTypeRedirectUrl", value: "pro/30min" },
@@ -493,16 +493,16 @@ export async function createRoutingForm(config: CreateRoutingFormConfig) {
               isFallback: true,
               queryValue: { id: "898899aa-4567-489a-bcde-f1823f708646", type: "group" },
             },
-          ] satisfies RouteConfig[]
-        ).map(field => ({ ...field })),
+          ] satisfies RouteConfig[])
+        ).map((field) => ({ ...field })),
         fields: (
-          config.form?.fields || [
+          config.form?.fields ||
+          ([
             {
               id: "c4296635-9f12-47b1-8153-c3a854649182",
               type: "text",
               label: "Test field",
               required: true,
-              options: [],
             },
             {
               id: multiSelectLegacyFieldUuid,
@@ -511,7 +511,6 @@ export async function createRoutingForm(config: CreateRoutingFormConfig) {
               identifier: "multi",
               selectText: "Option-1\nOption-2",
               required: false,
-              options: [],
             },
             {
               id: multiSelectFieldUuid,
@@ -537,7 +536,6 @@ export async function createRoutingForm(config: CreateRoutingFormConfig) {
               identifier: "test-select",
               selectText: "Option-1\nOption-2",
               required: false,
-              options: [],
             },
             {
               id: selectFieldUuid,
@@ -556,8 +554,8 @@ export async function createRoutingForm(config: CreateRoutingFormConfig) {
               ],
               required: false,
             },
-          ] satisfies FieldConfig[]
-        ).map(field => ({ ...field })),
+          ] satisfies FieldConfig[])
+        ).map((field) => ({ ...field })),
         user: {
           connect: {
             id: userId,
