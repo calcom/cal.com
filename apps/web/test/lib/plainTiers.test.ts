@@ -76,6 +76,7 @@ describe("Plain Integration API", () => {
   it.each(tiers)("should return $tier tier", async ({ tier, teams }) => {
     const userData = { id: 1, email: `${tier}@example.com`, name: `${tier} User` };
     (getServerSession as any).mockResolvedValue({ user: userData });
+    // @ts-expect-error requires mockDeep which will be introduced in the Prisma 6.7.0 upgrade, ignore for now.
     prismaMock.user.findUnique.mockResolvedValue({ ...userData, teams });
     const params = Promise.resolve<Params>({});
 
