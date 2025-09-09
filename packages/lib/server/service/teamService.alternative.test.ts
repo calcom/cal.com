@@ -45,7 +45,8 @@ const mockTeamRepo = {
     throw new Error(`Team with id ${id} not found`);
   }),
 };
-vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo as unknown);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo as any);
 
 // @ts-expect-error - Mock implementation return type mismatch
 vi.mocked(deleteDomain).mockImplementation(async (slug) => {

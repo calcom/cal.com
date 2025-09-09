@@ -10,7 +10,8 @@ import CrmManager from "./crmManager";
 
 describe("crmManager tests", () => {
   test("Set crmService if not set", async () => {
-    const spy = vi.spyOn(CrmManager.prototype as unknown, "getCrmService");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const spy = vi.spyOn(CrmManager.prototype as any, "getCrmService");
     // @ts-expect-error - Test fixture missing required delegationCredentialId property
     const crmManager = new CrmManager({
       id: 1,

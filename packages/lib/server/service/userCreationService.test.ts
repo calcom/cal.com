@@ -62,7 +62,8 @@ describe("UserCreationService", () => {
       () =>
         ({
           create: mockCreate,
-        } as unknown)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any)
     );
 
     const user = await UserCreationService.createUser({ data: mockUserData });
@@ -92,7 +93,8 @@ describe("UserCreationService", () => {
       () =>
         ({
           create: mockCreate,
-        } as unknown)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any)
     );
 
     const user = await UserCreationService.createUser({ data: mockUserData });
@@ -121,7 +123,8 @@ describe("UserCreationService", () => {
       () =>
         ({
           create: mockCreate,
-        } as unknown)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any)
     );
 
     const user = await UserCreationService.createUser({

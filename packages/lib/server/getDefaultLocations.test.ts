@@ -89,13 +89,16 @@ async function mockUser(user: User) {
     }),
   };
   return await prismaMock.user.create({
-    data: userToCreate as unknown,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data: userToCreate as any,
   });
 }
-async function addAppsToDb(apps: unknown[]) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function addAppsToDb(apps: any[]) {
   await prismaMock.app.createMany({
     data: apps.map((app) => {
-      return { ...app, enabled: true };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return { ...app, enabled: true } as any;
     }),
   });
 }

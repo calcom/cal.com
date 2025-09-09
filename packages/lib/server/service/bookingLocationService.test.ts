@@ -38,7 +38,8 @@ describe("BookingLocationService", () => {
               type: "integrations:google:meet",
             },
           },
-        } as unknown);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
 
         const result = BookingLocationService.getOrganizerDefaultConferencingAppLocation({
           organizerMetadata: mockMetadata,
@@ -64,7 +65,8 @@ describe("BookingLocationService", () => {
               type: "integrations:zoom",
             },
           },
-        } as unknown);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
 
         const result = BookingLocationService.getOrganizerDefaultConferencingAppLocation({
           organizerMetadata: mockMetadata,
@@ -109,7 +111,8 @@ describe("BookingLocationService", () => {
               type: "integrations:custom-video",
             },
           },
-        } as unknown);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
 
         const result = BookingLocationService.getOrganizerDefaultConferencingAppLocation({
           organizerMetadata: mockMetadata,
@@ -188,7 +191,8 @@ describe("BookingLocationService", () => {
           },
         };
 
-        vi.mocked(getAppFromSlug).mockReturnValue({} as unknown);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(getAppFromSlug).mockReturnValue({} as any);
 
         const result = BookingLocationService.getOrganizerDefaultConferencingAppLocation({
           organizerMetadata: mockMetadata,
@@ -208,7 +212,8 @@ describe("BookingLocationService", () => {
           appData: {
             location: {},
           },
-        } as unknown);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
 
         const result = BookingLocationService.getOrganizerDefaultConferencingAppLocation({
           organizerMetadata: mockMetadata,
@@ -233,7 +238,8 @@ describe("BookingLocationService", () => {
             type: "integrations:zoom",
           },
         },
-      } as unknown);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
 
       const result = BookingLocationService.getLocationForHost({
         hostMetadata: mockHostMetadata,
@@ -262,7 +268,8 @@ describe("BookingLocationService", () => {
             type: "integrations:custom-video",
           },
         },
-      } as unknown);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
 
       const result = BookingLocationService.getLocationForHost({
         hostMetadata: mockHostMetadata,
@@ -321,7 +328,8 @@ describe("BookingLocationService", () => {
             type: "integrations:zoom",
           },
         },
-      } as unknown);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
 
       const result = BookingLocationService.getLocationForHost({
         hostMetadata: mockHostMetadata,
@@ -430,7 +438,8 @@ describe("BookingLocationService", () => {
     describe("Edge cases", () => {
       it("should handle empty event type locations", () => {
         const locationType = "integrations:zoom";
-        const eventTypeLocations: unknown[] = [];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const eventTypeLocations: any[] = [];
 
         const result = BookingLocationService.getLocationDetailsFromType({
           locationType,

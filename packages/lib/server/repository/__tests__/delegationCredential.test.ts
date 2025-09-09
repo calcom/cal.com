@@ -17,7 +17,8 @@ vi.mock("../organization", () => ({
 vi.mock("@calcom/lib/crypto", async (importOriginal) => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const actual = await importOriginal<unknown>();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const actual = await importOriginal<any>();
   return {
     ...actual,
     symmetricEncrypt: vi.fn((serviceAccountKey) => {
@@ -94,7 +95,8 @@ const createTestDelegationCredential = async (overrides = {}) => {
   });
 };
 
-const setupOrganizationMock = (returnValue: unknown) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const setupOrganizationMock = (returnValue: any) => {
   vi.mocked(OrganizationRepository.findByMemberEmail).mockResolvedValue(returnValue);
 };
 

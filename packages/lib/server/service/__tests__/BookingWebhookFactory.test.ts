@@ -8,7 +8,8 @@ const createTestOrganizer = (overrides?: Partial<Person>): Person => ({
   email: "organizer@example.com",
   name: "Test Organizer",
   timeZone: "UTC",
-  language: { locale: "en", translate: (() => "") as unknown },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  language: { locale: "en", translate: (() => "") as any },
   ...overrides,
 });
 
@@ -16,7 +17,8 @@ const createTestAttendee = (overrides?: Partial<Person>): Person => ({
   email: "attendee@example.com",
   name: "Test Attendee",
   timeZone: "UTC",
-  language: { locale: "en", translate: (() => "") as unknown },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  language: { locale: "en", translate: (() => "") as any },
   ...overrides,
 });
 

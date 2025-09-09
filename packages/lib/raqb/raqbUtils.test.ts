@@ -1217,7 +1217,8 @@ describe("resolveQueryValue", () => {
         fields: mockFields,
         response: {
           location: { value: ["Delhi"], label: "Delhi" },
-          city: { value: null as unknown, label: "" }, // null value
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          city: { value: null as any, label: "" }, // null value
         },
       },
       attributes: mockAttributes,
@@ -1612,7 +1613,8 @@ describe("resolveQueryValue", () => {
       dynamicFieldValueOperands: {
         fields: mockFields,
         response: {
-          location: {} as unknown, // Empty object, no value property
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          location: {} as any, // Empty object, no value property
         },
       },
       attributes: mockAttributes,
