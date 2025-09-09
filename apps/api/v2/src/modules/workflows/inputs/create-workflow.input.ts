@@ -47,7 +47,6 @@ import {
   OnBeforeEventTriggerDto,
   OnCancelTriggerDto,
   OnCreationTriggerDto,
-  OnFormSubmittedNoEventTriggerDto,
   OnFormSubmittedTriggerDto,
   OnNoShowUpdateTriggerDto,
   OnPaidTriggerDto,
@@ -87,7 +86,6 @@ export type TriggerDtoType =
   | OnCancelTriggerDto
   | OnAfterCalVideoGuestsNoShowTriggerDto
   | OnFormSubmittedTriggerDto
-  | OnFormSubmittedNoEventTriggerDto
   | OnRejectedTriggerDto
   | OnRequestedTriggerDto
   | OnPaymentInitiatedTriggerDto
@@ -99,7 +97,6 @@ export type TriggerDtoType =
   OnBeforeEventTriggerDto,
   OnAfterEventTriggerDto,
   OnFormSubmittedTriggerDto,
-  OnFormSubmittedNoEventTriggerDto,
   OnCancelTriggerDto,
   OnCreationTriggerDto,
   OnRescheduleTriggerDto,
@@ -140,7 +137,6 @@ export class CreateWorkflowDto {
       { $ref: getSchemaPath(OnAfterCalVideoGuestsNoShowTriggerDto) },
       { $ref: getSchemaPath(OnAfterCalVideoHostsNoShowTriggerDto) },
       { $ref: getSchemaPath(OnFormSubmittedTriggerDto) },
-      { $ref: getSchemaPath(OnFormSubmittedNoEventTriggerDto) },
       { $ref: getSchemaPath(OnRejectedTriggerDto) },
       { $ref: getSchemaPath(OnRequestedTriggerDto) },
       { $ref: getSchemaPath(OnPaidTriggerDto) },
@@ -182,7 +178,6 @@ export class CreateWorkflowDto {
     | OnNoShowUpdateTriggerDto
     | OnAfterCalVideoGuestsNoShowTriggerDto
     | OnFormSubmittedTriggerDto
-    | OnFormSubmittedNoEventTriggerDto;
 
   @ApiProperty({
     description: "Steps to execute as part of the workflow",
