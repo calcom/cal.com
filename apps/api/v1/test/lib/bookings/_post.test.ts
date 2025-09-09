@@ -303,6 +303,7 @@ describe("POST /api/bookings", () => {
 
       prismaMock.eventType.findUniqueOrThrow.mockResolvedValue({
         ...buildEventType({ recurringEvent: { freq: 2, count: 12, interval: 1 } }),
+        // @ts-expect-error requires mockDeep which will be introduced in the Prisma 6.7.0 upgrade, ignore for now.
         profile: { organizationId: null },
         hosts: [],
         users: [buildUser()],
@@ -340,6 +341,7 @@ describe("POST /api/bookings", () => {
 
       prismaMock.eventType.findUniqueOrThrow.mockResolvedValue({
         ...buildEventType({ recurringEvent: { freq: 2, count: 12, interval: 1 } }),
+        // @ts-expect-error requires mockDeep which will be introduced in the Prisma 6.7.0 upgrade, ignore for now.
         profile: { organizationId: null },
         hosts: [],
         users: [buildUser()],
@@ -376,6 +378,7 @@ describe("POST /api/bookings", () => {
 
       prismaMock.eventType.findUniqueOrThrow.mockResolvedValue({
         ...buildEventType({ profileId: null }),
+        // @ts-expect-error requires mockDeep which will be introduced in the Prisma 6.7.0 upgrade, ignore for now.
         profile: { organizationId: null },
         hosts: [],
         users: [buildUser()],
@@ -417,6 +420,7 @@ describe("POST /api/bookings", () => {
 
         prismaMock.eventType.findUniqueOrThrow.mockResolvedValue({
           ...buildEventType({ profileId: null, length: 15 }),
+          // @ts-expect-error requires mockDeep which will be introduced in the Prisma 6.7.0 upgrade, ignore for now.
           profile: { organizationId: null },
           hosts: [],
           users: [buildUser()],
@@ -468,7 +472,7 @@ describe("POST /api/bookings", () => {
 
         prismaMock.booking.findUnique.mockResolvedValue({
           ...originalBooking,
-          status: "cancelled",
+          status: "CANCELLED",
         });
 
         const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
@@ -492,6 +496,7 @@ describe("POST /api/bookings", () => {
 
         prismaMock.eventType.findUniqueOrThrow.mockResolvedValue({
           ...buildEventType({ profileId: null, length: 15 }),
+          // @ts-expect-error requires mockDeep which will be introduced in the Prisma 6.7.0 upgrade, ignore for now.
           profile: { organizationId: null },
           hosts: [],
           users: [buildUser()],
@@ -556,6 +561,7 @@ describe("POST /api/bookings", () => {
 
         prismaMock.eventType.findUniqueOrThrow.mockResolvedValue({
           ...buildEventType({ profileId: null, length: 15 }),
+          // @ts-expect-error requires mockDeep which will be introduced in the Prisma 6.7.0 upgrade, ignore for now.
           profile: { organizationId: null },
           hosts: [],
           users: [buildUser()],
@@ -627,6 +633,7 @@ describe("POST /api/bookings", () => {
 
         prismaMock.eventType.findUniqueOrThrow.mockResolvedValue({
           ...buildEventType({ profileId: null, length: 15 }),
+          // @ts-expect-error requires mockDeep which will be introduced in the Prisma 6.7.0 upgrade, ignore for now.
           profile: { organizationId: null },
           hosts: [],
           users: [buildUser()],
@@ -684,6 +691,7 @@ describe("POST /api/bookings", () => {
 
       prismaMock.eventType.findUniqueOrThrow.mockResolvedValue({
         ...buildEventType({ recurringEvent: { freq: 2, count: 12, interval: 1 } }),
+        // @ts-expect-error requires mockDeep which will be introduced in the Prisma 6.7.0 upgrade, ignore for now.
         profile: { organizationId: null },
         hosts: [],
         users: [buildUser()],
