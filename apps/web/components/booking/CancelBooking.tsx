@@ -132,16 +132,6 @@ export default function CancelBooking(props: Props) {
   const [internalNote, setInternalNote] = useState<{ id: number; name: string } | null>(null);
   const [acknowledgeCancellationNoShowFee, setAcknowledgeCancellationNoShowFee] = useState(false);
 
-  const getIsCancellationReasonRequired = () => {
-    if (!props.teamCancellationSettings) return props.isHost;
-
-    if (props.isHost) return props.teamCancellationSettings.mandatoryCancellationReasonForHost;
-
-    return props.teamCancellationSettings.mandatoryCancellationReasonForAttendee;
-  };
-
-  const isCancellationReasonRequired = getIsCancellationReasonRequired();
-
   const getAppMetadata = (appId: string): Record<string, unknown> | null => {
     if (!eventTypeMetadata?.apps || !appId) return null;
     const apps = eventTypeMetadata.apps as Record<string, unknown>;
@@ -169,13 +159,37 @@ export default function CancelBooking(props: Props) {
     });
   };
 
+  const isCancellationReasonRequired = () => {
+    if (!props.teamCancellationSettings) return props.isHost;
+
+    if (props.isHost) return props.teamCancellationSettings.mandatoryCancellationReasonForHost;
+
+    return props.teamCancellationSettings.mandatoryCancellationReasonForAttendee;
+  };
+
   const cancellationNoShowFeeWarning = autoChargeNoShowFee();
 
-  const hostMissingCancellationReason =
-    props.isHost && isCancellationReasonRequired &&
-    (!cancellationReason?.trim() || (props.internalNotePresets.length > 0 && !internalNote?.id));
-  const cancellationNoShowFeeNotAcknowledged =
-    !props.isHost && cancellationNoShowFeeWarning && !acknowledgeCancellationNoShowFee;
+  const isCancelButtonDisabled = () => {
+    if (isCancellationReasonRequired() && !cancellationReason?.trim()) {
+      return true;
+    }
+
+    if (
+      props.isHost &&
+      isCancellationReasonRequired() &&
+      props.internalNotePresets.length > 0 &&
+      !internalNote?.id
+    ) {
+      return true;
+    }
+
+    if (!props.isHost && cancellationNoShowFeeWarning && !acknowledgeCancellationNoShowFee) {
+      return true;
+    }
+
+    return false;
+  };
+
   const cancelBookingRef = useCallback((node: HTMLTextAreaElement) => {
     if (node !== null) {
       // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- CancelBooking is not usually used in embed mode
@@ -226,7 +240,7 @@ export default function CancelBooking(props: Props) {
           )}
 
           <Label>
-            {isCancellationReasonRequired
+            {isCancellationReasonRequired()
               ? t("cancellation_reason_required")
               : t("cancellation_reason_optional")}
           </Label>
@@ -275,11 +289,7 @@ export default function CancelBooking(props: Props) {
               </Button>
               <Button
                 data-testid="confirm_cancel"
-                disabled={
-                  (isCancellationReasonRequired && !cancellationReason.trim()) ||
-                  // hostMissingCancellationReason ||
-                  cancellationNoShowFeeNotAcknowledged
-                }
+                disabled={isCancelButtonDisabled()}
                 onClick={async () => {
                   setLoading(true);
 
