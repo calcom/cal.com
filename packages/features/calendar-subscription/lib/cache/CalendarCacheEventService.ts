@@ -4,10 +4,7 @@ import logger from "@calcom/lib/logger";
 import type { SelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
 import type { CalendarCacheEvent, SelectedCalendar } from "@calcom/prisma/client";
 
-import type {
-  CalendarCredential,
-  CalendarSubscriptionEventItem,
-} from "../../lib/CalendarSubscriptionPort.interface";
+import type { CalendarSubscriptionEventItem } from "../../lib/CalendarSubscriptionPort.interface";
 
 const log = logger.getSubLogger({ prefix: ["CalendarCacheEventService"] });
 
@@ -21,23 +18,32 @@ export class CalendarCacheEventService {
 
   async handleEvents(
     selectedCalendar: SelectedCalendar,
-    credential: CalendarCredential,
     calendarSubscriptionEvents: CalendarSubscriptionEventItem[]
   ): Promise<void> {
     log.debug("handleEvents", { count: calendarSubscriptionEvents.length });
     const toUpsert: Partial<CalendarCacheEvent>[] = [];
-    const toDelete: Partial<CalendarCacheEvent>[] = [];
+    const toDelete: { selectedCalendarId: string; externalEventId: string }[] = [];
     for (const event of calendarSubscriptionEvents) {
-      if (event.transparency === "opaque") {
+      if (!event.id) {
+        log.warn("handleEvents: skipping event with no ID", { event });
+        continue;
+      }
+
+      if (event.busy) {
         toUpsert.push({
           selectedCalendarId: selectedCalendar.id,
-        });
-      } else if (event.transparency === "transparent") {
-        toDelete.push({
-          selectedCalendarId: selectedCalendar.id,
+          start: event.start,
+          end: event.end,
+          externalEventId: event.id,
+          summary: event.summary,
+          description: event.description,
+          location: event.location,
         });
       } else {
-        log.warn("handleEvents: ignoring unknown transparency", { transparency: event.transparency });
+        toDelete.push({
+          selectedCalendarId: selectedCalendar.id,
+          externalEventId: event.id,
+        });
       }
     }
 
@@ -47,8 +53,8 @@ export class CalendarCacheEventService {
       toDelete: toDelete.length,
     });
     await Promise.all([
-      // this.deps.calendarCacheEventRepository.deleteManyBy(toDelete),
-      // this.deps.calendarCacheEventRepository.upsertMany(toUpsert),
+      this.deps.calendarCacheEventRepository.deleteMany(toDelete),
+      this.deps.calendarCacheEventRepository.upsertMany(toUpsert),
     ]);
   }
 

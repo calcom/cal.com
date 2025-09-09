@@ -4,9 +4,9 @@ import type {
   CredentialForCalendarServiceWithEmail,
 } from "@calcom/types/Credential";
 
-export type CalendarSubscriptionProvider = "google" | "outlook";
+export type CalendarSubscriptionProvider = "google" | "microsoft";
 
-export type WebhookContext = {
+export type CalendarSubscriptionWebhookContext = {
   headers?: Headers;
   query?: URLSearchParams;
   body?: unknown | null;
@@ -21,15 +21,16 @@ export type CalendarSubscriptionResult = {
 };
 
 export type CalendarSubscriptionEventItem = {
-  transparency?: "opaque" | "transparent" | null;
-  start?: string | null;
-  end?: string | null;
+  id?: string | null;
+  iCalUID?: string | null;
+  start?: Date;
+  end?: Date;
+  busy: boolean;
   summary?: string | null;
   description?: string | null;
-  iCalUID?: string | null;
-  id?: string | null;
   kind?: string | null;
   status?: string | null;
+  location?: string | null;
 };
 
 export type CalendarSubscriptionEvent = {
@@ -45,13 +46,13 @@ export interface ICalendarSubscriptionPort {
    * Validates a webhook request
    * @param context
    */
-  validate(context: WebhookContext): Promise<boolean>;
+  validate(context: CalendarSubscriptionWebhookContext): Promise<boolean>;
 
   /**
    * Extracts channel ID from a webhook request
    * @param request
    */
-  extractChannelId(context: WebhookContext): Promise<string | null>;
+  extractChannelId(context: CalendarSubscriptionWebhookContext): Promise<string | null>;
 
   /**
    * Subscribes to a calendar

@@ -19,23 +19,13 @@ const ADAPTERS = {
 };
 
 async function postHandler(request: NextRequest, context: { params: Promise<Params> }) {
-  const provider = (await context.params).provider as string[];
-  log.debug("Received webhook", { provider });
+  log.debug("Received webhook");
 
+  const provider = (await context.params).provider as string[];
   const calendarSubscriptionAdapter = ADAPTERS[provider[0] as keyof typeof ADAPTERS];
   if (!calendarSubscriptionAdapter) {
     log.error("Unsupported provider", { provider });
     return NextResponse.json({ message: "Unsupported provider" }, { status: 400 });
-  }
-
-  const channelId = await calendarSubscriptionAdapter.extractChannelId({
-    headers: request.headers,
-    query: new URL(request.url).searchParams,
-    body: await request.text(),
-  });
-  if (!channelId) {
-    log.error("Missing channel ID in webhook");
-    return NextResponse.json({ message: "Missing channel ID" }, { status: 400 });
   }
 
   try {
@@ -44,15 +34,17 @@ async function postHandler(request: NextRequest, context: { params: Promise<Para
       selectedCalendarRepository: new SelectedCalendarRepository(prisma),
       featuresRepository: new FeaturesRepository(prisma),
     });
-    await calendarSubscriptionService.processWebhook(channelId);
+    await calendarSubscriptionService.processWebhook({
+      headers: request.headers,
+      query: new URL(request.url).searchParams,
+      body: await request.json(),
+    });
+    return NextResponse.json({ message: "Webhook processed" }, { status: 200 });
   } catch (error) {
-    log.error("Error processing webhook", { error, channelId });
+    log.error("Error processing webhook", { error });
     const message = error instanceof Error ? error.message : "Unknown error";
-    const response = { message };
-    return NextResponse.json(response, { status: 500 });
+    return NextResponse.json({ message }, { status: 500 });
   }
-
-  return NextResponse.json({ message: "Webhook processed" }, { status: 200 });
 }
 
 export const POST = defaultResponderForAppDir(postHandler);

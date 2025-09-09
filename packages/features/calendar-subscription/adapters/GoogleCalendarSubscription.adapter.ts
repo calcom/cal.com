@@ -11,7 +11,7 @@ import type {
   CalendarSubscriptionEvent,
   CalendarSubscriptionEventItem,
   CalendarCredential,
-  WebhookContext,
+  CalendarSubscriptionWebhookContext,
 } from "../lib/CalendarSubscriptionPort.interface";
 
 const log = logger.getSubLogger({ prefix: ["GoogleCalendarSubscriptionAdapter"] });
@@ -20,7 +20,7 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
   private GOOGLE_WEBHOOK_TOKEN = process.env.GOOGLE_WEBHOOK_TOKEN;
   private GOOGLE_WEBHOOK_URL = process.env.GOOGLE_WEBHOOK_URL;
 
-  async validate(context: WebhookContext): Promise<boolean> {
+  async validate(context: CalendarSubscriptionWebhookContext): Promise<boolean> {
     const token = context?.headers?.get("X-Goog-Channel-Token");
     if (token !== this.GOOGLE_WEBHOOK_TOKEN) {
       log.warn("Invalid webhook token", { token });
@@ -29,7 +29,7 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
     return true;
   }
 
-  async extractChannelId(context: WebhookContext): Promise<string | null> {
+  async extractChannelId(context: CalendarSubscriptionWebhookContext): Promise<string | null> {
     const channelId = context?.headers?.get("X-Goog-Channel-ID");
     if (!channelId) {
       log.warn("Missing channel ID in webhook");
@@ -120,24 +120,38 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
   }
 
   private sanitizeEvents(events: calendar_v3.Schema$Event[]): CalendarSubscriptionEventItem[] {
-    return events.map((event) => {
-      const start = event.start?.dateTime ?? event.start?.date ?? null;
-      const end = event.end?.dateTime ?? event.end?.date ?? null;
-      const transparency = event.transparency === "transparent" ? "transparent" : "opaque"; // default busy
+    const now = new Date();
+    return events
+      .map((event) => {
+        const busy = event.transparency === "opaque";
 
-      return {
-        id: event.id,
-        kind: event.kind,
-        iCalUID: event.iCalUID,
-        status: event.status,
-        start,
-        end,
-        summary: event.summary,
-        description: event.description,
-        // used to update cache only
-        transparency,
-      };
-    });
+        const start = event.start?.dateTime
+          ? new Date(event.start.dateTime)
+          : event.start?.date
+          ? new Date(event.start.date)
+          : new Date();
+
+        const end = event.end?.dateTime
+          ? new Date(event.end.dateTime)
+          : event.end?.date
+          ? new Date(event.end.date)
+          : new Date();
+
+        return {
+          id: event.id,
+          iCalUID: event.iCalUID,
+          start,
+          end,
+          busy,
+          summary: event.summary,
+          description: event.description,
+          location: event.location,
+          kind: event.kind,
+          status: event.status,
+        };
+      })
+      .filter((e) => !!e.id) // safely remove events with no ID
+      .filter((e) => e.start < now); // remove old events;
   }
 
   private async getClient(credential: CalendarCredential) {

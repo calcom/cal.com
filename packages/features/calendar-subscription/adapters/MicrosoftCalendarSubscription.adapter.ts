@@ -7,16 +7,16 @@ import type {
   ICalendarSubscriptionPort,
   CalendarSubscriptionResult,
   CalendarCredential,
-  WebhookContext,
+  CalendarSubscriptionWebhookContext,
 } from "../lib/CalendarSubscriptionPort.interface";
 
 const log = logger.getSubLogger({ prefix: ["MicrosoftCalendarSubscriptionAdapter"] });
 
 export class MicrosoftCalendarSubscriptionAdapter implements ICalendarSubscriptionPort {
-  validate(context: WebhookContext): Promise<boolean> {
+  validate(context: CalendarSubscriptionWebhookContext): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
-  extractChannelId(context: WebhookContext): Promise<string | null> {
+  extractChannelId(context: CalendarSubscriptionWebhookContext): Promise<string | null> {
     throw new Error("Method not implemented.");
   }
   async subscribe(

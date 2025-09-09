@@ -6,6 +6,7 @@ import { prisma } from "@calcom/prisma";
 
 import type {
   CalendarCredential,
+  CalendarSubscriptionWebhookContext,
   ICalendarSubscriptionPort,
 } from "../lib/CalendarSubscriptionPort.interface";
 
@@ -91,9 +92,20 @@ export class CalendarSubscriptionService {
    * @param channelId
    * @returns
    */
-  async processWebhook(channelId: string) {
-    log.debug("Processing webhook", { channelId });
+  async processWebhook(context: CalendarSubscriptionWebhookContext) {
+    const isValid = await this.deps.calendarSubscriptionPort.validate(context);
+    if (!isValid) {
+      log.warn("Invalid webhook request");
+      return;
+    }
 
+    const channelId = await this.deps.calendarSubscriptionPort.extractChannelId(context);
+    if (!channelId) {
+      log.warn("Missing channel ID in webhook");
+      return;
+    }
+
+    log.debug("Processing webhook", { channelId });
     const [selectedCalendar, cacheEnabled, syncEnabled] = await Promise.all([
       this.deps.selectedCalendarRepository.findByChannelId(channelId),
       this.deps.featuresRepository.checkIfFeatureIsEnabledGlobally("calendar-subscription-cache"),
@@ -158,11 +170,7 @@ export class CalendarSubscriptionService {
         calendarCacheEventRepository: new CalendarCacheEventRepository(prisma),
         selectedCalendarRepository: this.deps.selectedCalendarRepository,
       });
-      await calendarCacheEventService.handleEvents(
-        selectedCalendar,
-        credential,
-        calendarSubscriptionEvents.items
-      );
+      await calendarCacheEventService.handleEvents(selectedCalendar, calendarSubscriptionEvents.items);
     }
 
     if (syncEnabled) {
@@ -171,7 +179,7 @@ export class CalendarSubscriptionService {
       // Dynamic import to avoid it fully when flag is disabled
       const { CalendarSyncService } = await import("./sync/CalendarSyncService");
       const calendarSyncService = new CalendarSyncService();
-      await calendarSyncService.handleEvents(selectedCalendar, credential, calendarSubscriptionEvents.items);
+      await calendarSyncService.handleEvents(selectedCalendar, calendarSubscriptionEvents.items);
     }
   }
 

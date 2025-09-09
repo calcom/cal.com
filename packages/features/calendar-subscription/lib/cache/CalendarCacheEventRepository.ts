@@ -12,14 +12,23 @@ export class CalendarCacheEventRepository implements ICalendarCacheEventReposito
     });
   }
 
-  async deleteMany(events: Pick<CalendarCacheEvent, "id">[]): Promise<void> {
-    const ids = events.map((e) => e.id).filter((id): id is string => !!id);
-    if (ids.length === 0) {
+  async deleteMany(
+    events: Pick<CalendarCacheEvent, "externalEventId" | "selectedCalendarId">[]
+  ): Promise<void> {
+    const conditions = events
+      .map((e) => ({
+        externalEventId: e.externalEventId,
+        selectedCalendarId: e.selectedCalendarId,
+      }))
+      .filter((c) => c.externalEventId && c.selectedCalendarId);
+
+    if (conditions.length === 0) {
       return;
     }
+
     await this.prismaClient.calendarCacheEvent.deleteMany({
       where: {
-        id: { in: ids },
+        OR: conditions,
       },
     });
   }

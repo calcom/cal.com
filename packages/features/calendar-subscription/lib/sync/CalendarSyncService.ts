@@ -1,7 +1,4 @@
-import type {
-  CalendarCredential,
-  CalendarSubscriptionEventItem,
-} from "calendar-subscription/lib/CalendarSubscriptionPort.interface";
+import type { CalendarSubscriptionEventItem } from "calendar-subscription/lib/CalendarSubscriptionPort.interface";
 
 import logger from "@calcom/lib/logger";
 import type { SelectedCalendar } from "@calcom/prisma/client";
@@ -11,7 +8,6 @@ const log = logger.getSubLogger({ prefix: ["CalendarSyncService"] });
 export class CalendarSyncService {
   async handleEvents(
     selectedCalendar: SelectedCalendar,
-    credential: CalendarCredential,
     calendarSubscriptionEvents: CalendarSubscriptionEventItem[]
   ) {
     log.debug("handleEvents", {
