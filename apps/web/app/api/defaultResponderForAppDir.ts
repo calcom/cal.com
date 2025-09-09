@@ -20,8 +20,9 @@ export const defaultResponderForAppDir = <T extends NextResponse | Response = Ne
     try {
       performance.mark("Start");
       if (process.env.NODE_ENV === "development") {
+        const res = await handler(req, { params });
         ok = true;
-        return (await handler(req, { params })) ?? NextResponse.json({});
+        return res ?? NextResponse.json({});
       }
 
       let result;

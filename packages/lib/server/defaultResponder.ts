@@ -16,8 +16,9 @@ export function defaultResponder<T>(
     try {
       performance.mark("Start");
       if (process.env.NODE_ENV === "development") {
+        const result = await f(req, res);
         ok = true;
-        return await f(req, res);
+        return result;
       }
 
       let result;
@@ -25,7 +26,7 @@ export function defaultResponder<T>(
         const { wrapApiHandlerWithSentry } = await import("@sentry/nextjs");
         result = await wrapApiHandlerWithSentry(f, endpointRoute)(req, res);
       } else {
-        result = f(req, res);
+        result = await f(req, res);
       }
 
       ok = true;
