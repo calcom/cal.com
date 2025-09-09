@@ -26,9 +26,10 @@ interface AppCardProps {
   credentials?: Credential[];
   searchText?: string;
   userAdminTeams?: UserAdminTeams;
+  maxDescriptionLength?: number;
 }
 
-export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCardProps) {
+export function AppCard({ app, credentials, searchText, userAdminTeams, maxDescriptionLength = 140 }: AppCardProps) {
   const { t } = useLocale();
   const router = useRouter();
   const allowedMultipleInstalls = app.categories && app.categories.indexOf("calendar") > -1;
@@ -125,7 +126,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
           maxHeight: "4.5em", // Shows exactly 3 lines of text
           wordBreak: "break-word",
         }}>
-        {app.description ? (app.description.length > 140 ? `${app.description.substring(0, 140).trim()}...` : app.description) : ""}
+        {app.description ? (app.description.length > maxDescriptionLength ? `${app.description.substring(0, maxDescriptionLength).trim()}...` : app.description) : ""}
       </p>
 
       <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
