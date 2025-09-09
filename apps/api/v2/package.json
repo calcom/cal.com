@@ -81,7 +81,7 @@
     "querystring": "^0.2.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
-    "stripe": "^15.3.0",
+    "stripe": "^9.16.0",
     "uuid": "^8.3.2",
     "winston": "^3.13.0",
     "winston-transport": "^4.7.0",
@@ -110,7 +110,7 @@
     "ts-loader": "^9.4.3",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.1.0",
-    "typescript": "^5.9.0-beta"
+    "typescript": "^5.9.0"
   },
   "prisma": {
     "schema": "../../../packages/prisma/schema.prisma"

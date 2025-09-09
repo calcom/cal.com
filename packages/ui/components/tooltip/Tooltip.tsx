@@ -22,7 +22,7 @@ export function Tooltip({
   defaultOpen?: boolean;
   side?: "top" | "right" | "bottom" | "left";
   onOpenChange?: (open: boolean) => void;
-} & TooltipPrimitive.TooltipContentProps) {
+} & Omit<TooltipPrimitive.TooltipContentProps, "content">) {
   const Content = (
     <TooltipPrimitive.Content
       {...props}

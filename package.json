@@ -90,12 +90,13 @@
     "@playwright/test": "^1.45.3",
     "@snaplet/copycat": "^4.1.0",
     "@testing-library/jest-dom": "^5.16.5",
-    "@testing-library/react": "^16.0.1",
+    "@testing-library/react": "^13.4.0",
     "@vitest/ui": "^2.1.1",
     "c8": "^7.13.0",
     "checkly": "latest",
     "dotenv-checker": "^1.1.5",
     "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-playwright": "latest",
     "husky": "^8.0.0",
     "i18n-unused": "^0.13.0",
     "jest-diff": "^29.5.0",
@@ -109,7 +110,7 @@
     "prismock": "^1.33.4",
     "resize-observer-polyfill": "^1.5.1",
     "tsc-absolute": "^1.0.0",
-    "typescript": "5.9.0-beta",
+    "typescript": "^5.9.0",
     "vitest": "^2.1.1",
     "vitest-fetch-mock": "^0.3.0",
     "vitest-mock-extended": "^2.0.2"
@@ -121,14 +122,14 @@
     "@vercel/functions": "^1.4.0",
     "city-timezones": "^1.2.1",
     "date-fns-tz": "^3.2.0",
-    "eslint": "^8.34.0",
+    "eslint": "^8.57.0",
     "p-limit": "^6.2.0",
     "turbo": "^2.5.5"
   },
   "resolutions": {
     "types-ramda": "0.29.4",
     "@apidevtools/json-schema-ref-parser": "9.0.9",
-    "@types/react": "18.0.26",
+    "@types/react": "^18.2.0",
     "@types/react-dom": "^18.0.9",
     "@types/node": "^20.17.23",
     "next-i18next@^13.2.2": "patch:next-i18next@npm%3A13.3.0#./.yarn/patches/next-i18next-npm-13.3.0-bf25b0943c.patch",
@@ -138,7 +139,10 @@
     "dayjs@^1.8.29": "patch:dayjs@npm%3A1.11.4#./.yarn/patches/dayjs-npm-1.11.4-97921cd375.patch",
     "@prisma/client@^5.4.2": "patch:@prisma/client@npm%3A5.4.2#./.yarn/patches/@prisma-client-npm-5.4.2-fca489b2dc.patch",
     "@prisma/client@5.4.2": "patch:@prisma/client@npm%3A5.4.2#./.yarn/patches/@prisma-client-npm-5.4.2-fca489b2dc.patch",
-    "import-in-the-middle": "1.13.1"
+    "import-in-the-middle": "1.13.1",
+    "typescript": "^5.9.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "lint-staged": {
     "(apps|packages)/**/*.{js,ts,jsx,tsx}": [
