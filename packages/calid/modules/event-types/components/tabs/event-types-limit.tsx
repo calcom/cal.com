@@ -696,8 +696,8 @@ const MaxActiveBookingsPerBookerController = memo(
     );
 
     const handleOfferRescheduleChange = useCallback(
-      (e: React.ChangeEvent<HTMLInputElement>) => {
-        formMethods.setValue("maxActiveBookingPerBookerOfferReschedule", e.target.checked, {
+      (isChecked: boolean) => {
+        formMethods.setValue("maxActiveBookingPerBookerOfferReschedule", isChecked, {
           shouldDirty: true,
         });
       },

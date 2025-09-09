@@ -1,6 +1,7 @@
 import authedProcedure from "../../../../procedures/authedProcedure";
 import { router } from "../../../../trpc";
 import { ZBulkUpdateToDefaultAvailabilityInputSchema } from "./bulkUpdateDefaultAvailability.schema";
+import { ZCalIdGetAllByUserIdInputSchema } from "./calid/getAllSchedulesByUserId.schema";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZScheduleDuplicateSchema } from "./duplicate.schema";
@@ -102,6 +103,18 @@ export const scheduleRouter = router({
       );
 
       return bulkUpdateToDefaultAvailabilityHandler({
+        ctx,
+        input,
+      });
+    }),
+  calid_getAllSchedulesByUserId: authedProcedure
+    .input(ZCalIdGetAllByUserIdInputSchema)
+    .query(async ({ input, ctx }) => {
+      const { calid_getAllSchedulesByUserIdHandler } = await import(
+        "./calid/getAllSchedulesByUserId.handler"
+      );
+
+      return calid_getAllSchedulesByUserIdHandler({
         ctx,
         input,
       });

@@ -2,8 +2,9 @@ import type { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 
 // Base types from TRPC responses
-export type GetUserEventGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
-export type GetEventTypesFromGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getEventTypesFromGroup"];
+export type GetUserEventGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["calid_getUserEventGroups"];
+export type GetEventTypesFromGroupsResponse =
+  RouterOutputs["viewer"]["eventTypes"]["calid_getEventTypesFromGroup"];
 
 export type InfiniteEventTypeGroup = GetUserEventGroupsResponse["eventTypeGroups"][number];
 export type InfiniteEventType = GetEventTypesFromGroupsResponse["eventTypes"][number];

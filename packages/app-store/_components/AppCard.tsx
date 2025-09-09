@@ -48,7 +48,7 @@ export default function AppCard({
   const isPlatform = useIsPlatform();
 
   return (
-    <Section className={classNames(!app?.isInstalled && "bg-default border-muted rounded-xl border")}>
+    <Section className={classNames(!app?.isInstalled && "bg-default border-default rounded-md border")}>
       <Section.Header
         rawHeading={
           <div>
@@ -95,7 +95,6 @@ export default function AppCard({
             {app?.isInstalled || app.credentialOwner ? (
               <div className="ml-auto flex items-center">
                 <Switch
-                  size="sm"
                   disabled={!app.enabled || managedDisabled || disableSwitch}
                   onCheckedChange={(enabled) => {
                     if (switchOnClick) {

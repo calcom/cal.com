@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@calid/features/ui/components/button";
-import { Checkbox } from "@calid/features/ui/components/checkbox";
 import { Icon } from "@calid/features/ui/components/icon";
+import { Checkbox } from "@calid/features/ui/components/input/checkbox-field";
 import React, { useState, useRef, useEffect } from "react";
 
 import { useCopy } from "@calcom/lib/hooks/useCopy";

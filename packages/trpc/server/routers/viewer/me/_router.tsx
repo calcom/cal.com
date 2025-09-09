@@ -38,4 +38,8 @@ export const meRouter = router({
     const handler = (await import("./updateProfile.handler")).updateProfileHandler;
     return handler({ ctx, input });
   }),
+  calid_get: authedProcedure.query(async ({ ctx, input }) => {
+    const handler = (await import("./calid/get.handler")).getHandler;
+    return handler({ ctx, input });
+  }),
 });

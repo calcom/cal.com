@@ -1,34 +1,27 @@
 "use client";
 
 import { cn } from "@calid/features/lib/cn";
-// Badge
 import { Badge } from "@calid/features/ui/components/badge";
-// Button
 import { Button } from "@calid/features/ui/components/button";
-// Cards
 import { Card, CardContent, CardHeader, CardTitle } from "@calid/features/ui/components/card";
-import { Checkbox } from "@calid/features/ui/components/checkbox";
-// Collapsible
 import { Collapsible, CollapsibleContent } from "@calid/features/ui/components/collapsible";
-// DropdownMenu
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@calid/features/ui/components/dropdown-menu";
 import { Icon } from "@calid/features/ui/components/icon";
-// Form inputs
-import { Input } from "@calid/features/ui/components/input";
+import { Checkbox } from "@calid/features/ui/components/input/checkbox-field";
+import { Input } from "@calid/features/ui/components/input/input";
+import { TextArea } from "@calid/features/ui/components/input/text-area";
 import { Label } from "@calid/features/ui/components/label";
-// Select
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@calid/features/ui/select/select";
-import { Textarea } from "@calid/features/ui/textarea/textarea";
+} from "@calid/features/ui/components/select";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -1518,7 +1511,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
                                                 </div>
                                               )}
                                             </div>
-                                            <Textarea
+                                            <TextArea
                                               rows={2}
                                               disabled={readOnly}
                                               className="my-0 focus:ring-transparent"

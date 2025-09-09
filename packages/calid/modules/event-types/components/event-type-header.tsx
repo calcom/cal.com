@@ -1,14 +1,13 @@
 "use client";
 
+import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
-import { Badge } from "@calid/features/ui/components/badge";
 import { TextField } from "@calid/features/ui/components/input/input";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-
-import classNames from "@calcom/ui/classNames";
-
 import React from "react";
+
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
 
 import type { EventTypesHeaderProps } from "../types/event-types";
 
@@ -28,11 +27,11 @@ export const EventTypesHeader: React.FC<EventTypesHeaderProps> = ({
   const publicUrl = currentTeam?.teamId
     ? `${bookerUrl}/${currentTeam?.profile.slug}`
     : `${bookerUrl}/${currentTeam?.profile.slug}`;
-  const cleanPublicUrl = publicUrl.replace(/^https?:\/\//, '');
+  const cleanPublicUrl = publicUrl.replace(/^https?:\/\//, "");
   const { t } = useLocale();
 
   return (
-    <div className="w-full max-w-full mb-4">
+    <div className="mb-4 w-full max-w-full">
       <div className="flex items-center justify-between">
         <div className="flex flex-1 items-center space-x-2">
           {/* Search Bar */}
@@ -44,8 +43,7 @@ export const EventTypesHeader: React.FC<EventTypesHeaderProps> = ({
             autoComplete="false"
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={t("search_events")}
-          >
-          </TextField>
+          />
 
           {/* Public URL Display */}
           <Badge variant="secondary" isPublicUrl={true} className="rounded-md">
@@ -55,7 +53,7 @@ export const EventTypesHeader: React.FC<EventTypesHeaderProps> = ({
 
         {/* New Button with Dropdown */}
         <div className="relative" ref={newDropdownRef}>
-          <Button StartIcon="plus" onClick={onToggleNewDropdown}  disabled={currentTeam?.metadata?.readOnly}>
+          <Button StartIcon="plus" onClick={onToggleNewDropdown} disabled={currentTeam?.metadata?.readOnly}>
             {t("new")}
           </Button>
 

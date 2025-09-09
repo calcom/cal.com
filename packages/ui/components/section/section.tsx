@@ -17,7 +17,7 @@ const Root = ({
   const [animateRef] = useAutoAnimate<HTMLDivElement>();
 
   return (
-    <div ref={animateRef} className={cn("bg-muted flex flex-col gap-4 rounded-2xl p-4", className)}>
+    <div ref={animateRef} className={cn("bg-muted flex flex-col gap-4 rounded-md p-6", className)}>
       {children}
     </div>
   );

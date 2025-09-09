@@ -11,7 +11,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { ColorPicker, Label, Select, Switch, TextField } from "@calcom/ui/components/form";
 
-type EventType = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"] | undefined;
+type EventType = RouterOutputs["viewer"]["eventTypes"]["calid_get"]["eventType"] | undefined;
 
 interface EmbedOptionsProps {
   embedType: keyof typeof EmbedTypes;

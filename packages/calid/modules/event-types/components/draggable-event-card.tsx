@@ -1,5 +1,7 @@
 "use client";
 
+import { Badge } from "@calid/features/ui/components/badge";
+import { Button } from "@calid/features/ui/components/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,16 +10,15 @@ import {
 } from "@calid/features/ui/components/dropdown-menu";
 import { Icon } from "@calid/features/ui/components/icon";
 import { Switch } from "@calid/features/ui/components/switch/switch";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import React, { useMemo, useState, useEffect } from "react";
-import { Badge } from "@calid/features/ui/components/badge";
+
 import { extractHostTimezone, filterActiveLinks } from "@calcom/lib/hashedLinksUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { triggerToast } from "@calid/features/ui/components/toast";
-import { Button } from "@calid/features/ui/components/button";
 
 import type { DraggableEventCardProps } from "../types/event-types";
 import { EventTypeCardIcon } from "./event-type-card-icon";
@@ -40,7 +41,7 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
   const { t } = useLocale();
   const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
   const [currentIconParams, setCurrentIconParams] = useState<IconParams | undefined>(
-    event.metadata?.iconParams as IconParams || { icon: "calendar", color: "#6B7280" }
+    (event.metadata?.iconParams as IconParams) || { icon: "calendar", color: "#6B7280" }
   );
 
   useEffect(() => {
@@ -48,16 +49,12 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
     setCurrentIconParams(eventIconParams || { icon: "calendar", color: "#6B7280" });
   }, [event.metadata?.iconParams]);
 
-  const updateMutation = trpc.viewer.eventTypes.update.useMutation({
+  const updateMutation = trpc.viewer.eventTypes.calid_update.useMutation({
     onSuccess: () => {
       triggerToast(t("event_icon_updated"), "success");
-      // Force a refetch or invalidate queries to ensure all components see the update
-      // You might want to add this depending on your TRPC setup:
-      // utils.viewer.eventTypes.list.invalidate();
     },
     onError: (error) => {
       triggerToast(error.message, "error");
-      // Revert local state on error
       setCurrentIconParams(event.metadata?.iconParams as IconParams);
     },
   });
@@ -122,15 +119,14 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
     setIsIconPickerOpen(true);
   };
 
-  const cleanPublicUrl = `${bookerUrl}${eventUrl}`.replace(/^https?:\/\//, '');
+  const cleanPublicUrl = `${bookerUrl}${eventUrl}`.replace(/^https?:\/\//, "");
 
   return (
     <>
       <div
         ref={setNodeRef}
         style={style}
-        className={`animate-fade-in group relative flex items-center ${isDragging ? 'opacity-0' : ''}`}
-      >
+        className={`animate-fade-in group relative flex items-center ${isDragging ? "opacity-0" : ""}`}>
         {/* Drag handle */}
         <div
           {...attributes}
@@ -139,59 +135,47 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
           style={{ cursor: "grab", left: "-20px" }}
           onMouseDown={(e) => (e.currentTarget.style.cursor = "grabbing")}
           onMouseUp={(e) => (e.currentTarget.style.cursor = "grab")}
-          onClick={(e) => e.stopPropagation()}
-        >
+          onClick={(e) => e.stopPropagation()}>
           <Icon name="grip-vertical" />
         </div>
 
         {/* Card content */}
         <div
-          className={`bg-white border-subtle flex-1 cursor-pointer rounded-md border p-4 transition-all hover:shadow-md`}
+          className="border-subtle flex-1 cursor-pointer rounded-md border bg-white p-4 transition-all hover:shadow-md"
           onClick={() => onEventEdit(event.id)}>
           <div className="flex items-start justify-between">
             <div className="flex flex-1 items-start space-x-3">
               {/* Event Type Icon - Updated with icon picker functionality */}
-              <EventTypeCardIcon 
-                iconParams={currentIconParams}
-                onClick={handleIconClick}
-              />
+              <EventTypeCardIcon iconParams={currentIconParams} onClick={handleIconClick} />
               <div className="min-w-0 flex-1">
-                <div className="flex items-center mb-2 gap-2">
+                <div className="mb-2 flex items-center gap-2">
                   <h3 className="text-emphasis text-medium font-semibold">{event.title}</h3>
-                  <Badge variant="secondary" isPublicUrl={true}>{cleanPublicUrl}</Badge>
+                  <Badge variant="secondary" isPublicUrl={true}>
+                    {cleanPublicUrl}
+                  </Badge>
                 </div>
 
                 {/* Event Description */}
-                <p className="text-subtle text-sm mb-3">{event.description}</p>
+                <p className="text-subtle mb-3 text-sm">{event.description}</p>
 
                 {/* Duration and scheduling info */}
                 <div className="flex items-center space-x-3">
                   {event.metadata?.multipleDuration ? (
                     event.metadata.multipleDuration.map((duration, idx) => (
-                      <Badge
-                        key={idx}
-                        variant="secondary"
-                        size="sm"
-                        startIcon="clock">
+                      <Badge key={idx} variant="secondary" size="sm" startIcon="clock">
                         {duration}m
                       </Badge>
                     ))
                   ) : (
-                    <Badge
-                      variant="secondary"
-                      size="sm"
-                      startIcon="clock">
+                    <Badge variant="secondary" size="sm" startIcon="clock">
                       {event.length}m
                     </Badge>
                   )}
 
                   {/* Team members for team events */}
                   {event.teamId && !isManagedEventType && event.users && event.users.length > 0 && (
-                    <Badge
-                      variant="outline"
-                      size="sm"
-                      startIcon="users">
-                      {event.users.length} member{event.users.length !== 1 ? 's' : ''}
+                    <Badge variant="outline" size="sm" startIcon="users">
+                      {event.users.length} member{event.users.length !== 1 ? "s" : ""}
                     </Badge>
                   )}
                 </div>
@@ -216,8 +200,8 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
                       color="secondary"
                       variant="icon"
                       StartIcon="ellipsis"
-                      onClick={(e) => e.stopPropagation()}>
-                    </Button>
+                      onClick={(e) => e.stopPropagation()}
+                    />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-40">
                     {!currentTeam?.metadata?.readOnly && (

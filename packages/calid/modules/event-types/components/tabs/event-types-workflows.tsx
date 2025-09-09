@@ -1,11 +1,10 @@
-// Workflow-specific imports
 import SkeletonLoader from "@calid/features/modules/workflows/components/event_workflow_tab_skeleton";
 import type { CalIdWorkflowType as WorkflowType } from "@calid/features/modules/workflows/config/types";
 import { getActionIcon } from "@calid/features/modules/workflows/utils/getActionicon";
-// UI components
 import { Alert } from "@calid/features/ui/components/alert";
 import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
+import { BlankCard } from "@calid/features/ui/components/card/blank-card";
 import { Icon } from "@calid/features/ui/components/icon";
 import { Switch } from "@calid/features/ui/components/switch/switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@calid/features/ui/components/tooltip";
@@ -17,7 +16,6 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { useFormContext } from "react-hook-form";
 
-// Core utilities and types
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -25,13 +23,12 @@ import { HttpError } from "@calcom/lib/http-error";
 import { WorkflowActions, SchedulingType } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 
 // Type definitions for better type safety
 type PartialWorkflowType = Pick<WorkflowType, "name" | "activeOn" | "steps" | "id" | "readOnly">;
-type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
+type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["calid_get"]["eventType"];
 
 export interface EventWorkflowsProps {
   eventType: EventTypeSetup;
@@ -253,7 +250,7 @@ const WorkflowListItem = React.memo(
     const utils = trpc.useUtils();
 
     // Mutation for activating/deactivating workflows
-    const activateEventTypeMutation = trpc.viewer.workflows.activateEventType.useMutation({
+    const activateEventTypeMutation = trpc.viewer.workflows.calid_activateEventType.useMutation({
       onSuccess: async () => {
         const offOn = isActive ? "off" : "on";
         revalidateEventTypeEditPage(eventType.id);
@@ -466,7 +463,7 @@ export const EventWorkflows = ({ eventType, workflows }: EventWorkflowsProps) =>
 
   // Fetch available workflows
   const { data, isPending } = trpc.viewer.workflows.calid_list.useQuery({
-    calIdTeamId: eventType.team?.id,
+    calIdTeamId: eventType.calIdTeamId || undefined,
     userId: !isChildrenManagedEventType ? eventType.userId || undefined : undefined,
   });
 
@@ -568,7 +565,7 @@ export const EventWorkflows = ({ eventType, workflows }: EventWorkflowsProps) =>
       ) : (
         /* Empty State */
         <div className="pt-2 before:border-0">
-          <EmptyScreen
+          <BlankCard
             Icon="zap"
             headline={t("workflows")}
             description={t("no_workflows_description")}

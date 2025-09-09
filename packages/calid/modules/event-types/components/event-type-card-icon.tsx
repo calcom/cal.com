@@ -1,6 +1,6 @@
-import { IconName } from "@calid/features/ui/components/icon";
-import React from "react";
 import { Button } from "@calid/features/ui/components/button";
+import type { IconName } from "@calid/features/ui/components/icon";
+import React from "react";
 
 export interface IconParams {
   icon: IconName;
@@ -13,10 +13,7 @@ interface EventTypeCardIconProps {
   onClick?: () => void;
 }
 
-export const EventTypeCardIcon: React.FC<EventTypeCardIconProps> = ({
-  iconParams,
-  onClick,
-}) => {
+export const EventTypeCardIcon: React.FC<EventTypeCardIconProps> = ({ iconParams, onClick }) => {
   const iconName = iconParams?.icon || "calendar";
   const iconColor = iconParams?.color || "#6b7280";
 
@@ -34,8 +31,7 @@ export const EventTypeCardIcon: React.FC<EventTypeCardIconProps> = ({
         className="bg-muted h-10 w-10"
         style={{ color: iconColor }}
         onClick={handleClick}
-      >
-      </Button>
+      />
     </div>
   );
 };

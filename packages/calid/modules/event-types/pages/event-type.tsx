@@ -5,14 +5,13 @@ import { triggerToast } from "@calid/features/ui/components/toast";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter as useAppRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
 import { useEventTypeForm } from "@calcom/atoms/event-types/hooks/useEventTypeForm";
 import { useHandleRouteChange } from "@calcom/atoms/event-types/hooks/useHandleRouteChange";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
-import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import Shell from "@calcom/features/shell/Shell";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -25,16 +24,30 @@ import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Form } from "@calcom/ui/components/form";
-import { revalidateTeamEventTypeCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
+import { revalidateCalIdTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 
 import { TRPCClientError } from "@trpc/react-query";
 
 // Import the new actions component
 import { EventTypeActions } from "../components/event-types-action";
+import { EventAdvanced } from "../components/tabs/event-types-advanced";
+import { EventApps } from "../components/tabs/event-types-apps";
+import { EventAvailability } from "../components/tabs/event-types-availability";
+import { EventEmbed } from "../components/tabs/event-types-embed";
+import { EventLimits } from "../components/tabs/event-types-limit";
+import { EventRecurring } from "../components/tabs/event-types-recurring";
+import { EventSetup } from "../components/tabs/event-types-setup";
 import { EventTeamAssignmentTab } from "../components/tabs/event-types-team-assignment";
+import { EventWebhooks } from "../components/tabs/event-types-webhook";
+import { EventWorkflows } from "../components/tabs/event-types-workflows";
+import { TabSkeleton } from "./tab-skeleton";
 
-// Dynamic imports for tab components
+// import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
+
+type CalIdEventTypeData = RouterOutputs["viewer"]["eventTypes"]["calid_get"];
+
+// Dynamic imports for dialogs only (these can remain dynamic as they're not frequently accessed)
 const ManagedEventTypeDialog = dynamic(
   () => import("@calcom/features/eventtypes/components/dialogs/ManagedEventDialog")
 );
@@ -45,53 +58,6 @@ const AssignmentWarningDialog = dynamic(
 
 const DeleteDialog = dynamic(() =>
   import("@calcom/features/eventtypes/components/dialogs/DeleteDialog").then((mod) => mod.DeleteDialog)
-);
-
-//Done
-const EventSetupTab = dynamic(() =>
-  import("../components/tabs/event-types-setup").then((mod) => mod.EventSetup)
-);
-//Done
-const EventAvailabilityTab = dynamic(() =>
-  import("../components/tabs/event-types-availability").then((mod) => mod.EventAvailability)
-);
-// const EventTeamAssignmentTab = dynamic(() =>
-//   import("../components/tabs/event-types-setup").then((mod) => mod.EventSetup)
-// );
-
-//Done
-const EventLimitsTab = dynamic(() =>
-  import("../components/tabs/event-types-limit").then((mod) => mod.EventLimits)
-);
-//Done
-const EventAdvancedTab = dynamic(() =>
-  import("../components/tabs/event-types-advanced").then((mod) => mod.EventAdvanced)
-);
-// const EventInstantTab = dynamic(() =>
-//   import("../components/tabs/event-types-setup").then((mod) => mod.EventSetup)
-// );
-//Done
-const EventRecurringTab = dynamic(() =>
-  import("../components/tabs/event-types-recurring").then((mod) => mod.EventRecurring)
-);
-//Done
-const EventAppsTab = dynamic(() =>
-  import("../components/tabs/event-types-apps").then((mod) => mod.EventApps)
-);
-//Done
-const EventWorkflowsTab = dynamic(() =>
-  import("../components/tabs/event-types-workflows").then((mod) => mod.EventWorkflows)
-);
-//Done
-const EventWebhooksTab = dynamic(() =>
-  import("../components/tabs/event-types-webhook").then((mod) => mod.EventWebhooks)
-);
-// const EventAITab = dynamic(() =>
-//   import("../components/tabs/event-types-setup").then((mod) => mod.EventSetup)
-// );
-
-const EventEmbedTab = dynamic(() =>
-  import("../components/tabs/event-types-embed").then((mod) => mod.EventEmbed)
 );
 
 // Tab configuration
@@ -112,25 +78,33 @@ const getTabs = (currentPath: string): HorizontalTabItemProps[] => [
 
 export type EventTypeWebWrapperProps = {
   id: number;
-  data: RouterOutputs["viewer"]["eventTypes"]["get"];
+  data: CalIdEventTypeData;
+  calIdTeamId?: number;
 };
 
-export const EventTypeWebWrapper = ({ id, data: serverFetchedData }: EventTypeWebWrapperProps) => {
-  const { data: eventTypeQueryData } = trpc.viewer.eventTypes.get.useQuery(
-    { id },
-    { enabled: !serverFetchedData }
+export const EventTypeWebWrapper = ({
+  id,
+  data: serverFetchedData,
+  calIdTeamId,
+}: EventTypeWebWrapperProps) => {
+  const resolvedCalIdTeamId =
+    calIdTeamId || (serverFetchedData as CalIdEventTypeData)?.eventType?.calIdTeamId;
+
+  const { data: eventTypeQueryData } = trpc.viewer.eventTypes.calid_get.useQuery(
+    { id, calIdTeamId: resolvedCalIdTeamId || 0 },
+    { enabled: !serverFetchedData && !!resolvedCalIdTeamId }
   );
 
   if (serverFetchedData) {
-    return <EventTypeWithNewUI {...serverFetchedData} id={id} />;
+    return <EventTypeWithNewUI {...(serverFetchedData as CalIdEventTypeData)} id={id} />;
   }
 
   if (!eventTypeQueryData) return null;
 
-  return <EventTypeWithNewUI {...eventTypeQueryData} id={id} />;
+  return <EventTypeWithNewUI {...(eventTypeQueryData as CalIdEventTypeData)} id={id} />;
 };
 
-const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => {
+const EventTypeWithNewUI = ({ id, ...rest }: any) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const pathname = usePathname();
@@ -170,21 +144,23 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [pendingRoute, setPendingRoute] = useState("");
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const { eventType, locationOptions, team, teamMembers, destinationCalendar, currentUserMembership } = rest;
-  const eventTypesLockedByOrg = eventType.team?.parent?.organizationSettings?.lockEventTypeCreationForUsers;
+  const eventTypesLockedByOrg = (eventType as any).team?.parent?.organizationSettings
+    ?.lockEventTypeCreationForUsers;
 
   // Data fetching
-  const { data: eventTypeApps } = trpc.viewer.apps.integrations.useQuery({
+  const { data: _eventTypeApps } = trpc.viewer.apps.calid_integrations.useQuery({
     extendsFeature: "EventType",
-    teamId: eventType.team?.id || eventType.parent?.teamId,
+    calIdTeamId: eventType.calIdTeamId || eventType.parent?.calIdTeamId,
     onlyInstalled: true,
   });
 
   const { data: allActiveWorkflows } = trpc.viewer.workflows.calid_getAllActiveWorkflows.useQuery({
     eventType: {
       id,
-      calIdTeamId: eventType.teamId,
+      calIdTeamId: eventType.calIdTeamId,
       userId: eventType.userId,
       parent: eventType.parent,
       metadata: eventType.metadata,
@@ -192,7 +168,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
   });
 
   // Mutations
-  const updateMutation = trpc.viewer.eventTypes.update.useMutation({
+  const updateMutation = trpc.viewer.eventTypes.calid_update.useMutation({
     onSuccess: async () => {
       const currentValues = form.getValues();
       currentValues.children = currentValues.children.map((child) => ({
@@ -203,11 +179,9 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
 
       form.reset(currentValues);
       revalidateEventTypeEditPage(eventType.id);
-      if (eventType.team?.slug) {
-        revalidateTeamEventTypeCache({
-          teamSlug: eventType.team.slug,
-          meetingSlug: eventType.slug,
-          orgSlug: eventType.team.parent?.slug ?? null,
+      if ((eventType as any).team?.slug) {
+        revalidateCalIdTeamDataCache({
+          teamSlug: (eventType as any).team.slug,
         });
       }
       triggerToast(t("event_type_updated_successfully", { eventTypeTitle: eventType.title }), "success");
@@ -231,14 +205,12 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
     },
   });
 
-  const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
+  const deleteMutation = trpc.viewer.eventTypes.calid_delete.useMutation({
     onSuccess: async () => {
       await utils.viewer.eventTypes.invalidate();
       if (team?.slug) {
-        revalidateTeamEventTypeCache({
+        revalidateCalIdTeamDataCache({
           teamSlug: team.slug,
-          meetingSlug: eventType.slug,
-          orgSlug: team.parent?.slug ?? null,
         });
       }
       triggerToast(t("event_type_deleted_successfully"), "success");
@@ -282,7 +254,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
   // Tab content mapping
   const tabMap = {
     setup: (
-      <EventSetupTab
+      <EventSetup
         eventType={eventType}
         locationOptions={locationOptions}
         team={team}
@@ -291,8 +263,8 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
       />
     ),
     availability: (
-      <EventAvailabilityTab
-        eventType={eventType}
+      <EventAvailability
+        eventType={eventType as any}
         isTeamEvent={!!team}
         user={user}
         teamMembers={teamMembers}
@@ -308,14 +280,14 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
       />
     ),
 
-    limits: <EventLimitsTab eventType={eventType} />,
+    limits: <EventLimits eventType={eventType as any} />,
     advanced: (
-      <EventAdvancedTab
-        eventType={eventType}
+      <EventAdvanced
+        eventType={eventType as any}
         team={team}
         user={user}
         isUserLoading={isLoggedInUserPending}
-        triggerToast={triggerToast}
+        showToast={triggerToast}
         calendarsQuery={{
           data: connectedCalendarsQuery.data,
           isPending: connectedCalendarsQuery.isPending,
@@ -326,17 +298,17 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
     ),
     instant: <div />,
     // <EventInstantTab eventType={eventType} isTeamEvent={!!team} />
-    recurring: <EventRecurringTab eventType={eventType} />,
-    apps: <EventAppsTab eventType={{ ...eventType, URL: permalink }} />,
+    recurring: <EventRecurring eventType={eventType as any} />,
+    apps: <EventApps eventType={eventType as any} />,
     workflows: allActiveWorkflows ? (
-      <EventWorkflowsTab eventType={eventType} workflows={allActiveWorkflows} />
+      <EventWorkflows eventType={eventType as any} workflows={allActiveWorkflows} />
     ) : (
       <></>
     ),
-    webhooks: <EventWebhooksTab eventType={eventType} />,
+    webhooks: <EventWebhooks eventType={eventType as any} />,
     ai: <div />,
     // <EventAITab eventType={eventType} isTeamEvent={!!team} />
-    embed: <EventEmbedTab calLink={embedLink} />,
+    embed: <EventEmbed calLink={embedLink} />,
   } as const;
 
   // Route change handling
@@ -360,7 +332,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
   });
 
   // Conflict handling
-  const onConflict = (conflicts: ChildrenEventType[]) => {
+  const _onConflict = (conflicts: ChildrenEventType[]) => {
     setSlugExistsChildrenDialogOpen(conflicts);
   };
 
@@ -371,8 +343,15 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
     return true;
   });
 
+  // Loading skeleton component for initial load
+  const LoadingSkeleton = () => <TabSkeleton activeTab={activeTab} />;
+
   const renderTabContent = () => {
-    return tabMap[activeTab as keyof typeof tabMap] || tabMap.setup;
+    if (isInitialLoad) {
+      return <LoadingSkeleton />;
+    }
+    const validTab = activeTab as keyof typeof tabMap;
+    return tabMap[validTab] || tabMap.setup;
   };
 
   // Update active tab when URL changes
@@ -381,6 +360,17 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
       setActiveTab(tab);
     }
   }, [tab, activeTab]);
+
+  // Handle initial load state
+  useEffect(() => {
+    if (isInitialLoad) {
+      // Set a small delay to ensure all data is loaded
+      const timer = setTimeout(() => {
+        setIsInitialLoad(false);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isInitialLoad]);
 
   // Create the CTA component
   const cta = (
@@ -409,7 +399,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
             onClick: (name: string) => {
               const tabId = availableTabs.find((t) => t.name === name)?.href.split("tabName=")[1];
               if (tabId) {
-                setQuery("tabName", tabId);
+                setQuery("tabName", tabId as keyof typeof tabMap);
               }
             },
           }))}
@@ -420,7 +410,13 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
         <div className="bg-background py-4">
           <div className="mx-auto max-w-none">
             <Form form={form} id="event-type-form" handleSubmit={handleSubmit}>
-              <div ref={animationParentRef}>{renderTabContent()}</div>
+              <div
+                ref={animationParentRef}
+                className="transition-all duration-200 ease-in-out"
+                key={activeTab} // Force re-render for smooth transitions
+              >
+                {renderTabContent()}
+              </div>
             </Form>
           </div>
         </div>

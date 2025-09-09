@@ -1,22 +1,23 @@
 "use client";
 
 import { TimeTimeUnitInput } from "@calid/features/modules/workflows/components/time_unit_input";
+import { Button } from "@calid/features/ui/components/button";
+import { Form, FormField } from "@calid/features/ui/components/form";
+import { TextField } from "@calid/features/ui/components/input/input";
+import { TextArea } from "@calid/features/ui/components/input/text-area";
+import { Label } from "@calid/features/ui/components/label";
+import { Select } from "@calid/features/ui/components/select";
+import { Switch } from "@calid/features/ui/components/switch";
 import { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimeUnit } from "@calcom/prisma/enums";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
-// import { Select } from "@calcom/ui/components/form";
-// import { TextArea } from "@calcom/ui/components/form";
 import { ToggleGroup } from "@calcom/ui/components/form";
-import { Form } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
 
-// import { TextField } from "@calcom/ui/components/form";
-// import { Switch } from "@calcom/ui/components/form";
 import customTemplate, { hasTemplateIntegration } from "../lib/integrationTemplate";
 import WebhookTestDisclosure from "./WebhookTestDisclosure";
 
@@ -151,10 +152,12 @@ const WebhookForm = (props: {
 
   return (
     <Form
-      form={formMethods}
-      handleSubmit={(values) => props.onSubmit({ ...values, changeSecret, newSecret })}>
+      {...formMethods}
+      onSubmit={(values) => {
+        props.onSubmit({ ...values, changeSecret, newSecret });
+      }}>
       <div className="border-subtle rounded-md border p-6">
-        <Controller
+        <FormField
           name="subscriberUrl"
           control={formMethods.control}
           render={({ field: { value } }) => (
@@ -179,7 +182,7 @@ const WebhookForm = (props: {
             </>
           )}
         />
-        <Controller
+        <FormField
           name="active"
           control={formMethods.control}
           render={({ field: { value } }) => (
@@ -195,7 +198,7 @@ const WebhookForm = (props: {
             </div>
           )}
         />
-        <Controller
+        <FormField
           name="eventTriggers"
           control={formMethods.control}
           render={({ field: { onChange, value } }) => {
@@ -247,7 +250,7 @@ const WebhookForm = (props: {
           </div>
         )}
 
-        <Controller
+        <FormField
           name="secret"
           control={formMethods.control}
           render={({ field: { value } }) => (
@@ -310,7 +313,7 @@ const WebhookForm = (props: {
           )}
         />
 
-        <Controller
+        <FormField
           name="payloadTemplate"
           control={formMethods.control}
           render={({ field: { value } }) => (

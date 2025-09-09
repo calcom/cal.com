@@ -18,7 +18,6 @@ import {
 } from "@dnd-kit/sortable";
 import React, { useState } from "react";
 
-
 import type { DraggableEventTypesProps } from "../types/event-types";
 import { DraggableEventCard } from "./draggable-event-card";
 
@@ -72,7 +71,6 @@ export const DraggableEventTypes: React.FC<DraggableEventTypesProps> = ({
 
   const activeEvent = activeId ? events.find((event) => event.id === activeId) : null;
 
-
   return (
     <DndContext
       sensors={sensors}
@@ -105,7 +103,7 @@ export const DraggableEventTypes: React.FC<DraggableEventTypesProps> = ({
 
       <DragOverlay>
         {activeEvent ? (
-          <div className="rotate-3 scale-105 shadow-2xl">
+          <div className="scale-105 shadow-2xl">
             <DraggableEventCard
               event={activeEvent}
               selectedTeam={selectedTeam}

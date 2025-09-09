@@ -2,6 +2,7 @@ import authedProcedure, { authedAdminProcedure } from "../../../procedures/authe
 import { router } from "../../../trpc";
 import { ZAppByIdInputSchema } from "./appById.schema";
 import { ZAppCredentialsByTypeInputSchema } from "./appCredentialsByType.schema";
+import { ZCalIdIntegrationsInputSchema } from "./calid/integrations.schema";
 import { checkGlobalKeysSchema } from "./checkGlobalKeys.schema";
 import { ZIntegrationsInputSchema } from "./integrations.schema";
 import { ZListLocalInputSchema } from "./listLocal.schema";
@@ -132,4 +133,8 @@ export const appsRouter = router({
       );
       return updateUserDefaultConferencingAppHandler({ ctx, input });
     }),
+  calid_integrations: authedProcedure.input(ZCalIdIntegrationsInputSchema).query(async ({ ctx, input }) => {
+    const { integrationsHandler } = await import("./calid/integrations.handler");
+    return integrationsHandler({ ctx, input });
+  }),
 });
