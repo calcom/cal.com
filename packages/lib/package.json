@@ -5,9 +5,11 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
+    "type-check": "tsc --pretty --noEmit",
+    "type-check:ci": "tsc-absolute --pretty --noEmit",
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
-    "lint:report": "eslint . --format json --output-file ../../lint-results/app-store.json"
+    "lint:report": "eslint . --format json --output-file ../../lint-results/lib.json"
   },
   "dependencies": {
     "@calcom/config": "*",
@@ -35,6 +37,7 @@
     "@calcom/tsconfig": "*",
     "@calcom/types": "*",
     "@faker-js/faker": "^7.3.0",
+    "tsc-absolute": "^1.0.1",
     "typescript": "^5.9.0-beta"
   }
 }

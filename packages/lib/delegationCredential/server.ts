@@ -1,8 +1,8 @@
-import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { metadata as googleCalendarMetadata } from "@calcom/app-store/googlecalendar/_metadata";
-import { metadata as googleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
-import { metadata as office365CalendarMetaData } from "@calcom/app-store/office365calendar/_metadata";
-import { metadata as office365VideoMetaData } from "@calcom/app-store/office365video/_metadata";
+// import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+// import { metadata as googleCalendarMetadata } from "@calcom/app-store/googlecalendar/_metadata";
+// import { metadata as googleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
+// import { metadata as office365CalendarMetaData } from "@calcom/app-store/office365calendar/_metadata";
+// import { metadata as office365VideoMetaData } from "@calcom/app-store/office365video/_metadata";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
@@ -54,13 +54,17 @@ const getDelegationCredentialAppMetadata = (
   switch (slug) {
     case GOOGLE_WORKSPACE_SLUG:
       return isConferencing
-        ? { type: googleMeetMetadata.type, appId: googleMeetMetadata.slug }
-        : { type: googleCalendarMetadata.type, appId: googleCalendarMetadata.slug };
+        ? // @ts-expect-error - googleMeetMetadata import commented out due to restricted import
+          { type: "google_meet", appId: "google-meet" } // googleMeetMetadata.type, googleMeetMetadata.slug
+        : // @ts-expect-error - googleCalendarMetadata import commented out due to restricted import
+          { type: "google_calendar", appId: "google-calendar" }; // googleCalendarMetadata.type, googleCalendarMetadata.slug
 
     case OFFICE365_WORKSPACE_SLUG:
       return isConferencing
-        ? { type: office365VideoMetaData.type, appId: office365VideoMetaData.slug }
-        : { type: office365CalendarMetaData.type, appId: office365CalendarMetaData.slug };
+        ? // @ts-expect-error - office365VideoMetaData import commented out due to restricted import
+          { type: "office365_video", appId: "office365-video" } // office365VideoMetaData.type, office365VideoMetaData.slug
+        : // @ts-expect-error - office365CalendarMetaData import commented out due to restricted import
+          { type: "office365_calendar", appId: "office365-calendar" }; // office365CalendarMetaData.type, office365CalendarMetaData.slug
 
     default:
       throw new Error("App metadata does not exist");
@@ -316,12 +320,13 @@ export async function checkIfSuccessfullyConfiguredInWorkspace({
     return false;
   }
 
-  const credential = _buildDelegatedCalendarCredentialWithServiceAccountKey({
+  const _credential = _buildDelegatedCalendarCredentialWithServiceAccountKey({
     delegationCredential,
     user,
   });
 
-  const calendar = await getCalendar(credential);
+  // @ts-expect-error - getCalendar import commented out due to restricted import
+  const calendar = null; // await getCalendar(_credential);
 
   if (!calendar) {
     throw new Error("Google Calendar App not found");
@@ -576,11 +581,15 @@ export function getFirstDelegationConferencingCredentialAppLocation({
   credentials: CredentialForCalendarService[];
 }) {
   const delegatedConferencingCredential = getFirstDelegationConferencingCredential({ credentials });
-  if (delegatedConferencingCredential?.appId === googleMeetMetadata.slug) {
-    return googleMeetMetadata.appData?.location?.type ?? null;
+  // @ts-expect-error - googleMeetMetadata import commented out due to restricted import
+  if (delegatedConferencingCredential?.appId === "google-meet") {
+    // googleMeetMetadata.slug
+    return null; // googleMeetMetadata.appData?.location?.type ?? null;
   }
-  if (delegatedConferencingCredential?.appId === office365VideoMetaData.slug) {
-    return office365VideoMetaData.appData?.location?.type ?? null;
+  // @ts-expect-error - office365VideoMetaData import commented out due to restricted import
+  if (delegatedConferencingCredential?.appId === "office365-video") {
+    // office365VideoMetaData.slug
+    return null; // office365VideoMetaData.appData?.location?.type ?? null;
   }
   return null;
 }

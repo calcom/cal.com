@@ -70,6 +70,7 @@ describe("buildCalEventFromBooking", () => {
       return translate;
     });
 
+    // @ts-expect-error - Mock implementation type mismatch
     parseRecurringEvent.mockImplementation((recurringEvent) => {
       if (!recurringEvent) {
         return { parsed: true };
@@ -87,6 +88,7 @@ describe("buildCalEventFromBooking", () => {
     const conferenceCredentialId = 123;
 
     const result = await buildCalEventFromBooking({
+      // @ts-expect-error - Test fixture missing required EventType properties
       booking,
       organizer,
       location,
@@ -150,6 +152,7 @@ describe("buildCalEventFromBooking", () => {
     const conferenceCredentialId = null;
 
     const result = await buildCalEventFromBooking({
+      // @ts-expect-error - Test fixture missing required EventType properties
       booking,
       organizer,
       location,
@@ -184,9 +187,7 @@ describe("buildCalEventFromBooking", () => {
       iCalUID: "icaluid",
     });
 
-    // @ts-expect-error - locale is set in mock
     expect(result.organizer.language.translate.locale).toBe("en");
-    // @ts-expect-error - namespace is set in mock
     expect(result.organizer.language.translate.namespace).toBe("common");
   });
 
@@ -211,12 +212,14 @@ describe("buildCalEventFromBooking", () => {
     const organizer = createOrganizer();
 
     const result = await buildCalEventFromBooking({
+      // @ts-expect-error - Test fixture missing required eventType properties
       booking,
       organizer,
       location: "",
       conferenceCredentialId: null,
     });
 
+    // @ts-expect-error - Test fixture missing required eventType properties
     expect(result.destinationCalendar).toEqual([booking.user.destinationCalendar]);
   });
 });

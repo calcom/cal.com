@@ -94,6 +94,7 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
 
     // Call the function under test
     const result = await qualifiedHostsService.findQualifiedHostsWithDelegationCredentials({
+      // @ts-expect-error - Test fixture missing required includeNoShowInRRCalculation property
       eventType,
       routedTeamMemberIds: [],
       rescheduleUid: null,
@@ -146,6 +147,7 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
 
     // Call the function under test
     const result = await qualifiedHostsService.findQualifiedHostsWithDelegationCredentials({
+      // @ts-expect-error - Test fixture missing required includeNoShowInRRCalculation property
       eventType,
       routedTeamMemberIds: [],
       rescheduleUid: null,
@@ -233,6 +235,7 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
 
     // Call the function under test
     const result = await qualifiedHostsService.findQualifiedHostsWithDelegationCredentials({
+      // @ts-expect-error - Test fixture missing required includeNoShowInRRCalculation property
       eventType,
       routedTeamMemberIds: [],
       rescheduleUid: null,
@@ -322,6 +325,7 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
 
     // Call the function under test
     const result = await qualifiedHostsService.findQualifiedHostsWithDelegationCredentials({
+      // @ts-expect-error - Test fixture missing required includeNoShowInRRCalculation property
       eventType,
       routedTeamMemberIds: [1],
       rescheduleUid: null,
@@ -400,6 +404,7 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
     prismaMock.booking.findFirst.mockResolvedValue({ userId: 2 });
 
     const result = await qualifiedHostsService.findQualifiedHostsWithDelegationCredentials({
+      // @ts-expect-error - Test fixture missing required includeNoShowInRRCalculation property
       eventType,
       routedTeamMemberIds: [],
       rescheduleUid: "recheduleUid",
@@ -476,10 +481,12 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
 
     const findMatchingHostsSpy = vi
       .spyOn(getRoutedUsers, "findMatchingHostsWithEventSegment")
+      // @ts-expect-error - Test fixture missing groupId property
       .mockImplementation(async () => [hosts[0]]);
 
     // Call the function under test
     const result = await qualifiedHostsService.findQualifiedHostsWithDelegationCredentials({
+      // @ts-expect-error - Test fixture missing required includeNoShowInRRCalculation property
       eventType,
       routedTeamMemberIds: [0, 1, 2],
       rescheduleUid: null,
@@ -567,6 +574,7 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
       },
     };
 
+    // @ts-expect-error - Mock implementation type mismatch with BaseUser interface
     vi.spyOn(getRoutedUsers, "findMatchingHostsWithEventSegment").mockImplementation(async () => [
       hosts[0],
       hosts[1],
@@ -574,6 +582,7 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
 
     // Call the function under test
     const result = await qualifiedHostsService.findQualifiedHostsWithDelegationCredentials({
+      // @ts-expect-error - Test fixture missing required includeNoShowInRRCalculation property
       eventType,
       routedTeamMemberIds: [2, 3],
       rescheduleUid: null,
@@ -661,6 +670,7 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
       },
     };
 
+    // @ts-expect-error - Mock implementation type mismatch with BaseUser interface
     vi.spyOn(getRoutedUsers, "findMatchingHostsWithEventSegment").mockImplementation(async () => [
       hosts[0],
       hosts[1],
@@ -674,6 +684,7 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
 
     // Call the function under test
     const result = await qualifiedHostsService.findQualifiedHostsWithDelegationCredentials({
+      // @ts-expect-error - Test fixture missing required includeNoShowInRRCalculation property
       eventType,
       routedTeamMemberIds: [2, 3],
       rescheduleUid: null,

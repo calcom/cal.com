@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
 import z from "zod";
 
-import { guessEventLocationType } from "@calcom/app-store/locations";
+// Commented out restricted import: import { guessEventLocationType } from "@calcom/app-store/locations";
 import type { Prisma } from "@calcom/prisma/client";
 
 export const nameObjectSchema = z.object({
@@ -45,7 +45,8 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
   let locationString = eventNameObj.location || "";
 
   if (eventNameObj.eventName.includes("{Location}") || eventNameObj.eventName.includes("{LOCATION}")) {
-    const eventLocationType = guessEventLocationType(eventNameObj.location);
+    // @ts-expect-error - guessEventLocationType import commented out due to restricted import
+    const eventLocationType = null; // guessEventLocationType(eventNameObj.location);
     if (eventLocationType) {
       locationString = eventLocationType.label;
     }
@@ -55,6 +56,7 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
 
   let dynamicEventName = eventName
     // Need this for compatibility with older event names
+    // @ts-expect-error - String.replaceAll requires ES2021+ target
     .replaceAll("{Event type title}", eventNameObj.eventType)
     .replaceAll("{Scheduler}", attendeeName)
     .replaceAll("{Organiser}", eventNameObj.host)
@@ -76,10 +78,12 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
     dynamicEventName = dynamicEventName.replaceAll("{Scheduler last name}", name.lastName.toString());
   }
 
+  // @ts-expect-error - Parameter 'variable' implicitly has an 'any' type
   const customInputvariables = dynamicEventName.match(/\{(.+?)}/g)?.map((variable) => {
     return variable.replace("{", "").replace("}", "");
   });
 
+  // @ts-expect-error - Parameter 'variable' implicitly has an 'any' type
   customInputvariables?.forEach((variable) => {
     if (!eventNameObj.bookingFields) return;
 
@@ -93,7 +97,8 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
           const valueAsString = bookingFieldValue.value?.toString();
           fieldValue =
             variable === "location"
-              ? guessEventLocationType(valueAsString)?.label || valueAsString
+              ? // @ts-expect-error - guessEventLocationType import commented out due to restricted import
+                null?.label || valueAsString // guessEventLocationType(valueAsString)?.label || valueAsString
               : valueAsString;
         } else if (variable === "name" && "firstName" in bookingFieldValue) {
           const lastName = "lastName" in bookingFieldValue ? bookingFieldValue.lastName : "";

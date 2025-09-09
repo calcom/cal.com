@@ -26,22 +26,15 @@ vi.mock("@calcom/embed-core/embed-iframe", () => ({
   useIsEmbed: vi.fn(),
 }));
 
-// Test data constants
-const EMBED_PARAMS = ["embed", "layout", "embedType", "ui.color-scheme"];
-const WEBAPP_PARAMS = ["overlayCalendar"];
+// Test data constants (commented out as unused)
+// const _EMBED_PARAMS = ["embed", "layout", "embedType", "ui.color-scheme"];
+// const _WEBAPP_PARAMS = ["overlayCalendar"];
 
 // Helper function to create a mock booking with sensible defaults
 type MockBooking = Pick<
+  // @ts-expect-error - BookingResponse type not found in imports
   BookingResponse,
-  | "uid"
-  | "title"
-  | "description"
-  | "startTime"
-  | "endTime"
-  | "location"
-  | "attendees"
-  | "user"
-  | "responses"
+  "uid" | "title" | "description" | "startTime" | "endTime" | "location" | "attendees" | "user" | "responses"
 >;
 
 const createMockBooking = (overrides: Partial<MockBooking> = {}): MockBooking => ({
@@ -134,6 +127,7 @@ describe("getNewSearchParams", () => {
       ])("$name", ({ searchParams, query, expectedNull, expectedPresent }) => {
         const result = getNewSearchParams({
           query,
+          // @ts-expect-error - URLSearchParams type incompatibility with undefined properties
           searchParams: new URLSearchParams(searchParams),
           filterInternalParams: true,
         });
@@ -191,10 +185,12 @@ describe("getNewSearchParams", () => {
       ])("$name", ({ searchParams, query, expectedPresent }) => {
         const result = getNewSearchParams({
           query,
+          // @ts-expect-error - URLSearchParams type incompatibility with undefined properties
           searchParams: new URLSearchParams(searchParams),
           filterInternalParams: false,
         });
 
+        // @ts-expect-error - Test fixture overlayCalendar property type mismatch
         assertParamsEqual(result, expectedPresent);
       });
     });
@@ -295,7 +291,8 @@ describe("getNewSearchParams", () => {
 describe("useBookingSuccessRedirect", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(useCompatSearchParams).mockReturnValue(new URLSearchParams() as any);
+    // @ts-expect-error - Mock return type incompatibility with URLSearchParams
+    vi.mocked(useCompatSearchParams).mockReturnValue(new URLSearchParams());
     vi.mocked(useIsEmbed).mockReturnValue(false);
   });
 
@@ -358,7 +355,8 @@ describe("useBookingSuccessRedirect", () => {
         },
       ])("$name", ({ query, searchParams, expectedPresent, expectedNull }) => {
         if (searchParams) {
-          vi.mocked(useCompatSearchParams).mockReturnValue(new URLSearchParams(searchParams) as any);
+          // @ts-expect-error - Mock return type incompatibility with URLSearchParams
+          vi.mocked(useCompatSearchParams).mockReturnValue(new URLSearchParams(searchParams));
         }
 
         const bookingSuccessRedirect = useBookingSuccessRedirect();
@@ -385,7 +383,8 @@ describe("useBookingSuccessRedirect", () => {
       });
 
       it("includes cal.rerouting param from searchParams", () => {
-        vi.mocked(useCompatSearchParams).mockReturnValue(new URLSearchParams("cal.rerouting=true") as any);
+        // @ts-expect-error - Mock return type incompatibility with URLSearchParams
+        vi.mocked(useCompatSearchParams).mockReturnValue(new URLSearchParams("cal.rerouting=true"));
 
         const bookingSuccessRedirect = useBookingSuccessRedirect();
 
@@ -466,7 +465,8 @@ describe("useBookingSuccessRedirect", () => {
           expectedParam: "cal.rerouting=true",
         },
       ])("$name", ({ searchParams, expectedParam }) => {
-        vi.mocked(useCompatSearchParams).mockReturnValue(new URLSearchParams(searchParams) as any);
+        // @ts-expect-error - Mock return type incompatibility with URLSearchParams
+        vi.mocked(useCompatSearchParams).mockReturnValue(new URLSearchParams(searchParams));
 
         const bookingSuccessRedirect = useBookingSuccessRedirect();
 
@@ -502,7 +502,8 @@ describe("useBookingSuccessRedirect", () => {
       const bookingSuccessRedirect = useBookingSuccessRedirect();
 
       bookingSuccessRedirect({
-        successRedirectUrl: undefined as any,
+        // @ts-expect-error - Test fixture using undefined for required string property
+        successRedirectUrl: undefined,
         forwardParamsSuccessRedirect: true,
         query: { test: "value" },
         booking: mockBooking,

@@ -16,6 +16,7 @@ describe("defaultHandler Test Suite", () => {
       method: "PATCH", // Unsupported method here
     });
 
+    // @ts-expect-error - MockRequest missing env property required by NextApiRequest
     await handler(req, res);
 
     expect(res._getStatusCode()).toBe(405);
@@ -29,12 +30,14 @@ describe("defaultHandler Test Suite", () => {
     const handlers = {
       GET: { default: getHandler },
     };
+    // @ts-expect-error - Test fixture handlers missing Promise wrapper
     const handler = defaultHandler(handlers);
 
     const { req, res } = createMocks({
       method: "GET",
     });
 
+    // @ts-expect-error - MockRequest missing env property required by NextApiRequest
     await handler(req, res);
 
     expect(getHandler).toHaveBeenCalledWith(req, res);
@@ -45,12 +48,14 @@ describe("defaultHandler Test Suite", () => {
     const handlers = {
       GET: { default: getHandler },
     };
+    // @ts-expect-error - Test fixture handlers missing Promise wrapper
     const handler = defaultHandler(handlers);
 
     const { req, res } = createMocks({
       method: "GET",
     });
 
+    // @ts-expect-error - MockRequest missing env property required by NextApiRequest
     await handler(req, res);
 
     expect(res._getStatusCode()).toBe(500);

@@ -63,6 +63,7 @@ describe("handleNoShowFee", () => {
     };
 
     const paymentServiceModule = await PaymentServiceMap.stripepayment;
+    // @ts-expect-error - Mock PaymentService implementation missing required methods
     vi.mocked(paymentServiceModule.PaymentService).mockImplementation(() => mockPaymentService);
   });
 
@@ -130,6 +131,7 @@ describe("handleNoShowFee", () => {
       mockPaymentService.chargeCard.mockResolvedValue({ success: true, paymentId: "pay_123" });
 
       vi.mocked(CredentialRepository.findPaymentCredentialByAppIdAndUserIdOrTeamId).mockResolvedValue(
+        // @ts-expect-error - Test fixture app.categories type mismatch with AppCategories[]
         mockCredential
       );
       vi.mocked(sendNoShowFeeChargedEmail).mockResolvedValue(undefined);
@@ -167,6 +169,7 @@ describe("handleNoShowFee", () => {
         customRoleId: null,
       });
       vi.mocked(CredentialRepository.findPaymentCredentialByAppIdAndUserIdOrTeamId).mockResolvedValue(
+        // @ts-expect-error - Test fixture app.categories type mismatch with AppCategories[]
         mockCredential
       );
 
@@ -206,12 +209,15 @@ describe("handleNoShowFee", () => {
       });
       vi.mocked(CredentialRepository.findPaymentCredentialByAppIdAndUserIdOrTeamId)
         .mockResolvedValueOnce(null)
+        // @ts-expect-error - Test fixture app.categories type mismatch with AppCategories[]
         .mockResolvedValueOnce(mockCredential);
+      // @ts-expect-error - Test fixture app.categories type mismatch with AppCategories[]
       vi.mocked(CredentialRepository.findPaymentCredentialByAppIdAndTeamId).mockResolvedValue(mockCredential);
 
       const mockTeamRepository = {
         findParentOrganizationByTeamId: vi.fn().mockResolvedValue({ id: 2 }),
       };
+      // @ts-expect-error - Mock TeamRepository implementation missing required methods
       vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepository);
 
       const result = await handleNoShowFee({
@@ -292,6 +298,7 @@ describe("handleNoShowFee", () => {
       };
 
       vi.mocked(CredentialRepository.findPaymentCredentialByAppIdAndUserIdOrTeamId).mockImplementation(
+        // @ts-expect-error - Test fixture app.categories type mismatch with AppCategories[]
         async () => ({
           ...mockCredential,
           app: {
@@ -315,6 +322,7 @@ describe("handleNoShowFee", () => {
       PaymentServiceMap.stripepayment = Promise.resolve({});
 
       vi.mocked(CredentialRepository.findPaymentCredentialByAppIdAndUserIdOrTeamId).mockResolvedValue(
+        // @ts-expect-error - Test fixture app.categories type mismatch with AppCategories[]
         mockCredential
       );
 
@@ -326,7 +334,6 @@ describe("handleNoShowFee", () => {
           })
         ).rejects.toThrow("Payment service not found");
       } finally {
-        // @ts-expect-error - Restoring for test
         PaymentServiceMap.stripepayment = originalStripepayment;
       }
     });
@@ -335,6 +342,7 @@ describe("handleNoShowFee", () => {
       mockPaymentService.chargeCard.mockResolvedValue(null);
 
       vi.mocked(CredentialRepository.findPaymentCredentialByAppIdAndUserIdOrTeamId).mockResolvedValue(
+        // @ts-expect-error - Test fixture app.categories type mismatch with AppCategories[]
         mockCredential
       );
 
@@ -352,6 +360,7 @@ describe("handleNoShowFee", () => {
       );
 
       vi.mocked(CredentialRepository.findPaymentCredentialByAppIdAndUserIdOrTeamId).mockResolvedValue(
+        // @ts-expect-error - Test fixture app.categories type mismatch with AppCategories[]
         mockCredential
       );
       vi.mocked(getTranslation).mockResolvedValue((key: string) => `Translated: ${key}`);
@@ -368,6 +377,7 @@ describe("handleNoShowFee", () => {
       mockPaymentService.chargeCard.mockRejectedValue(new Error("Generic payment error"));
 
       vi.mocked(CredentialRepository.findPaymentCredentialByAppIdAndUserIdOrTeamId).mockResolvedValue(
+        // @ts-expect-error - Test fixture app.categories type mismatch with AppCategories[]
         mockCredential
       );
       vi.mocked(getTranslation).mockResolvedValue((key: string) => `Translated: ${key}`);
@@ -391,6 +401,7 @@ describe("handleNoShowFee", () => {
       mockPaymentService.chargeCard.mockResolvedValue({ success: true, paymentId: "pay_123" });
 
       vi.mocked(CredentialRepository.findPaymentCredentialByAppIdAndUserIdOrTeamId).mockResolvedValue(
+        // @ts-expect-error - Test fixture app.categories type mismatch with AppCategories[]
         mockCredential
       );
 
@@ -411,6 +422,7 @@ describe("handleNoShowFee", () => {
       mockPaymentService.chargeCard.mockResolvedValue({ success: true, paymentId: "pay_123" });
 
       vi.mocked(CredentialRepository.findPaymentCredentialByAppIdAndUserIdOrTeamId).mockResolvedValue(
+        // @ts-expect-error - Test fixture app.categories type mismatch with AppCategories[]
         mockCredential
       );
 
@@ -438,6 +450,7 @@ describe("handleNoShowFee", () => {
       mockPaymentService.chargeCard.mockResolvedValue({ success: true, paymentId: "pay_123" });
 
       vi.mocked(CredentialRepository.findPaymentCredentialByAppIdAndUserIdOrTeamId).mockResolvedValue(
+        // @ts-expect-error - Test fixture app.categories type mismatch with AppCategories[]
         mockCredential
       );
 
