@@ -1,5 +1,23 @@
 ## 1.1.2
 
+## 1.8.0
+
+### Minor Changes
+
+- [#23686](https://github.com/calcom/cal.com/pull/23686) [`cfd1992`](https://github.com/calcom/cal.com/commit/cfd1992733ff8c4db3e5795e421aef957fad43a4) Thanks [@Ryukemeister](https://github.com/Ryukemeister)! - This PR adds customReplyEmailTo feature for EventTypeSettings atom
+
+## 1.7.1
+
+### Patch Changes
+
+- [#23490](https://github.com/calcom/cal.com/pull/23490) [`de98578`](https://github.com/calcom/cal.com/commit/de98578fdd751887800216f24274578272d5c91d) Thanks [@Ryukemeister](https://github.com/Ryukemeister)! - This PR fixes the prop `disableToasts` not working
+
+## 1.7.0
+
+### Minor Changes
+
+- [#23445](https://github.com/calcom/cal.com/pull/23445) [`9724bc0`](https://github.com/calcom/cal.com/commit/9724bc07a6d9bfe3ff32fa4e5657de2da3068d85) Thanks [@supalarry](https://github.com/supalarry)! - feat: italian language support
+
 ## 1.6.0
 
 ### Minor Changes
