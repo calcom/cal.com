@@ -20,7 +20,6 @@ const createOAuthAppCredential = async (
   key: unknown,
   req: NextApiRequest
 ) => {
-  // @ts-expect-error - TODO: add proper NextAuth session typing
   const userId = req.session?.user.id;
   if (!userId) {
     throw new HttpError({ statusCode: 401, message: "You must be logged in to do this" });

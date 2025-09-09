@@ -134,7 +134,6 @@ const NextcloudTalkVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
 
       //Allows "/{Type}-with-{Attendees}" slug
       const meetingID = meetingPattern
-        // @ts-expect-error - String.replaceAll requires ES2021+ target
         .replaceAll("{uuid}", uuidv4())
         .replaceAll("{Title}", eventData.title)
         .replaceAll("{Event Type Title}", eventData.type)
