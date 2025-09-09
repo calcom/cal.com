@@ -89,8 +89,9 @@ const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
     [WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW]: "how_long_after_hosts_no_show",
     [WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW]: "how_long_after_guests_no_show",
   };
-  if (!triggerMap[trigger]) return null;
-  return t(triggerMap[trigger]!);
+  const triggerKey = triggerMap[trigger];
+  if (!triggerKey) return null;
+  return t(triggerKey);
 };
 
 const CalAIAgentDataSkeleton = () => {
@@ -205,8 +206,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     },
   });
 
-  const verifiedNumbers = _verifiedNumbers?.map((number) => number.phoneNumber) || [];
-  const verifiedEmails = _verifiedEmails || [];
+  const verifiedNumbers = useMemo(
+    () => _verifiedNumbers?.map((number) => number.phoneNumber) || [],
+    [_verifiedNumbers]
+  );
+  const verifiedEmails = useMemo(() => _verifiedEmails || [], [_verifiedEmails]);
   const [isAdditionalInputsDialogOpen, setIsAdditionalInputsDialogOpen] = useState(false);
   const [isTestAgentDialogOpen, setIsTestAgentDialogOpen] = useState(false);
   const [isUnsubscribeDialogOpen, setIsUnsubscribeDialogOpen] = useState(false);
@@ -281,21 +285,29 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const refEmailSubject = useRef<HTMLTextAreaElement | null>(null);
 
-  const getNumberVerificationStatus = () =>
-    !!step &&
-    !!verifiedNumbers.find(
-      (number: string) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`)
-    );
+  const getNumberVerificationStatus = useCallback(
+    () =>
+      !!step &&
+      !!verifiedNumbers.find(
+        (number: string) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`)
+      ),
+    [step, verifiedNumbers, form]
+  );
 
-  const getEmailVerificationStatus = () =>
-    !!step &&
-    !!verifiedEmails.find((email: string) => email === form.getValues(`steps.${step.stepNumber - 1}.sendTo`));
+  const getEmailVerificationStatus = useCallback(
+    () =>
+      !!step &&
+      !!verifiedEmails.find(
+        (email: string) => email === form.getValues(`steps.${step.stepNumber - 1}.sendTo`)
+      ),
+    [step, verifiedEmails, form]
+  );
 
   const [numberVerified, setNumberVerified] = useState(getNumberVerificationStatus());
   const [emailVerified, setEmailVerified] = useState(getEmailVerificationStatus());
 
-  useEffect(() => setNumberVerified(getNumberVerificationStatus()), [verifiedNumbers.length]);
-  useEffect(() => setEmailVerified(getEmailVerificationStatus()), [verifiedEmails.length]);
+  useEffect(() => setNumberVerified(getNumberVerificationStatus()), [getNumberVerificationStatus]);
+  useEffect(() => setEmailVerified(getEmailVerificationStatus()), [getEmailVerificationStatus]);
 
   const addVariableEmailSubject = (variable: string) => {
     if (step) {
@@ -909,44 +921,44 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 !isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
                   <div className="bg-muted mt-2 rounded-md p-4 pt-0">
                     {isSenderIsNeeded ? (
-                    <>
-                      <div className="pt-4">
-                        <div className="flex items-center">
-                          <Label>{t("sender_id")}</Label>
-                          <Tooltip content={t("sender_id_info")}>
-                            <span>
-                              <Icon name="info" className="mb-2 ml-2 mr-1 mt-0.5 h-4 w-4 text-gray-500" />
-                            </span>
-                          </Tooltip>
+                      <>
+                        <div className="pt-4">
+                          <div className="flex items-center">
+                            <Label>{t("sender_id")}</Label>
+                            <Tooltip content={t("sender_id_info")}>
+                              <span>
+                                <Icon name="info" className="mb-2 ml-2 mr-1 mt-0.5 h-4 w-4 text-gray-500" />
+                              </span>
+                            </Tooltip>
+                          </div>
+                          <Input
+                            type="text"
+                            placeholder={SENDER_ID}
+                            disabled={props.readOnly}
+                            maxLength={11}
+                            {...form.register(`steps.${step.stepNumber - 1}.sender`)}
+                          />
                         </div>
-                        <Input
-                          type="text"
-                          placeholder={SENDER_ID}
-                          disabled={props.readOnly}
-                          maxLength={11}
-                          {...form.register(`steps.${step.stepNumber - 1}.sender`)}
-                        />
-                      </div>
-                      {form.formState.errors.steps &&
-                        form.formState?.errors?.steps[step.stepNumber - 1]?.sender && (
-                          <p className="mt-1 text-xs text-red-500">{t("sender_id_error_message")}</p>
-                        )}
-                    </>
-                  ) : (
-                    <>
-                      <div className="pt-4">
-                        <Label>{t("sender_name")}</Label>
-                        <Input
-                          type="text"
-                          disabled={props.readOnly}
-                          placeholder={SENDER_NAME}
-                          {...form.register(`steps.${step.stepNumber - 1}.senderName`)}
-                        />
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
+                        {form.formState.errors.steps &&
+                          form.formState?.errors?.steps[step.stepNumber - 1]?.sender && (
+                            <p className="mt-1 text-xs text-red-500">{t("sender_id_error_message")}</p>
+                          )}
+                      </>
+                    ) : (
+                      <>
+                        <div className="pt-4">
+                          <Label>{t("sender_name")}</Label>
+                          <Input
+                            type="text"
+                            disabled={props.readOnly}
+                            placeholder={SENDER_NAME}
+                            {...form.register(`steps.${step.stepNumber - 1}.senderName`)}
+                          />
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
               {canRequirePhoneNumber(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
                 <div className="mt-2">
                   <Controller
@@ -1045,21 +1057,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             <p className="mt-1 text-xs text-red-500">{t("sender_id_error_message")}</p>
                           )}
                       </>
-                    ) : (
-                      <>
-                        <div className="pt-4">
-                          <Label>{t("sender_name")}</Label>
-                          <Input
-                            type="text"
-                            disabled={props.readOnly}
-                            placeholder={SENDER_NAME}
-                            {...form.register(`steps.${step.stepNumber - 1}.senderName`)}
-                          />
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )}
+                    )
+                  )}
+                </div>
+              )}
               {canRequirePhoneNumber(form.getValues(`steps.${step.stepNumber - 1}.action`)) &&
                 !isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
                   <div className="mt-2">
@@ -1241,7 +1242,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           }))}
                           isOptionDisabled={(option: {
                             label: string;
-                            value: any;
+                            value: string;
                             needsTeamsUpgrade: boolean;
                           }) => option.needsTeamsUpgrade}
                         />
@@ -1520,13 +1521,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             agentId={stepAgentId}
             agentData={agentData}
             onUpdate={(data) => {
-              updateAgentMutation.mutate({
-                id: stepAgentId!,
-                teamId: teamId,
-                generalPrompt: data.generalPrompt,
-                beginMessage: data.beginMessage,
-                generalTools: data.generalTools,
-              });
+              if (stepAgentId) {
+                updateAgentMutation.mutate({
+                  id: stepAgentId,
+                  teamId: teamId,
+                  generalPrompt: data.generalPrompt,
+                  beginMessage: data.beginMessage,
+                  generalTools: data.generalTools,
+                });
+              }
             }}
             readOnly={props.readOnly}
             teamId={teamId}
