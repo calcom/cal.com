@@ -19,7 +19,6 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import type { ButtonProps } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
-import { truncateOnWord } from "@calcom/lib/text";
 
 interface AppCardProps {
   app: App;
