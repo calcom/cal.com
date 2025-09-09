@@ -4,10 +4,10 @@ import { getSession } from "next-auth/react";
 
 import { sanitizeValue } from "@calcom/lib/csvUtils";
 import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils.server";
-import { getHumanReadableFieldResponseValue } from "@calcom/lib/server/service/routingForm/responseData/getHumanReadableFieldResponseValue";
 import prisma from "@calcom/prisma";
 
 import { getSerializableForm } from "../../lib/getSerializableForm";
+import { getHumanReadableFieldResponseValue } from "../../lib/responseData/getHumanReadableFieldResponseValue";
 import type { FormResponse, SerializableForm } from "../../types/types";
 
 type Fields = NonNullable<SerializableForm<App_RoutingForms_Form>["fields"]>;
