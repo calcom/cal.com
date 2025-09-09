@@ -329,23 +329,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           },
         },
       });
-    } else if (
-      isStepEdited(oldStep, {
-        ...newStep,
-        verifiedAt: oldStep.verifiedAt,
-        agentId: null,
-        allowedCountryCodes: newStep.allowedCountryCodes || [],
-      })
-    ) {
-      // check if step that require team plan already existed before
-      if (!hasPaidPlan && isEmailAction(newStep.action)) {
-        const isChangingToCustomTemplate =
-          newStep.template === WorkflowTemplates.CUSTOM && oldStep.template !== WorkflowTemplates.CUSTOM;
-
-        if (isChangingToCustomTemplate) {
-          throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
-        }
-
       //step was deleted
       if (!newStep) {
         if (oldStep.action === WorkflowActions.CAL_AI_PHONE_CALL && !!oldStep.agentId) {
@@ -362,7 +345,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               },
             },
           });
-
 
           if (!agent) {
             throw new TRPCError({
@@ -477,6 +459,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           ...newStep,
           verifiedAt: oldStep.verifiedAt,
           agentId: newStep.agentId || null,
+          allowedCountryCodes: newStep.allowedCountryCodes || [],
         })
       ) {
         // check if step that require team plan already existed before
@@ -515,33 +498,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           newStep.action === WorkflowActions.WHATSAPP_NUMBER ||
           newStep.action === WorkflowActions.EMAIL_ADDRESS;
 
-
-      await ctx.prisma.workflowStep.update({
-        where: {
-          id: oldStep.id,
-        },
-        data: {
-          action: newStep.action,
-          sendTo: requiresSender ? newStep.sendTo : null,
-          stepNumber: newStep.stepNumber,
-          workflowId: newStep.workflowId,
-          reminderBody: newStep.reminderBody,
-          emailSubject: newStep.emailSubject,
-          template: newStep.template,
-          numberRequired: newStep.numberRequired,
-          sender: newStep.sender,
-          numberVerificationPending: false,
-          includeCalendarEvent: newStep.includeCalendarEvent,
-          verifiedAt: !SCANNING_WORKFLOW_STEPS ? new Date() : didBodyChange ? null : oldStep.verifiedAt,
-          agentId: null,
-          allowedCountryCodes: newStep.allowedCountryCodes || [],
-        },
-      });
-
         if (newStep.action === WorkflowActions.EMAIL_ADDRESS) {
           await verifyEmailSender(newStep.sendTo || "", user.id, userWorkflow.teamId);
         }
-
 
         const didBodyChange = newStep.reminderBody !== oldStep.reminderBody;
 
@@ -563,6 +522,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             includeCalendarEvent: newStep.includeCalendarEvent,
             agentId: newStep.agentId || null,
             verifiedAt: !SCANNING_WORKFLOW_STEPS ? new Date() : didBodyChange ? null : oldStep.verifiedAt,
+            allowedCountryCodes: newStep.allowedCountryCodes || [],
           },
         });
 
