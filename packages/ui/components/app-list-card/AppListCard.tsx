@@ -84,11 +84,19 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
               {isTemplate && <Badge variant="red">Template</Badge>}
             </div>
           </div>
-          <ListItemText
-            component="p"
-            className={classNames("whitespace-normal break-words", classNameObject?.description)}>
-            {description}
-          </ListItemText>
+          <p
+            className={classNames(
+              "text-sm text-subtle whitespace-normal break-words overflow-hidden",
+              classNameObject?.description
+            )}
+            style={{
+              lineHeight: "1.5em",
+              maxHeight: "4.5em", // Shows exactly 3 lines of text
+              textOverflow: "ellipsis",
+              wordBreak: "break-word",
+            }}>
+            {description && description.length > 140 ? `${description.substring(0, 140).trim()}...` : description}
+          </p>
           {invalidCredential && (
             <div className="flex gap-x-2 pt-2">
               <Icon name="circle-alert" className="h-8 w-8 flex-shrink-0 text-red-500 sm:h-4 sm:w-4" />
