@@ -358,8 +358,8 @@ export class PaymentService implements IAbstractPaymentService {
     paymentData: Payment,
     eventTypeMetadata?: EventTypeMetadata
   ): Promise<void> {
-    const attendeesToEmail = event.attendeeSeatId 
-      ? event.attendees.filter(attendee => attendee.bookingSeat?.referenceUid === event.attendeeSeatId)
+    const attendeesToEmail = event.attendeeSeatId
+      ? event.attendees.filter((attendee) => attendee.bookingSeat?.referenceUid === event.attendeeSeatId)
       : event.attendees;
 
     await sendAwaitingPaymentEmailAndSMS(
