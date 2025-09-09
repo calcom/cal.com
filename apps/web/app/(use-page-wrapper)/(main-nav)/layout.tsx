@@ -4,8 +4,8 @@ import React from "react";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import Shell from "@calcom/features/shell/Shell";
-import { NavigationPermissionsProvider } from "@calcom/features/shell/context/NavigationPermissionsProvider";
-import { checkNavigationPermissions } from "@calcom/features/shell/context/utils/checkNavigationPermissions";
+import { NavigationPermissionsProvider } from "@calcom/features/shell/permissions/NavigationPermissionsProvider";
+import { checkNavigationPermissions } from "@calcom/features/shell/permissions/checkNavigationPermissions";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
