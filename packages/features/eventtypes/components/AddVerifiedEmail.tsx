@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { VerifyCodeDialog } from "@calcom/features/bookings/components/VerifyCodeDialog";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { TextField, Label } from "@calcom/ui/components/form";
@@ -17,6 +18,7 @@ type AddVerifiedEmailProps = {
 };
 
 const AddVerifiedEmail = ({ username, showToast }: AddVerifiedEmailProps) => {
+  const { t } = useLocale();
   const [verifiedEmail, setVerifiedEmail] = useState("");
   const [isEmailVerificationModalVisible, setIsEmailVerificationModalVisible] = useState(false);
   const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -25,16 +27,16 @@ const AddVerifiedEmail = ({ username, showToast }: AddVerifiedEmailProps) => {
   const { mutateAsync: addVerifiedEmail } = useAddVerifiedEmail({
     onSuccess: () => {
       refetchVerifiedEmails();
-      showToast("Email verified successfully!", "success");
+      showToast(t("email_verified"), "success");
     },
     onError: () => {
-      showToast(`Something went wrong!`, "error");
+      showToast(t("something_went_wrong"), "error");
     },
   });
 
   const verifyEmail = useVerifyEmail({
     email: verifiedEmail,
-    name: username || "there",
+    name: username || t("there"),
     requiresBookerEmailVerification: true,
   });
 
@@ -57,7 +59,7 @@ const AddVerifiedEmail = ({ username, showToast }: AddVerifiedEmailProps) => {
         <Label
           className={classNames("text-emphasis mb-2 block text-sm font-medium leading-none")}
           htmlFor="add-verified-emails">
-          Add verified emails
+          {t("add_verified_emails")}
         </Label>
         <TextField
           id="add-verified-emails"
@@ -66,7 +68,7 @@ const AddVerifiedEmail = ({ username, showToast }: AddVerifiedEmailProps) => {
           onChange={(e) => setVerifiedEmail(e.target.value)}
           data-testid="add-verified-emails"
           addOnSuffix={
-            <Tooltip content="Add verified email for custom-reply to">
+            <Tooltip content={t("add_verified_email")}>
               <Button
                 type="button"
                 color="minimal"
