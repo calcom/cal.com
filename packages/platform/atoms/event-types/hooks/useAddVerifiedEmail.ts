@@ -38,11 +38,11 @@ export const useAddVerifiedEmail = (
   >({
     mutationFn: (data) => {
       const { email } = data;
-      const appendEmailAndOauthClientId = appendClientIdToEmail(email, clientId);
+      const emailToSend = appendClientIdToEmail(email, clientId);
 
       return http
         .post(`/atoms/emails/verified-emails`, {
-          email: appendEmailAndOauthClientId,
+          email: emailToSend,
         })
         .then((res) => {
           return res.data;

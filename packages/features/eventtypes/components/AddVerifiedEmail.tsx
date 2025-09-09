@@ -22,7 +22,7 @@ const AddVerifiedEmail = ({ username, showToast }: AddVerifiedEmailProps) => {
   const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const { refetch: refetchVerifiedEmails } = useGetVerifiedEmails();
-  const { mutate: addVerifiedEmail } = useAddVerifiedEmail({
+  const { mutateAsync: addVerifiedEmail } = useAddVerifiedEmail({
     onSuccess: () => {
       refetchVerifiedEmails();
       showToast("Email verified successfully!", "success");

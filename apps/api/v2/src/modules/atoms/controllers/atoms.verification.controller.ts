@@ -120,7 +120,7 @@ export class AtomsVerificationController {
     const verifiedEmails = await this.verificationService.getVerifiedEmails({
       userId: user.id,
       userEmail: user.email,
-      teamId: Number(query.teamId),
+      teamId: query.teamId ? Number(query.teamId) : undefined,
     });
 
     return {
@@ -136,15 +136,15 @@ export class AtomsVerificationController {
   async addVerifiedEmails(
     @Body() body: AddVerifiedEmailInput,
     @GetUser() user: UserWithProfile
-  ): Promise<ApiResponse<{ emailVerfied: boolean }>> {
-    const emailVerfied = await this.verificationService.addVerifiedEmail({
+  ): Promise<ApiResponse<{ emailVerified: boolean }>> {
+    const emailVerified = await this.verificationService.addVerifiedEmail({
       userId: user.id,
       existingPrimaryEmail: user.email,
       email: body.email,
     });
 
     return {
-      data: { emailVerfied },
+      data: { emailVerified },
       status: SUCCESS_STATUS,
     };
   }
