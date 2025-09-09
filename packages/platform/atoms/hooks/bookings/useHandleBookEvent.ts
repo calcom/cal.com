@@ -114,7 +114,7 @@ export const useHandleBookEvent = ({
         orgSlug: orgSlug ? orgSlug : undefined,
         routingFormSearchParams,
         isDryRunProp: isBookingDryRun,
-        verificationCode,
+        verificationCode: verificationCode || undefined,
       };
 
       const tracking = getUtmTrackingParameters(searchParams);

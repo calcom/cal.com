@@ -91,7 +91,6 @@ const BookerComponent = ({
     shallow
   );
 
-  const setVerificationCode = useBookerStoreContext((state) => state.setVerificationCode);
   const selectedDate = useBookerStoreContext((state) => state.selectedDate);
   const setSelectedDate = useBookerStoreContext((state) => state.setSelectedDate);
 
