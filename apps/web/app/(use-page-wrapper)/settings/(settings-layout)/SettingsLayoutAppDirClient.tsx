@@ -431,6 +431,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                       name={t("profile")}
                       href={`/settings/teams/${team.id}/profile`}
                       textClassNames="px-3 text-emphasis font-medium text-sm"
+                      className="me-5 h-7 w-auto !px-2"
                       disableChevron
                     />
                   )}
@@ -438,6 +439,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                     name={t("members")}
                     href={`/settings/teams/${team.id}/members`}
                     textClassNames="px-3 text-emphasis font-medium text-sm"
+                    className="me-5 h-7 w-auto !px-2"
                     disableChevron
                   />
                   {/* Show roles only for sub-teams with PBAC-enabled parent */}
@@ -458,6 +460,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                         name={t("appearance")}
                         href={`/settings/teams/${team.id}/appearance`}
                         textClassNames="px-3 text-emphasis font-medium text-sm"
+                        className="me-5 h-7 w-auto !px-2"
                         disableChevron
                       />
                       {/* Hide if there is a parent ID */}
@@ -467,6 +470,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                             name={t("billing")}
                             href={`/settings/teams/${team.id}/billing`}
                             textClassNames="px-3 text-emphasis font-medium text-sm"
+                            className="me-5 h-7 w-auto !px-2"
                             disableChevron
                           />
                         </>
@@ -475,6 +479,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                         name={t("settings")}
                         href={`/settings/teams/${team.id}/settings`}
                         textClassNames="px-3 text-emphasis font-medium text-sm"
+                        className="me-5 h-7 w-auto !px-2"
                         disableChevron
                       />
                     </>
@@ -636,6 +641,7 @@ const SettingsSidebarContainer = ({
                         name={t("add_a_team")}
                         href={`${WEBAPP_URL}/settings/teams/new`}
                         textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
+                        className="me-5 h-7 w-auto !px-2"
                         icon="plus"
                         disableChevron
                       />
@@ -737,12 +743,14 @@ const SettingsSidebarContainer = ({
                                   name={t("profile")}
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/profile`}
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
+                                  className="me-5 h-7 w-auto !px-2"
                                   disableChevron
                                 />
                                 <VerticalTabItem
                                   name={t("members")}
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/members`}
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
+                                  className="me-5 h-7 w-auto !px-2"
                                   disableChevron
                                 />
                                 <>

@@ -496,6 +496,8 @@ test.describe("Event Types tests", () => {
       });
       await test.step("should open first eventType and check Interface Language", async () => {
         await gotoFirstEventType(page);
+        // Go to Advanced tab
+        await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
         const interfaceLanguageValue = page
           .getByTestId("event-interface-language")
           .locator('div[class$="-singleValue"]');

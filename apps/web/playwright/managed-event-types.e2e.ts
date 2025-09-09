@@ -190,7 +190,7 @@ test.describe("Managed Event Types", () => {
   });
 
   const MANAGED_EVENT_TABS: { slug: string; locator: (page: Page) => Locator | Promise<Locator> }[] = [
-    { slug: "setup", locator: (page) => getByKey(page, "translate_description_button") },
+    { slug: "setup", locator: (page) => getByKey(page, "allow_multiple_durations") },
     {
       slug: "team",
       locator: (page) => getByKey(page, "automatically_add_all_team_members"),
