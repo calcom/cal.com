@@ -141,6 +141,7 @@ export const useBookings = ({
   const eventTypeId = useBookerStoreContext((state) => state.eventId);
   const isInstantMeeting = useBookerStoreContext((state) => state.isInstantMeeting);
 
+  const rescheduleUid = useBookerStoreContext((state) => state.rescheduleUid);
   const rescheduledBy = useBookerStoreContext((state) => state.rescheduledBy);
   const bookingData = useBookerStoreContext((state) => state.bookingData);
   const timeslot = useBookerStoreContext((state) => state.selectedTimeslot);
