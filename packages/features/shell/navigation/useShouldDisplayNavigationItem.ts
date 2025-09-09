@@ -8,7 +8,9 @@ export function useShouldDisplayNavigationItem(item: NavigationItemType) {
   const flags = useFlagMap();
   const navigationPermissions = useNavigationPermissions();
 
-  if (isKeyInObject(item.name, flags)) return flags[item.name];
+  if (isKeyInObject(item.name, flags) && flags[item.name] === false) {
+    return false;
+  }
 
   if (item.name in navigationPermissions) {
     return navigationPermissions[item.name as NavigationItemName];
