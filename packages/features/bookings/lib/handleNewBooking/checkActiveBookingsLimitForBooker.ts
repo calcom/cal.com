@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
@@ -17,45 +18,43 @@ export const checkActiveBookingsLimitForBooker = async ({
   bookerEmail: string;
   offerToRescheduleLastBooking: boolean;
 }) => {
-  if (!maxActiveBookingsPerBooker) {
+  if (!maxActiveBookingsPerBooker) return;
+
+  const activeBookings = await prisma.booking.findMany({
+    where: {
+      eventTypeId,
+      status: { in: [BookingStatus.ACCEPTED, BookingStatus.PENDING] },
+      attendees: { some: { email: bookerEmail } },
+    },
+    orderBy: { startTime: "desc" },
+  });
+
+  if (activeBookings.length < maxActiveBookingsPerBooker) {
     return;
   }
 
   if (offerToRescheduleLastBooking) {
-    const lastActiveBooking = await prisma.booking.findFirst({
-      where: {
-        eventTypeId,
-        status: { in: [BookingStatus.ACCEPTED, BookingStatus.PENDING] },
-        attendees: {
-          some: {
-            email: bookerEmail,
-          },
-        },
-      },
-      orderBy: { startTime: "desc" },
+    const bookingToReschedule = activeBookings[maxActiveBookingsPerBooker - 1];
+
+    await prisma.booking.update({
+      where: { id: bookingToReschedule.id },
+      data: { status: BookingStatus.CANCELLED, rescheduled: true },
     });
 
-    if (lastActiveBooking) {
-      await prisma.booking.update({
-        where: { id: lastActiveBooking.id },
-        data: {
-          status: BookingStatus.CANCELLED,
-          rescheduled: true,
-        },
-      });
-    }
-
-    return await checkActiveBookingsLimitAndOfferReschedule({
-      eventTypeId,
-      maxActiveBookingsPerBooker,
-      bookerEmail,
-    });
+    throw new ErrorWithCode(
+      ErrorCode.BookerLimitExceededReschedule,
+      "Previous booking has been rescheduled",
+      {
+        previousDate: bookingToReschedule.startTime.toISOString(),
+        rescheduleUid: bookingToReschedule.uid,
+      }
+    );
   } else {
-    await checkActiveBookingsLimit({ eventTypeId, maxActiveBookingsPerBooker, bookerEmail });
+    log.warn(`Maximum booking limit reached for ${bookerEmail} for event type ${eventTypeId}`);
+    throw new ErrorWithCode(ErrorCode.BookerLimitExceeded, "Maximum booking limit reached");
   }
 };
 
-/** If we don't need the last record then we should just use COUNT */
 const checkActiveBookingsLimit = async ({
   eventTypeId,
   maxActiveBookingsPerBooker,
@@ -68,78 +67,14 @@ const checkActiveBookingsLimit = async ({
   const bookingsCount = await prisma.booking.count({
     where: {
       eventTypeId,
-      startTime: {
-        gte: new Date(),
-      },
-      status: {
-        in: [BookingStatus.ACCEPTED],
-      },
-      attendees: {
-        some: {
-          email: bookerEmail,
-        },
-      },
+      startTime: { gte: new Date() },
+      status: { in: [BookingStatus.ACCEPTED] },
+      attendees: { some: { email: bookerEmail } },
     },
   });
 
   if (bookingsCount >= maxActiveBookingsPerBooker) {
     log.warn(`Maximum booking limit reached for ${bookerEmail} for event type ${eventTypeId}`);
-    throw new ErrorWithCode(ErrorCode.BookerLimitExceeded, ErrorCode.BookerLimitExceeded);
-  }
-};
-
-const checkActiveBookingsLimitAndOfferReschedule = async ({
-  eventTypeId,
-  maxActiveBookingsPerBooker,
-  bookerEmail,
-}: {
-  eventTypeId: number;
-  maxActiveBookingsPerBooker: number;
-  bookerEmail: string;
-}) => {
-  const bookingsCount = await prisma.booking.findMany({
-    where: {
-      eventTypeId,
-      startTime: {
-        gte: new Date(),
-      },
-      status: {
-        in: [BookingStatus.ACCEPTED],
-      },
-      attendees: {
-        some: {
-          email: bookerEmail,
-        },
-      },
-    },
-    orderBy: {
-      startTime: "desc",
-    },
-    take: maxActiveBookingsPerBooker,
-    select: {
-      uid: true,
-      startTime: true,
-      attendees: {
-        select: {
-          name: true,
-          email: true,
-        },
-      },
-    },
-  });
-
-  const lastBooking = bookingsCount[bookingsCount.length - 1];
-
-  if (bookingsCount.length >= maxActiveBookingsPerBooker) {
-    log.warn(`Maximum booking limit reached for ${bookerEmail} for event type ${eventTypeId}`);
-    throw new ErrorWithCode(
-      ErrorCode.BookerLimitExceededReschedule,
-      ErrorCode.BookerLimitExceededReschedule,
-      {
-        rescheduleUid: lastBooking.uid,
-        startTime: lastBooking.startTime,
-        attendees: lastBooking.attendees,
-      }
-    );
+    throw new ErrorWithCode(ErrorCode.BookerLimitExceeded, "Maximum booking limit reached");
   }
 };
