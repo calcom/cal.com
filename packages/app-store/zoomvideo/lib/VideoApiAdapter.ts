@@ -10,7 +10,8 @@ import {
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { Frequency } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -316,7 +317,8 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
             id: credential.id,
           },
           data: {
-            key: newTokenObject,
+            // z.passthrough() is not allowed in Prisma, but we know this is trusted.
+            key: newTokenObject as unknown as Prisma.InputJsonValue,
           },
         });
       },
