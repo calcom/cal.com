@@ -244,10 +244,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   useEffect(() => {
     const autoCreateAgent = searchParams?.get("autoCreateAgent");
+    const templateWorkflowId = searchParams?.get("templateWorkflowId");
 
     if (
       autoCreateAgent === "true" &&
       !autoAgentCreationAttempted &&
+      templateWorkflowId &&
       step &&
       step.action === WorkflowActions.CAL_AI_PHONE_CALL &&
       !stepAgentId &&
@@ -268,10 +270,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             createAgentMutation.mutate({
               teamId,
               workflowStepId: updatedStep.id,
+              templateWorkflowId,
             });
 
             const url = new URL(window.location.href);
             url.searchParams.delete("autoCreateAgent");
+            url.searchParams.delete("templateWorkflowId");
             router.replace(url.pathname + url.search);
           } else {
             showToast(t("failed_to_get_workflow_step_id"), "error");
