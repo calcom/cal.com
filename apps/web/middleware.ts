@@ -1,10 +1,8 @@
 import { get } from "@vercel/edge-config";
-import { isbot } from "isbot";
 import { collectEvents } from "next-collect/server";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import logger from "@calcom/lib/logger";
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
 
 import { getCspHeader, getCspNonce } from "@lib/csp";
@@ -97,25 +95,6 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
 
   if (url.pathname.startsWith("/auth/logout")) {
     res.cookies.delete("next-auth.session-token");
-  }
-
-  if (url.pathname.startsWith("/router")) {
-    const userAgent = req.headers.get("user-agent");
-
-    if (!userAgent) {
-      logger.error("Missing user agent in web middleware");
-      return NextResponse.next();
-    }
-
-    try {
-      const isBot = isbot(userAgent);
-      if (isBot) {
-        return NextResponse.status(200);
-      }
-    } catch (error) {
-      logger.error("Error checking if user agent is a bot in web middlware:", error);
-      return NextResponse.next();
-    }
   }
 
   return responseWithHeaders({ url, res, req: reqWithEnrichedHeaders });
