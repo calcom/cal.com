@@ -34,7 +34,7 @@ describe("UserRepository", () => {
         locked: false,
       });
 
-      expect(user).toEqual(
+      expect(_user).toEqual(
         expect.objectContaining({
           username: "test",
           email: "test@example.com",
@@ -46,7 +46,7 @@ describe("UserRepository", () => {
 
       const password = await prismock.userPassword.findUnique({
         where: {
-          userId: user.id,
+          userId: _user.id,
         },
       });
 
@@ -92,7 +92,7 @@ describe("UserRepository", () => {
         locked: true,
       });
 
-      expect(user).toEqual(
+      expect(_user).toEqual(
         expect.objectContaining({
           organizationId,
         })

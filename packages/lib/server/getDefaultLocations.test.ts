@@ -77,19 +77,19 @@ describe("getDefaultLocation ", async () => {
 });
 
 async function mockUser(user: User) {
-  const userToCreate: unknown = {
+  const userToCreate = {
     ...TestData.users.example,
     ...user,
-  };
-  if (user.credentials) {
-    userToCreate.credentials = {
-      createMany: {
-        data: user.credentials,
+    ...(user.credentials && {
+      credentials: {
+        createMany: {
+          data: user.credentials,
+        },
       },
-    };
-  }
+    }),
+  };
   return await prismaMock.user.create({
-    data: userToCreate,
+    data: userToCreate as unknown,
   });
 }
 async function addAppsToDb(apps: unknown[]) {

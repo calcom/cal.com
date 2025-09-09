@@ -49,7 +49,7 @@ export class UserCreationService {
 
     log.info(`Created user: ${user.id} with locked status of ${user.locked}`);
 
-    const { locked, ...restUser } = user;
+    const { locked: _locked, ...restUser } = user;
 
     return restUser;
   }

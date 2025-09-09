@@ -8,8 +8,8 @@ import type { WorkflowStep } from "@calcom/ee/workflows/lib/types";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { Prisma } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { WorkflowMethods } from "@calcom/prisma/enums";
 import type { TFilteredListInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/filteredList.schema";
 import type { TGetVerifiedEmailsInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/getVerifiedEmails.schema";
@@ -432,7 +432,7 @@ export class WorkflowRepository {
     const reminderMethods: {
       [x: string]: (id: number, referenceId: string | null) => void;
     } = {
-      [WorkflowMethods.EMAIL]: (id, referenceId) => deleteScheduledEmailReminder(id),
+      [WorkflowMethods.EMAIL]: (id, _referenceId) => deleteScheduledEmailReminder(id),
       [WorkflowMethods.SMS]: (id, referenceId) => deleteScheduledSMSReminder(id, referenceId),
       [WorkflowMethods.WHATSAPP]: (id, referenceId) => deleteScheduledWhatsappReminder(id, referenceId),
       [WorkflowMethods.AI_PHONE_CALL]: (id, referenceId) => deleteScheduledAIPhoneCall(id, referenceId),

@@ -11,7 +11,7 @@ const { resolveQueryValue } = acrossQueryValueCompatiblity;
 
 // Mock the getFieldResponseValueAsLabel
 vi.mock("@calcom/app-store/routing-forms/lib/getFieldResponseValueAsLabel", () => ({
-  getFieldResponseValueAsLabel: ({ fieldResponseValue }: { field: any; fieldResponseValue: any }) => {
+  getFieldResponseValueAsLabel: ({ fieldResponseValue }: { field: unknown; fieldResponseValue: unknown }) => {
     // For testing, just return the value as-is
     return fieldResponseValue;
   },
@@ -35,7 +35,7 @@ const createAttributesQueryValue = (overrides?: {
   id?: string;
   type?: "group" | "switch_group";
   children1?: Record<string, RaqbChild>;
-  properties?: any;
+  properties?: unknown;
 }): AttributesQueryValue => ({
   id: overrides?.id || "test-id",
   type: overrides?.type || "group",
@@ -55,7 +55,7 @@ const createQueryValueWithRule = ({
   ruleId: string;
   field: string;
   operator: string;
-  value: any[];
+  value: unknown[];
   valueSrc?: string[];
   valueError?: (string | null)[];
   valueType?: string[];
@@ -86,14 +86,14 @@ const createComplexQueryValue = ({
     ruleId: string;
     field: string;
     operator: string;
-    value: any[];
+    value: unknown[];
     valueSrc?: string[];
     valueError?: (string | null)[];
     valueType?: string[];
   }>;
 }): AttributesQueryValue => {
   const children1: Record<string, RaqbChild> = {};
-  
+
   rules.forEach((rule) => {
     children1[rule.ruleId] = createQueryValueRule({
       type: "rule",
@@ -123,7 +123,7 @@ const createNestedGroupQueryValue = ({
       ruleId: string;
       field: string;
       operator?: string;
-      value: any[];
+      value: unknown[];
       valueSrc?: string[];
       valueError?: (string | null)[];
       valueType?: string[];
@@ -1217,7 +1217,7 @@ describe("resolveQueryValue", () => {
         fields: mockFields,
         response: {
           location: { value: ["Delhi"], label: "Delhi" },
-          city: { value: null as any, label: "" }, // null value
+          city: { value: null as unknown, label: "" }, // null value
         },
       },
       attributes: mockAttributes,
@@ -1612,7 +1612,7 @@ describe("resolveQueryValue", () => {
       dynamicFieldValueOperands: {
         fields: mockFields,
         response: {
-          location: {} as any, // Empty object, no value property
+          location: {} as unknown, // Empty object, no value property
         },
       },
       attributes: mockAttributes,

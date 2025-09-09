@@ -32,7 +32,7 @@ vi.mock("../repository/user", () => {
   };
 });
 
-vi.mock("@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller", (async) => ({
+vi.mock("@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller", (_async) => ({
   checkIfEmailIsBlockedInWatchlistController: vi.fn(() => false),
 }));
 
@@ -55,17 +55,15 @@ describe("UserCreationService", () => {
       username: "test",
       locked: false,
       organizationId: null,
-    } as any);
+    } as unknown);
 
     const mockUserRepository = vi.mocked(UserRepository);
-    if (mockUserRepository && typeof mockUserRepository.mockImplementation === "function") {
-      mockUserRepository.mockImplementation(
-        () =>
-          ({
-            create: mockCreate,
-          } as any)
-      );
-    }
+    mockUserRepository.mockImplementation(
+      () =>
+        ({
+          create: mockCreate,
+        } as unknown)
+    );
 
     const user = await UserCreationService.createUser({ data: mockUserData });
 
@@ -87,17 +85,15 @@ describe("UserCreationService", () => {
       username: "test",
       locked: true,
       organizationId: null,
-    } as any);
+    } as unknown);
 
     const mockUserRepository = vi.mocked(UserRepository);
-    if (mockUserRepository && typeof mockUserRepository.mockImplementation === "function") {
-      mockUserRepository.mockImplementation(
-        () =>
-          ({
-            create: mockCreate,
-          } as any)
-      );
-    }
+    mockUserRepository.mockImplementation(
+      () =>
+        ({
+          create: mockCreate,
+        } as unknown)
+    );
 
     const user = await UserCreationService.createUser({ data: mockUserData });
 
@@ -118,17 +114,15 @@ describe("UserCreationService", () => {
       username: "test",
       locked: false,
       organizationId: null,
-    } as any);
+    } as unknown);
 
     const mockUserRepository = vi.mocked(UserRepository);
-    if (mockUserRepository && typeof mockUserRepository.mockImplementation === "function") {
-      mockUserRepository.mockImplementation(
-        () =>
-          ({
-            create: mockCreate,
-          } as any)
-      );
-    }
+    mockUserRepository.mockImplementation(
+      () =>
+        ({
+          create: mockCreate,
+        } as unknown)
+    );
 
     const user = await UserCreationService.createUser({
       data: { ...mockUserData, password: mockPassword },
