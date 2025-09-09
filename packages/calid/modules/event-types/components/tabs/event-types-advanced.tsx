@@ -7,18 +7,18 @@ import {
 import { Alert } from "@calid/features/ui/components/alert";
 import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
-import { Checkbox } from "@calid/features/ui/components/checkbox";
-import { Icon } from "@calid/features/ui/components/icon";
-import { Input } from "@calid/features/ui/components/input/input";
-import { Label } from "@calid/features/ui/components/label";
-import { RadioGroup } from "@calid/features/ui/components/radio-group";
-import { RadioGroupItem } from "@calid/features/ui/components/radio-group";
 import { Select } from "@calid/features/ui/components/select";
 import { SelectTrigger } from "@calid/features/ui/components/select";
 import { SelectValue } from "@calid/features/ui/components/select";
 import { SelectContent } from "@calid/features/ui/components/select";
 import { SelectItem } from "@calid/features/ui/components/select";
-import { Switch } from "@calid/features/ui/components/switch/switch";
+import { CheckboxField } from "@calid/features/ui/components/input/checkbox-field";
+import { RadioGroup } from "@calid/features/ui/components/radio-group";
+import { RadioGroupItem } from "@calid/features/ui/components/radio-group";
+import { Label } from "@calid/features/ui/components/label";
+import { Input } from "@calid/features/ui/components/input/input";
+import { Icon } from "@calid/features/ui/components/icon";
+import { Switch } from "@calid/features/ui/components/switch";
 import type { UnitTypeLongPlural } from "dayjs";
 import type { TFunction } from "i18next";
 import React, { useState, useCallback, useMemo, Suspense } from "react";
@@ -752,7 +752,7 @@ const RequiresConfirmationController = ({
 
                         {/* Additional confirmation options */}
                         <div className="flex items-center gap-2">
-                          <Checkbox
+                          <CheckboxField
                             checked={requiresConfirmationWillBlockSlot}
                             onCheckedChange={(checked) => {
                               formMethods.setValue("requiresConfirmationWillBlockSlot", !!checked, {
@@ -766,13 +766,12 @@ const RequiresConfirmationController = ({
                         </div>
 
                         <div className="flex items-center gap-2">
-                          <Checkbox
-                            checked={formMethods.getValues("requiresConfirmationForFreeEmail")}
-                            onCheckedChange={(checked) => {
-                              formMethods.setValue("requiresConfirmationForFreeEmail", !!checked, {
-                                shouldDirty: true,
-                              });
-                            }}
+                          <CheckboxField
+                            checked={requiresConfirmationForFreeEmail}
+                            descriptionAsLabel
+                            description={t("require_confirmation_for_free_email")}
+                            className={customClassNames?.conditionalConfirmationRadio?.checkbox}
+                            descriptionClassName={customClassNames?.conditionalConfirmationRadio?.checkboxDescription}
                           />
                           <label className="text-foreground text-sm">
                             {t("require_confirmation_for_free_email")}
@@ -1291,7 +1290,7 @@ export const EventAdvanced = ({
                   name="forwardParamsSuccessRedirect"
                   render={({ field: { value: forwardValue, onChange: forwardOnChange } }) => (
                     <div className="flex items-center gap-2">
-                      <Checkbox
+                     <CheckboxField
                         checked={forwardValue}
                         disabled={lockedFields.successRedirectUrl.disabled}
                         onCheckedChange={forwardOnChange}
@@ -1438,8 +1437,7 @@ export const EventAdvanced = ({
                           name="seatsShowAttendees"
                           render={({ field: { value: attendeeValue, onChange: attendeeOnChange } }) => (
                             <div className="flex items-center gap-2">
-                              <Checkbox
-                                data-testid="show-attendees"
+                              <CheckboxField
                                 checked={attendeeValue}
                                 disabled={lockedFields.seats.disabled}
                                 onCheckedChange={attendeeOnChange}
@@ -1453,7 +1451,7 @@ export const EventAdvanced = ({
                           name="seatsShowAvailabilityCount"
                           render={({ field: { value: availValue, onChange: availOnChange } }) => (
                             <div className="flex items-center gap-2">
-                              <Checkbox
+                              <CheckboxField
                                 checked={availValue}
                                 disabled={lockedFields.seats.disabled}
                                 onCheckedChange={availOnChange}

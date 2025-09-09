@@ -12,7 +12,7 @@ export const Header = ({ heading, subtitle }: HeaderProps) => {
   }
 
   return (
-    <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full backdrop-blur">
+    <header className="w-full">
       <div className="flex h-full w-full items-center justify-between">
         {/* Left section: Title and description */}
         <div className="flex flex-col justify-center space-y-1">

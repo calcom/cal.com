@@ -73,7 +73,7 @@ function AddFilterButtonComponent<TData>(
         )}
         {variant === "sm" && (
           <TooltipProvider>
-            <Tooltip delayDuration={0}>
+            <Tooltip>
               <TooltipTrigger asChild>
                 <PopoverTrigger asChild>
                   <Button ref={ref} color="secondary" data-testid="add-filter-button" className="h-full">

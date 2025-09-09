@@ -2,7 +2,17 @@ import { cn } from "@calid/features/lib/cn";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import * as React from "react";
 
-const TooltipProvider = TooltipPrimitive.Provider;
+const TooltipProvider = ({
+  children,
+  delayDuration = 300,
+}: {
+  children: React.ReactNode;
+  delayDuration?: number;
+}) => (
+  <TooltipPrimitive.Provider delayDuration={delayDuration}>
+    {children}
+  </TooltipPrimitive.Provider>
+);
 const Tooltip = TooltipPrimitive.Root;
 const TooltipTrigger = TooltipPrimitive.Trigger;
 

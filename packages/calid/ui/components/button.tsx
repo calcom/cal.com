@@ -392,7 +392,7 @@ const Wrapper = ({
   }
 
   return (
-    <TooltipProvider>
+    <TooltipProvider> 
       <Tooltip>
         <TooltipTrigger asChild>{children}</TooltipTrigger>
 

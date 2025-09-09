@@ -108,7 +108,7 @@ export const Badge = function Badge(props: BadgeProps) {
       {children}
       {isPublicUrl && (
         <div className="ml-1 flex items-center">
-          <TooltipProvider delayDuration={0}>
+          <TooltipProvider>
             <Tooltip
               open={isCopied ? true : undefined}
               onOpenChange={(open) => {
@@ -133,7 +133,7 @@ export const Badge = function Badge(props: BadgeProps) {
               <TooltipContent>{isCopied ? t("copied") : t("copy")}</TooltipContent>{" "}
             </Tooltip>
           </TooltipProvider>
-          <TooltipProvider delayDuration={0}>
+          <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button

@@ -12,6 +12,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { cn } from "@calid/features/lib/cn";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { IconParams } from "./event-type-card-icon";
+import { BlankCard } from "@calid/features/ui/components/card";
 
 // Icon categories for organization
 const iconCategories = {
@@ -205,21 +206,19 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
   const [selectedColor, setSelectedColor] = useState(currentIconParams.color);
   const [selectedIcon, setSelectedIcon] = useState(currentIconParams.icon);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
-  // Get all available icons
   const allIcons = useMemo(() => {
     const iconList: string[] = [];
     Object.values(iconCategories).forEach((categoryIcons) => {
       iconList.push(...categoryIcons);
     });
-    return [...new Set(iconList)]; // Remove duplicates
+    return [...new Set(iconList)];
   }, []);
 
-  // Filter icons based on search and category
   const filteredIcons = useMemo(() => {
     let icons: string[] = [];
 
-    // First filter by category
     if (selectedCategory === "All") {
       icons = allIcons;
     } else {
@@ -227,7 +226,6 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
       icons = iconCategories[categoryKey] ? [...iconCategories[categoryKey]] : [];
     }
 
-    // Then filter by search query
     if (searchQuery.trim()) {
       icons = icons.filter((iconName) => iconName.toLowerCase().includes(searchQuery.toLowerCase().trim()));
     }
@@ -248,7 +246,15 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
   };
 
   const handleCategorySelect = (category: string) => {
-    setSelectedCategory(category);
+    if (category === selectedCategory) return;
+    
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setSelectedCategory(category);
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 150);
+    }, 150);
   };
 
   const handleApply = () => {
@@ -260,13 +266,11 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
   };
 
   const handleClose = () => {
-    // Reset to current values when closing without applying
     setSelectedIcon(currentIconParams.icon);
     setSelectedColor(currentIconParams.color);
     onClose();
   };
 
-  // Reset when opening/currentIconParams changes
   useEffect(() => {
     if (isOpen) {
       setSelectedIcon(currentIconParams.icon);
@@ -278,27 +282,32 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
 
   const categories = ["All", ...Object.keys(iconCategories)];
 
-  // Predefined color palette
-  const colorPalette = [
-    "#6366f1", // Indigo
-    "#8b5cf6", // Purple
-    "#06b6d4", // Cyan
-    "#10b981", // Emerald
-    "#f59e0b", // Amber
-    "#ef4444", // Red
-    "#ec4899", // Pink
-    "#84cc16", // Lime
-    "#f97316", // Orange
-    "#6b7280", // Gray
-    "#1f2937", // Dark gray
-    "#000000", // Black
-  ];
+  // Check if any changes have been made from the original values
+  const hasChanges = useMemo(() => {
+    return (
+      selectedIcon !== currentIconParams.icon ||
+      selectedColor !== currentIconParams.color
+    );
+  }, [selectedIcon, selectedColor, currentIconParams.icon, currentIconParams.color]);
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="flex max-h-[80vh] max-w-4xl flex-col">
+    <>
+      <style jsx>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
+      <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+        <DialogContent className="flex max-h-[80vh] max-w-4xl flex-col">
         <DialogHeader>
-          <DialogTitle>Choose Icon</DialogTitle>
+          <DialogTitle>{t("choose_icon")}</DialogTitle>
           <TextField
             addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
             addOnClassname="!border-muted"
@@ -312,69 +321,76 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
         </DialogHeader>
 
         <div className="flex flex-1 flex-col space-y-4 overflow-hidden">
-          {/* Category tabs */}
           <div className="border-border flex flex-wrap gap-1 border-b pb-2">
             {categories.map((category) => (
               <button
                 key={category}
                 onClick={() => handleCategorySelect(category)}
-                className={`rounded-md px-3 py-1 text-xs transition-colors ${
+                disabled={isTransitioning}
+                className={`relative rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-200 ease-in-out transform ${
                   selectedCategory === category
-                    ? "bg-cal-active text-white"
-                    : "bg-muted text-default hover:text-emphasis"
-                }`}>
+                    ? "bg-cal-active text-white shadow-sm scale-105"
+                    : "bg-muted text-default hover:text-emphasis hover:bg-muted/80 hover:scale-102"
+                } ${isTransitioning ? "opacity-70" : ""}`}>
                 {category}
+                {selectedCategory === category && (
+                  <div className="absolute inset-0 rounded-md bg-cal-active/20 animate-pulse" />
+                )}
               </button>
             ))}
           </div>
 
-          {/* Icon grid */}
           <div className="flex-1 overflow-y-auto min-h-0">
-            {filteredIcons.length === 0 ? (
-              <div className="text-muted-foreground flex h-32 items-center justify-center">
-                <div className="text-center">
-                  <Icon name="search" className="mx-auto mb-2 h-8 w-8" />
-                  <p>No icons found</p>
-                  {searchQuery && <p className="text-xs">Try a different search term</p>}
-                </div>
-              </div>
-            ) : (
-              <div className="lg:grid-cols-14 grid grid-cols-8 gap-2 py-2 sm:grid-cols-10 md:grid-cols-12">
-                {filteredIcons.map((iconName) => {
-                  const isSelected = selectedIcon === iconName;
+            <div 
+              className={`transition-all duration-300 ease-in-out ${
+                isTransitioning ? "opacity-0 transform translate-y-2" : "opacity-100 transform translate-y-0"
+              }`}>
+              {filteredIcons.length === 0 ? (
+                <BlankCard
+                  Icon="search"
+                  headline={t("no_icons_found")}
+                  description={t("try_different_search_term")}
+                />
+              ) : (
+                <div className="lg:grid-cols-14 grid grid-cols-8 gap-2 py-2 sm:grid-cols-10 md:grid-cols-12">
+                  {filteredIcons.map((iconName, index) => {
+                    const isSelected = selectedIcon === iconName;
 
-                  return (
-                    <button
-                      key={iconName}
-                      onClick={() => handleIconSelect(iconName)}
-                      className={`hover:bg-subtle group relative flex h-12 w-12 items-center justify-center rounded-lg border-2 transition-all ${
-                        isSelected
-                          ? "border-active"
-                          : "border-transparent"
-                      }`}
-                      title={iconName}>
-                      <Icon
-                        name={iconName as IconName}
-                        className="h-5 w-5"
-                        style={{ color: isSelected ? selectedColor : undefined }}
-                      />
-                      {isSelected && (
-                        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 rounded-full bg-cal-active p-0.5">
-                          <Icon name="check" className="h-2.5 w-2.5 text-white" />
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+                    return (
+                      <button
+                        key={iconName}
+                        onClick={() => handleIconSelect(iconName)}
+                        className={`hover:bg-subtle group relative flex h-12 w-12 items-center justify-center rounded-lg border-2 transition-all duration-200 hover:scale-105 ${
+                          isSelected
+                            ? "border-active shadow-sm"
+                            : "border-transparent hover:border-muted"
+                        }`}
+                        style={{
+                          animationDelay: `${index * 20}ms`,
+                          animation: isTransitioning ? "none" : "fadeInUp 0.3s ease-out forwards"
+                        }}
+                        title={iconName}>
+                        <Icon
+                          name={iconName as IconName}
+                          className="h-5 w-5 transition-colors duration-200"
+                          style={{ color: isSelected ? selectedColor : undefined }}
+                        />
+                        {isSelected && (
+                          <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 rounded-full bg-cal-active p-0.5">
+                            <Icon name="check" className="h-2.5 w-2.5 text-white" />
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Color picker */}
           <div className="border-border border-t pt-4">
             <div className="space-y-3">
-              <h4 className="text-sm font-medium">Icon Color</h4>
-              {/* Custom color input */}
+              <h4 className="text-sm font-medium">{t("icon_color")}</h4>
               <div className="flex items-center space-x-2">
                 <Input
                   type="color"
@@ -397,11 +413,15 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
           <Button color="secondary" onClick={handleClose}>
             {t("cancel")}
           </Button>
-          <Button onClick={handleApply} disabled={!selectedIcon}>
+          <Button 
+            onClick={handleApply} 
+            disabled={!selectedIcon || !hasChanges}
+          >
             {t("apply")}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    </>
   );
 };

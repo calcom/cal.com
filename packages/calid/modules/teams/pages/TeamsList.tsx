@@ -140,7 +140,7 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
                 </div>
                 <div className="flex items-center space-x-2">
                   <Badge variant="attention">{t("pending")}</Badge>
-                  <TooltipProvider delayDuration={0}>
+                  <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button

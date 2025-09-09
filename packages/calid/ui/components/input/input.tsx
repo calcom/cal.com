@@ -28,6 +28,7 @@ export const inputStyles = cva(
     // States
     "hover:border-emphasis",
     "focus:ring-0",
+    "focus:outline-none",
     "focus:shadow-outline-gray-focused",
 
     // Disabled state
@@ -145,7 +146,6 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           className={cn(
             inputStyles({ size }),
             "group relative flex min-w-0 items-center gap-1",
-            "[&:focus-within]:border-subtle [&:focus-within]:ring-brand-default [&:focus-within]:ring-0",
             "[&:has(:disabled)]:bg-subtle [&:has(:disabled)]:hover:border-default [&:has(:disabled)]:cursor-not-allowed",
             inputIsFullWidth && "w-full"
           )}>
@@ -206,7 +206,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           size={size}
           className={cn(
             className,
-            "disabled:bg-subtle disabled:hover:border-subtle disabled:cursor-not-allowed"
+            "disabled:bg-subtle disabled:hover:border-subtle disabled:cursor-not-allowed" 
           )}
           {...passThrough}
           readOnly={readOnly}
@@ -283,6 +283,20 @@ export const PasswordField = forwardRef<HTMLInputElement, TextFieldProps>(functi
           </Tooltip>
         </TooltipProvider>
       }
+    />
+  );
+});
+
+export const NumberInput = forwardRef<HTMLInputElement, TextFieldProps>(function NumberInput(props, ref) {
+  return (
+    <Input
+      ref={ref}
+      type="number"
+      autoCapitalize="none"
+      autoComplete="numeric"
+      autoCorrect="off"
+      inputMode="numeric"
+      {...props}
     />
   );
 });

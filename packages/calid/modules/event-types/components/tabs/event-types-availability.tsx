@@ -2,6 +2,9 @@ import { Button } from "@calid/features/ui/components/button";
 import { CustomSelect } from "@calid/features/ui/components/custom-select";
 import { Icon } from "@calid/features/ui/components/icon";
 import { Label } from "@calid/features/ui/components/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@calid/features/ui/components/card";
+import { SettingsSwitch } from "@calid/features/ui/components/switch";
+import { Separator } from "@calid/features/ui/components/separator";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { UseQueryResult } from "@tanstack/react-query";
 import type { TFunction } from "i18next";
@@ -26,9 +29,7 @@ import { weekStartNum } from "@calcom/lib/weekstart";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { SettingsToggle } from "@calcom/ui/components/form";
-import { Spinner } from "@calcom/ui/components/icon";
-import { SkeletonText } from "@calcom/ui/components/skeleton";
+import { Skeleton } from "@calid/features/ui/components/skeleton";
 
 export type GetAllSchedulesByUserIdQueryType =
   | typeof trpc.viewer.availability.schedule.getAllSchedulesByUserId.useQuery
@@ -279,8 +280,6 @@ const TeamMemberSchedule = memo(
         data?.schedules?.map((schedule) => ({
           value: schedule.id.toString(),
           label: schedule.name,
-          isDefault: schedule.isDefault,
-          isManaged: false,
         })) || [],
       [data?.schedules]
     );
@@ -298,7 +297,7 @@ const TeamMemberSchedule = memo(
     );
 
     if (isPending) {
-      return <Spinner className="mt-2 h-6 w-6" />;
+      return <Icon name="loader-circle" className="mt-2 h-6 w-6 animate-spin" />;
     }
 
     return (
@@ -383,13 +382,13 @@ const ScheduleDisplay = memo(
     }, [editAvailabilityRedirectUrl]);
 
     if (isSchedulePending) {
-      return <SkeletonText className="block h-5 w-60" />;
+      return <Skeleton className="h-5 w-60" />;
     }
 
     return (
       <div className="space-y-6">
         {/* Weekly Schedule Grid */}
-        <div className="border-subtle space-y-4 border-x px-6">
+        <div className="space-y-4 border-subtle border-b pb-4">
           <ol className="table w-full border-collapse text-sm">
             {weeklySchedule.map((schedule) => (
               <li key={schedule.day} className="my-6 flex justify-between border-transparent last:mb-2">
@@ -418,7 +417,7 @@ const ScheduleDisplay = memo(
         </div>
 
         {/* Footer with Timezone and Edit Button */}
-        <div className="bg-muted border-subtle flex flex-col items-center gap-2 rounded-b-md border p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col items-center gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-2">
             {/* Timezone Display */}
             <span
@@ -431,7 +430,7 @@ const ScheduleDisplay = memo(
                   isRestrictionSchedule && currentUseBookerTimezone ? "text-muted" : ""
                 }`}
               />
-              {scheduleQueryData?.timeZone || <SkeletonText className="block h-5 w-32" />}
+              {scheduleQueryData?.timeZone || <Skeleton className="h-5 w-32" />}
             </span>
 
             {/* Booker Timezone Checkbox for Restriction Schedules */}
@@ -458,8 +457,8 @@ const ScheduleDisplay = memo(
               <Button
                 onClick={handleEditAvailability}
                 disabled={isSchedulePending}
-                color="minimal"
-                EndIcon="external-link">
+                color="secondary"
+                StartIcon="external-link">
                 {t("edit_availability")}
               </Button>
             )}
@@ -492,7 +491,7 @@ const ScheduleSelector = memo(
     const formMethods = useFormContext<FormValues>();
 
     return (
-      <div className="border-subtle rounded-t-md border p-6">
+      <div className="border-b border-subtle pb-4">
         <label htmlFor="availability" className="text-default mb-2 block text-sm font-medium leading-none">
           {/* Label intentionally commented out as per original code */}
         </label>
@@ -512,12 +511,11 @@ const ScheduleSelector = memo(
                 }}
                 options={options.map((opt) => ({
                   value: opt.value.toString(),
-                  label: opt.label,
-                  badge: opt.isDefault
-                    ? { text: t("default"), variant: "blue" }
-                    : opt.isManaged
-                    ? { text: t("managed"), variant: "gray" }
-                    : undefined,
+                  label: opt.isDefault 
+                    ? `${opt.label} (${t("default")})`
+                    : opt.isManaged 
+                    ? `${opt.label} (${t("managed")})`
+                    : opt.label,
                 }))}
                 placeholder={t("select")}
                 disabled={shouldLockDisableProps(fieldName).disabled}
@@ -573,35 +571,40 @@ const TeamEventSchedules = memo(
     const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
     return (
-      <div className="border-subtle space-y-6 rounded-lg border p-6">
-        <SettingsToggle
+      <div className="space-y-6">
+        <SettingsSwitch
           checked={!useHostSchedulesForTeamEvent}
           onCheckedChange={toggleScheduleState}
           title={t("choose_common_schedule_team_event")}
-          description={t("choose_common_schedule_team_event_description")}>
-          {/* Common Schedule Selector */}
-          <ScheduleSelector
-            fieldName="schedule"
-            options={scheduleOptions}
-            shouldLockDisableProps={shouldLockDisableProps}
-            shouldLockIndicator={shouldLockIndicator}
-            isManagedEventType={isManagedEventType}
-          />
-
-          {/* Schedule Display or Managed Event Description */}
-          {scheduleId !== 0 ? (
-            <ScheduleDisplay
-              scheduleQueryData={scheduleQueryData}
-              isSchedulePending={isSchedulePending}
-              user={user}
-              editAvailabilityRedirectUrl={`/availability/${scheduleQueryData?.id}`}
+          description={t("choose_common_schedule_team_event_description")}
+        />
+        
+        {/* Common Schedule Selector */}
+        {!useHostSchedulesForTeamEvent && (
+          <div className="mt-4">
+            <ScheduleSelector
+              fieldName="schedule"
+              options={scheduleOptions}
+              shouldLockDisableProps={shouldLockDisableProps}
+              shouldLockIndicator={shouldLockIndicator}
+              isManagedEventType={isManagedEventType}
             />
-          ) : (
-            isManagedEventType && (
-              <p className="!mt-2 ml-1 text-sm text-gray-600">{t("members_default_schedule_description")}</p>
-            )
-          )}
-        </SettingsToggle>
+
+            {/* Schedule Display or Managed Event Description */}
+            {scheduleId !== 0 ? (
+              <ScheduleDisplay
+                scheduleQueryData={scheduleQueryData}
+                isSchedulePending={isSchedulePending}
+                user={user}
+                editAvailabilityRedirectUrl={`/availability/${scheduleQueryData?.id}`}
+              />
+            ) : (
+              isManagedEventType && (
+                <p className="!mt-2 ml-1 text-sm text-gray-600">{t("members_default_schedule_description")}</p>
+              )
+            )}
+          </div>
+        )}
 
         {/* Individual Host Schedules */}
         {useHostSchedulesForTeamEvent && (
@@ -680,31 +683,36 @@ const RestrictionScheduleSection = memo(
     isManagedEventType: boolean;
     t: TFunction;
   }) => (
-    <div className="border-subtle space-y-6 rounded-lg border p-6">
-      <SettingsToggle
+    <div className="space-y-6">
+      <SettingsSwitch
         checked={restrictScheduleForHosts}
         onCheckedChange={toggleRestrictScheduleState}
         title={t("choose_restriction_schedule")}
-        description={t("restriction_schedule_description")}>
-        <ScheduleSelector
-          fieldName="restrictionScheduleId"
-          options={restrictionScheduleOptions}
-          shouldLockDisableProps={shouldLockDisableProps}
-          shouldLockIndicator={shouldLockIndicator}
-          isManagedEventType={isManagedEventType}
-        />
-
-        {restrictionScheduleId && (
-          <ScheduleDisplay
-            scheduleQueryData={restrictionScheduleQueryData}
-            isSchedulePending={isRestrictionSchedulePending}
-            user={user}
-            editAvailabilityRedirectUrl={`/availability/${restrictionScheduleQueryData?.id}`}
-            isRestrictionSchedule={true}
-            useBookerTimezone={eventType.useBookerTimezone}
+        description={t("restriction_schedule_description")}
+      />
+      
+      {restrictScheduleForHosts && (
+        <div className="mt-4">
+          <ScheduleSelector
+            fieldName="restrictionScheduleId"
+            options={restrictionScheduleOptions}
+            shouldLockDisableProps={shouldLockDisableProps}
+            shouldLockIndicator={shouldLockIndicator}
+            isManagedEventType={isManagedEventType}
           />
-        )}
-      </SettingsToggle>
+
+          {restrictionScheduleId && (
+            <ScheduleDisplay
+              scheduleQueryData={restrictionScheduleQueryData}
+              isSchedulePending={isRestrictionSchedulePending}
+              user={user}
+              editAvailabilityRedirectUrl={`/availability/${restrictionScheduleQueryData?.id}`}
+              isRestrictionSchedule={true}
+              useBookerTimezone={eventType.useBookerTimezone}
+            />
+          )}
+        </div>
+      )}
     </div>
   )
 );
@@ -869,44 +877,49 @@ export const EventAvailability = (props: EventAvailabilityProps) => {
   // ============================================================================
   if (isTeamEvent && eventType.schedulingType !== SchedulingType.MANAGED) {
     return (
-      <div className="space-y-4">
-        {/* Main Team Event Schedules */}
-        <TeamEventSchedules
-          eventType={eventType}
-          user={user}
-          teamMembers={teamMembers}
-          hosts={hosts}
-          scheduleOptions={scheduleOptions}
-          scheduleQueryData={scheduleQueryData}
-          isSchedulePending={isSchedulePending}
-          scheduleId={scheduleId}
-          useHostSchedulesForTeamEvent={useHostSchedulesForTeamEvent}
-          toggleScheduleState={toggleScheduleState}
-          shouldLockDisableProps={shouldLockDisableProps}
-          shouldLockIndicator={shouldLockIndicator}
-          isManagedEventType={isManagedEventType}
-          hostSchedulesQuery={hostSchedulesQuery}
-          t={t}
-        />
-
-        {/* Restriction Schedule for Team Events */}
-        {!isPlatform && isRestrictionScheduleEnabled && (
-          <RestrictionScheduleSection
-            restrictScheduleForHosts={restrictScheduleForHosts}
-            toggleRestrictScheduleState={toggleRestrictScheduleState}
-            restrictionScheduleOptions={restrictionScheduleOptions}
-            restrictionScheduleId={restrictionScheduleId}
-            restrictionScheduleQueryData={restrictionScheduleQueryData}
-            isRestrictionSchedulePending={isRestrictionSchedulePending}
-            user={user}
+      <Card>
+        <CardContent className="space-y-6">
+          {/* Main Team Event Schedules */}
+          <TeamEventSchedules
             eventType={eventType}
+            user={user}
+            teamMembers={teamMembers}
+            hosts={hosts}
+            scheduleOptions={scheduleOptions}
+            scheduleQueryData={scheduleQueryData}
+            isSchedulePending={isSchedulePending}
+            scheduleId={scheduleId}
+            useHostSchedulesForTeamEvent={useHostSchedulesForTeamEvent}
+            toggleScheduleState={toggleScheduleState}
             shouldLockDisableProps={shouldLockDisableProps}
             shouldLockIndicator={shouldLockIndicator}
             isManagedEventType={isManagedEventType}
+            hostSchedulesQuery={hostSchedulesQuery}
             t={t}
           />
-        )}
-      </div>
+
+          {/* Restriction Schedule for Team Events */}
+          {!isPlatform && isRestrictionScheduleEnabled && (
+            <>
+              <Separator />
+              <RestrictionScheduleSection
+                restrictScheduleForHosts={restrictScheduleForHosts}
+                toggleRestrictScheduleState={toggleRestrictScheduleState}
+                restrictionScheduleOptions={restrictionScheduleOptions}
+                restrictionScheduleId={restrictionScheduleId}
+                restrictionScheduleQueryData={restrictionScheduleQueryData}
+                isRestrictionSchedulePending={isRestrictionSchedulePending}
+                user={user}
+                eventType={eventType}
+                shouldLockDisableProps={shouldLockDisableProps}
+                shouldLockIndicator={shouldLockIndicator}
+                isManagedEventType={isManagedEventType}
+                t={t}
+              />
+            </>
+          )}
+        </CardContent>
+      </Card>
     );
   }
 
@@ -914,49 +927,54 @@ export const EventAvailability = (props: EventAvailabilityProps) => {
   // INDIVIDUAL EVENT RENDER (Single event or managed team event)
   // ============================================================================
   return (
-    <div className="space-y-4">
-      {/* Main Schedule Section */}
-      <div>
-        <ScheduleSelector
-          fieldName="schedule"
-          options={scheduleOptions}
-          shouldLockDisableProps={shouldLockDisableProps}
-          shouldLockIndicator={shouldLockIndicator}
-          isManagedEventType={isManagedEventType || isChildrenManagedEventType}
-        />
-
-        {/* Schedule Display or Managed Event Description */}
-        {scheduleId !== 0 ? (
-          <ScheduleDisplay
-            scheduleQueryData={scheduleQueryData}
-            isSchedulePending={isSchedulePending}
-            user={user}
-            editAvailabilityRedirectUrl={`/availability/${scheduleQueryData?.id}`}
+    <Card>
+      <CardContent className="space-y-6">
+        {/* Main Schedule Section */}
+        <div>
+          <ScheduleSelector
+            fieldName="schedule"
+            options={scheduleOptions}
+            shouldLockDisableProps={shouldLockDisableProps}
+            shouldLockIndicator={shouldLockIndicator}
+            isManagedEventType={isManagedEventType || isChildrenManagedEventType}
           />
-        ) : (
-          isManagedEventType && (
-            <p className="!mt-2 ml-1 text-sm text-gray-600">{t("members_default_schedule_description")}</p>
-          )
-        )}
-      </div>
 
-      {/* Restriction Schedule for Individual Events */}
-      {!isPlatform && isRestrictionScheduleEnabled && !isTeamEvent && (
-        <RestrictionScheduleSection
-          restrictScheduleForHosts={restrictScheduleForHosts}
-          toggleRestrictScheduleState={toggleRestrictScheduleState}
-          restrictionScheduleOptions={restrictionScheduleOptions}
-          restrictionScheduleId={restrictionScheduleId}
-          restrictionScheduleQueryData={restrictionScheduleQueryData}
-          isRestrictionSchedulePending={isRestrictionSchedulePending}
-          user={user}
-          eventType={eventType}
-          shouldLockDisableProps={shouldLockDisableProps}
-          shouldLockIndicator={shouldLockIndicator}
-          isManagedEventType={isManagedEventType}
-          t={t}
-        />
-      )}
-    </div>
+          {/* Schedule Display or Managed Event Description */}
+          {scheduleId !== 0 ? (
+            <ScheduleDisplay
+              scheduleQueryData={scheduleQueryData}
+              isSchedulePending={isSchedulePending}
+              user={user}
+              editAvailabilityRedirectUrl={`/availability/${scheduleQueryData?.id}`}
+            />
+          ) : (
+            isManagedEventType && (
+              <p className="!mt-2 ml-1 text-sm text-gray-600">{t("members_default_schedule_description")}</p>
+            )
+          )}
+        </div>
+
+        {/* Restriction Schedule for Individual Events */}
+        {!isPlatform && isRestrictionScheduleEnabled && !isTeamEvent && (
+          <>
+            <Separator />
+            <RestrictionScheduleSection
+              restrictScheduleForHosts={restrictScheduleForHosts}
+              toggleRestrictScheduleState={toggleRestrictScheduleState}
+              restrictionScheduleOptions={restrictionScheduleOptions}
+              restrictionScheduleId={restrictionScheduleId}
+              restrictionScheduleQueryData={restrictionScheduleQueryData}
+              isRestrictionSchedulePending={isRestrictionSchedulePending}
+              user={user}
+              eventType={eventType}
+              shouldLockDisableProps={shouldLockDisableProps}
+              shouldLockIndicator={shouldLockIndicator}
+              isManagedEventType={isManagedEventType}
+              t={t}
+            />
+          </>
+        )}
+      </CardContent>
+    </Card>
   );
 };

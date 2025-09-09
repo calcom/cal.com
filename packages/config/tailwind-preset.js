@@ -14,6 +14,7 @@ module.exports = {
     "../../packages/features/!(node_modules)/**/*.{js,ts,jsx,tsx}",
     "../../packages/ui/!(node_modules)/**/*.{js,ts,jsx,tsx}",
     "../../packages/platform/atoms/!(node_modules)/**/*.{js,ts,jsx,tsx}",
+    "../../packages/calid/!(node_modules)/**/*.{js,ts,jsx,tsx}",
   ],
   darkMode: "class",
   theme: {
@@ -75,7 +76,6 @@ module.exports = {
         inverted: "var(--cal-bg-inverted)",
         gradient: "var(--cal-bg-gradient)",
         active: "var(--cal-bg-active)",
-        "bg-cal-destructive": "var(--cal-bg-destructive)",
         adv: "hsl(var(--cal-bg-active) / <alpha-value>)",
 
         ring: "var(--cal-bg-active)",

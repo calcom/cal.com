@@ -1,6 +1,8 @@
 "use client";
 
 import { Button } from "@calid/features/ui/components/button";
+import { BlankCard } from "@calid/features/ui/components/card";
+import { InfiniteSkeletonLoader } from "@calcom/features/eventtypes/components/SkeletonLoader";
 import React from "react";
 
 import type { EventTypesContentProps } from "../types/event-types";
@@ -27,32 +29,21 @@ export const EventTypesContent: React.FC<EventTypesContentProps> = ({
   onCreatePersonal,
   onCreateTeam,
 }) => {
-  // if (isLoading) {
-  //   return <div className="p-4">Loading events...</div>;
-  // }
+  if (isLoading) {
+    return <InfiniteSkeletonLoader />;
+  }
 
   if (filteredEvents.length === 0) {
     return (
-      <div className="py-8 text-center">
-        <p className="text-muted-foreground">
-          {debouncedSearchTerm ? "No events found for your search." : "No events found."}
-        </p>
-        {!currentTeam?.metadata?.readOnly && (
-          <div>
-            {selectedTeam === "personal" ? (
-              <Button onClick={onCreatePersonal} className="mt-4" color="minimal">
-                Create your first event
-              </Button>
-            ) : (
-              <Button onClick={onCreateTeam} className="mt-4" color="minimal">
-                Create your first team event
-              </Button>
-            )}
-          </div>
-        )}
-      </div>
+      <BlankCard
+        Icon="search"
+        headline={debouncedSearchTerm ? `No events found for ${debouncedSearchTerm}` : "No events found."}
+        description={debouncedSearchTerm ? "Try adjusting your search terms or create a new event." : "Get started by creating your first event."}
+        buttonText={selectedTeam === "personal" ? "Create an event" : "Create a team event"}
+        buttonOnClick={selectedTeam === "personal" ? onCreatePersonal : onCreateTeam}
+      />
     );
-  }
+  } 
 
   return (
     <div>

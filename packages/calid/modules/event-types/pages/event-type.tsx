@@ -1,9 +1,6 @@
 "use client";
 
 import { Icon } from "@calid/features/ui/components/icon";
-
-
-
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter as useAppRouter } from "next/navigation";
@@ -37,6 +34,7 @@ import { TRPCClientError } from "@trpc/react-query";
 // Import the new actions component
 import { EventTypeActions } from "../components/event-types-action";
 import { EventTeamAssignmentTab } from "../components/tabs/event-types-team-assignment";
+import { HorizontalTabs, type HorizontalTabItemProps } from "@calid/features/ui/components/navigation";
 
 // Dynamic imports for tab components
 const ManagedEventTypeDialog = dynamic(
@@ -99,20 +97,20 @@ const EventEmbedTab = dynamic(() =>
 );
 
 // Tab configuration
-const tabs = [
-  { id: "setup", name: "Event Setup", icon: <Icon name="settings" /> },
-  { id: "availability", name: "Availability", icon: <Icon name="clock-2" /> },
-  { id: "team", name: "Team", icon: <Icon name="users" /> },
-  { id: "limits", name: "Limits", icon: <Icon name="shield" /> },
-  { id: "advanced", name: "Advanced", icon: <Icon name="zap" /> },
-  { id: "apps", name: "Apps", icon: <Icon name="blocks" /> },
-  { id: "workflows", name: "Workflows", icon: <Icon name="workflow" /> },
-  { id: "webhooks", name: "Webhooks", icon: <Icon name="webhook" /> },
-  // { id: "instant", name: "Instant", icon: <Icon name="bell" /> },
-  // { id: "recurring", name: "Recurring", icon: <Icon name="refresh-ccw" /> },
-  // { id: "ai", name: "AI", icon: <Icon name="sparkles" /> },
-  { id: "embed", name: "Embed", icon: <Icon name="clipboard" /> },
-] as const;
+const getTabs = (currentPath: string): HorizontalTabItemProps[] => [
+  { name: "Event Setup", icon: "settings", href: `${currentPath}?tabName=setup` },
+  { name: "Availability", icon: "clock-2", href: `${currentPath}?tabName=availability` },
+  { name: "Team", icon: "users", href: `${currentPath}?tabName=team` },
+  { name: "Limits", icon: "shield", href: `${currentPath}?tabName=limits` },
+  { name: "Advanced", icon: "zap", href: `${currentPath}?tabName=advanced` },
+  { name: "Apps", icon: "blocks", href: `${currentPath}?tabName=apps` },
+  { name: "Workflows", icon: "workflow", href: `${currentPath}?tabName=workflows` },
+  { name: "Webhooks", icon: "webhook", href: `${currentPath}?tabName=webhooks` },
+  // { name: "Instant", icon: "bell", href: `${currentPath}?tabName=instant` },
+  // { name: "Recurring", icon: "refresh-ccw", href: `${currentPath}?tabName=recurring` },
+  // { name: "AI", icon: "sparkles", href: `${currentPath}?tabName=ai` },
+  { name: "Embed", icon: "clipboard", href: `${currentPath}?tabName=embed` },
+];
 
 export type EventTypeWebWrapperProps = {
   id: number;
@@ -369,10 +367,9 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
   };
 
   // Filter tabs based on event type
-  const availableTabs = tabs.filter((tabItem) => {
-    if (tabItem.id === "team" && !team) return false;
-    // if (tabItem.id === "instant" && eventType.schedulingType === SchedulingType.MANAGED) return false;
-    // Add more filtering logic as needed
+  const allTabs = getTabs(pathname);
+  const availableTabs = allTabs.filter((tabItem) => {
+    if (tabItem.name === "Team" && !team) return false;
     return true;
   });
 
@@ -407,28 +404,19 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
       CTA={cta}>
       <div className="bg-background min-h-screen">
         {/* Horizontal tabs */}
-        <div className="bg-background ">
-          <nav className="flex" aria-label="Tabs">
-            {availableTabs.map((tabItem) => (
-              <button
-                key={tabItem.id}
-                onClick={() => {
-                  setQuery("tabName", tabItem.id);
-                  // setActiveTab(tabItem.id);
-                }}
-                className={classNames(
-                  "flex items-center space-x-2 whitespace-nowrap border-b-2 px-4 py-4 text-sm font-semibold  transition-colors",
-                  activeTab === tabItem.id
-                    ? "border-active text-active"
-                    : "text-muted hover:text-foreground hover:border-muted-foreground border-transparent"
-                )}
-                title={tabItem.name}>
-                {tabItem.icon}
-                <span>{tabItem.name}</span>
-              </button>
-            ))}
-          </nav>
-        </div>
+        <HorizontalTabs
+          tabs={availableTabs.map((tab) => ({
+            ...tab,
+            isActive: tab.href.includes(`tabName=${activeTab}`),
+            onClick: (name: string) => {
+              const tabId = availableTabs.find(t => t.name === name)?.href.split('tabName=')[1];
+              if (tabId) {
+                setQuery("tabName", tabId);
+              }
+            }
+          }))}
+          linkShallow={true}
+        />
 
         {/* Content */}
         <div className="bg-background py-4">

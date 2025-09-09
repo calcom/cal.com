@@ -283,7 +283,7 @@ export const EventTypes = () => {
 
       {/* Main Content */}
       <EventTypesContent
-        isLoading={eventTypesQuery.isLoading}
+        isLoading={eventTypesQuery.isLoading && !eventTypesQuery.data}
         filteredEvents={filteredEvents}
         selectedTeam={selectedTeam}
         currentTeam={currentTeam}

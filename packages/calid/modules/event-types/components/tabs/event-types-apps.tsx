@@ -383,7 +383,7 @@ export const EventApps = ({ eventType, customClassNames = {} }: EventAppsTabProp
 
       {/* Available Apps Section - Apps from store not yet installed */}
       {!appsDisableProps.disabled && (
-        <div className={classNames("mt-4 rounded-2xl p-4", customClassNames.availableAppsContainer)}>
+        <div className={classNames("mt-4 rounded-2xl", customClassNames.availableAppsContainer)}>
           {!isPending && notInstalledApps.length > 0 && (
             <>
               <div className="mb-4 flex flex-col">

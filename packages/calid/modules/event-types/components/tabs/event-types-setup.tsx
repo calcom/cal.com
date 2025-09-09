@@ -1,7 +1,4 @@
 import { Icon } from "@calid/features/ui/components/icon";
-
-
-
 import type { TFunction } from "i18next";
 import { useSession } from "next-auth/react";
 import type { Dispatch, SetStateAction } from "react";
@@ -31,13 +28,12 @@ import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
 import classNames from "@calcom/ui/classNames";
 import { Editor } from "@calcom/ui/components/editor";
-import { TextAreaField, Label, TextField, Select, SettingsToggle } from "@calcom/ui/components/form";
+import { Select, Label, SettingsToggle } from "@calcom/ui/components/form";
+import { InputField,TextField } from "@calid/features/ui/components/input/input";
+import { TextAreaField } from "@calid/features/ui/components/input/text-area";
 import { Skeleton } from "@calcom/ui/components/skeleton";
-import { showToast } from "@calcom/ui/components/toast";
-
-// ============================================================================
-// TYPE DEFINITIONS
-// ============================================================================
+import { triggerToast } from "@calid/features/ui/components/toast";
+import { Button } from "@calid/features/ui/components/button";
 
 export type EventSetupTabCustomClassNames = {
   wrapper?: string;
@@ -80,22 +76,10 @@ type DurationOption = {
   label: string;
 };
 
-// ============================================================================
-// CONSTANTS
-// ============================================================================
-
-/** Available duration options in minutes for multi-duration selection */
 const DURATION_OPTIONS = [
   5, 10, 15, 20, 25, 30, 45, 50, 60, 75, 80, 90, 120, 150, 180, 240, 300, 360, 420, 480,
 ] as const;
 
-// ============================================================================
-// CUSTOM HOOKS
-// ============================================================================
-
-/**
- * Custom hook to manage URL generation and actions
- */
 const useUrlManagement = (
   team: EventSetupTabProps["team"],
   formMethods: ReturnType<typeof useFormContext<FormValues>>,
@@ -113,7 +97,7 @@ const useUrlManagement = (
     const permalink = generatePermalink();
     navigator.clipboard.writeText(permalink);
     setCopiedUrl(true);
-    showToast("Link copied!", "success");
+    triggerToast("Link copied!", "success");
     setTimeout(() => setCopiedUrl(false), 1500);
   }, [generatePermalink]);
 
@@ -129,9 +113,6 @@ const useUrlManagement = (
   };
 };
 
-/**
- * Custom hook to manage duration state and logic
- */
 const useDurationManagement = (
   formMethods: ReturnType<typeof useFormContext<FormValues>>,
   eventType: EventSetupTabProps["eventType"],
@@ -141,7 +122,6 @@ const useDurationManagement = (
     formMethods.getValues("metadata")?.multipleDuration
   );
 
-  // Generate duration options with translations
   const multipleDurationOptions = useMemo(
     (): DurationOption[] =>
       DURATION_OPTIONS.map((mins) => ({
@@ -167,7 +147,6 @@ const useDurationManagement = (
       setMultipleDuration(values);
       setSelectedMultipleDuration(sortedOptions);
 
-      // Update default duration if current selection is no longer valid
       if (!sortedOptions.find((opt) => opt.value === defaultDuration?.value)) {
         const newDefault = sortedOptions.length > 0 ? sortedOptions[0] : null;
         setDefaultDuration(newDefault);
@@ -177,7 +156,6 @@ const useDurationManagement = (
         }
       }
 
-      // Auto-select first option as default if only one duration is selected
       if (sortedOptions.length === 1 && defaultDuration === null) {
         setDefaultDuration(sortedOptions[0]);
         formMethods.setValue("length", sortedOptions[0].value, { shouldDirty: true });
@@ -200,14 +178,12 @@ const useDurationManagement = (
 
   const toggleMultipleDuration = useCallback(() => {
     if (multipleDuration !== undefined) {
-      // Disable multiple duration
       setMultipleDuration(undefined);
       setSelectedMultipleDuration([]);
       setDefaultDuration(null);
       formMethods.setValue("metadata.multipleDuration", undefined, { shouldDirty: true });
       formMethods.setValue("length", eventType.length, { shouldDirty: true });
     } else {
-      // Enable multiple duration
       setMultipleDuration([]);
       formMethods.setValue("metadata.multipleDuration", [], { shouldDirty: true });
       formMethods.setValue("length", 0, { shouldDirty: true });
@@ -225,13 +201,6 @@ const useDurationManagement = (
   };
 };
 
-// ============================================================================
-// COMPONENTS
-// ============================================================================
-
-/**
- * Title and Description Section Component
- */
 const TitleDescriptionSection = ({
   customClassNames,
   isPlatform,
@@ -260,7 +229,6 @@ const TitleDescriptionSection = ({
   setFirstRender: Dispatch<SetStateAction<boolean>>;
 }) => (
   <>
-    {/* Title Input */}
     <TextField
       required
       containerClassName={classNames(customClassNames?.titleInput?.container)}
@@ -273,38 +241,24 @@ const TitleDescriptionSection = ({
       {...formMethods.register("title")}
     />
 
-    {/* Description */}
     <div>
-      {isPlatform ? (
-        <TextAreaField
-          {...formMethods.register("description", {
-            disabled: descriptionLockedProps.disabled,
-          })}
+      <>
+        <Label htmlFor="editor">
+          {t("description")}
+          {(isManagedEventType || isChildrenManagedEventType) && shouldLockIndicator("description")}
+        </Label>
+        <Editor
+          getText={() => md.render(formMethods.getValues("description") || "")}
+          setText={(value: string) =>
+            formMethods.setValue("description", turndown(value), { shouldDirty: true })
+          }
+          excludedToolbarItems={["blockType"]}
           placeholder={t("quick_video_meeting")}
-          className={customClassNames?.descriptionInput?.input}
-          labelProps={{
-            className: customClassNames?.descriptionInput?.label,
-          }}
+          editable={!descriptionLockedProps.disabled}
+          firstRender={firstRender}
+          setFirstRender={setFirstRender}
         />
-      ) : (
-        <>
-          <Label htmlFor="editor">
-            {t("description")}
-            {(isManagedEventType || isChildrenManagedEventType) && shouldLockIndicator("description")}
-          </Label>
-          <Editor
-            getText={() => md.render(formMethods.getValues("description") || "")}
-            setText={(value: string) =>
-              formMethods.setValue("description", turndown(value), { shouldDirty: true })
-            }
-            excludedToolbarItems={["blockType"]}
-            placeholder={t("quick_video_meeting")}
-            editable={!descriptionLockedProps.disabled}
-            firstRender={firstRender}
-            setFirstRender={setFirstRender}
-          />
-        </>
-      )}
+      </>
     </div>
   </>
 );
@@ -337,50 +291,47 @@ const UrlSection = ({
   handleCopyUrl: () => void;
   handlePreviewUrl: () => void;
 }) => (
-  <div className="relative flex w-full items-center">
-    {/* URL Prefix */}
-    <span className="border-border bg-muted text-muted-foreground inline-flex h-10 items-center rounded-l-lg border border-r-0 px-3 text-sm">
-      {urlPrefix}/
-      {!isManagedEventType
-        ? team
-          ? (hasOrgBranding ? "" : "team/") + team.slug
-          : formMethods.getValues("users")[0]?.username
-        : t("username_placeholder")}
-      /
-    </span>
-
-    {/* Slug Input */}
-    <input
+  <div className="relative w-full">
+    <InputField
       type="text"
+      addOnLeading={
+        <>
+          {urlPrefix}/
+          {!isManagedEventType
+            ? team
+              ? (hasOrgBranding ? "" : "team/") + team.slug
+              : formMethods.getValues("users")[0]?.username
+            : t("username_placeholder")}
+          /
+        </>
+      }
+      addOnSuffix={
+      <>
+      <Button
+        color="minimal"
+        className="border-none"
+        StartIcon="copy"
+        onClick={handleCopyUrl}
+        tooltip={t('copy_url')}
+      >
+      </Button>
+      <Button
+        color="minimal"
+        className="border-none"
+        StartIcon="external-link"
+        onClick={handlePreviewUrl}
+        tooltip={t('preview_url')}
+      >
+      </Button>
+      </>
+      }
       id="event-slug"
+      inputIsFullWidth={true}
+      containerClassName="w-full"
       defaultValue={eventType.slug}
       {...formMethods.register("slug", { setValueAs: (v) => slugify(v) })}
-      className="border-muted focus:ring-brand-default focus:border-subtle mr-px flex-1 focus:border-none focus:ring-2"
       disabled={isManagedEventType || isChildrenManagedEventType}
     />
-
-    {/* Action Buttons */}
-    <div className="border-border bg-background flex h-10 items-center rounded-r-lg border border-l-0">
-      <button
-        onClick={handleCopyUrl}
-        title="Copy URL"
-        className="border-border bg-muted hover:bg-muted/80 flex h-10 items-center justify-center border-r p-2.5 transition-colors">
-        <Icon name="copy" className="text-muted-foreground h-4 w-4" />
-      </button>
-      <button
-        onClick={handlePreviewUrl}
-        className="bg-muted hover:bg-muted/80 flex h-10 items-center justify-center rounded-r-lg p-2.5 transition-colors"
-        title="Preview">
-        <Icon name="external-link" className="text-muted-foreground h-4 w-4" />
-      </button>
-    </div>
-
-    {/* Copy Success Tooltip */}
-    {copiedUrl && (
-      <div className="absolute right-0 top-full z-10 mt-1 rounded bg-gray-800 px-2 py-1 text-xs text-white">
-        Copied!
-      </div>
-    )}
   </div>
 );
 
@@ -437,7 +388,7 @@ const DurationSection = ({
             isSearchable={false}
             isDisabled={lengthLockedProps.disabled}
             className={classNames(
-              "h-auto !min-h-[36px] text-sm",
+              " text-sm",
               customClassNames?.multipleDuration?.availableDurationsSelect?.select
             )}
             innerClassNames={customClassNames?.multipleDuration?.availableDurationsSelect?.innerClassNames}
@@ -570,10 +521,6 @@ export const EventSetup = (props: EventSetupTabProps) => {
       : [];
   }, [props.localeOptions, t]);
 
-  // ============================================================================
-  // STATE MANAGEMENT
-  // ============================================================================
-
   const [firstRender, setFirstRender] = useState(true);
 
   // Form watches
@@ -609,11 +556,6 @@ export const EventSetup = (props: EventSetupTabProps) => {
   const descriptionLockedProps = shouldLockDisableProps("description");
   const titleLockedProps = shouldLockDisableProps("title");
 
-  // ============================================================================
-  // EVENT HANDLERS
-  // ============================================================================
-
-  /** Handle form field changes and trigger onChange callback */
   const handleFormChange = useCallback(
     (field: string, value: any) => {
       formMethods.setValue(field as any, value, { shouldDirty: true });
@@ -621,10 +563,6 @@ export const EventSetup = (props: EventSetupTabProps) => {
     },
     [formMethods, onChange]
   );
-
-  // ============================================================================
-  // RENDER
-  // ============================================================================
 
   return (
     <div className={classNames("space-y-6", customClassNames?.wrapper)}>
@@ -645,7 +583,7 @@ export const EventSetup = (props: EventSetupTabProps) => {
       />
 
       {/* Interface Language Selection */}
-      {!isPlatform && interfaceLanguageOptions.length > 0 && (
+      {interfaceLanguageOptions.length > 0 && (
         <div>
           <Skeleton
             as={Label}

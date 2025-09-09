@@ -11,11 +11,11 @@ import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import { UserAvatar } from "@calcom/ui/components/avatar";
-import { Button } from "@calcom/ui/components/button";
+import { Button } from "@calid/features/ui/components/button";
 import { Editor } from "@calcom/ui/components/editor";
 import { Label } from "@calcom/ui/components/form";
-import { ImageUploader } from "@calcom/ui/components/image-uploader";
-import { showToast } from "@calcom/ui/components/toast";
+import { CustomImageUploader } from "@calid/features/ui/components/uploader";
+import { triggerToast } from "@calid/features/ui/components/toast";
 
 type FormData = {
   bio: string;
@@ -40,11 +40,11 @@ const UserProfile = () => {
   // Create a separate mutation for avatar updates
   const avatarMutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async (data) => {
-      showToast(t("your_user_profile_updated_successfully"), "success");
+      triggerToast(t("your_user_profile_updated_successfully"), "success");
       setImageSrc(data.avatarUrl ?? "");
     },
     onError: () => {
-      showToast(t("problem_saving_user_profile"), "error");
+      triggerToast(t("problem_saving_user_profile"), "error");
     },
   });
 
@@ -69,7 +69,7 @@ const UserProfile = () => {
       redirectUrl ? router.push(redirectUrl) : router.push("/");
     },
     onError: () => {
-      showToast(t("problem_saving_user_profile"), "error");
+      triggerToast(t("problem_saving_user_profile"), "error");
     },
   });
 
@@ -122,25 +122,17 @@ const UserProfile = () => {
           className="border-default focus:ring-empthasis mt-1 block w-full rounded-sm border px-3 py-2 text-sm focus:border-gray-800 focus:outline-none"
           defaultValue={imageSrc}
         />
-        <div className="flex items-center px-4">
-          <ImageUploader
-            target="avatar"
-            id="avatar-upload"
-            buttonMsg={t("add_profile_photo")}
-            handleAvatarChange={(newAvatar) => {
-              if (avatarRef.current) {
-                avatarRef.current.value = newAvatar;
-              }
-              const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-                window.HTMLInputElement.prototype,
-                "value"
-              )?.set;
-              nativeInputValueSetter?.call(avatarRef.current, newAvatar);
-              const ev2 = new Event("input", { bubbles: true });
-              avatarRef.current?.dispatchEvent(ev2);
+        <div className="flex items-center px-4 gap-2">
+          <CustomImageUploader
+            targetId="avatar-upload"
+            buttonText={t("upload_avatar")}
+            onImageChange={(newAvatar) => {
               updateProfileHandler(newAvatar);
             }}
-            imageSrc={imageSrc}
+            currentImageSrc={imageSrc}
+            targetType="avatar"
+            buttonColor="minimal"
+            testIdentifier="avatar"
           />
         </div>
       </div>

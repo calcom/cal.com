@@ -4,7 +4,7 @@ import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma, availabilityUserSelect } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole, CalIdMembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
 import type { Ensure } from "@calcom/types/utils";
@@ -14,6 +14,7 @@ import { TRPCError } from "@trpc/server";
 import { safeStringify } from "../../safeStringify";
 import { eventTypeSelect } from "../eventTypeSelect";
 import { MembershipRepository } from "./membership";
+import { CalIdMembershipRepository } from "./calIdMembership";
 import { LookupTarget, ProfileRepository } from "./profile";
 import type { UserWithLegacySelectedCalendars } from "./user";
 import { withSelectedCalendars } from "./user";
@@ -36,7 +37,7 @@ type IEventType = Ensure<
     Omit<Prisma.EventTypeCreateInput, NotSupportedProps> & {
       userId: PrismaEventType["userId"];
       profileId: PrismaEventType["profileId"];
-      teamId: PrismaEventType["teamId"];
+      calIdTeamId: PrismaEventType["calIdTeamId"];
       parentId: PrismaEventType["parentId"];
       scheduleId: PrismaEventType["scheduleId"];
     }
@@ -88,7 +89,7 @@ export class EventTypeRepository {
     const {
       userId,
       profileId,
-      teamId,
+      calIdTeamId,
       parentId,
       scheduleId,
       bookingLimits,
@@ -111,7 +112,7 @@ export class EventTypeRepository {
             },
           }
         : null),
-      ...(teamId ? { team: { connect: { id: teamId } } } : null),
+      ...(calIdTeamId ? { calIdTeam: { connect: { id: calIdTeamId } } } : null),
       ...(parentId ? { parent: { connect: { id: parentId } } } : null),
       ...(scheduleId ? { schedule: { connect: { id: scheduleId } } } : null),
       ...(metadata ? { metadata: metadata } : null),
@@ -184,7 +185,7 @@ export class EventTypeRepository {
           user: { select: userSelect },
         },
       },
-      team: {
+      calIdTeam: {
         select: {
           id: true,
           members: {
@@ -387,17 +388,15 @@ export class EventTypeRepository {
     }
   }
 
-  async findTeamEventTypes({
-    teamId,
-    parentId,
+  async findCalIdTeamEventTypes({
+    calIdTeamId,
     userId,
     limit,
     cursor,
     orderBy,
     where = {},
   }: {
-    teamId: number;
-    parentId?: number | null;
+    calIdTeamId: number;
     userId: number;
     limit?: number | null;
     cursor?: number | null;
@@ -427,7 +426,7 @@ export class EventTypeRepository {
         },
         take: 5,
       },
-      team: {
+      calIdTeam: {
         select: {
           id: true,
           members: {
@@ -444,24 +443,21 @@ export class EventTypeRepository {
       },
     };
 
-    const teamMembership = await this.prismaClient.membership.findFirst({
+    const calIdTeamMembership = await this.prismaClient.calIdMembership.findFirst({
       where: {
         OR: [
           {
-            teamId,
+            calIdTeamId,
             userId,
-            accepted: true,
+            acceptedInvitation: true,
           },
           {
-            team: {
-              parent: {
-                ...(parentId ? { id: parentId } : {}),
-                members: {
-                  some: {
-                    userId,
-                    accepted: true,
-                    role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
-                  },
+            calIdTeam: {
+              members: {
+                some: {
+                  userId,
+                  acceptedInvitation: true,
+                  role: { in: [CalIdMembershipRole.ADMIN, CalIdMembershipRole.OWNER] },
                 },
               },
             },
@@ -470,11 +466,11 @@ export class EventTypeRepository {
       },
     });
 
-    if (!teamMembership) throw new TRPCError({ code: "UNAUTHORIZED" });
+    if (!calIdTeamMembership) throw new TRPCError({ code: "UNAUTHORIZED" });
 
     return await prisma.eventType.findMany({
       where: {
-        teamId,
+        calIdTeamId,
         ...where,
       },
       select,
@@ -603,31 +599,32 @@ export class EventTypeRepository {
       parent: {
         select: {
           id: true,
-          teamId: true,
+          calIdTeamId: true,
         },
       },
-      teamId: true,
-      team: {
+      calIdTeamId: true,
+      calIdTeam: {
         select: {
           id: true,
           name: true,
           slug: true,
-          parentId: true,
-          rrTimestampBasis: true,
-          parent: {
-            select: {
-              slug: true,
-              organizationSettings: {
-                select: {
-                  lockEventTypeCreationForUsers: true,
-                },
-              },
-            },
-          },
+          bio: true,
+          hideTeamBranding: true,
+          hideTeamProfileLink: true,
+          isTeamPrivate: true,
+          hideBookATeamMember: true,
+          metadata: true,
+          theme: true,
+          brandColor: true,
+          darkBrandColor: true,
+          timeFormat: true,
+          timeZone: true,
+          weekStart: true,
+          bookingFrequency: true,
           members: {
             select: {
               role: true,
-              accepted: true,
+              acceptedInvitation: true,
               user: {
                 select: {
                   ...userSelect,
@@ -722,8 +719,8 @@ export class EventTypeRepository {
               time: true,
               timeUnit: true,
               userId: true,
-              teamId: true,
-              team: {
+              calIdTeamId: true,
+              calIdTeam: {
                 select: {
                   id: true,
                   slug: true,
@@ -769,8 +766,8 @@ export class EventTypeRepository {
       },
     } satisfies Prisma.EventTypeSelect;
 
-    // This is more efficient than using a complex join with team.members in the query
-    const userTeamIds = await MembershipRepository.findUserTeamIds({ userId });
+    // This is more efficient than using a complex join with calIdTeam.members in the query
+    const userCalIdTeamIds = await CalIdMembershipRepository.findUserCalIdTeamIds({ userId });
 
     return await this.prismaClient.eventType.findFirst({
       where: {
@@ -785,7 +782,7 @@ export class EventTypeRepository {
                 },
               },
               {
-                AND: [{ teamId: { not: null } }, { teamId: { in: userTeamIds } }],
+                AND: [{ calIdTeamId: { not: null } }, { calIdTeamId: { in: userCalIdTeamIds } }],
               },
               {
                 userId: userId,
@@ -892,31 +889,32 @@ export class EventTypeRepository {
       parent: {
         select: {
           id: true,
-          teamId: true,
+          calIdTeamId: true,
         },
       },
-      teamId: true,
-      team: {
+      calIdTeamId: true,
+      calIdTeam: {
         select: {
           id: true,
           name: true,
           slug: true,
-          parentId: true,
-          rrTimestampBasis: true,
-          parent: {
-            select: {
-              slug: true,
-              organizationSettings: {
-                select: {
-                  lockEventTypeCreationForUsers: true,
-                },
-              },
-            },
-          },
+          bio: true,
+          hideTeamBranding: true,
+          hideTeamProfileLink: true,
+          isTeamPrivate: true,
+          hideBookATeamMember: true,
+          metadata: true,
+          theme: true,
+          brandColor: true,
+          darkBrandColor: true,
+          timeFormat: true,
+          timeZone: true,
+          weekStart: true,
+          bookingFrequency: true,
           members: {
             select: {
               role: true,
-              accepted: true,
+              acceptedInvitation: true,
               user: {
                 select: {
                   ...userSelect,
@@ -1011,8 +1009,8 @@ export class EventTypeRepository {
               time: true,
               timeUnit: true,
               userId: true,
-              teamId: true,
-              team: {
+              calIdTeamId: true,
+              calIdTeam: {
                 select: {
                   id: true,
                   slug: true,
@@ -1061,8 +1059,8 @@ export class EventTypeRepository {
     const orgUserEventTypeQuery = {
       AND: [{ userId: { not: null } }, { owner: { profiles: { some: { organizationId } } } }],
     };
-    const orgTeamEventTypeQuery = {
-      AND: [{ teamId: { not: null } }, { team: { parentId: organizationId } }],
+    const orgCalIdTeamEventTypeQuery = {
+      AND: [{ calIdTeamId: { not: null } }, { calIdTeamId: organizationId }],
     };
 
     return await this.prismaClient.eventType.findFirst({
@@ -1070,7 +1068,7 @@ export class EventTypeRepository {
         AND: [
           { id },
           {
-            OR: [orgUserEventTypeQuery, orgTeamEventTypeQuery],
+            OR: [orgUserEventTypeQuery, orgCalIdTeamEventTypeQuery],
           },
         ],
       },
@@ -1086,11 +1084,11 @@ export class EventTypeRepository {
     });
   }
 
-  async findFirstEventTypeId({ slug, teamId, userId }: { slug: string; teamId?: number; userId?: number }) {
+  async findFirstEventTypeId({ slug, calIdTeamId, userId }: { slug: string; calIdTeamId?: number; userId?: number }) {
     return this.prismaClient.eventType.findFirst({
       where: {
         slug,
-        ...(teamId ? { teamId } : {}),
+        ...(calIdTeamId ? { calIdTeamId } : {}),
         ...(userId ? { userId } : {}),
       },
       select: {
@@ -1123,11 +1121,24 @@ export class EventTypeRepository {
             createdAt: true,
           },
         },
-        team: {
+        calIdTeam: {
           select: {
-            parentId: true,
-            rrResetInterval: true,
-            rrTimestampBasis: true,
+            id: true,
+            name: true,
+            slug: true,
+            bio: true,
+            hideTeamBranding: true,
+            hideTeamProfileLink: true,
+            isTeamPrivate: true,
+            hideBookATeamMember: true,
+            metadata: true,
+            theme: true,
+            brandColor: true,
+            darkBrandColor: true,
+            timeFormat: true,
+            timeZone: true,
+            weekStart: true,
+            bookingFrequency: true,
           },
         },
       },
@@ -1143,19 +1154,10 @@ export class EventTypeRepository {
     };
   }
 
-  async findAllByTeamIdIncludeManagedEventTypes({ teamId }: { teamId?: number }) {
+  async findAllByCalIdTeamIdIncludeManagedEventTypes({ calIdTeamId }: { calIdTeamId?: number }) {
     return await this.prismaClient.eventType.findMany({
       where: {
-        OR: [
-          {
-            teamId,
-          },
-          {
-            parent: {
-              teamId,
-            },
-          },
-        ],
+        calIdTeamId,
       },
     });
   }
@@ -1198,25 +1200,29 @@ export class EventTypeRepository {
         useEventLevelSelectedCalendars: true,
         restrictionScheduleId: true,
         useBookerTimezone: true,
-        team: {
+        calIdTeam: {
           select: {
             id: true,
-            bookingLimits: true,
-            includeManagedEventsInLimits: true,
-            parentId: true,
-            rrResetInterval: true,
-            rrTimestampBasis: true,
+            name: true,
+            slug: true,
+            bio: true,
+            hideTeamBranding: true,
+            hideTeamProfileLink: true,
+            isTeamPrivate: true,
+            hideBookATeamMember: true,
+            metadata: true,
+            theme: true,
+            brandColor: true,
+            darkBrandColor: true,
+            timeFormat: true,
+            timeZone: true,
+            weekStart: true,
+            bookingFrequency: true,
           },
         },
         parent: {
           select: {
-            team: {
-              select: {
-                id: true,
-                bookingLimits: true,
-                includeManagedEventsInLimits: true,
-              },
-            },
+            calIdTeamId: true,
           },
         },
         schedule: {

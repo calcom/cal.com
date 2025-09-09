@@ -632,7 +632,7 @@ const Locations: React.FC<LocationsProps> = ({
                 key="cant_find_the_right_conferencing_app_visit_our_app_store"
                 className="cursor-pointer text-blue-500 underline"
                 href="/apps/categories/conferencing">
-                App Store
+                {t("app_store")}
               </Link>,
             ]}
           />

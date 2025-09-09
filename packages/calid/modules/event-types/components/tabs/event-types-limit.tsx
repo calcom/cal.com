@@ -1,11 +1,15 @@
 import { Button } from "@calid/features/ui/components/button";
 import { Calendar } from "@calid/features/ui/components/calendar";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@calid/features/ui/components/card";
 import { CustomSelect } from "@calid/features/ui/components/custom-select";
 import { Icon } from "@calid/features/ui/components/icon";
+import { CheckboxField } from "@calid/features/ui/components/input/checkbox-field";
+import { Input, NumberInput } from "@calid/features/ui/components/input/input";
+import { Label } from "@calid/features/ui/components/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@calid/features/ui/components/popover";
 import { RadioGroup } from "@calid/features/ui/components/radio-group";
 import { RadioGroupItem } from "@calid/features/ui/components/radio-group";
-import { Switch } from "@calid/features/ui/components/switch/switch";
+import { Switch } from "@calid/features/ui/components/switch";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { TFunction } from "i18next";
 import React, { useState, useEffect, useMemo, useCallback, memo } from "react";
@@ -202,25 +206,18 @@ const useOffsetTimePreview = (offsetMinutes: number, locale: string) => {
   }, [offsetMinutes, locale]);
 };
 
-// ============================================================================
-// SUB-COMPONENTS
-// ============================================================================
-
-/**
- * Reusable settings toggle component with consistent styling
- */
 const SettingsToggle = memo(
   ({ title, description, checked, onCheckedChange, disabled, children, tooltip }: SettingsToggleProps) => (
-    <div className="rounded-lg border border-gray-200 bg-white" title={tooltip}>
-      <div className="flex items-start justify-between p-6">
+    <Card title={tooltip}>
+      <CardHeader className="flex flex-row items-start justify-between space-y-0 p-6">
         <div className="flex-1 pr-8">
-          <h3 className="mb-2 text-sm font-medium text-gray-700">{title}</h3>
-          {description && <p className="text-sm text-gray-600">{description}</p>}
+          <CardTitle>{title}</CardTitle>
+          {description && <CardDescription>{description}</CardDescription>}
         </div>
         <Switch checked={checked} onCheckedChange={onCheckedChange} disabled={disabled} />
-      </div>
-      {checked && children && <div className="border-t border-gray-100 p-6">{children}</div>}
-    </div>
+      </CardHeader>
+      {checked && children && <CardContent className="border-t border-gray-100 p-6">{children}</CardContent>}
+    </Card>
   )
 );
 
@@ -235,8 +232,7 @@ const MinimumBookingNoticeInput = memo(({ disabled, name }: { disabled?: boolean
 
   return (
     <div className="flex items-center space-x-3">
-      <input
-        type="number"
+      <NumberInput
         disabled={disabled}
         value={displayValues.value}
         onChange={(e) =>
@@ -245,7 +241,7 @@ const MinimumBookingNoticeInput = memo(({ disabled, name }: { disabled?: boolean
             value: parseInt(e.target.value || "0", 10),
           })
         }
-        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm disabled:opacity-50"
+        className="w-full"
         min={0}
         placeholder="0"
       />
@@ -324,9 +320,8 @@ const RollingLimitRadioItem = memo(
 
         <div>
           <div className="flex items-center space-x-2">
-            <input
-              type="number"
-              className="my-0 block w-16 rounded-lg border border-gray-300 px-2 py-1 text-sm disabled:opacity-50"
+            <NumberInput
+              className="my-0 block w-16"
               placeholder="30"
               disabled={isDisabled}
               min={0}
@@ -343,18 +338,15 @@ const RollingLimitRadioItem = memo(
             <span className="text-sm text-gray-600">{t("into_the_future")}</span>
           </div>
 
-          {/* Exclude Unavailable Days Checkbox */}
           <div className="flex flex-col py-2">
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
+            <Label className="flex items-center space-x-2">
+              <CheckboxField
                 checked={!!rollingExcludeUnavailableDays}
                 disabled={isDisabled}
-                onChange={(e) => handleExcludeUnavailableDaysChange(e.target.checked)}
-                className="rounded border-gray-300"
+                onCheckedChange={handleExcludeUnavailableDaysChange}
               />
               <span className="text-sm text-gray-600">{t("always_show_x_days", { x: periodDaysWatch })}</span>
-            </label>
+            </Label>
           </div>
         </div>
       </div>
@@ -495,9 +487,8 @@ const IntervalLimitItem = memo(
         data-testid="add-limit"
         className="mb-4 flex w-full min-w-0 items-center gap-x-2 text-sm"
         key={limitKey}>
-        <input
-          type="number"
-          className="w-20 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm disabled:opacity-50"
+        <NumberInput
+          className="w-20"
           placeholder={`${value}`}
           disabled={disabled}
           min={step}
@@ -725,37 +716,31 @@ const MaxActiveBookingsPerBookerController = memo(
             tooltip={isRecurringEvent ? t("recurring_event_doesnt_support_booker_booking_limit") : ""}
             onCheckedChange={(active) => handleToggleChange(active, onChange)}>
             <div className="space-y-4">
-              {/* Maximum Bookings Input */}
               <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700">Maximum bookings</label>
+                <Label>Maximum bookings</Label>
                 <div className="flex items-center space-x-2">
-                  <input
-                    type="number"
+                  <NumberInput
                     value={value ?? ""}
                     disabled={maxActiveBookingsPerBookerLocked.disabled}
                     onChange={(e) => handleInputChange(e, onChange)}
                     min={1}
                     step={1}
-                    className="w-20 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm disabled:opacity-50"
+                    className="w-20"
                     data-testid="booker-booking-limit-input"
                     placeholder="1"
                   />
                   <span className="text-sm text-gray-600">bookings</span>
                 </div>
               </div>
-
-              {/* Offer Reschedule Checkbox */}
               <div>
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
+                <div className="flex items-center space-x-2">
+                  <CheckboxField
                     checked={!!maxActiveBookingPerBookerOfferReschedule}
                     disabled={maxActiveBookingsPerBookerLocked.disabled}
-                    onChange={handleOfferRescheduleChange}
-                    className="rounded border-gray-300"
+                    onCheckedChange={handleOfferRescheduleChange}
                   />
                   <span className="text-sm text-gray-600">{t("offer_to_reschedule_last_booking")}</span>
-                </label>
+                </div>
               </div>
             </div>
           </SettingsToggle>
@@ -786,93 +771,95 @@ const BeforeAfterEventSection = memo(() => {
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
       {/* Before Event Section */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
-        <h3 className="mb-4 text-sm font-medium text-gray-700">
-          {t("before_event")}
-          {shouldLockIndicator("beforeBufferTime")}
-        </h3>
+      <Card>
+        <CardContent>
+          <div className="space-y-6">
+            {/* Buffer Time Selector */}
+            <div>
+              <Label >
+                {t("before_event")}
+                {shouldLockIndicator("beforeBufferTime")}
+              </Label>
+              <Controller
+                name="beforeEventBuffer"
+                render={({ field: { onChange, value } }) => (
+                  <CustomSelect
+                    value={value?.toString() || "0"}
+                    onValueChange={(val) => onChange(parseInt(val))}
+                    options={beforeBufferOptions}
+                    disabled={shouldLockDisableProps("beforeBufferTime").disabled}
+                    className="w-full"
+                  />
+                )}
+              />
+            </div>
 
-        <div className="space-y-6">
-          {/* Buffer Time Selector */}
-          <div>
-            <Controller
-              name="beforeEventBuffer"
-              render={({ field: { onChange, value } }) => (
-                <CustomSelect
-                  value={value?.toString() || "0"}
-                  onValueChange={(val) => onChange(parseInt(val))}
-                  options={beforeBufferOptions}
-                  disabled={shouldLockDisableProps("beforeBufferTime").disabled}
-                  className="w-full"
-                />
-              )}
-            />
+            {/* Minimum Booking Notice */}
+            <div>
+              <Label >
+                {t("minimum_booking_notice")}
+                {shouldLockIndicator("minimumBookingNotice")}
+              </Label>
+              <MinimumBookingNoticeInput
+                disabled={shouldLockDisableProps("minimumBookingNotice").disabled}
+                name="minimumBookingNotice"
+              />
+            </div>
           </div>
-
-          {/* Minimum Booking Notice */}
-          <div>
-            <label className="mb-3 block text-sm font-medium text-gray-700">
-              {t("minimum_booking_notice")}
-              {shouldLockIndicator("minimumBookingNotice")}
-            </label>
-            <MinimumBookingNoticeInput
-              disabled={shouldLockDisableProps("minimumBookingNotice").disabled}
-              name="minimumBookingNotice"
-            />
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* After Event Section */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
-        <h3 className="mb-4 text-sm font-medium text-gray-700">
-          {t("after_event")}
-          {shouldLockIndicator("afterBufferTime")}
-        </h3>
+      <Card>
+        <CardContent>
+          <div className="space-y-6">
+            {/* After Event Buffer */}
+            <div>
+              <Label >
+                {t("after_event")}
+                {shouldLockIndicator("afterBufferTime")}
+              </Label>
+              <Controller
+                name="afterEventBuffer"
+                render={({ field: { onChange, value } }) => (
+                  <CustomSelect
+                    value={value?.toString() || "0"}
+                    onValueChange={(val) => onChange(parseInt(val))}
+                    options={afterBufferOptions}
+                    disabled={shouldLockDisableProps("afterBufferTime").disabled}
+                    className="w-full"
+                  />
+                )}
+              />
+            </div>
 
-        <div className="space-y-6">
-          {/* After Event Buffer */}
-          <div>
-            <Controller
-              name="afterEventBuffer"
-              render={({ field: { onChange, value } }) => (
-                <CustomSelect
-                  value={value?.toString() || "0"}
-                  onValueChange={(val) => onChange(parseInt(val))}
-                  options={afterBufferOptions}
-                  disabled={shouldLockDisableProps("afterBufferTime").disabled}
-                  className="w-full"
-                />
-              )}
-            />
+            {/* Slot Interval */}
+            <div>
+              <Label >
+                {t("slot_interval")}
+                {shouldLockIndicator("slotInterval")}
+              </Label>
+              <Controller
+                name="slotInterval"
+                render={({ field: { value } }) => (
+                  <CustomSelect
+                    value={value?.toString() || "-1"}
+                    onValueChange={(val) => {
+                      const numVal = parseInt(val);
+                      formMethods.setValue("slotInterval", numVal > 0 ? numVal : null, {
+                        shouldDirty: true,
+                      });
+                    }}
+                    options={slotIntervalOptions}
+                    disabled={shouldLockDisableProps("slotInterval").disabled}
+                    className="w-full"
+                  />
+                )}
+              />
+            </div>
           </div>
-
-          {/* Slot Interval */}
-          <div>
-            <label className="mb-3 block text-sm font-medium text-gray-700">
-              {t("slot_interval")}
-              {shouldLockIndicator("slotInterval")}
-            </label>
-            <Controller
-              name="slotInterval"
-              render={({ field: { value } }) => (
-                <CustomSelect
-                  value={value?.toString() || "-1"}
-                  onValueChange={(val) => {
-                    const numVal = parseInt(val);
-                    formMethods.setValue("slotInterval", numVal > 0 ? numVal : null, {
-                      shouldDirty: true,
-                    });
-                  }}
-                  options={slotIntervalOptions}
-                  disabled={shouldLockDisableProps("slotInterval").disabled}
-                  className="w-full"
-                />
-              )}
-            />
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 });
@@ -919,11 +906,10 @@ const OffsetStartSection = memo(
         onCheckedChange={handleToggleChange}>
         <div className="space-y-3">
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">{t("offset_start")}</label>
+            <Label>{t("offset_start")}</Label>
             <div className="flex items-center space-x-2">
-              <input
-                type="number"
-                className="w-20 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm disabled:opacity-50"
+              <NumberInput
+                className="w-20"
                 {...formMethods.register("offsetStart", { setValueAs: (value) => Number(value) })}
                 disabled={offsetStartLockedProps.disabled}
               />
