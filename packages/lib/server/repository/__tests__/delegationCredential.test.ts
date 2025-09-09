@@ -17,7 +17,7 @@ vi.mock("../organization", () => ({
 vi.mock("@calcom/lib/crypto", async (importOriginal) => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const actual = await importOriginal<any>();
+  const actual = await importOriginal<unknown>();
   return {
     ...actual,
     symmetricEncrypt: vi.fn((serviceAccountKey) => {
@@ -76,6 +76,7 @@ const createTestDelegationCredential = async (overrides = {}) => {
 
   // Create workspace platform
   await prismock.workspacePlatform.create({
+    // @ts-expect-error - Test fixture missing required WorkspacePlatform properties
     data: buildMockWorkspacePlatform(),
   });
 
@@ -84,6 +85,7 @@ const createTestDelegationCredential = async (overrides = {}) => {
   return await prismock.delegationCredential.create({
     data: {
       ...data,
+      // @ts-expect-error - FIXME: resolve Prisma JSON type incompatibility
       serviceAccountKey: encryptServiceAccountKey(data.serviceAccountKey),
     },
     include: {
@@ -92,7 +94,7 @@ const createTestDelegationCredential = async (overrides = {}) => {
   });
 };
 
-const setupOrganizationMock = (returnValue: any) => {
+const setupOrganizationMock = (returnValue: unknown) => {
   vi.mocked(OrganizationRepository.findByMemberEmail).mockResolvedValue(returnValue);
 };
 
@@ -220,11 +222,14 @@ describe("DelegationCredentialRepository", () => {
 
         // Create workspace platform
         const workspacePlatform = await prismock.workspacePlatform.create({
+          // @ts-expect-error - Test fixture missing required WorkspacePlatform properties
           data: buildMockWorkspacePlatform(),
         });
 
         const data = buildMockDelegationCredential();
+        // @ts-expect-error - Test utility deleting non-optional property
         delete data.id; // ID is auto-generated
+        // @ts-expect-error - Test utility deleting non-optional property
         delete data.workspacePlatform; // Don't include the relation in create
 
         const result = await DelegationCredentialRepository.create(data);
@@ -252,6 +257,7 @@ describe("DelegationCredentialRepository", () => {
 
         // Create new workspace platform
         const newWorkspacePlatform = await prismock.workspacePlatform.create({
+          // @ts-expect-error - Test fixture missing required WorkspacePlatform properties
           data: {
             id: 2,
             name: "New Platform",

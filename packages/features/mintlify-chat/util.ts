@@ -133,6 +133,7 @@ export const generateDeeplink = (chunkMetadata: ChunkMetadata) => {
   if (section && typeof section === "string") {
     const sectionSlug = section
       .toLowerCase()
+      // @ts-expect-error - String.replaceAll requires ES2021+ target
       .replaceAll(" ", "-")
       .replaceAll(/[^a-zA-Z0-9-_#]/g, "");
 

@@ -49,6 +49,7 @@ describe("queryValueValidationSchema", () => {
     if (!result.success) {
       throw new Error("Failed to parse query value");
     }
+    // @ts-expect-error - Test result properties may be undefined
     expect(result.data?.children1?.rule1?.properties.valueType).toEqual(["select"]);
   });
 

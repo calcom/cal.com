@@ -55,6 +55,7 @@ describe("CalendarManager tests", () => {
         },
       ];
 
+      // @ts-expect-error - Test fixture missing delegationCredentialId property
       const calendarCredentials = getCalendarCredentials(credentials);
       expect(calendarCredentials).toHaveLength(1);
       expect(calendarCredentials[0].credential).toEqual(googleCalendarCredentials);
@@ -137,6 +138,7 @@ describe("CalendarManager tests", () => {
       ];
 
       const uniqueCredentials = deduplicateCredentialsBasedOnSelectedCalendars({
+        // @ts-expect-error - Test fixture missing delegationCredentialId property
         credentials,
         selectedCalendars,
       });
@@ -223,6 +225,7 @@ describe("CalendarManager tests", () => {
       ];
 
       const uniqueCredentials = deduplicateCredentialsBasedOnSelectedCalendars({
+        // @ts-expect-error - Test fixture missing delegationCredentialId property
         credentials,
         selectedCalendars,
       });
@@ -286,6 +289,7 @@ describe("CalendarManager tests", () => {
       ];
 
       const uniqueCredentials = deduplicateCredentialsBasedOnSelectedCalendars({
+        // @ts-expect-error - Test fixture missing delegationCredentialId property
         credentials: credentialsWithoutUserEmail,
         selectedCalendars,
       });
@@ -323,6 +327,7 @@ describe("CalendarManager tests", () => {
       ];
 
       const uniqueCredentials = deduplicateCredentialsBasedOnSelectedCalendars({
+        // @ts-expect-error - Test fixture missing delegationCredentialId property
         credentials: regularCredentials,
         selectedCalendars,
       });
@@ -360,6 +365,7 @@ describe("CalendarManager tests", () => {
       ];
 
       const uniqueCredentials = deduplicateCredentialsBasedOnSelectedCalendars({
+        // @ts-expect-error - Test fixture missing delegationCredentialId property
         credentials,
         selectedCalendars,
       });

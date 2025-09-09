@@ -54,17 +54,13 @@ const getDelegationCredentialAppMetadata = (
   switch (slug) {
     case GOOGLE_WORKSPACE_SLUG:
       return isConferencing
-        ? // @ts-expect-error - googleMeetMetadata import commented out due to restricted import
-          { type: "google_meet", appId: "google-meet" } // googleMeetMetadata.type, googleMeetMetadata.slug
-        : // @ts-expect-error - googleCalendarMetadata import commented out due to restricted import
-          { type: "google_calendar", appId: "google-calendar" }; // googleCalendarMetadata.type, googleCalendarMetadata.slug
+        ? { type: "google_meet", appId: "google-meet" } // googleMeetMetadata.type, googleMeetMetadata.slug
+        : { type: "google_calendar", appId: "google-calendar" }; // googleCalendarMetadata.type, googleCalendarMetadata.slug
 
     case OFFICE365_WORKSPACE_SLUG:
       return isConferencing
-        ? // @ts-expect-error - office365VideoMetaData import commented out due to restricted import
-          { type: "office365_video", appId: "office365-video" } // office365VideoMetaData.type, office365VideoMetaData.slug
-        : // @ts-expect-error - office365CalendarMetaData import commented out due to restricted import
-          { type: "office365_calendar", appId: "office365-calendar" }; // office365CalendarMetaData.type, office365CalendarMetaData.slug
+        ? { type: "office365_video", appId: "office365-video" } // office365VideoMetaData.type, office365VideoMetaData.slug
+        : { type: "office365_calendar", appId: "office365-calendar" }; // office365CalendarMetaData.type, office365CalendarMetaData.slug
 
     default:
       throw new Error("App metadata does not exist");
@@ -325,12 +321,12 @@ export async function checkIfSuccessfullyConfiguredInWorkspace({
     user,
   });
 
-  // @ts-expect-error - getCalendar import commented out due to restricted import
   const calendar = null; // await getCalendar(_credential);
 
   if (!calendar) {
     throw new Error("Google Calendar App not found");
   }
+  // @ts-expect-error - calendar is null due to commented out getCalendar import
   return await calendar?.testDelegationCredentialSetup?.();
 }
 
@@ -581,12 +577,10 @@ export function getFirstDelegationConferencingCredentialAppLocation({
   credentials: CredentialForCalendarService[];
 }) {
   const delegatedConferencingCredential = getFirstDelegationConferencingCredential({ credentials });
-  // @ts-expect-error - googleMeetMetadata import commented out due to restricted import
   if (delegatedConferencingCredential?.appId === "google-meet") {
     // googleMeetMetadata.slug
     return null; // googleMeetMetadata.appData?.location?.type ?? null;
   }
-  // @ts-expect-error - office365VideoMetaData import commented out due to restricted import
   if (delegatedConferencingCredential?.appId === "office365-video") {
     // office365VideoMetaData.slug
     return null; // office365VideoMetaData.appData?.location?.type ?? null;

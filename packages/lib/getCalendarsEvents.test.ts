@@ -1,8 +1,8 @@
 import type { SelectedCalendar } from "@prisma/client";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
-import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
-import OfficeCalendarService from "@calcom/app-store/office365calendar/lib/CalendarService";
+// import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
+// import OfficeCalendarService from "@calcom/app-store/office365calendar/lib/CalendarService";
 import logger from "@calcom/lib/logger";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
@@ -20,12 +20,14 @@ vi.mock("./crypto", () => ({
 const mockedSymmetricDecrypt = vi.mocked(symmetricDecrypt);
 
 vi.mock("@calcom/app-store/calendar.services.generated", () => {
-  class MockGoogleCalendarService {
-    constructor(credential: any) {
+  class _MockGoogleCalendarService {
+    constructor(credential: unknown) {
+      // @ts-expect-error - Mock class missing credential property
       this.credential = credential;
     }
 
     getCredentialId() {
+      // @ts-expect-error - Mock class missing credential property
       return this.credential.id;
     }
 
@@ -54,12 +56,14 @@ vi.mock("@calcom/app-store/calendar.services.generated", () => {
     }
   }
 
-  class MockOfficeCalendarService {
-    constructor(credential: any) {
+  class _MockOfficeCalendarService {
+    constructor(credential: unknown) {
+      // @ts-expect-error - Mock class missing credential property
       this.credential = credential;
     }
 
     getCredentialId() {
+      // @ts-expect-error - Mock class missing credential property
       return this.credential.id;
     }
 

@@ -25,7 +25,8 @@ describe("UserRepository", () => {
 
   describe("create", () => {
     test("Should create a user without a password", async () => {
-      const user = await new UserRepository(prismock).create({
+      // @ts-expect-error - FIXME: resolve Prisma extension type mismatch
+      const _user = await new UserRepository(prismock).create({
         username: "test",
         email: "test@example.com",
         organizationId: null,
@@ -53,7 +54,8 @@ describe("UserRepository", () => {
     });
 
     test("If locked param is passed, user should be locked", async () => {
-      const user = await new UserRepository(prismock).create({
+      // @ts-expect-error - FIXME: resolve Prisma extension type mismatch
+      const _user = await new UserRepository(prismock).create({
         username: "test",
         email: "test@example.com",
         organizationId: null,
@@ -81,7 +83,8 @@ describe("UserRepository", () => {
       const organizationId = 123;
       const username = "test";
 
-      const user = await new UserRepository(prismock).create({
+      // @ts-expect-error - FIXME: resolve Prisma extension type mismatch
+      const _user = await new UserRepository(prismock).create({
         username,
         email: "test@example.com",
         organizationId,

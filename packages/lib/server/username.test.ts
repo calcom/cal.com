@@ -63,6 +63,7 @@ function mockUserInDB({ id, email, username }: { id: number; email: string; user
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   prismaMock.user.findUnique.mockImplementation((arg) => {
+    // @ts-expect-error - Mock argument type missing where property
     if (arg.where.email === email) {
       return {
         id,
@@ -82,6 +83,7 @@ function mockMembership({ userId }: { userId: number }) {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       arg?.where?.team?.metadata?.path[0] === "isOrganization" && arg?.where?.team?.metadata?.equals === true;
+    // @ts-expect-error - Mock argument type missing where property
     if (arg?.where?.userId === userId && isOrganizationWhereClause) {
       return {
         userId,

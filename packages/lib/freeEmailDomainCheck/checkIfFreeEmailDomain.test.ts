@@ -13,6 +13,7 @@ describe("checkIfFreeEmailDomain", () => {
   });
   test("If work email, should return false", async () => {
     const spy = vi.spyOn(WatchlistRepository.prototype, "getFreeEmailDomainInWatchlist");
+    // @ts-expect-error - Mock implementation return type mismatch
     spy.mockImplementation(() => {
       return null;
     });
@@ -20,6 +21,7 @@ describe("checkIfFreeEmailDomain", () => {
   });
   test("If free email domain in watchlist, should return true", async () => {
     const spy = vi.spyOn(WatchlistRepository.prototype, "getFreeEmailDomainInWatchlist");
+    // @ts-expect-error - Mock implementation return type mismatch
     spy.mockImplementation(() => {
       return { value: "freedomain.com" };
     });

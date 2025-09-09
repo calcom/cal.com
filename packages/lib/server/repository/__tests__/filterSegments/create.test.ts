@@ -37,6 +37,7 @@ describe("FilterSegmentRepository.create()", () => {
   };
 
   it("should create a user-scoped filter segment", async () => {
+    // @ts-expect-error - Test fixture ColumnFilterType incompatibility with union types
     const input: TCreateFilterSegmentInputSchema = {
       ...baseInput,
       scope: "USER",
@@ -70,6 +71,7 @@ describe("FilterSegmentRepository.create()", () => {
       },
     });
 
+    // @ts-expect-error - Test fixture ColumnFilterType incompatibility with union types
     const input: TCreateFilterSegmentInputSchema = {
       ...baseInput,
       scope: "TEAM",
@@ -104,6 +106,7 @@ describe("FilterSegmentRepository.create()", () => {
       },
     });
 
+    // @ts-expect-error - Test fixture ColumnFilterType incompatibility with union types
     const input: TCreateFilterSegmentInputSchema = {
       ...baseInput,
       scope: "TEAM",

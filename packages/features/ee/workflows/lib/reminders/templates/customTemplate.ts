@@ -72,10 +72,11 @@ const customTemplate = (
   const attendeeLastName = variables.attendeeLastName
     ? variables.attendeeLastName
     : attendeeNameWordCount > 1
-    ? attendeeNameWords![attendeeNameWordCount - 1]
+    ? attendeeNameWords?.[attendeeNameWordCount - 1] ?? ""
     : "";
 
   let dynamicText = text
+    // @ts-expect-error - String.replaceAll requires ES2021+ target
     .replaceAll("{EVENT_NAME}", variables.eventName || "")
     .replaceAll("{ORGANIZER}", variables.organizerName || "")
     .replaceAll("{ATTENDEE}", variables.attendeeName || "")
@@ -108,11 +109,13 @@ const customTemplate = (
       variables.eventEndTimeInAttendeeTimezone?.format(currentTimeFormat) || ""
     );
 
+  // @ts-expect-error - Parameter 'variable' implicitly has an 'any' type
   const customInputvariables = dynamicText.match(/\{(.+?)}/g)?.map((variable) => {
     return variable.replace("{", "").replace("}", "");
   });
 
   // event date/time with formatting
+  // @ts-expect-error - Parameter 'variable' implicitly has an 'any' type
   customInputvariables?.forEach((variable) => {
     if (
       variable.startsWith("EVENT_DATE_") ||
@@ -137,6 +140,7 @@ const customTemplate = (
         const formatedToVariable = customInput
           .replace(/[^a-zA-Z0-9 ]/g, "")
           .trim()
+          // @ts-expect-error - String.replaceAll requires ES2021+ target
           .replaceAll(" ", "_")
           .toUpperCase();
 

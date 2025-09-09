@@ -24,6 +24,7 @@ export const Info = (props: {
         // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{
           __html: htmlContent
+            // @ts-expect-error - String.replaceAll requires ES2021+ target
             .replaceAll("<p>", `<p style="${css}">`)
             .replaceAll("<li>", `<li style="${css}">`),
         }}

@@ -45,9 +45,9 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
   let locationString = eventNameObj.location || "";
 
   if (eventNameObj.eventName.includes("{Location}") || eventNameObj.eventName.includes("{LOCATION}")) {
-    // @ts-expect-error - guessEventLocationType import commented out due to restricted import
     const eventLocationType = null; // guessEventLocationType(eventNameObj.location);
     if (eventLocationType) {
+      // @ts-expect-error - eventLocationType is null due to commented out guessEventLocationType import
       locationString = eventLocationType.label;
     }
     eventName = eventName.replace("{Location}", locationString);

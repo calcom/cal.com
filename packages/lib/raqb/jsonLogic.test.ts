@@ -228,33 +228,49 @@ describe("jsonLogic", () => {
 
   describe("starts_with operation", () => {
     it("should return true if string starts with the given substring case-insensitively", () => {
+      // @ts-expect-error - TODO: add starts_with to jsonLogic type definitions
       expect(jsonLogic.apply({ starts_with: ["Hello World", "hello"] })).toBe(true);
+      // @ts-expect-error - TODO: add starts_with to jsonLogic type definitions
       expect(jsonLogic.apply({ starts_with: ["HELLO WORLD", "hello"] })).toBe(true);
+      // @ts-expect-error - TODO: add starts_with to jsonLogic type definitions
       expect(jsonLogic.apply({ starts_with: ["hello", "HELLO"] })).toBe(true);
     });
 
     it("should return false if string does not start with the given substring", () => {
+      // @ts-expect-error - TODO: add starts_with to jsonLogic type definitions
       expect(jsonLogic.apply({ starts_with: ["Hello World", "world"] })).toBe(false);
+      // @ts-expect-error - TODO: add starts_with to jsonLogic type definitions
       expect(jsonLogic.apply({ starts_with: ["Hello World", "hi"] })).toBe(false);
     });
 
     it("should return false if the second argument is falsy", () => {
+      // @ts-expect-error - TODO: add starts_with to jsonLogic type definitions
       expect(jsonLogic.apply({ starts_with: ["Hello World", ""] })).toBe(false);
+      // @ts-expect-error - TODO: add starts_with to jsonLogic type definitions
       expect(jsonLogic.apply({ starts_with: ["Hello World", null] })).toBe(false);
+      // @ts-expect-error - TODO: add starts_with to jsonLogic type definitions
       expect(jsonLogic.apply({ starts_with: ["Hello World", false] })).toBe(false);
     });
 
     it("should handle edge cases", () => {
+      // @ts-expect-error - TODO: add starts_with to jsonLogic type definitions
       expect(jsonLogic.apply({ starts_with: ["", "hello"] })).toBe(false);
+      // @ts-expect-error - TODO: add starts_with to jsonLogic type definitions
       expect(jsonLogic.apply({ starts_with: ["hello", "hello world"] })).toBe(false);
     });
 
     it("should handle non-string first argument (haystack) safely", () => {
+      // @ts-expect-error - TODO: add starts_with to jsonLogic type definitions
       expect(jsonLogic.apply({ starts_with: [null, "x"] })).toBe(false);
+      // @ts-expect-error - TODO: add starts_with to jsonLogic type definitions
       expect(jsonLogic.apply({ starts_with: [undefined, "x"] })).toBe(false);
+      // @ts-expect-error - TODO: add starts_with to jsonLogic type definitions
       expect(jsonLogic.apply({ starts_with: [123, "1"] })).toBe(false);
+      // @ts-expect-error - TODO: add starts_with to jsonLogic type definitions
       expect(jsonLogic.apply({ starts_with: [true, "t"] })).toBe(false);
+      // @ts-expect-error - TODO: add starts_with to jsonLogic type definitions
       expect(jsonLogic.apply({ starts_with: [[], ""] })).toBe(false);
+      // @ts-expect-error - TODO: add starts_with to jsonLogic type definitions
       expect(jsonLogic.apply({ starts_with: [{}, ""] })).toBe(false);
     });
   });

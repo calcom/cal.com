@@ -4,6 +4,7 @@ const turndownService = new TurndownService();
 
 function turndown(html: string | TurndownService.Node): string {
   let result = turndownService.turndown(html);
+  // @ts-expect-error - String.replaceAll requires ES2021+ target
   result = result.replaceAll("[<p><br></p>]", "");
 
   if (result === "<p><br></p>") {

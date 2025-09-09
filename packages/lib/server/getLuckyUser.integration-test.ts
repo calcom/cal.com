@@ -207,6 +207,7 @@ describe("getLuckyUser Integration tests", () => {
         eventType: {
           id: commonEventTypeId,
           isRRWeightsEnabled: false,
+          // @ts-expect-error - Test fixture missing required team properties
           team: {},
         },
         allRRHosts: [],
@@ -267,6 +268,7 @@ describe("getLuckyUser Integration tests", () => {
           eventType: {
             id: commonEventTypeId,
             isRRWeightsEnabled: false,
+            // @ts-expect-error - Test fixture missing required team properties
             team: {},
           },
           allRRHosts: [],
@@ -368,6 +370,7 @@ describe("getLuckyUser Integration tests", () => {
           eventType: {
             id: commonEventTypeId,
             isRRWeightsEnabled: false,
+            // @ts-expect-error - Test fixture missing required team properties
             team: {},
           },
           allRRHosts: [],
@@ -431,6 +434,7 @@ describe("getLuckyUser Integration tests", () => {
           eventType: {
             id: commonEventTypeId,
             isRRWeightsEnabled: false,
+            // @ts-expect-error - Test fixture missing required team properties
             team: {},
           },
           allRRHosts: [],
@@ -474,6 +478,7 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
       eventType: {
         id: commonEventTypeId,
         isRRWeightsEnabled: false,
+        // @ts-expect-error - Test fixture missing required team properties
         team: {},
       },
       allRRHosts: [],
@@ -487,6 +492,7 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
       eventType: {
         id: commonEventTypeId,
         isRRWeightsEnabled: false,
+        // @ts-expect-error - Test fixture missing required team properties
         team: {},
       },
       allRRHosts: [],
@@ -529,8 +535,10 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
         eventType: {
           id: commonEventTypeId,
           isRRWeightsEnabled,
+          // @ts-expect-error - Test fixture missing required team properties
           team: {},
         },
+        // @ts-expect-error - Test fixture missing required userLevelSelectedCalendars property
         allRRHosts,
         routingFormResponse: null,
       });
@@ -549,8 +557,10 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
         eventType: {
           id: commonEventTypeId,
           isRRWeightsEnabled,
+          // @ts-expect-error - Test fixture missing required team properties
           team: {},
         },
+        // @ts-expect-error - Test fixture missing required userLevelSelectedCalendars property
         allRRHosts,
         routingFormResponse: null,
       });
@@ -622,6 +632,7 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
         routingFormResponse: null,
       };
 
+      // @ts-expect-error - Test fixture missing required includeNoShowInRRCalculation property
       const { users: luckyUsers, perUserData } = await luckyUserService.getOrderedListOfLuckyUsers({
         ...getLuckUserParams,
         availableUsers: [getLuckUserParams.availableUsers[0], ...getLuckUserParams.availableUsers.slice(1)],
@@ -705,6 +716,7 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
         routingFormResponse: null,
       };
 
+      // @ts-expect-error - Test fixture missing required includeNoShowInRRCalculation property
       const { users: luckyUsers, perUserData } = await luckyUserService.getOrderedListOfLuckyUsers({
         ...getLuckUserParams,
         availableUsers: [getLuckUserParams.availableUsers[0], ...getLuckUserParams.availableUsers.slice(1)],
@@ -781,6 +793,7 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
         routingFormResponse: null,
       };
 
+      // @ts-expect-error - Test fixture missing required includeNoShowInRRCalculation property
       const { users: luckyUsers, perUserData } = await luckyUserService.getOrderedListOfLuckyUsers({
         ...getLuckyUserParams,
         availableUsers: [getLuckyUserParams.availableUsers[0], ...getLuckyUserParams.availableUsers.slice(1)],

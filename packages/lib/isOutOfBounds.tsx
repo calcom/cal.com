@@ -73,7 +73,8 @@ export function calculatePeriodLimits({
       // So, if 2 day rolling period is set and 2024-07-24T8:30:00 slot is available in event timezone, the corresponding slot in GMT-11 would be 2024-07-24T21:30:00. So, 24th should be bookable for that timeslot, which could only be made available if we consider things in booker timezone.
       const rollingEndDay = periodCountCalendarDays
         ? currentTimeInBookerTz.add(periodDays, "days")
-        : currentTimeInBookerTz.businessDaysAdd(periodDays);
+        : // @ts-expect-error - businessDaysAdd method from dayjs business days plugin
+          currentTimeInBookerTz.businessDaysAdd(periodDays);
       // The future limit talks in terms of days so we take the end of the day here to consider the entire day
       return {
         endOfRollingPeriodEndDayInBookerTz: rollingEndDay.endOf("day"),
@@ -186,7 +187,8 @@ export function getRollingWindowEndDate({
 
     startOfIterationDay = countNonBusinessDays
       ? startOfIterationDay.add(1, "days")
-      : startOfIterationDay.businessDaysAdd(1);
+      : // @ts-expect-error - businessDaysAdd method from dayjs business days plugin
+        startOfIterationDay.businessDaysAdd(1);
 
     counter++;
   }

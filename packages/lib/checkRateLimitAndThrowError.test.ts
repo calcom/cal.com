@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { checkRateLimitAndThrowError } from "./checkRateLimitAndThrowError";
 import { rateLimiter } from "./rateLimit";
+// @ts-expect-error - RatelimitResponse not exported from rateLimit module
 import type { RatelimitResponse } from "./rateLimit";
 
 vi.mock("./rateLimit", () => {

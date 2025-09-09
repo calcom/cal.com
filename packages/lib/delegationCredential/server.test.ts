@@ -127,7 +127,6 @@ const buildDelegationCredential = (overrides = {}) => ({
 
 const buildGoogleCalendarDelegationCredential = (overrides = {}) => ({
   ...buildDelegationCredential({
-    // @ts-expect-error - googleCalendarMetadata import commented out due to restricted import
     type: "google_calendar", // googleCalendarMetadata.type,
     appId: "google-calendar", // googleCalendarMetadata.slug,
   }),
@@ -136,7 +135,6 @@ const buildGoogleCalendarDelegationCredential = (overrides = {}) => ({
 
 const buildDelegationCredentialGoogleMeetCredential = (overrides = {}) => ({
   ...buildDelegationCredential({
-    // @ts-expect-error - googleMeetMetadata import commented out due to restricted import
     type: "google_meet", // googleMeetMetadata.type,
     appId: "google-meet", // googleMeetMetadata.slug,
   }),
@@ -360,14 +358,12 @@ describe("enrichUsersWithDelegationCredentials", () => {
       expect(enrichedUser.credentials).toHaveLength(3); // 1 regular + 2 DelegationCredential (calendar + meet)
       expect(enrichedUser.credentials).toContainEqual(
         expect.objectContaining({
-          // @ts-expect-error - googleCalendarMetadata import commented out due to restricted import
           type: "google_calendar", // googleCalendarMetadata.type,
           appId: "google-calendar", // googleCalendarMetadata.slug,
         })
       );
       expect(enrichedUser.credentials).toContainEqual(
         expect.objectContaining({
-          // @ts-expect-error - googleMeetMetadata import commented out due to restricted import
           type: "google_meet", // googleMeetMetadata.type,
           appId: "google-meet", // googleMeetMetadata.slug,
         })
@@ -468,14 +464,12 @@ describe("enrichHostsWithDelegationCredentials", () => {
       expect(enrichedHost.user.credentials).toHaveLength(3); // 1 regular + 2 DelegationCredential (calendar + meet)
       expect(enrichedHost.user.credentials).toContainEqual(
         expect.objectContaining({
-          // @ts-expect-error - googleCalendarMetadata import commented out due to restricted import
           type: "google_calendar", // googleCalendarMetadata.type,
           appId: "google-calendar", // googleCalendarMetadata.slug,
         })
       );
       expect(enrichedHost.user.credentials).toContainEqual(
         expect.objectContaining({
-          // @ts-expect-error - googleMeetMetadata import commented out due to restricted import
           type: "google_meet", // googleMeetMetadata.type,
           appId: "google-meet", // googleMeetMetadata.slug,
         })
@@ -541,14 +535,12 @@ describe("enrichUserWithDelegationCredentialsIncludeServiceAccountKey", () => {
     expect(result.credentials).toHaveLength(3); // 1 regular + 2 DelegationCredential (calendar + meet)
     expect(result.credentials).toContainEqual(
       expect.objectContaining({
-        // @ts-expect-error - googleCalendarMetadata import commented out due to restricted import
         type: "google_calendar", // googleCalendarMetadata.type,
         appId: "google-calendar", // googleCalendarMetadata.slug,
       })
     );
     expect(result.credentials).toContainEqual(
       expect.objectContaining({
-        // @ts-expect-error - googleMeetMetadata import commented out due to restricted import
         type: "google_meet", // googleMeetMetadata.type,
         appId: "google-meet", // googleMeetMetadata.slug,
       })
@@ -618,7 +610,6 @@ describe("enrichUserWithDelegationConferencingCredentialsWithoutOrgId", () => {
     expect(result.credentials).toHaveLength(1); // Only Google Meet
     expect(result.credentials[0]).toEqual(
       expect.objectContaining({
-        // @ts-expect-error - googleMeetMetadata import commented out due to restricted import
         type: "google_meet", // googleMeetMetadata.type,
         appId: "google-meet", // googleMeetMetadata.slug,
       })

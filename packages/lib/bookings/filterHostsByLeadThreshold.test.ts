@@ -55,6 +55,7 @@ describe("filterHostByLeadThreshold", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
+          // @ts-expect-error - Test fixture missing required rrTimestampBasis property
           team: {
             parentId: null,
             rrResetInterval: RRResetInterval.MONTH,
@@ -73,6 +74,7 @@ describe("filterHostByLeadThreshold", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
+          // @ts-expect-error - Test fixture missing required rrTimestampBasis property
           team: {
             parentId: null,
             rrResetInterval: RRResetInterval.MONTH,
@@ -120,6 +122,7 @@ describe("filterHostByLeadThreshold", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: false,
+          // @ts-expect-error - Test fixture missing required rrTimestampBasis property
           team: {
             parentId: null,
             rrResetInterval: RRResetInterval.MONTH,
@@ -173,12 +176,13 @@ describe("filterHostByLeadThreshold", () => {
       },
     });
 
-    const test = filterHostsByLeadThreshold({
+    const _test = filterHostsByLeadThreshold({
       hosts,
       maxLeadThreshold: 3,
       eventType: {
         id: 1,
         isRRWeightsEnabled: true,
+        // @ts-expect-error - Test fixture missing required rrTimestampBasis property
         team: {
           parentId: null,
           rrResetInterval: RRResetInterval.MONTH,
@@ -194,6 +198,7 @@ describe("filterHostByLeadThreshold", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
+          // @ts-expect-error - Test fixture missing required rrTimestampBasis property
           team: {
             parentId: null,
             rrResetInterval: RRResetInterval.MONTH,

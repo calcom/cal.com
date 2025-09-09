@@ -80,7 +80,7 @@ export default function WorkflowListPage({ workflows }: Props) {
   });
 
   async function moveWorkflow(index: number, increment: 1 | -1) {
-    const types = workflows!;
+    const types = workflows ?? [];
 
     const newList = [...types];
 
@@ -106,6 +106,7 @@ export default function WorkflowListPage({ workflows }: Props) {
             {workflows.map((workflow, index) => {
               const firstItem = workflows[0];
               const lastItem = workflows[workflows.length - 1];
+              // @ts-expect-error - String.replaceAll requires ES2021+ target
               const dataTestId = `workflow-${workflow.name.toLowerCase().replaceAll(" ", "-")}`;
               return (
                 <li

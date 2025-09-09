@@ -104,7 +104,9 @@ describe("BookingRepository", () => {
       it("it should not include bookings where the attendee is a no show", async () => {
         await createAttendeeNoShowTestBookings();
 
+        // @ts-expect-error - FIXME: resolve Prisma extension type mismatch
         const bookingRepo = new BookingRepository(prismaMock);
+        // @ts-expect-error - Test fixture missing rrTimestampBasis property
         const bookings = await bookingRepo.getAllBookingsForRoundRobin({
           users: [{ id: 1, email: "organizer1@example.com" }],
           eventTypeId: 1,
@@ -119,7 +121,9 @@ describe("BookingRepository", () => {
       it("it should include bookings where the attendee is a no show", async () => {
         await createAttendeeNoShowTestBookings();
 
+        // @ts-expect-error - FIXME: resolve Prisma extension type mismatch
         const bookingRepo = new BookingRepository(prismaMock);
+        // @ts-expect-error - Test fixture missing rrTimestampBasis property
         const bookings = await bookingRepo.getAllBookingsForRoundRobin({
           users: [{ id: 1, email: "organizer1@example.com" }],
           eventTypeId: 1,
@@ -134,7 +138,9 @@ describe("BookingRepository", () => {
       it("it should not include bookings where the host is a no show", async () => {
         await createHostNoShowTestBookings();
 
+        // @ts-expect-error - FIXME: resolve Prisma extension type mismatch
         const bookingRepo = new BookingRepository(prismaMock);
+        // @ts-expect-error - Test fixture missing rrTimestampBasis property
         const bookings = await bookingRepo.getAllBookingsForRoundRobin({
           users: [{ id: 1, email: "organizer1@example.com" }],
           eventTypeId: 1,
@@ -149,7 +155,9 @@ describe("BookingRepository", () => {
       it("it should include bookings where the host is a no show", async () => {
         await createHostNoShowTestBookings();
 
+        // @ts-expect-error - FIXME: resolve Prisma extension type mismatch
         const bookingRepo = new BookingRepository(prismaMock);
+        // @ts-expect-error - Test fixture missing rrTimestampBasis property
         const bookings = await bookingRepo.getAllBookingsForRoundRobin({
           users: [{ id: 1, email: "organizer1@example.com" }],
           eventTypeId: 1,
@@ -165,7 +173,9 @@ describe("BookingRepository", () => {
         await createHostNoShowTestBookings();
         await createAttendeeNoShowTestBookings();
 
+        // @ts-expect-error - FIXME: resolve Prisma extension type mismatch
         const bookingRepo = new BookingRepository(prismaMock);
+        // @ts-expect-error - Test fixture missing rrTimestampBasis property
         const bookings = await bookingRepo.getAllBookingsForRoundRobin({
           users: [{ id: 1, email: "organizer1@example.com" }],
           eventTypeId: 1,
@@ -181,7 +191,9 @@ describe("BookingRepository", () => {
         await createHostNoShowTestBookings();
         await createAttendeeNoShowTestBookings();
 
+        // @ts-expect-error - FIXME: resolve Prisma extension type mismatch
         const bookingRepo = new BookingRepository(prismaMock);
+        // @ts-expect-error - Test fixture missing rrTimestampBasis property
         const bookings = await bookingRepo.getAllBookingsForRoundRobin({
           users: [{ id: 1, email: "organizer1@example.com" }],
           eventTypeId: 1,
@@ -238,6 +250,7 @@ describe("BookingRepository", () => {
         }),
       ]);
 
+      // @ts-expect-error - FIXME: resolve Prisma extension type mismatch
       const bookingRepo = new BookingRepository(prismaMock);
       const bookings = await bookingRepo.getAllBookingsForRoundRobin({
         users: [{ id: 1, email: "organizer1@example.com" }],

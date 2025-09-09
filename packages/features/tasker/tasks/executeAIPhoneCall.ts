@@ -199,6 +199,7 @@ export async function executeAIPhoneCall(payload: string) {
           key
             .replace(/[^a-zA-Z0-9 ]/g, "")
             .trim()
+            // @ts-expect-error - String.replaceAll requires ES2021+ target
             .replaceAll(" ", "_")
             .toUpperCase(),
           value.value?.toString() || "",

@@ -354,6 +354,7 @@ describe("maximize availability and weights", () => {
     const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
 
     // Today: 2021-06-20T11:59:59Z, monthly interval
+    // @ts-expect-error - Mock query args type mismatch with Prisma types
     expect(queryArgs.where?.createdAt).toEqual(
       expect.objectContaining({
         gte: new Date("2021-06-01T00:00:00Z"),
@@ -473,6 +474,7 @@ describe("maximize availability and weights", () => {
     const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
 
     // Today: 2021-06-20T11:59:59Z, daily interval
+    // @ts-expect-error - Mock query args type mismatch with Prisma types
     expect(queryArgs.where?.createdAt).toEqual(
       expect.objectContaining({
         gte: new Date("2021-06-20T00:00:00Z"),
@@ -592,6 +594,7 @@ describe("maximize availability and weights", () => {
     const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
 
     // Today: 2021-06-20T11:59:59Z, daily interval
+    // @ts-expect-error - Mock query args type mismatch with Prisma types
     expect(queryArgs.where?.createdAt).toEqual(
       expect.objectContaining({
         gte: new Date("2021-06-20T00:00:00Z"),
@@ -698,6 +701,7 @@ describe("maximize availability and weights", () => {
     const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
 
     // Today: 2021-06-20T11:59:59Z, monthly interval
+    // @ts-expect-error - Mock query args type mismatch with Prisma types
     expect(queryArgs.where?.createdAt).toEqual(
       expect.objectContaining({
         gte: new Date("2021-06-01T00:00:00Z"),
@@ -769,6 +773,7 @@ describe("maximize availability and weights", () => {
           },
         ],
       })
+      // @ts-expect-error - Mock return value type mismatch - missing success and data properties
       .mockResolvedValue([]);
 
     prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
@@ -819,6 +824,7 @@ describe("maximize availability and weights", () => {
     const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
 
     // Today: 2021-06-20T11:59:59Z, monthly interval
+    // @ts-expect-error - Mock query args type mismatch with Prisma types
     expect(queryArgs.where?.createdAt).toEqual(
       expect.objectContaining({
         gte: new Date("2021-06-01T00:00:00Z"),
@@ -956,6 +962,7 @@ describe("maximize availability and weights", () => {
     const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
 
     // Today: 2021-06-20T11:59:59Z, monthly interval
+    // @ts-expect-error - Mock query args type mismatch with Prisma types
     expect(queryArgs.where?.createdAt).toEqual(
       expect.objectContaining({
         gte: new Date("2021-06-01T00:00:00Z"),
@@ -1499,6 +1506,7 @@ describe("attribute weights and virtual queues", () => {
     const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
 
     // Today: 2021-06-20T11:59:59Z, daily interval
+    // @ts-expect-error - Mock query args type mismatch with Prisma types
     expect(queryArgs.where?.createdAt).toEqual(
       expect.objectContaining({
         gte: new Date("2021-06-20T00:00:00Z"),

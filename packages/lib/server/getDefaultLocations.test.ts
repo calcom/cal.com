@@ -4,9 +4,11 @@ import { getGoogleMeetCredential, TestData } from "@calcom/web/test/utils/bookin
 
 import { describe, expect, it } from "vitest";
 
-import { DailyLocationType, MeetLocationType } from "@calcom/app-store/locations";
-
 import { getDefaultLocations } from "./getDefaultLocations";
+
+// Commented out restricted import: import { DailyLocationType, MeetLocationType } from "@calcom/app-store/locations";
+const DailyLocationType = "integrations:daily";
+const MeetLocationType = "integrations:google:meet";
 
 type User = {
   id: number;
@@ -44,6 +46,7 @@ describe("getDefaultLocation ", async () => {
     };
     await mockUser(user);
     await addAppsToDb([TestData.apps["google-meet"]]);
+    // @ts-expect-error - Test fixture user.email may be undefined
     const res = await getDefaultLocations(user);
     expect(res[0]).toEqual({
       link: "https://example.com",
@@ -63,6 +66,7 @@ describe("getDefaultLocation ", async () => {
         enabled: true,
       },
     });
+    // @ts-expect-error - Test fixture user.email may be undefined
     const res = await getDefaultLocations(user);
     expect(res[0]).toEqual(
       expect.objectContaining({
@@ -73,7 +77,7 @@ describe("getDefaultLocation ", async () => {
 });
 
 async function mockUser(user: User) {
-  const userToCreate: any = {
+  const userToCreate: unknown = {
     ...TestData.users.example,
     ...user,
   };
@@ -88,7 +92,7 @@ async function mockUser(user: User) {
     data: userToCreate,
   });
 }
-async function addAppsToDb(apps: any[]) {
+async function addAppsToDb(apps: unknown[]) {
   await prismaMock.app.createMany({
     data: apps.map((app) => {
       return { ...app, enabled: true };

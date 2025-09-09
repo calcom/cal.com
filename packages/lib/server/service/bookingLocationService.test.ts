@@ -15,6 +15,7 @@ vi.mock("@calcom/app-store/locations", async () => {
   };
 });
 
+// @ts-expect-error - Top-level await requires ES2022+ module target
 const { getAppFromSlug } = await import("@calcom/app-store/utils");
 
 describe("BookingLocationService", () => {
@@ -37,7 +38,7 @@ describe("BookingLocationService", () => {
               type: "integrations:google:meet",
             },
           },
-        } as any);
+        } as unknown);
 
         const result = BookingLocationService.getOrganizerDefaultConferencingAppLocation({
           organizerMetadata: mockMetadata,
@@ -63,7 +64,7 @@ describe("BookingLocationService", () => {
               type: "integrations:zoom",
             },
           },
-        } as any);
+        } as unknown);
 
         const result = BookingLocationService.getOrganizerDefaultConferencingAppLocation({
           organizerMetadata: mockMetadata,
@@ -82,6 +83,7 @@ describe("BookingLocationService", () => {
           },
         };
 
+        // @ts-expect-error - Mock return value type mismatch
         vi.mocked(getAppFromSlug).mockReturnValue(null);
 
         const result = BookingLocationService.getOrganizerDefaultConferencingAppLocation({
@@ -107,7 +109,7 @@ describe("BookingLocationService", () => {
               type: "integrations:custom-video",
             },
           },
-        } as any);
+        } as unknown);
 
         const result = BookingLocationService.getOrganizerDefaultConferencingAppLocation({
           organizerMetadata: mockMetadata,
@@ -186,7 +188,7 @@ describe("BookingLocationService", () => {
           },
         };
 
-        vi.mocked(getAppFromSlug).mockReturnValue({} as any);
+        vi.mocked(getAppFromSlug).mockReturnValue({} as unknown);
 
         const result = BookingLocationService.getOrganizerDefaultConferencingAppLocation({
           organizerMetadata: mockMetadata,
@@ -206,7 +208,7 @@ describe("BookingLocationService", () => {
           appData: {
             location: {},
           },
-        } as any);
+        } as unknown);
 
         const result = BookingLocationService.getOrganizerDefaultConferencingAppLocation({
           organizerMetadata: mockMetadata,
@@ -231,7 +233,7 @@ describe("BookingLocationService", () => {
             type: "integrations:zoom",
           },
         },
-      } as any);
+      } as unknown);
 
       const result = BookingLocationService.getLocationForHost({
         hostMetadata: mockHostMetadata,
@@ -260,7 +262,7 @@ describe("BookingLocationService", () => {
             type: "integrations:custom-video",
           },
         },
-      } as any);
+      } as unknown);
 
       const result = BookingLocationService.getLocationForHost({
         hostMetadata: mockHostMetadata,
@@ -319,7 +321,7 @@ describe("BookingLocationService", () => {
             type: "integrations:zoom",
           },
         },
-      } as any);
+      } as unknown);
 
       const result = BookingLocationService.getLocationForHost({
         hostMetadata: mockHostMetadata,
@@ -428,7 +430,7 @@ describe("BookingLocationService", () => {
     describe("Edge cases", () => {
       it("should handle empty event type locations", () => {
         const locationType = "integrations:zoom";
-        const eventTypeLocations: any[] = [];
+        const eventTypeLocations: unknown[] = [];
 
         const result = BookingLocationService.getLocationDetailsFromType({
           locationType,

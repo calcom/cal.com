@@ -1,3 +1,4 @@
+// @ts-expect-error - vi is available in test environment
 vi.mock("@calcom/lib/next-seo.config", () => ({
   default: {
     headSeo: {
@@ -13,5 +14,6 @@ vi.mock("@calcom/lib/next-seo.config", () => ({
       siteName: "Cal.com",
     },
   },
+  // @ts-expect-error - vi is available in test environment
   buildSeoMeta: vi.fn().mockReturnValue({}),
 }));

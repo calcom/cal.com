@@ -202,6 +202,7 @@ describe("event tests", () => {
     it("should support templating of custom booking fields", () => {
       const tFunc = vi.fn(() => "foo");
 
+      // @ts-expect-error - Test fixture missing required eventDuration property
       const result = event.getEventName({
         attendeeName: "example attendee",
         eventType: "example event type",

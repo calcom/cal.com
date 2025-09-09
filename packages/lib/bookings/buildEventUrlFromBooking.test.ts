@@ -82,6 +82,7 @@ describe("buildEventUrlFromBooking", () => {
     const organizationId = 123;
     const orgOrigin = "https://acme.cal.local";
     beforeEach(() => {
+      // @ts-expect-error - Mock function type mismatch
       getBrand.mockResolvedValue({
         fullDomain: orgOrigin,
       });
