@@ -222,3 +222,66 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
 export const TextField = forwardRef<HTMLInputElement, InputFieldProps>(function TextField(props, ref) {
   return <InputField ref={ref} {...props} />;
 });
+
+export const EmailField = forwardRef<HTMLInputElement, InputFieldProps>(function EmailField(props, ref) {
+  return (
+    <TextField
+      ref={ref}
+      type="email"
+      autoCapitalize="none"
+      autoComplete="email"
+      autoCorrect="off"
+      inputMode="email"
+      {...props}
+    />
+  );
+});
+
+type PasswordFieldTranslations = {
+  showPasswordText?: string;
+  hidePasswordText?: string;
+};
+
+export const PasswordField = forwardRef<HTMLInputElement, TextFieldProps>(function PasswordField(props, ref) {
+  const { t } = useLocale();
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const toggleIsPasswordVisible = useCallback(
+    () => setIsPasswordVisible(!isPasswordVisible),
+    [isPasswordVisible, setIsPasswordVisible]
+  );
+  const textLabel = isPasswordVisible ? t("hide_password") : t("show_password");
+
+  return (
+    <TextField
+      type={isPasswordVisible ? "text" : "password"}
+      placeholder={props.placeholder || "•••••••••••••"}
+      ref={ref}
+      {...props}
+      className={cn(
+        "addon-wrapper focus-visible:ring-none mb-0 w-full rounded-r-none focus-visible:ring-0 ltr:border-r-0 rtl:border-l-0",
+        props.className
+      )}
+      addOnSuffix={
+        <TooltipProvider>
+          <Tooltip content={textLabel}>
+            <TooltipTrigger>
+              <button
+                className="text-emphasis"
+                tabIndex={-1}
+                type="button"
+                onClick={() => toggleIsPasswordVisible()}>
+                {isPasswordVisible ? (
+                  <Icon name="eye-off" className="h-4 w-4 stroke-[2.5px]" />
+                ) : (
+                  <Icon name="eye" className="h-4 w-4 stroke-[2.5px]" />
+                )}
+                <span className="sr-only">{textLabel}</span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>{textLabel}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      }
+    />
+  );
+});

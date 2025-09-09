@@ -1,6 +1,23 @@
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZActivateEventTypeInputSchema } from "./activateEventType.schema";
+// CalId imports
+import { ZCalIdActivateEventTypeInputSchema } from "./calid/activateEventType.schema";
+import { ZCalIdCreateInputSchema } from "./calid/create.schema";
+import { ZCalIdDeleteInputSchema } from "./calid/delete.schema";
+import { ZCalIdDuplicateInputSchema } from "./calid/duplicate.schema";
+import { ZCalIdFilteredListInputSchema } from "./calid/filteredList.schema";
+import { ZCalIdGetInputSchema } from "./calid/get.schema";
+import { ZCalIdGetAllActiveWorkflowsInputSchema } from "./calid/getAllActiveWorkflows.schema";
+import { ZCalIdGetVerifiedEmailsInputSchema } from "./calid/getVerifiedEmails.schema";
+import { ZCalIdGetVerifiedNumbersInputSchema } from "./calid/getVerifiedNumbers.schema";
+import { ZCalIdListInputSchema } from "./calid/list.schema";
+import { ZCalIdSendVerificationCodeInputSchema } from "./calid/sendVerificationCode.schema";
+import { ZCalIdToggleInputSchema } from "./calid/toggle.schema";
+import { ZCalIdUpdateInputSchema } from "./calid/update.schema";
+import { ZCalIdVerifyEmailCodeInputSchema } from "./calid/verifyEmailCode.schema";
+import { ZCalIdVerifyPhoneNumberInputSchema } from "./calid/verifyPhoneNumber.schema";
+import { ZCalIdWorkflowOrderInputSchema } from "./calid/workflowOrder.schema";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZDuplicateInputSchema } from "./duplicate.schema";
@@ -35,17 +52,36 @@ type WorkflowsRouterHandlerCache = {
   workflowOrder?: typeof import("./workflowOrder.handler").workflowOrderHandler;
   toggle?: typeof import("./toggle.handler").toggleHandler;
   duplicate?: typeof import("./duplicate.handler").duplicateHandler;
+
+  // CalId handlers
+  calid_list?: typeof import("./calid/list.handler").calIdListHandler;
+  calid_get?: typeof import("./calid/get.handler").calIdGetHandler;
+  calid_create?: typeof import("./calid/create.handler").calIdCreateHandler;
+  calid_delete?: typeof import("./calid/delete.handler").calIdDeleteHandler;
+  calid_update?: typeof import("./calid/update.handler").calIdUpdateHandler;
+  calid_activateEventType?: typeof import("./calid/activateEventType.handler").calIdActivateEventTypeHandler;
+  calid_sendVerificationCode?: typeof import("./calid/sendVerificationCode.handler").calIdSendVerificationCodeHandler;
+  calid_verifyPhoneNumber?: typeof import("./calid/verifyPhoneNumber.handler").calIdVerifyPhoneNumberHandler;
+  calid_getVerifiedNumbers?: typeof import("./calid/getVerifiedNumbers.handler").calIdGetVerifiedNumbersHandler;
+  calid_getWorkflowActionOptions?: typeof import("./calid/getWorkflowActionOptions.handler").calIdGetWorkflowActionOptionsHandler;
+  calid_filteredList?: typeof import("./calid/filteredList.handler").calIdFilteredListHandler;
+  calid_getVerifiedEmails?: typeof import("./calid/getVerifiedEmails.handler").calIdGetVerifiedEmailsHandler;
+  calid_verifyEmailCode?: typeof import("./calid/verifyEmailCode.handler").calIdVerifyEmailCodeHandler;
+  calid_getAllActiveWorkflows?: typeof import("./calid/getAllActiveWorkflows.handler").calIdGetAllActiveWorkflowsHandler;
+  calid_workflowOrder?: typeof import("./calid/workflowOrder.handler").calIdWorkflowOrderHandler;
+  calid_toggle?: typeof import("./calid/toggle.handler").calIdToggleHandler;
+  calid_duplicate?: typeof import("./calid/duplicate.handler").calIdDuplicateHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: WorkflowsRouterHandlerCache = {};
 
 export const workflowsRouter = router({
+  // Original handlers
   list: authedProcedure.input(ZListInputSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.list) {
       UNSTABLE_HANDLER_CACHE.list = await import("./list.handler").then((mod) => mod.listHandler);
     }
 
-    // Unreachable code but required for type safety
     if (!UNSTABLE_HANDLER_CACHE.list) {
       throw new Error("Failed to load handler");
     }
@@ -61,7 +97,6 @@ export const workflowsRouter = router({
       UNSTABLE_HANDLER_CACHE.get = await import("./get.handler").then((mod) => mod.getHandler);
     }
 
-    // Unreachable code but required for type safety
     if (!UNSTABLE_HANDLER_CACHE.get) {
       throw new Error("Failed to load handler");
     }
@@ -77,7 +112,6 @@ export const workflowsRouter = router({
       UNSTABLE_HANDLER_CACHE.create = await import("./create.handler").then((mod) => mod.createHandler);
     }
 
-    // Unreachable code but required for type safety
     if (!UNSTABLE_HANDLER_CACHE.create) {
       throw new Error("Failed to load handler");
     }
@@ -93,7 +127,6 @@ export const workflowsRouter = router({
       UNSTABLE_HANDLER_CACHE.delete = await import("./delete.handler").then((mod) => mod.deleteHandler);
     }
 
-    // Unreachable code but required for type safety
     if (!UNSTABLE_HANDLER_CACHE.delete) {
       throw new Error("Failed to load handler");
     }
@@ -109,7 +142,6 @@ export const workflowsRouter = router({
       UNSTABLE_HANDLER_CACHE.update = await import("./update.handler").then((mod) => mod.updateHandler);
     }
 
-    // Unreachable code but required for type safety
     if (!UNSTABLE_HANDLER_CACHE.update) {
       throw new Error("Failed to load handler");
     }
@@ -121,11 +153,10 @@ export const workflowsRouter = router({
   }),
 
   toggle: authedProcedure.input(ZToggleInputSchema).mutation(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.update) {
+    if (!UNSTABLE_HANDLER_CACHE.toggle) {
       UNSTABLE_HANDLER_CACHE.toggle = await import("./toggle.handler").then((mod) => mod.toggleHandler);
     }
 
-    // Unreachable code but required for type safety
     if (!UNSTABLE_HANDLER_CACHE.toggle) {
       throw new Error("Failed to load handler");
     }
@@ -135,6 +166,7 @@ export const workflowsRouter = router({
       input,
     });
   }),
+
   duplicate: authedProcedure.input(ZDuplicateInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.duplicate) {
       UNSTABLE_HANDLER_CACHE.duplicate = await import("./duplicate.handler").then(
@@ -142,7 +174,6 @@ export const workflowsRouter = router({
       );
     }
 
-    // Unreachable code but required for type safety
     if (!UNSTABLE_HANDLER_CACHE.duplicate) {
       throw new Error("Failed to load handler");
     }
@@ -152,6 +183,7 @@ export const workflowsRouter = router({
       input,
     });
   }),
+
   activateEventType: authedProcedure.input(ZActivateEventTypeInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.activateEventType) {
       UNSTABLE_HANDLER_CACHE.activateEventType = await import("./activateEventType.handler").then(
@@ -159,7 +191,6 @@ export const workflowsRouter = router({
       );
     }
 
-    // Unreachable code but required for type safety
     if (!UNSTABLE_HANDLER_CACHE.activateEventType) {
       throw new Error("Failed to load handler");
     }
@@ -179,7 +210,6 @@ export const workflowsRouter = router({
         );
       }
 
-      // Unreachable code but required for type safety
       if (!UNSTABLE_HANDLER_CACHE.sendVerificationCode) {
         throw new Error("Failed to load handler");
       }
@@ -197,7 +227,6 @@ export const workflowsRouter = router({
       );
     }
 
-    // Unreachable code but required for type safety
     if (!UNSTABLE_HANDLER_CACHE.verifyPhoneNumber) {
       throw new Error("Failed to load handler");
     }
@@ -215,7 +244,6 @@ export const workflowsRouter = router({
       );
     }
 
-    // Unreachable code but required for type safety
     if (!UNSTABLE_HANDLER_CACHE.getVerifiedNumbers) {
       throw new Error("Failed to load handler");
     }
@@ -233,7 +261,6 @@ export const workflowsRouter = router({
       );
     }
 
-    // Unreachable code but required for type safety
     if (!UNSTABLE_HANDLER_CACHE.getVerifiedEmails) {
       throw new Error("Failed to load handler");
     }
@@ -245,13 +272,12 @@ export const workflowsRouter = router({
   }),
 
   verifyEmailCode: authedProcedure.input(ZVerifyEmailCodeInputSchema).mutation(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.verifyPhoneNumber) {
+    if (!UNSTABLE_HANDLER_CACHE.verifyEmailCode) {
       UNSTABLE_HANDLER_CACHE.verifyEmailCode = await import("./verifyEmailCode.handler").then(
         (mod) => mod.verifyEmailCodeHandler
       );
     }
 
-    // Unreachable code but required for type safety
     if (!UNSTABLE_HANDLER_CACHE.verifyEmailCode) {
       throw new Error("Failed to load handler");
     }
@@ -269,7 +295,6 @@ export const workflowsRouter = router({
       ).then((mod) => mod.getWorkflowActionOptionsHandler);
     }
 
-    // Unreachable code but required for type safety
     if (!UNSTABLE_HANDLER_CACHE.getWorkflowActionOptions) {
       throw new Error("Failed to load handler");
     }
@@ -278,6 +303,7 @@ export const workflowsRouter = router({
       ctx,
     });
   }),
+
   filteredList: authedProcedure.input(ZFilteredListInputSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.filteredList) {
       UNSTABLE_HANDLER_CACHE.filteredList = await import("./filteredList.handler").then(
@@ -285,7 +311,6 @@ export const workflowsRouter = router({
       );
     }
 
-    // Unreachable code but required for type safety
     if (!UNSTABLE_HANDLER_CACHE.filteredList) {
       throw new Error("Failed to load handler");
     }
@@ -295,6 +320,7 @@ export const workflowsRouter = router({
       input,
     });
   }),
+
   getAllActiveWorkflows: authedProcedure
     .input(ZGetAllActiveWorkflowsInputSchema)
     .query(async ({ ctx, input }) => {
@@ -304,7 +330,6 @@ export const workflowsRouter = router({
         );
       }
 
-      // Unreachable code but required for type safety
       if (!UNSTABLE_HANDLER_CACHE.getAllActiveWorkflows) {
         throw new Error("Failed to load handler");
       }
@@ -314,16 +339,318 @@ export const workflowsRouter = router({
         input,
       });
     }),
+
   workflowOrder: authedProcedure.input(ZWorkflowOrderInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.workflowOrder) {
       UNSTABLE_HANDLER_CACHE.workflowOrder = (await import("./workflowOrder.handler")).workflowOrderHandler;
     }
 
-    // Unreachable code but required for type safety
     if (!UNSTABLE_HANDLER_CACHE.workflowOrder) {
       throw new Error("Failed to load handler");
     }
 
     return UNSTABLE_HANDLER_CACHE.workflowOrder({ ctx, input });
   }),
+
+  // CalId handlers with "calid_" prefix
+  calid_list: authedProcedure.input(ZCalIdListInputSchema).query(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.calid_list) {
+      UNSTABLE_HANDLER_CACHE.calid_list = await import("./calid/list.handler").then(
+        (mod) => mod.calIdListHandler
+      );
+    }
+
+    if (!UNSTABLE_HANDLER_CACHE.calid_list) {
+      throw new Error("Failed to load CalId list handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.calid_list({
+      ctx,
+      input,
+    });
+  }),
+
+  calid_get: authedProcedure.input(ZCalIdGetInputSchema).query(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.calid_get) {
+      UNSTABLE_HANDLER_CACHE.calid_get = await import("./calid/get.handler").then(
+        (mod) => mod.calIdGetHandler
+      );
+    }
+
+    if (!UNSTABLE_HANDLER_CACHE.calid_get) {
+      throw new Error("Failed to load CalId get handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.calid_get({
+      ctx,
+      input,
+    });
+  }),
+
+  calid_create: authedProcedure.input(ZCalIdCreateInputSchema).mutation(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.calid_create) {
+      UNSTABLE_HANDLER_CACHE.calid_create = await import("./calid/create.handler").then(
+        (mod) => mod.calIdCreateHandler
+      );
+    }
+
+    if (!UNSTABLE_HANDLER_CACHE.calid_create) {
+      throw new Error("Failed to load CalId create handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.calid_create({
+      ctx,
+      input,
+    });
+  }),
+
+  calid_delete: authedProcedure.input(ZCalIdDeleteInputSchema).mutation(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.calid_delete) {
+      UNSTABLE_HANDLER_CACHE.calid_delete = await import("./calid/delete.handler").then(
+        (mod) => mod.calIdDeleteHandler
+      );
+    }
+
+    if (!UNSTABLE_HANDLER_CACHE.calid_delete) {
+      throw new Error("Failed to load CalId delete handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.calid_delete({
+      ctx,
+      input,
+    });
+  }),
+
+  calid_update: authedProcedure.input(ZCalIdUpdateInputSchema).mutation(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.calid_update) {
+      UNSTABLE_HANDLER_CACHE.calid_update = await import("./calid/update.handler").then(
+        (mod) => mod.calIdUpdateHandler
+      );
+    }
+
+    if (!UNSTABLE_HANDLER_CACHE.calid_update) {
+      throw new Error("Failed to load CalId update handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.calid_update({
+      ctx,
+      input,
+    });
+  }),
+
+  calid_toggle: authedProcedure.input(ZCalIdToggleInputSchema).mutation(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.calid_toggle) {
+      UNSTABLE_HANDLER_CACHE.calid_toggle = await import("./calid/toggle.handler").then(
+        (mod) => mod.calIdToggleHandler
+      );
+    }
+
+    if (!UNSTABLE_HANDLER_CACHE.calid_toggle) {
+      throw new Error("Failed to load CalId toggle handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.calid_toggle({
+      ctx,
+      input,
+    });
+  }),
+
+  calid_duplicate: authedProcedure.input(ZCalIdDuplicateInputSchema).mutation(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.calid_duplicate) {
+      UNSTABLE_HANDLER_CACHE.calid_duplicate = await import("./calid/duplicate.handler").then(
+        (mod) => mod.calIdDuplicateHandler
+      );
+    }
+
+    if (!UNSTABLE_HANDLER_CACHE.calid_duplicate) {
+      throw new Error("Failed to load CalId duplicate handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.calid_duplicate({
+      ctx,
+      input,
+    });
+  }),
+
+  calid_activateEventType: authedProcedure
+    .input(ZCalIdActivateEventTypeInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.calid_activateEventType) {
+        UNSTABLE_HANDLER_CACHE.calid_activateEventType = await import(
+          "./calid/activateEventType.handler"
+        ).then((mod) => mod.calIdActivateEventTypeHandler);
+      }
+
+      if (!UNSTABLE_HANDLER_CACHE.calid_activateEventType) {
+        throw new Error("Failed to load CalId activateEventType handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.calid_activateEventType({
+        ctx,
+        input,
+      });
+    }),
+
+  calid_sendVerificationCode: authedProcedure
+    .input(ZCalIdSendVerificationCodeInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.calid_sendVerificationCode) {
+        UNSTABLE_HANDLER_CACHE.calid_sendVerificationCode = await import(
+          "./calid/sendVerificationCode.handler"
+        ).then((mod) => mod.calIdSendVerificationCodeHandler);
+      }
+
+      if (!UNSTABLE_HANDLER_CACHE.calid_sendVerificationCode) {
+        throw new Error("Failed to load CalId sendVerificationCode handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.calid_sendVerificationCode({
+        ctx,
+        input,
+      });
+    }),
+
+  calid_verifyPhoneNumber: authedProcedure
+    .input(ZCalIdVerifyPhoneNumberInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.calid_verifyPhoneNumber) {
+        UNSTABLE_HANDLER_CACHE.calid_verifyPhoneNumber = await import(
+          "./calid/verifyPhoneNumber.handler"
+        ).then((mod) => mod.calIdVerifyPhoneNumberHandler);
+      }
+
+      if (!UNSTABLE_HANDLER_CACHE.calid_verifyPhoneNumber) {
+        throw new Error("Failed to load CalId verifyPhoneNumber handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.calid_verifyPhoneNumber({
+        ctx,
+        input,
+      });
+    }),
+
+  calid_getVerifiedNumbers: authedProcedure
+    .input(ZCalIdGetVerifiedNumbersInputSchema)
+    .query(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.calid_getVerifiedNumbers) {
+        UNSTABLE_HANDLER_CACHE.calid_getVerifiedNumbers = await import(
+          "./calid/getVerifiedNumbers.handler"
+        ).then((mod) => mod.calIdGetVerifiedNumbersHandler);
+      }
+
+      if (!UNSTABLE_HANDLER_CACHE.calid_getVerifiedNumbers) {
+        throw new Error("Failed to load CalId getVerifiedNumbers handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.calid_getVerifiedNumbers({
+        ctx,
+        input,
+      });
+    }),
+
+  calid_getVerifiedEmails: authedProcedure
+    .input(ZCalIdGetVerifiedEmailsInputSchema)
+    .query(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.calid_getVerifiedEmails) {
+        UNSTABLE_HANDLER_CACHE.calid_getVerifiedEmails = await import(
+          "./calid/getVerifiedEmails.handler"
+        ).then((mod) => mod.calIdGetVerifiedEmailsHandler);
+      }
+
+      if (!UNSTABLE_HANDLER_CACHE.calid_getVerifiedEmails) {
+        throw new Error("Failed to load CalId getVerifiedEmails handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.calid_getVerifiedEmails({
+        ctx,
+        input,
+      });
+    }),
+
+  calid_verifyEmailCode: authedProcedure
+    .input(ZCalIdVerifyEmailCodeInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.calid_verifyEmailCode) {
+        UNSTABLE_HANDLER_CACHE.calid_verifyEmailCode = await import("./calid/verifyEmailCode.handler").then(
+          (mod) => mod.calIdVerifyEmailCodeHandler
+        );
+      }
+
+      if (!UNSTABLE_HANDLER_CACHE.calid_verifyEmailCode) {
+        throw new Error("Failed to load CalId verifyEmailCode handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.calid_verifyEmailCode({
+        ctx,
+        input,
+      });
+    }),
+
+  calid_getWorkflowActionOptions: authedProcedure.query(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.calid_getWorkflowActionOptions) {
+      UNSTABLE_HANDLER_CACHE.calid_getWorkflowActionOptions = await import(
+        "./calid/getWorkflowActionOptions.handler"
+      ).then((mod) => mod.calIdGetWorkflowActionOptionsHandler);
+    }
+
+    if (!UNSTABLE_HANDLER_CACHE.calid_getWorkflowActionOptions) {
+      throw new Error("Failed to load CalId getWorkflowActionOptions handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.calid_getWorkflowActionOptions({
+      ctx,
+    });
+  }),
+
+  calid_filteredList: authedProcedure.input(ZCalIdFilteredListInputSchema).query(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.calid_filteredList) {
+      UNSTABLE_HANDLER_CACHE.calid_filteredList = await import("./calid/filteredList.handler").then(
+        (mod) => mod.calIdFilteredListHandler
+      );
+    }
+
+    if (!UNSTABLE_HANDLER_CACHE.calid_filteredList) {
+      throw new Error("Failed to load CalId filteredList handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.calid_filteredList({
+      ctx,
+      input,
+    });
+  }),
+
+  calid_getAllActiveWorkflows: authedProcedure
+    .input(ZCalIdGetAllActiveWorkflowsInputSchema)
+    .query(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.calid_getAllActiveWorkflows) {
+        UNSTABLE_HANDLER_CACHE.calid_getAllActiveWorkflows = await import(
+          "./calid/getAllActiveWorkflows.handler"
+        ).then((mod) => mod.calIdGetAllActiveWorkflowsHandler);
+      }
+
+      if (!UNSTABLE_HANDLER_CACHE.calid_getAllActiveWorkflows) {
+        throw new Error("Failed to load CalId getAllActiveWorkflows handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.calid_getAllActiveWorkflows({
+        ctx,
+        input,
+      });
+    }),
+
+  calid_workflowOrder: authedProcedure
+    .input(ZCalIdWorkflowOrderInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.calid_workflowOrder) {
+        UNSTABLE_HANDLER_CACHE.calid_workflowOrder = (
+          await import("./calid/workflowOrder.handler")
+        ).calIdWorkflowOrderHandler;
+      }
+
+      if (!UNSTABLE_HANDLER_CACHE.calid_workflowOrder) {
+        throw new Error("Failed to load CalId workflowOrder handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.calid_workflowOrder({ ctx, input });
+    }),
 });

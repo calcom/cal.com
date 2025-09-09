@@ -375,7 +375,7 @@ const DestinationCalendarSettings = ({
                   placeholder={
                     selectedSecondaryEmailId === -1 && (
                       <span className="text-default min-w-0 overflow-hidden truncate whitespace-nowrap">
-                        <Badge variant="blue">{t("default")}</Badge> {userEmail}
+                        <Badge variant="default">{t("default")}</Badge> {userEmail}
                       </span>
                     )
                   }
@@ -870,8 +870,8 @@ export const EventAdvanced = ({
   const formMethods = useFormContext<FormValues>();
 
   // Fetch verified emails for the team or user
-  const { data: verifiedEmails } = trpc.viewer.workflows.getVerifiedEmails.useQuery({
-    teamId: team?.id,
+  const { data: verifiedEmails } = trpc.viewer.workflows.calid_getVerifiedEmails.useQuery({
+    calIdTeamId: team?.id,
   });
 
   // UI state management
@@ -1471,11 +1471,7 @@ export const EventAdvanced = ({
               </div>
             </SettingsToggle>
 
-            {noShowFeeEnabled && (
-              <Alert variant="warning">
-                <AlertTitle>{t("seats_and_no_show_fee_error")}</AlertTitle>
-              </Alert>
-            )}
+            {noShowFeeEnabled && <Alert severity="warning" title={t("seats_and_no_show_fee_error")} />}
           </>
         )}
       />
@@ -1685,9 +1681,7 @@ export const EventAdvanced = ({
                 />
                 {lightModeError && (
                   <div className="mt-4">
-                    <Alert variant="warning">
-                      <AlertDescription>{t("event_type_color_light_theme_contrast_error")}</AlertDescription>
-                    </Alert>
+                    <Alert severity="warning" message={t("event_type_color_light_theme_contrast_error")} />
                   </div>
                 )}
               </div>
@@ -1707,9 +1701,7 @@ export const EventAdvanced = ({
                 />
                 {darkModeError && (
                   <div className="mt-4">
-                    <Alert variant="warning">
-                      <AlertDescription>{t("event_type_color_dark_theme_contrast_error")}</AlertDescription>
-                    </Alert>
+                    <Alert severity="warning" message={t("event_type_color_dark_theme_contrast_error")} />
                   </div>
                 )}
               </div>

@@ -1,9 +1,6 @@
 "use client";
 
 import { Icon } from "@calid/features/ui/components/icon";
-
-
-
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter as useAppRouter } from "next/navigation";
@@ -185,10 +182,10 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
     onlyInstalled: true,
   });
 
-  const { data: allActiveWorkflows } = trpc.viewer.workflows.getAllActiveWorkflows.useQuery({
+  const { data: allActiveWorkflows } = trpc.viewer.workflows.calid_getAllActiveWorkflows.useQuery({
     eventType: {
       id,
-      teamId: eventType.teamId,
+      calIdTeamId: eventType.teamId,
       userId: eventType.userId,
       parent: eventType.parent,
       metadata: eventType.metadata,

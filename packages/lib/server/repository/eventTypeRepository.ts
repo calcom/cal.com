@@ -893,6 +893,7 @@ export class EventTypeRepository {
         select: {
           id: true,
           teamId: true,
+          calIdTeamId: true,
         },
       },
       teamId: true,
@@ -917,6 +918,31 @@ export class EventTypeRepository {
             select: {
               role: true,
               accepted: true,
+              user: {
+                select: {
+                  ...userSelect,
+                  eventTypes: {
+                    select: {
+                      slug: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      calIdTeamId: true,
+      calIdTeam: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+
+          members: {
+            select: {
+              role: true,
+              acceptedInvitation: true,
               user: {
                 select: {
                   ...userSelect,
