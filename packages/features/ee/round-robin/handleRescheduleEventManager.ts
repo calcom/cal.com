@@ -161,8 +161,8 @@ export const handleRescheduleEventManager = async ({
     const calendarResult = results.find((result) => result.type.includes("_calendar"));
 
     evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
-      ? calendarResult?.updatedEvent[0]?.iCalUID
-      : calendarResult?.updatedEvent?.iCalUID || undefined;
+      ? calendarResult?.updatedEvent[0]?.iCalUID || bookingICalUID
+      : calendarResult?.updatedEvent?.iCalUID || bookingICalUID || undefined;
   }
 
   const newReferencesToCreate = structuredClone(updateManager.referencesToCreate);
