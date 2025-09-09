@@ -1,4 +1,4 @@
-import { useMemo, useState, Suspense } from "react";
+import { useMemo, useState, Suspense, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
@@ -97,6 +97,39 @@ function EventTypeSingleLayout({
     return isPlatform ? [PlatformShell] : [WebShell];
   }, [isPlatform]);
   const teamId = eventType.team?.id;
+
+useEffect(() => {
+  if (eventType && formMethods.formState.defaultValues) {
+    const currentDescription = formMethods.getValues("description");
+    const defaultDescription = formMethods.formState.defaultValues?.description;
+
+  if (formMethods.formState.isDirty && Object.keys(formMethods.formState.dirtyFields).length === 0) {
+
+    formMethods.reset(formMethods.getValues(), {
+      keepDirty: false,
+      keepErrors: false,
+      keepDirtyValues: false
+    });
+  }
+  else if(currentDescription === "" && defaultDescription === undefined){
+
+    formMethods.reset(formMethods.getValues(), {
+      keepDirty: false,
+      keepErrors: false,
+      keepDirtyValues: false
+    });
+  }
+  else if(currentDescription === undefined && defaultDescription === ""){
+
+    formMethods.reset(formMethods.getValues(), {
+      keepDirty: false,
+      keepErrors: false,
+      keepDirtyValues: false
+    });
+  }
+}
+
+}, [formMethods.formState.isDirty, formMethods.formState.dirtyFields, formMethods]);
 
   return (
     <Shell
@@ -269,7 +302,7 @@ function EventTypeSingleLayout({
             className="ml-4 lg:ml-0"
             type="submit"
             loading={isUpdateMutationLoading}
-            disabled={!formMethods.formState.isDirty}
+            disabled={!formMethods.formState.isDirty || Object.keys(formMethods.formState.dirtyFields || {}).length === 0}
             data-testid="update-eventtype"
             form="event-type-form">
             {t("save")}
