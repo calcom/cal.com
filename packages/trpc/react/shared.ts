@@ -16,6 +16,7 @@ export const ENDPOINTS = [
   "deploymentSetup",
   "dsync",
   "eventTypes",
+  "eventTypes/heavy",
   "features",
   "i18n",
   "insights",
@@ -40,5 +41,7 @@ export const ENDPOINTS = [
   "routingForms",
   "credits",
   "filterSegments",
+  "aiVoiceAgent",
+  "phoneNumber",
   "pbac",
 ] as const;

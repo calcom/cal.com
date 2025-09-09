@@ -125,6 +125,13 @@ const OnboardingPage = (props: PageProps) => {
   };
   const currentStepIndex = steps.indexOf(currentStep);
 
+  const goToStep = (step: number) => {
+    const newStep = steps[step];
+    startTransition(() => {
+      router.push(`/getting-started/${stepTransform(newStep)}`);
+    });
+  };
+
   const goToNextStep = () => {
     const nextIndex = currentStepIndex + 1;
     const newStep = steps[nextIndex];
@@ -159,7 +166,7 @@ const OnboardingPage = (props: PageProps) => {
                   </p>
                 ))}
               </header>
-              <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} nextStep={goToNextStep} />
+              <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} navigateToStep={goToStep} />
             </div>
             <StepCard>
               <Suspense fallback={<Icon name="loader" />}>

@@ -3,8 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
+import { isRedirectApp } from "@calcom/app-store/_utils/redirectApps";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
-import { InstallAppButton } from "@calcom/app-store/components";
 import { doesAppSupportTeamInstall, isConferencing } from "@calcom/app-store/utils";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
@@ -57,7 +58,11 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   }, [app.name, searchText]);
 
   const handleAppInstall = () => {
-    if (isConferencing(app.categories)) {
+    if (isRedirectApp(app.slug)) {
+      mutation.mutate({ type: app.type, variant: app.variant, slug: app.slug });
+      return;
+    }
+    if (isConferencing(app.categories) && !app.concurrentMeetings) {
       mutation.mutate({
         type: app.type,
         variant: app.variant,
@@ -149,7 +154,9 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                       loading: mutation.isPending,
                     };
                   }
-                  return <InstallAppButtonChild paid={app.paid} {...props} />;
+                  return (
+                    <InstallAppButtonChild paid={app.paid} isRedirect={isRedirectApp(app.slug)} {...props} />
+                  );
                 }}
               />
             )
@@ -171,7 +178,9 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                       loading: mutation.isPending,
                     };
                   }
-                  return <InstallAppButtonChild paid={app.paid} {...props} />;
+                  return (
+                    <InstallAppButtonChild paid={app.paid} isRedirect={isRedirectApp(app.slug)} {...props} />
+                  );
                 }}
               />
             )}
@@ -193,11 +202,25 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
 
 const InstallAppButtonChild = ({
   paid,
+  isRedirect = false,
   ...props
 }: {
   paid: App["paid"];
+  isRedirect?: boolean;
 } & ButtonProps) => {
   const { t } = useLocale();
+  if (isRedirect) {
+    return (
+      <Button
+        color="secondary"
+        className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
+        StartIcon="external-link"
+        {...props}
+        size="base">
+        {t("visit")}
+      </Button>
+    );
+  }
   // Paid apps don't support team installs at the moment
   // Also, cal.ai(the only paid app at the moment) doesn't support team install either
   if (paid) {

@@ -1,4 +1,3 @@
-import { type TFunction } from "i18next";
 import { useEffect, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
@@ -20,11 +19,9 @@ interface ConnectedAppStepProps {
 }
 
 const ConnectedVideoStepInner = ({
-  t,
   setAnyInstalledVideoApps,
   user,
 }: {
-  t: TFunction;
   setAnyInstalledVideoApps: Dispatch<SetStateAction<boolean>>;
   user: RouterOutputs["viewer"]["me"]["get"];
 }) => {
@@ -94,7 +91,7 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
   const [hasAnyInstalledVideoApps, setAnyInstalledVideoApps] = useState(false);
   return (
     <>
-      <ConnectedVideoStepInner setAnyInstalledVideoApps={setAnyInstalledVideoApps} t={t} user={user} />
+      <ConnectedVideoStepInner setAnyInstalledVideoApps={setAnyInstalledVideoApps} user={user} />
       <Button
         EndIcon="arrow-right"
         data-testid="save-video-button"

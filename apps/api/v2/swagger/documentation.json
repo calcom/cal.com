@@ -22554,7 +22554,12 @@
               "afterEvent",
               "rescheduleEvent",
               "afterHostsCalVideoNoShow",
-              "afterGuestsCalVideoNoShow"
+              "afterGuestsCalVideoNoShow",
+              "bookingRejected",
+              "bookingRequested",
+              "bookingPaymentInitiated",
+              "bookingPaid",
+              "bookingNoShowUpdated"
             ]
           },
           "offset": {
@@ -22916,6 +22921,71 @@
             "enum": [
               "rescheduleEvent"
             ],
+            "description": "Trigger type for the workflow"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "OnNoShowUpdateTriggerDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "bookingNoShowUpdated",
+            "description": "Trigger type for the workflow"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "OnRejectedTriggerDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "bookingRejected",
+            "description": "Trigger type for the workflow"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "OnRequestedTriggerDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "bookingRequested",
+            "description": "Trigger type for the workflow"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "OnPaymentInitiatedTriggerDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "bookingPaymentInitiated",
+            "description": "Trigger type for the workflow"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "OnPaidTriggerDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "bookingPaid",
             "description": "Trigger type for the workflow"
           }
         },
@@ -23568,7 +23638,12 @@
                 "afterEvent",
                 "rescheduleEvent",
                 "afterHostsCalVideoNoShow",
-                "afterGuestsCalVideoNoShow"
+                "afterGuestsCalVideoNoShow",
+                "bookingRejected",
+                "bookingRequested",
+                "bookingPaymentInitiated",
+                "bookingPaid",
+                "bookingNoShowUpdated"
               ]
             ],
             "description": "Trigger type for the workflow"
@@ -23642,6 +23717,21 @@
               },
               {
                 "$ref": "#/components/schemas/OnAfterCalVideoHostsNoShowTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnRejectedTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnRequestedTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnPaidTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnPaymentInitiatedTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnNoShowUpdateTriggerDto"
               }
             ]
           },
@@ -24298,6 +24388,21 @@
               },
               {
                 "$ref": "#/components/schemas/OnAfterCalVideoHostsNoShowTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnRejectedTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnRequestedTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnPaidTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnPaymentInitiatedTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnNoShowUpdateTriggerDto"
               }
             ]
           },
