@@ -9,11 +9,15 @@ import { TRPCError } from "@trpc/server";
 export const getServerSideProps = wrapGetServerSidePropsWithSentry(async function getServerSideProps(
   context: GetServerSidePropsContext
 ) {
+  const isEmbed = hasEmbedPath(context.req.url || "");
   const verification = await checkBotId();
   if (verification.isBot) {
     return {
       props: {
-        message: "Access denied",
+        isEmbed,
+        message: null,
+        form: null,
+        errorMessage: "Access denied",
       },
     };
   }
@@ -22,7 +26,6 @@ export const getServerSideProps = wrapGetServerSidePropsWithSentry(async functio
   } catch (error) {
     if (error instanceof TRPCError && error.code === "TOO_MANY_REQUESTS") {
       context.res.statusCode = 429;
-      const isEmbed = hasEmbedPath(context.req.url || "");
 
       return {
         props: {
