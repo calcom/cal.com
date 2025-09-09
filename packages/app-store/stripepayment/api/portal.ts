@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
@@ -44,10 +45,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.redirect(302, billingPortalUrl);
   }
 
+  const permissionCheckService = new PermissionCheckService();
+  // Esnsure user has access to teamBilling
+
+  // I think here we need to check if this team is an ORG or TEAM
+  // Then we check if the user can access on that level. for team.manageBilling or organization.manageBilling
+  // Currently we only have manageBilling on organization level but we need it on a team level for NONE orgs (Maybe we dont put it in the registery?)
+
   const teamRepository = new TeamRepository(prisma);
-  const team = await teamRepository.getTeamByIdIfUserIsAdmin({
-    teamId,
-    userId,
+  const team = await teamRepository.findById({
+    id: teamId,
   });
 
   if (!team) return res.status(404).json({ message: "Team not found" });
