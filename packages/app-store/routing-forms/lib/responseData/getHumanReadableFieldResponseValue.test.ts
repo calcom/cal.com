@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import type { Field, FormResponse } from "@calcom/app-store/routing-forms/types/types";
-
+import type { Field, FormResponse } from "../../types/types";
 import { getHumanReadableFieldResponseValue } from "./getHumanReadableFieldResponseValue";
 
 describe("getHumanReadableFieldResponseValue", () => {

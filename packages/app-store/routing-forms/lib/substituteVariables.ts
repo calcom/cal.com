@@ -1,8 +1,8 @@
-import { getHumanReadableFieldResponseValue } from "@calcom/lib/server/service/routingForm/responseData/getHumanReadableFieldResponseValue";
 import slugify from "@calcom/lib/slugify";
 
 import type { FormResponse, NonRouterRoute, Field } from "../types/types";
 import getFieldIdentifier from "./getFieldIdentifier";
+import { getHumanReadableFieldResponseValue } from "./responseData/getHumanReadableFieldResponseValue";
 
 /**
  * Substitues variables in the target URL identified by routeValue with values from response
