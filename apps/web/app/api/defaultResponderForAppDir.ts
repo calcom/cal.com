@@ -19,6 +19,11 @@ export const defaultResponderForAppDir = <T extends NextResponse | Response = Ne
     let ok = false;
     try {
       performance.mark("Start");
+      if (process.env.NODE_ENV === "development") {
+        ok = true;
+        return (await handler(req, { params })) ?? NextResponse.json({});
+      }
+
       let result;
       if (endpointRoute) {
         const { wrapApiHandlerWithSentry } = await import("@sentry/nextjs");
