@@ -4307,7 +4307,6 @@ __metadata:
     handlebars: ^4.7.7
     ical.js: ^1.4.0
     ics: ^2.37.0
-    isbot: ^5.1.30
     jose: ^4.13.1
     jotai: ^2.12.2
     jsdom: ^22.0.0
@@ -31897,13 +31896,6 @@ __metadata:
   version: 1.0.0
   resolution: "isarray@npm:1.0.0"
   checksum: f032df8e02dce8ec565cf2eb605ea939bdccea528dbcf565cdf92bfa2da9110461159d86a537388ef1acef8815a330642d7885b29010e8f7eac967c9993b65ab
-  languageName: node
-  linkType: hard
-
-"isbot@npm:^5.1.30":
-  version: 5.1.30
-  resolution: "isbot@npm:5.1.30"
-  checksum: 296e6c13767d0d0cff22f778aa8e06fddf59eb347ed0c237647f9a65fd0681fd420468cc9e145f4c9fe7b9d17784816f4991d0299b1f3d489822c0d5c773d264
   languageName: node
   linkType: hard
 
