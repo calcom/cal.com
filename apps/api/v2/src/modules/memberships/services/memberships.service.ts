@@ -60,6 +60,7 @@ export class MembershipsService {
     }
 
     return true;
+  }
 
   async isUserOrgAdminOrOwnerOfAnotherUser(userId: number, anotherUserId: number) {
     const orgIdsWhereUserIsAdminOrOwner = await this.membershipsRepository.getOrgIdsWhereUserIsAdminOrOwner(
