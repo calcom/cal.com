@@ -391,7 +391,7 @@ const scheduleEmailReminderForForm = async (
     sendTo,
     triggerEvent,
     workflowStepId,
-    scheduledDate: null, //FORM_SUBMITTED_NO_EVENT is scheduled via tasker; this function runs only when it should trigger
+    scheduledDate: null,
   });
 };
 

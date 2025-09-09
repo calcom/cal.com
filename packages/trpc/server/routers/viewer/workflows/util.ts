@@ -997,7 +997,7 @@ export async function getAllWorkflowsFromRoutingForm(routingForm: {
         },
       },
       trigger: {
-        in: [WorkflowTriggerEvents.FORM_SUBMITTED, WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT],
+        in: [WorkflowTriggerEvents.FORM_SUBMITTED],
       },
     },
     select: {

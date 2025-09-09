@@ -12,7 +12,6 @@ export const RESCHEDULE_EVENT = "rescheduleEvent";
 export const AFTER_HOSTS_CAL_VIDEO_NO_SHOW = "afterHostsCalVideoNoShow";
 export const AFTER_GUESTS_CAL_VIDEO_NO_SHOW = "afterGuestsCalVideoNoShow";
 export const FORM_SUBMITTED = "formSubmitted";
-export const FORM_SUBMITTED_NO_EVENT = "formSubmittedNoEvent";
 export const BOOKING_REJECTED = "bookingRejected";
 export const BOOKING_REQUESTED = "bookingRequested";
 export const BOOKING_PAYMENT_INITIATED = "bookingPaymentInitiated";
@@ -27,7 +26,6 @@ export const WORKFLOW_TRIGGER_TYPES = [
   AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
   AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
   FORM_SUBMITTED,
-  FORM_SUBMITTED_NO_EVENT,
   BOOKING_REJECTED,
   BOOKING_REQUESTED,
   BOOKING_PAYMENT_INITIATED,
@@ -44,7 +42,6 @@ export const WORKFLOW_TRIGGER_TO_ENUM = {
   [AFTER_HOSTS_CAL_VIDEO_NO_SHOW]: WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
   [AFTER_GUESTS_CAL_VIDEO_NO_SHOW]: WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
   [FORM_SUBMITTED]: WorkflowTriggerEvents.FORM_SUBMITTED,
-  [FORM_SUBMITTED_NO_EVENT]: WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT,
   [BOOKING_REJECTED]: WorkflowTriggerEvents.BOOKING_REJECTED,
   [BOOKING_REQUESTED]: WorkflowTriggerEvents.BOOKING_REQUESTED,
   [BOOKING_PAYMENT_INITIATED]: WorkflowTriggerEvents.BOOKING_PAYMENT_INITIATED,
@@ -61,7 +58,6 @@ export const ENUM_TO_WORKFLOW_TRIGGER = {
   [WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW]: AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
   [WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW]: AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
   [WorkflowTriggerEvents.FORM_SUBMITTED]: FORM_SUBMITTED,
-  [WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT]: FORM_SUBMITTED_NO_EVENT,
   [WorkflowTriggerEvents.BOOKING_REJECTED]: BOOKING_REJECTED,
   [WorkflowTriggerEvents.BOOKING_REQUESTED]: BOOKING_REQUESTED,
   [WorkflowTriggerEvents.BOOKING_PAYMENT_INITIATED]: BOOKING_PAYMENT_INITIATED,
@@ -231,12 +227,3 @@ export class OnFormSubmittedTriggerDto {
   type: typeof FORM_SUBMITTED = FORM_SUBMITTED;
 }
 
-export class OnFormSubmittedNoEventTriggerDto extends TriggerOffsetDTO {
-  @ApiProperty({
-    description: "Trigger type for the workflow",
-    example: FORM_SUBMITTED_NO_EVENT,
-  })
-  @IsString()
-  @IsIn([FORM_SUBMITTED_NO_EVENT])
-  type: typeof FORM_SUBMITTED_NO_EVENT = FORM_SUBMITTED_NO_EVENT;
-}
