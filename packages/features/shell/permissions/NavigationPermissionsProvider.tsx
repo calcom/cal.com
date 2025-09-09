@@ -18,11 +18,11 @@ export function useNavigationPermissions(): NavigationPermissions {
   const context = useContext(NavigationPermissionsContext);
   if (context === null) {
     return {
-      insights: false,
-      workflows: false,
-      routing: false,
-      teams: false,
-      members: false,
+      insights: true,
+      workflows: true,
+      routing: true,
+      teams: true,
+      members: true,
     };
   }
   return context;

@@ -15,18 +15,14 @@ export const checkNavigationPermissions = unstable_cache(
     const permissionService = new PermissionCheckService();
 
     const teamIds = await MembershipRepository.findUserTeamIds({ userId });
-    console.log("💡 teamIds", {
-      teamIds,
-      userId,
-    });
 
     if (teamIds.length === 0) {
       return {
-        insights: false,
-        workflows: false,
-        routing: false,
-        teams: false,
-        members: false,
+        insights: true,
+        workflows: true,
+        routing: true,
+        teams: true,
+        members: true,
       };
     }
 
