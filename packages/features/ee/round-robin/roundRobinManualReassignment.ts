@@ -290,6 +290,7 @@ export const roundRobinManualReassignment = async ({
     },
     attendees: attendeeList,
     uid: booking.uid,
+    iCalUID: booking.iCalUID,
     destinationCalendar,
     team: {
       members: teamMembers,
@@ -502,8 +503,6 @@ export async function handleWorkflowsUpdate({
         includeCalendarEvent: workflowStep.includeCalendarEvent,
         workflowStepId: workflowStep.id,
         verifiedAt: workflowStep.verifiedAt,
-        userId: workflow.userId,
-        teamId: workflow.teamId,
       });
     }
 

@@ -6,7 +6,7 @@ import Document, { Head, Html, Main, NextScript } from "next/document";
 
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 
-import { applyTheme, applyToDesktopClass } from "./_applyThemeForDocument";
+import { applyTheme, applyToDesktopClass } from "./../lib/pages/document/_applyThemeForDocument";
 
 type Props = Record<string, unknown> & DocumentProps & { newLocale: string };
 
