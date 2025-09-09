@@ -22,5 +22,6 @@ export const useGetVerifiedEmails = (teamId?: number) => {
       });
     },
     enabled: isInit && !!accessToken,
+    staleTime: 5000,
   });
 };

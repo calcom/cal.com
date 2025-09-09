@@ -72,7 +72,7 @@ export class VerificationAtomsService {
 
   async getVerifiedEmails(input: GetVerifiedEmailsInput): Promise<string[]> {
     const { userId, userEmail, teamId } = input;
-    const userEmailWithoutOauthClientId = userEmail.replace(/\+([^+]+)@/, "@");
+    const userEmailWithoutOauthClientId = this.removeClientIdFromEmail(userEmail);
 
     if (teamId) {
       const verifiedEmails: string[] = [];
@@ -83,11 +83,11 @@ export class VerificationAtomsService {
       }
 
       teamMembers.forEach((member) => {
-        const memberEmailWithoutOauthClientId = member.email.replace(/\+([^+]+)@/, "@");
+        const memberEmailWithoutOauthClientId = this.removeClientIdFromEmail(member.email);
 
         verifiedEmails.push(memberEmailWithoutOauthClientId);
         member.secondaryEmails.forEach((secondaryEmail) => {
-          verifiedEmails.push(secondaryEmail.email.replace(/\+([^+]+)@/, "@"));
+          verifiedEmails.push(this.removeClientIdFromEmail(secondaryEmail.email));
         });
       });
 
@@ -98,7 +98,7 @@ export class VerificationAtomsService {
 
     const secondaryEmails = await this.atomsRepository.getSecondaryEmails(userId);
     verifiedEmails = verifiedEmails.concat(
-      secondaryEmails.map((secondaryEmail) => secondaryEmail.email.replace(/\+([^+]+)@/, "@"))
+      secondaryEmails.map((secondaryEmail) => this.removeClientIdFromEmail(secondaryEmail.email))
     );
 
     return verifiedEmails;
@@ -130,5 +130,17 @@ export class VerificationAtomsService {
     await this.atomsRepository.addSecondaryEmail(userId, email);
 
     return true;
+  }
+
+  removeClientIdFromEmail(email: string): string {
+    const [localPart, domain] = email.split("@");
+    const localPartSegments = localPart.split("+");
+
+    localPartSegments.pop();
+
+    const baseEmail = localPartSegments.join("+");
+    const normalizedEmail = `${baseEmail}@${domain}`;
+
+    return normalizedEmail;
   }
 }
