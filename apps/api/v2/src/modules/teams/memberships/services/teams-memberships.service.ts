@@ -70,31 +70,22 @@ export class TeamsMembershipsService {
       this.oAuthClientsRepository.getByTeamId(teamId),
     ]);
 
-    const userAndTeamAreNotPlatform = !userOAuthClient && !teamOAuthClient;
-    if (userAndTeamAreNotPlatform) {
+    if (!userOAuthClient && !teamOAuthClient) {
       return true;
     }
 
-    const userAndTeamAreCreatedBySameOAuthClient =
-      userOAuthClient && teamOAuthClient && userOAuthClient.id === teamOAuthClient.id;
-    if (userAndTeamAreCreatedBySameOAuthClient) {
+    if (userOAuthClient && teamOAuthClient && userOAuthClient.id === teamOAuthClient.id) {
       return true;
     }
 
-    if (userOAuthClient && !teamOAuthClient) {
+    if (!teamOAuthClient) {
       throw new BadRequestException(PLATFORM_USER_BEING_ADDED_TO_REGULAR_TEAM_ERROR);
     }
 
-    if (!userOAuthClient && teamOAuthClient) {
+    if (!userOAuthClient) {
       throw new BadRequestException(REGULAR_USER_BEING_ADDED_TO_PLATFORM_TEAM_ERROR);
     }
 
-    if (userOAuthClient && teamOAuthClient && userOAuthClient.id !== teamOAuthClient.id) {
-      throw new BadRequestException(
-        PLATFORM_USER_AND_PLATFORM_TEAM_CREATED_WITH_DIFFERENT_OAUTH_CLIENTS_ERROR
-      );
-    }
-
-    return true;
+    throw new BadRequestException(PLATFORM_USER_AND_PLATFORM_TEAM_CREATED_WITH_DIFFERENT_OAUTH_CLIENTS_ERROR);
   }
 }

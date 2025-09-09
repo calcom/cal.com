@@ -112,36 +112,22 @@ export class OrganizationsMembershipService {
       this.oAuthClientsRepository.getByOrgId(orgId),
     ]);
 
-    const userAndOrgAreNotPlatform = !userOAuthClient && (!orgOAuthClients || orgOAuthClients.length === 0);
-    if (userAndOrgAreNotPlatform) {
+    if (!userOAuthClient && orgOAuthClients.length === 0) {
       return true;
     }
 
-    const userAndOrgAreCreatedBySameOAuthClient =
-      userOAuthClient &&
-      orgOAuthClients &&
-      orgOAuthClients.some((orgClient) => orgClient.id === userOAuthClient.id);
-    if (userAndOrgAreCreatedBySameOAuthClient) {
+    if (userOAuthClient && orgOAuthClients.some((orgClient) => orgClient.id === userOAuthClient.id)) {
       return true;
     }
 
-    if (userOAuthClient && (!orgOAuthClients || orgOAuthClients.length === 0)) {
-      throw new BadRequestException(PLATFORM_USER_BEING_ADDED_TO_REGULAR_ORG_ERROR);
-    }
-
-    if (!userOAuthClient && orgOAuthClients && orgOAuthClients.length > 0) {
+    if (!userOAuthClient) {
       throw new BadRequestException(REGULAR_USER_BEING_ADDED_TO_PLATFORM_ORG_ERROR);
     }
 
-    if (
-      userOAuthClient &&
-      orgOAuthClients &&
-      orgOAuthClients.length > 0 &&
-      !orgOAuthClients.some((orgClient) => orgClient.id === userOAuthClient.id)
-    ) {
-      throw new BadRequestException(MANAGED_USER_AND_MANAGED_ORG_CREATED_WITH_DIFFERENT_OAUTH_CLIENTS_ERROR);
+    if (orgOAuthClients.length === 0) {
+      throw new BadRequestException(PLATFORM_USER_BEING_ADDED_TO_REGULAR_ORG_ERROR);
     }
 
-    return true;
+    throw new BadRequestException(MANAGED_USER_AND_MANAGED_ORG_CREATED_WITH_DIFFERENT_OAUTH_CLIENTS_ERROR);
   }
 }
