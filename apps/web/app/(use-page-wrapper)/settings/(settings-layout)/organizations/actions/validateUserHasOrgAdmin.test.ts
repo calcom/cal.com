@@ -1,4 +1,5 @@
 import type { Session } from "next-auth";
+import { redirect } from "next/navigation";
 import { describe, it, vi, expect, beforeEach, type MockedFunction } from "vitest";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
@@ -31,7 +32,7 @@ vi.mock("@lib/buildLegacyCtx", () => ({
 
 const mockedGetServerSession = getServerSession as MockedFunction<typeof getServerSession>;
 const mockedCheckAdminOrOwner = vi.mocked(checkAdminOrOwner);
-const mockedRedirect = vi.fn();
+const mockedRedirect = vi.mocked(redirect);
 
 describe("validateUserHasOrgAdmin", () => {
   beforeEach(() => {
