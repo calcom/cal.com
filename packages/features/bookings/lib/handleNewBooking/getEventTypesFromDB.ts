@@ -5,9 +5,10 @@ import type { DefaultEvent } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
-import { prisma, userSelect } from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import { userSelect } from "@calcom/prisma/selects/user";
 import {
   EventTypeMetaDataSchema,
   customInputSchema,
