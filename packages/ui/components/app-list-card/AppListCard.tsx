@@ -96,7 +96,7 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
               overflow: "hidden",
               wordBreak: "break-word",
             }}>
-            {description || ""}
+            {description?.replace(/<[^>]*>/g, '') || ""}
           </p>
           {invalidCredential && (
             <div className="flex gap-x-2 pt-2">

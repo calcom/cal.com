@@ -117,7 +117,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
             <span>{props.rating} stars</span> <Icon name="star" className="ml-1 mt-0.5 h-4 w-4 text-yellow-600" />
             <span className="pl-1 text-subtle">{props.reviews} reviews</span>
           </div> */}
-      <p 
+      <p
         className="text-default mt-2 flex-grow text-sm"
         style={{
           display: "-webkit-box",
@@ -126,7 +126,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
           overflow: "hidden",
           wordBreak: "break-word",
         }}>
-        {app.description || ""}
+        {app.description?.replace(/<[^>]*>/g, '') || ""}
       </p>
 
       <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
