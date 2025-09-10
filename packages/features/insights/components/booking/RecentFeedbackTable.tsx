@@ -11,14 +11,18 @@ import { RecentFeedbackTableContent } from "./RecentFeedbackTableContent";
 export const RecentFeedbackTable = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
+  const { timestampTarget, ...restParams } = insightsBookingParams;
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.recentRatings.useQuery(insightsBookingParams, {
-    staleTime: 180000,
-    refetchOnWindowFocus: false,
-    trpc: {
-      context: { skipBatch: true },
-    },
-  });
+  const { data, isSuccess, isPending } = trpc.viewer.insights.recentRatings.useQuery(
+    { ...restParams, dateTarget: timestampTarget },
+    {
+      staleTime: 180000,
+      refetchOnWindowFocus: false,
+      trpc: {
+        context: { skipBatch: true },
+      },
+    }
+  );
 
   if (isPending) return <LoadingInsight />;
 

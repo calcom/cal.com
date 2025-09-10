@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { ZDateRangeFilterValue } from "@calcom/features/data-table";
@@ -11,9 +11,12 @@ import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 
 import { useInsightsOrgTeams } from "./useInsightsOrgTeams";
 
+export type TimestampTarget = "startTime" | "createdAt";
+
 export function useInsightsBookingParameters() {
   const { scope, selectedTeamId } = useInsightsOrgTeams();
   const { timeZone } = useDataTable();
+  const [timestampTarget, setTimestampTarget] = useState<TimestampTarget>("startTime");
 
   const createdAtRange = useFilterValue("createdAt", ZDateRangeFilterValue)?.data;
   // TODO for future: this preserving local time & startOf & endOf should be handled
@@ -42,5 +45,7 @@ export function useInsightsBookingParameters() {
     endDate,
     timeZone: timeZone || CURRENT_TIMEZONE,
     columnFilters,
+    timestampTarget,
+    setTimestampTarget,
   };
 }

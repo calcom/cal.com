@@ -68,9 +68,10 @@ const CustomTooltip = ({
 export const AverageEventDurationChart = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
+  const { timestampTarget, ...restParams } = insightsBookingParams;
 
   const { data, isSuccess, isPending } = trpc.viewer.insights.averageEventDuration.useQuery(
-    insightsBookingParams,
+    { ...restParams, dateTarget: timestampTarget },
     {
       staleTime: 180000,
       refetchOnWindowFocus: false,

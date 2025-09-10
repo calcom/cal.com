@@ -14,10 +14,11 @@ export const RecentNoShowGuestsChart = () => {
   const { t } = useLocale();
   const { copyToClipboard, isCopied } = useCopy();
   const insightsBookingParams = useInsightsBookingParameters();
+  const { timestampTarget, ...restParams } = insightsBookingParams;
   const timeZone = insightsBookingParams.timeZone;
 
   const { data, isSuccess, isPending } = trpc.viewer.insights.recentNoShowGuests.useQuery(
-    insightsBookingParams,
+    { ...restParams, dateTarget: timestampTarget },
     {
       staleTime: 180000,
       refetchOnWindowFocus: false,

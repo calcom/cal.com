@@ -107,4 +107,8 @@ export const bookingRepositoryBaseInputSchema = z.object({
   endDate: z.string(),
   timeZone: z.string(),
   columnFilters: z.array(ZColumnFilter).optional(),
+  dateTarget: z
+    .union([z.literal("startTime"), z.literal("createdAt")])
+    .optional()
+    .default("startTime"),
 });
