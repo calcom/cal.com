@@ -19,6 +19,10 @@ vi.mock("@calcom/lib/constants", async () => {
   return {
     ...actual,
     IS_CALCOM: true,
+    SENDER_ID: "Cal",
+    SENDER_NAME: "Cal.com",
+    IS_SELF_HOSTED: false,
+    SCANNING_WORKFLOW_STEPS: false,
   };
 });
 
