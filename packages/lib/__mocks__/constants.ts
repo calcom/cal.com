@@ -22,6 +22,9 @@ const initialConstants = {
   SINGLE_ORG_SLUG: "",
   DEFAULT_GROUP_ID: "default_group_id",
   IS_CALCOM: false,
+  SENDER_ID: "Cal",
+  SENDER_NAME: "Cal.com",
+  SCANNING_WORKFLOW_STEPS: false,
 } as Partial<typeof constants>;
 
 export const mockedConstants = { ...initialConstants };
