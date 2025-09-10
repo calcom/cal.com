@@ -1,6 +1,6 @@
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
-import type { WebhookSubscriber, WebhookTriggerArgs } from "../dto/types";
+import type { WebhookSubscriber } from "../dto/types";
 import type { WebhookPayload } from "../factory/types";
 import type {
   BookingPaymentInitiatedParams,
@@ -25,22 +25,27 @@ export interface GetSubscribersOptions {
   oAuthClientId?: string | null;
 }
 
+// Repository Interface - Data access operations
 export interface IWebhookRepository {
   getSubscribers(options: GetSubscribersOptions): Promise<WebhookSubscriber[]>;
 }
 
-export interface IWebhookService {
-  getSubscribers(options: GetSubscribersOptions): Promise<WebhookSubscriber[]>;
+// Processing Interface - Webhook processing operations
+export interface IWebhookProcessor {
   processWebhooks(
     trigger: WebhookTriggerEvents,
     payload: WebhookPayload,
     subscribers: WebhookSubscriber[]
   ): Promise<void>;
+}
+
+// Scheduling Interface - Webhook scheduling operations
+export interface IWebhookScheduler {
   scheduleTimeBasedWebhook(
     trigger: WebhookTriggerEvents,
     scheduledAt: Date,
-    bookingData: any,
-    subscriber: any,
+    bookingData: Record<string, unknown>,
+    subscriber: WebhookSubscriber,
     evt: Record<string, unknown>,
     isDryRun?: boolean
   ): Promise<void>;
@@ -59,15 +64,11 @@ export interface IWebhookService {
   ): Promise<void>;
 }
 
-export interface IBookingWebhookService {
-  // Event emission from args
-  emitBookingCreatedFromArgs(args: WebhookTriggerArgs): Promise<void>;
-  emitBookingCancelledFromArgs(args: WebhookTriggerArgs): Promise<void>;
-  emitBookingRequestedFromArgs(args: WebhookTriggerArgs): Promise<void>;
-  emitBookingRescheduledFromArgs(args: WebhookTriggerArgs): Promise<void>;
-  emitBookingPaidFromArgs(args: WebhookTriggerArgs): Promise<void>;
+// Combined interface for backward compatibility (can be removed later)
+export interface IWebhookService extends IWebhookRepository, IWebhookProcessor, IWebhookScheduler {}
 
-  // Direct event emission
+// Event Emission Interface - Direct parameter-based methods
+export interface IBookingEventEmitter {
   emitBookingPaymentInitiated(params: BookingPaymentInitiatedParams): Promise<void>;
   emitBookingCreated(params: BookingCreatedParams): Promise<void>;
   emitBookingCancelled(params: BookingCancelledParams): Promise<void>;
@@ -76,14 +77,20 @@ export interface IBookingWebhookService {
   emitBookingPaid(params: BookingPaidParams): Promise<void>;
   emitBookingNoShow(params: BookingNoShowParams): Promise<void>;
   emitBookingRejected(params: BookingRejectedParams): Promise<void>;
+}
 
-  // Webhook scheduling
+// Scheduling Interface - Webhook scheduling operations
+export interface IBookingScheduler {
   scheduleMeetingWebhooks(params: ScheduleMeetingWebhooksParams): Promise<void>;
   cancelScheduledMeetingWebhooks(params: CancelScheduledMeetingWebhooksParams): Promise<void>;
   scheduleNoShowWebhooks(params: ScheduleNoShowWebhooksParams): Promise<void>;
 }
 
-export interface IFormWebhookService {
+// Combined interface for backward compatibility (can be removed later)
+export interface IBookingWebhookService extends IBookingEventEmitter, IBookingScheduler {}
+
+// Form Event Emission Interface - Form event emission operations
+export interface IFormEventEmitter {
   emitFormSubmitted(params: {
     form: { id: string; name: string };
     response: { id: number; data: Record<string, unknown> };
@@ -104,7 +111,10 @@ export interface IFormWebhookService {
     platformClientId?: string;
     isDryRun?: boolean;
   }): Promise<void>;
+}
 
+// Form Scheduling Interface - Form webhook scheduling operations
+export interface IFormScheduler {
   scheduleDelayedFormWebhooks(params: {
     responseId: number;
     form: {
@@ -119,6 +129,9 @@ export interface IFormWebhookService {
     delayMinutes?: number;
   }): Promise<void>;
 }
+
+// Combined interface for backward compatibility (can be removed later)
+export interface IFormWebhookService extends IFormEventEmitter, IFormScheduler {}
 
 export interface IRecordingWebhookService {
   emitRecordingReady(params: {

@@ -10,7 +10,6 @@ import type {
   BookingPaidDTO,
   BookingPaymentInitiatedDTO,
   BookingNoShowDTO,
-  WebhookTriggerArgs,
   BookingRejectedDTO,
   WebhookSubscriber,
 } from "../dto/types";
@@ -44,101 +43,6 @@ export class BookingWebhookService implements IBookingWebhookService {
 
   private getTasker(): ITasker {
     return this.tasker;
-  }
-
-  async emitBookingCreatedFromArgs(args: WebhookTriggerArgs): Promise<void> {
-    if (!args.eventType) {
-      throw new Error("eventType is required for booking webhook events");
-    }
-
-    return this.emitBookingCreated({
-      evt: args.evt,
-      booking: {
-        ...args.booking,
-        startTime: args.booking.startTime ?? new Date(args.evt.startTime),
-      },
-      eventType: args.eventType,
-      status: args.status,
-      metadata: args.metadata,
-      platformParams: args.platformParams,
-      platformClientId: args.platformClientId,
-      teamId: args.teamId,
-      orgId: args.orgId,
-      isDryRun: args.isDryRun,
-    });
-  }
-
-  async emitBookingCancelledFromArgs(args: WebhookTriggerArgs): Promise<void> {
-    if (!args.eventType) {
-      throw new Error("eventType is required for booking webhook events");
-    }
-
-    return this.emitBookingCancelled({
-      evt: args.evt,
-      booking: args.booking,
-      eventType: args.eventType,
-      cancelledBy: args.cancelledBy,
-      cancellationReason: args.cancellationReason,
-      teamId: args.teamId,
-      orgId: args.orgId,
-      platformClientId: args.platformClientId,
-      isDryRun: args.isDryRun,
-    });
-  }
-
-  async emitBookingRequestedFromArgs(args: WebhookTriggerArgs): Promise<void> {
-    if (!args.eventType) {
-      throw new Error("eventType is required for booking webhook events");
-    }
-
-    return this.emitBookingRequested({
-      evt: args.evt,
-      booking: args.booking,
-      eventType: args.eventType,
-      teamId: args.teamId,
-      orgId: args.orgId,
-      platformClientId: args.platformClientId,
-      isDryRun: args.isDryRun,
-    });
-  }
-
-  async emitBookingRescheduledFromArgs(args: WebhookTriggerArgs): Promise<void> {
-    if (!args.eventType) {
-      throw new Error("eventType is required for booking webhook events");
-    }
-
-    return this.emitBookingRescheduled({
-      evt: args.evt,
-      booking: args.booking,
-      eventType: args.eventType,
-      rescheduleId: args.rescheduleId,
-      rescheduleUid: args.rescheduleUid,
-      rescheduleStartTime: args.rescheduleStartTime,
-      rescheduleEndTime: args.rescheduleEndTime,
-      rescheduledBy: args.rescheduledBy,
-      teamId: args.teamId,
-      orgId: args.orgId,
-      platformClientId: args.platformClientId,
-      isDryRun: args.isDryRun,
-    });
-  }
-
-  async emitBookingPaidFromArgs(args: WebhookTriggerArgs): Promise<void> {
-    if (!args.eventType) {
-      throw new Error("eventType is required for booking webhook events");
-    }
-
-    return this.emitBookingPaid({
-      evt: args.evt,
-      booking: args.booking,
-      eventType: args.eventType,
-      paymentId: args.paymentId,
-      paymentData: args.paymentData,
-      teamId: args.teamId,
-      orgId: args.orgId,
-      platformClientId: args.platformClientId,
-      isDryRun: args.isDryRun,
-    });
   }
 
   async emitBookingPaymentInitiated(params: BookingPaymentInitiatedParams): Promise<void> {
@@ -181,7 +85,10 @@ export class BookingWebhookService implements IBookingWebhookService {
       platformClientId: params.platformClientId ?? params.platformParams?.platformClientId,
       evt: params.evt,
       eventType: params.eventType,
-      booking: params.booking,
+      booking: {
+        ...params.booking,
+        startTime: params.booking.startTime ?? new Date(params.evt.startTime),
+      },
       status: params.status || "ACCEPTED",
       metadata: params.metadata,
       platformParams: params.platformParams,

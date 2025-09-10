@@ -10,7 +10,7 @@ export interface BookingCreatedParams {
     id: number;
     eventTypeId: number | null;
     userId: number | null;
-    startTime: Date;
+    startTime?: Date;
     smsReminderNumber?: string | null;
   };
   eventType: {
@@ -210,7 +210,7 @@ export interface ScheduleMeetingWebhooksParams {
     userId: number | null;
     startTime: Date;
     endTime: Date;
-    responses?: any;
+    responses?: Record<string, unknown>;
   };
   evt: CalendarEvent;
   teamId?: number | null;
