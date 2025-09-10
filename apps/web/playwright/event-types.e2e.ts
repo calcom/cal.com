@@ -488,7 +488,7 @@ test.describe("Event Types tests", () => {
       const [eventTypeId] = new URL(WEBAPP_URL + href).pathname.split("/").reverse();
       const firstFullSlug = await page.locator(`[data-testid=event-type-slug-${eventTypeId}]`).innerText();
       const firstSlug = firstFullSlug.split("/")[2];
-      await gotoFirstEventType(page);
+      await firstElement.click();
       await expect(page.locator("[data-testid=event-title]")).toBeVisible();
       await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
       const emailSwitch = page.getByTestId("requires-booker-email-verification");
