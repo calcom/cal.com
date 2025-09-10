@@ -498,6 +498,7 @@ test.describe("Event Types tests", () => {
         await gotoFirstEventType(page);
         // Go to Advanced tab
         await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
+        await page.click("[data-testid=event-interface-language-toggle]");
         const interfaceLanguageValue = page
           .getByTestId("event-interface-language")
           .locator('div[class$="-singleValue"]');
@@ -522,6 +523,7 @@ test.describe("Event Types tests", () => {
         await gotoFirstEventType(page);
         // Go to Advanced tab and enable offerSeats
         await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
+        await page.click("[data-testid=event-interface-language-toggle]");
         await page.getByTestId("event-interface-language").click();
         await page.locator(`text="Deutsch"`).click();
         await saveEventType(page);
@@ -580,6 +582,7 @@ test.describe("Event Types tests", () => {
         await gotoFirstEventType(page);
         // Go to Advanced tab and enable offerSeats
         await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
+        await page.click("[data-testid=event-interface-language-toggle]");
         await page.getByTestId("event-interface-language").click();
         await page.getByTestId("select-option-es").click();
         await saveEventType(page);
