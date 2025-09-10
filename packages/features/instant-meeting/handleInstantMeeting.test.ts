@@ -14,6 +14,7 @@ import {
 import type { NextApiRequest } from "next";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import { getInstantBookingCreateService } from "@calcom/features/bookings/di/InstantBookingCreateService.container";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 vi.mock("@calcom/features/notifications/sendNotification", () => ({
@@ -35,7 +36,7 @@ describe("handleInstantMeeting", () => {
   });
   describe("team event instant meeting", () => {
     it("should successfully create instant meeting for team event", async () => {
-      const handler = (await import("./handleInstantMeeting")).default;
+      const instantBookingCreateService = getInstantBookingCreateService();
       const organizer = getOrganizer({
         name: "Organizer",
         email: "organizer@example.com",
@@ -109,7 +110,9 @@ describe("handleInstantMeeting", () => {
         url: "/api/instant-meeting",
       } as NextApiRequest;
 
-      const result = await handler(mockRequest);
+      const result = await instantBookingCreateService.createBooking({
+        bookingData: mockRequest.body,
+      });
 
       expect(result.message).toBe("Success");
       expect(result.bookingId).toBeDefined();
@@ -132,7 +135,7 @@ describe("handleInstantMeeting", () => {
     });
 
     it("should throw error for non-team event types", async () => {
-      const handler = (await import("./handleInstantMeeting")).default;
+      const instantBookingCreateService = getInstantBookingCreateService();
       const organizer = getOrganizer({
         name: "Organizer",
         email: "organizer@example.com",
@@ -188,9 +191,11 @@ describe("handleInstantMeeting", () => {
         url: "/api/instant-meeting",
       } as NextApiRequest;
 
-      await expect(handler(mockRequest)).rejects.toThrow(
-        "Only Team Event Types are supported for Instant Meeting"
-      );
+      await expect(
+        instantBookingCreateService.createBooking({
+          bookingData: mockRequest.body,
+        })
+      ).rejects.toThrow("Only Team Event Types are supported for Instant Meeting");
     });
   });
 });

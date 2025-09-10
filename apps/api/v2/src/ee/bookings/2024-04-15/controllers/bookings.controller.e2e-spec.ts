@@ -21,7 +21,7 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { handleNewBooking } from "@calcom/platform-libraries";
+import { type RegularBookingCreateResult } from "@calcom/platform-libraries/bookings";
 import type { ApiSuccessResponse, ApiErrorResponse } from "@calcom/platform-types";
 import type { User } from "@calcom/prisma/client";
 
@@ -41,7 +41,7 @@ describe("Bookings Endpoints 2024-04-15", () => {
 
     let eventTypeId: number;
 
-    let createdBooking: Awaited<ReturnType<typeof handleNewBooking>>;
+    let createdBooking: RegularBookingCreateResult;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -131,8 +131,7 @@ describe("Bookings Endpoints 2024-04-15", () => {
         .send(body)
         .expect(201)
         .then(async (response) => {
-          const responseBody: ApiSuccessResponse<Awaited<ReturnType<typeof handleNewBooking>>> =
-            response.body;
+          const responseBody: ApiSuccessResponse<RegularBookingCreateResult> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(responseBody.data.userPrimaryEmail).toBeDefined();
@@ -231,8 +230,7 @@ describe("Bookings Endpoints 2024-04-15", () => {
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .expect(201)
         .then(async (response) => {
-          const responseBody: ApiSuccessResponse<Awaited<ReturnType<typeof handleNewBooking>>> =
-            response.body;
+          const responseBody: ApiSuccessResponse<RegularBookingCreateResult> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(responseBody.data.userPrimaryEmail).toBeDefined();
@@ -289,8 +287,7 @@ describe("Bookings Endpoints 2024-04-15", () => {
           .send(body)
           .expect(201)
           .then(async (response) => {
-            const responseBody: ApiSuccessResponse<Awaited<ReturnType<typeof handleNewBooking>>> =
-              response.body;
+            const responseBody: ApiSuccessResponse<RegularBookingCreateResult> = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
             expect(responseBody.data.userPrimaryEmail).toBeDefined();
@@ -387,8 +384,7 @@ describe("Bookings Endpoints 2024-04-15", () => {
         .send(body)
         .expect(201)
         .then(async (response) => {
-          const responseBody: ApiSuccessResponse<Awaited<ReturnType<typeof handleNewBooking>>> =
-            response.body;
+          const responseBody: ApiSuccessResponse<RegularBookingCreateResult> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(responseBody.data.userPrimaryEmail).toBeDefined();

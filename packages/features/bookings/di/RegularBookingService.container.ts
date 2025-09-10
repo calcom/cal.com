@@ -1,8 +1,9 @@
-import { createContainer } from "../../di";
+import { createContainer } from "@calcom/features/di/di";
+
 import {
   type RegularBookingService,
-  regularBookingServiceModule,
-} from "../modules/RegularBookingService.module";
+  moduleLoader as regularBookingServiceModule,
+} from "./RegularBookingService.module";
 
 const regularBookingServiceContainer = createContainer();
 
