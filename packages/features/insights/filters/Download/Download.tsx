@@ -23,7 +23,6 @@ const BATCH_SIZE = 100;
 const Download = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
-  const { timestampTarget, setTimestampTarget: _setTimestampTarget, ...restParams } = insightsBookingParams;
   const [isDownloading, setIsDownloading] = useState(false);
   const utils = trpc.useUtils();
 
@@ -35,8 +34,7 @@ const Download = () => {
   const fetchBatch = async (offset: number): Promise<PaginatedResponse | null> => {
     try {
       const result = await utils.viewer.insights.rawData.fetch({
-        ...restParams,
-        dateTarget: timestampTarget,
+        ...insightsBookingParams,
         limit: BATCH_SIZE,
         offset,
       });
@@ -77,8 +75,8 @@ const Download = () => {
 
       if (allData.length >= totalRecords) {
         showProgressToast(100); // Set to 100% before actual download
-        const filename = `Insights-${dayjs(restParams.startDate).format("YYYY-MM-DD")}-${dayjs(
-          restParams.endDate
+        const filename = `Insights-${dayjs(insightsBookingParams.startDate).format("YYYY-MM-DD")}-${dayjs(
+          insightsBookingParams.endDate
         ).format("YYYY-MM-DD")}.csv`;
         downloadAsCsv(allData as Record<string, unknown>[], filename);
       }

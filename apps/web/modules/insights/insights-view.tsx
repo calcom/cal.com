@@ -1,5 +1,7 @@
 "use client";
 
+import { useQueryState } from "nuqs";
+
 import {
   DataTableProvider,
   DataTableFilters,
@@ -27,10 +29,9 @@ import {
   TimezoneBadge,
 } from "@calcom/features/insights/components/booking";
 import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
+import { DateTargetSelector, type DateTarget } from "@calcom/features/insights/filters/DateTargetSelector";
 import { Download } from "@calcom/features/insights/filters/Download";
 import { OrgTeamsFilter } from "@calcom/features/insights/filters/OrgTeamsFilter";
-import { TimestampFilter } from "@calcom/features/insights/filters/TimestampFilter";
-import { useInsightsBookingParameters } from "@calcom/features/insights/hooks/useInsightsBookingParameters";
 import { useInsightsBookings } from "@calcom/features/insights/hooks/useInsightsBookings";
 import { useInsightsOrgTeams } from "@calcom/features/insights/hooks/useInsightsOrgTeams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -55,7 +56,9 @@ function InsightsPageContent() {
   const { t } = useLocale();
   const { table } = useInsightsBookings();
   const { isAll, teamId, userId } = useInsightsOrgTeams();
-  const { timestampTarget, setTimestampTarget } = useInsightsBookingParameters();
+  const [dateTarget, setDateTarget] = useQueryState("dateTarget", {
+    defaultValue: "startTime" as const,
+  });
 
   return (
     <>
@@ -69,7 +72,7 @@ function InsightsPageContent() {
         <DataTableFilters.ClearFiltersButton exclude={["createdAt"]} />
         <div className="grow" />
         <Download />
-        <TimestampFilter value={timestampTarget} onChange={setTimestampTarget} />
+        <DateTargetSelector value={dateTarget as DateTarget} onChange={setDateTarget} />
         <DateRangeFilter column={createdAtColumn} />
         <TimezoneBadge />
       </div>

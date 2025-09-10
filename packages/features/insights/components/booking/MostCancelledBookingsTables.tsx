@@ -11,10 +11,9 @@ import { UserStatsTable } from "../UserStatsTable";
 export const MostCancelledBookingsTables = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
-  const { timestampTarget, ...restParams } = insightsBookingParams;
 
   const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithMostCancelledBookings.useQuery(
-    { ...restParams, dateTarget: timestampTarget },
+    insightsBookingParams,
     {
       staleTime: 180000,
       refetchOnWindowFocus: false,

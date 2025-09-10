@@ -1,22 +1,22 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Select } from "@calcom/ui/components/form/select";
 
-export type TimestampTarget = "startTime" | "createdAt";
+export type DateTarget = "startTime" | "createdAt";
 
-interface TimestampOption {
+interface DateTargetOption {
   label: string;
-  value: TimestampTarget;
+  value: DateTarget;
 }
 
-interface TimestampFilterProps {
-  value: TimestampTarget;
-  onChange: (value: TimestampTarget) => void;
+interface DateTargetSelectorProps {
+  value: DateTarget;
+  onChange: (value: DateTarget) => void;
 }
 
-export const TimestampFilter = ({ value, onChange }: TimestampFilterProps) => {
+export const DateTargetSelector = ({ value, onChange }: DateTargetSelectorProps) => {
   const { t } = useLocale();
 
-  const options: TimestampOption[] = [
+  const options: DateTargetOption[] = [
     { label: t("start_time"), value: "startTime" },
     { label: t("created_at"), value: "createdAt" },
   ];

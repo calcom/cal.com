@@ -12,10 +12,9 @@ import { KPICard } from "../KPICard";
 export const BookingKPICards = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
-  const { timestampTarget, ...restParams } = insightsBookingParams;
 
   const { data, isSuccess, isPending } = trpc.viewer.insights.bookingKPIStats.useQuery(
-    { ...restParams, dateTarget: timestampTarget },
+    insightsBookingParams,
     {
       staleTime: 180000,
       refetchOnWindowFocus: false,

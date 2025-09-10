@@ -873,13 +873,19 @@ export const insightsRouter = router({
   routingFormsByStatus: insightsPbacProcedure
     .input(insightsRoutingServiceInputSchema)
     .query(async ({ ctx, input }) => {
-      const insightsRoutingService = createInsightsRoutingService(ctx, input);
+      const insightsRoutingService = createInsightsRoutingService(ctx, {
+        ...input,
+        dateTarget: input.dateTarget || "startTime",
+      });
       return await insightsRoutingService.getRoutingFormStats();
     }),
   routingFormResponses: insightsPbacProcedure
     .input(insightsRoutingServicePaginatedInputSchema)
     .query(async ({ ctx, input }) => {
-      const insightsRoutingService = createInsightsRoutingService(ctx, input);
+      const insightsRoutingService = createInsightsRoutingService(ctx, {
+        ...input,
+        dateTarget: input.dateTarget || "startTime",
+      });
       return await insightsRoutingService.getTableData({
         sorting: input.sorting,
         limit: input.limit,
@@ -899,7 +905,10 @@ export const insightsRouter = router({
           | undefined,
       });
 
-      const insightsRoutingService = createInsightsRoutingService(ctx, input);
+      const insightsRoutingService = createInsightsRoutingService(ctx, {
+        ...input,
+        dateTarget: input.dateTarget || "startTime",
+      });
       const dataPromise = insightsRoutingService.getTableData({
         sorting: input.sorting,
         limit: input.limit,
@@ -931,7 +940,10 @@ export const insightsRouter = router({
   failedBookingsByField: insightsPbacProcedure
     .input(insightsRoutingServiceInputSchema)
     .query(async ({ ctx, input }) => {
-      const insightsRoutingService = createInsightsRoutingService(ctx, input);
+      const insightsRoutingService = createInsightsRoutingService(ctx, {
+        ...input,
+        dateTarget: input.dateTarget || "startTime",
+      });
       try {
         return await insightsRoutingService.getFailedBookingsByFieldData();
       } catch (e) {
@@ -964,7 +976,10 @@ export const insightsRouter = router({
       const { period, limit, searchQuery, ...rest } = input;
 
       try {
-        const insightsRoutingService = createInsightsRoutingService(ctx, rest);
+        const insightsRoutingService = createInsightsRoutingService(ctx, {
+          ...rest,
+          dateTarget: rest.dateTarget || "startTime",
+        });
         return await insightsRoutingService.getRoutedToPerPeriodData({
           period,
           limit,
@@ -979,7 +994,10 @@ export const insightsRouter = router({
     .query(async ({ ctx, input }) => {
       const { period, searchQuery, ...rest } = input;
       try {
-        const insightsRoutingService = createInsightsRoutingService(ctx, rest);
+        const insightsRoutingService = createInsightsRoutingService(ctx, {
+          ...rest,
+          dateTarget: rest.dateTarget || "startTime",
+        });
 
         const csvData = await insightsRoutingService.getRoutedToPerPeriodCsvData({
           period,
@@ -1018,7 +1036,10 @@ export const insightsRouter = router({
         timeView,
         weekStart: ctx.user.weekStart,
       });
-      const insightsRoutingService = createInsightsRoutingService(ctx, input);
+      const insightsRoutingService = createInsightsRoutingService(ctx, {
+        ...input,
+        dateTarget: input.dateTarget || "startTime",
+      });
       try {
         return await insightsRoutingService.getRoutingFunnelData(dateRanges);
       } catch (e) {

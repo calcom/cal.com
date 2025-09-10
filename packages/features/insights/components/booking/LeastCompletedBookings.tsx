@@ -15,7 +15,6 @@ import { UserStatsTable } from "../UserStatsTable";
 export const LeastCompletedTeamMembersTable = () => {
   const { t } = useLocale();
   let insightsBookingParams = useInsightsBookingParameters();
-  const { timestampTarget, ...restParams } = insightsBookingParams;
 
   const currentTime = useChangeTimeZoneWithPreservedLocalTime(
     useMemo(() => {
@@ -30,7 +29,7 @@ export const LeastCompletedTeamMembersTable = () => {
   };
 
   const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithLeastCompletedBookings.useQuery(
-    { ...restParams, dateTarget: timestampTarget },
+    insightsBookingParams,
     {
       staleTime: 180000,
       refetchOnWindowFocus: false,

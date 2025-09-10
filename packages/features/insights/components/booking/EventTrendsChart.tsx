@@ -69,21 +69,17 @@ export const EventTrendsChart = () => {
   const insightsBookingParams = useInsightsBookingParameters();
   const { enabledLegend, toggleSeries } = useToggleableLegend(legend);
 
-  const { timestampTarget, ...restParams } = insightsBookingParams;
   const {
     data: eventTrends,
     isSuccess,
     isPending,
-  } = trpc.viewer.insights.eventTrends.useQuery(
-    { ...restParams, dateTarget: timestampTarget },
-    {
-      staleTime: 180000,
-      refetchOnWindowFocus: false,
-      trpc: {
-        context: { skipBatch: true },
-      },
-    }
-  );
+  } = trpc.viewer.insights.eventTrends.useQuery(insightsBookingParams, {
+    staleTime: 180000,
+    refetchOnWindowFocus: false,
+    trpc: {
+      context: { skipBatch: true },
+    },
+  });
 
   if (isPending) return <LoadingInsight />;
 

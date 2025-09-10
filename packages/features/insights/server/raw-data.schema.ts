@@ -46,6 +46,7 @@ export type InsightsRoutingServiceInput = {
   columnFilters?: ColumnFilter[];
   startDate: string;
   endDate: string;
+  dateTarget?: "startTime" | "createdAt";
 };
 
 export type InsightsRoutingServicePaginatedInput = InsightsRoutingServiceInput & {
@@ -72,6 +73,10 @@ export const insightsRoutingServiceInputSchema = z.object({
   columnFilters: z.array(ZColumnFilter).optional(),
   startDate: z.string(),
   endDate: z.string(),
+  dateTarget: z
+    .union([z.literal("startTime"), z.literal("createdAt")])
+    .optional()
+    .default("startTime"),
 }) satisfies z.ZodType<InsightsRoutingServiceInput>;
 
 export const insightsRoutingServicePaginatedInputSchema = z.object({
@@ -87,6 +92,10 @@ export const routingRepositoryBaseInputSchema = z.object({
   startDate: z.string(),
   endDate: z.string(),
   columnFilters: z.array(ZColumnFilter).optional(),
+  dateTarget: z
+    .union([z.literal("startTime"), z.literal("createdAt")])
+    .optional()
+    .default("startTime"),
 });
 
 export const routedToPerPeriodInputSchema = routingRepositoryBaseInputSchema.extend({

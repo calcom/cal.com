@@ -14,8 +14,7 @@ import { UserStatsTable } from "../UserStatsTable";
 
 export const MostCompletedTeamMembersTable = () => {
   const { t } = useLocale();
-  const insightsBookingParams = useInsightsBookingParameters();
-  const { timestampTarget, ...restParams } = insightsBookingParams;
+  let insightsBookingParams = useInsightsBookingParameters();
 
   const currentTime = useChangeTimeZoneWithPreservedLocalTime(
     useMemo(() => {
@@ -24,13 +23,13 @@ export const MostCompletedTeamMembersTable = () => {
   );
 
   // booking with endDate < now is "accepted" booking
-  const updatedParams = {
-    ...restParams,
+  insightsBookingParams = {
+    ...insightsBookingParams,
     endDate: currentTime,
   };
 
   const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithMostCompletedBookings.useQuery(
-    { ...updatedParams, dateTarget: timestampTarget },
+    insightsBookingParams,
     {
       staleTime: 180000,
       refetchOnWindowFocus: false,
