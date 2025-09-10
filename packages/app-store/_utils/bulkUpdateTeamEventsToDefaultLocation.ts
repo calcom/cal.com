@@ -1,8 +1,6 @@
 import type { PrismaClient } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import { TRPCError } from "@trpc/server";
-
 import type { LocationObject } from "../locations";
 import { getAppFromSlug } from "../utils";
 
@@ -22,19 +20,13 @@ export const bulkUpdateTeamEventsToDefaultLocation = async ({
   const defaultApp = teamMetadataSchema.parse(team?.metadata)?.defaultConferencingApp;
 
   if (!defaultApp) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Default conferencing app not set",
-    });
+    throw new Error("Default conferencing app not set");
   }
 
   const foundApp = getAppFromSlug(defaultApp.appSlug);
   const appType = foundApp?.appData?.location?.type;
   if (!appType) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: `Default conferencing app '${defaultApp.appSlug}' doesnt exist.`,
-    });
+    throw new Error(`Default conferencing app '${defaultApp.appSlug}' doesnt exist.`);
   }
 
   const credential = await prisma.credential.findFirst({
