@@ -25,7 +25,7 @@ export const calAIPhoneWorkflowTemplates = {
 
   ${styleGuardrails}
 
-  ${responseGuideline}
+${responseGuideline}
 
   ${scheduleRule}
 
@@ -38,7 +38,7 @@ export const calAIPhoneWorkflowTemplates = {
       - if availability exists, inform user about the availability range (do not repeat the detailed available slot) and ask user to choose from it. Make sure user chose a slot within detailed available slot.
       - if availability does not exist, ask user to select another time range for the appointment, repeat this step 3a.
   5. If {{ATTENDEE_EMAIL}} is not unknown then Use name {{ATTENDEE_NAME}} and email {{ATTENDEE_EMAIL}} for creating booking else Ask for user name and email and Confirm the name and email with user by reading it back to user.
-  6. Once confirmed, call function book_appointment_{{eventTypeId}} to book the appointment.
+  6. Once confirmed, you can use {{NUMBER_TO_CALL}} as phone number for creating booking and call function book_appointment_{{eventTypeId}} to book the appointment.
     - if booking returned booking detail, it means booking is successful, proceed to step 7.
     - if booking returned error message, let user know why the booking was not successful, and maybe start over with step 3a.
   7. If they don't want to reschedule:
@@ -76,7 +76,7 @@ export const calAIPhoneWorkflowTemplates = {
        5e. If availability exists, inform user about the availability range (do not repeat the detailed available slot) and ask user to choose from it. Make sure user chose a slot within detailed available slot.
        5f. If availability does not exist, ask user to select another time range for the appointment (repeat step 5c).
        5g. Confirm the date and time selected by user: "Just to confirm, you want to book the appointment at ..."
-       5h. Once confirmed, call function book_appointment_{{eventTypeId}} to book the appointment.
+       5h. Once confirmed, you can use {{NUMBER_TO_CALL}} as phone number for creating booking and call function book_appointment_{{eventTypeId}} to book the appointment.
        5i. If booking returned booking detail, it means booking is successful, proceed to step 7.
        5j. If booking returned error message, let user know why the booking was not successful, and maybe start over (return to step 5c).
      - If they prefer to reschedule later: "No problem. You can reschedule anytime through the link in your confirmation email or by contacting us."
