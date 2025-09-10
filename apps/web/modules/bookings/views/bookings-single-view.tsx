@@ -26,12 +26,12 @@ import {
   SystemField,
   TITLE_FIELD,
 } from "@calcom/features/bookings/lib/SystemField";
+import { getCalendarLinks, CalendarLinkType } from "@calcom/features/bookings/lib/getCalendarLinks";
 import { RATING_OPTIONS, validateRating } from "@calcom/features/bookings/lib/rating";
-import { getCalendarLinks, CalendarLinkType } from "@calcom/lib/bookings/getCalendarLinks";
+import type { nameObjectSchema } from "@calcom/features/eventtypes/lib/eventNaming";
+import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import { APP_NAME } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime, formatToLocalizedTimezone } from "@calcom/lib/dayjs";
-import type { nameObjectSchema } from "@calcom/lib/event";
-import { getEventName } from "@calcom/lib/event";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -947,7 +947,10 @@ export default function Success(props: PageProps) {
                                 uid: bookingInfo?.uid,
                                 title: bookingInfo?.title,
                                 id: bookingInfo?.id,
+                                startTime: bookingInfo?.startTime,
+                                payment: props.paymentStatus,
                               }}
+                              eventTypeMetadata={eventType.metadata}
                               profile={{ name: props.profile.name, slug: props.profile.slug }}
                               recurringEvent={eventType.recurringEvent}
                               team={eventType?.team?.name}

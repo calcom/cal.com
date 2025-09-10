@@ -6,7 +6,6 @@ import { RoleManagementError } from "@calcom/features/pbac/domain/errors/role-ma
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { checkRegularUsername } from "@calcom/lib/server/checkRegularUsername";
-import { validateBase64Image } from "@calcom/lib/server/imageValidation";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import { prisma } from "@calcom/prisma";
 import type { MembershipRole } from "@calcom/prisma/enums";
@@ -117,41 +116,20 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
     timeZone: input.timeZone,
   };
 
-  if (input.avatar) {
-    const validation = validateBase64Image(input.avatar);
-    if (!validation.isValid) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: `Invalid avatar image: ${validation.error}`,
-      });
-    }
-
-    if (
-      input.avatar.startsWith("data:image/png;base64,") ||
+  if (
+    input.avatar &&
+    (input.avatar.startsWith("data:image/png;base64,") ||
       input.avatar.startsWith("data:image/jpeg;base64,") ||
-      input.avatar.startsWith("data:image/jpg;base64,") ||
-      input.avatar.startsWith("data:image/svg+xml;base64,")
-    ) {
-      try {
-        const avatar = await resizeBase64Image(input.avatar);
-        data.avatarUrl = await uploadAvatar({
-          avatar,
-          userId: user.id,
-        });
-      } catch (error) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: error instanceof Error ? error.message : "Failed to upload avatar",
-        });
-      }
-    } else if (input.avatar === "") {
-      data.avatarUrl = null;
-    } else {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Unsupported image format. Please use PNG, JPEG, or SVG.",
-      });
-    }
+      input.avatar.startsWith("data:image/jpg;base64,"))
+  ) {
+    const avatar = await resizeBase64Image(input.avatar);
+    data.avatarUrl = await uploadAvatar({
+      avatar,
+      userId: user.id,
+    });
+  }
+  if (input.avatar === "") {
+    data.avatarUrl = null;
   }
 
   // Update user

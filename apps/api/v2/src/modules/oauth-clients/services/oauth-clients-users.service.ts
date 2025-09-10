@@ -11,7 +11,7 @@ import { BadRequestException, ConflictException, Injectable, Logger } from "@nes
 import { User, PlatformOAuthClient } from "@prisma/client";
 
 import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries";
-import { CreationSource } from "@calcom/prisma/enums";
+import { CreationSource } from "@calcom/platform-libraries";
 
 @Injectable()
 export class OAuthClientUsersService {
