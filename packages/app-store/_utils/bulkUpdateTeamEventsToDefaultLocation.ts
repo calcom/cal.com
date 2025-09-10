@@ -17,7 +17,8 @@ export const bulkUpdateTeamEventsToDefaultLocation = async ({
     where: { id: teamId },
     select: { metadata: true },
   });
-  const defaultApp = teamMetadataSchema.parse(team?.metadata)?.defaultConferencingApp;
+  const metadataResult = teamMetadataSchema.safeParse(team?.metadata);
+  const defaultApp = metadataResult.success ? metadataResult.data?.defaultConferencingApp : null;
 
   if (!defaultApp) {
     throw new Error("Default conferencing app not set");
