@@ -1,7 +1,12 @@
 import type { ReactNode } from "react";
 
 import FormProvider from "./FormProvider";
+import { RoutingFormsShell } from "./RoutingFormsShell";
 
 export default async function Layout({ children }: { children: ReactNode }) {
-  return <FormProvider>{children}</FormProvider>;
+  return (
+    <RoutingFormsShell>
+      <FormProvider>{children}</FormProvider>
+    </RoutingFormsShell>
+  );
 }

@@ -22,7 +22,6 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import RoutingFormsShell from "../../components/RoutingFormsShell";
 import SingleForm from "../../components/SingleForm";
 import type { getServerSidePropsForSingleFormView as getServerSideProps } from "../../components/getServerSidePropsSingleForm";
 import { FieldTypes } from "../../lib/FieldTypes";
@@ -353,7 +352,7 @@ export default function FormEditPage({
   ...props
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   return (
-    <RoutingFormsShell>
+    <>
       <Toaster position="bottom-right" />
       <SingleForm
         {...props}
@@ -361,6 +360,6 @@ export default function FormEditPage({
         permissions={permissions}
         Page={({ hookForm, form }) => <FormEdit appUrl={appUrl} hookForm={hookForm} form={form} />}
       />
-    </RoutingFormsShell>
+    </>
   );
 }
