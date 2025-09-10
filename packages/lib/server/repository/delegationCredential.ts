@@ -97,7 +97,8 @@ export class DelegationCredentialRepository {
             id: data.organizationId,
           },
         },
-        serviceAccountKey: encryptedKey,
+        // z.passthrough() is not allowed in Prisma, but we know this is trusted.
+        serviceAccountKey: encryptedKey as unknown as Prisma.InputJsonValue,
       },
       select: delegationCredentialSafeSelect,
     });
