@@ -1740,7 +1740,7 @@
   "follow_up_with_no_shows": "Follow up with no shows",
   "follow_up_with_no_shows_description": "30m after event ends",
   "remind_attendees_to_bring_id": "Remind attendees to bring ID",
-  "remind_attendees_to_bring_id_description": "1 hour after event ends",
+  "remind_attendees_to_bring_id_description": "1 day before event starts",
   "email_to_reminde_booking": "Email Reminder",
   "email_to_reminde_booking_description": "1 hour before event starts",
   "custom_sms_reminder": "Custom SMS Reminder",
