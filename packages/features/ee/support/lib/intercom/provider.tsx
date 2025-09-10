@@ -1,7 +1,7 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import { useEffect, type FC } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, type FC } from "react";
 import { IntercomProvider } from "react-use-intercom";
 
 import { useBootIntercom } from "@calcom/ee/support/lib/intercom/useIntercom";
@@ -28,14 +28,42 @@ const Provider: FC<{ children: React.ReactNode }> = ({ children }) => {
   const { hasPaidPlan } = useHasPaidPlan();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const flagMap = useFlagMap();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const [isSupportReady] = useState(!!window.Support);
+  const router = useRouter();
+  console.log("isSupportReady", isSupportReady);
+
+  const shouldOpenSupport =
+    pathname === "/event-types" && (searchParams?.has("openPlain") || searchParams?.has("openSupport"));
 
   useEffect(() => {
-    if (window.Support) {
-      window.Support.shouldShowTriggerButton(!isMobile);
-    }
-  }, [isMobile]);
+    const handleSupportReady = () => {
+      if (window.Support) {
+        window.Support.shouldShowTriggerButton?.(!isMobile);
 
-  const pathname = usePathname();
+        if (shouldOpenSupport) {
+          window.Support.open();
+          const url = new URL(window.location.href);
+          url.searchParams.delete("openPlain");
+          url.searchParams.delete("openSupport");
+          router.replace(url.pathname + url.search);
+        }
+      }
+    };
+
+    if (window.Support) {
+      handleSupportReady();
+    } else {
+      window.addEventListener("support:ready", handleSupportReady);
+    }
+
+    return () => {
+      window.removeEventListener("support:ready", handleSupportReady);
+    };
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shouldOpenSupport, isMobile]);
+
   const isOnboardingPage = pathname?.startsWith("/getting-started");
   const isCalVideoPage = pathname?.startsWith("/video/");
 
