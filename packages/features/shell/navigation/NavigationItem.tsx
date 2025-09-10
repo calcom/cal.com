@@ -4,6 +4,7 @@ import React, { Fragment, useState, useEffect } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
+import { sessionStorage } from "@calcom/lib/webstorage";
 import classNames from "@calcom/ui/classNames";
 import { Icon } from "@calcom/ui/components/icon";
 import type { IconName } from "@calcom/ui/components/icon";
@@ -12,19 +13,31 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { useShouldDisplayNavigationItem } from "./useShouldDisplayNavigationItem";
 
-const usePersistedExpansionState = (itemName: string) => {
+const usePersistedExpansionState = (itemName: string, shouldDisplay: boolean) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
+    if (!shouldDisplay) {
+      try {
+        sessionStorage.removeItem(`nav-expansion-${itemName}`);
+      } catch (_error) {}
+      setIsExpanded(false);
+      return;
+    }
+
     try {
       const stored = sessionStorage.getItem(`nav-expansion-${itemName}`);
       if (stored !== null) {
         setIsExpanded(JSON.parse(stored));
       }
     } catch (_error) {}
-  }, [itemName]);
+  }, [itemName, shouldDisplay]);
 
   const setPersistedExpansion = (expanded: boolean) => {
+    if (!shouldDisplay) {
+      return;
+    }
+
     setIsExpanded(expanded);
     try {
       sessionStorage.setItem(`nav-expansion-${itemName}`, JSON.stringify(expanded));
@@ -73,7 +86,7 @@ export const NavigationItem: React.FC<{
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
   const current = isCurrent({ isChild: !!isChild, item, pathname });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
-  const [isExpanded, setIsExpanded] = usePersistedExpansionState(item.name);
+  const [isExpanded, setIsExpanded] = usePersistedExpansionState(item.name, shouldDisplayNavigationItem);
 
   const isTablet = useMediaQuery("(max-width: 1024px)");
   const [isTooltipOpen, setIsTooltipOpen] = useState(false);
@@ -263,7 +276,7 @@ export const MobileNavigationMoreItem: React.FC<{
   const { item } = props;
   const { t, isLocaleReady } = useLocale();
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
-  const [isExpanded, setIsExpanded] = usePersistedExpansionState(item.name);
+  const [isExpanded, setIsExpanded] = usePersistedExpansionState(item.name, shouldDisplayNavigationItem);
 
   if (!shouldDisplayNavigationItem) return null;
 
