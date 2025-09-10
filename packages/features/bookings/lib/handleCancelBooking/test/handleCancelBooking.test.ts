@@ -18,11 +18,11 @@ import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAn
 
 import { describe, expect, vi } from "vitest";
 
-import { processPaymentRefund } from "@calcom/features/bookings/lib/processPaymentRefund";
+import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
-vi.mock("@calcom/lib/payment/processPaymentRefund", () => ({
+vi.mock("@calcom/features/bookings/lib/payment/processPaymentRefund", () => ({
   processPaymentRefund: vi.fn(),
 }));
 

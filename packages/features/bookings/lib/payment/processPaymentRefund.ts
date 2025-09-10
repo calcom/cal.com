@@ -2,7 +2,7 @@ import type { Payment, Prisma } from "@prisma/client";
 
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import dayjs from "@calcom/dayjs";
-import { handlePaymentRefund } from "@calcom/lib/payment/handlePaymentRefund";
+import { handlePaymentRefund } from "@calcom/features/bookings/lib/payment/handlePaymentRefund";
 import { RefundPolicy } from "@calcom/lib/payment/types";
 import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";

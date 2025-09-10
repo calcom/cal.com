@@ -7,7 +7,7 @@ import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/book
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
-import { processPaymentRefund } from "@calcom/features/bookings/lib/processPaymentRefund";
+import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
