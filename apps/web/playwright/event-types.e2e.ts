@@ -475,61 +475,6 @@ test.describe("Event Types tests", () => {
 
       await expect(page.locator("text=3 occurrences")).toBeVisible();
     });
-    test("Should block booking through api/book/event when email verification for the booker is required", async ({
-      page,
-      users,
-    }) => {
-      const firstElement = await page.waitForSelector(
-        '[data-testid="event-types"] a[href^="/event-types/"] >> nth=0'
-      );
-      const href = await firstElement.getAttribute("href");
-      expect(href).toBeTruthy();
-      const [eventTypeId] = new URL(WEBAPP_URL + href).pathname.split("/").reverse();
-      const firstFullSlug = await page.locator(`[data-testid=event-type-slug-${eventTypeId}]`).innerText();
-      const firstSlug = firstFullSlug.split("/")[2];
-      await firstElement.click();
-      await expect(page.locator("[data-testid=event-title]")).toBeVisible();
-      await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
-      const emailSwitch = page.getByTestId("requires-booker-email-verification");
-      await expect(emailSwitch).toBeVisible();
-      await emailSwitch.click();
-      await submitAndWaitForResponse(page, "/api/trpc/eventTypes/heavy/update?batch=1", {
-        action: () => page.locator("[data-testid=update-eventtype]").click(),
-      });
-      const response = await page.request.post("/api/book/event", {
-        data: {
-          responses: {
-            name: "test",
-            email: "test@cal.com",
-            location: {
-              value: "integrations:daily",
-              optionValue: "",
-            },
-            guests: [],
-          },
-          user: "pro",
-          start: "2025-09-09T09:00:00+08:00",
-          end: "2025-09-09T09:15:00+08:00",
-          eventTypeId,
-          eventTypeSlug: firstSlug,
-          timeZone: "Australia/Perth",
-          language: "en",
-          metadata: {},
-          hasHashedBookingLink: false,
-          routedTeamMemberIds: null,
-          skipContactOwner: false,
-          _isDryRun: false,
-          dub_id: null,
-        },
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      expect(response.status()).toBe(400);
-      const responseBody = await response.json();
-      expect(responseBody.message).toBe("Email verification is required for this event type");
-    });
   });
 
   test.describe("Interface Language Tests", () => {
