@@ -823,7 +823,7 @@ describe("OAuth Client Users Endpoints", () => {
         locations: [],
       });
 
-      managedEventType1 = await eventTypesRepositoryFixture.createTeamEventType({
+      await eventTypesRepositoryFixture.createTeamEventType({
         schedulingType: "MANAGED",
         team: {
           connect: { id: team1.id },
