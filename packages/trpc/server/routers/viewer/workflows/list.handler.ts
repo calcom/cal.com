@@ -21,7 +21,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
     ? {
         trigger: {
           not: {
-            in: [WorkflowTriggerEvents.FORM_SUBMITTED],
+            in: [WorkflowTriggerEvents.FORM_SUBMITTED, WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT],
           },
         },
       }
