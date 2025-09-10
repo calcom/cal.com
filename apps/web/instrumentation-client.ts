@@ -44,7 +44,7 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-if (process.env. NEXT_PUBLIC_VERCEL_BOTID_ENABLED === "true") {
+if (process.env.NEXT_PUBLIC_VERCEL_BOTID_ENABLED === "true") {
   initBotId({
     protect: [
       {
