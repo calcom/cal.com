@@ -83,10 +83,12 @@ export const BookingFields = ({
           // Consolidation: Hide smsReminderNumber if attendeePhoneNumber is visible to avoid duplicate phone inputs
           const attendeePhoneField = fields.find(f => f.name === SystemField.Enum.attendeePhoneNumber);
           if (attendeePhoneField && !attendeePhoneField.hidden) {
-            // Sync the value to attendeePhoneNumber and hide this field
+            // Sync the value to attendeePhoneNumber only if it's empty, then hide this field
             const smsValue = watch(`responses.${SystemField.Enum.smsReminderNumber}`);
-            if (smsValue) {
-              setValue(`responses.${SystemField.Enum.attendeePhoneNumber}`, smsValue);
+            const target = `responses.${SystemField.Enum.attendeePhoneNumber}` as const;
+            const current = watch(target);
+            if (smsValue && !current) {
+              setValue(target, smsValue, { shouldDirty: false, shouldValidate: true });
             }
             return null;
           }
