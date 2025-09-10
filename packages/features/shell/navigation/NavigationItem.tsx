@@ -13,31 +13,19 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { useShouldDisplayNavigationItem } from "./useShouldDisplayNavigationItem";
 
-const usePersistedExpansionState = (itemName: string, shouldDisplay: boolean) => {
+const usePersistedExpansionState = (itemName: string) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
-    if (!shouldDisplay) {
-      try {
-        sessionStorage.removeItem(`nav-expansion-${itemName}`);
-      } catch (_error) {}
-      setIsExpanded(false);
-      return;
-    }
-
     try {
       const stored = sessionStorage.getItem(`nav-expansion-${itemName}`);
       if (stored !== null) {
         setIsExpanded(JSON.parse(stored));
       }
     } catch (_error) {}
-  }, [itemName, shouldDisplay]);
+  }, [itemName]);
 
   const setPersistedExpansion = (expanded: boolean) => {
-    if (!shouldDisplay) {
-      return;
-    }
-
     setIsExpanded(expanded);
     try {
       sessionStorage.setItem(`nav-expansion-${itemName}`, JSON.stringify(expanded));
@@ -86,7 +74,16 @@ export const NavigationItem: React.FC<{
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
   const current = isCurrent({ isChild: !!isChild, item, pathname });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
-  const [isExpanded, setIsExpanded] = usePersistedExpansionState(item.name, shouldDisplayNavigationItem);
+  const [isExpanded, setIsExpanded] = usePersistedExpansionState(item.name);
+
+  useEffect(() => {
+    if (!shouldDisplayNavigationItem) {
+      try {
+        sessionStorage.removeItem(`nav-expansion-${item.name}`);
+      } catch (_error) {}
+      setIsExpanded(false);
+    }
+  }, [shouldDisplayNavigationItem, item.name, setIsExpanded]);
 
   const isTablet = useMediaQuery("(max-width: 1024px)");
   const [isTooltipOpen, setIsTooltipOpen] = useState(false);
@@ -276,7 +273,16 @@ export const MobileNavigationMoreItem: React.FC<{
   const { item } = props;
   const { t, isLocaleReady } = useLocale();
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
-  const [isExpanded, setIsExpanded] = usePersistedExpansionState(item.name, shouldDisplayNavigationItem);
+  const [isExpanded, setIsExpanded] = usePersistedExpansionState(item.name);
+
+  useEffect(() => {
+    if (!shouldDisplayNavigationItem) {
+      try {
+        sessionStorage.removeItem(`nav-expansion-${item.name}`);
+      } catch (_error) {}
+      setIsExpanded(false);
+    }
+  }, [shouldDisplayNavigationItem, item.name, setIsExpanded]);
 
   if (!shouldDisplayNavigationItem) return null;
 
