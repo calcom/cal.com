@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/triple-slash-reference */
 /// <reference path="../types/ical.d.ts"/>
-import type { Prisma } from "@prisma/client";
 import ICAL from "ical.js";
 import type { Attendee, DateArray, DurationObject } from "ics";
 import { createEvent } from "ics";
@@ -394,7 +393,16 @@ export default abstract class BaseCalendarService implements Calendar {
 
         const event = new ICAL.Event(vevent);
         const dtstartProperty = vevent.getFirstProperty("dtstart");
-        const tzidFromDtstart = dtstartProperty ? (dtstartProperty as any).jCal[1].tzid : undefined;
+        const tzidFromDtstart =
+          dtstartProperty &&
+          "jCal" in dtstartProperty &&
+          Array.isArray(dtstartProperty.jCal) &&
+          dtstartProperty.jCal[1] &&
+          typeof dtstartProperty.jCal[1] === "object" &&
+          dtstartProperty.jCal[1] !== null &&
+          "tzid" in dtstartProperty.jCal[1]
+            ? dtstartProperty.jCal[1].tzid
+            : undefined;
         const dtstart: { [key: string]: string } | undefined = vevent?.getFirstPropertyValue("dtstart");
         const timezone = dtstart ? dtstart["timezone"] : undefined;
         // We check if the dtstart timezone is in UTC which is actually represented by Z instead, but not recognized as that in ICAL.js as UTC
@@ -593,37 +601,45 @@ export default abstract class BaseCalendarService implements Calendar {
         },
       });
 
-      const processedResponse = await Promise.all(
-        response.map(async (calendarObject) => {
-          const calendarObjectHasEtag = calendarObject.etag !== undefined;
-          const calendarObjectDataUndefined = calendarObject.data === undefined;
-          if (calendarObjectDataUndefined && calendarObjectHasEtag) {
-            const responseWithoutExpand = await fetchCalendarObjects({
-              urlFilter: (url) => this.isValidFormat(url),
-              calendar: {
-                url: sc.externalId,
-              },
-              headers,
-              expand: false,
-              timeRange: {
-                start: startISOString,
-                end: new Date(dateTo).toISOString(),
-              },
-            });
-
-            return responseWithoutExpand.find(
-              (obj) => obj.url === calendarObject.url && obj.etag === calendarObject.etag
-            );
-          }
-          return calendarObject;
-        })
+      const objectsWithData = response.filter((obj) => obj.data !== undefined);
+      const objectsNeedingFallback = response.filter(
+        (obj) => obj.data === undefined && obj.etag !== undefined
       );
+
+      let fallbackObjects: typeof response = [];
+
+      if (objectsNeedingFallback.length > 0) {
+        try {
+          const responseWithoutExpand = await fetchCalendarObjects({
+            urlFilter: (url) => this.isValidFormat(url),
+            calendar: {
+              url: sc.externalId,
+            },
+            headers,
+            expand: false,
+            timeRange: {
+              start: startISOString,
+              end: new Date(dateTo).toISOString(),
+            },
+          });
+
+          fallbackObjects = objectsNeedingFallback.map(
+            (originalObj) =>
+              responseWithoutExpand.find(
+                (obj) => obj.url === originalObj.url && obj.etag === originalObj.etag
+              ) || originalObj
+          );
+        } catch (error) {
+          fallbackObjects = objectsNeedingFallback;
+        }
+      }
+
+      const processedResponse = [...objectsWithData, ...fallbackObjects];
       return processedResponse;
     });
     const resolvedPromises = await Promise.allSettled(fetchPromises);
     const fulfilledPromises = resolvedPromises.filter(
-      (promise): promise is PromiseFulfilledResult<(DAVObject | undefined)[]> =>
-        promise.status === "fulfilled"
+      (promise): promise is PromiseFulfilledResult<DAVObject[]> => promise.status === "fulfilled"
     );
     const flatResult = fulfilledPromises
       .map((promise) => promise.value)
@@ -707,16 +723,15 @@ export default abstract class BaseCalendarService implements Calendar {
   }
 
   private async getEventsByUID(uid: string): Promise<CalendarEventType[]> {
-    const events: Prisma.PromiseReturnType<typeof this.getEvents> = [];
     const calendars = await this.listCalendars();
 
-    for (const cal of calendars) {
+    const eventPromises = calendars.map(async (cal) => {
       const calEvents = await this.getEvents(cal.externalId, null, null, [`${cal.externalId}${uid}.ics`]);
+      return calEvents;
+    });
 
-      for (const ev of calEvents) {
-        events.push(ev);
-      }
-    }
+    const allCalendarEvents = await Promise.all(eventPromises);
+    const events = allCalendarEvents.flat();
 
     return events;
   }

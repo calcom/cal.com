@@ -84,7 +84,7 @@ export interface IGetAvailableSlots {
       emoji?: string | undefined;
     }[]
   >;
-  troubleshooter?: any;
+  troubleshooter?: Record<string, unknown>;
 }
 
 export type GetAvailableSlotsResponse = Awaited<
@@ -822,42 +822,39 @@ export class AvailableSlotsService {
         });
     }
 
-    let busyTimesFromLimitsMap: Map<number, EventBusyDetails[]> | undefined = undefined;
-    if (eventType && (bookingLimits || durationLimits)) {
-      const usersForLimits = usersWithCredentials.map((user) => ({ id: user.id, email: user.email }));
-      busyTimesFromLimitsMap = await this.getBusyTimesFromLimitsForUsers(
-        usersForLimits,
-        bookingLimits,
-        durationLimits,
-        startTime,
-        endTime,
-        typeof input.duration === "number" ? input.duration : undefined,
-        eventType,
-        usersWithCredentials[0]?.timeZone || "UTC",
-        input.rescheduleUid || undefined
-      );
-    }
-
     const teamForBookingLimits =
       eventType?.team ??
       (eventType?.parent?.team?.includeManagedEventsInLimits ? eventType?.parent?.team : null);
 
     const teamBookingLimits = parseBookingLimit(teamForBookingLimits?.bookingLimits);
 
-    let teamBookingLimitsMap: Map<number, EventBusyDetails[]> | undefined = undefined;
-    if (teamForBookingLimits && teamBookingLimits) {
-      const usersForTeamLimits = usersWithCredentials.map((user) => ({ id: user.id, email: user.email }));
-      teamBookingLimitsMap = await this.getBusyTimesFromTeamLimitsForUsers(
-        usersForTeamLimits,
-        teamBookingLimits,
-        startTime,
-        endTime,
-        teamForBookingLimits.id,
-        teamForBookingLimits.includeManagedEventsInLimits,
-        usersWithCredentials[0]?.timeZone || "UTC",
-        input.rescheduleUid || undefined
-      );
-    }
+    const [busyTimesFromLimitsMap, teamBookingLimitsMap] = await Promise.all([
+      eventType && (bookingLimits || durationLimits)
+        ? this.getBusyTimesFromLimitsForUsers(
+            usersWithCredentials.map((user) => ({ id: user.id, email: user.email })),
+            bookingLimits,
+            durationLimits,
+            startTime,
+            endTime,
+            typeof input.duration === "number" ? input.duration : undefined,
+            eventType,
+            usersWithCredentials[0]?.timeZone || "UTC",
+            input.rescheduleUid || undefined
+          )
+        : Promise.resolve(undefined),
+      teamForBookingLimits && teamBookingLimits
+        ? this.getBusyTimesFromTeamLimitsForUsers(
+            usersWithCredentials.map((user) => ({ id: user.id, email: user.email })),
+            teamBookingLimits,
+            startTime,
+            endTime,
+            teamForBookingLimits.id,
+            teamForBookingLimits.includeManagedEventsInLimits,
+            usersWithCredentials[0]?.timeZone || "UTC",
+            input.rescheduleUid || undefined
+          )
+        : Promise.resolve(undefined),
+    ]);
 
     function _enrichUsersWithData() {
       return usersWithCredentials.map((currentUser) => {
@@ -1174,7 +1171,7 @@ export class AvailableSlotsService {
 
         const restrictionTimezone = eventType.useBookerTimezone
           ? input.timeZone
-          : restrictionSchedule.timeZone!;
+          : restrictionSchedule.timeZone || "UTC";
         const eventLength = input.duration || eventType.length;
 
         const restrictionAvailability = restrictionSchedule.availability.map((rule) => ({
