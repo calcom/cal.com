@@ -10,16 +10,19 @@ export const getServerSideProps = wrapGetServerSidePropsWithSentry(async functio
   context: GetServerSidePropsContext
 ) {
   const isEmbed = hasEmbedPath(context.req.url || "");
-  const verification = await checkBotId();
-  if (verification.isBot) {
-    return {
-      props: {
-        isEmbed,
-        message: null,
-        form: null,
-        errorMessage: "Access denied",
-      },
-    };
+
+  if (!process.env.NEXT_PUBLIC_IS_E2E) {
+    const verification = await checkBotId();
+    if (verification.isBot) {
+      return {
+        props: {
+          isEmbed,
+          message: null,
+          form: null,
+          errorMessage: "Access denied",
+        },
+      };
+    }
   }
   try {
     return await getRoutedUrl(context);
