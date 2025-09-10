@@ -18,7 +18,7 @@ import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAn
 
 import { describe, expect, vi } from "vitest";
 
-import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
+import { processPaymentRefund } from "@calcom/features/bookings/lib/processPaymentRefund";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 

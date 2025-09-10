@@ -2,12 +2,12 @@ import prismaMock from "../../../tests/libs/__mocks__/prismaMock";
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import dayjs from "@calcom/dayjs";
+import { handlePaymentRefund } from "@calcom/lib/payment/handlePaymentRefund";
+import { RefundPolicy } from "@calcom/lib/payment/types";
 
-import { getPaymentAppData } from "../getPaymentAppData";
-import { handlePaymentRefund } from "./handlePaymentRefund";
 import { processPaymentRefund } from "./processPaymentRefund";
-import { RefundPolicy } from "./types";
 
 vi.mock("@calcom/lib/getPaymentAppData", () => ({
   getPaymentAppData: vi.fn(),

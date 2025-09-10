@@ -2,8 +2,8 @@ import type { App } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
 import type { TFunction } from "i18next";
 
+import type { PaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
-import type { PaymentAppData } from "@calcom/lib/getPaymentAppData";
 import type { GetUserAvailabilityResult } from "@calcom/lib/getUserAvailability";
 import type { userSelect } from "@calcom/prisma";
 import type { SelectedCalendar } from "@calcom/prisma/client";
