@@ -5,7 +5,10 @@ import CallHistoryPage from "@calcom/features/ee/workflows/pages/call-history";
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("call_history"),
-    (t) => t("call_history_subtitle")
+    (t) => t("call_history_subtitle"),
+    undefined,
+    undefined,
+    "/workflows/call-history"
   );
 
 export default async function Page() {
