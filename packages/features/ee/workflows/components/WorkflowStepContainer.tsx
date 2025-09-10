@@ -917,6 +917,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       />
                     )}
                   />
+                  <div className="mt-1 flex text-gray-500">
+                    <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
+                    <p className="text-sm">{t("country_code_restriction_help")}</p>
+                  </div>
                 </div>
               )}
               {!isWhatsappAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) &&
