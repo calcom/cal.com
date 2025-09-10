@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 import { isRedirectApp } from "@calcom/app-store/_utils/redirectApps";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
@@ -31,6 +31,11 @@ interface AppCardProps {
 export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCardProps) {
   const { t } = useLocale();
   const router = useRouter();
+  
+  // Memoize cleaned description to avoid processing on every render
+  const cleanDescription = useMemo(() => {
+    return stripMarkdown(app.description || "");
+  }, [app.description]);
   
   const allowedMultipleInstalls = app.categories && app.categories.indexOf("calendar") > -1;
   const appAdded = (credentials && credentials.length) || 0;
@@ -126,17 +131,11 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
           WebkitLineClamp: 3,
           WebkitBoxOrient: "vertical",
           overflow: "hidden",
-          wordBreak: "break-word",
           textOverflow: "ellipsis",
           lineHeight: "1.4",
-          maxHeight: "4.2em", // 3 lines * 1.4 line-height
+          maxHeight: "4.2em", // Fallback for non-webkit browsers
         }}>
-        {(() => {
-          const cleanDescription = stripMarkdown(app.description || "");
-          return cleanDescription.length > 120 
-            ? cleanDescription.substring(0, 117) + "..." 
-            : cleanDescription;
-        })()}
+        {cleanDescription}
       </p>
 
       <div className="mt-5 flex max-w-full flex-row justify-between gap-2">

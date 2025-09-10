@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useMemo } from "react";
 
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -60,6 +61,11 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
     highlight,
   } = props;
 
+  // Memoize cleaned description to avoid processing on every render
+  const cleanDescription = useMemo(() => {
+    return stripMarkdown(description || "");
+  }, [description]);
+
   return (
     <div
       className={classNames(
@@ -95,17 +101,11 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
               WebkitLineClamp: 3,
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
-              wordBreak: "break-word",
               textOverflow: "ellipsis",
               lineHeight: "1.4",
-              maxHeight: "4.2em", // 3 lines * 1.4 line-height
+              maxHeight: "4.2em", // Fallback for non-webkit browsers
             }}>
-            {(() => {
-              const cleanDescription = stripMarkdown(description || "");
-              return cleanDescription.length > 120 
-                ? cleanDescription.substring(0, 117) + "..." 
-                : cleanDescription;
-            })()}
+            {cleanDescription}
           </p>
           {invalidCredential && (
             <div className="flex gap-x-2 pt-2">
