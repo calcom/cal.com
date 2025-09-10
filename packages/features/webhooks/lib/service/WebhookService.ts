@@ -266,9 +266,25 @@ export class WebhookService implements IWebhookService {
       if (!this.tasker) {
         throw new Error("Tasker not injected - ensure proper DI configuration");
       }
-      for (const trigger of triggers) {
+      const cancellationPromises = triggers.map(async (trigger) => {
         const referenceUid = `booking-${bookingId}-${trigger}`;
-        await this.tasker.cancelWithReference(referenceUid, "sendWebhook");
+        try {
+          await this.tasker.cancelWithReference(referenceUid, "sendWebhook");
+          return { trigger, success: true };
+        } catch (error) {
+          this.log.warn(`Failed to cancel webhook for trigger ${trigger}:`, {
+            error: error instanceof Error ? error.message : String(error),
+          });
+          return { trigger, success: false, error };
+        }
+      });
+
+      const results = await Promise.allSettled(cancellationPromises);
+
+      // Log any failures for monitoring
+      const failures = results.filter((result) => result.status === "rejected");
+      if (failures.length > 0) {
+        this.log.warn(`Some webhook cancellations failed:`, { failureCount: failures.length });
       }
     } catch (error) {
       this.log.error("Failed to cancel scheduled webhooks", {

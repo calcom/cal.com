@@ -1,11 +1,24 @@
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import defaultPrisma from "@calcom/prisma";
+import { prisma as defaultPrisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import type { WebhookSubscriber } from "../dto/types";
 import type { IWebhookRepository } from "../interface/repository";
 import type { GetSubscribersOptions } from "./types";
+
+// Type for raw query results from the database
+interface WebhookQueryResult {
+  id: string;
+  subscriberUrl: string;
+  payloadTemplate: string | null;
+  appId: string | null;
+  secret: string | null;
+  time: number | null;
+  timeUnit: TimeUnit | null;
+  eventTriggers: WebhookTriggerEvents[];
+  priority: number; // This field is added by the query and removed before returning
+}
 
 export class WebhookRepository implements IWebhookRepository {
   constructor(private prisma: PrismaClient = defaultPrisma) {}
@@ -51,7 +64,7 @@ export class WebhookRepository implements IWebhookRepository {
       secret: webhook.secret,
       time: webhook.time,
       timeUnit: webhook.timeUnit as TimeUnit | null,
-      eventTriggers: webhook.eventTriggers as any[],
+      eventTriggers: webhook.eventTriggers as WebhookTriggerEvents[],
     }));
   }
 
@@ -66,11 +79,11 @@ export class WebhookRepository implements IWebhookRepository {
     teamIds?: number[];
     oAuthClientId?: string | null;
     triggerEvent: WebhookTriggerEvents;
-  }): Promise<any[]> {
+  }): Promise<WebhookSubscriber[]> {
     const { userId, eventTypeId, managedParentEventTypeId, teamIds, oAuthClientId, triggerEvent } = params;
 
     // Use static SQL with IS NOT NULL guards and PostgreSQL ANY() for arrays
-    const results = await this.prisma.$queryRaw`
+    const results = await this.prisma.$queryRaw<WebhookQueryResult[]>`
       -- Platform webhooks (highest priority)
       SELECT 
         id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers",
@@ -149,10 +162,10 @@ export class WebhookRepository implements IWebhookRepository {
       ORDER BY priority, id
     `;
 
-    const uniqueWebhooks = new Map();
-    for (const webhook of results as any[]) {
+    const uniqueWebhooks = new Map<string, WebhookSubscriber>();
+    for (const webhook of results) {
       if (!uniqueWebhooks.has(webhook.id)) {
-        const { priority, ...webhookData } = webhook;
+        const { priority: _priority, ...webhookData } = webhook;
         uniqueWebhooks.set(webhook.id, webhookData);
       }
     }
