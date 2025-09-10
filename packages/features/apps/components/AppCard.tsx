@@ -25,10 +25,9 @@ interface AppCardProps {
   credentials?: Credential[];
   searchText?: string;
   userAdminTeams?: UserAdminTeams;
-  maxDescriptionLength?: number;
 }
 
-export function AppCard({ app, credentials, searchText, userAdminTeams, maxDescriptionLength = 140 }: AppCardProps) {
+export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCardProps) {
   const { t } = useLocale();
   const router = useRouter();
   const allowedMultipleInstalls = app.categories && app.categories.indexOf("calendar") > -1;
@@ -119,13 +118,15 @@ export function AppCard({ app, credentials, searchText, userAdminTeams, maxDescr
             <span className="pl-1 text-subtle">{props.reviews} reviews</span>
           </div> */}
       <p 
-        className="text-default mt-2 flex-grow text-sm overflow-hidden"
+        className="text-default mt-2 flex-grow text-sm"
         style={{
-          lineHeight: "1.5em",
-          maxHeight: "4.5em", // Shows exactly 3 lines of text
+          display: "-webkit-box",
+          WebkitLineClamp: 3,
+          WebkitBoxOrient: "vertical",
+          overflow: "hidden",
           wordBreak: "break-word",
         }}>
-        {app.description ? (app.description.length > maxDescriptionLength ? `${app.description.substring(0, maxDescriptionLength).trim()}...` : app.description) : ""}
+        {app.description || ""}
       </p>
 
       <div className="mt-5 flex max-w-full flex-row justify-between gap-2">

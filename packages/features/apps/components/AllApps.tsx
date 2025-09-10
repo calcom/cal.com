@@ -184,7 +184,6 @@ export function AllApps({ apps, searchText, categories, userAdminTeams }: AllApp
               searchText={searchText}
               credentials={app.credentials}
               userAdminTeams={userAdminTeams}
-              maxDescriptionLength={100}
             />
           ))}{" "}
         </div>

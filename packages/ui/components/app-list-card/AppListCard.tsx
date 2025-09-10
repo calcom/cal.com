@@ -86,15 +86,17 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
           </div>
           <p
             className={classNames(
-              "text-sm text-subtle whitespace-normal break-words overflow-hidden",
+              "text-sm text-subtle whitespace-normal break-words",
               classNameObject?.description
             )}
             style={{
-              lineHeight: "1.5em",
-              maxHeight: "4.5em", // Shows exactly 3 lines of text
+              display: "-webkit-box",
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
               wordBreak: "break-word",
             }}>
-            {description && description.length > 100 ? `${description.substring(0, 100).trim()}...` : description}
+            {description || ""}
           </p>
           {invalidCredential && (
             <div className="flex gap-x-2 pt-2">
