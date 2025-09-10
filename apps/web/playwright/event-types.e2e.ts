@@ -520,6 +520,8 @@ test.describe("Event Types tests", () => {
 
       await test.step("should open first eventType and change Interface Language to Deutsche", async () => {
         await gotoFirstEventType(page);
+        // Go to Advanced tab and enable offerSeats
+        await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
         await page.getByTestId("event-interface-language").click();
         await page.locator(`text="Deutsch"`).click();
         await saveEventType(page);
@@ -576,6 +578,8 @@ test.describe("Event Types tests", () => {
         await page.goto("/event-types");
         await page.waitForSelector('[data-testid="event-types"]');
         await gotoFirstEventType(page);
+        // Go to Advanced tab and enable offerSeats
+        await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
         await page.getByTestId("event-interface-language").click();
         await page.getByTestId("select-option-es").click();
         await saveEventType(page);
