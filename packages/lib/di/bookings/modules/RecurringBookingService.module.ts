@@ -1,8 +1,7 @@
-import { createModule } from "@evyweb/ioctopus";
-
+import { RecurringBookingService } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
 
-import { RecurringBookingService } from "../../handleNewRecurringBooking";
+import { createModule } from "../../di";
 
 export const recurringBookingServiceModule = createModule();
 
