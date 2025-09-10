@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
-import { DailyLocationType } from "@calcom/app-store/locations";
+import { DailyLocationType } from "@calcom/app-store/constants";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import {
   allowDisablingAttendeeConfirmationEmails,

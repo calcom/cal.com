@@ -260,7 +260,9 @@
     "NEXT_PUBLIC_API_V2_URL",
     "NEXT_PUBLIC_WEBAPP_URL",
     "NEXT_PUBLIC_WEBSITE_URL",
-    "BUILD_STANDALONE"
+    "BUILD_STANDALONE",
+    "INTERCOM_API_TOKEN",
+    "NEXT_PUBLIC_INTERCOM_APP_ID"
   ],
   "tasks": {
     "@calcom/prisma#build": {
@@ -274,14 +276,14 @@
     },
     "@calcom/prisma#db-seed": {
       "cache": false,
-      "dependsOn": ["@calcom/prisma#db-migrate"]
+      "dependsOn": ["@calcom/prisma#db-deploy"]
     },
     "@calcom/prisma#db-up": {
       "cache": false
     },
     "@calcom/prisma#dx": {
       "cache": false,
-      "dependsOn": ["@calcom/prisma#db-migrate"]
+      "dependsOn": ["@calcom/prisma#db-up"]
     },
     "@calcom/trpc#build": {
       "outputs": ["./types"]
@@ -392,13 +394,7 @@
         "STRIPE_SUPPORT_TABLE",
         "MOTIFLAND_REST_ENDPOINT",
         "MOTIFLAND_DOCS_API_KEY",
-        "MOTIFLAND_DOCS_PROJECT_ID",
-        "PLAIN_HMAC_SECRET_KEY",
-        "PLAIN_API_KEY",
-        "PLAIN_API_URL",
-        "NEXT_PUBLIC_PLAIN_CHAT_ID",
-        "PLAIN_CHAT_HMAC_SECRET_KEY",
-        "NEXT_PUBLIC_PLAIN_CHAT_EXCLUDED_PATHS"
+        "MOTIFLAND_DOCS_PROJECT_ID"
       ]
     },
     "build": {
