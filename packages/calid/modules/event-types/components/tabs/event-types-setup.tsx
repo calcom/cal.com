@@ -1,4 +1,6 @@
-import { Icon } from "@calid/features/ui/components/icon";
+import { Button } from "@calid/features/ui/components/button";
+import { InputField, TextField } from "@calid/features/ui/components/input/input";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import type { TFunction } from "i18next";
 import { useSession } from "next-auth/react";
 import type { Dispatch, SetStateAction } from "react";
@@ -29,11 +31,7 @@ import turndown from "@calcom/lib/turndownService";
 import classNames from "@calcom/ui/classNames";
 import { Editor } from "@calcom/ui/components/editor";
 import { Select, Label, SettingsToggle } from "@calcom/ui/components/form";
-import { InputField,TextField } from "@calid/features/ui/components/input/input";
-import { TextAreaField } from "@calid/features/ui/components/input/text-area";
 import { Skeleton } from "@calcom/ui/components/skeleton";
-import { triggerToast } from "@calid/features/ui/components/toast";
-import { Button } from "@calid/features/ui/components/button";
 
 export type EventSetupTabCustomClassNames = {
   wrapper?: string;
@@ -306,24 +304,22 @@ const UrlSection = ({
         </>
       }
       addOnSuffix={
-      <>
-      <Button
-        color="minimal"
-        className="border-none"
-        StartIcon="copy"
-        onClick={handleCopyUrl}
-        tooltip={t('copy_url')}
-      >
-      </Button>
-      <Button
-        color="minimal"
-        className="border-none"
-        StartIcon="external-link"
-        onClick={handlePreviewUrl}
-        tooltip={t('preview_url')}
-      >
-      </Button>
-      </>
+        <>
+          <Button
+            color="minimal"
+            className="border-none"
+            StartIcon="copy"
+            onClick={handleCopyUrl}
+            tooltip={t("copy_url")}
+          />
+          <Button
+            color="minimal"
+            className="border-none"
+            StartIcon="external-link"
+            onClick={handlePreviewUrl}
+            tooltip={t("preview_url")}
+          />
+        </>
       }
       id="event-slug"
       inputIsFullWidth={true}

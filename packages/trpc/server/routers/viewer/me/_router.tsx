@@ -1,5 +1,6 @@
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
+import { ZCalIdUpdateProfileInputSchema } from "./calid/updateProfile.schema";
 import { ZDeleteMeInputSchema } from "./deleteMe.schema";
 import { get } from "./procedures/get";
 import { ZUpdateProfileInputSchema } from "./updateProfile.schema";
@@ -42,4 +43,10 @@ export const meRouter = router({
     const handler = (await import("./calid/get.handler")).getHandler;
     return handler({ ctx, input });
   }),
+  calid_updateProfile: authedProcedure
+    .input(ZCalIdUpdateProfileInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const handler = (await import("./calid/updateProfile.handler")).calidUpdateProfileHandler;
+      return handler({ ctx, input });
+    }),
 });

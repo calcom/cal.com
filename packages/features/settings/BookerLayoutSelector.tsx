@@ -1,5 +1,6 @@
 import { Button } from "@calid/features/ui/components/button";
 import { CheckboxField } from "@calid/features/ui/components/input/checkbox-field";
+import { Label } from "@calid/features/ui/components/label";
 import Link from "next/link";
 import { useCallback, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -10,7 +11,6 @@ import { BookerLayouts, defaultBookerLayoutSettings } from "@calcom/prisma/zod-u
 import { bookerLayoutOptions, type BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
-import { Label } from "@calid/features/ui/components/label";
 
 type BookerLayoutSelectorProps = {
   title?: string;
@@ -66,7 +66,7 @@ export const BookerLayoutSelector = ({
         className={classNames(
           isOuterBorder ? "pb-5" : "border-subtle rounded-t-xl border-x border-t px-6 pt-6"
         )}>
-        <Label className={classNames("font-semibold", isOuterBorder ? "text-sm" : "text-base")}>
+        <Label className={classNames("text-default text-sm font-semibold")}>
           {title ? title : t("layout")}
         </Label>
         <p className="text-subtle max-w-full break-words text-sm leading-tight">
@@ -247,7 +247,7 @@ const BookerLayoutFields = ({
                 key="override-button"
                 onClick={onOverrideSettings}
                 color="minimal"
-                className="p-0 font-normal border-none text-emphasis underline">
+                className="text-emphasis border-none p-0 font-normal underline">
                 {t("override")}
               </Button>,
             ]}
