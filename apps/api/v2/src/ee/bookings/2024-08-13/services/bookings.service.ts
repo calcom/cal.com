@@ -38,7 +38,6 @@ import {
   handleNewRecurringBooking,
   getTranslation,
   getAllUserBookings,
-  getBookingsCount,
   handleInstantMeeting,
   handleCancelBooking,
   roundRobinReassignment,
@@ -1097,15 +1096,19 @@ export class BookingsService_2024_08_13 {
       ...(userIds?.length ? { userIds } : {}),
     };
 
-    const result = await getBookingsCount({
-      user,
-      prisma: this.prismaReadService.prisma,
-      kysely: this.kyselyReadService.kysely,
+    const result = await getAllUserBookings({
       bookingListingByStatus: queryParams.status || [],
+      skip: 0,
+      take: 0,
       filters,
+      ctx: {
+        user,
+        prisma: this.prismaReadService.prisma,
+        kysely: this.kyselyReadService.kysely,
+      },
     });
 
-    return result;
+    return { count: result.totalCount };
   }
 
   async getBookingsStatistics(
