@@ -1,4 +1,4 @@
-import { useMemo, useState, Suspense, useEffect } from "react";
+import { useMemo, useState, Suspense } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
@@ -83,6 +83,39 @@ function EventTypeSingleLayout({
     translate: t,
     formMethods,
   });
+
+  const watchedValues = formMethods.watch();
+  
+  const isSaveDisabled = useMemo(() => {
+    const { isDirty, dirtyFields, defaultValues } = formMethods.formState;
+    const dirtyFieldsCount = Object.keys(dirtyFields || {}).length;
+    
+    if (!isDirty || dirtyFieldsCount === 0) {
+      return true;
+    }
+    
+    // edge case for "description" field specially
+    const currentDescription = formMethods.getValues("description");
+    const defaultDescription = defaultValues?.description;
+    
+    if (dirtyFieldsCount === 1 && dirtyFields.description) {
+      const isEmptyTransition = 
+        (currentDescription === "" && defaultDescription === undefined) ||
+        (currentDescription === undefined && defaultDescription === "");
+      
+      if (isEmptyTransition) {
+        return true;
+      }
+    }
+    
+    return false;
+  }, [
+    formMethods.formState.isDirty,
+    formMethods.formState.dirtyFields,
+    formMethods.formState.defaultValues,
+    watchedValues,
+  ]);
+
   const EventTypeTabs = tabsNavigation;
   const permalink = `${bookerUrl}/${
     team ? `${!team.parentId ? "team/" : ""}${team.slug}` : formMethods.getValues("users")[0].username
@@ -96,40 +129,8 @@ function EventTypeSingleLayout({
   const [Shell] = useMemo(() => {
     return isPlatform ? [PlatformShell] : [WebShell];
   }, [isPlatform]);
+  
   const teamId = eventType.team?.id;
-
-useEffect(() => {
-  if (eventType && formMethods.formState.defaultValues) {
-    const currentDescription = formMethods.getValues("description");
-    const defaultDescription = formMethods.formState.defaultValues?.description;
-
-  if (formMethods.formState.isDirty && Object.keys(formMethods.formState.dirtyFields).length === 0) {
-
-    formMethods.reset(formMethods.getValues(), {
-      keepDirty: false,
-      keepErrors: false,
-      keepDirtyValues: false
-    });
-  }
-  else if(currentDescription === "" && defaultDescription === undefined){
-
-    formMethods.reset(formMethods.getValues(), {
-      keepDirty: false,
-      keepErrors: false,
-      keepDirtyValues: false
-    });
-  }
-  else if(currentDescription === undefined && defaultDescription === ""){
-
-    formMethods.reset(formMethods.getValues(), {
-      keepDirty: false,
-      keepErrors: false,
-      keepDirtyValues: false
-    });
-  }
-}
-
-}, [formMethods.formState.isDirty, formMethods.formState.dirtyFields, formMethods]);
 
   return (
     <Shell
@@ -302,7 +303,7 @@ useEffect(() => {
             className="ml-4 lg:ml-0"
             type="submit"
             loading={isUpdateMutationLoading}
-            disabled={!formMethods.formState.isDirty || Object.keys(formMethods.formState.dirtyFields || {}).length === 0}
+            disabled={isSaveDisabled}
             data-testid="update-eventtype"
             form="event-type-form">
             {t("save")}
