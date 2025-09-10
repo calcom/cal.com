@@ -98,8 +98,14 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
               wordBreak: "break-word",
               textOverflow: "ellipsis",
               lineHeight: "1.4",
+              maxHeight: "4.2em", // 3 lines * 1.4 line-height
             }}>
-            {stripMarkdown(description || "")}
+            {(() => {
+              const cleanDescription = stripMarkdown(description || "");
+              return cleanDescription.length > 120 
+                ? cleanDescription.substring(0, 117) + "..." 
+                : cleanDescription;
+            })()}
           </p>
           {invalidCredential && (
             <div className="flex gap-x-2 pt-2">

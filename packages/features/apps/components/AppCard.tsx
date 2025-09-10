@@ -31,6 +31,7 @@ interface AppCardProps {
 export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCardProps) {
   const { t } = useLocale();
   const router = useRouter();
+  
   const allowedMultipleInstalls = app.categories && app.categories.indexOf("calendar") > -1;
   const appAdded = (credentials && credentials.length) || 0;
   const enabledOnTeams = doesAppSupportTeamInstall({
@@ -128,8 +129,14 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
           wordBreak: "break-word",
           textOverflow: "ellipsis",
           lineHeight: "1.4",
+          maxHeight: "4.2em", // 3 lines * 1.4 line-height
         }}>
-        {stripMarkdown(app.description || "")}
+        {(() => {
+          const cleanDescription = stripMarkdown(app.description || "");
+          return cleanDescription.length > 120 
+            ? cleanDescription.substring(0, 117) + "..." 
+            : cleanDescription;
+        })()}
       </p>
 
       <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
