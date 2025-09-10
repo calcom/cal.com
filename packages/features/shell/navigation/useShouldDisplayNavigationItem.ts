@@ -1,7 +1,10 @@
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 
-import { useNavigationPermissions, type NavigationItemName } from "../context/NavigationPermissionsProvider";
+import {
+  useNavigationPermissions,
+  type NavigationItemName,
+} from "../permissions/NavigationPermissionsProvider";
 import type { NavigationItemType } from "./NavigationItem";
 
 export function useShouldDisplayNavigationItem(item: NavigationItemType) {

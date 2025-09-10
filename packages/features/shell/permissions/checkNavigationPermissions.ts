@@ -3,8 +3,8 @@ import { unstable_cache } from "next/cache";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 
-import type { NavigationPermissions } from "../NavigationPermissionsProvider";
-import { NAVIGATION_PERMISSION_MAP } from "../NavigationPermissionsProvider";
+import type { NavigationPermissions } from "./types";
+import { NAVIGATION_PERMISSION_MAP } from "./types";
 
 /**
  * Server-side function to check all navigation permissions for a user
@@ -18,11 +18,11 @@ export const checkNavigationPermissions = unstable_cache(
 
     if (teamIds.length === 0) {
       return {
-        insights: false,
-        workflows: false,
-        routing: false,
-        teams: false,
-        members: false,
+        insights: true,
+        workflows: true,
+        routing: true,
+        teams: true,
+        members: true,
       };
     }
 
