@@ -145,7 +145,8 @@ export const ensureBookingInputsHaveSystemFields = ({
   };
 
   const smsNumberSources = [] as NonNullable<(typeof bookingFields)[number]["sources"]>;
-  let allAllowedCountryCodes: string[] = [];
+
+  const allCountryCodeArrays: string[][] = [];
   workflows.forEach((workflow) => {
     workflow.workflow.steps.forEach((step) => {
       if (step.action === "SMS_ATTENDEE" || step.action === "WHATSAPP_ATTENDEE") {
@@ -153,8 +154,7 @@ export const ensureBookingInputsHaveSystemFields = ({
         const stepAllowedCountryCodes = step.allowedCountryCodes || [];
 
         if (stepAllowedCountryCodes.length > 0) {
-          const combinedCodes = allAllowedCountryCodes.concat(stepAllowedCountryCodes);
-          allAllowedCountryCodes = Array.from(new Set(combinedCodes));
+          allCountryCodeArrays.push(stepAllowedCountryCodes);
         }
 
         smsNumberSources.push(
@@ -168,6 +168,19 @@ export const ensureBookingInputsHaveSystemFields = ({
     });
   });
 
+  // Find intersection of all country code arrays (codes allowed in ALL workflows)
+  let allAllowedCountryCodes: string[] = [];
+  if (allCountryCodeArrays.length > 0) {
+    // Start with the first array
+    allAllowedCountryCodes = allCountryCodeArrays[0];
+
+    // Find intersection with each subsequent array
+    for (let i = 1; i < allCountryCodeArrays.length; i++) {
+      allAllowedCountryCodes = allAllowedCountryCodes.filter((code) =>
+        allCountryCodeArrays[i].includes(code)
+      );
+    }
+  }
   const isEmailFieldOptional = !!bookingFields.find((field) => field.name === "email" && !field.required);
 
   // These fields should be added before other user fields
@@ -359,6 +372,17 @@ export const ensureBookingInputsHaveSystemFields = ({
       sources: smsNumberSources,
       ...(allAllowedCountryCodes.length > 0 ? { allowedCountryCodes: allAllowedCountryCodes } : {}),
     });
+  }
+
+  const indexForSmsPhoneField = bookingFields.findIndex(
+    (f) => getFieldIdentifier(f.name) === getFieldIdentifier("smsReminderNumber")
+  );
+
+  if (indexForSmsPhoneField !== -1 && allAllowedCountryCodes.length > 0) {
+    bookingFields[indexForSmsPhoneField] = {
+      ...bookingFields[indexForSmsPhoneField],
+      allowedCountryCodes: allAllowedCountryCodes,
+    };
   }
 
   // Backward Compatibility: If we are migrating from old system, we need to map `customInputs` to `bookingFields`
