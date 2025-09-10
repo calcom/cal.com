@@ -155,6 +155,7 @@ export class CallService {
         EVENT_START_TIME_IN_ATTENDEE_TIMEZONE: "2:00 PM",
         EVENT_END_TIME_IN_ATTENDEE_TIMEZONE: "2:30 PM",
         eventTypeId: eventTypeId.toString(),
+        NUMBER_TO_CALL: toNumber,
       },
     });
 
