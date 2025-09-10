@@ -4,6 +4,7 @@ import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZGetInputSchema } from "./get.schema";
 import { ZListInputSchema } from "./list.schema";
+import { ZListCallsInputSchema } from "./listCalls.schema";
 import { ZTestCallInputSchema } from "./testCall.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 
@@ -57,6 +58,15 @@ export const aiVoiceAgentRouter = router({
     const { testCallHandler } = await import("./testCall.handler");
 
     return testCallHandler({
+      ctx,
+      input,
+    });
+  }),
+
+  listCalls: authedProcedure.input(ZListCallsInputSchema).query(async ({ ctx, input }) => {
+    const { listCallsHandler } = await import("./listCalls.handler");
+
+    return listCallsHandler({
       ctx,
       input,
     });

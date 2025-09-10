@@ -232,4 +232,14 @@ export class RetellAIService {
   async cancelPhoneNumberSubscription(params: { phoneNumberId: number; userId: number; teamId?: number }) {
     return this.billingService.cancelPhoneNumberSubscription(params);
   }
+
+  async listCalls(params: {
+    userId: number;
+    organizationId?: number;
+    limit?: number;
+    offset?: number;
+    filters?: any;
+  }) {
+    return this.callService.listCalls(params);
+  }
 }

@@ -89,6 +89,14 @@ export type AIPhoneServiceAgentWithDetails<
   T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType
 > = AIPhoneServiceProviderTypeMap[T]["AgentWithDetails"];
 
+export type AIPhoneServiceListCallsParams<
+  T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType
+> = AIPhoneServiceProviderTypeMap[T]["ListCallsParams"];
+
+export type AIPhoneServiceListCallsResponse<
+  T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType
+> = AIPhoneServiceProviderTypeMap[T]["ListCallsResponse"];
+
 export interface AIPhoneServiceDeletion {
   modelId?: string;
   agentId?: string;
@@ -339,6 +347,17 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
    * Remove tools for event types
    */
   removeToolsForEventTypes(agentId: string, eventTypeIds: number[]): Promise<void>;
+
+  /**
+   * List calls with optional filters
+   */
+  listCalls(params: {
+    userId: number;
+    organizationId?: number;
+    limit?: number;
+    offset?: number;
+    filters?: Partial<AIPhoneServiceListCallsParams<T>>;
+  }): Promise<AIPhoneServiceListCallsResponse<T>>;
 }
 
 /**

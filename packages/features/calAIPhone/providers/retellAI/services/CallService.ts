@@ -7,7 +7,7 @@ import type {
   AIPhoneServiceCall,
 } from "../../../interfaces/AIPhoneService.interface";
 import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
-import type { RetellAIRepository, RetellDynamicVariables } from "../types";
+import type { RetellAIRepository, RetellDynamicVariables, RetellCallListResponse } from "../types";
 
 interface RetellAIServiceInterface {
   updateToolsFromAgentId(
@@ -194,6 +194,58 @@ export class CallService {
       throw new HttpError({
         statusCode: 500,
         message: "Unable to validate credits. Please try again.",
+      });
+    }
+  }
+
+  async listCalls({
+    phoneNumbers,
+    limit = 50,
+    offset: _offset = 0,
+    filters,
+  }: {
+    phoneNumbers: string[];
+    limit?: number;
+    offset?: number;
+    filters?: {
+      toNumber?: string[];
+      startTimestamp?: { lower_threshold?: number; upper_threshold?: number };
+    };
+  }): Promise<RetellCallListResponse> {
+    try {
+      if (phoneNumbers.length === 0) {
+        this.logger.info("No phone numbers provided");
+        return [];
+      }
+
+      const callsResponse = await this.retellRepository.listCalls({
+        filter_criteria: {
+          from_number: phoneNumbers,
+          ...(filters?.toNumber && { to_number: filters.toNumber }),
+          ...(filters?.startTimestamp && { start_timestamp: filters.startTimestamp }),
+        },
+        limit,
+        sort_order: "descending",
+      });
+
+      return callsResponse.map((call) => {
+        const { transcript_object: _transcript_object, call_cost: _call_cost, ...filteredCall } = call;
+        return {
+          ...filteredCall,
+          sessionOutcome:
+            call.call_status === "ended" && !call.disconnection_reason?.includes("error")
+              ? "successful"
+              : "unsuccessful",
+        };
+      }) as RetellCallListResponse;
+    } catch (error) {
+      this.logger.error("Failed to list calls", {
+        phoneNumbers,
+        error,
+      });
+      throw new HttpError({
+        statusCode: 500,
+        message: "Failed to retrieve call history",
       });
     }
   }
