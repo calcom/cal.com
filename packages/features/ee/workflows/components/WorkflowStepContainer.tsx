@@ -371,6 +371,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     },
   });
 
+  const hasCalAIAction = () => {
+    const steps = form.getValues("steps") || [];
+    return steps.some((step) => isCalAIAction(step.action));
+  };
+
   const verifyEmailCodeMutation = trpc.viewer.workflows.verifyEmailCode.useMutation({
     onSuccess: (isVerified) => {
       showToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
@@ -498,26 +503,28 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   );
                 }}
               />
-              <div className="mt-1">
-                <Controller
-                  name="selectAll"
-                  render={({ field: { value, onChange } }) => (
-                    <CheckboxField
-                      description={isOrganization ? t("apply_to_all_teams") : t("apply_to_all_event_types")}
-                      disabled={props.readOnly}
-                      descriptionClassName="ml-0"
-                      onChange={(e) => {
-                        onChange(e);
-                        if (e.target.value) {
-                          setSelectedOptions(allOptions);
-                          form.setValue("activeOn", allOptions);
-                        }
-                      }}
-                      checked={value}
-                    />
-                  )}
-                />
-              </div>
+              {!hasCalAIAction() && (
+                <div className="mt-1">
+                  <Controller
+                    name="selectAll"
+                    render={({ field: { value, onChange } }) => (
+                      <CheckboxField
+                        description={isOrganization ? t("apply_to_all_teams") : t("apply_to_all_event_types")}
+                        disabled={props.readOnly}
+                        descriptionClassName="ml-0"
+                        onChange={(e) => {
+                          onChange(e);
+                          if (e.target.value) {
+                            setSelectedOptions(allOptions);
+                            form.setValue("activeOn", allOptions);
+                          }
+                        }}
+                        checked={value}
+                      />
+                    )}
+                  />
+                </div>
+              )}
             </div>
           )}
 

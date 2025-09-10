@@ -11,8 +11,9 @@ import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import type { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import type { WorkflowPermissions } from "@calcom/lib/server/repository/workflow-permissions";
 import type { TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
-import { MembershipRole, WorkflowActions } from "@calcom/prisma/enums";
+import { WorkflowActions } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -135,14 +136,15 @@ function WorkflowPage({
     return w !== null && w !== undefined && "permissions" in w;
   };
 
-  const hasPermissionToUpdate =
-    workflow && hasPermissions(workflow) ? workflow.permissions?.canUpdate : false;
-
-  const isMember =
-    workflow?.team?.members?.find((member) => member.userId === session.data?.user.id)?.role ===
-    MembershipRole.MEMBER;
-
-  const readOnly = !hasPermissionToUpdate || isMember;
+  const permissions: WorkflowPermissions =
+    workflow && hasPermissions(workflow)
+      ? workflow?.permissions
+      : {
+          canUpdate: !teamId,
+          canView: !teamId,
+          canDelete: !teamId,
+          readOnly: !!teamId,
+        };
 
   // Watch for form name changes
   const watchedName = form.watch("name");
@@ -454,7 +456,7 @@ function WorkflowPage({
                   {workflow.team.name}
                 </Badge>
               )}
-              {readOnly && (
+              {permissions.readOnly && (
                 <Badge className="ml-4 mt-1" variant="gray">
                   {t("readonly")}
                 </Badge>
@@ -471,12 +473,12 @@ function WorkflowPage({
                   onClick={() => {
                     setDeleteDialogOpen(true);
                   }}
-                  disabled={readOnly}
+                  disabled={!permissions.canDelete}
                 />
               </Tooltip>
               <Button
                 loading={updateMutation.isPending}
-                disabled={readOnly || updateMutation.isPending}
+                disabled={permissions.readOnly || updateMutation.isPending}
                 data-testid="save-workflow"
                 type="submit"
                 color="primary">
@@ -497,10 +499,10 @@ function WorkflowPage({
                         selectedOptions={selectedOptions}
                         setSelectedOptions={setSelectedOptions}
                         teamId={workflow ? workflow.teamId || undefined : undefined}
-                        readOnly={readOnly}
                         isOrg={isOrg}
                         allOptions={isOrg ? teamOptions : allEventTypeOptions}
                         onSaveWorkflow={handleSaveWorkflow}
+                        permissions={permissions}
                       />
                     </>
                   ) : (

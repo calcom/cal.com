@@ -5,6 +5,7 @@ import type { UseFormReturn } from "react-hook-form";
 
 import { SENDER_ID, SENDER_NAME, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { WorkflowPermissions } from "@calcom/lib/server/repository/workflow-permissions";
 import type { WorkflowActions } from "@calcom/prisma/enums";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -28,14 +29,15 @@ interface Props {
   setSelectedOptions: Dispatch<SetStateAction<Option[]>>;
   teamId?: number;
   user: User;
-  readOnly: boolean;
   isOrg: boolean;
   allOptions: Option[];
   onSaveWorkflow?: () => Promise<void>;
+  permissions: WorkflowPermissions;
 }
 
 export default function WorkflowDetailsPage(props: Props) {
-  const { form, workflowId, selectedOptions, setSelectedOptions, teamId, isOrg, allOptions } = props;
+  const { form, workflowId, selectedOptions, setSelectedOptions, teamId, isOrg, allOptions, permissions } =
+    props;
   const { t } = useLocale();
 
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
@@ -127,7 +129,7 @@ export default function WorkflowDetailsPage(props: Props) {
               form={form}
               user={props.user}
               teamId={teamId}
-              readOnly={props.readOnly}
+              readOnly={permissions.readOnly}
               selectedOptions={selectedOptions}
               setSelectedOptions={setSelectedOptions}
               isOrganization={isOrg}
@@ -159,10 +161,11 @@ export default function WorkflowDetailsPage(props: Props) {
                       </div>
                     }
                     deleteField={
-                      !props.readOnly
+                      !permissions.readOnly
                         ? {
                             color: "destructive",
                             check: () => true,
+                            disabled: !permissions.canUpdate,
                             fn: () => {
                               if (
                                 isCalAIAction(step.action) &&
@@ -198,7 +201,7 @@ export default function WorkflowDetailsPage(props: Props) {
                         reload={reload}
                         setReload={setReload}
                         teamId={teamId}
-                        readOnly={props.readOnly}
+                        readOnly={permissions.readOnly}
                         onSaveWorkflow={props.onSaveWorkflow}
                         setIsDeleteStepDialogOpen={setIsDeleteStepDialogOpen}
                         isDeleteStepDialogOpen={isDeleteStepDialogOpen}
@@ -215,7 +218,7 @@ export default function WorkflowDetailsPage(props: Props) {
             })}
           </div>
         )}
-        {!props.readOnly && (
+        {!permissions.readOnly && (
           <>
             <div className="border-default !mt-0 ml-7 h-3 w-2 border-l" />
             <Button

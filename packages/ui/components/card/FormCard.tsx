@@ -13,7 +13,7 @@ import { Input } from "../form/inputs/TextField";
 import { Icon } from "../icon";
 import type { IconName } from "../icon";
 
-type Action = { check: () => boolean; fn: () => void; color?: "destructive" | "minimal" };
+type Action = { check: () => boolean; fn: () => void; color?: "destructive" | "minimal"; disabled?: boolean };
 
 type FormCardActionsProps = {
   deleteField?: Action | null;
@@ -25,7 +25,8 @@ const FormCardActions = ({ deleteField, duplicateField }: FormCardActionsProps) 
     label: string;
     icon: IconName;
     onClick: () => void;
-    color?: "destructive" | "minimal";
+    color: "destructive" | "minimal";
+    disabled?: boolean;
   };
 
   const actions: ActionItem[] = [
@@ -39,6 +40,7 @@ const FormCardActions = ({ deleteField, duplicateField }: FormCardActionsProps) 
       icon: "trash",
       onClick: () => deleteField.fn(),
       color: deleteField.color ?? "minimal",
+      disabled: deleteField.disabled,
     },
   ].filter((action): action is ActionItem => !!action);
 
@@ -56,6 +58,7 @@ const FormCardActions = ({ deleteField, duplicateField }: FormCardActionsProps) 
         onClick={action.onClick}
         StartIcon={action.icon}
         title={action.label}
+        disabled={action.disabled}
       />
     );
   }
@@ -77,6 +80,7 @@ const FormCardActions = ({ deleteField, duplicateField }: FormCardActionsProps) 
               e.preventDefault();
               action.onClick();
             }}
+            disabled={action.disabled}
             color={action.color}>
             {action.label}
           </DropdownItem>

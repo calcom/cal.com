@@ -3575,7 +3575,7 @@
   "webhook_trigger_event": "The name of the trigger event (e.g., BOOKING_CREATED, BOOKING_CANCELLED)",
   "webhook_created_at": "The time of the webhook",
   "webhook_type": "The event type slug",
-  "setup_agent": "Set up Agent",
+  "set_up_agent": "Set up Agent",
   "webhook_title": "The event type name",
   "webhook_start_time": "The event's start time",
   "webhook_end_time": "The event's end time",
