@@ -6,7 +6,6 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
@@ -20,9 +19,10 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import type { PrismaClient } from "@calcom/prisma";
 import type { SchedulingType } from "@calcom/prisma/enums";
-import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { BookingStatus, WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema, eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
@@ -42,6 +42,7 @@ export async function handleConfirmation(args: {
   booking: {
     startTime: Date;
     id: number;
+    uid: string;
     eventType: {
       currency: string;
       description: string | null;
@@ -361,12 +362,14 @@ export async function handleConfirmation(args: {
         });
       }
 
-      await scheduleWorkflowReminders({
+      await WorkflowService.scheduleWorkflowsForNewBooking({
         workflows,
         smsReminderNumber: updatedBookings[index].smsReminderNumber,
         calendarEvent: evtOfBooking,
-        isFirstRecurringEvent: isFirstBooking,
         hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
+        isConfirmedByDefault: true,
+        isNormalBookingOrFirstRecurringSlot: isFirstBooking,
+        isRescheduleEvent: false,
       });
     }
   } catch (error) {
@@ -444,6 +447,7 @@ export async function handleConfirmation(args: {
         startTime: booking.startTime,
         id: booking.id,
         location: booking.location,
+        uid: booking.uid,
       },
       triggerForUser,
       organizerUser: { id: booking.userId },
@@ -550,6 +554,35 @@ export async function handleConfirmation(args: {
 
       // I don't need to await for this
       Promise.all(bookingPaidSubscribers);
+
+      try {
+        const calendarEventForWorkflow = {
+          ...evt,
+          eventType: {
+            slug: updatedBookings[0].eventType?.slug || "",
+            schedulingType: updatedBookings[0].eventType?.schedulingType,
+            hosts:
+              updatedBookings[0].eventType?.hosts?.map((host) => ({
+                user: {
+                  email: host.user.email,
+                  destinationCalendar: host.user.destinationCalendar,
+                },
+              })) || [],
+          },
+          bookerUrl: bookerUrl,
+          metadata: { videoCallUrl: meetingUrl },
+        };
+
+        await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
+          workflows,
+          smsReminderNumber: booking.smsReminderNumber,
+          calendarEvent: calendarEventForWorkflow,
+          hideBranding: !!updatedBookings[0].eventType?.owner?.hideBranding,
+          triggers: [WorkflowTriggerEvents.BOOKING_PAID],
+        });
+      } catch (error) {
+        log.error("Error while scheduling workflow reminders for booking paid", safeStringify(error));
+      }
     }
   } catch (error) {
     // Silently fail

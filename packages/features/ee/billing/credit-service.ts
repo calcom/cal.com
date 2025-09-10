@@ -59,6 +59,8 @@ export class CreditService {
     bookingUid,
     smsSid,
     smsSegments,
+    phoneNumber,
+    email,
     callDuration,
     creditFor,
     externalRef,
@@ -69,6 +71,8 @@ export class CreditService {
     bookingUid?: string;
     smsSid?: string;
     smsSegments?: number;
+    phoneNumber?: string;
+    email?: string;
     callDuration?: number;
     creditFor?: CreditUsageType;
     externalRef?: string;
@@ -117,6 +121,8 @@ export class CreditService {
           credits,
           creditType,
           smsSegments,
+          phoneNumber,
+          email,
           callDuration,
           creditFor,
           tx,
@@ -323,12 +329,14 @@ export class CreditService {
     credits: number | null;
     creditType: CreditType;
     smsSegments?: number;
+    phoneNumber?: string;
+    email?: string;
     callDuration?: number;
     creditFor?: CreditUsageType;
     tx: PrismaTransaction;
     externalRef?: string;
   }) {
-    const { credits, creditType, bookingUid, smsSid, teamId, userId, smsSegments, callDuration, creditFor, tx } = props;
+    const { credits, creditType, bookingUid, smsSid, teamId, userId, smsSegments, callDuration, creditFor, phoneNumber, email, tx } = props;
     let creditBalance: { id: string; additionalCredits: number } | null | undefined =
       await CreditsRepository.findCreditBalance({ teamId, userId }, tx);
 
@@ -370,6 +378,8 @@ export class CreditService {
           bookingUid,
           smsSid,
           smsSegments,
+          phoneNumber,
+          email,
           callDuration,
           externalRef: props.externalRef,
         },
