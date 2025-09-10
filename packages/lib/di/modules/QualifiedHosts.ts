@@ -1,7 +1,6 @@
-import { createModule } from "@evyweb/ioctopus";
-
 import type { IQualifiedHostsService } from "../../bookings/findQualifiedHostsWithDelegationCredentials";
 import { QualifiedHostsService } from "../../bookings/findQualifiedHostsWithDelegationCredentials";
+import { createModule } from "../di";
 import { DI_TOKENS } from "../tokens";
 
 export const qualifiedHostsModule = createModule();
