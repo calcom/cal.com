@@ -4,6 +4,8 @@ import React, { createContext, useContext } from "react";
 
 import type { NavigationItemName, NavigationPermissions } from "./types";
 
+export type { NavigationItemName, NavigationPermissions };
+
 /**
  * Context for navigation permissions
  */
