@@ -1,5 +1,11 @@
 ## 1.1.2
 
+## 1.8.0
+
+### Minor Changes
+
+- [#23686](https://github.com/calcom/cal.com/pull/23686) [`cfd1992`](https://github.com/calcom/cal.com/commit/cfd1992733ff8c4db3e5795e421aef957fad43a4) Thanks [@Ryukemeister](https://github.com/Ryukemeister)! - This PR adds customReplyEmailTo feature for EventTypeSettings atom
+
 ## 1.7.1
 
 ### Patch Changes

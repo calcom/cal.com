@@ -1,5 +1,3 @@
-import { createContainer } from "@evyweb/ioctopus";
-
 import { bookingRepositoryModule } from "@calcom/lib/di/modules/Booking";
 import { cacheModule } from "@calcom/lib/di/modules/Cache";
 import { checkBookingAndDurationLimitsModule } from "@calcom/lib/di/modules/CheckBookingAndDurationLimits";
@@ -8,8 +6,11 @@ import { featuresRepositoryModule } from "@calcom/lib/di/modules/Features";
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 
-import type { RecurringBookingService } from "../modules/RecurringBookingServiceModule";
-import { recurringBookingServiceModule } from "../modules/RecurringBookingServiceModule";
+import { createContainer } from "../../di";
+import {
+  type RecurringBookingService,
+  recurringBookingServiceModule,
+} from "../modules/RecurringBookingService.module";
 
 const container = createContainer();
 container.load(DI_TOKENS.PRISMA_MODULE, prismaModule);
