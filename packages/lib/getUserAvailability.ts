@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-imports */
 import type {
   Booking,
   Prisma,
@@ -574,8 +575,8 @@ export class UserAvailabilityService {
     });
 
     const formattedBusyTimes = detailedBusyTimes.map((busy) => ({
-      start: dayjs(busy.start),
-      end: dayjs(busy.end),
+      start: dayjs(busy.start).utc(),
+      end: dayjs(busy.end).utc(),
     }));
 
     const dateRangesInWhichUserIsAvailable = subtract(dateRanges, formattedBusyTimes);
