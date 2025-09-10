@@ -760,7 +760,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   // Remove or add booking field for sms reminder number (only for event types, not routing forms)
   if (!isFormTrigger(trigger)) {
     const smsReminderNumberNeeded =
-      activeOnEventTypeIds.length &&
+      activeOnWithChildren.length &&
       steps.some(
         (step) =>
           step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.WHATSAPP_ATTENDEE
@@ -795,13 +795,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   // Remove or add attendeePhoneNumber field for AI phone call actions
   const aiPhoneCallStepsNeeded =
-    activeOnEventTypeIds.length && steps.some((s) => s.action === WorkflowActions.CAL_AI_PHONE_CALL);
+    activeOnWithChildren.length && steps.some((s) => s.action === WorkflowActions.CAL_AI_PHONE_CALL);
 
   await removeAIAgentCallPhoneNumberFieldForEventTypes({
     activeOnToRemove: removedActiveOnIds,
     workflowId: id,
     isOrg,
-    activeOn: activeOnEventTypeIds,
+    activeOn: activeOnWithChildren,
   });
 
   if (!aiPhoneCallStepsNeeded) {
