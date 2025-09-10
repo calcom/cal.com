@@ -8,6 +8,7 @@ import type { writeToRecordDataSchema as salesforceWriteToRecordDataSchema } fro
 import { routingFormIncompleteBookingDataSchema as salesforceRoutingFormIncompleteBookingDataSchema } from "@calcom/app-store/salesforce/zod";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IncompleteBookingActionType } from "@calcom/prisma/enums";
+// eslint-disable-next-line no-restricted-imports
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button } from "@calcom/ui/components/button";
@@ -18,6 +19,7 @@ import { Label } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
+import RoutingFormsShell from "../../components/RoutingFormsShell";
 import SingleForm from "../../components/SingleForm";
 import type { getServerSidePropsForSingleFormView as getServerSideProps } from "../../components/getServerSidePropsSingleForm";
 import type { RoutingFormWithResponseCount } from "../../types/types";
@@ -93,7 +95,7 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
           : selectedCredential
       );
     }
-  }, [data]);
+  }, [data, credentialOptions, selectedCredential]);
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -323,12 +325,14 @@ export default function IncompleteBookingPage({
   permissions,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   return (
-    <SingleForm
-      form={form}
-      appUrl={appUrl}
-      enrichedWithUserProfileForm={enrichedWithUserProfileForm}
-      permissions={permissions}
-      Page={Page}
-    />
+    <RoutingFormsShell>
+      <SingleForm
+        form={form}
+        appUrl={appUrl}
+        enrichedWithUserProfileForm={enrichedWithUserProfileForm}
+        permissions={permissions}
+        Page={Page}
+      />
+    </RoutingFormsShell>
   );
 }

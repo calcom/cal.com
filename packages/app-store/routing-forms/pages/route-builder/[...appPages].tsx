@@ -17,6 +17,7 @@ import type { EventTypesByViewer } from "@calcom/lib/event-types/getEventTypesBy
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { buildEmptyQueryValue, raqbQueryValueUtils } from "@calcom/lib/raqb/raqbUtils";
 import { SchedulingType } from "@calcom/prisma/enums";
+// eslint-disable-next-line no-restricted-imports
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import classNames from "@calcom/ui/classNames";
@@ -32,6 +33,7 @@ import { Icon } from "@calcom/ui/components/icon";
 
 import { routingFormAppComponents } from "../../appComponents";
 import DynamicAppComponent from "../../components/DynamicAppComponent";
+import RoutingFormsShell from "../../components/RoutingFormsShell";
 import SingleForm from "../../components/SingleForm";
 import { EmptyState } from "../../components/_components/EmptyState";
 import { RoutingSkeleton } from "../../components/_components/RoutingSkeleton";
@@ -103,12 +105,12 @@ function useEnsureEventTypeIdInRedirectUrlAction({
     setRoute(route.id, {
       action: { ...route.action, eventTypeId: matchingOption.eventTypeId },
     });
-  }, [eventOptions, setRoute, route.id, (route as unknown as any).action?.value]);
+  }, [eventOptions, setRoute, route.id, route]);
 }
 
 const hasRules = (route: EditFormRoute) => {
   if (isRouter(route)) return false;
-  route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
+  return route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
 };
 
 function getEmptyQueryValue() {
@@ -147,14 +149,14 @@ const buildEventsData = ({
     label: string;
     value: string;
     eventTypeId: number;
-    eventTypeAppMetadata?: Record<string, any>;
+    eventTypeAppMetadata?: Record<string, unknown>;
     isRRWeightsEnabled: boolean;
   }[] = [];
   const eventTypesMap = new Map<
     number,
     {
       schedulingType: SchedulingType | null;
-      eventTypeAppMetadata?: Record<string, any>;
+      eventTypeAppMetadata?: Record<string, unknown>;
     }
   >();
   eventTypesByGroup?.eventTypeGroups.forEach((group) => {
@@ -398,7 +400,7 @@ const Route = ({
     const isCustom =
       !isRouter(route) && !eventOptions.find((eventOption) => eventOption.value === route.action.value);
     setCustomEventTypeSlug(isCustom && !isRouter(route) ? route.action.value.split("/").pop() ?? "" : "");
-  }, []);
+  }, [route, eventOptions]);
 
   useEnsureEventTypeIdInRedirectUrlAction({
     route,
@@ -1158,7 +1160,7 @@ const Routes = ({
     });
   };
 
-  const availableRouters =
+  const _availableRouters =
     allForms?.filtered
       .filter(({ form: router }) => {
         const routerValidInContext = areTheySiblingEntities({
@@ -1377,7 +1379,7 @@ function Page({
   const values = hookForm.getValues();
   const { data: attributes, isPending: isAttributesLoading } =
     trpc.viewer.appRoutingForms.getAttributesForTeam.useQuery(
-      { teamId: values.teamId! },
+      { teamId: values.teamId ?? "" },
       { enabled: !!values.teamId }
     );
 
@@ -1430,7 +1432,7 @@ export default function RouteBuilder({
   permissions,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   return (
-    <>
+    <RoutingFormsShell>
       <SingleForm
         form={form}
         appUrl={appUrl}
@@ -1439,6 +1441,6 @@ export default function RouteBuilder({
         Page={Page}
       />
       <Toaster position="bottom-right" />
-    </>
+    </RoutingFormsShell>
   );
 }
