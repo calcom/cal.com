@@ -16,6 +16,7 @@ import { showToast } from "@calcom/ui/components/toast";
 export type UpdateUsersDefaultConferencingAppParams = {
   appSlug: string;
   appLink?: string;
+  credentialId?: number;
   onSuccessCallback: () => void;
   onErrorCallback: () => void;
 };

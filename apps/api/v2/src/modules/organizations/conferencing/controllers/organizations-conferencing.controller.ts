@@ -7,14 +7,12 @@ import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.g
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import {
   ConferencingAppsOauthUrlOutputDto,
   GetConferencingAppsOauthUrlResponseDto,
 } from "@/modules/conferencing/outputs/get-conferencing-apps-oauth-url";
 import {
   ConferencingAppsOutputResponseDto,
-  ConferencingAppOutputResponseDto,
   ConferencingAppsOutputDto,
   DisconnectConferencingAppOutputResponseDto,
 } from "@/modules/conferencing/outputs/get-conferencing-apps.output";
@@ -22,7 +20,6 @@ import { GetDefaultConferencingAppOutputResponseDto } from "@/modules/conferenci
 import { SetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/set-default-conferencing-app.output";
 import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
 import { OrganizationsConferencingService } from "@/modules/organizations/conferencing/services/organizations-conferencing.service";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
@@ -43,7 +40,6 @@ import {
 import { ApiOperation, ApiTags as DocsTags, ApiParam } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 import { Request } from "express";
-import { stringify } from "querystring";
 
 import { GOOGLE_MEET, ZOOM, SUCCESS_STATUS, OFFICE_365_VIDEO, CAL_VIDEO } from "@calcom/platform-constants";
 
@@ -60,41 +56,14 @@ export type OAuthCallbackState = {
   path: "/v2/organizations/:orgId",
   version: API_VERSIONS_VALUES,
 })
-@DocsTags("Orgs / Teams / Conferencing")
+@DocsTags("Organizations / Conferencing")
 export class OrganizationsConferencingController {
   constructor(
     private readonly conferencingService: ConferencingService,
-    private readonly organizationsConferencingService: OrganizationsConferencingService,
-    private readonly tokensRepository: TokensRepository
+    private readonly organizationsConferencingService: OrganizationsConferencingService
   ) {}
 
-  @Roles("TEAM_ADMIN")
-  @PlatformPlan("ESSENTIALS")
-  @ApiParam({
-    name: "app",
-    description: "Conferencing application type",
-    enum: [GOOGLE_MEET],
-    required: true,
-  })
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-  @Post("/teams/:teamId/conferencing/:app/connect")
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Connect your conferencing application to a team" })
-  async connectTeamApp(
-    @GetUser() user: UserWithProfile,
-    @Param("teamId", ParseIntPipe) teamId: number,
-    @Param("orgId", ParseIntPipe) orgId: number,
-    @Param("app") app: string
-  ): Promise<ConferencingAppOutputResponseDto> {
-    const credential = await this.organizationsConferencingService.connectTeamNonOauthApps({
-      teamId,
-      app,
-    });
-
-    return { status: SUCCESS_STATUS, data: plainToInstance(ConferencingAppsOutputDto, credential) };
-  }
-
-  @Roles("TEAM_ADMIN")
+  @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @ApiParam({
     name: "app",
@@ -102,14 +71,13 @@ export class OrganizationsConferencingController {
     enum: [ZOOM, OFFICE_365_VIDEO],
     required: true,
   })
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-  @Get("/teams/:teamId/conferencing/:app/oauth/auth-url")
+  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @Get("/conferencing/:app/oauth/auth-url")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Get OAuth conferencing app's auth URL for a team" })
-  async getTeamOAuthUrl(
+  @ApiOperation({ summary: "Get OAuth conferencing app's auth url for a organization" })
+  async getOrgOAuthUrl(
     @Req() req: Request,
     @Headers("Authorization") authorization: string,
-    @Param("teamId") teamId: string,
     @Param("orgId") orgId: string,
     @Param("app") app: string,
     @Query("returnTo") returnTo?: string,
@@ -123,7 +91,6 @@ export class OrganizationsConferencingController {
       onErrorReturnTo: onErrorReturnTo ?? origin,
       fromApp: false,
       accessToken,
-      teamId,
       orgId,
     };
 
@@ -135,91 +102,86 @@ export class OrganizationsConferencingController {
     };
   }
 
-  @Roles("TEAM_ADMIN")
+  @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-  @Get("/teams/:teamId/conferencing")
+  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @Get("/conferencing")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "List team conferencing applications" })
-  async listTeamConferencingApps(
-    @Param("teamId", ParseIntPipe) teamId: number
+  @ApiOperation({ summary: "List organization conferencing applications" })
+  async listOrgConferencingApps(
+    @Param("orgId", ParseIntPipe) orgId: number
   ): Promise<ConferencingAppsOutputResponseDto> {
     const conferencingApps = await this.organizationsConferencingService.getConferencingApps({
-      teamId,
+      teamId: orgId,
     });
 
     return {
       status: SUCCESS_STATUS,
-      data: conferencingApps.map((app) => plainToInstance(ConferencingAppsOutputDto, app)),
+      data: conferencingApps.map((app) =>
+        plainToInstance(ConferencingAppsOutputDto, app, { strategy: "excludeAll" })
+      ),
     };
   }
 
-  @Roles("TEAM_ADMIN")
+  @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-  @Post("/teams/:teamId/conferencing/:app/default")
+  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @Post("/conferencing/:app/default")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Set team default conferencing application" })
+  @ApiOperation({ summary: "Set organization default conferencing application" })
   @ApiParam({
     name: "app",
     description: "Conferencing application type",
     enum: [GOOGLE_MEET, ZOOM, OFFICE_365_VIDEO, CAL_VIDEO],
     required: true,
   })
-  async setTeamDefaultApp(
-    @Param("teamId", ParseIntPipe) teamId: number,
+  async setOrgDefaultApp(
+    @Param("orgId", ParseIntPipe) orgId: number,
     @Param("app") app: string
   ): Promise<SetDefaultConferencingAppOutputResponseDto> {
     await this.organizationsConferencingService.setDefaultConferencingApp({
-      teamId,
+      teamId: orgId,
       app,
     });
 
     return { status: SUCCESS_STATUS };
   }
 
-  @Roles("TEAM_ADMIN")
+  @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-  @Get("/teams/:teamId/conferencing/default")
+  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @Get("/conferencing/default")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Get team default conferencing application" })
-  @ApiParam({
-    name: "app",
-    description: "Conferencing application type",
-    enum: [GOOGLE_MEET, ZOOM, OFFICE_365_VIDEO, CAL_VIDEO],
-    required: true,
-  })
-  async getTeamDefaultApp(
-    @GetUser() user: UserWithProfile,
-    @Param("teamId", ParseIntPipe) teamId: number
+  @ApiOperation({ summary: "Get organization default conferencing application" })
+  async getOrgDefaultApp(
+    @Param("orgId", ParseIntPipe) orgId: number
   ): Promise<GetDefaultConferencingAppOutputResponseDto> {
     const defaultConferencingApp = await this.organizationsConferencingService.getDefaultConferencingApp({
-      teamId,
+      teamId: orgId,
     });
 
     return { status: SUCCESS_STATUS, data: defaultConferencingApp };
   }
 
-  @Roles("TEAM_ADMIN")
+  @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-  @Delete("/teams/:teamId/conferencing/:app/disconnect")
+  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @Delete("/conferencing/:app/disconnect")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Disconnect team conferencing application" })
+  @ApiOperation({ summary: "Disconnect organization conferencing application" })
   @ApiParam({
     name: "app",
     description: "Conferencing application type",
     enum: [GOOGLE_MEET, ZOOM, OFFICE_365_VIDEO],
     required: true,
   })
-  async disconnectTeamApp(
+  async disconnectOrgApp(
     @GetUser() user: UserWithProfile,
-    @Param("teamId", ParseIntPipe) teamId: number,
+    @Param("orgId", ParseIntPipe) orgId: number,
     @Param("app") app: string
   ): Promise<DisconnectConferencingAppOutputResponseDto> {
     await this.organizationsConferencingService.disconnectConferencingApp({
-      teamId,
+      teamId: orgId,
       user,
       app,
     });
@@ -227,18 +189,17 @@ export class OrganizationsConferencingController {
     return { status: SUCCESS_STATUS };
   }
 
-  @Roles("TEAM_ADMIN")
+  @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-  @Get("/teams/:teamId/conferencing/:app/oauth/callback")
+  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @Get("/conferencing/:app/oauth/callback")
   @Redirect(undefined, 301)
   @ApiOperation({ summary: "Save conferencing app OAuth credentials" })
-  async saveTeamOauthCredentials(
+  async handleOrgOauthCallback(
     @Query("state") state: string,
     @Query("code") code: string,
     @Query("error") error: string | undefined,
     @Query("error_description") error_description: string | undefined,
-    @Param("teamId", ParseIntPipe) teamId: number,
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("app") app: string
   ): Promise<{ url: string }> {
@@ -252,7 +213,7 @@ export class OrganizationsConferencingController {
         decodedCallbackState,
         code,
         app,
-        teamId,
+        teamId: orgId,
       });
     } catch (error) {
       if (error instanceof Error) {

@@ -78,6 +78,7 @@ export async function getConnectedApps({
             accepted: true,
           },
         },
+        ...(teamId ? { id: teamId } : {}),
       },
       select: {
         id: true,
@@ -114,6 +115,7 @@ export async function getConnectedApps({
         },
       },
     });
+
     // If a team is a part of an org then include those apps
     // Don't want to iterate over these parent teams
     const filteredTeams: TeamQuery[] = [];
@@ -177,6 +179,7 @@ export async function getConnectedApps({
       const credentialOwner: CredentialOwner = {
         name: user.name,
         avatar: user?.avatar ?? user?.avatarUrl,
+        credentialId: credentials.find((c) => c.appId === app.slug && c.userId == user.id)?.id,
       };
 
       // We need to know if app is payment type
