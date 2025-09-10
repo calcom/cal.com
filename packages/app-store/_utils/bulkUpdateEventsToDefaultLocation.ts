@@ -1,24 +1,22 @@
-import type { LocationObject } from "@calcom/app-store/locations";
-import { getAppFromSlug } from "@calcom/app-store/utils";
 import type { PrismaClient } from "@calcom/prisma";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { User } from "@calcom/prisma/client";
+import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
-export const bulkUpdateTeamEventsToDefaultLocation = async ({
+import type { LocationObject } from "../locations";
+import { getAppFromSlug } from "../utils";
+
+export const bulkUpdateEventsToDefaultLocation = async ({
   eventTypeIds,
-  teamId,
+  user,
   prisma,
 }: {
   eventTypeIds: number[];
-  teamId: number;
+  user: Pick<User, "id" | "metadata">;
   prisma: PrismaClient;
 }) => {
-  const team = await prisma.team.findUnique({
-    where: { id: teamId },
-    select: { metadata: true },
-  });
-  const defaultApp = teamMetadataSchema.parse(team?.metadata)?.defaultConferencingApp;
+  const defaultApp = userMetadataSchema.parse(user.metadata)?.defaultConferencingApp;
 
   if (!defaultApp) {
     throw new TRPCError({
@@ -38,7 +36,7 @@ export const bulkUpdateTeamEventsToDefaultLocation = async ({
 
   const credential = await prisma.credential.findFirst({
     where: {
-      teamId,
+      userId: user.id,
       appId: foundApp.slug,
     },
     select: {
@@ -51,7 +49,7 @@ export const bulkUpdateTeamEventsToDefaultLocation = async ({
       id: {
         in: eventTypeIds,
       },
-      teamId,
+      userId: user.id,
     },
     data: {
       locations: [
