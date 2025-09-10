@@ -1,12 +1,10 @@
-export const WEBHOOK_DI_TOKENS = {
+export const WEBHOOK_TOKENS = {
   // Core interfaces
   WEBHOOK_SERVICE: Symbol("IWebhookService"),
   BOOKING_WEBHOOK_SERVICE: Symbol("IBookingWebhookService"),
   FORM_WEBHOOK_SERVICE: Symbol("IFormWebhookService"),
   RECORDING_WEBHOOK_SERVICE: Symbol("IRecordingWebhookService"),
   WEBHOOK_NOTIFIER: Symbol("IWebhookNotifier"),
-  TASKER: Symbol("ITasker"),
-  LOGGER: Symbol("ILogger"),
   OOO_WEBHOOK_SERVICE: Symbol("OOO_WEBHOOK_SERVICE"),
   WEBHOOK_NOTIFICATION_HANDLER: Symbol("WebhookNotificationHandler"),
 
@@ -20,4 +18,4 @@ export const WEBHOOK_DI_TOKENS = {
 
   // Repositories
   WEBHOOK_REPOSITORY: Symbol("IWebhookRepository"),
-};
+} as const;
