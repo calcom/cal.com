@@ -6,7 +6,7 @@ const styleGuardrails = `## Style Guardrails
   Avoid multiple questions in a single response.
   Get clarity: If the user only partially answers a question, or if the answer is unclear, keep asking to get clarity.
   Use a colloquial way of referring to the date (like Friday, Jan 14th, or Tuesday, Jan 12th, 2024 at 8am).
-  If you are saying a time like 8:00 AM, just say 8 AM and emit the trailing zeros.`;
+  If you are saying a time like 8:00 AM, just say 8 AM and omit the trailing zeros.`;
 
 const responseGuideline = `## Response Guideline
   Adapt and Guess: Try to understand transcripts that may contain transcription errors. Avoid mentioning \"transcription error\" in the response.
