@@ -156,7 +156,7 @@ const expectEventManagerCalledWith = (
     expectedParams.changedOrganizer,
     expectedParams.destinationCalendars ?? expect.any(Array),
     undefined,
-    true
+    expectedParams.changedOrganizer
   );
 };
 
