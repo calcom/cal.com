@@ -1,4 +1,5 @@
 "use client";
+
 import { usePathname } from "next/navigation";
 import { useEffect, type FC } from "react";
 import { IntercomProvider } from "react-use-intercom";
@@ -36,8 +37,9 @@ const Provider: FC<{ children: React.ReactNode }> = ({ children }) => {
 
   const pathname = usePathname();
   const isOnboardingPage = pathname?.startsWith("/getting-started");
+  const isCalVideoPage = pathname?.startsWith("/video/");
 
-  if (isOnboardingPage) {
+  if (isOnboardingPage || isCalVideoPage) {
     return <>{children}</>;
   }
 

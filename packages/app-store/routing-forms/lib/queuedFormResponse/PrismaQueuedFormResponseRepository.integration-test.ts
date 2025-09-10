@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import { describe, expect, beforeAll, afterAll, beforeEach, it } from "vitest";
 
 import prisma from "@calcom/prisma";
@@ -32,7 +33,7 @@ const createTestForm = async (userId: number, overrides?: { name?: string }) => 
 const createFormResponse = async (
   formId: string,
   overrides?: {
-    response?: Record<string, unknown>;
+    response?: Prisma.InputJsonValue;
     chosenRouteId?: string;
   }
 ) => {
@@ -48,7 +49,7 @@ const createFormResponse = async (
 const createQueuedResponse = async (
   formId: string,
   overrides?: {
-    response?: Record<string, unknown>;
+    response?: Prisma.InputJsonValue;
     chosenRouteId?: string;
     actualResponseId?: number | null;
     createdAt?: Date;
@@ -384,9 +385,15 @@ describe("PrismaQueuedFormResponseRepository Integration Tests", () => {
   describe("deleteByIds", () => {
     it("should delete queued responses by their ids", async () => {
       // Create test queued responses
-      const response1 = await createQueuedResponse(testForm.id, { response: { field1: "value1" } });
-      const response2 = await createQueuedResponse(testForm.id, { response: { field1: "value2" } });
-      const response3 = await createQueuedResponse(testForm.id, { response: { field1: "value3" } });
+      const response1 = await createQueuedResponse(testForm.id, {
+        response: { field1: "value1" },
+      });
+      const response2 = await createQueuedResponse(testForm.id, {
+        response: { field1: "value2" },
+      });
+      const response3 = await createQueuedResponse(testForm.id, {
+        response: { field1: "value3" },
+      });
 
       // Delete response1 and response2
       const result = await repository.deleteByIds([response1.id, response2.id]);
@@ -411,7 +418,9 @@ describe("PrismaQueuedFormResponseRepository Integration Tests", () => {
     });
 
     it("should handle single id deletion", async () => {
-      const response = await createQueuedResponse(testForm.id, { response: { field1: "single-delete" } });
+      const response = await createQueuedResponse(testForm.id, {
+        response: { field1: "single-delete" },
+      });
 
       const result = await repository.deleteByIds([response.id]);
 
@@ -422,7 +431,9 @@ describe("PrismaQueuedFormResponseRepository Integration Tests", () => {
     });
 
     it("should handle mix of existing and non-existing ids", async () => {
-      const response = await createQueuedResponse(testForm.id, { response: { field1: "mixed-delete" } });
+      const response = await createQueuedResponse(testForm.id, {
+        response: { field1: "mixed-delete" },
+      });
 
       const result = await repository.deleteByIds([response.id, "non-existent-id"]);
 

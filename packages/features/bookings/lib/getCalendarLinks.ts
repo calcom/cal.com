@@ -6,11 +6,10 @@ import type { z } from "zod";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import type { nameObjectSchema } from "@calcom/lib/event";
+import type { nameObjectSchema } from "@calcom/features/eventtypes/lib/eventNaming";
+import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RecurringEvent } from "@calcom/types/Calendar";
-
-import { getEventName } from "../event";
 
 type RecurringEventOrPrismaJsonObject = RecurringEvent | Prisma.JsonObject | null | undefined;
 export const enum CalendarLinkType {
