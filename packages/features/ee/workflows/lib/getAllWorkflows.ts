@@ -34,7 +34,7 @@ export const getAllWorkflows = async ({
   userId,
   teamId,
   orgId,
-  workflowsLockedForUser,
+  workflowsLockedForUser = true,
   triggerType,
 }: {
   entityWorkflows: Workflow[];

@@ -158,9 +158,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     newActiveOn = activeOnEventTypeIds.filter((teamId) => !oldActiveOnIds.includes(teamId));
 
     const isAuthorizedToAddIds = await isAuthorizedToAddActiveOnIds({
-      newEventTypeIds: newActiveOn,
+      newEventTypeIds: [], // No event type IDs for team workflows
       newRoutingFormIds: [], // No routing form IDs for team workflows
-      isOrg,
+      newTeamIds: newActiveOn,
       teamId: userWorkflow?.teamId,
       userId: userWorkflow?.userId,
     });
@@ -197,8 +197,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
     const isAuthorizedToAddIds = await isAuthorizedToAddActiveOnIds({
       newEventTypeIds: [], // No event type IDs for form triggers
-      newRoutingFormIds: routingFormIds,
-      isOrg,
+      newRoutingFormIds: routingFormIds ?? [],
+      newTeamIds: [], // No team IDs for form triggers
       teamId: userWorkflow?.teamId,
       userId: userWorkflow?.userId,
     });
@@ -291,7 +291,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     const isAuthorizedToAddIds = await isAuthorizedToAddActiveOnIds({
       newEventTypeIds: newActiveOn,
       newRoutingFormIds: [],
-      isOrg,
+      newTeamIds: [],
       teamId: userWorkflow?.teamId,
       userId: userWorkflow?.userId,
     });
