@@ -53,12 +53,12 @@ export const VerifyCodeDialog = ({
   const verifyCode = useCallback(() => {
     resetErrors();
     setIsPending(true);
-    setVerificationCode(value);
     if (isUserSessionRequiredToVerify) {
       verifyCodeWithSessionRequired(value, email);
     } else {
       verifyCodeWithSessionNotRequired(value, email);
     }
+    setVerificationCode(value);
     setHasVerified(true);
   }, [
     resetErrors,
