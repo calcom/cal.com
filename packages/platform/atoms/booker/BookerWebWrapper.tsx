@@ -95,7 +95,6 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
   const [bookerState, _] = useBookerStoreContext((state) => [state.state, state.setState], shallow);
   const [dayCount] = useBookerStoreContext((state) => [state.dayCount, state.setDayCount], shallow);
   const [month] = useBookerStoreContext((state) => [state.month, state.setMonth], shallow);
-  const setVerificationCode = useBookerStoreContext((state) => state.setVerificationCode);
 
   const { data: session } = useSession();
   const routerQuery = useRouterQuery();
@@ -185,12 +184,8 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
   });
 
   const verifyCode = useVerifyCode({
-    onSuccess: (isVerified, verificationCode) => {
+    onSuccess: () => {
       if (!bookerForm.formEmail) return;
-
-      if (isVerified && verificationCode) {
-        setVerificationCode(verificationCode);
-      }
 
       verifyEmail.setVerifiedEmail(bookerForm.formEmail);
       verifyEmail.setEmailVerificationModalVisible(false);
