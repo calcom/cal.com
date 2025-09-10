@@ -11,6 +11,7 @@ import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
@@ -125,8 +126,10 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
           WebkitBoxOrient: "vertical",
           overflow: "hidden",
           wordBreak: "break-word",
+          textOverflow: "ellipsis",
+          lineHeight: "1.4",
         }}>
-        {app.description?.replace(/<[^>]*>/g, '') || ""}
+        {stripMarkdown(app.description || "")}
       </p>
 
       <div className="mt-5 flex max-w-full flex-row justify-between gap-2">

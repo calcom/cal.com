@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import type { CredentialOwner } from "@calcom/types/CredentialOwner";
 import classNames from "@calcom/ui/classNames";
 
@@ -95,8 +96,10 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
               wordBreak: "break-word",
+              textOverflow: "ellipsis",
+              lineHeight: "1.4",
             }}>
-            {description?.replace(/<[^>]*>/g, '') || ""}
+            {stripMarkdown(description || "")}
           </p>
           {invalidCredential && (
             <div className="flex gap-x-2 pt-2">
