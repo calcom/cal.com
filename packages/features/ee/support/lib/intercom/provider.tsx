@@ -32,7 +32,6 @@ const Provider: FC<{ children: React.ReactNode }> = ({ children }) => {
   const pathname = usePathname();
   const [isSupportReady] = useState(!!window.Support);
   const router = useRouter();
-  console.log("isSupportReady", isSupportReady);
 
   const shouldOpenSupport =
     pathname === "/event-types" && (searchParams?.has("openPlain") || searchParams?.has("openSupport"));
