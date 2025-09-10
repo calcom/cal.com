@@ -1,5 +1,6 @@
-import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
 import { handleErrorsJson } from "@calcom/lib/errors";
+
+import { getDailyAppKeys } from "./getDailyAppKeys";
 
 export const fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
   const { api_key } = await getDailyAppKeys();

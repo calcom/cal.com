@@ -1,8 +1,8 @@
 import type { TFunction } from "i18next";
 import { describe, expect, it, vi } from "vitest";
 
-import * as event from "./event";
-import { updateHostInEventName } from "./event";
+import * as event from "./eventNaming";
+import { updateHostInEventName } from "./eventNaming";
 
 describe("event tests", () => {
   describe("fn: getEventName", () => {
