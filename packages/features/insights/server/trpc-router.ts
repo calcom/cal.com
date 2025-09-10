@@ -314,7 +314,7 @@ export interface IResultTeamList {
 function createInsightsBookingService(
   ctx: { user: { id: number; organizationId: number | null } },
   input: z.infer<typeof bookingRepositoryBaseInputSchema>,
-  dateTarget: "createdAt" | "startTime" = "createdAt"
+  dateTarget: "createdAt" | "startTime" = "startTime"
 ) {
   const { scope, selectedTeamId, startDate, endDate, columnFilters } = input;
   return getInsightsBookingService({
@@ -560,7 +560,7 @@ export const insightsRouter = router({
   membersWithMostCompletedBookings: insightsPbacProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
-      const insightsBookingService = createInsightsBookingService(ctx, input, "startTime");
+      const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
         return await insightsBookingService.getMembersStatsWithCount("accepted", "DESC");
@@ -571,7 +571,7 @@ export const insightsRouter = router({
   membersWithLeastCompletedBookings: insightsPbacProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
-      const insightsBookingService = createInsightsBookingService(ctx, input, "startTime");
+      const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
         return await insightsBookingService.getMembersStatsWithCount("accepted", "ASC");
@@ -1001,7 +1001,7 @@ export const insightsRouter = router({
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const { timeZone } = input;
-      const insightsBookingService = createInsightsBookingService(ctx, input, "startTime");
+      const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
         return await insightsBookingService.getBookingsByHourStats({
@@ -1014,7 +1014,7 @@ export const insightsRouter = router({
   recentNoShowGuests: insightsPbacProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
-      const insightsBookingService = createInsightsBookingService(ctx, input, "startTime");
+      const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
         return await insightsBookingService.getRecentNoShowGuests();
