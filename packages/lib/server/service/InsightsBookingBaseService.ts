@@ -13,7 +13,7 @@ import {
   isNumberFilterValue,
 } from "@calcom/features/data-table/lib/utils";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
-import type { readonlyPrisma } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { MembershipRepository } from "../repository/membership";
@@ -142,7 +142,7 @@ const NOTHING_CONDITION = Prisma.sql`1=0`;
 const bookingDataKeys = new Set(Object.keys(bookingDataSchema.shape));
 
 export class InsightsBookingBaseService {
-  private prisma: typeof readonlyPrisma;
+  private prisma: PrismaClient;
   private options: InsightsBookingServiceOptions | null;
   private filters: InsightsBookingServiceFilterOptions | null;
   private cachedAuthConditions?: Prisma.Sql;
@@ -153,7 +153,7 @@ export class InsightsBookingBaseService {
     options,
     filters,
   }: {
-    prisma: typeof readonlyPrisma;
+    prisma: PrismaClient;
     options: InsightsBookingServicePublicOptions;
     filters?: InsightsBookingServiceFilterOptions;
   }) {
@@ -650,31 +650,42 @@ export class InsightsBookingBaseService {
         noShowGuests: number;
       }[]
     >`
-    SELECT
-      "date",
-      CAST(COUNT(*) AS INTEGER) AS "bookingsCount",
-      CAST(COUNT(CASE WHEN "isNoShowGuest" = true THEN 1 END) AS INTEGER) AS "noShowGuests",
-      "timeStatus",
-      "noShowHost"
-    FROM (
+    WITH booking_stats AS (
       SELECT
         DATE("createdAt" AT TIME ZONE ${timeZone}) as "date",
-        "a"."noShow" AS "isNoShowGuest",
         "timeStatus",
-        "noShowHost"
-      FROM
-        "BookingTimeStatusDenormalized"
-      JOIN
-        "Attendee" "a" ON "a"."bookingId" = "BookingTimeStatusDenormalized"."id"
-      WHERE
-        ${baseConditions}
-    ) AS bookings
-    GROUP BY
-      "date",
-      "timeStatus",
-      "noShowHost"
-    ORDER BY
-      "date"
+        COALESCE("noShowHost", false) AS "noShowHost",
+        COUNT(*) as "bookingsCount"
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions}
+      GROUP BY
+        1, 2, 3
+    ),
+    guest_stats AS (
+      SELECT
+        DATE(b."createdAt" AT TIME ZONE ${timeZone}) as "date",
+        b."timeStatus",
+        COALESCE(b."noShowHost", false) AS "noShowHost",
+        COUNT(CASE WHEN a."noShow" = true THEN 1 END) as "noShowGuests"
+      FROM "BookingTimeStatusDenormalized" b
+      INNER JOIN "Attendee" a ON a."bookingId" = b.id
+      WHERE ${baseConditions}
+      GROUP BY
+        1, 2, 3
+    )
+    SELECT
+      bs."date",
+      CAST(bs."bookingsCount" AS INTEGER) AS "bookingsCount",
+      bs."timeStatus",
+      bs."noShowHost",
+      CAST(COALESCE(gs."noShowGuests", 0) AS INTEGER) AS "noShowGuests"
+    FROM booking_stats bs
+    LEFT JOIN guest_stats gs ON (
+      bs."date" = gs."date" AND
+      bs."timeStatus" = gs."timeStatus" AND
+      bs."noShowHost" = gs."noShowHost"
+    )
+    ORDER BY bs."date"
   `;
 
     // Initialize aggregate object with zero counts for all date ranges
