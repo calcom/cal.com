@@ -30,7 +30,6 @@ const Provider: FC<{ children: React.ReactNode }> = ({ children }) => {
   const flagMap = useFlagMap();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const [isSupportReady] = useState(!!window.Support);
   const router = useRouter();
 
   const shouldOpenSupport =
