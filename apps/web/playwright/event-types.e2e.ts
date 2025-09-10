@@ -479,7 +479,6 @@ test.describe("Event Types tests", () => {
       page,
       users,
     }) => {
-      await page.goto("/event-types");
       const firstElement = await page.waitForSelector(
         '[data-testid="event-types"] a[href^="/event-types/"] >> nth=0'
       );
@@ -508,7 +507,7 @@ test.describe("Event Types tests", () => {
             },
             guests: [],
           },
-          user: "test",
+          user: "pro",
           start: "2025-09-09T09:00:00+08:00",
           end: "2025-09-09T09:15:00+08:00",
           eventTypeId,
