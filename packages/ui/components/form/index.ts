@@ -15,6 +15,7 @@ export {
 } from "./inputs/Input";
 
 export { MultiOptionInput } from "./inputs/MultiOptionInput";
+export { FieldMappingInput } from "./inputs/FieldMappingInput";
 
 export { InputFieldWithSelect } from "./inputs/InputFieldWithSelect";
 export type { InputFieldProps, InputProps } from "./inputs/types";
