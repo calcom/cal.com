@@ -11,7 +11,7 @@ export const getServerSideProps = wrapGetServerSidePropsWithSentry(async functio
 ) {
   const isEmbed = hasEmbedPath(context.req.url || "");
 
-  if (!process.env.NEXT_PUBLIC_IS_E2E) {
+  if (process.env.NEXT_PUBLIC_IS_E2E && process.env.VERCEL_BOTID_ENABLED) {
     const verification = await checkBotId();
     if (verification.isBot) {
       return {
