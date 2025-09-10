@@ -5,11 +5,10 @@ import { useRedirectToOnboardingIfNeeded } from "@calcom/features/auth/lib/hooks
 
 interface RoutingFormsShellProps {
   children: React.ReactNode;
-  isPublic?: boolean;
 }
 
-export default function RoutingFormsShell({ children, isPublic = false }: RoutingFormsShellProps) {
-  useRedirectToLoginIfUnauthenticated(isPublic);
+export default function RoutingFormsShell({ children }: RoutingFormsShellProps) {
+  useRedirectToLoginIfUnauthenticated();
   useRedirectToOnboardingIfNeeded();
 
   return <>{children}</>;
