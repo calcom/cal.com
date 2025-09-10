@@ -23,11 +23,10 @@ import { v4 as uuidv4 } from "uuid";
 import { describe, expect } from "vitest";
 
 import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { getRecurringBookingService } from "@calcom/lib/di/bookings/containers/RecurringBookingService.container";
 import logger from "@calcom/lib/logger";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
-
-import { handleNewRecurringBooking } from "../../handleNewRecurringBooking";
 
 const DAY_IN_MS = 1000 * 60 * 60 * 24;
 
@@ -153,10 +152,13 @@ describe("handleNewRecurringBooking", () => {
               };
             });
 
+          const recurringBookingService = getRecurringBookingService();
           // Call handleNewRecurringBooking directly instead of through API
-          const createdBookings = await handleNewRecurringBooking({
+          const createdBookings = await recurringBookingService.createBooking({
             bookingData: bookingDataArray,
-            userId: -1, // Simulating anonymous user like in the API test
+            bookingMeta: {
+              userId: -1, // Simulating anonymous user like in the API test
+            },
           });
 
           expect(createdBookings.length).toBe(numOfSlotsToBeBooked);
@@ -254,6 +256,7 @@ describe("handleNewRecurringBooking", () => {
         timeout
       );
 
+      // eslint-disable-next-line playwright/no-skipped-test
       test.skip(
         `should fail recurring booking if second slot is already booked`,
         async ({}) => {
@@ -370,9 +373,10 @@ describe("handleNewRecurringBooking", () => {
               };
             });
 
+          const recurringBookingService = getRecurringBookingService();
           await expect(
             async () =>
-              await handleNewRecurringBooking({
+              await recurringBookingService.createBooking({
                 bookingData: bookingDataArray,
                 userId: -1,
               })
@@ -383,6 +387,7 @@ describe("handleNewRecurringBooking", () => {
     });
 
     describe("Round robin event type:", () => {
+      // eslint-disable-next-line playwright/no-skipped-test
       test.skip("should fail recurring booking if a fixed host is not available on the second slot", async () => {
         const booker = getBooker({
           email: "booker@example.com",

@@ -6,6 +6,9 @@ import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/servi
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { getPagination } from "@/lib/pagination/pagination";
+import { InstantBookingCreateService } from "@/lib/services/instant-booking-create.service";
+import { RecurringBookingService } from "@/lib/services/recurring-booking.service";
+import { RegularBookingService } from "@/lib/services/regular-booking.service";
 import { AuthOptionalUser } from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { BillingService } from "@/modules/billing/services/billing.service";
@@ -36,10 +39,8 @@ import { DateTime } from "luxon";
 import { z } from "zod";
 
 import {
-  handleNewRecurringBooking,
   getTranslation,
   getAllUserBookings,
-  handleInstantMeeting,
   handleCancelBooking,
   roundRobinReassignment,
   roundRobinManualReassignment,
@@ -47,7 +48,6 @@ import {
   confirmBookingHandler,
   getCalendarLinks,
 } from "@calcom/platform-libraries";
-import { handleNewBooking } from "@calcom/platform-libraries";
 import {
   CreateBookingInput_2024_08_13,
   CreateBookingInput,
@@ -108,7 +108,10 @@ export class BookingsService_2024_08_13 {
     private readonly teamsEventTypesRepository: TeamsEventTypesRepository,
     private readonly membershipsRepository: MembershipsRepository,
     private readonly membershipsService: MembershipsService,
-    private readonly errorsBookingsService: ErrorsBookingsService_2024_08_13
+    private readonly errorsBookingsService: ErrorsBookingsService_2024_08_13,
+    private readonly regularBookingService: RegularBookingService,
+    private readonly recurringBookingService: RecurringBookingService,
+    private readonly instantBookingCreateService: InstantBookingCreateService
   ) {}
 
   async createBooking(request: Request, body: CreateBookingInput, authUser: AuthOptionalUser) {
@@ -450,7 +453,9 @@ export class BookingsService_2024_08_13 {
     }
 
     const bookingRequest = await this.inputService.createBookingRequest(request, body, eventType);
-    const booking = await handleInstantMeeting(bookingRequest);
+    const booking = await this.instantBookingCreateService.createBooking({
+      bookingData: bookingRequest.body,
+    });
 
     const databaseBooking = await this.bookingsRepository.getByIdWithAttendeesAndUserAndEvent(
       booking.bookingId
@@ -468,17 +473,19 @@ export class BookingsService_2024_08_13 {
     eventType: EventTypeWithOwnerAndTeam
   ) {
     const bookingRequest = await this.inputService.createRecurringBookingRequest(request, body, eventType);
-    const bookings = await handleNewRecurringBooking({
+    const bookings = await this.recurringBookingService.createBooking({
       bookingData: bookingRequest.body,
-      userId: bookingRequest.userId,
-      hostname: bookingRequest.headers?.host || "",
-      platformClientId: bookingRequest.platformClientId,
-      platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
-      platformCancelUrl: bookingRequest.platformCancelUrl,
-      platformBookingUrl: bookingRequest.platformBookingUrl,
-      platformBookingLocation: bookingRequest.platformBookingLocation,
-      noEmail: bookingRequest.noEmail,
-      areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+      bookingMeta: {
+        userId: bookingRequest.userId,
+        hostname: bookingRequest.headers?.host || "",
+        platformClientId: bookingRequest.platformClientId,
+        platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+        platformCancelUrl: bookingRequest.platformCancelUrl,
+        platformBookingUrl: bookingRequest.platformBookingUrl,
+        platformBookingLocation: bookingRequest.platformBookingLocation,
+        noEmail: bookingRequest.noEmail,
+        areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+      },
     });
     const ids = bookings.map((booking) => booking.id || 0);
     return this.outputService.getOutputRecurringBookings(ids);
@@ -491,16 +498,18 @@ export class BookingsService_2024_08_13 {
     userIsEventTypeAdminOrOwner: boolean
   ) {
     const bookingRequest = await this.inputService.createRecurringBookingRequest(request, body, eventType);
-    const bookings = await handleNewRecurringBooking({
+    const bookings = await this.recurringBookingService.createBooking({
       bookingData: bookingRequest.body,
-      userId: bookingRequest.userId,
-      hostname: bookingRequest.headers?.host || "",
-      platformClientId: bookingRequest.platformClientId,
-      platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
-      platformCancelUrl: bookingRequest.platformCancelUrl,
-      platformBookingUrl: bookingRequest.platformBookingUrl,
-      platformBookingLocation: bookingRequest.platformBookingLocation,
-      areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+      bookingMeta: {
+        userId: bookingRequest.userId,
+        hostname: bookingRequest.headers?.host || "",
+        platformClientId: bookingRequest.platformClientId,
+        platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+        platformCancelUrl: bookingRequest.platformCancelUrl,
+        platformBookingUrl: bookingRequest.platformBookingUrl,
+        platformBookingLocation: bookingRequest.platformBookingLocation,
+        areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+      },
     });
     return this.outputService.getOutputCreateRecurringSeatedBookings(
       bookings.map((booking) => ({ uid: booking.uid || "", seatUid: booking.seatReferenceUid || "" })),
@@ -514,16 +523,18 @@ export class BookingsService_2024_08_13 {
     eventType: EventTypeWithOwnerAndTeam
   ) {
     const bookingRequest = await this.inputService.createBookingRequest(request, body, eventType);
-    const booking = await handleNewBooking({
+    const booking = await this.regularBookingService.createBooking({
       bookingData: bookingRequest.body,
-      userId: bookingRequest.userId,
-      hostname: bookingRequest.headers?.host || "",
-      platformClientId: bookingRequest.platformClientId,
-      platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
-      platformCancelUrl: bookingRequest.platformCancelUrl,
-      platformBookingUrl: bookingRequest.platformBookingUrl,
-      platformBookingLocation: bookingRequest.platformBookingLocation,
-      areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+      bookingMeta: {
+        userId: bookingRequest.userId,
+        hostname: bookingRequest.headers?.host || "",
+        platformClientId: bookingRequest.platformClientId,
+        platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+        platformCancelUrl: bookingRequest.platformCancelUrl,
+        platformBookingUrl: bookingRequest.platformBookingUrl,
+        platformBookingLocation: bookingRequest.platformBookingLocation,
+        areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+      },
     });
 
     if (!booking.uid) {
@@ -546,16 +557,18 @@ export class BookingsService_2024_08_13 {
   ) {
     const bookingRequest = await this.inputService.createBookingRequest(request, body, eventType);
     try {
-      const booking = await handleNewBooking({
+      const booking = await this.regularBookingService.createBooking({
         bookingData: bookingRequest.body,
-        userId: bookingRequest.userId,
-        hostname: bookingRequest.headers?.host || "",
-        platformClientId: bookingRequest.platformClientId,
-        platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
-        platformCancelUrl: bookingRequest.platformCancelUrl,
-        platformBookingUrl: bookingRequest.platformBookingUrl,
-        platformBookingLocation: bookingRequest.platformBookingLocation,
-        areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+        bookingMeta: {
+          userId: bookingRequest.userId,
+          hostname: bookingRequest.headers?.host || "",
+          platformClientId: bookingRequest.platformClientId,
+          platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+          platformCancelUrl: bookingRequest.platformCancelUrl,
+          platformBookingUrl: bookingRequest.platformBookingUrl,
+          platformBookingLocation: bookingRequest.platformBookingLocation,
+          areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+        },
       });
 
       if (!booking.uid) {
@@ -741,16 +754,18 @@ export class BookingsService_2024_08_13 {
         bookingUid,
         body
       );
-      const booking = await handleNewBooking({
+      const booking = await this.regularBookingService.createBooking({
         bookingData: bookingRequest.body,
-        userId: bookingRequest.userId,
-        hostname: bookingRequest.headers?.host || "",
-        platformClientId: bookingRequest.platformClientId,
-        platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
-        platformCancelUrl: bookingRequest.platformCancelUrl,
-        platformBookingUrl: bookingRequest.platformBookingUrl,
-        platformBookingLocation: bookingRequest.platformBookingLocation,
-        areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+        bookingMeta: {
+          userId: bookingRequest.userId,
+          hostname: bookingRequest.headers?.host || "",
+          platformClientId: bookingRequest.platformClientId,
+          platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+          platformCancelUrl: bookingRequest.platformCancelUrl,
+          platformBookingUrl: bookingRequest.platformBookingUrl,
+          platformBookingLocation: bookingRequest.platformBookingLocation,
+          areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+        },
       });
       if (!booking.uid) {
         throw new Error("Booking missing uid");

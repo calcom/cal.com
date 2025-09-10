@@ -1,8 +1,8 @@
 import type { NextApiRequest } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import handleInstantMeeting from "@calcom/features/instant-meeting/handleInstantMeeting";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { getInstantBookingCreateService } from "@calcom/lib/di/bookings/containers/InstantBookingCreateService.container";
 import getIP from "@calcom/lib/getIP";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
@@ -19,7 +19,14 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   const session = await getServerSession({ req });
   req.userId = session?.user?.id || -1;
   req.body.creationSource = CreationSource.WEBAPP;
-  const booking = await handleInstantMeeting(req);
+
+  const instantBookingService = getInstantBookingCreateService();
+  // Even though req.body is any type, createBooking validates the schema on run-time.
+  // TODO: We should do the run-time schema validation here and pass a typed bookingData instead and then run-time schema could be removed from createBooking. Then we can remove the any type from req.body.
+  const booking = await instantBookingService.createBooking({
+    bookingData: req.body,
+  });
+
   return booking;
 }
 export default defaultResponder(handler);
