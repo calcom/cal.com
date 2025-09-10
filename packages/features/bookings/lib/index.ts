@@ -6,3 +6,4 @@ export {
 export { createBooking } from "./create-booking";
 export { createRecurringBooking } from "./create-recurring-booking";
 export { createInstantBooking } from "./create-instant-booking";
+export type { BookingResponse } from "../types";

@@ -19,6 +19,8 @@ import { vi, describe, expect, beforeEach } from "vitest";
 
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
+import { getNewBookingHandler } from "./getNewBookingHandler";
+
 vi.mock("@calcom/trpc/server/routers/viewer/auth/util", () => ({
   verifyCodeUnAuthenticated: vi.fn(),
 }));
@@ -36,7 +38,7 @@ describe("handleNewBooking - Email Verification", () => {
     test(
       "should throw error when email verification is required but no verification code is provided",
       async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
         const { verifyCodeUnAuthenticated } = await import("@calcom/trpc/server/routers/viewer/auth/util");
 
         const booker = getBooker({
@@ -96,7 +98,7 @@ describe("handleNewBooking - Email Verification", () => {
     test(
       "should throw error when email verification is required and verification code is invalid",
       async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
         const { verifyCodeUnAuthenticated } = await import("@calcom/trpc/server/routers/viewer/auth/util");
 
         vi.mocked(verifyCodeUnAuthenticated).mockRejectedValue(new Error("Invalid verification code"));
@@ -159,7 +161,7 @@ describe("handleNewBooking - Email Verification", () => {
     test(
       "should successfully create booking when email verification is required and valid verification code is provided",
       async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
         const { verifyCodeUnAuthenticated } = await import("@calcom/trpc/server/routers/viewer/auth/util");
 
         vi.mocked(verifyCodeUnAuthenticated).mockResolvedValue(undefined);
@@ -220,7 +222,7 @@ describe("handleNewBooking - Email Verification", () => {
     test(
       "should handle rate limiting error from verification service",
       async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
         const { verifyCodeUnAuthenticated } = await import("@calcom/trpc/server/routers/viewer/auth/util");
 
         const rateLimitError = new Error("Rate limit exceeded");
@@ -285,7 +287,7 @@ describe("handleNewBooking - Email Verification", () => {
     test(
       "should proceed normally when email verification is not required",
       async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
         const { verifyCodeUnAuthenticated } = await import("@calcom/trpc/server/routers/viewer/auth/util");
 
         const booker = getBooker({

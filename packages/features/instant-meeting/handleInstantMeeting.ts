@@ -1,12 +1,11 @@
 import { randomBytes } from "crypto";
-import type { NextApiRequest } from "next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import type {
   CreateInstantBookingData,
-  CreateInstantBookingResponse,
+  InstantBookingCreateResult,
 } from "@calcom/features/bookings/lib/dto/types";
 import getBookingDataSchema from "@calcom/features/bookings/lib/getBookingDataSchema";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
@@ -156,7 +155,7 @@ const triggerBrowserNotifications = async (args: {
   await Promise.allSettled(promises);
 };
 
-async function _handler(bookingData: CreateInstantBookingData) {
+async function handler(bookingData: CreateInstantBookingData) {
   let eventType = await getEventTypesFromDB(bookingData.eventTypeId);
   const isOrgTeamEvent = !!eventType?.team && !!eventType?.team?.parentId;
   eventType = {
@@ -330,21 +329,14 @@ async function _handler(bookingData: CreateInstantBookingData) {
     bookingUid: newBooking.uid,
     expires: instantMeetingToken.expires,
     userId: newBooking.userId,
-  } satisfies CreateInstantBookingResponse;
+  } satisfies InstantBookingCreateResult;
 }
 
 /**
  * Instant booking service that handles instant/immediate bookings
  */
 export class InstantBookingCreateService implements IBookingCreateService {
-  async createBooking(input: {
-    bookingData: CreateInstantBookingData;
-  }): Promise<CreateInstantBookingResponse> {
-    return _handler(input.bookingData);
+  async createBooking(input: { bookingData: CreateInstantBookingData }): Promise<InstantBookingCreateResult> {
+    return handler(input.bookingData);
   }
-}
-
-// TODO: Remove it in a follow-up PR
-export default async function handler(req: NextApiRequest) {
-  return _handler(req.body);
 }
