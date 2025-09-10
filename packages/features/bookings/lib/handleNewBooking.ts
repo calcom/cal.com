@@ -23,6 +23,7 @@ import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhoo
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
+import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { UsersRepository } from "@calcom/features/users/users.repository";
@@ -49,7 +50,6 @@ import { getCacheService } from "@calcom/lib/di/containers/Cache";
 import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
-import { getEventName, updateHostInEventName } from "@calcom/lib/event";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
