@@ -14,15 +14,11 @@ vi.mock("../../infrastructure/repositories/PermissionRepository");
 vi.mock("@calcom/features/flags/features.repository");
 vi.mock("@calcom/lib/server/repository/membership");
 vi.mock("../permission.service");
-vi.mock("@calcom/lib/constants", async () => {
-  const actual = await vi.importActual<typeof import("@calcom/lib/constants")>("@calcom/lib/constants");
+vi.mock("@calcom/lib/constants", async (importOriginal) => {
+  const actual = await importOriginal();
   return {
     ...actual,
     IS_CALCOM: true,
-    SENDER_ID: "Cal",
-    SENDER_NAME: "Cal.com",
-    IS_SELF_HOSTED: false,
-    SCANNING_WORKFLOW_STEPS: false,
   };
 });
 
