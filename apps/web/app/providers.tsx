@@ -14,14 +14,13 @@ type ProvidersProps = {
   children: React.ReactNode;
   nonce: string | undefined;
 };
-export function Providers({ isEmbed, children, nonce }: ProvidersProps) {
+export function Providers({ isEmbed, children, nonce: _nonce }: ProvidersProps) {
   const isBookingPage = useIsBookingPage();
 
   return (
     <SessionProvider>
       <TrpcProvider>
         {!isEmbed && !isBookingPage && <NotificationSoundHandler />}
-        {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
         <CacheProvider>
           <WebPushProvider>{children}</WebPushProvider>
         </CacheProvider>

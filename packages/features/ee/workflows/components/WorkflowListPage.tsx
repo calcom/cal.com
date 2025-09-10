@@ -80,7 +80,8 @@ export default function WorkflowListPage({ workflows }: Props) {
   });
 
   async function moveWorkflow(index: number, increment: 1 | -1) {
-    const types = workflows!;
+    if (!workflows) return;
+    const types = workflows;
 
     const newList = [...types];
 
@@ -173,16 +174,22 @@ export default function WorkflowListPage({ workflows }: Props) {
                               ) : workflow.activeOn && workflow.activeOn.length > 0 ? (
                                 //active on event types badge
                                 <Tooltip
-                                  content={workflow.activeOn
-                                    .filter((wf) => (workflow.teamId ? wf.eventType.parentId === null : true))
-                                    .map((activeOn, key) => (
-                                      <p key={key}>
-                                        {activeOn.eventType.title}
-                                        {activeOn.eventType._count.children > 0
-                                          ? ` (+${activeOn.eventType._count.children})`
-                                          : ""}
-                                      </p>
-                                    ))}>
+                                  content={
+                                    <div>
+                                      {workflow.activeOn
+                                        .filter((wf) =>
+                                          workflow.teamId ? wf.eventType.parentId === null : true
+                                        )
+                                        .map((activeOn, key) => (
+                                          <p key={key}>
+                                            {activeOn.eventType.title}
+                                            {activeOn.eventType._count.children > 0
+                                              ? ` (+${activeOn.eventType._count.children})`
+                                              : ""}
+                                          </p>
+                                        ))}
+                                    </div>
+                                  }>
                                   <div>
                                     <Icon name="link" className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
                                     {t("active_on_event_types", {
@@ -195,9 +202,13 @@ export default function WorkflowListPage({ workflows }: Props) {
                               ) : workflow.activeOnTeams && workflow.activeOnTeams.length > 0 ? (
                                 //active on teams badge
                                 <Tooltip
-                                  content={workflow.activeOnTeams.map((activeOn, key) => (
-                                    <p key={key}>{activeOn.team.name}</p>
-                                  ))}>
+                                  content={
+                                    <div>
+                                      {workflow.activeOnTeams.map((activeOn, key) => (
+                                        <p key={key}>{activeOn.team.name}</p>
+                                      ))}
+                                    </div>
+                                  }>
                                   <div>
                                     <Icon name="link" className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
                                     {t("active_on_teams", {

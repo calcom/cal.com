@@ -223,7 +223,10 @@ const PlainForm = <T extends FieldValues>(props: FormProps<T>, ref: Ref<HTMLForm
             return typeof child !== "string" &&
               typeof child !== "number" &&
               typeof child !== "boolean" &&
+              typeof child !== "bigint" &&
               child &&
+              typeof child === "object" &&
+              child !== null &&
               "props" in child &&
               child.props.name
               ? React.createElement(child.type, {

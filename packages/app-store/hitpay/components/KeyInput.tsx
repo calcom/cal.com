@@ -142,7 +142,7 @@ export const KeyField: React.FC<InputFieldProps & { defaultValue: string }> = fo
           className={classNames(
             className,
             "disabled:bg-subtle disabled:hover:border-subtle mb-0 rounded-r-none border-r-0 disabled:cursor-not-allowed",
-            addOnLeading && "rounded-l-none border-l-0",
+            !!addOnLeading && "rounded-l-none border-l-0",
             isPasswordVisible && "inline-block",
             !isPasswordVisible && "hidden",
             "!my-0 !ring-0"
@@ -157,7 +157,7 @@ export const KeyField: React.FC<InputFieldProps & { defaultValue: string }> = fo
           className={classNames(
             className,
             "disabled:bg-subtle disabled:hover:border-subtle mb-0 rounded-r-none border-r-0 disabled:cursor-not-allowed",
-            addOnLeading && "rounded-l-none border-l-0",
+            !!addOnLeading && "rounded-l-none border-l-0",
             !isPasswordVisible && "inline-block",
             isPasswordVisible && "hidden",
             "!my-0 !ring-0"

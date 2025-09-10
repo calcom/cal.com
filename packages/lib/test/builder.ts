@@ -25,7 +25,7 @@ export const buildPerson = (person?: Partial<Person>): Person => {
     username: faker.internet.userName(),
     id: faker.datatype.number(),
     language: {
-      locale: faker.random.locale(),
+      locale: faker.helpers.arrayElement(["en", "es", "fr", "de", "it", "pt", "ja", "ko", "zh"]),
       translate: ((key: string) => key) as TFunction,
     },
     ...person,
