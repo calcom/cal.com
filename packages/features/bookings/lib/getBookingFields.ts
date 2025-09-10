@@ -169,12 +169,10 @@ export const ensureBookingInputsHaveSystemFields = ({
         phoneNumberSources.push(
           getAIAgentCallPhoneNumberSource({
             workflowId,
-            isAIAgentCallPhoneNumberRequired: !!step.numberRequired,
+            isAIAgentCallPhoneNumberRequired: true,
           })
         );
-        if (step.numberRequired) {
-          isPhoneNumberRequired = true;
-        }
+        isPhoneNumberRequired = true;
       }
     });
   });

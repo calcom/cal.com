@@ -66,7 +66,15 @@ export const BookingFields = ({
 
         if (field.name === SystemField.Enum.attendeePhoneNumber) {
           if (locationResponse?.value === "phone" && locationResponse?.optionValue) {
-            setValue(`responses.${SystemField.Enum.attendeePhoneNumber}`, locationResponse?.optionValue);
+            const currentPhoneValue = watch(`responses.${SystemField.Enum.attendeePhoneNumber}`);
+            // Only prefill if the current value is empty to avoid overwriting user input
+            if (!currentPhoneValue || currentPhoneValue.trim() === "") {
+              setValue(`responses.${SystemField.Enum.attendeePhoneNumber}`, locationResponse?.optionValue, {
+                shouldValidate: false,
+                shouldDirty: true,
+                shouldTouch: false,
+              });
+            }
           }
           readOnly = false;
         }
@@ -82,7 +90,11 @@ export const BookingFields = ({
           
           // Consolidation: Hide smsReminderNumber if attendeePhoneNumber is visible to avoid duplicate phone inputs
           const attendeePhoneField = fields.find(f => f.name === SystemField.Enum.attendeePhoneNumber);
-          if (attendeePhoneField && !attendeePhoneField.hidden) {
+          const isAttendeePhoneVisible = attendeePhoneField && 
+            !attendeePhoneField.hidden && 
+            (!attendeePhoneField.views || attendeePhoneField.views.some(view => view.id === currentView));
+          
+          if (isAttendeePhoneVisible) {
             // Sync the value to attendeePhoneNumber only if it's empty, then hide this field
             const smsValue = watch(`responses.${SystemField.Enum.smsReminderNumber}`);
             const target = `responses.${SystemField.Enum.attendeePhoneNumber}` as const;
@@ -100,7 +112,11 @@ export const BookingFields = ({
         if (field.name === SystemField.Enum.aiAgentCallPhoneNumber) {
           // Consolidation: Hide aiAgentCallPhoneNumber if attendeePhoneNumber is visible to avoid duplicate phone inputs
           const attendeePhoneField = fields.find(f => f.name === SystemField.Enum.attendeePhoneNumber);
-          if (attendeePhoneField && !attendeePhoneField.hidden) {
+          const isAttendeePhoneVisible = attendeePhoneField && 
+            !attendeePhoneField.hidden && 
+            (!attendeePhoneField.views || attendeePhoneField.views.some(view => view.id === currentView));
+          
+          if (isAttendeePhoneVisible) {
             // Sync the value to attendeePhoneNumber and hide this field
             const aiValue = watch(`responses.${SystemField.Enum.aiAgentCallPhoneNumber}`);
             if (aiValue) {
