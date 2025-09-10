@@ -1,10 +1,39 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { vi } from "vitest";
 
 import { BookingDateInPastError, isTimeOutOfBounds } from "@calcom/lib/isOutOfBounds";
 import { AvailableSlotsService } from "./util";
 
 import { TRPCError } from "@trpc/server";
+
+// Vitest lifecycle hooks for stable testing
+vi.setConfig({
+  fakeTimers: {
+    shouldAdvanceTime: true,
+  },
+});
+
+// Set up stable test environment before each test
+beforeEach(() => {
+  // Enable fake timers to avoid real time dependencies
+  vi.useFakeTimers();
+  
+  // Fix system time to a consistent value for all tests
+  const fixedDate = new Date("2025-01-01T12:00:00.000Z");
+  vi.setSystemTime(fixedDate);
+  
+  // Clear all mocks to prevent state leakage between tests
+  vi.clearAllMocks();
+});
+
+// Clean up after each test
+afterEach(() => {
+  // Restore real timers
+  vi.useRealTimers();
+  
+  // Restore all mocks to their original implementations
+  vi.restoreAllMocks();
+});
 
 describe("BookingDateInPastError handling", () => {
   it("should convert BookingDateInPastError to TRPCError with BAD_REQUEST code", () => {
