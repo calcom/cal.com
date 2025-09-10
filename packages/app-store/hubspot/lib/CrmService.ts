@@ -6,6 +6,7 @@ import type {
   SimplePublicObject,
   SimplePublicObjectInput,
 } from "@hubspot/api-client/lib/codegen/crm/objects/meetings";
+import type { z } from "zod";
 
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -13,17 +14,14 @@ import getLabelValueMapFromResponses from "@calcom/lib/getLabelValueMapFromRespo
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent, CalEventResponses } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { CRM, ContactCreateInput, Contact, CrmEvent } from "@calcom/types/CrmService";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import type { HubspotToken } from "../api/callback";
-
-interface CustomPublicObjectInput extends SimplePublicObjectInput {
-  id?: string;
-}
+import type { appDataSchema } from "../zod";
 
 export default class HubspotCalendarService implements CRM {
   private url = "";
@@ -33,8 +31,9 @@ export default class HubspotCalendarService implements CRM {
   private client_id = "";
   private client_secret = "";
   private hubspotClient: hubspot.Client;
+  private appOptions: z.infer<typeof appDataSchema>;
 
-  constructor(credential: CredentialPayload) {
+  constructor(credential: CredentialPayload, appOptions: z.infer<typeof appDataSchema>) {
     this.hubspotClient = new hubspot.Client();
 
     this.integrationName = "hubspot_other_calendar";
@@ -42,6 +41,7 @@ export default class HubspotCalendarService implements CRM {
     this.auth = this.hubspotAuth(credential).then((r) => r);
 
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.appOptions = appOptions;
   }
 
   private getHubspotMeetingBody = (event: CalendarEvent): string => {
@@ -71,6 +71,8 @@ export default class HubspotCalendarService implements CRM {
   };
 
   private hubspotCreateMeeting = async (event: CalendarEvent) => {
+    const customFields = await this.generateWriteToEventBody(event);
+
     const simplePublicObjectInput: SimplePublicObjectInput = {
       properties: {
         hs_timestamp: Date.now().toString(),
@@ -80,6 +82,7 @@ export default class HubspotCalendarService implements CRM {
         hs_meeting_start_time: new Date(event.startTime).toISOString(),
         hs_meeting_end_time: new Date(event.endTime).toISOString(),
         hs_meeting_outcome: "SCHEDULED",
+        ...customFields,
       },
     };
 
@@ -102,6 +105,8 @@ export default class HubspotCalendarService implements CRM {
   };
 
   private hubspotUpdateMeeting = async (uid: string, event: CalendarEvent) => {
+    const customFields = await this.generateWriteToEventBody(event);
+
     const simplePublicObjectInput: SimplePublicObjectInput = {
       properties: {
         hs_timestamp: Date.now().toString(),
@@ -111,6 +116,7 @@ export default class HubspotCalendarService implements CRM {
         hs_meeting_start_time: new Date(event.startTime).toISOString(),
         hs_meeting_end_time: new Date(event.endTime).toISOString(),
         hs_meeting_outcome: "RESCHEDULED",
+        ...customFields,
       },
     };
 
@@ -290,10 +296,99 @@ export default class HubspotCalendarService implements CRM {
   }
 
   getAppOptions() {
-    console.log("No options implemented");
+    return this.appOptions;
   }
 
   async handleAttendeeNoShow() {
     console.log("Not implemented");
+  }
+
+  private async generateWriteToEventBody(event: CalendarEvent) {
+    const appOptions = this.getAppOptions();
+
+    const customFieldInputsEnabled =
+      appOptions?.onBookingWriteToEventObject && appOptions?.onBookingWriteToEventObjectMap;
+
+    if (!customFieldInputsEnabled) return {};
+
+    if (!appOptions?.onBookingWriteToEventObjectMap) return {};
+
+    const confirmedCustomFieldInputs: {
+      [key: string]: any;
+    } = {};
+
+    for (const [fieldName, fieldValue] of Object.entries(appOptions.onBookingWriteToEventObjectMap)) {
+      confirmedCustomFieldInputs[fieldName] = await this.getTextFieldValue({
+        fieldValue: fieldValue as string,
+        calEventResponses: event.responses,
+        bookingUid: event?.uid,
+        recordId: event?.uid ?? "Cal booking",
+        fieldName,
+      });
+    }
+
+    return confirmedCustomFieldInputs;
+  }
+
+  private async getTextFieldValue({
+    fieldValue,
+    calEventResponses,
+    bookingUid,
+    recordId,
+    fieldName,
+  }: {
+    fieldValue: string;
+    calEventResponses?: CalEventResponses | null;
+    bookingUid?: string | null;
+    recordId: string;
+    fieldName: string;
+  }) {
+    const log = logger.getSubLogger({ prefix: [`[getTextFieldValue]: ${recordId} - ${fieldName}`] });
+
+    if (!fieldValue.startsWith("{") && !fieldValue.endsWith("}")) {
+      log.info("Returning static value");
+      return fieldValue;
+    }
+
+    let valueToWrite = fieldValue;
+
+    if (fieldValue === "{bookingUid}") {
+      if (!bookingUid) {
+        log.error(`BookingUid not passed. Cannot get booking UID`);
+        return;
+      }
+      valueToWrite = bookingUid;
+    } else {
+      if (!calEventResponses) {
+        log.error(`CalEventResponses not passed. Cannot get booking form responses`);
+        return;
+      }
+      valueToWrite = this.getTextValueFromBookingResponse(fieldValue, calEventResponses);
+    }
+
+    if (valueToWrite === fieldValue) {
+      log.error("No responses found returning nothing");
+      return;
+    }
+
+    return valueToWrite;
+  }
+
+  private getTextValueFromBookingResponse(fieldValue: string, calEventResponses: CalEventResponses) {
+    const match = fieldValue.match(/^\{(.+)\}$/);
+    if (!match) return fieldValue;
+
+    const fieldName = match[1];
+    const responseValue = calEventResponses[fieldName];
+
+    if (typeof responseValue === "string") {
+      return responseValue;
+    } else if (responseValue && typeof responseValue === "object" && "value" in responseValue) {
+      return String(responseValue.value);
+    } else if (responseValue) {
+      return String(responseValue);
+    }
+
+    return fieldValue;
   }
 }
