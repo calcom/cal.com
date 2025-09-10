@@ -1,24 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { describe, expect, it, beforeEach } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 
-import { UserAvailabilityService } from "./getUserAvailability";
-
 describe("getUserAvailability Timezone Normalization", () => {
-  let userAvailabilityService: UserAvailabilityService;
-
-  beforeEach(() => {
-    userAvailabilityService = new UserAvailabilityService({
-      eventTypeRepo: {} as any,
-      oooRepo: {} as any,
-      bookingRepo: {} as any,
-      redisClient: {} as any,
-    });
-  });
-
   const normalize = (input: string) => dayjs(input).utc().toISOString().replace(".000Z", "Z");
 
   describe("Timezone Normalization and UTC Conversion", () => {
