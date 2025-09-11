@@ -299,11 +299,13 @@ export default function CancelBooking(props: Props) {
                     });
                     refreshData();
                   } else {
+                    const data = await res.json();
                     setLoading(false);
                     setError(
-                      `${t("error_with_status_code_occured", { status: res.status })} ${t(
-                        "please_try_again"
-                      )}`
+                      data.message ||
+                        `${t("error_with_status_code_occured", { status: res.status })} ${t(
+                          "please_try_again"
+                        )}`
                     );
                   }
                 }}
