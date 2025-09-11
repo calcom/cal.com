@@ -597,7 +597,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               {!props.readOnly && (
                 <div className="mt-1 flex text-gray-500">
                   <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
-                  <p className="text-sm">{t("testing_workflow_info_message")}</p>
+                  <p className="text-sm">{t("testing_sms_workflow_info_message")}</p>
                 </div>
               )}
             </div>
@@ -931,7 +931,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   size="sm"
                   disabled={numberVerified || props.readOnly || false}
                   className={classNames(
-                    "min-w-fit text-sm font-medium ",
+                    "min-w-fit text-sm font-medium",
                     numberVerified ? "hidden" : "mt-3 sm:mt-0"
                   )}
                   onClick={() =>
@@ -1295,7 +1295,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           {/* {form.getValues(`steps.${step.stepNumber - 1}.action`) !== WorkflowActions.SMS_ATTENDEE && (
                 <Button
                   type="button"
-                  className="w-full mt-7"
+                  className="mt-7 w-full"
                   onClick={() => {
                     let isEmpty = false;
 
@@ -1392,7 +1392,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         <Dialog open={isAdditionalInputsDialogOpen} onOpenChange={setIsAdditionalInputsDialogOpen}>
           <DialogContent enableOverflow type="creation" className="sm:max-w-[610px]">
             <div>
-              <h1 className="w-full text-xl font-semibold ">{t("how_booking_questions_as_variables")}</h1>
+              <h1 className="w-full text-xl font-semibold">{t("how_booking_questions_as_variables")}</h1>
               <div className="bg-muted-3 mb-6 rounded-md sm:p-4">
                 <p className="test-sm font-medium">{t("format")}</p>
                 <ul className="text-emphasis ml-5 mt-2 list-disc">
