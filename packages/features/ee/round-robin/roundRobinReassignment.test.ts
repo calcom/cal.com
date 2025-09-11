@@ -171,7 +171,9 @@ describe("roundRobinReassignment test", () => {
       bookingToReassignUid,
       undefined,
       true,
-      expect.arrayContaining([expect.objectContaining(testDestinationCalendar)])
+      expect.arrayContaining([expect.objectContaining(testDestinationCalendar)]),
+      undefined,
+      true
     );
 
     // Use equal fairness rr algorithm
@@ -279,7 +281,9 @@ describe("roundRobinReassignment test", () => {
       bookingToReassignUid,
       undefined,
       false,
-      []
+      [],
+      undefined,
+      false
     );
 
     // Ensure organizer stays the same
