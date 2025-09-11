@@ -157,8 +157,11 @@ export default function CancelBooking(props: Props) {
 
   const cancellationNoShowFeeWarning = autoChargeNoShowFee();
 
+  const isCancellationUserIsHost =
+    props.isHost || bookingCancelledEventProps.organizer.email === currentUserEmail;
+
   const hostMissingCancellationReason =
-    props.isHost &&
+    isCancellationUserIsHost &&
     (!cancellationReason?.trim() || (props.internalNotePresets.length > 0 && !internalNote?.id));
   const cancellationNoShowFeeNotAcknowledged =
     !props.isHost && cancellationNoShowFeeWarning && !acknowledgeCancellationNoShowFee;
