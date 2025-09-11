@@ -1,9 +1,8 @@
+import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
+import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
 import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
-
-import { enrichFormWithMigrationData } from "../../enrichFormWithMigrationData";
-import { getSerializableForm } from "../../lib/getSerializableForm";
 
 export const getServerSideProps = async function getServerSideProps(
   context: AppGetServerSidePropsContext,

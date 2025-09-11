@@ -1,12 +1,9 @@
-import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-
-import { ROUTING_FORM_RESPONSE_ID_QUERY_STRING } from "../../lib/constants";
-import getFieldIdentifier from "../../lib/getFieldIdentifier";
-import type { FormResponse, LocalRoute } from "../../types/types";
-import type { getServerSideProps } from "./getServerSideProps";
+import { ROUTING_FORM_RESPONSE_ID_QUERY_STRING } from "@calcom/app-store/routing-forms/lib/constants";
+import getFieldIdentifier from "@calcom/app-store/routing-forms/lib/getFieldIdentifier";
+import type { FormResponse, LocalRoute } from "@calcom/app-store/routing-forms/types/types";
 
 type FormResponseValueOnly = { [key: string]: { value: FormResponse[keyof FormResponse]["value"] } };
-type Props = inferSSRProps<typeof getServerSideProps>;
+
 type AttributeRoutingConfig = NonNullable<LocalRoute["attributeRoutingConfig"]>;
 type GetUrlSearchParamsToForwardOptions = {
   formResponse: Record<
@@ -15,10 +12,25 @@ type GetUrlSearchParamsToForwardOptions = {
       value: number | string | string[];
     }
   >;
-  fields: Pick<
-    NonNullable<Props["form"]["fields"]>[number],
-    "id" | "type" | "options" | "identifier" | "label"
-  >[];
+  fields: {
+    id: string;
+    type: string;
+    options?:
+      | {
+          id: string | null;
+          label: string;
+        }[]
+      | ({
+          id: string | null;
+          label: string;
+        }[] &
+          {
+            label: string;
+            id: null;
+          }[]);
+    identifier?: string;
+    label: string;
+  }[];
   searchParams: URLSearchParams;
   formResponseId: number | null;
   queuedFormResponseId: string | null;

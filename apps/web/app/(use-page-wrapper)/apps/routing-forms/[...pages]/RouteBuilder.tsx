@@ -11,6 +11,38 @@ import type { UseFormReturn } from "react-hook-form";
 import { Toaster } from "sonner";
 import type { z } from "zod";
 
+import { routingFormAppComponents } from "@calcom/app-store/routing-forms/appComponents";
+import DynamicAppComponent from "@calcom/app-store/routing-forms/components/DynamicAppComponent";
+import SingleForm from "@calcom/app-store/routing-forms/components/SingleForm";
+import { EmptyState } from "@calcom/app-store/routing-forms/components/_components/EmptyState";
+import { RoutingSkeleton } from "@calcom/app-store/routing-forms/components/_components/RoutingSkeleton";
+import type { getServerSidePropsForSingleFormView as getServerSideProps } from "@calcom/app-store/routing-forms/components/getServerSidePropsSingleForm";
+import {
+  withRaqbSettingsAndWidgets,
+  ConfigFor,
+} from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/config/uiConfig";
+import { RoutingPages } from "@calcom/app-store/routing-forms/lib/RoutingPages";
+import { createFallbackRoute } from "@calcom/app-store/routing-forms/lib/createFallbackRoute";
+import getEventTypeAppMetadata from "@calcom/app-store/routing-forms/lib/getEventTypeAppMetadata";
+import {
+  getQueryBuilderConfigForFormFields,
+  getQueryBuilderConfigForAttributes,
+  type FormFieldsQueryBuilderConfigWithRaqbFields,
+  type AttributesQueryBuilderConfigWithRaqbFields,
+  isDynamicOperandField,
+} from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
+import isRouter from "@calcom/app-store/routing-forms/lib/isRouter";
+import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
+import type {
+  GlobalRoute,
+  LocalRoute,
+  SerializableRoute,
+  Attribute,
+  EditFormRoute,
+  AttributeRoutingConfig,
+} from "@calcom/app-store/routing-forms/types/types";
+import type { zodRoutes } from "@calcom/app-store/routing-forms/zod";
+import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { areTheySiblingEntities } from "@calcom/lib/entityPermissionUtils.shared";
 import type { EventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
@@ -29,39 +61,6 @@ import { SelectField } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
 import type { IconName } from "@calcom/ui/components/icon";
 import { Icon } from "@calcom/ui/components/icon";
-
-import { routingFormAppComponents } from "../../appComponents";
-import DynamicAppComponent from "../../components/DynamicAppComponent";
-import SingleForm from "../../components/SingleForm";
-import { EmptyState } from "../../components/_components/EmptyState";
-import { RoutingSkeleton } from "../../components/_components/RoutingSkeleton";
-import type { getServerSidePropsForSingleFormView as getServerSideProps } from "../../components/getServerSidePropsSingleForm";
-import {
-  withRaqbSettingsAndWidgets,
-  ConfigFor,
-} from "../../components/react-awesome-query-builder/config/uiConfig";
-import { RoutingPages } from "../../lib/RoutingPages";
-import { createFallbackRoute } from "../../lib/createFallbackRoute";
-import getEventTypeAppMetadata from "../../lib/getEventTypeAppMetadata";
-import {
-  getQueryBuilderConfigForFormFields,
-  getQueryBuilderConfigForAttributes,
-  type FormFieldsQueryBuilderConfigWithRaqbFields,
-  type AttributesQueryBuilderConfigWithRaqbFields,
-  isDynamicOperandField,
-} from "../../lib/getQueryBuilderConfig";
-import isRouter from "../../lib/isRouter";
-import type { RoutingFormWithResponseCount } from "../../types/types";
-import type {
-  GlobalRoute,
-  LocalRoute,
-  SerializableRoute,
-  Attribute,
-  EditFormRoute,
-  AttributeRoutingConfig,
-} from "../../types/types";
-import type { zodRoutes } from "../../zod";
-import { RouteActionType } from "../../zod";
 
 type Form = inferSSRProps<typeof getServerSideProps>["form"];
 

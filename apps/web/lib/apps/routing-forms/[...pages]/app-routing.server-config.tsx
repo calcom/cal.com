@@ -2,8 +2,8 @@ import "server-only";
 
 import type { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
 
-import { getServerSidePropsForSingleFormView as getServerSidePropsSingleForm } from "../components/getServerSidePropsSingleForm";
-import { getServerSideProps as getServerSidePropsRoutingLink } from "./routing-link/getServerSideProps";
+import { getServerSideProps as getServerSidePropsRoutingLink } from "./getServerSidePropsRoutingLink";
+import { getServerSidePropsForSingleFormView as getServerSidePropsSingleForm } from "./getServerSidePropsSingleForm";
 
 export const routingServerSidePropsConfig: Record<string, AppGetServerSideProps> = {
   "form-edit": getServerSidePropsSingleForm,

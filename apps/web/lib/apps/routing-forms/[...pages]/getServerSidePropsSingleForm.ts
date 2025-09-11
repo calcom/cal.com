@@ -1,11 +1,10 @@
+import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
+import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
 import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
-
-import { enrichFormWithMigrationData } from "../enrichFormWithMigrationData";
-import { getSerializableForm } from "../lib/getSerializableForm";
 
 export const getServerSidePropsForSingleFormView = async function getServerSidePropsForSingleFormView(
   context: AppGetServerSidePropsContext,

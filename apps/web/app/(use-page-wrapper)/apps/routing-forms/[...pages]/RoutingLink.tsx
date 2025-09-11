@@ -6,7 +6,15 @@ import { useEffect, useRef, useState } from "react";
 import { Toaster } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
+import FormInputFields from "@calcom/app-store/routing-forms/components/FormInputFields";
+import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "@calcom/app-store/routing-forms/getEventTypeRedirectUrl";
+import getFieldIdentifier from "@calcom/app-store/routing-forms/lib/getFieldIdentifier";
+import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
+import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
+import { getFieldResponseForJsonLogic } from "@calcom/app-store/routing-forms/lib/transformResponse";
+import type { NonRouterRoute, FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { getUrlSearchParamsToForward } from "@calcom/features/routing-forms/lib/getUrlSearchParamsToForward";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -19,15 +27,7 @@ import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
 import { useCalcomTheme } from "@calcom/ui/styles";
 
-import FormInputFields from "../../components/FormInputFields";
-import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "../../getEventTypeRedirectUrl";
-import getFieldIdentifier from "../../lib/getFieldIdentifier";
-import { findMatchingRoute } from "../../lib/processRoute";
-import { substituteVariables } from "../../lib/substituteVariables";
-import { getFieldResponseForJsonLogic } from "../../lib/transformResponse";
-import type { NonRouterRoute, FormResponse } from "../../types/types";
 import type { getServerSideProps } from "./getServerSideProps";
-import { getUrlSearchParamsToForward } from "./getUrlSearchParamsToForward";
 
 type Props = inferSSRProps<typeof getServerSideProps>;
 const useBrandColors = ({

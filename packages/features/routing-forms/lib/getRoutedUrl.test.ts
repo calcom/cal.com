@@ -10,7 +10,6 @@ import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSeri
 import { handleResponse } from "@calcom/app-store/routing-forms/lib/handleResponse";
 import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
 import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
-import { getUrlSearchParamsToForward } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
@@ -18,6 +17,7 @@ import { PrismaRoutingFormRepository } from "@calcom/lib/server/repository/Prism
 import { UserRepository } from "@calcom/lib/server/repository/user";
 
 import { getRoutedUrl } from "./getRoutedUrl";
+import { getUrlSearchParamsToForward } from "./getUrlSearchParamsToForward";
 
 // Mock dependencies
 vi.mock("@calcom/lib/checkRateLimitAndThrowError");
