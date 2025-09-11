@@ -1,4 +1,5 @@
 import perfMiddleware from "../middlewares/perfMiddleware";
+import securityMiddleware from "../middlewares/securityMiddleware";
 import { isAdminMiddleware, isAuthed, isOrgAdminMiddleware } from "../middlewares/sessionMiddleware";
 import { procedure } from "../trpc";
 import publicProcedure from "./publicProcedure";
@@ -23,7 +24,7 @@ const isRateLimitedByUserIdMiddleware = ({ intervalInMs, limit }: IRateLimitOpti
       return next({ ctx: { user: ctx.user, session: ctx.session } });
     });
 */
-const authedProcedure = procedure.use(perfMiddleware).use(isAuthed);
+const authedProcedure = procedure.use(securityMiddleware).use(perfMiddleware).use(isAuthed);
 /*export const authedRateLimitedProcedure = ({ intervalInMs, limit }: IRateLimitOptions) =>
 authedProcedure.use(isRateLimitedByUserIdMiddleware({ intervalInMs, limit }));*/
 export const authedAdminProcedure = publicProcedure.use(isAdminMiddleware);
