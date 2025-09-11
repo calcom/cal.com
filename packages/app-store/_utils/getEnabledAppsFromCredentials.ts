@@ -1,10 +1,9 @@
-import type { Prisma } from "@prisma/client";
-
+import type { CredentialDataWithTeamName } from "@calcom/app-store/utils";
 import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
 import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 import getApps from "../utils";
-import type { CredentialDataWithTeamName } from "../utils";
 
 type EnabledApp = ReturnType<typeof getApps>[number] & { enabled: boolean };
 
