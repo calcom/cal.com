@@ -598,7 +598,7 @@ export class InsightsBookingBaseService {
       })
     );
 
-    // 6. Combine booking data with attendee data
+    // 6. Combine booking data with attendee data and add ISO timestamp columns
     const data = csvData.map((bookingTimeStatus) => {
       if (!bookingTimeStatus.uid) {
         // should not be reached because we filtered above
@@ -609,6 +609,9 @@ export class InsightsBookingBaseService {
 
         return {
           ...bookingTimeStatus,
+          createdAt_iso: bookingTimeStatus.createdAt.toISOString(),
+          startTime_iso: bookingTimeStatus.startTime.toISOString(),
+          endTime_iso: bookingTimeStatus.endTime.toISOString(),
           noShowGuests: null,
           noShowGuestsCount: 0,
           ...nullAttendeeFields,
@@ -625,6 +628,9 @@ export class InsightsBookingBaseService {
 
         return {
           ...bookingTimeStatus,
+          createdAt_iso: bookingTimeStatus.createdAt.toISOString(),
+          startTime_iso: bookingTimeStatus.startTime.toISOString(),
+          endTime_iso: bookingTimeStatus.endTime.toISOString(),
           noShowGuests: null,
           noShowGuestsCount: 0,
           ...nullAttendeeFields,
@@ -633,6 +639,9 @@ export class InsightsBookingBaseService {
 
       return {
         ...bookingTimeStatus,
+        createdAt_iso: bookingTimeStatus.createdAt.toISOString(),
+        startTime_iso: bookingTimeStatus.startTime.toISOString(),
+        endTime_iso: bookingTimeStatus.endTime.toISOString(),
         noShowGuests: attendeeData.noShowGuests,
         noShowGuestsCount: attendeeData.noShowGuestsCount,
         ...Object.fromEntries(Object.entries(attendeeData).filter(([key]) => key.startsWith("attendee"))),
