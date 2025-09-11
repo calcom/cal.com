@@ -35,6 +35,7 @@ import { OrgTeamsFilter } from "@calcom/features/insights/filters/OrgTeamsFilter
 import { useInsightsBookings } from "@calcom/features/insights/hooks/useInsightsBookings";
 import { useInsightsOrgTeams } from "@calcom/features/insights/hooks/useInsightsOrgTeams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 
 export default function InsightsPage({ timeZone }: { timeZone: string }) {
   return (
@@ -72,8 +73,10 @@ function InsightsPageContent() {
         <DataTableFilters.ClearFiltersButton exclude={["timestamp"]} />
         <div className="grow" />
         <Download />
-        <DateRangeFilter column={timestampColumn} />
-        <DateTargetSelector value={dateTarget as DateTarget} onChange={setDateTarget} />
+        <ButtonGroup combined>
+          <DateRangeFilter column={timestampColumn} />
+          <DateTargetSelector value={dateTarget as DateTarget} onChange={setDateTarget} />
+        </ButtonGroup>
         <TimezoneBadge />
       </div>
 

@@ -3627,11 +3627,8 @@
   "before_scheduled_start_time": "Before scheduled start time",
   "cancel_booking_acknowledge_no_show_fee": "I acknowledge that by cancelling the booking within {{timeValue}} {{timeUnit}} of the start time I will be charged the no show fee of {{amount, currency}}",
   "contact_organizer": "If you have any questions, please contact the organizer.",
-  "timestamp_filter": "Timestamp Filter",
-  "start_time": "Start Time",
   "created_at": "Created At",
   "start_time_description": "When the booking is scheduled to begin",
   "created_at_description": "When the booking was originally created",
-  "no_options_found": "No options found",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
