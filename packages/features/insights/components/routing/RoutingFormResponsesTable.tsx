@@ -126,7 +126,7 @@ export function RoutingFormResponsesTable() {
           }
           ToolbarRight={
             <>
-              <DataTableFilters.ClearFiltersButton exclude={["timestamp"]} />
+              <DataTableFilters.ClearFiltersButton exclude={["createdAt"]} />
               <DataTableSegment.SaveButton />
               <DataTableSegment.Select />
             </>
