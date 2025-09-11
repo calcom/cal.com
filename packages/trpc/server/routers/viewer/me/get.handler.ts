@@ -58,6 +58,16 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     }
   }
 
+  // Fetch notification settings separately
+  const userNotificationSettings = await prisma.user.findUnique({
+    where: {
+      id: user.id,
+    },
+    select: {
+      notifyCalendarAlerts: true,
+    },
+  });
+
   let identityProviderEmail = "";
   if (user.identityProviderId) {
     const account = await prisma.account.findUnique({
@@ -140,6 +150,7 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     allowDynamicBooking: user.allowDynamicBooking,
     allowSEOIndexing: user.allowSEOIndexing,
     receiveMonthlyDigestEmail: user.receiveMonthlyDigestEmail,
+    notifyCalendarAlerts: userNotificationSettings?.notifyCalendarAlerts ?? true,
     ...profileData,
     secondaryEmails,
     isPremium: userMetadataPrased?.isPremium,
