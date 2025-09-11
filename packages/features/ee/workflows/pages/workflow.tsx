@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { WorkflowStep } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -12,6 +11,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import type { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import type { WorkflowPermissions } from "@calcom/lib/server/repository/workflow-permissions";
+import type { WorkflowStep } from "@calcom/prisma/client";
 import type { TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { WorkflowActions } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
