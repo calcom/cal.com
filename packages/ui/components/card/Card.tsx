@@ -135,6 +135,7 @@ export interface BaseCardProps extends CVACardType {
   learnMore?: {
     href: string;
     text: string;
+    onClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   };
   mediaLink?: string;
   thumbnailUrl?: string;
@@ -159,17 +160,6 @@ export function Card({
   buttonClassName,
 }: BaseCardProps) {
   const LinkComponent = learnMore && learnMore.href.startsWith("https") ? "a" : Link;
-
-  if (variant === "NewLaunchSidebarCard") {
-    console.log(
-      "variant",
-      classNames(
-        containerProps?.className,
-        cvaCardTypeByVariant({ variant, structure: "card" }),
-        "bg-default border-subtle text-default flex flex-col justify-between rounded-md border"
-      )
-    );
-  }
   return (
     <div
       className={classNames(
@@ -262,7 +252,12 @@ export function Card({
           {learnMore && (
             <LinkComponent
               href={learnMore.href}
-              onClick={actionButton?.onClick}
+              onClick={(e) => {
+                if (learnMore.onClick) {
+                  e.preventDefault();
+                  learnMore.onClick(e);
+                }
+              }}
               target="_blank"
               rel="noreferrer"
               className={classNames("text-default text-xs font-medium", buttonClassName)}>

@@ -4,7 +4,9 @@ import { useState, memo } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
+import { trpc } from "@calcom/trpc/react";
 import { Card } from "@calcom/ui/components/card";
+import { showToast } from "@calcom/ui/components/toast";
 
 type Tip = {
   id: number;
@@ -171,6 +173,15 @@ const reversedTips = [...shuffle(tips).slice(0).reverse(), CalAIWorkflowsTip];
 function Tips() {
   const { t } = useLocale();
 
+  const createCalAIWorkflow = trpc.viewer.workflows.createCalAIWorkflow.useMutation({
+    onSuccess: (data) => {
+      window.open(data.redirectUrl, "_blank");
+    },
+    onError: (error) => {
+      showToast(error.message || "Failed to create Cal AI workflow", "error");
+    },
+  });
+
   const [list, setList] = useState<Tip[]>(() => {
     if (typeof window === "undefined") {
       return reversedTips;
@@ -244,6 +255,13 @@ function Tips() {
                       ? {
                           href: tip.href,
                           text: isCalAIWorkflowsTip ? t("try_now") : t("learn_more"),
+                          onClick: isCalAIWorkflowsTip
+                            ? () => {
+                                createCalAIWorkflow.mutate({
+                                  templateId: "wf-11",
+                                });
+                              }
+                            : undefined,
                         }
                       : undefined
                   }

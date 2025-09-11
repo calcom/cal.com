@@ -17,11 +17,11 @@ import { Button } from "@calcom/ui/components/button";
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
+import { CalAiBanner } from "./CalAiBanner";
 import { SideBarContainer } from "./SideBar";
 import { TopNavContainer } from "./TopNav";
 import { BannerContainer } from "./banners/LayoutBanner";
 import { useBanners } from "./banners/useBanners";
-import { CalAiBanner } from "./CalAiBanner";
 import { MobileNavigationContainer } from "./navigation/Navigation";
 import { useAppTheme } from "./useAppTheme";
 
