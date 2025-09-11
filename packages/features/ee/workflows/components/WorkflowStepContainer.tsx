@@ -965,26 +965,27 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     )}
                   </div>
                 )}
-              {canRequirePhoneNumber(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
-                <div className="mt-2">
-                  <Controller
-                    name={`steps.${step.stepNumber - 1}.numberRequired`}
-                    control={form.control}
-                    render={() => (
-                      <CheckboxField
-                        disabled={props.readOnly}
-                        defaultChecked={
-                          form.getValues(`steps.${step.stepNumber - 1}.numberRequired`) || false
-                        }
-                        description={t("make_phone_number_required")}
-                        onChange={(e) =>
-                          form.setValue(`steps.${step.stepNumber - 1}.numberRequired`, e.target.checked)
-                        }
-                      />
-                    )}
-                  />
-                </div>
-              )}
+              {canRequirePhoneNumber(form.getValues(`steps.${step.stepNumber - 1}.action`)) &&
+                !isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
+                  <div className="mt-2">
+                    <Controller
+                      name={`steps.${step.stepNumber - 1}.numberRequired`}
+                      control={form.control}
+                      render={() => (
+                        <CheckboxField
+                          disabled={props.readOnly}
+                          defaultChecked={
+                            form.getValues(`steps.${step.stepNumber - 1}.numberRequired`) || false
+                          }
+                          description={t("make_phone_number_required")}
+                          onChange={(e) =>
+                            form.setValue(`steps.${step.stepNumber - 1}.numberRequired`, e.target.checked)
+                          }
+                        />
+                      )}
+                    />
+                  </div>
+                )}
               {isEmailAddressNeeded && (
                 <div className="bg-muted mt-5 rounded-md p-4">
                   <Label>{t("email_address")}</Label>
@@ -1067,27 +1068,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   )}
                 </div>
               )}
-              {canRequirePhoneNumber(form.getValues(`steps.${step.stepNumber - 1}.action`)) &&
-                !isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
-                  <div className="mt-2">
-                    <Controller
-                      name={`steps.${step.stepNumber - 1}.numberRequired`}
-                      control={form.control}
-                      render={() => (
-                        <CheckboxField
-                          disabled={props.readOnly}
-                          defaultChecked={
-                            form.getValues(`steps.${step.stepNumber - 1}.numberRequired`) || false
-                          }
-                          description={t("make_phone_number_required")}
-                          onChange={(e) =>
-                            form.setValue(`steps.${step.stepNumber - 1}.numberRequired`, e.target.checked)
-                          }
-                        />
-                      )}
-                    />
-                  </div>
-                )}
               {isEmailAddressNeeded &&
                 !isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
                   <div className="bg-muted mt-5 rounded-md p-4">
