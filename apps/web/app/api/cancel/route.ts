@@ -29,6 +29,7 @@ async function handler(req: NextRequest) {
   const result = await handleCancelBooking({
     bookingData,
     userId: session?.user?.id || -1,
+    userOrgRole: session?.user?.org?.role,
   });
 
   const statusCode = result.success ? 200 : 400;
