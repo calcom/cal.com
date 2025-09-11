@@ -545,9 +545,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           {selectedOptions && setSelectedOptions && allOptions && (
             <div className={classNames(!!timeSectionText && "mb-3")}>
               {isOrganization ? (
-                <div className="text-default mb-2 flex items-center gap-2">
+                <div className="text-default flex items-center gap-2">
                   <Label>{t("which_team_apply")}</Label>
-                  <InfoBadge content={t("team_select_info")} />
+                  <div className="mb-2">
+                    <InfoBadge content={t("team_select_info")} />
+                  </div>
                 </div>
               ) : (
                 <Label className="text-default mb-2 block">{t("which_event_type_apply")}</Label>
