@@ -342,9 +342,7 @@ export async function handler(req: NextRequest) {
             attachments: reminder.workflowStep.includeCalendarEvent
               ? [
                   {
-                    content: Buffer.from(generateIcsString({ event, status: "CONFIRMED" }) || "").toString(
-                      "base64"
-                    ),
+                    content: generateIcsString({ event, status: "CONFIRMED" }) || "",
                     filename: "event.ics",
                     type: "text/calendar; method=REQUEST",
                     disposition: "attachment",
