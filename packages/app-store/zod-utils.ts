@@ -7,8 +7,11 @@ import { appDataSchemas } from "./apps.schemas.generated";
 export const EventTypeAppMetadataSchema = z.object(appDataSchemas).partial();
 export const eventTypeAppMetadataOptionalSchema = EventTypeAppMetadataSchema.optional();
 
-export const eventTypeMetaDataSchemaWithTypedApps = eventTypeMetaDataSchemaWithoutApps.merge(
-  z.object({
-    apps: eventTypeAppMetadataOptionalSchema,
-  })
-);
+export const eventTypeMetaDataSchemaWithTypedApps = eventTypeMetaDataSchemaWithoutApps
+  .unwrap()
+  .merge(
+    z.object({
+      apps: eventTypeAppMetadataOptionalSchema,
+    })
+  )
+  .nullable();
