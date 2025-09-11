@@ -6,26 +6,30 @@ import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import type { NavigationPermissions } from "./types";
 import { NAVIGATION_PERMISSION_MAP } from "./types";
 
+const DEFAULT_PERMISSIONS = {
+  insights: true,
+  workflows: true,
+  routing: true,
+  teams: true,
+  members: true,
+};
+
 /**
  * Server-side function to check all navigation permissions for a user
  * Uses caching for performance optimization
  */
 export const checkNavigationPermissions = unstable_cache(
-  async (userId: number, _organizationId: number | null): Promise<NavigationPermissions> => {
-    const permissionService = new PermissionCheckService();
-
-    const teamIds = await MembershipRepository.findUserTeamIds({ userId });
-
-    if (teamIds.length === 0) {
-      return {
-        insights: true,
-        workflows: true,
-        routing: true,
-        teams: true,
-        members: true,
-      };
+  async (userId: number | undefined): Promise<NavigationPermissions> => {
+    if (!userId) {
+      return DEFAULT_PERMISSIONS;
     }
 
+    const teamIds = await MembershipRepository.findUserTeamIds({ userId });
+    if (teamIds.length === 0) {
+      return DEFAULT_PERMISSIONS;
+    }
+
+    const permissionService = new PermissionCheckService();
     const permissionChecks = await Promise.all([
       permissionService.getTeamIdsWithPermission(userId, NAVIGATION_PERMISSION_MAP.insights),
       permissionService.getTeamIdsWithPermission(userId, NAVIGATION_PERMISSION_MAP.workflows),
@@ -48,7 +52,7 @@ export const checkNavigationPermissions = unstable_cache(
   },
   ["navigation-permissions"],
   {
-    revalidate: 300, // Cache for 5 minutes
+    revalidate: 3600, // Cache for 1 hour
     tags: ["navigation-permissions"],
   }
 );

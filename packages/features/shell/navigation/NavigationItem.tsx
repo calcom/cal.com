@@ -76,15 +76,6 @@ export const NavigationItem: React.FC<{
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
   const [isExpanded, setIsExpanded] = usePersistedExpansionState(item.name);
 
-  useEffect(() => {
-    if (!shouldDisplayNavigationItem) {
-      try {
-        sessionStorage.removeItem(`nav-expansion-${item.name}`);
-      } catch (_error) {}
-      setIsExpanded(false);
-    }
-  }, [shouldDisplayNavigationItem, item.name, setIsExpanded]);
-
   const isTablet = useMediaQuery("(max-width: 1024px)");
   const [isTooltipOpen, setIsTooltipOpen] = useState(false);
 
@@ -274,15 +265,6 @@ export const MobileNavigationMoreItem: React.FC<{
   const { t, isLocaleReady } = useLocale();
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
   const [isExpanded, setIsExpanded] = usePersistedExpansionState(item.name);
-
-  useEffect(() => {
-    if (!shouldDisplayNavigationItem) {
-      try {
-        sessionStorage.removeItem(`nav-expansion-${item.name}`);
-      } catch (_error) {}
-      setIsExpanded(false);
-    }
-  }, [shouldDisplayNavigationItem, item.name, setIsExpanded]);
 
   if (!shouldDisplayNavigationItem) return null;
 
