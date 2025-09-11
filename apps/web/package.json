@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "5.6.16",
+  "version": "5.6.18",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -139,6 +139,7 @@
     "react-use-intercom": "1.5.1",
     "recoil": "^0.7.7",
     "remove-markdown": "^0.5.0",
+    "retell-client-js-sdk": "^2.0.0",
     "retell-sdk": "^4.40.0",
     "rrule": "^2.7.1",
     "sanitize-html": "^2.10.0",
