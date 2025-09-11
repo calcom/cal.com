@@ -1,10 +1,9 @@
-import { createContainer } from "@evyweb/ioctopus";
-
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 
 import type { CheckBookingAndDurationLimitsService } from "../../../features/bookings/lib/handleNewBooking/checkBookingAndDurationLimits";
 import type { CheckBookingLimitsService } from "../../intervalLimits/server/checkBookingLimits";
+import { createContainer } from "../di";
 import { bookingRepositoryModule } from "../modules/Booking";
 import { checkBookingAndDurationLimitsModule } from "../modules/CheckBookingAndDurationLimits";
 import { checkBookingLimitsModule } from "../modules/CheckBookingLimits";
