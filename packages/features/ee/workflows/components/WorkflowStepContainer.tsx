@@ -67,8 +67,9 @@ import emailReminderTemplate from "../lib/reminders/templates/emailReminderTempl
 import type { FormValues } from "../pages/workflow";
 import "../style/styles.css";
 import { AgentConfigurationSheet } from "./AgentConfigurationSheet";
-import { TestAgentDialog } from "./TestAgentDialog";
+import { TestPhoneCallDialog } from "./TestPhoneCallDialog";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
+import { WebCallDialog } from "./WebCallDialog";
 
 type User = RouterOutputs["viewer"]["me"]["get"];
 
@@ -231,6 +232,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const verifiedEmails = _verifiedEmails || [];
   const [isAdditionalInputsDialogOpen, setIsAdditionalInputsDialogOpen] = useState(false);
   const [isTestAgentDialogOpen, setIsTestAgentDialogOpen] = useState(false);
+  const [isWebCallDialogOpen, setIsWebCallDialogOpen] = useState(false);
   const [isUnsubscribeDialogOpen, setIsUnsubscribeDialogOpen] = useState(false);
 
   const [verificationCode, setVerificationCode] = useState("");
@@ -811,26 +813,57 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </div>
                 <div className="flex items-center gap-1">
                   {arePhoneNumbersActive.length > 0 ? (
-                    <Button
-                      color="secondary"
-                      onClick={() => setIsTestAgentDialogOpen(true)}
-                      disabled={props.readOnly || !arePhoneNumbersActive.length}>
-                      <Icon name="phone" className="mr-2 h-4 w-4" />
-                      {t("test_agent")}
-                    </Button>
+                    <Dropdown>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          color="secondary"
+                          className="rounded-[10px]"
+                          disabled={props.readOnly}
+                          EndIcon="chevron-down">
+                          {t("test_agent")}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem>
+                          <DropdownItem
+                            type="button"
+                            StartIcon="phone"
+                            onClick={() => setIsTestAgentDialogOpen(true)}>
+                            {t("phone_call")}
+                          </DropdownItem>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <DropdownItem
+                            type="button"
+                            StartIcon="monitor"
+                            onClick={() => setIsWebCallDialogOpen(true)}>
+                            {t("web_call")}
+                          </DropdownItem>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </Dropdown>
                   ) : (
-                    <Button
-                      color="secondary"
-                      onClick={() => {
-                        setAgentConfigurationSheet((prev) => ({
-                          ...prev,
-                          open: true,
-                          activeTab: "phoneNumber",
-                        }));
-                      }}
-                      disabled={props.readOnly}>
-                      {t("connect_phone_number")}
-                    </Button>
+                    <>
+                      <Button
+                        color="secondary"
+                        onClick={() => {
+                          setAgentConfigurationSheet((prev) => ({
+                            ...prev,
+                            open: true,
+                            activeTab: "phoneNumber",
+                          }));
+                        }}
+                        disabled={props.readOnly}>
+                        {t("connect_phone_number")}
+                      </Button>
+                      <Button
+                        color="secondary"
+                        onClick={() => setIsWebCallDialogOpen(true)}
+                        disabled={props.readOnly}
+                        StartIcon="monitor">
+                        {t("test_web_call")}
+                      </Button>
+                    </>
                   )}
                   <Dropdown>
                     <DropdownMenuTrigger asChild>
@@ -857,64 +890,17 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               </div>
             </div>
           )}
-
-          {!isWhatsappAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) &&
-            !isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
-              <div>
-                {isSenderIsNeeded ? (
-                  <>
-                    <div className="pt-4">
-                      <div className="flex items-center">
-                        <Label>{t("sender_id")}</Label>
-                        {/* <Tooltip content={t("sender_id_info")}> */}
-                        {/* </Tooltip> */}
-                      </div>
-                      <Input
-                        type="text"
-                        placeholder={SENDER_ID}
-                        disabled={props.readOnly}
-                        maxLength={11}
-                        {...form.register(`steps.${step.stepNumber - 1}.sender`)}
-                      />
-                      <div className="mt-1.5 flex items-center gap-1">
-                        <Icon name="info" size="10" className="text-gray-500" />
-                        <div className="text-subtle text-xs">{t("sender_id_info")}</div>
-                      </div>
-                    </div>
-                    {form.formState.errors.steps &&
-                      form.formState?.errors?.steps[step.stepNumber - 1]?.sender && (
-                        <p className="text-error mt-1 text-xs">{t("sender_id_error_message")}</p>
-                      )}
-                  </>
-                ) : (
-                  <>
-                    <div className="pt-4">
-                      <Label>{t("sender_name")}</Label>
-                      <Input
-                        type="text"
-                        disabled={props.readOnly}
-                        placeholder={SENDER_NAME}
-                        {...form.register(`steps.${step.stepNumber - 1}.senderName`)}
-                      />
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-
           {isPhoneNumberNeeded && (
-            <div className="bg-muted border-muted mt-3 rounded-2xl border p-4 pt-0">
+            <div className="bg-muted mt-2 rounded-md p-4 pt-0">
               <Label className="pt-4">{t("custom_phone_number")}</Label>
-              <div className="block items-center gap-2 sm:flex">
+              <div className="block sm:flex">
                 <Controller
                   name={`steps.${step.stepNumber - 1}.sendTo`}
                   render={({ field: { value, onChange } }) => (
                     <PhoneInput
                       placeholder={t("phone_number")}
                       id={`steps.${step.stepNumber - 1}.sendTo`}
-                      className="h-8 w-full min-w-fit rounded-xl"
-                      inputStyle={{ borderRadius: "10px", height: "30px" }}
-                      flagButtonStyle={{ borderTopLeftRadius: "10px", borderBottomLeftRadius: "10px" }}
+                      className="min-w-fit sm:rounded-r-none sm:rounded-bl-md sm:rounded-tl-md"
                       required
                       disabled={props.readOnly}
                       value={value}
@@ -930,10 +916,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 />
                 <Button
                   color="secondary"
-                  size="sm"
                   disabled={numberVerified || props.readOnly || false}
                   className={classNames(
-                    "min-w-fit text-sm font-medium",
+                    "-ml-[3px] h-[40px] min-w-fit sm:block sm:rounded-bl-none sm:rounded-tl-none",
                     numberVerified ? "hidden" : "mt-3 sm:mt-0"
                   )}
                   onClick={() =>
@@ -1465,6 +1450,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             }}
             readOnly={props.readOnly}
             teamId={teamId}
+            isOrganization={props.isOrganization}
             workflowId={params?.workflow as string}
             workflowStepId={step?.id}
             form={form}
@@ -1472,11 +1458,22 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         )}
 
         {stepAgentId && (
-          <TestAgentDialog
+          <TestPhoneCallDialog
             open={isTestAgentDialogOpen}
             onOpenChange={setIsTestAgentDialogOpen}
             agentId={stepAgentId}
             teamId={teamId}
+            form={form}
+          />
+        )}
+
+        {stepAgentId && (
+          <WebCallDialog
+            open={isWebCallDialogOpen}
+            onOpenChange={setIsWebCallDialogOpen}
+            agentId={stepAgentId}
+            teamId={teamId}
+            isOrganization={props.isOrganization}
             form={form}
           />
         )}
@@ -1492,22 +1489,22 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   subscriptionStatus: phone.subscriptionStatus ?? undefined,
                 }))
               ).length > 0 && (
-                <div className="bg-muted rounded-lg p-3">
-                  <div className="flex items-center gap-2">
-                    <Icon name="phone" className="text-emphasis h-4 w-4" />
-                    <span className="text-emphasis text-sm font-medium">
-                      {formatPhoneNumber(
-                        getActivePhoneNumbers(
-                          agentData?.outboundPhoneNumbers?.map((phone) => ({
-                            ...phone,
-                            subscriptionStatus: phone.subscriptionStatus ?? undefined,
-                          }))
-                        )?.[0]?.phoneNumber
-                      )}
-                    </span>
+                  <div className="bg-muted rounded-lg p-3">
+                    <div className="flex items-center gap-2">
+                      <Icon name="phone" className="text-emphasis h-4 w-4" />
+                      <span className="text-emphasis text-sm font-medium">
+                        {formatPhoneNumber(
+                          getActivePhoneNumbers(
+                            agentData?.outboundPhoneNumbers?.map((phone) => ({
+                              ...phone,
+                              subscriptionStatus: phone.subscriptionStatus ?? undefined,
+                            }))
+                          )?.[0]?.phoneNumber
+                        )}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
               <p className="text-subtle text-sm">{t("the_action_will_disconnect_phone_number")}</p>
             </div>
             <DialogFooter showDivider>
