@@ -12,7 +12,7 @@ import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
-import { BookingStatus, RedirectType, SchedulingType } from "@calcom/prisma/client";
+import { BookingStatus, RedirectType, SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { handleOrgRedirect } from "@lib/handleOrgRedirect";
