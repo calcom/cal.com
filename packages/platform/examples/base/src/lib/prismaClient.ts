@@ -1,4 +1,5 @@
-// prisma client of example app, using local prisma db, not related to the cal.com monorepo prisma client
+// prisma client of example app
+//  using local prisma db, not related to the cal.com monorepo prisma client
 import { PrismaClient } from "@calcom/prisma/client";
 
 const prismaClientSingleton = () => {
