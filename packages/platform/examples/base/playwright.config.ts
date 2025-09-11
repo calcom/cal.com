@@ -2,7 +2,9 @@ import { defineConfig, devices } from "@playwright/test";
 import dotenv from "dotenv";
 import path from "path";
 
-dotenv.config({ path: path.resolve(__dirname, ".env.tests.ci") });
+const envPath = process.env.CI ? path.resolve(__dirname, ".env") : path.resolve(__dirname, ".env.local");
+
+dotenv.config({ path: envPath });
 
 const DEFAULT_EXPECT_TIMEOUT = process.env.CI ? 30000 : 120000;
 const DEFAULT_TEST_TIMEOUT = process.env.CI ? 60000 : 240000;
