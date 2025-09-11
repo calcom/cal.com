@@ -34,7 +34,12 @@ export function NewScheduleButton({
       showToast(t("schedule_created_successfully", { scheduleName: schedule.name }), "success");
       revalidateAvailabilityList();
       utils.viewer.availability.list.setData(undefined, (data) => {
-        const newSchedule = { ...schedule, isDefault: false, availability: [] };
+        const newSchedule = {
+          ...schedule,
+          isDefault: false,
+          availability: [],
+          lockedDefaultAvailability: false,
+        };
         if (!data)
           return {
             schedules: [newSchedule],
