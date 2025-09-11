@@ -1,5 +1,5 @@
 import type { EventTypeCustomInput } from "@prisma/client";
-import { isValidPhoneNumber } from "libphonenumber-js";
+import { isValidPhoneNumber } from "libphonenumber-js/max";
 import z from "zod";
 
 type CustomInput = {
