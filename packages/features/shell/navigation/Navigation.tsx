@@ -11,6 +11,7 @@ import { KBarTrigger } from "@calcom/features/kbar/Kbar";
 import classNames from "@calcom/ui/classNames";
 
 import { TeamInviteBadge } from "../TeamInviteBadge";
+import { NAVIGATION_ITEMS_CONFIG } from "../permissions/types";
 import type { NavigationItemType } from "./NavigationItem";
 import { NavigationItem, MobileNavigationItem, MobileNavigationMoreItem } from "./NavigationItem";
 
@@ -46,8 +47,8 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     : []),
   {
     name: "teams",
-    href: "/teams",
-    icon: "users",
+    href: NAVIGATION_ITEMS_CONFIG.teams.href,
+    icon: NAVIGATION_ITEMS_CONFIG.teams.icon,
     badge: <TeamInviteBadge />,
     moreOnMobile: true,
   },
@@ -89,21 +90,21 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
   },
   {
     name: "routing",
-    href: "/routing",
-    icon: "split",
-    isCurrent: ({ pathname }) => pathname?.startsWith("/routing") ?? false,
+    href: NAVIGATION_ITEMS_CONFIG.routing.href,
+    icon: NAVIGATION_ITEMS_CONFIG.routing.icon,
+    isCurrent: ({ pathname }) => pathname?.startsWith(NAVIGATION_ITEMS_CONFIG.routing.href) ?? false,
     moreOnMobile: true,
   },
   {
     name: "workflows",
-    href: "/workflows",
-    icon: "zap",
+    href: NAVIGATION_ITEMS_CONFIG.workflows.href,
+    icon: NAVIGATION_ITEMS_CONFIG.workflows.icon,
     moreOnMobile: true,
   },
   {
     name: "insights",
-    href: "/insights",
-    icon: "chart-bar",
+    href: NAVIGATION_ITEMS_CONFIG.insights.href,
+    icon: NAVIGATION_ITEMS_CONFIG.insights.icon,
     isCurrent: ({ pathname: path, item }) => path?.startsWith(item.href) ?? false,
     moreOnMobile: true,
     child: [

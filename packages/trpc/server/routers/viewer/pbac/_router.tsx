@@ -5,7 +5,7 @@ import { isValidPermissionString } from "@calcom/features/pbac/domain/types/perm
 import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { RoleService } from "@calcom/features/pbac/services/role.service";
-import { NAVIGATION_PERMISSION_MAP } from "@calcom/features/shell/permissions/types";
+import { NAVIGATION_ITEMS_CONFIG } from "@calcom/features/shell/permissions/types";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import prisma from "@calcom/prisma";
 import { RoleType, MembershipRole } from "@calcom/prisma/enums";
@@ -58,23 +58,19 @@ export const permissionsRouter = router({
     }
 
     const permissionService = new PermissionCheckService();
-    const permissionChecks = await Promise.all([
-      permissionService.getTeamIdsWithPermission(ctx.user.id, NAVIGATION_PERMISSION_MAP.insights),
-      permissionService.getTeamIdsWithPermission(ctx.user.id, NAVIGATION_PERMISSION_MAP.workflows),
-      permissionService.getTeamIdsWithPermission(ctx.user.id, NAVIGATION_PERMISSION_MAP.routing),
-      permissionService.getTeamIdsWithPermission(ctx.user.id, NAVIGATION_PERMISSION_MAP.teams),
-      permissionService.getTeamIdsWithPermission(ctx.user.id, NAVIGATION_PERMISSION_MAP.members),
-    ]);
+    const navigationItems = Object.keys(NAVIGATION_ITEMS_CONFIG) as Array<
+      keyof typeof NAVIGATION_ITEMS_CONFIG
+    >;
 
-    const [insightsTeams, workflowsTeams, routingTeams, teamsTeams, membersTeams] = permissionChecks;
+    const permissionChecks = await Promise.all(
+      navigationItems.map((itemName) =>
+        permissionService.getTeamIdsWithPermission(ctx.user.id, NAVIGATION_ITEMS_CONFIG[itemName].permission)
+      )
+    );
 
-    return {
-      insights: insightsTeams.length > 0,
-      workflows: workflowsTeams.length > 0,
-      routing: routingTeams.length > 0,
-      teams: teamsTeams.length > 0,
-      members: membersTeams.length > 0,
-    };
+    return Object.fromEntries(
+      navigationItems.map((itemName, index) => [itemName, permissionChecks[index].length > 0])
+    ) as Record<keyof typeof NAVIGATION_ITEMS_CONFIG, boolean>;
   }),
 
   checkPermission: authedProcedure
