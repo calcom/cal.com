@@ -27,5 +27,5 @@ export type { EventTypesByViewer } from "@calcom/lib/event-types/getEventTypesBy
 export type { UpdateEventTypeReturn } from "@calcom/trpc/server/routers/viewer/eventTypes/heavy/update.handler";
 export { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries/teams";
 
-export { bulkUpdateEventsToDefaultLocation } from "@calcom/lib/bulkUpdateEventsToDefaultLocation";
-export { bulkUpdateTeamEventsToDefaultLocation } from "@calcom/lib/bulkUpdateTeamEventsToDefaultLocation";
+export { bulkUpdateEventsToDefaultLocation } from "@calcom/app-store/_utils/bulkUpdateEventsToDefaultLocation";
+export { bulkUpdateTeamEventsToDefaultLocation } from "@calcom/app-store/_utils/bulkUpdateTeamEventsToDefaultLocation";
