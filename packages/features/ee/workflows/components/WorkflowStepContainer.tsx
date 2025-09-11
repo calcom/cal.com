@@ -533,7 +533,21 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   isDisabled={props.readOnly}
                   onChange={(val) => {
                     if (val) {
+                      const currentTrigger = form.getValues("trigger");
+                      const isCurrentFormTrigger = isFormTrigger(currentTrigger);
+                      const isNewFormTrigger = isFormTrigger(val.value);
+
                       form.setValue("trigger", val.value);
+
+                      // Reset activeOn when switching between form and non-form triggers
+                      if (isCurrentFormTrigger !== isNewFormTrigger) {
+                        form.setValue("activeOn", []);
+                        if (setSelectedOptions) {
+                          setSelectedOptions([]);
+                        }
+                        form.setValue("selectAll", false);
+                      }
+
                       const newTimeSectionText = getTimeSectionText(val.value, t);
                       if (newTimeSectionText) {
                         setTimeSectionText(newTimeSectionText);
