@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 
-import { BillingPortalServiceFactory } from "../lib/BillingService";
+import { BillingPortalServiceFactory } from "../lib/BillingPortalService";
 
 interface AuthenticatedUser {
   id: number;

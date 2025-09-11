@@ -10,7 +10,7 @@ import {
   TeamBillingPortalService,
   OrganizationBillingPortalService,
   UserBillingPortalService,
-} from "../../lib/BillingService";
+} from "../../lib/BillingPortalService";
 import * as customerModule from "../../lib/customer";
 import { validateAuthentication, buildReturnUrl } from "../portal";
 
