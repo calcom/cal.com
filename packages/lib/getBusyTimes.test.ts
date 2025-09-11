@@ -1,8 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { prisma } from "@calcom/prisma/__mocks__/prisma";
+
+import { describe, expect, it, vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 
 import { getBusyTimesService } from "./di/containers/BusyTimes";
+
+vi.mock("@calcom/prisma", () => ({
+  prisma,
+}));
 
 const startOfTomorrow = dayjs().add(1, "day").startOf("day");
 const tomorrowDate = startOfTomorrow.format("YYYY-MM-DD");

@@ -1,4 +1,3 @@
-import type { DestinationCalendar, User } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
@@ -67,15 +66,15 @@ import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService"
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
-import prisma from "@calcom/prisma";
-import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
+import { prisma } from "@calcom/prisma";
+import type { DestinationCalendar, Prisma, User, AssignmentReasonEnum } from "@calcom/prisma/client";
 import {
   BookingStatus,
   SchedulingType,
   WebhookTriggerEvents,
   WorkflowTriggerEvents,
+  CreationSource,
 } from "@calcom/prisma/enums";
-import { CreationSource } from "@calcom/prisma/enums";
 import {
   eventTypeAppMetadataOptionalSchema,
   eventTypeMetaDataSchemaWithTypedApps,
@@ -100,8 +99,8 @@ import getBookingDataSchema from "./getBookingDataSchema";
 import { addVideoCallDataToEvent } from "./handleNewBooking/addVideoCallDataToEvent";
 import { checkActiveBookingsLimitForBooker } from "./handleNewBooking/checkActiveBookingsLimitForBooker";
 import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
-import { createBooking } from "./handleNewBooking/createBooking";
 import type { Booking } from "./handleNewBooking/createBooking";
+import { createBooking } from "./handleNewBooking/createBooking";
 import { ensureAvailableUsers } from "./handleNewBooking/ensureAvailableUsers";
 import { getBookingData } from "./handleNewBooking/getBookingData";
 import { getCustomInputsResponses } from "./handleNewBooking/getCustomInputsResponses";
@@ -114,8 +113,8 @@ import { getVideoCallDetails } from "./handleNewBooking/getVideoCallDetails";
 import { handleAppsStatus } from "./handleNewBooking/handleAppsStatus";
 import { loadAndValidateUsers } from "./handleNewBooking/loadAndValidateUsers";
 import { createLoggerWithEventDetails } from "./handleNewBooking/logger";
-import { getOriginalRescheduledBooking } from "./handleNewBooking/originalRescheduledBookingUtils";
 import type { BookingType } from "./handleNewBooking/originalRescheduledBookingUtils";
+import { getOriginalRescheduledBooking } from "./handleNewBooking/originalRescheduledBookingUtils";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
 import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from "./handleNewBooking/types";
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
@@ -2090,7 +2089,15 @@ async function handler(
     if (!booking.user) booking.user = organizerUser;
     const payment = await handlePayment({
       evt,
-      selectedEventType: eventType,
+      selectedEventType: {
+        ...eventType,
+        metadata: eventType.metadata
+          ? {
+              ...eventType.metadata,
+              apps: eventType.metadata?.apps as Prisma.JsonValue,
+            }
+          : {},
+      },
       paymentAppCredentials: eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
       booking,
       bookerName: fullName,
