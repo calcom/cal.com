@@ -10,7 +10,7 @@ import "react-phone-number-input/style.css";
 import type { RetellAgentWithDetails } from "@calcom/features/calAIPhone/providers/retellAI";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import PhoneInput from "@calcom/features/components/phone-input";
-import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
+import { SENDER_ID } from "@calcom/lib/constants";
 import { formatPhoneNumber } from "@calcom/lib/formatPhoneNumber";
 import { useHasActiveTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -45,7 +45,6 @@ import { EmailField } from "@calcom/ui/components/form";
 import { TextArea } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
-import { Input } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { MultiSelectCheckbox } from "@calcom/ui/components/form";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
@@ -251,7 +250,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const senderNeeded =
     step?.action === WorkflowActions.SMS_NUMBER || step?.action === WorkflowActions.SMS_ATTENDEE;
 
-  const [isSenderIsNeeded, setIsSenderIsNeeded] = useState(senderNeeded);
+  const [_isSenderIsNeeded, setIsSenderIsNeeded] = useState(senderNeeded);
 
   const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(
     step?.action === WorkflowActions.EMAIL_ADDRESS ? true : false
@@ -745,7 +744,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           </div>
           {isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && !stepAgentId && (
             <div className="bg-muted border-muted mt-2 rounded-2xl border p-3">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center sm:gap-0">
                 <div>
                   <h2 className="text-emphasis text-sm font-medium leading-none">
                     {t("cal_ai_agent")}
@@ -760,6 +759,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 <Button
                   color="primary"
                   disabled={props.readOnly}
+                  className="flex items-center justify-center"
                   onClick={async () => {
                     // save the workflow first to get the step id
                     if (onSaveWorkflow) {
