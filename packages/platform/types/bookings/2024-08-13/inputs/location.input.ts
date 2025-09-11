@@ -63,6 +63,7 @@ export const supportedIntegrations = [
   "discord-video",
   "demodesk-video",
   "campfire-video",
+  "azure-communication-service",
 ] as const;
 export type Integration_2024_08_13 = (typeof supportedIntegrations)[number];
 
