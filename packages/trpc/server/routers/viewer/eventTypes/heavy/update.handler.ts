@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
+import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { DailyLocationType } from "@calcom/app-store/constants";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
@@ -537,7 +538,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   const apps = eventTypeAppMetadataOptionalSchema.parse(input.metadata?.apps);
   for (const appKey in apps) {
-    const app = apps[appKey as keyof typeof apps];
+    const app = apps[appKey as keyof typeof appDataSchemas];
     // There should only be one enabled payment app in the metadata
     if (app.enabled && app.price && app.currency) {
       data.price = app.price;
