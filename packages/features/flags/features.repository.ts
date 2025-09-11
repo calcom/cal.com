@@ -36,7 +36,6 @@ export class FeaturesRepository implements IFeaturesRepository {
 
     const features = await this.prismaClient.feature.findMany({
       orderBy: { slug: "asc" },
-      cacheStrategy: { swr: 300, ttl: 300 },
     });
 
     FeaturesRepository.featuresCache = {

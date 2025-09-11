@@ -149,4 +149,8 @@ export const lucideIconList = new Set([
   "bookmark",
   "square-pen",
   "list-filter",
+  "phone-off",
+  "mic-off",
+  "mic",
+  "monitor",
 ]);
