@@ -85,8 +85,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
       },
     });
   }
-  const x = finalFields[0];
-  const y = x.options;
+
   // Ideally we shouldn't have needed to explicitly type it but due to some reason it's not working reliably with VSCode TypeCheck
   const serializableForm: SerializableForm<TForm> = {
     ...form,
