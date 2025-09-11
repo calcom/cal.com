@@ -1,4 +1,4 @@
-import { isSupportedCountry, getCountryCallingCode } from "libphonenumber-js";
+import { getCountries, getCountryCallingCode } from "libphonenumber-js";
 
 export interface CountryOption {
   label: string;
@@ -10,18 +10,15 @@ const generateCountryData = (): Record<string, { name: string; dialCode: string 
   const countryData: Record<string, { name: string; dialCode: string }> = {};
   const intl = new Intl.DisplayNames(["en"], { type: "region" });
 
-  for (let i = 0; i < 26; i++) {
-    for (let j = 0; j < 26; j++) {
-      const code = String.fromCharCode(65 + i) + String.fromCharCode(65 + j);
-      if (isSupportedCountry(code)) {
-        try {
-          const dialCode = getCountryCallingCode(code);
-          const name = intl.of(code) || code;
-          countryData[code.toLowerCase()] = { name, dialCode };
-        } catch (e) {}
-      }
-    }
-  }
+  const supportedCountries = getCountries();
+
+  supportedCountries.forEach((code) => {
+    try {
+      const dialCode = getCountryCallingCode(code);
+      const name = intl.of(code) || code;
+      countryData[code.toLowerCase()] = { name, dialCode };
+    } catch (e) {}
+  });
 
   return countryData;
 };
