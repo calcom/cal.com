@@ -1,5 +1,3 @@
-import { parsePhoneNumber } from "libphonenumber-js";
-
 import dayjs from "@calcom/dayjs";
 import {
   getAttendeeToBeUsedInSMS,
@@ -149,31 +147,6 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
   }
 
   if (reminderPhone && isNumberVerified) {
-    const workflowStep = await prisma.workflowStep.findUnique({
-      where: { id: workflowStepId },
-      select: { allowedCountryCodes: true },
-    });
-
-    if (workflowStep?.allowedCountryCodes && workflowStep.allowedCountryCodes.length > 0) {
-      try {
-        const phoneNumber = parsePhoneNumber(reminderPhone);
-        if (!phoneNumber || !workflowStep.allowedCountryCodes.includes(phoneNumber.country || "")) {
-          log.warn(`Phone number country not allowed for workflow step ${workflowStepId}`, {
-            phoneCountry: phoneNumber?.country,
-            allowedCountries: workflowStep.allowedCountryCodes,
-            phoneNumber: reminderPhone,
-          });
-          return;
-        }
-      } catch (error) {
-        log.error(`Error parsing phone number for country validation: ${error}`, {
-          phoneNumber: reminderPhone,
-          workflowStepId,
-        });
-        return;
-      }
-    }
-
     const useTwilio = shouldUseTwilio(triggerEvent, scheduledDate);
     if (useTwilio) {
       const attendeeToBeUsedInSMS = getAttendeeToBeUsedInSMS(action, evt, reminderPhone);
