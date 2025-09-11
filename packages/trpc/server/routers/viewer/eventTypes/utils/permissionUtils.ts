@@ -91,9 +91,7 @@ export async function buildTeamPermissionsMap(
   teamMemberships: MembershipWithRole[],
   userId: number
 ): Promise<Map<number, TeamPermissions>> {
-  const permissionsMap = new Map<number, TeamPermissions>();
-
-  for (const membership of memberships) {
+  const permissionPromises = memberships.map(async (membership) => {
     const orgMembership = teamMemberships.find(
       (teamM) => teamM.teamId === membership.team.parentId
     )?.membershipRole;
@@ -101,8 +99,9 @@ export async function buildTeamPermissionsMap(
     const effectiveRole = getEffectiveRole(orgMembership, membership.role);
     const permissions = await getTeamPermissions(userId, membership.team.id, effectiveRole);
 
-    permissionsMap.set(membership.team.id, permissions);
-  }
+    return [membership.team.id, permissions] as const;
+  });
 
-  return permissionsMap;
+  const results = await Promise.all(permissionPromises);
+  return new Map(results);
 }
