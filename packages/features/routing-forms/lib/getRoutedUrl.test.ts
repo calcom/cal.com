@@ -93,6 +93,7 @@ describe("getRoutedUrl", () => {
         () =>
           ({
             enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } as any)
       );
     }

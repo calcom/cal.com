@@ -1,7 +1,6 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { Prisma } from "@prisma/client";
 import Link from "next/link";
 import React, { useCallback, useState, useEffect } from "react";
 import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
@@ -48,6 +47,7 @@ import { areTheySiblingEntities } from "@calcom/lib/entityPermissionUtils.shared
 import type { EventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { buildEmptyQueryValue, raqbQueryValueUtils } from "@calcom/lib/raqb/raqbUtils";
+import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
