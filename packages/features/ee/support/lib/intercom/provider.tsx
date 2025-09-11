@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, type FC } from "react";
+import { useEffect, type FC } from "react";
 import { IntercomProvider } from "react-use-intercom";
 
 import { useBootIntercom } from "@calcom/ee/support/lib/intercom/useIntercom";
