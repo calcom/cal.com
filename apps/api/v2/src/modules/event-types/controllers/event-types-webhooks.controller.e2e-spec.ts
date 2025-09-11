@@ -154,7 +154,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
             eventTypeId: eventType2.id,
           },
         } satisfies EventTypeWebhookOutputResponseDto);
-        webhook2 = res.body.data;
+        //webhook2 = res.body.data;
       });
   });
 

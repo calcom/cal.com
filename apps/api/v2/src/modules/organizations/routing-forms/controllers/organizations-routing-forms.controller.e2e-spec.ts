@@ -103,14 +103,14 @@ describe("OrganizationsRoutingFormController", () => {
       },
     });
 
-    routingFormResponse = await prismaWriteService.prisma.app_RoutingForms_FormResponse.create({
+    await prismaWriteService.prisma.app_RoutingForms_FormResponse.create({
       data: {
         formId: routingForm.id,
         response: JSON.stringify({ question1: "answer1", question2: "answer2" }),
       },
     });
 
-    routingFormResponse2 = await prismaWriteService.prisma.app_RoutingForms_FormResponse.create({
+    await prismaWriteService.prisma.app_RoutingForms_FormResponse.create({
       data: {
         formId: routingForm.id,
         response: JSON.stringify({ question1: "answer1", question2: "answer2" }),

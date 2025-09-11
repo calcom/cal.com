@@ -12,7 +12,6 @@ import Stripe from "stripe";
 import * as request from "supertest";
 import { PlatformBillingRepositoryFixture } from "test/fixtures/repository/billing.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
@@ -43,7 +42,6 @@ describe("Platform Billing Controller (e2e)", () => {
     userRepositoryFixture = new UserRepositoryFixture(moduleRef);
     organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
     profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
-    oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
     membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
     platformBillingRepositoryFixture = new PlatformBillingRepositoryFixture(moduleRef);
     organization = await organizationsRepositoryFixture.create({
