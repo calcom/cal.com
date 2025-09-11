@@ -92,9 +92,10 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
               {isTemplate && <Badge variant="red">Template</Badge>}
             </div>
           </div>
-          <p
+          <ListItemText
+            component="p"
             className={classNames(
-              "text-sm text-subtle whitespace-normal break-words",
+              "whitespace-normal break-words",
               classNameObject?.description
             )}
             style={{
@@ -107,7 +108,7 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
               maxHeight: "4.2em", // Fallback for non-webkit browsers
             }}>
             {cleanDescription}
-          </p>
+          </ListItemText>
           {invalidCredential && (
             <div className="flex gap-x-2 pt-2">
               <Icon name="circle-alert" className="h-8 w-8 flex-shrink-0 text-red-500 sm:h-4 sm:w-4" />

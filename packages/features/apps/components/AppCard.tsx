@@ -102,7 +102,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
           alt={`${app.name} Logo`}
           className={classNames(
             app.logo.includes("-dark") && "dark:invert",
-            "mb-4 h-12 w-12 rounded-sm"
+            "mb-4 h-12 w-12 rounded-sm" // TODO: Maybe find a better way to handle this @Hariom?
           )}
         />
       </div>
@@ -231,7 +231,8 @@ const InstallAppButtonChild = ({
       </Button>
     );
   }
-  // Paid apps don't support team installations yet
+  // Paid apps don't support team installs at the moment
+  // Also, cal.ai(the only paid app at the moment) doesn't support team install either
   if (paid) {
     return (
       <Button
