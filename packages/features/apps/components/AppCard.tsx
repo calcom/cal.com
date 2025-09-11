@@ -35,7 +35,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   // Memoize cleaned description to avoid processing on every render
   const cleanDescription = useMemo(() => {
     const processed = stripMarkdown(app.description);
-    // Handle specific cases where text might not break properly
+    // Normalize whitespace to help with truncation
     return processed.replace(/\s+/g, ' ').trim();
   }, [app.description]);
   
