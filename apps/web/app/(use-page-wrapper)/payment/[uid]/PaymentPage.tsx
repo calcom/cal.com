@@ -25,9 +25,7 @@ const StripePaymentComponent = dynamic(() => import("@calcom/features/ee/payment
 
 const PaypalPaymentComponent = dynamic(
   () =>
-    import("@calcom/app-store/paypal/components/PaypalPaymentComponent").then(
-      (m) => m.PaypalPaymentComponent
-    ),
+    import("@calcom/web/components/apps/paypal/PaypalPaymentComponent").then((m) => m.PaypalPaymentComponent),
   {
     ssr: false,
   }
@@ -42,9 +40,7 @@ const AlbyPaymentComponent = dynamic(
 
 const HitpayPaymentComponent = dynamic(
   () =>
-    import("@calcom/app-store/hitpay/components/HitpayPaymentComponent").then(
-      (m) => m.HitpayPaymentComponent
-    ),
+    import("@calcom/web/components/apps/hitpay/HitpayPaymentComponent").then((m) => m.HitpayPaymentComponent),
   {
     ssr: false,
   }

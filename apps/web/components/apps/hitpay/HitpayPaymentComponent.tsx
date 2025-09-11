@@ -1,9 +1,11 @@
+"use client";
+
 import { useRouter } from "next/navigation";
 import qs from "qs";
 import { useEffect, useRef } from "react";
 import { z } from "zod";
 
-import { useHitPayDropIn } from "./HitPayDropIn";
+import { useHitPayDropIn } from "@calcom/app-store/hitpay/components/HitPayDropIn";
 
 const PaymentHitpayDataSchema = z.object({
   id: z.string(),
