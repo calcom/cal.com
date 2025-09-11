@@ -1,13 +1,11 @@
 import type { Prisma } from "@prisma/client";
-import { z } from "zod";
+import type { z } from "zod";
 
-import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
+import type { EventTypeAppMetadataSchema } from "@calcom/app-store/zod-utils";
 import CrmManager from "@calcom/lib/crmManager/crmManager";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-
-const eventTypeAppMetadataSchema = z.object(appDataSchemas).partial();
 
 export async function getCRMContactOwnerForRRLeadSkip(
   bookerEmail: string,
@@ -39,7 +37,7 @@ export async function getCRMContactOwnerForRRLeadSkip(
   };
 }
 
-async function getCRMManagerWithRRLeadSkip(apps: z.infer<typeof eventTypeAppMetadataSchema>) {
+async function getCRMManagerWithRRLeadSkip(apps: z.infer<typeof EventTypeAppMetadataSchema>) {
   let crmRoundRobinLeadSkip;
   for (const appKey in apps) {
     const app = apps[appKey as keyof typeof apps];
