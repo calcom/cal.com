@@ -295,7 +295,7 @@ async function postHandler(req: NextApiRequest) {
     await checkUserMembership(req);
   }
 
-  if (isSystemWideAdmin && userId && !parsedBody.teamId && parsedBody.teamId !== null) {
+  if (isSystemWideAdmin && userId && parsedBody.teamId === undefined) {
     data = { ...parsedBody, users: { connect: { id: userId } } };
   }
 
