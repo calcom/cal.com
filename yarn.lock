@@ -3711,6 +3711,7 @@ __metadata:
     "@calcom/prisma": "*"
     "@calcom/types": "*"
     msw: ^2.7.0
+    windows-iana: ^5.1.0
   languageName: unknown
   linkType: soft
 
@@ -48702,6 +48703,13 @@ __metadata:
   dependencies:
     string-width: ^5.0.1
   checksum: 64c48cf27171221be5f86fc54b94dd29879165bdff1a7aa92dde723d9a8c99fb108312768a5d62c8c2b80b701fa27bbd36a1ddc58367585cd45c0db7920a0cba
+  languageName: node
+  linkType: hard
+
+"windows-iana@npm:^5.1.0":
+  version: 5.1.0
+  resolution: "windows-iana@npm:5.1.0"
+  checksum: 0dc9ababde5f839e83a4bcd448347d8da563efd9e23ce61ac777e9992774ff85de2a9f343f87b80b37b181742fe4d783cff3ba39191cfedb6357ae7d5f58aadc
   languageName: node
   linkType: hard
 

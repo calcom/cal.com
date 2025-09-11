@@ -1,5 +1,6 @@
 import type { Calendar as OfficeCalendar, User, Event } from "@microsoft/microsoft-graph-types-beta";
 import type { DefaultBodyType } from "msw";
+import { findIana } from "windows-iana";
 
 import { MSTeamsLocationType } from "@calcom/app-store/constants";
 import dayjs from "@calcom/dayjs";
@@ -689,17 +690,49 @@ export default class Office365CalendarService implements Calendar {
   async getMainTimeZone(): Promise<string> {
     try {
       const response = await this.fetcher(`${await this.getUserEndpoint()}/mailboxSettings/timeZone`);
-      const timezone = await handleErrorsJson<string>(response);
+      const timezoneResponse = await handleErrorsJson<string | { value: string }>(response);
 
-      if (!timezone || typeof timezone !== "string") {
+      let windowsTimezoneName: string;
+
+      if (typeof timezoneResponse === "object" && timezoneResponse !== null && "value" in timezoneResponse) {
+        windowsTimezoneName = timezoneResponse.value;
+        this.log.info("timezone found in outlook mailbox settings (new format)", {
+          windowsTimezoneName,
+        });
+      } else if (typeof timezoneResponse === "string") {
+        windowsTimezoneName = timezoneResponse;
+        this.log.info("timezone found in outlook mailbox settings (legacy format)", {
+          windowsTimezoneName,
+        });
+      } else {
         this.log.warn("No timezone found in outlook mailbox settings, defaulting to Europe/London", {
-          timezone,
+          timezoneResponse,
         });
         return "Europe/London";
       }
-      this.log.info("timezone found in outlook mailbox settings", { timezone });
 
-      return timezone;
+      try {
+        const ianaTimezone = findIana(windowsTimezoneName);
+        if (ianaTimezone && ianaTimezone.length > 0) {
+          const convertedTimezone = ianaTimezone[0];
+          this.log.info("Successfully converted Windows timezone to IANA", {
+            windowsTimezoneName,
+            convertedTimezone,
+          });
+          return convertedTimezone;
+        } else {
+          this.log.warn("Could not convert Windows timezone to IANA, using original value", {
+            windowsTimezoneName,
+          });
+          return windowsTimezoneName;
+        }
+      } catch (conversionError) {
+        this.log.warn("Error converting Windows timezone to IANA, using original value", {
+          windowsTimezoneName,
+          conversionError,
+        });
+        return windowsTimezoneName;
+      }
     } catch (error) {
       this.log.error("Error getting main timezone from Office365 Calendar", { error });
       throw error;
