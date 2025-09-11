@@ -4,13 +4,12 @@ import { getGoogleMeetCredential, TestData } from "@calcom/web/test/utils/bookin
 
 import { describe, expect, it } from "vitest";
 
-import { DailyLocationType, MeetLocationType } from "@calcom/app-store/locations";
-
+import { DailyLocationType, MeetLocationType } from "../locations";
 import { getDefaultLocations } from "./getDefaultLocations";
 
 type User = {
   id: number;
-  email?: string;
+  email: string;
   name?: string;
   metadata: {
     defaultConferencingApp?: {
@@ -34,6 +33,7 @@ describe("getDefaultLocation ", async () => {
   it("should return location based on user default conferencing app", async () => {
     const user: User = {
       id: 101,
+      email: "test@example.com",
       metadata: {
         defaultConferencingApp: {
           appSlug: "google-meet",
@@ -53,6 +53,7 @@ describe("getDefaultLocation ", async () => {
   it("should return calvideo when default conferencing app is not set", async () => {
     const user: User = {
       id: 101,
+      email: "test@example.com",
       metadata: {},
     };
     await mockUser(user);
