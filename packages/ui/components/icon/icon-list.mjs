@@ -102,6 +102,7 @@ export const lucideIconList = new Set([
   "phone-outgoing",
   "phone",
   "plus",
+  "circle-plus",
   "refresh-ccw",
   "refresh-cw",
   "repeat",

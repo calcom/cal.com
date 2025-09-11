@@ -1444,6 +1444,7 @@
   "whatsapp_attendee_action": "send WhatsApp message to attendee",
   "workflows": "Workflows",
   "new_workflow_btn": "New Workflow",
+  "how_would_you_like_to_start": "How would you like to start?",
   "add_new_workflow": "Add a new workflow",
   "reschedule_event_trigger": "when event is rescheduled",
   "trigger": "Trigger",

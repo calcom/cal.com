@@ -1,14 +1,11 @@
-import { useRouter } from "next/navigation";
-
 import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { HttpError } from "@calcom/lib/http-error";
-import { trpc } from "@calcom/trpc/react";
 import cn from "@calcom/ui/classNames";
 import { EmptyScreen as ClassicEmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Icon } from "@calcom/ui/components/icon";
 import type { IconName } from "@calcom/ui/components/icon";
-import { showToast } from "@calcom/ui/components/toast";
+
+import { WorkflowCreationDialog, useWorkflowCreation } from "./WorkflowCreationDialog";
 
 type WorkflowExampleType = {
   icon: IconName;
@@ -54,24 +51,7 @@ function WorkflowExample(props: WorkflowExampleType) {
 
 export default function EmptyScreen(props: { isFilteredView: boolean }) {
   const { t } = useLocale();
-  const router = useRouter();
-
-  const createMutation = trpc.viewer.workflows.create.useMutation({
-    onSuccess: async ({ workflow }) => {
-      await router.replace(`/workflows/${workflow.id}`);
-    },
-    onError: (err) => {
-      if (err instanceof HttpError) {
-        const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
-      }
-
-      if (err.data?.code === "UNAUTHORIZED") {
-        const message = `${err.data.code}: ${t("unauthorized_create_workflow")}`;
-        showToast(message, "error");
-      }
-    },
-  });
+  const { showDialog, setShowDialog, pendingTeamId, openDialog } = useWorkflowCreation();
 
   const workflowsExamples: WorkflowExampleType[] = [
     { icon: "smartphone", title: t("send_sms_reminder"), description: t("send_sms_reminder_description") },
@@ -145,9 +125,8 @@ export default function EmptyScreen(props: { isFilteredView: boolean }) {
           <div className="mt-8 ">
             <CreateButtonWithTeamsList
               subtitle={t("new_workflow_subtitle").toUpperCase()}
-              createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
+              createFunction={openDialog}
               buttonText={t("create_workflow")}
-              isPending={createMutation.isPending}
               includeOrg={true}
             />
           </div>
@@ -158,6 +137,8 @@ export default function EmptyScreen(props: { isFilteredView: boolean }) {
         <TemplateSection title={t("cal_ai_templates")} examples={calAITemplates} />
         <TemplateSection title={t("standard_templates")} examples={workflowsExamples} />
       </div>
+
+      <WorkflowCreationDialog open={showDialog} onOpenChange={setShowDialog} teamId={pendingTeamId} />
     </>
   );
 }
