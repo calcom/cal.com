@@ -1,4 +1,3 @@
-import type { WorkflowStep } from "@prisma/client";
 import { type TFunction } from "i18next";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
@@ -17,6 +16,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
+import type { WorkflowStep } from "@calcom/prisma/client";
 import {
   MembershipRole,
   PhoneNumberSubscriptionStatus,
@@ -258,7 +258,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const senderNeeded =
     step?.action === WorkflowActions.SMS_NUMBER || step?.action === WorkflowActions.SMS_ATTENDEE;
 
-  const [isSenderIsNeeded, setIsSenderIsNeeded] = useState(senderNeeded);
+  const [, setIsSenderIsNeeded] = useState(senderNeeded);
 
   const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(
     step?.action === WorkflowActions.EMAIL_ADDRESS ? true : false

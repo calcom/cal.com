@@ -1,4 +1,5 @@
 import "@calcom/lib/__mocks__/logger";
+import { prisma } from "@calcom/prisma/__mocks__/prisma";
 
 import { describe, it, vi, expect, beforeEach, afterEach } from "vitest";
 
@@ -14,6 +15,10 @@ import {
 import { getAllWorkflowsFromRoutingForm } from "@calcom/trpc/server/routers/viewer/workflows/util";
 
 import { _onFormSubmission } from "./formSubmissionUtils";
+
+vi.mock("@calcom/prisma", () => ({
+  prisma,
+}));
 
 // Mock dependencies
 vi.mock("@calcom/lib/getOrgIdFromMemberOrTeamId", () => ({

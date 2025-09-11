@@ -31,7 +31,7 @@ import { z } from "zod";
 
 import { CreationSource } from "@calcom/platform-libraries";
 import { EventTypeMetaDataSchema } from "@calcom/platform-libraries/event-types";
-import {
+import type {
   CancelBookingInput,
   CancelBookingInput_2024_08_13,
   CancelSeatedBookingInput_2024_08_13,
@@ -44,8 +44,8 @@ import {
   RescheduleBookingInput_2024_08_13,
   RescheduleSeatedBookingInput_2024_08_13,
 } from "@calcom/platform-types";
-import { BookingInputLocation_2024_08_13 } from "@calcom/platform-types/bookings/2024-08-13/inputs/location.input";
-import { EventType } from "@calcom/prisma/client";
+import type { BookingInputLocation_2024_08_13 } from "@calcom/platform-types/bookings/2024-08-13/inputs/location.input";
+import type { EventType } from "@calcom/prisma/client";
 
 type BookingRequest = NextApiRequest & {
   userId: number | undefined;

@@ -1,5 +1,6 @@
-import type { Prisma } from "@prisma/client";
-import type { App_RoutingForms_Form, User } from "@prisma/client";
+import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
+import type { App_RoutingForms_Form, User } from "@calcom/prisma/client";
 
 import getFieldIdentifier from "@calcom/app-store/routing-forms/lib/getFieldIdentifier";
 import dayjs from "@calcom/dayjs";
