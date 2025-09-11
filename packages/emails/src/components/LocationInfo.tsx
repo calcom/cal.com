@@ -1,3 +1,4 @@
+import React from "react";
 import type { TFunction } from "i18next";
 
 import { guessEventLocationType } from "@calcom/app-store/locations";

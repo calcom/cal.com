@@ -20,13 +20,11 @@ import type { CalendlyCampaignEmailProps } from "@calcom/emails/src/templates/Ca
 import type { ImportDataEmailProps } from "@calcom/emails/src/templates/ImportDataEmail";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
-import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { INNGEST_ID } from "@calcom/lib/constants";
-import { defaultHandler,  } from "@calcom/lib/server/defaultHandler";
-import { defaultResponder} from "@calcom/lib/server/defaultResponder";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 // import {  getTranslation } from "@calcom/platform-libraries";
-
-
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { getServerTimezone } from "@calcom/lib/timezone";
@@ -918,7 +916,7 @@ async function confirmUpcomingImportedBookings(createdBookings: any[], userIntID
           const translations = new Map();
           const attendeesListPromises = booking.attendees.map(async (attendee: any) => {
             const locale = attendee.locale ?? "en";
-            let translate = translations.get(locale);
+            const translate = translations.get(locale);
             if (!translate) {
               // translate = await getTranslation(locale, "common");
               // translations.set(locale, translate);
@@ -1009,7 +1007,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const userIntID = parseInt(userId);
   try {
     //Checking if the user has authorized Calendly
-    console.log("Hello world")
+    console.log("Hello world");
     const userCalendlyIntegrationProvider = await prisma.integrationAccounts.findFirst({
       where: {
         userId: userIntID,
@@ -1026,8 +1024,8 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
         },
       },
     });
-    console.log("User calendly provider", userCalendlyIntegrationProvider)
-    
+    console.log("User calendly provider", userCalendlyIntegrationProvider);
+
     if (!userCalendlyIntegrationProvider) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -1099,7 +1097,7 @@ export const handleCalendlyImportEvent = async (
       expiresIn: userCalendlyIntegrationProvider.expiresIn,
     });
 
-    logger.info("1")
+    logger.info("1");
     //0. Getting user data from calendly
     const { userAvailabilitySchedules, userEventTypes, userScheduledEvents } = await fetchCalendlyData(
       user.id,
@@ -1108,7 +1106,7 @@ export const handleCalendlyImportEvent = async (
       step,
       logger
     );
-    logger.info("2")
+    logger.info("2");
 
     //run sequentially to ensure proper import of entire dataset
     //1.First importing the user availability schedules
@@ -1124,7 +1122,7 @@ export const handleCalendlyImportEvent = async (
         );
       }
     });
-    logger.info("3")
+    logger.info("3");
 
     //2. Then importing the user event types and bookings
     const importedData = await importEventTypesAndBookings(
@@ -1135,7 +1133,7 @@ export const handleCalendlyImportEvent = async (
       step,
       logger
     );
-    logger.info("4")
+    logger.info("4");
 
     const allEventsProcessed = !userScheduledEvents.hasNextPage;
     if (allEventsProcessed) {
@@ -1159,7 +1157,7 @@ export const handleCalendlyImportEvent = async (
           );
         }
       });
-      logger.info("5")
+      logger.info("5");
 
       //4. Sending campaign emails to Calendly user scheduled events bookers
       if (importedData && sendCampaignEmails)

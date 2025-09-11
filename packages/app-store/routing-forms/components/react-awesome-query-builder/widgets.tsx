@@ -1,5 +1,6 @@
 import { Icon } from "@calid/features/ui/components/icon";
 import { TextField } from "@calid/features/ui/components/input/input";
+import { TextArea } from "@calid/features/ui/components/input/text-area";
 import dynamic from "next/dynamic";
 import type { ChangeEvent } from "react";
 import type {
@@ -87,7 +88,7 @@ const TextAreaWidget = (props: TextLikeComponentPropsRAQB) => {
 
   const textValue = value || "";
   return (
-    <Textarea
+    <TextArea
       value={textValue}
       placeholder={placeholder}
       className="mb-2"

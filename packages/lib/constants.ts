@@ -166,7 +166,7 @@ export const MAX_NB_INVITES = 100;
 
 export const URL_PROTOCOL_REGEX = /(^\w+:|^)\/\//;
 
-export const IS_VISUAL_REGRESSION_TESTING = Boolean(globalThis.window?.Meticulous?.isRunningAsTest);
+// export const IS_VISUAL_REGRESSION_TESTING = Boolean(globalThis.window?.Meticulous?.isRunningAsTest);
 
 export const BOOKER_NUMBER_OF_DAYS_TO_LOAD = parseInt(
   process.env.NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD ?? "0",
@@ -262,3 +262,5 @@ export const RAZORPAY_STATE_KEY = process.env.RAZORPAY_SECRET;
 export const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_SECRET;
 export const RAZORPAY_REDIRECT_URL = `${WEBAPP_URL}/apps/razorpay/callback`;
 export const RAZORPAY_UPI_ENABLED = process.env.RAZORPAY_UPI_ENABLED === "true";
+
+export const INNGEST_ID = process.env.INNGEST_ID ?? "onehash-cal";

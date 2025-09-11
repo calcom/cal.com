@@ -265,12 +265,8 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
   // URL and branding
   const orgBranding = useOrgBranding();
   const bookerUrl = orgBranding ? orgBranding?.fullDomain : WEBSITE_URL;
-  const permalink = `${bookerUrl}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
-    eventType.slug
-  }`;
-  const embedLink = `${team ? `team/${team.slug}` : form.getValues("users")[0].username}/${form.getValues(
-    "slug"
-  )}`;
+  const embedLink = `${team ? `team/${team.slug}` : eventType.users[0].username}/${eventType.slug}`;
+  const permalink = `${bookerUrl}/${embedLink}`;
 
   // Permissions
   const hasPermsToDelete =

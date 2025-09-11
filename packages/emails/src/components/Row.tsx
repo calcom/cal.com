@@ -1,4 +1,5 @@
 import type { ComponentProps } from "react";
+import React from "react";
 
 import BaseTable from "./BaseTable";
 

@@ -94,6 +94,7 @@ export async function handleConfirmation(args: {
   const metadata: AdditionalInformation = {};
   const workflows = await getAllWorkflowsFromEventType(eventType, booking.userId);
 
+  console.log("handleConfirmation results", safeStringify(results));
   if (results.length > 0 && results.every((res) => !res.success)) {
     const error = {
       errorCode: "BookingCreatingMeetingFailed",

@@ -1,4 +1,5 @@
 import type { TFunction } from "i18next";
+import React from "react";
 
 import { AppStoreLocationType } from "@calcom/app-store/locations";
 import ServerTrans from "@calcom/lib/components/ServerTrans";

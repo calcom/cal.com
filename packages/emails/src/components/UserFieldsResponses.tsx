@@ -1,4 +1,5 @@
 import type { TFunction } from "i18next";
+import React from "react";
 
 import getLabelValueMapFromResponses from "@calcom/lib/getLabelValueMapFromResponses";
 import type { CalendarEvent } from "@calcom/types/Calendar";

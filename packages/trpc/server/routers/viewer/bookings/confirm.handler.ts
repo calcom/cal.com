@@ -55,6 +55,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     emailsEnabled,
     platformClientParams,
   } = input;
+  console.log("Got input: ", input)
 
   const booking = await prisma.booking.findUniqueOrThrow({
     where: {
