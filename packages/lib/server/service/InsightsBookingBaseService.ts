@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 import md5 from "md5";
 import { z } from "zod";
 
@@ -13,6 +12,7 @@ import {
   isNumberFilterValue,
 } from "@calcom/features/data-table/lib/utils";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
+import { Prisma } from "@calcom/prisma/client";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 

@@ -1,4 +1,3 @@
-import type { WorkflowStep } from "@prisma/client";
 import { type TFunction } from "i18next";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
@@ -10,13 +9,14 @@ import "react-phone-number-input/style.css";
 import type { RetellAgentWithDetails } from "@calcom/features/calAIPhone/providers/retellAI";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import PhoneInput from "@calcom/features/components/phone-input";
-import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
+import { SENDER_ID } from "@calcom/lib/constants";
 import { formatPhoneNumber } from "@calcom/lib/formatPhoneNumber";
 import { useHasActiveTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
+import type { WorkflowStep } from "@calcom/prisma/client";
 import {
   MembershipRole,
   PhoneNumberSubscriptionStatus,
@@ -45,7 +45,6 @@ import { EmailField } from "@calcom/ui/components/form";
 import { TextArea } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
-import { Input } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { MultiSelectCheckbox } from "@calcom/ui/components/form";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
@@ -251,7 +250,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const senderNeeded =
     step?.action === WorkflowActions.SMS_NUMBER || step?.action === WorkflowActions.SMS_ATTENDEE;
 
-  const [isSenderIsNeeded, setIsSenderIsNeeded] = useState(senderNeeded);
+  const [, setIsSenderIsNeeded] = useState(senderNeeded);
 
   const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(
     step?.action === WorkflowActions.EMAIL_ADDRESS ? true : false
