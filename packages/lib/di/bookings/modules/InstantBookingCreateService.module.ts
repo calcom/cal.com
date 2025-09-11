@@ -1,7 +1,7 @@
-import { createModule } from "@evyweb/ioctopus";
-
 import { InstantBookingCreateService } from "@calcom/features/instant-meeting/handleInstantMeeting";
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
+
+import { createModule } from "../../di";
 
 export const instantBookingCreateServiceModule = createModule();
 

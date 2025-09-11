@@ -708,7 +708,7 @@ const Hosts = ({
                 teamMembers={teamMembers}
                 value={value}
                 onChange={(changeValue) => {
-                  const hosts = [...value.filter((host: Host) => host.isFixed), ...changeValue];
+                  const hosts = [...value.filter((host: Host) => host.isFixed), ...updatedHosts(changeValue)];
                   onChange(hosts);
                 }}
                 assignAllTeamMembers={assignAllTeamMembers}

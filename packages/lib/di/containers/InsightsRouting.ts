@@ -1,5 +1,3 @@
-import { createContainer } from "@evyweb/ioctopus";
-
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import type {
   InsightsRoutingServicePublicOptions,
@@ -9,6 +7,7 @@ import type {
 import type { InsightsRoutingService } from "@calcom/lib/server/service/InsightsRoutingDIService";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 
+import { createContainer } from "../di";
 import { insightsRoutingModule } from "../modules/InsightsRouting";
 
 export function getInsightsRoutingService({
