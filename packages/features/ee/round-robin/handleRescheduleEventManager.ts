@@ -52,6 +52,8 @@ export const handleRescheduleEventManager = async ({
     prefix: ["handleRescheduleEventManager", `${bookingId}`],
   });
 
+  const skipDeleteEventsAndMeetings = changedOrganizer;
+
   const allCredentials = await getAllCredentialsIncludeServiceAccountKey(
     initParams.user,
     initParams?.eventType
@@ -67,7 +69,9 @@ export const handleRescheduleEventManager = async ({
     rescheduleUid,
     newBookingId,
     changedOrganizer,
-    previousHostDestinationCalendar
+    previousHostDestinationCalendar,
+    undefined,
+    skipDeleteEventsAndMeetings
   );
 
   const results = updateManager.results ?? [];
