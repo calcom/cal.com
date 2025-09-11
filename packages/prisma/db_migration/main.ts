@@ -34,7 +34,7 @@ async function runMigration() {
   const newDb = new NewPrismaClient({
     datasources: {
       db: {
-        url: process.env.DATABASE_URL,
+        url: process.env.TARGET_DATABASE_URL,
       },
     },
   });
