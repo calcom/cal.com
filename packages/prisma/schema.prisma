@@ -14,6 +14,13 @@ generator client {
   binaryTargets   = ["native", "debian-openssl-1.1.x"]
 }
 
+generator client_for_api_v2 {
+  provider        = "prisma-client-js"
+  previewFeatures = ["views"]
+  output          = "../../apps/api/v2/client"
+  binaryTargets   = ["native", "debian-openssl-1.1.x"]
+}
+
 generator zod {
   provider                 = "zod-prisma-types"
   output                   = "./zod"
