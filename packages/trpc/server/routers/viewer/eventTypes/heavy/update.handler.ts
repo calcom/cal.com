@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
@@ -20,8 +19,13 @@ import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
-import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
-import { SchedulingType, EventTypeAutoTranslatedField, RRTimestampBasis } from "@calcom/prisma/enums";
+import { Prisma } from "@calcom/prisma/client";
+import {
+  WorkflowTriggerEvents,
+  SchedulingType,
+  EventTypeAutoTranslatedField,
+  RRTimestampBasis,
+} from "@calcom/prisma/enums";
 import { eventTypeLocations } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";

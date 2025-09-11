@@ -1,4 +1,3 @@
-import type { Prisma } from "@prisma/client";
 import { buffer } from "micro";
 import type { NextApiRequest, NextApiResponse } from "next";
 import type Stripe from "stripe";
@@ -20,6 +19,7 @@ import logger from "@calcom/lib/logger";
 import { getBooking } from "@calcom/lib/payment/getBooking";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 const log = logger.getSubLogger({ prefix: ["[paymentWebhook]"] });
