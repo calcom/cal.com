@@ -63,7 +63,9 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
 
   // Memoize cleaned description to avoid processing on every render
   const cleanDescription = useMemo(() => {
-    return stripMarkdown(description || "");
+    const processed = stripMarkdown(description);
+    // Handle specific cases where text might not break properly
+    return processed.replace(/\s+/g, ' ').trim();
   }, [description]);
 
   return (

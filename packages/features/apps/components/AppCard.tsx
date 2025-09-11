@@ -34,7 +34,9 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   
   // Memoize cleaned description to avoid processing on every render
   const cleanDescription = useMemo(() => {
-    return stripMarkdown(app.description || "");
+    const processed = stripMarkdown(app.description);
+    // Handle specific cases where text might not break properly
+    return processed.replace(/\s+/g, ' ').trim();
   }, [app.description]);
   
   const allowedMultipleInstalls = app.categories && app.categories.indexOf("calendar") > -1;
