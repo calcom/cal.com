@@ -1261,10 +1261,14 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               {isEmailSubjectNeeded && (
                 <div className="mb-6">
                   <div className="flex items-center">
-                    <Label className={classNames("flex-none", props.readOnly ? "mb-2" : "mb-0")}>
+                    <Label
+                      className={classNames(
+                        "flex-none",
+                        props.readOnly || isFormTrigger(trigger) ? "mb-2" : "mb-0"
+                      )}>
                       {t("email_subject")}
                     </Label>
-                    {!props.readOnly && (
+                    {!props.readOnly && !isFormTrigger(trigger) && (
                       <div className="flex-grow text-right">
                         <AddVariablesDropdown
                           addVariable={addVariableEmailSubject}
@@ -1305,7 +1309,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
                   props.form.clearErrors();
                 }}
-                variables={DYNAMIC_TEXT_VARIABLES}
+                variables={!isFormTrigger(trigger) ? DYNAMIC_TEXT_VARIABLES : undefined}
                 addVariableButtonTop={isSMSAction(step.action)}
                 height="200px"
                 updateTemplate={updateTemplate}
