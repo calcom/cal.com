@@ -313,10 +313,9 @@ export interface IResultTeamList {
  */
 function createInsightsBookingService(
   ctx: { user: { id: number; organizationId: number | null } },
-  input: z.infer<typeof bookingRepositoryBaseInputSchema>,
-  dateTarget: "createdAt" | "startTime" = "startTime"
+  input: z.infer<typeof bookingRepositoryBaseInputSchema>
 ) {
-  const { scope, selectedTeamId, startDate, endDate, columnFilters } = input;
+  const { scope, selectedTeamId, startDate, endDate, columnFilters, dateTarget } = input;
   return getInsightsBookingService({
     options: {
       scope,
@@ -358,22 +357,18 @@ export const insightsRouter = router({
   bookingKPIStats: insightsPbacProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
-      const currentPeriodService = createInsightsBookingService(ctx, input, input.dateTarget || "startTime");
+      const currentPeriodService = createInsightsBookingService(ctx, input);
 
       // Get current period stats
       const currentStats = await currentPeriodService.getBookingStats();
 
       // Calculate previous period dates and create service for previous period
       const previousPeriodDates = currentPeriodService.calculatePreviousPeriodDates();
-      const previousPeriodService = createInsightsBookingService(
-        ctx,
-        {
-          ...input,
-          startDate: previousPeriodDates.startDate,
-          endDate: previousPeriodDates.endDate,
-        },
-        input.dateTarget || "startTime"
-      );
+      const previousPeriodService = createInsightsBookingService(ctx, {
+        ...input,
+        startDate: previousPeriodDates.startDate,
+        endDate: previousPeriodDates.endDate,
+      });
 
       // Get previous period stats
       const previousStats = await previousPeriodService.getBookingStats();
@@ -472,7 +467,7 @@ export const insightsRouter = router({
       weekStart: ctx.user.weekStart,
     });
 
-    const insightsBookingService = createInsightsBookingService(ctx, input, input.dateTarget || "startTime");
+    const insightsBookingService = createInsightsBookingService(ctx, input);
     try {
       return await insightsBookingService.getEventTrendsStats({
         timeZone,
@@ -485,11 +480,7 @@ export const insightsRouter = router({
   popularEvents: insightsPbacProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
-      const insightsBookingService = createInsightsBookingService(
-        ctx,
-        input,
-        input.dateTarget || "startTime"
-      );
+      const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
         return await insightsBookingService.getPopularEventsStats();
@@ -502,11 +493,7 @@ export const insightsRouter = router({
     .query(async ({ ctx, input }) => {
       const { startDate, endDate, timeZone } = input;
 
-      const insightsBookingService = createInsightsBookingService(
-        ctx,
-        input,
-        input.dateTarget || "startTime"
-      );
+      const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
         const timeView = getTimeView(startDate, endDate);
@@ -561,11 +548,7 @@ export const insightsRouter = router({
   membersWithMostCancelledBookings: insightsPbacProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
-      const insightsBookingService = createInsightsBookingService(
-        ctx,
-        input,
-        input.dateTarget || "startTime"
-      );
+      const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
         return await insightsBookingService.getMembersStatsWithCount("cancelled", "DESC");
@@ -576,11 +559,7 @@ export const insightsRouter = router({
   membersWithMostCompletedBookings: insightsPbacProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
-      const insightsBookingService = createInsightsBookingService(
-        ctx,
-        input,
-        input.dateTarget || "startTime"
-      );
+      const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
         return await insightsBookingService.getMembersStatsWithCount("accepted", "DESC");
@@ -591,11 +570,7 @@ export const insightsRouter = router({
   membersWithLeastCompletedBookings: insightsPbacProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
-      const insightsBookingService = createInsightsBookingService(
-        ctx,
-        input,
-        input.dateTarget || "startTime"
-      );
+      const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
         return await insightsBookingService.getMembersStatsWithCount("accepted", "ASC");
@@ -606,11 +581,7 @@ export const insightsRouter = router({
   membersWithMostBookings: insightsPbacProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
-      const insightsBookingService = createInsightsBookingService(
-        ctx,
-        input,
-        input.dateTarget || "startTime"
-      );
+      const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
         return await insightsBookingService.getMembersStatsWithCount("all", "DESC");
@@ -873,19 +844,13 @@ export const insightsRouter = router({
   routingFormsByStatus: insightsPbacProcedure
     .input(insightsRoutingServiceInputSchema)
     .query(async ({ ctx, input }) => {
-      const insightsRoutingService = createInsightsRoutingService(ctx, {
-        ...input,
-        dateTarget: input.dateTarget || "startTime",
-      });
+      const insightsRoutingService = createInsightsRoutingService(ctx, input);
       return await insightsRoutingService.getRoutingFormStats();
     }),
   routingFormResponses: insightsPbacProcedure
     .input(insightsRoutingServicePaginatedInputSchema)
     .query(async ({ ctx, input }) => {
-      const insightsRoutingService = createInsightsRoutingService(ctx, {
-        ...input,
-        dateTarget: input.dateTarget || "startTime",
-      });
+      const insightsRoutingService = createInsightsRoutingService(ctx, input);
       return await insightsRoutingService.getTableData({
         sorting: input.sorting,
         limit: input.limit,
@@ -905,10 +870,7 @@ export const insightsRouter = router({
           | undefined,
       });
 
-      const insightsRoutingService = createInsightsRoutingService(ctx, {
-        ...input,
-        dateTarget: input.dateTarget || "startTime",
-      });
+      const insightsRoutingService = createInsightsRoutingService(ctx, input);
       const dataPromise = insightsRoutingService.getTableData({
         sorting: input.sorting,
         limit: input.limit,
@@ -940,10 +902,7 @@ export const insightsRouter = router({
   failedBookingsByField: insightsPbacProcedure
     .input(insightsRoutingServiceInputSchema)
     .query(async ({ ctx, input }) => {
-      const insightsRoutingService = createInsightsRoutingService(ctx, {
-        ...input,
-        dateTarget: input.dateTarget || "startTime",
-      });
+      const insightsRoutingService = createInsightsRoutingService(ctx, input);
       try {
         return await insightsRoutingService.getFailedBookingsByFieldData();
       } catch (e) {
@@ -976,10 +935,7 @@ export const insightsRouter = router({
       const { period, limit, searchQuery, ...rest } = input;
 
       try {
-        const insightsRoutingService = createInsightsRoutingService(ctx, {
-          ...rest,
-          dateTarget: rest.dateTarget || "startTime",
-        });
+        const insightsRoutingService = createInsightsRoutingService(ctx, rest);
         return await insightsRoutingService.getRoutedToPerPeriodData({
           period,
           limit,
@@ -994,10 +950,7 @@ export const insightsRouter = router({
     .query(async ({ ctx, input }) => {
       const { period, searchQuery, ...rest } = input;
       try {
-        const insightsRoutingService = createInsightsRoutingService(ctx, {
-          ...rest,
-          dateTarget: rest.dateTarget || "startTime",
-        });
+        const insightsRoutingService = createInsightsRoutingService(ctx, rest);
 
         const csvData = await insightsRoutingService.getRoutedToPerPeriodCsvData({
           period,
@@ -1036,10 +989,7 @@ export const insightsRouter = router({
         timeView,
         weekStart: ctx.user.weekStart,
       });
-      const insightsRoutingService = createInsightsRoutingService(ctx, {
-        ...input,
-        dateTarget: input.dateTarget || "startTime",
-      });
+      const insightsRoutingService = createInsightsRoutingService(ctx, input);
       try {
         return await insightsRoutingService.getRoutingFunnelData(dateRanges);
       } catch (e) {

@@ -20,7 +20,6 @@ export function useInsightsBookingParameters() {
   const [dateTarget] = useQueryState("dateTarget", {
     defaultValue: "startTime" as const,
     parse: (value) => (value === "createdAt" ? "createdAt" : "startTime"),
-    serialize: (value) => value,
   });
 
   const timestampRange = useFilterValue("timestamp", ZDateRangeFilterValue)?.data;

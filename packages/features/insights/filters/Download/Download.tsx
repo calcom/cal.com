@@ -23,6 +23,7 @@ const BATCH_SIZE = 100;
 const Download = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
+  const { startDate, endDate } = insightsBookingParams;
   const [isDownloading, setIsDownloading] = useState(false);
   const utils = trpc.useUtils();
 
@@ -75,9 +76,9 @@ const Download = () => {
 
       if (allData.length >= totalRecords) {
         showProgressToast(100); // Set to 100% before actual download
-        const filename = `Insights-${dayjs(insightsBookingParams.startDate).format("YYYY-MM-DD")}-${dayjs(
-          insightsBookingParams.endDate
-        ).format("YYYY-MM-DD")}.csv`;
+        const filename = `Insights-${dayjs(startDate).format("YYYY-MM-DD")}-${dayjs(endDate).format(
+          "YYYY-MM-DD"
+        )}.csv`;
         downloadAsCsv(allData as Record<string, unknown>[], filename);
       }
     } catch (error) {
