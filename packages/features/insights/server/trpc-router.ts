@@ -2,6 +2,8 @@ import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import type { ColumnFilter } from "@calcom/features/data-table/lib/types";
+import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import {
   insightsRoutingServiceInputSchema,
   insightsRoutingServicePaginatedInputSchema,
@@ -311,11 +313,33 @@ export interface IResultTeamList {
 /**
  * Helper function to create InsightsBookingService with standardized parameters
  */
+function extractDateRangeFromFilters(columnFilters?: ColumnFilter[]) {
+  if (!columnFilters) return { startDate: null, endDate: null };
+
+  for (const filter of columnFilters) {
+    if (
+      (filter.id === "startTime" || filter.id === "createdAt") &&
+      filter.value.type === ColumnFilterType.DATE_RANGE
+    ) {
+      const dateFilter = filter.value as Extract<
+        ColumnFilter["value"],
+        { type: ColumnFilterType.DATE_RANGE }
+      >;
+      return {
+        startDate: dateFilter.data.startDate,
+        endDate: dateFilter.data.endDate,
+      };
+    }
+  }
+
+  return { startDate: null, endDate: null };
+}
+
 function createInsightsBookingService(
   ctx: { user: { id: number; organizationId: number | null } },
   input: z.infer<typeof bookingRepositoryBaseInputSchema>
 ) {
-  const { scope, selectedTeamId, startDate, endDate, columnFilters, dateTarget } = input;
+  const { scope, selectedTeamId, columnFilters } = input;
   return getInsightsBookingService({
     options: {
       scope,
@@ -325,11 +349,6 @@ function createInsightsBookingService(
     },
     filters: {
       ...(columnFilters && { columnFilters }),
-      dateRange: {
-        target: dateTarget,
-        startDate,
-        endDate,
-      },
     },
   });
 }
@@ -338,6 +357,7 @@ function createInsightsRoutingService(
   ctx: { insightsDb: PrismaClient; user: { id: number; organizationId: number | null } },
   input: z.infer<typeof routingRepositoryBaseInputSchema>
 ) {
+  const { startDate, endDate } = extractDateRangeFromFilters(input.columnFilters);
   return getInsightsRoutingService({
     options: {
       scope: input.scope,
@@ -346,8 +366,8 @@ function createInsightsRoutingService(
       orgId: ctx.user.organizationId,
     },
     filters: {
-      startDate: input.startDate,
-      endDate: input.endDate,
+      startDate: startDate || "",
+      endDate: endDate || "",
       columnFilters: input.columnFilters,
     },
   });
@@ -364,10 +384,43 @@ export const insightsRouter = router({
 
       // Calculate previous period dates and create service for previous period
       const previousPeriodDates = currentPeriodService.calculatePreviousPeriodDates();
+
+      const { startDate: currentStartDate, endDate: currentEndDate } = extractDateRangeFromFilters(
+        input.columnFilters
+      );
+      if (!currentStartDate || !currentEndDate) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Date range is required" });
+      }
+
+      // Create column filters for previous period
+      const previousPeriodColumnFilters =
+        input.columnFilters?.map((filter) => {
+          if (
+            (filter.id === "startTime" || filter.id === "createdAt") &&
+            filter.value.type === ColumnFilterType.DATE_RANGE
+          ) {
+            const originalValue = filter.value as Extract<
+              ColumnFilter["value"],
+              { type: ColumnFilterType.DATE_RANGE }
+            >;
+            return {
+              ...filter,
+              value: {
+                type: ColumnFilterType.DATE_RANGE,
+                data: {
+                  startDate: previousPeriodDates.startDate,
+                  endDate: previousPeriodDates.endDate,
+                  preset: originalValue.data.preset,
+                },
+              },
+            } as ColumnFilter;
+          }
+          return filter;
+        }) || [];
+
       const previousPeriodService = createInsightsBookingService(ctx, {
         ...input,
-        startDate: previousPeriodDates.startDate,
-        endDate: previousPeriodDates.endDate,
+        columnFilters: previousPeriodColumnFilters,
       });
 
       // Get previous period stats
@@ -455,7 +508,12 @@ export const insightsRouter = router({
       };
     }),
   eventTrends: insightsPbacProcedure.input(bookingRepositoryBaseInputSchema).query(async ({ ctx, input }) => {
-    const { startDate, endDate, timeZone } = input;
+    const { timeZone, columnFilters } = input;
+    const { startDate, endDate } = extractDateRangeFromFilters(columnFilters);
+
+    if (!startDate || !endDate) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Date range is required" });
+    }
 
     // Calculate timeView and dateRanges
     const timeView = getTimeView(startDate, endDate);
@@ -491,7 +549,12 @@ export const insightsRouter = router({
   averageEventDuration: insightsPbacProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
-      const { startDate, endDate, timeZone } = input;
+      const { timeZone, columnFilters } = input;
+      const { startDate, endDate } = extractDateRangeFromFilters(columnFilters);
+
+      if (!startDate || !endDate) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Date range is required" });
+      }
 
       const insightsBookingService = createInsightsBookingService(ctx, input);
 
@@ -958,9 +1021,10 @@ export const insightsRouter = router({
         });
 
         const csvString = objectToCsv(csvData);
-        const downloadAs = `routed-to-${period}-${dayjs(rest.startDate).format("YYYY-MM-DD")}-${dayjs(
-          rest.endDate
-        ).format("YYYY-MM-DD")}.csv`;
+        const { startDate, endDate } = extractDateRangeFromFilters(rest.columnFilters);
+        const downloadAs = `routed-to-${period}-${dayjs(startDate || new Date()).format(
+          "YYYY-MM-DD"
+        )}-${dayjs(endDate || new Date()).format("YYYY-MM-DD")}.csv`;
 
         return { data: csvString, filename: downloadAs };
       } catch (e) {
@@ -981,10 +1045,16 @@ export const insightsRouter = router({
   getRoutingFunnelData: insightsPbacProcedure
     .input(routingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
-      const timeView = getTimeView(input.startDate, input.endDate);
+      const { startDate, endDate } = extractDateRangeFromFilters(input.columnFilters);
+
+      if (!startDate || !endDate) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Date range is required" });
+      }
+
+      const timeView = getTimeView(startDate, endDate);
       const dateRanges = getDateRanges({
-        startDate: input.startDate,
-        endDate: input.endDate,
+        startDate,
+        endDate,
         timeZone: ctx.user.timeZone,
         timeView,
         weekStart: ctx.user.weekStart,

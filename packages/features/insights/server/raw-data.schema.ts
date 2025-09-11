@@ -44,8 +44,6 @@ export type InsightsRoutingServiceInput = {
   selectedTeamId?: number;
 
   columnFilters?: ColumnFilter[];
-  startDate: string;
-  endDate: string;
 };
 
 export type InsightsRoutingServicePaginatedInput = InsightsRoutingServiceInput & {
@@ -70,8 +68,6 @@ export const insightsRoutingServiceInputSchema = z.object({
   scope: z.union([z.literal("user"), z.literal("team"), z.literal("org")]),
   selectedTeamId: z.number().optional(),
   columnFilters: z.array(ZColumnFilter).optional(),
-  startDate: z.string(),
-  endDate: z.string(),
 }) satisfies z.ZodType<InsightsRoutingServiceInput>;
 
 export const insightsRoutingServicePaginatedInputSchema = z.object({
@@ -84,8 +80,6 @@ export const insightsRoutingServicePaginatedInputSchema = z.object({
 export const routingRepositoryBaseInputSchema = z.object({
   scope: z.union([z.literal("user"), z.literal("team"), z.literal("org")]),
   selectedTeamId: z.number().optional(),
-  startDate: z.string(),
-  endDate: z.string(),
   columnFilters: z.array(ZColumnFilter).optional(),
 });
 
@@ -103,12 +97,6 @@ export const routedToPerPeriodCsvInputSchema = routingRepositoryBaseInputSchema.
 export const bookingRepositoryBaseInputSchema = z.object({
   scope: z.union([z.literal("user"), z.literal("team"), z.literal("org")]),
   selectedTeamId: z.number().optional(),
-  startDate: z.string(),
-  endDate: z.string(),
   timeZone: z.string(),
   columnFilters: z.array(ZColumnFilter).optional(),
-  dateTarget: z
-    .union([z.literal("startTime"), z.literal("createdAt")])
-    .optional()
-    .default("startTime"),
 });

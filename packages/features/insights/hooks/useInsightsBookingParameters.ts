@@ -22,25 +22,25 @@ export function useInsightsBookingParameters() {
     parse: (value) => (value === "createdAt" ? "createdAt" : "startTime"),
   });
 
-  const timestampRange = useFilterValue("timestamp", ZDateRangeFilterValue)?.data;
+  const dateRange = useFilterValue(dateTarget, ZDateRangeFilterValue)?.data;
   // TODO for future: this preserving local time & startOf & endOf should be handled
   // from DateRangeFilter out of the box.
   // When we do it, we also need to remove those timezone handling logic from the backend side at the same time.
   const startDate = useChangeTimeZoneWithPreservedLocalTime(
     useMemo(() => {
-      return dayjs(timestampRange?.startDate ?? getDefaultStartDate().toISOString())
+      return dayjs(dateRange?.startDate ?? getDefaultStartDate().toISOString())
         .startOf("day")
         .toISOString();
-    }, [timestampRange?.startDate])
+    }, [dateRange?.startDate])
   );
   const endDate = useChangeTimeZoneWithPreservedLocalTime(
     useMemo(() => {
-      return dayjs(timestampRange?.endDate ?? getDefaultEndDate().toISOString())
+      return dayjs(dateRange?.endDate ?? getDefaultEndDate().toISOString())
         .endOf("day")
         .toISOString();
-    }, [timestampRange?.endDate])
+    }, [dateRange?.endDate])
   );
-  const columnFilters = useColumnFilters({ exclude: ["timestamp"] });
+  const columnFilters = useColumnFilters();
 
   return {
     scope,

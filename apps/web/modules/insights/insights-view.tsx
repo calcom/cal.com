@@ -47,11 +47,15 @@ export default function InsightsPage({ timeZone }: { timeZone: string }) {
   );
 }
 
-const timestampColumn: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }> = {
-  id: "timestamp",
-  title: "timestamp",
-  type: ColumnFilterType.DATE_RANGE,
-};
+function getDateColumn(
+  dateTarget: DateTarget
+): Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }> {
+  return {
+    id: dateTarget,
+    title: dateTarget,
+    type: ColumnFilterType.DATE_RANGE,
+  };
+}
 
 function InsightsPageContent() {
   const { t } = useLocale();
@@ -70,11 +74,11 @@ function InsightsPageContent() {
         <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
         <DataTableFilters.ActiveFilters table={table} />
         <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />
-        <DataTableFilters.ClearFiltersButton exclude={["timestamp"]} />
+        <DataTableFilters.ClearFiltersButton exclude={[dateTarget]} />
         <div className="grow" />
         <Download />
         <ButtonGroup combined>
-          <DateRangeFilter column={timestampColumn} />
+          <DateRangeFilter column={getDateColumn(dateTarget as DateTarget)} />
           <DateTargetSelector value={dateTarget as DateTarget} onChange={setDateTarget} />
         </ButtonGroup>
         <TimezoneBadge />

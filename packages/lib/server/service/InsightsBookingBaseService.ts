@@ -4,13 +4,14 @@ import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { makeSqlCondition } from "@calcom/features/data-table/lib/server";
-import { ZColumnFilter } from "@calcom/features/data-table/lib/types";
+import { ZColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import type { ColumnFilter } from "@calcom/features/data-table/lib/types";
 import {
   isSingleSelectFilterValue,
   isMultiSelectFilterValue,
   isTextFilterValue,
   isNumberFilterValue,
+  isDateRangeFilterValue,
 } from "@calcom/features/data-table/lib/utils";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import type { PrismaClient } from "@calcom/prisma";
@@ -127,13 +128,6 @@ export type InsightsBookingServiceOptions = z.infer<typeof insightsBookingServic
 export type InsightsBookingServiceFilterOptions = z.infer<typeof insightsBookingServiceFilterOptionsSchema>;
 
 export const insightsBookingServiceFilterOptionsSchema = z.object({
-  dateRange: z
-    .object({
-      target: z.enum(["createdAt", "startTime"]),
-      startDate: z.string(),
-      endDate: z.string(),
-    })
-    .optional(),
   columnFilters: z.array(ZColumnFilter).optional(),
 });
 
@@ -269,23 +263,6 @@ export class InsightsBookingBaseService {
       }
     }
 
-    // Use dateRange object for date filtering
-    if (this.filters.dateRange) {
-      const { target, startDate, endDate } = this.filters.dateRange;
-      if (startDate) {
-        if (isNaN(Date.parse(startDate))) {
-          throw new Error(`Invalid date format: ${startDate}`);
-        }
-        conditions.push(Prisma.sql`"${Prisma.raw(target)}" >= ${startDate}::timestamp`);
-      }
-      if (endDate) {
-        if (isNaN(Date.parse(endDate))) {
-          throw new Error(`Invalid date format: ${endDate}`);
-        }
-        conditions.push(Prisma.sql`"${Prisma.raw(target)}" <= ${endDate}::timestamp`);
-      }
-    }
-
     if (conditions.length === 0) {
       return null;
     }
@@ -349,6 +326,29 @@ export class InsightsBookingBaseService {
       if (condition) {
         return Prisma.sql`"rating" ${condition}`;
       }
+    }
+
+    if ((id === "startTime" || id === "createdAt") && isDateRangeFilterValue(value)) {
+      const conditions: Prisma.Sql[] = [];
+      if (value.data.startDate) {
+        if (isNaN(Date.parse(value.data.startDate))) {
+          throw new Error(`Invalid date format: ${value.data.startDate}`);
+        }
+        conditions.push(Prisma.sql`"${Prisma.raw(id)}" >= ${value.data.startDate}::timestamp`);
+      }
+      if (value.data.endDate) {
+        if (isNaN(Date.parse(value.data.endDate))) {
+          throw new Error(`Invalid date format: ${value.data.endDate}`);
+        }
+        conditions.push(Prisma.sql`"${Prisma.raw(id)}" <= ${value.data.endDate}::timestamp`);
+      }
+      if (conditions.length === 0) {
+        return null;
+      }
+      return conditions.reduce((acc, condition, index) => {
+        if (index === 0) return condition;
+        return Prisma.sql`(${acc}) AND (${condition})`;
+      });
     }
 
     return null;
@@ -1186,12 +1186,23 @@ export class InsightsBookingBaseService {
   }
 
   calculatePreviousPeriodDates() {
-    if (!this.filters?.dateRange) {
-      throw new Error("Date range is required for calculating previous period");
+    if (!this.filters?.columnFilters) {
+      throw new Error("Column filters are required for calculating previous period");
     }
 
-    const startDate = dayjs(this.filters.dateRange.startDate);
-    const endDate = dayjs(this.filters.dateRange.endDate);
+    const dateFilter = this.filters.columnFilters.find(
+      (filter) =>
+        (filter.id === "startTime" || filter.id === "createdAt") &&
+        filter.value.type === ColumnFilterType.DATE_RANGE &&
+        isDateRangeFilterValue(filter.value)
+    );
+
+    if (!dateFilter || !isDateRangeFilterValue(dateFilter.value)) {
+      throw new Error("Date range filter is required for calculating previous period");
+    }
+
+    const startDate = dayjs(dateFilter.value.data.startDate);
+    const endDate = dayjs(dateFilter.value.data.endDate);
     const startTimeEndTimeDiff = endDate.diff(startDate, "day");
 
     const lastPeriodStartDate = startDate.subtract(startTimeEndTimeDiff, "day");

@@ -1,3 +1,4 @@
+import { useQueryState } from "nuqs";
 import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -20,6 +21,9 @@ import { useInsightsOrgTeams } from "./useInsightsOrgTeams";
 
 export function useInsightsParameters() {
   const { isAll, teamId, userId, scope, selectedTeamId } = useInsightsOrgTeams();
+  const [dateTarget] = useQueryState("dateTarget", {
+    defaultValue: "startTime" as const,
+  });
 
   const memberUserIds = useFilterValue("bookingUserId", ZMultiSelectFilterValue)?.data as
     | number[]
@@ -27,32 +31,31 @@ export function useInsightsParameters() {
   const memberUserId = useFilterValue("bookingUserId", ZSingleSelectFilterValue)?.data as number | undefined;
   const eventTypeId = useFilterValue("eventTypeId", ZSingleSelectFilterValue)?.data as number | undefined;
   const routingFormId = useFilterValue("formId", ZSingleSelectFilterValue)?.data as string | undefined;
-  const createdAtRange = useFilterValue("createdAt", ZDateRangeFilterValue)?.data;
+
+  const dateRange = useFilterValue(dateTarget, ZDateRangeFilterValue)?.data;
   // TODO for future: this preserving local time & startOf & endOf should be handled
   // from DateRangeFilter out of the box.
   // When we do it, we also need to remove those timezone handling logic from the backend side at the same time.
   const startDate = useChangeTimeZoneWithPreservedLocalTime(
     useMemo(() => {
-      return dayjs(createdAtRange?.startDate ?? getDefaultStartDate().toISOString())
+      return dayjs(dateRange?.startDate ?? getDefaultStartDate().toISOString())
         .startOf("day")
         .toISOString();
-    }, [createdAtRange?.startDate])
+    }, [dateRange?.startDate])
   );
   const endDate = useChangeTimeZoneWithPreservedLocalTime(
     useMemo(() => {
-      return dayjs(createdAtRange?.endDate ?? getDefaultEndDate().toISOString())
+      return dayjs(dateRange?.endDate ?? getDefaultEndDate().toISOString())
         .endOf("day")
         .toISOString();
-    }, [createdAtRange?.endDate])
+    }, [dateRange?.endDate])
   );
 
   const dateRangePreset = useMemo<PresetOptionValue>(() => {
-    return (createdAtRange?.preset as PresetOptionValue) ?? CUSTOM_PRESET_VALUE;
-  }, [createdAtRange?.preset]);
+    return (dateRange?.preset as PresetOptionValue) ?? CUSTOM_PRESET_VALUE;
+  }, [dateRange?.preset]);
 
-  const columnFilters = useColumnFilters({
-    exclude: ["createdAt"],
-  });
+  const columnFilters = useColumnFilters();
 
   return {
     isAll,
