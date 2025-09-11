@@ -315,7 +315,6 @@ describe("Assign all team members", () => {
           const secondHost = eventTypeHosts.find((host) => host.userId === secondManagedUser.user.id);
           expect(firstHost).toBeDefined();
           expect(secondHost).toBeDefined();
-          collectiveEventType = data;
         });
     });
 
