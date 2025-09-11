@@ -5,6 +5,8 @@ import { isValidPermissionString } from "@calcom/features/pbac/domain/types/perm
 import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { RoleService } from "@calcom/features/pbac/services/role.service";
+import { NAVIGATION_PERMISSION_MAP } from "@calcom/features/shell/permissions/types";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import prisma from "@calcom/prisma";
 import { RoleType, MembershipRole } from "@calcom/prisma/enums";
 
@@ -31,6 +33,48 @@ export const permissionsRouter = router({
 
     const permissionCheckService = new PermissionCheckService();
     return await permissionCheckService.getUserPermissions(ctx.user.id);
+  }),
+
+  getNavigationPermissions: authedProcedure.query(async ({ ctx }) => {
+    if (!ctx.user?.id) {
+      return {
+        insights: true,
+        workflows: true,
+        routing: true,
+        teams: true,
+        members: true,
+      };
+    }
+
+    const teamIds = await MembershipRepository.findUserTeamIds({ userId: ctx.user.id });
+    if (teamIds.length === 0) {
+      return {
+        insights: true,
+        workflows: true,
+        routing: true,
+        teams: true,
+        members: true,
+      };
+    }
+
+    const permissionService = new PermissionCheckService();
+    const permissionChecks = await Promise.all([
+      permissionService.getTeamIdsWithPermission(ctx.user.id, NAVIGATION_PERMISSION_MAP.insights),
+      permissionService.getTeamIdsWithPermission(ctx.user.id, NAVIGATION_PERMISSION_MAP.workflows),
+      permissionService.getTeamIdsWithPermission(ctx.user.id, NAVIGATION_PERMISSION_MAP.routing),
+      permissionService.getTeamIdsWithPermission(ctx.user.id, NAVIGATION_PERMISSION_MAP.teams),
+      permissionService.getTeamIdsWithPermission(ctx.user.id, NAVIGATION_PERMISSION_MAP.members),
+    ]);
+
+    const [insightsTeams, workflowsTeams, routingTeams, teamsTeams, membersTeams] = permissionChecks;
+
+    return {
+      insights: insightsTeams.length > 0,
+      workflows: workflowsTeams.length > 0,
+      routing: routingTeams.length > 0,
+      teams: teamsTeams.length > 0,
+      members: membersTeams.length > 0,
+    };
   }),
 
   checkPermission: authedProcedure

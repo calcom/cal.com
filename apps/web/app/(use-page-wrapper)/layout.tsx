@@ -1,11 +1,7 @@
-import { cookies, headers } from "next/headers";
+import { headers } from "next/headers";
 import Script from "next/script";
 
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { NavigationPermissionsProvider } from "@calcom/features/shell/permissions/NavigationPermissionsProvider";
-import { checkNavigationPermissions } from "@calcom/features/shell/permissions/checkNavigationPermissions";
-
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import PageWrapper from "@components/PageWrapperAppDir";
 
@@ -26,11 +22,8 @@ export default async function PageWrapperLayout({ children }: { children: React.
     },
   ].filter((script): script is { id: string; script: string } => !!script.script);
 
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
-  const navigationPermissions = await checkNavigationPermissions(session?.user?.id);
-
   return (
-    <NavigationPermissionsProvider value={navigationPermissions}>
+    <NavigationPermissionsProvider>
       <PageWrapper requiresLicense={false} nonce={nonce}>
         {children}
         {scripts.map((script) => (

@@ -2,6 +2,8 @@
 
 import React, { createContext, useContext } from "react";
 
+import { trpc } from "@calcom/trpc/react";
+
 import type { NavigationItemName, NavigationPermissions } from "./types";
 
 export type { NavigationItemName, NavigationPermissions };
@@ -9,22 +11,27 @@ export type { NavigationItemName, NavigationPermissions };
 /**
  * Context for navigation permissions
  */
-const NavigationPermissionsContext = createContext<NavigationPermissions | null>(null);
+const NavigationPermissionsContext = createContext<{
+  permissions: NavigationPermissions;
+  isLoading: boolean;
+} | null>(null);
 
 /**
  * Hook to access navigation permissions from context
  * @returns NavigationPermissions object with boolean flags for each navigation item
- * @throws Error if used outside of NavigationPermissionsProvider
  */
-export function useNavigationPermissions(): NavigationPermissions {
+export function useNavigationPermissions(): { permissions: NavigationPermissions; isLoading: boolean } {
   const context = useContext(NavigationPermissionsContext);
   if (context === null) {
     return {
-      insights: true,
-      workflows: true,
-      routing: true,
-      teams: true,
-      members: true,
+      permissions: {
+        insights: true,
+        workflows: true,
+        routing: true,
+        teams: true,
+        members: true,
+      },
+      isLoading: false,
     };
   }
   return context;
@@ -36,22 +43,34 @@ export function useNavigationPermissions(): NavigationPermissions {
  * @returns boolean indicating if the item should be displayed
  */
 export function useNavigationPermission(itemName: NavigationItemName): boolean {
-  const permissions = useNavigationPermissions();
+  const { permissions } = useNavigationPermissions();
   return permissions[itemName];
 }
 
 /**
  * Provider component for navigation permissions
- * Wraps components that need access to navigation permissions
+ * Fetches permissions client-side using tRPC
  */
-export function NavigationPermissionsProvider({
-  value,
-  children,
-}: {
-  value: NavigationPermissions;
-  children: React.ReactNode;
-}) {
+export function NavigationPermissionsProvider({ children }: { children: React.ReactNode }) {
+  const { data: permissions, isLoading } = trpc.viewer.pbac.getNavigationPermissions.useQuery(undefined, {
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const contextValue = {
+    permissions: permissions || {
+      insights: true,
+      workflows: true,
+      routing: true,
+      teams: true,
+      members: true,
+    },
+    isLoading,
+  };
+
   return (
-    <NavigationPermissionsContext.Provider value={value}>{children}</NavigationPermissionsContext.Provider>
+    <NavigationPermissionsContext.Provider value={contextValue}>
+      {children}
+    </NavigationPermissionsContext.Provider>
   );
 }

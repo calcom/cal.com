@@ -9,10 +9,14 @@ import type { NavigationItemType } from "./NavigationItem";
 
 export function useShouldDisplayNavigationItem(item: NavigationItemType) {
   const flags = useFlagMap();
-  const navigationPermissions = useNavigationPermissions();
+  const { permissions: navigationPermissions, isLoading } = useNavigationPermissions();
 
   if (isKeyInObject(item.name, flags) && flags[item.name] === false) {
     return false;
+  }
+
+  if (isLoading) {
+    return true;
   }
 
   if (item.name in navigationPermissions) {
