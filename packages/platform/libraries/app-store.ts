@@ -20,11 +20,11 @@ export type { App } from "@calcom/types/App";
 
 export { getEnabledAppsFromCredentials };
 
-export { getConnectedApps } from "@calcom/lib/getConnectedApps";
+export { getConnectedApps } from "@calcom/app-store/_utils/getConnectedApps";
 
 export type { TServiceAccountKeySchema } from "@calcom/prisma/zod-utils";
 
-export type { ConnectedApps } from "@calcom/lib/getConnectedApps";
+export type { ConnectedApps } from "@calcom/app-store/_utils/getConnectedApps";
 
 export type { AppsStatus } from "@calcom/types/Calendar";
 
