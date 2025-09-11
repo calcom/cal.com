@@ -37,7 +37,7 @@ const UserProfile = ({ user }: UserProfileProps) => {
   const [imageSrc, setImageSrc] = useState<string>(user?.avatar || "");
   const utils = trpc.useUtils();
   const router = useRouter();
-  const createEventType = trpc.viewer.eventTypes.create.useMutation();
+  const createEventType = trpc.viewer.eventTypes.heavy.create.useMutation();
   const telemetry = useTelemetry();
   const [firstRender, setFirstRender] = useState(true);
 
@@ -164,7 +164,7 @@ const UserProfile = ({ user }: UserProfileProps) => {
         EndIcon="arrow-right"
         type="submit"
         className="mt-8 w-full items-center justify-center">
-        {t("finish")}
+        {t("finish_and_start")}
       </Button>
     </form>
   );

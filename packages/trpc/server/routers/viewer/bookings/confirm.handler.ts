@@ -18,15 +18,18 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import {
   BookingStatus,
   MembershipRole,
   WebhookTriggerEvents,
+  WorkflowTriggerEvents,
   UserPermissionRole,
 } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
+import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -82,6 +85,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           price: true,
           bookingFields: true,
           hideOrganizerEmail: true,
+          hideCalendarNotes: true,
+          hideCalendarEventDetails: true,
           disableGuests: true,
           customReplyToEmail: true,
           metadata: true,
@@ -230,6 +235,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       : [],
     requiresConfirmation: booking?.eventType?.requiresConfirmation ?? false,
     hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
+    hideCalendarNotes: booking.eventType?.hideCalendarNotes,
+    hideCalendarEventDetails: booking.eventType?.hideCalendarEventDetails,
     eventTypeId: booking.eventType?.id,
     customReplyToEmail: booking.eventType?.customReplyToEmail,
     team: !!booking.eventType?.team
@@ -378,6 +385,30 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       smsReminderNumber: booking.smsReminderNumber || undefined,
     };
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
+
+    const workflows = await getAllWorkflowsFromEventType(booking.eventType, user.id);
+    try {
+      await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
+        workflows,
+        smsReminderNumber: booking.smsReminderNumber,
+        calendarEvent: {
+          ...evt,
+          bookerUrl: bookerUrl,
+          eventType: {
+            ...eventTypeInfo,
+            slug: booking.eventType?.slug as string,
+          },
+        },
+        hideBranding: !!booking.eventType?.owner?.hideBranding,
+        triggers: [WorkflowTriggerEvents.BOOKING_REJECTED],
+      });
+    } catch (error) {
+      // Silently fail
+      console.error(
+        "Error while scheduling workflow reminders for BOOKING_REJECTED:",
+        error instanceof Error ? error.message : String(error)
+      );
+    }
   }
 
   const message = `Booking ${confirmed}` ? "confirmed" : "rejected";

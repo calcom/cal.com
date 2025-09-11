@@ -11,6 +11,9 @@ const {
   orgUserTypeRoutePath,
   orgUserTypeEmbedRoutePath,
 } = require("./pagesAndRewritePaths");
+
+adjustEnvVariables();
+
 if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
 if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_ENCRYPTION_KEY");
 const isOrganizationsEnabled =
@@ -196,6 +199,8 @@ const nextConfig = (phase) => {
     experimental: {
       // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
       optimizePackageImports: ["@calcom/ui"],
+      webpackMemoryOptimizations: true,
+      webpackBuildWorker: true,
     },
     productionBrowserSourceMaps: true,
     /* We already do type check on GH actions */
@@ -231,7 +236,15 @@ const nextConfig = (phase) => {
     images: {
       unoptimized: true,
     },
-    webpack: (config, { webpack, buildId, isServer }) => {
+    webpack: (config, { webpack, buildId, isServer, dev }) => {
+      if (!dev) {
+        if (config.cache) {
+          config.cache = Object.freeze({
+            type: "memory",
+          });
+        }
+      }
+
       if (isServer) {
         // Module not found fix @see https://github.com/boxyhq/jackson/issues/1535#issuecomment-1704381612
         config.plugins.push(
@@ -284,6 +297,10 @@ const nextConfig = (phase) => {
         {
           source: "/routing/:path*",
           destination: "/apps/routing-forms/:path*",
+        },
+        {
+          source: "/routing-forms",
+          destination: "/apps/routing-forms/forms",
         },
         {
           source: "/success/:path*",
@@ -538,12 +555,17 @@ const nextConfig = (phase) => {
         },
         {
           source: "/apps/routing-forms",
-          destination: "/routing/forms",
+          destination: "/apps/routing-forms/forms",
           permanent: false,
         },
         {
           source: "/api/app-store/:path*",
           destination: "/app-store/:path*",
+          permanent: true,
+        },
+        {
+          source: "/auth/new",
+          destination: process.env.NEXT_PUBLIC_WEBAPP_URL || "https://app.cal.com",
           permanent: true,
         },
         {
@@ -620,7 +642,7 @@ const nextConfig = (phase) => {
               value: nextJsOrgRewriteConfig.orgHostPath,
             },
           ],
-          destination: "/event-types?openPlain=true",
+          destination: "/event-types?openSupport=true",
           permanent: true,
         },
         {
@@ -641,6 +663,11 @@ const nextConfig = (phase) => {
         {
           source: "/settings/organizations/platform/:path*",
           destination: "/settings/platform",
+          permanent: true,
+        },
+        {
+          source: "/settings/admin/apps",
+          destination: "/settings/admin/apps/calendar",
           permanent: true,
         },
         // OAuth callbacks when sent to localhost:3000(w would be expected) should be redirected to corresponding to WEBAPP_URL
@@ -690,5 +717,23 @@ const nextConfig = (phase) => {
     },
   };
 };
+
+function adjustEnvVariables() {
+  if (process.env.NEXT_PUBLIC_SINGLE_ORG_SLUG) {
+    if (process.env.RESERVED_SUBDOMAINS) {
+      // It is better to ignore it completely so that accidentally if the org slug is itself in Reserved Subdomain that doesn't cause the booking pages to start giving 404s
+      console.warn(
+        `⚠️  WARNING: RESERVED_SUBDOMAINS is ignored when SINGLE_ORG_SLUG is set. Single org mode doesn't need to use reserved subdomain validation.`
+      );
+      delete process.env.RESERVED_SUBDOMAINS;
+    }
+
+    if (!process.env.ORGANIZATIONS_ENABLED) {
+      // This is basically a consent to add rewrites related to organizations. So, if single org slug mode is there, we have the consent already.
+      console.log("Auto-enabling ORGANIZATIONS_ENABLED because SINGLE_ORG_SLUG is set");
+      process.env.ORGANIZATIONS_ENABLED = "1";
+    }
+  }
+}
 
 module.exports = (phase) => plugins.reduce((acc, next) => next(acc), nextConfig(phase));
