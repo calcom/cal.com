@@ -3,7 +3,11 @@ import { getTranslate, _generateMetadata } from "app/_utils";
 import { AdminAPIView } from "@calcom/features/ee/organizations/pages/settings/admin-api";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
+<<<<<<< HEAD
 import { validateUserHasOrg } from "../_actions/validateUserHasOrg";
+=======
+import { validateUserHasOrg } from "../actions/validateUserHasOrg";
+>>>>>>> main
 
 export const generateMetadata = async () =>
   await _generateMetadata(

@@ -8,7 +8,11 @@ import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import type { Membership } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
+<<<<<<< HEAD
 import { validateUserHasOrg } from "../_actions/validateUserHasOrg";
+=======
+import { validateUserHasOrg } from "../actions/validateUserHasOrg";
+>>>>>>> main
 
 export const generateMetadata = async () =>
   await _generateMetadata(

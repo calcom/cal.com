@@ -6,7 +6,11 @@ import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permi
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { MembershipRole } from "@calcom/prisma/enums";
 
+<<<<<<< HEAD
 import { validateUserHasOrg } from "../_actions/validateUserHasOrg";
+=======
+import { validateUserHasOrg } from "../actions/validateUserHasOrg";
+>>>>>>> main
 
 export const generateMetadata = async () =>
   await _generateMetadata(

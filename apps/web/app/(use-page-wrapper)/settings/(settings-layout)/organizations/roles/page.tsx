@@ -11,7 +11,11 @@ import { RoleService } from "@calcom/features/pbac/services/role.service";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { prisma } from "@calcom/prisma";
 
+<<<<<<< HEAD
 import { validateUserHasOrg } from "../_actions/validateUserHasOrg";
+=======
+import { validateUserHasOrg } from "../actions/validateUserHasOrg";
+>>>>>>> main
 import { CreateRoleCTA } from "./_components/CreateRoleCta";
 import { RolesList } from "./_components/RolesList";
 import { roleSearchParamsCache } from "./_components/searchParams";
