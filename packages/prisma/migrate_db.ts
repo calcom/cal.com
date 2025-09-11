@@ -18,19 +18,33 @@ const newDb = new NewPrismaClient({
   },
 });
 
-// ID mapping storage
+// Enhanced ID mapping storage with proper typing
 interface IdMapping {
   [oldId: string]: number;
 }
 
 const idMappings = {
+  // Core entities
+  users: {} as IdMapping,
+  profiles: {} as IdMapping,
+  schedules: {} as IdMapping,
+
+  // CalId entities (new structure)
   calIdTeams: {} as IdMapping,
   calIdMemberships: {} as IdMapping,
   calIdWorkflows: {} as IdMapping,
   calIdWorkflowSteps: {} as IdMapping,
   calIdTeamFeatures: {} as IdMapping,
-  calIdUsers: {} as IdMapping,
-  profiles: {} as IdMapping,
+
+  // Other entities
+  credentials: {} as IdMapping,
+  eventTypes: {} as IdMapping,
+  availabilities: {} as IdMapping,
+  apps: {} as IdMapping,
+  features: {} as IdMapping,
+  roles: {} as IdMapping,
+  apiKeys: {} as IdMapping,
+  attributes: {} as IdMapping,
 };
 
 // Logging utility
@@ -48,7 +62,7 @@ function logError(message: string, error: any) {
 async function processBatch<T, R>(
   items: T[],
   processor: (batch: T[]) => Promise<R[]>,
-  batchSize = 100
+  batchSize = 50 // Reduced batch size for better reliability
 ): Promise<R[]> {
   const results: R[] = [];
   for (let i = 0; i < items.length; i += batchSize) {
@@ -62,450 +76,76 @@ async function processBatch<T, R>(
   return results;
 }
 
-// Migration functions for CalId entities
+// ===============================
+// PHASE 1: CORE ENTITIES (NO DEPENDENCIES)
+// ===============================
 
-async function migrateCalIdTeams() {
-  log("Migrating Team → CalIdTeam...");
+async function migrateApps() {
+  log("Migrating Apps...");
 
-  const oldTeams = await oldDb.team.findMany({
-    include: {
-      organizationSettings: true,
-      platformBilling: true,
-    },
-  });
+  const oldApps = await oldDb.app.findMany();
 
-  await processBatch(oldTeams, async (batch) => {
-    const newTeams = await Promise.all(
-      batch.map(async (oldTeam) => {
+  await processBatch(oldApps, async (batch) => {
+    const newApps = await Promise.all(
+      batch.map(async (oldApp) => {
         try {
-          const newTeam = await newDb.calIdTeam.create({
+          const newApp = await newDb.app.create({
             data: {
-              name: oldTeam.name,
-              slug: oldTeam.slug,
-              logoUrl: oldTeam.logoUrl,
-              bio: oldTeam.bio,
-              hideTeamBranding: oldTeam.hideBranding || false,
-              hideTeamProfileLink: oldTeam.hideBookATeamMember || false,
-              isTeamPrivate: oldTeam.isPrivate || false,
-              hideBookATeamMember: oldTeam.hideBookATeamMember || false,
-              metadata: oldTeam.metadata,
-              theme: oldTeam.theme,
-              brandColor: oldTeam.brandColor,
-              darkBrandColor: oldTeam.darkBrandColor,
-              timeFormat: oldTeam.timeFormat,
-              timeZone: oldTeam.timeZone || "Asia/Kolkata",
-              weekStart: oldTeam.weekStart || "Monday",
-              bookingFrequency: oldTeam.bookingLimits, // Map bookingLimits to bookingFrequency
-              createdAt: oldTeam.createdAt,
-              updatedAt: new Date(),
+              slug: oldApp.slug,
+              dirName: oldApp.dirName,
+              keys: oldApp.keys,
+              categories: oldApp.categories,
+              createdAt: oldApp.createdAt,
+              updatedAt: oldApp.updatedAt,
+              enabled: oldApp.enabled,
             },
           });
-
-          // Store mapping
-          idMappings.calIdTeams[oldTeam.id.toString()] = newTeam.id;
-          return newTeam;
+          return newApp;
         } catch (error) {
-          logError(`Failed to migrate team ${oldTeam.id}`, error);
+          logError(`Failed to migrate app ${oldApp.slug}`, error);
           return null;
         }
       })
     );
-
-    return newTeams.filter(Boolean);
+    return newApps.filter(Boolean);
   });
 
-  log(`Migrated ${oldTeams.length} teams`);
+  log(`Migrated ${oldApps.length} apps`);
 }
 
-async function migrateCalIdMemberships() {
-  log("Migrating Membership → CalIdMembership...");
+async function migrateFeatures() {
+  log("Migrating Features...");
 
-  const oldMemberships = await oldDb.membership.findMany();
+  const oldFeatures = await oldDb.feature.findMany();
 
-  await processBatch(oldMemberships, async (batch) => {
-    const newMemberships = await Promise.all(
-      batch.map(async (oldMembership) => {
+  await processBatch(oldFeatures, async (batch) => {
+    const newFeatures = await Promise.all(
+      batch.map(async (oldFeature) => {
         try {
-          const calIdTeamId = idMappings.calIdTeams[oldMembership.teamId.toString()];
-          if (!calIdTeamId) {
-            log(`Skipping membership ${oldMembership.id} - team not found in mapping`);
-            return null;
-          }
-
-          // Map MembershipRole to CalIdMembershipRole
-          let role: "MEMBER" | "ADMIN" | "OWNER";
-          switch (oldMembership.role) {
-            case "MEMBER":
-              role = "MEMBER";
-              break;
-            case "ADMIN":
-              role = "ADMIN";
-              break;
-            case "OWNER":
-              role = "OWNER";
-              break;
-            default:
-              role = "MEMBER";
-          }
-
-          const newMembership = await newDb.calIdMembership.create({
+          const newFeature = await newDb.feature.create({
             data: {
-              calIdTeamId,
-              userId: oldMembership.userId,
-              acceptedInvitation: oldMembership.accepted,
-              role,
-              impersonation: !oldMembership.disableImpersonation,
-              createdAt: oldMembership.createdAt || new Date(),
-              updatedAt: oldMembership.updatedAt || new Date(),
+              slug: oldFeature.slug,
+              enabled: oldFeature.enabled,
+              description: oldFeature.description,
+              type: oldFeature.type,
+              stale: oldFeature.stale,
+              lastUsedAt: oldFeature.lastUsedAt,
+              createdAt: oldFeature.createdAt,
+              updatedAt: oldFeature.updatedAt,
+              updatedBy: oldFeature.updatedBy,
             },
           });
-
-          idMappings.calIdMemberships[oldMembership.id.toString()] = newMembership.id;
-          return newMembership;
+          return newFeature;
         } catch (error) {
-          logError(`Failed to migrate membership ${oldMembership.id}`, error);
+          logError(`Failed to migrate feature ${oldFeature.slug}`, error);
           return null;
         }
       })
     );
-
-    return newMemberships.filter(Boolean);
+    return newFeatures.filter(Boolean);
   });
 
-  log(`Migrated memberships`);
-}
-
-async function migrateCalIdWorkflows() {
-  log("Migrating Workflow → CalIdWorkflow...");
-
-  const oldWorkflows = await oldDb.workflow.findMany({
-    include: {
-      steps: true,
-    },
-  });
-
-  await processBatch(oldWorkflows, async (batch) => {
-    const newWorkflows = await Promise.all(
-      batch.map(async (oldWorkflow) => {
-        try {
-          const calIdTeamId = oldWorkflow.teamId
-            ? idMappings.calIdTeams[oldWorkflow.teamId.toString()]
-            : null;
-
-          const newWorkflow = await newDb.calIdWorkflow.create({
-            data: {
-              position: oldWorkflow.position,
-              name: oldWorkflow.name,
-              userId: oldWorkflow.userId,
-              calIdTeamId,
-              isActiveOnAll: oldWorkflow.isActiveOnAll,
-              trigger: oldWorkflow.trigger,
-              time: oldWorkflow.time,
-              timeUnit: oldWorkflow.timeUnit,
-              disabled: false, // Default value for new field
-            },
-          });
-
-          idMappings.calIdWorkflows[oldWorkflow.id.toString()] = newWorkflow.id;
-          return newWorkflow;
-        } catch (error) {
-          logError(`Failed to migrate workflow ${oldWorkflow.id}`, error);
-          return null;
-        }
-      })
-    );
-
-    return newWorkflows.filter(Boolean);
-  });
-
-  log(`Migrated ${oldWorkflows.length} workflows`);
-}
-
-async function migrateCalIdWorkflowSteps() {
-  log("Migrating WorkflowStep → CalIdWorkflowStep...");
-
-  const oldSteps = await oldDb.workflowStep.findMany();
-
-  await processBatch(oldSteps, async (batch) => {
-    const newSteps = await Promise.all(
-      batch.map(async (oldStep) => {
-        try {
-          const calIdWorkflowId = idMappings.calIdWorkflows[oldStep.workflowId.toString()];
-          if (!calIdWorkflowId) {
-            log(`Skipping workflow step ${oldStep.id} - workflow not found in mapping`);
-            return null;
-          }
-
-          const newStep = await newDb.calIdWorkflowStep.create({
-            data: {
-              stepNumber: oldStep.stepNumber,
-              action: oldStep.action,
-              workflowId: calIdWorkflowId,
-              sendTo: oldStep.sendTo,
-              reminderBody: oldStep.reminderBody,
-              emailSubject: oldStep.emailSubject,
-              template: oldStep.template,
-              numberRequired: oldStep.numberRequired,
-              sender: oldStep.sender,
-              numberVerificationPending: oldStep.numberVerificationPending,
-              includeCalendarEvent: oldStep.includeCalendarEvent,
-              verifiedAt: oldStep.verifiedAt, // New field that might exist in old schema
-            },
-          });
-
-          idMappings.calIdWorkflowSteps[oldStep.id.toString()] = newStep.id;
-          return newStep;
-        } catch (error) {
-          logError(`Failed to migrate workflow step ${oldStep.id}`, error);
-          return null;
-        }
-      })
-    );
-
-    return newSteps.filter(Boolean);
-  });
-
-  log(`Migrated workflow steps`);
-}
-
-async function migrateUserFeatures() {
-  log("Migrating UserFeatures ...");
-  const oldUserFeatures = await oldDb.userFeatures.findMany();
-  await processBatch(oldUserFeatures, async (batch) => {
-    const newUserFeatures = await Promise.all(
-      batch.map(async (oldUserFeature) => {
-        try {
-          const calIdUserId = idMappings.calIdUsers[oldUserFeature.userId.toString()];
-          if (!calIdUserId) {
-            log(`Skipping user feature ${oldUserFeature.featureId} - user not found in mapping`);
-            return null;
-          }
-
-          const newUserFeature = await newDb.userFeatures.create({
-            data: {
-              userId: calIdUserId,
-              featureId: oldUserFeature.featureId,
-              assignedAt: oldUserFeature.assignedAt,
-              assignedBy: oldUserFeature.assignedBy,
-              updatedAt: oldUserFeature.updatedAt,
-            },
-          });
-
-          return newUserFeature;
-        } catch (error) {
-          logError(`Failed to migrate user feature ${oldUserFeature.id}`, error);
-          return null;
-        }
-      })
-    );
-
-    return newUserFeatures.filter(Boolean);
-  });
-
-  log(`Migrated user features`);
-}
-
-async function migrateCalIdTeamFeatures() {
-  log("Migrating TeamFeatures → CalIdTeamFeatures...");
-
-  const oldTeamFeatures = await oldDb.teamFeatures.findMany();
-
-  await processBatch(oldTeamFeatures, async (batch) => {
-    const newTeamFeatures = await Promise.all(
-      batch.map(async (oldTeamFeature) => {
-        try {
-          const calIdTeamId = idMappings.calIdTeams[oldTeamFeature.teamId.toString()];
-          if (!calIdTeamId) {
-            log(
-              `Skipping team feature ${oldTeamFeature.teamId}-${oldTeamFeature.featureId} - team not found in mapping`
-            );
-            return null;
-          }
-
-          const newTeamFeature = await newDb.calIdTeamFeatures.create({
-            data: {
-              calIdTeamId,
-              featureId: oldTeamFeature.featureId,
-              assignedAt: oldTeamFeature.assignedAt,
-              assignedBy: oldTeamFeature.assignedBy,
-              updatedAt: oldTeamFeature.updatedAt,
-            },
-          });
-
-          return newTeamFeature;
-        } catch (error) {
-          logError(
-            `Failed to migrate team feature ${oldTeamFeature.teamId}-${oldTeamFeature.featureId}`,
-            error
-          );
-          return null;
-        }
-      })
-    );
-
-    return newTeamFeatures.filter(Boolean);
-  });
-
-  log(`Migrated team features`);
-}
-
-async function migrateCalIdWorkflowsOnEventTypes() {
-  log("Migrating WorkflowsOnEventTypes → CalIdWorkflowsOnEventTypes...");
-
-  const oldWorkflowsOnEventTypes = await oldDb.workflowsOnEventTypes.findMany();
-
-  await processBatch(oldWorkflowsOnEventTypes, async (batch) => {
-    const newWorkflowsOnEventTypes = await Promise.all(
-      batch.map(async (oldWorkflowOnEventType) => {
-        try {
-          const calIdWorkflowId = idMappings.calIdWorkflows[oldWorkflowOnEventType.workflowId.toString()];
-          if (!calIdWorkflowId) {
-            log(
-              `Skipping workflow on event type ${oldWorkflowOnEventType.id} - workflow not found in mapping`
-            );
-            return null;
-          }
-
-          const newWorkflowOnEventType = await newDb.calIdWorkflowsOnEventTypes.create({
-            data: {
-              workflowId: calIdWorkflowId,
-              eventTypeId: oldWorkflowOnEventType.eventTypeId,
-            },
-          });
-
-          return newWorkflowOnEventType;
-        } catch (error) {
-          logError(`Failed to migrate workflow on event type ${oldWorkflowOnEventType.id}`, error);
-          return null;
-        }
-      })
-    );
-
-    return newWorkflowsOnEventTypes.filter(Boolean);
-  });
-
-  log(`Migrated workflows on event types`);
-}
-
-async function migrateCalIdWorkflowsOnTeams() {
-  log("Migrating WorkflowsOnTeams → CalIdWorkflowsOnTeams...");
-
-  const oldWorkflowsOnTeams = await oldDb.workflowsOnTeams.findMany();
-
-  await processBatch(oldWorkflowsOnTeams, async (batch) => {
-    const newWorkflowsOnTeams = await Promise.all(
-      batch.map(async (oldWorkflowOnTeam) => {
-        try {
-          const calIdWorkflowId = idMappings.calIdWorkflows[oldWorkflowOnTeam.workflowId.toString()];
-          const calIdTeamId = idMappings.calIdTeams[oldWorkflowOnTeam.teamId.toString()];
-
-          if (!calIdWorkflowId || !calIdTeamId) {
-            log(`Skipping workflow on team ${oldWorkflowOnTeam.id} - workflow or team not found in mapping`);
-            return null;
-          }
-
-          const newWorkflowOnTeam = await newDb.calIdWorkflowsOnTeams.create({
-            data: {
-              workflowId: calIdWorkflowId,
-              calIdTeamId,
-            },
-          });
-
-          return newWorkflowOnTeam;
-        } catch (error) {
-          logError(`Failed to migrate workflow on team ${oldWorkflowOnTeam.id}`, error);
-          return null;
-        }
-      })
-    );
-
-    return newWorkflowsOnTeams.filter(Boolean);
-  });
-
-  log(`Migrated workflows on teams`);
-}
-
-async function migrateCalIdWorkflowReminders() {
-  log("Migrating WorkflowReminder → CalIdWorkflowReminder...");
-
-  const oldWorkflowReminders = await oldDb.workflowReminder.findMany();
-
-  await processBatch(oldWorkflowReminders, async (batch) => {
-    const newWorkflowReminders = await Promise.all(
-      batch.map(async (oldReminder) => {
-        try {
-          const calIdWorkflowStepId = oldReminder.workflowStepId
-            ? idMappings.calIdWorkflowSteps[oldReminder.workflowStepId.toString()]
-            : null;
-
-          const newReminder = await newDb.calIdWorkflowReminder.create({
-            data: {
-              uuid: oldReminder.uuid,
-              bookingUid: oldReminder.bookingUid,
-              method: oldReminder.method,
-              scheduledDate: oldReminder.scheduledDate,
-              referenceId: oldReminder.referenceId,
-              scheduled: oldReminder.scheduled,
-              workflowStepId: calIdWorkflowStepId,
-              cancelled: oldReminder.cancelled,
-              seatReferenceId: oldReminder.seatReferenceId,
-              isMandatoryReminder: oldReminder.isMandatoryReminder,
-              retryCount: oldReminder.retryCount,
-              userId: null, // New field, set to null for migrated data
-            },
-          });
-
-          return newReminder;
-        } catch (error) {
-          logError(`Failed to migrate workflow reminder ${oldReminder.id}`, error);
-          return null;
-        }
-      })
-    );
-
-    return newWorkflowReminders.filter(Boolean);
-  });
-
-  log(`Migrated workflow reminders`);
-}
-
-async function migrateCalIdWorkflowInsights() {
-  log("Migrating WorkflowInsights → CalIdWorkflowInsights...");
-
-  const oldWorkflowInsights = await oldDb.workflowInsights.findMany();
-
-  await processBatch(oldWorkflowInsights, async (batch) => {
-    const newWorkflowInsights = await Promise.all(
-      batch.map(async (oldInsight) => {
-        try {
-          const calIdWorkflowId = oldInsight.workflowId
-            ? idMappings.calIdWorkflows[oldInsight.workflowId.toString()]
-            : null;
-
-          const newInsight = await newDb.calIdWorkflowInsights.create({
-            data: {
-              msgId: oldInsight.msgId,
-              eventTypeId: oldInsight.eventTypeId,
-              workflowId: calIdWorkflowId,
-              type: oldInsight.type,
-              status: oldInsight.status,
-              metadata: oldInsight.metadata,
-              createdAt: oldInsight.createdAt,
-            },
-          });
-
-          return newInsight;
-        } catch (error) {
-          logError(`Failed to migrate workflow insight ${oldInsight.msgId}`, error);
-          return null;
-        }
-      })
-    );
-
-    return newWorkflowInsights.filter(Boolean);
-  });
-
-  log(`Migrated workflow insights`);
+  log(`Migrated ${oldFeatures.length} features`);
 }
 
 async function migrateUsers() {
@@ -515,7 +155,6 @@ async function migrateUsers() {
     include: {
       password: true,
       travelSchedules: true,
-      // Add other relations as needed
     },
   });
 
@@ -523,7 +162,7 @@ async function migrateUsers() {
     const newUsers = await Promise.all(
       batch.map(async (oldUser) => {
         try {
-          // First create the user
+          // Create user with proper field mapping
           const newUser = await newDb.user.create({
             data: {
               username: oldUser.username,
@@ -532,8 +171,10 @@ async function migrateUsers() {
               emailVerified: oldUser.emailVerified,
               bio: oldUser.bio,
               avatarUrl: oldUser.avatarUrl,
-              timeZone: oldUser.timeZone,
-              weekStart: oldUser.weekStart,
+              timeZone: oldUser.timeZone || "Asia/Kolkata", // Default timezone change
+              weekStart: oldUser.weekStart || "Monday", // Default weekStart change
+              startTime: oldUser.startTime,
+              endTime: oldUser.endTime,
               bufferTime: oldUser.bufferTime,
               hideBranding: oldUser.hideBranding,
               theme: oldUser.theme,
@@ -567,7 +208,7 @@ async function migrateUsers() {
               smsLockReviewedByAdmin: oldUser.smsLockReviewedByAdmin,
               referralLinkId: oldUser.referralLinkId,
               creationSource: oldUser.creationSource,
-              whitelistWorkflows: oldUser.whitelistWorkflows,
+              whitelistWorkflows: oldUser.whitelistWorkflows || false, // New field with default
             },
           });
 
@@ -577,11 +218,29 @@ async function migrateUsers() {
               data: {
                 userId: newUser.id,
                 hash: oldUser.password.hash,
+                salt: oldUser.password.salt,
               },
             });
           }
-          idMappings.calIdUsers[oldUser.id.toString()] = newUser.id;
 
+          // Create travel schedules
+          if (oldUser.travelSchedules && oldUser.travelSchedules.length > 0) {
+            await Promise.all(
+              oldUser.travelSchedules.map((schedule) =>
+                newDb.travelSchedule.create({
+                  data: {
+                    userId: newUser.id,
+                    timeZone: schedule.timeZone,
+                    startDate: schedule.startDate,
+                    endDate: schedule.endDate,
+                    prevTimeZone: schedule.prevTimeZone,
+                  },
+                })
+              )
+            );
+          }
+
+          idMappings.users[oldUser.id.toString()] = newUser.id;
           return newUser;
         } catch (error) {
           logError(`Failed to migrate user ${oldUser.id}`, error);
@@ -589,83 +248,170 @@ async function migrateUsers() {
         }
       })
     );
-
     return newUsers.filter(Boolean);
   });
 
   log(`Migrated ${oldUsers.length} users`);
 }
 
-async function migrateApps() {
-  log("Migrating Apps...");
+// ===============================
+// PHASE 2: CALID TEAMS (REPLACES TEAMS)
+// ===============================
 
-  const oldApps = await oldDb.app.findMany();
+async function migrateCalIdTeams() {
+  log("Migrating Team → CalIdTeam...");
 
-  await processBatch(oldApps, async (batch) => {
-    const newApps = await Promise.all(
-      batch.map(async (oldApp) => {
+  const oldTeams = await oldDb.team.findMany({
+    include: {
+      organizationSettings: true,
+      platformBilling: true,
+    },
+  });
+
+  await processBatch(oldTeams, async (batch) => {
+    const newTeams = await Promise.all(
+      batch.map(async (oldTeam) => {
         try {
-          const newApp = await newDb.app.create({
+          const newTeam = await newDb.calIdTeam.create({
             data: {
-              slug: oldApp.slug,
-              dirName: oldApp.dirName,
-              keys: oldApp.keys,
-              categories: oldApp.categories,
-              createdAt: oldApp.createdAt,
-              updatedAt: oldApp.updatedAt,
-              enabled: oldApp.enabled,
+              name: oldTeam.name,
+              slug: oldTeam.slug,
+              logoUrl: oldTeam.logoUrl,
+              bio: oldTeam.bio,
+              hideTeamBranding: oldTeam.hideBranding || false,
+              hideTeamProfileLink: oldTeam.hideBookATeamMember || false,
+              isTeamPrivate: oldTeam.isPrivate || false,
+              hideBookATeamMember: oldTeam.hideBookATeamMember || false,
+              metadata: oldTeam.metadata,
+              theme: oldTeam.theme,
+              brandColor: oldTeam.brandColor,
+              darkBrandColor: oldTeam.darkBrandColor,
+              timeFormat: oldTeam.timeFormat,
+              timeZone: oldTeam.timeZone || "Asia/Kolkata", // Default timezone
+              weekStart: oldTeam.weekStart || "Monday", // Default weekStart
+              bookingFrequency: oldTeam.bookingLimits, // Map bookingLimits to bookingFrequency
+              createdAt: oldTeam.createdAt,
+              updatedAt: new Date(),
             },
           });
 
-          return newApp;
+          idMappings.calIdTeams[oldTeam.id.toString()] = newTeam.id;
+          return newTeam;
         } catch (error) {
-          logError(`Failed to migrate app ${oldApp.slug}`, error);
+          logError(`Failed to migrate team ${oldTeam.id}`, error);
           return null;
         }
       })
     );
-
-    return newApps.filter(Boolean);
+    return newTeams.filter(Boolean);
   });
 
-  log(`Migrated ${oldApps.length} apps`);
+  log(`Migrated ${oldTeams.length} teams to CalIdTeams`);
 }
 
-async function migrateFeatures() {
-  log("Migrating Features...");
+async function migrateCalIdMemberships() {
+  log("Migrating Membership → CalIdMembership...");
 
-  const oldFeatures = await oldDb.feature.findMany();
+  const oldMemberships = await oldDb.membership.findMany();
 
-  await processBatch(oldFeatures, async (batch) => {
-    const newFeatures = await Promise.all(
-      batch.map(async (oldFeature) => {
+  await processBatch(oldMemberships, async (batch) => {
+    const newMemberships = await Promise.all(
+      batch.map(async (oldMembership) => {
         try {
-          const newFeature = await newDb.feature.create({
+          const calIdTeamId = idMappings.calIdTeams[oldMembership.teamId.toString()];
+          const userId = idMappings.users[oldMembership.userId.toString()];
+
+          if (!calIdTeamId) {
+            log(`Skipping membership ${oldMembership.id} - team not found in mapping`);
+            return null;
+          }
+
+          if (!userId) {
+            log(`Skipping membership ${oldMembership.id} - user not found in mapping`);
+            return null;
+          }
+
+          // Map MembershipRole to CalIdMembershipRole
+          let role: "MEMBER" | "ADMIN" | "OWNER";
+          switch (oldMembership.role) {
+            case "MEMBER":
+              role = "MEMBER";
+              break;
+            case "ADMIN":
+              role = "ADMIN";
+              break;
+            case "OWNER":
+              role = "OWNER";
+              break;
+            default:
+              role = "MEMBER";
+          }
+
+          const newMembership = await newDb.calIdMembership.create({
             data: {
-              slug: oldFeature.slug,
-              enabled: oldFeature.enabled,
-              description: oldFeature.description,
-              type: oldFeature.type,
-              stale: oldFeature.stale,
-              lastUsedAt: oldFeature.lastUsedAt,
-              createdAt: oldFeature.createdAt,
-              updatedAt: oldFeature.updatedAt,
-              updatedBy: oldFeature.updatedBy,
+              calIdTeamId,
+              userId,
+              acceptedInvitation: oldMembership.accepted,
+              role,
+              impersonation: !oldMembership.disableImpersonation,
+              createdAt: oldMembership.createdAt || new Date(),
+              updatedAt: oldMembership.updatedAt || new Date(),
             },
           });
 
-          return newFeature;
+          idMappings.calIdMemberships[oldMembership.id.toString()] = newMembership.id;
+          return newMembership;
         } catch (error) {
-          logError(`Failed to migrate feature ${oldFeature.slug}`, error);
+          logError(`Failed to migrate membership ${oldMembership.id}`, error);
           return null;
         }
       })
     );
-
-    return newFeatures.filter(Boolean);
+    return newMemberships.filter(Boolean);
   });
 
-  log(`Migrated ${oldFeatures.length} features`);
+  log(`Migrated memberships to CalIdMemberships`);
+}
+
+// ===============================
+// PHASE 3: SCHEDULES AND PROFILES
+// ===============================
+
+async function migrateSchedules() {
+  log("Migrating Schedules...");
+
+  const oldSchedules = await oldDb.schedule.findMany();
+
+  await processBatch(oldSchedules, async (batch) => {
+    const newSchedules = await Promise.all(
+      batch.map(async (oldSchedule) => {
+        try {
+          const userId = idMappings.users[oldSchedule.userId.toString()];
+          if (!userId) {
+            log(`Skipping schedule ${oldSchedule.id} - user not found`);
+            return null;
+          }
+
+          const newSchedule = await newDb.schedule.create({
+            data: {
+              userId: userId,
+              name: oldSchedule.name,
+              timeZone: oldSchedule.timeZone,
+            },
+          });
+
+          idMappings.schedules[oldSchedule.id.toString()] = newSchedule.id;
+          return newSchedule;
+        } catch (error) {
+          logError(`Failed to migrate schedule ${oldSchedule.id}`, error);
+          return null;
+        }
+      })
+    );
+    return newSchedules.filter(Boolean);
+  });
+
+  log(`Migrated ${oldSchedules.length} schedules`);
 }
 
 async function migrateProfiles() {
@@ -677,8 +423,19 @@ async function migrateProfiles() {
     const newProfiles = await Promise.all(
       batch.map(async (oldProfile) => {
         try {
-          const userId = idMappings.calIdUsers[oldProfile.userId.toString()];
+          const userId = idMappings.users[oldProfile.userId.toString()];
           const orgId = idMappings.calIdTeams[oldProfile.organizationId.toString()];
+
+          if (!userId) {
+            log(`Skipping profile ${oldProfile.id} - user not found`);
+            return null;
+          }
+
+          if (!orgId) {
+            log(`Skipping profile ${oldProfile.id} - organization not found`);
+            return null;
+          }
+
           const newProfile = await newDb.profile.create({
             data: {
               uid: oldProfile.uid,
@@ -698,44 +455,57 @@ async function migrateProfiles() {
         }
       })
     );
-
     return newProfiles.filter(Boolean);
   });
 
   log(`Migrated ${oldProfiles.length} profiles`);
 }
 
-async function migrateSchedules() {
-  log("Migrating Schedules...");
+// ===============================
+// PHASE 4: CREDENTIALS AND AVAILABILITIES
+// ===============================
 
-  const oldSchedules = await oldDb.schedule.findMany();
+async function migrateCredentials() {
+  log("Migrating Credentials...");
 
-  await processBatch(oldSchedules, async (batch) => {
-    const newSchedules = await Promise.all(
-      batch.map(async (oldSchedule) => {
+  const oldCredentials = await oldDb.credential.findMany();
+
+  await processBatch(oldCredentials, async (batch) => {
+    const newCredentials = await Promise.all(
+      batch.map(async (oldCredential) => {
         try {
-          const userId = idMappings.calIdUsers[oldSchedule.userId.toString()];
-          const newSchedule = await newDb.schedule.create({
+          const userId = oldCredential.userId ? idMappings.users[oldCredential.userId.toString()] : null;
+          const calIdTeamId = oldCredential.teamId
+            ? idMappings.calIdTeams[oldCredential.teamId.toString()]
+            : null;
+
+          const newCredential = await newDb.credential.create({
             data: {
-              id: oldSchedule.id,
+              type: oldCredential.type,
+              key: oldCredential.key,
               userId: userId,
-              name: oldSchedule.name,
-              timeZone: oldSchedule.timeZone,
+              calIdTeamId: calIdTeamId, // Use CalIdTeam instead of Team
+              appId: oldCredential.appId,
+              subscriptionId: oldCredential.subscriptionId,
+              paymentStatus: oldCredential.paymentStatus,
+              billingCycleStart: oldCredential.billingCycleStart,
+              invalid: oldCredential.invalid,
+              delegationCredentialId: oldCredential.delegationCredentialId,
             },
           });
 
-          return newSchedule;
+          idMappings.credentials[oldCredential.id.toString()] = newCredential.id;
+          return newCredential;
         } catch (error) {
-          logError(`Failed to migrate schedule ${oldSchedule.id}`, error);
+          logError(`Failed to migrate credential ${oldCredential.id}`, error);
           return null;
         }
       })
     );
-
-    return newSchedules.filter(Boolean);
+    return newCredentials.filter(Boolean);
   });
 
-  log(`Migrated ${oldSchedules.length} schedules`);
+  log(`Migrated ${oldCredentials.length} credentials`);
 }
 
 async function migrateAvailabilities() {
@@ -747,19 +517,24 @@ async function migrateAvailabilities() {
     const newAvailabilities = await Promise.all(
       batch.map(async (oldAvailability) => {
         try {
+          const scheduleId = oldAvailability.scheduleId
+            ? idMappings.schedules[oldAvailability.scheduleId.toString()]
+            : null;
+          const userId = oldAvailability.userId ? idMappings.users[oldAvailability.userId.toString()] : null;
+
           const newAvailability = await newDb.availability.create({
             data: {
-              id: oldAvailability.id,
-              userId: oldAvailability.userId,
+              userId: userId,
               eventTypeId: oldAvailability.eventTypeId,
               days: oldAvailability.days,
               startTime: oldAvailability.startTime,
               endTime: oldAvailability.endTime,
               date: oldAvailability.date,
-              scheduleId: oldAvailability.scheduleId,
+              scheduleId: scheduleId,
             },
           });
 
+          idMappings.availabilities[oldAvailability.id.toString()] = newAvailability.id;
           return newAvailability;
         } catch (error) {
           logError(`Failed to migrate availability ${oldAvailability.id}`, error);
@@ -767,12 +542,15 @@ async function migrateAvailabilities() {
         }
       })
     );
-
     return newAvailabilities.filter(Boolean);
   });
 
   log(`Migrated ${oldAvailabilities.length} availabilities`);
 }
+
+// ===============================
+// PHASE 5: EVENT TYPES AND BOOKINGS
+// ===============================
 
 async function migrateEventTypes() {
   log("Migrating EventTypes...");
@@ -783,9 +561,25 @@ async function migrateEventTypes() {
     const newEventTypes = await Promise.all(
       batch.map(async (oldEventType) => {
         try {
+          const userId = oldEventType.userId ? idMappings.users[oldEventType.userId.toString()] : null;
+          const profileId = oldEventType.profileId
+            ? idMappings.profiles[oldEventType.profileId.toString()]
+            : null;
+          const calIdTeamId = oldEventType.teamId
+            ? idMappings.calIdTeams[oldEventType.teamId.toString()]
+            : null;
+          const scheduleId = oldEventType.scheduleId
+            ? idMappings.schedules[oldEventType.scheduleId.toString()]
+            : null;
+          const restrictionScheduleId = oldEventType.restrictionScheduleId
+            ? idMappings.schedules[oldEventType.restrictionScheduleId.toString()]
+            : null;
+          const instantMeetingScheduleId = oldEventType.instantMeetingScheduleId
+            ? idMappings.schedules[oldEventType.instantMeetingScheduleId.toString()]
+            : null;
+
           const newEventType = await newDb.eventType.create({
             data: {
-              id: oldEventType.id,
               title: oldEventType.title,
               slug: oldEventType.slug,
               description: oldEventType.description,
@@ -795,9 +589,9 @@ async function migrateEventTypes() {
               length: oldEventType.length,
               offsetStart: oldEventType.offsetStart,
               hidden: oldEventType.hidden,
-              userId: oldEventType.userId,
-              profileId: oldEventType.profileId,
-              teamId: oldEventType.teamId,
+              userId: userId,
+              profileId: profileId,
+              calIdTeamId: calIdTeamId, // Use CalIdTeam instead of Team
               eventName: oldEventType.eventName,
               bookingFields: oldEventType.bookingFields,
               timeZone: oldEventType.timeZone,
@@ -812,7 +606,7 @@ async function migrateEventTypes() {
               requiresConfirmationWillBlockSlot: oldEventType.requiresConfirmationWillBlockSlot,
               requiresConfirmationForFreeEmail: oldEventType.requiresConfirmationForFreeEmail,
               requiresBookerEmailVerification: oldEventType.requiresBookerEmailVerification,
-              canSendCalVideoTranscriptionEmails: oldEventType.canSendCalVideoTranscriptionEmails,
+              canSendCalVideoTranscriptionEmails: oldEventType.canSendCalVideoTranscriptionEmails || true, // Default to true for new field
               autoTranslateDescriptionEnabled: oldEventType.autoTranslateDescriptionEnabled,
               recurringEvent: oldEventType.recurringEvent,
               disableGuests: oldEventType.disableGuests,
@@ -828,7 +622,7 @@ async function migrateEventTypes() {
               seatsShowAttendees: oldEventType.seatsShowAttendees,
               seatsShowAvailabilityCount: oldEventType.seatsShowAvailabilityCount,
               schedulingType: oldEventType.schedulingType,
-              scheduleId: oldEventType.scheduleId,
+              scheduleId: scheduleId,
               allowReschedulingCancelledBookings: oldEventType.allowReschedulingCancelledBookings,
               price: oldEventType.price,
               currency: oldEventType.currency,
@@ -840,7 +634,7 @@ async function migrateEventTypes() {
               durationLimits: oldEventType.durationLimits,
               isInstantEvent: oldEventType.isInstantEvent,
               instantMeetingExpiryTimeOffsetInSeconds: oldEventType.instantMeetingExpiryTimeOffsetInSeconds,
-              instantMeetingScheduleId: oldEventType.instantMeetingScheduleId,
+              instantMeetingScheduleId: instantMeetingScheduleId,
               instantMeetingParameters: oldEventType.instantMeetingParameters,
               assignAllTeamMembers: oldEventType.assignAllTeamMembers,
               assignRRMembersUsingSegment: oldEventType.assignRRMembersUsingSegment,
@@ -858,11 +652,14 @@ async function migrateEventTypes() {
               rescheduleWithSameRoundRobinHost: oldEventType.rescheduleWithSameRoundRobinHost,
               secondaryEmailId: oldEventType.secondaryEmailId,
               useBookerTimezone: oldEventType.useBookerTimezone,
-              restrictionScheduleId: oldEventType.restrictionScheduleId,
+              restrictionScheduleId: restrictionScheduleId,
               parentId: oldEventType.parentId,
+              useEventLevelSelectedCalendars: false, // New field with default
+              captchaType: oldEventType.captchaType,
             },
           });
 
+          idMappings.eventTypes[oldEventType.id.toString()] = newEventType.id;
           return newEventType;
         } catch (error) {
           logError(`Failed to migrate event type ${oldEventType.id}`, error);
@@ -870,100 +667,10 @@ async function migrateEventTypes() {
         }
       })
     );
-
     return newEventTypes.filter(Boolean);
   });
 
   log(`Migrated ${oldEventTypes.length} event types`);
-}
-
-async function migrateCredentials() {
-  log("Migrating Credentials...");
-
-  const oldCredentials = await oldDb.credential.findMany();
-
-  await processBatch(oldCredentials, async (batch) => {
-    const newCredentials = await Promise.all(
-      batch.map(async (oldCredential) => {
-        try {
-          const newCredential = await newDb.credential.create({
-            data: {
-              id: oldCredential.id,
-              type: oldCredential.type,
-              key: oldCredential.key,
-              userId: oldCredential.userId ? idMappings.calIdUsers[oldCredential.userId.toString()] : null,
-              calIdTeamId: oldCredential.teamId
-                ? idMappings.calIdTeams[oldCredential.teamId.toString()]
-                : null,
-              appId: oldCredential.appId,
-              subscriptionId: oldCredential.subscriptionId,
-              paymentStatus: oldCredential.paymentStatus,
-              billingCycleStart: oldCredential.billingCycleStart,
-              invalid: oldCredential.invalid,
-              delegationCredentialId: oldCredential.delegationCredentialId,
-            },
-          });
-
-          return newCredential;
-        } catch (error) {
-          logError(`Failed to migrate credential ${oldCredential.id}`, error);
-          return null;
-        }
-      })
-    );
-
-    return newCredentials.filter(Boolean);
-  });
-
-  log(`Migrated ${oldCredentials.length} credentials`);
-}
-
-async function migrateSelectedCalendars() {
-  log("Migrating SelectedCalendars...");
-
-  const oldSelectedCalendars = await oldDb.selectedCalendar.findMany();
-
-  await processBatch(oldSelectedCalendars, async (batch) => {
-    const newSelectedCalendars = await Promise.all(
-      batch.map(async (oldSelectedCalendar) => {
-        try {
-          const newSelectedCalendar = await newDb.selectedCalendar.create({
-            data: {
-              id: oldSelectedCalendar.id,
-              userId: oldSelectedCalendar.userId,
-              integration: oldSelectedCalendar.integration,
-              externalId: oldSelectedCalendar.externalId,
-              credentialId: oldSelectedCalendar.credentialId,
-              createdAt: oldSelectedCalendar.createdAt,
-              updatedAt: oldSelectedCalendar.updatedAt,
-              googleChannelId: oldSelectedCalendar.googleChannelId,
-              googleChannelKind: oldSelectedCalendar.googleChannelKind,
-              googleChannelResourceId: oldSelectedCalendar.googleChannelResourceId,
-              googleChannelResourceUri: oldSelectedCalendar.googleChannelResourceUri,
-              googleChannelExpiration: oldSelectedCalendar.googleChannelExpiration,
-              delegationCredentialId: oldSelectedCalendar.delegationCredentialId,
-              domainWideDelegationCredentialId: oldSelectedCalendar.domainWideDelegationCredentialId,
-              error: oldSelectedCalendar.error,
-              lastErrorAt: oldSelectedCalendar.lastErrorAt,
-              watchAttempts: oldSelectedCalendar.watchAttempts,
-              unwatchAttempts: oldSelectedCalendar.unwatchAttempts,
-              maxAttempts: oldSelectedCalendar.maxAttempts,
-              eventTypeId: oldSelectedCalendar.eventTypeId,
-            },
-          });
-
-          return newSelectedCalendar;
-        } catch (error) {
-          logError(`Failed to migrate selected calendar ${oldSelectedCalendar.id}`, error);
-          return null;
-        }
-      })
-    );
-
-    return newSelectedCalendars.filter(Boolean);
-  });
-
-  log(`Migrated ${oldSelectedCalendars.length} selected calendars`);
 }
 
 async function migrateBookings() {
@@ -975,14 +682,21 @@ async function migrateBookings() {
     const newBookings = await Promise.all(
       batch.map(async (oldBooking) => {
         try {
+          const userId = oldBooking.userId ? idMappings.users[oldBooking.userId.toString()] : null;
+          const eventTypeId = oldBooking.eventTypeId
+            ? idMappings.eventTypes[oldBooking.eventTypeId.toString()]
+            : null;
+          const reassignById = oldBooking.reassignById
+            ? idMappings.users[oldBooking.reassignById.toString()]
+            : null;
+
           const newBooking = await newDb.booking.create({
             data: {
-              id: oldBooking.id,
               uid: oldBooking.uid,
               idempotencyKey: oldBooking.idempotencyKey,
-              userId: oldBooking.userId,
+              userId: userId,
               userPrimaryEmail: oldBooking.userPrimaryEmail,
-              eventTypeId: oldBooking.eventTypeId,
+              eventTypeId: eventTypeId,
               title: oldBooking.title,
               description: oldBooking.description,
               customInputs: oldBooking.customInputs,
@@ -998,7 +712,7 @@ async function migrateBookings() {
               cancellationReason: oldBooking.cancellationReason,
               rejectionReason: oldBooking.rejectionReason,
               reassignReason: oldBooking.reassignReason,
-              reassignById: oldBooking.reassignById,
+              reassignById: reassignById,
               dynamicEventSlugRef: oldBooking.dynamicEventSlugRef,
               dynamicGroupSlugRef: oldBooking.dynamicGroupSlugRef,
               rescheduled: oldBooking.rescheduled,
@@ -1027,11 +741,434 @@ async function migrateBookings() {
         }
       })
     );
-
     return newBookings.filter(Boolean);
   });
 
   log(`Migrated ${oldBookings.length} bookings`);
+}
+
+// ===============================
+// PHASE 6: CALID WORKFLOWS
+// ===============================
+
+async function migrateCalIdWorkflows() {
+  log("Migrating Workflow → CalIdWorkflow...");
+
+  const oldWorkflows = await oldDb.workflow.findMany({
+    include: {
+      steps: true,
+    },
+  });
+
+  await processBatch(oldWorkflows, async (batch) => {
+    const newWorkflows = await Promise.all(
+      batch.map(async (oldWorkflow) => {
+        try {
+          const userId = oldWorkflow.userId ? idMappings.users[oldWorkflow.userId.toString()] : null;
+          const calIdTeamId = oldWorkflow.teamId
+            ? idMappings.calIdTeams[oldWorkflow.teamId.toString()]
+            : null;
+
+          const newWorkflow = await newDb.calIdWorkflow.create({
+            data: {
+              position: oldWorkflow.position,
+              name: oldWorkflow.name,
+              userId: userId,
+              calIdTeamId: calIdTeamId, // Use CalIdTeam instead of Team
+              isActiveOnAll: oldWorkflow.isActiveOnAll,
+              trigger: oldWorkflow.trigger,
+              time: oldWorkflow.time,
+              timeUnit: oldWorkflow.timeUnit,
+              disabled: false, // Default value for new field
+            },
+          });
+
+          idMappings.calIdWorkflows[oldWorkflow.id.toString()] = newWorkflow.id;
+          return newWorkflow;
+        } catch (error) {
+          logError(`Failed to migrate workflow ${oldWorkflow.id}`, error);
+          return null;
+        }
+      })
+    );
+    return newWorkflows.filter(Boolean);
+  });
+
+  log(`Migrated ${oldWorkflows.length} workflows to CalIdWorkflows`);
+}
+
+async function migrateCalIdWorkflowSteps() {
+  log("Migrating WorkflowStep → CalIdWorkflowStep...");
+
+  const oldSteps = await oldDb.workflowStep.findMany();
+
+  await processBatch(oldSteps, async (batch) => {
+    const newSteps = await Promise.all(
+      batch.map(async (oldStep) => {
+        try {
+          const calIdWorkflowId = idMappings.calIdWorkflows[oldStep.workflowId.toString()];
+          if (!calIdWorkflowId) {
+            log(`Skipping workflow step ${oldStep.id} - workflow not found in mapping`);
+            return null;
+          }
+
+          const newStep = await newDb.calIdWorkflowStep.create({
+            data: {
+              stepNumber: oldStep.stepNumber,
+              action: oldStep.action,
+              workflowId: calIdWorkflowId,
+              sendTo: oldStep.sendTo,
+              reminderBody: oldStep.reminderBody,
+              emailSubject: oldStep.emailSubject,
+              template: oldStep.template,
+              numberRequired: oldStep.numberRequired,
+              sender: oldStep.sender,
+              numberVerificationPending: oldStep.numberVerificationPending,
+              includeCalendarEvent: oldStep.includeCalendarEvent,
+              verifiedAt: oldStep.verifiedAt,
+            },
+          });
+
+          idMappings.calIdWorkflowSteps[oldStep.id.toString()] = newStep.id;
+          return newStep;
+        } catch (error) {
+          logError(`Failed to migrate workflow step ${oldStep.id}`, error);
+          return null;
+        }
+      })
+    );
+    return newSteps.filter(Boolean);
+  });
+
+  log(`Migrated workflow steps to CalIdWorkflowSteps`);
+}
+
+// ===============================
+// PHASE 7: FEATURES AND RELATIONS
+// ===============================
+
+async function migrateUserFeatures() {
+  log("Migrating UserFeatures...");
+
+  const oldUserFeatures = await oldDb.userFeatures.findMany();
+
+  await processBatch(oldUserFeatures, async (batch) => {
+    const newUserFeatures = await Promise.all(
+      batch.map(async (oldUserFeature) => {
+        try {
+          const userId = idMappings.users[oldUserFeature.userId.toString()];
+          if (!userId) {
+            log(`Skipping user feature ${oldUserFeature.featureId} - user not found in mapping`);
+            return null;
+          }
+
+          const newUserFeature = await newDb.userFeatures.create({
+            data: {
+              userId: userId,
+              featureId: oldUserFeature.featureId,
+              assignedAt: oldUserFeature.assignedAt,
+              assignedBy: oldUserFeature.assignedBy,
+              updatedAt: oldUserFeature.updatedAt,
+            },
+          });
+
+          return newUserFeature;
+        } catch (error) {
+          logError(
+            `Failed to migrate user feature ${oldUserFeature.userId}-${oldUserFeature.featureId}`,
+            error
+          );
+          return null;
+        }
+      })
+    );
+    return newUserFeatures.filter(Boolean);
+  });
+
+  log(`Migrated user features`);
+}
+
+async function migrateCalIdTeamFeatures() {
+  log("Migrating TeamFeatures → CalIdTeamFeatures...");
+
+  const oldTeamFeatures = await oldDb.teamFeatures.findMany();
+
+  await processBatch(oldTeamFeatures, async (batch) => {
+    const newTeamFeatures = await Promise.all(
+      batch.map(async (oldTeamFeature) => {
+        try {
+          const calIdTeamId = idMappings.calIdTeams[oldTeamFeature.teamId.toString()];
+          if (!calIdTeamId) {
+            log(
+              `Skipping team feature ${oldTeamFeature.teamId}-${oldTeamFeature.featureId} - team not found in mapping`
+            );
+            return null;
+          }
+
+          const newTeamFeature = await newDb.calIdTeamFeatures.create({
+            data: {
+              calIdTeamId: calIdTeamId,
+              featureId: oldTeamFeature.featureId,
+              assignedAt: oldTeamFeature.assignedAt,
+              assignedBy: oldTeamFeature.assignedBy,
+              updatedAt: oldTeamFeature.updatedAt,
+            },
+          });
+
+          return newTeamFeature;
+        } catch (error) {
+          logError(
+            `Failed to migrate team feature ${oldTeamFeature.teamId}-${oldTeamFeature.featureId}`,
+            error
+          );
+          return null;
+        }
+      })
+    );
+    return newTeamFeatures.filter(Boolean);
+  });
+
+  log(`Migrated team features to CalIdTeamFeatures`);
+}
+
+// ===============================
+// PHASE 8: WORKFLOW RELATIONS
+// ===============================
+
+async function migrateCalIdWorkflowsOnEventTypes() {
+  log("Migrating WorkflowsOnEventTypes → CalIdWorkflowsOnEventTypes...");
+
+  const oldWorkflowsOnEventTypes = await oldDb.workflowsOnEventTypes.findMany();
+
+  await processBatch(oldWorkflowsOnEventTypes, async (batch) => {
+    const newWorkflowsOnEventTypes = await Promise.all(
+      batch.map(async (oldWorkflowOnEventType) => {
+        try {
+          const calIdWorkflowId = idMappings.calIdWorkflows[oldWorkflowOnEventType.workflowId.toString()];
+          const eventTypeId = idMappings.eventTypes[oldWorkflowOnEventType.eventTypeId.toString()];
+
+          if (!calIdWorkflowId) {
+            log(
+              `Skipping workflow on event type ${oldWorkflowOnEventType.id} - workflow not found in mapping`
+            );
+            return null;
+          }
+
+          if (!eventTypeId) {
+            log(
+              `Skipping workflow on event type ${oldWorkflowOnEventType.id} - event type not found in mapping`
+            );
+            return null;
+          }
+
+          const newWorkflowOnEventType = await newDb.calIdWorkflowsOnEventTypes.create({
+            data: {
+              workflowId: calIdWorkflowId,
+              eventTypeId: eventTypeId,
+            },
+          });
+
+          return newWorkflowOnEventType;
+        } catch (error) {
+          logError(`Failed to migrate workflow on event type ${oldWorkflowOnEventType.id}`, error);
+          return null;
+        }
+      })
+    );
+    return newWorkflowsOnEventTypes.filter(Boolean);
+  });
+
+  log(`Migrated workflows on event types to CalIdWorkflowsOnEventTypes`);
+}
+
+async function migrateCalIdWorkflowsOnTeams() {
+  log("Migrating WorkflowsOnTeams → CalIdWorkflowsOnTeams...");
+
+  const oldWorkflowsOnTeams = await oldDb.workflowsOnTeams.findMany();
+
+  await processBatch(oldWorkflowsOnTeams, async (batch) => {
+    const newWorkflowsOnTeams = await Promise.all(
+      batch.map(async (oldWorkflowOnTeam) => {
+        try {
+          const calIdWorkflowId = idMappings.calIdWorkflows[oldWorkflowOnTeam.workflowId.toString()];
+          const calIdTeamId = idMappings.calIdTeams[oldWorkflowOnTeam.teamId.toString()];
+
+          if (!calIdWorkflowId || !calIdTeamId) {
+            log(`Skipping workflow on team ${oldWorkflowOnTeam.id} - workflow or team not found in mapping`);
+            return null;
+          }
+
+          const newWorkflowOnTeam = await newDb.calIdWorkflowsOnTeams.create({
+            data: {
+              workflowId: calIdWorkflowId,
+              calIdTeamId: calIdTeamId,
+            },
+          });
+
+          return newWorkflowOnTeam;
+        } catch (error) {
+          logError(`Failed to migrate workflow on team ${oldWorkflowOnTeam.id}`, error);
+          return null;
+        }
+      })
+    );
+    return newWorkflowsOnTeams.filter(Boolean);
+  });
+
+  log(`Migrated workflows on teams to CalIdWorkflowsOnTeams`);
+}
+
+async function migrateCalIdWorkflowReminders() {
+  log("Migrating WorkflowReminder → CalIdWorkflowReminder...");
+
+  const oldWorkflowReminders = await oldDb.workflowReminder.findMany();
+
+  await processBatch(oldWorkflowReminders, async (batch) => {
+    const newWorkflowReminders = await Promise.all(
+      batch.map(async (oldReminder) => {
+        try {
+          const calIdWorkflowStepId = oldReminder.workflowStepId
+            ? idMappings.calIdWorkflowSteps[oldReminder.workflowStepId.toString()]
+            : null;
+          const userId = oldReminder.attendeeId ? null : null; // There's no direct user mapping for attendees in CalIdWorkflowReminder
+
+          const newReminder = await newDb.calIdWorkflowReminder.create({
+            data: {
+              uuid: oldReminder.uuid,
+              bookingUid: oldReminder.bookingUid,
+              method: oldReminder.method,
+              scheduledDate: oldReminder.scheduledDate,
+              referenceId: oldReminder.referenceId,
+              scheduled: oldReminder.scheduled,
+              workflowStepId: calIdWorkflowStepId,
+              cancelled: oldReminder.cancelled,
+              seatReferenceId: oldReminder.seatReferenceId,
+              isMandatoryReminder: oldReminder.isMandatoryReminder,
+              retryCount: oldReminder.retryCount,
+              userId: userId, // This field exists in new schema but not in old
+            },
+          });
+
+          return newReminder;
+        } catch (error) {
+          logError(`Failed to migrate workflow reminder ${oldReminder.id}`, error);
+          return null;
+        }
+      })
+    );
+    return newWorkflowReminders.filter(Boolean);
+  });
+
+  log(`Migrated workflow reminders to CalIdWorkflowReminders`);
+}
+
+async function migrateCalIdWorkflowInsights() {
+  log("Migrating WorkflowInsights → CalIdWorkflowInsights...");
+
+  const oldWorkflowInsights = await oldDb.workflowInsights.findMany();
+
+  await processBatch(oldWorkflowInsights, async (batch) => {
+    const newWorkflowInsights = await Promise.all(
+      batch.map(async (oldInsight) => {
+        try {
+          const calIdWorkflowId = oldInsight.workflowId
+            ? idMappings.calIdWorkflows[oldInsight.workflowId.toString()]
+            : null;
+          const eventTypeId = oldInsight.eventTypeId
+            ? idMappings.eventTypes[oldInsight.eventTypeId.toString()]
+            : null;
+
+          const newInsight = await newDb.calIdWorkflowInsights.create({
+            data: {
+              msgId: oldInsight.msgId,
+              eventTypeId: eventTypeId || oldInsight.eventTypeId, // Use mapped ID if available, otherwise original
+              workflowId: calIdWorkflowId,
+              type: oldInsight.type,
+              status: oldInsight.status,
+              metadata: oldInsight.metadata,
+              createdAt: oldInsight.createdAt,
+            },
+          });
+
+          return newInsight;
+        } catch (error) {
+          logError(`Failed to migrate workflow insight ${oldInsight.msgId}`, error);
+          return null;
+        }
+      })
+    );
+    return newWorkflowInsights.filter(Boolean);
+  });
+
+  log(`Migrated workflow insights to CalIdWorkflowInsights`);
+}
+
+// ===============================
+// PHASE 9: REMAINING ENTITIES
+// ===============================
+
+async function migrateSelectedCalendars() {
+  log("Migrating SelectedCalendars...");
+
+  const oldSelectedCalendars = await oldDb.selectedCalendar.findMany();
+
+  await processBatch(oldSelectedCalendars, async (batch) => {
+    const newSelectedCalendars = await Promise.all(
+      batch.map(async (oldSelectedCalendar) => {
+        try {
+          const userId = idMappings.users[oldSelectedCalendar.userId.toString()];
+          const credentialId = oldSelectedCalendar.credentialId
+            ? idMappings.credentials[oldSelectedCalendar.credentialId.toString()]
+            : null;
+          const eventTypeId = oldSelectedCalendar.eventTypeId
+            ? idMappings.eventTypes[oldSelectedCalendar.eventTypeId.toString()]
+            : null;
+
+          if (!userId) {
+            log(
+              `Skipping selected calendar ${oldSelectedCalendar.userId}-${oldSelectedCalendar.integration} - user not found`
+            );
+            return null;
+          }
+
+          const newSelectedCalendar = await newDb.selectedCalendar.create({
+            data: {
+              userId: userId,
+              integration: oldSelectedCalendar.integration,
+              externalId: oldSelectedCalendar.externalId,
+              credentialId: credentialId,
+              createdAt: oldSelectedCalendar.createdAt,
+              updatedAt: oldSelectedCalendar.updatedAt,
+              googleChannelId: oldSelectedCalendar.googleChannelId,
+              googleChannelKind: oldSelectedCalendar.googleChannelKind,
+              googleChannelResourceId: oldSelectedCalendar.googleChannelResourceId,
+              googleChannelResourceUri: oldSelectedCalendar.googleChannelResourceUri,
+              googleChannelExpiration: oldSelectedCalendar.googleChannelExpiration,
+              delegationCredentialId: oldSelectedCalendar.delegationCredentialId,
+              domainWideDelegationCredentialId: oldSelectedCalendar.domainWideDelegationCredentialId,
+              error: oldSelectedCalendar.error,
+              lastErrorAt: oldSelectedCalendar.lastErrorAt,
+              watchAttempts: oldSelectedCalendar.watchAttempts,
+              unwatchAttempts: oldSelectedCalendar.unwatchAttempts,
+              maxAttempts: oldSelectedCalendar.maxAttempts,
+              eventTypeId: eventTypeId,
+            },
+          });
+
+          return newSelectedCalendar;
+        } catch (error) {
+          logError(
+            `Failed to migrate selected calendar ${oldSelectedCalendar.userId}-${oldSelectedCalendar.integration}`,
+            error
+          );
+          return null;
+        }
+      })
+    );
+    return newSelectedCalendars.filter(Boolean);
+  });
+
+  log(`Migrated ${oldSelectedCalendars.length} selected calendars`);
 }
 
 async function migrateWebhooks() {
@@ -1043,12 +1180,18 @@ async function migrateWebhooks() {
     const newWebhooks = await Promise.all(
       batch.map(async (oldWebhook) => {
         try {
+          const userId = oldWebhook.userId ? idMappings.users[oldWebhook.userId.toString()] : null;
+          const calIdTeamId = oldWebhook.teamId ? idMappings.calIdTeams[oldWebhook.teamId.toString()] : null;
+          const eventTypeId = oldWebhook.eventTypeId
+            ? idMappings.eventTypes[oldWebhook.eventTypeId.toString()]
+            : null;
+
           const newWebhook = await newDb.webhook.create({
             data: {
               id: oldWebhook.id,
-              userId: oldWebhook.userId,
-              teamId: oldWebhook.teamId,
-              eventTypeId: oldWebhook.eventTypeId,
+              userId: userId,
+              calIdTeamId: calIdTeamId, // Use CalIdTeam instead of Team
+              eventTypeId: eventTypeId,
               platformOAuthClientId: oldWebhook.platformOAuthClientId,
               subscriberUrl: oldWebhook.subscriberUrl,
               payloadTemplate: oldWebhook.payloadTemplate,
@@ -1070,7 +1213,6 @@ async function migrateWebhooks() {
         }
       })
     );
-
     return newWebhooks.filter(Boolean);
   });
 
@@ -1086,11 +1228,19 @@ async function migrateApiKeys() {
     const newApiKeys = await Promise.all(
       batch.map(async (oldApiKey) => {
         try {
+          const userId = idMappings.users[oldApiKey.userId.toString()];
+          const calIdTeamId = oldApiKey.teamId ? idMappings.calIdTeams[oldApiKey.teamId.toString()] : null;
+
+          if (!userId) {
+            log(`Skipping API key ${oldApiKey.id} - user not found`);
+            return null;
+          }
+
           const newApiKey = await newDb.apiKey.create({
             data: {
               id: oldApiKey.id,
-              userId: oldApiKey.userId,
-              teamId: oldApiKey.teamId,
+              userId: userId,
+              calIdTeamId: calIdTeamId, // Use CalIdTeam instead of Team
               note: oldApiKey.note,
               createdAt: oldApiKey.createdAt,
               expiresAt: oldApiKey.expiresAt,
@@ -1100,6 +1250,7 @@ async function migrateApiKeys() {
             },
           });
 
+          idMappings.apiKeys[oldApiKey.id] = newApiKey.id;
           return newApiKey;
         } catch (error) {
           logError(`Failed to migrate API key ${oldApiKey.id}`, error);
@@ -1107,7 +1258,6 @@ async function migrateApiKeys() {
         }
       })
     );
-
     return newApiKeys.filter(Boolean);
   });
 
@@ -1123,15 +1273,19 @@ async function migrateAccessCodes() {
     const newAccessCodes = await Promise.all(
       batch.map(async (oldAccessCode) => {
         try {
+          const userId = oldAccessCode.userId ? idMappings.users[oldAccessCode.userId.toString()] : null;
+          const calIdTeamId = oldAccessCode.teamId
+            ? idMappings.calIdTeams[oldAccessCode.teamId.toString()]
+            : null;
+
           const newAccessCode = await newDb.accessCode.create({
             data: {
-              id: oldAccessCode.id,
               code: oldAccessCode.code,
               clientId: oldAccessCode.clientId,
               expiresAt: oldAccessCode.expiresAt,
               scopes: oldAccessCode.scopes,
-              userId: oldAccessCode.userId,
-              teamId: oldAccessCode.teamId,
+              userId: userId,
+              calIdTeamId: calIdTeamId, // Use CalIdTeam instead of Team
             },
           });
 
@@ -1142,7 +1296,6 @@ async function migrateAccessCodes() {
         }
       })
     );
-
     return newAccessCodes.filter(Boolean);
   });
 
@@ -1158,6 +1311,15 @@ async function migrateRoutingForms() {
     const newRoutingForms = await Promise.all(
       batch.map(async (oldForm) => {
         try {
+          const userId = idMappings.users[oldForm.userId.toString()];
+          const calIdTeamId = oldForm.teamId ? idMappings.calIdTeams[oldForm.teamId.toString()] : null;
+          const updatedById = oldForm.updatedById ? idMappings.users[oldForm.updatedById.toString()] : null;
+
+          if (!userId) {
+            log(`Skipping routing form ${oldForm.id} - user not found`);
+            return null;
+          }
+
           const newForm = await newDb.app_RoutingForms_Form.create({
             data: {
               id: oldForm.id,
@@ -1168,9 +1330,9 @@ async function migrateRoutingForms() {
               updatedAt: oldForm.updatedAt,
               name: oldForm.name,
               fields: oldForm.fields,
-              userId: oldForm.userId,
-              updatedById: oldForm.updatedById,
-              teamId: oldForm.teamId,
+              userId: userId,
+              updatedById: updatedById,
+              calIdTeamId: calIdTeamId, // Use CalIdTeam instead of Team
               disabled: oldForm.disabled,
               settings: oldForm.settings,
             },
@@ -1183,7 +1345,6 @@ async function migrateRoutingForms() {
         }
       })
     );
-
     return newRoutingForms.filter(Boolean);
   });
 
@@ -1199,10 +1360,18 @@ async function migrateAttributes() {
     const newAttributes = await Promise.all(
       batch.map(async (oldAttribute) => {
         try {
+          const calIdTeamId = idMappings.calIdTeams[oldAttribute.teamId.toString()];
+
+          if (!calIdTeamId) {
+            log(`Skipping attribute ${oldAttribute.id} - team not found`);
+            return null;
+          }
+
           const newAttribute = await newDb.attribute.create({
             data: {
               id: oldAttribute.id,
-              teamId: oldAttribute.teamId,
+              teamId: oldAttribute.teamId, // Keep original teamId for Team relation
+              calIdTeamId: calIdTeamId, // Add CalIdTeam relation
               type: oldAttribute.type,
               name: oldAttribute.name,
               slug: oldAttribute.slug,
@@ -1215,6 +1384,7 @@ async function migrateAttributes() {
             },
           });
 
+          idMappings.attributes[oldAttribute.id] = newAttribute.id;
           return newAttribute;
         } catch (error) {
           logError(`Failed to migrate attribute ${oldAttribute.id}`, error);
@@ -1222,7 +1392,6 @@ async function migrateAttributes() {
         }
       })
     );
-
     return newAttributes.filter(Boolean);
   });
 
@@ -1238,19 +1407,23 @@ async function migrateRoles() {
     const newRoles = await Promise.all(
       batch.map(async (oldRole) => {
         try {
+          const calIdTeamId = oldRole.teamId ? idMappings.calIdTeams[oldRole.teamId.toString()] : null;
+
           const newRole = await newDb.role.create({
             data: {
               id: oldRole.id,
               name: oldRole.name,
               color: oldRole.color,
               description: oldRole.description,
-              teamId: oldRole.teamId,
+              teamId: oldRole.teamId, // Keep original teamId for Team relation
+              calIdTeamId: calIdTeamId, // Add CalIdTeam relation
               createdAt: oldRole.createdAt,
               updatedAt: oldRole.updatedAt,
               type: oldRole.type,
             },
           });
 
+          idMappings.roles[oldRole.id] = newRole.id;
           return newRole;
         } catch (error) {
           logError(`Failed to migrate role ${oldRole.id}`, error);
@@ -1258,7 +1431,6 @@ async function migrateRoles() {
         }
       })
     );
-
     return newRoles.filter(Boolean);
   });
 
@@ -1274,11 +1446,18 @@ async function migrateVerifiedNumbers() {
     const newVerifiedNumbers = await Promise.all(
       batch.map(async (oldVerifiedNumber) => {
         try {
+          const userId = oldVerifiedNumber.userId
+            ? idMappings.users[oldVerifiedNumber.userId.toString()]
+            : null;
+          const calIdTeamId = oldVerifiedNumber.teamId
+            ? idMappings.calIdTeams[oldVerifiedNumber.teamId.toString()]
+            : null;
+
           const newVerifiedNumber = await newDb.verifiedNumber.create({
             data: {
-              id: oldVerifiedNumber.id,
-              userId: oldVerifiedNumber.userId,
-              teamId: oldVerifiedNumber.teamId,
+              userId: userId,
+              teamId: oldVerifiedNumber.teamId, // Keep original teamId for Team relation
+              calIdTeamId: calIdTeamId, // Add CalIdTeam relation
               phoneNumber: oldVerifiedNumber.phoneNumber,
             },
           });
@@ -1290,7 +1469,6 @@ async function migrateVerifiedNumbers() {
         }
       })
     );
-
     return newVerifiedNumbers.filter(Boolean);
   });
 
@@ -1306,11 +1484,18 @@ async function migrateVerifiedEmails() {
     const newVerifiedEmails = await Promise.all(
       batch.map(async (oldVerifiedEmail) => {
         try {
+          const userId = oldVerifiedEmail.userId
+            ? idMappings.users[oldVerifiedEmail.userId.toString()]
+            : null;
+          const calIdTeamId = oldVerifiedEmail.teamId
+            ? idMappings.calIdTeams[oldVerifiedEmail.teamId.toString()]
+            : null;
+
           const newVerifiedEmail = await newDb.verifiedEmail.create({
             data: {
-              id: oldVerifiedEmail.id,
-              userId: oldVerifiedEmail.userId,
-              teamId: oldVerifiedEmail.teamId,
+              userId: userId,
+              teamId: oldVerifiedEmail.teamId, // Keep original teamId for Team relation
+              calIdTeamId: calIdTeamId, // Add CalIdTeam relation
               email: oldVerifiedEmail.email,
             },
           });
@@ -1322,7 +1507,6 @@ async function migrateVerifiedEmails() {
         }
       })
     );
-
     return newVerifiedEmails.filter(Boolean);
   });
 
@@ -1338,6 +1522,8 @@ async function migrateVerificationTokens() {
     const newVerificationTokens = await Promise.all(
       batch.map(async (oldToken) => {
         try {
+          const calIdTeamId = oldToken.teamId ? idMappings.calIdTeams[oldToken.teamId.toString()] : null;
+
           const newToken = await newDb.verificationToken.create({
             data: {
               identifier: oldToken.identifier,
@@ -1346,9 +1532,9 @@ async function migrateVerificationTokens() {
               expiresInDays: oldToken.expiresInDays,
               createdAt: oldToken.createdAt,
               updatedAt: oldToken.updatedAt,
-              teamId: oldToken.teamId,
+              teamId: oldToken.teamId, // Keep original teamId for Team relation
+              calIdTeamId: calIdTeamId, // Add CalIdTeam relation
               secondaryEmailId: oldToken.secondaryEmailId,
-              // calIdTeamId will be set later in updateVerificationTokenRelations if teamId exists
             },
           });
 
@@ -1359,7 +1545,6 @@ async function migrateVerificationTokens() {
         }
       })
     );
-
     return newVerificationTokens.filter(Boolean);
   });
 
@@ -1375,11 +1560,19 @@ async function migrateFilterSegments() {
     const newFilterSegments = await Promise.all(
       batch.map(async (oldSegment) => {
         try {
+          const userId = idMappings.users[oldSegment.userId.toString()];
+          const calIdTeamId = oldSegment.teamId ? idMappings.calIdTeams[oldSegment.teamId.toString()] : null;
+
+          if (!userId) {
+            log(`Skipping filter segment ${oldSegment.id} - user not found`);
+            return null;
+          }
+
           const newSegment = await newDb.filterSegment.create({
             data: {
               name: oldSegment.name,
               tableIdentifier: oldSegment.tableIdentifier,
-              scope: oldSegment.scope,
+              scope: oldSegment.scope === "TEAM" && calIdTeamId ? "CALIDTEAM" : oldSegment.scope, // Map TEAM to CALIDTEAM
               activeFilters: oldSegment.activeFilters,
               sorting: oldSegment.sorting,
               columnVisibility: oldSegment.columnVisibility,
@@ -1388,9 +1581,9 @@ async function migrateFilterSegments() {
               searchTerm: oldSegment.searchTerm,
               createdAt: oldSegment.createdAt,
               updatedAt: oldSegment.updatedAt,
-              userId: oldSegment.userId,
-              teamId: oldSegment.teamId,
-              // calIdTeamId will be set later in updateFilterSegmentRelations if teamId exists
+              userId: userId,
+              teamId: oldSegment.teamId, // Keep original teamId for Team relation if needed
+              calIdTeamId: calIdTeamId, // Add CalIdTeam relation
             },
           });
 
@@ -1401,513 +1594,402 @@ async function migrateFilterSegments() {
         }
       })
     );
-
     return newFilterSegments.filter(Boolean);
   });
 
   log(`Migrated ${oldFilterSegments.length} filter segments`);
 }
 
-// Migration functions for updating relations in other models
+// ===============================
+// PHASE 10: MISSING MIGRATIONS
+// ===============================
 
-async function updateEventTypeRelations() {
-  log("Updating EventType relations to point to CalIdTeam...");
+async function migrateAttendees() {
+  log("Migrating Attendees...");
 
-  const eventTypes = await newDb.eventType.findMany({
-    where: {
-      teamId: {
-        not: null,
-      },
-    },
-  });
+  const oldAttendees = await oldDb.attendee.findMany();
 
-  await processBatch(eventTypes, async (batch) => {
-    const updates = await Promise.all(
-      batch.map(async (eventType) => {
+  await processBatch(oldAttendees, async (batch) => {
+    const newAttendees = await Promise.all(
+      batch.map(async (oldAttendee) => {
         try {
-          if (eventType.teamId) {
-            const calIdTeamId = idMappings.calIdTeams[eventType.teamId.toString()];
-            if (calIdTeamId) {
-              await newDb.eventType.update({
-                where: { id: eventType.id },
-                data: {
-                  calIdTeamId,
-                  // Keep original teamId for now or set to null based on requirements
-                },
-              });
-            }
-          }
-          return eventType;
+          const newAttendee = await newDb.attendee.create({
+            data: {
+              email: oldAttendee.email,
+              name: oldAttendee.name,
+              timeZone: oldAttendee.timeZone,
+              phoneNumber: oldAttendee.phoneNumber,
+              locale: oldAttendee.locale,
+              bookingId: oldAttendee.bookingId,
+              noShow: oldAttendee.noShow,
+            },
+          });
+
+          return newAttendee;
         } catch (error) {
-          logError(`Failed to update event type ${eventType.id}`, error);
+          logError(`Failed to migrate attendee ${oldAttendee.id}`, error);
           return null;
         }
       })
     );
-
-    return updates.filter(Boolean);
+    return newAttendees.filter(Boolean);
   });
 
-  log(`Updated EventType relations`);
+  log(`Migrated ${oldAttendees.length} attendees`);
 }
 
-async function updateCredentialRelations() {
-  log("Updating Credential relations to point to CalIdTeam...");
+async function migrateBookingReferences() {
+  log("Migrating BookingReferences...");
 
-  const credentials = await newDb.credential.findMany({
-    where: {
-      teamId: {
-        not: null,
-      },
-    },
-  });
+  const oldBookingReferences = await oldDb.bookingReference.findMany();
 
-  await processBatch(credentials, async (batch) => {
-    const updates = await Promise.all(
-      batch.map(async (credential) => {
+  await processBatch(oldBookingReferences, async (batch) => {
+    const newBookingReferences = await Promise.all(
+      batch.map(async (oldReference) => {
         try {
-          if (credential.teamId) {
-            const calIdTeamId = idMappings.calIdTeams[credential.teamId.toString()];
-            if (calIdTeamId) {
-              await newDb.credential.update({
-                where: { id: credential.id },
-                data: {
-                  calIdTeamId,
-                },
-              });
-            }
-          }
-          return credential;
+          const credentialId = oldReference.credentialId
+            ? idMappings.credentials[oldReference.credentialId.toString()]
+            : null;
+
+          const newReference = await newDb.bookingReference.create({
+            data: {
+              type: oldReference.type,
+              uid: oldReference.uid,
+              meetingId: oldReference.meetingId,
+              thirdPartyRecurringEventId: oldReference.thirdPartyRecurringEventId,
+              meetingPassword: oldReference.meetingPassword,
+              meetingUrl: oldReference.meetingUrl,
+              bookingId: oldReference.bookingId,
+              externalCalendarId: oldReference.externalCalendarId,
+              deleted: oldReference.deleted,
+              credentialId: credentialId,
+              delegationCredentialId: oldReference.delegationCredentialId,
+              domainWideDelegationCredentialId: oldReference.domainWideDelegationCredentialId,
+            },
+          });
+
+          return newReference;
         } catch (error) {
-          logError(`Failed to update credential ${credential.id}`, error);
+          logError(`Failed to migrate booking reference ${oldReference.id}`, error);
           return null;
         }
       })
     );
-
-    return updates.filter(Boolean);
+    return newBookingReferences.filter(Boolean);
   });
 
-  log(`Updated Credential relations`);
+  log(`Migrated ${oldBookingReferences.length} booking references`);
 }
 
-async function updateVerificationTokenRelations() {
-  log("Updating VerificationToken relations to point to CalIdTeam...");
+async function migrateDestinationCalendars() {
+  log("Migrating DestinationCalendars...");
 
-  const tokens = await newDb.verificationToken.findMany({
-    where: {
-      teamId: {
-        not: null,
-      },
-    },
-  });
+  const oldDestinationCalendars = await oldDb.destinationCalendar.findMany();
 
-  await processBatch(tokens, async (batch) => {
-    const updates = await Promise.all(
-      batch.map(async (token) => {
+  await processBatch(oldDestinationCalendars, async (batch) => {
+    const newDestinationCalendars = await Promise.all(
+      batch.map(async (oldDestCal) => {
         try {
-          if (token.teamId) {
-            const calIdTeamId = idMappings.calIdTeams[token.teamId.toString()];
-            if (calIdTeamId) {
-              await newDb.verificationToken.update({
-                where: { id: token.id },
-                data: {
-                  calIdTeamId,
-                },
-              });
-            }
-          }
-          return token;
+          const userId = oldDestCal.userId ? idMappings.users[oldDestCal.userId.toString()] : null;
+          const eventTypeId = oldDestCal.eventTypeId
+            ? idMappings.eventTypes[oldDestCal.eventTypeId.toString()]
+            : null;
+          const credentialId = oldDestCal.credentialId
+            ? idMappings.credentials[oldDestCal.credentialId.toString()]
+            : null;
+
+          const newDestCal = await newDb.destinationCalendar.create({
+            data: {
+              integration: oldDestCal.integration,
+              externalId: oldDestCal.externalId,
+              primaryEmail: oldDestCal.primaryEmail,
+              userId: userId,
+              eventTypeId: eventTypeId,
+              credentialId: credentialId,
+              createdAt: oldDestCal.createdAt,
+              updatedAt: oldDestCal.updatedAt,
+              delegationCredentialId: oldDestCal.delegationCredentialId,
+              domainWideDelegationCredentialId: oldDestCal.domainWideDelegationCredentialId,
+            },
+          });
+
+          return newDestCal;
         } catch (error) {
-          logError(`Failed to update verification token ${token.id}`, error);
+          logError(`Failed to migrate destination calendar ${oldDestCal.id}`, error);
           return null;
         }
       })
     );
-
-    return updates.filter(Boolean);
+    return newDestinationCalendars.filter(Boolean);
   });
 
-  log(`Updated VerificationToken relations`);
+  log(`Migrated ${oldDestinationCalendars.length} destination calendars`);
 }
 
-async function updateWebhookRelations() {
-  log("Updating Webhook relations to point to CalIdTeam...");
+async function migrateHosts() {
+  log("Migrating Hosts...");
 
-  const webhooks = await newDb.webhook.findMany({
-    where: {
-      teamId: {
-        not: null,
-      },
-    },
-  });
+  const oldHosts = await oldDb.host.findMany();
 
-  await processBatch(webhooks, async (batch) => {
-    const updates = await Promise.all(
-      batch.map(async (webhook) => {
+  await processBatch(oldHosts, async (batch) => {
+    const newHosts = await Promise.all(
+      batch.map(async (oldHost) => {
         try {
-          if (webhook.teamId) {
-            const calIdTeamId = idMappings.calIdTeams[webhook.teamId.toString()];
-            if (calIdTeamId) {
-              await newDb.webhook.update({
-                where: { id: webhook.id },
-                data: {
-                  calIdTeamId,
-                },
-              });
-            }
+          const userId = idMappings.users[oldHost.userId.toString()];
+          const eventTypeId = idMappings.eventTypes[oldHost.eventTypeId.toString()];
+          const scheduleId = oldHost.scheduleId ? idMappings.schedules[oldHost.scheduleId.toString()] : null;
+
+          if (!userId || !eventTypeId) {
+            log(`Skipping host ${oldHost.userId}-${oldHost.eventTypeId} - user or event type not found`);
+            return null;
           }
-          return webhook;
+
+          const newHost = await newDb.host.create({
+            data: {
+              userId: userId,
+              eventTypeId: eventTypeId,
+              isFixed: oldHost.isFixed,
+              priority: oldHost.priority,
+              weight: oldHost.weight,
+              weightAdjustment: oldHost.weightAdjustment,
+              scheduleId: scheduleId,
+              createdAt: oldHost.createdAt,
+            },
+          });
+
+          return newHost;
         } catch (error) {
-          logError(`Failed to update webhook ${webhook.id}`, error);
+          logError(`Failed to migrate host ${oldHost.userId}-${oldHost.eventTypeId}`, error);
           return null;
         }
       })
     );
-
-    return updates.filter(Boolean);
+    return newHosts.filter(Boolean);
   });
 
-  log(`Updated Webhook relations`);
+  log(`Migrated ${oldHosts.length} hosts`);
 }
 
-async function updateApiKeyRelations() {
-  log("Updating ApiKey relations to point to CalIdTeam...");
+async function migrateEventTypeCustomInputs() {
+  log("Migrating EventTypeCustomInputs...");
 
-  const apiKeys = await newDb.apiKey.findMany({
-    where: {
-      teamId: {
-        not: null,
-      },
-    },
-  });
+  const oldCustomInputs = await oldDb.eventTypeCustomInput.findMany();
 
-  await processBatch(apiKeys, async (batch) => {
-    const updates = await Promise.all(
-      batch.map(async (apiKey) => {
+  await processBatch(oldCustomInputs, async (batch) => {
+    const newCustomInputs = await Promise.all(
+      batch.map(async (oldInput) => {
         try {
-          if (apiKey.teamId) {
-            const calIdTeamId = idMappings.calIdTeams[apiKey.teamId.toString()];
-            if (calIdTeamId) {
-              await newDb.apiKey.update({
-                where: { id: apiKey.id },
-                data: {
-                  calIdTeamId,
-                },
-              });
-            }
+          const eventTypeId = idMappings.eventTypes[oldInput.eventTypeId.toString()];
+
+          if (!eventTypeId) {
+            log(`Skipping custom input ${oldInput.id} - event type not found`);
+            return null;
           }
-          return apiKey;
+
+          const newInput = await newDb.eventTypeCustomInput.create({
+            data: {
+              eventTypeId: eventTypeId,
+              label: oldInput.label,
+              type: oldInput.type,
+              options: oldInput.options,
+              required: oldInput.required,
+              placeholder: oldInput.placeholder,
+            },
+          });
+
+          return newInput;
         } catch (error) {
-          logError(`Failed to update api key ${apiKey.id}`, error);
+          logError(`Failed to migrate custom input ${oldInput.id}`, error);
           return null;
         }
       })
     );
-
-    return updates.filter(Boolean);
+    return newCustomInputs.filter(Boolean);
   });
 
-  log(`Updated ApiKey relations`);
+  log(`Migrated ${oldCustomInputs.length} event type custom inputs`);
 }
 
-async function updateAccessCodeRelations() {
-  log("Updating AccessCode relations to point to CalIdTeam...");
+async function migrateHashedLinks() {
+  log("Migrating HashedLinks...");
 
-  const accessCodes = await newDb.accessCode.findMany({
-    where: {
-      teamId: {
-        not: null,
-      },
-    },
-  });
+  const oldHashedLinks = await oldDb.hashedLink.findMany();
 
-  await processBatch(accessCodes, async (batch) => {
-    const updates = await Promise.all(
-      batch.map(async (accessCode) => {
+  await processBatch(oldHashedLinks, async (batch) => {
+    const newHashedLinks = await Promise.all(
+      batch.map(async (oldLink) => {
         try {
-          if (accessCode.teamId) {
-            const calIdTeamId = idMappings.calIdTeams[accessCode.teamId.toString()];
-            if (calIdTeamId) {
-              await newDb.accessCode.update({
-                where: { id: accessCode.id },
-                data: {
-                  calIdTeamId,
-                },
-              });
-            }
+          const eventTypeId = idMappings.eventTypes[oldLink.eventTypeId.toString()];
+
+          if (!eventTypeId) {
+            log(`Skipping hashed link ${oldLink.id} - event type not found`);
+            return null;
           }
-          return accessCode;
+
+          const newLink = await newDb.hashedLink.create({
+            data: {
+              link: oldLink.link,
+              eventTypeId: eventTypeId,
+              expiresAt: oldLink.expiresAt,
+              maxUsageCount: oldLink.maxUsageCount || 1,
+              usageCount: oldLink.usageCount || 0,
+            },
+          });
+
+          return newLink;
         } catch (error) {
-          logError(`Failed to update access code ${accessCode.id}`, error);
+          logError(`Failed to migrate hashed link ${oldLink.id}`, error);
           return null;
         }
       })
     );
-
-    return updates.filter(Boolean);
+    return newHashedLinks.filter(Boolean);
   });
 
-  log(`Updated AccessCode relations`);
+  log(`Migrated ${oldHashedLinks.length} hashed links`);
 }
 
-async function updateRoutingFormRelations() {
-  log("Updating App_RoutingForms_Form relations to point to CalIdTeam...");
+// ===============================
+// RELATION UPDATE FUNCTIONS
+// ===============================
 
-  const routingForms = await newDb.app_RoutingForms_Form.findMany({
-    where: {
-      teamId: {
-        not: null,
-      },
-    },
+async function updateUserRelations() {
+  log("Updating User Relations...");
+
+  // Update users who have movedToProfileId
+  const usersWithMovedProfiles = await oldDb.user.findMany({
+    where: { movedToProfileId: { not: null } },
   });
 
-  await processBatch(routingForms, async (batch) => {
-    const updates = await Promise.all(
-      batch.map(async (form) => {
-        try {
-          if (form.teamId) {
-            const calIdTeamId = idMappings.calIdTeams[form.teamId.toString()];
-            if (calIdTeamId) {
-              await newDb.app_RoutingForms_Form.update({
-                where: { id: form.id },
-                data: {
-                  calIdTeamId,
-                },
-              });
-            }
-          }
-          return form;
-        } catch (error) {
-          logError(`Failed to update routing form ${form.id}`, error);
-          return null;
-        }
-      })
-    );
+  for (const oldUser of usersWithMovedProfiles) {
+    const userId = idMappings.users[oldUser.id.toString()];
+    const movedToProfileId = oldUser.movedToProfileId
+      ? idMappings.profiles[oldUser.movedToProfileId.toString()]
+      : null;
 
-    return updates.filter(Boolean);
+    if (userId && movedToProfileId) {
+      try {
+        await newDb.user.update({
+          where: { id: userId },
+          data: { movedToProfileId: movedToProfileId },
+        });
+      } catch (error) {
+        logError(`Failed to update user ${userId} movedToProfileId`, error);
+      }
+    }
+  }
+
+  // Update users with organizationId (map to CalIdTeam)
+  const usersWithOrgId = await oldDb.user.findMany({
+    where: { organizationId: { not: null } },
   });
 
-  log(`Updated App_RoutingForms_Form relations`);
+  for (const oldUser of usersWithOrgId) {
+    const userId = idMappings.users[oldUser.id.toString()];
+    const organizationId = oldUser.organizationId
+      ? idMappings.calIdTeams[oldUser.organizationId.toString()]
+      : null;
+
+    if (userId && organizationId) {
+      try {
+        await newDb.user.update({
+          where: { id: userId },
+          data: { organizationId: organizationId },
+        });
+      } catch (error) {
+        logError(`Failed to update user ${userId} organizationId`, error);
+      }
+    }
+  }
+
+  log("Updated user relations");
 }
 
-async function updateAttributeRelations() {
-  log("Updating Attribute relations to point to CalIdTeam...");
+async function updateEventTypeParentRelations() {
+  log("Updating EventType Parent Relations...");
 
-  const attributes = await newDb.attribute.findMany();
-
-  await processBatch(attributes, async (batch) => {
-    const updates = await Promise.all(
-      batch.map(async (attribute) => {
-        try {
-          const calIdTeamId = idMappings.calIdTeams[attribute.teamId.toString()];
-          if (calIdTeamId) {
-            await newDb.attribute.update({
-              where: { id: attribute.id },
-              data: {
-                calIdTeamId,
-              },
-            });
-          }
-          return attribute;
-        } catch (error) {
-          logError(`Failed to update attribute ${attribute.id}`, error);
-          return null;
-        }
-      })
-    );
-
-    return updates.filter(Boolean);
+  const eventTypesWithParent = await oldDb.eventType.findMany({
+    where: { parentId: { not: null } },
   });
 
-  log(`Updated Attribute relations`);
+  for (const oldEventType of eventTypesWithParent) {
+    const eventTypeId = idMappings.eventTypes[oldEventType.id.toString()];
+    const parentId = oldEventType.parentId ? idMappings.eventTypes[oldEventType.parentId.toString()] : null;
+
+    if (eventTypeId && parentId) {
+      try {
+        await newDb.eventType.update({
+          where: { id: eventTypeId },
+          data: { parentId: parentId },
+        });
+      } catch (error) {
+        logError(`Failed to update event type ${eventTypeId} parentId`, error);
+      }
+    }
+  }
+
+  log("Updated event type parent relations");
 }
 
-async function updateRoleRelations() {
-  log("Updating Role relations to point to CalIdTeam...");
+// ===============================
+// MAIN MIGRATION ORCHESTRATOR
+// ===============================
 
-  const roles = await newDb.role.findMany({
-    where: {
-      teamId: {
-        not: null,
-      },
-    },
-  });
-
-  await processBatch(roles, async (batch) => {
-    const updates = await Promise.all(
-      batch.map(async (role) => {
-        try {
-          if (role.teamId) {
-            const calIdTeamId = idMappings.calIdTeams[role.teamId.toString()];
-            if (calIdTeamId) {
-              await newDb.role.update({
-                where: { id: role.id },
-                data: {
-                  calIdTeamId,
-                },
-              });
-            }
-          }
-          return role;
-        } catch (error) {
-          logError(`Failed to update role ${role.id}`, error);
-          return null;
-        }
-      })
-    );
-
-    return updates.filter(Boolean);
-  });
-
-  log(`Updated Role relations`);
-}
-
-async function updateFilterSegmentRelations() {
-  log("Updating FilterSegment relations to point to CalIdTeam...");
-
-  const filterSegments = await newDb.filterSegment.findMany({
-    where: {
-      teamId: {
-        not: null,
-      },
-    },
-  });
-
-  await processBatch(filterSegments, async (batch) => {
-    const updates = await Promise.all(
-      batch.map(async (segment) => {
-        try {
-          if (segment.teamId) {
-            const calIdTeamId = idMappings.calIdTeams[segment.teamId.toString()];
-            if (calIdTeamId) {
-              await newDb.filterSegment.update({
-                where: { id: segment.id },
-                data: {
-                  calIdTeamId,
-                },
-              });
-            }
-          }
-          return segment;
-        } catch (error) {
-          logError(`Failed to update filter segment ${segment.id}`, error);
-          return null;
-        }
-      })
-    );
-
-    return updates.filter(Boolean);
-  });
-
-  log(`Updated FilterSegment relations`);
-}
-
-async function updateVerifiedNumberRelations() {
-  log("Updating VerifiedNumber relations to point to CalIdTeam...");
-
-  const verifiedNumbers = await newDb.verifiedNumber.findMany({
-    where: {
-      teamId: {
-        not: null,
-      },
-    },
-  });
-
-  await processBatch(verifiedNumbers, async (batch) => {
-    const updates = await Promise.all(
-      batch.map(async (verifiedNumber) => {
-        try {
-          if (verifiedNumber.teamId) {
-            const calIdTeamId = idMappings.calIdTeams[verifiedNumber.teamId.toString()];
-            if (calIdTeamId) {
-              await newDb.verifiedNumber.update({
-                where: { id: verifiedNumber.id },
-                data: {
-                  calIdTeamId,
-                },
-              });
-            }
-          }
-          return verifiedNumber;
-        } catch (error) {
-          logError(`Failed to update verified number ${verifiedNumber.id}`, error);
-          return null;
-        }
-      })
-    );
-
-    return updates.filter(Boolean);
-  });
-
-  log(`Updated VerifiedNumber relations`);
-}
-
-async function updateVerifiedEmailRelations() {
-  log("Updating VerifiedEmail relations to point to CalIdTeam...");
-
-  const verifiedEmails = await newDb.verifiedEmail.findMany({
-    where: {
-      teamId: {
-        not: null,
-      },
-    },
-  });
-
-  await processBatch(verifiedEmails, async (batch) => {
-    const updates = await Promise.all(
-      batch.map(async (verifiedEmail) => {
-        try {
-          if (verifiedEmail.teamId) {
-            const calIdTeamId = idMappings.calIdTeams[verifiedEmail.teamId.toString()];
-            if (calIdTeamId) {
-              await newDb.verifiedEmail.update({
-                where: { id: verifiedEmail.id },
-                data: {
-                  calIdTeamId,
-                },
-              });
-            }
-          }
-          return verifiedEmail;
-        } catch (error) {
-          logError(`Failed to update verified email ${verifiedEmail.id}`, error);
-          return null;
-        }
-      })
-    );
-
-    return updates.filter(Boolean);
-  });
-
-  log(`Updated VerifiedEmail relations`);
-}
-
-// Main migration function
 async function runMigration() {
   try {
-    log("Starting migration process...");
+    log("Starting comprehensive migration process...");
 
-    // First, connect to both databases
+    // Connect to both databases
     await oldDb.$connect();
     await newDb.$connect();
     log("Connected to both databases");
 
+    // PHASE 1: Core entities (no dependencies)
+    log("=== PHASE 1: Core Entities ===");
+    await migrateApps();
+    await migrateFeatures();
     await migrateUsers();
+
+    // PHASE 2: CalId Teams (replaces Teams)
+    log("=== PHASE 2: CalId Teams ===");
     await migrateCalIdTeams();
     await migrateCalIdMemberships();
-    await migrateApps();
+
+    // PHASE 3: Schedules and Profiles
+    log("=== PHASE 3: Schedules and Profiles ===");
+    await migrateSchedules();
+    await migrateProfiles();
+
+    // PHASE 4: Credentials and Availabilities
+    log("=== PHASE 4: Credentials and Availabilities ===");
     await migrateCredentials();
-    await migrateFeatures();
+    await migrateAvailabilities();
+
+    // PHASE 5: Event Types and Bookings
+    log("=== PHASE 5: Event Types and Bookings ===");
+    await migrateEventTypes();
+    await migrateBookings();
+
+    // PHASE 6: CalId Workflows
+    log("=== PHASE 6: CalId Workflows ===");
+    await migrateCalIdWorkflows();
+    await migrateCalIdWorkflowSteps();
+
+    // PHASE 7: Features and Relations
+    log("=== PHASE 7: Features and Relations ===");
     await migrateUserFeatures();
     await migrateCalIdTeamFeatures();
-    await migrateProfiles();
-    await migrateSchedules();
 
-    await migrateAvailabilities();
-    await migrateEventTypes();
+    // PHASE 8: Workflow Relations
+    log("=== PHASE 8: Workflow Relations ===");
+    await migrateCalIdWorkflowsOnEventTypes();
+    await migrateCalIdWorkflowsOnTeams();
+    await migrateCalIdWorkflowReminders();
+    await migrateCalIdWorkflowInsights();
+
+    // PHASE 9: Remaining Entities
+    log("=== PHASE 9: Remaining Entities ===");
     await migrateSelectedCalendars();
-    await migrateBookings();
     await migrateWebhooks();
     await migrateApiKeys();
     await migrateAccessCodes();
@@ -1919,27 +2001,52 @@ async function runMigration() {
     await migrateVerificationTokens();
     await migrateFilterSegments();
 
-    // Step 2: Migrate CalId entities (these reference the original data)
-    await migrateCalIdWorkflows();
-    await migrateCalIdWorkflowSteps();
-    await migrateCalIdWorkflowsOnEventTypes();
-    await migrateCalIdWorkflowsOnTeams();
-    await migrateCalIdWorkflowReminders();
-    await migrateCalIdWorkflowInsights();
+    // PHASE 10: Missing Migrations
+    log("=== PHASE 10: Missing Migrations ===");
+    await migrateAttendees();
+    await migrateBookingReferences();
+    await migrateDestinationCalendars();
+    await migrateHosts();
+    await migrateEventTypeCustomInputs();
+    await migrateHashedLinks();
+
+    // PHASE 11: Update Relations
+    log("=== PHASE 11: Update Relations ===");
+    await updateUserRelations();
+    await updateEventTypeParentRelations();
 
     log("Migration completed successfully!");
 
-    // Print summary
-    log("Migration Summary:");
-    log(`Users migrated: ${await newDb.user.count()}`);
-    log(`Teams migrated: ${await newDb.team.count()}`);
-    log(`EventTypes migrated: ${await newDb.eventType.count()}`);
-    log(`Bookings migrated: ${await newDb.booking.count()}`);
+    // Print comprehensive summary
+    log("=== MIGRATION SUMMARY ===");
+    log(`Users migrated: ${Object.keys(idMappings.users).length}`);
     log(`CalIdTeams migrated: ${Object.keys(idMappings.calIdTeams).length}`);
     log(`CalIdMemberships migrated: ${Object.keys(idMappings.calIdMemberships).length}`);
+    log(`Profiles migrated: ${Object.keys(idMappings.profiles).length}`);
+    log(`Schedules migrated: ${Object.keys(idMappings.schedules).length}`);
+    log(`Credentials migrated: ${Object.keys(idMappings.credentials).length}`);
+    log(`EventTypes migrated: ${Object.keys(idMappings.eventTypes).length}`);
     log(`CalIdWorkflows migrated: ${Object.keys(idMappings.calIdWorkflows).length}`);
     log(`CalIdWorkflowSteps migrated: ${Object.keys(idMappings.calIdWorkflowSteps).length}`);
-    log(`CalIdTeamFeatures migrated: ${Object.keys(idMappings.calIdTeamFeatures).length}`);
+    log(`Attributes migrated: ${Object.keys(idMappings.attributes).length}`);
+    log(`Roles migrated: ${Object.keys(idMappings.roles).length}`);
+    log(`API Keys migrated: ${Object.keys(idMappings.apiKeys).length}`);
+
+    // Verify record counts
+    const newCounts = {
+      users: await newDb.user.count(),
+      calIdTeams: await newDb.calIdTeam.count(),
+      calIdMemberships: await newDb.calIdMembership.count(),
+      eventTypes: await newDb.eventType.count(),
+      bookings: await newDb.booking.count(),
+      calIdWorkflows: await newDb.calIdWorkflow.count(),
+      calIdWorkflowSteps: await newDb.calIdWorkflowStep.count(),
+    };
+
+    log("=== FINAL COUNTS ===");
+    Object.entries(newCounts).forEach(([table, count]) => {
+      log(`${table}: ${count} records`);
+    });
   } catch (error) {
     logError("Migration failed", error);
     throw error;

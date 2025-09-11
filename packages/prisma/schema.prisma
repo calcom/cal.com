@@ -214,6 +214,7 @@ model EventType {
   calIdTeamId           Int?
   calIdWorkflows        CalIdWorkflowsOnEventTypes[]
   calIdWorkflowInsights CalIdWorkflowInsights[]
+  captchaType         CaptchaType?                 @default(OFF)
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -303,8 +304,8 @@ enum UserPermissionRole {
 // It holds the password of a User, separate from the User model to avoid leaking the password hash
 model UserPassword {
   hash   String
-  userId Int     @unique
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int    @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   salt   String?
 }
 
@@ -958,6 +959,13 @@ enum EventTypeCustomInputType {
   BOOL     @map("bool")
   RADIO    @map("radio")
   PHONE    @map("phone")
+}
+
+enum CaptchaType {
+  OFF    @map("off")
+  LOW    @map("low") 
+  MEDIUM @map("medium")
+  HIGH   @map("high")
 }
 
 model EventTypeCustomInput {

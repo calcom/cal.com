@@ -1,11 +1,9 @@
 "use client";
 
+// import { Button } from "@calcom/ui/components/button";
 import { Avatar } from "@calid/features/ui/components/avatar";
 import { Button } from "@calid/features/ui/components/button";
-import ThemeCard from "@calid/features/ui/components/card/theme-card";
-import { Label } from "@calid/features/ui/components/label";
-import { triggerToast } from "@calid/features/ui/components/toast";
-import { CustomBannerUploader } from "@calid/features/ui/components/uploader";
+import { Icon } from "@calid/features/ui/components/icon";
 import { revalidateSettingsAppearance } from "app/(use-page-wrapper)/settings/(settings-layout)/my-account/appearance/actions";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
@@ -13,6 +11,7 @@ import { Controller, useForm } from "react-hook-form";
 import type { z } from "zod";
 
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
+import ThemeLabel from "@calcom/features/settings/ThemeLabel";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME, LOGO, FAVICON_32 } from "@calcom/lib/constants";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
@@ -28,6 +27,8 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
 import { SettingsToggle, ColorPicker, Form } from "@calcom/ui/components/form";
+import { BannerUploader } from "@calcom/ui/components/image-uploader";
+import { showToast } from "@calcom/ui/components/toast";
 import { useCalcomTheme } from "@calcom/ui/styles";
 
 const useBrandColors = (
@@ -428,7 +429,26 @@ const AppearanceView = ({
                         ) : (
                           <img className="h-full w-full" src={value} />
                         )}
+                      </div> */}
+                      <div className="bg-muted flex h-60 w-full items-center justify-start rounded-sm">
+                        {!value ? (
+                          <p className="text-emphasis w-full text-center text-sm sm:text-xs">
+                            {t("no_target", { target: "Header" })}
+                          </p>
+                        ) : (
+                          <img className="h-full w-full" src={value} />
+                        )}
                       </div>
+
+                      {/* <Avatar
+                        data-testid="profile-upload-logo"
+                        alt={headerUrlFormMethods.getValues("name")}
+                        imageSrc={getPlaceholderAvatar(
+                          value,
+                          headerUrlFormMethods.getValues("metadata.headerUrl")
+                        )}
+                        size="lg"
+                      /> */}
                       <div className="flex gap-2">
                         <CustomBannerUploader
                           target="metadata.headerUrl"
