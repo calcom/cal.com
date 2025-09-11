@@ -6,6 +6,7 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import prisma from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getStripeCustomerIdFromUserId } from "../lib/customer";
@@ -58,6 +59,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!team) return res.status(404).json({ message: "Team not found" });
+
+  const hasPermisison = await permissionCheckService.checkPermission({
+    userId,
+    teamId,
+    permission: team.isOrganization ? "organization.manageBilling" : "team.manageBilling",
+    fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+  });
+
+  if (!hasPermisison) {
+    return res.status(403).json({ message: "Forbidden" });
+  }
 
   if (typeof req.query.returnTo === "string") {
     const safeRedirectUrl = getSafeRedirectUrl(req.query.returnTo);
