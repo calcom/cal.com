@@ -100,12 +100,12 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
             )}
             style={{
               display: "-webkit-box",
-              WebkitLineClamp: 3,
+              WebkitLineClamp: 4,
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
               textOverflow: "ellipsis",
               lineHeight: "1.4",
-              maxHeight: "4.2em", // Fallback for non-webkit browsers
+              maxHeight: "5.6em", // Fallback for non-webkit browsers
             }}>
             {cleanDescription}
           </ListItemText>
