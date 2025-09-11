@@ -72,8 +72,8 @@ function InsightsPageContent() {
         <DataTableFilters.ClearFiltersButton exclude={["createdAt"]} />
         <div className="grow" />
         <Download />
-        <DateTargetSelector value={dateTarget as DateTarget} onChange={setDateTarget} />
         <DateRangeFilter column={createdAtColumn} />
+        <DateTargetSelector value={dateTarget as DateTarget} onChange={setDateTarget} />
         <TimezoneBadge />
       </div>
 

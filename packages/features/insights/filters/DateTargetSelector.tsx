@@ -1,5 +1,5 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Select } from "@calcom/ui/components/form/select";
+import { Select } from "@calcom/ui/components/form";
 
 export type DateTarget = "startTime" | "createdAt";
 
@@ -33,8 +33,8 @@ export const DateTargetSelector = ({ value, onChange }: DateTargetSelectorProps)
       }}
       options={options}
       isSearchable={false}
-      className="w-40"
       size="sm"
+      className="w-32"
     />
   );
 };
