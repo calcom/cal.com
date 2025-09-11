@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { prisma } from "@calcom/prisma";
 
 const huddle01AppKeySchema = z.object({
@@ -23,13 +24,11 @@ export async function storeHuddle01Credential(userId: number, identityToken: str
     });
   } else {
     // Create a new credential if it doesn't exist
-    await prisma.credential.create({
-      data: {
-        type: "huddle01_video",
-        key: { identityToken },
-        userId: userId,
-        appId: "huddle01",
-      },
+    await CredentialRepository.create({
+      type: "huddle01_video",
+      key: { identityToken },
+      userId: userId,
+      appId: "huddle01",
     });
   }
 }

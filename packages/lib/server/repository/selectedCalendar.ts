@@ -5,6 +5,7 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
 import { buildCredentialPayloadForPrisma } from "../buildCredentialPayloadForCalendar";
+import { BookingReferenceRepository } from "./bookingReference";
 
 export type UpdateArguments = {
   where: FindManyArgs["where"];
@@ -72,11 +73,17 @@ export class SelectedCalendarRepository {
       );
     }
 
-    return await prisma.selectedCalendar.create({
+    const selectedCalendar = await prisma.selectedCalendar.create({
       data: {
         ...data,
       },
     });
+
+    if (selectedCalendar.credentialId) {
+      await BookingReferenceRepository.reconnectWithNewCredential(selectedCalendar.credentialId);
+    }
+
+    return selectedCalendar;
   }
 
   static async upsert(data: Prisma.SelectedCalendarUncheckedCreateInput) {
@@ -93,18 +100,25 @@ export class SelectedCalendarRepository {
     };
 
     const conflictingCalendar = await SelectedCalendarRepository.findConflicting(newData);
+    let selectedCalendar;
     if (conflictingCalendar) {
-      return await prisma.selectedCalendar.update({
+      selectedCalendar = await prisma.selectedCalendar.update({
         where: {
           id: conflictingCalendar.id,
         },
         data: newData,
       });
+    } else {
+      selectedCalendar = await prisma.selectedCalendar.create({
+        data: newData,
+      });
     }
 
-    return await prisma.selectedCalendar.create({
-      data: newData,
-    });
+    if (selectedCalendar.credentialId) {
+      await BookingReferenceRepository.reconnectWithNewCredential(selectedCalendar.credentialId);
+    }
+
+    return selectedCalendar;
   }
 
   static async delete({ where }: { where: Prisma.SelectedCalendarUncheckedCreateInput }) {
