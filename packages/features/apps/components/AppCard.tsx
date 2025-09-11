@@ -36,7 +36,14 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   const cleanDescription = useMemo(() => {
     const processed = stripMarkdown(app.description);
     // Normalize whitespace to help with truncation
-    return processed.replace(/\s+/g, ' ').trim();
+    const normalized = processed.replace(/\s+/g, ' ').trim();
+    
+    // Fallback truncation for cases where CSS line-clamp might fail
+    // Approximate character limit for 3 lines (~150-180 chars depending on content)
+    if (normalized.length > 180) {
+      return normalized.substring(0, 177) + '...';
+    }
+    return normalized;
   }, [app.description]);
   
   const allowedMultipleInstalls = app.categories && app.categories.indexOf("calendar") > -1;

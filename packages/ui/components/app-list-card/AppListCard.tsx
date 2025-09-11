@@ -64,8 +64,15 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
   // Memoize cleaned description to avoid processing on every render
   const cleanDescription = useMemo(() => {
     const processed = stripMarkdown(description);
-    // Handle specific cases where text might not break properly
-    return processed.replace(/\s+/g, ' ').trim();
+    // Normalize whitespace to help with truncation
+    const normalized = processed.replace(/\s+/g, ' ').trim();
+    
+    // Fallback truncation for cases where CSS line-clamp might fail
+    // Approximate character limit for 3 lines (~150-180 chars depending on content)
+    if (normalized.length > 180) {
+      return normalized.substring(0, 177) + '...';
+    }
+    return normalized;
   }, [description]);
 
   return (
