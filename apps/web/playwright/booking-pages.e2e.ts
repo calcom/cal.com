@@ -7,6 +7,7 @@ import { randomString } from "@calcom/lib/random";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { Schedule, TimeRange } from "@calcom/types/schedule";
 
+import type { Fixtures } from "./lib/fixtures";
 import { test, todo } from "./lib/fixtures";
 import {
   bookFirstEvent,
@@ -746,6 +747,7 @@ test.describe("GTM container", () => {
   });
 
   test("global GTM should be loaded on non-booking pages", async ({ page, users }) => {
+    // eslint-disable-next-line playwright/no-skipped-test
     test.skip(!process.env.NEXT_PUBLIC_BODY_SCRIPTS, "Skipping test as NEXT_PUBLIC_BODY_SCRIPTS is not set");
 
     const [user] = users.get();
@@ -764,6 +766,281 @@ test.describe("GTM container", () => {
 
     const scriptContent = await injectedScript.textContent();
     expect(scriptContent).toContain("googletagmanager");
+  });
+});
+
+// Helper function to create team with booking for cancellation tests
+async function createTeamWithBooking(users: Fixtures["users"], bookings: Fixtures["bookings"]) {
+  const TEST_ATTENDEE = {
+    name: "Test Attendee",
+    email: "attendee@example.com",
+  };
+  const TEAMMATE_CONFIG = [{ name: "team-member", username: "team-member" }];
+
+  // Create team owner and attendee
+  const teamOwner = await users.create(
+    { username: "team-owner", name: "Team Owner" },
+    { hasTeam: true, teammates: TEAMMATE_CONFIG }
+  );
+
+  const attendeeUser = await users.create({
+    name: TEST_ATTENDEE.name,
+    email: TEST_ATTENDEE.email,
+  });
+
+  const { team } = await teamOwner.getFirstTeamMembership();
+  const teamEventType = await teamOwner.getFirstTeamEvent(team.id);
+
+  // Create booking using the existing bookings fixture
+  const booking = await bookings.create(teamOwner.id, teamOwner.username, teamEventType.id, {
+    title: "Test Team Meeting",
+    status: "ACCEPTED",
+    attendees: {
+      create: [
+        {
+          email: attendeeUser.email,
+          name: attendeeUser.name ?? "",
+          timeZone: "America/New_York",
+        },
+      ],
+    },
+  });
+
+  return {
+    teamId: team.id,
+    bookingUid: booking.uid,
+    teamOwner,
+    attendeeUser,
+  };
+}
+
+test.describe("Team cancellation reason settings", () => {
+  test.describe("Settings Management", () => {
+    test("Team admin can change cancellation reason settings via dropdown", async ({
+      page,
+      users,
+      bookings,
+      prisma,
+    }) => {
+      const { teamId, teamOwner } = await createTeamWithBooking(users, bookings);
+
+      // Verify: Initial database state (host=true, attendee=false by default)
+      const initialTeam = await prisma.team.findUnique({
+        where: { id: teamId },
+        select: {
+          mandatoryCancellationReasonForHost: true,
+          mandatoryCancellationReasonForAttendee: true,
+        },
+      });
+      expect(initialTeam?.mandatoryCancellationReasonForHost).toBe(true);
+      expect(initialTeam?.mandatoryCancellationReasonForAttendee).toBe(false);
+
+      // Action: Navigate to team settings
+      await teamOwner.apiLogin();
+      await page.goto(`/settings/teams/${teamId}/settings`);
+
+      // Action: Change to "Mandatory for both"
+      await page.locator('[data-testid="cancellation-reason-dropdown"]').click();
+      await Promise.all([
+        page.locator('text="Mandatory for both hosts and attendees"').click(),
+        page.waitForResponse((res) => res.url().includes("/api/trpc/teams/update")),
+      ]);
+
+      // Verify: Database was updated correctly (host=true, attendee=true)
+      const updatedTeam = await prisma.team.findUnique({
+        where: { id: teamId },
+        select: {
+          mandatoryCancellationReasonForHost: true,
+          mandatoryCancellationReasonForAttendee: true,
+        },
+      });
+      expect(updatedTeam?.mandatoryCancellationReasonForHost).toBe(true);
+      expect(updatedTeam?.mandatoryCancellationReasonForAttendee).toBe(true);
+    });
+  });
+
+  test.describe("Host Cancellation Flow", () => {
+    test("Host cancellation requires reason when setting is enabled", async ({
+      page,
+      users,
+      bookings,
+      prisma,
+    }) => {
+      const { teamId, bookingUid, teamOwner } = await createTeamWithBooking(users, bookings);
+
+      // Setup: Configure host cancellation as required
+      await prisma.team.update({
+        where: { id: teamId },
+        data: { mandatoryCancellationReasonForHost: true },
+      });
+
+      // Action: Host initiates cancellation
+      await teamOwner.apiLogin();
+      await page.goto(`/booking/${bookingUid}`);
+      await page.waitForLoadState("domcontentloaded");
+      await page.locator('[data-testid="cancel"]').click();
+
+      // Verify: Cancellation reason is required
+      await expect(page.locator('label:has-text("Reason for cancellation")')).toBeVisible();
+      await expect(page.locator('label:has-text("(optional)")')).toBeHidden();
+      await expect(page.locator('[data-testid="confirm_cancel"]')).toBeDisabled();
+    });
+
+    test("Host cancellation allows optional reason when setting is disabled", async ({
+      page,
+      users,
+      bookings,
+      prisma,
+    }) => {
+      const { teamId, bookingUid, teamOwner } = await createTeamWithBooking(users, bookings);
+
+      // Setup: Configure host cancellation as optional
+      await prisma.team.update({
+        where: { id: teamId },
+        data: { mandatoryCancellationReasonForHost: false },
+      });
+
+      // Action: Host initiates cancellation
+      await teamOwner.apiLogin();
+      await page.goto(`/booking/${bookingUid}`);
+      await page.waitForLoadState("domcontentloaded");
+      await page.locator('[data-testid="cancel"]').click();
+
+      // Verify: Cancellation reason is optional
+      await expect(page.locator('label:has-text("Reason for cancellation (optional)")')).toBeVisible();
+      await expect(page.locator('[data-testid="confirm_cancel"]')).toBeEnabled();
+    });
+  });
+
+  test.describe("Attendee Cancellation Flow", () => {
+    test("Attendee cancellation requires reason when setting is enabled", async ({
+      page,
+      users,
+      bookings,
+      prisma,
+    }) => {
+      const { teamId, bookingUid } = await createTeamWithBooking(users, bookings);
+
+      // Setup: Configure attendee cancellation as required
+      await prisma.team.update({
+        where: { id: teamId },
+        data: { mandatoryCancellationReasonForAttendee: true },
+      });
+
+      // Action: Attendee initiates cancellation (no login needed for attendees)
+      await page.goto(`/booking/${bookingUid}`);
+      await page.waitForLoadState("domcontentloaded");
+      await page.locator('[data-testid="cancel"]').click();
+
+      // Verify: Cancellation reason is required
+      await expect(page.locator('label:has-text("Reason for cancellation")')).toBeVisible();
+      await expect(page.locator('label:has-text("(optional)")')).toBeHidden();
+      await expect(page.locator('[data-testid="confirm_cancel"]')).toBeDisabled();
+    });
+
+    test("Attendee cancellation allows optional reason when setting is disabled", async ({
+      page,
+      users,
+      bookings,
+      prisma,
+    }) => {
+      const { teamId, bookingUid } = await createTeamWithBooking(users, bookings);
+
+      // Setup: Configure attendee cancellation as optional
+      await prisma.team.update({
+        where: { id: teamId },
+        data: { mandatoryCancellationReasonForAttendee: false },
+      });
+
+      // Action: Attendee initiates cancellation (no login needed for attendees)
+      await page.goto(`/booking/${bookingUid}`);
+      await page.waitForLoadState("domcontentloaded");
+      await page.locator('[data-testid="cancel"]').click();
+
+      // Verify: Cancellation reason is optional
+      await expect(page.locator('label:has-text("Reason for cancellation (optional)")')).toBeVisible();
+      await expect(page.locator('[data-testid="confirm_cancel"]')).toBeEnabled();
+    });
+  });
+
+  test.describe("Combined Scenarios", () => {
+    test("Both host and attendee require cancellation reason when both settings enabled", async ({
+      page,
+      users,
+      bookings,
+      prisma,
+    }) => {
+      const { teamId, bookingUid, teamOwner } = await createTeamWithBooking(users, bookings);
+
+      // Setup: Configure both cancellation reasons as required
+      await prisma.team.update({
+        where: { id: teamId },
+        data: {
+          mandatoryCancellationReasonForHost: true,
+          mandatoryCancellationReasonForAttendee: true,
+        },
+      });
+
+      // Test: Attendee cancellation (should be required)
+      await page.goto(`/booking/${bookingUid}`);
+      await page.waitForLoadState("domcontentloaded");
+      await page.locator('[data-testid="cancel"]').click();
+      await expect(page.locator('label:has-text("Reason for cancellation")')).toBeVisible();
+      await expect(page.locator('label:has-text("(optional)")')).toBeHidden();
+      await expect(page.locator('[data-testid="confirm_cancel"]')).toBeDisabled();
+
+      // Test: Host cancellation (should be required) - using new page instance
+      const hostPage = await page.context().newPage();
+      await teamOwner.apiLogin();
+      await hostPage.goto(`/booking/${bookingUid}`);
+      await hostPage.waitForLoadState("domcontentloaded");
+      await hostPage.locator('[data-testid="cancel"]').click();
+
+      // Verify: Cancellation reason is required
+      await expect(hostPage.locator('label:has-text("Reason for cancellation")')).toBeVisible();
+      await expect(hostPage.locator('label:has-text("(optional)")')).toBeHidden();
+      await expect(hostPage.locator('[data-testid="confirm_cancel"]')).toBeDisabled();
+
+      await hostPage.close();
+    });
+
+    test("Both host and attendee have optional cancellation reason when both settings disabled", async ({
+      page,
+      users,
+      bookings,
+      prisma,
+    }) => {
+      const { teamId, bookingUid, teamOwner } = await createTeamWithBooking(users, bookings);
+
+      // Setup: Configure both cancellation reasons as optional
+      await prisma.team.update({
+        where: { id: teamId },
+        data: {
+          mandatoryCancellationReasonForHost: false,
+          mandatoryCancellationReasonForAttendee: false,
+        },
+      });
+
+      // Test: Attendee cancellation (should be optional)
+      await page.goto(`/booking/${bookingUid}`);
+      await page.waitForLoadState("domcontentloaded");
+      await page.locator('[data-testid="cancel"]').click();
+      await expect(page.locator('label:has-text("Reason for cancellation (optional)")')).toBeVisible();
+      await expect(page.locator('[data-testid="confirm_cancel"]')).toBeEnabled();
+
+      // Test: Host cancellation (should be optional) - using new page instance
+      const hostPage = await page.context().newPage();
+      await teamOwner.apiLogin();
+      await hostPage.goto(`/booking/${bookingUid}`);
+      await hostPage.waitForLoadState("domcontentloaded");
+      await hostPage.locator('[data-testid="cancel"]').click();
+
+      // Verify: Cancellation reason is optional
+      await expect(hostPage.locator('label:has-text("Reason for cancellation (optional)")')).toBeVisible();
+      await expect(hostPage.locator('[data-testid="confirm_cancel"]')).toBeEnabled();
+
+      await hostPage.close();
+    });
   });
 });
 
