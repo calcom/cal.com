@@ -1,5 +1,3 @@
-import type { Prisma } from "@prisma/client";
-
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
