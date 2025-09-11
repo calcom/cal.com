@@ -27,7 +27,7 @@ import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { localStorage } from "@calcom/lib/webstorage";
-import type { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -968,7 +968,9 @@ export const EventTypesCTA = ({ userEventGroupsData }: Omit<Props, "user">) => {
         }
 
         // Fallback: allow admin and owner roles
-        return profile.membershipRole === "ADMIN" || profile.membershipRole === "OWNER";
+        return (
+          profile.membershipRole === MembershipRole.ADMIN || profile.membershipRole === MembershipRole.OWNER
+        );
       })
       ?.map((profile) => {
         return {

@@ -71,7 +71,6 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       hasOrgEventTypeCreatePermission = orgPermissions.canCreate;
     } catch (error) {
       // If PBAC check fails, fall back to isOrgAdmin
-      console.warn(`PBAC org check failed for user ${userId}, falling back to isOrgAdmin:`, error);
       hasOrgEventTypeCreatePermission = isOrgAdmin;
     }
   }
