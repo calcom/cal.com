@@ -1,9 +1,8 @@
 import { Prisma } from "@prisma/client";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
-import { z } from "zod";
 
-import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { DailyLocationType } from "@calcom/app-store/constants";
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -35,8 +34,6 @@ import {
   handlePeriodType,
 } from "../util";
 import type { TUpdateInputSchema } from "./update.schema";
-
-const eventTypeAppMetadataOptionalSchema = z.object(appDataSchemas).partial().optional();
 
 type SessionUser = NonNullable<TrpcSessionUser>;
 

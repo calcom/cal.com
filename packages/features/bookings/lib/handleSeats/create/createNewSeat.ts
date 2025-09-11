@@ -1,9 +1,8 @@
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import { uuid } from "short-uuid";
-import { z } from "zod";
 
-import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { sendScheduledSeatsEmailsAndSMS } from "@calcom/emails";
 import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/refreshCredentials";
 import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
@@ -20,8 +19,6 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import { findBookingQuery } from "../../handleNewBooking/findBookingQuery";
 import type { IEventTypePaymentCredentialType } from "../../handleNewBooking/types";
 import type { SeatedBooking, NewSeatedBookingObject, HandleSeatsResultBooking } from "../types";
-
-const eventTypeAppMetadataOptionalSchema = z.object(appDataSchemas).partial().optional();
 
 const createNewSeat = async (
   rescheduleSeatedBookingObject: NewSeatedBookingObject,

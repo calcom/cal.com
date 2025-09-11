@@ -2,10 +2,8 @@ import type { DestinationCalendar, User } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
-import { z } from "zod";
 
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
-import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import {
   getLocationValueForDB,
@@ -13,6 +11,7 @@ import {
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import getICalUID from "@calcom/emails/lib/getICalUID";
@@ -122,8 +121,6 @@ import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validate
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
 import handleSeats from "./handleSeats/handleSeats";
 import type { IBookingService } from "./interfaces/IBookingService";
-
-const eventTypeAppMetadataOptionalSchema = z.object(appDataSchemas).partial().optional();
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
