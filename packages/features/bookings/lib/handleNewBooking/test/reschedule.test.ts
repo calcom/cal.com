@@ -2741,6 +2741,17 @@ describe("handleNewBooking", () => {
             })
           );
 
+          // Ensure the App_RoutingForms_FormResponse exists for the test
+          await prismaMock.app_RoutingForms_FormResponse.create({
+            data: {
+              id: 12323,
+              formId: "test-form", // Assuming a simple string ID for the form
+              responses: {},
+              fields: [], // Assuming fields might be an array
+              // Add any other minimally required fields if the test fails due to their absence
+            },
+          });
+
           mockSuccessfulVideoMeetingCreation({
             metadataLookupKey: "dailyvideo",
           });

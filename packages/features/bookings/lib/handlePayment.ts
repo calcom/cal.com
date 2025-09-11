@@ -1,17 +1,12 @@
-import type { AppCategories, Prisma } from "@prisma/client";
-
 import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
-import type { CompleteEventType } from "@calcom/prisma/zod";
-import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
+import type { AppCategories, Prisma, EventType } from "@calcom/prisma/client";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
 const isPaymentService = (x: unknown): x is { PaymentService: any } =>
   !!x && typeof x === "object" && "PaymentService" in x && typeof x.PaymentService === "function";
-
-const isKeyOf = <T extends object>(obj: T, key: unknown): key is keyof T =>
-  typeof key === "string" && key in obj;
 
 const handlePayment = async ({
   evt,
@@ -24,7 +19,7 @@ const handlePayment = async ({
   isDryRun = false,
 }: {
   evt: CalendarEvent;
-  selectedEventType: Pick<CompleteEventType, "metadata" | "title">;
+  selectedEventType: Pick<EventType, "metadata" | "title">;
   paymentAppCredentials: {
     key: Prisma.JsonValue;
     appId: EventTypeAppsList;
@@ -62,7 +57,8 @@ const handlePayment = async ({
   const PaymentService = paymentAppModule.PaymentService;
   const paymentInstance = new PaymentService(paymentAppCredentials) as IAbstractPaymentService;
 
-  const apps = eventTypeAppMetadataOptionalSchema.parse(selectedEventType?.metadata?.apps);
+  const apps = eventTypeMetaDataSchemaWithTypedApps.parse(selectedEventType?.metadata)?.apps;
+
   const paymentOption = apps?.[paymentAppCredentials.appId].paymentOption || "ON_BOOKING";
 
   let paymentData;
