@@ -5,7 +5,7 @@ import React, { createContext, useContext } from "react";
 import { trpc } from "@calcom/trpc/react";
 
 import type { NavigationItemName, NavigationPermissions } from "./types";
-import { NAVIGATION_ITEMS_CONFIG } from "./types";
+import { DEFAULT_PERMISSIONS } from "./types";
 
 export type { NavigationItemName, NavigationPermissions };
 
@@ -24,12 +24,8 @@ const NavigationPermissionsContext = createContext<{
 export function useNavigationPermissions(): { permissions: NavigationPermissions; isLoading: boolean } {
   const context = useContext(NavigationPermissionsContext);
   if (context === null) {
-    const defaultPermissions = Object.fromEntries(
-      Object.keys(NAVIGATION_ITEMS_CONFIG).map((key) => [key, true])
-    ) as NavigationPermissions;
-
     return {
-      permissions: defaultPermissions,
+      permissions: DEFAULT_PERMISSIONS,
       isLoading: false,
     };
   }
@@ -56,12 +52,8 @@ export function NavigationPermissionsProvider({ children }: { children: React.Re
     refetchOnWindowFocus: false,
   });
 
-  const defaultPermissions = Object.fromEntries(
-    Object.keys(NAVIGATION_ITEMS_CONFIG).map((key) => [key, true])
-  ) as NavigationPermissions;
-
   const contextValue = {
-    permissions: permissions || defaultPermissions,
+    permissions: permissions || DEFAULT_PERMISSIONS,
     isLoading,
   };
 
