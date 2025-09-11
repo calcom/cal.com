@@ -3,11 +3,7 @@ import { _generateMetadata, getTranslate } from "app/_utils";
 import LegacyPage from "@calcom/features/ee/teams/pages/team-appearance-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
-<<<<<<< HEAD
-import { validateUserHasOrg } from "../../../../_actions/validateUserHasOrg";
-=======
 import { validateUserHasOrg } from "../../../../actions/validateUserHasOrg";
->>>>>>> main
 
 export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }) =>
   await _generateMetadata(

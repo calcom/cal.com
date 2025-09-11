@@ -2,11 +2,7 @@ import { _generateMetadata } from "app/_utils";
 
 import OrgAttributesEditPage from "@calcom/ee/organizations/pages/settings/attributes/attributes-edit-view";
 
-<<<<<<< HEAD
-import { validateUserHasOrgAdmin } from "../../../../_actions/validateUserHasOrgAdmin";
-=======
 import { validateUserHasOrgAdmin } from "../../../../actions/validateUserHasOrgAdmin";
->>>>>>> main
 
 export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }) =>
   await _generateMetadata(
