@@ -32,9 +32,20 @@ export const getAllCreditsHandler = async ({ ctx, input }: GetAllCreditsOptions)
     }
   }
   const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
+  const { CreditsRepository } = await import("@calcom/lib/server/repository/credits");
 
   const creditService = new CreditService();
-
   const credits = await creditService.getAllCredits({ userId: ctx.user.id, teamId });
-  return { credits };
+
+  const creditBalance = await CreditsRepository.findCreditBalance({
+    teamId: teamId ?? undefined,
+    userId: ctx.user.id,
+  });
+
+  return {
+    credits,
+    autoTopUpEnabled: creditBalance?.autoTopUpEnabled || false,
+    autoTopUpThreshold: creditBalance?.autoTopUpThreshold,
+    autoTopUpAmount: creditBalance?.autoTopUpAmount,
+  };
 };

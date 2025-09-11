@@ -527,6 +527,8 @@ export class CreditService {
       tx
     );
 
+    await this.checkAndTriggerAutoTopUp({ teamId, userId, currentBalance: remainingCredits });
+
     return null;
   }
 
@@ -684,5 +686,51 @@ export class CreditService {
       totalRemainingMonthlyCredits: Math.max(totalMonthlyCredits - totalMonthlyCreditsUsed, 0),
       additionalCredits: creditBalance?.additionalCredits ?? 0,
     };
+  }
+
+  async checkAndTriggerAutoTopUp({
+    teamId,
+    userId,
+    currentBalance,
+  }: {
+    teamId?: number | null;
+    userId?: number | null;
+    currentBalance: number;
+  }) {
+    const creditBalance = await CreditsRepository.findCreditBalance({
+      teamId: teamId ?? undefined,
+      userId: userId ?? undefined,
+    });
+
+    if (
+      !creditBalance?.autoTopUpEnabled ||
+      !creditBalance.autoTopUpThreshold ||
+      !creditBalance.autoTopUpAmount
+    ) {
+      return null;
+    }
+
+    if (currentBalance > creditBalance.autoTopUpThreshold) {
+      return null;
+    }
+
+    try {
+      log.info("Auto top-up triggered", {
+        teamId,
+        userId,
+        threshold: creditBalance.autoTopUpThreshold,
+        amount: creditBalance.autoTopUpAmount,
+        currentBalance,
+      });
+
+      return {
+        triggered: true,
+        amount: creditBalance.autoTopUpAmount,
+        threshold: creditBalance.autoTopUpThreshold,
+      };
+    } catch (error) {
+      log.error("Failed to trigger auto top-up", error, { teamId, userId });
+      return null;
+    }
   }
 }
