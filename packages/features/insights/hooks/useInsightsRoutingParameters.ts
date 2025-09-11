@@ -10,27 +10,27 @@ import { useInsightsOrgTeams } from "./useInsightsOrgTeams";
 export function useInsightsRoutingParameters() {
   const { scope, selectedTeamId } = useInsightsOrgTeams();
 
-  const createdAtRange = useFilterValue("createdAt", ZDateRangeFilterValue)?.data;
+  const timestampRange = useFilterValue("timestamp", ZDateRangeFilterValue)?.data;
   // TODO for future: this preserving local time & startOf & endOf should be handled
   // from DateRangeFilter out of the box.
   // When we do it, we also need to remove those timezone handling logic from the backend side at the same time.
   const startDate = useChangeTimeZoneWithPreservedLocalTime(
     useMemo(() => {
-      return dayjs(createdAtRange?.startDate ?? getDefaultStartDate().toISOString())
+      return dayjs(timestampRange?.startDate ?? getDefaultStartDate().toISOString())
         .startOf("day")
         .toISOString();
-    }, [createdAtRange?.startDate])
+    }, [timestampRange?.startDate])
   );
   const endDate = useChangeTimeZoneWithPreservedLocalTime(
     useMemo(() => {
-      return dayjs(createdAtRange?.endDate ?? getDefaultEndDate().toISOString())
+      return dayjs(timestampRange?.endDate ?? getDefaultEndDate().toISOString())
         .endOf("day")
         .toISOString();
-    }, [createdAtRange?.endDate])
+    }, [timestampRange?.endDate])
   );
 
   const columnFilters = useColumnFilters({
-    exclude: ["createdAt"],
+    exclude: ["timestamp"],
   });
 
   return {

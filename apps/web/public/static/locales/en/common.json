@@ -3630,5 +3630,8 @@
   "timestamp_filter": "Timestamp Filter",
   "start_time": "Start Time",
   "created_at": "Created At",
+  "start_time_description": "When the booking is scheduled to begin",
+  "created_at_description": "When the booking was originally created",
+  "no_options_found": "No options found",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

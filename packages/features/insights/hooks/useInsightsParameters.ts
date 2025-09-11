@@ -27,31 +27,31 @@ export function useInsightsParameters() {
   const memberUserId = useFilterValue("bookingUserId", ZSingleSelectFilterValue)?.data as number | undefined;
   const eventTypeId = useFilterValue("eventTypeId", ZSingleSelectFilterValue)?.data as number | undefined;
   const routingFormId = useFilterValue("formId", ZSingleSelectFilterValue)?.data as string | undefined;
-  const createdAtRange = useFilterValue("createdAt", ZDateRangeFilterValue)?.data;
+  const timestampRange = useFilterValue("timestamp", ZDateRangeFilterValue)?.data;
   // TODO for future: this preserving local time & startOf & endOf should be handled
   // from DateRangeFilter out of the box.
   // When we do it, we also need to remove those timezone handling logic from the backend side at the same time.
   const startDate = useChangeTimeZoneWithPreservedLocalTime(
     useMemo(() => {
-      return dayjs(createdAtRange?.startDate ?? getDefaultStartDate().toISOString())
+      return dayjs(timestampRange?.startDate ?? getDefaultStartDate().toISOString())
         .startOf("day")
         .toISOString();
-    }, [createdAtRange?.startDate])
+    }, [timestampRange?.startDate])
   );
   const endDate = useChangeTimeZoneWithPreservedLocalTime(
     useMemo(() => {
-      return dayjs(createdAtRange?.endDate ?? getDefaultEndDate().toISOString())
+      return dayjs(timestampRange?.endDate ?? getDefaultEndDate().toISOString())
         .endOf("day")
         .toISOString();
-    }, [createdAtRange?.endDate])
+    }, [timestampRange?.endDate])
   );
 
   const dateRangePreset = useMemo<PresetOptionValue>(() => {
-    return (createdAtRange?.preset as PresetOptionValue) ?? CUSTOM_PRESET_VALUE;
-  }, [createdAtRange?.preset]);
+    return (timestampRange?.preset as PresetOptionValue) ?? CUSTOM_PRESET_VALUE;
+  }, [timestampRange?.preset]);
 
   const columnFilters = useColumnFilters({
-    exclude: ["createdAt"],
+    exclude: ["timestamp"],
   });
 
   return {

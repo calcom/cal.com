@@ -46,9 +46,9 @@ export default function InsightsPage({ timeZone }: { timeZone: string }) {
   );
 }
 
-const createdAtColumn: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }> = {
-  id: "createdAt",
-  title: "createdAt",
+const timestampColumn: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }> = {
+  id: "timestamp",
+  title: "timestamp",
   type: ColumnFilterType.DATE_RANGE,
 };
 
@@ -69,10 +69,10 @@ function InsightsPageContent() {
         <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
         <DataTableFilters.ActiveFilters table={table} />
         <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />
-        <DataTableFilters.ClearFiltersButton exclude={["createdAt"]} />
+        <DataTableFilters.ClearFiltersButton exclude={["timestamp"]} />
         <div className="grow" />
         <Download />
-        <DateRangeFilter column={createdAtColumn} />
+        <DateRangeFilter column={timestampColumn} />
         <DateTargetSelector value={dateTarget as DateTarget} onChange={setDateTarget} />
         <TimezoneBadge />
       </div>
