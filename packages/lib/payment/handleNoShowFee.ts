@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 
 // eslint-disable-next-line
 import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails";
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -12,7 +13,6 @@ import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import prisma from "@calcom/prisma";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 

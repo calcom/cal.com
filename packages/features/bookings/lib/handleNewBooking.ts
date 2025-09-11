@@ -12,6 +12,7 @@ import {
 } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import getICalUID from "@calcom/emails/lib/getICalUID";
@@ -77,10 +78,7 @@ import {
   WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
 import { CreationSource } from "@calcom/prisma/enums";
-import {
-  eventTypeMetaDataSchemaWithTypedApps,
-  userMetadata as userMetadataSchema,
-} from "@calcom/prisma/zod-utils";
+import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type {
   AdditionalInformation,

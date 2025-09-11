@@ -131,13 +131,6 @@ export const eventTypeMetaDataSchemaWithUntypedApps = _eventTypeMetaDataSchemaWi
 
 export const EventTypeMetaDataSchema = eventTypeMetaDataSchemaWithUntypedApps.nullable();
 export const eventTypeMetaDataSchemaWithoutApps = _eventTypeMetaDataSchemaWithoutApps.nullable();
-export const eventTypeMetaDataSchemaWithTypedApps = _eventTypeMetaDataSchemaWithoutApps
-  .merge(
-    z.object({
-      apps: z.record(z.any()).optional(),
-    })
-  )
-  .nullable();
 
 export type EventTypeMetadata = z.infer<typeof EventTypeMetaDataSchema>;
 

@@ -7,6 +7,7 @@ import {
   type EventTypeAppMetadataSchema,
   eventTypeAppMetadataOptionalSchema,
 } from "@calcom/app-store/zod-utils";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
@@ -20,7 +21,6 @@ import { bookingMinimalSelect, prisma } from "@calcom/prisma";
 import { AppCategories, BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 
