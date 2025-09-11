@@ -26,7 +26,7 @@ export function CalAiBanner() {
 
   if (!isVisible) return null;
 
-  if (!pathname?.startsWith("/bookings")) return null;
+  if (!(pathname === "/workflows" || pathname === "/event-types" || pathname === "/bookings")) return null;
 
   return (
     <div className="bg-launch-dark relative mb-6 w-full overflow-hidden rounded-lg text-white">
