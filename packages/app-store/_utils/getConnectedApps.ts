@@ -1,13 +1,10 @@
-import type { Prisma } from "@prisma/client";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential/clientAndServer";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import type { PrismaClient } from "@calcom/prisma";
-import type { User } from "@calcom/prisma/client";
-import type { AppCategories } from "@calcom/prisma/enums";
+import type { Prisma, User, AppCategories } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import type { TDependencyData } from "../_appRegistry";
