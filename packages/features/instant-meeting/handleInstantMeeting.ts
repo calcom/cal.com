@@ -158,10 +158,9 @@ const triggerBrowserNotifications = async (args: {
 
 async function _handler(bookingData: CreateInstantBookingData) {
   let eventType = await getEventTypesFromDB(bookingData.eventTypeId);
-  const isOrgTeamEvent = !!eventType?.team && !!eventType?.team?.parentId;
   eventType = {
     ...eventType,
-    bookingFields: getBookingFieldsWithSystemFields({ ...eventType, isOrgTeamEvent }),
+    bookingFields: getBookingFieldsWithSystemFields({ ...eventType }),
   };
 
   if (!eventType.team?.id) {

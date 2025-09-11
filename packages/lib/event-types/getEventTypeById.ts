@@ -213,12 +213,11 @@ export const getEventTypeById = async ({
     });
   }
 
-  const isOrgTeamEvent = !!eventType?.teamId && !!eventType.team?.parentId;
   const eventTypeObject = Object.assign({}, eventType, {
     users: eventTypeUsers,
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
-    bookingFields: getBookingFieldsWithSystemFields({ ...eventType, isOrgTeamEvent }),
+    bookingFields: getBookingFieldsWithSystemFields({ ...eventType }),
   });
 
   const isOrgEventType = !!eventTypeObject.team?.parentId;
