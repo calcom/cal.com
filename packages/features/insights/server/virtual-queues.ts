@@ -1,11 +1,9 @@
 import { readonlyPrisma as prisma } from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
 import { getSerializableForm } from "@calcom/routing-forms/lib/getSerializableForm";
-import type { JsonValue } from "@calcom/types/JsonObject";
 
 class VirtualQueuesInsights {
   static async getUserRelevantTeamRoutingForms({ userId }: { userId: number }) {
-    type JsonField = JsonValue;
+    type JsonField = { [key: string]: any };
 
     type RoutingFormType = {
       id: string;
@@ -23,7 +21,7 @@ class VirtualQueuesInsights {
       updatedById: number | null;
     };
 
-    const query = Prisma.sql`
+    const formsRedirectingToWeightedRR: RoutingFormType[] = await prisma.$queryRaw<RoutingFormType[]>`
       WITH RECURSIVE json_array_elements_recursive AS (
         SELECT f.id, f."teamId",
                jsonb_array_elements(f.routes::jsonb) as route
@@ -77,8 +75,6 @@ class VirtualQueuesInsights {
         )
         AND (t."rrTimestampBasis" IS NULL OR t."rrTimestampBasis" = 'CREATED_AT')
     `;
-
-    const formsRedirectingToWeightedRR: RoutingFormType[] = await prisma.$queryRaw<RoutingFormType[]>(query);
 
     // Convert the raw forms to serializable format
     const serializableForms = await Promise.all(
