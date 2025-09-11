@@ -1,8 +1,6 @@
 import type { UseFormReturn } from "react-hook-form";
 
-import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-
-import type { getServerSidePropsForSingleFormView } from "../components/getServerSidePropsSingleForm";
+import type { getSerializableForm } from "../lib/getSerializableForm";
 import type { RoutingFormWithResponseCount } from "../types/types";
 
 export type SingleFormComponentProps = {
@@ -13,8 +11,11 @@ export type SingleFormComponentProps = {
     appUrl: string;
     hookForm: UseFormReturn<RoutingFormWithResponseCount>;
   }>;
-  enrichedWithUserProfileForm: inferSSRProps<
-    typeof getServerSidePropsForSingleFormView
-  >["enrichedWithUserProfileForm"];
-  permissions: inferSSRProps<typeof getServerSidePropsForSingleFormView>["permissions"];
+  enrichedWithUserProfileForm: Awaited<ReturnType<typeof getSerializableForm>>;
+  permissions: {
+    canCreate: boolean;
+    canRead: boolean;
+    canEdit: boolean;
+    canDelete: boolean;
+  };
 };
