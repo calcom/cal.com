@@ -535,6 +535,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           />
         </div>
         <div>
+          {!!timeSectionText && (
+            <div className="mb-3 mt-3">
+              <Label className="text-default mb-0">{timeSectionText}</Label>
+              <TimeTimeUnitInput disabled={props.readOnly} />
+            </div>
+          )}
           {/* Event Type/Team Selection */}
           {selectedOptions && setSelectedOptions && allOptions && (
             <div className={classNames(!!timeSectionText && "mb-3")}>
@@ -589,17 +595,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               )}
             </div>
           )}
-
           {!!timeSectionText && (
-            <div className="mt-3">
-              <Label className="text-default mb-0">{timeSectionText}</Label>
-              <TimeTimeUnitInput disabled={props.readOnly} />
-              {!props.readOnly && (
-                <div className="mt-1 flex text-gray-500">
-                  <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
-                  <p className="text-sm">{t("testing_sms_workflow_info_message")}</p>
-                </div>
-              )}
+            <div className="mt-1 flex text-gray-500">
+              <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
+              <p className="text-sm">{t("testing_sms_workflow_info_message")}</p>
             </div>
           )}
         </div>
