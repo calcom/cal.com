@@ -304,6 +304,7 @@ test.describe("Organization", () => {
       });
 
       await test.step("Signing up with the previous username of the migrated user - shouldn't be allowed", async () => {
+        await orgOwner.logout();
         await page.goto("/signup");
         await expect(page.locator("text=Create your account")).toBeVisible();
         await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
