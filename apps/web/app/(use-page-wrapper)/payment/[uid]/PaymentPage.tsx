@@ -10,6 +10,7 @@ import dayjs from "@calcom/dayjs";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { PayIcon } from "@calcom/features/bookings/components/event-meta/PayIcon";
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
+import type { PaymentPageProps } from "@calcom/features/ee/payments/pages/payment";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -18,9 +19,7 @@ import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/t
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { localStorage } from "@calcom/lib/webstorage";
 
-import type { PaymentPageProps } from "../pages/payment";
-
-const StripePaymentComponent = dynamic(() => import("./Payment"), {
+const StripePaymentComponent = dynamic(() => import("@calcom/features/ee/payments/components/Payment"), {
   ssr: false,
 });
 
@@ -35,7 +34,7 @@ const PaypalPaymentComponent = dynamic(
 );
 
 const AlbyPaymentComponent = dynamic(
-  () => import("@calcom/app-store/alby/components/AlbyPaymentComponent").then((m) => m.AlbyPaymentComponent),
+  () => import("@calcom/web/components/apps/alby/AlbyPaymentComponent").then((m) => m.AlbyPaymentComponent),
   {
     ssr: false,
   }
@@ -53,7 +52,7 @@ const HitpayPaymentComponent = dynamic(
 
 const BtcpayPaymentComponent = dynamic(
   () =>
-    import("@calcom/app-store/btcpayserver/components/BtcpayPaymentComponent").then(
+    import("@calcom/web/components/apps/btcpayserver/BtcpayPaymentComponent").then(
       (m) => m.BtcpayPaymentComponent
     ),
   {
