@@ -35,14 +35,15 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   // Memoize cleaned description to avoid processing on every render
   const cleanDescription = useMemo(() => {
     const processed = stripMarkdown(app.description);
-    // Normalize whitespace to help with truncation
     const normalized = processed.replace(/\s+/g, ' ').trim();
     
-    // Fallback truncation for cases where CSS line-clamp might fail
-    // Approximate character limit for 3 lines (~150-180 chars depending on content)
-    if (normalized.length > 180) {
-      return normalized.substring(0, 177) + '...';
+    // Simple, efficient truncation at word boundary
+    if (normalized.length > 160) {
+      const truncated = normalized.substring(0, 160);
+      const lastSpace = truncated.lastIndexOf(' ');
+      return truncated.substring(0, lastSpace) + '...';
     }
+    
     return normalized;
   }, [app.description]);
   
