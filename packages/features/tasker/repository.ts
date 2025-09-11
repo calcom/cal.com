@@ -189,13 +189,15 @@ export class Task {
   }
 
   static async hasNewerScanTaskForStepId(workflowStepId: number, createdAt: string) {
-    const tasks = await db.$queryRaw<{ payload: string }[]>`
+    const query = Prisma.sql`
       SELECT "payload"
       FROM "Task"
       WHERE "type" = 'scanWorkflowBody'
         AND "succeededAt" IS NULL
         AND (payload::jsonb ->> 'workflowStepId')::int = ${workflowStepId}
         `;
+
+    const tasks = await db.$queryRaw<{ payload: string }[]>(query);
 
     return tasks.some((task) => {
       try {

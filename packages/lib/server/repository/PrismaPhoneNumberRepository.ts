@@ -62,7 +62,7 @@ export class PrismaPhoneNumberRepository {
   }
 
   static async findPhoneNumbersFromUserId({ userId }: { userId: number }) {
-    const phoneNumbers = await prisma.$queryRaw<_PhoneNumberRawResult[]>`
+    const query = Prisma.sql`
       SELECT
         pn.id,
         pn."phoneNumber",
@@ -80,6 +80,8 @@ export class PrismaPhoneNumberRepository {
       WHERE pn."userId" = ${userId}
         AND (pn."subscriptionStatus" = ${PhoneNumberSubscriptionStatus.ACTIVE} OR pn."subscriptionStatus" IS NULL)
     `;
+
+    const phoneNumbers = await prisma.$queryRaw<_PhoneNumberRawResult[]>(query);
 
     const phoneNumberIds = phoneNumbers.map((pn) => pn.id);
     const agents =
@@ -354,7 +356,7 @@ export class PrismaPhoneNumberRepository {
       }
     }
 
-    const phoneNumbers = await prisma.$queryRaw<_PhoneNumberRawResult[]>`
+    const query = Prisma.sql`
       SELECT
         pn.id,
         pn."phoneNumber",
@@ -372,6 +374,8 @@ export class PrismaPhoneNumberRepository {
       WHERE ${whereCondition}
       ORDER BY pn."createdAt" DESC
     `;
+
+    const phoneNumbers = await prisma.$queryRaw<_PhoneNumberRawResult[]>(query);
 
     const phoneNumberIds = phoneNumbers.map((pn) => pn.id);
     const agents =

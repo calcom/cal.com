@@ -1,5 +1,6 @@
 import db from "@calcom/prisma";
 import type { PrismaClient as PrismaClientWithExtensions } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 
 import { PermissionMapper } from "../../domain/mappers/PermissionMapper";
 import type { TeamPermissions } from "../../domain/models/Permission";
@@ -24,7 +25,14 @@ export class PermissionRepository implements IPermissionRepository {
       include: {
         customRole: {
           include: {
-            permissions: true,
+            permissions: {
+              select: {
+                id: true,
+                resource: true,
+                action: true,
+                roleId: true,
+              },
+            },
           },
         },
       },
@@ -124,7 +132,7 @@ export class PermissionRepository implements IPermissionRepository {
     const resources = permissionPairs.map((p) => p.resource);
     const actions = permissionPairs.map((p) => p.action);
 
-    const matchingPermissions = await this.client.$queryRaw<[{ count: bigint }]>`
+    const query = Prisma.sql`
       WITH permission_checks AS (
         -- Universal permission (*,*)
         SELECT 1 as match FROM "RolePermission"
@@ -150,6 +158,8 @@ export class PermissionRepository implements IPermissionRepository {
       )
       SELECT COUNT(*) as count FROM permission_checks
     `;
+
+    const matchingPermissions = await this.client.$queryRaw<[{ count: bigint }]>(query);
 
     return Number(matchingPermissions[0].count) >= permissions.length;
   }
@@ -215,7 +225,7 @@ export class PermissionRepository implements IPermissionRepository {
       return { resource, action };
     });
 
-    const teamsWithPermission = await this.client.$queryRaw<{ teamId: number }[]>`
+    const query = Prisma.sql`
       SELECT DISTINCT m."teamId"
       FROM "Membership" m
       INNER JOIN "Role" r ON m."customRoleId" = r.id
@@ -238,6 +248,8 @@ export class PermissionRepository implements IPermissionRepository {
           )
         ) = ${permissions.length}
     `;
+
+    const teamsWithPermission = await this.client.$queryRaw<{ teamId: number }[]>(query);
 
     return teamsWithPermission.map((team) => team.teamId);
   }
