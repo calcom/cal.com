@@ -1,8 +1,7 @@
-import { createModule } from "@evyweb/ioctopus";
-
 import type { INoSlotsNotificationService } from "@calcom/trpc/server/routers/viewer/slots/handleNotificationWhenNoSlots";
 import { NoSlotsNotificationService } from "@calcom/trpc/server/routers/viewer/slots/handleNotificationWhenNoSlots";
 
+import { createModule } from "../di";
 import { DI_TOKENS } from "../tokens";
 
 export const noSlotsNotificationModule = createModule();
