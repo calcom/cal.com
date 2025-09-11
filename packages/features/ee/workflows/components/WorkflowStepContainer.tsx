@@ -753,6 +753,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </div>
                 <Button
                   color="primary"
+                  disabled={props.readOnly}
                   onClick={async () => {
                     // save the workflow first to get the step id
                     if (onSaveWorkflow) {
