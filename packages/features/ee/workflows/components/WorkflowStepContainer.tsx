@@ -1428,13 +1428,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             agentId={stepAgentId}
             agentData={agentData}
             onUpdate={(data) => {
-              updateAgentMutation.mutate({
-                id: stepAgentId,
-                teamId: teamId,
-                generalPrompt: data.generalPrompt,
-                beginMessage: data.beginMessage,
-                generalTools: data.generalTools,
-              });
+              if (stepAgentId) {
+                updateAgentMutation.mutate({
+                  id: stepAgentId,
+                  teamId: teamId,
+                  generalPrompt: data.generalPrompt,
+                  beginMessage: data.beginMessage,
+                  generalTools: data.generalTools,
+                });
+              }
             }}
             readOnly={props.readOnly}
             teamId={teamId}
