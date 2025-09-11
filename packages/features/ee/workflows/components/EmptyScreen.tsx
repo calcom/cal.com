@@ -31,9 +31,15 @@ function WorkflowExample(props: WorkflowExampleType) {
               iconWrapperClassName
             )}>
             {image ? (
-              <img src={image} alt={title} className={cn("text-default h-5 w-5")} />
+              <img
+                src={image}
+                alt=""
+                role="presentation"
+                aria-hidden="true"
+                className={cn("text-default h-5 w-5")}
+              />
             ) : (
-              <Icon name={iconName} className={cn("text-default h-5 w-5")} />
+              <Icon name={iconName} className={cn("text-default h-5 w-5")} aria-hidden="true" />
             )}
           </div>
         </div>

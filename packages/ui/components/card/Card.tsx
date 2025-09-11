@@ -202,7 +202,7 @@ export function Card({
         <a
           onClick={actionButton?.onClick}
           target="_blank"
-          rel="noreferrer"
+          rel="noreferrer noopener"
           href={mediaLink}
           data-testid={actionButton?.["data-testid"]}
           className="group relative my-3 flex aspect-video items-center overflow-hidden rounded">

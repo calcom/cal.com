@@ -2771,7 +2771,7 @@
   "send_email": "Send email",
   "cal_ai_phone_call_action": "Call attendee using Cal.ai Voice Agent",
   "call_to_confirm_booking": "Call to confirm booking",
-  "cal_ai_phone_call_action_description": "2hrs before event starts",
+  "cal_ai_phone_call_action_description": "2 hrs before event starts",
   "cal_ai_agent_configuration": "Cal.ai Agent Configuration",
   "choose_at_least_one_event_type_test_call": "Please choose at least one event type to make a test call.",
   "mark_as_no_show": "Mark as no-show",
