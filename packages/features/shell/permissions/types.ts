@@ -2,11 +2,9 @@
  * Navigation permission mapping for menu items
  */
 export const NAVIGATION_PERMISSION_MAP = {
-  insights: "insights.read",
-  workflows: "workflow.read",
-  routing: "routingForm.read",
-  teams: "team.read",
   members: "organization.listMembers",
+  teams: "team.read",
+  insights: "insights.read",
 } as const;
 
 export const DEFAULT_PERMISSIONS = Object.fromEntries(
