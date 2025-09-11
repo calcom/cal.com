@@ -135,7 +135,6 @@ export interface BaseCardProps extends CVACardType {
   learnMore?: {
     href: string;
     text: string;
-    onClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   };
   mediaLink?: string;
   thumbnailUrl?: string;
@@ -252,12 +251,6 @@ export function Card({
           {learnMore && (
             <LinkComponent
               href={learnMore.href}
-              onClick={(e) => {
-                if (learnMore.onClick) {
-                  e.preventDefault();
-                  learnMore.onClick(e);
-                }
-              }}
               target="_blank"
               rel="noreferrer"
               className={classNames("text-default text-xs font-medium", buttonClassName)}>

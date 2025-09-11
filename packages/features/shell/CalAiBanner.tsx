@@ -5,9 +5,7 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
-import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/components/icon";
-import { showToast } from "@calcom/ui/components/toast";
 
 export function CalAiBanner() {
   const { t } = useLocale();
@@ -17,24 +15,13 @@ export function CalAiBanner() {
     return !localStorage.getItem("calai-banner-dismissed");
   });
 
-  const createCalAIWorkflow = trpc.viewer.workflows.createCalAIWorkflow.useMutation({
-    onSuccess: (data) => {
-      window.open(data.redirectUrl, "_blank");
-    },
-    onError: (error) => {
-      showToast(error.message || "Failed to create Cal AI workflow", "error");
-    },
-  });
-
   const handleDismiss = () => {
     localStorage.setItem("calai-banner-dismissed", "true");
     setIsVisible(false);
   };
 
   const handleTryNow = () => {
-    createCalAIWorkflow.mutate({
-      templateId: "wf-11",
-    });
+    window.open("/workflow/new?action=calAi&templateWorkflowId=wf-11", "_blank");
   };
 
   if (!isVisible) return null;
@@ -59,9 +46,8 @@ export function CalAiBanner() {
 
           <button
             onClick={handleTryNow}
-            disabled={createCalAIWorkflow.isPending}
-            className="rounded-[10px] bg-gradient-to-b from-[#6349EA] to-[#875FE0] px-5 py-2 text-sm font-medium text-white hover:from-[#5A42D1] hover:to-[#7B6FD7] disabled:cursor-not-allowed disabled:opacity-50">
-            {createCalAIWorkflow.isPending ? t("creating") : t("try_now")}
+            className="rounded-[10px] bg-gradient-to-b from-[#6349EA] to-[#875FE0] px-5 py-2 text-sm font-medium text-white hover:from-[#5A42D1] hover:to-[#7B6FD7]">
+            {t("try_now")}
           </button>
         </div>
 
