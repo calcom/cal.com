@@ -214,7 +214,7 @@ export default function CancelBooking(props: Props) {
             </>
           )}
 
-          <Label>{props.isHost ? t("cancellation_reason_host") : t("cancellation_reason")}</Label>
+          <Label>{isCancellationUserHost ? t("cancellation_reason_host") : t("cancellation_reason")}</Label>
 
           <TextArea
             data-testid="cancel_reason"
@@ -225,7 +225,7 @@ export default function CancelBooking(props: Props) {
             className="mb-4 mt-2 w-full "
             rows={3}
           />
-          {props.isHost ? (
+          {isCancellationUserHost ? (
             <div className="-mt-2 mb-4 flex items-center gap-2">
               <Icon name="info" className="text-subtle h-4 w-4" />
               <p className="text-default text-subtle text-sm leading-none">
