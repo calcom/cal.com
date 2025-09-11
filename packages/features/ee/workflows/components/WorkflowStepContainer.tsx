@@ -14,6 +14,7 @@ import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { formatPhoneNumber } from "@calcom/lib/formatPhoneNumber";
 import { useHasActiveTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import {
@@ -164,6 +165,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     { teamId },
     { enabled: !!teamId }
   );
+
+  const isMobile = useMediaQuery("(max-width: 569px)");
 
   const { data: userTeams } = trpc.viewer.teams.list.useQuery({}, { enabled: !teamId });
   const [agentConfigurationSheet, setAgentConfigurationSheet] = useState<{
@@ -842,7 +845,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </Dropdown>
-                  ) : (
+                  ) : !isMobile ? (
                     <>
                       <Button
                         color="secondary"
@@ -864,7 +867,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         {t("test_web_call")}
                       </Button>
                     </>
-                  )}
+                  ) : null}
                   <Dropdown>
                     <DropdownMenuTrigger asChild>
                       <Button
@@ -876,6 +879,34 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
+                      {isMobile && arePhoneNumbersActive.length <= 0 && (
+                        <>
+                          <DropdownMenuItem>
+                            <DropdownItem
+                              type="button"
+                              StartIcon="plus"
+                              disabled={props.readOnly}
+                              onClick={() => {
+                                setAgentConfigurationSheet((prev) => ({
+                                  ...prev,
+                                  open: true,
+                                  activeTab: "phoneNumber",
+                                }));
+                              }}>
+                              {t("connect_phone_number")}
+                            </DropdownItem>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <DropdownItem
+                              type="button"
+                              onClick={() => setIsWebCallDialogOpen(true)}
+                              disabled={props.readOnly}
+                              StartIcon="monitor">
+                              {t("test_web_call")}
+                            </DropdownItem>
+                          </DropdownMenuItem>
+                        </>
+                      )}
                       <DropdownMenuItem>
                         <DropdownItem
                           type="button"
@@ -1489,22 +1520,22 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   subscriptionStatus: phone.subscriptionStatus ?? undefined,
                 }))
               ).length > 0 && (
-                  <div className="bg-muted rounded-lg p-3">
-                    <div className="flex items-center gap-2">
-                      <Icon name="phone" className="text-emphasis h-4 w-4" />
-                      <span className="text-emphasis text-sm font-medium">
-                        {formatPhoneNumber(
-                          getActivePhoneNumbers(
-                            agentData?.outboundPhoneNumbers?.map((phone) => ({
-                              ...phone,
-                              subscriptionStatus: phone.subscriptionStatus ?? undefined,
-                            }))
-                          )?.[0]?.phoneNumber
-                        )}
-                      </span>
-                    </div>
+                <div className="bg-muted rounded-lg p-3">
+                  <div className="flex items-center gap-2">
+                    <Icon name="phone" className="text-emphasis h-4 w-4" />
+                    <span className="text-emphasis text-sm font-medium">
+                      {formatPhoneNumber(
+                        getActivePhoneNumbers(
+                          agentData?.outboundPhoneNumbers?.map((phone) => ({
+                            ...phone,
+                            subscriptionStatus: phone.subscriptionStatus ?? undefined,
+                          }))
+                        )?.[0]?.phoneNumber
+                      )}
+                    </span>
                   </div>
-                )}
+                </div>
+              )}
               <p className="text-subtle text-sm">{t("the_action_will_disconnect_phone_number")}</p>
             </div>
             <DialogFooter showDivider>
