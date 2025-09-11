@@ -260,7 +260,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                               variant="icon"
                               StartIcon="pencil"
                               disabled={
-                                workflow.permissions ? !workflow.permissions.canUpdate : workflow.readOnly
+                                workflow.permissions ? !workflow.permissions?.canUpdate : workflow.readOnly
                               }
                               onClick={async () => await router.replace(`/workflows/${workflow.id}`)}
                               data-testid="edit-button"
@@ -275,7 +275,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                               color="secondary"
                               variant="icon"
                               disabled={
-                                workflow.permissions ? !workflow.permissions.canDelete : workflow.readOnly
+                                workflow.permissions ? !workflow.permissions?.canDelete : workflow.readOnly
                               }
                               StartIcon="trash-2"
                               data-testid="delete-button"
@@ -293,7 +293,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
                               {(workflow.permissions
-                                ? workflow.permissions.canUpdate
+                                ? workflow.permissions?.canUpdate
                                 : !workflow.readOnly) && (
                                 <DropdownMenuItem>
                                   <DropdownItem
@@ -305,7 +305,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                                 </DropdownMenuItem>
                               )}
                               {(workflow.permissions
-                                ? workflow.permissions.canDelete
+                                ? workflow.permissions?.canDelete
                                 : !workflow.readOnly) && (
                                 <DropdownMenuItem>
                                   <DropdownItem

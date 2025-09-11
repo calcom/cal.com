@@ -22,6 +22,10 @@ export class PrismaTransactionAdapter implements TransactionInterface {
               provider: params.provider,
               teamId: params.teamId,
               outboundAgentId: params.outboundAgentId,
+              providerPhoneNumberId: params.providerPhoneNumberId,
+              subscriptionStatus: params.subscriptionStatus,
+              stripeCustomerId: params.stripeCustomerId,
+              stripeSubscriptionId: params.stripeSubscriptionId,
             },
           });
         },

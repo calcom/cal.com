@@ -1,9 +1,14 @@
 import type { TFunction } from "i18next";
 
-import { WorkflowActions } from "@calcom/prisma/enums";
+import type { WorkflowActions } from "@calcom/prisma/enums";
 import { WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 
-import { isSMSOrWhatsappAction, isWhatsappAction, isEmailToAttendeeAction } from "./actionHelperFunctions";
+import {
+  isSMSOrWhatsappAction,
+  isWhatsappAction,
+  isEmailToAttendeeAction,
+  isCalAIAction,
+} from "./actionHelperFunctions";
 import {
   WHATSAPP_WORKFLOW_TEMPLATES,
   WORKFLOW_ACTIONS,
@@ -13,13 +18,13 @@ import {
 } from "./constants";
 
 export function getWorkflowActionOptions(t: TFunction, isOrgsPlan?: boolean) {
-  return WORKFLOW_ACTIONS.filter((action) => action !== WorkflowActions.CAL_AI_PHONE_CALL).map((action) => {
+  return WORKFLOW_ACTIONS.map((action) => {
     const actionString = t(`${action.toLowerCase()}_action`);
 
     return {
       label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
       value: action,
-      needsCredits: !isOrgsPlan && isSMSOrWhatsappAction(action),
+      needsCredits: (!isOrgsPlan && isSMSOrWhatsappAction(action)) || isCalAIAction(action),
     };
   });
 }

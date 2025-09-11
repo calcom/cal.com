@@ -1,5 +1,35 @@
 ## 1.1.2
 
+## 1.8.0
+
+### Minor Changes
+
+- [#23686](https://github.com/calcom/cal.com/pull/23686) [`cfd1992`](https://github.com/calcom/cal.com/commit/cfd1992733ff8c4db3e5795e421aef957fad43a4) Thanks [@Ryukemeister](https://github.com/Ryukemeister)! - This PR adds customReplyEmailTo feature for EventTypeSettings atom
+
+## 1.7.1
+
+### Patch Changes
+
+- [#23490](https://github.com/calcom/cal.com/pull/23490) [`de98578`](https://github.com/calcom/cal.com/commit/de98578fdd751887800216f24274578272d5c91d) Thanks [@Ryukemeister](https://github.com/Ryukemeister)! - This PR fixes the prop `disableToasts` not working
+
+## 1.7.0
+
+### Minor Changes
+
+- [#23445](https://github.com/calcom/cal.com/pull/23445) [`9724bc0`](https://github.com/calcom/cal.com/commit/9724bc07a6d9bfe3ff32fa4e5657de2da3068d85) Thanks [@supalarry](https://github.com/supalarry)! - feat: italian language support
+
+## 1.6.0
+
+### Minor Changes
+
+- [#23074](https://github.com/calcom/cal.com/pull/23074) [`09cf888`](https://github.com/calcom/cal.com/commit/09cf8885cf5e88fc0911edaf7e43f5c1c2d64923) Thanks [@SomayChauhan](https://github.com/SomayChauhan)! - feat: add send & verify code flow to booker atom when email verification is turned on
+
+- [#23211](https://github.com/calcom/cal.com/pull/23211) [`89a3b77`](https://github.com/calcom/cal.com/commit/89a3b77a1dd0773e6b746b14e72f9a792ac1c43a) Thanks [@SomayChauhan](https://github.com/SomayChauhan)! - feat: added hideEventMetadata prop to the booker atom that controls the visibility of the event metadata sidebar. When `true`, hides the left sidebar containing event details like title, description, duration, and host information.
+
+### Patch Changes
+
+- [#23213](https://github.com/calcom/cal.com/pull/23213) [`40caa82`](https://github.com/calcom/cal.com/commit/40caa82e5592cc17d84dd5e73531d1b376ce187c) Thanks [@Ryukemeister](https://github.com/Ryukemeister)! - This PR fixes `onBookerStateChange` prop not working
+
 ## 1.5.0
 
 ### Minor Changes

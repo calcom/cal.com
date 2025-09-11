@@ -53,8 +53,7 @@ import type { TeamRepository } from "@calcom/lib/server/repository/team";
 import type { UserRepository } from "@calcom/lib/server/repository/user";
 import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
-import { PeriodType } from "@calcom/prisma/client";
-import { SchedulingType } from "@calcom/prisma/enums";
+import { SchedulingType, PeriodType } from "@calcom/prisma/enums";
 import type { EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
@@ -1041,7 +1040,6 @@ export class AvailableSlotsService {
         queuedFormResponseId,
       });
     }
-
     const { qualifiedRRHosts, allFallbackRRHosts, fixedHosts } =
       await this.dependencies.qualifiedHostsService.findQualifiedHostsWithDelegationCredentials({
         eventType,
@@ -1156,6 +1154,7 @@ export class AvailableSlotsService {
       minimumBookingNotice: eventType.minimumBookingNotice,
       frequency: eventType.slotInterval || input.duration || eventType.length,
       datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
+      showOptimizedSlots: eventType.showOptimizedSlots,
     });
 
     let availableTimeSlots: typeof timeSlots = [];

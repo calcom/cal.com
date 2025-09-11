@@ -26,6 +26,7 @@ import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
+import { localStorage } from "@calcom/lib/webstorage";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -176,13 +177,11 @@ const Item = ({
         data-testid={`event-type-title-${type.id}`}>
         {type.title}
       </span>
-      {group.profile.slug ? (
+      {group.profile.slug && type.schedulingType !== SchedulingType.MANAGED ? (
         <small
           className="text-subtle hidden font-normal leading-4 sm:inline"
           data-testid={`event-type-slug-${type.id}`}>
-          {`/${
-            type.schedulingType !== SchedulingType.MANAGED ? group.profile.slug : t("username_placeholder")
-          }/${type.slug}`}
+          {`/${group.profile.slug}/${type.slug}`}
         </small>
       ) : null}
       {readOnly && (
@@ -212,7 +211,7 @@ const Item = ({
                 data-testid={`event-type-title-${type.id}`}>
                 {type.title}
               </span>
-              {group.profile.slug ? (
+              {group.profile.slug && type.schedulingType !== SchedulingType.MANAGED ? (
                 <small
                   className="text-subtle hidden font-normal leading-4 sm:inline"
                   data-testid={`event-type-slug-${type.id}`}>
@@ -269,7 +268,7 @@ export const InfiniteEventTypeList = ({
     },
   });
 
-  const setHiddenMutation = trpc.viewer.eventTypes.update.useMutation({
+  const setHiddenMutation = trpc.viewer.eventTypes.heavy.update.useMutation({
     onMutate: async (data) => {
       await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
       const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
