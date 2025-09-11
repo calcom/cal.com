@@ -36,7 +36,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc/react";
-import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
+import { revalidateCalIdTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 import { getTeamUrl } from "../lib/getTeamUrl";
 
@@ -73,7 +73,7 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
   const deleteTeamMutation = trpc.viewer.calidTeams.delete.useMutation({
     async onSuccess() {
       await utils.viewer.calidTeams.list.invalidate();
-      revalidateTeamsList();
+      revalidateCalIdTeamsList();
       triggerToast("team_disbanded_successfully", "success");
     },
     async onError(err) {

@@ -11,12 +11,14 @@ const Wrapper = ({ children, tooltip }: { tooltip?: string; children: React.Reac
   if (!tooltip) {
     return <>{children}</>;
   }
-  return <TooltipProvider>
-    <Tooltip>
-      <TooltipTrigger asChild>{children}</TooltipTrigger>
-      <TooltipContent>{tooltip}</TooltipContent>
-    </Tooltip>
-  </TooltipProvider>;
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>{children}</TooltipTrigger>
+        <TooltipContent>{tooltip}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
 };
 export const Switch = (
   props: React.ComponentProps<typeof SwitchPrimitives.Root> & {

@@ -1,5 +1,6 @@
 import { Button } from "@calid/features/ui/components/button";
 import { CheckboxField } from "@calid/features/ui/components/input/checkbox-field";
+import { Label } from "@calid/features/ui/components/label";
 import Link from "next/link";
 import { useCallback, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -10,7 +11,6 @@ import { BookerLayouts, defaultBookerLayoutSettings } from "@calcom/prisma/zod-u
 import { bookerLayoutOptions, type BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
-import { Label } from "@calcom/ui/components/form";
 
 type BookerLayoutSelectorProps = {
   title?: string;
@@ -59,14 +59,14 @@ export const BookerLayoutSelector = ({
   return (
     <div
       className={classNames(
-        isOuterBorder && "border-subtle rounded-lg border p-6",
+        isOuterBorder && "border-default rounded-lg border p-6",
         !isOuterBorder && "border-subtle rounded-b-md border-x border-b pb-4"
       )}>
       <div
         className={classNames(
           isOuterBorder ? "pb-5" : "border-subtle rounded-t-xl border-x border-t px-6 pt-6"
         )}>
-        <Label className={classNames("mb-1 font-semibold", isOuterBorder ? "text-sm" : "text-base")}>
+        <Label className={classNames("text-default text-sm font-semibold")}>
           {title ? title : t("layout")}
         </Label>
         <p className="text-subtle max-w-full break-words text-sm leading-tight">
@@ -74,9 +74,6 @@ export const BookerLayoutSelector = ({
         </p>
       </div>
       <Controller
-        // If the event does not have any settings, we don't want to register this field in the form.
-        // That way the settings won't get saved into the event on save, but remain null. Thus keep using
-        // the global user's settings.
         control={shouldShowUserSettings ? undefined : control}
         name={name || defaultFieldName}
         render={({ field: { value, onChange } }) => (
@@ -201,7 +198,6 @@ const BookerLayoutFields = ({
               <div className="flex flex-row items-center gap-2">
                 <CheckboxField
                   value={layout}
-                  description={t(`bookerlayout_${layout}`)}
                   checked={toggleValues[layout]}
                   onCheckedChange={(checked) => {
                     onLayoutToggleChange(layout, checked);
@@ -220,9 +216,8 @@ const BookerLayoutFields = ({
           disableFields && "pointer-events-none opacity-40",
           disableFields && isUserLoading && "animate-pulse"
         )}>
-        <Label>{t("bookerlayout_default_title")}</Label>
+        <Label className="mr-2">{t("bookerlayout_default_title")}</Label>
 
-        {/* (layout: BookerLayouts) => onDefaultLayoutChange(layout) */}
         {bookerLayoutOptions.map((layout) => (
           <Button
             disabled={toggleValues[layout] === false}
@@ -233,7 +228,6 @@ const BookerLayoutFields = ({
             }}>
             {t(`bookerlayout_${layout}`)}
           </Button>
-          // key={layout}
         ))}
       </div>
       {disableFields && (
@@ -247,14 +241,14 @@ const BookerLayoutFields = ({
                 target="_blank"
                 href="/settings/my-account/appearance"
                 className="underline">
-                Appearance
+                {t("appearance")}
               </Link>,
               <Button
                 key="override-button"
                 onClick={onOverrideSettings}
                 color="minimal"
-                className="h-fit p-0 font-normal underline hover:bg-transparent focus-visible:bg-transparent">
-                Override
+                className="text-emphasis border-none p-0 font-normal underline">
+                {t("override")}
               </Button>,
             ]}
           />

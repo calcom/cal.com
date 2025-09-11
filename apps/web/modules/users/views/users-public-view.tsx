@@ -26,12 +26,9 @@ import type { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
 export type PageProps = InferGetServerSidePropsType<typeof getServerSideProps>;
 export function UserPage(props: PageProps) {
   const { users, profile, eventTypes, entity } = props;
-  console.log("Profile: ", profile);
-
-  const { t, i18n } = useLocale();
+  const { t } = useLocale();
   const [user] = users; //To be used when we only have a single user, not dynamic group
 
-  console.log("User: ", user);
   useTheme(profile.theme);
 
   const isBioEmpty = !user.bio || !user.bio.replace("<p><br></p>", "").length;
@@ -84,7 +81,7 @@ export function UserPage(props: PageProps) {
           className={classNames(
             "border-subtle bg-cal-gradient text-default mb-8 flex flex-col items-center bg-cover bg-center p-4"
           )}
-          style={{ backgroundImage: user.headerUrl === null ? null : `url(${user.headerUrl})` }}>
+          style={{ backgroundImage: user.headerUrl ? `url(${user.headerUrl})` : undefined }}>
           <UserAvatar
             size="xl"
             user={{
@@ -127,6 +124,7 @@ export function UserPage(props: PageProps) {
           data-testid="event-types">
           {eventTypes.map((type) => (
             <div
+              key={type.id}
               className="bg-muted border-subtle dark:bg-muted dark:hover:bg-emphasis hover:bg-muted group relative rounded-md border transition"
               data-testid="event-type-link">
               {/* <Icon
@@ -144,7 +142,7 @@ export function UserPage(props: PageProps) {
                       <h2 className="text-default pr-2 text-base font-semibold">{type.title}</h2>
                     </div>
 
-                    {type.description && (
+                    {type.descriptionAsSafeHTML && (
                       <div
                         className={classNames(
                           "text-subtle line-clamp-3 break-words text-sm sm:max-w-[650px] [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600",
@@ -159,12 +157,7 @@ export function UserPage(props: PageProps) {
                   </div>
                 </div>
                 <div className="mt-1 flex w-full flex-row justify-between">
-                  <EventTypeDescription
-                    eventType={type}
-                    isPublic={true}
-                    shortenDescription
-                    showDescription={false}
-                  />
+                  <EventTypeDescription eventType={type} isPublic={true} shortenDescription />
                   <Link
                     key={type.id}
                     style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
@@ -195,7 +188,7 @@ export function UserPage(props: PageProps) {
 }
 
 function DividerWithText() {
-  const { t, i18n } = useLocale();
+  const { t } = useLocale();
   return (
     <div className="mx-[35%] mb-2 mt-6 flex items-center">
       <div className="bg-subtle h-px flex-1" />

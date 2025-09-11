@@ -7,7 +7,6 @@ import {
   ButtonOrLink,
 } from "@calid/features/ui/components/dropdown-menu";
 import { Icon } from "@calid/features/ui/components/icon";
-import { Label } from "@calid/features/ui/components/label";
 import { Switch } from "@calid/features/ui/components/switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@calid/features/ui/components/tooltip";
 import type { UseFormReturn } from "react-hook-form";
@@ -36,7 +35,7 @@ export const EventTypeActions = ({
   const { t } = useLocale();
 
   return (
-    <div className="flex items-center justify-end space-x-4 mr-2">
+    <div className="mr-2 flex items-center justify-end space-x-4">
       {/* Hidden toggle */}
       {!form.getValues("metadata")?.managedEventConfig && (
         <div className="flex items-center space-x-2">

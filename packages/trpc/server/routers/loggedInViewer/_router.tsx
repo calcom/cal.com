@@ -2,6 +2,7 @@ import authedProcedure from "../../procedures/authedProcedure";
 import { router } from "../../trpc";
 import { ZAddNotificationsSubscriptionInputSchema } from "./addNotificationsSubscription.schema";
 import { ZAddSecondaryEmailInputSchema } from "./addSecondaryEmail.schema";
+import { ZCalIdEventTypeOrderInputSchema } from "./calid/eventTypeOrder.schema";
 import { ZConnectAndJoinInputSchema } from "./connectAndJoin.schema";
 import { ZEventTypeOrderInputSchema } from "./eventTypeOrder.schema";
 import { ZNoShowInputSchema } from "./markNoShow.schema";
@@ -71,4 +72,10 @@ export const loggedInViewerRouter = router({
     const { markNoShow } = await import("./markNoShow.handler");
     return markNoShow(opts);
   }),
+  calid_eventTypeOrder: authedProcedure
+    .input(ZCalIdEventTypeOrderInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { calidEventTypeOrderHandler } = await import("./calid/eventTypeOrder.handler");
+      return calidEventTypeOrderHandler({ ctx, input });
+    }),
 });

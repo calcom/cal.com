@@ -561,7 +561,7 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
   // Get user data and booker URL
   const { data } = useSession();
   const bookerUrl = useBookerUrl();
-  const { data: user } = trpc.viewer.me.get.useQuery();
+  const { data: user } = trpc.viewer.me.calid_get.useQuery();
 
   // Use provided calLink or fallback to a default
   const calLink = propCalLink || "john-doe/30min";

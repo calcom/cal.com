@@ -194,7 +194,7 @@ function EventWorkflowsTab(props: Props) {
   const workflowsDisableProps = shouldLockDisableProps("workflows", { simple: true });
   const lockedText = workflowsDisableProps.isLocked ? "locked" : "unlocked";
   const { data, isPending } = trpc.viewer.workflows.calid_list.useQuery({
-    calIdTeamId: eventType.team?.id,
+    calIdTeamId: eventType.calIdTeamId || undefined,
     userId: !isChildrenManagedEventType ? eventType.userId || undefined : undefined,
   });
   const router = useRouter();

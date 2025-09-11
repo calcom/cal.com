@@ -1,19 +1,21 @@
 "use client";
 
+import { Badge } from "@calid/features/ui/components/badge";
+import { Button } from "@calid/features/ui/components/button";
+import {
+  DropdownMenu,
+  DropdownMenuItem,
+  DropdownMenuContent,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@calid/features/ui/components/dropdown-menu";
+import { Switch } from "@calid/features/ui/components/switch";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
-import { Badge, Button, Switch, Tooltip } from "@calid/features/ui";
-// import { Button } from "@calcom/ui/components/button";
-import {
-  Dropdown,
-  DropdownItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@calcom/ui/components/dropdown";
 // import { Switch } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 // import { Tooltip } from "@calcom/ui/components/tooltip";
@@ -139,25 +141,16 @@ export default function WebhookListItem(props: {
             onClick={onDeleteWebhook}
           />
 
-          <Dropdown>
+          <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button className="lg:hidden" StartIcon="ellipsis" variant="icon" color="secondary" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem>
-                <DropdownItem StartIcon="pencil" color="secondary" onClick={props.onEditWebhook}>
-                  {t("edit")}
-                </DropdownItem>
-              </DropdownMenuItem>
+              <DropdownMenuItem onClick={props.onEditWebhook}>{t("edit")}</DropdownMenuItem>
               <DropdownMenuSeparator />
-
-              <DropdownMenuItem>
-                <DropdownItem StartIcon="trash" color="destructive" onClick={onDeleteWebhook}>
-                  {t("delete")}
-                </DropdownItem>
-              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onDeleteWebhook}>{t("delete")}</DropdownMenuItem>
             </DropdownMenuContent>
-          </Dropdown>
+          </DropdownMenu>
         </div>
       )}
     </div>

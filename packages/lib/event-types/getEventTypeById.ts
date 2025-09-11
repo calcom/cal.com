@@ -289,4 +289,225 @@ export async function getRawEventType({
   });
 }
 
+export async function getRawEventTypeForCalIdTeam({
+  eventTypeId,
+  calIdTeamId,
+  prisma,
+}: {
+  eventTypeId: number;
+  calIdTeamId: number;
+  prisma: PrismaClient;
+}) {
+  const eventTypeRepo = new EventTypeRepository(prisma);
+
+  return await eventTypeRepo.findByIdForCalIdTeam({
+    id: eventTypeId,
+    calIdTeamId,
+  });
+}
+
+export const getEventTypeByIdForCalIdTeam = async ({
+  eventTypeId,
+  calIdTeamId,
+  prisma,
+  isTrpcCall = false,
+}: {
+  eventTypeId: number;
+  calIdTeamId: number;
+  prisma: PrismaClient;
+  isTrpcCall?: boolean;
+}) => {
+  const userSelect = {
+    name: true,
+    avatarUrl: true,
+    username: true,
+    id: true,
+    email: true,
+    locale: true,
+    defaultScheduleId: true,
+    isPlatformManaged: true,
+    timeZone: true,
+  } satisfies Prisma.UserSelect;
+
+  const rawEventType = await getRawEventTypeForCalIdTeam({
+    eventTypeId,
+    calIdTeamId,
+    prisma,
+  });
+
+  if (!rawEventType) {
+    if (isTrpcCall) {
+      throw new TRPCError({ code: "NOT_FOUND" });
+    } else {
+      throw new Error("Event type not found");
+    }
+  }
+
+  const { locations, metadata, ...restEventType } = rawEventType;
+  const newMetadata = eventTypeMetaDataSchemaWithTypedApps.parse(metadata || {}) || {};
+  const apps = newMetadata?.apps || {};
+  const eventTypeWithParsedMetadata = { ...rawEventType, metadata: newMetadata };
+  const userRepo = new UserRepository(prisma);
+  const eventTeamMembershipsWithUserProfile = [];
+  for (const eventTeamMembership of rawEventType.calIdTeam?.members || []) {
+    eventTeamMembershipsWithUserProfile.push({
+      ...eventTeamMembership,
+      user: await userRepo.enrichUserWithItsProfile({
+        user: eventTeamMembership.user,
+      }),
+    });
+  }
+
+  const childrenWithUserProfile = [];
+  for (const child of rawEventType.children || []) {
+    childrenWithUserProfile.push({
+      ...child,
+      owner: child.owner
+        ? await userRepo.enrichUserWithItsProfile({
+            user: child.owner,
+          })
+        : null,
+    });
+  }
+
+  const eventTypeUsersWithUserProfile = [];
+  for (const eventTypeUser of rawEventType.users) {
+    eventTypeUsersWithUserProfile.push(
+      await userRepo.enrichUserWithItsProfile({
+        user: eventTypeUser,
+      })
+    );
+  }
+
+  newMetadata.apps = {
+    ...apps,
+    ...getEventTypeAppData(newMetadata, eventTypeWithParsedMetadata),
+  };
+
+  const eventType = {
+    ...restEventType,
+    metadata: newMetadata,
+    locations: (locations as LocationObject[]) || [],
+    children: childrenWithUserProfile.map((ch) => ({
+      ...ch,
+      owner: ch.owner
+        ? {
+            ...ch.owner,
+            avatar: getUserAvatarUrl(ch.owner),
+            created: true,
+          }
+        : null,
+      created: true,
+    })),
+  };
+
+  // backwards compat
+  if (eventType.users.length === 0 && !eventType.calIdTeam) {
+    const fallbackUser = await prisma.user.findUnique({
+      where: {
+        id: rawEventType.userId || 0,
+      },
+      select: userSelect,
+    });
+    if (!fallbackUser) {
+      if (isTrpcCall) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "The event type doesn't have user and no fallback user was found",
+        });
+      } else {
+        throw Error("The event type doesn't have user and no fallback user was found");
+      }
+    }
+    eventType.users.push(fallbackUser);
+  }
+
+  const eventTypeUsers: ((typeof eventType.users)[number] & { avatar: string })[] =
+    eventTypeUsersWithUserProfile.map((user) => ({
+      ...user,
+      avatar: getUserAvatarUrl(user),
+    }));
+
+  const currentUser = eventType.users.find((u) => u.id === rawEventType.userId);
+
+  const t = await getTranslation(currentUser?.locale ?? "en", "common");
+
+  if (!currentUser?.id && !eventType.calIdTeamId) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Could not find user or team",
+    });
+  }
+
+  const locationOptions = await getLocationGroupedOptions(
+    eventType.calIdTeamId ? { teamId: eventType.calIdTeamId } : { userId: rawEventType.userId || 0 },
+    t
+  );
+  if (eventType.schedulingType === SchedulingType.MANAGED) {
+    locationOptions.splice(0, 0, {
+      label: t("default"),
+      options: [
+        {
+          label: t("members_default_location"),
+          value: "",
+          icon: "/user-check.svg",
+        },
+      ],
+    });
+  }
+
+  const isOrgTeamEvent = false; // calIdTeam has no parent
+  const eventTypeObject = {
+    ...eventType,
+    users: eventTypeUsers,
+    periodStartDate: eventType.periodStartDate?.toString() ?? null,
+    periodEndDate: eventType.periodEndDate?.toString() ?? null,
+    isOrgTeamEvent,
+  };
+
+  const isOrgEventType = false; // calIdTeam has no parent
+  const teamMembers = eventTypeObject.calIdTeam
+    ? eventTeamMembershipsWithUserProfile
+        .filter((member) => member.acceptedInvitation || isOrgEventType)
+        .map((member) => {
+          const user: typeof member.user & { avatar: string } = {
+            ...member.user,
+            avatar: getUserAvatarUrl(member.user),
+          };
+          return {
+            ...user,
+            profileId: user.profile.id,
+            eventTypes: user.eventTypes.map((evTy) => evTy.slug),
+            membership: member.role,
+          };
+        })
+    : [];
+
+  // Find the current users membership so we can check role to enable/disable deletion.
+  // Sets to null if no membership is found - this must mean we are in a none team event type
+  const currentUserMembership =
+    eventTypeObject.calIdTeam?.members.find((el) => el.user.id === rawEventType.userId) ?? null;
+
+  let destinationCalendar = eventTypeObject.destinationCalendar;
+  if (!destinationCalendar) {
+    destinationCalendar = await prisma.destinationCalendar.findFirst({
+      where: {
+        userId: rawEventType.userId || 0,
+        eventTypeId: null,
+      },
+    });
+  }
+
+  const finalObj = {
+    eventType: eventTypeObject,
+    locationOptions,
+    destinationCalendar,
+    team: eventTypeObject.calIdTeam || null,
+    teamMembers,
+    currentUserMembership,
+    isUserOrganizationAdmin: false, // calIdTeam has no organization
+  };
+  return finalObj;
+};
+
 export default getEventTypeById;

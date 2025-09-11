@@ -10,7 +10,7 @@ interface ThemeCardProps {
   description?: string;
   defaultChecked?: boolean;
   register: any;
-  currentValue?: string;
+  currentValue?: string | null;
   fieldName?: string;
   className?: string;
 }
@@ -26,7 +26,7 @@ export default function ThemeCard({
   fieldName = "theme",
   className,
 }: ThemeCardProps) {
-  const isSelected = currentValue === value || (currentValue === undefined && defaultChecked);
+  const isSelected = currentValue === value || (currentValue === null && defaultChecked);
 
   const getThemeIcon = () => {
     switch (variant) {

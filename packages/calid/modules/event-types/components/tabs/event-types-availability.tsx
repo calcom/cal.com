@@ -1,10 +1,11 @@
 import { Button } from "@calid/features/ui/components/button";
+import { Card, CardContent } from "@calid/features/ui/components/card";
 import { CustomSelect } from "@calid/features/ui/components/custom-select";
 import { Icon } from "@calid/features/ui/components/icon";
 import { Label } from "@calid/features/ui/components/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@calid/features/ui/components/card";
-import { SettingsSwitch } from "@calid/features/ui/components/switch";
 import { Separator } from "@calid/features/ui/components/separator";
+import { Skeleton } from "@calid/features/ui/components/skeleton";
+import { SettingsSwitch } from "@calid/features/ui/components/switch";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { UseQueryResult } from "@tanstack/react-query";
 import type { TFunction } from "i18next";
@@ -29,10 +30,9 @@ import { weekStartNum } from "@calcom/lib/weekstart";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Skeleton } from "@calid/features/ui/components/skeleton";
 
 export type GetAllSchedulesByUserIdQueryType =
-  | typeof trpc.viewer.availability.schedule.getAllSchedulesByUserId.useQuery
+  | typeof trpc.viewer.availability.schedule.calid_getAllSchedulesByUserId.useQuery
   | (({ userId }: { userId: number }) => UseQueryResult<
       {
         schedules: {
@@ -52,7 +52,7 @@ type TeamMember = Pick<TeamMembers[number], "avatar" | "name" | "id">;
 export interface EventAvailabilityProps {
   eventType: EventTypeSetup;
   isTeamEvent: boolean;
-  user?: RouterOutputs["viewer"]["me"]["get"];
+  user?: RouterOutputs["viewer"]["me"]["calid_get"];
   teamMembers: TeamMembers;
   hostSchedulesQuery?: GetAllSchedulesByUserIdQueryType;
 }
@@ -350,7 +350,7 @@ const ScheduleDisplay = memo(
   }: {
     scheduleQueryData?: ScheduleQueryData;
     isSchedulePending?: boolean;
-    user?: RouterOutputs["viewer"]["me"]["get"];
+    user?: RouterOutputs["viewer"]["me"]["calid_get"];
     editAvailabilityRedirectUrl?: string;
     isRestrictionSchedule?: boolean;
     useBookerTimezone?: boolean;
@@ -388,7 +388,7 @@ const ScheduleDisplay = memo(
     return (
       <div className="space-y-6">
         {/* Weekly Schedule Grid */}
-        <div className="space-y-4 border-subtle border-b pb-4">
+        <div className="border-subtle space-y-4 border-b pb-4">
           <ol className="table w-full border-collapse text-sm">
             {weeklySchedule.map((schedule) => (
               <li key={schedule.day} className="my-6 flex justify-between border-transparent last:mb-2">
@@ -491,7 +491,7 @@ const ScheduleSelector = memo(
     const formMethods = useFormContext<FormValues>();
 
     return (
-      <div className="border-b border-subtle pb-4">
+      <div className="border-subtle border-b pb-4">
         <label htmlFor="availability" className="text-default mb-2 block text-sm font-medium leading-none">
           {/* Label intentionally commented out as per original code */}
         </label>
@@ -511,9 +511,9 @@ const ScheduleSelector = memo(
                 }}
                 options={options.map((opt) => ({
                   value: opt.value.toString(),
-                  label: opt.isDefault 
+                  label: opt.isDefault
                     ? `${opt.label} (${t("default")})`
-                    : opt.isManaged 
+                    : opt.isManaged
                     ? `${opt.label} (${t("managed")})`
                     : opt.label,
                 }))}
@@ -553,7 +553,7 @@ const TeamEventSchedules = memo(
     t,
   }: {
     eventType: EventTypeSetup;
-    user?: RouterOutputs["viewer"]["me"]["get"];
+    user?: RouterOutputs["viewer"]["me"]["calid_get"];
     teamMembers: TeamMembers;
     hosts: Host[] | undefined;
     scheduleOptions: AvailabilityOption[];
@@ -578,7 +578,7 @@ const TeamEventSchedules = memo(
           title={t("choose_common_schedule_team_event")}
           description={t("choose_common_schedule_team_event_description")}
         />
-        
+
         {/* Common Schedule Selector */}
         {!useHostSchedulesForTeamEvent && (
           <div className="mt-4">
@@ -600,7 +600,9 @@ const TeamEventSchedules = memo(
               />
             ) : (
               isManagedEventType && (
-                <p className="!mt-2 ml-1 text-sm text-gray-600">{t("members_default_schedule_description")}</p>
+                <p className="!mt-2 ml-1 text-sm text-gray-600">
+                  {t("members_default_schedule_description")}
+                </p>
               )
             )}
           </div>
@@ -676,7 +678,7 @@ const RestrictionScheduleSection = memo(
     restrictionScheduleId: number | null;
     restrictionScheduleQueryData?: ScheduleQueryData;
     isRestrictionSchedulePending: boolean;
-    user?: RouterOutputs["viewer"]["me"]["get"];
+    user?: RouterOutputs["viewer"]["me"]["calid_get"];
     eventType: EventTypeSetup;
     shouldLockDisableProps: (field: string) => { disabled: boolean };
     shouldLockIndicator: (field: string) => React.ReactNode;
@@ -690,7 +692,7 @@ const RestrictionScheduleSection = memo(
         title={t("choose_restriction_schedule")}
         description={t("restriction_schedule_description")}
       />
-      
+
       {restrictScheduleForHosts && (
         <div className="mt-4">
           <ScheduleSelector
@@ -752,22 +754,16 @@ export const EventAvailability = (props: EventAvailabilityProps) => {
     eventType.restrictionScheduleId
   );
 
-  // Use provided hostSchedulesQuery or default tRPC query
   const hostSchedulesQuery =
-    props.hostSchedulesQuery || trpc.viewer.availability.schedule.getAllSchedulesByUserId.useQuery;
+    props.hostSchedulesQuery || trpc.viewer.availability.schedule.calid_getAllSchedulesByUserId.useQuery;
 
-  // ============================================================================
-  // tRPC QUERIES
-  // ============================================================================
-
-  // Check if restriction schedule feature is enabled for the team
   const { data: isRestrictionScheduleEnabled = false } = trpc.viewer.features.checkTeamFeature.useQuery(
     {
-      teamId: eventType.team?.id || 0,
+      teamId: (eventType as any)?.team?.id || 0,
       feature: "restriction-schedule",
     },
     {
-      enabled: !!eventType.team?.id,
+      enabled: !!(eventType as any)?.team?.id,
       staleTime: 5 * 60 * 1000, // Cache for 5 minutes
     }
   );

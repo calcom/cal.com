@@ -59,12 +59,16 @@ export const EventTypes = () => {
   const newDropdownRef = useRef<HTMLDivElement>(null);
   const debouncedSearchTerm = useDebounce(searchQuery, 500);
 
-  // Real data fetching - User event groups
-  const userEventGroupsQuery = trpc.viewer.eventTypes.getUserEventGroups.useQuery();
-  const eventTypeGroups = userEventGroupsQuery.data?.eventTypeGroups || [];
-  const profiles = userEventGroupsQuery.data?.profiles || [];
+  const userEventGroupsQuery = trpc.viewer.eventTypes.calid_getUserEventGroups.useQuery();
+  const eventTypeGroups = useMemo(
+    () => userEventGroupsQuery.data?.eventTypeGroups || [],
+    [userEventGroupsQuery.data?.eventTypeGroups]
+  );
+  const profiles = useMemo(
+    () => userEventGroupsQuery.data?.profiles || [],
+    [userEventGroupsQuery.data?.profiles]
+  );
 
-  // Find current team/group
   const currentTeam = useMemo(() => {
     if (selectedTeam === "personal") {
       return eventTypeGroups.find((group) => !group.teamId);
@@ -72,37 +76,25 @@ export const EventTypes = () => {
     return eventTypeGroups.find((group) => group.teamId?.toString() === selectedTeam);
   }, [eventTypeGroups, selectedTeam]);
 
-  // Real data fetching - Event types for current group
-  const eventTypesQuery = trpc.viewer.eventTypes.getEventTypesFromGroup.useInfiniteQuery(
-    {
-      limit: LIMIT,
-      searchQuery: debouncedSearchTerm,
-      group: {
-        teamId: currentTeam?.teamId || null,
-        parentId: currentTeam?.parentId || null,
-      },
+  const eventTypesQuery = trpc.viewer.eventTypes.calid_getEventTypesFromGroup.useQuery({
+    limit: LIMIT,
+    searchQuery: debouncedSearchTerm,
+    group: {
+      calIdTeamId: currentTeam?.teamId || null,
+      parentId: currentTeam?.parentId || null,
     },
-    {
-      enabled: !!currentTeam,
-      refetchOnWindowFocus: true,
-      refetchOnMount: true,
-      staleTime: 0,
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-    }
-  );
+  });
 
-  // Custom hook for mutations and handlers
   const { mutations, handlers } = useEventTypesMutations(currentTeam, debouncedSearchTerm);
 
-  // Get filtered events from pages
   const filteredEvents = useMemo(() => {
-    const allEvents = eventTypesQuery.data?.pages?.flatMap((page) => page.eventTypes) || [];
+    const allEvents = eventTypesQuery.data?.eventTypes || [];
     return allEvents.filter(
       (event) =>
         event.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
         event.description?.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
     );
-  }, [eventTypesQuery.data?.pages, debouncedSearchTerm]);
+  }, [eventTypesQuery.data?.eventTypes, debouncedSearchTerm]);
 
   // Initialize event states from real data
   useEffect(() => {
@@ -139,7 +131,7 @@ export const EventTypes = () => {
   }, [orgBranding]);
 
   // Event handlers
-  const handleCreateEvent = useCallback((eventData: any) => {
+  const handleCreateEvent = useCallback((_eventData: unknown) => {
     setIsCreateModalOpen(false);
   }, []);
 
@@ -171,10 +163,10 @@ export const EventTypes = () => {
 
   const handleReorderEvents = useCallback(
     (reorderedEvents: InfiniteEventType[]) => {
-      const allEvents = eventTypesQuery.data?.pages?.flatMap((page) => page.eventTypes) || [];
+      const allEvents = eventTypesQuery.data?.eventTypes || [];
       handlers.handleReorderEvents(reorderedEvents, allEvents);
     },
-    [handlers, eventTypesQuery.data?.pages]
+    [handlers, eventTypesQuery.data?.eventTypes]
   );
 
   const handleNewSelection = useCallback((teamId: string) => {
@@ -238,15 +230,6 @@ export const EventTypes = () => {
     [router]
   );
 
-  // // Loading state
-  // if (userEventGroupsQuery.isLoading || !currentTeam) {
-  //   return (
-  //     <div className="px-4 pb-8 sm:px-6 lg:px-8">
-  //       <div className="mx-auto max-w-7xl">{/* <EventCardListSkeleton count={2} /> */}</div>
-  //     </div>
-  //   );
-  // }
-
   // Error state
   if (userEventGroupsQuery.error) {
     return <div className="p-4">Error loading event types</div>;
@@ -291,15 +274,17 @@ export const EventTypes = () => {
         copiedLink={copiedLink}
         bookerUrl={bookerUrl}
         debouncedSearchTerm={debouncedSearchTerm}
-        hasNextPage={eventTypesQuery.hasNextPage}
-        isFetchingNextPage={eventTypesQuery.isFetchingNextPage}
+        hasNextPage={false}
+        isFetchingNextPage={false}
         onEventEdit={handlers.handleEventEdit}
         onCopyLink={handleCopyLink}
         onToggleEvent={handleToggleEvent}
         onDuplicateEvent={handleDuplicateEvent}
         onDeleteEvent={handleDeleteEvent}
         onReorderEvents={handleReorderEvents}
-        onLoadMore={() => eventTypesQuery.fetchNextPage()}
+        onLoadMore={() => {
+          // No pagination needed for regular query
+        }}
         onCreatePersonal={() => setIsCreateModalOpen(true)}
         onCreateTeam={() => setIsCreateTeamModalOpen(true)}
       />

@@ -1,340 +1,253 @@
 "use client";
 
-import { Input } from "@calid/features/ui/components/input/input";
-import { triggerToast } from "@calid/features/ui/components/toast";
 import { useCallback, useState } from "react";
-import React from "react";
 import Cropper from "react-easy-crop";
 
+import checkIfItFallbackImage from "@calcom/lib/checkIfItFallbackImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Button } from "../button";
+import { Button, type ButtonProps, type ButtonColor } from "../button";
 import {
   Dialog,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
+  DialogClose,
   DialogContent,
   DialogTrigger,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "../dialog";
+import { triggerToast } from "../toast";
+import { useFileReader, createImage, Slider } from "./common";
+import type { FileEvent, Area } from "./common";
 
-// Utility functions for cropping
-const createImage = (url: string): Promise<HTMLImageElement> =>
-  new Promise((resolve, reject) => {
-    const image = new Image();
-    image.addEventListener("load", () => resolve(image));
-    image.addEventListener("error", (error) => reject(error));
-    image.setAttribute("crossOrigin", "anonymous");
-    image.src = url;
-  });
+const MAX_IMAGE_SIZE = 512;
 
-interface Area {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-// Slider component for zoom control
-const ZoomSlider = ({
-  value,
-  onChange,
-  min = 1,
-  max = 3,
-  step = 0.1,
-}: {
-  value: number;
-  onChange: (value: number) => void;
-  min?: number;
-  max?: number;
-  step?: number;
-}) => {
-  return (
-    <div className="mt-4 w-full">
-      <label className="mb-2 block text-sm text-gray-600">Zoom: {value.toFixed(1)}x</label>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => onChange(parseFloat(e.target.value))}
-        className="slider h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200"
-      />
-    </div>
-  );
+type ImageUploaderProps = {
+  id: string;
+  buttonMsg: string;
+  buttonSize?: ButtonProps["size"];
+  handleAvatarChange: (imageSrc: string) => void;
+  imageSrc?: string;
+  target: string;
+  triggerButtonColor?: ButtonColor;
+  uploadInstruction?: string;
+  disabled?: boolean;
+  testId?: string;
 };
 
-// Crop container component
-const CropContainer = ({
-  imageSrc,
+// This is separate to prevent loading the component until file upload
+function CropContainer({
   onCropComplete,
+  imageSrc,
 }: {
   imageSrc: string;
   onCropComplete: (croppedAreaPixels: Area) => void;
-}) => {
+}) {
+  const { t } = useLocale();
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
 
-  const handleZoomChange = (value: number) => {
-    setZoom(value < 1 ? 1 : value);
+  const handleZoomSliderChange = (value: number) => {
+    value < 1 ? setZoom(1) : setZoom(value);
   };
 
   return (
-    <div className="crop-container">
-      <div className="relative mx-auto mb-4 h-40 w-40 rounded-full">
+    <div className="crop-container h-40 max-h-40 w-40 rounded-full">
+      <div className="relative h-40 w-40 rounded-full">
         <Cropper
           image={imageSrc}
           crop={crop}
           zoom={zoom}
           aspect={1}
-          cropShape="round"
-          showGrid={false}
           onCropChange={setCrop}
           onCropComplete={(croppedArea, croppedAreaPixels) => onCropComplete(croppedAreaPixels)}
           onZoomChange={setZoom}
-          restrictPosition={false}
         />
       </div>
-      <div className="mb-2 text-center">
-        <p className="text-xs text-gray-500">Drag to reposition • Scroll or use slider to zoom</p>
-      </div>
-      <ZoomSlider value={zoom} onChange={handleZoomChange} min={1} max={3} step={0.1} />
+      <Slider
+        value={zoom}
+        min={1}
+        max={3}
+        step={0.1}
+        label={t("slide_zoom_drag_instructions")}
+        changeHandler={handleZoomSliderChange}
+      />
     </div>
   );
-};
-
-// Function to get cropped image
-const getCroppedImg = async (imageSrc: string, pixelCrop: Area): Promise<string> => {
-  const image = await createImage(imageSrc);
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-
-  if (!ctx) {
-    throw new Error("Could not get canvas context");
-  }
-
-  const maxSize = 512;
-  const size = Math.min(maxSize, pixelCrop.width);
-
-  canvas.width = size;
-  canvas.height = size;
-
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
-
-  ctx.drawImage(image, pixelCrop.x, pixelCrop.y, pixelCrop.width, pixelCrop.height, 0, 0, size, size);
-
-  return canvas.toDataURL("image/jpeg", 0.9);
-};
-
-interface CustomImageUploaderProps {
-  targetId: string;
-  buttonText: string;
-  onImageChange: (imageDataUrl: string) => void;
-  currentImageSrc?: string;
-  targetType: string;
-  buttonColor?: string;
-  uploadHint?: string;
-  isDisabled?: boolean;
-  testIdentifier?: string;
 }
 
-export default function CustomImageUploader({
-  targetId,
-  buttonText,
-  onImageChange,
-  currentImageSrc,
-  targetType,
-  buttonColor = "secondary",
-  uploadHint,
-  isDisabled = false,
-  testIdentifier,
-}: CustomImageUploaderProps) {
+export default function ImageUploader({
+  target,
+  id,
+  buttonMsg,
+  handleAvatarChange,
+  triggerButtonColor,
+  imageSrc,
+  uploadInstruction,
+  disabled = false,
+  testId,
+  buttonSize,
+}: ImageUploaderProps) {
   const { t } = useLocale();
-  const [open, setOpen] = React.useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
-  const [showCropper, setShowCropper] = useState(false);
 
-  const handleFileSelection = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files || files.length === 0) {
+  const [{ result }, setFile] = useFileReader({
+    method: "readAsDataURL",
+  });
+
+  const onInputFile = (e: FileEvent<HTMLInputElement>) => {
+    if (!e.target.files?.length) {
       return;
     }
 
-    const file = files[0];
-    const maxSize = 5 * 1024 * 1024; // 5MB limit
+    const limit = 5 * 1000000; // max limit 5mb
+    const file = e.target.files[0];
 
-    if (file.size > maxSize) {
-      triggerToast(t("file_too_large"), "error");
-      return;
+    if (file.size > limit) {
+      triggerToast(t("image_size_limit_exceed"), "error");
+    } else {
+      setFile(file);
     }
-
-    if (!file.type.startsWith("image/")) {
-      triggerToast(t("file_type_not_supported"), "error");
-      return;
-    }
-
-    setSelectedFile(file);
-
-    // Create preview
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      setPreviewUrl(result);
-      setShowCropper(true);
-    };
-    reader.readAsDataURL(file);
-  }, []);
-
-  const handleImageUpload = useCallback(async () => {
-    if (!selectedFile || !previewUrl || !croppedAreaPixels) return;
-
-    setIsProcessing(true);
-
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      const croppedImage = await getCroppedImg(previewUrl, croppedAreaPixels);
-      onImageChange(croppedImage);
-
-      // Reset state
-      setSelectedFile(null);
-      setPreviewUrl(null);
-      setCroppedAreaPixels(null);
-      setShowCropper(false);
-      setOpen(false);
-    } catch (error) {
-      triggerToast(t("failed_to_upload_image"), "error");
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [selectedFile, previewUrl, croppedAreaPixels, onImageChange]);
-
-  const handleCropComplete = useCallback((croppedAreaPixels: Area) => {
-    setCroppedAreaPixels(croppedAreaPixels);
-  }, []);
-
-  const resetUploader = useCallback(() => {
-    setSelectedFile(null);
-    setPreviewUrl(null);
-    setCroppedAreaPixels(null);
-    setShowCropper(false);
-  }, []);
-
-  const getButtonTestId = () => {
-    if (testIdentifier) {
-      return `open-upload-${testIdentifier}-dialog`;
-    }
-    return `open-upload-${targetType}-dialog`;
   };
 
-  const getUploadTestId = () => {
-    if (testIdentifier) {
-      return `upload-${testIdentifier}`;
-    }
-    return `upload-${targetType}`;
-  };
+  const showCroppedImage = useCallback(
+    async (croppedAreaPixels: Area | null) => {
+      try {
+        if (!croppedAreaPixels) return;
+        const croppedImage = await getCroppedImg(
+          result as string /* result is always string when using readAsDataUrl */,
+          croppedAreaPixels
+        );
+        handleAvatarChange(croppedImage);
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    [result, handleAvatarChange]
+  );
 
   return (
     <Dialog
-      open={open}
       onOpenChange={(opened) => {
-        setOpen(opened);
+        // unset file on close
         if (!opened) {
-          resetUploader();
+          setFile(null);
         }
       }}>
       <DialogTrigger asChild>
         <Button
-          StartIcon="upload"
-          color={buttonColor as any}
-          disabled={isDisabled}
-          variant="button"
-          className="hover:border-emphasis"
-          data-testid={getButtonTestId()}>
-          {buttonText}
+          color={triggerButtonColor ?? "secondary"}
+          type="button"
+          disabled={disabled}
+          size={buttonSize}
+          data-testid={testId ? `open-upload-${testId}-dialog` : "open-upload-avatar-dialog"}
+          className="cursor-pointer px-2 py-2 text-sm">
+          {buttonMsg}
         </Button>
       </DialogTrigger>
-
-      <DialogContent>
+      <DialogContent
+        size="md"
+        className="sm:w-[30rem] sm:max-w-[30rem]"
+        title={t("upload_target", { target })}
+        enableOverflow={true}>
         <DialogHeader>
-          <DialogTitle>{t("upload_logo")}</DialogTitle>
-          <DialogDescription>{t("upload_logo_description")}</DialogDescription>
+          <DialogTitle>{t("upload_target", { target })}</DialogTitle>
         </DialogHeader>
-
         <div className="mb-4">
-          <div className="upload-container mt-6 flex flex-col items-center justify-center p-8">
-            {/* Preview Section */}
-            {!showCropper && (
-              <div className="preview-placeholder bg-muted mb-4 flex h-20 max-h-20 w-20 items-center justify-start rounded-full">
-                {!currentImageSrc ? (
-                  <p className="text-muted-foreground w-full text-center text-sm">No {targetType} selected</p>
+          <div className="cropper mt-6 flex flex-col items-center justify-center p-8">
+            {!result && (
+              <div className="bg-muted flex h-20 max-h-20 w-20 items-center justify-start rounded-full">
+                {!imageSrc || checkIfItFallbackImage(imageSrc) ? (
+                  <p className="text-emphasis w-full text-center text-sm sm:text-xs">
+                    {t("no_target", { target })}
+                  </p>
                 ) : (
-                  <img
-                    className="h-20 w-20 rounded-full object-cover"
-                    src={currentImageSrc}
-                    alt={targetType}
-                  />
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img className="h-20 w-20 rounded-full" src={imageSrc} alt={target} />
                 )}
               </div>
             )}
-
-            {showCropper && previewUrl && (
-              <CropContainer imageSrc={previewUrl} onCropComplete={handleCropComplete} />
-            )}
-
-            {/* File Input - only show when not cropping */}
-            {!showCropper && (
-              <label
-                data-testid="open-upload-image-filechooser"
-                className="file-input-label hover:bg-muted border-border focus:ring-ring cursor-pointer rounded-md border px-3 py-1 text-xs leading-4 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2">
-                <Input
-                  onChange={handleFileSelection}
-                  type="file"
-                  name={targetId}
-                  placeholder="Upload image"
-                  className="pointer-events-none absolute mt-4 opacity-0"
-                  accept="image/*"
-                />
-                {t("choose_a_file")}
-              </label>
-            )}
-
-            {uploadHint && !showCropper && (
-              <p className="text-muted-foreground mt-4 text-center text-sm">({uploadHint})</p>
+            {result && <CropContainer imageSrc={result as string} onCropComplete={setCroppedAreaPixels} />}
+            <label
+              data-testid={testId ? `open-upload-${testId}-filechooser` : "open-upload-image-filechooser"}
+              className="bg-subtle hover:bg-muted hover:text-emphasis border-subtle text-default mt-8 cursor-pointer rounded-sm border px-3 py-1 text-xs font-medium leading-4 transition focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1">
+              <input
+                onInput={onInputFile}
+                type="file"
+                name={id}
+                placeholder={t("upload_image")}
+                className="text-default pointer-events-none absolute mt-4 opacity-0 "
+                accept="image/*"
+              />
+              {t("choose_a_file")}
+            </label>
+            {uploadInstruction && (
+              <p className="text-muted mt-4 text-center text-sm">({uploadInstruction})</p>
             )}
           </div>
         </div>
-
         <DialogFooter className="relative">
-          <Button
-            color="secondary"
-            onClick={() => {
-              resetUploader();
-              setOpen(false);
-            }}>
-            {t("cancel")}
-          </Button>
-
-          {showCropper && (
-            <Button color="secondary" onClick={() => setShowCropper(false)} disabled={isProcessing}>
-              Back
+          <DialogClose asChild>
+            <Button color="minimal">{t("cancel")}</Button>
+          </DialogClose>
+          <DialogClose asChild>
+            <Button
+              data-testid={testId ? `upload-${testId}` : "upload-avatar"}
+              color="primary"
+              onClick={() => showCroppedImage(croppedAreaPixels)}>
+              {t("save")}
             </Button>
-          )}
-
-          <Button
-            data-testid={getUploadTestId()}
-            color="primary"
-            onClick={handleImageUpload}
-            disabled={!selectedFile || !croppedAreaPixels || isProcessing}>
-            {isProcessing ? "Uploading..." : "Upload"}
-          </Button>
+          </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
+}
+
+async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<string> {
+  const image = await createImage(imageSrc);
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Context is null, this should never happen.");
+
+  // Detect original image format from data URL
+  const originalFormat =
+    imageSrc.startsWith("data:image/jpeg") || imageSrc.startsWith("data:image/jpg")
+      ? "image/jpeg"
+      : "image/png";
+
+  const maxSize = Math.max(image.naturalWidth, image.naturalHeight);
+  const resizeRatio = MAX_IMAGE_SIZE / maxSize < 1 ? Math.max(MAX_IMAGE_SIZE / maxSize, 0.75) : 1;
+
+  // huh, what? - Having this turned off actually improves image quality as otherwise anti-aliasing is applied
+  // this reduces the quality of the image overall because it anti-aliases the existing, copied image; blur results
+  ctx.imageSmoothingEnabled = false;
+  // pixelCrop is always 1:1 - width = height
+  canvas.width = canvas.height = Math.min(maxSize * resizeRatio, pixelCrop.width);
+
+  ctx.drawImage(
+    image,
+    pixelCrop.x,
+    pixelCrop.y,
+    pixelCrop.width,
+    pixelCrop.height,
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+
+  // on very low ratios, the quality of the resize becomes awful. For this reason the resizeRatio is limited to 0.75
+  if (resizeRatio <= 0.75) {
+    // With a smaller image, thus improved ratio. Keep doing this until the resizeRatio > 0.75.
+    return getCroppedImg(canvas.toDataURL(originalFormat), {
+      width: canvas.width,
+      height: canvas.height,
+      x: 0,
+      y: 0,
+    });
+  }
+
+  // Use original format with quality setting for JPEG
+  return canvas.toDataURL(originalFormat, originalFormat === "image/jpeg" ? 0.9 : undefined);
 }

@@ -1,4 +1,3 @@
-// UI components and utilities
 import { Alert } from "@calid/features/ui/components/alert";
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
@@ -7,13 +6,11 @@ import React, { useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import type z from "zod";
 
-// Core app context and data management
 import type { GetAppData, SetAppData } from "@calcom/app-store/EventTypeAppContext";
 import EventTypeAppContext from "@calcom/app-store/EventTypeAppContext";
 import { EventTypeAddonMap } from "@calcom/app-store/apps.browser.generated";
 import type { EventTypeAppCardComponentProps, CredentialOwner } from "@calcom/app-store/types";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
-// Event type and form management
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { EventTypeSetupProps, FormValues } from "@calcom/features/eventtypes/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
@@ -25,8 +22,7 @@ import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
 
-// Type definitions for better type safety and documentation
-export type EventTypeApp = RouterOutputs["viewer"]["apps"]["integrations"]["items"][number] & {
+export type EventTypeApp = RouterOutputs["viewer"]["apps"]["calid_integrations"]["items"][number] & {
   credentialOwner?: CredentialOwner;
 };
 
@@ -49,10 +45,6 @@ export interface EventAppsTabProps {
   customClassNames?: EventAppsTabCustomClassNames;
 }
 
-/**
- * Empty state component for when no apps are installed
- * Displays a centered message with optional action button
- */
 const EmptyScreen = ({
   headline,
   description,
@@ -66,7 +58,7 @@ const EmptyScreen = ({
 }) => {
   return (
     <div className={classNames("flex flex-col items-center justify-center py-12 text-center", className)}>
-      <Icon name="grid-3x3" className="mb-4 h-12 w-12 text-gray-400" />
+      <Icon name="blocks" className="mb-4 h-12 w-12 text-gray-400" />
       <h3 className="mb-2 text-lg font-medium text-gray-900">{headline}</h3>
       <p className="mb-6 max-w-md text-sm text-gray-600">{description}</p>
       {buttonRaw}
@@ -74,24 +66,15 @@ const EmptyScreen = ({
   );
 };
 
-/**
- * Section components for consistent typography and spacing
- * Used for organizing content sections with standardized styling
- */
 const Section = {
   Title: ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
-    <h3 className={classNames("mb-2 text-lg font-medium text-gray-900", className)}>{children}</h3>
+    <h3 className={classNames("text-default text-sm font-medium", className)}>{children}</h3>
   ),
   Description: ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
-    <div className={classNames("text-sm text-gray-600", className)}>{children}</div>
+    <div className={classNames("text-subtle text-sm", className)}>{children}</div>
   ),
 };
 
-/**
- * Dynamic component loader for app-specific components
- * Handles loading of different app integration components from the EventTypeAddonMap
- * Includes fallback for when app components are not found
- */
 const DynamicComponent = ({
   slug,
   componentMap,
@@ -116,11 +99,6 @@ const DynamicComponent = ({
   return <Component {...props} />;
 };
 
-/**
- * Individual app card component with error boundary
- * Renders a specific app integration with its configuration interface
- * Wrapped in error boundary to prevent entire form from breaking if one app fails
- */
 const EventTypeAppCard = ({
   app,
   eventType,
@@ -157,23 +135,25 @@ const EventTypeAppCard = ({
   );
 };
 
-/**
- * Hook for managing app categorization
- * Separates apps into installed and available based on credentials and team access
- */
 const useAppCategorization = (eventTypeApps: any) => {
   const installedApps = useMemo(() => {
-    return eventTypeApps?.items.filter((app: any) => app.userCredentialIds.length || app.teams.length) || [];
+    return (
+      eventTypeApps?.items.filter(
+        (app: any) => (app.userCredentialIds?.length || 0) > 0 || (app.teams?.length || 0) > 0
+      ) || []
+    );
   }, [eventTypeApps]);
 
   const notInstalledApps = useMemo(() => {
     return (
-      eventTypeApps?.items.filter((app: any) => !app.userCredentialIds.length && !app.teams.length) || []
+      eventTypeApps?.items.filter(
+        (app: any) => (app.userCredentialIds?.length || 0) === 0 && (app.teams?.length || 0) === 0
+      ) || []
     );
   }, [eventTypeApps]);
 
   const appsWithTeamCredentials = useMemo(() => {
-    return eventTypeApps?.items.filter((app: any) => app.teams.length) || [];
+    return eventTypeApps?.items.filter((app: any) => (app.teams?.length || 0) > 0) || [];
   }, [eventTypeApps]);
 
   return {
@@ -183,10 +163,6 @@ const useAppCategorization = (eventTypeApps: any) => {
   };
 };
 
-/**
- * Hook for generating team app cards
- * Creates app cards for both user and team credentials, handling ownership display
- */
 const useTeamAppCards = (
   appsWithTeamCredentials: any[],
   getAppDataGetter: any,
@@ -198,9 +174,7 @@ const useTeamAppCards = (
   return useMemo(() => {
     return appsWithTeamCredentials.map((app) => {
       const appCards: JSX.Element[] = [];
-
-      // Add user credential card if user has credentials for this app
-      if (app.userCredentialIds.length) {
+      if ((app.userCredentialIds?.length || 0) > 0) {
         appCards.push(
           <EventTypeAppCard
             key={`${app.slug}-user`}
@@ -208,7 +182,7 @@ const useTeamAppCards = (
             setAppData={getAppDataSetter(
               app.slug as EventTypeAppsList,
               app.categories,
-              app.userCredentialIds[0]
+              app.userCredentialIds?.[0]
             )}
             app={app}
             eventType={eventType}
@@ -217,8 +191,7 @@ const useTeamAppCards = (
         );
       }
 
-      // Add team credential cards for each team that has this app
-      app.teams.forEach((team: any) => {
+      app.teams?.forEach((team: any) => {
         if (team) {
           appCards.push(
             <EventTypeAppCard
@@ -265,9 +238,9 @@ export const EventApps = ({ eventType, customClassNames = {} }: EventAppsTabProp
   const formMethods = useFormContext<FormValues>();
 
   // Fetch app integrations data for the current team/user
-  const { data: eventTypeApps, isPending } = trpc.viewer.apps.integrations.useQuery({
+  const { data: eventTypeApps, isPending } = trpc.viewer.apps.calid_integrations.useQuery({
     extendsFeature: "EventType",
-    teamId: eventType.team?.id || eventType.parent?.teamId,
+    calIdTeamId: eventType.calIdTeamId || undefined,
   });
 
   // Categorize apps based on installation status
@@ -298,7 +271,7 @@ export const EventApps = ({ eventType, customClassNames = {} }: EventAppsTabProp
 
   // Render user-only apps (apps without team credentials)
   const userOnlyApps = useMemo(() => {
-    return installedApps.filter((app: any) => !app.teams.length);
+    return installedApps.filter((app: any) => (app.teams?.length || 0) === 0);
   }, [installedApps]);
 
   return (
@@ -307,28 +280,26 @@ export const EventApps = ({ eventType, customClassNames = {} }: EventAppsTabProp
         {/* Managed Event Type Permission Alert */}
         {(isManagedEventType || isChildrenManagedEventType) && (
           <Alert
-            variant={appsDisableProps.isLocked ? "neutral" : "info"}
-            className={classNames("mb-2", customClassNames.alertContainer)}>
-            <div className="flex items-start justify-between">
-              <div>
-                <AlertTitle>
-                  <ServerTrans
-                    t={t}
-                    i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}
-                  />
-                </AlertTitle>
-                <AlertDescription>
-                  <ServerTrans
-                    t={t}
-                    i18nKey={`apps_${lockedText}_${
-                      isManagedEventType ? "for_members" : "by_team_admins"
-                    }_description`}
-                  />
-                </AlertDescription>
+            severity={appsDisableProps.isLocked ? "neutral" : "info"}
+            className={classNames("mb-2", customClassNames.alertContainer)}
+            title={
+              <ServerTrans
+                t={t}
+                i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}
+              />
+            }
+            message={
+              <div className="flex items-center">
+                <ServerTrans
+                  t={t}
+                  i18nKey={`apps_${lockedText}_${
+                    isManagedEventType ? "for_members" : "by_team_admins"
+                  }_description`}
+                />
+                <div className="ml-2 flex h-full items-center">{appsDisableProps.LockedIcon}</div>
               </div>
-              <div className="flex h-full items-center">{appsDisableProps.LockedIcon}</div>
-            </div>
-          </Alert>
+            }
+          />
         )}
 
         {/* Empty State - No Installed Apps */}
@@ -370,7 +341,7 @@ export const EventApps = ({ eventType, customClassNames = {} }: EventAppsTabProp
                 setAppData={getAppDataSetter(
                   app.slug as EventTypeAppsList,
                   app.categories,
-                  app.userCredentialIds[0]
+                  app.userCredentialIds?.[0]
                 )}
                 app={app}
                 eventType={eventType}

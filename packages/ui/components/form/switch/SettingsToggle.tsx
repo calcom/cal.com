@@ -56,7 +56,7 @@ export function SettingsToggle({
           {toggleSwitchAtTheEnd ? (
             <div
               className={classNames(
-                "border-subtle flex justify-between space-x-3 rounded-lg",
+                "border-subtle flex justify-between rounded-lg",
                 checked && children && "rounded-b-none",
                 switchContainerClassName
               )}>
@@ -64,8 +64,7 @@ export function SettingsToggle({
                 <div className="flex items-center gap-x-2" data-testid={`${rest["data-testid"]}-title`}>
                   <Label
                     className={classNames(
-                      "mt-0.5 leading-none",
-                      titleToggle ? "text-base" : "text-sm",
+                      "text-default mt-0.5 text-sm font-semibold leading-none",
                       labelClassName
                     )}
                     htmlFor="">
@@ -76,12 +75,7 @@ export function SettingsToggle({
                 </div>
                 {description && (
                   <p
-                    className={classNames(
-                      "text-subtle -mt-1.5 leading-normal",
-
-                      titleToggle ? "text-sm" : "text-xs",
-                      descriptionClassName
-                    )}
+                    className={classNames("text-subtle -mt-2 text-sm leading-normal", descriptionClassName)}
                     data-testid={`${rest["data-testid"]}-description`}>
                     {description}
                   </p>
