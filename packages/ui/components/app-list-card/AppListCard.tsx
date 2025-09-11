@@ -64,15 +64,7 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
   // Memoize cleaned description to avoid processing on every render
   const cleanDescription = useMemo(() => {
     const processed = stripMarkdown(description);
-    const normalized = processed.replace(/\s+/g, ' ').trim();
-    
-    if (normalized.length > 85) {
-      const truncated = normalized.substring(0, 82);
-      const lastSpace = truncated.lastIndexOf(' ');
-      return (lastSpace > 60 ? truncated.substring(0, lastSpace) : truncated) + '...';
-    }
-    
-    return normalized;
+    return processed.replace(/\s+/g, ' ').trim();
   }, [description]);
 
   return (

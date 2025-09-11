@@ -35,15 +35,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   // Memoize cleaned description to avoid processing on every render
   const cleanDescription = useMemo(() => {
     const processed = stripMarkdown(app.description);
-    const normalized = processed.replace(/\s+/g, ' ').trim();
-    
-    if (normalized.length > 85) {
-      const truncated = normalized.substring(0, 82);
-      const lastSpace = truncated.lastIndexOf(' ');
-      return (lastSpace > 60 ? truncated.substring(0, lastSpace) : truncated) + '...';
-    }
-    
-    return normalized;
+    return processed.replace(/\s+/g, ' ').trim();
   }, [app.description]);
   
   const allowedMultipleInstalls = app.categories && app.categories.indexOf("calendar") > -1;
@@ -133,7 +125,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
             <span>{props.rating} stars</span> <Icon name="star" className="ml-1 mt-0.5 h-4 w-4 text-yellow-600" />
             <span className="pl-1 text-subtle">{props.reviews} reviews</span>
           </div> */}
-      <p
+      <p 
         className="text-default mt-2 flex-grow text-sm"
         style={{
           display: "-webkit-box",
