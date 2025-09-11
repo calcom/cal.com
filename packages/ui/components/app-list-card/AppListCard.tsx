@@ -61,19 +61,23 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
     highlight,
   } = props;
 
-  // Memoize cleaned description to avoid processing on every render
+  // Memoize cleaned and truncated description for optimal performance
   const cleanDescription = useMemo(() => {
     const processed = stripMarkdown(description);
     const normalized = processed.replace(/\s+/g, ' ').trim();
     
-    // Simple, efficient truncation at word boundary
-    if (normalized.length > 160) {
-      const truncated = normalized.substring(0, 160);
-      const lastSpace = truncated.lastIndexOf(' ');
-      return truncated.substring(0, lastSpace) + '...';
-    }
+    // Early return for short descriptions - maximum efficiency
+    if (normalized.length <= 85) return normalized;
     
-    return normalized;
+    // Efficient truncation for long descriptions
+    const maxLength = 82; // Reserve 3 chars for "..."
+    let truncated = normalized.substring(0, maxLength);
+    
+    // Find last space efficiently (no need to search entire string)
+    const lastSpace = truncated.lastIndexOf(' ');
+    
+    // Use word boundary if it's reasonable (>80% of max length)
+    return lastSpace > 65 ? truncated.substring(0, lastSpace) + '...' : truncated + '...';
   }, [description]);
 
   return (
