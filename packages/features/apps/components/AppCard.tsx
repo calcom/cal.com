@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 import { isRedirectApp } from "@calcom/app-store/_utils/redirectApps";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
@@ -32,35 +32,11 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   const { t } = useLocale();
   const router = useRouter();
   
-  // Memoize cleaned description
-  const rawDescription = useMemo(() => {
+  // Memoize cleaned description to avoid processing on every render
+  const cleanDescription = useMemo(() => {
     const processed = stripMarkdown(app.description);
     return processed.replace(/\s+/g, ' ').trim();
   }, [app.description]);
-
-  // Ref for measuring description height
-  const descRef = useRef(null);
-  const [finalDescription, setFinalDescription] = useState(rawDescription);
-
-  useEffect(() => {
-    if (!descRef.current) return;
-    const el = descRef.current;
-    // Get computed line height
-    const lineHeight = parseFloat(getComputedStyle(el).lineHeight);
-    const maxHeight = parseFloat(getComputedStyle(el).maxHeight);
-    // How many lines are actually visible?
-    const linesVisible = Math.round(maxHeight / lineHeight);
-    // If only 2 lines fit, truncate to 2 lines
-    if (el.scrollHeight > maxHeight && linesVisible === 2) {
-      // Estimate how many chars fit in 2 lines
-      let truncated = rawDescription.substring(0, 60);
-      let lastSpace = truncated.lastIndexOf(' ');
-      if (lastSpace > 30) truncated = truncated.substring(0, lastSpace);
-      setFinalDescription(truncated + '...');
-    } else {
-      setFinalDescription(rawDescription);
-    }
-  }, [rawDescription, app.name]);
 
   const allowedMultipleInstalls = app.categories && app.categories.indexOf("calendar") > -1;
   const appAdded = (credentials && credentials.length) || 0;
@@ -150,7 +126,6 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
             <span className="pl-1 text-subtle">{props.reviews} reviews</span>
           </div> */}
       <p
-        ref={descRef}
         className="text-default mt-2 flex-grow text-sm"
         style={{
           display: "-webkit-box",
@@ -161,7 +136,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
           lineHeight: "1.4",
           maxHeight: "4.2em",
         }}>
-        {finalDescription}
+        {cleanDescription}
       </p>
 
       <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
