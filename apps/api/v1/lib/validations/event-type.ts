@@ -6,8 +6,9 @@ import {
   MIN_EVENT_DURATION_MINUTES,
 } from "@calcom/lib/constants";
 import slugify from "@calcom/lib/slugify";
-import { _EventTypeModel as EventType, _HostModel } from "@calcom/prisma/zod";
 import { customInputSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import { EventTypeSchema } from "@calcom/prisma/zod/modelSchema/EventTypeSchema";
+import { HostSchema } from "@calcom/prisma/zod/modelSchema/HostSchema";
 
 import { Frequency } from "~/lib/types";
 
@@ -24,7 +25,7 @@ const recurringEventInputSchema = z.object({
   tzid: timeZone.optional(),
 });
 
-const hostSchema = _HostModel.pick({
+const hostSchema = HostSchema.pick({
   isFixed: true,
   userId: true,
   scheduleId: true,
@@ -35,7 +36,7 @@ export const childrenSchema = z.object({
   userId: z.number().int(),
 });
 
-export const schemaEventTypeBaseBodyParams = EventType.pick({
+export const schemaEventTypeBaseBodyParams = EventTypeSchema.pick({
   title: true,
   description: true,
   slug: true,
@@ -117,7 +118,7 @@ const schemaEventTypeEditParams = z
   .strict();
 
 export const schemaEventTypeEditBodyParams = schemaEventTypeBaseBodyParams.merge(schemaEventTypeEditParams);
-export const schemaEventTypeReadPublic = EventType.pick({
+export const schemaEventTypeReadPublic = EventTypeSchema.pick({
   id: true,
   title: true,
   slug: true,

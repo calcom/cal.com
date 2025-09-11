@@ -32,10 +32,10 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { ApiOperation, ApiTags as DocsTags, ApiHeader } from "@nestjs/swagger";
-import { User } from "@prisma/client";
 
 import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 import { MembershipRole } from "@calcom/platform-libraries";
+import type { User } from "@calcom/prisma/client";
 
 @Controller({
   path: "/v2/oauth-clients/:clientId/users",
