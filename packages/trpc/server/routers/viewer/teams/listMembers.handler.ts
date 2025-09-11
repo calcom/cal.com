@@ -1,5 +1,3 @@
-import type { Prisma } from "@prisma/client";
-
 import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
@@ -7,6 +5,7 @@ import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 

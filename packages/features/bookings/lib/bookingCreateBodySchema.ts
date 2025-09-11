@@ -1,8 +1,8 @@
 // `responses` is merged with it during handleNewBooking call because `responses` schema is dynamic and depends on eventType
-import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
-import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
-// TODO: Move this out of here. Importing from app-store is a circular package dependency.
+import z from "zod";
+
 import { routingFormResponseInDbSchema } from "@calcom/app-store/routing-forms/zod";
+import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { CreationSource } from "@calcom/prisma/enums";
 
 export const bookingCreateBodySchema = z.object({
@@ -41,13 +41,15 @@ export const bookingCreateBodySchema = z.object({
   _isDryRun: z.boolean().optional(),
   /** Whether to override the cache */
   _shouldServeCache: z.boolean().optional(),
-  tracking: z.object({
-    utm_source: z.string().optional(),
-    utm_medium: z.string().optional(),
-    utm_campaign: z.string().optional(),
-    utm_term: z.string().optional(),
-    utm_content: z.string().optional(),
-  }).optional(),
+  tracking: z
+    .object({
+      utm_source: z.string().optional(),
+      utm_medium: z.string().optional(),
+      utm_campaign: z.string().optional(),
+      utm_term: z.string().optional(),
+      utm_content: z.string().optional(),
+    })
+    .optional(),
   dub_id: z.string().nullish(),
   creationSource: z.nativeEnum(CreationSource).optional(),
 });
