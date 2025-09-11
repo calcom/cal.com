@@ -228,6 +228,7 @@ export class CallService {
       ADDITIONAL_NOTES: "This is a test web call to verify the AI phone agent",
       EVENT_START_TIME_IN_ATTENDEE_TIMEZONE: "2:00 PM",
       EVENT_END_TIME_IN_ATTENDEE_TIMEZONE: "2:30 PM",
+      NUMBER_TO_CALL: toNumber,
       eventTypeId: eventTypeId.toString(),
     };
 
