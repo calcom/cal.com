@@ -1,4 +1,5 @@
 import type { NextApiRequest } from "next";
+import { z } from "zod";
 
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { refreshAccessToken } from "@calcom/app-store/basecamp3/lib/helpers";
@@ -13,6 +14,8 @@ interface IDock {
   name: string;
 }
 
+const ZProjectMutationInputSchema = z.object({ projectId: z.string() });
+
 async function handler(req: NextApiRequest) {
   if (req.method !== "POST") {
     return { status: 405, body: { message: "Method Not Allowed" } };
@@ -23,10 +26,14 @@ async function handler(req: NextApiRequest) {
     return { status: 401, body: { message: "Unauthorized" } };
   }
 
-  const { projectId } = (req.body || {}) as { projectId?: string | number };
-  if (!projectId) {
-    return { status: 400, body: { message: "projectId is required" } };
+  const parsed = ZProjectMutationInputSchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    return {
+      status: 400,
+      body: { message: "Invalid request body", issues: parsed.error.issues },
+    };
   }
+  const { projectId } = parsed.data;
 
   const { user_agent } = await getAppKeysFromSlug("basecamp3");
 
