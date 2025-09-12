@@ -1,12 +1,17 @@
 import type { NextApiRequest } from "next";
 
-import { defaultHandler } from "@calcom/lib/server/defaultHandler";
-import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { refreshAccessToken } from "@calcom/app-store/basecamp3/lib/helpers";
 import type { BasecampToken } from "@calcom/app-store/basecamp3/lib/types";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+
+interface IDock {
+  id: number;
+  name: string;
+}
 
 async function handler(req: NextApiRequest) {
   if (req.method !== "POST") {
@@ -41,21 +46,22 @@ async function handler(req: NextApiRequest) {
   }
 
   const basecampUserId = credentialKey.account.id;
-  const scheduleResponse = await fetch(`https://3.basecampapi.com/${basecampUserId}/projects/${projectId}.json`, {
-    headers: {
-      "User-Agent": user_agent as string,
-      Authorization: `Bearer ${credentialKey.access_token}`,
-    },
-  });
+  const scheduleResponse = await fetch(
+    `https://3.basecampapi.com/${basecampUserId}/projects/${projectId}.json`,
+    {
+      headers: {
+        "User-Agent": user_agent as string,
+        Authorization: `Bearer ${credentialKey.access_token}`,
+      },
+    }
+  );
 
   if (!scheduleResponse.ok) {
     return { status: 400, body: { message: "Failed to fetch project details" } };
   }
 
   const scheduleJson = await scheduleResponse.json();
-  const dock = Array.isArray(scheduleJson?.dock) ? scheduleJson.dock : [];
-  const scheduleDock = dock.find((d: { name?: string }) => d?.name === "schedule");
-  const scheduleId = scheduleDock?.id as number | undefined;
+  const scheduleId = scheduleJson.dock.find((dock: IDock) => dock.name === "schedule").id;
 
   await prisma.credential.update({
     where: { id: credential.id },
@@ -67,4 +73,4 @@ async function handler(req: NextApiRequest) {
 
 export default defaultHandler({
   POST: Promise.resolve({ default: defaultResponder(handler) }),
-}); 
+});
