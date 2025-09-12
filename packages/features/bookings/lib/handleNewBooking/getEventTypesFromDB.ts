@@ -32,6 +32,11 @@ const getEventTypesFromDBSelect = {
     },
   },
   slug: true,
+  profile: {
+    select: {
+      organizationId: true,
+    },
+  },
   teamId: true,
   team: {
     select: {
@@ -189,7 +194,8 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
     throw new Error(ErrorCode.EventTypeNotFound);
   }
 
-  const { hosts, users, ...restEventType } = eventType;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { profile, hosts, users, ...restEventType } = eventType;
 
   const hostsWithSelectedCalendars = hosts.map((host) => ({
     ...host,
