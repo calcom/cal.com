@@ -60,7 +60,7 @@ export const useInsightsRoutingFacetedUniqueValues = ({
   );
 
   return useCallback(
-    (_: Table<any>, columnId: string) => (): Map<FacetedValue, number> => {
+    (_: Table<unknown>, columnId: string) => (): Map<FacetedValue, number> => {
       if (!headers) {
         return new Map<FacetedValue, number>();
       }
@@ -91,10 +91,12 @@ export const useInsightsRoutingFacetedUniqueValues = ({
         );
       } else if (columnId === "bookingUserId") {
         return convertFacetedValuesToMap(
-          users?.map((user) => ({
-            label: user.name ?? user.email,
-            value: user.id,
-          })) ?? []
+          users
+            ?.map((user) => ({
+              label: user.name ?? user.email,
+              value: user.id,
+            }))
+            .sort((a, b) => a.label.localeCompare(b.label)) ?? []
         );
       } else if (columnId === "eventTypeId") {
         return convertFacetedValuesToMap(
