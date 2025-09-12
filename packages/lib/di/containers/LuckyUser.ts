@@ -1,9 +1,8 @@
-import { createContainer } from "@evyweb/ioctopus";
-
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import type { LuckyUserService } from "@calcom/lib/server/getLuckyUser";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 
+import { createContainer } from "../di";
 import { attributeRepositoryModule } from "../modules/Attribute";
 import { bookingRepositoryModule } from "../modules/Booking";
 import { hostRepositoryModule } from "../modules/Host";
