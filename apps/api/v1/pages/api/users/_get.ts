@@ -1,10 +1,11 @@
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
 import { withMiddleware } from "~/lib/helpers/withMiddleware";
+import { userSelect } from "~/lib/selects/userSelect";
 import { schemaQuerySingleOrMultipleUserEmails } from "~/lib/validations/shared/queryUserEmail";
 
 /**
@@ -58,12 +59,19 @@ export async function getHandler(req: NextApiRequest) {
     };
   }
 
-  const [total, data] = await prisma.$transaction([
-    prisma.user.count({ where }),
-    prisma.user.findMany({ where, take, skip }),
-  ]);
-  const users = data;
-  return { users, total };
+  const [total, data]: [number, Prisma.UserGetPayload<{ select: typeof userSelect }>[]] =
+    await prisma.$transaction([
+      prisma.user.count({ where }),
+      prisma.user.findMany({ where, take, skip, select: userSelect }),
+    ]);
+
+  return {
+    users: data.map((user) => ({
+      ...user,
+      avatar: user.avatarUrl,
+    })),
+    total,
+  };
 }
 
 export default withMiddleware("pagination")(defaultResponder(getHandler));

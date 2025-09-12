@@ -1,0 +1,28 @@
+import type { Prisma } from "@calcom/prisma/client";
+
+export const userSelect = {
+  id: true,
+  username: true,
+  name: true,
+  email: true,
+  emailVerified: true,
+  bio: true,
+  avatarUrl: true,
+  timeZone: true,
+  weekStart: true,
+  endTime: true,
+  bufferTime: true,
+  appTheme: true,
+  theme: true,
+  defaultScheduleId: true,
+  locale: true,
+  timeFormat: true,
+  hideBranding: true,
+  brandColor: true,
+  darkBrandColor: true,
+  allowDynamicBooking: true,
+  createdDate: true,
+  verified: true,
+  invitedTo: true,
+  role: true,
+} satisfies Prisma.UserSelect;

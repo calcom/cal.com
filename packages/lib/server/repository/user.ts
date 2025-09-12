@@ -6,7 +6,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
 import { availabilityUserSelect } from "@calcom/prisma";
-import type { User as UserType } from "@calcom/prisma/client";
+import type { DestinationCalendar, Profile, SelectedCalendar, User as UserType } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole, BookingStatus } from "@calcom/prisma/enums";
@@ -50,18 +50,18 @@ export type SessionUser = {
   darkBrandColor: string | null;
   movedToProfileId: number | null;
   completedOnboarding: boolean;
-  destinationCalendar: any;
+  destinationCalendar: DestinationCalendar;
   locale: string;
   timeFormat: number | null;
   trialEndsAt: Date | null;
-  metadata: any;
+  metadata: Prisma.JsonValue;
   role: string;
   allowDynamicBooking: boolean;
   allowSEOIndexing: boolean;
   receiveMonthlyDigestEmail: boolean;
-  profiles: any[];
-  allSelectedCalendars: any[];
-  userLevelSelectedCalendars: any[];
+  profiles: Profile[];
+  allSelectedCalendars: SelectedCalendar[];
+  userLevelSelectedCalendars: SelectedCalendar[];
 };
 
 const log = logger.getSubLogger({ prefix: ["[repository/user]"] });
@@ -423,7 +423,7 @@ export class UserRepository {
     T extends {
       id: number;
       username: string | null;
-      [key: string]: any;
+      [key: string]: unknown;
     }
   >({
     user,
@@ -484,6 +484,7 @@ export class UserRepository {
       if (!profileMap.has(profile.userId)) {
         profileMap.set(profile.userId, []);
       }
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       profileMap.get(profile.userId)!.push(profile);
     });
 
@@ -501,6 +502,7 @@ export class UserRepository {
           return {
             ...user,
             nonProfileUsername: user.username,
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             profile: personalProfileMap.get(user.id)!,
           };
         }
@@ -517,6 +519,7 @@ export class UserRepository {
       return {
         ...user,
         nonProfileUsername: user.username,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         profile: personalProfileMap.get(user.id)!,
       };
     });
@@ -674,6 +677,7 @@ export class UserRepository {
           : {}),
         ...rest,
       },
+      select: userSelect,
     });
 
     return user;
@@ -976,7 +980,9 @@ export class UserRepository {
     const users = await this.prismaClient.user.findMany({
       where: { id: { in: ids } },
       include: {
+        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         selectedCalendars: true,
+        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         destinationCalendar: true,
       },
     });
