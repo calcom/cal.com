@@ -95,6 +95,7 @@ describe("handleInstantMeeting", () => {
         responses: {
           name: "Test User",
           email: "test@example.com",
+          attendeePhoneNumber: "+918888888888",
         },
         metadata: {},
       };
@@ -118,13 +119,14 @@ describe("handleInstantMeeting", () => {
 
       const booking = await prismock.booking.findUnique({
         where: { id: result.bookingId },
-        include: { attendees: true, references: true },
+        select: { status: true, attendees: true, references: true },
       });
 
       expect(booking).toBeDefined();
       expect(booking?.status).toBe(BookingStatus.AWAITING_HOST);
       expect(booking?.attendees).toHaveLength(1);
       expect(booking?.attendees[0].email).toBe("test@example.com");
+      expect(booking?.attendees[0].phoneNumber).toBe("+918888888888");
       expect(booking?.references).toHaveLength(1);
       expect(booking?.references[0].type).toBe("daily_video");
     });
@@ -172,6 +174,7 @@ describe("handleInstantMeeting", () => {
         responses: {
           name: "Test User",
           email: "test@example.com",
+          attendeePhoneNumber: "+918888888888",
         },
         metadata: {},
       };

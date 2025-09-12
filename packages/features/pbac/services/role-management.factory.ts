@@ -1,5 +1,6 @@
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -10,7 +11,7 @@ import { RoleService } from "./role.service";
 
 interface IRoleManager {
   isPBACEnabled: boolean;
-  checkPermissionToChangeRole(userId: number, organizationId: number): Promise<void>;
+  checkPermissionToChangeRole(userId: number, targetId: number, scope: "org" | "team"): Promise<void>;
   assignRole(
     userId: number,
     organizationId: number,
@@ -29,11 +30,11 @@ class PBACRoleManager implements IRoleManager {
     private readonly permissionCheckService: PermissionCheckService
   ) {}
 
-  async checkPermissionToChangeRole(userId: number, organizationId: number): Promise<void> {
+  async checkPermissionToChangeRole(userId: number, targetId: number, scope: "org" | "team"): Promise<void> {
     const hasPermission = await this.permissionCheckService.checkPermission({
       userId,
-      teamId: organizationId,
-      permission: "organization.changeMemberRole",
+      teamId: targetId,
+      permission: scope === "team" ? "team.changeMemberRole" : "organization.changeMemberRole",
       fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
     });
 
@@ -95,9 +96,11 @@ class PBACRoleManager implements IRoleManager {
 
 class LegacyRoleManager implements IRoleManager {
   public isPBACEnabled = false;
-  async checkPermissionToChangeRole(userId: number, organizationId: number): Promise<void> {
-    const membership = await isOrganisationAdmin(userId, organizationId);
-
+  async checkPermissionToChangeRole(userId: number, targetId: number, scope: "org" | "team"): Promise<void> {
+    const membership =
+      scope === "team"
+        ? !!(await isTeamAdmin(userId, targetId))
+        : !!(await isOrganisationAdmin(userId, targetId));
     // Only OWNER/ADMIN can update role
     if (!membership) {
       throw new RoleManagementError(
@@ -150,8 +153,7 @@ export class RoleManagementFactory {
   private permissionCheckService: PermissionCheckService;
 
   private constructor() {
-    this.featuresRepository = new FeaturesRepository();
-    this.roleService = new RoleService();
+    (this.featuresRepository = new FeaturesRepository(prisma)), (this.roleService = new RoleService());
     this.permissionCheckService = new PermissionCheckService();
   }
 

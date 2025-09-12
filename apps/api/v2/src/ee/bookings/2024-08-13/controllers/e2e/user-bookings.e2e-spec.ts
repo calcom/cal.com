@@ -14,7 +14,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { EventType, User, Workflow } from "@prisma/client";
 import { advanceTo, clear } from "jest-date-mock";
 import * as request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
@@ -34,25 +33,22 @@ import {
   VERSION_2024_08_13,
   X_CAL_CLIENT_ID,
 } from "@calcom/platform-constants";
-import { AttendeeScheduledEmail, OrganizerScheduledEmail } from "@calcom/platform-libraries/emails";
 import { EventManager } from "@calcom/platform-libraries/event-types";
-import {
+import { FAILED_EVENT_TYPE_IDENTIFICATION_ERROR_MESSAGE } from "@calcom/platform-types";
+import type {
   CreateEventTypeInput_2024_06_14,
-  FAILED_EVENT_TYPE_IDENTIFICATION_ERROR_MESSAGE,
   GetBookingOutput_2024_08_13,
   GetBookingsOutput_2024_08_13,
   GetSeatedBookingOutput_2024_08_13,
-} from "@calcom/platform-types";
-import {
   CreateBookingInput_2024_08_13,
   BookingOutput_2024_08_13,
   CreateRecurringBookingInput_2024_08_13,
   RecurringBookingOutput_2024_08_13,
   RescheduleBookingInput_2024_08_13,
   MarkAbsentBookingInput_2024_08_13,
+  CancelBookingInput_2024_08_13,
 } from "@calcom/platform-types";
-import { CancelBookingInput_2024_08_13 } from "@calcom/platform-types";
-import { Booking, PlatformOAuthClient, Team } from "@calcom/prisma/client";
+import type { EventType, User, Workflow, Booking, PlatformOAuthClient, Team } from "@calcom/prisma/client";
 
 describe("Bookings Endpoints 2024-08-13", () => {
   describe("User bookings", () => {
@@ -1834,6 +1830,88 @@ describe("Bookings Endpoints 2024-08-13", () => {
             }
           });
       });
+
+      it("should return who rescheduled the booking, in the new booking", async () => {
+        const rescheduledByEmail = `user-bookings-rescheduler-${randomString()}@rescheduler.com`;
+        // Create the original booking that will be rescheduled
+        const originalBooking = await bookingsRepositoryFixture.create({
+          uid: `original-booking-uid-${eventTypeId}`,
+          title: "original booking title",
+          startTime: "2050-09-05T10:00:00.000Z",
+          endTime: "2050-09-05T11:00:00.000Z",
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          status: "CANCELLED",
+          rescheduledBy: rescheduledByEmail,
+          metadata: {},
+          responses: {
+            name: "original tester",
+            email: "original@example.com",
+            guests: [],
+          },
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+        });
+
+        // Create the new booking that is the result of the reschedule
+        const newBooking = await bookingsRepositoryFixture.create({
+          uid: `new-booking-uid-${eventTypeId}`,
+          title: "rescheduled booking title",
+          startTime: "2050-09-05T14:00:00.000Z",
+          endTime: "2050-09-05T15:00:00.000Z",
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          status: "ACCEPTED",
+          fromReschedule: originalBooking.uid,
+          metadata: {},
+          responses: {
+            name: "new tester",
+            email: "newtester@example.com",
+            guests: [],
+          },
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+        });
+
+        return request(app.getHttpServer())
+          .get(`/v2/bookings/${newBooking.uid}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            // Fetch the original booking to get its rescheduledBy value
+            const originalBookingFromDb = await bookingsRepositoryFixture.getByUid(originalBooking.uid);
+            const expectedRescheduledBy = originalBookingFromDb?.rescheduledBy;
+
+            await bookingsRepositoryFixture.deleteById(originalBooking.id);
+            await bookingsRepositoryFixture.deleteById(newBooking.id);
+            const responseBody: GetBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.uid).toEqual(newBooking.uid);
+              expect(rescheduledByEmail).toEqual(expectedRescheduledBy);
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
+              );
+            }
+          });
+      });
     });
 
     describe("book by username and event type slug", () => {
@@ -2835,14 +2913,12 @@ describe("Bookings Endpoints 2024-08-13", () => {
             },
           };
 
-          const beforeCreate = new Date();
           return request(app.getHttpServer())
             .post("/v2/bookings")
             .send(body)
             .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
             .expect(201)
             .then(async (response) => {
-              const afterCreate = new Date();
               const responseBody: CreateBookingOutput_2024_08_13 = response.body;
               expect(responseBody.status).toEqual(SUCCESS_STATUS);
               expect(responseBody.data).toBeDefined();

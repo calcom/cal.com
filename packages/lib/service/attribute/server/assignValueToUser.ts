@@ -37,7 +37,8 @@ const findAttributesByName = async ({
   orgId: number;
   attributeNames: AttributeName[];
 }) => {
-  const attributesFromDb = await PrismaAttributeRepository.findManyByNamesAndOrgIdIncludeOptions({
+  const attributeRepo = new PrismaAttributeRepository(prisma);
+  const attributesFromDb = await attributeRepo.findManyByNamesAndOrgIdIncludeOptions({
     attributeNames,
     orgId,
   });

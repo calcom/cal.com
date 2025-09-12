@@ -1,13 +1,9 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
+import { HostRepository } from "@calcom/lib/server/repository/host";
 import { PrismaClient } from "@calcom/prisma";
 
-import {
-  getDefaultScheduleId,
-  hasDefaultSchedule,
-  setupDefaultSchedule,
-  updateHostsWithNewDefaultSchedule,
-} from "./util";
+import { getDefaultScheduleId, hasDefaultSchedule, setupDefaultSchedule } from "./util";
 
 vi.mock("@calcom/prisma", () => {
   const mockPrisma = {
@@ -31,9 +27,11 @@ vi.mock("@calcom/prisma", () => {
 
 describe("Availability Utils", () => {
   let prisma: PrismaClient;
+  let hostRepo: HostRepository;
 
   beforeEach(() => {
     prisma = new PrismaClient();
+    hostRepo = new HostRepository(prisma);
     vi.clearAllMocks();
   });
 
@@ -41,7 +39,7 @@ describe("Availability Utils", () => {
     it("should return defaultScheduleId if user has one", async () => {
       const userId = 1;
       const defaultScheduleId = 123;
-
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (prisma.user.findUnique as any).mockResolvedValue({
         defaultScheduleId,
       });
@@ -58,11 +56,11 @@ describe("Availability Utils", () => {
     it("should find and return first schedule if user has no defaultScheduleId", async () => {
       const userId = 1;
       const scheduleId = 456;
-
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (prisma.user.findUnique as any).mockResolvedValue({
         defaultScheduleId: null,
       });
-
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (prisma.schedule.findFirst as any).mockResolvedValue({
         id: scheduleId,
       });
@@ -82,11 +80,11 @@ describe("Availability Utils", () => {
 
     it("should throw error if no schedules found", async () => {
       const userId = 1;
-
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (prisma.user.findUnique as any).mockResolvedValue({
         defaultScheduleId: null,
       });
-
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (prisma.schedule.findFirst as any).mockResolvedValue(null);
 
       await expect(getDefaultScheduleId(userId, prisma)).rejects.toThrow("No schedules found for user");
@@ -104,7 +102,7 @@ describe("Availability Utils", () => {
 
     it("should return true if user has a schedule", async () => {
       const user = { id: 1, defaultScheduleId: null };
-
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (prisma.schedule.findFirst as any).mockResolvedValue({
         id: 456,
       });
@@ -119,7 +117,7 @@ describe("Availability Utils", () => {
 
     it("should return false if user has no defaultScheduleId and no schedules", async () => {
       const user = { id: 1, defaultScheduleId: null };
-
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (prisma.schedule.findFirst as any).mockResolvedValue(null);
 
       const result = await hasDefaultSchedule(user, prisma);
@@ -136,7 +134,7 @@ describe("Availability Utils", () => {
       const userId = 1;
       const scheduleId = 123;
       const updatedUser = { id: userId, defaultScheduleId: scheduleId };
-
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (prisma.user.update as any).mockResolvedValue(updatedUser);
 
       const result = await setupDefaultSchedule(userId, scheduleId, prisma);
@@ -155,10 +153,10 @@ describe("Availability Utils", () => {
       const oldScheduleId = 123;
       const newScheduleId = 456;
       const updateResult = { count: 2 }; // 2 hosts updated
-
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (prisma.host.updateMany as any).mockResolvedValue(updateResult);
 
-      const result = await updateHostsWithNewDefaultSchedule(userId, oldScheduleId, newScheduleId, prisma);
+      const result = await hostRepo.updateHostsSchedule(userId, oldScheduleId, newScheduleId);
 
       expect(prisma.host.updateMany).toHaveBeenCalledWith({
         where: {
@@ -177,10 +175,10 @@ describe("Availability Utils", () => {
       const oldScheduleId = 123;
       const newScheduleId = 456;
       const updateResult = { count: 0 }; // No hosts updated
-
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (prisma.host.updateMany as any).mockResolvedValue(updateResult);
 
-      const result = await updateHostsWithNewDefaultSchedule(userId, oldScheduleId, newScheduleId, prisma);
+      const result = await hostRepo.updateHostsSchedule(userId, oldScheduleId, newScheduleId);
 
       expect(prisma.host.updateMany).toHaveBeenCalledWith({
         where: {

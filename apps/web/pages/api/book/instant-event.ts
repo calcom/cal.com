@@ -4,6 +4,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import handleInstantMeeting from "@calcom/features/instant-meeting/handleInstantMeeting";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { CreationSource } from "@calcom/prisma/enums";
 
@@ -12,7 +13,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
-    identifier: `instant.event-${userIp}`,
+    identifier: `instant.event-${piiHasher.hash(userIp)}`,
   });
 
   const session = await getServerSession({ req });

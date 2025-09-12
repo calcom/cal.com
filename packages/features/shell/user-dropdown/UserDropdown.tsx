@@ -1,5 +1,6 @@
 import { signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
+import type { MouseEvent } from "react";
 import { useEffect, useState } from "react";
 
 import { ROADMAP, DESKTOP_APP_LINK } from "@calcom/lib/constants";
@@ -24,10 +25,9 @@ import FreshChatProvider from "../../ee/support/lib/freshchat/FreshChatProvider"
 
 declare global {
   interface Window {
-    Plain?: {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      init: (config: any) => void;
+    Support?: {
       open: () => void;
+      shouldShowTriggerButton: (showTrigger: boolean) => void;
     };
   }
 }
@@ -42,6 +42,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
   const { data: user, isPending } = useMeQuery();
   const pathname = usePathname();
   const isPlatformPages = pathname?.startsWith("/settings/platform");
+
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
@@ -55,13 +56,24 @@ export function UserDropdown({ small }: UserDropdownProps) {
   });
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [openSupportAfterClose, setOpenSupportAfterClose] = useState(false);
 
-  const handleHelpClick = () => {
-    if (window.Plain) {
-      window.Plain.open();
-    }
+  const handleHelpClick = (e?: MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+
+    setOpenSupportAfterClose(true);
     setMenuOpen(false);
   };
+
+  useEffect(() => {
+    if (!menuOpen && openSupportAfterClose) {
+      setTimeout(() => {
+        window.Support?.open();
+      }, 0);
+      setOpenSupportAfterClose(false);
+    }
+  }, [menuOpen, openSupportAfterClose]);
 
   // Prevent rendering dropdown if user isn't available.
   // We don't want to show nameless user.

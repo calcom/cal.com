@@ -96,10 +96,11 @@ function EventTypeSingleLayout({
   const [Shell] = useMemo(() => {
     return isPlatform ? [PlatformShell] : [WebShell];
   }, [isPlatform]);
+  const teamId = eventType.team?.id;
 
   return (
     <Shell
-      backPath="/event-types"
+      backPath={teamId ? `/event-types?teamId=${teamId}` : "/event-types"}
       title={`${eventType.title} | ${t("event_type")}`}
       heading={eventType.title}
       CTA={

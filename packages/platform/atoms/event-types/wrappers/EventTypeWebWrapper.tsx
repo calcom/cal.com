@@ -108,7 +108,12 @@ export const EventTypeWebWrapper = ({ id, data: serverFetchedData }: EventTypeWe
   return <EventTypeWeb {...eventTypeQueryData} id={id} />;
 };
 
-const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => {
+const EventTypeWeb = ({
+  id,
+  ...rest
+}: EventTypeSetupProps & {
+  id: number;
+}) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const pathname = usePathname();
@@ -126,7 +131,7 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
     teamId: eventType.team?.id || eventType.parent?.teamId,
     onlyInstalled: true,
   });
-  const updateMutation = trpc.viewer.eventTypes.update.useMutation({
+  const updateMutation = trpc.viewer.eventTypes.heavy.update.useMutation({
     onSuccess: async () => {
       const currentValues = form.getValues();
 

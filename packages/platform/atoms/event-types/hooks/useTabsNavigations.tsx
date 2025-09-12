@@ -5,6 +5,7 @@ import type { TFunction } from "i18next";
 import { useMemo } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import type {
@@ -15,7 +16,6 @@ import type {
 } from "@calcom/features/eventtypes/lib/types";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 
 type Props = {
@@ -195,11 +195,11 @@ function getNavigation({
 
   return [
     {
-      name: t("event_setup_tab_title"),
+      name: t("basics"),
       href: `/event-types/${id}?tabName=setup`,
       icon: "link",
       info: `${duration} ${t("minute_timeUnit")}`, // TODO: Get this from props
-      "data-testid": `event_setup_tab_title`,
+      "data-testid": `basics`,
     },
     {
       name: t("event_limit_tab_title"),

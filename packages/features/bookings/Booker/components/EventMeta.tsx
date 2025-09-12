@@ -6,6 +6,7 @@ import { shallow } from "zustand/shallow";
 import { Timezone as PlatformTimezoneSelect } from "@calcom/atoms/timezone";
 import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "@calcom/features/bookings";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { Timezone } from "@calcom/features/bookings/Booker/types";
 import { SeatsAvailabilityText } from "@calcom/features/bookings/components/SeatsAvailabilityText";
 import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/Details";
@@ -19,7 +20,6 @@ import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 
 import i18nConfigration from "../../../../../i18n.json";
 import { fadeInUp } from "../config";
-import { useBookerStore } from "../store";
 import { FromToTime } from "../utils/dates";
 import { useBookerTime } from "./hooks/useBookerTime";
 
@@ -54,6 +54,8 @@ export const EventMeta = ({
   locale,
   timeZones,
   children,
+  selectedTimeslot,
+  roundRobinHideOrgAndTeam,
 }: {
   event?: Pick<
     BookerEvent,
@@ -90,16 +92,17 @@ export const EventMeta = ({
   locale?: string | null;
   timeZones?: Timezone[];
   children?: React.ReactNode;
+  selectedTimeslot: string | null;
+  roundRobinHideOrgAndTeam?: boolean;
 }) => {
   const { timeFormat, timezone } = useBookerTime();
   const [setTimezone] = useTimePreferences((state) => [state.setTimezone]);
-  const [setBookerStoreTimezone] = useBookerStore((state) => [state.setTimezone], shallow);
-  const selectedDuration = useBookerStore((state) => state.selectedDuration);
-  const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
-  const bookerState = useBookerStore((state) => state.state);
-  const bookingData = useBookerStore((state) => state.bookingData);
-  const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
-  const [seatedEventData, setSeatedEventData] = useBookerStore(
+  const [setBookerStoreTimezone] = useBookerStoreContext((state) => [state.setTimezone], shallow);
+  const selectedDuration = useBookerStoreContext((state) => state.selectedDuration);
+  const bookerState = useBookerStoreContext((state) => state.state);
+  const bookingData = useBookerStoreContext((state) => state.bookingData);
+  const rescheduleUid = useBookerStoreContext((state) => state.rescheduleUid);
+  const [seatedEventData, setSeatedEventData] = useBookerStoreContext(
     (state) => [state.seatedEventData, state.setSeatedEventData],
     shallow
   );
@@ -169,6 +172,7 @@ export const EventMeta = ({
             profile={event.profile}
             entity={event.entity}
             isPrivateLink={isPrivateLink}
+            roundRobinHideOrgAndTeam={roundRobinHideOrgAndTeam}
           />
           <EventTitle className={`${classNames?.eventMetaTitle} my-2`}>
             {translatedTitle ?? event?.title}

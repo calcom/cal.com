@@ -1,5 +1,3 @@
-import type { Prisma } from "@prisma/client";
-
 import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
@@ -8,8 +6,9 @@ import { uploadLogo } from "@calcom/lib/server/avatar";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -165,7 +164,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (!prevOrganisation) throw new TRPCError({ code: "NOT_FOUND", message: "Organisation not found." });
 
-  const { mergeMetadata } = getMetadataHelpers(teamMetadataSchema.unwrap(), prevOrganisation.metadata ?? {});
+  const { mergeMetadata } = getMetadataHelpers(
+    teamMetadataStrictSchema.unwrap(),
+    prevOrganisation.metadata ?? {}
+  );
 
   const data: Prisma.TeamUpdateArgs["data"] = {
     logoUrl: input.logoUrl,

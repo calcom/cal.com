@@ -4,7 +4,7 @@ import { shallow } from "zustand/shallow";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
-import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { getAvailableDatesInMonth } from "@calcom/features/calendars/lib/getAvailableDatesInMonth";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/dayjs";
 import type { IFromUser, IToUser } from "@calcom/lib/getUserAvailability";
@@ -59,6 +59,8 @@ export type DatePickerProps = {
   periodData?: PeriodData;
   // Whether this is a compact sidebar view or main monthly view
   isCompact?: boolean;
+  // Whether to show the no availability dialog
+  showNoAvailabilityDialog?: boolean;
 };
 
 const Day = ({
@@ -164,6 +166,7 @@ const Days = ({
   isBookingInPast,
   periodData,
   isCompact,
+  showNoAvailabilityDialog = true,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
   DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
@@ -194,8 +197,10 @@ const Days = ({
   const getPadding = (day: number) => (browsingDate.set("date", day).day() - weekStart + 7) % 7;
   const totalDays = daysInMonth(browsingDate);
 
+  const showNextMonthDays = isSecondWeekOver && !isCompact;
+
   // Only apply end-of-month logic for main monthly view (not compact sidebar)
-  if (isSecondWeekOver && !isCompact) {
+  if (showNextMonthDays) {
     const startDay = 8;
     const pad = getPadding(startDay);
     days = Array(pad).fill(null);
@@ -222,7 +227,7 @@ const Days = ({
     }
   }
 
-  const [selectedDatesAndTimes] = useBookerStore((state) => [state.selectedDatesAndTimes], shallow);
+  const [selectedDatesAndTimes] = useBookerStoreContext((state) => [state.selectedDatesAndTimes], shallow);
 
   const isActive = (day: dayjs.Dayjs) => {
     // for selecting a range of dates
@@ -337,20 +342,24 @@ const Days = ({
               active={isActive(day)}
               away={away}
               emoji={emoji}
-              showMonthTooltip={isSecondWeekOver && !isCompact}
+              showMonthTooltip={showNextMonthDays && !disabled && day.month() !== browsingDate.month()}
               isFirstDayOfNextMonth={isFirstDayOfNextMonth}
             />
           )}
         </div>
       ))}
-      {!props.isLoading && !isBookingInPast && includedDates && includedDates?.length === 0 && (
-        <NoAvailabilityDialog
-          month={month}
-          nextMonthButton={nextMonthButton}
-          browsingDate={browsingDate}
-          periodData={periodData}
-        />
-      )}
+      {!props.isLoading &&
+        !isBookingInPast &&
+        includedDates &&
+        includedDates?.length === 0 &&
+        showNoAvailabilityDialog && (
+          <NoAvailabilityDialog
+            month={month}
+            nextMonthButton={nextMonthButton}
+            browsingDate={browsingDate}
+            periodData={periodData}
+          />
+        )}
     </>
   );
 };
@@ -372,6 +381,7 @@ const DatePicker = ({
     periodType: "UNLIMITED",
   },
   isCompact,
+  showNoAvailabilityDialog,
   ...passThroughProps
 }: DatePickerProps &
   Partial<React.ComponentProps<typeof Days>> & {
@@ -390,7 +400,7 @@ const DatePicker = ({
     minDate && rawBrowsingDate.valueOf() < minDate.valueOf() ? dayjs(minDate) : rawBrowsingDate;
 
   const { i18n, t } = useLocale();
-  const bookingData = useBookerStore((state) => state.bookingData);
+  const bookingData = useBookerStoreContext((state) => state.bookingData);
   const isBookingInPast = bookingData ? new Date(bookingData.endTime) < new Date() : false;
   const changeMonth = (newMonth: number) => {
     if (onMonthChange) {
@@ -482,6 +492,7 @@ const DatePicker = ({
           isBookingInPast={isBookingInPast}
           periodData={periodData}
           isCompact={isCompact}
+          showNoAvailabilityDialog={showNoAvailabilityDialog}
         />
       </div>
     </div>
