@@ -9,7 +9,8 @@ import type getBookingDataSchemaForApi from "@calcom/features/bookings/lib/getBo
 import type { BookingCreateBody as BaseCreateBookingData } from "@calcom/prisma/zod/custom/booking";
 import type { extendedBookingCreateBody } from "@calcom/prisma/zod/custom/booking";
 
-import type { RegularBookingService } from "../handleNewBooking";
+import type { InstantBookingCreateService } from "../service/InstantBookingCreateService";
+import type { RegularBookingService } from "../service/RegularBookingService";
 
 export type ExtendedBookingCreateData = z.input<typeof extendedBookingCreateBody>;
 export type BookingDataSchemaGetter = typeof getBookingDataSchema | typeof getBookingDataSchemaForApi;
@@ -21,6 +22,8 @@ export type CreateInstantBookingData = BaseCreateBookingData;
 export type CreateRecurringBookingData = (BaseCreateBookingData & {
   schedulingType?: SchedulingType;
 })[];
+
+export type CreateSeatedBookingInput = BaseCreateBookingData & Pick<MasterCreateBookingData, "bookingUid">;
 
 export type PlatformParams = {
   platformClientId?: string;
@@ -43,14 +46,7 @@ export type BookingHandlerInput = {
   bookingData: CreateRegularBookingData;
 } & CreateBookingMeta;
 
-export type InstantBookingCreateResult = {
-  message: string;
-  meetingTokenId: number;
-  bookingId: number;
-  bookingUid: string;
-  expires: Date;
-  userId: number | null;
-};
-
 // TODO: In a followup PR, we working on defining the type here itself instead of inferring it.
 export type RegularBookingCreateResult = Awaited<ReturnType<RegularBookingService["createBooking"]>>;
+
+export type InstantBookingCreateResult = Awaited<ReturnType<InstantBookingCreateService["create"]>>;

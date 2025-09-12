@@ -1,4 +1,4 @@
-import { RecurringBookingService } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
+import { RecurringBookingService } from "@calcom/features/bookings/lib/service/RecurringBookingService";
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
 
 import { createModule, bindModuleToClassOnToken } from "../../di";
