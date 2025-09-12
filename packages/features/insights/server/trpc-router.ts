@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import { ColumnFilterType, type ColumnFilter } from "@calcom/features/data-table/lib/types";
 import { isDateRangeFilterValue } from "@calcom/features/data-table/lib/utils";
-import { ColumnFilterType } from "@calcom/features/data-table/types";
 import {
   insightsRoutingServiceInputSchema,
   insightsRoutingServicePaginatedInputSchema,
@@ -13,6 +13,7 @@ import {
 } from "@calcom/features/insights/server/raw-data.schema";
 import { getInsightsBookingService } from "@calcom/lib/di/containers/InsightsBooking";
 import { getInsightsRoutingService } from "@calcom/lib/di/containers/InsightsRouting";
+import { extractDateRangeFromColumnFilters } from "@calcom/lib/server/service/InsightsBookingBaseService";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
@@ -376,7 +377,7 @@ export const insightsRouter = router({
                 preset: filter.value.data.preset,
               },
             },
-          };
+          } satisfies ColumnFilter;
         } else {
           return filter;
         }

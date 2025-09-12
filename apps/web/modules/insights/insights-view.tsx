@@ -1,6 +1,6 @@
 "use client";
 
-import { useQueryState } from "nuqs";
+import { useState, useCallback } from "react";
 
 import {
   DataTableProvider,
@@ -9,6 +9,7 @@ import {
   ColumnFilterType,
   type FilterableColumn,
 } from "@calcom/features/data-table";
+import { useDataTable } from "@calcom/features/data-table/hooks/useDataTable";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import {
   AverageEventDurationChart,
@@ -63,10 +64,16 @@ function InsightsPageContent() {
   const { t } = useLocale();
   const { table } = useInsightsBookings();
   const { isAll, teamId, userId } = useInsightsOrgTeams();
-  const [dateTarget, setDateTarget] = useQueryState("dateTarget", {
-    defaultValue: "startTime" as const,
-    parse: (value) => (value === "createdAt" ? "createdAt" : "startTime"),
-  });
+  const { removeFilter } = useDataTable();
+  const [dateTarget, _setDateTarget] = useState<"startTime" | "createdAt">("startTime");
+
+  const setDateTarget = useCallback(
+    (target: "startTime" | "createdAt") => {
+      _setDateTarget(target);
+      removeFilter(target === "startTime" ? "createdAt" : "startTime");
+    },
+    [_setDateTarget, removeFilter]
+  );
 
   return (
     <>
