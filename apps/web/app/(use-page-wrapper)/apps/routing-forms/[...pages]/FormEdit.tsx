@@ -6,8 +6,6 @@ import { Controller, useFieldArray, useWatch } from "react-hook-form";
 import { Toaster } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
-import SingleForm from "@calcom/app-store/routing-forms/components/SingleForm";
-import type { getServerSidePropsForSingleFormView as getServerSideProps } from "@calcom/app-store/routing-forms/components/getServerSidePropsSingleForm";
 import { FieldTypes } from "@calcom/app-store/routing-forms/lib/FieldTypes";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -23,8 +21,11 @@ import {
 } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import type { getServerSidePropsForSingleFormView as getServerSideProps } from "@calcom/web/lib/apps/routing-forms/[...pages]/getServerSidePropsSingleForm";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
+
+import SingleForm from "./SingleForm";
 
 type HookForm = UseFormReturn<RoutingFormWithResponseCount>;
 

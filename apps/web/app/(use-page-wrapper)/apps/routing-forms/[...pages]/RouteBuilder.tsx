@@ -12,10 +12,8 @@ import type { z } from "zod";
 
 import { routingFormAppComponents } from "@calcom/app-store/routing-forms/appComponents";
 import DynamicAppComponent from "@calcom/app-store/routing-forms/components/DynamicAppComponent";
-import SingleForm from "@calcom/app-store/routing-forms/components/SingleForm";
 import { EmptyState } from "@calcom/app-store/routing-forms/components/_components/EmptyState";
 import { RoutingSkeleton } from "@calcom/app-store/routing-forms/components/_components/RoutingSkeleton";
-import type { getServerSidePropsForSingleFormView as getServerSideProps } from "@calcom/app-store/routing-forms/components/getServerSidePropsSingleForm";
 import {
   withRaqbSettingsAndWidgets,
   ConfigFor,
@@ -61,6 +59,9 @@ import { SelectField } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
 import type { IconName } from "@calcom/ui/components/icon";
 import { Icon } from "@calcom/ui/components/icon";
+import type { getServerSidePropsForSingleFormView as getServerSideProps } from "@calcom/web/lib/apps/routing-forms/[...pages]/getServerSidePropsSingleForm";
+
+import SingleForm from "./SingleForm";
 
 type Form = inferSSRProps<typeof getServerSideProps>["form"];
 

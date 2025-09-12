@@ -4,20 +4,22 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
+import type { NewFormDialogState } from "@calcom/app-store/routing-forms/components/FormActions";
+import { FormActionsProvider } from "@calcom/app-store/routing-forms/components/FormActions";
+import { InfoLostWarningDialog } from "@calcom/app-store/routing-forms/components/InfoLostWarningDialog";
+import { Header } from "@calcom/app-store/routing-forms/components/_components/Header";
+import {
+  TestFormRenderer,
+  type UptoDateForm,
+} from "@calcom/app-store/routing-forms/components/_components/TestForm";
+import type { SingleFormComponentProps } from "@calcom/app-store/routing-forms/types/shared";
+import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
-
-import type { SingleFormComponentProps } from "../types/shared";
-import type { RoutingFormWithResponseCount } from "../types/types";
-import type { NewFormDialogState } from "./FormActions";
-import { FormActionsProvider } from "./FormActions";
-import { InfoLostWarningDialog } from "./InfoLostWarningDialog";
-import { Header } from "./_components/Header";
-import { TestFormRenderer, type UptoDateForm } from "./_components/TestForm";
 
 const BREAKPOINTS = {
   sm: 640,

@@ -3,8 +3,6 @@
 import { useState, useEffect } from "react";
 import type z from "zod";
 
-import SingleForm from "@calcom/app-store/routing-forms/components/SingleForm";
-import type { getServerSidePropsForSingleFormView as getServerSideProps } from "@calcom/app-store/routing-forms/components/getServerSidePropsSingleForm";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
 import { WhenToWriteToRecord, SalesforceFieldType } from "@calcom/app-store/salesforce/lib/enums";
 import type { writeToRecordDataSchema as salesforceWriteToRecordDataSchema } from "@calcom/app-store/salesforce/zod";
@@ -20,6 +18,9 @@ import { Select } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import type { getServerSidePropsForSingleFormView as getServerSideProps } from "@calcom/web/lib/apps/routing-forms/[...pages]/getServerSidePropsSingleForm";
+
+import SingleForm from "./SingleForm";
 
 function Page({ form }: { form: RoutingFormWithResponseCount }) {
   const { t } = useLocale();
