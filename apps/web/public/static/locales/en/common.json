@@ -1721,6 +1721,8 @@
   "event_duration_info": "The event duration",
   "event_time_info": "The event start time",
   "event_type_not_found": "EventType not Found",
+  "number_to_call_variable": "Number to call",
+  "number_to_call_info": "The phone number of the user you are calling",
   "location_variable": "Location",
   "location_info": "The location of the event",
   "additional_notes_variable": "Additional notes",

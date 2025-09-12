@@ -457,7 +457,7 @@ export function AgentConfigurationSheet({
                     {!readOnly && (
                       <AddVariablesDropdown
                         addVariable={addVariableToGeneralPrompt}
-                        variables={DYNAMIC_TEXT_VARIABLES}
+                        variables={[...DYNAMIC_TEXT_VARIABLES, "number_to_call"]}
                         addVariableButtonClassName="border rounded-[10px] py-1 px-1"
                       />
                     )}
