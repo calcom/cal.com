@@ -2,7 +2,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import type { readonlyPrisma } from "@calcom/prisma";
 
-import { buildBaseWhereCondition } from "../trpc-router";
+import { buildBaseWhereCondition } from "./buildBaseWhereCondition";
 
 const mockTeamFindMany = vi.fn();
 const mockMembershipFindMany = vi.fn();
