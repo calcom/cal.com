@@ -8,17 +8,16 @@ import dayjs from "@calcom/dayjs";
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import prisma from "@calcom/prisma";
+import type { Membership, Team, User, UserPermissionRole } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, MembershipRole, RedirectType, SchedulingType } from "@calcom/prisma/enums";
 import type { Ensure } from "@calcom/types/utils";
 
-import prisma from ".";
-import type { Membership, Team, User } from "./client";
-import { Prisma } from "./client";
-import type { UserPermissionRole } from "./client";
+import mainHugeEventTypesSeed from "../packages/prisma/seed-huge-event-types";
+import { createUserAndEventType } from "../packages/prisma/seed-utils";
+import type { teamMetadataSchema } from "../packages/prisma/zod-utils";
 import mainAppStore from "./seed-app-store";
-import mainHugeEventTypesSeed from "./seed-huge-event-types";
-import { createUserAndEventType } from "./seed-utils";
-import type { teamMetadataSchema } from "./zod-utils";
 
 type PlatformUser = {
   email: string;
