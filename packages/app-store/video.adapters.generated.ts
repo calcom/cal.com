@@ -9,6 +9,7 @@ export const VideoApiAdapterMap = process.env.NEXT_PUBLIC_IS_E2E
       huddle01video: import("./huddle01video/lib/VideoApiAdapter"),
       jelly: import("./jelly/lib/VideoApiAdapter"),
       jitsivideo: import("./jitsivideo/lib/VideoApiAdapter"),
+      kyzonspacevideo: import("./kyzonspacevideo/lib/VideoApiAdapter"),
       nextcloudtalk: import("./nextcloudtalk/lib/VideoApiAdapter"),
       office365video: import("./office365video/lib/VideoApiAdapter"),
       shimmervideo: import("./shimmervideo/lib/VideoApiAdapter"),
