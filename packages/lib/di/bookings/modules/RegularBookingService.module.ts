@@ -2,7 +2,6 @@ import { RegularBookingService } from "@calcom/features/bookings/lib/handleNewBo
 import { moduleLoader as bookingRepositoryModuleLoader } from "@calcom/lib/di/modules/Booking";
 import { moduleLoader as cacheModuleLoader } from "@calcom/lib/di/modules/Cache";
 import { moduleLoader as checkBookingAndDurationLimitsModuleLoader } from "@calcom/lib/di/modules/CheckBookingAndDurationLimits";
-import { moduleLoader as checkBookingLimitsModuleLoader } from "@calcom/lib/di/modules/CheckBookingLimits";
 import { moduleLoader as featuresRepositoryModuleLoader } from "@calcom/lib/di/modules/Features";
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import { moduleLoader as prismaModuleLoader } from "@calcom/prisma/prisma.module";
@@ -23,7 +22,6 @@ const loadModule = bindModuleToClassOnToken({
     prismaClient: prismaModuleLoader,
     bookingRepository: bookingRepositoryModuleLoader,
     featuresRepository: featuresRepositoryModuleLoader,
-    checkBookingLimitsService: checkBookingLimitsModuleLoader,
   },
 });
 
