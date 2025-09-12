@@ -4,6 +4,7 @@ import { z } from "zod";
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { refreshAccessToken } from "@calcom/app-store/basecamp3/lib/helpers";
 import type { BasecampToken } from "@calcom/app-store/basecamp3/lib/types";
+import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
@@ -19,15 +20,15 @@ const ZProjectMutationInputSchema = z.object({ projectId: z.string() });
 async function handler(req: NextApiRequest) {
   const userId = req.session?.user?.id;
   if (!userId) {
-    return { status: 401, body: { message: "Unauthorized" } };
+    throw new HttpError({ statusCode: 401, message: "Unauthorized" });
   }
 
   const parsed = ZProjectMutationInputSchema.safeParse(req.body ?? {});
   if (!parsed.success) {
-    return {
-      status: 400,
-      body: { message: "Invalid request body", issues: parsed.error.issues },
-    };
+    throw new HttpError({
+      statusCode: 400,
+      message: "Invalid request body",
+    });
   }
   const { projectId } = parsed.data;
 
@@ -39,7 +40,7 @@ async function handler(req: NextApiRequest) {
   });
 
   if (!credential) {
-    return { status: 403, body: { message: "No credential found for user" } };
+    throw new HttpError({ statusCode: 403, message: "No credential found for user" });
   }
 
   let credentialKey = credential.key as BasecampToken;
@@ -60,7 +61,7 @@ async function handler(req: NextApiRequest) {
   );
 
   if (!scheduleResponse.ok) {
-    return { status: 400, body: { message: "Failed to fetch project details" } };
+    throw new HttpError({ statusCode: 400, message: "Failed to fetch project details" });
   }
 
   const scheduleJson = await scheduleResponse.json();
@@ -71,7 +72,7 @@ async function handler(req: NextApiRequest) {
     data: { key: { ...credentialKey, projectId: Number(projectId), scheduleId } },
   });
 
-  return { status: 200, body: { message: "Updated project successfully" } };
+  return { message: "Updated project successfully" };
 }
 
 export default defaultHandler({
