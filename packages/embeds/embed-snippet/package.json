@@ -25,7 +25,7 @@
   ],
   "types": "./dist/index.d.ts",
   "devDependencies": {
-    "typescript": "^5.9.0-beta",
+    "typescript": "^5.9.2",
     "vite": "^4.1.2"
   },
   "dependencies": {
