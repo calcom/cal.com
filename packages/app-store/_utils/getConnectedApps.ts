@@ -1,19 +1,16 @@
-import type { Prisma } from "@prisma/client";
-
-import type { TDependencyData } from "@calcom/app-store/_appRegistry";
-import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated";
-import type { CredentialOwner } from "@calcom/app-store/types";
-import { getAppFromSlug } from "@calcom/app-store/utils";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
+import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential/clientAndServer";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import type { PrismaClient } from "@calcom/prisma";
-import type { User } from "@calcom/prisma/client";
-import type { AppCategories } from "@calcom/prisma/enums";
+import type { Prisma, User, AppCategories } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
-import { buildNonDelegationCredentials } from "./delegationCredential/clientAndServer";
+import type { TDependencyData } from "../_appRegistry";
+import { PaymentServiceMap } from "../payment.services.generated";
+import type { CredentialOwner } from "../types";
+import { getAppFromSlug } from "../utils";
 
 export type ConnectedApps = Awaited<ReturnType<typeof getConnectedApps>>;
 type InputSchema = {
