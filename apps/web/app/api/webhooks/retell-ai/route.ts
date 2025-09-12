@@ -159,7 +159,7 @@ async function handleCallAnalyzed(callData: any) {
     log.info(`Processing web call ${call_id} for agent ${agent_id}, user ${userId}, team ${teamId}`);
   } else {
     const phoneNumber = await PrismaPhoneNumberRepository.findByPhoneNumber({
-      phoneNumber: from_number
+      phoneNumber: from_number,
     });
 
     if (!phoneNumber) {
@@ -241,7 +241,6 @@ async function handler(request: NextRequest) {
     );
   }
 
-
   try {
     const payload = RetellWebhookSchema.parse(body);
     const callData = payload.call;
@@ -257,7 +256,9 @@ async function handler(request: NextRequest) {
       );
     }
 
-    log.info(`Received Retell AI webhook: ${payload.event} for call ${callData.call_id}`, { call_id: callData.call_id });
+    log.info(`Received Retell AI webhook: ${payload.event} for call ${callData.call_id}`, {
+      call_id: callData.call_id,
+    });
 
     const result = await handleCallAnalyzed(callData);
 
