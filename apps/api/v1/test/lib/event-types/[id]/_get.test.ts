@@ -385,14 +385,18 @@ describe("GET /api/event-types/[id]", () => {
 
       expect(responseData.event_type.bookingFields).toHaveLength(3);
 
-      const selectField = responseData.event_type.bookingFields.find((f) => f.name === "customSelect");
+      const selectField = responseData.event_type.bookingFields.find(
+        (f: { name: string; options?: { label: string; value: string }[] }) => f.name === "customSelect"
+      );
       expect(selectField.options).toHaveLength(3);
       expect(selectField.options[0]).toMatchObject({
         label: "Morning",
         value: "morning",
       });
 
-      const textareaField = responseData.event_type.bookingFields.find((f) => f.name === "customTextarea");
+      const textareaField = responseData.event_type.bookingFields.find(
+        (f: { name: string; maxLength?: number }) => f.name === "customTextarea"
+      );
       expect(textareaField.maxLength).toBe(500);
     });
 
