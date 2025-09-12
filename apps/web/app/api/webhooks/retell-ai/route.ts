@@ -153,7 +153,7 @@ async function handleCallAnalyzed(callData: any) {
       return;
     }
 
-    userId = agent.userId;
+    userId = agent.userId ?? undefined;
     teamId = agent.teamId ?? undefined;
 
     log.info(`Processing web call ${call_id} for agent ${agent_id}, user ${userId}, team ${teamId}`);
@@ -175,7 +175,10 @@ async function handleCallAnalyzed(callData: any) {
 
   if (!userId && !teamId) {
     log.error(`Call ${call_id} has no associated user or team`);
-    return;
+    return {
+      success: false,
+      message: `Call ${call_id} has no associated user or team`,
+    };
   }
 
   return await chargeCreditsForCall({
