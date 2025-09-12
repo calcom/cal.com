@@ -21,12 +21,7 @@ type DestinationCalendar = {
 
 type Response = {
   label: string;
-  value:
-    | string
-    | boolean
-    | string[]
-    | { value: string; optionValue: string }
-    | Record<string, string>;
+  value: string | boolean | string[] | { value: string; optionValue: string } | Record<string, string>;
   isHidden?: boolean | undefined;
 };
 
