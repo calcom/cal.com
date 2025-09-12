@@ -68,6 +68,7 @@ export class RetellSDKClient implements RetellAIRepository {
 
   async updateLLM(llmId: string, data: UpdateLLMRequest) {
     try {
+      console.log("Updating LLM via SDK", JSON.stringify({ llmId, data }, null, 2));
       this.logger.info("Updating LLM via SDK", { llmId });
 
       const response = await this.client.llm.update(llmId, data);
