@@ -1,5 +1,3 @@
-import { Prisma } from "@prisma/client";
-
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { sendDeclinedEmailsAndSMS } from "@calcom/emails";
@@ -21,6 +19,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import {
   BookingStatus,
   MembershipRole,
@@ -85,6 +84,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           price: true,
           bookingFields: true,
           hideOrganizerEmail: true,
+          hideCalendarNotes: true,
+          hideCalendarEventDetails: true,
           disableGuests: true,
           customReplyToEmail: true,
           metadata: true,
@@ -233,6 +234,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       : [],
     requiresConfirmation: booking?.eventType?.requiresConfirmation ?? false,
     hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
+    hideCalendarNotes: booking.eventType?.hideCalendarNotes,
+    hideCalendarEventDetails: booking.eventType?.hideCalendarEventDetails,
     eventTypeId: booking.eventType?.id,
     customReplyToEmail: booking.eventType?.customReplyToEmail,
     team: !!booking.eventType?.team
