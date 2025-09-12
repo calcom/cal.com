@@ -269,7 +269,16 @@ export async function handler(req: NextApiRequest) {
     }
   }
 
-  let data: Booking[] = [];
+  type BookingWithRelations = Prisma.BookingGetPayload<{
+    include: {
+      attendees: true;
+      user: true;
+      payment: true;
+      eventType: { include: { team: true } } | false;
+    };
+  }>;
+
+  let data: BookingWithRelations[] = [];
 
   if (!filterByAttendeeEmails && userEmailsToFilterBy.length > 0) {
     const queryOne = prisma.booking.findMany(args);

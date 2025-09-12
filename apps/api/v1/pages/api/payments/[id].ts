@@ -50,6 +50,12 @@ export async function paymentById(
     await prisma.payment
       .findUnique({ where: { id: safeQuery.data.id } })
       .then((payment) => {
+        if (!payment) {
+          res.status(404).json({
+            message: `Payment with id: ${safeQuery.data.id} not found`,
+          });
+          return;
+        }
         if (!userWithBookings?.bookings.map((b) => b.id).includes(payment.bookingId)) {
           res.status(401).json({ message: "Unauthorized" });
         } else {
