@@ -3675,5 +3675,9 @@
   "cancel_booking_acknowledge_no_show_fee": "I acknowledge that by cancelling the booking within {{timeValue}} {{timeUnit}} of the start time I will be charged the no show fee of {{amount, currency}}",
   "contact_organizer": "If you have any questions, please contact the organizer.",
   "testing_sms_workflow_info_message": "When testing this workflow, be aware that SMS need to be scheduled at least 15 minutes in advance",
+  "start_from_scratch_title": "Start from scratch",
+  "start_from_scratch_description": "Create your own workflow from scratch.",
+  "cal_ai_template_title": "Cal.ai template",
+  "cal_ai_template_description": "AI agents that book meetings, send reminders, and follow up!",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

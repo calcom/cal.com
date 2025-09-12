@@ -137,8 +137,8 @@ export function WorkflowCreationDialog({
           aria-label={t("new_workflow_btn")}>
           <div className="mt-6 flex gap-4">
             <WorkflowOptionCard
-              title="Start from scratch"
-              description="Create your own workflow from scratch."
+              title={t("start_from_scratch_title")}
+              description={t("start_from_scratch_description")}
               icon="circle-plus"
               isSelected={selectedOption === "scratch"}
               onClick={() => setSelectedOption("scratch")}
@@ -146,8 +146,8 @@ export function WorkflowCreationDialog({
               value="scratch"
             />
             <WorkflowOptionCard
-              title="Cal.ai template"
-              description="AI agents that book meetings, send reminders, and follow up!"
+              title={t("cal_ai_template_title")}
+              description={t("cal_ai_template_description")}
               image="/call-outgoing.svg"
               isSelected={selectedOption === "calai"}
               onClick={() => setSelectedOption("calai")}
