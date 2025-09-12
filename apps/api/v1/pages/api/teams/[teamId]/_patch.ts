@@ -10,7 +10,7 @@ import type { Prisma } from "@calcom/prisma/client";
 import { TRPCError } from "@trpc/server";
 
 import { schemaQueryTeamId } from "~/lib/validations/shared/queryTeamId";
-import { schemaTeamReadPublic, schemaTeamUpdateBodyParams } from "~/lib/validations/team";
+import { schemaTeamUpdateBodyParams } from "~/lib/validations/team";
 
 /**
  * @swagger
@@ -62,7 +62,18 @@ export async function patchHandler(req: NextApiRequest) {
 
   /** Only OWNERS and ADMINS can edit teams */
   const _team = await prisma.team.findFirst({
-    include: { members: true },
+    select: {
+      id: true,
+      slug: true,
+      metadata: true,
+      members: {
+        select: {
+          id: true,
+          userId: true,
+          role: true,
+        },
+      },
+    },
     where: { id: teamId, members: { some: { userId, role: { in: ["OWNER", "ADMIN"] } } } },
   });
   if (!_team) throw new HttpError({ statusCode: 401, message: "Unauthorized: OWNER or ADMIN required" });
@@ -132,7 +143,7 @@ export async function patchHandler(req: NextApiRequest) {
   };
   const team = await prisma.team.update({ where: { id: teamId }, data: cloneData });
   const result = {
-    team: schemaTeamReadPublic.parse(team),
+    team,
     paymentUrl,
   };
   if (!paymentUrl) {

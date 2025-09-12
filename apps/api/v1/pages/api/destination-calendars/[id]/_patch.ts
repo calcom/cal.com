@@ -9,10 +9,7 @@ import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
-import {
-  schemaDestinationCalendarEditBodyParams,
-  schemaDestinationCalendarReadPublic,
-} from "~/lib/validations/destination-calendar";
+import { schemaDestinationCalendarEditBodyParams } from "~/lib/validations/destination-calendar";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 /**
@@ -108,7 +105,7 @@ export async function patchHandler(req: NextApiRequest) {
     where: { id },
     data: { ...parsedBody, credentialId },
   });
-  return { destinationCalendar: schemaDestinationCalendarReadPublic.parse(destinationCalendar) };
+  return { destinationCalendar };
 }
 
 /**

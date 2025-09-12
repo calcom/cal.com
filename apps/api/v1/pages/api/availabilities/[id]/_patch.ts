@@ -3,10 +3,7 @@ import type { NextApiRequest } from "next";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
-import {
-  schemaAvailabilityEditBodyParams,
-  schemaAvailabilityReadPublic,
-} from "~/lib/validations/availability";
+import { schemaAvailabilityEditBodyParams } from "~/lib/validations/availability";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 /**
@@ -81,7 +78,7 @@ export async function patchHandler(req: NextApiRequest) {
     data,
     include: { Schedule: { select: { userId: true } } },
   });
-  return { availability: schemaAvailabilityReadPublic.parse(availability) };
+  return { availability };
 }
 
 export default defaultResponder(patchHandler);

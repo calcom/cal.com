@@ -6,7 +6,6 @@ import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
 import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";
-import { schemaWebhookReadPublic } from "~/lib/validations/webhook";
 
 /**
  * @swagger
@@ -50,7 +49,7 @@ async function getHandler(req: NextApiRequest) {
   }
 
   const data = await prisma.webhook.findMany(args);
-  return { webhooks: data.map((v) => schemaWebhookReadPublic.parse(v)) };
+  return { webhooks: data };
 }
 
 export default defaultResponder(getHandler);

@@ -6,10 +6,7 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
-import {
-  schemaDestinationCalendarReadPublic,
-  schemaDestinationCalendarCreateBodyParams,
-} from "~/lib/validations/destination-calendar";
+import { schemaDestinationCalendarCreateBodyParams } from "~/lib/validations/destination-calendar";
 
 /**
  * @swagger
@@ -114,7 +111,7 @@ async function postHandler(req: NextApiRequest) {
   });
 
   return {
-    destinationCalendar: schemaDestinationCalendarReadPublic.parse(destination_calendar),
+    destinationCalendar: destination_calendar,
     message: "Destination calendar created successfully",
   };
 }

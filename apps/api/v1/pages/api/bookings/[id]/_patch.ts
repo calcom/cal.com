@@ -6,7 +6,7 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
 import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
-import { schemaBookingEditBodyParams, schemaBookingReadPublic } from "~/lib/validations/booking";
+import { schemaBookingEditBodyParams } from "~/lib/validations/booking";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 /**
@@ -106,7 +106,7 @@ export async function patchHandler(req: NextApiRequest) {
   const data = schemaBookingEditBodyParams.parse(body);
   await checkPermissions(req, data);
   const booking = await prisma.booking.update({ where: { id }, data });
-  return { booking: schemaBookingReadPublic.parse(booking) };
+  return { booking };
 }
 
 async function checkPermissions(req: NextApiRequest, body: z.infer<typeof schemaBookingEditBodyParams>) {

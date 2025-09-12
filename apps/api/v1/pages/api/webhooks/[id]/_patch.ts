@@ -6,7 +6,7 @@ import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
 import { schemaQueryIdAsString } from "~/lib/validations/shared/queryIdString";
-import { schemaWebhookEditBodyParams, schemaWebhookReadPublic } from "~/lib/validations/webhook";
+import { schemaWebhookEditBodyParams } from "~/lib/validations/webhook";
 
 /**
  * @swagger
@@ -100,7 +100,7 @@ export async function patchHandler(req: NextApiRequest) {
   }
 
   const result = await prisma.webhook.update(args);
-  return { webhook: schemaWebhookReadPublic.parse(result) };
+  return { webhook: result };
 }
 
 export default defaultResponder(patchHandler);

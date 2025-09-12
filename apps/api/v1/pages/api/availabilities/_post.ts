@@ -4,10 +4,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
-import {
-  schemaAvailabilityCreateBodyParams,
-  schemaAvailabilityReadPublic,
-} from "~/lib/validations/availability";
+import { schemaAvailabilityCreateBodyParams } from "~/lib/validations/availability";
 
 /**
  * @swagger
@@ -80,7 +77,7 @@ async function postHandler(req: NextApiRequest) {
   });
   req.statusCode = 201;
   return {
-    availability: schemaAvailabilityReadPublic.parse(availability),
+    availability,
     message: "Availability created successfully",
   };
 }

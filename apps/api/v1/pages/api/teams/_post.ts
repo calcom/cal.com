@@ -11,7 +11,7 @@ import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { schemaMembershipPublic } from "~/lib/validations/membership";
-import { schemaTeamCreateBodyParams, schemaTeamReadPublic } from "~/lib/validations/team";
+import { schemaTeamCreateBodyParams } from "~/lib/validations/team";
 
 /**
  * @swagger
@@ -146,7 +146,7 @@ async function postHandler(req: NextApiRequest) {
     req.statusCode = 201;
 
     return {
-      team: schemaTeamReadPublic.parse(team),
+      team,
       owner: schemaMembershipPublic.parse(team.members[0]),
       message: `Team created successfully. We also made user with ID=${effectiveUserId} the owner of this team.`,
     };
@@ -169,7 +169,7 @@ async function postHandler(req: NextApiRequest) {
       "Your team will be created once we receive your payment. Please complete the payment using the payment link.",
     paymentLink: checkoutSession.url,
     pendingTeam: {
-      ...schemaTeamReadPublic.parse(pendingPaymentTeam),
+      ...pendingPaymentTeam,
     },
   };
 }
