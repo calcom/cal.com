@@ -6,6 +6,7 @@ import { Toaster } from "sonner";
 
 import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
 import { albyCredentialKeysSchema } from "@calcom/app-store/alby/lib/albyCredentialKeysSchema";
+import type { IAlbySetupProps } from "@calcom/app-store/alby/pages/setup/_getServerSideProps";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -13,13 +14,6 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-
-export interface IAlbySetupProps {
-  email: string | null;
-  lightningAddress: string | null;
-  clientId: string;
-  clientSecret: string;
-}
 
 export default function AlbySetup(props: IAlbySetupProps) {
   const params = useCompatSearchParams();

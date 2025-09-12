@@ -10,6 +10,7 @@ import { z } from "zod";
 import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
 import KeyField from "@calcom/app-store/hitpay/components/KeyInput";
 import { hitpayCredentialKeysSchema } from "@calcom/app-store/hitpay/lib/hitpayCredentialKeysSchema";
+import type { IHitPaySetupProps } from "@calcom/app-store/hitpay/pages/setup/_getServerSideProps";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -17,8 +18,6 @@ import { Button } from "@calcom/ui/components/button";
 import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-
-export type IHitPaySetupProps = z.infer<typeof hitpayCredentialKeysSchema>;
 
 export default function HitPaySetup(props: IHitPaySetupProps) {
   const params = useCompatSearchParams();
