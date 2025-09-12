@@ -290,8 +290,9 @@ describe("GET /api/bookings", async () => {
 
       const responseData = await handler(req);
       responseData.bookings.forEach((booking) => {
-        const bookingAttendeeEmails = booking.attendees?.map((a) => a.email);
-        expect(bookingAttendeeEmails?.some((email) => attendeeEmails.includes(email))).toBe(true);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const bookingAttendeeEmails = booking.attendees?.map((a: any) => a.email);
+        expect(bookingAttendeeEmails?.some((email: string) => attendeeEmails.includes(email))).toBe(true);
       });
     });
   });
@@ -318,9 +319,12 @@ describe("GET /api/bookings", async () => {
 
       const testUser = await prisma.user.findFirstOrThrow({ where: { email: "pro@example.com" } });
 
-      const testUserBooking = await prisma.booking.findFirstOrThrow({
+      const _testUserBooking = await prisma.booking.findFirstOrThrow({
         where: { userId: testUser.id },
-        include: { attendees: true },
+        select: {
+          id: true,
+          attendees: { select: { id: true, email: true, name: true } },
+        },
       });
 
       const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
@@ -352,7 +356,7 @@ describe("GET /api/bookings", async () => {
         }, {} as Record<number, number>);
 
         const duplicates = Object.entries(counts)
-          .filter(([_, count]) => count > 1)
+          .filter(([_, count]: [string, unknown]) => (count as number) > 1)
           .map(([id]) => id);
 
         console.log(`Found duplicate booking IDs: ${duplicates.join(", ")}`);

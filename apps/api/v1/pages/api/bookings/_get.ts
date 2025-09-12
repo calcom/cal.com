@@ -269,16 +269,8 @@ export async function handler(req: NextApiRequest) {
     }
   }
 
-  type BookingWithRelations = Prisma.BookingGetPayload<{
-    include: {
-      attendees: true;
-      user: true;
-      payment: true;
-      eventType: { include: { team: true } } | false;
-    };
-  }>;
-
-  let data: BookingWithRelations[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let data: any[] = [];
 
   if (!filterByAttendeeEmails && userEmailsToFilterBy.length > 0) {
     const queryOne = prisma.booking.findMany(args);
