@@ -4,15 +4,6 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
-import type {
-  SetNewFormDialogState,
-  NewFormDialogState,
-} from "@calcom/app-store/routing-forms/components/FormActions";
-import {
-  FormAction,
-  FormActionsDropdown,
-  FormActionsProvider,
-} from "@calcom/app-store/routing-forms/components/FormActions";
 import { isFallbackRoute } from "@calcom/app-store/routing-forms/lib/isFallbackRoute";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -36,6 +27,15 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Icon } from "@calcom/ui/components/icon";
 import { List, ListLinkItem } from "@calcom/ui/components/list";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import type {
+  SetNewFormDialogState,
+  NewFormDialogState,
+} from "@calcom/web/components/apps/routing-forms/FormActions";
+import {
+  FormAction,
+  FormActionsDropdown,
+  FormActionsProvider,
+} from "@calcom/web/components/apps/routing-forms/FormActions";
 
 function NewFormButton({ setNewFormDialogState }: { setNewFormDialogState: SetNewFormDialogState }) {
   const { t } = useLocale();
