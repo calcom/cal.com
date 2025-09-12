@@ -599,23 +599,31 @@ export class CreditService {
 
     const activeMembers = team.members.filter((member) => member.accepted).length;
 
-    const billingService = new StripeBillingService();
+    let creditsPerSeat = null;
 
-    const priceId = team.isOrganization
-      ? process.env.STRIPE_ORG_MONTHLY_PRICE_ID
-      : process.env.STRIPE_TEAM_MONTHLY_PRICE_ID;
-
-    if (!priceId) {
-      log.warn("Monthly price ID not configured", { teamId, isOrganization: team.isOrganization });
-      return 0;
+    if (team.isOrganization) {
+      // For organizations, use the new environment variable for monthly credits
+      const orgMonthlyCredits = process.env.ORG_MONTHLY_CREDITS;
+      creditsPerSeat = orgMonthlyCredits ? parseInt(orgMonthlyCredits) : null;
     }
 
-    const monthlyPrice = await billingService.getPrice(priceId || "");
-    const pricePerSeat = monthlyPrice.unit_amount ?? 0;
+    if (!creditsPerSeat) {
+      const billingService = new StripeBillingService();
+      const priceId = team.isOrganization
+        ? process.env.STRIPE_ORG_MONTHLY_PRICE_ID
+        : process.env.STRIPE_TEAM_MONTHLY_PRICE_ID;
 
-    // Teams get 50% of the price as credits, organizations get 20%
-    const creditMultiplier = team.isOrganization ? 0.2 : 0.5;
-    totalMonthlyCredits = activeMembers * pricePerSeat * creditMultiplier;
+      if (!priceId) {
+        log.warn("Monthly price ID not configured", { teamId, isOrganization: team.isOrganization });
+        return 0;
+      }
+      const monthlyPrice = await billingService.getPrice(priceId);
+      const pricePerSeat = monthlyPrice.unit_amount ?? 0;
+      const creditMultiplier = team.isOrganization ? 0.2 : 0.5;
+      creditsPerSeat = pricePerSeat * creditMultiplier;
+    }
+
+    totalMonthlyCredits = activeMembers * creditsPerSeat;
 
     return totalMonthlyCredits;
   }
