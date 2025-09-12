@@ -6,7 +6,7 @@ import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { schemaEventTypeCreateBodyParams, schemaEventTypeReadPublic } from "~/lib/validations/event-type";
+import { schemaEventTypeCreateBodyParams } from "~/lib/validations/event-type";
 import { canUserAccessTeamWithRole } from "~/pages/api/teams/[teamId]/_auth-middleware";
 
 import checkParentEventOwnership from "./_utils/checkParentEventOwnership";
@@ -309,7 +309,7 @@ async function postHandler(req: NextApiRequest) {
   const eventType = await prisma.eventType.create({ data, include: { hosts: true } });
 
   return {
-    event_type: schemaEventTypeReadPublic.parse(eventType),
+    event_type: eventType,
     message: "Event type created successfully",
   };
 }

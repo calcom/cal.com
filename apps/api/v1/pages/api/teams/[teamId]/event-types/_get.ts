@@ -5,8 +5,6 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
-import { schemaEventTypeReadPublic } from "~/lib/validations/event-type";
-
 const querySchema = z.object({
   teamId: z.coerce.number(),
 });
@@ -67,7 +65,7 @@ async function getHandler(req: NextApiRequest) {
   };
 
   const data = await prisma.eventType.findMany(args);
-  return { event_types: data.map((eventType) => schemaEventTypeReadPublic.parse(eventType)) };
+  return { event_types: data };
 }
 
 export default defaultResponder(getHandler);

@@ -5,7 +5,6 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { schemaEventTypeReadPublic } from "~/lib/validations/event-type";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 import { checkPermissions as canAccessTeamEventOrThrow } from "~/pages/api/teams/[teamId]/_auth-middleware";
 
@@ -50,7 +49,7 @@ export async function getHandler(req: NextApiRequest) {
   const eventType = await prisma.eventType.findUnique({
     where: { id },
     include: {
-      customInputs: true,
+      customInputs: { select: { id: true, type: true, label: true, required: true, placeholder: true } },
       hashedLink: { select: { link: true } },
       team: { select: { slug: true } },
       hosts: { select: { userId: true, isFixed: true } },
@@ -76,7 +75,7 @@ export async function getHandler(req: NextApiRequest) {
 
   // TODO: eventType when not found should be a 404
   //       but API consumers may depend on the {} behaviour.
-  return { event_type: schemaEventTypeReadPublic.parse({ ...eventType, link }) };
+  return { event_type: { ...eventType, link } };
 }
 
 type BaseEventTypeCheckPermissions = {

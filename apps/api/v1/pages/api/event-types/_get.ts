@@ -5,7 +5,6 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 
-import { schemaEventTypeReadPublic } from "~/lib/validations/event-type";
 import { schemaQuerySlug } from "~/lib/validations/shared/querySlug";
 import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";
 
@@ -55,7 +54,7 @@ async function getHandler(req: NextApiRequest) {
       slug: slug, // slug will be undefined if not provided in query
     },
     include: {
-      customInputs: true,
+      customInputs: { select: { id: true, type: true, label: true, required: true, placeholder: true } },
       hashedLink: { select: { link: true } },
       team: { select: { slug: true } },
       hosts: { select: { userId: true, isFixed: true } },
@@ -69,7 +68,7 @@ async function getHandler(req: NextApiRequest) {
     event_types: (await defaultScheduleId<(typeof data)[number]>({ eventTypes: data, prisma, userIds })).map(
       (eventType) => {
         const link = getCalLink(eventType);
-        return schemaEventTypeReadPublic.parse({ ...eventType, link });
+        return { ...eventType, link };
       }
     ),
   };

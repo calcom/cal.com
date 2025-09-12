@@ -8,7 +8,7 @@ import { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 import type { schemaEventTypeBaseBodyParams } from "~/lib/validations/event-type";
-import { schemaEventTypeEditBodyParams, schemaEventTypeReadPublic } from "~/lib/validations/event-type";
+import { schemaEventTypeEditBodyParams } from "~/lib/validations/event-type";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 import ensureOnlyMembersAsHosts from "~/pages/api/event-types/_utils/ensureOnlyMembersAsHosts";
 
@@ -236,7 +236,7 @@ export async function patchHandler(req: NextApiRequest) {
   }
   await checkPermissions(req, parsedBody);
   const eventType = await prisma.eventType.update({ where: { id }, data });
-  return { event_type: schemaEventTypeReadPublic.parse(eventType) };
+  return { event_type: eventType };
 }
 
 async function checkPermissions(req: NextApiRequest, body: z.infer<typeof schemaEventTypeBaseBodyParams>) {
