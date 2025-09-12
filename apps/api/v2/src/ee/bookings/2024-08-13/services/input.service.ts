@@ -132,12 +132,53 @@ export class InputBookingsService_2024_08_13 {
     return newRequest as unknown as BookingRequest;
   }
 
-  private parseStartTimeToUTC(startTimeISO: string, attendeeTimeZone: string): DateTime {
-    const parsedDateTime = DateTime.fromISO(startTimeISO);
-    
-    return parsedDateTime.isValid && parsedDateTime.zoneName !== 'invalid' 
-      ? parsedDateTime.toUTC()
-      : DateTime.fromISO(startTimeISO, { zone: attendeeTimeZone }).toUTC();
+  private parseStartTimeToUTC(startTimeISO: string, attendeeTimeZone?: string): DateTime {
+    const parsedDateTime = DateTime.fromISO(startTimeISO, { setZone: true });
+    const hasTimezoneInString = parsedDateTime.isOffsetFixed;
+    // If the start time already has timezone information, use it
+    if (hasTimezoneInString && parsedDateTime.isValid && parsedDateTime.zoneName !== "invalid") {
+      return parsedDateTime.toUTC();
+    }
+
+    // If no timezone in start time, require attendee timezone
+    if (!attendeeTimeZone) {
+      throw new BadRequestException(
+        "Either provide timezone in the start time (e.g., '2024-08-13T09:00:00-05:00') or provide attendee.timeZone"
+      );
+    }
+
+    return DateTime.fromISO(startTimeISO, { zone: attendeeTimeZone }).toUTC();
+  }
+
+  private validateTimezoneConsistency(startTimeISO: string, attendeeTimeZone?: string): void {
+    // Only validate if the start time string actually contains timezone information
+    const parsedDateTime = DateTime.fromISO(startTimeISO, { setZone: true });
+    const hasTimezoneInString = parsedDateTime.isOffsetFixed;
+    if (hasTimezoneInString && attendeeTimeZone) {
+      // If start time has timezone and attendee timezone is provided, they must match
+      if (parsedDateTime.isValid && parsedDateTime.zoneName !== "invalid" && attendeeTimeZone) {
+        const startTimeZone = parsedDateTime.zoneName;
+        if (startTimeZone !== attendeeTimeZone) {
+          throw new BadRequestException(
+            `Timezone mismatch: start time has timezone '${startTimeZone}' but attendee.timeZone is '${attendeeTimeZone}'.`
+          );
+        }
+      }
+    }
+  }
+
+  private getTimeZone(
+    inputBooking:
+      | CreateBookingInput_2024_08_13
+      | RescheduleBookingInput_2024_08_13
+      | RescheduleSeatedBookingInput_2024_08_13
+  ): string {
+    const parsedDateTime = DateTime.fromISO(inputBooking.start, { setZone: true });
+    const timeZone =
+      parsedDateTime.isOffsetFixed && parsedDateTime.isValid && parsedDateTime.zoneName !== "invalid"
+        ? parsedDateTime.zoneName
+        : ("attendee" in inputBooking ? inputBooking.attendee?.timeZone : undefined) ?? "";
+    return timeZone;
   }
 
   async transformInputCreateBooking(
@@ -146,10 +187,14 @@ export class InputBookingsService_2024_08_13 {
     platformClientId?: string
   ) {
     this.validateBookingLengthInMinutes(inputBooking, eventType);
+    this.validateTimezoneConsistency(inputBooking.start, inputBooking.attendee.timeZone);
 
     const lengthInMinutes = inputBooking.lengthInMinutes ?? eventType.length;
     const startTimeUTC = this.parseStartTimeToUTC(inputBooking.start, inputBooking.attendee.timeZone);
-    const startTime = startTimeUTC.setZone(inputBooking.attendee.timeZone);
+
+    const timeZone = this.getTimeZone(inputBooking);
+
+    const startTime = startTimeUTC.setZone(timeZone);
     const endTime = startTime.plus({ minutes: lengthInMinutes });
 
     const guests =
@@ -178,7 +223,7 @@ export class InputBookingsService_2024_08_13 {
       start: startTime.toISO(),
       end: endTime.toISO(),
       eventTypeId: inputBooking.eventTypeId,
-      timeZone: inputBooking.attendee.timeZone,
+      timeZone: timeZone,
       language: inputBooking.attendee.language || "en",
       metadata: inputBooking.metadata || {},
       hasHashedBookingLink: false,
@@ -428,6 +473,7 @@ export class InputBookingsService_2024_08_13 {
     }
 
     this.validateBookingLengthInMinutes(inputBooking, eventType);
+    this.validateTimezoneConsistency(inputBooking.start, inputBooking.attendee.timeZone);
     const lengthInMinutes = inputBooking.lengthInMinutes ?? eventType.length;
 
     const occurrence = recurringEventSchema.parse(eventType.recurringEvent);
@@ -445,8 +491,11 @@ export class InputBookingsService_2024_08_13 {
     const events = [];
     const recurringEventId = uuidv4();
 
-    let startTimeUTC = this.parseStartTimeToUTC(inputBooking.start, inputBooking.attendee.timeZone);
-    let startTime = startTimeUTC.setZone(inputBooking.attendee.timeZone);
+    const startTimeUTC = this.parseStartTimeToUTC(inputBooking.start, inputBooking.attendee.timeZone);
+
+    const timeZone = this.getTimeZone(inputBooking);
+
+    let startTime = startTimeUTC.setZone(timeZone);
 
     const guests =
       inputBooking.guests && platformClientId
@@ -472,7 +521,7 @@ export class InputBookingsService_2024_08_13 {
         end: endTime.toISO(),
         eventTypeId: inputBooking.eventTypeId,
         recurringEventId,
-        timeZone: inputBooking.attendee.timeZone,
+        timeZone: timeZone,
         language: inputBooking.attendee.language || "en",
         metadata: inputBooking.metadata || {},
         hasHashedBookingLink: false,
@@ -593,14 +642,17 @@ export class InputBookingsService_2024_08_13 {
     }
 
     const startTimeUTC = this.parseStartTimeToUTC(inputBooking.start, attendee.timeZone);
-    const startTime = startTimeUTC.setZone(attendee.timeZone);
+
+    const timeZone = this.getTimeZone(inputBooking);
+
+    const startTime = startTimeUTC.setZone(timeZone);
     const endTime = startTime.plus({ minutes: eventType.length });
 
     return {
       start: startTime.toISO(),
       end: endTime.toISO(),
       eventTypeId: eventType.id,
-      timeZone: attendee.timeZone,
+      timeZone: timeZone,
       language: attendee.locale,
       metadata: seat.metadata || {},
       hasHashedBookingLink: false,
@@ -655,14 +707,17 @@ export class InputBookingsService_2024_08_13 {
     }
 
     const startTimeUTC = this.parseStartTimeToUTC(inputBooking.start, attendee.timeZone);
-    const startTime = startTimeUTC.setZone(attendee.timeZone);
+
+    const timeZone = this.getTimeZone(inputBooking);
+
+    const startTime = startTimeUTC.setZone(timeZone);
     const endTime = startTime.plus({ minutes: eventType.length });
 
     return {
       start: startTime.toISO(),
       end: endTime.toISO(),
       eventTypeId: eventType.id,
-      timeZone: attendee.timeZone,
+      timeZone: timeZone,
       language: attendee.locale,
       metadata: booking.metadata || {},
       hasHashedBookingLink: false,
