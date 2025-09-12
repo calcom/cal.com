@@ -37,21 +37,3 @@ export const schemaWebhookEditBodyParams = schemaWebhookBaseBodyParams
   )
   .partial()
   .strict();
-
-export const schemaWebhookReadPublic = WebhookSchema.pick({
-  id: true,
-  userId: true,
-  eventTypeId: true,
-  payloadTemplate: true,
-  eventTriggers: true,
-  // FIXME: We have some invalid urls saved in the DB
-  // subscriberUrl: true,
-  /** @todo: find out how to properly add back and validate those. */
-  // eventType: true,
-  // app: true,
-  appId: true,
-}).merge(
-  z.object({
-    subscriberUrl: z.string(),
-  })
-);

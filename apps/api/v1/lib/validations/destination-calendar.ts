@@ -37,12 +37,3 @@ const schemaDestinationCalendarEditParams = z
 export const schemaDestinationCalendarEditBodyParams = schemaDestinationCalendarBaseBodyParams.merge(
   schemaDestinationCalendarEditParams
 );
-
-export const schemaDestinationCalendarReadPublic = DestinationCalendarSchema.pick({
-  id: true,
-  integration: true,
-  externalId: true,
-  eventTypeId: true,
-  bookingId: true,
-  userId: true,
-});
