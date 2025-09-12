@@ -131,7 +131,10 @@ async function handleCallAnalyzed(callData: any) {
     log.error(
       `Invalid or missing call_cost.total_duration_seconds for call ${call_id}: ${safeStringify(call_cost)}`
     );
-    return;
+    return {
+      success: false,
+      message: `Invalid or missing call_cost.total_duration_seconds for call ${call_id}`
+    };
   }
 
   let userId: number | undefined;
@@ -141,7 +144,10 @@ async function handleCallAnalyzed(callData: any) {
   if (call_type === "web_call" || !from_number) {
     if (!agent_id) {
       log.error(`Web call ${call_id} missing agent_id, cannot charge credits`);
-      return;
+      return {
+        success: false,
+        message: `Web call ${call_id} missing agent_id, cannot charge credits`
+      };
     }
 
     const agent = await PrismaAgentRepository.findByProviderAgentId({
@@ -150,8 +156,12 @@ async function handleCallAnalyzed(callData: any) {
 
     if (!agent) {
       log.error(`No agent found for providerAgentId ${agent_id}, call ${call_id}`);
-      return;
+      return {
+        success: false,
+        message: `No agent found for providerAgentId ${agent_id}, call ${call_id}`
+      };
     }
+
 
     userId = agent.userId ?? undefined;
     teamId = agent.teamId ?? undefined;
@@ -163,8 +173,9 @@ async function handleCallAnalyzed(callData: any) {
     });
 
     if (!phoneNumber) {
-      log.error(`No phone number found for ${from_number}, call ${call_id}`);
-      return;
+      const msg = `No phone number found for ${from_number}, call ${call_id}`;
+      log.error(msg);
+      return { success: false, message: msg };
     }
 
     userId = phoneNumber.userId ?? undefined;
