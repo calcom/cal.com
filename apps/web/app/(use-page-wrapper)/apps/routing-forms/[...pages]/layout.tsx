@@ -1,12 +1,12 @@
 import type { ReactNode } from "react";
 
 import FormProvider from "./FormProvider";
-import { RoutingFormsShell } from "./RoutingFormsShell";
+import { RoutingFormAuthGuard } from "./RoutingFormsShell";
 
 export default async function Layout({ children }: { children: ReactNode }) {
   return (
-    <RoutingFormsShell>
+    <RoutingFormAuthGuard>
       <FormProvider>{children}</FormProvider>
-    </RoutingFormsShell>
+    </RoutingFormAuthGuard>
   );
 }
