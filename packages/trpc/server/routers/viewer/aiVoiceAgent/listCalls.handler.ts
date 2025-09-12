@@ -17,7 +17,7 @@ type ListCallsHandlerOptions = {
 };
 
 export const listCallsHandler = async ({ ctx, input }: ListCallsHandlerOptions) => {
-  const organizationId = ctx.user.organizationId ?? ctx.user.profiles[0]?.organizationId;
+  const organizationId = ctx.user.organizationId ?? ctx.user.profiles?.[0]?.organizationId;
 
   try {
     const userMemberships = await MembershipRepository.findAllByUserId({
@@ -105,6 +105,9 @@ export const listCallsHandler = async ({ ctx, input }: ListCallsHandlerOptions) 
       totalCount: calls.length,
     };
   } catch (error) {
+    if (error instanceof TRPCError) {
+      throw error;
+    }
     logger.error(`Failed to list calls for user ${ctx.user.id}:`, error);
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
