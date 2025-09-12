@@ -32,11 +32,6 @@ const getEventTypesFromDBSelect = {
     },
   },
   slug: true,
-  profile: {
-    select: {
-      organizationId: true,
-    },
-  },
   teamId: true,
   team: {
     select: {
