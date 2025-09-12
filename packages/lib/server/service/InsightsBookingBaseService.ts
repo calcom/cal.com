@@ -449,7 +449,15 @@ export class InsightsBookingBaseService {
     });
   }
 
-  async getCsvData({ limit = 100, offset = 0 }: { limit?: number; offset?: number }) {
+  async getCsvData({
+    limit = 100,
+    offset = 0,
+    timeZone,
+  }: {
+    limit?: number;
+    offset?: number;
+    timeZone: string;
+  }) {
     const baseConditions = await this.getBaseConditions();
 
     // Get total count first
@@ -609,9 +617,12 @@ export class InsightsBookingBaseService {
 
         return {
           ...bookingTimeStatus,
-          createdAt_iso: bookingTimeStatus.createdAt.toISOString(),
-          startTime_iso: bookingTimeStatus.startTime.toISOString(),
-          endTime_iso: bookingTimeStatus.endTime.toISOString(),
+          createdAt_date: dayjs(bookingTimeStatus.createdAt).tz(timeZone).format("YYYY-MM-DD"),
+          createdAt_time: dayjs(bookingTimeStatus.createdAt).tz(timeZone).format("HH:mm:ss"),
+          startTime_date: dayjs(bookingTimeStatus.startTime).tz(timeZone).format("YYYY-MM-DD"),
+          startTime_time: dayjs(bookingTimeStatus.startTime).tz(timeZone).format("HH:mm:ss"),
+          endTime_date: dayjs(bookingTimeStatus.endTime).tz(timeZone).format("YYYY-MM-DD"),
+          endTime_time: dayjs(bookingTimeStatus.endTime).tz(timeZone).format("HH:mm:ss"),
           noShowGuests: null,
           noShowGuestsCount: 0,
           ...nullAttendeeFields,
@@ -628,9 +639,12 @@ export class InsightsBookingBaseService {
 
         return {
           ...bookingTimeStatus,
-          createdAt_iso: bookingTimeStatus.createdAt.toISOString(),
-          startTime_iso: bookingTimeStatus.startTime.toISOString(),
-          endTime_iso: bookingTimeStatus.endTime.toISOString(),
+          createdAt_date: dayjs(bookingTimeStatus.createdAt).tz(timeZone).format("YYYY-MM-DD"),
+          createdAt_time: dayjs(bookingTimeStatus.createdAt).tz(timeZone).format("HH:mm:ss"),
+          startTime_date: dayjs(bookingTimeStatus.startTime).tz(timeZone).format("YYYY-MM-DD"),
+          startTime_time: dayjs(bookingTimeStatus.startTime).tz(timeZone).format("HH:mm:ss"),
+          endTime_date: dayjs(bookingTimeStatus.endTime).tz(timeZone).format("YYYY-MM-DD"),
+          endTime_time: dayjs(bookingTimeStatus.endTime).tz(timeZone).format("HH:mm:ss"),
           noShowGuests: null,
           noShowGuestsCount: 0,
           ...nullAttendeeFields,
@@ -639,9 +653,12 @@ export class InsightsBookingBaseService {
 
       return {
         ...bookingTimeStatus,
-        createdAt_iso: bookingTimeStatus.createdAt.toISOString(),
-        startTime_iso: bookingTimeStatus.startTime.toISOString(),
-        endTime_iso: bookingTimeStatus.endTime.toISOString(),
+        createdAt_date: dayjs(bookingTimeStatus.createdAt).tz(timeZone).format("YYYY-MM-DD"),
+        createdAt_time: dayjs(bookingTimeStatus.createdAt).tz(timeZone).format("HH:mm:ss"),
+        startTime_date: dayjs(bookingTimeStatus.startTime).tz(timeZone).format("YYYY-MM-DD"),
+        startTime_time: dayjs(bookingTimeStatus.startTime).tz(timeZone).format("HH:mm:ss"),
+        endTime_date: dayjs(bookingTimeStatus.endTime).tz(timeZone).format("YYYY-MM-DD"),
+        endTime_time: dayjs(bookingTimeStatus.endTime).tz(timeZone).format("HH:mm:ss"),
         noShowGuests: attendeeData.noShowGuests,
         noShowGuestsCount: attendeeData.noShowGuestsCount,
         ...Object.fromEntries(Object.entries(attendeeData).filter(([key]) => key.startsWith("attendee"))),

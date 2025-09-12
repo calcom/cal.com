@@ -817,7 +817,7 @@ export const insightsRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const { limit, offset } = input;
+      const { limit, offset, timeZone } = input;
 
       const insightsBookingService = createInsightsBookingService(ctx, input);
 
@@ -825,6 +825,7 @@ export const insightsRouter = router({
         return await insightsBookingService.getCsvData({
           limit: limit ?? 100,
           offset: offset ?? 0,
+          timeZone,
         });
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
@@ -881,6 +882,7 @@ export const insightsRouter = router({
       return await RoutingEventsInsights.getRoutingFormPaginatedResponsesForDownload({
         headersPromise,
         dataPromise,
+        timeZone: ctx.user.timeZone,
       });
     }),
   getRoutingFormFieldOptions: insightsPbacProcedure

@@ -8,6 +8,7 @@ import {
   isValidRoutingFormFieldType,
 } from "@calcom/app-store/routing-forms/lib/FieldTypes";
 import { zodFields as routingFormFieldsSchema } from "@calcom/app-store/routing-forms/zod";
+import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { InsightsRoutingBaseService } from "@calcom/lib/server/service/InsightsRoutingBaseService";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
@@ -119,9 +120,11 @@ class RoutingEventsInsights {
   static async getRoutingFormPaginatedResponsesForDownload({
     headersPromise,
     dataPromise,
+    timeZone,
   }: {
     headersPromise: ReturnType<typeof RoutingEventsInsights.getRoutingFormHeaders>;
     dataPromise: ReturnType<typeof InsightsRoutingBaseService.prototype.getTableData>;
+    timeZone: string;
   }) {
     const [headers, data] = await Promise.all([headersPromise, dataPromise]);
 
@@ -157,15 +160,31 @@ class RoutingEventsInsights {
         "Response ID": item.id,
         "Form Name": item.formName,
         "Submitted At": item.createdAt.toString(),
-        "Submitted At_iso": item.createdAt.toISOString(),
+        "Submitted At_date": dayjs(item.createdAt).tz(timeZone).format("YYYY-MM-DD"),
+        "Submitted At_time": dayjs(item.createdAt).tz(timeZone).format("HH:mm:ss"),
         "Has Booking": item.bookingUid !== null,
         "Booking Status": item.bookingStatus || "NO_BOOKING",
         "Booking Created At": item.bookingCreatedAt?.toString() || "",
-        "Booking Created At_iso": item.bookingCreatedAt?.toISOString() || "",
+        "Booking Created At_date": item.bookingCreatedAt
+          ? dayjs(item.bookingCreatedAt).tz(timeZone).format("YYYY-MM-DD")
+          : "",
+        "Booking Created At_time": item.bookingCreatedAt
+          ? dayjs(item.bookingCreatedAt).tz(timeZone).format("HH:mm:ss")
+          : "",
         "Booking Start Time": item.bookingStartTime?.toString() || "",
-        "Booking Start Time_iso": item.bookingStartTime?.toISOString() || "",
+        "Booking Start Time_date": item.bookingStartTime
+          ? dayjs(item.bookingStartTime).tz(timeZone).format("YYYY-MM-DD")
+          : "",
+        "Booking Start Time_time": item.bookingStartTime
+          ? dayjs(item.bookingStartTime).tz(timeZone).format("HH:mm:ss")
+          : "",
         "Booking End Time": item.bookingEndTime?.toString() || "",
-        "Booking End Time_iso": item.bookingEndTime?.toISOString() || "",
+        "Booking End Time_date": item.bookingEndTime
+          ? dayjs(item.bookingEndTime).tz(timeZone).format("YYYY-MM-DD")
+          : "",
+        "Booking End Time_time": item.bookingEndTime
+          ? dayjs(item.bookingEndTime).tz(timeZone).format("HH:mm:ss")
+          : "",
         "Assignment Reason": item.bookingAssignmentReason || "",
         "Routed To Name": item.bookingUserName || "",
         "Routed To Email": item.bookingUserEmail || "",
