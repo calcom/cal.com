@@ -27,7 +27,8 @@ export class AgentService {
   ) {}
 
   private async createApiKey({ userId, teamId }: { userId: number; teamId?: number }) {
-    return await PrismaApiKeyRepository.createApiKey({
+    const apiKeyRepository = await PrismaApiKeyRepository.withGlobalPrisma();
+    return await apiKeyRepository.createApiKey({
       userId,
       teamId,
       expiresAt: null,
@@ -501,7 +502,7 @@ export class AgentService {
     id,
     userId,
     teamId,
-    name,
+    name: _name,
     generalPrompt,
     beginMessage,
     generalTools,
