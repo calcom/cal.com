@@ -90,6 +90,11 @@ export type CreatePhoneCallParams = {
   toNumber: string;
   dynamicVariables?: RetellDynamicVariables;
 };
+
+export type CreateWebCallParams = {
+  agentId: string;
+  dynamicVariables?: RetellDynamicVariables;
+};
 export type UpdatePhoneNumberParams = Retell.PhoneNumberUpdateParams;
 export type ImportPhoneNumberParams = Retell.PhoneNumberImportParams;
 export type RetellLLMGeneralTools = Retell.LlmCreateParams["general_tools"];
@@ -175,5 +180,10 @@ export interface RetellAIRepository {
 
   // Call operations
   createPhoneCall(data: CreatePhoneCallParams): Promise<RetellCall>;
+  
   listCalls(params: RetellCallListParams): Promise<RetellCallListResponse>;
+
+  createWebCall(
+    data: CreateWebCallParams
+  ): Promise<{ call_id: string; access_token: string; agent_id: string }>;
 }

@@ -12,6 +12,7 @@ import type {
   RetellAgent,
   CreatePhoneNumberParams,
   CreatePhoneCallParams,
+  CreateWebCallParams,
   ImportPhoneNumberParams,
   RetellCallListParams,
   RetellCallListResponse,
@@ -253,6 +254,18 @@ export class RetellSDKClient implements RetellAIRepository {
       return response;
     } catch (error) {
       this.logger.error("Failed to list calls", { error });
+      throw error;
+    }
+
+  async createWebCall(data: CreateWebCallParams) {
+    try {
+      const response = await this.client.call.createWebCall({
+        agent_id: data.agentId,
+        retell_llm_dynamic_variables: data.dynamicVariables,
+      });
+      return response;
+    } catch (error) {
+      this.logger.error("Failed to create web call", { error });
       throw error;
     }
   }
