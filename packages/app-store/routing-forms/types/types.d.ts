@@ -1,5 +1,4 @@
 import type { ImmutableTree, Config } from "react-awesome-query-builder";
-import type { UseFormReturn } from "react-hook-form";
 import type z from "zod";
 
 import type { App_RoutingForms_Form } from "@calcom/prisma/client";
@@ -11,7 +10,6 @@ import type {
   FormFieldsQueryBuilderConfigWithRaqbFields,
   AttributesQueryBuilderConfigWithRaqbFields,
 } from "../lib/getQueryBuilderConfig";
-import type { getSerializableForm } from "../lib/getSerializableForm";
 import type { zodRouterRouteView, zodNonRouterRoute, zodFieldsView, zodRoutesView } from "../zod";
 
 export type RoutingForm = SerializableForm<App_RoutingForms_Form>;
