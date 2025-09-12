@@ -7,7 +7,7 @@ import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
 import { schemaQueryUserId } from "~/lib/validations/shared/queryUserId";
-import { schemaUserEditBodyParams, schemaUserReadPublic } from "~/lib/validations/user";
+import { schemaUserEditBodyParams } from "~/lib/validations/user";
 
 /**
  * @swagger
@@ -134,7 +134,7 @@ export async function patchHandler(req: NextApiRequest) {
     where: { id: query.userId },
     data: body,
   });
-  const user = schemaUserReadPublic.parse(data);
+  const user = data;
   return { user };
 }
 

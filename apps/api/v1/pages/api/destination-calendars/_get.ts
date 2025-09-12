@@ -5,7 +5,6 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
 import { extractUserIdsFromQuery } from "~/lib/utils/extractUserIdsFromQuery";
-import { schemaDestinationCalendarReadPublic } from "~/lib/validations/destination-calendar";
 
 /**
  * @swagger
@@ -50,9 +49,7 @@ async function getHandler(req: NextApiRequest) {
     new HttpError({ statusCode: 404, message: "No destination calendars were found" });
 
   return {
-    destinationCalendars: allDestinationCalendars.map((destinationCalendar) =>
-      schemaDestinationCalendarReadPublic.parse(destinationCalendar)
-    ),
+    destinationCalendars: allDestinationCalendars,
   };
 }
 

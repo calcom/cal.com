@@ -5,7 +5,6 @@ import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { Ensure } from "@calcom/types/utils";
 
-import { apiKeyPublicSchema } from "~/lib/validations/api-key";
 import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";
 
 type CustomNextApiRequest = NextApiRequest & {
@@ -35,7 +34,7 @@ async function getHandler(req: CustomNextApiRequest) {
   // Proof of concept: allowing mutation in exchange of composability
   handleAdminRequests(req);
   const data = await prisma.apiKey.findMany(req.args);
-  return { api_keys: data.map((v) => apiKeyPublicSchema.parse(v)) };
+  return { api_keys: data };
 }
 
 export default defaultResponder(getHandler);

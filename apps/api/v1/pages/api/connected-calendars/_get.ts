@@ -8,7 +8,6 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 
 import { extractUserIdsFromQuery } from "~/lib/utils/extractUserIdsFromQuery";
-import { schemaConnectedCalendarsReadPublic } from "~/lib/validations/connected-calendar";
 
 /**
  * @swagger
@@ -141,7 +140,7 @@ async function getConnectedCalendars(users: UserWithCalendars[]) {
     })),
   }));
 
-  return schemaConnectedCalendarsReadPublic.parse(mapped);
+  return mapped;
 }
 
 export default defaultResponder(getHandler);

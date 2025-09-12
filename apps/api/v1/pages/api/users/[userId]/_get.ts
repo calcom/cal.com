@@ -5,7 +5,6 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
 import { schemaQueryUserId } from "~/lib/validations/shared/queryUserId";
-import { schemaUserReadPublic } from "~/lib/validations/user";
 
 /**
  * @swagger
@@ -45,10 +44,10 @@ export async function getHandler(req: NextApiRequest) {
   if (!isSystemWideAdmin && query.userId !== req.userId)
     throw new HttpError({ statusCode: 403, message: "Forbidden" });
   const data = await prisma.user.findUnique({ where: { id: query.userId } });
-  const user = schemaUserReadPublic.parse({
+  const user = {
     ...data,
     avatar: data?.avatarUrl,
-  });
+  };
   return { user };
 }
 

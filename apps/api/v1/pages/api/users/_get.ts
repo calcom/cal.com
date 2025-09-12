@@ -6,7 +6,6 @@ import type { Prisma } from "@calcom/prisma/client";
 
 import { withMiddleware } from "~/lib/helpers/withMiddleware";
 import { schemaQuerySingleOrMultipleUserEmails } from "~/lib/validations/shared/queryUserEmail";
-import { schemaUsersReadPublic } from "~/lib/validations/user";
 
 /**
  * @swagger
@@ -63,7 +62,7 @@ export async function getHandler(req: NextApiRequest) {
     prisma.user.count({ where }),
     prisma.user.findMany({ where, take, skip }),
   ]);
-  const users = schemaUsersReadPublic.parse(data);
+  const users = data;
   return { users, total };
 }
 

@@ -5,8 +5,6 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
-import { schemaAttendeeReadPublic } from "~/lib/validations/attendee";
-
 /**
  * @swagger
  * /attendees:
@@ -34,7 +32,7 @@ async function handler(req: NextApiRequest) {
   const { userId, isSystemWideAdmin } = req;
   const args: Prisma.AttendeeFindManyArgs = isSystemWideAdmin ? {} : { where: { booking: { userId } } };
   const data = await prisma.attendee.findMany(args);
-  const attendees = data.map((attendee) => schemaAttendeeReadPublic.parse(attendee));
+  const attendees = data;
   if (!attendees) throw new HttpError({ statusCode: 404, message: "No attendees were found" });
   return { attendees };
 }

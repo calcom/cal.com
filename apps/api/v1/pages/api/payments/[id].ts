@@ -4,7 +4,6 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "~/lib/helpers/withMiddleware";
 import type { PaymentResponse } from "~/lib/types";
-import { schemaPaymentPublic } from "~/lib/validations/payment";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
@@ -46,11 +45,10 @@ export async function paymentById(
   if (safeQuery.success && method === "GET") {
     const userWithBookings = await prisma.user.findUnique({
       where: { id: userId },
-      include: { bookings: true },
+      include: { bookings: { select: { id: true } } },
     });
     await prisma.payment
       .findUnique({ where: { id: safeQuery.data.id } })
-      .then((data) => schemaPaymentPublic.parse(data))
       .then((payment) => {
         if (!userWithBookings?.bookings.map((b) => b.id).includes(payment.bookingId)) {
           res.status(401).json({ message: "Unauthorized" });

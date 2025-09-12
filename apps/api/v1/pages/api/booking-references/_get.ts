@@ -4,8 +4,6 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
-import { schemaBookingReferenceReadPublic } from "~/lib/validations/booking-reference";
-
 /**
  * @swagger
  * /booking-references:
@@ -35,7 +33,7 @@ async function getHandler(req: NextApiRequest) {
     ? {}
     : { where: { booking: { userId } } };
   const data = await prisma.bookingReference.findMany(args);
-  return { booking_references: data.map((br) => schemaBookingReferenceReadPublic.parse(br)) };
+  return { booking_references: data };
 }
 
 export default defaultResponder(getHandler);

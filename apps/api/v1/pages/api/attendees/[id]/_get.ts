@@ -3,7 +3,6 @@ import type { NextApiRequest } from "next";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
-import { schemaAttendeeReadPublic } from "~/lib/validations/attendee";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 /**
@@ -39,7 +38,7 @@ export async function getHandler(req: NextApiRequest) {
   const { query } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
   const attendee = await prisma.attendee.findUnique({ where: { id } });
-  return { attendee: schemaAttendeeReadPublic.parse(attendee) };
+  return { attendee };
 }
 
 export default defaultResponder(getHandler);

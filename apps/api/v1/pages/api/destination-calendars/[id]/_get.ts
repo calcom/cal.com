@@ -3,7 +3,6 @@ import type { NextApiRequest } from "next";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
-import { schemaDestinationCalendarReadPublic } from "~/lib/validations/destination-calendar";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 /**
@@ -42,7 +41,7 @@ export async function getHandler(req: NextApiRequest) {
     where: { id },
   });
 
-  return { destinationCalendar: schemaDestinationCalendarReadPublic.parse({ ...destinationCalendar }) };
+  return { destinationCalendar };
 }
 
 export default defaultResponder(getHandler);

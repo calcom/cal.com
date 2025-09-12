@@ -4,7 +4,7 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
-import { membershipIdSchema, schemaMembershipPublic } from "~/lib/validations/membership";
+import { membershipIdSchema } from "~/lib/validations/membership";
 
 /**
  * @swagger
@@ -41,7 +41,7 @@ export async function getHandler(req: NextApiRequest) {
   // Just in case the user want to get more info about the team itself
   if (req.query.include === "team") args.include = { team: true };
   const data = await prisma.membership.findUniqueOrThrow(args);
-  return { membership: schemaMembershipPublic.parse(data) };
+  return { membership: data };
 }
 
 export default defaultResponder(getHandler);

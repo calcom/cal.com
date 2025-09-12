@@ -3,7 +3,7 @@ import type { NextApiRequest } from "next";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 
-import { schemaSelectedCalendarPublic, selectedCalendarIdSchema } from "~/lib/validations/selected-calendar";
+import { selectedCalendarIdSchema } from "~/lib/validations/selected-calendar";
 
 /**
  * @swagger
@@ -52,7 +52,7 @@ export async function getHandler(req: NextApiRequest) {
   const data = await SelectedCalendarRepository.findUserLevelUniqueOrThrow({
     where: userId_integration_externalId,
   });
-  return { selected_calendar: schemaSelectedCalendarPublic.parse(data) };
+  return { selected_calendar: data };
 }
 
 export default defaultResponder(getHandler);
