@@ -5,8 +5,11 @@ import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
 import { InfoLostWarningDialog } from "@calcom/app-store/routing-forms/components/InfoLostWarningDialog";
-import type { SingleFormComponentProps } from "@calcom/app-store/routing-forms/types/shared";
-import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
+import type {
+  RoutingFormWithResponseCount,
+  UptoDateForm,
+  SingleFormComponentProps,
+} from "@calcom/app-store/routing-forms/types/types";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -17,7 +20,7 @@ import { showToast } from "@calcom/ui/components/toast";
 import type { NewFormDialogState } from "./FormActions";
 import { FormActionsProvider } from "./FormActions";
 import { Header } from "./Header";
-import { TestFormRenderer, type UptoDateForm } from "./TestForm";
+import { TestFormRenderer } from "./TestForm";
 
 const BREAKPOINTS = {
   sm: 640,
@@ -136,7 +139,7 @@ function SingleForm({
     nonOrgTeamslug: enrichedWithUserProfileForm.nonOrgTeamslug,
     userOrigin: enrichedWithUserProfileForm.userOrigin,
     teamOrigin: enrichedWithUserProfileForm.teamOrigin,
-  } as UptoDateForm;
+  } as unknown as UptoDateForm;
 
   const handleSubmit = (data: RoutingFormWithResponseCount) => {
     mutation.mutate({

@@ -10,24 +10,22 @@ import { TeamMembersMatchResult } from "@calcom/app-store/routing-forms/componen
 import type { MembersMatchResultType } from "@calcom/app-store/routing-forms/components/_components/TeamMembersMatchResult";
 import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
 import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
-import type { SingleFormComponentProps } from "@calcom/app-store/routing-forms/types/shared";
-import type { RoutingForm, FormResponse, NonRouterRoute } from "@calcom/app-store/routing-forms/types/types";
+import type {
+  RoutingForm,
+  UptoDateForm,
+  FormResponse,
+  NonRouterRoute,
+} from "@calcom/app-store/routing-forms/types/types";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import type { Brand } from "@calcom/types/utils";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogHeader, DialogFooter } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { TRPCClientError } from "@trpc/react-query";
-
-export type UptoDateForm = Brand<
-  NonNullable<SingleFormComponentProps["enrichedWithUserProfileForm"]>,
-  "UptoDateForm"
->;
 
 const FormView = ({
   form,

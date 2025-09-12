@@ -1,15 +1,18 @@
 import type { ImmutableTree, Config } from "react-awesome-query-builder";
+import type { UseFormReturn } from "react-hook-form";
 import type z from "zod";
 
 import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/client";
 import type { RoutingFormSettings } from "@calcom/prisma/zod-utils";
+import type { Brand } from "@calcom/types/utils";
 
 import type QueryBuilderInitialConfig from "../components/react-awesome-query-builder/config/config";
 import type {
   FormFieldsQueryBuilderConfigWithRaqbFields,
   AttributesQueryBuilderConfigWithRaqbFields,
 } from "../lib/getQueryBuilderConfig";
+import type { getSerializableForm } from "../lib/getSerializableForm";
 import type { zodRouterRouteView, zodNonRouterRoute, zodFieldsView, zodRoutesView } from "../zod";
 
 export type RoutingForm = SerializableForm<App_RoutingForms_Form>;
@@ -112,3 +115,25 @@ export type RoutingFormWithResponseCount = RoutingForm & {
     responses: number;
   };
 };
+
+export type SingleFormComponentProps = {
+  form: RoutingFormWithResponseCount;
+  appUrl: string;
+  Page: React.FC<{
+    form: RoutingFormWithResponseCount;
+    appUrl: string;
+    hookForm: UseFormReturn<RoutingFormWithResponseCount>;
+  }>;
+  enrichedWithUserProfileForm: Awaited<ReturnType<typeof getSerializableForm>>;
+  permissions: {
+    canCreate: boolean;
+    canRead: boolean;
+    canEdit: boolean;
+    canDelete: boolean;
+  };
+};
+
+export type UptoDateForm = Brand<
+  NonNullable<SingleFormComponentProps["enrichedWithUserProfileForm"]>,
+  "UptoDateForm"
+>;
