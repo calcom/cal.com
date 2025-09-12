@@ -44,6 +44,6 @@
     "zod-utils.ts"
   ],
   "prisma": {
-    "seed": "ts-node --transpile-only ./seed.ts"
+    "seed": "ts-node --transpile-only ../../scripts/seed.ts"
   }
 }
