@@ -1,6 +1,3 @@
-import type { DestinationCalendar } from "@prisma/client";
-import type { Prisma } from "@prisma/client";
-
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import { MeetLocationType } from "@calcom/app-store/locations";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
@@ -13,6 +10,8 @@ import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import { prisma } from "@calcom/prisma";
+import type { DestinationCalendar } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent, AdditionalInformation } from "@calcom/types/Calendar";
 
 type InitParams = {
@@ -53,6 +52,8 @@ export const handleRescheduleEventManager = async ({
     prefix: ["handleRescheduleEventManager", `${bookingId}`],
   });
 
+  const skipDeleteEventsAndMeetings = changedOrganizer;
+
   const allCredentials = await getAllCredentialsIncludeServiceAccountKey(
     initParams.user,
     initParams?.eventType
@@ -68,7 +69,9 @@ export const handleRescheduleEventManager = async ({
     rescheduleUid,
     newBookingId,
     changedOrganizer,
-    previousHostDestinationCalendar
+    previousHostDestinationCalendar,
+    undefined,
+    skipDeleteEventsAndMeetings
   );
 
   const results = updateManager.results ?? [];
@@ -161,8 +164,8 @@ export const handleRescheduleEventManager = async ({
     const calendarResult = results.find((result) => result.type.includes("_calendar"));
 
     evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
-      ? calendarResult?.updatedEvent[0]?.iCalUID
-      : calendarResult?.updatedEvent?.iCalUID || undefined;
+      ? calendarResult?.updatedEvent[0]?.iCalUID || bookingICalUID
+      : calendarResult?.updatedEvent?.iCalUID || bookingICalUID || undefined;
   }
 
   const newReferencesToCreate = structuredClone(updateManager.referencesToCreate);

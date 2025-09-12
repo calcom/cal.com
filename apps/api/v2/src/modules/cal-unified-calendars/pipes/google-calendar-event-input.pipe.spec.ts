@@ -2,65 +2,14 @@ import {
   UpdateUnifiedCalendarEventInput,
   UpdateDateTimeWithZone,
 } from "../inputs/update-unified-calendar-event.input";
-import { CalendarEventResponseStatus, CalendarEventStatus } from "../outputs/get-unified-calendar-event.output";
-import { GoogleCalendarEventResponse } from "./get-calendar-event-details-output-pipe";
+import {
+  CalendarEventResponseStatus,
+  CalendarEventStatus,
+} from "../outputs/get-unified-calendar-event.output";
 import { GoogleCalendarEventInputPipe } from "./google-calendar-event-input-pipe";
 
 describe("GoogleCalendarEventInputPipe", () => {
   let pipe: GoogleCalendarEventInputPipe;
-  let sharedGoogleEvent: GoogleCalendarEventResponse;
-
-  beforeAll(() => {
-    sharedGoogleEvent = {
-      kind: "calendar#event",
-      etag: "test-etag",
-      id: "test-event-id",
-      status: "confirmed",
-      htmlLink: "https://calendar.google.com/event",
-      created: "2024-01-01T00:00:00Z",
-      updated: "2024-01-01T00:00:00Z",
-      summary: "Test Meeting",
-      description: "Test description",
-      start: {
-        dateTime: "2024-01-15T10:00:00Z",
-        timeZone: "America/New_York",
-      },
-      end: {
-        dateTime: "2024-01-15T11:00:00Z",
-        timeZone: "America/New_York",
-      },
-      iCalUID: "test-ical-uid",
-      sequence: 0,
-      attendees: [
-        {
-          email: "attendee1@example.com",
-          displayName: "Attendee One",
-          responseStatus: "accepted",
-          organizer: false,
-        },
-        {
-          email: "attendee2@example.com",
-          displayName: "Attendee Two",
-          responseStatus: "needsAction",
-          organizer: false,
-        },
-        {
-          email: "organizer@example.com",
-          displayName: "Organizer",
-          responseStatus: "accepted",
-          organizer: true,
-        },
-      ],
-      creator: {
-        email: "organizer@example.com",
-        displayName: "Organizer",
-      },
-      organizer: {
-        email: "organizer@example.com",
-        displayName: "Organizer",
-      },
-    };
-  });
 
   beforeEach(() => {
     pipe = new GoogleCalendarEventInputPipe();

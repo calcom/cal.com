@@ -14,7 +14,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { EventType, User, Workflow } from "@prisma/client";
 import { advanceTo, clear } from "jest-date-mock";
 import * as request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
@@ -34,25 +33,22 @@ import {
   VERSION_2024_08_13,
   X_CAL_CLIENT_ID,
 } from "@calcom/platform-constants";
-import { AttendeeScheduledEmail, OrganizerScheduledEmail } from "@calcom/platform-libraries/emails";
 import { EventManager } from "@calcom/platform-libraries/event-types";
-import {
+import { FAILED_EVENT_TYPE_IDENTIFICATION_ERROR_MESSAGE } from "@calcom/platform-types";
+import type {
   CreateEventTypeInput_2024_06_14,
-  FAILED_EVENT_TYPE_IDENTIFICATION_ERROR_MESSAGE,
   GetBookingOutput_2024_08_13,
   GetBookingsOutput_2024_08_13,
   GetSeatedBookingOutput_2024_08_13,
-} from "@calcom/platform-types";
-import {
   CreateBookingInput_2024_08_13,
   BookingOutput_2024_08_13,
   CreateRecurringBookingInput_2024_08_13,
   RecurringBookingOutput_2024_08_13,
   RescheduleBookingInput_2024_08_13,
   MarkAbsentBookingInput_2024_08_13,
+  CancelBookingInput_2024_08_13,
 } from "@calcom/platform-types";
-import { CancelBookingInput_2024_08_13 } from "@calcom/platform-types";
-import { Booking, PlatformOAuthClient, Team } from "@calcom/prisma/client";
+import type { EventType, User, Workflow, Booking, PlatformOAuthClient, Team } from "@calcom/prisma/client";
 
 describe("Bookings Endpoints 2024-08-13", () => {
   describe("User bookings", () => {
@@ -2917,14 +2913,12 @@ describe("Bookings Endpoints 2024-08-13", () => {
             },
           };
 
-          const beforeCreate = new Date();
           return request(app.getHttpServer())
             .post("/v2/bookings")
             .send(body)
             .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
             .expect(201)
             .then(async (response) => {
-              const afterCreate = new Date();
               const responseBody: CreateBookingOutput_2024_08_13 = response.body;
               expect(responseBody.status).toEqual(SUCCESS_STATUS);
               expect(responseBody.data).toBeDefined();
