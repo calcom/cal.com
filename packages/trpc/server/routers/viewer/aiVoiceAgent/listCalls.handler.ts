@@ -53,14 +53,42 @@ export const listCallsHandler = async ({ ctx, input }: ListCallsHandlerOptions) 
 
     const aiService = createDefaultAIPhoneServiceProvider();
 
+    // TODO: Consider using schema-level coercion (z.coerce.date() or z.string().datetime({ offset: true })) for better validation
     let startTimestamp: { lower_threshold?: number; upper_threshold?: number } | undefined;
     if (input.filters?.startDate || input.filters?.endDate) {
       startTimestamp = {};
+
       if (input.filters.startDate) {
-        startTimestamp.lower_threshold = new Date(input.filters.startDate).getTime();
+        const parsedStartDate = Date.parse(input.filters.startDate);
+        if (!isFinite(parsedStartDate)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Invalid startDate format",
+          });
+        }
+        startTimestamp.lower_threshold = parsedStartDate;
       }
+
       if (input.filters.endDate) {
-        startTimestamp.upper_threshold = new Date(input.filters.endDate).getTime();
+        const parsedEndDate = Date.parse(input.filters.endDate);
+        if (!isFinite(parsedEndDate)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Invalid endDate format",
+          });
+        }
+        startTimestamp.upper_threshold = parsedEndDate;
+      }
+
+      if (
+        startTimestamp.lower_threshold &&
+        startTimestamp.upper_threshold &&
+        startTimestamp.lower_threshold > startTimestamp.upper_threshold
+      ) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "startDate must be before or equal to endDate",
+        });
       }
     }
 

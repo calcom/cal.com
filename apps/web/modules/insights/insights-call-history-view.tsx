@@ -96,8 +96,8 @@ function CallHistoryContent({ org: _org }: CallHistoryProps) {
       time: call.start_timestamp ? new Date(call.start_timestamp).toISOString() : new Date().toISOString(),
       duration: Math.round((call.duration_ms || 0) / 1000),
       channelType: (call.call_type || "phone_call") as "web_call" | "phone_call",
-      sessionId: call.call_id || call.id || "unknown",
-      endReason: call.disconnection_reason || "Unknown",
+      sessionId: call.call_id || call.id || t("unknown"),
+      endReason: call.disconnection_reason || t("unknown"),
       sessionStatus:
         call.call_status === "ended" ? "completed" : call.call_status === "ongoing" ? "ongoing" : "failed",
       userSentiment:
@@ -106,8 +106,8 @@ function CallHistoryContent({ org: _org }: CallHistoryProps) {
           : call.call_analysis?.user_sentiment?.toLowerCase() === "negative"
           ? "negative"
           : "neutral",
-      from: call.from_number || "Unknown",
-      to: call.to_number || "Unknown",
+      from: call.from_number || t("unknown"),
+      to: call.to_number || t("unknown"),
       callCreated: call.call_created ?? true,
       inVoicemail: call.in_voicemail ?? false,
     }));
@@ -164,6 +164,7 @@ function CallHistoryContent({ org: _org }: CallHistoryProps) {
         accessorKey: "endReason",
         header: t("end_reason"),
         size: 180,
+        cell: ({ row }) => <span>{row.original.endReason}</span>,
       },
       {
         id: "sessionStatus",
