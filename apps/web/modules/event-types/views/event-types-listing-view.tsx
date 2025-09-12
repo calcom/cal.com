@@ -27,7 +27,7 @@ import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { localStorage } from "@calcom/lib/webstorage";
-import type { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -954,6 +954,24 @@ export const EventTypesCTA = ({ userEventGroupsData }: Omit<Props, "user">) => {
     userEventGroupsData?.profiles
       ?.filter((profile) => !profile.readOnly)
       ?.filter((profile) => !profile.eventTypesLockedByOrg)
+      ?.filter((profile) => {
+        // For personal profiles (teamId is null), always allow creation
+        if (!profile.teamId) {
+          return true;
+        }
+
+        // For team profiles, check if user has eventType.create permission
+        // This will be populated by the server-side PBAC check
+        // Fallback to role-based check (admin/owner) if canCreateEventTypes is not set
+        if (profile.canCreateEventTypes !== undefined) {
+          return profile.canCreateEventTypes;
+        }
+
+        // Fallback: allow admin and owner roles
+        return (
+          profile.membershipRole === MembershipRole.ADMIN || profile.membershipRole === MembershipRole.OWNER
+        );
+      })
       ?.map((profile) => {
         return {
           teamId: profile.teamId,
