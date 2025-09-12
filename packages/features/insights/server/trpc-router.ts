@@ -2,6 +2,8 @@ import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import { isDateRangeFilterValue } from "@calcom/features/data-table/lib/utils";
+import { ColumnFilterType } from "@calcom/features/data-table/types";
 import {
   insightsRoutingServiceInputSchema,
   insightsRoutingServicePaginatedInputSchema,
@@ -315,7 +317,7 @@ function createInsightsBookingService(
   ctx: { user: { id: number; organizationId: number | null } },
   input: z.infer<typeof bookingRepositoryBaseInputSchema>
 ) {
-  const { scope, selectedTeamId, startDate, endDate, columnFilters, dateTarget } = input;
+  const { scope, selectedTeamId, columnFilters } = input;
   return getInsightsBookingService({
     options: {
       scope,
@@ -325,11 +327,6 @@ function createInsightsBookingService(
     },
     filters: {
       ...(columnFilters && { columnFilters }),
-      dateRange: {
-        target: dateTarget,
-        startDate,
-        endDate,
-      },
     },
   });
 }
@@ -364,10 +361,29 @@ export const insightsRouter = router({
 
       // Calculate previous period dates and create service for previous period
       const previousPeriodDates = currentPeriodService.calculatePreviousPeriodDates();
+      const previousPeriodColumnFilters = input.columnFilters?.map((filter) => {
+        if (
+          (filter.id === "startTime" || filter.id === "createdAt") &&
+          isDateRangeFilterValue(filter.value)
+        ) {
+          return {
+            id: filter.id,
+            value: {
+              type: ColumnFilterType.DATE_RANGE,
+              data: {
+                startDate: previousPeriodDates.startDate,
+                endDate: previousPeriodDates.endDate,
+                preset: filter.value.data.preset,
+              },
+            },
+          };
+        } else {
+          return filter;
+        }
+      });
       const previousPeriodService = createInsightsBookingService(ctx, {
         ...input,
-        startDate: previousPeriodDates.startDate,
-        endDate: previousPeriodDates.endDate,
+        columnFilters: previousPeriodColumnFilters,
       });
 
       // Get previous period stats
@@ -455,7 +471,8 @@ export const insightsRouter = router({
       };
     }),
   eventTrends: insightsPbacProcedure.input(bookingRepositoryBaseInputSchema).query(async ({ ctx, input }) => {
-    const { startDate, endDate, timeZone } = input;
+    const { columnFilters, timeZone } = input;
+    const { startDate, endDate } = extractDateRangeFromColumnFilters(columnFilters);
 
     // Calculate timeView and dateRanges
     const timeView = getTimeView(startDate, endDate);
@@ -491,7 +508,8 @@ export const insightsRouter = router({
   averageEventDuration: insightsPbacProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
-      const { startDate, endDate, timeZone } = input;
+      const { columnFilters, timeZone } = input;
+      const { startDate, endDate } = extractDateRangeFromColumnFilters(columnFilters);
 
       const insightsBookingService = createInsightsBookingService(ctx, input);
 

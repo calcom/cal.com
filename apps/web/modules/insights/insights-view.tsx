@@ -47,9 +47,15 @@ export default function InsightsPage({ timeZone }: { timeZone: string }) {
   );
 }
 
-const timestampColumn: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }> = {
-  id: "timestamp",
-  title: "timestamp",
+const createdAtColumn: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }> = {
+  id: "createdAt",
+  title: "createdAt",
+  type: ColumnFilterType.DATE_RANGE,
+};
+
+const startTimeColumn: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }> = {
+  id: "startTime",
+  title: "startTime",
   type: ColumnFilterType.DATE_RANGE,
 };
 
@@ -59,6 +65,7 @@ function InsightsPageContent() {
   const { isAll, teamId, userId } = useInsightsOrgTeams();
   const [dateTarget, setDateTarget] = useQueryState("dateTarget", {
     defaultValue: "startTime" as const,
+    parse: (value) => (value === "createdAt" ? "createdAt" : "startTime"),
   });
 
   return (
@@ -74,7 +81,10 @@ function InsightsPageContent() {
         <div className="grow" />
         <Download />
         <ButtonGroup combined>
-          <DateRangeFilter column={timestampColumn} />
+          <DateRangeFilter
+            column={dateTarget === "startTime" ? startTimeColumn : createdAtColumn}
+            options={{ preserveLocalTime: true }}
+          />
           <DateTargetSelector value={dateTarget as DateTarget} onChange={setDateTarget} />
         </ButtonGroup>
         <TimezoneBadge />

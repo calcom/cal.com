@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import dayjs from "@calcom/dayjs";
+import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 
 import { preserveLocalTime } from "../lib/preserveLocalTime";
 import { useDataTable } from "./useDataTable";
@@ -19,10 +19,9 @@ import { useDataTable } from "./useDataTable";
 export function useChangeTimeZoneWithPreservedLocalTime(isoString: string) {
   const { timeZone: profileTimeZone } = useDataTable();
   return useMemo(() => {
-    const currentTimeZone = dayjs.tz.guess();
-    if (!profileTimeZone || currentTimeZone === profileTimeZone) {
+    if (!profileTimeZone || CURRENT_TIMEZONE === profileTimeZone) {
       return isoString;
     }
-    return preserveLocalTime(isoString, currentTimeZone, profileTimeZone);
+    return preserveLocalTime(isoString, CURRENT_TIMEZONE, profileTimeZone);
   }, [isoString, profileTimeZone]);
 }
