@@ -443,6 +443,7 @@ export const fieldTypesSchemaMap: Partial<
 export const dbReadResponseSchema = z.union([
   z.string(),
   z.boolean(),
+  z.number(),
   z.string().array(),
   z.object({
     optionValue: z.string(),
