@@ -66,8 +66,8 @@ class RoutingEventsInsights {
     }
 
     // Base where condition for forms
-    const formsWhereCondition: WhereForTeamOrAllTeams =
-      teamIds.length > 0
+    const formsWhereCondition: WhereForTeamOrAllTeams = {
+      ...(teamIds.length > 0
         ? {
             teamId: {
               in: teamIds,
@@ -77,8 +77,11 @@ class RoutingEventsInsights {
         : {
             userId: userId ?? -1,
             teamId: null,
-            ...(routingFormId && { id: routingFormId }),
-          };
+          }),
+      ...(routingFormId && {
+        id: routingFormId,
+      }),
+    };
 
     return formsWhereCondition;
   }
@@ -157,26 +160,26 @@ class RoutingEventsInsights {
         "Booking Link": item.bookingUid ? `${WEBAPP_URL}/booking/${item.bookingUid}` : "",
         "Response ID": item.id,
         "Form Name": item.formName,
-        "Submitted At": item.createdAt.toString(),
+        "Submitted At": item.createdAt.toISOString(),
         "Submitted At_date": dayjs(item.createdAt).tz(timeZone).format("YYYY-MM-DD"),
         "Submitted At_time": dayjs(item.createdAt).tz(timeZone).format("HH:mm:ss"),
         "Has Booking": item.bookingUid !== null,
         "Booking Status": item.bookingStatus || "NO_BOOKING",
-        "Booking Created At": item.bookingCreatedAt?.toString() || "",
+        "Booking Created At": item.bookingCreatedAt?.toISOString() || "",
         "Booking Created At_date": item.bookingCreatedAt
           ? dayjs(item.bookingCreatedAt).tz(timeZone).format("YYYY-MM-DD")
           : "",
         "Booking Created At_time": item.bookingCreatedAt
           ? dayjs(item.bookingCreatedAt).tz(timeZone).format("HH:mm:ss")
           : "",
-        "Booking Start Time": item.bookingStartTime?.toString() || "",
+        "Booking Start Time": item.bookingStartTime?.toISOString() || "",
         "Booking Start Time_date": item.bookingStartTime
           ? dayjs(item.bookingStartTime).tz(timeZone).format("YYYY-MM-DD")
           : "",
         "Booking Start Time_time": item.bookingStartTime
           ? dayjs(item.bookingStartTime).tz(timeZone).format("HH:mm:ss")
           : "",
-        "Booking End Time": item.bookingEndTime?.toString() || "",
+        "Booking End Time": item.bookingEndTime?.toISOString() || "",
         "Booking End Time_date": item.bookingEndTime
           ? dayjs(item.bookingEndTime).tz(timeZone).format("YYYY-MM-DD")
           : "",

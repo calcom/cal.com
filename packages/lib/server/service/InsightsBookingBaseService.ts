@@ -458,6 +458,8 @@ export class InsightsBookingBaseService {
     offset?: number;
     timeZone: string;
   }) {
+    const DATE_FORMAT = "YYYY-MM-DD";
+    const TIME_FORMAT = "HH:mm:ss";
     const baseConditions = await this.getBaseConditions();
 
     // Get total count first
@@ -608,6 +610,15 @@ export class InsightsBookingBaseService {
 
     // 6. Combine booking data with attendee data and add ISO timestamp columns
     const data = csvData.map((bookingTimeStatus) => {
+      const dateAndTime = {
+        createdAt_date: dayjs(bookingTimeStatus.createdAt).tz(timeZone).format(DATE_FORMAT),
+        createdAt_time: dayjs(bookingTimeStatus.createdAt).tz(timeZone).format(TIME_FORMAT),
+        startTime_date: dayjs(bookingTimeStatus.startTime).tz(timeZone).format(DATE_FORMAT),
+        startTime_time: dayjs(bookingTimeStatus.startTime).tz(timeZone).format(TIME_FORMAT),
+        endTime_date: dayjs(bookingTimeStatus.endTime).tz(timeZone).format(DATE_FORMAT),
+        endTime_time: dayjs(bookingTimeStatus.endTime).tz(timeZone).format(TIME_FORMAT),
+      };
+
       if (!bookingTimeStatus.uid) {
         // should not be reached because we filtered above
         const nullAttendeeFields: Record<string, null> = {};
@@ -617,12 +628,7 @@ export class InsightsBookingBaseService {
 
         return {
           ...bookingTimeStatus,
-          createdAt_date: dayjs(bookingTimeStatus.createdAt).tz(timeZone).format("YYYY-MM-DD"),
-          createdAt_time: dayjs(bookingTimeStatus.createdAt).tz(timeZone).format("HH:mm:ss"),
-          startTime_date: dayjs(bookingTimeStatus.startTime).tz(timeZone).format("YYYY-MM-DD"),
-          startTime_time: dayjs(bookingTimeStatus.startTime).tz(timeZone).format("HH:mm:ss"),
-          endTime_date: dayjs(bookingTimeStatus.endTime).tz(timeZone).format("YYYY-MM-DD"),
-          endTime_time: dayjs(bookingTimeStatus.endTime).tz(timeZone).format("HH:mm:ss"),
+          ...dateAndTime,
           noShowGuests: null,
           noShowGuestsCount: 0,
           ...nullAttendeeFields,
@@ -639,12 +645,7 @@ export class InsightsBookingBaseService {
 
         return {
           ...bookingTimeStatus,
-          createdAt_date: dayjs(bookingTimeStatus.createdAt).tz(timeZone).format("YYYY-MM-DD"),
-          createdAt_time: dayjs(bookingTimeStatus.createdAt).tz(timeZone).format("HH:mm:ss"),
-          startTime_date: dayjs(bookingTimeStatus.startTime).tz(timeZone).format("YYYY-MM-DD"),
-          startTime_time: dayjs(bookingTimeStatus.startTime).tz(timeZone).format("HH:mm:ss"),
-          endTime_date: dayjs(bookingTimeStatus.endTime).tz(timeZone).format("YYYY-MM-DD"),
-          endTime_time: dayjs(bookingTimeStatus.endTime).tz(timeZone).format("HH:mm:ss"),
+          ...dateAndTime,
           noShowGuests: null,
           noShowGuestsCount: 0,
           ...nullAttendeeFields,
@@ -653,12 +654,7 @@ export class InsightsBookingBaseService {
 
       return {
         ...bookingTimeStatus,
-        createdAt_date: dayjs(bookingTimeStatus.createdAt).tz(timeZone).format("YYYY-MM-DD"),
-        createdAt_time: dayjs(bookingTimeStatus.createdAt).tz(timeZone).format("HH:mm:ss"),
-        startTime_date: dayjs(bookingTimeStatus.startTime).tz(timeZone).format("YYYY-MM-DD"),
-        startTime_time: dayjs(bookingTimeStatus.startTime).tz(timeZone).format("HH:mm:ss"),
-        endTime_date: dayjs(bookingTimeStatus.endTime).tz(timeZone).format("YYYY-MM-DD"),
-        endTime_time: dayjs(bookingTimeStatus.endTime).tz(timeZone).format("HH:mm:ss"),
+        ...dateAndTime,
         noShowGuests: attendeeData.noShowGuests,
         noShowGuestsCount: attendeeData.noShowGuestsCount,
         ...Object.fromEntries(Object.entries(attendeeData).filter(([key]) => key.startsWith("attendee"))),
