@@ -128,11 +128,11 @@ async function handleCallAnalyzed(callData: any) {
     !Number.isFinite(call_cost.total_duration_seconds) ||
     call_cost.total_duration_seconds <= 0
   ) {
-    log.error(
+    log.info(
       `Invalid or missing call_cost.total_duration_seconds for call ${call_id}: ${safeStringify(call_cost)}`
     );
     return {
-      success: false,
+      success: true,
       message: `Invalid or missing call_cost.total_duration_seconds for call ${call_id}`
     };
   }
