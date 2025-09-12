@@ -1,5 +1,5 @@
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 
 import type { RecurringEventControllerProps } from "./RecurringEventController";
 import RecurringEventController from "./RecurringEventController";
