@@ -101,7 +101,7 @@ export const getBookingWithResponses = <
 ) => {
   return {
     ...booking,
-    responses: bookingResponsesDbSchema.parse(booking.responses || getResponsesFromOldBooking(booking)),
+    responses: booking.responses || getResponsesFromOldBooking(booking),
   } as Omit<T, "responses"> & { responses: z.infer<typeof bookingResponsesDbSchema> };
 };
 

@@ -24,7 +24,6 @@ type Response = {
   value:
     | string
     | boolean
-    | number
     | string[]
     | { value: string; optionValue: string }
     | Record<string, string>;
