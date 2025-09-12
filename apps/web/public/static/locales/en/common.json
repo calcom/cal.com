@@ -3637,6 +3637,8 @@
   "location_custom_label_input_label": "Custom label on booking page",
   "meeting_link": "Meeting link",
   "session_outcome": "Session Outcome",
+  "call_created": "Call Created",
+  "voicemail": "Voicemail",
   "my_bookings": "My Bookings",
   "phone": "Phone",
   "free": "Free",

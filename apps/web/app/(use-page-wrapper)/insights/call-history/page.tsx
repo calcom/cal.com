@@ -1,6 +1,8 @@
 import { _generateMetadata } from "app/_utils";
 
-import CallHistoryPage from "@calcom/features/ee/workflows/pages/call-history";
+import InsightsCallHistoryPage from "~/insights/insights-call-history-view";
+
+import { checkInsightsPagePermission } from "../checkInsightsPagePermission";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -8,9 +10,11 @@ export const generateMetadata = async () =>
     (t) => t("call_history_subtitle"),
     undefined,
     undefined,
-    "/workflows/call-history"
+    "/insights/call-history"
   );
 
 export default async function Page() {
-  return <CallHistoryPage />;
+  await checkInsightsPagePermission();
+
+  return <InsightsCallHistoryPage />;
 }

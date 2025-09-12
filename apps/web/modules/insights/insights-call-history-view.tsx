@@ -8,21 +8,19 @@ import {
   DataTableWrapper,
   DataTableToolbar,
   DataTableFilters,
-  useColumnFilters,
   ColumnFilterType,
   convertFacetedValuesToMap,
   useDataTable,
 } from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { CallDetailsSheet } from "@calcom/features/ee/workflows/components/CallDetailsSheet";
+import type { CallDetailsState, CallDetailsAction } from "@calcom/features/ee/workflows/components/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
-
-import { CallDetailsSheet } from "../components/CallDetailsSheet";
-import type { CallDetailsState, CallDetailsAction } from "../components/types";
 
 type CallHistoryRow = {
   id: string;
@@ -78,10 +76,8 @@ function CallHistoryContent({ org: _org }: CallHistoryProps) {
   const [rowSelection, setRowSelection] = useState({});
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const _columnFilters = useColumnFilters();
   const { limit, offset, searchTerm: _searchTerm } = useDataTable();
 
-  // Fetch calls data from API
   const {
     data: callsData,
     isPending: isLoadingCalls,
@@ -317,10 +313,8 @@ function CallHistoryContent({ org: _org }: CallHistoryProps) {
   );
 }
 
-function CallHistoryPage() {
+export default function InsightsCallHistoryPage() {
   const { data: org } = trpc.viewer.organizations.listCurrent.useQuery();
 
   return <CallHistoryTable org={org} />;
 }
-
-export default CallHistoryPage;

@@ -50,12 +50,12 @@ export function CallDetailsSheet({ state, dispatch }: CallDetailsSheetProps) {
             <div>
               <h2 className="text-emphasis font-sans text-xl font-semibold">{t("call_details")}</h2>
               <p className="text-subtle mt-1 text-sm">
-                {t("call_id")}: {selectedCall.call_id}
+                {t("call_id")}: {selectedCall.call_id}{" "}
+                <Badge variant={selectedCall.call_status === "ended" ? "green" : "orange"}>
+                  {selectedCall.call_status}
+                </Badge>
               </p>
             </div>
-            <Badge variant={selectedCall.call_status === "ended" ? "green" : "orange"}>
-              {selectedCall.call_status}
-            </Badge>
           </div>
         </SheetHeader>
 

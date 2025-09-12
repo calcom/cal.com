@@ -256,6 +256,7 @@ export class RetellSDKClient implements RetellAIRepository {
       this.logger.error("Failed to list calls", { error });
       throw error;
     }
+  }
 
   async createWebCall(data: CreateWebCallParams) {
     try {

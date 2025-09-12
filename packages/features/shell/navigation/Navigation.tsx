@@ -99,14 +99,6 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     href: "/workflows",
     icon: "zap",
     moreOnMobile: true,
-    child: [
-      {
-        name: "Call History",
-        href: "/workflows/call-history",
-        icon: "phone",
-        isCurrent: ({ pathname: path }) => path?.startsWith("/workflows/call-history") ?? false,
-      },
-    ],
   },
   {
     name: "insights",
@@ -129,6 +121,12 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
         name: "router_position",
         href: "/insights/router-position",
         isCurrent: ({ pathname: path }) => path?.startsWith("/insights/router-position") ?? false,
+      },
+      {
+        name: "Call History",
+        href: "/insights/call-history",
+        // icon: "phone",
+        isCurrent: ({ pathname: path }) => path?.startsWith("/insights/call-history") ?? false,
       },
     ],
   },
