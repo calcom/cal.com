@@ -67,20 +67,20 @@ export function CallDetailsSheet({ state, dispatch }: CallDetailsSheetProps) {
               <div>
                 <p className="text-subtle text-sm">{t("start_time")}</p>
                 <p className="text-default text-sm font-medium">
-                  {formatTimestamp(selectedCall.start_timestamp)}
+                  {selectedCall.start_timestamp ? formatTimestamp(selectedCall.start_timestamp) : t("unknown")}
                 </p>
               </div>
               <div>
                 <p className="text-subtle text-sm">{t("duration")}</p>
-                <p className="text-default text-sm font-medium">{formatDuration(selectedCall.duration_ms)}</p>
+                <p className="text-default text-sm font-medium">{selectedCall.duration_ms ? formatDuration(selectedCall.duration_ms) : t("unknown")}</p>
               </div>
               <div>
                 <p className="text-subtle text-sm">{t("from")}</p>
-                <p className="text-default text-sm font-medium">{selectedCall.from_number}</p>
+                <p className="text-default text-sm font-medium">{selectedCall.from_number || t("unknown")}</p>
               </div>
               <div>
                 <p className="text-subtle text-sm">{t("to")}</p>
-                <p className="text-default text-sm font-medium">{selectedCall.to_number}</p>
+                <p className="text-default text-sm font-medium">{selectedCall.to_number || t("unknown")}</p>
               </div>
               <div>
                 <p className="text-subtle text-sm">{t("sentiment")}</p>

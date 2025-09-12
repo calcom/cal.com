@@ -92,11 +92,11 @@ function CallHistoryContent({ org: _org }: CallHistoryProps) {
     if (!callsData?.calls) return [];
 
     return callsData.calls.map((call) => ({
-      id: call.call_id || call.id || Math.random().toString(),
+      id: call.call_id || Math.random().toString(),
       time: call.start_timestamp ? new Date(call.start_timestamp).toISOString() : new Date().toISOString(),
       duration: Math.round((call.duration_ms || 0) / 1000),
       channelType: (call.call_type || "phone_call") as "web_call" | "phone_call",
-      sessionId: call.call_id || call.id || t("unknown"),
+      sessionId: call.call_id || t("unknown"),
       endReason: call.disconnection_reason || t("unknown"),
       sessionStatus:
         call.call_status === "ended" ? "completed" : call.call_status === "ongoing" ? "ongoing" : "failed",
@@ -108,8 +108,8 @@ function CallHistoryContent({ org: _org }: CallHistoryProps) {
           : "neutral",
       from: call.from_number || t("unknown"),
       to: call.to_number || t("unknown"),
-      callCreated: call.call_created ?? true,
-      inVoicemail: call.in_voicemail ?? false,
+      callCreated: call.call_analysis?.call_successful ?? true,
+      inVoicemail: call.call_analysis?.in_voicemail ?? false,
     }));
   }, [callsData?.calls]);
 
