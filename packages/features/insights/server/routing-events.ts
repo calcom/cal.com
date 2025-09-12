@@ -66,21 +66,19 @@ class RoutingEventsInsights {
     }
 
     // Base where condition for forms
-    const formsWhereCondition: WhereForTeamOrAllTeams = {
-      ...(teamIds.length > 0
+    const formsWhereCondition: WhereForTeamOrAllTeams =
+      teamIds.length > 0
         ? {
             teamId: {
               in: teamIds,
             },
+            ...(routingFormId && { id: routingFormId }),
           }
         : {
             userId: userId ?? -1,
             teamId: null,
-          }),
-      ...(routingFormId && {
-        id: routingFormId,
-      }),
-    };
+            ...(routingFormId && { id: routingFormId }),
+          };
 
     return formsWhereCondition;
   }
