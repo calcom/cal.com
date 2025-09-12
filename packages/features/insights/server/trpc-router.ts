@@ -456,7 +456,7 @@ export const insightsRouter = router({
       };
     }),
   eventTrends: insightsPbacProcedure.input(bookingRepositoryBaseInputSchema).query(async ({ ctx, input }) => {
-    const { startDate, endDate, timeZone } = input;
+    const { startDate, endDate } = input;
 
     // Calculate timeView and dateRanges
     const timeView = getTimeView(startDate, endDate);
@@ -464,14 +464,14 @@ export const insightsRouter = router({
       startDate,
       endDate,
       timeView,
-      timeZone,
+      timeZone: ctx.user.timeZone,
       weekStart: ctx.user.weekStart,
     });
 
     const insightsBookingService = createInsightsBookingService(ctx, input);
     try {
       return await insightsBookingService.getEventTrendsStats({
-        timeZone,
+        timeZone: ctx.user.timeZone,
         dateRanges,
       });
     } catch (e) {
@@ -492,7 +492,7 @@ export const insightsRouter = router({
   averageEventDuration: insightsPbacProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
-      const { startDate, endDate, timeZone } = input;
+      const { startDate, endDate } = input;
 
       const insightsBookingService = createInsightsBookingService(ctx, input);
 
@@ -502,7 +502,7 @@ export const insightsRouter = router({
           startDate,
           endDate,
           timeView,
-          timeZone,
+          timeZone: ctx.user.timeZone,
           weekStart: ctx.user.weekStart as GetDateRangesParams["weekStart"],
         });
 
@@ -817,7 +817,7 @@ export const insightsRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const { limit, offset, timeZone } = input;
+      const { limit, offset } = input;
 
       const insightsBookingService = createInsightsBookingService(ctx, input);
 
@@ -825,7 +825,7 @@ export const insightsRouter = router({
         return await insightsBookingService.getCsvData({
           limit: limit ?? 100,
           offset: offset ?? 0,
-          timeZone,
+          timeZone: ctx.user.timeZone,
         });
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
@@ -1002,12 +1002,11 @@ export const insightsRouter = router({
   bookingsByHourStats: insightsPbacProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
-      const { timeZone } = input;
       const insightsBookingService = createInsightsBookingService(ctx, input, "startTime");
 
       try {
         return await insightsBookingService.getBookingsByHourStats({
-          timeZone,
+          timeZone: ctx.user.timeZone,
         });
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });

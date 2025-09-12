@@ -1,7 +1,9 @@
 "use client";
 
+import { useDataTable } from "@calcom/features/data-table";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { trpc } from "@calcom/trpc";
 import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
@@ -14,7 +16,9 @@ export const RecentNoShowGuestsChart = () => {
   const { t } = useLocale();
   const { copyToClipboard, isCopied } = useCopy();
   const insightsBookingParams = useInsightsBookingParameters();
-  const timeZone = insightsBookingParams.timeZone;
+
+  const { timeZone } = useDataTable();
+  const userTimeZone = timeZone || CURRENT_TIMEZONE;
 
   const { data, isSuccess, isPending } = trpc.viewer.insights.recentNoShowGuests.useQuery(
     insightsBookingParams,
@@ -53,7 +57,7 @@ export const RecentNoShowGuestsChart = () => {
                     <p>{item.eventTypeName}</p>
                     <p>
                       {Intl.DateTimeFormat(undefined, {
-                        timeZone,
+                        timeZone: userTimeZone,
                         dateStyle: "medium",
                         timeStyle: "short",
                       }).format(new Date(item.startTime))}
