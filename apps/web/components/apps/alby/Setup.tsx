@@ -5,15 +5,14 @@ import { useState, useCallback, useEffect } from "react";
 import { Toaster } from "sonner";
 
 import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
+import { albyCredentialKeysSchema } from "@calcom/app-store/alby/lib/albyCredentialKeysSchema";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { showToast } from "@calcom/ui/components/toast";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
-
-import { albyCredentialKeysSchema } from "../../lib/albyCredentialKeysSchema";
+import { showToast } from "@calcom/ui/components/toast";
 
 export interface IAlbySetupProps {
   email: string | null;
