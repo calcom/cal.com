@@ -661,7 +661,7 @@ export const getOptions = ({
         if (
           account.provider === "google" &&
           !(await CredentialRepository.findFirstByAppIdAndUserId({
-            userId: user.id as number,
+            userId: Number(user.id),
             appId: "google-calendar",
           })) &&
           GOOGLE_CALENDAR_SCOPES.every((scope) => grantedScopes.includes(scope))
@@ -675,7 +675,7 @@ export const getOptions = ({
             expires_at: account.expires_at,
           };
           const gcalCredential = await CredentialRepository.create({
-            userId: user.id as number,
+            userId: Number(user.id),
             key: credentialkey,
             appId: "google-calendar",
             type: "google_calendar",
@@ -688,14 +688,14 @@ export const getOptions = ({
 
           if (
             !(await CredentialRepository.findFirstByUserIdAndType({
-              userId: user.id as number,
+              userId: Number(user.id),
               type: "google_video",
             }))
           ) {
             await CredentialRepository.create({
               type: "google_video",
               key: {},
-              userId: user.id as number,
+              userId: Number(user.id),
               appId: "google-meet",
             });
           }
@@ -709,10 +709,10 @@ export const getOptions = ({
           if (primaryCal?.id) {
             await gCalService.createSelectedCalendar({
               externalId: primaryCal.id,
-              userId: user.id as number,
+              userId: Number(user.id),
             });
           }
-          await updateProfilePhotoGoogle(oAuth2Client, user.id as number);
+          await updateProfilePhotoGoogle(oAuth2Client, Number(user.id));
         }
         const allProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser(existingUser);
         const { upId } = determineProfile({ profiles: allProfiles, token });
