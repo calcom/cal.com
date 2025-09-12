@@ -11,7 +11,7 @@ import { getBookingFieldsWithSystemFields } from "../../../lib/getBookingFields"
 import { BookingFields } from "./BookingFields";
 
 // Mock PhoneInput to avoid calling the lazy import
-vi.mock("@calcom/features/components/phone-input", () => {
+vi.mock("@calcom/features/components/phone-input/PhoneInput", () => {
   return {
     default: PhoneInput,
   };
