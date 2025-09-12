@@ -35,7 +35,7 @@ const avatarClasses = cva(
         md: "w-8 h-8 min-w-8 min-h-8",
         mdLg: "w-10 h-10 min-w-10 min-h-10",
         lg: "w-16 h-16 min-w-16 min-h-16",
-        xl: "w-24 h-24 min-w-24 min-h-24",
+        xl: "w-20 h-20 min-w-20 min-h-20",
       },
       shape: {
         circle: "rounded-full",

@@ -42,6 +42,13 @@ enum PeriodType {
   RANGE          @map("range")
 }
 
+enum CaptchaType {
+  OFF    @map("off")
+  LOW    @map("low")
+  MEDIUM @map("medium")
+  HIGH   @map("high")
+}
+
 enum CreationSource {
   API_V1 @map("api_v1")
   API_V2 @map("api_v2")
@@ -209,6 +216,7 @@ model EventType {
   restrictionSchedule   Schedule? @relation("restrictionSchedule", fields: [restrictionScheduleId], references: [id])
 
   workflowInsights WorkflowInsights[]
+  captchaType      CaptchaType        @default(OFF)
 
   calIdTeam             CalIdTeam?                   @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade)
   calIdTeamId           Int?
@@ -437,6 +445,8 @@ model User {
   calIdTeams                     CalIdMembership[]
   calIdWorkflows                 CalIdWorkflow[]
   calIdWorkflowReminders         CalIdWorkflowReminder[]       @relation("UserCalIdWorkflowReminders")
+  bannerUrl                      String?
+  faviconUrl                     String?
 
   @@unique([email])
   @@unique([email, username])
@@ -758,16 +768,17 @@ model BookingReference {
 }
 
 model Attendee {
-  id          Int          @id @default(autoincrement())
-  email       String
-  name        String
-  timeZone    String
-  phoneNumber String?
-  locale      String?      @default("en")
-  booking     Booking?     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  bookingId   Int?
-  bookingSeat BookingSeat?
-  noShow      Boolean?     @default(false)
+  id               Int                @id @default(autoincrement())
+  email            String
+  name             String
+  timeZone         String
+  phoneNumber      String?
+  locale           String?            @default("en")
+  booking          Booking?           @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId        Int?
+  bookingSeat      BookingSeat?
+  noShow           Boolean?           @default(false)
+  workflowReminder WorkflowReminder[]
 
   @@index([email])
   @@index([bookingId])
@@ -1503,6 +1514,8 @@ model WorkflowReminder {
   seatReferenceId     String?
   isMandatoryReminder Boolean?        @default(false)
   retryCount          Int             @default(0)
+  attendeeId          Int?
+  attendee            Attendee?       @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
 
   @@index([bookingUid])
   @@index([workflowStepId])
@@ -1846,11 +1859,13 @@ model Avatar {
   // different every time to pop the cache.
   objectKey String @unique
 
-  isHeader Boolean @default(false)
-  isBanner Boolean @default(false)
+  isHeader  Boolean @default(false)
+  isBanner  Boolean @default(false)
+  isFavicon Boolean @default(false)
 
-  @@unique([teamId, userId, isHeader])
-  @@unique([teamId, userId, isBanner])
+  // @@unique([teamId, userId, isHeader])
+  // @@unique([teamId, userId, isFavicon])
+  @@unique([teamId, userId, isBanner, isFavicon, isHeader])
   @@map(name: "avatars")
 }
 
@@ -2125,6 +2140,12 @@ model AttributeToUser {
   // This is the membership id of the organization
   memberId Int
 
+  // This is the calIdMembership of the calIdTeam
+  calIdMember CalIdMembership? @relation(fields: [calIdMemberId], references: [id], onDelete: Cascade)
+
+  // This is the calIdMembership id of the calIdTeam
+  calIdMemberId Int?
+
   attributeOption   AttributeOption @relation(fields: [attributeOptionId], references: [id], onDelete: Cascade)
   attributeOptionId String
 
@@ -2144,6 +2165,7 @@ model AttributeToUser {
   updatedByDSync   DSyncData? @relation("updatedByDSync", fields: [updatedByDSyncId], references: [directoryId], onDelete: SetNull)
 
   @@unique([memberId, attributeOptionId])
+  @@unique([calIdMemberId, attributeOptionId])
 }
 
 enum AssignmentReasonEnum {
@@ -2577,6 +2599,7 @@ model CalIdMembership {
   impersonation      Boolean             @default(true)
   createdAt          DateTime?           @default(now())
   updatedAt          DateTime?           @updatedAt
+  AttributeToUser    AttributeToUser[]
 
   @@unique([userId, calIdTeamId])
   @@index([calIdTeamId])

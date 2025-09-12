@@ -18,7 +18,7 @@ import type { IOutOfOfficeData } from "@calcom/lib/getUserAvailability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import classNames from "@calcom/ui/classNames";
-import { Button } from "@calcom/ui/components/button";
+import { Button } from "@calid/features/ui/components/button";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import { useBookerTime } from "../Booker/components/hooks/useBookerTime";

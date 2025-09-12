@@ -1,7 +1,5 @@
 import { Icon } from "@calid/features/ui/components/icon";
-
-
-
+import { Button } from "@calid/features/ui/components/button";
 import { useCallback, useMemo } from "react";
 import { shallow } from "zustand/shallow";
 
@@ -12,7 +10,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-import { ToggleGroup } from "@calcom/ui/components/form";
+import { ToggleGroup } from "@calid/features/ui/components/toggle-group";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { TimeFormatToggle } from "../../components/TimeFormatToggle";
@@ -36,8 +34,6 @@ export function Header({
   isMyLink: boolean;
   renderOverlay?: () => JSX.Element | null;
 }) {
-  const router = useRouter();
-
   const { t, i18n } = useLocale();
   const isEmbed = useIsEmbed();
   const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
@@ -60,14 +56,38 @@ export function Header({
     [setLayout, layout]
   );
 
+  const removeLastPathSection = (url) => {
+    try {
+      const u = new URL(url);
+      const segments = u.pathname.split("/").filter(Boolean);
+      if (!u.search.includes("slot")) {
+        segments.pop();
+      }
+      u.pathname = `/${segments.join("/")}`;
+      u.search = "";
+      return u.toString();
+    } catch (err) {
+      return null;
+    }
+  };
+
   if (isMobile || !enabledLayouts) return null;
 
   // In month view we only show the layout toggle.
   if (isMonthView) {
     return (
-      <div className="flex w-full flex-row items-center gap-2 pl-10">
+      <div className="flex w-full flex-row items-center gap-2 pl-10 pb-2 border-b border-subtle">
+        <Tooltip content={t("go_back")} side="bottom">
+          <Button
+            variant="icon"
+            color="fab"
+            StartIcon="arrow-left"
+            onClick={() => {
+              window.location = removeLastPathSection(window.location);
+            }}
+          />
+        </Tooltip>
         <div className="flex-1" />
-
         {isMyLink && !isEmbed ? (
           <Tooltip content={t("troubleshooter_tooltip")} side="bottom">
             <Button

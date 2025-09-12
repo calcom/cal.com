@@ -9,11 +9,11 @@ import { Button } from "./button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip";
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-sm text-[12px] font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex items-center rounded-md text-[12px] font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
   {
     variants: {
       variant: {
-        default: "border bg-primary text-primary",
+        default: "bg-blue-100 text-blue-600",
         secondary: "bg-muted text-subtle",
         destructive: "border bg-destructive text-destructive-foreground",
         outline: "text-default text-sm",
@@ -22,8 +22,8 @@ const badgeVariants = cva(
       },
       size: {
         sm: "h-5 px-1.5 text-xs",
-        md: "h-5 px-2 py-3 text-xs",
-        lg: "h-7 px-3 text-base",
+        md: "h-5 px-2 py-3",
+        lg: "h-7 px-3",
       },
     },
     defaultVariants: {
@@ -104,7 +104,7 @@ export const Badge = function Badge(props: BadgeProps) {
         </svg>
       ) : null}
       {customStartIcon ||
-        (StartIcon ? <Icon name={StartIcon} data-testid="start-icon" className="h-3 w-3 mr-1" /> : null)}
+        (StartIcon ? <Icon name={StartIcon} data-testid="start-icon" className="mr-1 h-3 w-3" /> : null)}
       {children}
       {isPublicUrl && (
         <div className="ml-1 flex items-center">

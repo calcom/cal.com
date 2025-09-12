@@ -1,12 +1,11 @@
 "use client";
 
 import { Icon } from "@calid/features/ui/components/icon";
-
-
-
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { useSession } from "next-auth/react";
+import dynamic from "next/dynamic";
+import Head from "next/head";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Fragment, useEffect, useState } from "react";
@@ -99,6 +98,7 @@ const useBrandColors = ({
 };
 
 export default function Success(props: PageProps) {
+  console.log("Success props: ", props);
   const { t } = useLocale();
   const router = useRouter();
   const routerQuery = useRouterQuery();
@@ -106,6 +106,8 @@ export default function Success(props: PageProps) {
   const searchParams = useCompatSearchParams();
 
   const { eventType, bookingInfo, previousBooking, requiresLoginToUpdate, rescheduledToUid } = props;
+
+  const { bannerUrl, faviconUrl } = eventType;
 
   const {
     allRemainingBookings,
@@ -412,6 +414,13 @@ export default function Success(props: PageProps) {
 
     return isRecurringBooking ? t("meeting_is_scheduled_recurring") : t("meeting_is_scheduled");
   })();
+
+  useEffect(() => {
+    if (faviconUrl) {
+      const defaultFavicons = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
+      defaultFavicons.forEach((link) => link.parentNode?.removeChild(link));
+    }
+  }, [faviconUrl]);
 
   return (
     <div className={isEmbed ? "" : "bg-default -mt-2 h-screen"} data-testid="success-page">

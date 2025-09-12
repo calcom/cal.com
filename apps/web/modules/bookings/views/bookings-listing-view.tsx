@@ -10,6 +10,9 @@ import { useMemo, useState, useRef } from "react";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import dayjs from "@calcom/dayjs";
+import ExportBookingsButton from "@calcom/features/bookings/components/ExportBookingsButton";
+import type { filterQuerySchema } from "@calcom/features/bookings/lib/useFilterQuery";
+import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
 import {
   useDataTable,
   DataTableProvider,
@@ -84,6 +87,27 @@ function BookingsContent({ status }: BookingsProps) {
   const [expandedBooking, setExpandedBooking] = useState<number | null>(null);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
+
+  const { data: filterQuery } = useFilterQuery();
+
+  const { status: _status, ...filterQueryWithoutStatus } = filterQuery;
+
+  const { mutate: fetchAllBookingsMutation, isPending } = trpc.viewer.bookings.export.useMutation({
+    async onSuccess(response) {
+      showToast(response.message, "success");
+    },
+    onError() {
+      showToast(t("unexpected_error_try_again"), "error");
+    },
+  });
+  const handleOnClickExportBookings = async () => {
+    await fetchAllBookingsMutation({
+      filters: {
+        ...filterQueryWithoutStatus,
+      },
+    });
+    return;
+  };
 
   // Generate dynamic tabs that preserve query parameters
   const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = useMemo(() => {
@@ -381,7 +405,7 @@ function BookingsContent({ status }: BookingsProps) {
           }))}
         />
 
-        <div className="flex h-[32px] flex-row gap-4 ">
+        <div className="flex h-[32px] flex-row gap-4 overflow-auto ">
           <Button
             color="secondary"
             onClick={() => setShowFilters(!showFilters)}
@@ -389,6 +413,11 @@ function BookingsContent({ status }: BookingsProps) {
             <Icon name="filter" className="h-4 w-4" />
             <span>{t("filter")}</span>
           </Button>
+
+          <ExportBookingsButton
+            handleOnClickExportBookings={handleOnClickExportBookings}
+            isLoading={isPending}
+          />
 
           <DataTableSegment.SaveButton />
           <DataTableSegment.Select />
@@ -418,7 +447,7 @@ function BookingsContent({ status }: BookingsProps) {
                 ToolbarLeft={
                   <>
                     {showFilters && (
-                      <div className="bg-muted flex flex-row gap-2 rounded-md p-4">
+                      <div className="bg-default flex flex-row gap-2 rounded-md">
                         <DataTableFilters.FilterBar table={table} />
                         <DataTableFilters.ClearFiltersButton />
                       </div>

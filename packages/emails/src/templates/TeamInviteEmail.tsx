@@ -19,6 +19,8 @@ type TeamInvite = {
   isExistingUserMovedToOrg: boolean;
   prevLink: string | null;
   newLink: string | null;
+  hideBranding?: boolean;
+  bannerUrl?: string;
 };
 
 export const TeamInviteEmail = (
@@ -29,7 +31,10 @@ export const TeamInviteEmail = (
   const heading = getHeading();
   const content = getContent();
   return (
-    <V2BaseEmailHtml subject={getSubject(props)}>
+    <V2BaseEmailHtml
+      subject={getSubject(props)}
+      bannerUrl={props.bannerUrl}
+      hideBranding={props.hideBranding}>
       <p style={{ fontSize: "24px", marginBottom: "16px", textAlign: "center" }}>
         <>{heading}</>
       </p>

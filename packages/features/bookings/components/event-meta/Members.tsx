@@ -59,11 +59,6 @@ export const EventMembers = ({
             title: entity.name ?? profile.name ?? "",
           },
         ];
-
-  useEffect(() => {
-    console.log("User: ", shownUsers);
-  }, []);
-
   return (
     <>
       {shownUsers.map((user) => (

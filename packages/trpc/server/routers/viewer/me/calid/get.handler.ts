@@ -77,7 +77,7 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
   // Destructuring here only makes it more illegible
   // pick only the part we want to expose in the API
 
-  // Use calIdTeam as primary organization if available, otherwise fall back to regular organization
+  // Use calIdTeam as primary organization
   const profileData = {
     organizationId: user.profile?.organizationId ?? null,
     organization: user.organization,
@@ -139,5 +139,7 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     isPremium: userMetadataPrased?.isPremium,
     ...(passwordAdded ? { passwordAdded } : {}),
     isTeamAdminOrOwner,
+    bannerUrl: user.bannerUrl,
+    faviconUrl: user.faviconUrl,
   };
 };

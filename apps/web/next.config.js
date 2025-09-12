@@ -217,7 +217,8 @@ const nextConfig = {
     },
   },
   images: {
-    unoptimized: true,
+    // unoptimized: true,
+    domains: ["localhost", "lh3.googleusercontent.com"],
   },
   webpack: (config, { webpack, buildId, isServer }) => {
     if (isServer) {

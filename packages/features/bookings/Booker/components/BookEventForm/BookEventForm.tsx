@@ -1,18 +1,25 @@
 import type { TFunction } from "i18next";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useRef, useMemo, useState } from "react";
+import ReCAPTCHA from "react-google-recaptcha";
 import type { FieldError } from "react-hook-form";
 
 import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
-import { WEBSITE_PRIVACY_POLICY_URL, WEBSITE_TERMS_URL } from "@calcom/lib/constants";
+import {
+  WEBSITE_PRIVACY_POLICY_URL,
+  WEBSITE_TERMS_URL,
+  RECAPTCHA_KEY_HIGH,
+  RECAPTCHA_KEY_LOW,
+  RECAPTCHA_KEY_MEDIUM,
+} from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import { Alert } from "@calcom/ui/components/alert";
-import { Button } from "@calcom/ui/components/button";
+import { Button } from "@calid/features/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Form } from "@calcom/ui/components/form";
 
@@ -66,7 +73,10 @@ export const BookEventForm = ({
   eventQuery: {
     isError: boolean;
     isPending: boolean;
-    data?: Pick<BookerEvent, "price" | "currency" | "metadata" | "bookingFields" | "locations"> | null;
+    data?: Pick<
+      BookerEvent,
+      "price" | "currency" | "metadata" | "bookingFields" | "locations" | "captchaType"
+    > | null;
   };
 }) => {
   const eventType = eventQuery.data;
@@ -81,6 +91,42 @@ export const BookEventForm = ({
 
   const [responseVercelIdHeader] = useState<string | null>(null);
   const { t, i18n } = useLocale();
+
+  const recaptchaRef = useRef<ReCAPTCHA | null>(null);
+
+  const reCaptchaMap = {
+    LOW: RECAPTCHA_KEY_LOW,
+    MEDIUM: RECAPTCHA_KEY_MEDIUM,
+    HIGH: RECAPTCHA_KEY_HIGH,
+  };
+  const recaptchaKey = reCaptchaMap[eventType?.captchaType as keyof typeof reCaptchaMap];
+  const handleFormSubmit = async () => {
+    if (recaptchaRef.current) {
+      try {
+        const token = await recaptchaRef.current.executeAsync();
+        recaptchaRef.current.reset();
+
+        if (token) {
+          const response = await fetch("/api/verify-recaptcha", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token, type: eventType.captchaType as keyof typeof reCaptchaMap }),
+          });
+
+          const data = await response.json();
+          if (data.success) {
+            onSubmit();
+          } else {
+            console.error("reCAPTCHA failed", data.error);
+          }
+        }
+      } catch (error) {
+        console.error("reCAPTCHA error:", error);
+      }
+    } else {
+      onSubmit();
+    }
+  };
 
   const isPaidEvent = useMemo(() => {
     if (!eventType?.price) return false;
@@ -120,7 +166,7 @@ export const BookEventForm = ({
           setFormValues(values);
         }}
         form={bookingForm}
-        handleSubmit={onSubmit}
+        handleSubmit={handleFormSubmit}
         noValidate>
         <BookingFields
           isDynamicGroupBooking={!!(username && username.indexOf("+") > -1)}
@@ -217,7 +263,7 @@ export const BookEventForm = ({
             .
           </div>
         )}
-        <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
+        <div className="modal sticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
           {isInstantMeeting ? (
             <Button type="submit" color="primary" loading={loadingStates.creatingInstantBooking}>
               {isPaidEvent ? t("pay_and_book") : t("confirm")}
@@ -261,6 +307,7 @@ export const BookEventForm = ({
             </>
           )}
         </div>
+        {recaptchaKey && <ReCAPTCHA ref={recaptchaRef} sitekey={recaptchaKey} size="invisible" />}
       </Form>
       {children}
     </div>

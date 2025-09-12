@@ -9,7 +9,7 @@ import { trpc } from "@calcom/trpc/react";
 import { TRPCClientError } from "@trpc/client";
 
 import { LIMIT } from "../types/event-types";
-import type { InfiniteEventTypeGroup } from "../types/event-types";
+import type { InfiniteEventType, InfiniteEventTypeGroup } from "../types/event-types";
 
 export const useEventTypesMutations = (
   currentTeam: InfiniteEventTypeGroup | undefined,
@@ -33,7 +33,6 @@ export const useEventTypesMutations = (
   // Event type order mutation
   const eventTypeOrderMutation = trpc.viewer.loggedInViewerRouter.calid_eventTypeOrder.useMutation({
     onError: async (err) => {
-      console.error(err.message);
       triggerToast("Failed to update event order. Order has been reverted.", "error");
     },
   });
@@ -51,7 +50,7 @@ export const useEventTypesMutations = (
           return {
             ...oldData,
             eventTypes: oldData.eventTypes.map((eventType) =>
-              eventType.id === data.id ? { ...eventType, hidden: !eventType.hidden } : eventType
+              eventType.id === data.id ? { ...eventType, hidden: data.hidden } : eventType
             ),
           };
         });
@@ -63,7 +62,6 @@ export const useEventTypesMutations = (
       if (context?.previousValue) {
         utils.viewer.eventTypes.calid_getEventTypesFromGroup.setData(queryKey, context.previousValue);
       }
-      console.error(err.message);
       triggerToast("Failed to update event visibility", "error");
     },
     onSuccess: () => {
@@ -157,8 +155,6 @@ export const useEventTypesMutations = (
         await eventTypeOrderMutation.mutateAsync({ ids: allIds });
         triggerToast("Event order updated successfully", "success");
       } catch (error) {
-        console.error("Failed to reorder events:", error);
-
         // Invalidate and refetch on error
         await utils.viewer.eventTypes.calid_getEventTypesFromGroup.invalidate(queryKey);
         triggerToast("Failed to update event order. Order has been reverted.", "error");

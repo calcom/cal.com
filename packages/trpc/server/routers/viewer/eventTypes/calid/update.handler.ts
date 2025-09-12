@@ -544,40 +544,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
-  if (aiPhoneCallConfig) {
-    if (aiPhoneCallConfig.enabled) {
-      await ctx.prisma.aIPhoneCallConfiguration.upsert({
-        where: {
-          eventTypeId: id,
-        },
-        update: {
-          ...aiPhoneCallConfig,
-          guestEmail: !!aiPhoneCallConfig?.guestEmail ? aiPhoneCallConfig.guestEmail : null,
-          guestCompany: !!aiPhoneCallConfig?.guestCompany ? aiPhoneCallConfig.guestCompany : null,
-        },
-        create: {
-          ...aiPhoneCallConfig,
-          guestEmail: !!aiPhoneCallConfig?.guestEmail ? aiPhoneCallConfig.guestEmail : null,
-          guestCompany: !!aiPhoneCallConfig?.guestCompany ? aiPhoneCallConfig.guestCompany : null,
-          eventTypeId: id,
-        },
-      });
-    } else if (!aiPhoneCallConfig.enabled && eventType.aiPhoneCallConfig) {
-      await ctx.prisma.aIPhoneCallConfiguration.delete({
-        where: {
-          eventTypeId: id,
-        },
-      });
-    }
-  }
-
-  if (calVideoSettings) {
-    await CalVideoSettingsRepository.createOrUpdateCalVideoSettings({
-      eventTypeId: id,
-      calVideoSettings,
-    });
-  }
-
   const parsedEventTypeLocations = eventTypeLocations.safeParse(eventType.locations ?? []);
 
   const isCalVideoLocationActive = locations

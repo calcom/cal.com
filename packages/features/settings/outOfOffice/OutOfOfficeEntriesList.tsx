@@ -1,9 +1,6 @@
 "use client";
 
 import { Icon } from "@calid/features/ui/components/icon";
-
-
-
 import { keepPreviousData } from "@tanstack/react-query";
 import {
   createColumnHelper,
@@ -546,7 +543,11 @@ function OutOfOfficeEntriesListContent() {
                 ? t("ooo_team_empty_description")
                 : t("ooo_empty_description")
             }
-            buttonRaw={<CreateNewOutOfOfficeEntryButton size="sm" />}
+            buttonRaw={
+              <div className="flex flex-row justify-center">
+                <CreateNewOutOfOfficeEntryButton size="sm" />
+              </div>
+            }
             customIcon={
               <div className="mt-4 h-[102px]">
                 <div className="flex h-full flex-col items-center justify-center p-2 md:mt-0 md:p-0">

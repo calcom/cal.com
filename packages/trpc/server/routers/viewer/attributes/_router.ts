@@ -4,6 +4,7 @@ import authedProcedure, { authedOrgAdminProcedure } from "../../../procedures/au
 import { router } from "../../../trpc";
 import { assignUserToAttributeSchema } from "./assignUserToAttribute.schema";
 import { bulkAssignAttributesSchema } from "./bulkAssignAttributes.schema";
+import { calidGetByUserIdSchema } from "./calid/getByUserId.schema";
 import { createAttributeSchema } from "./create.schema";
 import { deleteAttributeSchema } from "./delete.schema";
 import { editAttributeSchema } from "./edit.schema";
@@ -67,4 +68,8 @@ export const attributesRouter = router({
       const { default: handler } = await import("./findTeamMembersMatchingAttributeLogic.handler");
       return handler({ ctx, input });
     }),
+  calid_getByUserId: authedProcedure.input(calidGetByUserIdSchema).query(async ({ ctx, input }) => {
+    const { default: handler } = await import("./calid/getByUserId.handler");
+    return handler({ ctx, input });
+  }),
 });

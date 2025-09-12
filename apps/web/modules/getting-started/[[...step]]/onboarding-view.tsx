@@ -86,6 +86,8 @@ const stepRouteSchema = z.object({
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 const OnboardingPage = (props: PageProps) => {
+  const { country = "IN" } = props;
+  console.log("props", props);
   const pathname = usePathname();
   const params = useParamsWithFallback();
 
@@ -123,7 +125,23 @@ const OnboardingPage = (props: PageProps) => {
   };
   const currentStepIndex = steps.indexOf(currentStep);
 
+  const onSuccess = async () => {
+    await utils.viewer.me.invalidate();
+
+    goToIndex(currentStepIndex + 1);
+  };
+
+  const userMutation = trpc.viewer.updateProfile.useMutation({
+    onSuccess: onSuccess,
+  });
+
   const goToNextStep = () => {
+    userMutation.mutate({
+      metadata: {
+        currentOnboardingStep: steps[currentStepIndex + 1],
+      },
+    });
+
     const nextIndex = currentStepIndex + 1;
     const newStep = steps[nextIndex];
     startTransition(() => {

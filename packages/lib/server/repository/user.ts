@@ -117,6 +117,8 @@ const userSelect = {
   lastActiveAt: true,
   identityProvider: true,
   teams: true,
+  bannerUrl: true,
+  faviconUrl: true,
 } satisfies Prisma.UserSelect;
 
 export class UserRepository {
@@ -797,6 +799,7 @@ export class UserRepository {
       },
       select: {
         completedOnboarding: true,
+        metadata: true,
         teams: {
           select: {
             accepted: true,
@@ -911,6 +914,8 @@ export class UserRepository {
         allowSEOIndexing: true,
         receiveMonthlyDigestEmail: true,
         profiles: true,
+        bannerUrl: true,
+        faviconUrl: true,
       },
     });
 

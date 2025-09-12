@@ -64,7 +64,7 @@ export function SettingsToggle({
                 <div className="flex items-center gap-x-2" data-testid={`${rest["data-testid"]}-title`}>
                   <Label
                     className={classNames(
-                      "text-default mt-0.5 text-sm font-semibold leading-none",
+                      "text-emphasis mt-0.5 text-sm font-medium leading-none",
                       labelClassName
                     )}
                     htmlFor="">

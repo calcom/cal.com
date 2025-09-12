@@ -1,4 +1,13 @@
-import { TextField } from "@calid/features/ui/components/input/input";
+import { Button } from "@calid/features/ui/components/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogClose,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@calid/features/ui/components/dialog";
 import classNames from "classnames";
 // eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
@@ -6,14 +15,12 @@ import { useSession } from "next-auth/react";
 import type { RefCallback } from "react";
 import { useEffect, useState } from "react";
 
-import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
-import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -70,7 +77,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
     checkUsername(debouncedUsername);
   }, [debouncedUsername, currentUsername]);
 
-  const updateUsernameMutation = trpc.viewer.me.updateProfile.useMutation({
+  const updateUsernameMutation = trpc.viewer.me.calid_updateProfile.useMutation({
     onSuccess: async () => {
       onSuccessMutation && (await onSuccessMutation());
       setOpenDialogSaveUsername(false);
@@ -98,8 +105,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
             if (currentUsername) {
               setInputUsernameValue(currentUsername);
             }
-          }}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+          }}>
           {t("cancel")}
         </Button>
       </div>
@@ -126,9 +132,9 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
             autoCapitalize="none"
             autoCorrect="none"
             className={classNames(
-              "w-full px-3 py-2 text-sm border-0 rounded-r-md focus:outline-none focus:ring-0",
+              "mb-0 mt-0 rounded-md rounded-l-none",
               markAsError
-                ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                ? "focus:shadow-0 focus:ring-shadow-0 border-red-500 focus:border-red-500 focus:outline-none focus:ring-0"
                 : ""
             )}
             onChange={(event) => {
@@ -139,12 +145,14 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
             {...rest}
           />
           {currentUsername !== inputUsernameValue && (
-            <div className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center">
-              {usernameIsAvailable ? (
-                <Icon name="check" className="h-4 w-4 text-green-500" />
-              ) : (
-                <></>
-              )}
+            <div className="absolute right-[2px] top-6 flex h-7 flex-row">
+              <span className={classNames("bg-default mx-0 p-3")}>
+                {usernameIsAvailable ? (
+                  <Icon name="check" className="relative bottom-[6px] h-4 w-4" />
+                ) : (
+                  <></>
+                )}
+              </span>
             </div>
           )}
         </div>
@@ -159,11 +167,15 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
           <ActionButtons />
         </div>
       )}
-      <Dialog open={openDialogSaveUsername}>
-        <DialogContent type="confirmation" Icon="pencil" title={t("confirm_username_change_dialog_title")}>
+      <Dialog open={openDialogSaveUsername} onOpenChange={setOpenDialogSaveUsername}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("confirm_username_change_dialog_title")}</DialogTitle>
+            <DialogDescription>{t("confirm_username_change_dialog_description")}</DialogDescription>
+          </DialogHeader>
           <div className="flex flex-row">
             <div className="mb-4 w-full pt-1">
-              <div className="bg-subtle flex w-full flex-wrap justify-between gap-6 rounded-sm  px-4 py-3 text-sm">
+              <div className="border-default flex w-full flex-wrap justify-between gap-6 rounded-md border px-4 py-3 text-sm">
                 <div>
                   <p className="text-subtle">{t("current_username")}</p>
                   <Tooltip content={currentUsername}>
@@ -197,8 +209,10 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
               {t("save")}
             </Button>
 
-            <DialogClose color="secondary" onClick={() => setOpenDialogSaveUsername(false)}>
-              {t("cancel")}
+            <DialogClose asChild>
+              <Button color="secondary" onClick={() => setOpenDialogSaveUsername(false)}>
+                {t("cancel")}
+              </Button>
             </DialogClose>
           </DialogFooter>
         </DialogContent>

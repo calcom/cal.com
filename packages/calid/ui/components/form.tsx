@@ -4,20 +4,21 @@ import { Controller, FormProvider, useFormContext } from "react-hook-form";
 
 // Form wrapper that includes <form> tag and auto handleSubmit
 interface FormProps<TFieldValues extends FieldValues = FieldValues> extends UseFormReturn<TFieldValues> {
+  form: UseFormReturn<TFieldValues>;
   children: React.ReactNode;
   onSubmit?: (values: TFieldValues) => void;
   className?: string;
 }
 
 function Form<TFieldValues extends FieldValues = FieldValues>({
+  form,
   children,
   onSubmit,
   className,
-  ...methods
 }: FormProps<TFieldValues>) {
   return (
-    <FormProvider {...methods}>
-      <form onSubmit={onSubmit ? methods.handleSubmit(onSubmit) : undefined} className={className}>
+    <FormProvider {...form}>
+      <form onSubmit={onSubmit ? form.handleSubmit(onSubmit) : undefined} className={className}>
         {children}
       </form>
     </FormProvider>

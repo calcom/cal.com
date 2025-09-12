@@ -40,14 +40,12 @@ export default function Header({
             )}
             <div>
               {title ? (
-                <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold leading-5 tracking-wide">
-                  {title}
-                </h1>
+                <h3 className="text-emphasis text-xl font-semibold leading-5 tracking-wide">{title}</h3>
               ) : (
                 <div className="bg-emphasis mb-1 h-5 w-24 animate-pulse rounded-lg" />
               )}
               {description ? (
-                <p className="text-subtle text-sm ltr:mr-4 rtl:ml-4">{description}</p>
+                <p className="text-default text-sm ltr:mr-4 rtl:ml-4">{description}</p>
               ) : (
                 <div className="bg-emphasis h-5 w-32 animate-pulse rounded-lg" />
               )}

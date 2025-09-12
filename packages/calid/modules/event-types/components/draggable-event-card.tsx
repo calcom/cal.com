@@ -125,8 +125,11 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
     <>
       <div
         ref={setNodeRef}
-        style={style}
-        className={`animate-fade-in group relative flex items-center ${isDragging ? "opacity-0" : ""}`}>
+        style={{
+          ...style,
+          ...(isDragging && { height: 0, overflow: "hidden" }),
+        }}
+        className={`group relative flex items-center ${!isDragging ? "animate-fade-in" : "opacity-0 pointer-events-none"}`}>
         {/* Drag handle */}
         <div
           {...attributes}

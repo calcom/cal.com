@@ -21,6 +21,7 @@ const _generateMetadataWithoutImage = async (
   getTitle: (t: TFunction<string, undefined>) => string,
   getDescription: (t: TFunction<string, undefined>) => string,
   hideBranding?: boolean,
+    bannerUrl?: string,
   origin?: string,
   pathname?: string
 ) => {
@@ -95,6 +96,8 @@ export const generateMeetingMetadata = async (
     pathname
   );
   const image = SEO_IMG_OGIMG + constructMeetingImage(meeting);
+
+  console.log("Image is: ", image);
 
   return {
     ...metadata,

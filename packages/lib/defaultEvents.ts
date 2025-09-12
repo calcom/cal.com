@@ -157,6 +157,7 @@ export const dynamicEvent = {
   position: 0,
   ...commons,
   metadata: eventTypeMetaDataSchemaWithTypedApps.parse({ multipleDuration: [15, 30, 45, 60, 90] }),
+  disableGuests: false,
 };
 
 export const defaultEvents = [dynamicEvent];
@@ -171,6 +172,7 @@ export const getDynamicEventName = (dynamicNames: string[], slug: string): strin
 };
 
 export const getDefaultEvent = (slug: string) => {
+  console.log("Default event")
   const event = defaultEvents.find((obj) => {
     return obj.slug === slug;
   });

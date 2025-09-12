@@ -22,6 +22,8 @@ import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
 const log = logger.getSubLogger({ prefix: ["[[pages/[user]]]"] });
 type UserPageProps = {
+  userNotFound: boolean;
+  slug: string;
   profile: {
     name: string;
     image: string;
@@ -36,7 +38,10 @@ type UserPageProps = {
     allowSEOIndexing: boolean;
     username: string | null;
   };
-  users: (Pick<User, "name" | "username" | "bio" | "verified" | "avatarUrl" | "headerUrl"> & {
+  users: (Pick<
+    User,
+    "name" | "username" | "bio" | "verified" | "avatarUrl" | "bannerUrl" | "faviconUrl" | "hideBranding"
+  > & {
     profile: UserProfile;
   })[];
   themeBasis: string | null;
@@ -126,7 +131,10 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
 
   if (!usersInOrgContext.length || (!isValidOrgDomain && !isThereAnyNonOrgUser)) {
     return {
-      notFound: true,
+      props: {
+        userNotFound: true,
+        slug: context.query.user,
+      },
     } as const;
   }
 
@@ -179,10 +187,12 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         name: user.name,
         username: user.username,
         bio: user.bio,
-        headerUrl: user.metadata.headerUrl,
         avatarUrl: user.avatarUrl,
         verified: user.verified,
         profile: user.profile,
+        bannerUrl: user.bannerUrl,
+        faviconUrl: user.faviconUrl,
+        hideBranding: user.hideBranding,
       })),
       entity: {
         ...(org?.logoUrl ? { logoUrl: org?.logoUrl } : {}),

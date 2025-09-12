@@ -281,14 +281,14 @@ function Dialogs({
         </ConfirmationDialogContent> */}
       </Dialog>
 
-      {/* <TeamSelectionDialog
-        open={selectTeamDialogState !== null}
+      <TeamSelectionDialog
+        open={selectTeamDialogState}
         openChange={(open: boolean) => !open && setSelectTeamDialogState(null)}
         onTeamSelect={(teamId: string) => {
           setSelectTeamDialogState(null);
           setNewFormDialogState({ action: "new", target: teamId });
         }}
-      /> */}
+      />
 
       <NewFormDialog
         appUrl={appUrl}

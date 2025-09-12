@@ -1,5 +1,5 @@
-import { Icon } from "@calid/features/ui/components/icon";
-import type { FieldValues } from "react-hook-form";
+import { Icon } from "../icon";
+import type { FieldValues, FieldErrors } from "react-hook-form";
 import { useFormContext } from "react-hook-form";
 
 type hintsOrErrorsProps = {
@@ -30,6 +30,10 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>({
   /* If there's no methods it means we're using these components outside a React Hook Form context */
   if (!methods) return null;
   const { formState } = methods;
+  
+  /* If there's no formState or errors, return null */
+  if (!formState || !formState.errors) return null;
+  
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   const fieldErrors: FieldErrors<T> | undefined = formState.errors[fieldName];

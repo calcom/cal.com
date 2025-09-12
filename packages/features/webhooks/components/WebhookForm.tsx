@@ -152,7 +152,7 @@ const WebhookForm = (props: {
 
   return (
     <Form
-      {...formMethods}
+      form={formMethods}
       onSubmit={(values) => {
         props.onSubmit({ ...values, changeSecret, newSecret });
       }}>

@@ -15,6 +15,7 @@ const meetingSchema = z.object({
   usernames: z.string().array(),
   meetingProfileName: z.string(),
   meetingImage: z.string().nullable().optional(),
+  bannerUrl: z.string().nullable().optional(),
 });
 
 const appSchema = z.object({
@@ -54,7 +55,8 @@ async function handler(req: NextRequest) {
     switch (imageType) {
       case "meeting": {
         try {
-          const { names, usernames, title, meetingProfileName, meetingImage } = meetingSchema.parse({
+          const { names, usernames, title, meetingProfileName, meetingImage, bannerUrl } = meetingSchema.parse({
+            bannerUrl: searchParams.get("bannerUrl"),
             names: searchParams.getAll("names"),
             usernames: searchParams.getAll("usernames"),
             title: searchParams.get("title"),
@@ -69,6 +71,7 @@ async function handler(req: NextRequest) {
                 title={title}
                 profile={{ name: meetingProfileName, image: meetingImage }}
                 users={names.map((name, index) => ({ name, username: usernames[index] }))}
+                bannerUrl={bannerUrl}
               />
             ),
             ogConfig
