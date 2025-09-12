@@ -29,12 +29,12 @@ export const listCallsHandler = async ({ ctx, input }: ListCallsHandlerOptions) 
     });
 
     const adminTeamIds = userMemberships
-      .filter((m) => m.team?.parentId === organizationId)
+      .filter((m) => !organizationId || m.team?.parentId === organizationId)
       .map((m) => m.teamId);
 
-    const isOrgOwner = userMemberships.some(
-      (m) => m.role === MembershipRole.OWNER && m.team?.parentId === organizationId
-    );
+    const isOrgOwner = organizationId
+      ? userMemberships.some((m) => m.role === MembershipRole.OWNER && m.team?.parentId === organizationId)
+      : false;
 
     const uniquePhoneNumbers = await CalAiPhoneNumberRepository.getAccessiblePhoneNumbers({
       userId: ctx.user.id,
@@ -53,7 +53,6 @@ export const listCallsHandler = async ({ ctx, input }: ListCallsHandlerOptions) 
 
     const aiService = createDefaultAIPhoneServiceProvider();
 
-    // TODO: Consider using schema-level coercion (z.coerce.date() or z.string().datetime({ offset: true })) for better validation
     let startTimestamp: { lower_threshold?: number; upper_threshold?: number } | undefined;
     if (input.filters?.startDate || input.filters?.endDate) {
       startTimestamp = {};
