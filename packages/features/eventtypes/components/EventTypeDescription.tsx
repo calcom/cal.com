@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import { PriceIcon } from "@calcom/features/bookings/components/event-meta/PriceIcon";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
@@ -9,7 +10,6 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { baseEventTypeSelect } from "@calcom/prisma";
 import type { Prisma, EventType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 
