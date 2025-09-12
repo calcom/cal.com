@@ -8,16 +8,16 @@ import dayjs from "@calcom/dayjs";
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
-import { BookingStatus, MembershipRole, RedirectType, SchedulingType } from "@calcom/prisma/enums";
-import type { Ensure } from "@calcom/types/utils";
-
 import prisma from "@calcom/prisma";
 import type { Membership, Team, User, UserPermissionRole } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
-import mainAppStore from "../packages/prisma/seed-app-store";
+import { BookingStatus, MembershipRole, RedirectType, SchedulingType } from "@calcom/prisma/enums";
+import type { Ensure } from "@calcom/types/utils";
+
 import mainHugeEventTypesSeed from "../packages/prisma/seed-huge-event-types";
 import { createUserAndEventType } from "../packages/prisma/seed-utils";
 import type { teamMetadataSchema } from "../packages/prisma/zod-utils";
+import mainAppStore from "./seed-app-store";
 
 type PlatformUser = {
   email: string;
@@ -1375,4 +1375,4 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect();
-  }); 
+  });
