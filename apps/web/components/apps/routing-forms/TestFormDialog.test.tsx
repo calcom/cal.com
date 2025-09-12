@@ -2,8 +2,9 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import type { Mock } from "vitest";
 import { vi } from "vitest";
 
-import { TestFormRenderer } from "../components/_components/TestForm";
-import { findMatchingRoute } from "../lib/processRoute";
+import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
+
+import { TestFormRenderer } from "./TestForm";
 
 vi.mock("framer-motion", async () => {
   return {
@@ -14,7 +15,7 @@ vi.mock("framer-motion", async () => {
   };
 });
 
-vi.mock("../lib/processRoute", () => ({
+vi.mock("@calcom/app-store/routing-forms/lib/processRoute", () => ({
   findMatchingRoute: vi.fn(),
 }));
 
@@ -70,13 +71,13 @@ vi.mock("@calcom/lib/hooks/useApp", () => ({
  *  Avoids the error due to Formbricks
  */
 
-vi.mock("../components/FormActions", () => ({
+vi.mock("@calcom/app-store/routing-forms/components/FormActions", () => ({
   FormAction: vi.fn(),
   FormActionsDropdown: vi.fn(),
   FormActionsProvider: vi.fn(),
 }));
 
-vi.mock("../../components/react-awesome-query-builder/widgets", () => ({
+vi.mock("@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets", () => ({
   default: {},
 }));
 

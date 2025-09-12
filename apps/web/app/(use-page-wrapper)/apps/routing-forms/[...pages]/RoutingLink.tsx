@@ -26,8 +26,7 @@ import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
 import { useCalcomTheme } from "@calcom/ui/styles";
-
-import type { getServerSideProps } from "./getServerSideProps";
+import type { getServerSideProps } from "@calcom/web/lib/apps/routing-forms/[...pages]/getServerSidePropsRoutingLink";
 
 type Props = inferSSRProps<typeof getServerSideProps>;
 const useBrandColors = ({
