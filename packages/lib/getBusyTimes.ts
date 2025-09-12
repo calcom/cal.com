@@ -1,6 +1,3 @@
-import type { Booking, EventType } from "@prisma/client";
-import type { Prisma } from "@prisma/client";
-
 import dayjs from "@calcom/dayjs";
 import { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
 import { subtract } from "@calcom/lib/date-ranges";
@@ -13,6 +10,8 @@ import { withReporting } from "@calcom/lib/sentryWrapper";
 import { performance } from "@calcom/lib/server/perfObserver";
 import type { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
+import type { Booking, EventType } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
