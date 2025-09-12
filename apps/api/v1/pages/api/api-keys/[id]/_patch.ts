@@ -1,8 +1,9 @@
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
+import { safeApiKeySelect } from "~/lib/selects/apiKeySelect";
 import { apiKeyEditBodySchema } from "~/lib/validations/api-key";
 import { schemaQueryIdAsString } from "~/lib/validations/shared/queryIdString";
 
@@ -10,7 +11,7 @@ async function patchHandler(req: NextApiRequest) {
   const { body } = req;
   const { id } = schemaQueryIdAsString.parse(req.query);
   const data = apiKeyEditBodySchema.parse(body);
-  const api_key = await prisma.apiKey.update({ where: { id }, data });
+  const api_key = await prisma.apiKey.update({ where: { id }, data, select: safeApiKeySelect });
   return { api_key };
 }
 
