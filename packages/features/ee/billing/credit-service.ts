@@ -588,8 +588,6 @@ export class CreditService {
 
     if (!team) return 0;
 
-    let totalMonthlyCredits = 0;
-
     const teamBillingService = new InternalTeamBilling(team);
     const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
 
@@ -599,33 +597,26 @@ export class CreditService {
 
     const activeMembers = team.members.filter((member) => member.accepted).length;
 
-    let creditsPerSeat = null;
-
     if (team.isOrganization) {
       // For organizations, use the new environment variable for monthly credits
       const orgMonthlyCredits = process.env.ORG_MONTHLY_CREDITS;
-      creditsPerSeat = orgMonthlyCredits ? parseInt(orgMonthlyCredits) : null;
+      const creditsPerSeat = orgMonthlyCredits ? parseInt(orgMonthlyCredits) : 1000;
+      return activeMembers * creditsPerSeat;
     }
 
-    if (!creditsPerSeat) {
-      const billingService = new StripeBillingService();
-      const priceId = team.isOrganization
-        ? process.env.STRIPE_ORG_MONTHLY_PRICE_ID
-        : process.env.STRIPE_TEAM_MONTHLY_PRICE_ID;
+    const billingService = new StripeBillingService();
+    const priceId = process.env.STRIPE_TEAM_MONTHLY_PRICE_ID;
 
-      if (!priceId) {
-        log.warn("Monthly price ID not configured", { teamId, isOrganization: team.isOrganization });
-        return 0;
-      }
-      const monthlyPrice = await billingService.getPrice(priceId);
-      const pricePerSeat = monthlyPrice.unit_amount ?? 0;
-      const creditMultiplier = team.isOrganization ? 0.2 : 0.5;
-      creditsPerSeat = pricePerSeat * creditMultiplier;
+    if (!priceId) {
+      log.warn("Monthly price ID not configured", { teamId });
+      return 0;
     }
 
-    totalMonthlyCredits = activeMembers * creditsPerSeat;
+    const monthlyPrice = await billingService.getPrice(priceId);
+    const pricePerSeat = monthlyPrice.unit_amount ?? 0;
+    const creditsPerSeat = pricePerSeat * 0.5;
 
-    return totalMonthlyCredits;
+    return activeMembers * creditsPerSeat;
   }
 
   calculateCreditsFromPrice(price: number) {
