@@ -1,34 +1,34 @@
+import type { NextApiRequest } from "next";
+
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { refreshAccessToken } from "@calcom/app-store/basecamp3/lib/helpers";
 import type { BasecampToken } from "@calcom/app-store/basecamp3/lib/types";
-import type { PrismaClient } from "@calcom/prisma/client";
+import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
-import { TRPCError } from "@trpc/server";
+async function handler(req: NextApiRequest) {
+  const userId = req.session?.user?.id;
+  if (!userId) {
+    return { status: 401, body: { message: "Unauthorized" } };
+  }
 
-interface ProjectsHandlerOptions {
-  ctx: {
-    prisma: PrismaClient;
-    user: NonNullable<TrpcSessionUser>;
-  };
-}
-
-export const projectHandler = async ({ ctx }: ProjectsHandlerOptions) => {
   const { user_agent } = await getAppKeysFromSlug("basecamp3");
-  const { user, prisma } = ctx;
+
   const credential = await prisma.credential.findFirst({
-    where: {
-      userId: user?.id,
-    },
+    where: { userId },
     select: credentialForCalendarServiceSelect,
   });
+
   if (!credential) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "No credential found for user" });
+    return { status: 403, body: { message: "No credential found for user" } };
   }
+
   let credentialKey = credential.key as BasecampToken;
+
   if (!credentialKey.account) {
-    return;
+    return { status: 200, body: { currentProject: null, projects: [] } };
   }
 
   if (credentialKey.expires_at < Date.now()) {
@@ -36,10 +36,18 @@ export const projectHandler = async ({ ctx }: ProjectsHandlerOptions) => {
   }
 
   const url = `${credentialKey.account.href}/projects.json`;
-
   const resp = await fetch(url, {
     headers: { "User-Agent": user_agent as string, Authorization: `Bearer ${credentialKey.access_token}` },
   });
+
+  if (!resp.ok) {
+    return { status: 400, body: { message: "Failed to fetch Basecamp projects" } };
+  }
+
   const projects = await resp.json();
-  return { currentProject: credentialKey.projectId, projects };
-};
+  return { status: 200, body: { currentProject: credentialKey.projectId, projects } };
+}
+
+export default defaultHandler({
+  GET: Promise.resolve({ default: defaultResponder(handler) }),
+}); 
