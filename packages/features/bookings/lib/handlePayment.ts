@@ -1,7 +1,7 @@
 import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import type { AppCategories, Prisma, EventType } from "@calcom/prisma/client";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 

@@ -2802,6 +2802,7 @@ __metadata:
     "@calcom/trpc": "*"
     "@calcom/tsconfig": "*"
     "@calcom/types": "*"
+    "@prisma/nextjs-monorepo-workaround-plugin": ^6.16.1
     "@sentry/nextjs": ^9.15.0
     bcryptjs: ^2.4.3
     memory-cache: ^0.2.0
@@ -4251,6 +4252,7 @@ __metadata:
     "@next-auth/prisma-adapter": ^1.0.4
     "@next/bundle-analyzer": ^15.5.2
     "@playwright/test": ^1.45.3
+    "@prisma/nextjs-monorepo-workaround-plugin": ^6.16.1
     "@radix-ui/react-avatar": ^1.0.4
     "@radix-ui/react-collapsible": ^1.0.0
     "@radix-ui/react-dialog": ^1.0.4
@@ -11730,6 +11732,13 @@ __metadata:
     tmp: 0.2.1
     ts-pattern: 4.3.0
   checksum: bac741cd4e435a2c3c769c2d289fcffc178960b1a5d6bc4d4da4344a0577c92847ff1eda981249a6f6f5889789a34e5a9050922dd1524dcafbba5a16cc8bad4f
+  languageName: node
+  linkType: hard
+
+"@prisma/nextjs-monorepo-workaround-plugin@npm:^6.16.1":
+  version: 6.16.1
+  resolution: "@prisma/nextjs-monorepo-workaround-plugin@npm:6.16.1"
+  checksum: df29824e2e420b50e707ea3af765a3b8a4d8be15af876adc1f177e7ad44d5d8fc968b2ba50f117196772bb5e6c28d50c49a3d4004c20a00fef6a26f2782366d0
   languageName: node
   linkType: hard
 
