@@ -46,7 +46,8 @@ export function createWorkflowPageFixture(page: Page) {
 
   const saveWorkflow = async () => {
     const submitPromise = page.waitForResponse("/api/trpc/workflows/update?batch=1");
-    await page.getByTestId("save-workflow").click();
+    const saveButton = await page.getByTestId("save-workflow");
+    await saveButton.click();
     const response = await submitPromise;
     expect(response.status()).toBe(200);
     const responseData = await response.json();
@@ -61,7 +62,9 @@ export function createWorkflowPageFixture(page: Page) {
   };
 
   const fillNameInput = async (name: string) => {
+    await page.getByTestId("edit-workflow-name-button").click();
     await page.getByTestId("workflow-name").fill(name);
+    await page.keyboard.press("Enter");
   };
 
   const editSelectedWorkflow = async (name: string) => {
