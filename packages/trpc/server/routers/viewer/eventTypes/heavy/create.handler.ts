@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import type { z } from "zod";
 
 import { getDefaultLocations } from "@calcom/app-store/_utils/getDefaultLocations";
 import { DailyLocationType } from "@calcom/app-store/constants";
@@ -11,6 +11,8 @@ import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../../types";
 import type { TCreateInputSchema } from "./create.schema";
+
+type EventTypeLocation = z.infer<typeof eventTypeLocations>[number];
 
 type SessionUser = NonNullable<TrpcSessionUser>;
 type User = {
