@@ -4,7 +4,6 @@ import type { UseFormReturn } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
 import { expect, vi } from "vitest";
 
-import PhoneInput from "@calcom/features/components/phone-input/PhoneInput";
 import { TooltipProvider } from "@calcom/ui/components/tooltip";
 
 import { getBookingFieldsWithSystemFields } from "../../../lib/getBookingFields";
@@ -13,7 +12,7 @@ import { BookingFields } from "./BookingFields";
 // Mock PhoneInput to avoid calling the lazy import
 vi.mock("@calcom/features/components/phone-input/PhoneInput", () => {
   return {
-    default: PhoneInput,
+    default: () => <div data-testid="mock-phone-input" />,
   };
 });
 
