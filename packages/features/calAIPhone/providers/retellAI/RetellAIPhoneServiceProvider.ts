@@ -294,7 +294,7 @@ export class RetellAIPhoneServiceProvider
   async listCalls(params: {
     limit?: number;
     offset?: number;
-    filters?: {
+    filters: {
       fromNumber: string[];
       toNumber?: string[];
       startTimestamp?: { lower_threshold?: number; upper_threshold?: number };

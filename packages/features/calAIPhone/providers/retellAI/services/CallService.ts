@@ -294,7 +294,7 @@ export class CallService {
   }: {
     limit?: number;
     offset?: number;
-    filters?: {
+    filters: {
       fromNumber: string[];
       toNumber?: string[];
       startTimestamp?: { lower_threshold?: number; upper_threshold?: number };
@@ -328,7 +328,7 @@ export class CallService {
       }) as RetellCallListResponse;
     } catch (error) {
       this.logger.error("Failed to list calls", {
-        phoneNumbers: filters.fromNumber,
+        phoneNumbers: filters?.fromNumber,
         error,
       });
       throw new HttpError({
