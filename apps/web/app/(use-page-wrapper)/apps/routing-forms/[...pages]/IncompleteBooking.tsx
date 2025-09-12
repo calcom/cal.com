@@ -20,7 +20,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import type { getServerSidePropsForSingleFormView as getServerSideProps } from "@calcom/web/lib/apps/routing-forms/[...pages]/getServerSidePropsSingleForm";
 
-import SingleForm from "./SingleForm";
+import SingleForm from "@components/apps/routing-forms/SingleForm";
 
 function Page({ form }: { form: RoutingFormWithResponseCount }) {
   const { t } = useLocale();

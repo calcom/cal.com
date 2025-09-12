@@ -8,10 +8,6 @@ import type { NewFormDialogState } from "@calcom/app-store/routing-forms/compone
 import { FormActionsProvider } from "@calcom/app-store/routing-forms/components/FormActions";
 import { InfoLostWarningDialog } from "@calcom/app-store/routing-forms/components/InfoLostWarningDialog";
 import { Header } from "@calcom/app-store/routing-forms/components/_components/Header";
-import {
-  TestFormRenderer,
-  type UptoDateForm,
-} from "@calcom/app-store/routing-forms/components/_components/TestForm";
 import type { SingleFormComponentProps } from "@calcom/app-store/routing-forms/types/shared";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -20,6 +16,8 @@ import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+
+import { TestFormRenderer, type UptoDateForm } from "./TestForm";
 
 const BREAKPOINTS = {
   sm: 640,

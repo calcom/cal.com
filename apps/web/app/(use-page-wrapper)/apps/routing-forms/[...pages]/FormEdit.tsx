@@ -25,7 +25,7 @@ import type { getServerSidePropsForSingleFormView as getServerSideProps } from "
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import SingleForm from "./SingleForm";
+import SingleForm from "@components/apps/routing-forms/SingleForm";
 
 type HookForm = UseFormReturn<RoutingFormWithResponseCount>;
 

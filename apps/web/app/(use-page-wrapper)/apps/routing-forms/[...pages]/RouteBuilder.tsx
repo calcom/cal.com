@@ -61,7 +61,7 @@ import type { IconName } from "@calcom/ui/components/icon";
 import { Icon } from "@calcom/ui/components/icon";
 import type { getServerSidePropsForSingleFormView as getServerSideProps } from "@calcom/web/lib/apps/routing-forms/[...pages]/getServerSidePropsSingleForm";
 
-import SingleForm from "./SingleForm";
+import SingleForm from "@components/apps/routing-forms/SingleForm";
 
 type Form = inferSSRProps<typeof getServerSideProps>["form"];
 

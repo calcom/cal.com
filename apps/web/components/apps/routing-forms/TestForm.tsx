@@ -4,6 +4,14 @@ import { AnimatePresence, motion } from "framer-motion";
 import type { Dispatch, SetStateAction } from "react";
 import { useState, useMemo } from "react";
 
+import FormInputFields from "@calcom/app-store/routing-forms/components/FormInputFields";
+import { ResultsView as Results } from "@calcom/app-store/routing-forms/components/_components/ResultSection";
+import { TeamMembersMatchResult } from "@calcom/app-store/routing-forms/components/_components/TeamMembersMatchResult";
+import type { MembersMatchResultType } from "@calcom/app-store/routing-forms/components/_components/TeamMembersMatchResult";
+import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
+import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
+import type { SingleFormComponentProps } from "@calcom/app-store/routing-forms/types/shared";
+import type { RoutingForm, FormResponse, NonRouterRoute } from "@calcom/app-store/routing-forms/types/types";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -15,15 +23,6 @@ import { Dialog, DialogContent, DialogHeader, DialogFooter } from "@calcom/ui/co
 import { showToast } from "@calcom/ui/components/toast";
 
 import { TRPCClientError } from "@trpc/react-query";
-
-import { findMatchingRoute } from "../../lib/processRoute";
-import { substituteVariables } from "../../lib/substituteVariables";
-import type { SingleFormComponentProps } from "../../types/shared";
-import type { RoutingForm, FormResponse, NonRouterRoute } from "../../types/types";
-import FormInputFields from "../FormInputFields";
-import { ResultsView as Results } from "./ResultSection";
-import type { MembersMatchResultType } from "./TeamMembersMatchResult";
-import { TeamMembersMatchResult } from "./TeamMembersMatchResult";
 
 export type UptoDateForm = Brand<
   NonNullable<SingleFormComponentProps["enrichedWithUserProfileForm"]>,
