@@ -15,27 +15,16 @@ import { showToast } from "@calcom/ui/components/toast";
 type WorkflowOptionCardProps = {
   title: string;
   description: string;
-  icon: IconName;
+  icon?: IconName;
   isSelected: boolean;
   onClick: () => void;
-  variant?: "default" | "brand";
   iconWrapperClassName?: string;
   image?: string;
   value: "scratch" | "calai";
 };
 
 function WorkflowOptionCard(props: WorkflowOptionCardProps) {
-  const {
-    title,
-    description,
-    icon,
-    isSelected,
-    onClick,
-    _variant = "default",
-    image,
-    iconWrapperClassName,
-    value,
-  } = props;
+  const { title, description, icon, isSelected, onClick, image, iconWrapperClassName, value } = props;
 
   return (
     <div
@@ -64,7 +53,7 @@ function WorkflowOptionCard(props: WorkflowOptionCardProps) {
               className={cn("text-default h-5 w-5")}
             />
           ) : (
-            <Icon name={icon} className={cn("text-default h-5 w-5")} aria-hidden="true" />
+            <Icon name={icon || "circle-plus"} className={cn("text-default h-5 w-5")} aria-hidden="true" />
           )}
         </div>
         <h3 className="text-emphasis text-sm font-semibold">{title}</h3>
@@ -162,7 +151,6 @@ export function WorkflowCreationDialog({
               image="/call-outgoing.svg"
               isSelected={selectedOption === "calai"}
               onClick={() => setSelectedOption("calai")}
-              variant="brand"
               iconWrapperClassName="bg-[#2A2947]"
               value="calai"
             />

@@ -67,8 +67,8 @@ export default function EmptyScreen(props: { isFilteredView: boolean }) {
     },
     {
       icon: "mail",
-      title: t("email_to_reminde_booking"),
-      description: t("email_to_reminde_booking_description"),
+      title: t("email_to_remind_booking"),
+      description: t("email_to_remind_booking_description"),
     },
     {
       icon: "mail",

@@ -1,11 +1,12 @@
-import type { Workflow } from "@prisma/client";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
+import type { Workflow } from "@calcom/prisma/client";
 import {
   MembershipRole,
   TimeUnit,
@@ -45,6 +46,11 @@ const Page = async ({ searchParams }: PageProps) => {
   const user = session?.user;
 
   const { action, templateWorkflowId, teamId, name } = await searchParams;
+
+  await checkRateLimitAndThrowError({
+    rateLimitingType: "core",
+    identifier: `createWorkflow:${user?.id}`,
+  });
 
   if (!user?.id) {
     const queryParams = new URLSearchParams();
