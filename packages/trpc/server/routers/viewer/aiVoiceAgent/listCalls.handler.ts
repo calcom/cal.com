@@ -65,10 +65,10 @@ export const listCallsHandler = async ({ ctx, input }: ListCallsHandlerOptions) 
     }
 
     const calls = await aiService.listCalls({
-      phoneNumbers: uniquePhoneNumbers,
       limit: input.limit,
       offset: input.offset,
       filters: {
+        fromNumber: uniquePhoneNumbers,
         ...(startTimestamp && { startTimestamp }),
       },
     });

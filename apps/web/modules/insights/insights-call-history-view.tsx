@@ -298,7 +298,7 @@ function CallHistoryContent({ org: _org }: CallHistoryProps) {
           <>
             <DataTableToolbar.SearchBar />
             <DataTableFilters.ColumnVisibilityButton table={table} />
-            <DataTableFilters.FilterBar table={table} />
+            {/* <DataTableFilters.FilterBar table={table} /> */}
           </>
         }
         ToolbarRight={

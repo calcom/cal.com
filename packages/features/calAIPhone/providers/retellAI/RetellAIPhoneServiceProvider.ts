@@ -292,11 +292,13 @@ export class RetellAIPhoneServiceProvider
   }
 
   async listCalls(params: {
-    userId: number;
-    organizationId?: number;
     limit?: number;
     offset?: number;
-    filters?: any;
+    filters?: {
+      fromNumber: string[];
+      toNumber?: string[];
+      startTimestamp?: { lower_threshold?: number; upper_threshold?: number };
+    };
   }) {
     return await this.service.listCalls(params);
   }

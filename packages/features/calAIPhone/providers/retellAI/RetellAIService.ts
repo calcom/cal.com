@@ -244,11 +244,13 @@ export class RetellAIService {
   }
 
   async listCalls(params: {
-    userId: number;
-    organizationId?: number;
     limit?: number;
     offset?: number;
-    filters?: any;
+    filters?: {
+      fromNumber: string[];
+      toNumber?: string[];
+      startTimestamp?: { lower_threshold?: number; upper_threshold?: number };
+    };
   }) {
     return this.callService.listCalls(params);
   }

@@ -288,28 +288,27 @@ export class CallService {
   }
 
   async listCalls({
-    phoneNumbers,
     limit = 50,
     offset: _offset = 0,
     filters,
   }: {
-    phoneNumbers: string[];
     limit?: number;
     offset?: number;
     filters?: {
+      fromNumber: string[];
       toNumber?: string[];
       startTimestamp?: { lower_threshold?: number; upper_threshold?: number };
     };
   }): Promise<RetellCallListResponse> {
     try {
-      if (phoneNumbers.length === 0) {
+      if (filters.fromNumber.length === 0) {
         this.logger.info("No phone numbers provided");
         return [];
       }
 
       const callsResponse = await this.retellRepository.listCalls({
         filter_criteria: {
-          from_number: phoneNumbers,
+          from_number: filters.fromNumber,
           ...(filters?.toNumber && { to_number: filters.toNumber }),
           ...(filters?.startTimestamp && { start_timestamp: filters.startTimestamp }),
         },
@@ -329,7 +328,7 @@ export class CallService {
       }) as RetellCallListResponse;
     } catch (error) {
       this.logger.error("Failed to list calls", {
-        phoneNumbers,
+        phoneNumbers: filters.fromNumber,
         error,
       });
       throw new HttpError({

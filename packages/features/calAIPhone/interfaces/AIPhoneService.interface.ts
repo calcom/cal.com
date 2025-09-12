@@ -89,9 +89,8 @@ export type AIPhoneServiceAgentWithDetails<
   T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType
 > = AIPhoneServiceProviderTypeMap[T]["AgentWithDetails"];
 
-export type AIPhoneServiceListCallsParams<
-  T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType
-> = AIPhoneServiceProviderTypeMap[T]["ListCallsParams"];
+export type AIPhoneServiceListCallsParams<T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType> =
+  AIPhoneServiceProviderTypeMap[T]["ListCallsParams"];
 
 export type AIPhoneServiceListCallsResponse<
   T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType
@@ -367,11 +366,13 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
    * List calls with optional filters
    */
   listCalls(params: {
-    userId: number;
-    organizationId?: number;
     limit?: number;
     offset?: number;
-    filters?: Partial<AIPhoneServiceListCallsParams<T>>;
+    filters?: {
+      fromNumber: string[];
+      toNumber?: string[];
+      startTimestamp?: { lower_threshold?: number; upper_threshold?: number };
+    };
   }): Promise<AIPhoneServiceListCallsResponse<T>>;
 }
 

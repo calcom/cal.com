@@ -1,5 +1,4 @@
 import { prisma } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
 
 export class CalAiPhoneNumberRepository {
   static async getUserPhoneNumbers(userId: number) {
@@ -50,6 +49,6 @@ export class CalAiPhoneNumberRepository {
       ...teamPhoneNumbers.map((p) => p.phoneNumber),
     ];
 
-    return [...new Set(allPhoneNumbers)];
+    return Array.from(new Set(allPhoneNumbers));
   }
 }
