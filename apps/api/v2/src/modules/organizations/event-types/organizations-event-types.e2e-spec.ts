@@ -6,7 +6,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { SchedulingType, User } from "@prisma/client";
 import * as request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
@@ -24,7 +23,8 @@ import {
   ConfirmationPolicyEnum,
   NoticeThresholdUnitEnum,
 } from "@calcom/platform-enums";
-import {
+import { SchedulingType } from "@calcom/platform-libraries";
+import type {
   ApiSuccessResponse,
   CreateTeamEventTypeInput_2024_06_14,
   EventTypeOutput_2024_06_14,
@@ -32,7 +32,7 @@ import {
   TeamEventTypeOutput_2024_06_14,
   UpdateTeamEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
-import { Team } from "@calcom/prisma/client";
+import type { User, Team } from "@calcom/prisma/client";
 
 describe("Organizations Event Types Endpoints", () => {
   describe("User Authentication - User is Org Admin", () => {
@@ -725,8 +725,7 @@ describe("Organizations Event Types Endpoints", () => {
               isDefault: true,
               type: "name",
               slug: "name",
-              label: "",
-              placeholder: "",
+              label: "your_name",
               required: true,
               disableOnPrefill: false,
             },
@@ -823,9 +822,8 @@ describe("Organizations Event Types Endpoints", () => {
               isDefault: true,
               type: "name",
               slug: "name",
-              label: "",
-              placeholder: "",
               required: true,
+              label: "your_name",
               disableOnPrefill: false,
             },
             {

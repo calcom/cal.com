@@ -9,14 +9,13 @@
     "packages/embeds/*",
     "packages/features/*",
     "packages/app-store/*",
-    "packages/app-store/ee/*",
     "packages/platform/*",
     "packages/platform/examples/base",
     "example-apps/*"
   ],
   "scripts": {
     "app-store-cli": "yarn workspace @calcom/app-store-cli",
-    "app-store:build": "yarn app-store-cli build",
+    "app-store:build": "yarn turbo build --filter=@calcom/app-store-cli",
     "app-store:watch": "yarn app-store-cli watch",
     "app-store": "yarn app-store-cli cli",
     "create-app": "yarn app-store create",
@@ -92,10 +91,11 @@
     "@snaplet/copycat": "^4.1.0",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^16.0.1",
-    "@vitest/ui": "^2.1.1",
+    "@vitest/ui": "^2.1.9",
     "c8": "^7.13.0",
     "checkly": "latest",
     "dotenv-checker": "^1.1.5",
+    "eslint-plugin-import": "^2.32.0",
     "husky": "^8.0.0",
     "i18n-unused": "^0.13.0",
     "jest-diff": "^29.5.0",
@@ -106,11 +106,11 @@
     "node-gyp": "^10.2.0",
     "node-ical": "^0.16.1",
     "prettier": "^2.8.6",
-    "prismock": "^1.33.4",
+    "prismock": "1.35.3",
     "resize-observer-polyfill": "^1.5.1",
     "tsc-absolute": "^1.0.0",
     "typescript": "5.9.0-beta",
-    "vitest": "^2.1.1",
+    "vitest": "^2.1.9",
     "vitest-fetch-mock": "^0.3.0",
     "vitest-mock-extended": "^2.0.2"
   },
@@ -136,13 +136,12 @@
     "dayjs@1.11.2": "patch:dayjs@npm%3A1.11.4#./.yarn/patches/dayjs-npm-1.11.4-97921cd375.patch",
     "dayjs@^1": "patch:dayjs@npm%3A1.11.4#./.yarn/patches/dayjs-npm-1.11.4-97921cd375.patch",
     "dayjs@^1.8.29": "patch:dayjs@npm%3A1.11.4#./.yarn/patches/dayjs-npm-1.11.4-97921cd375.patch",
-    "@prisma/client@^5.4.2": "patch:@prisma/client@npm%3A5.4.2#./.yarn/patches/@prisma-client-npm-5.4.2-fca489b2dc.patch",
-    "@prisma/client@5.4.2": "patch:@prisma/client@npm%3A5.4.2#./.yarn/patches/@prisma-client-npm-5.4.2-fca489b2dc.patch"
+    "import-in-the-middle": "1.13.1"
   },
   "lint-staged": {
     "(apps|packages)/**/*.{js,ts,jsx,tsx}": [
       "prettier --write",
-      "eslint --fix"
+      "eslint --fix --max-warnings=0"
     ],
     "*.json": [
       "prettier --write"

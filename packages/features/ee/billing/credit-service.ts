@@ -15,7 +15,8 @@ import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import prisma, { type PrismaTransaction } from "@calcom/prisma";
-import { CreditType, CreditUsageType } from "@calcom/prisma/enums";
+import type { CreditUsageType } from "@calcom/prisma/enums";
+import { CreditType } from "@calcom/prisma/enums";
 
 const log = logger.getSubLogger({ prefix: ["[CreditService]"] });
 
@@ -59,6 +60,8 @@ export class CreditService {
     bookingUid,
     smsSid,
     smsSegments,
+    phoneNumber,
+    email,
     callDuration,
     creditFor,
     externalRef,
@@ -69,6 +72,8 @@ export class CreditService {
     bookingUid?: string;
     smsSid?: string;
     smsSegments?: number;
+    phoneNumber?: string;
+    email?: string;
     callDuration?: number;
     creditFor?: CreditUsageType;
     externalRef?: string;
@@ -117,6 +122,8 @@ export class CreditService {
           credits,
           creditType,
           smsSegments,
+          phoneNumber,
+          email,
           callDuration,
           creditFor,
           tx,
@@ -323,12 +330,27 @@ export class CreditService {
     credits: number | null;
     creditType: CreditType;
     smsSegments?: number;
+    phoneNumber?: string;
+    email?: string;
     callDuration?: number;
     creditFor?: CreditUsageType;
     tx: PrismaTransaction;
     externalRef?: string;
   }) {
-    const { credits, creditType, bookingUid, smsSid, teamId, userId, smsSegments, callDuration, creditFor, tx } = props;
+    const {
+      credits,
+      creditType,
+      bookingUid,
+      smsSid,
+      teamId,
+      userId,
+      smsSegments,
+      callDuration,
+      creditFor,
+      phoneNumber,
+      email,
+      tx,
+    } = props;
     let creditBalance: { id: string; additionalCredits: number } | null | undefined =
       await CreditsRepository.findCreditBalance({ teamId, userId }, tx);
 
@@ -370,6 +392,8 @@ export class CreditService {
           bookingUid,
           smsSid,
           smsSegments,
+          phoneNumber,
+          email,
           callDuration,
           externalRef: props.externalRef,
         },
