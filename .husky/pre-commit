@@ -3,4 +3,5 @@
 
 yarn lint-staged
 
-yarn app-store:build && git add packages/app-store/*.generated.*
+npx turbo build --filter=@calcom/app-store-cli
+git add packages/app-store/*.generated.*
