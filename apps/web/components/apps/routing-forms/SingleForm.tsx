@@ -3,24 +3,39 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
 
 import { InfoLostWarningDialog } from "@calcom/app-store/routing-forms/components/InfoLostWarningDialog";
-import type {
-  RoutingFormWithResponseCount,
-  UptoDateForm,
-  SingleFormComponentProps,
-} from "@calcom/app-store/routing-forms/types/types";
+import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import classNames from "@calcom/ui/classNames";
 import { Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
+import { getServerSidePropsForSingleFormView } from "@lib/apps/routing-forms/[...pages]/getServerSidePropsSingleForm";
+
 import type { NewFormDialogState } from "./FormActions";
 import { FormActionsProvider } from "./FormActions";
 import { Header } from "./Header";
+import type { UptoDateForm } from "./TestForm";
 import { TestFormRenderer } from "./TestForm";
+
+export type SingleFormComponentProps = {
+  form: RoutingFormWithResponseCount;
+  appUrl: string;
+  Page: React.FC<{
+    form: RoutingFormWithResponseCount;
+    appUrl: string;
+    hookForm: UseFormReturn<RoutingFormWithResponseCount>;
+  }>;
+  enrichedWithUserProfileForm: inferSSRProps<
+    typeof getServerSidePropsForSingleFormView
+  >["enrichedWithUserProfileForm"];
+  permissions: inferSSRProps<typeof getServerSidePropsForSingleFormView>["permissions"];
+};
 
 const BREAKPOINTS = {
   sm: 640,
@@ -139,7 +154,7 @@ function SingleForm({
     nonOrgTeamslug: enrichedWithUserProfileForm.nonOrgTeamslug,
     userOrigin: enrichedWithUserProfileForm.userOrigin,
     teamOrigin: enrichedWithUserProfileForm.teamOrigin,
-  } as unknown as UptoDateForm;
+  } as UptoDateForm;
 
   const handleSubmit = (data: RoutingFormWithResponseCount) => {
     mutation.mutate({

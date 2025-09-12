@@ -5,7 +5,6 @@ import type z from "zod";
 import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/client";
 import type { RoutingFormSettings } from "@calcom/prisma/zod-utils";
-import type { Brand } from "@calcom/types/utils";
 
 import type QueryBuilderInitialConfig from "../components/react-awesome-query-builder/config/config";
 import type {
@@ -161,8 +160,3 @@ export type SingleFormComponentProps = {
     canDelete: boolean;
   };
 };
-
-export type UptoDateForm = Brand<
-  NonNullable<SingleFormComponentProps["enrichedWithUserProfileForm"]>,
-  "UptoDateForm"
->;
