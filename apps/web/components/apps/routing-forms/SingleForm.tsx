@@ -7,7 +7,6 @@ import { useFormContext } from "react-hook-form";
 import type { NewFormDialogState } from "@calcom/app-store/routing-forms/components/FormActions";
 import { FormActionsProvider } from "@calcom/app-store/routing-forms/components/FormActions";
 import { InfoLostWarningDialog } from "@calcom/app-store/routing-forms/components/InfoLostWarningDialog";
-import { Header } from "@calcom/app-store/routing-forms/components/_components/Header";
 import type { SingleFormComponentProps } from "@calcom/app-store/routing-forms/types/shared";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -17,6 +16,7 @@ import classNames from "@calcom/ui/classNames";
 import { Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
+import { Header } from "./Header";
 import { TestFormRenderer, type UptoDateForm } from "./TestForm";
 
 const BREAKPOINTS = {
