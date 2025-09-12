@@ -1,7 +1,7 @@
-import type { Prisma } from "@prisma/client";
 import type z from "zod";
 
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
+import type { Prisma } from "@calcom/prisma/client";
 import type { AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 
 import type { Booking } from "../handleNewBooking/createBooking";
