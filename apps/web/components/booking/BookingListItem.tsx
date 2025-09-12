@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable prettier/prettier */
 import Link from "next/link";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
@@ -283,7 +286,8 @@ function BookingListItem(booking: BookingItemProps) {
     .tz(userTimeZone)
     .locale(language)
     .format(isUpcoming ? (isDifferentYear ? "ddd, D MMM YYYY" : "ddd, D MMM") : "D MMMM YYYY");
-  const [setIsOpenLocationDialog] = useState(false);
+  const [, setIsOpenLocationDialog] = useState(false);
+  // const [setIsOpenLocationDialog] = useState(false);
   const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
     onSuccess: () => {
       showToast(t("location_updated"), "success");
@@ -816,7 +820,7 @@ const RecurringBookingsTooltip = ({
     return (
       recurringDate >= now &&
       !booking.recurringInfo?.bookings[BookingStatus.CANCELLED]
-        .map((date) => date.toString())
+        .map((date: { toString: () => any }) => date.toString())
         .includes(recurringDate.toString())
     );
   }).length;
@@ -834,7 +838,7 @@ const RecurringBookingsTooltip = ({
                 const pastOrCancelled =
                   aDate < now ||
                   booking.recurringInfo?.bookings[BookingStatus.CANCELLED]
-                    .map((date) => date.toString())
+                    .map((date: { toString: () => any }) => date.toString())
                     .includes(aDate.toString());
                 return (
                   <p key={key} className={classNames(pastOrCancelled && "line-through")}>
