@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 import type short from "short-uuid";
 import type { z } from "zod";
 
@@ -7,6 +6,7 @@ import dayjs from "@calcom/dayjs";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import prisma from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -344,4 +344,4 @@ function buildNewBookingData(params: CreateBookingParams) {
   }
 }
 
-export type Booking = Prisma.PromiseReturnType<typeof createBooking>;
+export type Booking = Awaited<ReturnType<typeof createBooking>>;

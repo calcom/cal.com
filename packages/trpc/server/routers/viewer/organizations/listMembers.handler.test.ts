@@ -1,32 +1,14 @@
+import { prisma } from "@calcom/prisma/__mocks__/prisma";
+
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { type TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
-import { prisma } from "@calcom/prisma";
 
 import { listMembersHandler } from "./listMembers.handler";
 
-const prismaMock = {
-  membership: {
-    findMany: vi.fn().mockResolvedValue([]),
-    count: vi.fn().mockResolvedValue(0),
-    findFirst: vi.fn().mockResolvedValue({ role: "ADMIN" }),
-  },
-  attributeOption: {
-    findMany: vi.fn().mockResolvedValue([
-      { id: "1", value: "value1", isGroup: false },
-      { id: "2", value: "value2", isGroup: false },
-    ]),
-  },
-  attributeToUser: {
-    findMany: vi.fn().mockResolvedValue([]),
-  },
-};
-
-vi.spyOn(prisma.membership, "findMany").mockImplementation(prismaMock.membership.findMany);
-vi.spyOn(prisma.membership, "count").mockImplementation(prismaMock.membership.count);
-vi.spyOn(prisma.membership, "findFirst").mockImplementation(prismaMock.membership.findFirst);
-vi.spyOn(prisma.attributeOption, "findMany").mockImplementation(prismaMock.attributeOption.findMany);
-vi.spyOn(prisma.attributeToUser, "findMany").mockImplementation(prismaMock.attributeToUser.findMany);
+vi.mock("@calcom/prisma", () => ({
+  prisma,
+}));
 
 // Mock FeaturesRepository
 const mockCheckIfTeamHasFeature = vi.fn();
@@ -74,6 +56,15 @@ const mockUser = {
 describe("listMembersHandler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+
+    prisma.attributeOption.findMany.mockResolvedValue([
+      { id: "1", value: "value1", isGroup: false },
+      { id: "2", value: "value2", isGroup: false },
+    ]);
+    prisma.attributeToUser.findMany.mockResolvedValue([]);
+    prisma.membership.findMany.mockResolvedValue([]);
+    prisma.membership.count.mockResolvedValue(0);
+    prisma.membership.findFirst.mockResolvedValue({ role: "ADMIN" });
   });
 
   it("should filter by customRoleId when PBAC is enabled", async () => {
@@ -90,6 +81,7 @@ describe("listMembersHandler", () => {
 
     await listMembersHandler({
       ctx: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         user: mockUser as any,
       },
       input: {
@@ -128,6 +120,7 @@ describe("listMembersHandler", () => {
 
     await listMembersHandler({
       ctx: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         user: mockUser as any,
       },
       input: {
@@ -186,6 +179,7 @@ describe("listMembersHandler", () => {
 
     await listMembersHandler({
       ctx: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         user: mockUser as any,
       },
       input: {
