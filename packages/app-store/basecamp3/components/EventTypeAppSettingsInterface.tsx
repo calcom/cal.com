@@ -3,11 +3,7 @@ import { useState, useEffect } from "react";
 import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
 import { Select } from "@calcom/ui/components/form";
 
-const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
-  getAppData,
-  setAppData,
-  disabled,
-}) => {
+const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = () => {
   const [projects, setProjects] = useState<undefined | { label: string; value: string }[]>();
   const [selectedProject, setSelectedProject] = useState<undefined | { label: string; value: string }>();
 
