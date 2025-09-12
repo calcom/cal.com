@@ -11,14 +11,13 @@ import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/avail
 import { BookingStatus, MembershipRole, RedirectType, SchedulingType } from "@calcom/prisma/enums";
 import type { Ensure } from "@calcom/types/utils";
 
-import prisma from ".";
-import type { Membership, Team, User } from "./client";
-import { Prisma } from "./client";
-import type { UserPermissionRole } from "./client";
-import mainAppStore from "./seed-app-store";
-import mainHugeEventTypesSeed from "./seed-huge-event-types";
-import { createUserAndEventType } from "./seed-utils";
-import type { teamMetadataSchema } from "./zod-utils";
+import prisma from "@calcom/prisma";
+import type { Membership, Team, User, UserPermissionRole } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
+import mainAppStore from "../packages/prisma/seed-app-store";
+import mainHugeEventTypesSeed from "../packages/prisma/seed-huge-event-types";
+import { createUserAndEventType } from "../packages/prisma/seed-utils";
+import type { teamMetadataSchema } from "../packages/prisma/zod-utils";
 
 type PlatformUser = {
   email: string;
@@ -1376,4 +1375,4 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect();
-  });
+  }); 
