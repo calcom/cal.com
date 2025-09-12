@@ -3,14 +3,14 @@
  * This file is deprecated. The only use of this file is to seed the database for E2E tests. Each test should take care of seeding it's own data going forward.
  */
 import dotEnv from "dotenv";
+import path from "path";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
+import { AppCategories } from "@calcom/prisma/enums";
 
-import prisma from ".";
-import type { Prisma } from "./client";
-import { AppCategories } from "./enums";
-
-dotEnv.config({ path: "../../.env.appStore" });
+dotEnv.config({ path: path.resolve(__dirname, "../.env.appStore") });
 
 export const seededForm = {
   id: "948ae412-d995-4865-875a-48302588de03",
