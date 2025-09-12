@@ -794,7 +794,21 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           {stepAgentId && isAgentLoading && <CalAIAgentDataSkeleton />}
           {stepAgentId && agentData && (
             <div className="bg-muted mt-4 rounded-lg p-4">
-              <div className="flex items-center justify-between">
+              <div
+                className="flex cursor-pointer items-center justify-between"
+                onClick={(e) => {
+                  const target = e.target as HTMLElement;
+                  if (
+                    target.closest("button") ||
+                    target.closest('[role="menu"]') ||
+                    target.closest('[role="menuitem"]')
+                  ) {
+                    return;
+                  }
+                  if (!props.readOnly) {
+                    setAgentConfigurationSheet({ open: true, activeTab: "prompt" });
+                  }
+                }}>
                 <div>
                   <h3 className="text-emphasis text-base font-medium">{t("cal_ai_agent")}</h3>
                   {arePhoneNumbersActive.length > 0 ? (
@@ -813,7 +827,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     </div>
                   )}
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                   {arePhoneNumbersActive.length > 0 ? (
                     <Dropdown>
                       <DropdownMenuTrigger asChild>
