@@ -708,6 +708,31 @@ export function AgentConfigurationSheet({
             )}
           </SheetBody>
           <SheetFooter>
+            <div className="mr-auto">
+              <Dropdown>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    color="secondary"
+                    className="rounded-[10px]"
+                    disabled={readOnly}
+                    EndIcon="chevron-down">
+                    {t("test_agent")}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem>
+                    <DropdownItem
+                      type="button"
+                      StartIcon="monitor"
+                      onClick={() => {
+                        setIsWebCallDialogOpen(true);
+                      }}>
+                      {t("web_call")}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </Dropdown>
+            </div>
             <Button
               className="justify-center"
               type="button"
