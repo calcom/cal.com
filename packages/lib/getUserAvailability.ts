@@ -1,12 +1,3 @@
-/* eslint-disable no-restricted-imports */
-import type {
-  Booking,
-  Prisma,
-  OutOfOfficeEntry,
-  OutOfOfficeReason,
-  User,
-  EventType as PrismaEventType,
-} from "@prisma/client";
 import * as Sentry from "@sentry/nextjs";
 import { z } from "zod";
 
@@ -32,6 +23,14 @@ import { findUsersForAvailabilityCheck } from "@calcom/lib/server/findUsersForAv
 import type { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
+import type {
+  Booking,
+  Prisma,
+  OutOfOfficeEntry,
+  OutOfOfficeReason,
+  User,
+  EventType as PrismaEventType,
+} from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar";
