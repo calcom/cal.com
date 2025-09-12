@@ -1,15 +1,11 @@
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
-// eslint-disable-next-line no-restricted-imports
 import { DailyLocationType } from "@calcom/app-store/constants";
-// eslint-disable-next-line no-restricted-imports
 import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
-// eslint-disable-next-line no-restricted-imports
 import { VideoApiAdapterMap } from "@calcom/app-store/video.adapters.generated";
 import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
-import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -29,7 +25,7 @@ const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<V
   const videoAdapters: VideoApiAdapter[] = [];
 
   for (const cred of withCredentials) {
-    const appName = deriveAppDictKeyFromType(cred.type, VideoApiAdapterMap);
+    const appName = cred.type.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
     log.silly("Getting video adapter for", safeStringify({ appName, cred: getPiiFreeCredential(cred) }));
 
     const videoAdapterImport = VideoApiAdapterMap[appName as keyof typeof VideoApiAdapterMap];
