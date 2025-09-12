@@ -598,7 +598,6 @@ export class CreditService {
     const activeMembers = team.members.filter((member) => member.accepted).length;
 
     if (team.isOrganization) {
-      // For organizations, use the new environment variable for monthly credits
       const orgMonthlyCredits = process.env.ORG_MONTHLY_CREDITS;
       const creditsPerSeat = orgMonthlyCredits ? parseInt(orgMonthlyCredits) : 1000;
       return activeMembers * creditsPerSeat;
