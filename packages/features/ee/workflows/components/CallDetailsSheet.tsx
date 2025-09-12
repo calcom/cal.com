@@ -76,11 +76,11 @@ export function CallDetailsSheet({ state, dispatch }: CallDetailsSheetProps) {
               </div>
               <div>
                 <p className="text-subtle text-sm">{t("from")}</p>
-                <p className="text-default text-sm font-medium">{selectedCall.from_number || t("unknown")}</p>
+                <p className="text-default text-sm font-medium">{"from_number" in selectedCall ? selectedCall.from_number || t("unknown") : t("unknown")}</p>
               </div>
               <div>
                 <p className="text-subtle text-sm">{t("to")}</p>
-                <p className="text-default text-sm font-medium">{selectedCall.to_number || t("unknown")}</p>
+                <p className="text-default text-sm font-medium">{"to_number" in selectedCall ? selectedCall.to_number || t("unknown") : t("unknown")}</p>
               </div>
               <div>
                 <p className="text-subtle text-sm">{t("sentiment")}</p>

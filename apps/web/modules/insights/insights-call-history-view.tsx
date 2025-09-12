@@ -106,8 +106,8 @@ function CallHistoryContent({ org: _org }: CallHistoryProps) {
           : call.call_analysis?.user_sentiment?.toLowerCase() === "negative"
           ? "negative"
           : "neutral",
-      from: call.from_number || t("unknown"),
-      to: call.to_number || t("unknown"),
+      from: "from_number" in call ? call.from_number || t("unknown") : t("unknown"),
+      to: "to_number" in call ? call.to_number || t("unknown") : t("unknown"),
       callCreated: call.call_analysis?.call_successful ?? true,
       inVoicemail: call.call_analysis?.in_voicemail ?? false,
     }));
