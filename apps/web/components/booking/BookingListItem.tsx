@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import Link from "next/link";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
@@ -284,11 +283,7 @@ function BookingListItem(booking: BookingItemProps) {
     .tz(userTimeZone)
     .locale(language)
     .format(isUpcoming ? (isDifferentYear ? "ddd, D MMM YYYY" : "ddd, D MMM") : "D MMMM YYYY");
-  const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
-  const [isOpenReassignDialog, setIsOpenReassignDialog] = useState(false);
-  const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
-  const [isOpenAddGuestsDialog, setIsOpenAddGuestsDialog] = useState(false);
-  const [rerouteDialogIsOpen, setRerouteDialogIsOpen] = useState(false);
+  const [setIsOpenLocationDialog] = useState(false);
   const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
     onSuccess: () => {
       showToast(t("location_updated"), "success");
@@ -402,13 +397,13 @@ function BookingListItem(booking: BookingItemProps) {
     <>
       <RescheduleDialog
         isOpenDialog={dialogState.reschedule}
-        setIsOpenDialog={() => closeDialog("reschedule")}
+        setIsOpenDialog={(open) => (open ? openDialog("reschedule") : closeDialog("reschedule"))}
         bookingUId={booking.uid}
       />
       {dialogState.reassign && (
         <ReassignDialog
           isOpenDialog={dialogState.reassign}
-          setIsOpenDialog={() => closeDialog("reassign")}
+          setIsOpenDialog={(open) => (open ? openDialog("reassign") : closeDialog("reassign"))}
           bookingId={booking.id}
           teamId={booking.eventType?.team?.id || 0}
           bookingFromRoutingForm={isBookingFromRoutingForm}
@@ -418,18 +413,18 @@ function BookingListItem(booking: BookingItemProps) {
         booking={booking}
         saveLocation={saveLocation}
         isOpenDialog={dialogState.editLocation}
-        setShowLocationModal={() => closeDialog("editLocation")}
+        setShowLocationModal={(open) => (open ? openDialog("editLocation") : closeDialog("editLocation"))}
         teamId={booking.eventType?.team?.id}
       />
       <AddGuestsDialog
         isOpenDialog={dialogState.addGuests}
-        setIsOpenDialog={() => closeDialog("addGuests")}
+        setIsOpenDialog={(open) => (open ? openDialog("addGuests") : closeDialog("addGuests"))}
         bookingId={booking.id}
       />
       {booking.paid && booking.payment[0] && (
         <ChargeCardDialog
           isOpenDialog={dialogState.chargeCard}
-          setIsOpenDialog={() => closeDialog("chargeCard")}
+          setIsOpenDialog={(open) => (open ? openDialog("chargeCard") : closeDialog("chargeCard"))}
           bookingId={booking.id}
           paymentAmount={booking.payment[0].amount}
           paymentCurrency={booking.payment[0].currency}
@@ -439,7 +434,7 @@ function BookingListItem(booking: BookingItemProps) {
         <ViewRecordingsDialog
           booking={booking}
           isOpenDialog={dialogState.viewRecordings}
-          setIsOpenDialog={() => closeDialog("viewRecordings")}
+          setIsOpenDialog={(open) => (open ? openDialog("viewRecordings") : closeDialog("viewRecordings"))}
           timeFormat={userTimeFormat ?? null}
         />
       )}
@@ -447,7 +442,9 @@ function BookingListItem(booking: BookingItemProps) {
         <MeetingSessionDetailsDialog
           booking={booking}
           isOpenDialog={dialogState.meetingSessionDetails}
-          setIsOpenDialog={() => closeDialog("meetingSessionDetails")}
+          setIsOpenDialog={(open) =>
+            open ? openDialog("meetingSessionDetails") : closeDialog("meetingSessionDetails")
+          }
           timeFormat={userTimeFormat ?? null}
         />
       )}
@@ -455,11 +452,13 @@ function BookingListItem(booking: BookingItemProps) {
         <NoShowAttendeesDialog
           bookingUid={booking.uid}
           attendees={attendeeList}
-          setIsOpen={() => closeDialog("noShowAttendees")}
+          setIsOpen={(open) => (open ? openDialog("noShowAttendees") : closeDialog("noShowAttendees"))}
           isOpen={dialogState.noShowAttendees}
         />
       )}
-      <Dialog open={dialogState.rejection} onOpenChange={() => closeDialog("rejection")}>
+      <Dialog
+        open={dialogState.rejection}
+        onOpenChange={(open) => (open ? openDialog("rejection") : closeDialog("rejection"))}>
         <DialogContent title={t("rejection_reason_title")} description={t("rejection_reason_description")}>
           <div>
             <TextAreaField
