@@ -2,9 +2,9 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
-import { schemaAttendeeCreateBodyParams, schemaAttendeeReadPublic } from "~/lib/validations/attendee";
+import { schemaAttendeeCreateBodyParams } from "~/lib/validations/attendee";
 
 /**
  * @swagger
@@ -64,7 +64,7 @@ async function postHandler(req: NextApiRequest) {
     if (!userBooking) throw new HttpError({ statusCode: 403, message: "Forbidden" });
   }
 
-  const data = await prisma.attendee.create({
+  const attendee = await prisma.attendee.create({
     data: {
       email: body.email,
       name: body.name,
@@ -74,7 +74,7 @@ async function postHandler(req: NextApiRequest) {
   });
 
   return {
-    attendee: schemaAttendeeReadPublic.parse(data),
+    attendee,
     message: "Attendee created successfully",
   };
 }
