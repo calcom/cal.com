@@ -120,6 +120,8 @@ export const EventMeta = ({
         setTimezone(timezone);
       }
     }
+    // Note: When lockTimeZone is NOT enabled, we should preserve the booker's auto-detected timezone
+    // instead of defaulting to the event owner's timezone
   }, [event, setTimezone]);
 
   if (hideEventTypeDetails) {
