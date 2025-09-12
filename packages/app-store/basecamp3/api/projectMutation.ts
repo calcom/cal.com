@@ -17,10 +17,6 @@ interface IDock {
 const ZProjectMutationInputSchema = z.object({ projectId: z.string() });
 
 async function handler(req: NextApiRequest) {
-  if (req.method !== "POST") {
-    return { status: 405, body: { message: "Method Not Allowed" } };
-  }
-
   const userId = req.session?.user?.id;
   if (!userId) {
     return { status: 401, body: { message: "Unauthorized" } };
