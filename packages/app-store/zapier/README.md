@@ -33,7 +33,7 @@ If you run it on localhost, check out the [additional information](https://githu
 
 ## Triggers
 
-Booking created, Booking rescheduled, Booking cancelled, Meeting ended, Out Of Office Created
+Booking created, Booking rescheduled, Booking cancelled, Meeting ended, Out Of Office Created, No-Show Events (Booking No-Show Updated, After Host Cal Video No-Show, After Guest Cal Video No-Show)
 
 ### Booking created
 
@@ -75,6 +75,52 @@ Create the other triggers (booking rescheduled, booking cancelled and meeting en
    - PerformList: GET `<baseUrl>`/api/integrations/zapier/listOOOEntries
 3. Test your API request
 4. Note: When creating the ZAP you need to remember that data is stored in the { payload: { oooEntry: { ... } } }
+
+### No-Show Events
+
+Cal.com supports three types of no-show webhook events that can be used with Zapier:
+
+#### Booking No-Show Updated
+
+Triggers when attendees are marked as no-show for a booking.
+
+1. Settings
+   - Key: booking_no_show_updated
+   - Name: Booking No-Show Updated
+   - Noun: Booking No-Show
+   - Description: Triggers when attendees are marked as no-show
+2. API Configuration (apiKey is set automatically):
+   - Trigger Type: REST Hook
+   - Subscribe: POST `<baseUrl>`/api/integrations/zapier/addSubscription
+     - Request Body
+       - subscriberUrl: {{bundle.targetUrl}}
+       - triggerEvent: BOOKING_NO_SHOW_UPDATED
+   - Unsubscribe: DELETE `<baseUrl>`/api/integrations/zapier/deleteSubscription
+     - URL Params (in addition to apiKey)
+       - id: {{bundle.subscribeData.id}}
+   - PerformList: GET `<baseUrl>`/api/integrations/zapier/listBookings
+
+#### After Host Cal Video No-Show
+
+Triggers when a host doesn't show up to a Cal Video meeting.
+
+1. Settings
+   - Key: after_hosts_cal_video_no_show
+   - Name: After Host Cal Video No-Show
+   - Noun: Host No-Show
+   - Description: Triggers when a host doesn't show up to a Cal Video meeting
+2. API Configuration: Same structure as above, use triggerEvent: AFTER_HOSTS_CAL_VIDEO_NO_SHOW
+
+#### After Guest Cal Video No-Show  
+
+Triggers when a guest doesn't show up to a Cal Video meeting.
+
+1. Settings
+   - Key: after_guests_cal_video_no_show
+   - Name: After Guest Cal Video No-Show  
+   - Noun: Guest No-Show
+   - Description: Triggers when a guest doesn't show up to a Cal Video meeting
+2. API Configuration: Same structure as above, use triggerEvent: AFTER_GUESTS_CAL_VIDEO_NO_SHOW
 
 ### Set ZAPIER_INVITE_LINK
 

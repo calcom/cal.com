@@ -52,6 +52,24 @@ const templates: Template[] = [
     text: "Add new bookings to Google Calendar",
     link: "https://zapier.com/app/editor/template/1083651",
   },
+  {
+    icon: "gmail.svg",
+    app: "Gmail",
+    text: "Send follow-up emails when attendees don't show up",
+    link: "https://zapier.com/shared/no-show-follow-up-email",
+  },
+  {
+    icon: "googleSheets.svg",
+    app: "Google Sheets",
+    text: "Track no-show events in Google Sheets",
+    link: "https://zapier.com/shared/no-show-tracking",
+  },
+  {
+    icon: "salesforce.svg",
+    app: "Salesforce",
+    text: "Update Salesforce contacts when they miss meetings",
+    link: "https://zapier.com/shared/no-show-crm-update",
+  },
 ];
 
 export default function AppSettings() {
