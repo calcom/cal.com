@@ -3,8 +3,10 @@ import { useState, useEffect } from "react";
 import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
 import { Select } from "@calcom/ui/components/form";
 
+type Basecamp3Project = { label: string; value: string };
+
 const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = () => {
-  const [projects, setProjects] = useState<undefined | { label: string; value: string }[]>();
+  const [projects, setProjects] = useState<Basecamp3Project[] | undefined>();
   const [selectedProject, setSelectedProject] = useState<undefined | { label: string; value: string }>();
 
   useEffect(() => {
@@ -13,17 +15,16 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = () => {
       if (!res.ok) return;
       const json = await res.json();
       const currentProjectId = json?.currentProject;
-      const options: { label: string; value: string }[] | undefined = json?.projects?.map(
+      const options: Basecamp3Project[] = json?.projects?.map(
         (project: { id: number | string; name: string }) => ({
           value: String(project.id),
           label: project.name,
         })
       );
+      if (!options) return;
       setProjects(options);
-      if (currentProjectId && options) {
-        const match = options.find(
-          (o: { value: string; label: string }) => o.value === String(currentProjectId)
-        );
+      if (currentProjectId) {
+        const match = options.find((project: Basecamp3Project) => project.value === String(currentProjectId));
         if (match) setSelectedProject(match);
       }
     }
