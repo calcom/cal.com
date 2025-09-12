@@ -1,8 +1,7 @@
-import type { Prisma, WorkflowReminder } from "@prisma/client";
 import type { z } from "zod";
 
+import { DailyLocationType } from "@calcom/app-store/constants";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
-import { DailyLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
@@ -23,12 +22,14 @@ import { HttpError } from "@calcom/lib/http-error";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
+import { processNoShowFeeOnCancellation } from "@calcom/lib/payment/processNoShowFeeOnCancellation";
 import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
+import type { Prisma, WorkflowReminder } from "@calcom/prisma/client";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import {
@@ -194,7 +195,6 @@ async function handler(input: CancelBookingInput) {
 
   const teamMembersPromises = [];
   const attendeesListPromises = [];
-  const hostsPresent = !!bookingToDelete.eventType?.hosts;
   const hostEmails = new Set(bookingToDelete.eventType?.hosts?.map((host) => host.user.email) ?? []);
 
   for (let index = 0; index < bookingToDelete.attendees.length; index++) {
@@ -455,11 +455,25 @@ async function handler(input: CancelBookingInput) {
     });
     updatedBookings.push(updatedBooking);
 
-    if (!!bookingToDelete.payment.length) {
-      await processPaymentRefund({
-        booking: bookingToDelete,
-        teamId,
-      });
+    if (bookingToDelete.payment.some((payment) => payment.paymentOption === "ON_BOOKING")) {
+      try {
+        await processPaymentRefund({
+          booking: bookingToDelete,
+          teamId,
+        });
+      } catch (error) {
+        log.error(`Error processing payment refund for booking ${bookingToDelete.uid}:`, error);
+      }
+    } else if (bookingToDelete.payment.some((payment) => payment.paymentOption === "HOLD")) {
+      try {
+        await processNoShowFeeOnCancellation({
+          booking: bookingToDelete,
+          payments: bookingToDelete.payment,
+          cancelledByUserId: userId,
+        });
+      } catch (error) {
+        log.error(`Error processing no-show fee for booking ${bookingToDelete.uid}:`, error);
+      }
     }
   }
 

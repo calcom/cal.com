@@ -113,8 +113,16 @@
     "NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED",
     "NEXT_PUBLIC_SENDER_ID",
     "NEXT_PUBLIC_SENDGRID_SENDER_NAME",
+    "NEXT_PUBLIC_SENTRY_DSN",
+    "NEXT_PUBLIC_SENTRY_DSN_CLIENT",
     "NEXT_PUBLIC_STRIPE_PRICING_TABLE_ID",
+    "NEXT_PUBLIC_STRIPE_PUBLIC_KEY",
+    "NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE_MONTHLY",
     "NEXT_PUBLIC_STRIPE_PRICING_TABLE_PUBLISHABLE_KEY",
+    "NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID",
+    "NEXT_PUBLIC_PLAIN_CHAT_ID",
+    "NEXT_PUBLIC_PLAIN_CHAT_EXCLUDED_PATHS",
+    "NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD",
     "NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS",
     "NEXT_PUBLIC_SWAGGER_DOCS_URL",
     "NEXT_PUBLIC_TEAM_IMPERSONATION",
@@ -149,6 +157,9 @@
     "RENDER_EXTERNAL_URL",
     "RESERVED_SUBDOMAINS",
     "RETELL_AI_KEY",
+    "RETELL_AI_TEST_MODE",
+    "RETELL_AI_TEST_EVENT_TYPE_MAP",
+    "RETELL_AI_TEST_CAL_API_KEY",
     "SALESFORCE_CONSUMER_KEY",
     "SALESFORCE_CONSUMER_SECRET",
     "SAML_ADMINS",
@@ -158,6 +169,9 @@
     "SENDGRID_API_KEY",
     "SENDGRID_EMAIL",
     "SENDGRID_SYNC_API_KEY",
+    "SENTRY_SAMPLE_RATE",
+    "SENTRY_TRACES_SAMPLE_RATE",
+    "SENTRY_DEBUG",
     "SKIP_DB_MIGRATIONS",
     "SLACK_CLIENT_ID",
     "SLACK_CLIENT_SECRET",
@@ -171,6 +185,8 @@
     "STRIPE_WEBHOOK_SECRET_APPS",
     "STRIPE_WEBHOOK_SECRET_BILLING",
     "STRIPE_TEAM_MONTHLY_PRICE_ID",
+    "STRIPE_TEAM_PRODUCT_ID",
+    "STRIPE_ORG_MONTHLY_PRICE_ID",
     "TANDEM_BASE_URL",
     "TANDEM_CLIENT_ID",
     "TANDEM_CLIENT_SECRET",
@@ -257,7 +273,9 @@
     "NEXT_PUBLIC_API_V2_URL",
     "NEXT_PUBLIC_WEBAPP_URL",
     "NEXT_PUBLIC_WEBSITE_URL",
-    "BUILD_STANDALONE"
+    "BUILD_STANDALONE",
+    "INTERCOM_API_TOKEN",
+    "NEXT_PUBLIC_INTERCOM_APP_ID"
   ],
   "tasks": {
     "@calcom/prisma#build": {
@@ -271,14 +289,14 @@
     },
     "@calcom/prisma#db-seed": {
       "cache": false,
-      "dependsOn": ["@calcom/prisma#db-migrate"]
+      "dependsOn": ["@calcom/prisma#db-deploy"]
     },
     "@calcom/prisma#db-up": {
       "cache": false
     },
     "@calcom/prisma#dx": {
       "cache": false,
-      "dependsOn": ["@calcom/prisma#db-migrate"]
+      "dependsOn": ["@calcom/prisma#db-up"]
     },
     "@calcom/trpc#build": {
       "outputs": ["./types"]
@@ -317,9 +335,11 @@
         "STRIPE_ORG_PRODUCT_ID",
         "NEXT_PUBLIC_API_V2_URL",
         "NEXT_PUBLIC_VAPID_PUBLIC_KEY",
+        "NEXT_PUBLIC_SENTRY_DSN_CLIENT",
         "BUILD_STANDALONE",
         "NEXT_PUBLIC_API_HITPAY_PRODUCTION",
-        "NEXT_PUBLIC_API_HITPAY_SANDBOX"
+        "NEXT_PUBLIC_API_HITPAY_SANDBOX",
+        "NEXT_PUBLIC_PLAIN_CHAT_EXCLUDED_PATHS"
       ]
     },
     "@calcom/web#dx": {
@@ -389,13 +409,7 @@
         "STRIPE_SUPPORT_TABLE",
         "MOTIFLAND_REST_ENDPOINT",
         "MOTIFLAND_DOCS_API_KEY",
-        "MOTIFLAND_DOCS_PROJECT_ID",
-        "PLAIN_HMAC_SECRET_KEY",
-        "PLAIN_API_KEY",
-        "PLAIN_API_URL",
-        "NEXT_PUBLIC_PLAIN_CHAT_ID",
-        "PLAIN_CHAT_HMAC_SECRET_KEY",
-        "NEXT_PUBLIC_PLAIN_CHAT_EXCLUDED_PATHS"
+        "MOTIFLAND_DOCS_PROJECT_ID"
       ]
     },
     "build": {

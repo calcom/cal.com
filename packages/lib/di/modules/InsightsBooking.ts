@@ -1,8 +1,7 @@
-import { createModule } from "@evyweb/ioctopus";
-
 import type { IInsightsBookingService } from "@calcom/lib/server/service/InsightsBookingDIService";
 import { InsightsBookingService } from "@calcom/lib/server/service/InsightsBookingDIService";
 
+import { createModule } from "../di";
 import { DI_TOKENS } from "../tokens";
 
 export const insightsBookingModule = createModule();
