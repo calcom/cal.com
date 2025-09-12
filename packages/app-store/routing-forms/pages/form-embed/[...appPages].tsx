@@ -1,8 +1,9 @@
 "use client";
 
-import { Dialog, DialogTrigger, DialogContent, DialogTitle } from "@calid/features/ui";
+import { Dialog, DialogTrigger, DialogContent, DialogTitle } from "@calid/features/ui/components/dialog";
 // import { Button } from "@calcom/ui/components/button";
-import { Button, TextField } from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
+import { TextField } from "@calid/features/ui/components/input/text-area";
 import { HorizontalTabs } from "@calid/features/ui/components/navigation";
 import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
 import classNames from "classnames";

@@ -1,6 +1,9 @@
 "use client";
 
-import { Checkbox, Input, Textarea, Button } from "@calid/features/ui";
+import { Checkbox } from "@calid/features/ui/components/input/checkbox-field";
+import { Input } from "@calid/features/ui/components/input/input";
+import { Textarea } from "@calid/features/ui/components/input/text-area";
+import { Button } from "@calid/features/ui/components/button";
 import Link from "next/link";
 import { Controller } from "react-hook-form";
 import type { UseFormReturn } from "react-hook-form";

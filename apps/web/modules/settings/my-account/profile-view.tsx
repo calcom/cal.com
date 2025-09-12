@@ -1,5 +1,6 @@
 "use client";
 
+import { Avatar } from "@calid/features/ui/components/avatar";
 import { Button } from "@calid/features/ui/components/button";
 import {
   Dialog,
@@ -8,12 +9,15 @@ import {
   DialogClose,
   DialogFooter,
 } from "@calid/features/ui/components/dialog";
+import { Form, FormField } from "@calid/features/ui/components/form";
 import { TextField } from "@calid/features/ui/components/input/input";
+import { PasswordField } from "@calid/features/ui/components/input/input";
 import {
   usePhoneNumberField,
   PhoneNumberField,
   isPhoneNumberComplete,
 } from "@calid/features/ui/components/input/phone-number-field";
+import { Label } from "@calid/features/ui/components/label";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { revalidateSettingsProfile } from "app/cache/path/settings/my-account";
@@ -21,6 +25,7 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 // eslint-disable-next-line no-restricted-imports
 import { get, pick } from "lodash";
 import { signOut, useSession } from "next-auth/react";
+import { useMemo } from "react";
 import type { BaseSyntheticEvent } from "react";
 import React, { useRef, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
@@ -45,11 +50,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import { Alert } from "@calcom/ui/components/alert";
-import { Avatar } from "@calid/features/ui/components/avatar";
 import { Editor } from "@calcom/ui/components/editor";
-import { Form, FormField } from "@calid/features/ui/components/form";
-import { PasswordField } from "@calid/features/ui/components/input/input";
-import { Label } from "@calid/features/ui/components/label";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 
 import TwoFactor from "@components/auth/TwoFactor";
@@ -661,6 +662,14 @@ const ProfileForm = ({
   } = formMethods;
 
   const isDisabled = isSubmitting || !isDirty;
+
+  const bioValue = formMethods.watch("bio") || "";
+  const renderedBio = useMemo(() => {
+    console.log("Rendered bio: ", bioValue)
+    md.render(bioValue), [bioValue];}
+  );
+  const getText = React.useCallback(() => bioValue, [bioValue]);
+
   return (
     <Form form={formMethods} onSubmit={handleFormSubmit}>
       <div className="border-subtle rounded-md border px-4 pb-10 pt-8 sm:px-6">
@@ -673,7 +682,12 @@ const ProfileForm = ({
               const showRemoveAvatarButton = value !== null;
               return (
                 <>
-                  <Avatar data-testid="profile-upload-avatar" previewSrc={value} size="lg" user={user} />
+                  <Avatar
+                    data-testid="profile-upload-avatar"
+                    imageSrc={getUserAvatarUrl({ avatarUrl: value })}
+                    size="lg"
+                    user={user}
+                  />
                   <div className="ms-4">
                     <div className="flex gap-2">
                       <ImageUploader
@@ -764,7 +778,7 @@ const ProfileForm = ({
         <div className="mt-6">
           <Label>{t("about")}</Label>
           <Editor
-            getText={() => md.render(formMethods.getValues("bio") || "")}
+            getText={getText}
             setText={(value: string) => {
               formMethods.setValue("bio", turndown(value), { shouldDirty: true });
             }}
@@ -815,15 +829,15 @@ const ProfileForm = ({
             </div>
           </div>
         )}
-      <Button
-        loading={isPending}
-        disabled={isDisabled}
-        color="primary"
-        className="mt-4"
-        type="submit"
-        data-testid="profile-submit-button">
-        {t("update")}
-      </Button>
+        <Button
+          loading={isPending}
+          disabled={isDisabled}
+          color="primary"
+          className="mt-4"
+          type="submit"
+          data-testid="profile-submit-button">
+          {t("update")}
+        </Button>
       </div>
     </Form>
   );

@@ -49,6 +49,7 @@ import { isTimeSlotAvailable } from "./utils/isTimeslotAvailable";
 
 const BookerComponent = ({
   username,
+brandColor,
   eventSlug,
   hideBranding = false,
   entity,
@@ -225,6 +226,7 @@ const BookerComponent = ({
       <BookEventForm
         key={key}
         shouldRenderCaptcha={shouldRenderCaptcha}
+        brandColor={brandColor}
         onCancel={() => {
           setSelectedTimeslot(null);
           // Temporarily allow disabling it, till we are sure that it doesn't cause any significant load on the system
@@ -386,6 +388,7 @@ const BookerComponent = ({
                       isMyLink={Boolean(username === sessionUsername)}
                       eventSlug={eventSlug}
                       enabledLayouts={bookerLayouts.enabledLayouts}
+                      brandColor={brandColor}
                       extraDays={
                         layout === BookerLayouts.COLUMN_VIEW ? columnViewExtraDays.current : extraDays
                       }
@@ -422,10 +425,13 @@ const BookerComponent = ({
                   className="bg-default max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
                   {!hideEventTypeDetails && orgBannerUrl && (
                     <div
-                      loading="eager"
                       className="-mb-4 flex h-10 p-2 ltr:rounded-tl-md rtl:rounded-tr-md"
-                      alt="org banner"
-                      style={{ backgroundImage: `url(${orgBannerUrl})` }}
+                      style={{
+                        backgroundImage: `url("${orgBannerUrl}")`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        backgroundRepeat: "no-repeat",
+                      }}
                     />
                   )}
                   <EventMeta

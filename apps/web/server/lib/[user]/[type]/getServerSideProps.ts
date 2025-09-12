@@ -21,6 +21,7 @@ import { getEventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic
 import { getUsersInOrgContext } from "@server/lib/[user]/getServerSideProps";
 
 type Props = {
+  userBannerUrl: string | null;
   eventData: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
   booking?: GetBookingType;
   rescheduleUid: string | null;
@@ -281,6 +282,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     eventData: eventData,
     user: username,
     userBannerUrl: user.bannerUrl,
+    brandColor: user.profile?.brandColor || user.brandColor,
     slug,
     isBrandingHidden: shouldHideBrandingForUserEvent({
       eventTypeId: eventData.id,

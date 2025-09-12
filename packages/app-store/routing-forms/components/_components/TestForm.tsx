@@ -1,6 +1,6 @@
 "use client";
 
-import { Button} from "@calid/features/ui";
+import { Button} from "@calid/features/ui/components/button";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Dispatch, SetStateAction } from "react";
 import { useState, useMemo } from "react";

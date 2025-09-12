@@ -37,7 +37,6 @@ type UpdateProfileOptions = {
 };
 
 export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions) => {
-  logger.info("Upload profile input: ", input);
   const { user } = ctx;
   const billingService = new StripeBillingService();
   const userMetadata = await handleUserMetadata({ ctx, input });
@@ -433,19 +432,25 @@ const handleUserMetadata = async ({ ctx, input }: UpdateProfileOptions) => {
   const userMetadata = userMetadataSchema.parse(user.metadata);
 
   logger.info("Clean meta: ", cleanMetadata);
-  if (
-    cleanMetadata.headerUrl &&
-    (cleanMetadata.headerUrl.startsWith("data:image/png;base64,") ||
-      cleanMetadata.headerUrl.startsWith("data:image/jpeg;base64,") ||
-      cleanMetadata.headerUrl.startsWith("data:image/jpg;base64,"))
-  ) {
-    const headerUrl = await resizeBase64Image(cleanMetadata.headerUrl, { maxSize: 1500 });
-    cleanMetadata.headerUrl = await uploadHeader({
-      banner: headerUrl,
-      userId: user.id,
-    });
-  } else {
-    cleanMetadata.headerUrl = null;
+  if (Object.prototype.hasOwnProperty.call(cleanMetadata, "headerUrl")) {
+    if (
+      cleanMetadata.headerUrl &&
+      (cleanMetadata.headerUrl.startsWith("data:image/png;base64,") ||
+        cleanMetadata.headerUrl.startsWith("data:image/jpeg;base64,") ||
+        cleanMetadata.headerUrl.startsWith("data:image/jpg;base64,"))
+    ) {
+      const headerUrl = await resizeBase64Image(cleanMetadata.headerUrl, { maxSize: 1500 });
+      cleanMetadata.headerUrl = await uploadHeader({
+        banner: headerUrl,
+        userId: user.id,
+      });
+    } else if (cleanMetadata.headerUrl === null) {
+      // Explicit clear
+      cleanMetadata.headerUrl = null;
+    } else {
+      // Remove the key to avoid overwriting existing value when not updating
+      delete (cleanMetadata as Record<string, unknown>).headerUrl;
+    }
   }
 
   // Required so we don't override and delete saved values

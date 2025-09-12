@@ -1,7 +1,7 @@
 "use client";
 
 // import { Button } from "../button";
-import { Button } from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
 import { useCallback, useState, useEffect } from "react";
 import Cropper from "react-easy-crop";
 

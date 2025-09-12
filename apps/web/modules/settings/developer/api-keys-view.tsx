@@ -1,6 +1,6 @@
 "use client";
 
-import { Dialog, DialogContent, DialogTitle } from "@calid/features/ui";
+import { Dialog, DialogContent, DialogTitle } from "@calid/features/ui/components/dialog";
 import { useEffect, useState } from "react";
 
 import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";

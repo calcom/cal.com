@@ -1,7 +1,7 @@
 "use client";
 
 // import { Button } from "@calcom/ui/components/button";
-import { Button } from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
 import { signOut, useSession } from "next-auth/react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";

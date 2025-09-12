@@ -18,6 +18,7 @@ export type Timezone = (typeof IntlSupportedTimeZones)[number];
 
 export interface BookerProps {
   eventSlug: string;
+  brandColor: string;
   username: string;
   orgBannerUrl?: string | null;
   faviconUrl?: string | null;

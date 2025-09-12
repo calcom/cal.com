@@ -10,7 +10,7 @@ import { Badge } from "../badge";
 import { Button } from "../button";
 import { Dropdown, DropdownMenuTrigger, DropdownMenuContent, DropdownItem } from "../dropdown";
 // import { Input } from "../form/inputs/TextField";
-import {Input} from "@calid/features/ui";
+import {Input} from "@calid/features/ui/components/input/input";
 import { Icon } from "../icon";
 import type { IconName } from "../icon";
 

@@ -34,7 +34,10 @@ export type ButtonBaseProps = {
   disabled?: boolean;
   flex?: boolean;
 } & Omit<InferredVariantProps, "color"> & {
+    // If a string (e.g. hex/rgb/css var) is provided, it will be used as a custom
+    // color for primary-style buttons (background, border, and readable text color)
     color?: ButtonColor;
+    brandColor?: string;
   };
 
 export type ButtonProps = ButtonBaseProps &
@@ -257,6 +260,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     CustomStartIcon,
     EndIcon,
     shallow,
+    brandColor,
     // attributes propagated from `HTMLAnchorProps` or `HTMLButtonProps`
     ...passThroughProps
   } = props;
@@ -277,6 +281,10 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         const classes = classNames(buttonClasses({ color, size, loading, variant }), props.className);
         return classes;
       })(),
+      style: { 
+        backgroundColor: brandColor,
+        border: brandColor ? 'none' : undefined,
+      },
       // if we click a disabled button, we prevent going through the click handler
       onClick: disabled
         ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {

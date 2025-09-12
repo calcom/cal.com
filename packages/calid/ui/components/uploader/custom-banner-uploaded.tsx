@@ -171,10 +171,11 @@ export default function BannerUploader({
           <div className="cropper mt-6 flex flex-col items-center justify-center p-8">
             {!result && (
               <div className="bg-muted flex h-60 w-full items-center justify-start">
-                {!imageSrc || checkIfItFallbackImage(imageSrc) ? (
-                  <p className="text-emphasis w-full text-center text-sm sm:text-xs">
-                    {t("no_target", { target })}
-                  </p>
+                {!imageSrc ? (
+                  // <p className="text-emphasis w-full text-center text-sm sm:text-xs">
+                  //   {t("no_target", { target })}
+                  // </p>
+                  <div class="w-full h-full bg-cal-gradient" />
                 ) : (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img className="h-full w-full" src={imageSrc} alt={target} />

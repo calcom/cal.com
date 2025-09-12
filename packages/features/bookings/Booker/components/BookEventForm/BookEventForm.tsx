@@ -32,6 +32,7 @@ import { BookingFields } from "./BookingFields";
 import { FormSkeleton } from "./Skeleton";
 
 type BookEventFormProps = {
+  brandColor?: string;
   onCancel?: () => void;
   onSubmit: () => void;
   errorRef: React.RefObject<HTMLDivElement>;
@@ -67,6 +68,7 @@ export const BookEventForm = ({
   isPlatform = false,
   isTimeslotUnavailable,
   shouldRenderCaptcha,
+  brandColor,
   confirmButtonDisabled,
   classNames,
 }: Omit<BookEventFormProps, "event"> & {
@@ -265,7 +267,7 @@ export const BookEventForm = ({
         )}
         <div className="modal sticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
           {isInstantMeeting ? (
-            <Button type="submit" color="primary" loading={loadingStates.creatingInstantBooking}>
+            <Button brandColor={brandColor} type="submit" color="primary" loading={loadingStates.creatingInstantBooking}>
               {isPaidEvent ? t("pay_and_book") : t("confirm")}
             </Button>
           ) : (
@@ -283,6 +285,7 @@ export const BookEventForm = ({
 
               <Button
                 type="submit"
+                brandColor={brandColor}
                 color="primary"
                 disabled={
                   (!!shouldRenderCaptcha && !watchedCfToken) || isTimeslotUnavailable || confirmButtonDisabled
