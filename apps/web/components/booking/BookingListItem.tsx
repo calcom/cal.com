@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import Link from "next/link";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
@@ -65,6 +66,7 @@ import {
   shouldShowRecurringCancelAction,
   type BookingActionContext,
 } from "./bookingActions";
+import { useBookingItemState } from "./hooks/useBookingItemState";
 
 type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]["status"];
 
@@ -119,19 +121,16 @@ const isBookingReroutable = (booking: ParsedBooking): booking is ReroutableBooki
 
 function BookingListItem(booking: BookingItemProps) {
   const parsedBooking = buildParsedBooking(booking);
-
   const { userTimeZone, userTimeFormat, userEmail } = booking.loggedInUser;
   const {
     t,
     i18n: { language },
   } = useLocale();
   const utils = trpc.useUtils();
-  const [rejectionReason, setRejectionReason] = useState<string>("");
-  const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
-  const [chargeCardDialogIsOpen, setChargeCardDialogIsOpen] = useState(false);
-  const [viewRecordingsDialogIsOpen, setViewRecordingsDialogIsOpen] = useState<boolean>(false);
-  const [meetingSessionDetailsDialogIsOpen, setMeetingSessionDetailsDialogIsOpen] = useState<boolean>(false);
-  const [isNoShowDialogOpen, setIsNoShowDialogOpen] = useState<boolean>(false);
+
+  // Use our centralized state hook
+  const { dialogState, openDialog, closeDialog, rejectionReason, setRejectionReason } = useBookingItemState();
+
   const cardCharged = booking?.payment[0]?.success;
 
   const attendeeList = booking.attendees.map((attendee) => {
@@ -158,7 +157,7 @@ function BookingListItem(booking: BookingItemProps) {
   const mutation = trpc.viewer.bookings.confirm.useMutation({
     onSuccess: (data) => {
       if (data?.status === BookingStatus.REJECTED) {
-        setRejectionDialogIsOpen(false);
+        closeDialog("rejection");
         showToast(t("booking_rejection_success"), "success");
       } else {
         showToast(t("booking_confirmation_success"), "success");
@@ -260,7 +259,7 @@ function BookingListItem(booking: BookingItemProps) {
     ...action,
     onClick:
       action.id === "reject"
-        ? () => setRejectionDialogIsOpen(true)
+        ? () => openDialog("rejection")
         : action.id === "confirm"
         ? () => bookingConfirm(true)
         : undefined,
@@ -358,15 +357,15 @@ function BookingListItem(booking: BookingItemProps) {
     ...action,
     onClick:
       action.id === "reschedule_request"
-        ? () => setIsOpenRescheduleDialog(true)
+        ? () => openDialog("reschedule")
         : action.id === "reroute"
-        ? () => setRerouteDialogIsOpen(true)
+        ? () => openDialog("reroute")
         : action.id === "change_location"
-        ? () => setIsOpenLocationDialog(true)
+        ? () => openDialog("editLocation")
         : action.id === "add_members"
-        ? () => setIsOpenAddGuestsDialog(true)
+        ? () => openDialog("addGuests")
         : action.id === "reassign"
-        ? () => setIsOpenReassignDialog(true)
+        ? () => openDialog("reassign")
         : undefined,
   })) as ActionType[];
 
@@ -375,11 +374,11 @@ function BookingListItem(booking: BookingItemProps) {
     ...action,
     onClick:
       action.id === "view_recordings"
-        ? () => setViewRecordingsDialogIsOpen(true)
+        ? () => openDialog("viewRecordings")
         : action.id === "meeting_session_details"
-        ? () => setMeetingSessionDetailsDialogIsOpen(true)
+        ? () => openDialog("meetingSessionDetails")
         : action.id === "charge_card"
-        ? () => setChargeCardDialogIsOpen(true)
+        ? () => openDialog("chargeCard")
         : action.id === "no_show"
         ? () => {
             if (attendeeList.length === 1) {
@@ -390,7 +389,7 @@ function BookingListItem(booking: BookingItemProps) {
               });
               return;
             }
-            setIsNoShowDialogOpen(true);
+            openDialog("noShowAttendees");
           }
         : undefined,
     disabled:
@@ -402,14 +401,14 @@ function BookingListItem(booking: BookingItemProps) {
   return (
     <>
       <RescheduleDialog
-        isOpenDialog={isOpenRescheduleDialog}
-        setIsOpenDialog={setIsOpenRescheduleDialog}
+        isOpenDialog={dialogState.reschedule}
+        setIsOpenDialog={() => closeDialog("reschedule")}
         bookingUId={booking.uid}
       />
-      {isOpenReassignDialog && (
+      {dialogState.reassign && (
         <ReassignDialog
-          isOpenDialog={isOpenReassignDialog}
-          setIsOpenDialog={setIsOpenReassignDialog}
+          isOpenDialog={dialogState.reassign}
+          setIsOpenDialog={() => closeDialog("reassign")}
           bookingId={booking.id}
           teamId={booking.eventType?.team?.id || 0}
           bookingFromRoutingForm={isBookingFromRoutingForm}
@@ -418,19 +417,19 @@ function BookingListItem(booking: BookingItemProps) {
       <EditLocationDialog
         booking={booking}
         saveLocation={saveLocation}
-        isOpenDialog={isOpenSetLocationDialog}
-        setShowLocationModal={setIsOpenLocationDialog}
+        isOpenDialog={dialogState.editLocation}
+        setShowLocationModal={() => closeDialog("editLocation")}
         teamId={booking.eventType?.team?.id}
       />
       <AddGuestsDialog
-        isOpenDialog={isOpenAddGuestsDialog}
-        setIsOpenDialog={setIsOpenAddGuestsDialog}
+        isOpenDialog={dialogState.addGuests}
+        setIsOpenDialog={() => closeDialog("addGuests")}
         bookingId={booking.id}
       />
       {booking.paid && booking.payment[0] && (
         <ChargeCardDialog
-          isOpenDialog={chargeCardDialogIsOpen}
-          setIsOpenDialog={setChargeCardDialogIsOpen}
+          isOpenDialog={dialogState.chargeCard}
+          setIsOpenDialog={() => closeDialog("chargeCard")}
           bookingId={booking.id}
           paymentAmount={booking.payment[0].amount}
           paymentCurrency={booking.payment[0].currency}
@@ -439,28 +438,28 @@ function BookingListItem(booking: BookingItemProps) {
       {isCalVideoLocation && (
         <ViewRecordingsDialog
           booking={booking}
-          isOpenDialog={viewRecordingsDialogIsOpen}
-          setIsOpenDialog={setViewRecordingsDialogIsOpen}
+          isOpenDialog={dialogState.viewRecordings}
+          setIsOpenDialog={() => closeDialog("viewRecordings")}
           timeFormat={userTimeFormat ?? null}
         />
       )}
-      {isCalVideoLocation && meetingSessionDetailsDialogIsOpen && (
+      {isCalVideoLocation && dialogState.meetingSessionDetails && (
         <MeetingSessionDetailsDialog
           booking={booking}
-          isOpenDialog={meetingSessionDetailsDialogIsOpen}
-          setIsOpenDialog={setMeetingSessionDetailsDialogIsOpen}
+          isOpenDialog={dialogState.meetingSessionDetails}
+          setIsOpenDialog={() => closeDialog("meetingSessionDetails")}
           timeFormat={userTimeFormat ?? null}
         />
       )}
-      {isNoShowDialogOpen && (
+      {dialogState.noShowAttendees && (
         <NoShowAttendeesDialog
           bookingUid={booking.uid}
           attendees={attendeeList}
-          setIsOpen={setIsNoShowDialogOpen}
-          isOpen={isNoShowDialogOpen}
+          setIsOpen={() => closeDialog("noShowAttendees")}
+          isOpen={dialogState.noShowAttendees}
         />
       )}
-      <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
+      <Dialog open={dialogState.rejection} onOpenChange={() => closeDialog("rejection")}>
         <DialogContent title={t("rejection_reason_title")} description={t("rejection_reason_description")}>
           <div>
             <TextAreaField
@@ -725,8 +724,8 @@ function BookingListItem(booking: BookingItemProps) {
 
       {isBookingFromRoutingForm && (
         <RerouteDialog
-          isOpenDialog={rerouteDialogIsOpen}
-          setIsOpenDialog={setRerouteDialogIsOpen}
+          isOpenDialog={dialogState.reroute}
+          setIsOpenDialog={() => closeDialog("reroute")}
           booking={{ ...parsedBooking, eventType: parsedBooking.eventType }}
         />
       )}
