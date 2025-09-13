@@ -66,33 +66,75 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const [date, setDate] = useState(dayjs.utc(props.booking.startTime));
   const [timezone, setTimezone] = useState<string | null>(null);
+  const [embedIframeWidth, setEmbedIframeWidth] = useState(0);
   useTheme(props.profile.theme);
   const isEmbed = useIsEmbed();
   const paymentAppData = getPaymentAppData(props.eventType);
+
+  // Helper function to style Stripe iframe
+  const styleStripeIframe = (width: number) => {
+    const stripeIframeWrapper = document.querySelector(
+      'iframe[src*="https://js.stripe.com/v3/authorize-with-url-inner"]'
+    )?.parentElement;
+    if (stripeIframeWrapper) {
+      stripeIframeWrapper.style.margin = "0 auto";
+      stripeIframeWrapper.style.width = `${width}px`;
+    }
+  };
+
   useEffect(() => {
-    let embedIframeWidth = 0;
     const _timezone = localStorage.getItem("timeOption.preferredTimeZone") || CURRENT_TIMEZONE;
     setTimezone(_timezone);
     setDate(date.tz(_timezone));
     setIs24h(!!getIs24hClockFromLocalStorage());
+
     if (isEmbed) {
-      requestAnimationFrame(function fixStripeIframe() {
-        // HACK: Look for stripe iframe and center position it just above the embed content
-        const stripeIframeWrapper = document.querySelector(
-          'iframe[src*="https://js.stripe.com/v3/authorize-with-url-inner"]'
-        )?.parentElement;
-        if (stripeIframeWrapper) {
-          stripeIframeWrapper.style.margin = "0 auto";
-          stripeIframeWrapper.style.width = `${embedIframeWidth}px`;
+      let observer: MutationObserver | null = null;
+      let dimensionChangedHandler: ((e: any) => void) | null = null;
+
+      // Set up dimension change listener
+      dimensionChangedHandler = (e) => {
+        const newWidth = e.detail.data.iframeWidth as number;
+        setEmbedIframeWidth(newWidth);
+        styleStripeIframe(newWidth);
+      };
+      
+      sdkActionManager?.on("__dimensionChanged", dimensionChangedHandler);
+
+      // Set up observer for Stripe iframe insertion
+      observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              const element = node as Element;
+              const stripeIframe = element.querySelector?.('iframe[src*="https://js.stripe.com/v3/authorize-with-url-inner"]') ||
+                                   (element.tagName === 'IFRAME' && element.getAttribute('src')?.includes('https://js.stripe.com/v3/authorize-with-url-inner') ? element : null);
+              if (stripeIframe && embedIframeWidth > 0) {
+                styleStripeIframe(embedIframeWidth);
+              }
+            }
+          });
+        });
+      });
+
+      // Start observing for DOM changes
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+      });
+
+      // Cleanup function
+      return () => {
+        if (observer) {
+          observer.disconnect();
         }
-        requestAnimationFrame(fixStripeIframe);
-      });
-      sdkActionManager?.on("__dimensionChanged", (e) => {
-        embedIframeWidth = e.detail.data.iframeWidth as number;
-      });
+        if (dimensionChangedHandler) {
+          sdkActionManager?.off?.("__dimensionChanged", dimensionChangedHandler);
+        }
+      };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEmbed]);
+  }, [isEmbed, embedIframeWidth]);
 
   const eventName = props.booking.title;
 
