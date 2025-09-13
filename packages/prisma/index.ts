@@ -1,5 +1,7 @@
-import { PrismaClient, type Prisma } from "@calcom/prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 
+import { PrismaClient, type Prisma } from "./client/client";
 import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency-key";
 import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallow-undefined-delete-update-many";
 import { excludeLockedUsersExtension } from "./extensions/exclude-locked-users";
@@ -7,7 +9,13 @@ import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-pa
 import { usageTrackingExtention } from "./extensions/usage-tracking";
 import { bookingReferenceMiddleware } from "./middleware";
 
-const prismaOptions: Prisma.PrismaClientOptions = {};
+const connectionString = process.env.DATABASE_URL || "";
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+
+const prismaOptions: Prisma.PrismaClientOptions = {
+  adapter,
+};
 
 const globalForPrisma = global as unknown as {
   baseClient: PrismaClient;

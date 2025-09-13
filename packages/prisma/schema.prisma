@@ -8,17 +8,17 @@ datasource db {
 }
 
 generator client {
-  provider        = "prisma-client-js"
+  provider        = "prisma-client"
   previewFeatures = ["views"]
   output          = "./client"
-  binaryTargets   = ["native", "debian-openssl-1.1.x"]
+  engineType      = "client"
 }
 
 generator client_for_api_v2 {
-  provider        = "prisma-client-js"
+  provider        = "prisma-client"
   previewFeatures = ["views"]
   output          = "../../apps/api/v2/client"
-  binaryTargets   = ["native", "debian-openssl-1.1.x"]
+  engineType      = "client"
 }
 
 generator zod {
@@ -1746,7 +1746,7 @@ model BookingDenormalized {
 }
 
 view BookingTimeStatusDenormalized {
-  id             Int           @id @unique
+  id             Int           @unique
   uid            String
   eventTypeId    Int?
   title          String
