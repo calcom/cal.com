@@ -6,6 +6,7 @@ import { ZCreateWebCallInputSchema } from "./createWebCall.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZGetInputSchema } from "./get.schema";
 import { ZListInputSchema } from "./list.schema";
+import { ZListCallsInputSchema } from "./listCalls.schema";
 import { ZTestCallInputSchema } from "./testCall.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 
@@ -63,6 +64,15 @@ export const aiVoiceAgentRouter = router({
       input,
     });
   }),
+
+  listCalls: authedProcedure.input(ZListCallsInputSchema).query(async ({ ctx, input }) => {
+    const { listCallsHandler } = await import("./listCalls.handler");
+
+    return listCallsHandler({
+      ctx,
+      input,
+    });
+   }),
 
   createWebCall: eventOwnerProcedure.input(ZCreateWebCallInputSchema).mutation(async ({ ctx, input }) => {
     const { createWebCallHandler } = await import("./createWebCall.handler");
