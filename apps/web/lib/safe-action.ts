@@ -7,7 +7,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma, { readonlyPrisma } from "@calcom/prisma";
 import { getUserFromSession } from "@calcom/trpc/server/middlewares/sessionMiddleware";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { buildLegacyRequest } from "./buildLegacyCtx";
 
 export class ActionError extends Error {
   constructor(message: string) {

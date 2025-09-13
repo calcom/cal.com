@@ -19,11 +19,11 @@ import { getUserEventGroups } from "@calcom/trpc/server/routers/viewer/eventType
 import { listHandler } from "@calcom/trpc/server/routers/viewer/eventTypes/list.handler";
 import { listWithTeamHandler } from "@calcom/trpc/server/routers/viewer/eventTypes/listWithTeam.handler";
 
-import { authedActionClient } from "@lib/safe-action";
+import { authedActionClient } from "../../../../lib/safe-action";
 
 export const getByViewerAction = authedActionClient
   .schema(ZEventTypeInputSchema)
-  .action(async ({ parsedInput, ctx }) => {
+  .action(async ({ parsedInput, ctx }: { parsedInput: unknown; ctx: unknown }) => {
     return getByViewerHandler({
       ctx: { user: ctx.user, prisma: ctx.prisma },
       input: parsedInput,
@@ -32,7 +32,7 @@ export const getByViewerAction = authedActionClient
 
 export const getUserEventGroupsAction = authedActionClient
   .schema(ZEventTypeInputSchema)
-  .action(async ({ parsedInput, ctx }) => {
+  .action(async ({ parsedInput, ctx }: { parsedInput: unknown; ctx: unknown }) => {
     return getUserEventGroups({
       ctx: { user: ctx.user, prisma: ctx.prisma },
       input: parsedInput,
@@ -41,7 +41,7 @@ export const getUserEventGroupsAction = authedActionClient
 
 export const getEventTypesFromGroupAction = authedActionClient
   .schema(ZGetEventTypesFromGroupSchema)
-  .action(async ({ parsedInput, ctx }) => {
+  .action(async ({ parsedInput, ctx }: { parsedInput: unknown; ctx: unknown }) => {
     return getEventTypesFromGroup({
       ctx: { user: ctx.user, prisma: ctx.prisma },
       input: parsedInput,
@@ -50,33 +50,35 @@ export const getEventTypesFromGroupAction = authedActionClient
 
 export const getTeamAndEventTypeOptionsAction = authedActionClient
   .schema(ZGetTeamAndEventTypeOptionsSchema)
-  .action(async ({ parsedInput, ctx }) => {
+  .action(async ({ parsedInput, ctx }: { parsedInput: unknown; ctx: unknown }) => {
     return getTeamAndEventTypeOptions({
       ctx: { user: ctx.user, prisma: ctx.prisma },
       input: parsedInput,
     });
   });
 
-export const listAction = authedActionClient.action(async ({ ctx }) => {
+export const listAction = authedActionClient.action(async ({ ctx }: { ctx: unknown }) => {
   return listHandler({
     ctx: { user: ctx.user },
   });
 });
 
-export const listWithTeamAction = authedActionClient.action(async ({ ctx }) => {
+export const listWithTeamAction = authedActionClient.action(async ({ ctx }: { ctx: unknown }) => {
   return listWithTeamHandler({
     ctx: { user: ctx.user },
   });
 });
 
-export const getAction = authedActionClient.schema(ZGetInputSchema).action(async ({ parsedInput, ctx }) => {
-  return getHandler({
-    ctx: { user: ctx.user, prisma: ctx.prisma },
-    input: parsedInput,
+export const getAction = authedActionClient
+  .schema(ZGetInputSchema)
+  .action(async ({ parsedInput, ctx }: { parsedInput: unknown; ctx: unknown }) => {
+    return getHandler({
+      ctx: { user: ctx.user, prisma: ctx.prisma },
+      input: parsedInput,
+    });
   });
-});
 
-export const bulkEventFetchAction = authedActionClient.action(async ({ ctx }) => {
+export const bulkEventFetchAction = authedActionClient.action(async ({ ctx }: { ctx: unknown }) => {
   return bulkEventFetchHandler({
     ctx: { user: ctx.user },
   });
@@ -84,7 +86,7 @@ export const bulkEventFetchAction = authedActionClient.action(async ({ ctx }) =>
 
 export const getHashedLinkAction = authedActionClient
   .schema(ZGetHashedLinkInputSchema)
-  .action(async ({ parsedInput, ctx }) => {
+  .action(async ({ parsedInput, ctx }: { parsedInput: unknown; ctx: unknown }) => {
     return getHashedLinkHandler({
       ctx: { user: ctx.user, prisma: ctx.prisma },
       input: parsedInput,
@@ -93,7 +95,7 @@ export const getHashedLinkAction = authedActionClient
 
 export const getHashedLinksAction = authedActionClient
   .schema(ZGetHashedLinksInputSchema)
-  .action(async ({ parsedInput, ctx }) => {
+  .action(async ({ parsedInput, ctx }: { parsedInput: unknown; ctx: unknown }) => {
     return getHashedLinksHandler({
       ctx: { user: ctx.user, prisma: ctx.prisma },
       input: parsedInput,

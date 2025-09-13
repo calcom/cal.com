@@ -9,11 +9,11 @@ import { ZDuplicateInputSchema } from "@calcom/trpc/server/routers/viewer/eventT
 import { updateHandler } from "@calcom/trpc/server/routers/viewer/eventTypes/heavy/update.handler";
 import { ZUpdateInputSchema } from "@calcom/trpc/server/routers/viewer/eventTypes/heavy/update.schema";
 
-import { authedActionClient, eventOwnerActionClient } from "@lib/safe-action";
+import { authedActionClient, eventOwnerActionClient } from "../../../../lib/safe-action";
 
 export const createAction = authedActionClient
   .schema(ZCreateInputSchema)
-  .action(async ({ parsedInput, ctx }) => {
+  .action(async ({ parsedInput, ctx }: { parsedInput: unknown; ctx: unknown }) => {
     const result = await createHandler({
       ctx: { user: ctx.user, prisma: ctx.prisma },
       input: parsedInput,
@@ -26,7 +26,7 @@ export const createAction = authedActionClient
 
 export const updateAction = eventOwnerActionClient
   .schema(ZUpdateInputSchema)
-  .action(async ({ parsedInput, ctx }) => {
+  .action(async ({ parsedInput, ctx }: { parsedInput: unknown; ctx: unknown }) => {
     const result = await updateHandler({
       ctx: { user: ctx.user, prisma: ctx.prisma },
       input: parsedInput,
@@ -40,7 +40,7 @@ export const updateAction = eventOwnerActionClient
 
 export const duplicateAction = eventOwnerActionClient
   .schema(ZDuplicateInputSchema)
-  .action(async ({ parsedInput, ctx }) => {
+  .action(async ({ parsedInput, ctx }: { parsedInput: unknown; ctx: unknown }) => {
     const result = await duplicateHandler({
       ctx: { user: ctx.user },
       input: parsedInput,
