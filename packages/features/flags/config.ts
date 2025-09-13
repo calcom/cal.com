@@ -5,6 +5,7 @@
 export type AppFlags = {
   "calendar-cache": boolean;
   "calendar-cache-serve": boolean;
+  "calendar-sync": boolean;
   emails: boolean;
   insights: boolean;
   teams: boolean;
@@ -25,6 +26,8 @@ export type AppFlags = {
   "restriction-schedule": boolean;
   "team-booking-page-cache": boolean;
   "cal-ai-voice-agents": boolean;
+  "calendar-subscription-cache": boolean;
+  "calendar-subscription-sync": boolean;
   "tiered-support-chat": boolean;
 };
 
