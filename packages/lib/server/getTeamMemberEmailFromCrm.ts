@@ -209,12 +209,14 @@ async function getTeamMemberEmailForResponseOrContact({
   bookerEmail,
   eventData,
   routingFormResponseId,
+  queuedFormResponseId,
   chosenRoute,
   crmAppSlug,
 }: {
   bookerEmail: string;
   eventData: EventData;
   routingFormResponseId?: number | null;
+  queuedFormResponseId?: string | null;
   /**
    * If provided, we won't go look for the route from DB.
    */
@@ -229,11 +231,12 @@ async function getTeamMemberEmailForResponseOrContact({
   const eventTypeId = eventData.id;
   if (eventData.schedulingType !== SchedulingType.ROUND_ROBIN) return returnNullValue;
 
-  const attributeRoutingConfigGetterData = routingFormResponseId
-    ? { routingFormResponseId, eventTypeId }
-    : chosenRoute
-    ? { route: chosenRoute }
-    : null;
+  const attributeRoutingConfigGetterData =
+    routingFormResponseId || queuedFormResponseId
+      ? { routingFormResponseId, queuedFormResponseId, eventTypeId }
+      : chosenRoute
+      ? { route: chosenRoute }
+      : null;
 
   // If we have found crmAppSlug, it means that the CRM App in the routing-form will handle the logic
   if (attributeRoutingConfigGetterData && crmAppSlug) {
@@ -289,8 +292,8 @@ export async function getTeamMemberEmailForResponseOrContactUsingUrlQuery({
   return await getTeamMemberEmailForResponseOrContact({
     bookerEmail: query.email,
     eventData,
-    routingFormResponseId,
     chosenRoute,
     crmAppSlug,
+    ...(routingFormResponseId ? { ...routingFormResponseId } : {}),
   });
 }
