@@ -116,7 +116,7 @@ export const getBookingWithResponses = <
   return {
     ...booking,
     responses: isSeatedEvent ? booking.responses : booking.responses || getResponsesFromOldBooking(booking),
-  } as Omit<T, "responses"> & { responses: z.infer<typeof bookingResponsesDbSchema> };
+  };
 };
 
 export default getBooking;
