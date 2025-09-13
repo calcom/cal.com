@@ -146,8 +146,21 @@ export const useEventTypeForm = ({
     };
   }, [eventType, periodDates]);
 
+  const defaultCalVideoSettings = {
+    disableRecordingForGuests: false,
+    disableRecordingForOrganizer: false,
+    enableAutomaticTranscription: false,
+    enableAutomaticRecordingForOrganizer: false,
+    disableTranscriptionForGuests: false,
+    disableTranscriptionForOrganizer: false,
+    redirectUrlOnExit: null,
+  };
+
   const form = useForm<FormValues>({
-    defaultValues,
+    defaultValues: {
+      ...defaultValues,
+      calVideoSettings: eventType?.calVideoSettings ?? defaultCalVideoSettings,
+    },
     resolver: zodResolver(
       z
         .object({
@@ -411,7 +424,13 @@ export const useEventTypeForm = ({
       return acc;
     }, {}) as EventTypeUpdateInput;
 
-    if (dirtyFieldExists) {
+    const hasCalVideoLocation = (values.locations ?? []).some((loc) => loc.type === "integrations:daily");
+
+    if (hasCalVideoLocation) {
+      filteredPayload.calVideoSettings = values.calVideoSettings ?? defaultCalVideoSettings;
+    }
+
+    if (dirtyFieldExists || hasCalVideoLocation) {
       onSubmit({ ...filteredPayload, id: eventType.id });
     }
   };
