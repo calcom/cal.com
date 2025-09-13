@@ -627,7 +627,7 @@ describe("OAuth Client Users Endpoints", () => {
       expect(responseBody.data.metadata).toEqual(postResponseData.user.metadata);
     });
 
-    it(`/PUT/:id`, async () => {
+    it(`/PATCH/:id`, async () => {
       const userUpdatedEmail = "pineapple-pizza@gmail.com";
       const body: UpdateManagedUserInput = { email: userUpdatedEmail, locale: Locales.PT_BR };
 
@@ -652,6 +652,13 @@ describe("OAuth Client Users Endpoints", () => {
       const [domainName, TLD] = emailDomain.split(".");
       expect(responseBody.data.username).toEqual(slugify(`${emailUser}-${domainName}-${TLD}`));
       expect(responseBody.data.locale).toEqual(Locales.PT_BR);
+
+      const profile = await profilesRepositoryFixture.findByOrgIdUserId(
+        organization.id,
+        responseBody.data.id
+      );
+      expect(profile).toBeDefined();
+      expect(profile?.username).toEqual(responseBody.data.username);
     });
 
     it("should force refresh tokens", async () => {
