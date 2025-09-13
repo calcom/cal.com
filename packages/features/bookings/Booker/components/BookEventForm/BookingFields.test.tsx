@@ -1,10 +1,9 @@
+import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { render, fireEvent, screen } from "@testing-library/react";
 import * as React from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
 import { expect, vi } from "vitest";
-
-import { TooltipProvider } from "@calcom/ui/components/tooltip";
 
 import { getBookingFieldsWithSystemFields } from "../../../lib/getBookingFields";
 import { BookingFields } from "./BookingFields";
