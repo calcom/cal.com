@@ -157,8 +157,11 @@ export default function CancelBooking(props: Props) {
 
   const cancellationNoShowFeeWarning = autoChargeNoShowFee();
 
+  const isCancellationUserHost =
+    props.isHost || bookingCancelledEventProps.organizer.email === currentUserEmail;
+
   const hostMissingCancellationReason =
-    props.isHost &&
+    isCancellationUserHost &&
     (!cancellationReason?.trim() || (props.internalNotePresets.length > 0 && !internalNote?.id));
   const cancellationNoShowFeeNotAcknowledged =
     !props.isHost && cancellationNoShowFeeWarning && !acknowledgeCancellationNoShowFee;
@@ -211,7 +214,7 @@ export default function CancelBooking(props: Props) {
             </>
           )}
 
-          <Label>{props.isHost ? t("cancellation_reason_host") : t("cancellation_reason")}</Label>
+          <Label>{isCancellationUserHost ? t("cancellation_reason_host") : t("cancellation_reason")}</Label>
 
           <TextArea
             data-testid="cancel_reason"
@@ -222,7 +225,7 @@ export default function CancelBooking(props: Props) {
             className="mb-4 mt-2 w-full "
             rows={3}
           />
-          {props.isHost ? (
+          {isCancellationUserHost ? (
             <div className="-mt-2 mb-4 flex items-center gap-2">
               <Icon name="info" className="text-subtle h-4 w-4" />
               <p className="text-default text-subtle text-sm leading-none">
@@ -296,11 +299,13 @@ export default function CancelBooking(props: Props) {
                     });
                     refreshData();
                   } else {
+                    const data = await res.json();
                     setLoading(false);
                     setError(
-                      `${t("error_with_status_code_occured", { status: res.status })} ${t(
-                        "please_try_again"
-                      )}`
+                      data.message ||
+                        `${t("error_with_status_code_occured", { status: res.status })} ${t(
+                          "please_try_again"
+                        )}`
                     );
                   }
                 }}
