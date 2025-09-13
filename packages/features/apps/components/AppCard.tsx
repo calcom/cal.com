@@ -86,6 +86,13 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
     }
   };
 
+  const truncateText = (text: string, maxLength = 130): string => {
+    if (!text || text.length <= maxLength) return text;
+    const truncated = text.substring(0, maxLength);
+    const lastSpace = truncated.lastIndexOf(" ");
+    return `${lastSpace > 0 ? text.substring(0, lastSpace) : truncated}...`;
+  };
+
   return (
     <div className="border-subtle relative flex h-64 flex-col rounded-md border p-5">
       <div className="flex">
@@ -123,9 +130,9 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
           overflow: "hidden",
           display: "-webkit-box",
           WebkitBoxOrient: "vertical",
-          WebkitLineClamp: "3",
+          WebkitLineClamp: 3,
         }}>
-        {app.description}
+        {truncateText(app.description)}
       </p>
 
       <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
