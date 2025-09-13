@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
 import { isRedirectApp } from "@calcom/app-store/_utils/redirectApps";
@@ -11,6 +11,7 @@ import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
@@ -30,6 +31,13 @@ interface AppCardProps {
 export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCardProps) {
   const { t } = useLocale();
   const router = useRouter();
+  
+  // Memoize cleaned description to avoid processing on every render
+  const cleanDescription = useMemo(() => {
+    const processed = stripMarkdown(app.description);
+    return processed.replace(/\s+/g, ' ').trim();
+  }, [app.description]);
+
   const allowedMultipleInstalls = app.categories && app.categories.indexOf("calendar") > -1;
   const appAdded = (credentials && credentials.length) || 0;
   const enabledOnTeams = doesAppSupportTeamInstall({
@@ -120,12 +128,15 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
       <p
         className="text-default mt-2 flex-grow text-sm"
         style={{
-          overflow: "hidden",
           display: "-webkit-box",
+          WebkitLineClamp: 3,
           WebkitBoxOrient: "vertical",
-          WebkitLineClamp: "3",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          lineHeight: "1.4",
+          maxHeight: "4.2em",
         }}>
-        {app.description}
+        {cleanDescription}
       </p>
 
       <div className="mt-5 flex max-w-full flex-row justify-between gap-2">

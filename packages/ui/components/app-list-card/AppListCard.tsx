@@ -1,9 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useMemo } from "react";
 
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import type { CredentialOwner } from "@calcom/types/CredentialOwner";
 import classNames from "@calcom/ui/classNames";
 
@@ -59,6 +61,12 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
     highlight,
   } = props;
 
+  // Memoize cleaned description to avoid processing on every render
+  const cleanDescription = useMemo(() => {
+    const processed = stripMarkdown(description);
+    return processed.replace(/\s+/g, ' ').trim();
+  }, [description]);
+
   return (
     <div
       className={classNames(
@@ -86,8 +94,21 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
           </div>
           <ListItemText
             component="p"
-            className={classNames("whitespace-normal break-words", classNameObject?.description)}>
-            {description}
+            className={classNames(
+              "whitespace-normal break-words",
+              classNameObject?.description
+            )}
+            style={{
+              display: "-webkit-box",
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              lineHeight: "1.4",
+              maxHeight: "4.2em",
+              wordBreak: "break-word",
+            }}>
+            {cleanDescription}
           </ListItemText>
           {invalidCredential && (
             <div className="flex gap-x-2 pt-2">
