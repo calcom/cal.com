@@ -71,15 +71,18 @@ vi.mock("@calcom/lib/hooks/useApp", () => ({
  *  Avoids the error due to Formbricks
  */
 
-vi.mock("@calcom/app-store/routing-forms/components/FormActions", () => ({
+vi.mock("./FormActions", () => ({
   FormAction: vi.fn(),
   FormActionsDropdown: vi.fn(),
   FormActionsProvider: vi.fn(),
 }));
 
-vi.mock("@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets", () => ({
-  default: {},
-}));
+vi.mock(
+  "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets",
+  async (importOriginal) => {
+    return await importOriginal();
+  }
+);
 
 // Mock the necessary dependencies
 vi.mock("@calcom/lib/hooks/useLocale", () => ({
