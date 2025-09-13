@@ -36,6 +36,8 @@ type CalIdUpdateProfileOptions = {
 };
 
 export const calidUpdateProfileHandler = async ({ ctx, input }: CalIdUpdateProfileOptions) => {
+
+  logger.info("Upload profile input: ", input);
   const { user } = ctx;
   const billingService = new StripeBillingService();
   const userMetadata = await handleUserMetadata({ ctx, input });
@@ -229,6 +231,7 @@ export const calidUpdateProfileHandler = async ({ ctx, input }: CalIdUpdateProfi
       identityProviderId: true,
       metadata: true,
       name: true,
+      bio: true,
       createdDate: true,
       avatarUrl: true,
       locale: true,
@@ -397,19 +400,25 @@ const handleUserMetadata = async ({ ctx, input }: CalIdUpdateProfileOptions) => 
   const cleanMetadata = cleanMetadataAllowedUpdateKeys(input.metadata);
   const userMetadata = userMetadataSchema.parse(user.metadata);
 
-  if (
-    cleanMetadata.headerUrl &&
-    (cleanMetadata.headerUrl.startsWith("data:image/png;base64,") ||
-      cleanMetadata.headerUrl.startsWith("data:image/jpeg;base64,") ||
-      cleanMetadata.headerUrl.startsWith("data:image/jpg;base64,"))
-  ) {
-    const headerUrl = await resizeBase64Image(cleanMetadata.headerUrl, { maxSize: 1500 });
-    cleanMetadata.headerUrl = await uploadHeader({
-      banner: headerUrl,
-      userId: user.id,
-    });
-  } else {
-    cleanMetadata.headerUrl = null;
+  if (Object.prototype.hasOwnProperty.call(cleanMetadata, "headerUrl")) {
+    if (
+      cleanMetadata.headerUrl &&
+      (cleanMetadata.headerUrl.startsWith("data:image/png;base64,") ||
+        cleanMetadata.headerUrl.startsWith("data:image/jpeg;base64,") ||
+        cleanMetadata.headerUrl.startsWith("data:image/jpg;base64,"))
+    ) {
+      const headerUrl = await resizeBase64Image(cleanMetadata.headerUrl, { maxSize: 1500 });
+      cleanMetadata.headerUrl = await uploadHeader({
+        banner: headerUrl,
+        userId: user.id,
+      });
+    } else if (cleanMetadata.headerUrl === null) {
+      // Explicit clear
+      cleanMetadata.headerUrl = null;
+    } else {
+      // Remove the key to avoid overwriting existing value when not updating
+      delete (cleanMetadata as Record<string, unknown>).headerUrl;
+    }
   }
 
   // Required so we don't override and delete saved values

@@ -167,7 +167,7 @@ export default function ApiKeyDialogForm({
               name="note"
               control={form.control}
               render={({ field: { onChange, value } }) => (
-                <TextField
+                <TextArea
                   name="note"
                   label={t("personal_note")}
                   placeholder={t("personal_note_placeholder")}

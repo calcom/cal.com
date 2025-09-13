@@ -1,6 +1,5 @@
 "use client";
 
-
 import { Button, type ButtonBaseProps as ButtonProps, Icon, type IconName } from "@calid/features/ui/components/button";
 import type { Table } from "@tanstack/react-table";
 import { forwardRef } from "react";

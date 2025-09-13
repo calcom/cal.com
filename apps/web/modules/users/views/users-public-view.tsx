@@ -6,6 +6,7 @@ import { Icon, type IconName } from "@calid/features/ui/components/icon";
 import { Branding } from "@calid/features/ui/Branding";
 import classNames from "classnames";
 import type { InferGetServerSidePropsType } from "next";
+import type { z } from "zod";
 import Link from "next/link";
 
 import {
@@ -23,6 +24,7 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
 
 import type { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
+import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 
 export type PageProps = InferGetServerSidePropsType<typeof getServerSideProps> & {
   slug?: string;
@@ -89,7 +91,9 @@ export function UserPage(props: PageProps) {
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const { user: _user, orgSlug: _orgSlug, redirect: _redirect, ...query } = useRouterQuery();
 
-  useTheme(profile?.theme);
+  useTheme(profile?.theme, false, false);
+
+  const headerUrl = (user?.metadata as z.infer<typeof userMetadataSchema> | null)?.headerUrl ?? undefined;
 
   if (entity?.considerUnpublished) {
     return (
@@ -120,7 +124,11 @@ export function UserPage(props: PageProps) {
           className={classNames(
             "border-subtle bg-cal-gradient text-default mb-4 flex flex-col items-center bg-cover bg-center p-4"
           )}
-          style={{ backgroundImage: user.bannerUrl ? `url(${user.bannerUrl})` : undefined }}>
+          style={{
+            backgroundImage: headerUrl
+              ? `url(${headerUrl})`
+              : undefined,
+          }}>
           <Avatar
             size="xl"
             imageSrc={user.avatarUrl}
@@ -207,7 +215,7 @@ export function UserPage(props: PageProps) {
                         eventType: type,
                       });
                     }}>
-                    <Button variant="button" type="button" size="base">{t("schedule")}</Button>
+                    <Button variant="button" brandColor={profile?.brandColor} type="button" size="base">{t("schedule")}</Button>
                   </Link>
                 </div>
               </div>

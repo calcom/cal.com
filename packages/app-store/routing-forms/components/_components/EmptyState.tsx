@@ -1,5 +1,4 @@
 import { Button } from "@calid/features/ui/components/button";
-
 import { Icon, type IconName } from "@calcom/ui/components/icon";
 
 type EmptyStateProps = {

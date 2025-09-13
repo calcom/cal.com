@@ -24,13 +24,14 @@ export const getMultipleDurationValue = (
   return defaultValue;
 };
 
-function Type({ slug, user, isEmbed, booking, userBannerUrl, isBrandingHidden, eventData, orgBannerUrl, eventTypes }: PageProps) {
+function Type({ slug, user, isEmbed, booking, userBannerUrl, isBrandingHidden, eventData, orgBannerUrl, eventTypes, brandColor }: PageProps) {
   const searchParams = useSearchParams();
   return (
     <BookingPageErrorBoundary>
       <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
         <Booker
           username={user}
+          brandColor={brandColor}
           eventSlug={slug}
           bookingData={booking}
           hideBranding={isBrandingHidden}
