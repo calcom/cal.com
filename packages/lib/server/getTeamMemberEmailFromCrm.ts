@@ -50,10 +50,11 @@ function getRoutingFormResponseIdFromQuery(query: ParsedUrlQuery) {
   const routingFormResponseIdAsNumber = Number(query[ROUTING_FORM_RESPONSE_ID_QUERY_STRING]);
   const routingFormResponseId = isNaN(routingFormResponseIdAsNumber) ? null : routingFormResponseIdAsNumber;
 
-  if (routingFormResponseId) return { routingFormResponseId };
+  if (routingFormResponseId) return { routingFormResponseId, queuedFormResponseId: null };
 
   const queuedFormResponseId = query[ROUTING_FORM_QUEUED_RESPONSE_ID_QUERY_STRING];
-  if (queuedFormResponseId && typeof queuedFormResponseId === "string") return { queuedFormResponseId };
+  if (queuedFormResponseId && typeof queuedFormResponseId === "string")
+    return { queuedFormResponseId, routingFormResponseId: null };
 
   return null;
 }
@@ -61,8 +62,8 @@ function getRoutingFormResponseIdFromQuery(query: ParsedUrlQuery) {
 async function getAttributeRoutingConfig(
   data:
     | {
-        routingFormResponseId: number;
-        queuedFormResponseId: string;
+        routingFormResponseId?: number | null;
+        queuedFormResponseId?: string | null;
         eventTypeId: number;
       }
     | {
