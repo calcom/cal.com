@@ -44,10 +44,17 @@ async function findUserByEmailWhoIsAHostOfEventType({
   });
 }
 
+/** Returns the form response id or the queued response id */
 function getRoutingFormResponseIdFromQuery(query: ParsedUrlQuery) {
   const routingFormResponseIdAsNumber = Number(query[ROUTING_FORM_RESPONSE_ID_QUERY_STRING]);
   const routingFormResponseId = isNaN(routingFormResponseIdAsNumber) ? null : routingFormResponseIdAsNumber;
-  return routingFormResponseId;
+
+  if (routingFormResponseId) return { routingFormResponseId };
+
+  const queuedFormResponseId = query[ROUTING_FORM_QUEUED_RESPONSE_ID_QUERY_STRING];
+  if (queuedFormResponseId && typeof queuedFormResponseId === "string") return { queuedFormResponseId };
+
+  return null;
 }
 
 async function getAttributeRoutingConfig(
