@@ -22,7 +22,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogHeader, DialogFooter } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { getServerSidePropsForSingleFormView } from "@lib/apps/routing-forms/[...pages]/getServerSidePropsSingleForm";
+import type { getServerSidePropsForSingleFormView } from "@lib/apps/routing-forms/[...pages]/getServerSidePropsSingleForm";
 
 import { TRPCClientError } from "@trpc/react-query";
 
