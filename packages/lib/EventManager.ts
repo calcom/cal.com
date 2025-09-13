@@ -3,11 +3,6 @@ import { cloneDeep, merge } from "lodash";
 import { v5 as uuidv5 } from "uuid";
 import type { z } from "zod";
 
-import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
-import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
-import { getLocationFromApp, MeetLocationType, MSTeamsLocationType } from "@calcom/app-store/locations";
-import getApps from "@calcom/app-store/utils";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getUid } from "@calcom/lib/CalEventParser";
 import CRMScheduler from "@calcom/lib/crmManager/tasker/crmScheduler";
@@ -42,8 +37,26 @@ import { createMeeting, updateMeeting, deleteMeeting } from "./videoClient";
 const log = logger.getSubLogger({ prefix: ["EventManager"] });
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 const CALDAV_CALENDAR_TYPE = "caldav_calendar";
+const MEET_LOCATION_TYPE = "integrations:google:meet";
+const MS_TEAMS_LOCATION_TYPE = "integrations:office365_video";
+const DAILY_LOCATION_TYPE = "integrations:daily";
 export const isDedicatedIntegration = (location: string): boolean => {
-  return location !== MeetLocationType && location.includes("integrations:");
+  return location !== MEET_LOCATION_TYPE && location.includes("integrations:");
+};
+
+// Fallback Daily credential used only when a dedicated location is selected but no matching credential exists
+const FALLBACK_DAILY_CREDENTIAL: CredentialForCalendarService & { invalid: boolean } = {
+  id: 0,
+  type: "daily_video",
+  key: { apikey: process.env.DAILY_API_KEY },
+  userId: 0,
+  user: { email: "" },
+  appId: "daily-video",
+  invalid: false,
+  teamId: null,
+  delegatedToId: null,
+  delegatedTo: null,
+  delegationCredentialId: null,
 };
 
 interface HasId {
@@ -63,8 +76,7 @@ const delegatedCredentialLast = <T extends { delegatedToId?: string | null }>(a:
 };
 
 export const getLocationRequestFromIntegration = (location: string) => {
-  const eventLocationType = getLocationFromApp(location);
-  if (eventLocationType) {
+  if (location?.startsWith("integrations:")) {
     const requestId = uuidv5(location, uuidv5.URL);
 
     return {
@@ -144,9 +156,7 @@ export default class EventManager {
    */
   constructor(user: EventManagerUser, eventTypeAppMetadata?: Record<string, any>) {
     log.silly("Initializing EventManager", safeStringify({ user: getPiiFreeUser(user) }));
-    const appCredentials = getApps(user.credentials, true).flatMap((app) =>
-      app.credentials.map((creds) => ({ ...creds, appName: app.name }))
-    );
+    const appCredentials = user.credentials;
     // This includes all calendar-related apps, traditional calendars such as Google Calendar
     this.calendarCredentials = appCredentials
       .filter(
@@ -289,20 +299,17 @@ export default class EventManager {
 
     // Fallback to cal video if no location is set
     if (!evt.location) {
-      // See if cal video is enabled & has keys
+      // See if cal video is enabled
       const calVideo = await prisma.app.findUnique({
         where: {
           slug: "daily-video",
         },
         select: {
-          keys: true,
           enabled: true,
         },
       });
 
-      const calVideoKeys = calVideoKeysSchema.safeParse(calVideo?.keys);
-
-      if (calVideo?.enabled && calVideoKeys.success) evt["location"] = "integrations:daily";
+      if (calVideo?.enabled) evt["location"] = DAILY_LOCATION_TYPE;
       log.warn("Falling back to cal video as no location is set");
     }
 
@@ -310,7 +317,10 @@ export default class EventManager {
       (evt.destinationCalendar as [undefined | NonNullable<typeof evt.destinationCalendar>[number]]) ?? [];
 
     // Fallback to Cal Video if Google Meet is selected w/o a Google Calendar connection
-    if (evt.location === MeetLocationType && mainHostDestinationCalendar?.integration !== "google_calendar") {
+    if (
+      evt.location === MEET_LOCATION_TYPE &&
+      mainHostDestinationCalendar?.integration !== "google_calendar"
+    ) {
       const [googleCalendarCredential] = this.calendarCredentials.filter(
         (cred) => cred.type === "google_calendar"
       );
@@ -320,14 +330,14 @@ export default class EventManager {
         log.warn(
           "Falling back to Cal Video integration for Regular Credential as Google Calendar is not set as destination calendar"
         );
-        evt["location"] = "integrations:daily";
+        evt["location"] = DAILY_LOCATION_TYPE;
         evt["conferenceCredentialId"] = undefined;
       }
     }
 
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
     const isMSTeamsWithOutlookCalendar =
-      evt.location === MSTeamsLocationType &&
+      evt.location === MS_TEAMS_LOCATION_TYPE &&
       mainHostDestinationCalendar?.integration === "office365_calendar";
 
     const results: Array<EventResult<Exclude<Event, AdditionalInformation>>> = [];
@@ -361,7 +371,7 @@ export default class EventManager {
     // Create the calendar event with the proper video call data
     results.push(...(await this.createAllCalendarEvents(clonedCalEvent)));
 
-    if (evt.location === MSTeamsLocationType) {
+    if (evt.location === MS_TEAMS_LOCATION_TYPE) {
       this.updateMSTeamsVideoCallData(evt, results);
     }
 
@@ -440,7 +450,7 @@ export default class EventManager {
     if (calendarReference) {
       results.push(...(await this.updateAllCalendarEvents(evt, booking)));
 
-      if (evt.location === MSTeamsLocationType) {
+      if (evt.location === MS_TEAMS_LOCATION_TYPE) {
         this.updateMSTeamsVideoCallData(evt, results);
       }
     }
@@ -649,7 +659,7 @@ export default class EventManager {
 
     let isDailyVideoRoomExpired = false;
 
-    if (evt.location === "integrations:daily") {
+    if (evt.location === DAILY_LOCATION_TYPE) {
       const originalBookingEndTime = new Date(booking.endTime);
       const roomExpiryTime = new Date(originalBookingEndTime.getTime() + 14 * 24 * 60 * 60 * 1000);
       const now = new Date();
@@ -1025,7 +1035,7 @@ export default class EventManager {
       log.warn(
         `Falling back to "daily" video integration for event with location: ${event.location} because credential is missing for the app`
       );
-      videoCredential = { ...FAKE_DAILY_CREDENTIAL };
+      videoCredential = { ...FALLBACK_DAILY_CREDENTIAL };
     }
 
     return videoCredential;
@@ -1142,8 +1152,19 @@ export default class EventManager {
           const calendarCredential = await CredentialRepository.findCredentialForCalendarServiceById({
             id: oldCalendarEvent.credentialId,
           });
-          const calendar = await getCalendar(calendarCredential);
-          await calendar?.deleteEvent(oldCalendarEvent.uid, event, oldCalendarEvent.externalCalendarId);
+          if (calendarCredential) {
+            await deleteEvent({
+              credential: calendarCredential,
+              bookingRefUid: oldCalendarEvent.uid,
+              event,
+              externalCalendarId: oldCalendarEvent.externalCalendarId,
+            });
+          } else {
+            log.warn(
+              "updateAllCalendarEvents: Missing credential when trying to delete old calendar event",
+              safeStringify({ oldCalendarEvent })
+            );
+          }
         }
       }
 
