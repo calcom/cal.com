@@ -4,16 +4,13 @@ import dayjs from "@calcom/dayjs";
 import { ZDateRangeFilterValue } from "@calcom/features/data-table";
 import { useChangeTimeZoneWithPreservedLocalTime } from "@calcom/features/data-table/hooks/useChangeTimeZoneWithPreservedLocalTime";
 import { useColumnFilters } from "@calcom/features/data-table/hooks/useColumnFilters";
-import { useDataTable } from "@calcom/features/data-table/hooks/useDataTable";
 import { useFilterValue } from "@calcom/features/data-table/hooks/useFilterValue";
 import { getDefaultStartDate, getDefaultEndDate } from "@calcom/features/data-table/lib/dateRange";
-import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 
 import { useInsightsOrgTeams } from "./useInsightsOrgTeams";
 
 export function useInsightsBookingParameters() {
   const { scope, selectedTeamId } = useInsightsOrgTeams();
-  const { timeZone } = useDataTable();
 
   const createdAtRange = useFilterValue("createdAt", ZDateRangeFilterValue)?.data;
   // TODO for future: this preserving local time & startOf & endOf should be handled
@@ -40,7 +37,6 @@ export function useInsightsBookingParameters() {
     selectedTeamId,
     startDate,
     endDate,
-    timeZone: timeZone || CURRENT_TIMEZONE,
     columnFilters,
   };
 }
