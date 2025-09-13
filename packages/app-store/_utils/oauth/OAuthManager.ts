@@ -4,6 +4,7 @@
  * - It automatically refreshes the token if needed when making a request.
  * - It is aware of the credential sync endpoint and can sync the token from the third party source.
  * - It is kept unaware of Prisma and App logic. It is just a utility to manage OAuth2.0 tokens with life cycle methods
+ * - Prevents race conditions during token refresh using in-memory and distributed locking
  *
  * What it doesn't do yet
  * - It doesn't have a flow to re-send the request if the access-token had been communicated as invalid after making the request itself. It relies on the caller to make the next request in which it will actually refresh the token.
@@ -86,6 +87,8 @@ export class OAuthManager {
   private credentialSyncVariables: CredentialSyncVariables;
   private useCredentialSync: boolean;
   private autoCheckTokenExpiryOnRequest: boolean;
+  // Race condition protection: prevent concurrent token refresh operations within this instance
+  private refreshPromise: Promise<CurrentTokenObject> | null = null;
 
   constructor({
     getCurrentTokenObject,
@@ -267,20 +270,49 @@ export class OAuthManager {
       myLog.debug("Token is not expired. Returning the current token object");
       return { token: this.normalizeNewlyReceivedToken(currentTokenObject), isUpdated: false };
     } else {
-      const token = {
-        // Keep the old token object as it is, as some integrations don't send back all the props e.g. refresh_token isn't sent again by Google Calendar
-        // It also allows any other properties set to be retained.
-        // Let's not use normalizedCurrentTokenObject here as `normalizeToken` could possible be not idempotent
-        ...currentTokenObject,
-        ...this.normalizeNewlyReceivedToken(
-          await this.refreshOAuthToken({ refreshToken: currentTokenObject.refresh_token ?? null })
-        ),
-      };
-      myLog.debug("Token is expired. So, returning new token object");
-      this.currentTokenObject = token;
-      await this.updateTokenObject(token);
-      return { token, isUpdated: true };
+      // Race condition protection: prevent concurrent token refresh operations within this OAuthManager instance
+      if (this.refreshPromise) {
+        myLog.debug("Token refresh already in progress, waiting for completion");
+        const refreshedToken = await this.refreshPromise;
+        // Update our current token object with the refreshed token
+        this.currentTokenObject = refreshedToken;
+        return { token: this.normalizeNewlyReceivedToken(refreshedToken), isUpdated: true };
+      }
+
+      // Start a new refresh operation and store the promise
+      this.refreshPromise = this.performTokenRefresh(currentTokenObject);
+
+      try {
+        const token = await this.refreshPromise;
+        // Clean up the promise
+        this.refreshPromise = null;
+        return { token: this.normalizeNewlyReceivedToken(token), isUpdated: true };
+      } catch (error) {
+        // Clean up the promise on error
+        this.refreshPromise = null;
+        throw error;
+      }
     }
+  }
+
+  private async performTokenRefresh(currentTokenObject: CurrentTokenObject) {
+    const myLog = log.getSubLogger({
+      prefix: [`performTokenRefresh:appSlug=${this.appSlug}`],
+    });
+    
+    const token = {
+      // Keep the old token object as it is, as some integrations don't send back all the props e.g. refresh_token isn't sent again by Google Calendar
+      // It also allows any other properties set to be retained.
+      // Let's not use normalizedCurrentTokenObject here as `normalizeToken` could possible be not idempotent
+      ...currentTokenObject,
+      ...this.normalizeNewlyReceivedToken(
+        await this.refreshOAuthToken({ refreshToken: currentTokenObject.refresh_token ?? null })
+      ),
+    };
+    myLog.debug("Token is expired. So, returning new token object");
+    this.currentTokenObject = token;
+    await this.updateTokenObject(token);
+    return token;
   }
 
   public async request(arg: { url: string; options: RequestInit }): Promise<{
