@@ -132,6 +132,7 @@ describe("Cancel Booking", () => {
         id: idOfBookingToBeCancelled,
         uid: uidOfBookingToBeCancelled,
         cancelledBy: organizer.email,
+        cancellationReason: "No reason",
       },
     });
 
@@ -261,6 +262,7 @@ describe("Cancel Booking", () => {
         id: idOfBookingToBeCancelled,
         uid: uidOfBookingToBeCancelled,
         cancelledBy: organizer.email,
+        cancellationReason: "No reason",
       },
     });
 
@@ -510,6 +512,74 @@ describe("Cancel Booking", () => {
     ).rejects.toThrow("Cannot cancel a booking that has already ended");
   });
 
+  test("Should block canceling bookings without a cancellation reason when cancelledBy is set to the host", async () => {
+    const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
+
+    const booker = getBooker({
+      email: "booker@example.com",
+      name: "Booker",
+    });
+
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      schedules: [TestData.schedules.IstWorkHours],
+      credentials: [getGoogleCalendarCredential()],
+      selectedCalendars: [TestData.selectedCalendars.google],
+    });
+
+    const uidOfBookingToBeCancelled = "cancelled-booking";
+    const idOfBookingToBeCancelled = 3040;
+    const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 30,
+            length: 30,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        bookings: [
+          {
+            id: idOfBookingToBeCancelled,
+            uid: uidOfBookingToBeCancelled,
+            eventTypeId: 1,
+            userId: 101,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+            },
+            status: BookingStatus.ACCEPTED,
+            startTime: `${plus1DateString}T05:00:00.000Z`,
+            endTime: `${plus1DateString}T05:30:00.000Z`,
+          },
+        ],
+        organizer,
+        apps: [TestData.apps["daily-video"]],
+      })
+    );
+
+    // This should throw an error with current implementation
+    await expect(
+      handleCancelBooking({
+        bookingData: {
+          id: idOfBookingToBeCancelled,
+          uid: uidOfBookingToBeCancelled,
+          cancelledBy: organizer.email,
+        },
+      })
+    ).rejects.toThrow("Cancellation reason is required when you are the host");
+  });
+
   test("Should not charge cancellation fee when organizer cancels booking", async () => {
     const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
 
@@ -615,6 +685,7 @@ describe("Cancel Booking", () => {
         id: idOfBookingToBeCancelled,
         uid: uidOfBookingToBeCancelled,
         cancelledBy: organizer.email,
+        cancellationReason: "No reason",
       },
     });
 
@@ -747,6 +818,7 @@ describe("Cancel Booking", () => {
         id: idOfBookingToBeCancelled,
         uid: uidOfBookingToBeCancelled,
         cancelledBy: organizer.email,
+        cancellationReason: "No reason",
       },
     });
 
