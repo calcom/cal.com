@@ -15,21 +15,12 @@ type GetUrlSearchParamsToForwardOptions = {
   fields: {
     id: string;
     type: string;
-    options?:
-      | {
-          id: string | null;
-          label: string;
-        }[]
-      | ({
-          id: string | null;
-          label: string;
-        }[] &
-          {
-            label: string;
-            id: null;
-          }[]);
-    identifier?: string;
     label: string;
+    options?: {
+      id: string | null;
+      label: string;
+    }[];
+    identifier?: string;
   }[];
   searchParams: URLSearchParams;
   formResponseId: number | null;
