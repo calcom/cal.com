@@ -24,5 +24,5 @@ export const verifyCodeUnAuthenticated = async (email: string, code: string) => 
     throw new Error("Invalid verification code");
   }
 
-  return;
+  return true;
 };

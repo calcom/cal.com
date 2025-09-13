@@ -79,13 +79,13 @@ export class AtomsVerificationController {
   @Version(VERSION_NEUTRAL)
   @HttpCode(HttpStatus.OK)
   async verifyEmailCode(@Body() body: VerifyEmailCodeInput): Promise<VerifyEmailCodeOutput> {
-    await this.verificationService.verifyEmailCodeUnAuthenticated({
+    const verified = await this.verificationService.verifyEmailCodeUnAuthenticated({
       email: body.email,
       code: body.code,
     });
 
     return {
-      data: { verified: true },
+      data: { verified },
       status: SUCCESS_STATUS,
     };
   }
