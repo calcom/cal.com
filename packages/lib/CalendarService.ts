@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/triple-slash-reference */
 /// <reference path="../types/ical.d.ts"/>
 import ICAL from "ical.js";
-import type { Attendee, DateArray, DurationObject } from "ics";
-import { createEvent } from "ics";
+import type { Attendee, DateArray, DurationObject } from "ics2";
+import { createEvent } from "ics2";
 import type { DAVAccount, DAVCalendar, DAVObject } from "tsdav";
 import {
   createAccount,
@@ -99,7 +99,13 @@ const getDuration = (start: string, end: string): DurationObject => ({
 });
 
 const mapAttendees = (attendees: AttendeeInCalendarEvent[] | TeamMember[]): Attendee[] =>
-  attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
+  attendees.map(({ email, name }) => ({
+    name,
+    email,
+    partstat: "NEEDS-ACTION",
+    rsvp: false,
+    scheduleAgent: "CLIENT",
+  }));
 
 export default abstract class BaseCalendarService implements Calendar {
   private url = "";
