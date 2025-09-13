@@ -1,5 +1,7 @@
 import { workflowSelect } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { enrichUserWithDelegationCredentials } from "@calcom/lib/delegationCredential/server";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
@@ -9,9 +11,6 @@ import { bookingMinimalSelect, prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
-import { enrichUserWithDelegationCredentials } from "../delegationCredential/server";
-import { getBookerBaseUrl } from "../getBookerUrl/server";
 
 async function getEventType(id: number) {
   return prisma.eventType.findUnique({
