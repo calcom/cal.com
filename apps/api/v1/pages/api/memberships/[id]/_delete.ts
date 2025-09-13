@@ -2,6 +2,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { UserPlanUtils } from "@calcom/lib/user-plan-utils";
 import prisma from "@calcom/prisma";
 
 import { membershipIdSchema } from "~/lib/validations/membership";
@@ -38,7 +39,14 @@ export async function deleteHandler(req: NextApiRequest) {
   const { query } = req;
   const userId_teamId = membershipIdSchema.parse(query);
   await checkPermissions(req);
+
+  const membership = await prisma.membership.findUnique({ where: { userId_teamId } });
   await prisma.membership.delete({ where: { userId_teamId } });
+
+  if (membership) {
+    await UserPlanUtils.updateUserPlan(membership.userId);
+  }
+
   return { message: `Membership with id: ${query.id} deleted successfully` };
 }
 

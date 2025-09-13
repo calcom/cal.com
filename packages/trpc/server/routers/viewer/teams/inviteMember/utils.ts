@@ -17,6 +17,7 @@ import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
+import { UserPlanUtils } from "@calcom/lib/user-plan-utils";
 import { prisma } from "@calcom/prisma";
 import type { Membership, OrganizationSettings, Team } from "@calcom/prisma/client";
 import { type User as UserType, type UserPassword, Prisma } from "@calcom/prisma/client";
@@ -88,10 +89,78 @@ export async function getTeamOrThrow(teamId: number) {
     where: {
       id: teamId,
     },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      logoUrl: true,
+      calVideoLogo: true,
+      appLogo: true,
+      appIconLogo: true,
+      bio: true,
+      hideBranding: true,
+      hideTeamProfileLink: true,
+      isPrivate: true,
+      hideBookATeamMember: true,
+      createdAt: true,
+      metadata: true,
+      theme: true,
+      rrResetInterval: true,
+      rrTimestampBasis: true,
+      brandColor: true,
+      darkBrandColor: true,
+      verifiedNumbers: true,
+      verifiedEmails: true,
+      bannerUrl: true,
+      parentId: true,
+      timeFormat: true,
+      timeZone: true,
+      weekStart: true,
+      isOrganization: true,
+      pendingPayment: true,
+      isPlatform: true,
+      createdByOAuthClientId: true,
+      smsLockState: true,
+      smsLockReviewedByAdmin: true,
+      bookingLimits: true,
+      includeManagedEventsInLimits: true,
       organizationSettings: true,
       parent: {
-        include: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          logoUrl: true,
+          calVideoLogo: true,
+          appLogo: true,
+          appIconLogo: true,
+          bio: true,
+          hideBranding: true,
+          hideTeamProfileLink: true,
+          isPrivate: true,
+          hideBookATeamMember: true,
+          createdAt: true,
+          metadata: true,
+          theme: true,
+          rrResetInterval: true,
+          rrTimestampBasis: true,
+          brandColor: true,
+          darkBrandColor: true,
+          verifiedNumbers: true,
+          verifiedEmails: true,
+          bannerUrl: true,
+          parentId: true,
+          timeFormat: true,
+          timeZone: true,
+          weekStart: true,
+          isOrganization: true,
+          pendingPayment: true,
+          isPlatform: true,
+          createdByOAuthClientId: true,
+          smsLockState: true,
+          smsLockReviewedByAdmin: true,
+          bookingLimits: true,
+          includeManagedEventsInLimits: true,
           organizationSettings: true,
         },
       },
@@ -742,12 +811,6 @@ export const sendExistingUserTeamInviteEmails = async ({
   await sendEmails(sendEmailsPromises);
 };
 
-type inviteMemberHandlerInput = {
-  teamId: number;
-  role?: "ADMIN" | "MEMBER" | "OWNER";
-  language: string;
-};
-
 export async function handleExistingUsersInvites({
   invitableExistingUsers,
   team,
@@ -909,6 +972,10 @@ export async function handleExistingUsersInvites({
               accepted: true,
             },
           });
+        }
+
+        if (shouldAutoAccept) {
+          await UserPlanUtils.updateUserPlan(user.id);
         }
         return {
           ...user,

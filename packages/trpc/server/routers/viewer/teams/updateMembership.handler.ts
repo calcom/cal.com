@@ -1,3 +1,4 @@
+import { UserPlanUtils } from "@calcom/lib/user-plan-utils";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -20,7 +21,7 @@ export const updateMembershipHandler = async ({ ctx, input }: UpdateMembershipOp
     });
   }
 
-  return await prisma.membership.update({
+  const result = await prisma.membership.update({
     where: {
       userId_teamId: {
         userId: input.memberId,
@@ -31,6 +32,10 @@ export const updateMembershipHandler = async ({ ctx, input }: UpdateMembershipOp
       disableImpersonation: input.disableImpersonation,
     },
   });
+
+  await UserPlanUtils.updateUserPlan(input.memberId);
+
+  return result;
 };
 
 export default updateMembershipHandler;
