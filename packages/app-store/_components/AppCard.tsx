@@ -25,6 +25,7 @@ export default function AppCard({
   switchTooltip,
   hideSettingsIcon = false,
   hideAppCardOptions = false,
+  onAppInstallSuccess,
 }: {
   app: AppCardApp;
   description?: React.ReactNode;
@@ -38,6 +39,7 @@ export default function AppCard({
   switchTooltip?: string;
   hideSettingsIcon?: boolean;
   hideAppCardOptions?: boolean;
+  onAppInstallSuccess?: () => void;
 }) {
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
@@ -112,6 +114,7 @@ export default function AppCard({
                 appId={app.slug}
                 returnTo={returnTo}
                 teamId={teamId}
+                onAppInstallSuccess={onAppInstallSuccess}
               />
             )}
           </div>
