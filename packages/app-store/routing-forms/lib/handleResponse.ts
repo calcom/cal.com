@@ -9,7 +9,6 @@ import { withReporting } from "@calcom/lib/sentryWrapper";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-import type { ZResponseInputSchema } from "@calcom/trpc/server/routers/viewer/routing-forms/response.schema";
 
 import isRouter from "../lib/isRouter";
 import routerGetCrmContactOwnerEmail from "./crmRouting/routerGetCrmContactOwnerEmail";
@@ -28,7 +27,14 @@ const _handleResponse = async ({
   queueFormResponse,
   fetchCrm,
 }: {
-  response: z.infer<typeof ZResponseInputSchema>["response"];
+  response: Record<
+    string,
+    {
+      value: string | number | string[];
+      label: string;
+      identifier?: string;
+    }
+  >;
   identifierKeyedResponse: Record<string, string | string[]> | null;
   form: TargetRoutingFormForResponse;
   formFillerId: string;
