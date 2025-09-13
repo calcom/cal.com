@@ -708,11 +708,16 @@ export function AgentConfigurationSheet({
             )}
           </SheetBody>
           <SheetFooter>
-            <Button type="button" color="secondary" onClick={() => onOpenChange(false)}>
+            <Button
+              className="justify-center"
+              type="button"
+              color="secondary"
+              onClick={() => onOpenChange(false)}>
               {t("cancel")}
             </Button>
             <Button
               type="button"
+              className="justify-center"
               onClick={agentForm.handleSubmit(handleAgentUpdate)}
               disabled={!agentForm.formState.isDirty || readOnly || updateAgentMutation.isPending}
               loading={updateAgentMutation.isPending}>
@@ -877,7 +882,7 @@ export function AgentConfigurationSheet({
                 </div>
 
                 {showAdvancedFields && (
-                  <div className="space-y-5 rounded-lg bg-white p-4">
+                  <div className="bg-default space-y-5 rounded-lg p-4">
                     <Controller
                       name="sipTrunkAuthUsername"
                       control={phoneNumberForm.control}
