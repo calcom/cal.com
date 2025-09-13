@@ -59,11 +59,21 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
   const isRedirect = searchParams?.get("redirected") === "true" || false;
   const fromUserNameRedirected = searchParams?.get("username") || "";
   const rescheduleUid =
-    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduleUid") : null;
+    typeof window !== "undefined"
+      ? (() => {
+          const val = new URLSearchParams(window.location.search).get("rescheduleUid");
+          return val && val !== "null" && val !== "" ? val : null;
+        })()
+      : null;
   const rescheduledBy =
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduledBy") : null;
   const bookingUid =
-    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("bookingUid") : null;
+    typeof window !== "undefined"
+      ? (() => {
+          const val = new URLSearchParams(window.location.search).get("bookingUid");
+          return val && val !== "null" && val !== "" ? val : null;
+        })()
+      : null;
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
   const timezone = searchParams?.get("cal.tz") || null;
 
