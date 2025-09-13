@@ -3,6 +3,7 @@ import type { Tasker } from "@calcom/features/tasker/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { prisma } from "@calcom/prisma";
@@ -11,8 +12,6 @@ import type { App_RoutingForms_Form, User } from "@calcom/prisma/client";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 import type { Ensure } from "@calcom/types/utils";
-
-import { TRPCError } from "@trpc/server";
 
 import type { FormResponse, SerializableForm, SerializableField, OrderedResponses } from "../types/types";
 
@@ -268,9 +267,7 @@ export const onSubmissionOfFormResponse = async ({
 }) => {
   if (!form.fields) {
     // There is no point in submitting a form that doesn't have fields defined
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-    });
+    throw new HttpError({ statusCode: 400 });
   }
   const settings = RoutingFormSettings.parse(form.settings);
   let userWithEmails: string[] = [];

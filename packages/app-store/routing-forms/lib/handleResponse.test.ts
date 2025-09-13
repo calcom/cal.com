@@ -123,7 +123,7 @@ describe("handleResponse", () => {
     );
   });
 
-  it("should throw a TRPCError for missing required fields", async () => {
+  it("should throw an Error for missing required fields", async () => {
     await expect(
       handleResponse({
         response: { email: { value: "test@test.com", label: "Email" } }, // Name is missing
@@ -136,7 +136,7 @@ describe("handleResponse", () => {
     ).rejects.toThrow(/Missing required fields Name/);
   });
 
-  it("should throw a TRPCError for invalid email", async () => {
+  it("should throw an Error for invalid email", async () => {
     await expect(
       handleResponse({
         response: {
