@@ -239,7 +239,7 @@ test.describe("Event Types tests", () => {
         await gotoFirstEventType(page);
 
         await page.getByTestId("location-select").click();
-        await page.locator(`text="Cal Video (Global)"`).click();
+        await page.locator(`text="Cal Video (Default)"`).click();
 
         await saveEventType(page);
         await gotoBookingPage(page);
@@ -282,7 +282,7 @@ test.describe("Event Types tests", () => {
         await selectAttendeePhoneNumber(page);
 
         // Add Cal Video location
-        await addAnotherLocation(page, "Cal Video (Global)");
+        await addAnotherLocation(page, "Cal Video (Default)");
 
         await saveEventType(page);
 
@@ -496,6 +496,9 @@ test.describe("Event Types tests", () => {
       });
       await test.step("should open first eventType and check Interface Language", async () => {
         await gotoFirstEventType(page);
+        // Go to Advanced tab
+        await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
+        await page.click("[data-testid=event-interface-language-toggle]");
         const interfaceLanguageValue = page
           .getByTestId("event-interface-language")
           .locator('div[class$="-singleValue"]');
@@ -518,6 +521,9 @@ test.describe("Event Types tests", () => {
 
       await test.step("should open first eventType and change Interface Language to Deutsche", async () => {
         await gotoFirstEventType(page);
+        // Go to Advanced tab and enable offerSeats
+        await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
+        await page.click("[data-testid=event-interface-language-toggle]");
         await page.getByTestId("event-interface-language").click();
         await page.locator(`text="Deutsch"`).click();
         await saveEventType(page);
@@ -574,6 +580,9 @@ test.describe("Event Types tests", () => {
         await page.goto("/event-types");
         await page.waitForSelector('[data-testid="event-types"]');
         await gotoFirstEventType(page);
+        // Go to Advanced tab and enable offerSeats
+        await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
+        await page.click("[data-testid=event-interface-language-toggle]");
         await page.getByTestId("event-interface-language").click();
         await page.getByTestId("select-option-es").click();
         await saveEventType(page);
