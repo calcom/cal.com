@@ -93,14 +93,13 @@ export class OutputOrganizationsEventTypesService {
     private readonly teamsEventTypesRepository: TeamsEventTypesRepository,
     private readonly usersRepository: UsersRepository
   ) {}
-
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async getResponseTeamEventType(databaseEventType: Input, isOrgTeamEvent: boolean) {
     const { teamId, userId, parentId, assignAllTeamMembers } = databaseEventType;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { ownerId, users, ...rest } = this.outputEventTypesService.getResponseEventType(
       0,
-      databaseEventType,
-      isOrgTeamEvent
+      databaseEventType
     );
     const hosts =
       databaseEventType.schedulingType === "MANAGED"
