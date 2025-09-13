@@ -10,7 +10,6 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { schemaMembershipPublic } from "~/lib/validations/membership";
 import { schemaTeamCreateBodyParams } from "~/lib/validations/team";
 
 /**
@@ -147,7 +146,7 @@ async function postHandler(req: NextApiRequest) {
 
     return {
       team,
-      owner: schemaMembershipPublic.parse(team.members[0]),
+      owner: team.members[0],
       message: `Team created successfully. We also made user with ID=${effectiveUserId} the owner of this team.`,
     };
   }

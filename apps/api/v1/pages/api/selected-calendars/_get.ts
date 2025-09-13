@@ -5,7 +5,6 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import type { FindManyArgs } from "@calcom/lib/server/repository/selectedCalendar";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 
-import { schemaSelectedCalendarPublic } from "~/lib/validations/selected-calendar";
 import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";
 
 /**
@@ -47,7 +46,7 @@ async function getHandler(req: NextApiRequest) {
   }
 
   const data = await SelectedCalendarRepository.findManyUserLevel(args);
-  return { selected_calendars: data.map((v) => schemaSelectedCalendarPublic.parse(v)) };
+  return { selected_calendars: data };
 }
 
 export default defaultResponder(getHandler);

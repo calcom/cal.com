@@ -4,8 +4,6 @@ export const schemaEventTypeCustomInputBaseBodyParams = EventTypeCustomInputSche
   id: true,
 });
 
-export const schemaEventTypeCustomInputPublic = EventTypeCustomInputSchema.omit({});
-
 export const schemaEventTypeCustomInputBodyParams = schemaEventTypeCustomInputBaseBodyParams.strict();
 
 export const schemaEventTypeCustomInputEditBodyParams = schemaEventTypeCustomInputBaseBodyParams

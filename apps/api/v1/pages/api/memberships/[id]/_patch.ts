@@ -5,11 +5,7 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
-import {
-  membershipEditBodySchema,
-  membershipIdSchema,
-  schemaMembershipPublic,
-} from "~/lib/validations/membership";
+import { membershipEditBodySchema, membershipIdSchema } from "~/lib/validations/membership";
 
 /**
  * @swagger
@@ -53,8 +49,8 @@ export async function patchHandler(req: NextApiRequest) {
 
   await checkPermissions(req);
 
-  const result = await prisma.membership.update(args);
-  return { membership: schemaMembershipPublic.parse(result) };
+  const membership = await prisma.membership.update(args);
+  return { membership };
 }
 
 async function checkPermissions(req: NextApiRequest) {

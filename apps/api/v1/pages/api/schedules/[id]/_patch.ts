@@ -3,9 +3,9 @@ import type { z } from "zod";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
-import { schemaSchedulePublic, schemaSingleScheduleBodyParams } from "~/lib/validations/schedule";
+import { schemaSingleScheduleBodyParams } from "~/lib/validations/schedule";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 /**
@@ -86,8 +86,8 @@ export async function patchHandler(req: NextApiRequest) {
   const { id } = schemaQueryIdParseInt.parse(query);
   const data = schemaSingleScheduleBodyParams.parse(req.body);
   await checkPermissions(req, data);
-  const result = await prisma.schedule.update({ where: { id }, data, include: { availability: true } });
-  return { schedule: schemaSchedulePublic.parse(result) };
+  const schedule = await prisma.schedule.update({ where: { id }, data, include: { availability: true } });
+  return { schedule };
 }
 
 async function checkPermissions(req: NextApiRequest, body: z.infer<typeof schemaSingleScheduleBodyParams>) {

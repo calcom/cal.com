@@ -8,7 +8,6 @@ import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
 import {
-  schemaSelectedCalendarPublic,
   schemaSelectedCalendarUpdateBodyParams,
   selectedCalendarIdSchema,
 } from "~/lib/validations/selected-calendar";
@@ -70,7 +69,7 @@ export async function patchHandler(req: NextApiRequest) {
   }
 
   const result = await SelectedCalendarRepository.updateUserLevel(args);
-  return { selected_calendar: schemaSelectedCalendarPublic.parse(result) };
+  return { selected_calendar: result };
 }
 
 export default defaultResponder(patchHandler);
