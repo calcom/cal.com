@@ -1,13 +1,33 @@
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import { LuckyUserService } from "@calcom/lib/server/getLuckyUser";
 
-import { createModule } from "../di";
+import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "../di";
+import { moduleLoader as attributeRepositoryModuleLoader } from "./Attribute";
+import { moduleLoader as bookingRepositoryModuleLoader } from "./Booking";
+import { moduleLoader as hostRepositoryModuleLoader } from "./Host";
+import { moduleLoader as oooRepositoryModuleLoader } from "./Ooo";
+import { moduleLoader as userRepositoryModuleLoader } from "./User";
 
-export const luckyUserServiceModule = createModule();
-luckyUserServiceModule.bind(DI_TOKENS.LUCKY_USER_SERVICE).toClass(LuckyUserService, {
-  bookingRepository: DI_TOKENS.BOOKING_REPOSITORY,
-  hostRepository: DI_TOKENS.HOST_REPOSITORY,
-  oooRepository: DI_TOKENS.OOO_REPOSITORY,
-  userRepository: DI_TOKENS.USER_REPOSITORY,
-  attributeRepository: DI_TOKENS.ATTRIBUTE_REPOSITORY,
+const thisModule = createModule();
+const token = DI_TOKENS.LUCKY_USER_SERVICE;
+const moduleToken = DI_TOKENS.LUCKY_USER_SERVICE_MODULE;
+const loadModule = bindModuleToClassOnToken({
+  module: thisModule,
+  moduleToken,
+  token,
+  classs: LuckyUserService,
+  depsMap: {
+    bookingRepository: bookingRepositoryModuleLoader,
+    hostRepository: hostRepositoryModuleLoader,
+    oooRepository: oooRepositoryModuleLoader,
+    userRepository: userRepositoryModuleLoader,
+    attributeRepository: attributeRepositoryModuleLoader,
+  },
 });
+
+export const moduleLoader: ModuleLoader = {
+  token,
+  loadModule,
+};
+
+export type { LuckyUserService };
