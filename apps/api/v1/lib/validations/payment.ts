@@ -1,6 +1,6 @@
-import { _PaymentModel as Payment } from "@calcom/prisma/zod";
+import { PaymentSchema } from "@calcom/prisma/zod/modelSchema/PaymentSchema";
 
-export const schemaPaymentPublic = Payment.pick({
+export const schemaPaymentPublic = PaymentSchema.pick({
   id: true,
   amount: true,
   success: true,

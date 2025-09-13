@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { FormCard } from "@calcom/ui/components/card";
+import { FormCard, FormCardBody } from "@calcom/ui/components/card";
 import {
   BooleanToggleGroupField,
   Label,
@@ -90,7 +90,7 @@ function Field({
           router ? { text: router.name, variant: "gray", href: `${appUrl}/form-edit/${router.id}` } : null
         }
         deleteField={router ? null : deleteField}>
-        <div className="bg-default border-default w-full gap-3 rounded-2xl border p-3">
+        <FormCardBody>
           <div className="mb-3 w-full">
             <TextField
               data-testid={`${hookFieldNamespace}.label`}
@@ -211,7 +211,7 @@ function Field({
               }}
             />
           </div>
-        </div>
+        </FormCardBody>
       </FormCard>
     </div>
   );
@@ -348,6 +348,7 @@ const FormEdit = ({
 
 export default function FormEditPage({
   appUrl,
+  permissions,
   ...props
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   return (
@@ -356,6 +357,7 @@ export default function FormEditPage({
       <SingleForm
         {...props}
         appUrl={appUrl}
+        permissions={permissions}
         Page={({ hookForm, form }) => <FormEdit appUrl={appUrl} hookForm={hookForm} form={form} />}
       />
     </>

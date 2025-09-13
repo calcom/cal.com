@@ -28,7 +28,7 @@ export const LeastBookedTeamMembersTable = () => {
   if (!isSuccess || !data) return null;
 
   return (
-    <ChartCard title={t("least_booked_members")}>
+    <ChartCard title={t("least_bookings_scheduled")}>
       <UserStatsTable data={data} />
     </ChartCard>
   );

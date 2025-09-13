@@ -4,6 +4,7 @@ import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { DeploymentsRepository } from "@/modules/deployments/deployments.repository";
 import { DeploymentsService } from "@/modules/deployments/deployments.service";
 import { JwtService } from "@/modules/jwt/jwt.service";
+import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
@@ -17,9 +18,9 @@ import { ConfigService } from "@nestjs/config";
 import { ConfigModule } from "@nestjs/config";
 import { JwtService as NestJwtService } from "@nestjs/jwt";
 import { Test, TestingModule } from "@nestjs/testing";
-import { PlatformOAuthClient, Team, User } from "@prisma/client";
 import { createRequest } from "node-mocks-http";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
@@ -29,6 +30,7 @@ import { MockedRedisService } from "test/mocks/mock-redis-service";
 import { randomString } from "test/utils/randomString";
 
 import { X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
+import type { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 
 import { ApiAuthGuardRequest } from "./api-auth.strategy";
 import { ApiAuthStrategy } from "./api-auth.strategy";
@@ -45,6 +47,7 @@ describe("ApiAuthStrategy", () => {
   let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
   let oAuthClientRepositoryFixture: OAuthClientRepositoryFixture;
   let profilesRepositoryFixture: ProfileRepositoryFixture;
+  let membershipRepositoryFixture: MembershipRepositoryFixture;
 
   const validApiKeyEmail = `api-auth-api-key-user-${randomString()}@api.com`;
   const validAccessTokenEmail = `api-auth-access-token-user-${randomString()}@api.com`;
@@ -65,6 +68,7 @@ describe("ApiAuthStrategy", () => {
         }),
         ProfilesModule,
         TokensModule,
+        MembershipsModule,
       ],
       providers: [
         MockedRedisService,
@@ -91,6 +95,7 @@ describe("ApiAuthStrategy", () => {
     teamRepositoryFixture = new TeamRepositoryFixture(module);
     oAuthClientRepositoryFixture = new OAuthClientRepositoryFixture(module);
     profilesRepositoryFixture = new ProfileRepositoryFixture(module);
+    membershipRepositoryFixture = new MembershipRepositoryFixture(module);
     organization = await teamRepositoryFixture.create({ name: `api-auth-organization-1-${randomString()}` });
     organizationTwo = await teamRepositoryFixture.create({
       name: `api-auth-organization-2-${randomString()}`,
@@ -119,6 +124,20 @@ describe("ApiAuthStrategy", () => {
       username: validOAuthEmail,
       user: { connect: { id: validOAuthUser.id } },
       organization: { connect: { id: organizationTwo.id } },
+    });
+
+    await membershipRepositoryFixture.create({
+      user: { connect: { id: validOAuthUser.id } },
+      team: { connect: { id: organization.id } },
+      role: "OWNER",
+      accepted: true,
+    });
+
+    await membershipRepositoryFixture.create({
+      user: { connect: { id: validOAuthUser.id } },
+      team: { connect: { id: organizationTwo.id } },
+      role: "OWNER",
+      accepted: true,
     });
 
     const data = {

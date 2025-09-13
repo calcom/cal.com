@@ -190,6 +190,7 @@ type Host = {
   priority?: number | null | undefined;
   weight?: number | null | undefined;
   scheduleId?: number | null | undefined;
+  groupId: string | null;
 };
 
 type User = {

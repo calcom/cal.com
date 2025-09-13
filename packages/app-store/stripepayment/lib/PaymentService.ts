@@ -1,4 +1,3 @@
-import type { Booking, Payment, PaymentOption, Prisma } from "@prisma/client";
 import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
@@ -10,6 +9,7 @@ import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
+import type { Booking, Payment, PaymentOption, Prisma } from "@calcom/prisma/client";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
@@ -25,12 +25,6 @@ export const stripeCredentialKeysSchema = z.object({
   stripe_user_id: z.string(),
   default_currency: z.string(),
   stripe_publishable_key: z.string(),
-});
-
-const stripeAppKeysSchema = z.object({
-  client_id: z.string(),
-  payment_fee_fixed: z.number(),
-  payment_fee_percentage: z.number(),
 });
 
 export class PaymentService implements IAbstractPaymentService {
@@ -242,11 +236,6 @@ export class PaymentService implements IAbstractPaymentService {
 
       const setupIntent = paymentObject.setupIntent;
 
-      // Parse keys with zod
-      const { payment_fee_fixed, payment_fee_percentage } = stripeAppKeysSchema.parse(stripeAppKeys?.keys);
-
-      const paymentFee = Math.round(payment.amount * payment_fee_percentage + payment_fee_fixed);
-
       // Ensure that the stripe customer & payment method still exists
       const customer = await this.stripe.customers.retrieve(setupIntent.customer as string, {
         stripeAccount: this.credentials.stripe_user_id,
@@ -266,7 +255,6 @@ export class PaymentService implements IAbstractPaymentService {
       const params: Stripe.PaymentIntentCreateParams = {
         amount: payment.amount,
         currency: payment.currency,
-        application_fee_amount: paymentFee,
         customer: setupIntent.customer as string,
         payment_method: setupIntent.payment_method as string,
         off_session: true,
@@ -370,9 +358,14 @@ export class PaymentService implements IAbstractPaymentService {
     paymentData: Payment,
     eventTypeMetadata?: EventTypeMetadata
   ): Promise<void> {
+    const attendeesToEmail = event.attendeeSeatId
+      ? event.attendees.filter((attendee) => attendee.bookingSeat?.referenceUid === event.attendeeSeatId)
+      : event.attendees;
+
     await sendAwaitingPaymentEmailAndSMS(
       {
         ...event,
+        attendees: attendeesToEmail,
         paymentInfo: {
           link: createPaymentLink({
             paymentUid: paymentData.uid,

@@ -15,7 +15,7 @@ import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
 
-import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
+import { getRedirectWithOriginAndSearchString } from "@lib/handleOrgRedirect";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
@@ -64,17 +64,26 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       return notFound;
     }
 
-    if (!org) {
-      const redirect = await getTemporaryOrgRedirect({
-        slugs: [username],
-        redirectType: RedirectType.User,
-        eventTypeSlug: slug,
-        currentQuery: context.query,
-      });
+    // Get just the origin and searchString from the redirect to ensure that we don't redirect to a URL that exposes the real path to book the user for any other events \
+    // This is important for a private booking link
+    // e.g. http://app.cal.com/d/sgdthj8mu4nsLNTYi3fW2p/demo -> should redirect to -> http://acme.cal.com/d/sgdthj8mu4nsLNTYi3fW2p/demo and not to http://acme.cal.com/john/demo(which exposes the real path to book the user for any other events)
+    const redirectWithOriginAndSearchString = await getRedirectWithOriginAndSearchString({
+      slugs: [username],
+      redirectType: RedirectType.User,
+      context,
+      currentOrgDomain: isValidOrgDomain ? currentOrgDomain : null,
+    });
 
-      if (redirect) {
-        return redirect;
-      }
+    if (redirectWithOriginAndSearchString) {
+      return {
+        redirect: {
+          permanent: false,
+          // App Router doesn't have access to the current path directly, so we build it manually
+          destination: `${redirectWithOriginAndSearchString.origin ?? ""}/d/${link}/${slug}${
+            redirectWithOriginAndSearchString.searchString
+          }`,
+        },
+      };
     }
 
     name = profileUsername || username;

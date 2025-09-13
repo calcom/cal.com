@@ -6,14 +6,13 @@ import * as EmailManager from "@calcom/emails/email-manager";
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
-import prisma from "@calcom/prisma";
 import { CreditType } from "@calcom/prisma/enums";
 
-import { CreditService as OriginalCreditService } from "./credit-service";
+import { CreditService } from "./credit-service";
 import { StripeBillingService } from "./stripe-billling-service";
 import { InternalTeamBilling } from "./teams/internal-team-billing";
 
-const MOCK_TX = prisma;
+const MOCK_TX = {};
 
 vi.mock("@calcom/prisma", () => {
   return {
@@ -24,6 +23,17 @@ vi.mock("@calcom/prisma", () => {
 });
 
 vi.mock("stripe");
+
+vi.mock("@calcom/lib/server/i18n", () => {
+  return {
+    getTranslation: async (locale: string, namespace: string) => {
+      const t = (key: string) => key;
+      t.locale = locale;
+      t.namespace = namespace;
+      return t;
+    },
+  };
+});
 
 vi.mock("@calcom/lib/constants", async () => {
   const actual = (await vi.importActual("@calcom/lib/constants")) as typeof import("@calcom/lib/constants");
@@ -52,38 +62,24 @@ vi.mock("../workflows/lib/reminders/reminderScheduler", () => ({
   cancelScheduledMessagesAndScheduleEmails: vi.fn(),
 }));
 
-// Create a testable version of CreditService that exposes protected methods
-class CreditService extends OriginalCreditService {
-  public async _getTeamWithAvailableCredits(
-    params: Parameters<OriginalCreditService["_getTeamWithAvailableCredits"]>[0]
-  ) {
-    return super._getTeamWithAvailableCredits(params);
-  }
+const creditService = new CreditService();
 
-  public async _getUserOrTeamToCharge(
-    params: Parameters<OriginalCreditService["_getUserOrTeamToCharge"]>[0]
-  ) {
-    return super._getUserOrTeamToCharge(params);
-  }
+vi.spyOn(creditService, "_getAllCreditsForTeam").mockResolvedValue({
+  totalRemainingMonthlyCredits: 5,
+  additionalCredits: 0,
+});
 
-  public async _createExpenseLog(props: Parameters<OriginalCreditService["_createExpenseLog"]>[0]) {
-    return super._createExpenseLog(props);
-  }
+vi.spyOn(creditService, "_getTeamWithAvailableCredits").mockResolvedValue({
+  availableCredits: 3,
+});
 
-  public async _handleLowCreditBalance(
-    params: Parameters<OriginalCreditService["_handleLowCreditBalance"]>[0]
-  ) {
-    return super._handleLowCreditBalance(params);
-  }
+vi.spyOn(creditService, "_getAllCredits").mockResolvedValue({
+  additionalCredits: 1,
+});
 
-  public async _getAllCreditsForTeam(params: Parameters<OriginalCreditService["_getAllCreditsForTeam"]>[0]) {
-    return super._getAllCreditsForTeam(params);
-  }
-
-  public async _getAllCredits(params: Parameters<OriginalCreditService["_getAllCredits"]>[0]) {
-    return super._getAllCredits(params);
-  }
-}
+CreditsRepository.findCreditBalance.mockResolvedValueOnce({
+  limitReachedAt: null,
+});
 
 describe("CreditService", () => {
   let creditService: CreditService;
@@ -100,6 +96,8 @@ describe("CreditService", () => {
     };
     (Stripe as any).mockImplementation(() => stripeMock);
     creditService = new CreditService();
+
+    vi.mocked(CreditsRepository.findCreditExpenseLogByExternalRef).mockResolvedValue(null);
   });
 
   describe("Team credits", () => {
@@ -410,6 +408,7 @@ describe("CreditService", () => {
       });
 
       it("should calculate credits based on active members and price", async () => {
+        vi.stubEnv("STRIPE_TEAM_MONTHLY_PRICE_ID", "price_team_monthly");
         const mockTeamRepo = {
           findTeamWithMembers: vi.fn().mockResolvedValue({
             id: 1,
@@ -434,6 +433,51 @@ describe("CreditService", () => {
 
         const result = await creditService.getMonthlyCredits(1);
         expect(result).toBe(1500); // (3 members * 1000 price) / 2
+      });
+
+      it("should calculate credits for organizations using ORG_MONTHLY_CREDITS", async () => {
+        vi.stubEnv("ORG_MONTHLY_CREDITS", "1500");
+        const mockTeamRepo = {
+          findTeamWithMembers: vi.fn().mockResolvedValue({
+            id: 1,
+            isOrganization: true,
+            members: [{ accepted: true }, { accepted: true }],
+          }),
+        };
+        vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo as any);
+
+        const mockTeamBillingService = {
+          getSubscriptionStatus: vi.fn().mockResolvedValue("active"),
+        };
+        vi.spyOn(InternalTeamBilling.prototype, "getSubscriptionStatus").mockImplementation(
+          mockTeamBillingService.getSubscriptionStatus
+        );
+
+        const result = await creditService.getMonthlyCredits(1);
+        expect(result).toBe(3000); // 2 members * 1500 credits per seat
+      });
+
+      it("should calculate credits for organizations with default 1000 credits per seat", async () => {
+        // Clear ORG_MONTHLY_CREDITS to test default behavior
+        vi.stubEnv("ORG_MONTHLY_CREDITS", undefined);
+        const mockTeamRepo = {
+          findTeamWithMembers: vi.fn().mockResolvedValue({
+            id: 1,
+            isOrganization: true,
+            members: [{ accepted: true }, { accepted: true }, { accepted: true }],
+          }),
+        };
+        vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo as any);
+
+        const mockTeamBillingService = {
+          getSubscriptionStatus: vi.fn().mockResolvedValue("active"),
+        };
+        vi.spyOn(InternalTeamBilling.prototype, "getSubscriptionStatus").mockImplementation(
+          mockTeamBillingService.getSubscriptionStatus
+        );
+
+        const result = await creditService.getMonthlyCredits(1);
+        expect(result).toBe(3000); // 3 members * 1000 credits per seat (default)
       });
     });
 
@@ -671,6 +715,136 @@ describe("CreditService", () => {
       expect(MembershipRepository.findAllAcceptedPublishedTeamMemberships).toHaveBeenCalledWith(1, MOCK_TX);
       expect(CreditsRepository.findCreditBalance).toHaveBeenCalledTimes(1);
       expect(CreditsRepository.findCreditBalance).toHaveBeenCalledWith({ teamId: 2 }, MOCK_TX);
+    });
+  });
+
+  describe("Idempotency", () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it("should detect duplicate charges by externalRef", async () => {
+      vi.mocked(CreditsRepository.findCreditExpenseLogByExternalRef).mockResolvedValue({
+        id: "existing-log-id",
+        credits: 10,
+        creditType: CreditType.ADDITIONAL,
+        date: new Date(),
+        bookingUid: "booking-123",
+      });
+
+      const result = await creditService.chargeCredits({
+        userId: 1,
+        credits: 10,
+        externalRef: "retell:duplicate-call-123",
+      });
+
+      expect(result).toEqual({
+        bookingUid: "booking-123",
+        duplicate: true,
+        teamId: undefined,
+        userId: 1,
+      });
+
+      expect(CreditsRepository.findCreditExpenseLogByExternalRef).toHaveBeenCalledWith(
+        "retell:duplicate-call-123"
+      );
+      expect(CreditsRepository.createCreditExpenseLog).not.toHaveBeenCalled();
+      expect(CreditsRepository.updateCreditBalance).not.toHaveBeenCalled();
+    });
+
+    it("should create expense log with externalRef when not duplicate", async () => {
+      vi.mocked(CreditsRepository.findCreditExpenseLogByExternalRef).mockResolvedValue(null);
+
+      vi.mocked(CreditsRepository.findCreditBalanceWithTeamOrUser).mockResolvedValue({
+        id: "1",
+        additionalCredits: 100,
+        limitReachedAt: null,
+        warningSentAt: null,
+        user: {
+          id: 1,
+          name: "Test User",
+          email: "test@example.com",
+          locale: "en",
+        },
+        team: null,
+      });
+
+      vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
+        id: "1",
+        additionalCredits: 100,
+        limitReachedAt: null,
+        warningSentAt: null,
+      });
+
+      vi.spyOn(CreditService.prototype, "_getUserOrTeamToCharge").mockResolvedValue({
+        userId: 1,
+        remainingCredits: 90,
+        creditType: CreditType.ADDITIONAL,
+      });
+
+      await creditService.chargeCredits({
+        userId: 1,
+        credits: 10,
+        bookingUid: "booking-456",
+        externalRef: "retell:new-call-456",
+      });
+
+      expect(CreditsRepository.findCreditExpenseLogByExternalRef).toHaveBeenCalledWith("retell:new-call-456");
+
+      expect(CreditsRepository.createCreditExpenseLog).toHaveBeenCalledWith(
+        expect.objectContaining({
+          credits: 10,
+          creditType: CreditType.ADDITIONAL,
+          bookingUid: "booking-456",
+          externalRef: "retell:new-call-456",
+        }),
+        MOCK_TX
+      );
+    });
+
+    it("should work normally without externalRef", async () => {
+      vi.mocked(CreditsRepository.findCreditBalanceWithTeamOrUser).mockResolvedValue({
+        id: "1",
+        additionalCredits: 100,
+        limitReachedAt: null,
+        warningSentAt: null,
+        team: {
+          id: 1,
+          name: "Test Team",
+          members: [],
+        },
+        user: null,
+      });
+
+      vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
+        id: "1",
+        additionalCredits: 100,
+        limitReachedAt: null,
+        warningSentAt: null,
+      });
+
+      vi.spyOn(CreditService.prototype, "_getAllCreditsForTeam").mockResolvedValue({
+        totalMonthlyCredits: 500,
+        totalRemainingMonthlyCredits: 100,
+        additionalCredits: 100,
+      });
+
+      await creditService.chargeCredits({
+        teamId: 1,
+        credits: 10,
+        bookingUid: "booking-789",
+      });
+
+      expect(CreditsRepository.findCreditExpenseLogByExternalRef).not.toHaveBeenCalled();
+
+      expect(CreditsRepository.createCreditExpenseLog).toHaveBeenCalledWith(
+        expect.objectContaining({
+          credits: 10,
+          bookingUid: "booking-789",
+          externalRef: undefined,
+        }),
+        MOCK_TX
+      );
     });
   });
 });

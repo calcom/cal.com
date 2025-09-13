@@ -43,6 +43,7 @@
     "./components/organization-banner": "./components/organization-banner/index.ts",
     "./components/pagination": "./components/pagination/index.ts",
     "./components/popover": "./components/popover/index.ts",
+    "./components/progress-bar": "./components/progress-bar/index.ts",
     "./components/radio": "./components/radio/index.ts",
     "./components/scrollable": "./components/scrollable/index.ts",
     "./components/sheet": "./components/sheet/index.ts",
@@ -56,8 +57,7 @@
     "./components/unpublished-entity": "./components/unpublished-entity/index.ts",
     "./components/table/TableNew": "./components/table/TableNew.tsx",
     "./components/app-list-card/AppListCard": "./components/app-list-card/AppListCard.tsx",
-    "./components/section": "./components/section/index.ts",
-    "./__mocks__/ui": "./__mocks__/ui.tsx"
+    "./components/section": "./components/section/index.ts"
   },
   "license": "MIT",
   "scripts": {

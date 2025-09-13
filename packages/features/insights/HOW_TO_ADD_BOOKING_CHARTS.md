@@ -103,7 +103,7 @@ export default function InsightsPage() {
 
 ## Step 4: Create tRPC Handler
 
-Add the tRPC endpoint in the insights router using the `createInsightsBookingService()` helper:
+Add the tRPC endpoint in the insights router using the `getInsightsBookingService()` DI container function:
 
 ```typescript
 // packages/features/insights/server/trpc-router.ts
@@ -118,6 +118,7 @@ export const insightsRouter = router({
   myNewChartData: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
+      // `createInsightsBookingService` is defined at the root level in this file
       const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
@@ -129,13 +130,13 @@ export const insightsRouter = router({
 });
 ```
 
-## Step 5: Add Service Method to InsightsBookingService
+## Step 5: Add Service Method to InsightsBookingBaseService
 
-Add your new method to the `InsightsBookingService` class:
+Add your new method to the `InsightsBookingBaseService` class:
 
 ```typescript
-// packages/lib/server/service/insightsBooking.ts
-export class InsightsBookingService {
+// packages/lib/server/service/InsightsBookingBaseService.ts
+export class InsightsBookingBaseService {
   // ... existing methods
 
   async getMyNewChartData() {
@@ -168,7 +169,7 @@ export class InsightsBookingService {
 
 ## Best Practices
 
-1. **Use `createInsightsBookingService()`**: Always use the helper function for consistent service creation
+1. **Use `getInsightsBookingService()`**: Always use the DI container function for consistent service creation
 2. **Raw SQL for Performance**: Use `$queryRaw` for complex aggregations and better performance
 3. **Base Conditions**: Always use `await this.getBaseConditions()` for proper filtering and permissions
 4. **Error Handling**: Wrap service calls in try-catch blocks with `TRPCError`

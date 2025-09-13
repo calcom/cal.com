@@ -97,6 +97,7 @@ const getEventTypes = async (userId: number, teamIds?: number[]) => {
     bookingFields: true,
     calVideoSettings: true,
   } satisfies Prisma.EventTypeSelect;
+
   let eventTypeGroups: TEventTypeGroup[] | null = [];
 
   if (teamIds && teamIds.length > 0) {
@@ -317,7 +318,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       isConferencing,
       isOrg,
       // conferencing apps dont support team install
-      installableOnTeams: !isConferencing,
+      installableOnTeams: !!appMetadata?.concurrentMeetings || !isConferencing,
     } as OnboardingPageProps,
   };
 };

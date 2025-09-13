@@ -16,13 +16,14 @@ import {
   convertMapToFacetedValues,
   type FilterableColumn,
 } from "@calcom/features/data-table";
+import { useInsightsRoutingParameters } from "@calcom/features/insights/hooks/useInsightsRoutingParameters";
 import { trpc } from "@calcom/trpc";
 
 import { RoutingFormResponsesDownload } from "../../filters/Download";
 import { OrgTeamsFilter } from "../../filters/OrgTeamsFilter";
 import { useInsightsColumns } from "../../hooks/useInsightsColumns";
-import { useInsightsFacetedUniqueValues } from "../../hooks/useInsightsFacetedUniqueValues";
 import { useInsightsParameters } from "../../hooks/useInsightsParameters";
+import { useInsightsRoutingFacetedUniqueValues } from "../../hooks/useInsightsRoutingFacetedUniqueValues";
 import type { RoutingFormTableRow } from "../../lib/types";
 import { RoutingKPICards } from "./RoutingKPICards";
 
@@ -35,38 +36,32 @@ const createdAtColumn: Extract<FilterableColumn, { type: ColumnFilterType.DATE_R
 };
 
 export function RoutingFormResponsesTable() {
-  const { isAll, teamId, userId, memberUserIds, routingFormId, startDate, endDate, columnFilters } =
-    useInsightsParameters();
+  const { isAll, teamId, userId, routingFormId } = useInsightsParameters();
 
-  const {
-    data: headers,
-    isLoading: isHeadersLoading,
-    isSuccess: isHeadersSuccess,
-  } = trpc.viewer.insights.routingFormResponsesHeaders.useQuery({
+  const { data: headers, isSuccess: isHeadersSuccess } =
+    trpc.viewer.insights.routingFormResponsesHeaders.useQuery({
+      userId,
+      teamId,
+      isAll,
+      routingFormId,
+    });
+
+  const getInsightsFacetedUniqueValues = useInsightsRoutingFacetedUniqueValues({
+    headers,
     userId,
     teamId,
     isAll,
-    routingFormId,
   });
 
-  const getInsightsFacetedUniqueValues = useInsightsFacetedUniqueValues({ headers, userId, teamId, isAll });
-
+  const insightsRoutingParams = useInsightsRoutingParameters();
   const { sorting, limit, offset, ctaContainerRef, updateFilter } = useDataTable();
 
   const { data, isPending } = trpc.viewer.insights.routingFormResponses.useQuery({
-    teamId,
-    startDate,
-    endDate,
-    userId,
-    memberUserIds,
-    isAll,
-    routingFormId,
-    columnFilters,
+    ...insightsRoutingParams,
     sorting,
     limit,
     offset,
   });
-
   const processedData = useMemo(() => {
     if (!isHeadersSuccess || !data) return [];
     return data.data as RoutingFormTableRow[];
@@ -86,6 +81,9 @@ export function RoutingFormResponsesTable() {
       columnVisibility: {
         formId: false,
         bookingUserId: false,
+        attendeeName: false,
+        attendeeEmail: false,
+        attendeePhone: false,
         utm_source: false,
         utm_medium: false,
         utm_campaign: false,
@@ -108,10 +106,6 @@ export function RoutingFormResponsesTable() {
       updateFilter("formId", { type: ColumnFilterType.SINGLE_SELECT, data: newRoutingFormId });
     }
   }, [table, getInsightsFacetedUniqueValues, routingFormId]);
-
-  if (isHeadersLoading && !headers) {
-    return <DataTableSkeleton columns={4} columnWidths={[200, 200, 250, 250]} />;
-  }
 
   return (
     <>
