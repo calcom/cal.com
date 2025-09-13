@@ -67,6 +67,7 @@ import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
+import { weekStartNum } from "@calcom/lib/weekstart";
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
 import type { DestinationCalendar, Prisma, User, AssignmentReasonEnum } from "@calcom/prisma/client";
@@ -719,11 +720,26 @@ async function handler(
     location,
   });
 
+  const getWeekStartFromEventType = (eventType: getEventTypeResponse): string => {
+    // For individual user events
+    if (eventType.users && eventType.users.length > 0 && eventType.users[0].weekStart) {
+      return eventType.users[0].weekStart;
+    }
+
+    // For team events
+    if (eventType.hosts && eventType.hosts.length > 0 && eventType.hosts[0].user?.weekStart) {
+      return eventType.hosts[0].user.weekStart;
+    }
+
+    return "Monday";
+  };
+
   const checkBookingAndDurationLimitsService = getCheckBookingAndDurationLimitsService();
   await checkBookingAndDurationLimitsService.checkBookingAndDurationLimits({
     eventType,
     reqBodyStart: reqBody.start,
     reqBodyRescheduleUid: reqBody.rescheduleUid,
+    weekStartDay: weekStartNum(getWeekStartFromEventType(eventType)),
   });
 
   let luckyUserResponse;
