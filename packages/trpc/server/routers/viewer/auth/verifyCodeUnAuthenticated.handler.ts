@@ -11,8 +11,7 @@ type VerifyTokenOptions = {
 export const verifyCodeUnAuthenticatedHandler = async ({ input }: VerifyTokenOptions) => {
   const { email, code } = input;
   try {
-    await verifyCodeUnAuthenticated(email, code);
-    return true;
+    return await verifyCodeUnAuthenticated(email, code);
   } catch (error) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "invalid_code" });
   }
