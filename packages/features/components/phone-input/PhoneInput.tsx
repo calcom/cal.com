@@ -1,6 +1,7 @@
 "use client";
 
 import { isSupportedCountry } from "libphonenumber-js";
+import type { CSSProperties } from "react";
 import { useState, useEffect } from "react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
@@ -19,6 +20,8 @@ export type PhoneInputProps = {
   disabled?: boolean;
   onChange: (value: string) => void;
   defaultCountry?: string;
+  inputStyle?: CSSProperties;
+  flagButtonStyle?: CSSProperties;
 };
 
 function BasePhoneInput({
@@ -45,6 +48,7 @@ function BasePhoneInput({
     if (value !== sanitized) {
       onChange(sanitized);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!isPlatform) {
@@ -97,6 +101,8 @@ function BasePhoneInputWeb({
   className = "",
   onChange,
   value,
+  inputStyle,
+  flagButtonStyle,
   ...rest
 }: Omit<PhoneInputProps, "defaultCountry">) {
   const defaultCountry = useDefaultCountry();
@@ -122,9 +128,10 @@ function BasePhoneInputWeb({
       )}
       inputClass="text-sm focus:ring-0 !bg-default text-default placeholder:text-muted"
       buttonClass="text-emphasis !bg-default hover:!bg-emphasis"
+      buttonStyle={{ ...flagButtonStyle }}
       searchClass="!text-default !bg-default hover:!bg-emphasis"
       dropdownClass="!text-default !bg-default"
-      inputStyle={{ width: "inherit", border: 0 }}
+      inputStyle={{ width: "inherit", border: 0, ...inputStyle }}
       searchStyle={{
         display: "flex",
         flexDirection: "row",

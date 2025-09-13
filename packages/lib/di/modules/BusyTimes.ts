@@ -1,7 +1,6 @@
-import { createModule } from "@evyweb/ioctopus";
-
 import type { IBusyTimesService } from "../../getBusyTimes";
 import { BusyTimesService } from "../../getBusyTimes";
+import { createModule } from "../di";
 import { DI_TOKENS } from "../tokens";
 
 export const busyTimesModule = createModule();
