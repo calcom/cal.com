@@ -61,7 +61,7 @@ const Members = ({ members, teamName }: { members: MemberType[]; teamName: strin
   return (
     <section
       data-testid="team-members-container"
-      className="flex flex-col flex-wrap justify-center gap-5 sm:flex-row">
+      className="flex flex-col flex-wrap justify-center gap-5 p-2 sm:flex-row">
       {members.map((member) => {
         return member.username !== null && <Member key={member.id} member={member} teamName={teamName} />;
       })}
@@ -71,7 +71,7 @@ const Members = ({ members, teamName }: { members: MemberType[]; teamName: strin
 
 const Team = ({ members, teamName }: { members: MemberType[]; teamName: string | null }) => {
   return (
-    <div>
+    <div className="mb-8">
       <Members members={members} teamName={teamName} />
     </div>
   );

@@ -1,5 +1,7 @@
 "use client";
 
+import { getDefaultAvatar } from "@calid/features/lib/defaultAvatar";
+import { Branding } from "@calid/features/ui/Branding";
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
 // This route is reachable by
@@ -15,7 +17,6 @@ import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
-import { getDefaultAvatar } from "@calid/features/lib/defaultAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
@@ -40,7 +41,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
   const pathname = usePathname();
   const showMembers = useToggleQuery("members");
   const { t } = useLocale();
-  const isEmbed = useIsEmbed();
+  const _isEmbed = useIsEmbed();
   const telemetry = useTelemetry();
   const teamName = team.name || t("nameless_team");
   const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
@@ -75,98 +76,57 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
   const { slug: _slug, orgSlug: _orgSlug, user: _user, ...queryParamsToForward } = routerQuery;
 
   const EventTypes = ({ eventTypes }: { eventTypes: NonNullable<(typeof team)["eventTypes"]> }) => (
-    <div>
+    <>
       {eventTypes.map((type, index) => (
         <div
           key={index}
-          className={classNames(
-            "bg-muted border-subtle dark:bg-muted dark:hover:bg-emphasis hover:bg-muted group relative mb-6 rounded-md border transition",
-            !isEmbed && "bg-default"
-          )}>
-          <div className="px-6 py-4 ">
-            {/* <Link
-              href={{
-                pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`,
-                query: queryParamsToForward,
-              }}
-              onClick={async () => {
-                sdkActionManager?.fire("eventTypeSelected", {
-                  eventType: type,
-                });
-              }}
-              data-testid="event-type-link"
-              className="flex justify-between"> */}
-            {/* <div className="flex-shrink">
-                <div className="flex flex-wrap items-center space-x-2 rtl:space-x-reverse">
-                  <h2 className=" text-default text-sm font-semibold">{type.title}</h2>
-                </div>
-                <EventTypeDescription className="text-sm" eventType={type} />
-              </div> */}
-
-            <div className="flex flex-col">
-              <div className="flex flex-row items-center gap-2">
-                <div className="bg-default rounded-lg p-2">
-                  <Icon name="calendar" className="h-8 w-8" />
-                </div>
-                <div>
-                  <div className="flex flex-wrap items-center">
-                    <h2 className="text-default pr-2 text-base font-semibold">{type.title}</h2>
-                  </div>
-
-                  {type.description && (
-                    <div
-                      className={classNames(
-                        "text-subtle line-clamp-3 break-words text-sm sm:max-w-[650px] [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600",
-                        "line-clamp-4 [&>*:not(:first-child)]:hidden"
-                      )}
-                      // eslint-disable-next-line react/no-danger
-                      dangerouslySetInnerHTML={{
-                        __html: markdownToSafeHTML(type.descriptionAsSafeHTML || ""),
-                      }}
-                    />
-                  )}
-                </div>
+          className="dark:bg-muted dark:hover:bg-emphasis hover:bg-muted border-subtle group relative rounded-md border bg-white shadow-md transition hover:scale-[1.02]"
+          data-testid="event-type-link">
+          <div className="block w-full px-2 py-4">
+            <div className="mb-2 flex flex-row items-center gap-2">
+              <div className="self-start p-2">
+                <Icon name="calendar" className="h-6 w-6" style={{ color: "#6B7280" }} />
               </div>
-
-              <div className="mt-1 flex w-full flex-row justify-between">
-                <EventTypeDescription
-                  eventType={type}
-                  isPublic={true}
-                  shortenDescription
-                  showDescription={false}
-                />
-                <Link
-                  key={type.id}
-                  // style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
-                  prefetch={false}
-                  href={{
-                    pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`,
-                    query: queryParamsToForward,
-                  }}
-                  passHref
-                  onClick={async () => {
-                    sdkActionManager?.fire("eventTypeSelected", {
-                      eventType: type,
-                    });
-                  }}>
-                  <Button variant="fab">{t("schedule")}</Button>
-                </Link>
+              <div className="mr-20">
+                <h3 className="text-default text-base font-semibold">{type.title}</h3>
+                {type.description && (
+                  <div
+                    className={classNames(
+                      "text-subtle line-clamp-3 break-words text-sm",
+                      "line-clamp-4 [&>*:not(:first-child)]:hidden"
+                    )}
+                    // eslint-disable-next-line react/no-danger
+                    dangerouslySetInnerHTML={{
+                      __html: markdownToSafeHTML(type.descriptionAsSafeHTML || ""),
+                    }}
+                  />
+                )}
               </div>
             </div>
-
-            <div className="mt-1 self-center">
-              <UserAvatarGroup
-                truncateAfter={4}
-                className="flex flex-shrink-0"
-                size="sm"
-                users={type.users}
-              />
+            <div className="flex w-full flex-row justify-between">
+              <EventTypeDescription eventType={type} isPublic={true} shortenDescription />
+              <Link
+                key={type.id}
+                prefetch={false}
+                href={{
+                  pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`,
+                  query: queryParamsToForward,
+                }}
+                passHref
+                onClick={async () => {
+                  sdkActionManager?.fire("eventTypeSelected", {
+                    eventType: type,
+                  });
+                }}>
+                <Button variant="button" type="button" size="base">
+                  {t("schedule")}
+                </Button>
+              </Link>
             </div>
-            {/* </Link> */}
           </div>
         </div>
       ))}
-    </div>
+    </>
   );
 
   const SubTeams = () =>
@@ -211,29 +171,35 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
       </div>
     );
 
-  const profileImageSrc = getDefaultAvatar(team);
+  const profileImageSrc = getDefaultAvatar(team, team.parent?.name);
 
   return (
-    <>
-      <main className="bg-default dark:bg-default h-full w-full rounded-md pb-12">
-        <div className="border-subtle text-default bg-cal-gradient mb-8  flex flex-col items-center py-4">
-          <div className="relative">
-            <Avatar alt={teamName} imageSrc={profileImageSrc} size="xl" />
-          </div>
-          <h1 className="font-cal text-emphasis mb-4 mt-4 text-3xl" data-testid="team-name">
+    <div className="bg-default flex min-h-screen w-full flex-col">
+      <main className="bg-default h-full w-full">
+        <div className="border-subtle bg-cal-gradient text-default mb-4 flex flex-col items-center bg-cover bg-center p-4">
+          <Avatar
+            size="xl"
+            imageSrc={profileImageSrc}
+            alt={teamName || "Team Avatar"}
+            title={teamName || "Team"}
+          />
+          <h1 className="text-default mt-2 text-2xl font-bold" data-testid="team-name">
             {team.parent && `${team.parent.name} `}
             {teamName}
           </h1>
           {!isBioEmpty && (
             <>
               <div
-                className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                className="text-subtle break-words text-center text-sm font-medium md:px-[10%] lg:px-[20%]"
                 // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{ __html: team.safeBio }}
               />
             </>
           )}
         </div>
+
+        <DividerWithText showMembers={showMembers.isOn} />
+
         {team.isOrganization ? (
           !teamOrOrgIsPrivate ? (
             <SubTeams />
@@ -255,19 +221,20 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
                 <Team members={team.members} teamName={team.name} />
               ))}
             {!showMembers.isOn && team.eventTypes && team.eventTypes.length > 0 && (
-              <div className="w-full p-4 px-[15%] py-[1%]">
+              <div
+                className="flex flex-col gap-4 rounded-md bg-white px-4 pb-8 pt-2 lg:px-[15%]"
+                data-testid="event-types">
                 <EventTypes eventTypes={team.eventTypes} />
 
                 {/* Hide "Book a team member button when team is private or hideBookATeamMember is true" */}
                 {!team.hideBookATeamMember && !teamOrOrgIsPrivate && (
                   <div>
-                    <div className="relative mt-12">
-                      <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                        <div className="border-subtle w-full border-t" />
-                      </div>
-                      <div className="relative flex justify-center">
-                        <span className="bg-subtle text-subtle px-2 text-sm">{t("or")}</span>
-                      </div>
+                    <div className="mt-2 flex items-center justify-center">
+                      <div className="bg-subtle h-px w-1/5 max-w-32 flex-none" />
+                      <span className="text-subtle mx-4 whitespace-nowrap text-sm font-medium">
+                        {t("or")}
+                      </span>
+                      <div className="bg-subtle h-px w-1/5 max-w-32 flex-none" />
                     </div>
 
                     <aside className="dark:text-inverted mt-8 flex justify-center text-center">
@@ -293,8 +260,25 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
             )}
           </>
         )}
+
+        <div key="logo" className="mb-8 flex w-full justify-center [&_img]:h-[32px]">
+          <Branding />
+        </div>
       </main>
-    </>
+    </div>
+  );
+}
+
+function DividerWithText({ showMembers }: { showMembers: boolean }) {
+  const { t } = useLocale();
+  return (
+    <div className="mb-2 flex items-center justify-center">
+      <div className="bg-subtle h-px w-1/5 max-w-32 flex-none" />
+      <span className="text-subtle mx-4 whitespace-nowrap text-sm font-medium">
+        {showMembers ? t("choose_a_team_member") : t("choose_a_meeting_type")}
+      </span>
+      <div className="bg-subtle h-px w-1/5 max-w-32 flex-none" />
+    </div>
   );
 }
 

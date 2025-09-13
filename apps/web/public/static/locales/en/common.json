@@ -9,6 +9,7 @@
   "notify_calendly_import": "Notify past bookers about your migration",
   "schedule": "Schedule",
   "choose_a_meeting_type": "Choose a meeting type",
+  "choose_a_team_member": "Choose a team member",
   "available_meeting_types": "Available Meeting Types",
   "workflows_edit_description":"Create and manage workflows to automate your event processes",
   "edit_event_title":"Edit event",

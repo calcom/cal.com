@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@calid/features/ui/components/button";
+import { BlankCard } from "@calid/features/ui/components/card";
 import type { HorizontalTabItemProps } from "@calid/features/ui/components/navigation";
 import { HorizontalTabs } from "@calid/features/ui/components/navigation";
 import type { VerticalTabItemProps } from "@calid/features/ui/components/navigation";
@@ -11,7 +12,6 @@ import { useMemo, useState, useRef } from "react";
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import dayjs from "@calcom/dayjs";
 import ExportBookingsButton from "@calcom/features/bookings/components/ExportBookingsButton";
-import type { filterQuerySchema } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
 import {
   useDataTable,
@@ -31,7 +31,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/components/alert";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Icon } from "@calcom/ui/components/icon";
 
 import BookingListItem from "@components/booking/BookingListItem";
@@ -456,8 +455,8 @@ function BookingsContent({ status }: BookingsProps) {
                 }
                 LoaderView={<SkeletonLoader />}
                 EmptyView={
-                  <div className="flex items-center justify-center pt-2 xl:pt-0">
-                    <EmptyScreen
+                  <div className="w-full pt-2">
+                    <BlankCard
                       Icon="calendar"
                       headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
                       description={t("no_status_bookings_yet_description", {
