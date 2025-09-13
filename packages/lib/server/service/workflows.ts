@@ -3,7 +3,9 @@ import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/re
 import type { Workflow } from "@calcom/ee/workflows/lib/types";
 import { prisma } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/lib/formSubmissionUtils";
 
+import { getHideBranding } from "../../hideBranding";
 import { WorkflowRepository } from "../repository/workflow";
 
 // TODO (Sean): Move most of the logic migrated in 16861 to this service
@@ -70,6 +72,62 @@ export class WorkflowService {
         await WorkflowRepository.deleteAllWorkflowReminders(remindersToDelete);
       }
     }
+  }
+
+  static async scheduleFormWorkflows({
+    workflows,
+    responses,
+    responseId,
+    form,
+  }: {
+    workflows: Workflow[];
+    responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
+    responseId: number;
+    form: {
+      id: string;
+      userId: number;
+      teamId?: number | null;
+      fields?: { type: string; identifier?: string }[];
+      user: {
+        email: string;
+        timeFormat: number | null;
+        locale: string | null;
+      };
+    };
+  }) {
+    if (workflows.length <= 0) return;
+
+    const workflowsToTrigger: Workflow[] = [];
+
+    workflowsToTrigger.push(
+      ...workflows.filter((workflow) => workflow.trigger === WorkflowTriggerEvents.FORM_SUBMITTED)
+    );
+
+    let smsReminderNumber: string | null = null;
+    if (form.fields) {
+      const phoneField = form.fields.find((field) => field.type === "phone");
+      if (phoneField && phoneField.identifier) {
+        const phoneResponse = responses[phoneField.identifier];
+        if (phoneResponse?.response && typeof phoneResponse.response === "string") {
+          smsReminderNumber = phoneResponse.response as string;
+        }
+      }
+    }
+
+    const hideBranding = await getHideBranding({
+      userId: form.userId,
+      teamId: form.teamId ?? undefined,
+    });
+
+    await scheduleWorkflowReminders({
+      smsReminderNumber,
+      formData: {
+        responses,
+        user: { email: form.user.email, timeFormat: form.user.timeFormat, locale: form.user.locale ?? "en" },
+      },
+      hideBranding,
+      workflows: workflowsToTrigger,
+    });
   }
 
   static async scheduleWorkflowsForNewBooking({

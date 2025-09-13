@@ -1,8 +1,7 @@
 import type { TFunction } from "i18next";
 
 import type { TimeFormat } from "@calcom/lib/timeFormat";
-import type { WorkflowTriggerEvents } from "@calcom/prisma/client";
-import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
+import { WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 
 import {
   whatsappEventCancelledTemplate,
@@ -13,6 +12,7 @@ import {
 import emailRatingTemplate from "./reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "./reminders/templates/emailReminderTemplate";
 import smsReminderTemplate from "./reminders/templates/smsReminderTemplate";
+import type { WorkflowStep } from "./types";
 
 export function shouldScheduleEmailReminder(action: WorkflowActions) {
   return action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.EMAIL_HOST;
@@ -140,4 +140,12 @@ export function getTemplateBodyForAction({
   // If not a whatsapp action then it's an email action
   const templateFunction = getEmailTemplateFunction(template);
   return templateFunction({ isEditingMode: true, locale, t, action, timeFormat }).emailBody;
+}
+
+export function isFormTrigger(trigger: WorkflowTriggerEvents) {
+  return trigger === WorkflowTriggerEvents.FORM_SUBMITTED;
+}
+
+export function hasCalAIAction(steps: WorkflowStep[]) {
+  return steps.some((step) => isCalAIAction(step.action));
 }

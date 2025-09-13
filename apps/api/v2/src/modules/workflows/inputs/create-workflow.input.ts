@@ -39,6 +39,7 @@ import {
   BOOKING_REJECTED,
   BOOKING_REQUESTED,
   EVENT_CANCELLED,
+  FORM_SUBMITTED,
   NEW_EVENT,
   OnAfterCalVideoGuestsNoShowTriggerDto,
   OnAfterCalVideoHostsNoShowTriggerDto,
@@ -46,6 +47,7 @@ import {
   OnBeforeEventTriggerDto,
   OnCancelTriggerDto,
   OnCreationTriggerDto,
+  OnFormSubmittedTriggerDto,
   OnNoShowUpdateTriggerDto,
   OnPaidTriggerDto,
   OnPaymentInitiatedTriggerDto,
@@ -83,6 +85,7 @@ export type TriggerDtoType =
   | OnRescheduleTriggerDto
   | OnCancelTriggerDto
   | OnAfterCalVideoGuestsNoShowTriggerDto
+  | OnFormSubmittedTriggerDto
   | OnRejectedTriggerDto
   | OnRequestedTriggerDto
   | OnPaymentInitiatedTriggerDto
@@ -93,6 +96,7 @@ export type TriggerDtoType =
 @ApiExtraModels(
   OnBeforeEventTriggerDto,
   OnAfterEventTriggerDto,
+  OnFormSubmittedTriggerDto,
   OnCancelTriggerDto,
   OnCreationTriggerDto,
   OnRescheduleTriggerDto,
@@ -132,6 +136,7 @@ export class CreateWorkflowDto {
       { $ref: getSchemaPath(OnRescheduleTriggerDto) },
       { $ref: getSchemaPath(OnAfterCalVideoGuestsNoShowTriggerDto) },
       { $ref: getSchemaPath(OnAfterCalVideoHostsNoShowTriggerDto) },
+      { $ref: getSchemaPath(OnFormSubmittedTriggerDto) },
       { $ref: getSchemaPath(OnRejectedTriggerDto) },
       { $ref: getSchemaPath(OnRequestedTriggerDto) },
       { $ref: getSchemaPath(OnPaidTriggerDto) },
@@ -151,6 +156,7 @@ export class CreateWorkflowDto {
         { value: OnRescheduleTriggerDto, name: RESCHEDULE_EVENT },
         { value: OnAfterCalVideoGuestsNoShowTriggerDto, name: AFTER_GUESTS_CAL_VIDEO_NO_SHOW },
         { value: OnAfterCalVideoHostsNoShowTriggerDto, name: AFTER_HOSTS_CAL_VIDEO_NO_SHOW },
+        { value: OnFormSubmittedTriggerDto, name: FORM_SUBMITTED },
         { value: OnRequestedTriggerDto, name: BOOKING_REQUESTED },
         { value: OnRejectedTriggerDto, name: BOOKING_REJECTED },
         { value: OnPaymentInitiatedTriggerDto, name: BOOKING_PAYMENT_INITIATED },
@@ -171,7 +177,7 @@ export class CreateWorkflowDto {
     | OnPaymentInitiatedTriggerDto
     | OnNoShowUpdateTriggerDto
     | OnAfterCalVideoGuestsNoShowTriggerDto
-    | OnAfterCalVideoHostsNoShowTriggerDto;
+    | OnFormSubmittedTriggerDto
 
   @ApiProperty({
     description: "Steps to execute as part of the workflow",
