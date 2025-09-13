@@ -6,6 +6,7 @@ import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKey
 import { VideoApiAdapterMap } from "@calcom/app-store/video.adapters.generated";
 import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
+import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -25,7 +26,7 @@ const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<V
   const videoAdapters: VideoApiAdapter[] = [];
 
   for (const cred of withCredentials) {
-    const appName = cred.type.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
+    const appName = deriveAppDictKeyFromType(cred.type, VideoApiAdapterMap); // Transform `zoom_video` to `zoomvideo`;
     log.silly("Getting video adapter for", safeStringify({ appName, cred: getPiiFreeCredential(cred) }));
 
     const videoAdapterImport = VideoApiAdapterMap[appName as keyof typeof VideoApiAdapterMap];
