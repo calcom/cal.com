@@ -20,6 +20,7 @@ import { getRoutedUrl } from "./getRoutedUrl";
 import { getUrlSearchParamsToForward } from "./getUrlSearchParamsToForward";
 
 // Mock dependencies
+vi.mock("./getUrlSearchParamsToForward");
 vi.mock("@calcom/lib/checkRateLimitAndThrowError");
 vi.mock("@calcom/app-store/routing-forms/lib/handleResponse");
 vi.mock("@calcom/lib/server/repository/PrismaRoutingFormRepository");
@@ -36,7 +37,6 @@ vi.mock("@calcom/app-store/routing-forms/lib/getSerializableForm");
 vi.mock("@calcom/app-store/routing-forms/lib/getResponseToStore");
 vi.mock("@calcom/app-store/routing-forms/lib/processRoute");
 vi.mock("@calcom/app-store/routing-forms/lib/substituteVariables");
-vi.mock("@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward");
 vi.mock("@calcom/app-store/routing-forms/getEventTypeRedirectUrl");
 vi.mock("@calcom/app-store/routing-forms/enrichFormWithMigrationData", () => ({
   enrichFormWithMigrationData: vi.fn((form) => form),
