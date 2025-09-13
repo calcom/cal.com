@@ -5,12 +5,14 @@ import { ZBuyCreditsSchema } from "./buyCredits.schema";
 import { ZDownloadExpenseLogSchema } from "./downloadExpenseLog.schema";
 import { ZGetAllCreditsSchema } from "./getAllCredits.schema";
 import { ZHasAvailableCreditsSchema } from "./hasAvailableCredits.schema";
+import { ZUpdateAutoTopUpSettingsSchema } from "./updateAutoTopUpSettings.schema";
 
 type CreditsCache = {
   getAllCredits?: typeof import("./getAllCredits.handler").getAllCreditsHandler;
   buyCredits?: typeof import("./buyCredits.handler").buyCreditsHandler;
   downloadExpenseLog?: typeof import("./downloadExpenseLog.handler").downloadExpenseLogHandler;
   hasAvailableCredits?: typeof import("./hasAvailableCredits.handler").hasAvailableCreditsHandler;
+  updateAutoTopUpSettings?: typeof import("./updateAutoTopUpSettings.handler").updateAutoTopUpSettingsHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: CreditsCache = {};
@@ -84,4 +86,22 @@ export const creditsRouter = router({
       input,
     });
   }),
+  updateAutoTopUpSettings: authedProcedure
+    .input(ZUpdateAutoTopUpSettingsSchema)
+    .mutation(async ({ input, ctx }) => {
+      if (!UNSTABLE_HANDLER_CACHE.updateAutoTopUpSettings) {
+        UNSTABLE_HANDLER_CACHE.updateAutoTopUpSettings = await import(
+          "./updateAutoTopUpSettings.handler"
+        ).then((mod) => mod.updateAutoTopUpSettingsHandler);
+      }
+
+      if (!UNSTABLE_HANDLER_CACHE.updateAutoTopUpSettings) {
+        throw new Error("Failed to load handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.updateAutoTopUpSettings({
+        ctx,
+        input,
+      });
+    }),
 });

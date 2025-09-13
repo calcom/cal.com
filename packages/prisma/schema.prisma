@@ -592,17 +592,21 @@ model Team {
 }
 
 model CreditBalance {
-  id                String              @id @default(uuid())
-  team              Team?               @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId            Int?                @unique
+  id                 String              @id @default(uuid())
+  team               Team?               @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId             Int?                @unique
   // user credit balances will be supported in the future
-  user              User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId            Int?                @unique
-  additionalCredits Int                 @default(0)
-  limitReachedAt    DateTime?
-  warningSentAt     DateTime?
-  expenseLogs       CreditExpenseLog[]
-  purchaseLogs      CreditPurchaseLog[]
+  user               User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId             Int?                @unique
+  additionalCredits  Int                 @default(0)
+  limitReachedAt     DateTime?
+  warningSentAt      DateTime?
+  // Auto-top up settings
+  autoTopUpEnabled   Boolean             @default(false)
+  autoTopUpThreshold Int? // Credits remaining when auto-purchase triggers
+  autoTopUpAmount    Int? // Amount of credits to purchase
+  expenseLogs        CreditExpenseLog[]
+  purchaseLogs       CreditPurchaseLog[]
 }
 
 model CreditPurchaseLog {
