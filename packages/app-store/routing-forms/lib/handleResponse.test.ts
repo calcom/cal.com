@@ -2,11 +2,9 @@ import "@calcom/lib/__mocks__/logger";
 import { prisma } from "@calcom/prisma/__mocks__/prisma";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { z } from "zod";
 
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
-import type { ZResponseInputSchema } from "@calcom/trpc/server/routers/viewer/routing-forms/response.schema";
 
 import isRouter from "../lib/isRouter";
 import routerGetCrmContactOwnerEmail from "./crmRouting/routerGetCrmContactOwnerEmail";
@@ -104,7 +102,14 @@ const mockForm: TargetRoutingFormForResponse = {
   updatedById: null,
 };
 
-const mockResponse: z.infer<typeof ZResponseInputSchema>["response"] = {
+const mockResponse: Record<
+  string,
+  {
+    value: (string | number | string[]) & (string | number | string[] | undefined);
+    label: string;
+    identifier?: string | undefined;
+  }
+> = {
   name: { value: "John Doe", label: "Name" },
   email: { value: "john.doe@example.com", label: "Email" },
 };
