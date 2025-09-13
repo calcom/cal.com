@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import type { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
+import type { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 
 export const shouldChargeNoShowCancellationFee = ({
   eventTypeMetadata,

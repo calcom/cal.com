@@ -228,6 +228,7 @@ export class InputBookingsService_2024_08_13 {
       metadata: inputBooking.metadata || {},
       hasHashedBookingLink: false,
       guests,
+      verificationCode: inputBooking.emailVerificationCode,
       // note(Lauris): responses with name and email are required by the handleNewBooking
       responses: {
         ...(inputBooking.bookingFieldsResponses || {}),
@@ -526,6 +527,7 @@ export class InputBookingsService_2024_08_13 {
         metadata: inputBooking.metadata || {},
         hasHashedBookingLink: false,
         guests,
+        verificationCode: inputBooking.emailVerificationCode,
         // note(Lauris): responses with name and email are required by the handleNewBooking
         responses: {
           ...(inputBooking.bookingFieldsResponses || {}),
@@ -659,6 +661,7 @@ export class InputBookingsService_2024_08_13 {
       guests: [],
       responses: { ...bookingResponses },
       rescheduleUid: inputBooking.seatUid,
+      verificationCode: inputBooking.emailVerificationCode,
     };
   }
 
@@ -724,6 +727,7 @@ export class InputBookingsService_2024_08_13 {
       guests: bookingResponses.guests,
       responses: { ...bookingResponses, rescheduledReason: inputBooking.reschedulingReason },
       rescheduleUid: bookingUid,
+      verificationCode: inputBooking.emailVerificationCode,
     };
   }
 
