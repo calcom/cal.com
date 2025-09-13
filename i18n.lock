@@ -862,6 +862,7 @@ checksums:
     phone_number_for_ai_call: 2c6b2fcd19cc68bc13d6f0dac0131707
     buy_a_phone_number_or_import_one_you_already_have: 357cb368b71216101eca1151b8bdf581
     test_agent: aa54fc4c6393391bee371fc5f746746b
+    test_web_call: 21b24cea70abe3d7b32794275e014203
     phone_numbers: e4c9c7f7f46b5ea5c995a67a20dd6fc8
     unsubscribe: d1a0b07295687d1f08d4df1c411072dd
     delete_workflow_step: 374663ed46d303b4454482669e44a91c
@@ -1480,6 +1481,24 @@ checksums:
     app_removed_successfully: c3a10d7f9273a570fb199f45207b0bf6
     error_removing_app: 392d8006399c4f08c7ea98248a2b10cc
     web_conference: 090bdbaa7e3c7c7238c4b6d70e347734
+    web_call: bcef1f05d0874af3c1f44f41f11bcfe6
+    start_web_call: 7bc4c78b429bb18613b2de6ff62eca32
+    end_call: c51769d96722bc21664c37f6016edb3e
+    test_your_agent_with_web_call: 724520878607adaf3668dc9b3b4cfc3b
+    phone_call: 55de8748abbe27428f4464ee2ca6c88f
+    connecting_to_agent: aa6b7399a6741676e210194200cd2d9d
+    call_active: 62c1f624a7602b623f50d1682bfaacce
+    call_ended: f9253363a216907f063b227b62c848da
+    call_error: 1d7c36f2ef46452b2838b7275f41dd14
+    ready_to_start_call: e6d7d16bb23f436ad389761a207d14ac
+    failed_to_start_web_call_try_again: e5ccd704da41c82d6bdb520cc2bce5b4
+    call_encountered_error_try_again: 9ed38f82d49bbb9bfff47989fe912206
+    failed_initialize_web_call_microphone_permissions: c285ec6a1640427b2a58f7dfe070cbcf
+    start_call_to_see_conversation: 2816d4693c0a8dca5300f13ae3906593
+    waiting_for_conversation: 0d069744dee8207287fd6d84f2740abb
+    ai_agent: 4901e070adf86d4c58b9b69d31c5e7f1
+    live: 77a9c14fc9762e0e058e9b5ae04c8d15
+    connecting: 0627ab04701831ecbde4135e1ef9210c
     requires_confirmation: 4cae2e553af2409683efe1b1e51d8053
     requires_confirmation_threshold: 01f1f50b07af4b505c3fbc7f11e66d02
     may_require_confirmation: c403887dc2ed1a9cda5307c38f3849c6
@@ -1715,6 +1734,7 @@ checksums:
     transcription_enabled: 0fdc203ca56b3c7c48c77c16b5366f5d
     transcription_stopped: 12b193d31b9d101ccbc07f4804dbfd62
     download_transcript: e6200f050dd5d0277c0dbad0cfe3b41a
+    transcript: 6bbda4f7939d627251d37995a1639998
     recording_from_your_recent_call: b668afa4ace7a561853eff98d583532e
     transcript_from_previous_call: 7485bc94e7ca0e7b2f9cefa8f5b12168
     you_can_download_transcript_from_attachments: bd1f8b66fa7a44eeed9c113112a042e5
@@ -3619,6 +3639,11 @@ checksums:
     send_another_message: 13dd55d64292dea6666fc42b2cd81ca5
     sending: 841166a79844bd7474536877016a29f0
     no_variables_found: ff245d81f9b63e74656862119685bb55
+    credits_required: ceb73aa98e540a7efa4fcf1e6753694e
+    web_call_credits_info: aee65c01a61389e6c2e73532ed5d2d24
+    web_call_no_credits: bdfc3bb168281d0a6ae29341d8eac6c5
+    purchase_credits: b1e12db2744789a7ef83c7ef4e148d7d
+    credits_required_tooltip: ddd87961d790a9b90cf761cab0ff8673
     api_key_name_too_long: 1175b1d59bbe58c2a1b1e86de785dce8
     auto_charge_for_last_minute_cancellation: 8d438d61dc249f0ca003734e4a9dac18
     before_scheduled_start_time: 35bbe398965e631eaf969ee89266ee84

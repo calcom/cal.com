@@ -166,6 +166,94 @@ export class CallService {
     };
   }
 
+  async createWebCall({
+    agentId,
+    userId,
+    teamId,
+    timeZone,
+    eventTypeId,
+  }: {
+    agentId: string;
+    userId: number;
+    teamId?: number;
+    timeZone: string;
+    eventTypeId: number;
+  }) {
+    if (!agentId?.trim()) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Agent ID is required and cannot be empty",
+      });
+    }
+
+    await this.validateCreditsForTestCall({ userId, teamId });
+
+    await checkRateLimitAndThrowError({
+      rateLimitingType: "core",
+      identifier: `web-call:${userId}`,
+    });
+
+    const agent = await this.agentRepository.findByIdWithCallAccess({
+      id: agentId,
+      userId,
+    });
+
+    if (!agent) {
+      throw new HttpError({
+        statusCode: 404,
+        message: "Agent not found or you don't have permission to use it.",
+      });
+    }
+
+    if (!agent.providerAgentId) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Agent provider ID not found.",
+      });
+    }
+
+    const dynamicVariables = {
+      EVENT_NAME: "Web Call Test with Agent",
+      EVENT_DATE: "Monday, January 15, 2025",
+      EVENT_TIME: "2:00 PM",
+      EVENT_END_TIME: "2:30 PM",
+      TIMEZONE: timeZone,
+      LOCATION: "Web Call",
+      ORGANIZER_NAME: "Cal.com AI Agent",
+      ATTENDEE_NAME: "Test User",
+      ATTENDEE_FIRST_NAME: "Test",
+      ATTENDEE_LAST_NAME: "User",
+      ATTENDEE_EMAIL: "testuser@example.com",
+      ATTENDEE_TIMEZONE: timeZone,
+      ADDITIONAL_NOTES: "This is a test web call to verify the AI phone agent",
+      EVENT_START_TIME_IN_ATTENDEE_TIMEZONE: "2:00 PM",
+      EVENT_END_TIME_IN_ATTENDEE_TIMEZONE: "2:30 PM",
+      NUMBER_TO_CALL: "+919876543210",
+      eventTypeId: eventTypeId.toString(),
+    };
+
+    try {
+      const webCall = await this.retellRepository.createWebCall({
+        agentId: agent.providerAgentId,
+        dynamicVariables,
+      });
+      return {
+        callId: webCall.call_id,
+        accessToken: webCall.access_token,
+        agentId: webCall.agent_id,
+      };
+    } catch (error) {
+      this.logger.error("Failed to create web call in external AI service", {
+        agentId: agent.providerAgentId,
+        error,
+      });
+      throw new HttpError({
+        statusCode: 500,
+        message: "Failed to create web call",
+      });
+    }
+  }
+
   private async validateCreditsForTestCall({ userId, teamId }: { userId: number; teamId?: number }) {
     try {
       const { CreditService } = await import("@calcom/features/ee/billing/credit-service");

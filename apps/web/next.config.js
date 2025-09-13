@@ -2,6 +2,7 @@ require("dotenv").config({ path: "../../.env" });
 const englishTranslation = require("./public/static/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
 const { version } = require("./package.json");
+const { PrismaPlugin } = require("@prisma/nextjs-monorepo-workaround-plugin");
 const {
   i18n: { locales },
 } = require("./next-i18next.config");
@@ -278,6 +279,8 @@ const nextConfig = (phase) => {
               /(^@google-cloud\/spanner|^@mongodb-js\/zstd|^@sap\/hana-client\/extension\/Stream$|^@sap\/hana-client|^@sap\/hana-client$|^aws-crt|^aws4$|^better-sqlite3$|^bson-ext$|^cardinal$|^cloudflare:sockets$|^hdb-pool$|^ioredis$|^kerberos$|^mongodb-client-encryption$|^mysql$|^oracledb$|^pg-native$|^pg-query-stream$|^react-native-sqlite-storage$|^snappy\/package\.json$|^snappy$|^sql.js$|^sqlite3$|^typeorm-aurora-data-api-driver$)/,
           })
         );
+
+        config.plugins = [...config.plugins, new PrismaPlugin()];
 
         config.externals.push("formidable");
       }
