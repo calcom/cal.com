@@ -1,10 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import { withMiddleware } from "~/lib/helpers/withMiddleware";
+import { paymentSelect } from "~/lib/selects/paymentSelect";
 import type { PaymentsResponse } from "~/lib/types";
-import { schemaPaymentPublic } from "~/lib/validations/payment";
 
 /**
  * @swagger
@@ -24,13 +24,16 @@ import { schemaPaymentPublic } from "~/lib/validations/payment";
 async function allPayments({ userId }: NextApiRequest, res: NextApiResponse<PaymentsResponse>) {
   const userWithBookings = await prisma.user.findUnique({
     where: { id: userId },
-    include: { bookings: true },
+    select: { bookings: { select: { id: true } } },
   });
   if (!userWithBookings) throw new Error("No user found");
   const bookings = userWithBookings.bookings;
   const bookingIds = bookings.map((booking) => booking.id);
-  const data = await prisma.payment.findMany({ where: { bookingId: { in: bookingIds } } });
-  const payments = data.map((payment) => schemaPaymentPublic.parse(payment));
+  const data = await prisma.payment.findMany({
+    where: { bookingId: { in: bookingIds } },
+    select: paymentSelect,
+  });
+  const payments = data;
 
   if (payments) res.status(200).json({ payments });
   else

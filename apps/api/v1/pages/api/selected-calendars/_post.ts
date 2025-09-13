@@ -6,10 +6,7 @@ import { SelectedCalendarRepository } from "@calcom/lib/server/repository/select
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
-import {
-  schemaSelectedCalendarBodyParams,
-  schemaSelectedCalendarPublic,
-} from "~/lib/validations/selected-calendar";
+import { schemaSelectedCalendarBodyParams } from "~/lib/validations/selected-calendar";
 
 /**
  * @swagger
@@ -71,7 +68,7 @@ async function postHandler(req: NextApiRequest) {
   const data = await SelectedCalendarRepository.create(args.data);
 
   return {
-    selected_calendar: schemaSelectedCalendarPublic.parse(data),
+    selected_calendar: data,
     message: "Selected Calendar created successfully",
   };
 }

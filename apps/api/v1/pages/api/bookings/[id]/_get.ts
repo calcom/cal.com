@@ -5,7 +5,6 @@ import { ErrorWithCode } from "@calcom/lib/errors";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
-import { schemaBookingReadPublic } from "~/lib/validations/booking";
 import { schemaQuerySingleOrMultipleExpand } from "~/lib/validations/shared/queryExpandRelations";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
@@ -102,9 +101,11 @@ export async function getHandler(req: NextApiRequest) {
   const booking = await prisma.booking.findUnique({
     where: { id },
     include: {
-      attendees: true,
-      user: true,
-      payment: true,
+      attendees: {
+        select: { id: true, email: true, name: true, timeZone: true, locale: true, bookingId: true },
+      },
+      user: { select: { id: true, email: true, name: true, timeZone: true, locale: true } },
+      payment: { select: { id: true, success: true, paymentOption: true, bookingId: true } },
       eventType: expand.includes("team") ? { include: { team: true } } : false,
     },
   });
@@ -113,7 +114,7 @@ export async function getHandler(req: NextApiRequest) {
     throw new ErrorWithCode(ErrorCode.BookingNotFound, "Booking not found");
   }
 
-  return { booking: schemaBookingReadPublic.parse(booking) };
+  return { booking };
 }
 
 export default defaultResponder(getHandler);

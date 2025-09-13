@@ -2,10 +2,10 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
-import { membershipCreateBodySchema, schemaMembershipPublic } from "~/lib/validations/membership";
+import { membershipCreateBodySchema } from "~/lib/validations/membership";
 
 /**
  * @swagger
@@ -30,10 +30,10 @@ async function postHandler(req: NextApiRequest) {
 
   await checkPermissions(req);
 
-  const result = await prisma.membership.create(args);
+  const membership = await prisma.membership.create(args);
 
   return {
-    membership: schemaMembershipPublic.parse(result),
+    membership,
     message: "Membership created successfully",
   };
 }

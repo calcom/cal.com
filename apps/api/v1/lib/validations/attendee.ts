@@ -30,11 +30,3 @@ const schemaAttendeeEditParams = z
   .strict();
 export const schemaAttendeeEditBodyParams = schemaAttendeeBaseBodyParams.merge(schemaAttendeeEditParams);
 export const schemaAttendeeCreateBodyParams = schemaAttendeeBaseBodyParams.merge(schemaAttendeeCreateParams);
-
-export const schemaAttendeeReadPublic = AttendeeSchema.pick({
-  id: true,
-  bookingId: true,
-  name: true,
-  email: true,
-  timeZone: true,
-});

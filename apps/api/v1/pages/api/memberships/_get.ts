@@ -2,10 +2,9 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
-import { schemaMembershipPublic } from "~/lib/validations/membership";
 import {
   schemaQuerySingleOrMultipleTeamIds,
   schemaQuerySingleOrMultipleUserIds,
@@ -38,8 +37,8 @@ async function getHandler(req: NextApiRequest) {
   // Just in case the user want to get more info about the team itself
   if (req.query.include === "team") args.include = { team: true };
 
-  const data = await prisma.membership.findMany(args);
-  return { memberships: data.map((v) => schemaMembershipPublic.parse(v)) };
+  const memberships = await prisma.membership.findMany(args);
+  return { memberships };
 }
 
 /**

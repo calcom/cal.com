@@ -4,8 +4,6 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
-import { schemaEventTypeCustomInputPublic } from "~/lib/validations/event-type-custom-input";
-
 /**
  * @swagger
  * /custom-inputs:
@@ -34,7 +32,7 @@ async function getHandler(req: NextApiRequest) {
     ? {}
     : { where: { eventType: { userId } } };
   const data = await prisma.eventTypeCustomInput.findMany(args);
-  return { event_type_custom_inputs: data.map((v) => schemaEventTypeCustomInputPublic.parse(v)) };
+  return { event_type_custom_inputs: data };
 }
 
 export default defaultResponder(getHandler);

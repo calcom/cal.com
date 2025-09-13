@@ -5,7 +5,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
-import { schemaAttendeeEditBodyParams, schemaAttendeeReadPublic } from "~/lib/validations/attendee";
+import { schemaAttendeeEditBodyParams } from "~/lib/validations/attendee";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 /**
@@ -59,7 +59,7 @@ export async function patchHandler(req: NextApiRequest) {
   const data = schemaAttendeeEditBodyParams.parse(body);
   await checkPermissions(req, data);
   const attendee = await prisma.attendee.update({ where: { id }, data });
-  return { attendee: schemaAttendeeReadPublic.parse(attendee) };
+  return { attendee };
 }
 
 async function checkPermissions(req: NextApiRequest, body: z.infer<typeof schemaAttendeeEditBodyParams>) {

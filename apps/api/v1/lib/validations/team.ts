@@ -27,7 +27,3 @@ const schemaOwnerId = z.object({
 });
 
 export const schemaTeamCreateBodyParams = schemaTeamBodyParams.merge(schemaOwnerId).strict();
-
-export const schemaTeamReadPublic = TeamSchema.omit({});
-
-export const schemaTeamsReadPublic = z.array(schemaTeamReadPublic);

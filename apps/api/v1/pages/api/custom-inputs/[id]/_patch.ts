@@ -3,10 +3,7 @@ import type { NextApiRequest } from "next";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
-import {
-  schemaEventTypeCustomInputEditBodyParams,
-  schemaEventTypeCustomInputPublic,
-} from "~/lib/validations/event-type-custom-input";
+import { schemaEventTypeCustomInputEditBodyParams } from "~/lib/validations/event-type-custom-input";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 /**
@@ -87,7 +84,7 @@ export async function patchHandler(req: NextApiRequest) {
       options: data.options === null ? [] : data.options,
     },
   });
-  return { event_type_custom_input: schemaEventTypeCustomInputPublic.parse(result) };
+  return { event_type_custom_input: result };
 }
 
 export default defaultResponder(patchHandler);

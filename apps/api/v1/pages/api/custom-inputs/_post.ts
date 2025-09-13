@@ -4,10 +4,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
-import {
-  schemaEventTypeCustomInputBodyParams,
-  schemaEventTypeCustomInputPublic,
-} from "~/lib/validations/event-type-custom-input";
+import { schemaEventTypeCustomInputBodyParams } from "~/lib/validations/event-type-custom-input";
 
 /**
  * @swagger
@@ -100,7 +97,7 @@ async function postHandler(req: NextApiRequest) {
   });
 
   return {
-    event_type_custom_input: schemaEventTypeCustomInputPublic.parse(data),
+    event_type_custom_input: data,
     message: "EventTypeCustomInput created successfully",
   };
 }

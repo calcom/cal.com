@@ -3,7 +3,6 @@ import type { NextApiRequest } from "next";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
-import { schemaBookingReferenceReadPublic } from "~/lib/validations/booking-reference";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 /**
@@ -39,7 +38,7 @@ export async function getHandler(req: NextApiRequest) {
   const { query } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
   const booking_reference = await prisma.bookingReference.findUniqueOrThrow({ where: { id } });
-  return { booking_reference: schemaBookingReferenceReadPublic.parse(booking_reference) };
+  return { booking_reference };
 }
 
 export default defaultResponder(getHandler);

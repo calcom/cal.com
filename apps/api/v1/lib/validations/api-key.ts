@@ -16,14 +16,3 @@ export const apiKeyEditBodySchema = ApiKey.pick({
 })
   .partial()
   .strict();
-
-export const apiKeyPublicSchema = ApiKey.pick({
-  id: true,
-  userId: true,
-  note: true,
-  createdAt: true,
-  expiresAt: true,
-  lastUsedAt: true,
-  /** We might never want to expose these. Leaving this a as reminder. */
-  // hashedKey: true,
-});

@@ -4,8 +4,8 @@ import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
+import { userSelect } from "~/lib/selects/userSelect";
 import { schemaQueryUserId } from "~/lib/validations/shared/queryUserId";
-import { schemaUserReadPublic } from "~/lib/validations/user";
 
 /**
  * @swagger
@@ -44,11 +44,11 @@ export async function getHandler(req: NextApiRequest) {
   // Here we only check for ownership of the user if the user is not admin, otherwise we let ADMIN's edit any user
   if (!isSystemWideAdmin && query.userId !== req.userId)
     throw new HttpError({ statusCode: 403, message: "Forbidden" });
-  const data = await prisma.user.findUnique({ where: { id: query.userId } });
-  const user = schemaUserReadPublic.parse({
+  const data = await prisma.user.findUnique({ where: { id: query.userId }, select: userSelect });
+  const user = {
     ...data,
     avatar: data?.avatarUrl,
-  });
+  };
   return { user };
 }
 

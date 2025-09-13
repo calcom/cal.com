@@ -6,7 +6,7 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
-import { schemaCreateScheduleBodyParams, schemaSchedulePublic } from "~/lib/validations/schedule";
+import { schemaCreateScheduleBodyParams } from "~/lib/validations/schedule";
 
 /**
  * @swagger
@@ -103,10 +103,10 @@ async function postHandler(req: NextApiRequest) {
   // We include the recently created availability
   args.include = { availability: true };
 
-  const data = await prisma.schedule.create(args);
+  const schedule = await prisma.schedule.create(args);
 
   return {
-    schedule: schemaSchedulePublic.parse(data),
+    schedule,
     message: "Schedule created successfully",
   };
 }

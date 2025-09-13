@@ -4,7 +4,6 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
 import { schemaQueryIdAsString } from "~/lib/validations/shared/queryIdString";
-import { schemaWebhookReadPublic } from "~/lib/validations/webhook";
 
 /**
  * @swagger
@@ -41,7 +40,7 @@ export async function getHandler(req: NextApiRequest) {
   const { query } = req;
   const { id } = schemaQueryIdAsString.parse(query);
   const data = await prisma.webhook.findUniqueOrThrow({ where: { id } });
-  return { webhook: schemaWebhookReadPublic.parse(data) };
+  return { webhook: data };
 }
 
 export default defaultResponder(getHandler);

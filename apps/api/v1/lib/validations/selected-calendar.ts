@@ -7,8 +7,6 @@ import { schemaQueryIdParseInt } from "./shared/queryIdTransformParseInt";
 
 export const schemaSelectedCalendarBaseBodyParams = SelectedCalendarSchema;
 
-export const schemaSelectedCalendarPublic = SelectedCalendarSchema.omit({});
-
 export const schemaSelectedCalendarBodyParams = schemaSelectedCalendarBaseBodyParams
   .pick({
     integration: true,

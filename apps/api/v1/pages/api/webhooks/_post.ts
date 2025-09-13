@@ -6,7 +6,7 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
-import { schemaWebhookCreateBodyParams, schemaWebhookReadPublic } from "~/lib/validations/webhook";
+import { schemaWebhookCreateBodyParams } from "~/lib/validations/webhook";
 
 /**
  * @swagger
@@ -102,7 +102,7 @@ async function postHandler(req: NextApiRequest) {
   const data = await prisma.webhook.create(args);
 
   return {
-    webhook: schemaWebhookReadPublic.parse(data),
+    webhook: data,
     message: "Webhook created successfully",
   };
 }

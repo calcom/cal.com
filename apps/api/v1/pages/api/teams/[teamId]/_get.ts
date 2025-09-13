@@ -5,7 +5,6 @@ import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
 import { schemaQueryTeamId } from "~/lib/validations/shared/queryTeamId";
-import { schemaTeamReadPublic } from "~/lib/validations/team";
 
 /**
  * @swagger
@@ -43,7 +42,7 @@ export async function getHandler(req: NextApiRequest) {
   // Non-admins can only query the teams they're part of
   if (!isSystemWideAdmin) where.members = { some: { userId } };
   const data = await prisma.team.findFirstOrThrow({ where });
-  return { team: schemaTeamReadPublic.parse(data) };
+  return { team: data };
 }
 
 export default defaultResponder(getHandler);

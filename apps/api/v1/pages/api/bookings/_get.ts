@@ -11,7 +11,7 @@ import {
   getAccessibleUsers,
   retrieveOrgScopedAccessibleUsers,
 } from "~/lib/utils/retrieveScopedAccessibleUsers";
-import { schemaBookingGetParams, schemaBookingReadPublic } from "~/lib/validations/booking";
+import { schemaBookingGetParams } from "~/lib/validations/booking";
 import { schemaQuerySingleOrMultipleAttendeeEmails } from "~/lib/validations/shared/queryAttendeeEmail";
 import { schemaQuerySingleOrMultipleExpand } from "~/lib/validations/shared/queryExpandRelations";
 import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";
@@ -269,7 +269,8 @@ export async function handler(req: NextApiRequest) {
     }
   }
 
-  let data: Booking[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let data: any[] = [];
 
   if (!filterByAttendeeEmails && userEmailsToFilterBy.length > 0) {
     const queryOne = prisma.booking.findMany(args);
@@ -340,7 +341,7 @@ export async function handler(req: NextApiRequest) {
   } else {
     data = await prisma.booking.findMany(args);
   }
-  return { bookings: data.map((booking) => schemaBookingReadPublic.parse(booking)) };
+  return { bookings: data };
 }
 
 const handleSystemWideAdminArgs = async ({

@@ -4,10 +4,7 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
-import {
-  schemaBookingEditBodyParams,
-  schemaBookingReferenceReadPublic,
-} from "~/lib/validations/booking-reference";
+import { schemaBookingEditBodyParams } from "~/lib/validations/booking-reference";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 /**
@@ -73,7 +70,7 @@ export async function patchHandler(req: NextApiRequest) {
     await prisma.booking.findFirstOrThrow(args);
   }
   const booking_reference = await prisma.bookingReference.update({ where: { id }, data });
-  return { booking_reference: schemaBookingReferenceReadPublic.parse(booking_reference) };
+  return { booking_reference };
 }
 
 export default defaultResponder(patchHandler);

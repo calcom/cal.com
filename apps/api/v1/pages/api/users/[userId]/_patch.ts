@@ -3,11 +3,12 @@ import type { NextApiRequest } from "next";
 import { HttpError } from "@calcom/lib/http-error";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
+import { userSelect } from "~/lib/selects/userSelect";
 import { schemaQueryUserId } from "~/lib/validations/shared/queryUserId";
-import { schemaUserEditBodyParams, schemaUserReadPublic } from "~/lib/validations/user";
+import { schemaUserEditBodyParams } from "~/lib/validations/user";
 
 /**
  * @swagger
@@ -130,11 +131,11 @@ export async function patchHandler(req: NextApiRequest) {
     });
   }
 
-  const data = await prisma.user.update({
+  const user = await prisma.user.update({
     where: { id: query.userId },
     data: body,
+    select: userSelect,
   });
-  const user = schemaUserReadPublic.parse(data);
   return { user };
 }
 

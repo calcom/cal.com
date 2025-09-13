@@ -4,10 +4,7 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
-import {
-  schemaBookingCreateBodyParams,
-  schemaBookingReferenceReadPublic,
-} from "~/lib/validations/booking-reference";
+import { schemaBookingCreateBodyParams } from "~/lib/validations/booking-reference";
 
 /**
  * @swagger
@@ -79,7 +76,7 @@ async function postHandler(req: NextApiRequest) {
   });
 
   return {
-    booking_reference: schemaBookingReferenceReadPublic.parse(data),
+    booking_reference: data,
     message: "Booking reference created successfully",
   };
 }

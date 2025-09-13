@@ -3,7 +3,6 @@ import { z } from "zod";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { MembershipSchema } from "@calcom/prisma/zod/modelSchema/MembershipSchema";
-import { TeamSchema } from "@calcom/prisma/zod/modelSchema/TeamSchema";
 
 import { schemaQueryIdAsString } from "~/lib/validations/shared/queryIdString";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
@@ -49,8 +48,6 @@ export const membershipEditBodySchema = MembershipSchema.omit({
 export const schemaMembershipBodyParams = schemaMembershipBaseBodyParams.merge(
   schemaMembershipRequiredParams
 );
-
-export const schemaMembershipPublic = MembershipSchema.merge(z.object({ team: TeamSchema }).partial());
 
 /** We extract userId and teamId from compound ID string */
 export const membershipIdSchema = schemaQueryIdAsString

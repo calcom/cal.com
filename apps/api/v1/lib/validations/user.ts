@@ -149,33 +149,3 @@ export const schemaUserCreateBodyParams = schemaUserBaseBodyParams
   .merge(schemaUserCreateParams)
   .omit({})
   .strict();
-
-// @note: These are the values that are always returned when reading a user
-export const schemaUserReadPublic = UserSchema.pick({
-  id: true,
-  username: true,
-  name: true,
-  email: true,
-  emailVerified: true,
-  bio: true,
-  avatar: true,
-  timeZone: true,
-  weekStart: true,
-  endTime: true,
-  bufferTime: true,
-  appTheme: true,
-  theme: true,
-  defaultScheduleId: true,
-  locale: true,
-  timeFormat: true,
-  hideBranding: true,
-  brandColor: true,
-  darkBrandColor: true,
-  allowDynamicBooking: true,
-  createdDate: true,
-  verified: true,
-  invitedTo: true,
-  role: true,
-});
-
-export const schemaUsersReadPublic = z.array(schemaUserReadPublic);
