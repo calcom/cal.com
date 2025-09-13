@@ -10,9 +10,9 @@ const schema = z.object({
   }),
 });
 
-type TInputSchema = z.infer<typeof schema>;
+type TUpdateAppCredentialsInputSchema = { credentialId: number; key: { [k: string]: unknown } };
 
-const handlePaypalValidations = async ({ input }: { input: TInputSchema }) => {
+const handlePaypalValidations = async ({ input }: { input: TUpdateAppCredentialsInputSchema }) => {
   const validated = schema.safeParse(input);
   if (!validated.success) throw new Error("Invalid input");
   const { key } = validated.data;
