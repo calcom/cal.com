@@ -160,7 +160,7 @@ export default function TeamAppearanceView({ teamId }: TeamAppearanceViewProps) 
         <div className="flex w-full flex-col space-y-6">
           {/* Theme Form */}
           <div className="border-subtle space-y-6 rounded-md border p-4">
-            <Form {...themeForm} onSubmit={onThemeFormSubmit}>
+            <Form form={themeForm} onSubmit={onThemeFormSubmit}>
               <div className="mb-6 flex items-center rounded-md text-sm">
                 <div>
                   <p className="text-base font-semibold">{t("team_appearance_theme_title")}</p>
@@ -205,7 +205,7 @@ export default function TeamAppearanceView({ teamId }: TeamAppearanceViewProps) 
 
           {/* Brand Colors Form */}
           <div className="border-subtle space-y-6 rounded-md border p-4">
-            <Form {...brandColorsForm} onSubmit={onBrandColorsFormSubmit}>
+            <Form form={brandColorsForm} onSubmit={onBrandColorsFormSubmit}>
               <div className="mb-6 flex items-center rounded-md text-sm">
                 <div>
                   <p className="text-base font-semibold">{t("team_brand_colors_title")}</p>

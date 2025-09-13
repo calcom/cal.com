@@ -14,9 +14,11 @@ type GetOptions = {
 
 export const getHandler = ({ ctx, input }: GetOptions) => {
   return getEventTypeByIdForCalIdTeam({
+    currentOrganizationId: ctx.user.profile?.organizationId ?? null,
     eventTypeId: input.id,
-    calIdTeamId: input.calIdTeamId,
+    userId: ctx.user.id,
     prisma: ctx.prisma,
     isTrpcCall: true,
+    isUserOrganizationAdmin: !!ctx.user?.organization?.isOrgAdmin,
   });
 };

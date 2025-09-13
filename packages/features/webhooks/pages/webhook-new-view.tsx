@@ -9,7 +9,7 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui/components/toast";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { revalidateWebhooksList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/webhooks/(with-loader)/actions";
 
 import type { WebhookFormSubmitData } from "../components/WebhookForm";
@@ -17,8 +17,8 @@ import WebhookForm from "../components/WebhookForm";
 import { subscriberUrlReserved } from "../lib/subscriberUrlReserved";
 
 type Props = {
-  webhooks: RouterOutputs["viewer"]["webhook"]["list"];
-  installedApps: RouterOutputs["viewer"]["apps"]["integrations"];
+  webhooks: RouterOutputs["viewer"]["webhook"]["calid_list"];
+  installedApps: RouterOutputs["viewer"]["apps"]["calid_integrations"];
 };
 
 export const NewWebhookView = ({ webhooks, installedApps }: Props) => {
@@ -31,15 +31,15 @@ export const NewWebhookView = ({ webhooks, installedApps }: Props) => {
   const teamId = searchParams?.get("teamId") ? Number(searchParams.get("teamId")) : undefined;
   const platform = searchParams?.get("platform") ? Boolean(searchParams.get("platform")) : false;
 
-  const createWebhookMutation = trpc.viewer.webhook.create.useMutation({
+  const createWebhookMutation = trpc.viewer.webhook.calid_create.useMutation({
     async onSuccess() {
-      showToast(t("webhook_created_successfully"), "success");
+      triggerToast(t("webhook_created_successfully"), "success");
       await utils.viewer.webhook.list.invalidate();
       revalidateWebhooksList();
       router.push("/settings/developer/webhooks");
     },
     onError(error) {
-      showToast(`${error.message}`, "error");
+      triggerToast(`${error.message}`, "error");
     },
   });
 
@@ -54,7 +54,7 @@ export const NewWebhookView = ({ webhooks, installedApps }: Props) => {
         platform,
       })
     ) {
-      showToast(t("webhook_subscriber_url_reserved"), "error");
+      triggerToast(t("webhook_subscriber_url_reserved"), "error");
       return;
     }
 

@@ -1,10 +1,8 @@
-// import { Button, Input } from "@calid/features/ui";
-
 import { Icon } from "@calcom/ui/components/icon";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Button } from "../button";
-import { EmailField } from "../form";
+import { Button } from "@calid/features/ui/components/button";
+import { EmailField } from "@calid/features/ui/components/input/input";
 import { Tooltip } from "../tooltip";
 
 interface MultiEmailProps {

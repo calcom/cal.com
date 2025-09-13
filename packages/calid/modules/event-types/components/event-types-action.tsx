@@ -7,6 +7,7 @@ import {
   ButtonOrLink,
 } from "@calid/features/ui/components/dropdown-menu";
 import { Icon } from "@calid/features/ui/components/icon";
+import { Label } from "@calid/features/ui/components/label";
 import { Switch } from "@calid/features/ui/components/switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@calid/features/ui/components/tooltip";
 import type { UseFormReturn } from "react-hook-form";
@@ -35,7 +36,7 @@ export const EventTypeActions = ({
   const { t } = useLocale();
 
   return (
-    <div className="mr-2 flex items-center justify-end space-x-4">
+    <div className="flex items-center justify-end space-x-4 mr-2">
       {/* Hidden toggle */}
       {!form.getValues("metadata")?.managedEventConfig && (
         <div className="flex items-center space-x-2">
@@ -133,7 +134,7 @@ export const EventTypeActions = ({
       <Button
         type="submit"
         loading={isUpdatePending}
-        disabled={!form.formState.isDirty}
+        disabled={!form.formState.isDirty || isUpdatePending}
         form="event-type-form">
         {t("save")}
       </Button>

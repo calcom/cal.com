@@ -153,22 +153,6 @@ export const buttonClasses = cva(
           "transition-shadow",
           "duration-200",
         ],
-
-        destructive_account: [
-          // Base colors
-          "bg-default",
-          "text-destructive",
-          // Hover state
-          "hover:bg-red-500",
-          "hover:text-white",
-          "hover:transform",
-          "!hover:scale-105", // Add transform class
-          // Transitions
-          "transition-all",
-          "duration-200",
-          // Disabled state
-          "disabled:opacity-30",
-        ],
       },
       size: {
         xs: "h-2 p-2 leading-none text-xs rounded-md",

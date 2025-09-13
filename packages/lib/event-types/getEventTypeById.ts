@@ -293,7 +293,7 @@ export async function getRawEventTypeForCalIdTeam({
   prisma,
 }: {
   eventTypeId: number;
-  calIdTeamId: number;
+  calIdTeamId: number | null;
   prisma: PrismaClient;
 }) {
   const eventTypeRepo = new EventTypeRepository(prisma);
@@ -305,15 +305,19 @@ export async function getRawEventTypeForCalIdTeam({
 }
 
 export const getEventTypeByIdForCalIdTeam = async ({
+  currentOrganizationId,
   eventTypeId,
-  calIdTeamId,
+  userId,
   prisma,
   isTrpcCall = false,
+  isUserOrganizationAdmin,
 }: {
+  currentOrganizationId: number | null;
   eventTypeId: number;
-  calIdTeamId: number;
+  userId: number;
   prisma: PrismaClient;
   isTrpcCall?: boolean;
+  isUserOrganizationAdmin: boolean;
 }) => {
   const userSelect = {
     name: true,
@@ -327,9 +331,23 @@ export const getEventTypeByIdForCalIdTeam = async ({
     timeZone: true,
   } satisfies Prisma.UserSelect;
 
+  // First, get the eventType to determine the calIdTeamId
+  const eventTypeForCalIdTeam = await prisma.eventType.findUnique({
+    where: { id: eventTypeId },
+    select: { calIdTeamId: true, userId: true },
+  });
+
+  if (!eventTypeForCalIdTeam) {
+    if (isTrpcCall) {
+      throw new TRPCError({ code: "NOT_FOUND" });
+    } else {
+      throw new Error("Event type not found");
+    }
+  }
+
   const rawEventType = await getRawEventTypeForCalIdTeam({
     eventTypeId,
-    calIdTeamId,
+    calIdTeamId: eventTypeForCalIdTeam.calIdTeamId,
     prisma,
   });
 
@@ -403,7 +421,7 @@ export const getEventTypeByIdForCalIdTeam = async ({
   if (eventType.users.length === 0 && !eventType.calIdTeam) {
     const fallbackUser = await prisma.user.findUnique({
       where: {
-        id: rawEventType.userId || 0,
+        id: userId,
       },
       select: userSelect,
     });
@@ -426,7 +444,7 @@ export const getEventTypeByIdForCalIdTeam = async ({
       avatar: getUserAvatarUrl(user),
     }));
 
-  const currentUser = eventType.users.find((u) => u.id === rawEventType.userId);
+  const currentUser = eventType.users.find((u) => u.id === userId);
 
   const t = await getTranslation(currentUser?.locale ?? "en", "common");
 
@@ -438,7 +456,7 @@ export const getEventTypeByIdForCalIdTeam = async ({
   }
 
   const locationOptions = await getLocationGroupedOptions(
-    eventType.calIdTeamId ? { teamId: eventType.calIdTeamId } : { userId: rawEventType.userId || 0 },
+    eventType.calIdTeamId ? { teamId: eventType.calIdTeamId } : { userId: userId },
     t
   );
   if (eventType.schedulingType === SchedulingType.MANAGED) {
@@ -484,13 +502,13 @@ export const getEventTypeByIdForCalIdTeam = async ({
   // Find the current users membership so we can check role to enable/disable deletion.
   // Sets to null if no membership is found - this must mean we are in a none team event type
   const currentUserMembership =
-    eventTypeObject.calIdTeam?.members.find((el) => el.user.id === rawEventType.userId) ?? null;
+    eventTypeObject.calIdTeam?.members.find((el) => el.user.id === userId) ?? null;
 
   let destinationCalendar = eventTypeObject.destinationCalendar;
   if (!destinationCalendar) {
     destinationCalendar = await prisma.destinationCalendar.findFirst({
       where: {
-        userId: rawEventType.userId || 0,
+        userId: userId,
         eventTypeId: null,
       },
     });
@@ -503,7 +521,7 @@ export const getEventTypeByIdForCalIdTeam = async ({
     team: eventTypeObject.calIdTeam || null,
     teamMembers,
     currentUserMembership,
-    isUserOrganizationAdmin: false, // calIdTeam has no organization
+    isUserOrganizationAdmin,
   };
   return finalObj;
 };

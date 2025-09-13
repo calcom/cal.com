@@ -6,7 +6,7 @@ import { Form, FormField } from "@calid/features/ui/components/form";
 import { TextField } from "@calid/features/ui/components/input/input";
 import { TextArea } from "@calid/features/ui/components/input/text-area";
 import { Label } from "@calid/features/ui/components/label";
-import { Select } from "@calid/features/ui/components/select";
+import { Select } from "@calcom/ui/form/select";
 import { Switch } from "@calid/features/ui/components/switch";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -21,7 +21,7 @@ import { ToggleGroup } from "@calcom/ui/components/form";
 import customTemplate, { hasTemplateIntegration } from "../lib/integrationTemplate";
 import WebhookTestDisclosure from "./WebhookTestDisclosure";
 
-export type TWebhook = RouterOutputs["viewer"]["webhook"]["list"][number];
+export type TWebhook = RouterOutputs["viewer"]["webhook"]["calid_list"][number];
 
 export type WebhookFormData = {
   id?: string;

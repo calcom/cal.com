@@ -15,7 +15,7 @@ import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
-import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getDefaultAvatar } from "@calid/features/lib/defaultAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
@@ -211,7 +211,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
       </div>
     );
 
-  const profileImageSrc = getOrgOrTeamAvatar(team);
+  const profileImageSrc = getDefaultAvatar(team);
 
   return (
     <>

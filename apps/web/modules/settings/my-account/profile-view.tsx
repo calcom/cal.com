@@ -330,8 +330,9 @@ const ProfileView = ({ user }: Props) => {
           <DialogTrigger asChild>
             <Button
               data-testid="delete-account"
-              color="destructive_account"
-              className="mt-1"
+              variant="button"
+              color="destructive"
+              className="bg-default text-destructive"
               StartIcon="trash-2">
               {t("delete_account")}
             </Button>
@@ -673,7 +674,7 @@ const ProfileForm = ({
               const showRemoveAvatarButton = value !== null;
               return (
                 <>
-                  <Avatar data-testid="profile-upload-avatar" previewSrc={value} size="lg" user={user} />
+                  <Avatar data-testid="profile-upload-avatar" imageSrc={getUserAvatarUrl({ avatarUrl: value })} size="lg" alt={user.name || "Nameless User"} />
                   <div className="ms-4">
                     <div className="flex gap-2">
                       <ImageUploader

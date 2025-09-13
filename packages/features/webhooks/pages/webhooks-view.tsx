@@ -7,15 +7,15 @@ import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import type { WebhooksByViewer } from "@calcom/trpc/server/routers/viewer/webhook/getByViewer.handler";
+import type { WebhooksByViewer } from "@calcom/trpc/server/routers/viewer/webhook/calid/getByViewer.handler";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { BlankCard } from "@calid/features/ui/components/card";
 
 import { WebhookListItem, CreateNewWebhookButton } from "../components";
 
 type Props = {
-  data: RouterOutputs["viewer"]["webhook"]["getByViewer"];
+  data: RouterOutputs["viewer"]["webhook"]["calid_getByViewer"];
   isAdmin: boolean;
 };
 
@@ -49,7 +49,7 @@ const WebhooksList = ({
       {!!webhookGroups.length ? (
         <div className={classNames("mt-6")}>
           {webhookGroups.map((group) => (
-            <div key={group.teamId}>
+            <div key={group.calIdTeamId}>
               {hasTeams && (
                 <div className="items-centers flex">
                   <Avatar
@@ -86,13 +86,12 @@ const WebhooksList = ({
           ))}
         </div>
       ) : (
-        <EmptyScreen
+        <BlankCard
           Icon="link"
           headline={t("create_your_first_webhook")}
           description={t("create_your_first_webhook_description", { appName: APP_NAME })}
           className="mt-6 rounded-b-lg"
           buttonRaw={<CreateNewWebhookButton isAdmin={isAdmin} />}
-          border={true}
         />
       )}
     </SettingsHeader>

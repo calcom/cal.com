@@ -1,5 +1,5 @@
-import { Tooltip, Button, Icon } from "@calid/features/ui";
-
+import { Button } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 export interface ExportBookingsButtonProps {

@@ -176,7 +176,8 @@ export type AddMembersWithSwitchProps = {
   isFixed: boolean;
   placeholder?: string;
   isRRWeightsEnabled?: boolean;
-  teamId: number;
+  teamId?: number;
+  calIdTeamId?: number;
   isSegmentApplicable?: boolean;
   "data-testid"?: string;
   customClassNames?: AddMembersWithSwitchCustomClassNames;

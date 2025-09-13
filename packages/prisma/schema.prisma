@@ -733,6 +733,8 @@ model InstantMeetingToken {
   team      Team     @relation(fields: [teamId], references: [id])
   bookingId Int?     @unique
   booking   Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  calIdTeamId Int
+  calIdTeam   CalIdTeam   @relation(fields: [calIdTeamId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2568,6 +2570,8 @@ model CalIdTeam {
   weekStart           String              @default("Monday")
   bookingFrequency    Json?
   filterSegments      FilterSegment[]
+  bannerUrl           String?
+  instantMeetingTokens InstantMeetingToken[]
 
   credentials     Credential[] // Teams can have credentials for integrations
   accessCodes     AccessCode[] // Teams can have OAuth access codes
@@ -2578,6 +2582,8 @@ model CalIdTeam {
   features        CalIdTeamFeatures[] // Teams can have feature flags enabled
   workflows       CalIdWorkflow[]
   activeWorkflows CalIdWorkflowsOnTeams[]
+  roundRobinResetInterval     RoundRobinResetInterval?    @default(MONTH)
+  roundRobinTimestampBasis    RoundRobinTimestampBasis?   @default(CREATED_AT)
 
   @@unique([slug])
 }
@@ -2724,4 +2730,14 @@ model CalIdWorkflowInsights {
   status      WorkflowStatus
   metadata    Json?
   createdAt   DateTime        @default(now())
+}
+
+enum RoundRobinResetInterval {
+  MONTH
+  DAY
+}
+
+enum RoundRobinTimestampBasis {
+  CREATED_AT
+  START_TIME
 }

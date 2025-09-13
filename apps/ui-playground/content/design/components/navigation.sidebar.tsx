@@ -158,10 +158,10 @@ export const SidebarExample: React.FC = () => {
                 name: "Webhooks",
                 href: "#webhooks",
               },
-              {
-                name: "API Keys",
-                href: "#api-keys",
-              },
+              // {
+              //   name: "API Keys",
+              //   href: "#api-keys",
+              // },
             ],
           }}
         />

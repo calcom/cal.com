@@ -1,5 +1,6 @@
 "use client";
 
+import { Avatar } from "@calid/features/ui/components/avatar";
 import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
@@ -63,8 +64,13 @@ export const EventTypesHeader: React.FC<EventTypesHeaderProps> = ({
                 <button
                   onClick={() => onNewSelection("personal")}
                   className="hover:bg-muted flex w-full items-center px-3 py-1.5 text-sm transition-colors">
-                  <Icon name="user" className="mr-2 h-3 w-3" />
-                  Personal Event
+                  <Avatar
+                    imageSrc={currentTeam?.profile.image}
+                    size="xs"
+                    alt={currentTeam?.profile.name}
+                    className="mr-2"
+                  />
+                  {currentTeam?.profile.name}
                 </button>
                 {eventTypeGroups
                   .filter((group) => group.teamId && !group.metadata?.readOnly)
@@ -74,7 +80,7 @@ export const EventTypesHeader: React.FC<EventTypesHeaderProps> = ({
                       onClick={() => onNewSelection(group.teamId?.toString() || "")}
                       className="hover:bg-muted flex w-full items-center px-3 py-1.5 text-sm transition-colors">
                       <div className="bg-primary text-primary-foreground mr-2 flex h-3 w-3 items-center justify-center rounded-full text-xs font-medium">
-                        {group.profile.name?.[0] || "T"}
+                        <Avatar imageSrc={group.profile.image} size="xs" alt={group.profile.name} />
                       </div>
                       {group.profile.name}
                     </button>

@@ -30,7 +30,6 @@ export const eventOwnerProcedure = authedProcedure
   )
   .use(async ({ ctx, input, next }) => {
     const id = input.eventTypeId ?? input.id;
-    // Prevent non-owners to update/delete a team event
     const event = await ctx.prisma.eventType.findUnique({
       where: { id },
       include: {
@@ -58,10 +57,10 @@ export const eventOwnerProcedure = authedProcedure
 
     const isAuthorized = (function () {
       if (event.calIdTeam) {
-        return event.calIdTeam.members
+        const adminOrOwnerMembers = event.calIdTeam.members
           .filter((member) => member.role === "ADMIN" || member.role === "OWNER")
-          .map((member) => member.userId)
-          .includes(ctx.user.id);
+          .map((member) => member.userId);
+        return adminOrOwnerMembers.includes(ctx.user.id);
       }
       return event.userId === ctx.user.id || event.users.find((user) => user.id === ctx.user.id);
     })();
@@ -79,9 +78,6 @@ export const eventOwnerProcedure = authedProcedure
     })();
 
     if (!isAllowed) {
-      console.warn(
-        `User ${ctx.user.id} attempted to an create an event for users ${input.users.join(", ")}.`
-      );
       throw new TRPCError({ code: "FORBIDDEN" });
     }
 

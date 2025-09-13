@@ -6,7 +6,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { SkeletonContainer } from "@calcom/ui/components/skeleton";
-import { showToast } from "@calcom/ui/components/toast";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { revalidateWebhooksList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/webhooks/(with-loader)/actions";
 
 import type { WebhookFormSubmitData } from "../components/WebhookForm";
@@ -29,7 +29,7 @@ export function EditWebhookView({ webhook }: { webhook?: WebhookProps }) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const router = useRouter();
-  const { data: installedApps, isPending } = trpc.viewer.apps.integrations.useQuery(
+  const { data: installedApps, isPending } = trpc.viewer.apps.calid_integrations.useQuery(
     { variant: "other", onlyInstalled: true },
     {
       suspense: true,
@@ -37,20 +37,20 @@ export function EditWebhookView({ webhook }: { webhook?: WebhookProps }) {
     }
   );
 
-  const { data: webhooks } = trpc.viewer.webhook.list.useQuery(undefined, {
+  const { data: webhooks } = trpc.viewer.webhook.calid_list.useQuery(undefined, {
     suspense: true,
     enabled: !!webhook,
   });
-  const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
+  const editWebhookMutation = trpc.viewer.webhook.calid_edit.useMutation({
     async onSuccess() {
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.webhook.get.invalidate({ webhookId: webhook?.id });
-      showToast(t("webhook_updated_successfully"), "success");
+      triggerToast(t("webhook_updated_successfully"), "success");
       revalidateWebhooksList();
       router.push("/settings/developer/webhooks");
     },
     onError(error) {
-      showToast(`${error.message}`, "error");
+      triggerToast(`${error.message}`, "error");
     },
   });
 
@@ -72,7 +72,7 @@ export function EditWebhookView({ webhook }: { webhook?: WebhookProps }) {
               platform: webhook.platform ?? undefined,
             })
           ) {
-            showToast(t("webhook_subscriber_url_reserved"), "error");
+            triggerToast(t("webhook_subscriber_url_reserved"), "error");
             return;
           }
 

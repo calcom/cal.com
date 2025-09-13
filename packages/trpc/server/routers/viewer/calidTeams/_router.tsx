@@ -10,6 +10,7 @@ import { ZRemoveMemberSchema } from "./removeMember.schema";
 import { ZLeaveTeamSchema } from "./leaveTeam.schema";
 import { ZUpdateCalidTeamSchema } from "./update.schema";
 import { ZUpdateMemberSchema } from "./updateMember.schema";
+import { ZChangeCalidMemberRoleInputSchema } from "./changeMemberRole.schema";
 
 export const calIdTeamsRouter = router({
   // Create a new calidTeam
@@ -70,6 +71,12 @@ export const calIdTeamsRouter = router({
   updateMember: authedProcedure.input(ZUpdateMemberSchema).mutation(async ({ ctx, input }) => {
     const { updateMemberHandler } = await import("./updateMember.handler");
     return updateMemberHandler({ ctx, input });
+  }),
+
+  // Change member role
+  changeMemberRole: authedProcedure.input(ZChangeCalidMemberRoleInputSchema).mutation(async ({ ctx, input }) => {
+    const { changeCalidMemberRoleHandler } = await import("./changeMemberRole.handler");
+    return changeCalidMemberRoleHandler({ ctx, input });
   }),
 
   // List members

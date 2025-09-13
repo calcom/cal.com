@@ -1,7 +1,3 @@
-// import { Button } from "@calcom/ui/components/button";
-import { Button, TextField, Switch, Tooltip } from "@calid/features/ui";
-// import { DialogFooter } from "@calcom/ui/components/dialog";
-import { DialogFooter } from "@calid/features/ui";
 import Link from "next/link";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -12,12 +8,14 @@ import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
 import { IS_CALCOM } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import { Button } from "@calcom/ui/components/button";
+import { DialogFooter } from "@calcom/ui/components/dialog";
 import { Form } from "@calcom/ui/components/form";
-// import { TextField } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
 import { SelectField } from "@calcom/ui/components/form";
-// import { Switch } from "@calcom/ui/components/form";
+import { Switch } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
-// import { Tooltip } from "@calcom/ui/components/tooltip";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 import { revalidateApiKeysList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/api-keys/actions";
 
 export default function ApiKeyDialogForm({
@@ -82,7 +80,7 @@ export default function ApiKeyDialogForm({
   ];
 
   return (
-    <div>
+    <LicenseRequired>
       {successfulNewApiKeyModal ? (
         <>
           <div className="mb-6">
@@ -95,19 +93,19 @@ export default function ApiKeyDialogForm({
             </div>
           </div>
           <div>
-            <div className="flex flex-row gap-2">
-              <code className="bg-subtle text-default w-full truncate rounded-md py-[6px] pl-2 pr-2 align-middle font-mono">
+            <div className="flex">
+              <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none py-[6px] pl-2 pr-2 align-middle font-mono">
                 {" "}
                 {apiKey}
               </code>
               <Tooltip side="top" content={t("copy_to_clipboard")}>
                 <Button
-                  color="secondary"
                   onClick={() => {
                     navigator.clipboard.writeText(apiKey);
                     showToast(t("api_key_copied"), "success");
                   }}
                   type="button"
+                  className="rounded-l-none text-base"
                   StartIcon="clipboard">
                   {t("copy")}
                 </Button>
@@ -119,8 +117,8 @@ export default function ApiKeyDialogForm({
                 : `${t("expires")} ${apiKeyDetails?.expiresAt?.toLocaleDateString()}`}
             </span>
           </div>
-          <DialogFooter showDivider className="pb-4">
-            <Button type="button" color="primary" onClick={handleClose} tabIndex={-1}>
+          <DialogFooter showDivider className="relative">
+            <Button type="button" color="secondary" onClick={handleClose} tabIndex={-1}>
               {t("done")}
             </Button>
           </DialogFooter>
@@ -143,10 +141,10 @@ export default function ApiKeyDialogForm({
           }}
           className="space-y-4">
           <div className="mb-4 mt-1">
-            <h2 className="font-normal font-cal text-emphasis text-lg tracking-wide">
+            <h2 className="font-semi-bold font-cal text-emphasis text-xl tracking-wide">
               {defaultValues ? t("edit_api_key") : t("create_api_key")}
             </h2>
-            {/* {IS_CALCOM ? (
+            {IS_CALCOM ? (
               <div className="mt-4 block gap-2 sm:flex">
                 <div className="border-emphasis relative flex w-full items-start rounded-[10px] border p-4 text-sm">
                   {t("api_key_modal_subtitle")}
@@ -161,7 +159,7 @@ export default function ApiKeyDialogForm({
               </div>
             ) : (
               <p className="text-subtle mb-5 mt-1 text-sm">{t("api_key_modal_subtitle")}</p>
-            )} */}
+            )}
           </div>
 
           <div>
@@ -184,7 +182,7 @@ export default function ApiKeyDialogForm({
           </div>
           {!defaultValues && (
             <div className="flex flex-col">
-              <div className="flex items-center justify-between py-2">
+              <div className="flex justify-between py-2">
                 <span className="text-default block text-sm font-medium">{t("expire_date")}</span>
                 <Controller
                   name="neverExpires"
@@ -240,7 +238,7 @@ export default function ApiKeyDialogForm({
             </div>
           )}
 
-          <DialogFooter className="pb-4">
+          <DialogFooter showDivider className="relative">
             <Button type="button" color="secondary" onClick={handleClose} tabIndex={-1}>
               {t("cancel")}
             </Button>
@@ -250,6 +248,6 @@ export default function ApiKeyDialogForm({
           </DialogFooter>
         </Form>
       )}
-    </div>
+    </LicenseRequired>
   );
 }

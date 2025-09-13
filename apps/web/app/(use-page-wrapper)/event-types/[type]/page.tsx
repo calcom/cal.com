@@ -35,9 +35,9 @@ export const generateMetadata = async () => {
 const getCachedEventType = unstable_cache(
   async (eventTypeId: number, headers: ReadonlyHeaders, cookies: ReadonlyRequestCookies) => {
     const caller = await createRouterCaller(eventTypesRouter, await getTRPCContext(headers, cookies));
-    return await caller.get({ id: eventTypeId });
+    return await caller.calid_get({ id: eventTypeId });
   },
-  ["viewer.eventTypes.get"],
+  ["viewer.eventTypes.calid_get"],
   { revalidate: 3600 } // Cache for 1 hour
 );
 

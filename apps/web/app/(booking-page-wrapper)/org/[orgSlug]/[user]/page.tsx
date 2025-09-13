@@ -4,7 +4,7 @@ import { generateMeetingMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getDefaultAvatar } from "@calid/features/lib/defaultAvatar";
 
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/org/[orgSlug]/[user]/getServerSideProps";
@@ -28,7 +28,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
       title: markdownStrippedBio ?? "",
       profile: {
         name: `${team.name}`,
-        image: getOrgOrTeamAvatar(team),
+        image: getDefaultAvatar(team),
       },
     };
     return {
