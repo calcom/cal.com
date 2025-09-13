@@ -1,7 +1,7 @@
 import { type TFunction } from "i18next";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import "react-phone-number-input/style.css";
@@ -61,6 +61,7 @@ import {
   isCalAIAction,
 } from "../lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
+import { getCountryOptions, getCountryLabel } from "../lib/countryCodeUtils";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
 import emailRatingTemplate from "../lib/reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
@@ -230,8 +231,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     },
   });
 
-  const verifiedNumbers = _verifiedNumbers?.map((number) => number.phoneNumber) || [];
-  const verifiedEmails = _verifiedEmails || [];
+  const verifiedNumbers = useMemo(
+    () => _verifiedNumbers?.map((number) => number.phoneNumber) || [],
+    [_verifiedNumbers]
+  );
+  const verifiedEmails = useMemo(() => _verifiedEmails || [], [_verifiedEmails]);
   const [isAdditionalInputsDialogOpen, setIsAdditionalInputsDialogOpen] = useState(false);
   const [isTestAgentDialogOpen, setIsTestAgentDialogOpen] = useState(false);
   const [isWebCallDialogOpen, setIsWebCallDialogOpen] = useState(false);
@@ -366,15 +370,23 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const refEmailSubject = useRef<HTMLTextAreaElement | null>(null);
 
-  const getNumberVerificationStatus = () =>
-    !!step &&
-    !!verifiedNumbers.find(
-      (number: string) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`)
-    );
+  const getNumberVerificationStatus = useCallback(
+    () =>
+      !!step &&
+      !!verifiedNumbers.find(
+        (number: string) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`)
+      ),
+    [step, verifiedNumbers, form]
+  );
 
-  const getEmailVerificationStatus = () =>
-    !!step &&
-    !!verifiedEmails.find((email: string) => email === form.getValues(`steps.${step.stepNumber - 1}.sendTo`));
+  const getEmailVerificationStatus = useCallback(
+    () =>
+      !!step &&
+      !!verifiedEmails.find(
+        (email: string) => email === form.getValues(`steps.${step.stepNumber - 1}.sendTo`)
+      ),
+    [step, verifiedEmails, form]
+  );
 
   const [numberVerified, setNumberVerified] = useState(getNumberVerificationStatus());
   const [emailVerified, setEmailVerified] = useState(getEmailVerificationStatus());
@@ -973,7 +985,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   {t("send_code")}
                 </Button>
               </div>
-
               {form.formState.errors.steps && form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
                 <p className="text-error mt-1 text-xs">
                   {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
@@ -1025,6 +1036,42 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   </>
                 )
               )}
+            </div>
+          )}
+          {form.getValues(`steps.${step.stepNumber - 1}.action`) === "SMS_ATTENDEE" && (
+            <div className="bg-muted mt-2 rounded-md p-4 pt-0">
+              <div className="mt-3 space-y-1">
+                <Label htmlFor={`steps.${step.stepNumber - 1}.allowedCountryCodes`}>
+                  {t("allowed_country_codes")}
+                </Label>
+                <Controller
+                  name={`steps.${step.stepNumber - 1}.allowedCountryCodes`}
+                  control={form.control}
+                  render={({ field }) => (
+                    <Select
+                      isMulti
+                      isSearchable
+                      className="text-sm"
+                      isDisabled={props.readOnly}
+                      placeholder={t("select_country_codes")}
+                      options={getCountryOptions()}
+                      value={
+                        field.value?.map((code: string) => ({
+                          label: getCountryLabel(code),
+                          value: code,
+                        })) || []
+                      }
+                      onChange={(selectedOptions) => {
+                        field.onChange(selectedOptions?.map((option) => option.value) || []);
+                      }}
+                    />
+                  )}
+                />
+                <div className="mt-1 flex text-gray-500">
+                  <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
+                  <p className="text-sm">{t("country_code_restriction_help")}</p>
+                </div>
+              </div>
             </div>
           )}
           {canRequirePhoneNumber(form.getValues(`steps.${step.stepNumber - 1}.action`)) &&

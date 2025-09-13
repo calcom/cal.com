@@ -15,11 +15,9 @@ const _getEventType = async ({
   const eventType =
     !eventTypeId && !!eventTypeSlug ? getDefaultEvent(eventTypeSlug) : await getEventTypesFromDB(eventTypeId);
 
-  const isOrgTeamEvent = !!eventType?.team && !!eventType?.team?.parentId;
-
   return {
     ...eventType,
-    bookingFields: getBookingFieldsWithSystemFields({ ...eventType, isOrgTeamEvent }),
+    bookingFields: getBookingFieldsWithSystemFields({ ...eventType }),
   };
 };
 

@@ -459,6 +459,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           ...newStep,
           verifiedAt: oldStep.verifiedAt,
           agentId: newStep.agentId || null,
+          allowedCountryCodes: newStep.allowedCountryCodes || [],
         })
       ) {
         // check if step that require team plan already existed before
@@ -521,6 +522,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             includeCalendarEvent: newStep.includeCalendarEvent,
             agentId: newStep.agentId || null,
             verifiedAt: !SCANNING_WORKFLOW_STEPS ? new Date() : didBodyChange ? null : oldStep.verifiedAt,
+            allowedCountryCodes: newStep.allowedCountryCodes || [],
           },
         });
 

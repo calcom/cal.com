@@ -96,11 +96,7 @@ type Input = Pick<
 
 @Injectable()
 export class OutputEventTypesService_2024_06_14 {
-  getResponseEventType(
-    ownerId: number,
-    databaseEventType: Input,
-    isOrgTeamEvent: boolean
-  ): EventTypeOutput_2024_06_14 {
+  getResponseEventType(ownerId: number, databaseEventType: Input): EventTypeOutput_2024_06_14 {
     const {
       id,
       length,
@@ -138,7 +134,7 @@ export class OutputEventTypesService_2024_06_14 {
     const customName = databaseEventType?.eventName ?? undefined;
     const bookingFields = databaseEventType.bookingFields
       ? this.transformBookingFields(databaseEventType.bookingFields)
-      : this.getDefaultBookingFields(isOrgTeamEvent);
+      : this.getDefaultBookingFields();
 
     const recurrence = this.transformRecurringEvent(databaseEventType.recurringEvent);
     const metadata = this.transformMetadata(databaseEventType.metadata) || {};
@@ -261,14 +257,13 @@ export class OutputEventTypesService_2024_06_14 {
     return [...transformBookingFieldsInternalToApi(knownBookingFields), ...unknownBookingFields];
   }
 
-  getDefaultBookingFields(isOrgTeamEvent: boolean) {
+  getDefaultBookingFields() {
     const defaultBookingFields = getBookingFieldsWithSystemFields({
       disableGuests: false,
       bookingFields: null,
       customInputs: [],
       metadata: null,
       workflows: [],
-      isOrgTeamEvent,
     });
     return this.transformBookingFields(defaultBookingFields);
   }

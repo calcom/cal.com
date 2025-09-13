@@ -34,13 +34,12 @@ async function getEventType(eventTypeId: EventType["id"]) {
     throw new Error(`EventType:${eventTypeId} not found`);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { profile, ...restEventType } = rawEventType;
-
-  const isOrgTeamEvent = !!rawEventType?.teamId && !!profile?.organizationId;
 
   const eventType = {
     ...restEventType,
-    bookingFields: getBookingFieldsWithSystemFields({ ...restEventType, isOrgTeamEvent }),
+    bookingFields: getBookingFieldsWithSystemFields({ ...restEventType }),
   };
   return eventType;
 }
