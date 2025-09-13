@@ -1,6 +1,7 @@
 "use client";
 
-import { useReducer } from "react";
+import { useAction } from "next-safe-action/hooks";
+import { useEffect, useReducer, useState } from "react";
 
 import getAppCategoryTitle from "@calcom/app-store/_utils/getAppCategoryTitle";
 import { AppList, type HandleDisconnect } from "@calcom/features/apps/components/AppList";
@@ -23,6 +24,9 @@ import { QueryCell } from "@lib/QueryCell";
 
 import { CalendarListContainer } from "@components/apps/CalendarListContainer";
 import InstalledAppsLayout from "@components/apps/layouts/InstalledAppsLayout";
+
+import { bulkUpdateToDefaultLocationAction } from "../../../../app/(use-page-wrapper)/event-types/mutations/actions";
+import { bulkEventFetchAction } from "../../../../app/(use-page-wrapper)/event-types/queries/actions";
 
 interface IntegrationsContainerProps {
   variant?: AppCategories;
@@ -48,10 +52,24 @@ const IntegrationsContainer = ({
 
   const updateDefaultAppMutation = trpc.viewer.apps.updateUserDefaultConferencingApp.useMutation();
 
-  const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation();
+  const [eventTypesQueryData, setEventTypesQueryData] = useState<
+    RouterOutputs["viewer"]["eventTypes"]["bulkEventFetch"] | null
+  >(null);
+  const [isEventTypesFetching, setIsEventTypesFetching] = useState(false);
 
-  const { data: eventTypesQueryData, isFetching: isEventTypesFetching } =
-    trpc.viewer.eventTypes.bulkEventFetch.useQuery();
+  const { execute: executeBulkEventFetch } = useAction(bulkEventFetchAction, {
+    onSuccess: (result) => {
+      setEventTypesQueryData(result?.data);
+      setIsEventTypesFetching(false);
+    },
+  });
+
+  const { execute: executeBulkUpdate } = useAction(bulkUpdateToDefaultLocationAction);
+
+  useEffect(() => {
+    setIsEventTypesFetching(true);
+    executeBulkEventFetch();
+  }, [executeBulkEventFetch]);
 
   const handleUpdateUserDefaultConferencingApp = ({
     appSlug,
@@ -76,17 +94,11 @@ const IntegrationsContainer = ({
   };
 
   const handleBulkUpdateDefaultLocation = ({ eventTypeIds, callback }: BulkUpdatParams) => {
-    updateLocationsMutation.mutate(
-      {
-        eventTypeIds,
-      },
-      {
-        onSuccess: () => {
-          utils.viewer.apps.getUsersDefaultConferencingApp.invalidate();
-          callback();
-        },
-      }
-    );
+    executeBulkUpdate({
+      eventTypeIds,
+    });
+    utils.viewer.apps.getUsersDefaultConferencingApp.invalidate();
+    callback();
   };
 
   const handleConnectDisconnectIntegrationMenuToggle = () => {

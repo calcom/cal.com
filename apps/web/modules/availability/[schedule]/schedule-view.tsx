@@ -2,8 +2,9 @@
 
 import { revalidateAvailabilityList } from "app/(use-page-wrapper)/(main-nav)/availability/actions";
 import { revalidateSchedulePage } from "app/(use-page-wrapper)/availability/[schedule]/actions";
+import { useAction } from "next-safe-action/hooks";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { AvailabilitySettings } from "@calcom/atoms/availability/AvailabilitySettings";
 import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
@@ -14,6 +15,8 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { showToast } from "@calcom/ui/components/toast";
+
+import { bulkEventFetchAction } from "../../../app/(use-page-wrapper)/event-types/queries/actions";
 
 type PageProps = {
   scheduleData: RouterOutputs["viewer"]["availability"]["schedule"]["get"];
@@ -36,8 +39,22 @@ export const AvailabilitySettingsWebWrapper = ({
   const bulkUpdateDefaultAvailabilityMutation =
     trpc.viewer.availability.schedule.bulkUpdateToDefaultAvailability.useMutation();
 
-  const { data: eventTypesQueryData, isFetching: isEventTypesFetching } =
-    trpc.viewer.eventTypes.bulkEventFetch.useQuery();
+  const [eventTypesQueryData, setEventTypesQueryData] = useState<
+    RouterOutputs["viewer"]["eventTypes"]["bulkEventFetch"] | null
+  >(null);
+  const [isEventTypesFetching, setIsEventTypesFetching] = useState(false);
+
+  const { execute: executeBulkEventFetch } = useAction(bulkEventFetchAction, {
+    onSuccess: (result) => {
+      setEventTypesQueryData(result?.data);
+      setIsEventTypesFetching(false);
+    },
+  });
+
+  useEffect(() => {
+    setIsEventTypesFetching(true);
+    executeBulkEventFetch();
+  }, [executeBulkEventFetch]);
 
   const bulkUpdateFunction = ({ eventTypeIds, callback }: BulkUpdatParams) => {
     bulkUpdateDefaultAvailabilityMutation.mutate(

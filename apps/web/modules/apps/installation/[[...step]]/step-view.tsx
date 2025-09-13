@@ -1,5 +1,6 @@
 "use client";
 
+import { useAction } from "next-safe-action/hooks";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -24,8 +25,6 @@ import type { AppMeta } from "@calcom/types/App";
 import { Form, Steps } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { HttpError } from "@lib/core/http/error";
-
 import type { PersonalAccountProps } from "@components/apps/installation/AccountsStepCard";
 import { AccountsStepCard } from "@components/apps/installation/AccountsStepCard";
 import { ConfigureStepCard } from "@components/apps/installation/ConfigureStepCard";
@@ -33,6 +32,8 @@ import { EventTypesStepCard } from "@components/apps/installation/EventTypesStep
 import { StepHeader } from "@components/apps/installation/StepHeader";
 
 import { STEPS } from "~/apps/installation/[[...step]]/constants";
+
+import { updateAction } from "../../../../app/(use-page-wrapper)/event-types/heavy/actions";
 
 export type TEventType = EventTypeAppSettingsComponentProps["eventType"] &
   Pick<
@@ -177,35 +178,24 @@ const OnboardingPage = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventTypeGroups]);
 
-  const updateMutation = trpc.viewer.eventTypes.heavy.update.useMutation({
+  const { execute: executeUpdate, isPending: updatePending } = useAction(updateAction, {
     onSuccess: async (data) => {
-      showToast(t("event_type_updated_successfully", { eventTypeTitle: data.eventType?.title }), "success");
-    },
-    async onSettled() {
+      showToast(
+        t("event_type_updated_successfully", { eventTypeTitle: data?.data?.eventType?.title }),
+        "success"
+      );
       await utils.viewer.eventTypes.get.invalidate();
     },
-    onError: (err) => {
-      let message = "";
-      if (err instanceof HttpError) {
-        const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
-      }
-
-      if (err.data?.code === "UNAUTHORIZED") {
-        message = `${err.data.code}: ${t("error_event_type_unauthorized_update")}`;
-      }
-
-      if (err.data?.code === "PARSE_ERROR" || err.data?.code === "BAD_REQUEST") {
-        message = `${err.data.code}: ${t(err.message)}`;
-      }
-
-      if (err.data?.code === "INTERNAL_SERVER_ERROR") {
-        message = t("unexpected_error_try_again");
-      }
-
-      showToast(message ? t(message) : t(err.message), "error");
+    onError: (error) => {
+      const message = (error?.error?.serverError as string) || t("unexpected_error_try_again");
+      showToast(message, "error");
     },
   });
+
+  const updateMutation = {
+    mutateAsync: executeUpdate,
+    isPending: updatePending,
+  };
 
   const handleSelectAccount = async (teamId?: number) => {
     mutation.mutate({

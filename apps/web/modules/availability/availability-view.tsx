@@ -2,9 +2,10 @@
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { revalidateAvailabilityList } from "app/(use-page-wrapper)/(main-nav)/availability/actions";
+import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
@@ -19,6 +20,8 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+
+import { bulkEventFetchAction } from "../../app/(use-page-wrapper)/event-types/queries/actions";
 
 type AvailabilityListProps = {
   availabilities: RouterOutputs["viewer"]["availability"]["list"];
@@ -83,8 +86,22 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
   const bulkUpdateDefaultAvailabilityMutation =
     trpc.viewer.availability.schedule.bulkUpdateToDefaultAvailability.useMutation();
 
-  const { data: eventTypesQueryData, isFetching: isEventTypesFetching } =
-    trpc.viewer.eventTypes.bulkEventFetch.useQuery();
+  const [eventTypesQueryData, setEventTypesQueryData] = useState<
+    RouterOutputs["viewer"]["eventTypes"]["bulkEventFetch"] | null
+  >(null);
+  const [isEventTypesFetching, setIsEventTypesFetching] = useState(false);
+
+  const { execute: executeBulkEventFetch } = useAction(bulkEventFetchAction, {
+    onSuccess: (result) => {
+      setEventTypesQueryData(result?.data);
+      setIsEventTypesFetching(false);
+    },
+  });
+
+  useEffect(() => {
+    setIsEventTypesFetching(true);
+    executeBulkEventFetch();
+  }, [executeBulkEventFetch]);
 
   const bulkUpdateFunction = ({ eventTypeIds, callback }: BulkUpdatParams) => {
     bulkUpdateDefaultAvailabilityMutation.mutate(

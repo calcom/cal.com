@@ -1,7 +1,8 @@
 "use client";
 
+import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -19,6 +20,9 @@ import { Label } from "@calcom/ui/components/form";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { showToast } from "@calcom/ui/components/toast";
 
+import { createAction } from "../../../app/(use-page-wrapper)/event-types/heavy/actions";
+import { listAction } from "../../../app/(use-page-wrapper)/event-types/queries/actions";
+
 type FormData = {
   bio: string;
 };
@@ -34,13 +38,24 @@ const UserProfile = ({ user }: UserProfileProps) => {
     defaultValues: { bio: user?.bio || "" },
   });
 
-  const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
+  const [eventTypes, setEventTypes] = useState<RouterOutputs["viewer"]["eventTypes"]["list"]>([]);
   const [imageSrc, setImageSrc] = useState<string>(user?.avatar || "");
   const utils = trpc.useUtils();
   const router = useRouter();
-  const createEventType = trpc.viewer.eventTypes.heavy.create.useMutation();
+
+  const { execute: executeList } = useAction(listAction, {
+    onSuccess: (result) => {
+      setEventTypes(result?.data || []);
+    },
+  });
+
+  const { execute: executeCreate } = useAction(createAction);
   const telemetry = useTelemetry();
   const [firstRender, setFirstRender] = useState(true);
+
+  useEffect(() => {
+    executeList();
+  }, [executeList]);
 
   // Create a separate mutation for avatar updates
   const avatarMutation = trpc.viewer.me.updateProfile.useMutation({
@@ -60,7 +75,7 @@ const UserProfile = ({ user }: UserProfileProps) => {
         if (eventTypes?.length === 0) {
           await Promise.all(
             DEFAULT_EVENT_TYPES.map(async (event) => {
-              return createEventType.mutate(event);
+              return executeCreate(event);
             })
           );
         }

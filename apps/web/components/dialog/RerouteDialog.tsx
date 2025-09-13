@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
+import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -30,6 +31,8 @@ import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+
+import { getAction } from "../../app/(use-page-wrapper)/event-types/queries/actions";
 
 const enum ReroutingStatusEnum {
   REROUTING_NOT_INITIATED = "not_initiated",
@@ -182,7 +185,7 @@ const useReroutingState = ({ isOpenDialog }: Pick<RerouteDialogProps, "isOpenDia
     }, 1);
 
     return () => clearInterval(checkInterval);
-  }, [value, setValue]);
+  }, [value, setValue, state?.reschedulerWindow?.closed]);
 
   const status = (() => {
     if (!value) return ReroutingStatusEnum.REROUTING_NOT_INITIATED;
@@ -238,14 +241,14 @@ const useEventListeners = ({ reroutingState }: { reroutingState: ReturnType<type
       gotoBookingPage({ router, booking: { uid: newBookingId } });
       reroutingState.value?.reschedulerWindow?.close();
     },
-    [reroutingState, reroutingState.value?.reschedulerWindow]
+    [reroutingState, router, t]
   );
 
   // Make sure to close the rescheduler window when this tab closes/reloads
   const beforeUnloadListener = useCallback(() => {
     reroutingState.value?.reschedulerWindow?.close();
     reroutingState.setValue(null);
-  }, [reroutingState.value?.reschedulerWindow]);
+  }, [reroutingState]);
 
   // Ensure listeners are added once the component is mounted and removed once the component is unmounted
   useEffect(() => {
@@ -313,15 +316,27 @@ const NewRoutingManager = ({
 
   const chosenEventTypeId = chosenRoute.action.eventTypeId;
   const enableChosenEventTypeQuery = !!chosenEventTypeId;
-  // TODO: Get bare minimum eventType details
-  const { data: chosenEventTypeData, isPending: isChosenEventTypePending } =
-    trpc.viewer.eventTypes.get.useQuery(
-      // enabled prop ensures that the query is not run if the chosenEventTypeId is not there
-      { id: chosenEventTypeId! },
-      {
-        enabled: enableChosenEventTypeQuery,
-      }
-    );
+  const [chosenEventTypeData, setChosenEventTypeData] = useState<
+    RouterOutputs["viewer"]["eventTypes"]["get"] | null
+  >(null);
+  const [isChosenEventTypePending, setIsChosenEventTypePending] = useState(false);
+
+  const { execute: executeGet } = useAction(getAction, {
+    onSuccess: (result) => {
+      setChosenEventTypeData(result);
+      setIsChosenEventTypePending(false);
+    },
+    onError: () => {
+      setIsChosenEventTypePending(false);
+    },
+  });
+
+  useEffect(() => {
+    if (enableChosenEventTypeQuery) {
+      setIsChosenEventTypePending(true);
+      executeGet({ id: chosenEventTypeId });
+    }
+  }, [chosenEventTypeId, enableChosenEventTypeQuery, executeGet]);
 
   // isPending of the query is true even if enabled=false and no request was sent. So, identify if the request is actually in progress
   const isChosenEventTypeRequestInProgress = enableChosenEventTypeQuery ? isChosenEventTypePending : false;
@@ -350,7 +365,7 @@ const NewRoutingManager = ({
       });
       gotoBookingPage({ router, booking: { uid: newBookingId } });
     },
-    onError: (err, _, ctx) => {
+    onError: (err, _, _ctx) => {
       reroutingState.setValue({
         error: err,
         newBooking: null,
@@ -751,7 +766,6 @@ const RerouteDialogContentAndFooterWithFormResponse = ({
 }) => {
   const form = responseWithForm.form;
   const { t } = useLocale();
-  const router = useRouter();
   const [responseFromOrganizer, setResponseFromOrganizer] = useState<FormResponse>({});
   const isResponseFromOrganizerUnpopulated = Object.keys(responseFromOrganizer).length === 0;
   const currentResponse = isResponseFromOrganizerUnpopulated

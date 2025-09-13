@@ -1,6 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FC } from "react";
@@ -24,7 +25,6 @@ import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
-import { HttpError } from "@calcom/lib/http-error";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { localStorage } from "@calcom/lib/webstorage";
 import type { MembershipRole } from "@calcom/prisma/enums";
@@ -56,8 +56,6 @@ import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
-import { TRPCClientError } from "@trpc/client";
 
 type GetUserEventGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
 type GetEventTypesFromGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getEventTypesFromGroup"];
@@ -97,19 +95,70 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  const query = trpc.viewer.eventTypes.getEventTypesFromGroup.useInfiniteQuery(
-    {
-      limit: LIMIT,
-      searchQuery: debouncedSearchTerm,
-      group: { teamId: activeEventTypeGroup?.teamId, parentId: activeEventTypeGroup?.parentId },
+  const [queryData, setQueryData] = useState<
+    RouterOutputs["viewer"]["eventTypes"]["getEventTypesFromGroup"] | null
+  >(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasNextPage, setHasNextPage] = useState<boolean>(false);
+  const [isFetchingNextPage, setIsFetchingNextPage] = useState(false);
+
+  const { execute: executeQuery, isPending: queryPending } = useAction(getEventTypesFromGroupAction, {
+    onSuccess: (result) => {
+      if (!queryData) {
+        setQueryData({ pages: [result?.data], pageParams: [null] });
+      } else {
+        setQueryData((prev: RouterOutputs["viewer"]["eventTypes"]["getEventTypesFromGroup"] | null) => ({
+          ...prev,
+          pages: [...prev.pages, result?.data],
+        }));
+      }
+      setHasNextPage(!!result?.data?.nextCursor);
+      setIsLoading(false);
+      setIsFetchingNextPage(false);
     },
-    {
-      refetchOnWindowFocus: true,
-      refetchOnMount: true,
-      staleTime: 0,
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    onError: (error) => {
+      console.error("Query error:", error);
+      setIsLoading(false);
+      setIsFetchingNextPage(false);
+    },
+  });
+
+  useEffect(() => {
+    if (activeEventTypeGroup) {
+      setQueryData(null);
+      setIsLoading(true);
+      executeQuery({
+        limit: LIMIT,
+        searchQuery: debouncedSearchTerm,
+        group: { teamId: activeEventTypeGroup?.teamId, parentId: activeEventTypeGroup?.parentId },
+      });
     }
-  );
+  }, [activeEventTypeGroup, debouncedSearchTerm, executeQuery]);
+
+  const fetchNextPage = () => {
+    if (hasNextPage && !isFetchingNextPage && queryData?.pages?.length) {
+      const lastPage = queryData.pages[queryData.pages.length - 1];
+      if (lastPage?.nextCursor) {
+        setIsFetchingNextPage(true);
+        executeQuery({
+          limit: LIMIT,
+          searchQuery: debouncedSearchTerm,
+          group: { teamId: activeEventTypeGroup?.teamId, parentId: activeEventTypeGroup?.parentId },
+          cursor: lastPage.nextCursor,
+        });
+      }
+    }
+  };
+
+  const query = {
+    data: queryData,
+    isPending: isLoading || queryPending,
+    isFetching: queryPending,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    status: isLoading ? "pending" : "success",
+  };
 
   const buttonInView = useInViewObserver(() => {
     if (!query.isFetching && query.hasNextPage && query.status === "success") {
@@ -139,6 +188,9 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
           readOnly={activeEventTypeGroup.metadata.readOnly}
           isPending={query.isPending}
           debouncedSearchTerm={debouncedSearchTerm}
+          activeEventTypeGroup={activeEventTypeGroup}
+          executeQuery={executeQuery}
+          setQueryData={setQueryData}
         />
       )}
       <div className="text-default p-4 text-center" ref={buttonInView.ref}>
@@ -245,7 +297,22 @@ export const InfiniteEventTypeList = ({
   lockedByOrg,
   isPending,
   debouncedSearchTerm,
-}: InfiniteEventTypeListProps): JSX.Element => {
+  activeEventTypeGroup,
+  executeQuery,
+  setQueryData,
+}: InfiniteEventTypeListProps & {
+  activeEventTypeGroup?: { teamId?: number; parentId?: number };
+  executeQuery: (params: {
+    limit: number;
+    searchQuery: string;
+    group: { teamId?: number; parentId?: number };
+  }) => void;
+  setQueryData: (
+    updater: (
+      prev: RouterOutputs["viewer"]["eventTypes"]["getEventTypesFromGroup"] | null
+    ) => RouterOutputs["viewer"]["eventTypes"]["getEventTypesFromGroup"] | null
+  ) => void;
+}): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
   const pathname = usePathname();
@@ -259,50 +326,40 @@ export const InfiniteEventTypeList = ({
   );
   const [privateLinkCopyIndices, setPrivateLinkCopyIndices] = useState<Record<string, number>>({});
 
-  const utils = trpc.useUtils();
   const mutation = trpc.viewer.loggedInViewerRouter.eventTypeOrder.useMutation({
     onError: async (err) => {
       console.error(err.message);
-      // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
-      await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
     },
   });
 
-  const setHiddenMutation = trpc.viewer.eventTypes.heavy.update.useMutation({
-    onMutate: async (data) => {
-      await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
-      const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
-        limit: LIMIT,
-        searchQuery: debouncedSearchTerm,
-        group: { teamId: group?.teamId, parentId: group?.parentId },
-      });
-
-      if (previousValue) {
-        pages?.forEach((page) => {
+  const { execute: executeUpdate, isPending: updatePending } = useAction(updateAction, {
+    onExecute: (data) => {
+      if (pages) {
+        pages.forEach((page) => {
           page?.eventTypes?.forEach((eventType) => {
-            if (eventType.id === data.id) {
+            if (eventType.id === data?.input?.id) {
               eventType.hidden = !eventType.hidden;
             }
           });
         });
       }
-
-      return { previousValue };
     },
-    onError: async (err, _, context) => {
-      if (context?.previousValue) {
-        utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
-          {
-            limit: LIMIT,
-            searchQuery: debouncedSearchTerm,
-            group: { teamId: group?.teamId, parentId: group?.parentId },
-          },
-          context.previousValue
-        );
+    onError: (error) => {
+      console.error("Update error:", error);
+      if (activeEventTypeGroup) {
+        executeQuery({
+          limit: LIMIT,
+          searchQuery: debouncedSearchTerm,
+          group: { teamId: activeEventTypeGroup?.teamId, parentId: activeEventTypeGroup?.parentId },
+        });
       }
-      console.error(err.message);
     },
   });
+
+  const setHiddenMutation = {
+    mutate: executeUpdate,
+    isPending: updatePending,
+  };
 
   async function moveEventType(index: number, increment: 1 | -1) {
     if (!pages) return;
@@ -326,33 +383,16 @@ export const InfiniteEventTypeList = ({
     newOrder[pageNo].eventTypes[index % LIMIT] = newPositionEventType;
     newOrder[newPageNo].eventTypes[newIdx] = currentPositionEventType;
 
-    await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
-    const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
-      limit: LIMIT,
-      searchQuery: debouncedSearchTerm,
-      group: { teamId: group?.teamId, parentId: group?.parentId },
+    setQueryData((prev: RouterOutputs["viewer"]["eventTypes"]["getEventTypesFromGroup"] | null) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        pages: newOrder.map((page) => ({
+          ...page,
+          nextCursor: page.nextCursor ?? undefined,
+        })),
+      };
     });
-
-    if (previousValue) {
-      utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
-        {
-          limit: LIMIT,
-          searchQuery: debouncedSearchTerm,
-          group: { teamId: group?.teamId, parentId: group?.parentId },
-        },
-        (data) => {
-          if (!data) return { pages: [], pageParams: [] };
-
-          return {
-            ...data,
-            pages: newOrder.map((page) => ({
-              ...page,
-              nextCursor: page.nextCursor ?? undefined,
-            })),
-          };
-        }
-      );
-    }
 
     mutation.mutate({
       ids: newOrder.flatMap((page) => page.eventTypes.map((type) => type.id)),
@@ -381,66 +421,42 @@ export const InfiniteEventTypeList = ({
     router.push(`${pathname}?${newSearchParams.toString()}`);
   };
 
-  const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
+  const { execute: executeDelete, isPending: deletePending } = useAction(deleteAction, {
     onSuccess: () => {
       showToast(t("event_type_deleted_successfully"), "success");
       setDeleteDialogOpen(false);
     },
-    onMutate: async ({ id }) => {
-      await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
-      const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
-        limit: LIMIT,
-        searchQuery: debouncedSearchTerm,
-        group: { teamId: group?.teamId, parentId: group?.parentId },
+    onExecute: (input: { id: number }) => {
+      const { id } = input;
+      setQueryData((prev: RouterOutputs["viewer"]["eventTypes"]["getEventTypesFromGroup"] | null) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          pages: prev.pages.map((page: { eventTypes: { id: number }[]; nextCursor?: string }) => ({
+            ...page,
+            eventTypes: page.eventTypes.filter((type: { id: number }) => type.id !== id),
+          })),
+        };
       });
-
-      if (previousValue) {
-        await utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
-          {
-            limit: LIMIT,
-            searchQuery: debouncedSearchTerm,
-            group: { teamId: group?.teamId, parentId: group?.parentId },
-          },
-          (data) => {
-            if (!data) {
-              return {
-                pages: [],
-                pageParams: [],
-              };
-            }
-            return {
-              ...data,
-              pages: data.pages.map((page) => ({
-                ...page,
-                eventTypes: page.eventTypes.filter((type) => type.id !== id),
-              })),
-            };
-          }
-        );
-      }
-
-      return { previousValue };
     },
-    onError: (err, _, context) => {
-      if (context?.previousValue) {
-        utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
-          {
-            limit: LIMIT,
-            searchQuery: debouncedSearchTerm,
-            group: { teamId: group?.teamId, parentId: group?.parentId },
-          },
-          context.previousValue
-        );
-      }
-      if (err instanceof HttpError) {
-        const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
-        setDeleteDialogOpen(false);
-      } else if (err instanceof TRPCClientError) {
-        showToast(err.message, "error");
+    onError: (error) => {
+      console.error("Delete error:", error);
+      showToast((error?.error?.serverError as string) || "Failed to delete event type", "error");
+      setDeleteDialogOpen(false);
+      if (activeEventTypeGroup) {
+        executeQuery({
+          limit: LIMIT,
+          searchQuery: debouncedSearchTerm,
+          group: { teamId: activeEventTypeGroup?.teamId, parentId: activeEventTypeGroup?.parentId },
+        });
       }
     },
   });
+
+  const deleteMutation = {
+    mutate: executeDelete,
+    isPending: deletePending,
+  };
 
   const [isNativeShare, setNativeShare] = useState(true);
 
