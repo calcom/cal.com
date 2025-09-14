@@ -47,7 +47,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     utils.viewer.apps.appById.invalidate({ appId });
     utils.viewer.apps.integrations.invalidate({
       extendsFeature: "EventType",
-      teamId: eventType.team?.id || eventType.parent?.teamId,
+      ...(eventType.team?.id && { teamId: eventType.team.id }),
     });
   };
 
@@ -193,6 +193,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
                 app={app}
                 eventType={eventType}
                 eventTypeFormMetadata={eventTypeFormMetadata}
+                onAppInstallSuccess={handleAppInstallSuccess(app.slug)}
               />
             ))}
           </div>
