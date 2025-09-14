@@ -6,9 +6,10 @@ import { NextResponse } from "next/server";
 import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { emailSchema } from "@calcom/lib/emailSchema";
-import prisma from "@calcom/prisma";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
+import prisma from "@calcom/prisma";
 
+//api route is /api/auth/forgot-password
 async function handler(req: NextRequest) {
   const body = await parseRequestData(req);
   const email = emailSchema.transform((val) => val.toLowerCase()).safeParse(body?.email);
