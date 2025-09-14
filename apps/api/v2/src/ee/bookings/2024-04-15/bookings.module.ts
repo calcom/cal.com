@@ -15,6 +15,7 @@ import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repo
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { ProfilesModule } from "@/modules/profiles/profiles.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { TokensModule } from "@/modules/tokens/tokens.module";
@@ -33,6 +34,7 @@ import { Module } from "@nestjs/common";
     EventTypesModule_2024_04_15,
     SchedulesModule_2024_04_15,
     EventTypesModule_2024_06_14,
+    ProfilesModule,
   ],
   providers: [
     TokensRepository,

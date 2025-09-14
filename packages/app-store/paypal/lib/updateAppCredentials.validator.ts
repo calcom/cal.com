@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-import type { UpdateAppCredentialsOptions } from "@calcom/trpc/server/routers/viewer/apps/updateAppCredentials.handler";
-
 import Paypal from "./Paypal";
 
 const schema = z.object({
@@ -12,7 +10,9 @@ const schema = z.object({
   }),
 });
 
-const handlePaypalValidations = async ({ input }: UpdateAppCredentialsOptions) => {
+type TUpdateAppCredentialsInputSchema = { credentialId: number; key: { [k: string]: unknown } };
+
+const handlePaypalValidations = async ({ input }: { input: TUpdateAppCredentialsInputSchema }) => {
   const validated = schema.safeParse(input);
   if (!validated.success) throw new Error("Invalid input");
   const { key } = validated.data;
