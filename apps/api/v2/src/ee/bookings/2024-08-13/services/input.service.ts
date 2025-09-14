@@ -22,8 +22,10 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { cityMapping } from "city-timezones";
 import { isURL, isPhoneNumber } from "class-validator";
 import { Request } from "express";
+import { isNull } from "lodash";
 import { DateTime } from "luxon";
 import { NextApiRequest } from "next/types";
 import { v4 as uuidv4 } from "uuid";
@@ -151,20 +153,36 @@ export class InputBookingsService_2024_08_13 {
   }
 
   private validateTimezoneConsistency(startTimeISO: string, attendeeTimeZone?: string): void {
-    // Only validate if the start time string actually contains timezone information
     const parsedDateTime = DateTime.fromISO(startTimeISO, { setZone: true });
     const hasTimezoneInString = parsedDateTime.isOffsetFixed;
+    // Only validate if the start time string actually contains timezone information
     if (hasTimezoneInString && attendeeTimeZone) {
       // If start time has timezone and attendee timezone is provided, they must match
-      if (parsedDateTime.isValid && parsedDateTime.zoneName !== "invalid" && attendeeTimeZone) {
-        const startTimeZone = parsedDateTime.zoneName;
-        if (startTimeZone !== attendeeTimeZone) {
-          throw new BadRequestException(
-            `Timezone mismatch: start time has timezone '${startTimeZone}' but attendee.timeZone is '${attendeeTimeZone}'.`
-          );
-        }
+      const startTimeZone = this.guessZonesFromOffset(startTimeISO);
+      if (startTimeZone.length > 0 && startTimeZone[0] !== attendeeTimeZone) {
+        throw new BadRequestException(
+          `Timezone mismatch: start time has timezone '${startTimeZone[0]}' but attendee.timeZone is '${attendeeTimeZone}'. Remove the timezone from the start time.`
+        );
       }
     }
+  }
+
+  private guessZonesFromOffset(dateStr: string): string[] {
+    const dt = DateTime.fromISO(dateStr, { setZone: true });
+    const offset = dt.offset;
+
+    const allTimezones = [...new Set(cityMapping.map((city) => city.timezone))].filter(
+      (zone: string) => !isNull(zone)
+    );
+    const matchingZones = allTimezones.filter((zone: string) => {
+      try {
+        const test = DateTime.fromISO(dateStr, { zone });
+        return test.offset === offset;
+      } catch (error) {
+        return false;
+      }
+    });
+    return matchingZones;
   }
 
   private getTimeZone(
@@ -174,11 +192,21 @@ export class InputBookingsService_2024_08_13 {
       | RescheduleSeatedBookingInput_2024_08_13
   ): string {
     const parsedDateTime = DateTime.fromISO(inputBooking.start, { setZone: true });
-    const timeZone =
-      parsedDateTime.isOffsetFixed && parsedDateTime.isValid && parsedDateTime.zoneName !== "invalid"
-        ? parsedDateTime.zoneName
-        : ("attendee" in inputBooking ? inputBooking.attendee?.timeZone : undefined) ?? "";
-    return timeZone;
+
+    if (parsedDateTime.isOffsetFixed && parsedDateTime.isValid && parsedDateTime.zoneName !== "invalid") {
+      // If we have an offset but no IANA zone, try to guess it
+      if (
+        parsedDateTime.zoneName.startsWith("UTC") ||
+        parsedDateTime.zoneName.includes("+") ||
+        parsedDateTime.zoneName.includes("-")
+      ) {
+        const guessedZones = this.guessZonesFromOffset(inputBooking.start);
+        return guessedZones.length > 0 ? guessedZones[0] : parsedDateTime.zoneName;
+      }
+      return parsedDateTime.zoneName;
+    }
+
+    return ("attendee" in inputBooking ? inputBooking.attendee?.timeZone : undefined) ?? "";
   }
 
   async transformInputCreateBooking(
