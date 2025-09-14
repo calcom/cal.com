@@ -1,0 +1,1026 @@
+name: Build, Push Docker Image, Deploy to EC2
+
+on:
+  #trigger on push on "deploy" branch
+  push:
+    branches:
+      - deploy  
+  pull_request:
+    types:
+      - closed  
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Target branch"
+        required: false
+        default: "develop"
+      git_hash:
+        description: "Override Git commit hash"
+        required: false
+        default: ""
+      rebuild:
+        description: "Rebuild the Docker image even if it exists"
+        required: false
+        default: "false"
+
+concurrency:
+  group: ${{ github.workflow }}
+
+jobs:
+  # ONLY RUN JOB ON PR MERGE on MAIN OR DEVELOP BRANCH
+  build-push-deploy:
+    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/deploy'
+    runs-on: ubuntu-latest      
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+            fetch-depth: 0  # Fetching full history so we can checkout any commit
+
+      - name: Checkout specific commit if git_hash is provided
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.git_hash != '' }}
+        run: |
+          git checkout ${{ github.event.inputs.git_hash }}
+
+      - name: Initialize Global Log File
+        run: |
+          echo "LOG_FILE=workflow.log" >> $GITHUB_ENV
+          echo "Logging started" > workflow.log
+      
+      - name: Check for required secrets
+        id: check_required_secrets_status
+        run: |
+          check() {
+            if [ -z "$1" ]; then
+              echo "$2 is EMPTY ❌" | tee -a $LOG_FILE
+              echo "passed=failure" >> $GITHUB_OUTPUT
+            else
+              echo "$2 is SET ✅"
+            fi
+          }
+          check "${{ secrets.DOCKERHUB_USERNAME }}" "DOCKERHUB_USERNAME"
+          check "${{ secrets.DOCKERHUB_TOKEN }}" "DOCKERHUB_TOKEN"
+          check "${{ secrets.DOMAIN_NAME_STAG }}" "DOMAIN_NAME_STAG"
+          check "${{ secrets.EC2_HOST_STAG }}" "EC2_HOST_STAG"
+          check "${{ secrets.EC2_SSH_KEY_STAG }}" "EC2_SSH_KEY_STAG"
+          check "${{ secrets.DATABASE_DIRECT_URL_STAG}}" "DATABASE_DIRECT_URL_STAG"
+          check "${{ secrets.DOMAIN_NAME_PROD }}" "DOMAIN_NAME_PROD"
+          check "${{ secrets.EC2_HOST_PROD }}" "EC2_HOST_PROD"
+          check "${{ secrets.EC2_SSH_KEY_PROD }}" "EC2_SSH_KEY_PROD"
+          check "${{ secrets.DATABASE_DIRECT_URL_PROD}}" "DATABASE_DIRECT_URL_PROD"
+          check "${{ secrets.AWS_REGION }}" "AWS_REGION"
+          check "${{ secrets.AWS_ACCESS_KEY_ID }}" "AWS_ACCESS_KEY_ID"
+          check "${{ secrets.AWS_SECRET_ACCESS_KEY }}" "AWS_SECRET_ACCESS_KEY"
+          check "${{ secrets.REPO_URL }}" "REPO_URL"
+          check "${{ secrets.AWS_ACCOUNT_ID }}" "AWS_ACCOUNT_ID"
+          check "${{ secrets.CERTBOT_EMAIL }}" "CERTBOT_EMAIL"
+          check "${{ secrets.NEXTAUTH_SECRET }}" "NEXTAUTH_SECRET"
+          check "${{ secrets.CALENDSO_ENCRYPTION_KEY }}" "CALENDSO_ENCRYPTION_KEY"
+          check "${{ secrets.NEXT_PUBLIC_API_V2_URL }}" "NEXT_PUBLIC_API_V2_URL"
+          check "${{ secrets.SENDGRID_API_KEY }}" "SENDGRID_API_KEY"
+          check "${{ secrets.EMAIL_TO }}" "EMAIL_TO"
+          check "${{ secrets.EMAIL_FROM }}" "EMAIL_FROM"
+          check "${{ secrets.NEXT_PUBLIC_ONEHASH_URL }}" "NEXT_PUBLIC_ONEHASH_URL"
+          check "${{ secrets.BRAND_NAME }}" "BRAND_NAME"
+          check "${{ secrets.NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS }}" "NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS"
+          check "${{ secrets.NEXT_PUBLIC_SENTRY_DSN_PROD }}" "NEXT_PUBLIC_SENTRY_DSN_PROD"
+          check "${{ secrets.NEXT_PUBLIC_SENTRY_DSN_STAG }}" "NEXT_PUBLIC_SENTRY_DSN_STAG"
+          check "${{ secrets.NEXT_PUBLIC_LOGGER_LEVEL }}" "NEXT_PUBLIC_LOGGER_LEVEL"
+          check "${{ secrets.NEXT_PUBLIC_TEAM_IMPERSONATION }}" "NEXT_PUBLIC_TEAM_IMPERSONATION"
+          check "${{ secrets.NEXT_PUBLIC_MINUTES_TO_BOOK }}" "NEXT_PUBLIC_MINUTES_TO_BOOK"
+          check "${{ secrets.NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD }}" "NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD"
+          check "${{ secrets.NEXT_PUBLIC_CALENDLY_OAUTH_URL }}" "NEXT_PUBLIC_CALENDLY_OAUTH_URL"
+          check "${{ secrets.NEXT_PUBLIC_CALENDLY_API_BASE_URL }}" "NEXT_PUBLIC_CALENDLY_API_BASE_URL"
+          check "${{ secrets.NEXT_PUBLIC_CALENDLY_CLIENT_ID_STAG }}" "NEXT_PUBLIC_CALENDLY_CLIENT_ID_STAG"
+          check "${{ secrets.NEXT_PUBLIC_CALENDLY_CLIENT_ID_PROD }}" "NEXT_PUBLIC_CALENDLY_CLIENT_ID_PROD"
+          check "${{ secrets.NEXT_PUBLIC_CALENDLY_REDIRECT_URI_STAG }}" "NEXT_PUBLIC_CALENDLY_REDIRECT_URI_STAG"
+          check "${{ secrets.NEXT_PUBLIC_CALENDLY_REDIRECT_URI_PROD }}" "NEXT_PUBLIC_CALENDLY_REDIRECT_URI_PROD"
+          check "${{ secrets.NEXT_PUBLIC_STRIPE_PUBLIC_KEY_STAG }}" "NEXT_PUBLIC_STRIPE_PUBLIC_KEY_STAG"
+          check "${{ secrets.NEXT_PUBLIC_STRIPE_PUBLIC_KEY_PROD }}" "NEXT_PUBLIC_STRIPE_PUBLIC_KEY_PROD"
+          check "${{ secrets.NEXT_PUBLIC_ONEHASH_CHAT_URL_STAG }}" "NEXT_PUBLIC_ONEHASH_CHAT_URL_STAG"
+          check "${{ secrets.NEXT_PUBLIC_ONEHASH_CHAT_URL_PROD }}" "NEXT_PUBLIC_ONEHASH_CHAT_URL_PROD"
+          check "${{ secrets.NEXT_PUBLIC_RAZORPAY_CLIENT_ID_STAG }}" "NEXT_PUBLIC_RAZORPAY_CLIENT_ID_STAG"
+          check "${{ secrets.NEXT_PUBLIC_RAZORPAY_CLIENT_ID_PROD }}" "NEXT_PUBLIC_RAZORPAY_CLIENT_ID_PROD"
+          check "${{ secrets.NEXT_PUBLIC_SIGNUP_URL_STAG }}" "NEXT_PUBLIC_SIGNUP_URL_STAG"
+          check "${{ secrets.NEXT_PUBLIC_SIGNUP_URL_PROD }}" "NEXT_PUBLIC_SIGNUP_URL_PROD"
+          check "${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}" "NEXT_PUBLIC_VAPID_PUBLIC_KEY"
+          check "${{ secrets.NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL }}" "NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL"
+          check "${{ secrets.NEXT_PUBLIC_WEBSITE_TERMS_URL }}" "NEXT_PUBLIC_WEBSITE_TERMS_URL"
+          check "${{ secrets.NEXT_PUBLIC_RECAPTCHA_LOW }}" "NEXT_PUBLIC_RECAPTCHA_LOW"
+          check "${{ secrets.NEXT_PUBLIC_RECAPTCHA_MEDIUM }}" "NEXT_PUBLIC_RECAPTCHA_MEDIUM"
+          check "${{ secrets.NEXT_PUBLIC_RECAPTCHA_HARD }}" "NEXT_PUBLIC_RECAPTCHA_HARD"
+          check "${{ secrets.NEXT_PUBLIC_POSTHOG_KEY_STAG }}" "NEXT_PUBLIC_POSTHOG_KEY_STAG"
+          check "${{ secrets.NEXT_PUBLIC_POSTHOG_KEY_PROD }}" "NEXT_PUBLIC_POSTHOG_KEY_PROD"
+          check "${{ secrets.NEXT_PUBLIC_POSTHOG_HOST }}" "NEXT_PUBLIC_POSTHOG_HOST"
+          check "${{ secrets.NEXT_PUBLIC_ONEHASH_CRM_URL }}" "NEXT_PUBLIC_ONEHASH_CRM_URL"
+          check "${{ secrets.NEXT_PUBLIC_ONEHASH_ERP_URL }}" "NEXT_PUBLIC_ONEHASH_ERP_URL"
+          check "${{ secrets.NEXT_PUBLIC_WHITELISTED_ORGS }}" "NEXT_PUBLIC_WHITELISTED_ORGS"  
+          check "${{ secrets.HOMEPAGE_URL_STAG }}" "HOMEPAGE_URL_STAG" 
+          check "${{ secrets.HOMEPAGE_URL_PROD }}" "HOMEPAGE_URL_PROD"
+          check "${{ secrets.NEXT_PUBLIC_PIXEL }}" "NEXT_PUBLIC_PIXEL"
+
+      # SETTING NECESSARY ENV VARIABLES
+      - name: Extract Git commit hash
+        if: ${{ steps.check_required_secrets_status.outputs.passed != 'failure' }}
+        id: hash
+        run: |
+          if [ -n "${{ github.event.inputs.git_hash }}" ]; then
+            hash="${{ github.event.inputs.git_hash }}"
+            echo "[INFO]: ↩️ Rollback Step" >> "$LOG_FILE"
+          else
+            hash="$(git rev-parse HEAD)"
+            echo "[INFO]: 🆕 New Deployment Step" >> "$LOG_FILE"
+          fi
+          echo "GIT_HASH=$hash" >> $GITHUB_OUTPUT
+        
+      # SETTING NECESSARY CONFIG VARIABLES
+      - name: Set branch name
+        id: set_branch
+        run: |
+          BRANCH_NAME="${{ github.event.inputs.branch != '' && github.event.inputs.branch || github.ref_name }}"
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+
+      - name: Set dynamic key values based on deployment environment
+        id : key_values
+        run: | 
+          if [ "${{ steps.set_branch.outputs.branch_name }}" == "main" ]; then
+            echo "DOMAIN_NAME=${{ secrets.DOMAIN_NAME_PROD }}" >> $GITHUB_OUTPUT
+            echo "EC2_HOST=${{ secrets.EC2_HOST_PROD }}" >> $GITHUB_OUTPUT
+            echo "EC2_SSH_KEY<<EOF" >> $GITHUB_OUTPUT
+            echo "${{ secrets.EC2_SSH_KEY_PROD }}" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            echo "DATABASE_URL=${{ secrets.DATABASE_DIRECT_URL_PROD}}" >> $GITHUB_OUTPUT
+            echo "REPO_NAME"="cal_prod" >> $GITHUB_OUTPUT
+            echo "NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN_PROD }}" >> $GITHUB_OUTPUT
+            echo "NEXT_PUBLIC_CALENDLY_CLIENT_ID=${{ secrets.NEXT_PUBLIC_CALENDLY_CLIENT_ID_PROD }}" >> $GITHUB_OUTPUT
+            echo "NEXT_PUBLIC_CALENDLY_REDIRECT_URI=${{ secrets.NEXT_PUBLIC_CALENDLY_REDIRECT_URI_PROD }}" >> $GITHUB_OUTPUT
+            echo "NEXT_PUBLIC_STRIPE_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_STRIPE_PUBLIC_KEY_PROD }}" >> $GITHUB_OUTPUT
+            echo "NEXT_PUBLIC_ONEHASH_CHAT_URL=${{ secrets.NEXT_PUBLIC_ONEHASH_CHAT_URL_PROD }}" >> $GITHUB_OUTPUT
+            echo "NEXT_PUBLIC_RAZORPAY_CLIENT_ID=${{ secrets.NEXT_PUBLIC_RAZORPAY_CLIENT_ID_PROD }}" >> $GITHUB_OUTPUT
+            echo "NEXT_PUBLIC_SIGNUP_URL=${{ secrets.NEXT_PUBLIC_SIGNUP_URL_PROD }}" >> $GITHUB_OUTPUT
+            echo "NEXT_PUBLIC_POSTHOG_KEY=${{ secrets.NEXT_PUBLIC_POSTHOG_KEY_PROD }}" >> $GITHUB_OUTPUT
+            echo "HOMEPAGE_URL=${{ secrets.HOMEPAGE_URL_PROD }}" >> $GITHUB_OUTPUT
+          else
+            echo "DOMAIN_NAME=${{ secrets.DOMAIN_NAME_STAG }}" >> $GITHUB_OUTPUT
+            echo "EC2_HOST=${{ secrets.EC2_HOST_STAG }}" >> $GITHUB_OUTPUT
+            echo "EC2_SSH_KEY<<EOF" >> $GITHUB_OUTPUT
+            echo "${{ secrets.EC2_SSH_KEY_STAG }}" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            echo "DATABASE_URL=${{ secrets.DATABASE_DIRECT_URL_STAG}}" >> $GITHUB_OUTPUT
+            echo "REPO_NAME"="cal_stag" >> $GITHUB_OUTPUT
+            echo "NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN_STAG }}" >> $GITHUB_OUTPUT
+            echo "NEXT_PUBLIC_CALENDLY_CLIENT_ID=${{ secrets.NEXT_PUBLIC_CALENDLY_CLIENT_ID_STAG }}" >> $GITHUB_OUTPUT
+            echo "NEXT_PUBLIC_CALENDLY_REDIRECT_URI=${{ secrets.NEXT_PUBLIC_CALENDLY_REDIRECT_URI_STAG }}" >> $GITHUB_OUTPUT
+            echo "NEXT_PUBLIC_STRIPE_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_STRIPE_PUBLIC_KEY_STAG }}" >> $GITHUB_OUTPUT
+            echo "NEXT_PUBLIC_ONEHASH_CHAT_URL=${{ secrets.NEXT_PUBLIC_ONEHASH_CHAT_URL_STAG }}" >> $GITHUB_OUTPUT
+            echo "NEXT_PUBLIC_RAZORPAY_CLIENT_ID=${{ secrets.NEXT_PUBLIC_RAZORPAY_CLIENT_ID_STAG }}" >> $GITHUB_OUTPUT
+            echo "NEXT_PUBLIC_SIGNUP_URL=${{ secrets.NEXT_PUBLIC_SIGNUP_URL_STAG }}" >> $GITHUB_OUTPUT
+            echo "NEXT_PUBLIC_POSTHOG_KEY=${{ secrets.NEXT_PUBLIC_POSTHOG_KEY_STAG }}" >> $GITHUB_OUTPUT
+            echo "HOMEPAGE_URL=${{ secrets.HOMEPAGE_URL_STAG }}" >> $GITHUB_OUTPUT
+          fi
+
+      # # BUILDING AND PUSHING DOCKER IMAGE USING AWS ECR
+      # - name: Set up Docker Buildx
+      #   id: setup_docker
+      #   uses: docker/setup-buildx-action@v3
+
+      # - name: Configure AWS Credentials
+      #   if: ${{ steps.setup_docker.outcome == 'success' }}
+      #   uses: aws-actions/configure-aws-credentials@v1
+      #   id: configure-aws
+      #   continue-on-error: true
+      #   with:
+      #     aws-region: ${{ secrets.AWS_REGION }}
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      # - name: Check AWS Configure status
+      #   shell: bash
+      #   run: |
+      #     if [ "${{ steps.configure-aws.outcome }}" != "success" ]; then
+      #       echo "[ERROR]: ❌ AWS Configure failed" >> "$LOG_FILE"
+      #     else
+      #       echo "[INFO]: ✅ AWS Configure successful" >> "$LOG_FILE"
+      #     fi
+
+      # - name: Login to Amazon ECR
+      #   if: ${{ steps.configure-aws.outcome == 'success' }}
+      #   id: login-ecr
+      #   uses: aws-actions/amazon-ecr-login@v1
+      #   continue-on-error: true
+
+      # - name: Check ECR login status
+      #   shell: bash
+      #   if: ${{ steps.configure-aws.outcome == 'success' }}
+      #   run: |
+      #     if [ "${{ steps.login-ecr.outcome }}" != "success" ]; then
+      #       echo "[ERROR]: ❌ ECR login failed" >> "$LOG_FILE"
+      #     else
+      #       echo "[INFO]: ✅ ECR login successful" >> "$LOG_FILE"
+      #       echo "passed=success" >> $GITHUB_OUTPUT
+      #     fi
+      
+      # # Checking if the image already exists in ECR
+      # - name: Check if image already exists in ECR
+      #   if: ${{ steps.login-ecr.outcome == 'success' &&  github.event.inputs.rebuild != 'true' }}
+      #   id: check-ecr-image
+      #   uses: mnmandahalf/check-ecr-image-exists@v0.1.5
+      #   with:
+      #     region: ${{ secrets.AWS_REGION }}
+      #     repository-name: ${{ steps.key_values.outputs.REPO_NAME }}
+      #     image-tag: ${{ steps.hash.outputs.GIT_HASH }}
+      #     access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      # # Log image does not exist, hence rollback step
+      # - name: Log ECR image existence status
+      #   if: ${{github.event.inputs.rebuild != 'true' }}
+      #   shell: bash
+      #   run: |
+      #     if [ "${{ steps.check-ecr-image.outputs.image-exists }}" == "1" ]; then
+      #       echo "[INFO]: ✅ ECR image already exists" >> "$LOG_FILE"
+      #     else
+      #       echo "[INFO]: ❌ ECR image does not exist, proceeding to build and push" >> "$LOG_FILE"
+      #     fi
+
+      # # If the image does not exist, build and push the Docker image OR if rebuild is true
+      # - name: Build and Push Docker image
+      #   if: ${{ steps.check-ecr-image.outputs.image-exists == '0' || github.event.inputs.rebuild == 'true' }}
+      #   id: docker_build
+      #   uses: docker/build-push-action@v5
+      #   continue-on-error: true
+      #   with:
+      #     context: .
+      #     file: ./Dockerfile
+      #     platforms: linux/amd64
+      #     push: true
+      #     tags: |
+      #       ${{ steps.login-ecr.outputs.registry }}/${{ steps.key_values.outputs.REPO_NAME }}:${{ steps.hash.outputs.GIT_HASH }}
+      #       ${{ steps.login-ecr.outputs.registry }}/${{ steps.key_values.outputs.REPO_NAME }}:latest
+      #     build-args: |
+      #       CALENDSO_ENCRYPTION_KEY=${{ secrets.CALENDSO_ENCRYPTION_KEY }}
+      #       NEXT_PUBLIC_WEBAPP_URL=${{ format('https://app.{0}', steps.key_values.outputs.DOMAIN_NAME) }}
+      #       NEXT_PUBLIC_WEBSITE_URL=${{ format('https://{0}', steps.key_values.outputs.DOMAIN_NAME) }}
+      #       NEXT_PUBLIC_API_V2_URL=${{ secrets.NEXT_PUBLIC_API_V2_URL }}
+      #       NEXT_PUBLIC_EMBED_LIB_URL=${{ format('https://{0}/embed/embed.js', steps.key_values.outputs.DOMAIN_NAME) }}
+      #       NEXT_PUBLIC_ONEHASH_URL=${{ secrets.NEXT_PUBLIC_ONEHASH_URL }}
+      #       NEXTAUTH_URL=${{ steps.key_values.outputs.DOMAIN_NAME }}
+      #       NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+      #       NEXT_PUBLIC_SENDGRID_SENDER_NAME=${{ secrets.BRAND_NAME }}
+      #       NEXT_PUBLIC_SENTRY_DSN=${{ steps.key_values.outputs.NEXT_PUBLIC_SENTRY_DSN }}
+      #       NEXT_PUBLIC_LOGGER_LEVEL=${{ secrets.NEXT_PUBLIC_LOGGER_LEVEL }}
+      #       NEXT_PUBLIC_TEAM_IMPERSONATION=${{ secrets.NEXT_PUBLIC_TEAM_IMPERSONATION }}
+      #       NEXT_PUBLIC_APP_NAME=${{format('{0} Cal', secrets.BRAND_NAME)  }}
+      #       NEXT_PUBLIC_COMPANY_NAME=${{ secrets.BRAND_NAME }}
+      #       NEXT_PUBLIC_MINUTES_TO_BOOK=${{ secrets.NEXT_PUBLIC_MINUTES_TO_BOOK }}
+      #       NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD=${{ secrets.NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD }}
+      #       NEXT_PUBLIC_CALENDLY_OAUTH_URL=${{ secrets.NEXT_PUBLIC_CALENDLY_OAUTH_URL }}
+      #       NEXT_PUBLIC_CALENDLY_API_BASE_URL=${{ secrets.NEXT_PUBLIC_CALENDLY_API_BASE_URL }}
+      #       NEXT_PUBLIC_CALENDLY_CLIENT_ID=${{ steps.key_values.outputs.NEXT_PUBLIC_CALENDLY_CLIENT_ID }}
+      #       NEXT_PUBLIC_CALENDLY_REDIRECT_URI=${{ steps.key_values.outputs.NEXT_PUBLIC_CALENDLY_REDIRECT_URI }}
+      #       NEXT_PUBLIC_STRIPE_PUBLIC_KEY=${{ steps.key_values.outputs.NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}
+      #       NEXT_PUBLIC_ONEHASH_CHAT_URL=${{ steps.key_values.outputs.NEXT_PUBLIC_ONEHASH_CHAT_URL }}
+      #       NEXT_PUBLIC_RAZORPAY_CLIENT_ID=${{ steps.key_values.outputs.NEXT_PUBLIC_RAZORPAY_CLIENT_ID }}
+      #       NEXT_PUBLIC_SIGNUP_URL=${{ steps.key_values.outputs.NEXT_PUBLIC_SIGNUP_URL }}
+      #       NEXT_PUBLIC_VAPID_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
+      #       NEXT_PUBLIC_WEBSITE_TERMS_URL=${{ secrets.NEXT_PUBLIC_WEBSITE_TERMS_URL }}
+      #       NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL=${{ secrets.NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL }}
+      #       NEXT_PUBLIC_ONEHASH_CHAT_ORIGIN=${{ steps.key_values.outputs.NEXT_PUBLIC_ONEHASH_CHAT_URL }}
+      #       NEXT_PUBLIC_RECAPTCHA_LOW=${{ secrets.NEXT_PUBLIC_RECAPTCHA_LOW }}
+      #       NEXT_PUBLIC_RECAPTCHA_MEDIUM=${{ secrets.NEXT_PUBLIC_RECAPTCHA_MEDIUM }}
+      #       NEXT_PUBLIC_RECAPTCHA_HARD=${{ secrets.NEXT_PUBLIC_RECAPTCHA_HARD }}
+      #       NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS=${{ secrets.NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS }}
+      #       NEXT_PUBLIC_POSTHOG_HOST=${{ secrets.NEXT_PUBLIC_POSTHOG_HOST }}
+      #       NEXT_PUBLIC_POSTHOG_KEY=${{ steps.key_values.outputs.NEXT_PUBLIC_POSTHOG_KEY }}
+      #       NEXT_PUBLIC_ONEHASH_ERP_URL=${{secrets.NEXT_PUBLIC_ONEHASH_ERP_URL}}
+      #       NEXT_PUBLIC_ONEHASH_CRM_URL=${{secrets.NEXT_PUBLIC_ONEHASH_CRM_URL}}
+
+      # - name: Check Docker build status
+      #   shell: bash
+      #   id : check_docker_build_status
+      #   if: ${{ steps.check-ecr-image.outputs.image-exists == '0' }}
+      #   run: |
+      #     if [ "${{ steps.docker_build.outcome }}" != "success" ]; then
+      #       echo "[ERROR]: ❌ Docker build & push failed" >> "$LOG_FILE"
+      #     else
+      #       echo "[INFO]: ✅ Docker build & push succeeded" >> "$LOG_FILE"
+      #     fi
+          
+      # BUILDING AND PUSHING DOCKER IMAGE USING DOCKER HUB
+      - name: Set up Docker Buildx
+        id: setup_docker
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        if: ${{ steps.setup_docker.outcome == 'success' }}
+        id: login-dockerhub
+        uses: docker/login-action@v3
+        continue-on-error: true
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Check Docker Hub login status
+        shell: bash
+        run: |
+          if [ "${{ steps.login-dockerhub.outcome }}" != "success" ]; then
+            echo "[ERROR]: ❌ Docker Hub login failed" >> "$LOG_FILE"
+          else
+            echo "[INFO]: ✅ Docker Hub login successful" >> "$LOG_FILE"
+            echo "passed=success" >> $GITHUB_OUTPUT
+          fi
+      
+      # Checking if the image already exists in Docker Hub
+      - name: Check if image already exists in Docker Hub
+        if: ${{ steps.login-dockerhub.outcome == 'success' && github.event.inputs.rebuild != 'true' }}
+        id: check-dockerhub-image
+        shell: bash
+        run: |
+          # Check if image exists by attempting to pull manifest
+          if docker manifest inspect ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.key_values.outputs.REPO_NAME }}:${{ steps.hash.outputs.GIT_HASH }} > /dev/null 2>&1; then
+            echo "image-exists=1" >> $GITHUB_OUTPUT
+          else
+            echo "image-exists=0" >> $GITHUB_OUTPUT
+          fi
+
+      # Log image does not exist, hence rollback step
+      - name: Log Docker Hub image existence status
+        if: ${{ github.event.inputs.rebuild != 'true' }}
+        shell: bash
+        run: |
+          if [ "${{ steps.check-dockerhub-image.outputs.image-exists }}" == "1" ]; then
+            echo "[INFO]: ✅ Docker Hub image already exists" >> "$LOG_FILE"
+          else
+            echo "[INFO]: ❌ Docker Hub image does not exist, proceeding to build and push" >> "$LOG_FILE"
+          fi
+
+      # If the image does not exist, build and push the Docker image OR if rebuild is true
+      - name: Build and Push Docker image
+        if: ${{ steps.check-dockerhub-image.outputs.image-exists == '0' || github.event.inputs.rebuild == 'true' }}
+        id: docker_build
+        uses: docker/build-push-action@v5
+        continue-on-error: true
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.key_values.outputs.REPO_NAME }}:${{ steps.hash.outputs.GIT_HASH }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.key_values.outputs.REPO_NAME }}:latest
+          build-args: |
+            CALENDSO_ENCRYPTION_KEY=${{ secrets.CALENDSO_ENCRYPTION_KEY }}
+            NEXT_PUBLIC_WEBAPP_URL=${{ format('https://app.{0}', steps.key_values.outputs.DOMAIN_NAME) }}
+            NEXT_PUBLIC_WEBSITE_URL=${{ format('https://{0}', steps.key_values.outputs.DOMAIN_NAME) }}
+            NEXT_PUBLIC_API_V2_URL=${{ secrets.NEXT_PUBLIC_API_V2_URL }}
+            NEXT_PUBLIC_EMBED_LIB_URL=${{ format('https://{0}/embed/embed.js', steps.key_values.outputs.DOMAIN_NAME) }}
+            NEXT_PUBLIC_ONEHASH_URL=${{ secrets.NEXT_PUBLIC_ONEHASH_URL }}
+            NEXTAUTH_URL=${{ steps.key_values.outputs.DOMAIN_NAME }}
+            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+            NEXT_PUBLIC_SENDGRID_SENDER_NAME=${{ secrets.BRAND_NAME }}
+            NEXT_PUBLIC_SENTRY_DSN=${{ steps.key_values.outputs.NEXT_PUBLIC_SENTRY_DSN }}
+            NEXT_PUBLIC_LOGGER_LEVEL=${{ secrets.NEXT_PUBLIC_LOGGER_LEVEL }}
+            NEXT_PUBLIC_TEAM_IMPERSONATION=${{ secrets.NEXT_PUBLIC_TEAM_IMPERSONATION }}
+            NEXT_PUBLIC_APP_NAME=${{format('{0} Cal', secrets.BRAND_NAME)  }}
+            NEXT_PUBLIC_COMPANY_NAME=${{ secrets.BRAND_NAME }}
+            NEXT_PUBLIC_MINUTES_TO_BOOK=${{ secrets.NEXT_PUBLIC_MINUTES_TO_BOOK }}
+            NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD=${{ secrets.NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD }}
+            NEXT_PUBLIC_CALENDLY_OAUTH_URL=${{ secrets.NEXT_PUBLIC_CALENDLY_OAUTH_URL }}
+            NEXT_PUBLIC_CALENDLY_API_BASE_URL=${{ secrets.NEXT_PUBLIC_CALENDLY_API_BASE_URL }}
+            NEXT_PUBLIC_CALENDLY_CLIENT_ID=${{ steps.key_values.outputs.NEXT_PUBLIC_CALENDLY_CLIENT_ID }}
+            NEXT_PUBLIC_CALENDLY_REDIRECT_URI=${{ steps.key_values.outputs.NEXT_PUBLIC_CALENDLY_REDIRECT_URI }}
+            NEXT_PUBLIC_STRIPE_PUBLIC_KEY=${{ steps.key_values.outputs.NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}
+            NEXT_PUBLIC_ONEHASH_CHAT_URL=${{ steps.key_values.outputs.NEXT_PUBLIC_ONEHASH_CHAT_URL }}
+            NEXT_PUBLIC_RAZORPAY_CLIENT_ID=${{ steps.key_values.outputs.NEXT_PUBLIC_RAZORPAY_CLIENT_ID }}
+            NEXT_PUBLIC_SIGNUP_URL=${{ steps.key_values.outputs.NEXT_PUBLIC_SIGNUP_URL }}
+            NEXT_PUBLIC_VAPID_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
+            NEXT_PUBLIC_WEBSITE_TERMS_URL=${{ secrets.NEXT_PUBLIC_WEBSITE_TERMS_URL }}
+            NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL=${{ secrets.NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL }}
+            NEXT_PUBLIC_ONEHASH_CHAT_ORIGIN=${{ steps.key_values.outputs.NEXT_PUBLIC_ONEHASH_CHAT_URL }}
+            NEXT_PUBLIC_RECAPTCHA_LOW=${{ secrets.NEXT_PUBLIC_RECAPTCHA_LOW }}
+            NEXT_PUBLIC_RECAPTCHA_MEDIUM=${{ secrets.NEXT_PUBLIC_RECAPTCHA_MEDIUM }}
+            NEXT_PUBLIC_RECAPTCHA_HARD=${{ secrets.NEXT_PUBLIC_RECAPTCHA_HARD }}
+            NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS=${{ secrets.NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS }}
+            NEXT_PUBLIC_POSTHOG_HOST=${{ secrets.NEXT_PUBLIC_POSTHOG_HOST }}
+            NEXT_PUBLIC_POSTHOG_KEY=${{ steps.key_values.outputs.NEXT_PUBLIC_POSTHOG_KEY }}
+            NEXT_PUBLIC_ONEHASH_ERP_URL=${{secrets.NEXT_PUBLIC_ONEHASH_ERP_URL}}
+            NEXT_PUBLIC_ONEHASH_CRM_URL=${{secrets.NEXT_PUBLIC_ONEHASH_CRM_URL}}
+            NEXT_PUBLIC_WHITELISTED_ORGS=${{ secrets.NEXT_PUBLIC_WHITELISTED_ORGS }}
+            NEXT_PUBLIC_PIXEL=${{ secrets.NEXT_PUBLIC_PIXEL }}
+
+      - name: Check Docker build status
+        shell: bash
+        id: check_docker_build_status
+        if: ${{ steps.check-dockerhub-image.outputs.image-exists == '0' }}
+        run: |
+          if [ "${{ steps.docker_build.outcome }}" != "success" ]; then
+            echo "[ERROR]: ❌ Docker build & push failed" >> "$LOG_FILE"
+          else
+            echo "[INFO]: ✅ Docker build & push succeeded" >> "$LOG_FILE"
+          fi
+
+      # DEPLOYING TO EC2 , if the image build was successful or the image already exists in ECR
+      - name: SSH into EC2 and Deploy
+        if: ${{ steps.docker_build.outcome == 'success' ||  steps.check-dockerhub-image.outputs.image-exists == '1'  }}
+        # if: ${{ steps.docker_build.outcome == 'success' ||  steps.check-ecr-image.outputs.image-exists == '1'  }}
+        uses: appleboy/ssh-action@v0.1.10
+        id: ssh_deploy
+        env:
+          DOMAIN_NAME: ${{ steps.key_values.outputs.DOMAIN_NAME }}
+          EC2_HOST: ${{ steps.key_values.outputs.EC2_HOST }}
+          EC2_SSH_KEY: ${{ steps.key_values.outputs.EC2_SSH_KEY }}
+          REPO_URL: ${{secrets.REPO_URL}}
+          BRANCH_NAME: ${{ steps.set_branch.outputs.branch_name }}
+          DATABASE_URL: ${{ steps.key_values.outputs.DATABASE_URL }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          REPO_NAME: ${{ steps.key_values.outputs.REPO_NAME }}
+          CERTBOT_EMAIL: ${{ secrets.CERTBOT_EMAIL }}
+          GIT_HASH: ${{ steps.hash.outputs.GIT_HASH }}
+          IS_ROLLBACK: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.git_hash != '' }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+          HOMEPAGE_URL: ${{ steps.key_values.outputs.HOMEPAGE_URL }}
+        with:
+          host: ${{ env.EC2_HOST }}
+          username: "onehash"
+          key: ${{ env.EC2_SSH_KEY }}
+          command_timeout: 1500s # 25 minutes
+          envs:  AWS_REGION,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_ACCOUNT_ID, AWS_ACCOUNT_ID, REPO_NAME, REPO_URL, BRANCH_NAME, CERTBOT_EMAIL, GIT_HASH ,IS_ROLLBACK ,DOMAIN_NAME,DOCKERHUB_USERNAME, DOCKERHUB_TOKEN,HOMEPAGE_URL
+          script: |
+            #!/bin/bash
+
+            #Initialize log file 
+            LOG_FILE="/home/onehash/deployment.log"
+            : > "$LOG_FILE"
+
+            # Function for logging with timestamp
+            log_message() {
+              local level=$1
+              local message=$2
+              echo "[VPC][$level] $message" >> "$LOG_FILE"
+              # Echo to stdout for GitHub Actions logs
+              echo "[$level] $message"
+            }
+
+            # Function to execute a command and check its status
+            exec_command() {
+              local command_name=$1
+              shift
+              local command_to_run="$1"
+
+              log_message "INFO" "Executing: $command_name"
+              log_message "DEBUG" "Command: $command_to_run"
+
+              eval "$command_to_run"
+              local status=$?
+
+              if [ $status -ne 0 ]; then
+                log_message "ERROR" "❌ $command_name failed with status $status"
+                return 1
+              else
+                log_message "INFO" "✅ $command_name completed successfully"
+                return 0
+              fi
+            }
+
+            log_message "INFO" "==== VPC LOGS ===="
+
+            # Setting up onehash-cal repo locally and pulling the latest changes
+            if [ ! -d "/home/onehash/onehash-cal/infra" ]; then
+              log_message "INFO" "Directory 'onehash-cal/infra' does not exist. Cloning the repository."
+              mkdir -p ~/onehash-cal
+              cd ~/onehash-cal || { log_message "ERROR" "Failed to cd into ~/onehash-cal"; exit 1; }
+
+              if ! exec_command "Git init" "git init"; then
+                exit 1
+              fi
+
+              # Only need infra/*
+              if ! exec_command "Git sparse-checkout set infra" "git sparse-checkout set infra"; then
+                exit 1
+              fi
+
+              if ! exec_command "Git remote add" "git remote add origin ${{env.REPO_URL}}"; then
+                exit 1
+              fi
+
+              if ! exec_command "Git fetch" "git fetch origin ${{env.BRANCH_NAME}} --depth=1"; then
+                exit 1
+              fi
+
+              if ! exec_command "Git checkout" "git checkout ${{env.BRANCH_NAME}}"; then
+                exit 1
+              fi
+            else
+              log_message "INFO" "Directory 'onehash-cal' exists. Pulling the latest changes."
+              cd ~/onehash-cal || { log_message "ERROR" "Failed to cd into ~/onehash-cal"; exit 1; }
+
+              if ! exec_command "Git fetch" "git fetch origin ${{env.BRANCH_NAME}}"; then
+                exit 1
+              fi
+
+              if ! exec_command "Git reset" "git reset --hard origin/${{env.BRANCH_NAME}}"; then
+                exit 1
+              fi
+            fi
+
+
+            # # Set timeout for aws command to prevent hanging
+            # export AWS_CLI_TIMEOUT=60
+            # export AWS_SDK_TIMEOUT=60
+
+            # # Configure AWS credentials non-interactively
+            # log_message "INFO" "Configuring AWS credentials..."
+            # if ! exec_command "AWS Configure Access Key" "aws configure set aws_access_key_id \"${AWS_ACCESS_KEY_ID}\" >> \"$LOG_FILE\" 2>&1"; then
+            #   log_message "ERROR" "Failed to configure AWS access key - exiting deployment"
+            #   exit 1
+            # fi
+
+            # if ! exec_command "AWS Configure Secret Key" "aws configure set aws_secret_access_key \"${AWS_SECRET_ACCESS_KEY}\" >> \"$LOG_FILE\" 2>&1"; then
+            #   log_message "ERROR" "Failed to configure AWS secret key - exiting deployment"
+            #   exit 1
+            # fi
+
+            # if ! exec_command "AWS Configure Region" "aws configure set default.region \"${AWS_REGION}\" >> \"$LOG_FILE\" 2>&1"; then
+            #   log_message "ERROR" "Failed to configure AWS region - exiting deployment"
+            #   exit 1
+            # fi
+
+            # if ! exec_command "AWS Configure Output" "aws configure set default.output json >> \"$LOG_FILE\" 2>&1"; then
+            #   log_message "ERROR" "Failed to configure AWS output format - exiting deployment"
+            #   exit 1
+            # else
+            #   log_message "INFO" "AWS credentials configured successfully."
+            # fi
+
+            # # Login to AWS ECR with timeout
+            # log_message "INFO" "Logging into AWS ECR..."
+            # if ! exec_command "AWS ECR Login" "timeout 60s aws ecr get-login-password --region \"${AWS_REGION}\" | timeout 60s docker login --username AWS --password-stdin \"${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com\" >> \"$LOG_FILE\" 2>&1"; then
+            #   log_message "ERROR" "Failed to log into ECR - exiting deployment"
+            #   exit 1
+            # else
+            #   log_message "INFO" "Logged into ECR successfully."
+            # fi
+
+            # Determine current and new ports
+            PORT=$(sudo grep -oP '127.0.0.1:\K[0-9]+' /etc/nginx/conf.d/default.conf 2>/dev/null | head -1)
+            if [ -z "$PORT" ]; then
+              CURRENT_PORT=3002 # Default to 3002 if not found
+            else
+              CURRENT_PORT=$PORT
+            fi
+            CURRENT_PORT=$(echo "$CURRENT_PORT" | tr -d '[:space:]')
+            log_message "INFO" "Current port: $CURRENT_PORT"
+
+            # BLUE/GREEN DEPLOYMENT STRATEGY
+            # Check the current port and switch to the other one
+            if [ "$CURRENT_PORT" = "3001" ]; then
+              NEW_PORT=3002
+              CONTAINER_NAME=Green
+              log_message "INFO" "Switching to port 3002(Green)"
+            else
+              NEW_PORT=3001
+              CONTAINER_NAME=Blue
+              log_message "INFO" "Switching to port 3001(Blue)"
+            fi
+
+            # Build the Docker image with the new port
+            log_message "INFO" "Building Docker image with new port: $NEW_PORT"
+            cd ~/onehash-cal/infra/docker/web || { log_message "ERROR" "Failed to cd into ~/onehash-cal/infra/docker/web"; exit 1; }
+
+            if [ ! -d "/home/onehash/onehash-cal/infra/docker/web" ]; then
+              log_message "ERROR" "Directory 'onehash-cal/infra/docker/web' does not exist. Exiting."
+              exit 1
+            fi
+
+            #Check if we have enough space to start a new container in GB
+            AVAILABLE_SPACE=$(df -BG / | tail -1 | awk '{print $4}' | sed 's/G//')
+
+            # Log available space
+            log_message "INFO" "Available disk space: ${AVAILABLE_SPACE}GB"
+
+            #If available space is less than 10GB, lets try to prune unused Docker images and containers
+            if [ "$AVAILABLE_SPACE" -lt 10 ]; then 
+              log_message "WARN" "⚠️ Available disk space is low: ${AVAILABLE_SPACE}GB. Pruning unused Docker images and containers"
+              if ! exec_command "Docker system prune" "docker system prune -af --volumes && docker volume prune -af"; then
+                log_message "ERROR" "❌ Failed to prune unused Docker images and containers"
+                exit 1
+              fi
+              AVAILABLE_SPACE=$(df -BG / | tail -1 | awk '{print $4}' | sed 's/G//')
+              if [ "$AVAILABLE_SPACE" -lt 10 ]; then
+                log_message "ERROR" "❌ Still insufficient disk space after pruning: ${AVAILABLE_SPACE}GB. Aborting deployment."
+                exit 1
+              else
+                log_message "INFO" "✅ Disk space after pruning: ${AVAILABLE_SPACE}GB"
+              fi
+            else
+              log_message "INFO" "✅ Sufficient disk space available: ${AVAILABLE_SPACE}GB"
+            fi
+
+            # Check and remove existing container if it exists
+            log_message "INFO" "Checking for existing Docker container '$CONTAINER_NAME'"
+            if docker ps -a --format '{{.Names}}' | grep -Eq "^${CONTAINER_NAME}\$"; then
+              if ! exec_command "Remove existing container" "docker rm -f \"$CONTAINER_NAME\""; then
+                log_message "ERROR" "❌ Failed to remove existing container '$CONTAINER_NAME' - aborting deployment"
+                exit 1
+              fi
+            fi
+
+            #Running container
+            log_message "INFO" "Starting Docker container '$CONTAINER_NAME' on port $NEW_PORT"
+
+            # AWS_ACCOUNT_ID=${{ env.AWS_ACCOUNT_ID }}
+            # AWS_REGION=${{ env.AWS_REGION }}
+            # REPO_NAME=${{ env.REPO_NAME }}
+            # DOCKER_IMAGE_TAG=${{ env.GIT_HASH }}
+            # IS_ROLLBACK=${{ env.IS_ROLLBACK}}
+
+            # if ! exec_command "Docker run" "docker run -d -it -e IS_ROLLBACK=\"$IS_ROLLBACK\" --name \"$CONTAINER_NAME\" --env-file \"/home/onehash/.env\" -p ${NEW_PORT}:3001 \"${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${DOCKER_IMAGE_TAG}\""; then
+            #   log_message "ERROR" "❌ Failed to start Docker container '$CONTAINER_NAME' - aborting deployment"
+            #   exit 1
+            # else
+            #   log_message "INFO" "✅ Docker container '$CONTAINER_NAME' started successfully on port $NEW_PORT"
+            # fi
+
+            DOCKERHUB_USERNAME=${{ env.DOCKERHUB_USERNAME }}
+            DOCKERHUB_TOKEN=${{ env.DOCKERHUB_TOKEN }}
+            REPO_NAME=${{ env.REPO_NAME }}
+            DOCKER_IMAGE_TAG=${{ env.GIT_HASH }}
+            IS_ROLLBACK=${{ env.IS_ROLLBACK}} 
+
+            # Login to Docker Hub for private repository access
+            if ! exec_command "Docker Hub login" "docker login -u \"$DOCKERHUB_USERNAME\" -p \"$DOCKERHUB_TOKEN\""; then
+              log_message "ERROR" "❌ Failed to login to Docker Hub - aborting deployment"
+              exit 1
+            else
+              log_message "INFO" "✅ Successfully logged into Docker Hub"
+            fi
+
+            # if ! exec_command "Docker run" "docker run -d -it -e IS_ROLLBACK=\"$IS_ROLLBACK\" --name \"$CONTAINER_NAME\" --env-file \"/home/onehash/.env\" -p ${NEW_PORT}:3001 \"${DOCKERHUB_USERNAME}/${REPO_NAME}:${DOCKER_IMAGE_TAG}\""; then
+            #   log_message "ERROR" "❌ Failed to start Docker container '$CONTAINER_NAME' - aborting deployment"
+            #   exit 1
+            # else
+            #   log_message "INFO" "✅ Docker container '$CONTAINER_NAME' started successfully on port $NEW_PORT"
+            # fi
+
+            if ! exec_command "Docker run" "docker run -d -it \
+              --add-host=host.docker.internal:host-gateway \
+              -e IS_ROLLBACK=\"$IS_ROLLBACK\" \
+              --name \"$CONTAINER_NAME\" \
+              --env-file \"/home/onehash/.env\" \
+              -p ${NEW_PORT}:3001 \
+              \"${DOCKERHUB_USERNAME}/${REPO_NAME}:${DOCKER_IMAGE_TAG}\""; then
+                log_message "ERROR" "❌ Failed to start Docker container '$CONTAINER_NAME' - aborting deployment"
+                exit 1
+            else
+                log_message "INFO" "✅ Docker container '$CONTAINER_NAME' started successfully on port $NEW_PORT"
+            fi
+
+            # HEALTH CHECK with progress tracking and better error handling
+            log_message "INFO" "Starting health checks for application on port $NEW_PORT"
+            HEALTH_CHECK_SUCCESS=false
+
+            for i in {1..30}; do
+              log_message "INFO" "Health check attempt $i/30"
+              
+              # Use timeout for curl to prevent hanging
+              STATUS_CODE=$(timeout 10s curl -s -o /dev/null -w "%{http_code}" "http://localhost:${NEW_PORT}/api/health" || echo "FAILED")
+              
+              if [ "$STATUS_CODE" = "200" ]; then
+                log_message "INFO" "✅ Application is healthy! Status code: $STATUS_CODE"
+                HEALTH_CHECK_SUCCESS=true
+                break
+              fi
+              log_message "WARN" "⏳ Still waiting... Attempt $i/30 - Status code: $STATUS_CODE"
+              sleep 30
+            done
+              
+            if [ "$HEALTH_CHECK_SUCCESS" != "true" ]; then
+              log_message "ERROR" "❌ Application did not become healthy after 30 attempts. Checking container logs..."
+              docker logs "$CONTAINER_NAME" >> "$LOG_FILE" 2>&1
+              log_message "ERROR" "Deployment failed - application didn't pass health checks"
+              exit 1
+            fi
+
+            # NGINX configuration
+            log_message "INFO" "Configuring NGINX"
+
+            NGINX_CONF_PATH="/etc/nginx/conf.d/default.conf"
+            TEMPLATE_PATH="/home/onehash/onehash-cal/infra/docker/web/nginx.template.conf"
+
+            # Check if template exists
+            if [ ! -f "$TEMPLATE_PATH" ]; then
+              log_message "ERROR" "❌ NGINX template not found at $TEMPLATE_PATH"
+              exit 1
+            fi
+
+            # Remove default site
+            log_message "INFO" "Removing default NGINX site (if any)"
+            if ! exec_command "Removing default site" "sudo rm -f /etc/nginx/sites-enabled/default"; then
+              log_message "WARN" "⚠️ Could not remove default site, continuing anyway"
+            fi
+
+            # Copy template
+            log_message "INFO" "Copying nginx template to $NGINX_CONF_PATH"
+            if ! exec_command "Copy nginx config" "sudo cp -f \"$TEMPLATE_PATH\" \"$NGINX_CONF_PATH\""; then
+              log_message "ERROR" "Failed to copy NGINX config template"
+              exit 1
+            fi
+
+            # Replace placeholders
+            log_message "INFO" "Replacing 'PORT_PLACEHOLDER','DOMAIN_PLACEHOLDER' and 'HOMEPAGE_PLACEHOLDER'"
+            if ! exec_command "Replace PORT" "sudo sed -i \"s/PORT_PLACEHOLDER/$NEW_PORT/g\" \"$NGINX_CONF_PATH\""; then
+              exit 1
+            fi
+
+            if ! exec_command "Replace DOMAIN" "sudo sed -i \"s/DOMAIN_PLACEHOLDER/$DOMAIN_NAME/g\" \"$NGINX_CONF_PATH\""; then
+              exit 1
+            fi
+
+            if ! exec_command "Replace HOMEPAGE_URL" "sudo sed -i \"s|HOMEPAGE_PLACEHOLDER|$HOMEPAGE_URL|g\" \"$NGINX_CONF_PATH\""; then
+                exit 1
+            fi
+
+
+            # # Test NGINX config
+            # log_message "INFO" "Testing NGINX config before reload"
+            # if ! exec_command "NGINX config test" "sudo nginx -t"; then
+            #   log_message "ERROR" "NGINX configuration test failed"
+            #   exit 1
+            # fi
+
+            # # Reload NGINX
+            # log_message "INFO" "Reloading NGINX (pre-certbot)"
+            # if ! exec_command "NGINX reload" "sudo nginx -s reload"; then
+            #   exit 1
+            # fi
+
+            # SSL Certificate with certbot
+            log_message "INFO" "Generating SSL cert for $DOMAIN_NAME"
+            # Add a timeout to certbot to prevent hanging
+            if ! exec_command "Certbot SSL" "timeout 300s sudo certbot certonly -a dns-multi --dns-multi-credentials=/etc/letsencrypt/dns-multi.ini -d \"*.${DOMAIN_NAME}\" -d \"${DOMAIN_NAME}\" -m \"${CERTBOT_EMAIL}\" --non-interactive --agree-tos"; then
+              log_message "WARN" "⚠️ Certbot SSL generation may have issues, but continuing with deployment"
+            fi
+
+            # Final NGINX test & reload
+            log_message "INFO" "Testing final nginx config after certbot changes"
+            if ! exec_command "NGINX config test post-certbot" "sudo nginx -t"; then
+              exit 1
+            fi
+
+            log_message "INFO" "Reloading nginx configuration"
+            if ! exec_command "NGINX final reload" "sudo nginx -s reload"; then
+              exit 1
+            fi
+
+            # Clean up old container
+            log_message "INFO" "Stopping the old Docker container"
+            if [ "$CURRENT_PORT" == "3001" ]; then
+              exec_command "Remove old Blue container" "docker rm -f Blue" || log_message "WARN" "⚠️ Failed to remove old Blue container (might not exist)"
+            else
+              exec_command "Remove old Green container" "docker rm -f Green" || log_message "WARN" "⚠️ Failed to remove old Green container (might not exist)"
+            fi
+
+            # Cleanup Docker images
+            log_message "INFO" "Pruning unused Docker images and containers older than 72 hours"
+            if ! exec_command "Docker pruning" "docker system prune -af --filter \"until=72h\""; then
+              log_message "WARN" "⚠️ Docker pruning had issues but deployment completed"
+            fi
+
+            # ==============================================
+            # DATABASE ROLLBACK MECHANISM (if IS_ROLLBACK is true)
+            # ==============================================
+            if [ "$IS_ROLLBACK" = "true" ]; then
+              log_message "INFO" "==== STARTING DATABASE ROLLBACK ===="
+              log_message "INFO" "↩️ Starting rollback to commit $GIT_HASH from branch $BRANCH_NAME"
+
+              # Create rollback directories
+              if ! exec_command "Create rollback directories" "mkdir -p /tmp/rollback_migrations /tmp/latest_migrations"; then
+                exit 1
+              fi
+
+              # Helper function to fetch migrations from a specific commit
+              fetch_migrations_from_commit() {
+                local commit_hash=$1
+                local out_dir=$2
+                local temp_dir
+                temp_dir=$(mktemp -d /tmp/migrations-checkout-XXXXXX)
+
+                if ! exec_command "Sparse clone migrations" \
+                  "git clone --no-checkout --depth 1 --branch $BRANCH_NAME ${{env.REPO_URL}} $temp_dir"; then
+                  rm -rf "$temp_dir"
+                  exit 1
+                fi
+
+                cd "$temp_dir" || { log_message "ERROR" "Failed to cd into $temp_dir"; rm -rf "$temp_dir"; exit 1; }
+
+                if ! exec_command "Init sparse-checkout" "git sparse-checkout set packages/prisma/migrations"; then
+                  rm -rf "$temp_dir"
+                  exit 1
+                fi
+
+                # Fetch the specific commit
+                if ! exec_command "Fetch commit $commit_hash" "git fetch origin $commit_hash"; then
+                  rm -rf "$temp_dir"
+                  exit 1
+                fi
+
+                if ! exec_command "Checkout commit $commit_hash" "git checkout $commit_hash"; then
+                  rm -rf "$temp_dir"
+                  exit 1
+                fi
+
+                if ! exec_command "Copy migrations" "cp -r packages/prisma/migrations/* $out_dir/ 2>/dev/null || true"; then
+                  log_message "WARN" "⚠️ No migrations found in commit $commit_hash or copy failed"
+                fi
+
+                cd /
+                rm -rf "$temp_dir"
+              }
+
+              # Get latest commit hash
+              LATEST_COMMIT=$(git -C ~/onehash-cal rev-parse origin/$BRANCH_NAME 2>>"$LOG_FILE")
+              if [ $? -ne 0 ]; then
+                log_message "ERROR" "❌ Could not determine latest commit from $BRANCH_NAME"
+                exit 1
+              fi
+              log_message "INFO" "✅ Latest commit on $BRANCH_NAME is $LATEST_COMMIT"
+
+              # Fetch migrations for latest and rollback commits
+              fetch_migrations_from_commit "$LATEST_COMMIT" "/tmp/latest_migrations"
+              fetch_migrations_from_commit "$GIT_HASH" "/tmp/rollback_migrations"
+
+              # Compare migrations and find new ones to rollback
+              log_message "INFO" "🔁 Comparing migrations..."
+              NEW_MIGRATIONS_FILE="/tmp/new_migrations_list.txt"
+              if ! exec_command "Compare migrations" "comm -13 <(ls /tmp/rollback_migrations 2>/dev/null | sort) <(ls /tmp/latest_migrations 2>/dev/null | sort) | sort -r > $NEW_MIGRATIONS_FILE"; then
+                log_message "ERROR" "❌ Failed to compare migrations"
+                exit 1
+              fi
+
+              # Check if there are migrations to rollback
+              if [ ! -s "$NEW_MIGRATIONS_FILE" ]; then
+                log_message "INFO" "✅ No new migrations to rollback"
+              else
+                log_message "INFO" "⏬ Migrations to rollback:"
+                cat "$NEW_MIGRATIONS_FILE" >> "$LOG_FILE"
+
+                # Check if psql is available
+                if ! command -v psql >/dev/null 2>&1; then
+                  log_message "ERROR" "❌ PostgreSQL client (psql) is not installed"
+                  exit 1
+                fi
+
+                # Test database connection
+                log_message "INFO" "Testing database connection..."
+                if ! exec_command "Test DB connection" "timeout 30s psql \"$DATABASE_URL\" -c 'SELECT 1;' > /dev/null 2>&1"; then
+                  log_message "ERROR" "❌ Could not connect to database"
+                  exit 1
+                fi
+
+                # Process each migration for rollback
+                while IFS= read -r mig; do
+                  if [ -z "$mig" ]; then
+                    continue
+                  fi
+
+                  MIG_DIR="/tmp/latest_migrations/$mig"
+                  DOWN_SQL="$MIG_DIR/down.sql"
+
+                  log_message "INFO" "🔁 Rolling back migration: $mig"
+
+                  if [ ! -f "$DOWN_SQL" ]; then
+                    log_message "ERROR" "❌ down.sql not found for $mig, skipping."
+                    continue
+                  fi
+
+                  # Execute down.sql
+                  log_message "INFO" "▶️ Running down.sql for $mig..."
+                  if ! exec_command "Execute down.sql for $mig" "timeout 300s psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 -f \"$DOWN_SQL\""; then
+                    log_message "ERROR" "❌ Failed executing down.sql for $mig"
+                    exit 1
+                  fi
+
+                  # Delete migration record from _prisma_migrations
+                  log_message "INFO" "🧹 Deleting $mig from _prisma_migrations..."
+                  if ! exec_command "Delete migration record for $mig" "timeout 60s psql \"$DATABASE_URL\" -c \"DELETE FROM _prisma_migrations WHERE migration_name = '$mig';\""; then
+                    log_message "ERROR" "❌ Failed to delete $mig from _prisma_migrations"
+                    exit 1
+                  fi
+
+                  log_message "INFO" "✅ Successfully rolled back $mig"
+                done < "$NEW_MIGRATIONS_FILE"
+
+                log_message "INFO" "✅ Database rollback completed successfully"
+              fi
+
+              # Cleanup rollback files
+              if ! exec_command "Cleanup rollback files" "rm -rf /tmp/rollback_migrations /tmp/latest_migrations $NEW_MIGRATIONS_FILE"; then
+                log_message "WARN" "⚠️ Could not cleanup rollback temporary files"
+              fi
+
+              log_message "INFO" "==== DATABASE ROLLBACK COMPLETED ===="
+            else
+              log_message "INFO" "🔄 Skipping database rollback (not a rollback deployment)"
+            fi
+
+
+            log_message "INFO" "✅ == Deployment Completed Successfully =="
+
+            # Output log summary at the end for GitHub Actions logs
+            echo "========= DEPLOYMENT LOG SUMMARY ========="
+            grep -E "ERROR|WARN" "$LOG_FILE" || echo "No errors or warnings found in deployment"
+            echo "======================================="
+
+            # Exit with success status
+            exit 0
+    
+      # APPENDING EC2 LOG FILE INTO CURRENT RUNNER LOGFILE
+      - name: Copy VPC logs to runner environment
+        uses: nicklasfrahm/scp-action@main
+        if: always()
+        id : download_vpc_logs
+        env:
+          EC2_HOST: ${{ steps.key_values.outputs.EC2_HOST }}
+          EC2_SSH_KEY: ${{ steps.key_values.outputs.EC2_SSH_KEY }}
+        with:
+          direction:  download
+          host: ${{ env.EC2_HOST }}
+
+          fingerprint: ${{ secrets.SSH_TARGET_FINGERPRINT }}
+          insecure_ignore_fingerprint : true
+          
+          username: "onehash"
+          key: ${{ env.EC2_SSH_KEY }}
+          source: '/home/onehash/deployment.log'
+          target: './deployment.log'
+
+      - name: Append VPC logs to runner log file
+        if: ${{ steps.download_vpc_logs.outcome == 'success'}}
+        env:
+          LOG_FILE: ${{ env.LOG_FILE }}
+        run: |
+          [ -f ./deployment.log ] && cat ./deployment.log >> "$LOG_FILE"
+
+      
+      # NOTIFY LOGS ACTION
+      - name: Send deployment status email
+        if: always()
+        env:
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO}}
+          EMAIL_FROM: ${{secrets.EMAIL_FROM}}
+          LOG_FILE: ${{ env.LOG_FILE }}
+          ENVIRONMENT: ${{ steps.set_branch.outputs.branch_name == 'main' && 'PRODUCTION' || 'STAGING' }}
+        run: |
+
+          LOG_SNIPPET=$(cat "$LOG_FILE" | jq -Rs .)
+          echo "LOG_SNIPPET $LOG_SNIPPET"
+          SUBJECT="CAL ID $ENVIRONMENT Deployment Status "
+          BODY=$(jq -Rs --arg sha "${{ github.sha }}" \
+                  --arg status "$([ '${{ job.status }}' = 'success' ] && echo 'Successful' || echo 'Failed')" \
+                  --arg actor "${{ github.actor }}" \
+                  --arg branch "${{ github.ref_name }}" \
+                  --arg runid "${{ github.run_id }}" \
+                  --arg logs "$LOG_SNIPPET" '
+                  "✅ DEPLOYMENT Notification\n\nCommit: \($sha)\nStatus: \($status)\nUser: \($actor)\nBranch: \($branch)\n\nLogs: https://github.com/${{ github.repository }}/actions/runs/\($runid)\n\n--- Workflow Log Snippet ---\n\($logs | fromjson)"
+                ' <<< "")
+
+          echo "Log_body $BODY"
+
+          curl --request POST \
+            --url https://api.sendgrid.com/v3/mail/send \
+            --header "Authorization: Bearer $SENDGRID_API_KEY" \
+            --header 'Content-Type: application/json' \
+            --data @- <<EOF
+            {
+              "personalizations": [
+                {
+                  "to": [
+                    {
+                      "email": "${EMAIL_TO}"
+                    }
+                  ]
+                }
+              ],
+              "from": {
+                "email": "${EMAIL_FROM}"
+              },
+              "subject": "${SUBJECT}",
+              "content": [
+                {
+                  "type": "text/plain",
+                  "value": $BODY
+                }
+              ]
+            }
+          EOF
+
+          echo "Email sent successfully!"

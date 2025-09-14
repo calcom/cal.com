@@ -1,0 +1,157 @@
+ARG NODE_VERSION=22
+
+# ---------- Stage 1: Build ----------
+
+
+FROM node:${NODE_VERSION}-slim AS builder
+
+# RUN corepack enable && corepack prepare yarn@3.4.1 --activate
+
+WORKDIR /calid
+
+ARG NEXTAUTH_URL
+ARG NEXTAUTH_SECRET
+ARG CALENDSO_ENCRYPTION_KEY
+ARG NEXT_PUBLIC_WEBAPP_URL
+ARG NEXT_PUBLIC_API_V2_URL
+ARG NEXT_PUBLIC_WEBSITE_URL
+ARG NEXT_PUBLIC_EMBED_LIB_URL
+ARG NEXT_PUBLIC_ONEHASH_URL
+ARG NEXT_PUBLIC_SENDGRID_SENDER_NAME
+ARG NEXT_PUBLIC_SENTRY_DSN
+ARG NEXT_PUBLIC_LOGGER_LEVEL
+ARG NEXT_PUBLIC_TEAM_IMPERSONATION
+ARG NEXT_PUBLIC_APP_NAME
+ARG NEXT_PUBLIC_COMPANY_NAME
+ARG NEXT_PUBLIC_MINUTES_TO_BOOK
+ARG NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD
+ARG NEXT_PUBLIC_CALENDLY_OAUTH_URL
+ARG NEXT_PUBLIC_CALENDLY_API_BASE_URL
+ARG NEXT_PUBLIC_CALENDLY_CLIENT_ID
+ARG NEXT_PUBLIC_CALENDLY_REDIRECT_URI
+ARG NEXT_PUBLIC_STRIPE_PUBLIC_KEY
+ARG NEXT_PUBLIC_ONEHASH_CHAT_URL
+ARG NEXT_PUBLIC_RAZORPAY_CLIENT_ID
+ARG NEXT_PUBLIC_SIGNUP_URL
+ARG NEXT_PUBLIC_VAPID_PUBLIC_KEY
+ARG NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL
+ARG NEXT_PUBLIC_WEBSITE_TERMS_URL
+ARG NEXT_PUBLIC_ONEHASH_CHAT_ORIGIN
+ARG NEXT_PUBLIC_RECAPTCHA_LOW
+ARG NEXT_PUBLIC_RECAPTCHA_MEDIUM
+ARG NEXT_PUBLIC_RECAPTCHA_HARD
+ARG NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS
+ARG NEXT_PUBLIC_POSTHOG_KEY
+ARG NEXT_PUBLIC_POSTHOG_HOST
+ARG NEXT_PUBLIC_ONEHASH_CRM_URL
+ARG NEXT_PUBLIC_ONEHASH_ERP_URL
+ARG NEXT_PUBLIC_WHITELISTED_ORGS
+ARG NEXT_PUBLIC_PIXEL
+ARG MAX_OLD_SPACE_SIZE=8192
+
+COPY . .
+
+# Install env dependencies
+RUN set -eux; \
+    apt-get update -qq && \
+    apt-get install -y build-essential openssl pkg-config python-is-python3 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists /var/cache/apt/archives && \
+    yarn config set httpTimeout 1200000
+
+# Allowing mutable installs
+RUN yarn config set enableImmutableInstalls false
+
+RUN export NEXTAUTH_URL=${NEXTAUTH_URL} && \
+export NEXTAUTH_SECRET=${NEXTAUTH_SECRET} && \
+export CALENDSO_ENCRYPTION_KEY=${CALENDSO_ENCRYPTION_KEY} && \
+export NEXT_PUBLIC_WEBAPP_URL=${NEXT_PUBLIC_WEBAPP_URL} && \
+export NEXT_PUBLIC_API_V2_URL=${NEXT_PUBLIC_API_V2_URL} && \
+export NODE_OPTIONS=--max-old-space-size=${MAX_OLD_SPACE_SIZE} && \
+export NEXT_PUBLIC_WEBSITE_URL=${NEXT_PUBLIC_WEBSITE_URL} && \
+export NEXT_PUBLIC_EMBED_LIB_URL=${NEXT_PUBLIC_EMBED_LIB_URL} && \
+export NEXT_PUBLIC_ONEHASH_URL=${NEXT_PUBLIC_ONEHASH_URL} && \
+export NEXT_PUBLIC_SENDGRID_SENDER_NAME=${NEXT_PUBLIC_SENDGRID_SENDER_NAME} && \
+export NEXT_PUBLIC_SENTRY_DSN=${NEXT_PUBLIC_SENTRY_DSN} && \
+export NEXT_PUBLIC_LOGGER_LEVEL=${NEXT_PUBLIC_LOGGER_LEVEL} && \
+export NEXT_PUBLIC_TEAM_IMPERSONATION=${NEXT_PUBLIC_TEAM_IMPERSONATION} && \
+export NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME} && \
+export NEXT_PUBLIC_COMPANY_NAME=${NEXT_PUBLIC_COMPANY_NAME} && \
+export NEXT_PUBLIC_MINUTES_TO_BOOK=${NEXT_PUBLIC_MINUTES_TO_BOOK} && \
+export NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD=${NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD} && \
+export NEXT_PUBLIC_CALENDLY_OAUTH_URL=${NEXT_PUBLIC_CALENDLY_OAUTH_URL} && \
+export NEXT_PUBLIC_CALENDLY_API_BASE_URL=${NEXT_PUBLIC_CALENDLY_API_BASE_URL} && \
+export NEXT_PUBLIC_CALENDLY_CLIENT_ID=${NEXT_PUBLIC_CALENDLY_CLIENT_ID} && \
+export NEXT_PUBLIC_CALENDLY_REDIRECT_URI=${NEXT_PUBLIC_CALENDLY_REDIRECT_URI} && \
+export NEXT_PUBLIC_STRIPE_PUBLIC_KEY=${NEXT_PUBLIC_STRIPE_PUBLIC_KEY} && \
+export NEXT_PUBLIC_ONEHASH_CHAT_URL=${NEXT_PUBLIC_ONEHASH_CHAT_URL} && \
+export NEXT_PUBLIC_RAZORPAY_CLIENT_ID=${NEXT_PUBLIC_RAZORPAY_CLIENT_ID} && \
+export NEXT_PUBLIC_SIGNUP_URL=${NEXT_PUBLIC_SIGNUP_URL} && \
+export NEXT_PUBLIC_VAPID_PUBLIC_KEY=${NEXT_PUBLIC_VAPID_PUBLIC_KEY} && \
+export NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL=${NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL} && \
+export NEXT_PUBLIC_WEBSITE_TERMS_URL=${NEXT_PUBLIC_WEBSITE_TERMS_URL} && \
+export NEXT_PUBLIC_ONEHASH_CHAT_ORIGIN=${NEXT_PUBLIC_ONEHASH_CHAT_ORIGIN} && \
+export NEXT_PUBLIC_RECAPTCHA_LOW=${NEXT_PUBLIC_RECAPTCHA_LOW} && \
+export NEXT_PUBLIC_RECAPTCHA_MEDIUM=${NEXT_PUBLIC_RECAPTCHA_MEDIUM} && \
+export NEXT_PUBLIC_RECAPTCHA_HARD=${NEXT_PUBLIC_RECAPTCHA_HARD} && \
+export NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS=${NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS} && \
+export NEXT_PUBLIC_POSTHOG_KEY=${NEXT_PUBLIC_POSTHOG_KEY} && \
+export NEXT_PUBLIC_POSTHOG_HOST=${NEXT_PUBLIC_POSTHOG_HOST} && \
+export NEXT_PUBLIC_ONEHASH_ERP_URL=${NEXT_PUBLIC_ONEHASH_ERP_URL} && \
+export NEXT_PUBLIC_ONEHASH_CRM_URL=${NEXT_PUBLIC_ONEHASH_CRM_URL} && \
+export NEXT_PUBLIC_WHITELISTED_ORGS=${NEXT_PUBLIC_WHITELISTED_ORGS} && \
+export NEXT_PUBLIC_PIXEL=${NEXT_PUBLIC_PIXEL} && \
+export BUILD_STANDALONE=true && \
+export NODE_ENV=production && \
+export CI=1 && \
+yarn install && yarn build
+
+RUN rm -rf node_modules/.cache .yarn/cache apps/web/.next/cache
+
+# ---------- Stage 2: Production ----------
+
+FROM node:${NODE_VERSION}-slim AS production
+
+
+RUN set -eux; \
+    apt-get update -qq && \
+    apt-get install -y build-essential openssl pkg-config python-is-python3 && \
+    apt-get clean && \
+    # required for accessing psql inside of container, when running psql on host ,rather than on remote service like RDS
+    apt-get update && apt-get install -y postgresql-client && \ 
+    rm -rf /var/lib/apt/lists /var/cache/apt/archives && \
+    yarn config set httpTimeout 1200000
+
+WORKDIR /app
+
+ARG MAX_OLD_SPACE_SIZE=8192
+ENV NODE_OPTIONS=--max-old-space-size=${MAX_OLD_SPACE_SIZE}
+
+# Copying essential files and packages
+COPY ./package.json ./.yarnrc.yml ./turbo.json ./i18n.json ./yarn.lock ./
+COPY ./apps/api/v2 ./apps/api/v2
+COPY ./packages ./packages
+
+# Copying yarn plugins and release version from builder stage
+COPY --from=builder /calid/.yarn ./.yarn
+
+# Copying the build output from the builder stage
+COPY --from=builder /calid/apps/web/ ./apps/web/
+
+# Copying node_modules from builder stage
+COPY --from=builder /calid/node_modules ./node_modules
+
+COPY ./entrypoint.sh ./
+RUN chmod +x ./entrypoint.sh
+
+ARG IS_ROLLBACK=false
+ENV IS_ROLLBACK=$IS_ROLLBACK
+
+# Allowing mutable installs
+# RUN yarn config set enableImmutableInstalls false
+
+# EXPOSING PORT
+EXPOSE 3001
+
+CMD ["sh", "./entrypoint.sh"]
+
