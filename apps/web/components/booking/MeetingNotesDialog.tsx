@@ -1,3 +1,4 @@
+import { Button } from "@calid/features/ui/components/button";
 import {
   Dialog,
   DialogTitle,
@@ -6,7 +7,6 @@ import {
   DialogFooter,
   DialogHeader,
 } from "@calid/features/ui/components/dialog";
-import { Button} from "@calid/features/ui/components/button";
 import BulletList from "@tiptap/extension-bullet-list";
 import OrderedList from "@tiptap/extension-ordered-list";
 import Underline from "@tiptap/extension-underline";

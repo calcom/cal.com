@@ -1,3 +1,4 @@
+import { Icon } from "@calid/features/ui/components/icon";
 import { zodResolver } from "@hookform/resolvers/zod";
 // eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
@@ -12,10 +13,6 @@ import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calid/features/ui/components/icon";
-
-
-
 
 type EnterpriseLicenseFormValues = {
   licenseKey: string;

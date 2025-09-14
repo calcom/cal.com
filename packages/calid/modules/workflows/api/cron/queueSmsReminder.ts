@@ -9,13 +9,13 @@ import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import * as twilio from "../providers/twilio";
-import customTemplate from "../templates/customTemplate";
-import type { VariablesType } from "../templates/customTemplate";
-import smsReminderTemplate from "../templates/sms/reminder";
-import { getSenderId } from "../utils/getSenderId";
-import type { PartialWorkflowReminder } from "../utils/getWorkflows";
-import { select } from "../utils/getWorkflows";
+import * as twilio from "../../providers/twilio";
+import customTemplate from "../../templates/customTemplate";
+import type { VariablesType } from "../../templates/customTemplate";
+import smsReminderTemplate from "../../templates/sms/reminder";
+import { getSenderId } from "../../utils/getSenderId";
+import type { PartialWorkflowReminder } from "../../utils/getWorkflows";
+import { select } from "../../utils/getWorkflows";
 
 const fetchPendingNotifications = async () => {
   return prisma.workflowReminder.findMany({

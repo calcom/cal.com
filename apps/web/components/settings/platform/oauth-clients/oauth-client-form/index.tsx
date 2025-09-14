@@ -1,3 +1,4 @@
+import { Icon } from "@calid/features/ui/components/icon";
 import { useState, useCallback } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 
@@ -5,10 +6,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
 import { Button } from "@calcom/ui/components/button";
 import { Label, TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calid/features/ui/components/icon";
-
-
-
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 type OAuthClientFormProps = {

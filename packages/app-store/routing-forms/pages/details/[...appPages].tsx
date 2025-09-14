@@ -1,14 +1,14 @@
 "use client";
 
+import { Button } from "@calid/features/ui/components/button";
+import { Checkbox } from "@calid/features/ui/components/input/checkbox-field";
+import { Input } from "@calid/features/ui/components/input/input";
+import { TextArea } from "@calid/features/ui/components/input/text-area";
 import Link from "next/link";
 import { Controller } from "react-hook-form";
 import type { UseFormReturn } from "react-hook-form";
-import { TeamsSelectionDialog } from "routing-forms/components/TeamsSelectionDialog";
 import { Toaster } from "sonner";
-import { Button } from "@calid/features/ui/components/button";
-import { Input } from "@calid/features/ui/components/input/input";
-import { Textarea } from "@calid/features/ui/components/input/text-area";
-import { Checkbox } from "@calid/features/ui/components/input/checkbox-field";
+
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { IS_CALCOM } from "@calcom/lib/constants";
@@ -56,7 +56,7 @@ const FormSettings = ({
         {/* Basic Information Card */}
         {/* <FormCard label={t("basic_information")}> */}
 
-        <div class="flex grid w-full grid-cols-1 justify-between gap-10 sm:grid-cols-2 md:grid-cols-2">
+        <div className="flex grid w-full grid-cols-1 justify-between gap-10 sm:grid-cols-2 md:grid-cols-2">
           <div className="bg-default border-default gap-3 rounded-2xl border p-6">
             <div className="mb-3">
               <span className="text-default text-sm font-semibold">{t("form_name_lable")}</span>
@@ -71,11 +71,10 @@ const FormSettings = ({
             </div>
             <div className="mb-3">
               <span className="text-default text-sm font-semibold">{t("form_description_lable")}</span>
-              <Textarea
+              <TextArea
                 rows={3}
                 id="description"
                 data-testid="description"
-                label={t("description")}
                 placeholder={t("form_description_placeholder")}
                 {...hookForm.register("description")}
                 defaultValue={form.description || ""}
@@ -99,14 +98,14 @@ const FormSettings = ({
                       navigator.clipboard.writeText(formLink);
                     }}
                     type="button"
-                    variant="outline"
+                    color="minimal"
                     size="sm">
                     <Icon name="clipboard" className="h-3 w-3" />
                   </Button>
                 </Tooltip>
                 <Tooltip content={t("preview")}>
                   <Link href={formLink} target="_blank">
-                    <Button type="button" variant="outline" size="sm">
+                    <Button type="button" color="minimal" size="sm">
                       <Icon name="external-link" className="h-3 w-3" />
                     </Button>
                   </Link>
@@ -140,7 +139,6 @@ const FormSettings = ({
             <div className="mt-4">
               <FormAction
                 action="download"
-                variant="default"
                 className="w-full justify-center"
                 routingForm={form}
                 color="minimal"

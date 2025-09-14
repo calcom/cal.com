@@ -10,15 +10,14 @@ import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
 import prisma from "@calcom/prisma";
 
-// export const config = {
-//   api: {
-//     bodyParser: false,
-//   },
-// };
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
 
-export const runtime = 'nodejs'; // runtime environment 
-export const dynamic = 'force-dynamic'; // to disable static optimization and allow dynamic body handling
-
+export const runtime = "nodejs"; // runtime environment
+export const dynamic = "force-dynamic"; // to disable static optimization and allow dynamic body handling
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {

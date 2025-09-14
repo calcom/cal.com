@@ -1,4 +1,3 @@
-import { Label } from "@calid/features/ui/components/label";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";

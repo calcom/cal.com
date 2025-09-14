@@ -1,9 +1,5 @@
-import React from "react";
-
 import { Icon } from "@calid/features/ui/components/icon";
-
-
-
+import React from "react";
 
 interface LinkIconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   Icon: React.ComponentProps<typeof Icon>["name"];

@@ -66,11 +66,11 @@ export const buttonClasses = cva(
           "focus-visible:outline-none",
           "focus-visible:ring-0",
           "focus-visible:shadow-outline-gray-focused",
-         // Border
-         "border border-active",
-         // Disabled
-         "disabled:opacity-30",
-         // Shadows and effects
+          // Border
+          "border border-active",
+          // Disabled
+          "disabled:opacity-30",
+          // Shadows and effects
           "transition-shadow",
           "transition-transform",
           "duration-100",
@@ -265,9 +265,9 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         const classes = classNames(buttonClasses({ color, size, loading, variant }), props.className);
         return classes;
       })(),
-      style: { 
+      style: {
         backgroundColor: brandColor,
-        border: brandColor ? 'none' : undefined,
+        border: brandColor ? "none" : undefined,
       },
       // if we click a disabled button, we prevent going through the click handler
       onClick: disabled
@@ -384,7 +384,7 @@ const Wrapper = ({
   }
 
   return (
-    <TooltipProvider> 
+    <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>{children}</TooltipTrigger>
 

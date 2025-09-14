@@ -3,7 +3,6 @@
 import React, { useCallback, useState, useEffect } from "react";
 import Cropper from "react-easy-crop";
 
-import checkIfItFallbackImage from "@calcom/lib/checkIfItFallbackImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Button } from "../button";
@@ -175,7 +174,7 @@ export default function BannerUploader({
                   // <p className="text-emphasis w-full text-center text-sm sm:text-xs">
                   //   {t("no_target", { target })}
                   // </p>
-                  <div class="w-full h-full bg-cal-gradient" />
+                  <div className="bg-cal-gradient h-full w-full" />
                 ) : (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img className="h-full w-full" src={imageSrc} alt={target} />

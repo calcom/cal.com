@@ -1,9 +1,10 @@
 "use client";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@calid/features/ui/components/dialog';
 import { Avatar } from "@calid/features/ui/components/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@calid/features/ui/components/dialog";
+import React from "react";
+
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 
 interface TeamSelectionDialogProps {
@@ -19,7 +20,7 @@ export const TeamSelectionDialog: React.FC<TeamSelectionDialogProps> = ({
   openChange,
   onTeamSelect,
   isAdmin = false,
-  includeOrg = false
+  includeOrg = false,
 }) => {
   const { t } = useLocale();
 
@@ -50,7 +51,7 @@ export const TeamSelectionDialog: React.FC<TeamSelectionDialogProps> = ({
     });
   }
 
-  const handleTeamSelect = (teamData: typeof teamsAndUserProfiles[0]) => {
+  const handleTeamSelect = (teamData: (typeof teamsAndUserProfiles)[0]) => {
     onTeamSelect(teamData.teamId);
     openChange(false);
   };
@@ -59,29 +60,26 @@ export const TeamSelectionDialog: React.FC<TeamSelectionDialogProps> = ({
     openChange(false);
   };
 
-  return (open &&
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="w-full sm:max-w-md">
-        <DialogHeader>
-         <DialogTitle>{t("select_team_or_profile")}</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-2 py-4">
-          {teamsAndUserProfiles.map((team, index) => (
-            <button
-              key={`${team.teamId}-${index}`}
-              onClick={() => handleTeamSelect(team)}
-              className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-muted transition-colors text-left"
-            >
-              <Avatar 
-                alt={team.label || ""} 
-                imageSrc={team.image} 
-                size="sm" 
-              />
-              <span className="font-medium text-sm">{team.label}</span>
-            </button>
-          ))}
-        </div>
-      </DialogContent>
-    </Dialog>
+  return (
+    open && (
+      <Dialog open={open} onOpenChange={handleClose}>
+        <DialogContent className="w-full sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("select_team_or_profile")}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 py-4">
+            {teamsAndUserProfiles.map((team, index) => (
+              <button
+                key={`${team.teamId}-${index}`}
+                onClick={() => handleTeamSelect(team)}
+                className="hover:bg-muted flex w-full items-center space-x-3 rounded-lg p-3 text-left transition-colors">
+                <Avatar alt={team.label || ""} imageSrc={team.image} size="sm" />
+                <span className="text-sm font-medium">{team.label}</span>
+              </button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
   );
 };

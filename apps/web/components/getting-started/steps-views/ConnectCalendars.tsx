@@ -1,8 +1,9 @@
+import { cn } from "@calid/features/lib/cn";
+import { Button } from "@calid/features/ui/components/button";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calid/features/ui/components/button";
 import { List } from "@calcom/ui/components/list";
-import { cn } from "@calid/features/lib/cn";
 
 import { AppConnectionItem } from "../components/AppConnectionItem";
 import { ConnectedCalendarItem } from "../components/ConnectedCalendarItem";

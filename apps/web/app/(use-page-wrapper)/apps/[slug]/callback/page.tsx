@@ -1,12 +1,13 @@
-import Link from "next/link";
-import { z } from "zod";
-import { redirect, notFound } from "next/navigation";
 import { cookies, headers } from "next/headers";
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import Link from "next/link";
+import { redirect, notFound } from "next/navigation";
+import { z } from "zod";
 
 import { handleRazorpayOAuthRedirect } from "@calcom/app-store/razorpay/lib";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 // ✅ zod schema for query params
 const querySchema = z.object({
@@ -51,8 +52,7 @@ function ErrorPage({ error }: { error?: string }) {
   return (
     <div
       className="bg-default flex min-h-screen flex-col items-center justify-center px-4"
-      data-testid="booking-payment-cb"
-    >
+      data-testid="booking-payment-cb">
       <p className="text-emphasis text-sm font-semibold uppercase tracking-wide">{t("error_404")}</p>
 
       <h1 className="font-cal text-emphasis mt-2 text-4xl font-extrabold sm:text-5xl">
@@ -62,8 +62,7 @@ function ErrorPage({ error }: { error?: string }) {
       <Link
         href="/"
         className="text-emphasis hover:text-emphasis-dark mt-4 text-lg underline"
-        data-testid="home-link"
-      >
+        data-testid="home-link">
         {t("go_back_home")}
       </Link>
     </div>

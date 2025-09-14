@@ -9,7 +9,7 @@ import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
-import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -72,8 +72,8 @@ export function BookingExpandedCard(props: BookingItemProps) {
 
   const showExpandedActions = true;
 
-  const setSelectedMeeting = (booking: BookingItemProps | null) => {};
-  const setShowMeetingNotes = (show: boolean) => {};
+  // const setSelectedMeeting = (booking: BookingItemProps | null) => {};
+  // const setShowMeetingNotes = (show: boolean) => {};
 
   const handleMarkNoShow = () => {
     if (attendeeList.length === 1) {

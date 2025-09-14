@@ -1,5 +1,4 @@
 "use client";
-import { Icon } from "@calid/features/ui";
 
 import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";

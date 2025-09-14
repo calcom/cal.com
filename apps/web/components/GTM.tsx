@@ -7,6 +7,7 @@ const CACHE_KEY = "user_geolocation";
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
 export async function fetchGeolocation() {
+  // eslint-disable-next-line @calcom/eslint/avoid-web-storage
   const cachedData = localStorage.getItem(CACHE_KEY);
 
   if (cachedData) {
@@ -25,6 +26,7 @@ export async function fetchGeolocation() {
     timestamp: Date.now(),
   };
 
+  // eslint-disable-next-line @calcom/eslint/avoid-web-storage
   localStorage.setItem(CACHE_KEY, JSON.stringify(newCacheData));
   return data;
 }

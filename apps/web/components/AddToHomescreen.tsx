@@ -1,10 +1,7 @@
+import { Icon } from "@calid/features/ui/components/icon";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calid/features/ui/components/icon";
-
-
-
 
 export default function AddToHomescreen() {
   const { t } = useLocale();

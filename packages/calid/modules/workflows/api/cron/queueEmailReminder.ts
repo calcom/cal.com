@@ -13,7 +13,7 @@ import prisma from "@calcom/prisma";
 import { SchedulingType, WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import type { PartialWorkflowReminder } from "../../config/types";
+import type { PartialCalIdWorkflowReminder as PartialWorkflowReminder } from "../../config/types";
 import { cancelScheduledEmail, getBatchId, sendSendgridMail } from "../../providers/sendgrid";
 import type { VariablesType } from "../../templates/customTemplate";
 import customTemplate from "../../templates/customTemplate";

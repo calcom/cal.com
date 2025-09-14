@@ -1,7 +1,7 @@
 "use client";
 
-import { Checkbox } from "@calid/features/ui/components/input/checkbox-field";
 import { Button } from "@calid/features/ui/components/button";
+import { Checkbox } from "@calid/features/ui/components/input/checkbox-field";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -11,7 +11,7 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
-  return <div></div>;
+  return <div />;
 };
 
 // Component responsible for importing data from Calendly if user has already authorized Calendly

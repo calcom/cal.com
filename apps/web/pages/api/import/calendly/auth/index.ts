@@ -2,8 +2,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-
-
 // import { defaultHandler,  } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import { IntegrationProvider } from "@calcom/prisma/client";

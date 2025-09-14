@@ -1,14 +1,11 @@
 "use client";
 
+import { Icon } from "@calid/features/ui/components/icon";
 import { useState } from "react";
 
 import { Button } from "@calcom/ui/components/button";
 import { FileUploader, type FileData } from "@calcom/ui/components/file-uploader";
 import { Label, TextArea } from "@calcom/ui/components/form";
-import { Icon } from "@calid/features/ui/components/icon";
-
-
-
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -159,7 +156,7 @@ const PlainContactForm = () => {
 
         <PopoverContent
           style={{ maxWidth: "450px", maxHeight: "650px" }}
-          className="!bg-muted no-scrollbar mr-8 mb-2 w-[450px] overflow-hidden overflow-y-scroll px-6 py-4">
+          className="!bg-muted no-scrollbar mb-2 mr-8 w-[450px] overflow-hidden overflow-y-scroll px-6 py-4">
           <div className="flex w-full justify-between">
             <p className="mb-5 text-lg font-semibold">Contact support</p>
             <Button
