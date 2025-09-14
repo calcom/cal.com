@@ -28,6 +28,7 @@ export default function AppCard({
   onAppInstallSuccess,
 }: {
   app: AppCardApp;
+  onAppInstallSuccess: () => void;
   description?: React.ReactNode;
   switchChecked?: boolean;
   switchOnClick?: (e: boolean) => void;
@@ -39,7 +40,6 @@ export default function AppCard({
   switchTooltip?: string;
   hideSettingsIcon?: boolean;
   hideAppCardOptions?: boolean;
-  onAppInstallSuccess?: () => void;
 }) {
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLDivElement>();

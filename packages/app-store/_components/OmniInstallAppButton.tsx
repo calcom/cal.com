@@ -20,9 +20,9 @@ export default function OmniInstallAppButton({
 }: {
   appId: string;
   className: string;
+  onAppInstallSuccess: () => void;
   returnTo?: string;
   teamId?: number;
-  onAppInstallSuccess?: () => void;
 }) {
   const { t } = useLocale();
   const { data: app } = useApp(appId);

@@ -16,11 +16,11 @@ export const EventTypeAppCard = (props: {
   eventType: EventTypeForAppCard;
   getAppData: GetAppData;
   setAppData: SetAppData;
+  onAppInstallSuccess: () => void;
   // For event type apps, get these props from shouldLockDisableProps
   LockedIcon?: JSX.Element | false;
   eventTypeFormMetadata: z.infer<typeof EventTypeMetaDataSchema>;
   disabled?: boolean;
-  onAppInstallSuccess?: () => void;
 }) => {
   const { app, getAppData, setAppData, LockedIcon, disabled, onAppInstallSuccess } = props;
   return (
@@ -29,8 +29,8 @@ export const EventTypeAppCard = (props: {
         <DynamicComponent
           slug={app.slug === "stripe" ? "stripepayment" : app.slug}
           componentMap={EventTypeAddonMap}
-          onAppInstallSuccess={onAppInstallSuccess}
           {...props}
+          onAppInstallSuccess={onAppInstallSuccess}
         />
       </EventTypeAppContext.Provider>
     </ErrorBoundary>
