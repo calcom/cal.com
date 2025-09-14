@@ -16,7 +16,7 @@ interface CacheOptions {
  * for users, teams, and global application features.
  */
 export class FeaturesRepository implements IFeaturesRepository {
-  private static featuresCache: { data: any[]; expiry: number } | null = null;
+  private static featuresCache: { data: unknown[]; expiry: number } | null = null;
 
   private clearCache() {
     FeaturesRepository.featuresCache = null;
@@ -244,6 +244,34 @@ export class FeaturesRepository implements IFeaturesRepository {
       captureException(err);
       console.error(
         `Recursive feature check failed for team ${teamId}, feature ${featureId}:`,
+        err instanceof Error ? err.message : err
+      );
+      throw err;
+    }
+  }
+
+  /**
+   * Checks if a CalIdTeam has access to a specific feature.
+   * @param calIdTeamId - The ID of the CalIdTeam to check
+   * @param featureId - The feature identifier to check
+   * @returns Promise<boolean> - True if the CalIdTeam has the feature, false otherwise
+   * @throws Error if the database query fails
+   */
+  async checkIfCalIdTeamHasFeature(calIdTeamId: number, featureId: keyof AppFlags): Promise<boolean> {
+    try {
+      const calIdTeamHasFeature = await db.calIdTeamFeatures.findUnique({
+        where: {
+          calIdTeamId_featureId: {
+            calIdTeamId,
+            featureId,
+          },
+        },
+      });
+      return !!calIdTeamHasFeature;
+    } catch (err) {
+      captureException(err);
+      console.error(
+        `Feature check failed for CalIdTeam ${calIdTeamId}, feature ${featureId}:`,
         err instanceof Error ? err.message : err
       );
       throw err;

@@ -29,12 +29,12 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
-import type { getServerSideProps } from "@lib/team/[slug]/getServerSideProps";
+import type { getCalIdServerSideProps } from "@lib/team/[slug]/getCalIdServerSideProps";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import Team from "@components/team/screens/Team";
 
-export type PageProps = inferSSRProps<typeof getServerSideProps>;
+export type PageProps = inferSSRProps<typeof getCalIdServerSideProps>;
 function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
   useTheme(team.theme);
   const routerQuery = useRouterQuery();
@@ -47,7 +47,8 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
   const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
   const metadata = teamMetadataSchema.parse(team.metadata);
 
-  const teamOrOrgIsPrivate = team.isPrivate || (team?.parent?.isOrganization && team.parent?.isPrivate);
+  const teamOrOrgIsPrivate =
+    team.isPrivate || (team?.parent && team.parent.isOrganization && team.parent.isPrivate);
 
   useEffect(() => {
     telemetry.event(
@@ -77,7 +78,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
 
   const EventTypes = ({ eventTypes }: { eventTypes: NonNullable<(typeof team)["eventTypes"]> }) => (
     <>
-      {eventTypes.map((type, index) => (
+      {eventTypes.map((type: any, index: number) => (
         <div
           key={index}
           className="dark:bg-muted dark:hover:bg-emphasis hover:bg-muted border-subtle group relative rounded-md border bg-white shadow-md transition hover:scale-[1.02]"
@@ -132,9 +133,9 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
   const SubTeams = () =>
     team.children.length ? (
       <ul className="divide-subtle border-subtle bg-default !static w-full divide-y rounded-md border">
-        {team.children.map((ch, i) => {
+        {team.children.map((ch: any, i: number) => {
           const memberCount = team.members.filter(
-            (mem) => mem.subteams?.includes(ch.slug) && mem.accepted
+            (mem: any) => mem.subteams?.includes(ch.slug) && mem.accepted
           ).length;
           return (
             <li key={i} className="hover:bg-muted w-full rounded-md transition">
@@ -153,7 +154,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
                   className="mr-6"
                   size="sm"
                   truncateAfter={4}
-                  users={team.members.filter((mem) => mem.subteams?.includes(ch.slug) && mem.accepted)}
+                  users={team.members.filter((mem: any) => mem.subteams?.includes(ch.slug) && mem.accepted)}
                 />
               </Link>
             </li>
@@ -171,7 +172,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
       </div>
     );
 
-  const profileImageSrc = getDefaultAvatar(team, team.parent?.name);
+  const profileImageSrc = getDefaultAvatar(team.logoUrl, team.name);
 
   return (
     <div className="bg-default flex min-h-screen w-full flex-col">

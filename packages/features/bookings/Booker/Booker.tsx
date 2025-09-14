@@ -1,11 +1,10 @@
+import { Branding } from "@calid/features/ui/Branding";
 import { Button } from "@calid/features/ui/components/button";
-import { Icon } from "@calid/features/ui/components/icon";
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import StickyBox from "react-sticky-box";
 import { Toaster } from "sonner";
 import { shallow } from "zustand/shallow";
-import { Branding } from "@calid/features/ui/Branding";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
@@ -30,6 +29,7 @@ import { BookFormAsModal } from "./components/BookEventForm/BookFormAsModal";
 import { DatePicker } from "./components/DatePicker";
 import { DryRunMessage } from "./components/DryRunMessage";
 import { EventMeta } from "./components/EventMeta";
+import { EventTypesPanel } from "./components/EventTypesPanel";
 import { HavingTroubleFindingTime } from "./components/HavingTroubleFindingTime";
 import { Header } from "./components/Header";
 import { InstantBooking } from "./components/InstantBooking";
@@ -38,7 +38,6 @@ import { OverlayCalendar } from "./components/OverlayCalendar/OverlayCalendar";
 import { RedirectToInstantMeetingModal } from "./components/RedirectToInstantMeetingModal";
 import { BookerSection } from "./components/Section";
 import { NotFound } from "./components/Unavailable";
-import { EventTypesPanel } from "./components/EventTypesPanel";
 import { useIsQuickAvailabilityCheckFeatureEnabled } from "./components/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import framerFeatures from "./framer-features";
@@ -49,7 +48,7 @@ import { isTimeSlotAvailable } from "./utils/isTimeslotAvailable";
 
 const BookerComponent = ({
   username,
-brandColor,
+  brandColor,
   eventSlug,
   hideBranding = false,
   entity,
@@ -355,7 +354,6 @@ brandColor,
               !isEmbed && layout === BookerLayouts.MONTH_VIEW && `border-subtle border`,
               `${customClassNames?.bookerContainer}`
             )}>
-            
             {/* Chevron Left Button - Only show on md and lg screens */}
             {eventTypes.length > 0 && (
               <Button
@@ -363,14 +361,13 @@ brandColor,
                 color="secondary"
                 StartIcon="chevron-left"
                 size="lg"
-                className="absolute -left-12 z-10 hidden md:flex lg:flex bg-subtle rounded-full p-4 w-10 h-10"
-                style={{ 
-                  top: 'calc(50% - 30px)' // Adjust for branding space at bottom
+                className="bg-subtle absolute -left-12 z-10 hidden h-10 w-10 rounded-full p-4 md:flex lg:flex"
+                style={{
+                  top: "calc(50% - 30px)", // Adjust for branding space at bottom
                 }}
                 onMouseEnter={() => setIsEventTypesPanelVisible(true)}
                 data-testid="event-types-chevron"
-              >
-              </Button>
+              />
             )}
             <AnimatePresence>
               {!isInstantMeeting && (

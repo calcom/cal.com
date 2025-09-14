@@ -6,12 +6,12 @@ import { useSearchParams } from "next/navigation";
 import { BookerWebWrapper as Booker } from "@calcom/atoms/booker";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 
-import type { getServerSideProps } from "@lib/team/[slug]/[type]/getServerSideProps";
+import type { getCalIdServerSideProps } from "@lib/team/[slug]/[type]/getCalIdServerSideProps";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPageErrorBoundary from "@components/error/BookingPageErrorBoundary";
 
-export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
+export type PageProps = inferSSRProps<typeof getCalIdServerSideProps> & EmbedProps;
 
 export const getMultipleDurationValue = (
   multipleDurationConfig: number[] | undefined,
@@ -47,6 +47,7 @@ function Type({
           useApiV2={useApiV2}
           username={user}
           eventSlug={slug}
+          eventData={eventData}
           bookingData={booking}
           isInstantMeeting={isInstantMeeting}
           hideBranding={isBrandingHidden}

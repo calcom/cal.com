@@ -153,7 +153,9 @@ export const EventMeta = ({
   );
 
   return (
-    <div className={`${classNames?.eventMetaContainer || ""} relative z-10 p-6 mb-10`} data-testid="event-meta">
+    <div
+      className={`${classNames?.eventMetaContainer || ""} relative z-10 mb-10 p-6`}
+      data-testid="event-meta">
       {isPending && (
         <m.div {...fadeInUp} initial="visible" layout>
           <EventMetaSkeleton />
