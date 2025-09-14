@@ -291,10 +291,10 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         {props.children}
       </div>
       {loading && (
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform">
           <svg
             className={classNames(
-              "h-5 w-5 animate-spin",
+              "mx-4 h-5 w-5 animate-spin",
               color === "primary" ? "text-inverted" : "text-emphasis"
             )}
             xmlns="http://www.w3.org/2000/svg"
