@@ -625,6 +625,96 @@ describe("Bookings Endpoints 2024-08-13", () => {
             }
           });
       });
+
+      it("should create a booking with timezone in start_time parameter", async () => {
+        const startTimeWithTimezone = "2030-02-15T10:00:00-05:00";
+        const body: CreateBookingInput_2024_08_13 = {
+          start: startTimeWithTimezone,
+          eventTypeId,
+          attendee: {
+            name: "Timezone Test User",
+            email: "timezone_test@gmail.com",
+            timeZone: "America/Lima", // Must match the timezone guessed from start_time due to validation
+            language: "en",
+          },
+          location: "https://meet.google.com/timezone-test",
+          bookingFieldsResponses: {
+            customField: "timezoneTestValue",
+          },
+          metadata: {
+            timezoneTest: "true",
+          },
+        };
+
+        const beforeCreate = new Date();
+        return request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201)
+          .then(async (response) => {
+            const afterCreate = new Date();
+            const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.id).toBeDefined();
+              expect(data.uid).toBeDefined();
+              expect(data.hosts[0].id).toEqual(user.id);
+              expect(data.hosts[0].username).toEqual(user.username);
+              expect(data.hosts[0].email).toEqual(user.email);
+              expect(data.status).toEqual("accepted");
+              expect(data.start).toEqual("2030-02-15T15:00:00.000Z"); // Converted to UTC
+              // End time should be 1 hour later in UTC
+              expect(data.end).toEqual("2030-02-15T16:00:00.000Z");
+              expect(data.duration).toEqual(60);
+              expect(data.eventTypeId).toEqual(eventTypeId);
+              expect(data.eventType).toEqual({
+                id: eventTypeId,
+                slug: eventTypeSlug,
+              });
+              // The attendee timezone should reflect the timezone from start_time
+              expect(data.attendees[0]).toEqual({
+                name: body.attendee.name,
+                email: body.attendee.email,
+                timeZone: "America/Lima", // Should be derived from start_time timezone
+                language: body.attendee.language,
+                absent: false,
+              });
+              expect(data.location).toEqual(body.location);
+              expect(data.meetingUrl).toEqual(body.location);
+              expect(data.absentHost).toEqual(false);
+              expect(data.bookingFieldsResponses).toEqual({
+                name: body.attendee.name,
+                email: body.attendee.email,
+                ...body.bookingFieldsResponses,
+                location: {
+                  optionValue: body.location,
+                  value: "link",
+                },
+              });
+              expect(data.metadata).toEqual(body.metadata);
+
+              // Check createdAt date is between the time of the request and after the request
+              const createdAtDate = new Date(data.createdAt);
+              expect(createdAtDate.getTime()).toBeGreaterThanOrEqual(beforeCreate.getTime());
+              expect(createdAtDate.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
+
+              // Check updatedAt date is between the time of the request and after the request
+              expect(data.updatedAt).toBeDefined();
+              const updatedAtDate = data.updatedAt ? new Date(data.updatedAt) : null;
+              expect(updatedAtDate?.getTime()).toBeGreaterThanOrEqual(beforeCreate.getTime());
+              expect(updatedAtDate?.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
+              );
+            }
+          });
+      });
     });
 
     describe("get individual booking", () => {
@@ -1492,6 +1582,90 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 "Invalid response data - expected recurring booking but received non array response"
               );
             }
+          });
+      });
+
+      it("should reschedule booking with timezone in start_time parameter", async () => {
+        const initialBookingBody: CreateBookingInput_2024_08_13 = {
+          start: "2035-02-15T14:00:00+00:00",
+          eventTypeId,
+          attendee: {
+            name: "Reschedule Test User",
+            email: "reschedule_test@gmail.com",
+            timeZone: "Africa/Ouagadougou", // Must match the timezone guessed from start_time due to validation
+            language: "en",
+          },
+          location: "https://meet.google.com/reschedule-test",
+          bookingFieldsResponses: {
+            customField: "rescheduleTestValue",
+          },
+          metadata: {
+            rescheduleTest: "true",
+          },
+        };
+
+        // Create the initial booking
+        const initialBooking = await request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(initialBookingBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+            if (responseDataIsBooking(responseBody.data)) {
+              return responseBody.data;
+            }
+            throw new Error("Invalid response data");
+          });
+
+        const startTimeWithTimezone = "2035-02-15T10:00:00-05:00";
+        const body: RescheduleBookingInput_2024_08_13 = {
+          start: startTimeWithTimezone,
+          reschedulingReason: "Timezone reschedule test",
+        };
+
+        const beforeCreate = new Date();
+        return request(app.getHttpServer())
+          .post(`/v2/bookings/${initialBooking.uid}/reschedule`)
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201)
+          .then(async (response) => {
+            const afterCreate = new Date();
+            const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            const data: BookingOutput_2024_08_13 = responseBody.data;
+            expect(data.reschedulingReason).toEqual(body.reschedulingReason);
+            expect(data.start).toEqual("2035-02-15T15:00:00.000Z"); // Converted to UTC
+            // End time should be 1 hour later in UTC
+            expect(data.end).toEqual("2035-02-15T16:00:00.000Z");
+            expect(data.rescheduledFromUid).toEqual(initialBooking.uid);
+            expect(data.id).toBeDefined();
+            expect(data.uid).toBeDefined();
+            expect(data.hosts[0].id).toEqual(user.id);
+            expect(data.hosts[0].username).toEqual(user.username);
+            expect(data.hosts[0].email).toEqual(user.email);
+            expect(data.status).toEqual(initialBooking.status);
+            expect(data.duration).toEqual(initialBooking.duration);
+            expect(data.eventTypeId).toEqual(initialBooking.eventTypeId);
+            // The attendee timezone should reflect the timezone from start_time
+            expect(data.attendees[0]).toEqual({
+              ...initialBooking.attendees[0],
+              timeZone: "America/Lima", // Should be derived from start_time timezone
+            });
+            expect(data.location).toEqual(initialBooking.location);
+            expect(data.absentHost).toEqual(initialBooking.absentHost);
+            expect(data.metadata).toEqual(initialBooking.metadata);
+
+            // When a booking is rescheduled, a new booking is created and the old booking is cancelled.
+            // We want to make sure the createdAt date of the new booking is between the beforeCreate and afterCreate dates.
+            const createdAtDate = new Date(data.createdAt);
+            expect(createdAtDate.getTime()).toBeGreaterThanOrEqual(beforeCreate.getTime());
+            expect(createdAtDate.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
+
+            // Store the rescheduled booking for potential cleanup
+            rescheduledBooking = data;
           });
       });
     });
