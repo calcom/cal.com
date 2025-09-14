@@ -166,7 +166,7 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
   return (
     <div className="flex w-full flex-col space-y-4">
       <div className="border-subtle space-y-6 rounded-md border p-4">
-        <Form {...form} onSubmit={onSubmit}>
+        <Form form={form} onSubmit={onSubmit}>
           <div className="space-y-6">
             <FormField
               control={form.control}

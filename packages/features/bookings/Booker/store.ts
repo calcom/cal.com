@@ -103,6 +103,8 @@ export type BookerStore = {
    */
   selectedDuration: number | null;
   setSelectedDuration: (duration: number | null) => void;
+
+  setSelectedTimeslot: (timeslot: string | null) => void;
   /**
    * Selected timeslot user has chosen. This is a date string
    * containing both the date + time.
@@ -415,6 +417,12 @@ export const useBookerStore = createWithEqualityFn<BookerStore>((set, get) => ({
       updateQueryParam("duration", selectedDuration ?? "");
     }
   },
+  setSelectedTimeslot: (selectedTimeslot: string | null) => {
+    set({ selectedTimeslot });
+    document.cookie = `selectedTime=${selectedTimeslot};path=/;max-age=3600;SameSite=Lax`;
+    updateQueryParam("slot", selectedTimeslot ?? "", false);
+  },
+
   setBookingData: (bookingData: GetBookingType | null | undefined) => {
     set({ bookingData: bookingData ?? null });
   },

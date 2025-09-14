@@ -1,6 +1,6 @@
 "use client";
 
-import { Skeleton } from "@calid/features/ui/components/skeleton";
+import { SkeletonText } from "@calid/features/ui/components/skeleton";
 import React from "react";
 
 interface TeamMembersListSkeletonLoaderProps {
@@ -15,14 +15,14 @@ export function TeamMembersListSkeletonLoader({
       {/* Header with search and actions skeleton */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex w-full justify-between gap-4">
-          <Skeleton className="h-10 w-64" />
-          <Skeleton className="h-10 w-64" />
+          <SkeletonText className="h-10 w-64" />
+          <SkeletonText className="h-10 w-64" />
         </div>
       </div>
 
       {/* Members count skeleton */}
       <div className="flex items-center justify-between">
-        <Skeleton className="h-5 w-24" />
+        <SkeletonText className="h-5 w-24" />
       </div>
 
       {/* Table container skeleton */}
@@ -32,20 +32,20 @@ export function TeamMembersListSkeletonLoader({
           <div className="flex">
             {enableBulkActions && (
               <div className="flex items-center px-4 py-3" style={{ width: 50 }}>
-                <Skeleton className="h-4 w-4" />
+                <SkeletonText className="h-4 w-4" />
               </div>
             )}
             <div className="flex items-center px-4 py-3" style={{ width: 500 }}>
-              <Skeleton className="h-5 w-24" />
+              <SkeletonText className="h-5 w-24" />
             </div>
             <div className="flex items-center px-4 py-3" style={{ width: 300 }}>
-              <Skeleton className="h-5 w-16" />
+              <SkeletonText className="h-5 w-16" />
             </div>
             <div className="flex items-center px-4 py-3" style={{ width: 300 }}>
-              <Skeleton className="h-5 w-20" />
+              <SkeletonText className="h-5 w-20" />
             </div>
             <div className="flex items-center px-4 py-3" style={{ width: 300 }}>
-              <Skeleton className="h-8 w-16" />
+              <SkeletonText className="h-8 w-16" />
             </div>
           </div>
         </div>
@@ -56,27 +56,27 @@ export function TeamMembersListSkeletonLoader({
             <div key={index} className="flex items-center py-2">
               {enableBulkActions && (
                 <div className="flex items-center px-4" style={{ width: 50 }}>
-                  <Skeleton className="h-4 w-4" />
+                  <SkeletonText className="h-4 w-4" />
                 </div>
               )}
               <div className="flex items-center px-4" style={{ width: 500 }}>
                 <div className="flex items-center gap-3">
-                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <SkeletonText className="h-10 w-10 rounded-full" />
                   <div className="min-w-0 flex-1 space-y-2">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-3 w-40" />
+                    <SkeletonText className="h-4 w-32" />
+                    <SkeletonText className="h-3 w-40" />
                   </div>
                 </div>
               </div>
               <div className="flex items-center px-4" style={{ width: 300 }}>
-                <Skeleton className="h-6 w-16 rounded-full" />
+                <SkeletonText className="h-6 w-16 rounded-full" />
               </div>
               <div className="flex items-center px-4" style={{ width: 300 }}>
-                <Skeleton className="h-4 w-20" />
+                <SkeletonText className="h-4 w-20" />
               </div>
               <div className="flex items-center px-4" style={{ width: 300 }}>
                 <div className="flex w-full justify-end">
-                  <Skeleton className="h-8 w-8 rounded" />
+                  <SkeletonText className="h-8 w-8 rounded" />
                 </div>
               </div>
             </div>

@@ -61,7 +61,7 @@ const CreateNewTeamPage = () => {
   return (
     <>
       <Form
-        {...formMethods}
+        {formMethods}
         onSubmit={(values) => {
           if (!createTeam.isPending) {
             createTeam.mutate(values);

@@ -1,14 +1,13 @@
 "use client";
 
-// import { Button } from "@calcom/ui/components/button";
-import { Button, Label } from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
+import { Label } from "@calid/features/ui/components/label";
 import { revalidateSettingsGeneral } from "app/(use-page-wrapper)/settings/(settings-layout)/my-account/general/actions";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
-import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { formatLocalizedDateTime } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -20,7 +19,8 @@ import classNames from "@calcom/ui/classNames";
 import { Form } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/components/toast";
+import { triggerToast } from "@calid/features/ui/components/toast";
+import { APP_NAME } from "@calcom/lib/constants";
 import { revalidateTravelSchedules } from "@calcom/web/app/cache/travelSchedule";
 
 import TravelScheduleModal from "@components/settings/TravelScheduleModal";
@@ -48,7 +48,7 @@ export type FormValues = {
 };
 
 interface GeneralViewProps {
-  user: RouterOutputs["viewer"]["me"]["get"];
+  user: RouterOutputs["viewer"]["me"]["calid_get"];
   travelSchedules: RouterOutputs["viewer"]["travelSchedules"]["get"];
 }
 
@@ -69,7 +69,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
       revalidateSettingsGeneral();
       revalidateTravelSchedules();
       reset(getValues());
-      showToast(t("settings_updated_successfully"), "success");
+      triggerToast(t("settings_updated_successfully"), "success");
       await update(res);
 
       if (res.locale) {
@@ -78,7 +78,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
       }
     },
     onError: () => {
-      showToast(t("error_updating_settings"), "error");
+      triggerToast(t("error_updating_settings"), "error");
     },
     onSettled: async () => {
       await utils.viewer.me.invalidate();
@@ -151,7 +151,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
   const watchedTzSchedules = formMethods.watch("travelSchedules");
 
   return (
-    <SettingsHeader title={t("general")} description={t("general_description")} borderInShellHeader={false}>
+    <SettingsHeader title={t("general")} description={t("general_description", { appName: APP_NAME })} borderInShellHeader={false}>
       <div>
         <Form
           form={formMethods}
@@ -164,7 +164,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
               weekStart: values.weekStart.value,
             });
           }}>
-          <div className="bg-default border-subtle border rounded-md px-4 py-8 sm:px-6">
+          <div className="bg-default border-subtle rounded-md border px-4 py-8 sm:px-6">
             <Controller
               name="locale"
               render={({ field: { value, onChange } }) => (
@@ -181,7 +181,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                 </>
               )}
             />
-            <div className="h-4"></div>
+            <div className="h-4" />
             <Controller
               name="timeZone"
               control={formMethods.control}
@@ -201,8 +201,8 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
               )}
             />
 
-            <div className="bg-muted border-subtle mt-2 rounded-md border p-4">
-              <div class="flex flex-row items-center justify-between">
+            <div className="bg-default border-default mt-2 rounded-md border px-3 py-2">
+              <div className="flex flex-row items-center justify-between">
                 <Label>{t("travel_schedule")}</Label>
                 {!watchedTzSchedules.length && (
                   <Button color="secondary" StartIcon="calendar" onClick={() => setIsTZScheduleOpen(true)}>
@@ -264,7 +264,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
               )}
             </div>
 
-            <div className="h-4"></div>
+            <div className="h-4" />
             <Controller
               name="timeFormat"
               control={formMethods.control}
@@ -286,7 +286,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
             <div className="text-gray text-subtle mt-2 flex items-center text-xs">
               {t("timeformat_profile_hint")}
             </div>
-            <div className="h-4"></div>
+            <div className="h-4" />
             <Controller
               name="weekStart"
               control={formMethods.control}
@@ -306,7 +306,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
               )}
             />
 
-          <div className="w-full px-8 mt-4 border-muted border-b"></div>
+            <div className="border-muted mt-8 w-full border-b px-8" />
 
             <SettingsToggle
               toggleSwitchAtTheEnd={true}
@@ -347,9 +347,6 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
               }}
               switchContainerClassName="mt-6"
             />
-          </div>
-
-
           <Button
             loading={isUpdateBtnLoading}
             disabled={isDisabled}
@@ -360,6 +357,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
             data-testid="general-submit-button">
             <>{t("update")}</>
           </Button>
+          </div>
         </Form>
         <TravelScheduleModal
           open={isTZScheduleOpen}

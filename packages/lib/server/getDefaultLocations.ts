@@ -1,5 +1,6 @@
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { DailyLocationType } from "@calcom/app-store/locations";
+import { JitsiLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -23,7 +24,8 @@ export async function getDefaultLocations(user: User): Promise<EventTypeLocation
     const foundApp = getApps(credentials, true).filter(
       (app) => app.slug === defaultConferencingData.appSlug
     )[0]; // There is only one possible install here so index [0] is the one we are looking for ;
-    const locationType = foundApp?.locationOption?.value ?? DailyLocationType; // Default to Daily if no location type is found
+    // const locationType = foundApp?.locationOption?.value ?? DailyLocationType; // Default to Daily if no location type is found
+    const locationType = foundApp?.locationOption?.value ?? JitsiLocationType; // Default to Daily if no location type is found
     return [{ type: locationType, link: defaultConferencingData.appLink }];
   }
 

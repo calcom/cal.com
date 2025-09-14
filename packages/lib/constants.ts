@@ -1,4 +1,5 @@
 const VERCEL_URL = process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : "";
+export const SIGNUP_URL = process.env.NEXT_PUBLIC_SIGNUP_URL;
 const RAILWAY_STATIC_URL = process.env.RAILWAY_STATIC_URL ? `https://${process.env.RAILWAY_STATIC_URL}` : "";
 const HEROKU_URL = process.env.HEROKU_APP_NAME ? `https://${process.env.HEROKU_APP_NAME}.herokuapp.com` : "";
 const RENDER_URL = process.env.RENDER_EXTERNAL_URL ? `https://${process.env.RENDER_EXTERNAL_URL}` : "";
@@ -107,6 +108,7 @@ export const SEO_IMG_DEFAULT = `${CAL_URL}/og-image.png`;
 // parameters you pass to the /api/social/og/image endpoint, you wrap them in encodeURIComponent
 // as well, otherwise the URL won't be valid.
 export const SEO_IMG_OGIMG = `${CAL_URL}/_next/image?w=1200&q=100&url=`;
+// export const SEO_IMG_OGIMG = `${CAL_URL}`;
 export const SEO_IMG_OGIMG_VIDEO = `${CAL_URL}/video-og-image.png`;
 export const IS_STRIPE_ENABLED = !!(
   process.env.STRIPE_CLIENT_ID &&
@@ -263,4 +265,6 @@ export const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_SECRET;
 export const RAZORPAY_REDIRECT_URL = `${WEBAPP_URL}/apps/razorpay/callback`;
 export const RAZORPAY_UPI_ENABLED = process.env.RAZORPAY_UPI_ENABLED === "true";
 
+export const PHONE_NUMBER_VERIFICATION_ENABLED =
+  process.env.NEXT_PUBLIC_PHONE_NUMBER_VERIFICATION_ENABLED === "1";
 export const INNGEST_ID = process.env.INNGEST_ID ?? "onehash-cal";

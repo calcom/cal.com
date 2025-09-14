@@ -87,6 +87,9 @@ const UserProfile = () => {
   async function updateProfileHandler(newAvatar: string) {
     avatarMutation.mutate({
       avatarUrl: newAvatar,
+      metadata: {
+        currentOnboardingStep: "user-profile",
+      },
     });
   }
 

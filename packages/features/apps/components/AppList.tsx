@@ -1,3 +1,4 @@
+import { Icon } from "@calid/features/ui/components/icon";
 import { Button } from "@calid/features/ui/components/button";
 import {
   DropdownMenu,
@@ -5,7 +6,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calid/features/ui/components/dropdown-menu";
-import {Icon} from "@calid/features/ui";
 import { useCallback, useState } from "react";
 
 import { AppSettings } from "@calcom/app-store/_components/AppSettings";
@@ -77,9 +77,11 @@ export const AppList = ({
     };
   }) => {
     const appSlug = item?.slug;
+    if (appSlug === "daily-video") return null;
+
     const appIsDefault =
       appSlug === defaultConferencingApp?.appSlug ||
-      (appSlug === "daily-video" && !defaultConferencingApp?.appSlug);
+      (appSlug === "jitsi" && !defaultConferencingApp?.appSlug);
     return (
       <AppListCard
         key={item.name}
@@ -126,7 +128,7 @@ export const AppList = ({
                     </DropdownMenuItem>
                   )}
 
-                  <DropdownMenuItem asChild>
+                  <DropdownMenuItem>
                     <ConnectOrDisconnectIntegrationMenuItem
                       credentialId={item.credentialOwner?.credentialId || item.userCredentialIds[0]}
                       type={item.type}

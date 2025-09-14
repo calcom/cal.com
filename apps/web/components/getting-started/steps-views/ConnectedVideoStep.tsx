@@ -16,6 +16,24 @@ interface ConnectedAppStepProps {
 
 const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
   const { nextStep, isPageLoading } = props;
+
+  const updateProfileMutation = trpc.viewer.me.updateProfile.useMutation({
+    onSuccess: async (_data, _context) => {
+      nextStep();
+    },
+    onError: () => {
+      showToast(t("problem_saving_user_profile"), "error");
+    },
+  });
+
+  const handleNextStep = () => {
+    updateProfileMutation.mutate({
+      metadata: {
+        currentOnboardingStep: "setup-availability",
+      },
+    });
+  };
+
   const { data: queryConnectedVideoApps, isPending } = trpc.viewer.apps.integrations.useQuery({
     variant: "conferencing",
     onlyInstalled: false,
@@ -81,7 +99,10 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
         )}
         disabled={!hasAnyInstalledVideoApps}
         loading={isPageLoading}
-        onClick={() => nextStep()}>
+        onClick={() => {
+          handleNextStep();
+          nextStep();
+        }}>
         {t("next_step_text")}
       </Button>
     </>

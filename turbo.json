@@ -3,38 +3,61 @@
   "pipeline": {
     "@calcom/prisma#build": {
       "cache": false,
-      "dependsOn": ["post-install"]
+      "dependsOn": [
+        "post-install"
+      ]
     },
     "@calcom/prisma#db-migrate": {
       "cache": false,
-      "dependsOn": ["@calcom/prisma#db-up"],
-      "inputs": ["./schema.prisma", "./migrations/**/*.sql"]
+      "dependsOn": [
+        "@calcom/prisma#db-up"
+      ],
+      "inputs": [
+        "./schema.prisma",
+        "./migrations/**/*.sql"
+      ]
     },
     "@calcom/prisma#db-seed": {
       "cache": false,
-      "dependsOn": ["@calcom/prisma#db-migrate"]
+      "dependsOn": [
+        "@calcom/prisma#db-migrate"
+      ]
     },
     "@calcom/prisma#db-up": {
       "cache": false
     },
     "@calcom/prisma#dx": {
       "cache": false,
-      "dependsOn": ["@calcom/prisma#db-migrate"]
+      "dependsOn": [
+        "@calcom/prisma#db-migrate"
+      ]
     },
     "@calcom/trpc#build": {
-      "outputs": ["./types"]
+      "outputs": [
+        "./types"
+      ]
     },
     "@calcom/web#build": {
-      "dependsOn": ["^build"],
-      "outputs": [".next/**"],
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        ".next/**"
+      ],
       "env": [
         "NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL",
         "NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD",
         "NEXT_PUBLIC_IS_E2E",
+        "NEXT_PUBLIC_RECAPTCHA_LOW",
+        "NEXT_PUBLIC_RECAPTCHA_MEDIUM",
+        "NEXT_PUBLIC_RECAPTCHA_HIGH",
         "NEXT_PUBLIC_SENTRY_DSN",
         "NEXT_PUBLIC_SENTRY_DSN_CLIENT",
         "NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE_MONTHLY",
         "NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRODUCT_ID",
+        "RECAPTCHA_SECRET_MEDIUM",
+        "RECAPTCHA_SECRET_HIGH",
+        "RECAPTCHA_SECRET_LOW",
         "NEXT_PUBLIC_STRIPE_PUBLIC_KEY",
         "NEXT_PUBLIC_STRIPE_TEAM_MONTHLY_PRICE_ID",
         "NEXT_PUBLIC_WEBAPP_URL",
@@ -63,17 +86,24 @@
     },
     "@calcom/web#dx": {
       "cache": false,
-      "dependsOn": ["@calcom/prisma#dx"]
+      "dependsOn": [
+        "@calcom/prisma#dx"
+      ]
     },
     "@calcom/web#start": {
       "cache": false,
       "dependsOn": []
     },
     "@calcom/atoms#build": {
-      "outputs": ["dist/**", "globals.min.css"]
+      "outputs": [
+        "dist/**",
+        "globals.min.css"
+      ]
     },
     "@calcom/api-v2#build": {
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build"
+      ],
       "env": [
         "NODE_ENV",
         "API_PORT",
@@ -98,8 +128,12 @@
       ]
     },
     "@calcom/website#build": {
-      "dependsOn": ["^build"],
-      "outputs": [".next/**"],
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        ".next/**"
+      ],
       "env": [
         "CSP_POLICY",
         "DATABASE_URL",
@@ -138,28 +172,47 @@
       ]
     },
     "build": {
-      "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**"]
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**",
+        ".next/**"
+      ]
     },
     "db-deploy": {
       "cache": false,
-      "inputs": ["./migrations/**/*.sql", "./prisma/migrations/**/*.sql"]
+      "inputs": [
+        "./migrations/**/*.sql",
+        "./prisma/migrations/**/*.sql"
+      ]
     },
     "db-seed": {},
     "deploy": {
       "cache": false,
-      "dependsOn": ["@calcom/web#build"]
+      "dependsOn": [
+        "@calcom/web#build"
+      ]
     },
     "clean": {
       "cache": false,
-      "outputs": ["dist/**", "build/**"]
+      "outputs": [
+        "dist/**",
+        "build/**"
+      ]
     },
     "dev": {
-      "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
+      "dependsOn": [
+        "//#env-check:common",
+        "//#env-check:app-store"
+      ],
       "cache": false
     },
     "dx": {
-      "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
+      "dependsOn": [
+        "//#env-check:common",
+        "//#env-check:app-store"
+      ],
       "cache": false
     },
     "lint": {
@@ -170,53 +223,95 @@
     },
     "lint:report": {
       "cache": false,
-      "outputs": ["lint-results"]
+      "outputs": [
+        "lint-results"
+      ]
     },
     "post-install": {
       "dependsOn": [],
-      "outputs": ["../../node_modules/@prisma/client/**", "../../node_modules/@prisma/admin-client/**"],
-      "inputs": ["./schema.prisma", "./prisma/schema.prisma"],
-      "env": ["PRISMA_GENERATE_DATAPROXY"]
+      "outputs": [
+        "../../node_modules/@prisma/client/**",
+        "../../node_modules/@prisma/admin-client/**"
+      ],
+      "inputs": [
+        "./schema.prisma",
+        "./prisma/schema.prisma"
+      ],
+      "env": [
+        "PRISMA_GENERATE_DATAPROXY"
+      ]
     },
     "@calcom/prisma#post-install": {
       "cache": false,
-      "outputs": ["dist/**", "build/**"]
+      "outputs": [
+        "dist/**",
+        "build/**"
+      ]
     },
     "start": {
-      "outputs": ["dist/**", "build/**"]
+      "outputs": [
+        "dist/**",
+        "build/**"
+      ]
     },
     "embed-tests": {
       "cache": false,
-      "outputs": ["dist/**", "build/**"]
+      "outputs": [
+        "dist/**",
+        "build/**"
+      ]
     },
     "embed-tests-quick": {
       "cache": false,
-      "outputs": ["dist/**", "build/**"]
+      "outputs": [
+        "dist/**",
+        "build/**"
+      ]
     },
     "type-check": {
       "cache": false,
-      "dependsOn": ["@calcom/trpc#build"]
+      "dependsOn": [
+        "@calcom/trpc#build"
+      ]
     },
     "type-check:ci": {
       "cache": false,
-      "dependsOn": ["@calcom/trpc#build"]
+      "dependsOn": [
+        "@calcom/trpc#build"
+      ]
     },
     "@calcom/prisma#db-reset": {
       "cache": false,
-      "outputs": ["dist/**", "build/**"]
+      "outputs": [
+        "dist/**",
+        "build/**"
+      ]
     },
     "@calcom/app-store-cli#build": {
       "cache": false,
-      "inputs": ["../../app-store/**/**"],
-      "outputs": ["../../app-store/apps.server.generated.ts", "../../app-store/apps.browser.generated.tsx"]
+      "inputs": [
+        "../../app-store/**/**"
+      ],
+      "outputs": [
+        "../../app-store/apps.server.generated.ts",
+        "../../app-store/apps.browser.generated.tsx"
+      ]
     },
     "@calcom/embed-react#type-check": {
-      "dependsOn": ["@calcom/embed-core#build", "@calcom/embed-snippet#build"],
-      "outputs": ["dist/**", "build/**"]
+      "dependsOn": [
+        "@calcom/embed-core#build",
+        "@calcom/embed-snippet#build"
+      ],
+      "outputs": [
+        "dist/**",
+        "build/**"
+      ]
     },
     "@calcom/embed-core#build": {
       "cache": false,
-      "outputs": ["../../../apps/web/public/embed/**"],
+      "outputs": [
+        "../../../apps/web/public/embed/**"
+      ],
       "env": [
         "EMBED_PUBLIC_VERCEL_URL",
         "EMBED_PUBLIC_WEBAPP_URL",
@@ -232,23 +327,38 @@
         "^build",
         "^embed-tests-update-snapshots:ci"
       ],
-      "outputs": ["dist/**", "build/**"]
+      "outputs": [
+        "dist/**",
+        "build/**"
+      ]
     },
     "//#env-check:common": {
       "cache": false,
-      "inputs": ["./.env.example", "./.env"],
-      "outputs": ["./.env"]
+      "inputs": [
+        "./.env.example",
+        "./.env"
+      ],
+      "outputs": [
+        "./.env"
+      ]
     },
     "//#env-check:app-store": {
       "cache": false,
-      "inputs": ["./.env.appStore.example", "./.env.appStore"],
-      "outputs": ["./.env.appStore"]
+      "inputs": [
+        "./.env.appStore.example",
+        "./.env.appStore"
+      ],
+      "outputs": [
+        "./.env.appStore"
+      ]
     },
     "//#test": {
       "cache": false
     }
   },
-  "globalDependencies": ["yarn.lock"],
+  "globalDependencies": [
+    "yarn.lock"
+  ],
   "globalEnv": [
     "ALLOWED_HOSTNAMES",
     "ANALYZE",
@@ -523,6 +633,9 @@
     "RAZORPAY_UPI_ENABLED",
     "EXPOSE_SWAGGER_UI",
     "OLD_DATABASE_URL",
-    "TARGET_DATABASE_URL"
+    "TARGET_DATABASE_URL",
+    "NEXT_PUBLIC_PHONE_NUMBER_VERIFICATION_ENABLED",
+    "INNGEST_ID",
+    "NEXT_PUBLIC_SIGNUP_URL"
   ]
 }

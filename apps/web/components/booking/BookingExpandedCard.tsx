@@ -8,9 +8,12 @@ import React, { useState, useRef, useEffect } from "react";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
-import type { RouterOutputs } from "@calcom/trpc/react";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
+
+import { MeetingNotesDialog } from "./MeetingNotesDialog";
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
 
@@ -28,6 +31,24 @@ export function BookingExpandedCard(props: BookingItemProps) {
 
   const isBookingInPast = new Date(props.endTime) < new Date();
 
+  const parsedMetadata = bookingMetadataSchema.safeParse(props.metadata ?? null);
+
+  const { meetingNote } = parsedMetadata.data;
+
+  const [notes, setNotes] = useState<string>(meetingNote || "");
+
+  const [showRTE, setShowRTE] = useState(false);
+
+  const saveNotesMutation = trpc.viewer.bookings.saveNote.useMutation({
+    onSuccess: () => {
+      showToast(t("meeting_notes_saved"), "success");
+    },
+  });
+
+  const handleMeetingNoteSave = async (): Promise<void> => {
+    await saveNotesMutation.mutate({ bookingId: props.id, meetingNote: notes });
+  };
+
   const [isNoShowDialogOpen, setIsNoShowDialogOpen] = useState<boolean>(false);
   const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
     onSuccess: async (data) => {
@@ -37,6 +58,7 @@ export function BookingExpandedCard(props: BookingItemProps) {
     onError: (err) => {
       showToast(err.message, "error");
     },
+    notes,
   });
 
   const {
@@ -132,6 +154,7 @@ export function BookingExpandedCard(props: BookingItemProps) {
           isOpen={isNoShowDialogOpen}
         />
       )}
+
       <div
         className="border-border animate-fade-in rounded-b-lg border-t bg-[#f1f5f980]"
         onClick={(e) => e.stopPropagation()}>
@@ -227,16 +250,14 @@ export function BookingExpandedCard(props: BookingItemProps) {
           {/* Action Buttons for Expanded View */}
           {showExpandedActions && (
             <div className="flex flex-col items-end space-y-2">
-              {/* <Button
-                color="secondary"
-                variant="fab"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedMeeting(props);
-                  setShowMeetingNotes(true);
-                }}>
-                {t("your_notes")}
-              </Button> */}
+              <MeetingNotesDialog
+                notes={notes}
+                setNotes={setNotes}
+                isOpenDialog={showRTE}
+                setIsOpenDialog={setShowRTE}
+                handleMeetingNoteSave={handleMeetingNoteSave}
+              />
+
               {isBookingInPast && (
                 <Button
                   color="secondary"

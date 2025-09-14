@@ -4,7 +4,7 @@ import appStore from "@calcom/app-store";
 import type { TDependencyData } from "@calcom/app-store/_appRegistry";
 import type { CredentialOwner } from "@calcom/app-store/types";
 import { getAppFromSlug } from "@calcom/app-store/utils";
-import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import { checkIfMemberIsAdminOrOwner } from "@calid/features/modules/teams/lib/checkIfMemberAdminorOwner";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential/clientAndServer";
@@ -144,7 +144,7 @@ export async function getCalIdConnectedApps({
               name: calIdTeam.name,
               logoUrl: calIdTeam.logoUrl,
               credentialId: c.id,
-              isAdmin: checkAdminOrOwner(calIdTeam.members[0].role),
+              isAdmin: checkifMemberIsAdminOrOwner(calIdTeam.members[0].role),
             };
           })
       );

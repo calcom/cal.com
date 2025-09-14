@@ -177,7 +177,7 @@ export default function TeamSettingsView({ teamId }: TeamSettingsViewProps) {
       </div>
       {isAdmin ? (
         <div className="border-subtle space-y-6 rounded-md border p-4">
-          <Form {...bookingFrequencyForm} onSubmit={onBookingFrequencySubmit}>
+          <Form form={bookingFrequencyForm} onSubmit={onBookingFrequencySubmit}>
             <FormField
               control={bookingFrequencyForm.control}
               name="bookingFrequency"

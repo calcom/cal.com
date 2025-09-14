@@ -1,4 +1,4 @@
-import type { Workflow } from "@calid/features/modules/workflows/config/types";
+import type { CalIdWorkflow as Workflow } from "@calid/features/modules/workflows/config/types";
 import {
   canDisableParticipantNotifications,
   canDisableOrganizerNotifications,
@@ -15,6 +15,7 @@ import processExternalId from "@calcom/app-store/_utils/calendars/processExterna
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import {
   getLocationValueForDB,
+  JitsiLocationType,
   MeetLocationType,
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
@@ -70,7 +71,7 @@ import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import isPrismaObj from "@calcom/lib/isPrismaObj";
-import {  isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
@@ -999,7 +1000,7 @@ async function handler(
     } else if (organizationDefaultLocation) {
       locationBodyString = organizationDefaultLocation;
     } else {
-      locationBodyString = "integrations:daily";
+      locationBodyString = JitsiLocationType;
     }
   }
 

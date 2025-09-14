@@ -16,6 +16,7 @@ import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME, LOGO, FAVICON_32 } from "@calcom/lib/constants";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getBrandLogoUrl } from "@calcom/lib/getAvatarUrl";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -24,6 +25,7 @@ import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
 import { SettingsToggle, ColorPicker, Form } from "@calcom/ui/components/form";
@@ -102,6 +104,26 @@ const AppearanceView = ({
     reset: resetUserThemeReset,
   } = userThemeFormMethods;
 
+  const bannerFormMethods = useForm({
+    defaultValues: {
+      bannerUrl: user.bannerUrl,
+    },
+  });
+
+  const {
+    formState: { isSubmitting: isBannerFormSubmitting, isDirty: isBannerFormDirty },
+  } = bannerFormMethods;
+
+  const faviconFormMethods = useForm({
+    defaultValues: {
+      faviconUrl: user.faviconUrl,
+    },
+  });
+
+  const {
+    formState: { isSubmitting: isFaviconFormSubmitting, isDirty: isFaviconFormDirty },
+  } = faviconFormMethods;
+
   const bookerLayoutFormMethods = useForm({
     defaultValues: {
       metadata: user.metadata as z.infer<typeof userMetadata>,
@@ -159,7 +181,9 @@ const AppearanceView = ({
       revalidateSettingsAppearance();
     },
   });
+  const [orgBase64, setOrgBase64] = useState<string>(user.bannerUrl || "");
 
+  const [showPreview, setShowPreview] = useState<boolean>(false);
   return (
     <SettingsHeader
       title={t("appearance")}

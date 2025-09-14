@@ -63,6 +63,7 @@ export type BookerEvent = Pick<
   | "disableCancelling"
   | "disableRescheduling"
   | "interfaceLanguage"
+  | "captchaType"
 > & {
   subsetOfUsers: BookerEventUser[];
   showInstantEventConnectNowModal: boolean;

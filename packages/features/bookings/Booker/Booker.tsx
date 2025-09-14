@@ -1,14 +1,15 @@
 import { Button } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon";
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import StickyBox from "react-sticky-box";
 import { Toaster } from "sonner";
 import { shallow } from "zustand/shallow";
+import { Branding } from "@calid/features/ui/Branding";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
 import dayjs from "@calcom/dayjs";
-import PoweredBy from "@calcom/ee/components/PoweredBy";
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
 import TurnstileCaptcha from "@calcom/features/auth/Turnstile";
 import useSkipConfirmStep from "@calcom/features/bookings/Booker/components/hooks/useSkipConfirmStep";
@@ -37,6 +38,7 @@ import { OverlayCalendar } from "./components/OverlayCalendar/OverlayCalendar";
 import { RedirectToInstantMeetingModal } from "./components/RedirectToInstantMeetingModal";
 import { BookerSection } from "./components/Section";
 import { NotFound } from "./components/Unavailable";
+import { EventTypesPanel } from "./components/EventTypesPanel";
 import { useIsQuickAvailabilityCheckFeatureEnabled } from "./components/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import framerFeatures from "./framer-features";
@@ -71,6 +73,7 @@ const BookerComponent = ({
   verifyCode,
   isPlatform,
   orgBannerUrl,
+  faviconUrl,
   customClassNames,
   areInstantMeetingParametersSet = false,
   userLocale,
@@ -81,6 +84,7 @@ const BookerComponent = ({
   confirmButtonDisabled,
   timeZones,
   eventMetaChildren,
+  eventTypes = [],
 }: BookerProps & WrappedBookerProps) => {
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
@@ -156,6 +160,7 @@ const BookerComponent = ({
   } = calendars;
 
   const scrolledToTimeslotsOnce = useRef(false);
+  const [isEventTypesPanelVisible, setIsEventTypesPanelVisible] = useState(false);
 
   const scrollToTimeSlots = () => {
     if (isMobile && !scrolledToTimeslotsOnce.current && timeslotsRef.current) {
@@ -194,10 +199,6 @@ const BookerComponent = ({
       return setBookerState("selecting_time");
     return setBookerState("booking");
   }, [event, selectedDate, selectedTimeslot, setBookerState, skipConfirmStep, layout, isInstantMeeting]);
-
-  useEffect(() => {
-    console.log("Event info: ", event);
-  }, []);
 
   const unavailableTimeSlots = isQuickAvailabilityCheckFeatureEnabled
     ? allSelectedTimeslots.filter((slot) => {
@@ -312,29 +313,22 @@ const BookerComponent = ({
     return null;
   }
 
-  const removeLastPathSection = (url) => {
-    try {
-      const u = new URL(url);
-      // Split the pathname into segments
-      const segments = u.pathname.split("/").filter(Boolean);
-      // Remove the last segment
-      segments.pop();
-      // Rebuild pathname without last section
-      u.pathname = `/${segments.join("/")}`;
-      // Clear query params
-      u.search = "";
-      return u.toString();
-    } catch (err) {
-      console.error("Invalid URL:", err);
-      return null;
-    }
-  };
-
   return (
     <>
       {event.data && !isPlatform ? <BookingPageTagManager eventType={event.data} /> : <></>}
 
       {(isBookingDryRunProp || isBookingDryRun(searchParams)) && <DryRunMessage isEmbed={isEmbed} />}
+
+      {/* Event Types Panel */}
+      {eventTypes.length > 0 && (
+        <EventTypesPanel
+          eventTypes={eventTypes}
+          username={username}
+          currentEventSlug={eventSlug}
+          isVisible={isEventTypesPanelVisible}
+          onClose={() => setIsEventTypesPanelVisible(false)}
+        />
+      )}
 
       <div
         className={classNames(
@@ -345,16 +339,7 @@ const BookerComponent = ({
           layout === BookerLayouts.MONTH_VIEW ? "overflow-visible" : "overflow-clip",
           `${customClassNames?.bookerWrapper}`
         )}>
-        <div>
-          <Button
-            onClick={() => {
-              router.back();
-            }}
-            variant="fab"
-            color="secondary"
-            className="mb-2 h-[16px]"
-            StartIcon="arrow-left"
-          />
+        <div className="relative">
           <div
             ref={animationScope}
             data-testid="booker-container"
@@ -362,12 +347,29 @@ const BookerComponent = ({
               ...getBookerSizeClassNames(layout, bookerState, hideEventTypeDetails),
               `bg-default dark:bg-muted grid max-w-full items-start sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row dark:[color-scheme:dark]`,
               // We remove border only when the content covers entire viewport. Because in embed, it can almost never be the case that it covers entire viewport, we show the border there
-              (layout === BookerLayouts.MONTH_VIEW || isEmbed) && "border-subtle rounded-md",
+              (layout === BookerLayouts.MONTH_VIEW || isEmbed) && "border-subtle rounded-xl shadow-md",
               !isEmbed && "sm:transition-[width] sm:duration-300",
               isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-booker sm:border-booker-width",
               !isEmbed && layout === BookerLayouts.MONTH_VIEW && `border-subtle border`,
               `${customClassNames?.bookerContainer}`
             )}>
+            
+            {/* Chevron Left Button - Only show on md and lg screens */}
+            {eventTypes.length > 0 && (
+              <Button
+                variant="icon"
+                color="secondary"
+                StartIcon="chevron-left"
+                size="lg"
+                className="absolute -left-12 z-10 hidden md:flex lg:flex bg-subtle rounded-full p-4 w-10 h-10"
+                style={{ 
+                  top: 'calc(50% - 30px)' // Adjust for branding space at bottom
+                }}
+                onMouseEnter={() => setIsEventTypesPanelVisible(true)}
+                data-testid="event-types-chevron"
+              >
+              </Button>
+            )}
             <AnimatePresence>
               {!isInstantMeeting && (
                 <BookerSection
@@ -421,12 +423,11 @@ const BookerComponent = ({
                   {!hideEventTypeDetails && orgBannerUrl && (
                     <div
                       loading="eager"
-                      className="-mb-4 flex h-16 object-cover ltr:rounded-tl-md rtl:rounded-tr-md"
+                      className="-mb-4 flex h-10 p-2 ltr:rounded-tl-md rtl:rounded-tr-md"
                       alt="org banner"
                       style={{ backgroundImage: `url(${orgBannerUrl})` }}
                     />
                   )}
-
                   <EventMeta
                     classNames={{
                       eventMetaContainer: customClassNames?.eventMetaCustomClassNames?.eventMetaContainer,
@@ -460,7 +461,7 @@ const BookerComponent = ({
               <BookerSection
                 key="book-event-form"
                 area="main"
-                className="sticky top-0 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)] md:border-l"
+                className="sticky top-0 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)]"
                 {...fadeInLeft}
                 visible={bookerState === "booking" && !shouldShowFormInDialog}>
                 {EventBooker}
@@ -472,7 +473,7 @@ const BookerComponent = ({
                 visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW}
                 {...fadeInLeft}
                 initial="visible"
-                className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
+                className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 lg:w-[var(--booker-main-width)]">
                 <DatePicker
                   classNames={customClassNames?.datePickerCustomClassNames}
                   event={event}
@@ -503,7 +504,7 @@ const BookerComponent = ({
                   layout === BookerLayouts.COLUMN_VIEW
                 }
                 className={classNames(
-                  "border-subtle rtl:border-default flex h-full w-full flex-col overflow-x-auto px-5 py-3 pb-0 ltr:md:border-l rtl:border-r",
+                  "border-subtle rtl:border-default flex h-full w-full flex-col overflow-x-auto px-5 py-3 pb-0 rtl:border-r",
                   layout === BookerLayouts.MONTH_VIEW &&
                     "h-full overflow-hidden md:w-[var(--booker-timeslots-width)]",
                   layout !== BookerLayouts.MONTH_VIEW && "sticky top-0"
@@ -579,7 +580,7 @@ const BookerComponent = ({
                 hasDarkBackground ? "dark" : "",
                 layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
               )}>
-              <PoweredBy logoOnly hasValidLicense={hasValidLicense} />
+              <Branding faviconUrl={faviconUrl} />
             </m.span>
           )}
         </div>

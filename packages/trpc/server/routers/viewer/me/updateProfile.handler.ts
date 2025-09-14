@@ -1,5 +1,4 @@
 import { Prisma } from "@prisma/client";
-import { uploadLogo, uploadHeader } from "@calcom/lib/server/avatar";
 // eslint-disable-next-line no-restricted-imports
 import { keyBy } from "lodash";
 import type { GetServerSidePropsContext, NextApiResponse } from "next";
@@ -11,6 +10,7 @@ import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { uploadLogo, uploadHeader } from "@calcom/lib/server/avatar";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -37,7 +37,6 @@ type UpdateProfileOptions = {
 };
 
 export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions) => {
-
   logger.info("Upload profile input: ", input);
   const { user } = ctx;
   const billingService = new StripeBillingService();
@@ -164,6 +163,38 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     data.avatarUrl = await uploadAvatar({
       avatar: await resizeBase64Image(input.avatarUrl),
       userId: user.id,
+    });
+  }
+
+  if (
+    input.bannerUrl &&
+    (
+      input.bannerUrl.startsWith("data:image/png;base64,") ||
+      input.bannerUrl.startsWith("data:image/jpeg;base64,") ||
+      input.bannerUrl.startsWith("data:image/jpg;base64,") ||
+      input.bannerUrl == "delete"
+    )
+  ) {
+    data.bannerUrl = await uploadLogo({
+      logo: input.bannerUrl == "delete" ? "delete" : await resizeBase64Image(input.bannerUrl),
+      userId: user.id,
+      isBanner: true,
+    });
+  }
+
+  if (
+    input.faviconUrl &&
+    (
+      input.faviconUrl.startsWith("data:image/png;base64,") ||
+      input.faviconUrl.startsWith("data:image/jpeg;base64,") ||
+      input.faviconUrl.startsWith("data:image/jpg;base64,") ||
+      input.faviconUrl == "delete"
+    )
+  ) {
+    data.faviconUrl = await uploadLogo({
+      logo: input.faviconUrl == "delete" ? "delete" : await resizeBase64Image(input.faviconUrl),
+      userId: user.id,
+      isFavicon: true,
     });
   }
 
@@ -396,7 +427,7 @@ const cleanMetadataAllowedUpdateKeys = (metadata: TUpdateProfileInputSchema["met
   return cleanedMetadata.data;
 };
 
- const handleUserMetadata =async ({ ctx, input }: UpdateProfileOptions) => {
+const handleUserMetadata = async ({ ctx, input }: UpdateProfileOptions) => {
   const { user } = ctx;
   const cleanMetadata = cleanMetadataAllowedUpdateKeys(input.metadata);
   const userMetadata = userMetadataSchema.parse(user.metadata);

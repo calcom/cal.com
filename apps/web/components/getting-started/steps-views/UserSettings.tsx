@@ -1,16 +1,20 @@
 "use client";
 
+import { PhoneNumberField, usePhoneNumberField, isPhoneNumberComplete } from "@calid/features/ui";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { isValidPhoneNumber } from "libphonenumber-js";
+import { useEffect, useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
-import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
+import { FULL_NAME_LENGTH_MAX_LIMIT, PHONE_NUMBER_VERIFICATION_ENABLED } from "@calcom/lib/constants";
+import { designationTypes, professionTypeAndEventTypes, customEvents } from "@calcom/lib/customEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calid/features/ui/components/button";
@@ -21,10 +25,11 @@ import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 interface IUserSettingsProps {
   nextStep: () => void;
   hideUsername?: boolean;
+  isPhoneFieldMandatory: boolean;
 }
 
 const UserSettings = (props: IUserSettingsProps) => {
-  const { nextStep } = props;
+  const { nextStep, isPhoneFieldMandatory = false } = props;
   const [user] = trpc.viewer.me.get.useSuspenseQuery();
   const { t } = useLocale();
   const { setTimezone: setSelectedTimeZone, timezone: selectedTimeZone } = useTimePreferences();
@@ -36,38 +41,126 @@ const UserSettings = (props: IUserSettingsProps) => {
       .max(FULL_NAME_LENGTH_MAX_LIMIT, {
         message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
       }),
+    metadata: z.object({
+      phoneNumber: isPhoneFieldMandatory
+        ? z
+            .string()
+            .min(1, { message: t("phone_number_required") })
+            .refine(
+              (val) => {
+                return isValidPhoneNumber(val);
+              },
+              { message: t("invalid_phone_number") }
+            )
+        : z.string().refine(
+            (val) => {
+              return val === "" || isValidPhoneNumber(val);
+            },
+            { message: t("invalid_phone_number") }
+          ),
+    }),
   });
+
+  const defaultValues = {
+    name: user?.name || "",
+    metadata: {
+      phoneNumber: (isPrismaObjOrUndefined(user.metadata)?.phoneNumber as string) ?? "",
+    },
+  };
+
   const {
     register,
     handleSubmit,
     formState: { errors },
+    setValue,
+    getValues,
+    control,
   } = useForm<z.infer<typeof userSettingsSchema>>({
-    defaultValues: {
-      name: user?.name || "",
-    },
+    defaultValues: defaultValues,
     reValidateMode: "onChange",
     resolver: zodResolver(userSettingsSchema),
+  });
+
+  const watchedPhoneNumber = useWatch({
+    control,
+    name: "metadata.phoneNumber",
   });
 
   useEffect(() => {
     telemetry.event(telemetryEventTypes.onboardingStarted);
   }, [telemetry]);
 
+  const [selectedBusiness, setSelectedBusiness] = useState<string | null>(null);
+
+  const designationTypeOptions: { value: string; label: string }[] = Object.keys(designationTypes).map(
+    (key) => ({
+      value: key,
+      label: designationTypes[key],
+    })
+  );
+  const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
+  const createEventType = trpc.viewer.eventTypes.create.useMutation();
   const utils = trpc.useUtils();
   const onSuccess = async () => {
+    if (eventTypes?.length === 0 && selectedBusiness !== null) {
+      await Promise.all(
+        professionTypeAndEventTypes[selectedBusiness].map(async (event): Promise<void> => {
+          const eventType = {
+            ...event,
+            title: customEvents[event.title],
+            description: customEvents[event.description as string],
+            length: (event.length as number[])[0],
+            metadata: {
+              multipleDuration: event.length as number[],
+            },
+          };
+
+          return createEventType.mutate(eventType);
+        })
+      );
+    }
+
     await utils.viewer.me.invalidate();
     nextStep();
   };
   const mutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: onSuccess,
   });
+  const { getValue: getPhoneValue, setValue: setPhoneValue } = usePhoneNumberField(
+    { getValues, setValue },
+    defaultValues,
+    "metadata.phoneNumber"
+  );
 
   const onSubmit = handleSubmit((data) => {
+    if (
+      isPhoneFieldMandatory &&
+      data.metadata.phoneNumber &&
+      (PHONE_NUMBER_VERIFICATION_ENABLED ? !numberVerified : false)
+    ) {
+      showToast(t("phone_verification_required"), "error");
+      return;
+    }
+
     mutation.mutate({
+      metadata: {
+        currentOnboardingStep: "connected-calendar",
+        phoneNumber: data.metadata.phoneNumber,
+      },
       name: data.name,
       timeZone: selectedTimeZone,
     });
   });
+
+  const handlePhoneDelete = () => {
+    mutation.mutate({
+      metadata: {
+        currentOnboardingStep: "connected-calendar",
+      },
+      name: getValues("name"),
+      timeZone: selectedTimeZone,
+    });
+  };
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">

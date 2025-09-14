@@ -20,6 +20,7 @@ export interface BookerProps {
   eventSlug: string;
   username: string;
   orgBannerUrl?: string | null;
+  faviconUrl?: string | null;
 
   /*
     all custom classnames related to booker styling go here
@@ -30,6 +31,18 @@ export interface BookerProps {
    * Custom React components to render at the bottom of the EventMeta component
    */
   eventMetaChildren?: React.ReactNode;
+
+  /**
+   * All available event types for the user (for the sliding panel)
+   */
+  eventTypes?: Array<{
+    id: number;
+    title: string;
+    slug: string;
+    description?: string | null;
+    length: number;
+    metadata?: any;
+  }>;
 
   /**
    * Whether is a team or org, we gather basic info from both

@@ -128,24 +128,24 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
   } = context;
 
   const actions: (ActionType | null)[] = [
-    {
-      id: "reschedule",
-      icon: "clock",
-      label: t("reschedule_booking"),
-      href: `/reschedule/${booking.uid}${
-        booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
-      }`,
-      disabled:
-        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
-    },
     // {
-    //   id: "reschedule_request",
-    //   icon: "send",
-    //   iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
-    //   label: t("send_reschedule_request"),
+    //   id: "reschedule",
+    //   icon: "clock",
+    //   label: t("reschedule_booking"),
+    //   href: `/reschedule/${booking.uid}${
+    //     booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
+    //   }`,
     //   disabled:
     //     (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
     // },
+    {
+      id: "reschedule_request",
+      icon: "send",
+      iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
+      label: t("send_reschedule_request"),
+      disabled:
+        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
+    },
     isBookingFromRoutingForm
       ? {
           id: "reroute",

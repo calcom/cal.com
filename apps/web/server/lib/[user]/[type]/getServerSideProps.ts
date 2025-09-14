@@ -16,6 +16,7 @@ import prisma from "@calcom/prisma";
 import { BookingStatus, RedirectType } from "@calcom/prisma/client";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
+import { getEventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
 
 import { getUsersInOrgContext } from "@server/lib/[user]/getServerSideProps";
 
@@ -30,6 +31,7 @@ type Props = {
   isSEOIndexable: boolean | null;
   themeBasis: null | string;
   orgBannerUrl: null;
+  eventTypes: Awaited<ReturnType<typeof getEventTypesPublic>>;
 };
 
 async function processReschedule({
@@ -168,6 +170,9 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     } as const;
   }
 
+  // Fetch all event types for the first user in the group
+  const eventTypes = await getEventTypesPublic(users[0].id);
+
   const props: Props = {
     eventData: {
       ...eventData,
@@ -184,6 +189,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     bookingUid: bookingUid ? `${bookingUid}` : null,
     rescheduleUid: null,
     orgBannerUrl: null,
+    eventTypes,
   };
 
   if (rescheduleUid) {
@@ -268,9 +274,13 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       : false
     : user?.allowSEOIndexing;
 
+  // Fetch all event types for the user
+  const eventTypes = await getEventTypesPublic(user.id);
+
   const props: Props = {
     eventData: eventData,
     user: username,
+    userBannerUrl: user.bannerUrl,
     slug,
     isBrandingHidden: shouldHideBrandingForUserEvent({
       eventTypeId: eventData.id,
@@ -281,7 +291,9 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     bookingUid: bookingUid ? `${bookingUid}` : null,
     rescheduleUid: null,
     orgBannerUrl: eventData?.owner?.profile?.organization?.bannerUrl ?? null,
+    eventTypes,
   };
+
   if (rescheduleUid) {
     const processRescheduleResult = await processReschedule({
       props,
@@ -316,6 +328,29 @@ const paramsSchema = z.object({
 // Booker page fetches a tiny bit of data server side, to determine early
 // whether the page should show an away state or dynamic booking not allowed.
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const { req, params } = context;
+  const selectedTime = req.cookies["selectedTime"] || "";
+  const slot = context.query.slot || "";
+
+  if (slot && slot !== selectedTime) {
+    const protocol = req.headers["x-forwarded-proto"] || "http";
+    const host = req.headers["host"];
+    const pathname = `/${params?.user}/${params?.type}`;
+
+    // const originalUrl = resolvedUrl;
+    const fullUrl = `${protocol}://${host}${pathname}`;
+    if (fullUrl) {
+      const url = new URL(fullUrl);
+      url.searchParams.delete("slot");
+      return {
+        redirect: {
+          permanent: false,
+          destination: url.toString(),
+        },
+      };
+    }
+  }
+
   const { user } = paramsSchema.parse(context.params);
   const isDynamicGroup = user.length > 1;
 

@@ -1,9 +1,6 @@
 "use client";
 
 import { Icon } from "@calid/features/ui/components/icon";
-
-
-
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { Prisma } from "@prisma/client";
 import Link from "next/link";

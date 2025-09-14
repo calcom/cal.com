@@ -391,11 +391,11 @@ export default function BookingListItem(booking: BookingItemProps) {
   const editEventActions: ActionType[] = baseEditEventActions.map((action) => ({
     ...action,
     onClick:
-      // action.id === "reschedule_request"
-      //   ?
-      // : action.id === "reroute"
-      // ? () => setRerouteDialogIsOpen(true)
-      action.id === "change_location"
+      action.id === "reschedule_request"
+        ? () => setIsOpenRescheduleDialog(true)
+        : // : action.id === "reroute"
+        // ? () => setRerouteDialogIsOpen(true)
+        action.id === "change_location"
         ? () => setIsOpenLocationDialog(true)
         : action.id === "add_members"
         ? () => setIsOpenAddGuestsDialog(true)

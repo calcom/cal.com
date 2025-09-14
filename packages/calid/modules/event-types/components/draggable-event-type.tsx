@@ -16,7 +16,7 @@ import {
   verticalListSortingStrategy,
   arrayMove,
 } from "@dnd-kit/sortable";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import type { DraggableEventTypesProps } from "../types/event-types";
 import { DraggableEventCard } from "./draggable-event-card";
@@ -36,6 +36,12 @@ export const DraggableEventTypes: React.FC<DraggableEventTypesProps> = ({
   onReorderEvents,
 }) => {
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
+  const [localEvents, setLocalEvents] = useState(events);
+
+  // Sync local state with props
+  useEffect(() => {
+    setLocalEvents(events);
+  }, [events]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -60,16 +66,19 @@ export const DraggableEventTypes: React.FC<DraggableEventTypesProps> = ({
       return;
     }
 
-    const activeIndex = events.findIndex((event) => event.id === active.id);
-    const overIndex = events.findIndex((event) => event.id === over.id);
+    const activeIndex = localEvents.findIndex((event) => event.id === active.id);
+    const overIndex = localEvents.findIndex((event) => event.id === over.id);
 
     if (activeIndex !== -1 && overIndex !== -1) {
-      const newEvents = arrayMove(events, activeIndex, overIndex);
+      const newEvents = arrayMove(localEvents, activeIndex, overIndex);
+      // Immediately update local state for instant UI feedback
+      setLocalEvents(newEvents);
+      // Then call the parent handler for persistence
       onReorderEvents(newEvents);
     }
   };
 
-  const activeEvent = activeId ? events.find((event) => event.id === activeId) : null;
+  const activeEvent = activeId ? localEvents.find((event) => event.id === activeId) : null;
 
   return (
     <DndContext
@@ -77,9 +86,9 @@ export const DraggableEventTypes: React.FC<DraggableEventTypesProps> = ({
       collisionDetection={closestCenter}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}>
-      <SortableContext items={events.map((event) => event.id)} strategy={verticalListSortingStrategy}>
+      <SortableContext items={localEvents.map((event) => event.id)} strategy={verticalListSortingStrategy}>
         <div className="space-y-2">
-          {events.map((event) => {
+          {localEvents.map((event) => {
             const isEventActive = eventStates[event.id] ?? !event.hidden;
             return (
               <DraggableEventCard

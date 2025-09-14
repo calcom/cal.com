@@ -11,7 +11,7 @@ import { PERMISSION_REGISTRY, CrudAction } from "@calcom/features/pbac/domain/ty
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import { Checkbox, Label } from "@calcom/ui/form";
+import { Checkbox, Label } from "@calcom/ui/components/form";
 
 import { usePermissions } from "./usePermissions";
 

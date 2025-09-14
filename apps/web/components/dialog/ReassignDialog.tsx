@@ -177,7 +177,7 @@ export const ReassignDialog = ({
           title={t("reassign_round_robin_host")}
           description={t("reassign_to_another_rr_host")}
           enableOverflow>
-          <Form form={form} handleSubmit={handleSubmit} ref={animationParentRef}>
+          <Form form={form} onSubmit={handleSubmit} ref={animationParentRef}>
             <RadioArea.Group
               onValueChange={(val) => {
                 const reassignType: ReassignType = z.nativeEnum(ReassignType).parse(val);

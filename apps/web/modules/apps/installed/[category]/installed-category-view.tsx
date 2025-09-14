@@ -240,6 +240,7 @@ export default function InstalledApps({ category, connectedCalendars, installedC
           <CalendarListContainer
             connectedCalendars={connectedCalendars}
             installedCalendars={installedCalendars}
+            showHeader={false}
           />
         )}
         {category === "other" && (

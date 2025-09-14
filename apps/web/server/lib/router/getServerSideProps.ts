@@ -9,6 +9,7 @@ export const getServerSideProps = wrapGetServerSidePropsWithSentry(async functio
   context: GetServerSidePropsContext
 ) {
   try {
+    console.log("more context", { req: context.req, url: context.resolvedUrl });
     return await getRoutedUrl(context);
   } catch (error) {
     if (error instanceof TRPCError && error.code === "TOO_MANY_REQUESTS") {

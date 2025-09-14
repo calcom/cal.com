@@ -200,7 +200,7 @@ export const EventMeta = ({
               </EventMetaBlock>
             )}
             {selectedTimeslot && (
-              <EventMetaBlock icon="calendar">
+              <EventMetaBlock icon="calendar" label="Date and Time">
                 <FromToTime
                   date={selectedTimeslot}
                   duration={selectedDuration || event.length}
