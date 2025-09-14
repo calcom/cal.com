@@ -6,7 +6,10 @@ import {
 } from "@calcom/features/bookings/lib/SystemField";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
-import { fieldsSchema as eventTypeBookingFields } from "@calcom/features/form-builder/schema";
+import {
+  fieldsSchema as eventTypeBookingFields,
+  BookingFieldTypeEnum,
+} from "@calcom/features/form-builder/schema";
 import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import slugify from "@calcom/lib/slugify";
@@ -15,7 +18,6 @@ import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 type Fields = z.infer<typeof eventTypeBookingFields>;
-const BookingFieldTypeEnum = eventTypeBookingFields.element.shape.type.Enum;
 
 if (typeof window !== "undefined" && !process.env.INTEGRATION_TEST_MODE) {
   // This file imports some costly dependencies, so we want to make sure it's not imported on the client side.

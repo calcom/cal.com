@@ -451,3 +451,5 @@ export const dbReadResponseSchema = z.union([
   // For variantsConfig case
   z.record(z.string()),
 ]);
+
+export const BookingFieldTypeEnum = fieldsSchema.element.shape.type.Enum;
