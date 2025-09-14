@@ -32,6 +32,9 @@ export type ApiAuthGuardRequest = Request & {
 export const NO_AUTH_PROVIDED_MESSAGE =
   "No authentication method provided. Either pass an API key as 'Bearer' header or OAuth client credentials as 'x-cal-secret-key' and 'x-cal-client-id' headers";
 
+export const ONLY_CLIENT_ID_PROVIDED_MESSAGE =
+  "Only 'x-cal-client-id' header provided. Please also provide 'x-cal-secret-key' header or Auth bearer token as 'Authentication' header";
+
 @Injectable()
 export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") {
   private readonly logger = new Logger("ApiAuthStrategy");
@@ -117,8 +120,13 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
       }
 
       const noAuthProvided = !oAuthClientId && !oAuthClientSecret && !bearerToken && !nextAuthToken;
+      const onlyClientIdProvided = !!oAuthClientId && !oAuthClientSecret && !bearerToken && !nextAuthToken;
       if (noAuthProvided) {
         throw new UnauthorizedException(`ApiAuthStrategy - ${NO_AUTH_PROVIDED_MESSAGE}`);
+      }
+
+      if (onlyClientIdProvided) {
+        throw new UnauthorizedException(`ApiAuthStrategy - ${ONLY_CLIENT_ID_PROVIDED_MESSAGE}`);
       }
 
       throw new UnauthorizedException(
