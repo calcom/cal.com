@@ -15,7 +15,7 @@ import classNames from "@calcom/ui/classNames";
 import { Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { getServerSidePropsForSingleFormView } from "@lib/apps/routing-forms/[...pages]/getServerSidePropsSingleForm";
+import type { getServerSidePropsForSingleFormView } from "@lib/apps/routing-forms/[...pages]/getServerSidePropsSingleForm";
 
 import type { NewFormDialogState } from "./FormActions";
 import { FormActionsProvider } from "./FormActions";
