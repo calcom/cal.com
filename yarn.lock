@@ -2983,7 +2983,7 @@ __metadata:
     next-collect: ^0.2.1
     next-i18next: ^15.4.2
     rrule: ^2.7.1
-    sharp: 0.33.5
+    sharp: ^0.34.3
     sonner: ^1.7.4
     tsdav: 2.0.3
     tslog: ^4.9.2
@@ -3785,7 +3785,6 @@ __metadata:
     rrule: ^2.7.1
     sanitize-html: ^2.10.0
     schema-dts: ^1.1.0
-    sharp: 0.33.5
     short-uuid: ^4.2.0
     sonner: ^1.7.4
     stripe: ^9.16.0
@@ -40327,7 +40326,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sharp@npm:0.33.5, sharp@npm:^0.33.5":
+"sharp@npm:^0.33.5":
   version: 0.33.5
   resolution: "sharp@npm:0.33.5"
   dependencies:

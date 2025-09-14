@@ -1,6 +1,7 @@
 "use client";
 
-import { usePhoneNumberField } from "@calid/features/ui/components/input/phone-number-field";
+import { Button } from "@calid/features/ui/components/button";
+import { Input } from "@calid/features/ui/components/input/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useEffect, useState } from "react";
@@ -10,13 +11,14 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
-import { FULL_NAME_LENGTH_MAX_LIMIT, PHONE_NUMBER_VERIFICATION_ENABLED } from "@calcom/lib/constants";
+import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { designationTypes, professionTypeAndEventTypes, customEvents } from "@calcom/lib/customEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
+import { showToast } from "@calcom/ui/toast";
 
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
@@ -124,17 +126,18 @@ const UserSettings = (props: IUserSettingsProps) => {
   const mutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: onSuccess,
   });
-  const { getValue: getPhoneValue, setValue: setPhoneValue } = usePhoneNumberField(
-    { getValues, setValue },
-    defaultValues,
-    "metadata.phoneNumber"
-  );
+  // const { getValue: getPhoneValue, setValue: setPhoneValue } = usePhoneNumberField(
+  //   { getValues, setValue },
+  //   defaultValues,
+  //   "metadata.phoneNumber"
+  // );
 
   const onSubmit = handleSubmit((data) => {
     if (
       isPhoneFieldMandatory &&
-      data.metadata.phoneNumber &&
-      (PHONE_NUMBER_VERIFICATION_ENABLED ? !numberVerified : false)
+      data.metadata.phoneNumber
+      //  &&
+      // (PHONE_NUMBER_VERIFICATION_ENABLED ? !numberVerified : false)
     ) {
       showToast(t("phone_verification_required"), "error");
       return;

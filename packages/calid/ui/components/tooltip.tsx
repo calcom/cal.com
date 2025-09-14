@@ -8,11 +8,7 @@ const TooltipProvider = ({
 }: {
   children: React.ReactNode;
   delayDuration?: number;
-}) => (
-  <TooltipPrimitive.Provider delayDuration={delayDuration}>
-    {children}
-  </TooltipPrimitive.Provider>
-);
+}) => <TooltipPrimitive.Provider delayDuration={delayDuration}>{children}</TooltipPrimitive.Provider>;
 const Tooltip = TooltipPrimitive.Root;
 const TooltipTrigger = TooltipPrimitive.Trigger;
 

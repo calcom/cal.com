@@ -144,7 +144,6 @@
     "rrule": "^2.7.1",
     "sanitize-html": "^2.10.0",
     "schema-dts": "^1.1.0",
-    "sharp": "0.33.5",
     "short-uuid": "^4.2.0",
     "sonner": "^1.7.4",
     "stripe": "^9.16.0",

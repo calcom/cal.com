@@ -288,7 +288,7 @@ const NoShowAttendeesDialog = ({
 }: {
   attendees: [];
   bookingUid: string;
-  setDialog: () => {};
+  setDialog: () => void;
 }) => {
   const { t } = useLocale();
   const [noShowAttendees, setNoShowAttendees] = useState(

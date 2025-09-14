@@ -29,3 +29,8 @@ export type InputProps = Omit<JSX.IntrinsicElements["input"], "size" | "ref"> &
   VariantProps<typeof inputStyles> & {
     isFullWidth?: boolean;
   };
+
+export type TextFieldProps = InputFieldProps & {
+  textarea?: boolean;
+  rows?: number;
+};

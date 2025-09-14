@@ -11,7 +11,7 @@ import { Icon } from "../icon/Icon";
 import { Label } from "../label";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "../tooltip";
 import { HintsOrErrors } from "./hint-or-errors";
-import type { InputProps, InputFieldProps } from "./types";
+import type { InputProps, InputFieldProps, TextFieldProps } from "./types";
 
 export const inputStyles = cva(
   [
@@ -265,8 +265,8 @@ export const PasswordField = forwardRef<HTMLInputElement, TextFieldProps>(functi
       )}
       addOnSuffix={
         <TooltipProvider>
-          <Tooltip content={textLabel}>
-            <TooltipTrigger>
+          <Tooltip>
+            <TooltipTrigger asChild>
               <button
                 className="text-emphasis"
                 tabIndex={-1}
