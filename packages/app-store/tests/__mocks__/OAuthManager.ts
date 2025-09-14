@@ -24,9 +24,6 @@ const oAuthManagerMock = mockDeep<typeof OAuthManager>({
   },
 });
 
-// Add the static inMemoryLocks property to the mock
-oAuthManagerMock.OAuthManager.inMemoryLocks = new Map();
-
 export default oAuthManagerMock;
 const setFullMockOAuthManagerRequest = () => {
   useFullMockOAuthManagerRequest = true;
@@ -53,9 +50,6 @@ const defaultMockOAuthManager = vi.fn().mockImplementation(() => {
       };
     }),
   };
-});
-
-// Add static properties to match the actual OAuthManager class
-defaultMockOAuthManager.inMemoryLocks = new Map();
+}) as any;
 
 export { oAuthManagerMock, defaultMockOAuthManager, setFullMockOAuthManagerRequest };
