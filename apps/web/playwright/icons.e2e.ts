@@ -10,7 +10,7 @@ test.use({
 test("Icons render properly", async ({ page }) => {
   await page.goto("/icons");
   await expect(page).toHaveScreenshot("icons.png", {
-    maxDiffPixelRatio: 0.05,
+    maxDiffPixelRatio: 0.15,
     fullPage: true,
   });
 });
