@@ -19,7 +19,7 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 const WORKFLOW_TEMPLATES = {
   "wf-10": {
-    name: "Cal AI No-show Follow-up Call",
+    name: "Cal.ai No-show Follow-up Call",
     trigger: WorkflowTriggerEvents.BOOKING_NO_SHOW_UPDATED,
     time: 0,
     timeUnit: TimeUnit.MINUTE,
