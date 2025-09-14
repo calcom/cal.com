@@ -165,6 +165,12 @@ function getWebhookVariables(t: (key: string) => string) {
           description: t("webhook_organizer_locale"),
         },
         {
+          name: "organizer.usernameInOrg",
+          variable: "{{organizer.usernameInOrg}}",
+          type: "String",
+          description: t("webhook_organizer_username_in_org"),
+        },
+        {
           name: "attendees.0.name",
           variable: "{{attendees.0.name}}",
           type: "String",

@@ -36,6 +36,7 @@ export type Person = {
   timeZone: string;
   language: { translate: TFunction; locale: string };
   username?: string;
+  usernameInOrg?: string;
   id?: number;
   bookingId?: number | null;
   locale?: string | null;
