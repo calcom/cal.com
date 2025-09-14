@@ -1396,6 +1396,7 @@ model WorkflowStep {
   verifiedAt                DateTime?
   agentId                   String?            @unique
   agent                     Agent?             @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  allowedCountryCodes       String[]           @default([])
 
   @@index([workflowId])
 }

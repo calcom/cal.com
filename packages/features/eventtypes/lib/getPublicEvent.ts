@@ -320,7 +320,11 @@ export const getPublicEvent = async (
 
     return {
       ...defaultEvent,
-      bookingFields: getBookingFieldsWithSystemFields({ ...defaultEvent, disableBookingTitle }),
+      bookingFields: getBookingFieldsWithSystemFields({
+        ...defaultEvent,
+        disableBookingTitle,
+        workflows: [],
+      }),
       // Clears meta data since we don't want to send this in the public api.
       subsetOfUsers: users.map((user) => ({
         ...user,
