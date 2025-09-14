@@ -1,7 +1,7 @@
 import { URLSearchParams } from "url";
 
 import { getFullName } from "@calcom/features/form-builder/utils";
-import { ENV_PAST_BOOKING_RESCHEDULE_CHANGE } from "@calcom/lib/constants";
+import { ENV_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS } from "@calcom/lib/constants";
 import { getSafe } from "@calcom/lib/getSafe";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { JsonValue } from "@calcom/types/Json";
@@ -43,11 +43,11 @@ function isPastBookingRescheduleBehaviourToPreventBooking(teamId: number | null 
     return false;
   }
 
-  if (!ENV_PAST_BOOKING_RESCHEDULE_CHANGE) {
+  if (!ENV_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS) {
     return false;
   }
 
-  const configuredTeamIds = ENV_PAST_BOOKING_RESCHEDULE_CHANGE.split(",")
+  const configuredTeamIds = ENV_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS.split(",")
     .map((id) => id.trim())
     .filter((id) => id !== "")
     .map((id) => parseInt(id, 10))

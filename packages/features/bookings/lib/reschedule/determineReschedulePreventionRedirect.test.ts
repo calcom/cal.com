@@ -15,7 +15,7 @@ vi.mock("@calcom/lib/constants", async () => {
   const actual = (await vi.importActual("@calcom/lib/constants")) as typeof import("@calcom/lib/constants");
   return {
     ...actual,
-    ENV_PAST_BOOKING_RESCHEDULE_CHANGE: undefined, // Default to undefined, will be overridden in tests
+    ENV_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS: undefined, // Default to undefined, will be overridden in tests
   };
 });
 
@@ -106,7 +106,7 @@ describe("determineReschedulePreventionRedirect", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2024-01-15T10:00:00Z"));
     // Reset mocked constant to default before each test
-    vi.mocked(constants).ENV_PAST_BOOKING_RESCHEDULE_CHANGE = undefined;
+    vi.mocked(constants).ENV_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS = undefined;
   });
 
   afterEach(() => {
@@ -274,7 +274,7 @@ describe("determineReschedulePreventionRedirect", () => {
     });
   });
 
-  describe("when booking is in the past - Default behaviour(without ENV_PAST_BOOKING_RESCHEDULE_CHANGE)", () => {
+  describe("when booking is in the past - Default behaviour(without ENV_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS)", () => {
     it("should redirect to new booking page with prefilled params when allowReschedulingPastBookings is false", () => {
       const input = createReschedulePreventionRedirectInput({
         booking: createTestBooking({
@@ -317,9 +317,9 @@ describe("determineReschedulePreventionRedirect", () => {
     });
   });
 
-  describe("when booking is in the past - New behaviour(based on ENV_PAST_BOOKING_RESCHEDULE_CHANGE)", () => {
+  describe("when booking is in the past - New behaviour(based on ENV_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS)", () => {
     beforeEach(() => {
-      vi.mocked(constants).ENV_PAST_BOOKING_RESCHEDULE_CHANGE = "123,456,789";
+      vi.mocked(constants).ENV_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS = "123,456,789";
     });
 
     it("should redirect to booking status page instead of event URL when the event's teamId is in the environment variable", () => {
