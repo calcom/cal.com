@@ -2228,6 +2228,10 @@ hr {}
   left: 50%;
 }
 
+.left-\[calc\(50\%\+calc\(var\(--booker-meta-width\2c 0px\)\/2\)\)\] {
+  left: calc(50% + calc(var(--booker-meta-width, 0px) / 2));
+}
+
 .left-px {
   left: var(--cal-spacing-px);
 }
