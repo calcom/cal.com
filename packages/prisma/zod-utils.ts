@@ -11,9 +11,9 @@ import type {
   ZodTypeAny,
 } from "zod";
 
-import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import type { FieldType as FormBuilderFieldType } from "@calcom/features/form-builder/schema";
 import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/schema";
+import { isPasswordValid } from "@calcom/lib/auth/isPasswordValid";
 import { emailSchema as emailRegexSchema, emailRegex } from "@calcom/lib/emailSchema";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { zodAttributesQueryValue } from "@calcom/lib/raqb/zod";
