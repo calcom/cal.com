@@ -6,7 +6,11 @@ import { TextField } from "@calcom/ui/components/form";
 
 import type { appDataSchema } from "../zod";
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
+  app,
+  eventType,
+  onAppInstallSuccess,
+}) {
   const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();
   const siteId = getAppData("SITE_ID");
   const scriptURL = getAppData("SCRIPT_URL");
@@ -14,6 +18,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
 
   return (
     <AppCard
+      onAppInstallSuccess={onAppInstallSuccess}
       app={app}
       switchOnClick={(e) => {
         updateEnabled(e);
