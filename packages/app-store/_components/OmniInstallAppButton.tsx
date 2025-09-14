@@ -30,7 +30,7 @@ export default function OmniInstallAppButton({
   const mutation = useAddAppMutation(null, {
     returnTo,
     onSuccess: (data) => {
-      onAppInstallSuccess?.();
+      onAppInstallSuccess();
       if (data?.setupPending) return;
       showToast(t("app_successfully_installed"), "success");
     },
