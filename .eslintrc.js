@@ -25,8 +25,20 @@ module.exports = {
         "no-restricted-imports": [
           "error",
           {
-            paths: ["@calcom/trpc"],
-            patterns: ["@calcom/trpc/*", "@trpc/*"],
+            allowTypeImports: false,
+            paths: [
+              {
+                name: "@calcom/trpc",
+                message:
+                  "tRPC usage is not allowed in packages/app-store. Move UI to apps/web/components/apps or introduce an API boundary.",
+              },
+            ],
+            patterns: [
+              {
+                group: ["@calcom/trpc/*", "@trpc/*"],
+                message: "tRPC imports are blocked in packages/app-store.",
+              },
+            ],
           },
         ],
       },

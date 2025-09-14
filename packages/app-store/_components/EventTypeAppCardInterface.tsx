@@ -16,7 +16,7 @@ export const EventTypeAppCard = (props: {
   eventType: EventTypeForAppCard;
   getAppData: GetAppData;
   setAppData: SetAppData;
-  onAppInstallSuccess: () => void;
+  onAppInstallSuccess?: () => void;
   // For event type apps, get these props from shouldLockDisableProps
   LockedIcon?: JSX.Element | false;
   eventTypeFormMetadata: z.infer<typeof EventTypeMetaDataSchema>;
