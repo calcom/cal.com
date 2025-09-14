@@ -4,7 +4,6 @@
  * - It automatically refreshes the token if needed when making a request.
  * - It is aware of the credential sync endpoint and can sync the token from the third party source.
  * - It is kept unaware of Prisma and App logic. It is just a utility to manage OAuth2.0 tokens with life cycle methods
- * - Prevents race conditions during token refresh using in-memory locking with optimistic concurrency control
  *
  * What it doesn't do yet
  * - It doesn't have a flow to re-send the request if the access-token had been communicated as invalid after making the request itself. It relies on the caller to make the next request in which it will actually refresh the token.
@@ -67,9 +66,11 @@ type CredentialSyncVariables = {
 
 type CurrentTokenObject = z.infer<typeof OAuth2UniversalSchema>;
 type GetCurrentTokenObject = () => Promise<CurrentTokenObject>;
-// Manages OAuth2.0 tokens for an app and resourceOwner
-// Automatically handles token expiry, refresh, and race condition prevention
-// Uses in-memory locking to prevent multiple simultaneous refresh operations
+/**
+ * Manages OAuth2.0 tokens for an app and resourceOwner
+ * If expiry_date or expires_in isn't provided in token then it is considered expired immediately(if credential sync is not enabled)
+ * If credential sync is enabled, the token is considered expired after a year. It is expected to be refreshed by the API request from the credential source(as it knows when the token is expired)
+ */
 export class OAuthManager {
   protected currentTokenObject: CurrentTokenObject | null;
   private getCurrentTokenObject: GetCurrentTokenObject | null;
@@ -114,8 +115,8 @@ export class OAuthManager {
     credentialSyncVariables,
     autoCheckTokenExpiryOnRequest = true,
     isTokenExpiring = (token: z.infer<typeof OAuth2TokenResponseInDbWhenExistsSchema>) => {
-      // TODO: Make this configurable
-      // Refresh token 5 seconds early to avoid expired token requests
+      // TODO: Make it configurable later
+      // 5 seconds before expiry so that we can refresh the token before any request is made with the expired token
       const expireThreshold = 5000;
       const isGoingToExpire = getExpiryDate() - expireThreshold <= Date.now();
       log.debug(
@@ -130,20 +131,20 @@ export class OAuthManager {
       );
       return isGoingToExpire;
       function isRelativeToEpoch(relativeTimeInSeconds: number) {
-        // Values > 1B seconds (~2001) are likely epoch timestamps, not relative durations
-        return relativeTimeInSeconds > 1000000000;
+        return relativeTimeInSeconds > 1000000000; // If it is more than 2001-09-09 it can be considered relative to epoch. Also, that is more than 30 years in future which couldn't possibly be relative to current time
       }
 
       function getExpiryDate() {
         if (token.expiry_date) {
           return token.expiry_date;
         }
-        // Some APIs send relative seconds, others send epoch timestamps (e.g., Office365)
-        // We need to detect which format to avoid treating expired tokens as valid
+        // It is usually in "seconds since now" but due to some integrations logic converting it to "seconds since epoch"(e.g. Office365Calendar has done that) we need to confirm what is the case here.
+        // But we for now know that it is in seconds for sure
+        // If it is not relative to epoch then it would be wrong to use it as it would make the token as non-expired when it could be expired
         if (token.expires_in && isRelativeToEpoch(token.expires_in)) {
           return token.expires_in * 1000;
         }
-        // Return 0 to mark token as expired (Date.now() will always be greater)
+        // 0 means it would be expired as Date.now() is greater than that
         return 0;
       }
     },
@@ -230,7 +231,8 @@ export class OAuthManager {
     );
 
     if (this.useCredentialSync) {
-      // Only validate resource owner when credential sync is enabled due to legacy data
+      // Though it should be validated without credential sync as well but it seems like we have some credentials without userId in production
+      // So, we are not validating it for now
       ensureValidResourceOwner(resourceOwner);
     }
 
@@ -311,7 +313,9 @@ export class OAuthManager {
     });
     
     const token = {
-      // Preserve existing token properties since some APIs don't return all fields (e.g., Google doesn't resend refresh_token)
+      // Keep the old token object as it is, as some integrations don't send back all the props e.g. refresh_token isn't sent again by Google Calendar
+      // It also allows any other properties set to be retained.
+      // Let's not use normalizedCurrentTokenObject here as `normalizeToken` could possible be not idempotent
       ...currentTokenObject,
       ...this.normalizeNewlyReceivedToken(
         await this.refreshOAuthToken({ refreshToken: currentTokenObject.refresh_token ?? null })
@@ -370,7 +374,8 @@ export class OAuthManager {
       try {
         response = await customFetch();
       } catch (e) {
-        // Convert error to Response object so token validation methods can process it
+        // Get response from error so that code further down can categorize it into tokenUnusable or access token unusable
+        // Those methods accept response only
         response = handleFetchError(e);
       }
     } else {
@@ -382,7 +387,7 @@ export class OAuthManager {
         ...options?.headers,
       };
       myLog.debug("Sending request using fetch", safeStringify({ customFetchOrUrlAndOptions, headers }));
-      // Let fetch errors bubble up since they're usually temporary network issues
+      // We don't catch fetch error here because such an error would be temporary and we shouldn't take any action on it.
       response = await fetch(url, {
         method: "GET",
         ...options,
@@ -472,8 +477,9 @@ export class OAuthManager {
   private async onInconclusiveResponse() {
     const myLog = log.getSubLogger({ prefix: ["onInconclusiveResponse"] });
     myLog.debug("Expiring the access token");
-    // For credential sync, expire token on unclear errors since tokens have infinite expiry
-    // This allows external sync to potentially fix revoked tokens that our validation missed
+    // We can't really take any action on inconclusive response
+    // But in case of credential sync we should expire the token so that through the sync we can possibly fix the issue by refreshing the token
+    // It is important because in that cases tokens have an infinite expiry and it is possible that the token is revoked and isAccessUnusable and isTokenObjectUnusable couldn't detect the issue
     if (this.useCredentialSync) {
       await this.expireAccessToken();
     }
@@ -483,11 +489,13 @@ export class OAuthManager {
     const myLog = log.getSubLogger({ prefix: ["invalidate"] });
     if (this.useCredentialSync) {
       myLog.debug("Expiring the access token");
-      // Don't expire here since token was just refreshed - likely same result
+      // We are not calling it through refreshOAuthToken flow because the token is refreshed already there
+      // There is no point expiring the token as we will probably get the same result in that case.
       await this.expireAccessToken();
     } else {
       myLog.debug("Invalidating the token object");
-      // Without credential sync, mark token invalid so user can reconnect manually
+      // In case credential sync is enabled there is no point of marking the token as invalid as user doesn't take action on that.
+      // The third party needs to sync the correct credential back which we get done by marking the token as expired.
       await this.invalidateTokenObject();
     }
   }
@@ -496,13 +504,14 @@ export class OAuthManager {
     token: z.infer<typeof OAuth2UniversalSchemaWithCalcomBackwardCompatibility>
   ) {
     if (!token.expiry_date && !token.expires_in) {
-      // With credential sync: use 1-year expiry (refreshed by external API)
-      // Without credential sync: mark as expired to force immediate refresh
+      // Use a practically infinite expiry(a year) for when Credential Sync is enabled. Token is expected to be refreshed by the API request from the credential source.
+      // If credential sync is not enabled, we should consider the token as expired otherwise the token could be considered valid forever
       token.expiry_date = this.useCredentialSync ? Date.now() + 365 * 24 * 3600 * 1000 : 0;
     } else if (token.expires_in !== undefined && token.expiry_date === undefined) {
       token.expiry_date = Math.round(Date.now() + token.expires_in * 1000);
 
-      // Remove expires_in since it's relative to "now" and becomes stale when token objects are merged
+      // As expires_in could be relative to current time, we can't keep it in the token object as it could endup giving wrong absolute expiry_time if outdated value is used
+      // That could happen if we merge token objects which we do
       delete token.expires_in;
     }
     return token;
@@ -603,7 +612,7 @@ export class OAuthManager {
     const myLog = log.getSubLogger({ prefix: ["getAndValidateOAuth2Response"] });
     const clonedResponse = response.clone();
 
-    // Handle empty responses (like 204 No Content) that would crash JSON.parse()
+    // handle empty response (causes crash otherwise on doing json() as "" is invalid JSON) which is valid in some cases like PATCH calls(with 204 response)
     if ((await clonedResponse.text()).trim() === "") {
       return { tokenStatus: TokenStatus.VALID, json: null, invalidReason: null } as const;
     }
@@ -632,8 +641,8 @@ export class OAuthManager {
       };
     }
 
-    // If response isn't OK and wasn't handled by token validation, mark as inconclusive
-    // Could be network error or temporary third-party service issue
+    // Any handlable not ok response should be handled through isTokenObjectUnusable or isAccessTokenUnusable but if still not handled, we should throw an error
+    // So, that the caller can handle it. It could be a network error or some other temporary error from the third party App itself.
     if (isNotOkay) {
       return {
         tokenStatus: TokenStatus.INCONCLUSIVE,
