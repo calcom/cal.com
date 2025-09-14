@@ -86,6 +86,7 @@
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.1",
     "@changesets/cli": "2.29.4",
+    "@faker-js/faker": "^10.0.0",
     "@jetstreamapp/soql-parser-js": "^6.1.0",
     "@playwright/test": "^1.45.3",
     "@snaplet/copycat": "^4.1.0",

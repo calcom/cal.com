@@ -6,11 +6,10 @@ import type z from "zod";
 import dayjs from "@calcom/dayjs";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import prisma from "@calcom/prisma";
+import type { Prisma, UserPermissionRole } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-
-import prisma from "../packages/prisma";
-import type { Prisma, UserPermissionRole } from "../packages/prisma/client";
-import type { teamMetadataSchema } from "../packages/prisma/zod-utils";
+import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 export async function createUserAndEventType({
   user,
