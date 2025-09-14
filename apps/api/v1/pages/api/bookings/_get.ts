@@ -1,9 +1,9 @@
-import type { Prisma, Booking } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
+import type { Prisma, Booking } from "@calcom/prisma/client";
 
 import { withMiddleware } from "~/lib/helpers/withMiddleware";
 import { buildWhereClause } from "~/lib/utils/bookings/get/buildWhereClause";
