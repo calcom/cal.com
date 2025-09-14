@@ -70,6 +70,21 @@ export class EventTypesAtomService {
     return team.slug;
   }
 
+  private async getOrganizationSlug(orgId: number): Promise<string> {
+    const organization = await this.dbRead.prisma.team.findUnique({
+      where: {
+        id: orgId,
+        isOrganization: true,
+      },
+      select: { slug: true },
+    });
+
+    if (!organization?.slug) {
+      throw new NotFoundException(`Organization with id ${orgId} not found`);
+    }
+    return organization.slug;
+  }
+
   async getUserEventType(user: UserWithProfile, eventTypeId: number) {
     const organizationId = this.usersService.getUserMainOrgId(user);
 
@@ -422,7 +437,30 @@ export class EventTypesAtomService {
     orgId?: number;
     teamId?: number;
   }): Promise<PublicEventType> {
-    const orgSlug = orgId ? await this.getTeamSlug(orgId) : null;
+    let orgSlug: string | null = null;
+
+    // Only get organization slug if orgId is provided
+    if (orgId) {
+      try {
+        orgSlug = await this.getOrganizationSlug(orgId);
+
+        // For team events, verify that the team actually belongs to this organization
+        if (isTeamEvent && teamId) {
+          const team = await this.dbRead.prisma.team.findUnique({
+            where: { id: teamId },
+            select: { parentId: true },
+          });
+
+          // If team doesn't belong to the organization, ignore orgId
+          if (team?.parentId !== orgId) {
+            orgSlug = null;
+          }
+        }
+      } catch (err) {
+        // If organization doesn't exist, ignore orgId and continue without it
+        orgSlug = null;
+      }
+    }
 
     let slug: string | null = null;
     if (isTeamEvent) {
