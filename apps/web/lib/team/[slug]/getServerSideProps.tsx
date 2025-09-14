@@ -114,7 +114,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   if (!team) {
-    // First check for unpublished regular team
+    // Because we are fetching by requestedSlug being set, it can either be an organization or a regular team. But it can't be a sub-team i.e.
     const unpublishedTeam = await prisma.team.findFirst({
       where: {
         metadata: {
@@ -137,186 +137,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       },
     });
 
-    if (unpublishedTeam) {
-      const teamParent = unpublishedTeam.parent ? getTeamWithoutMetadata(unpublishedTeam.parent) : null;
-      return {
-        props: {
-          considerUnpublished: true,
-          team: {
-            ...unpublishedTeam,
-            parent: teamParent,
-            createdAt: null,
-          },
-        },
-      } as const;
-    }
-
-    // If no regular team found, check for CalIdTeam
-    const calIdTeam = await prisma.calIdTeam.findFirst({
-      where: {
-        slug: slugify(slug),
-      },
-      include: {
-        members: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                username: true,
-                email: true,
-                avatarUrl: true,
-                bio: true,
-                timeZone: true,
-                profiles: {
-                  select: {
-                    id: true,
-                    username: true,
-                    organizationId: true,
-                    organization: {
-                      select: {
-                        id: true,
-                        slug: true,
-                        name: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-        eventTypes: {
-          where: {
-            hidden: false,
-          },
-          include: {
-            hosts: {
-              take: 3,
-              select: {
-                user: {
-                  select: {
-                    name: true,
-                    username: true,
-                    email: true,
-                    avatarUrl: true,
-                  },
-                },
-              },
-            },
-          },
-          orderBy: {
-            id: "asc",
-          },
+    if (!unpublishedTeam) return { notFound: true } as const;
+    const teamParent = unpublishedTeam.parent ? getTeamWithoutMetadata(unpublishedTeam.parent) : null;
+    return {
+      props: {
+        considerUnpublished: true,
+        team: {
+          ...unpublishedTeam,
+          parent: teamParent,
+          createdAt: null,
         },
       },
-    });
-
-    if (calIdTeam) {
-      // Process CalIdTeam data to match Team structure
-      const processedEventTypes = calIdTeam.eventTypes.map((type) => ({
-        ...type,
-        users: !calIdTeam.isTeamPrivate
-          ? type.hosts.map((host) => ({
-              ...host.user,
-              avatar: getUserAvatarUrl(host.user),
-            }))
-          : [],
-        descriptionAsSafeHTML: markdownToSafeHTML(type.description || ""),
-      }));
-
-      const processedMembers = !calIdTeam.isTeamPrivate
-        ? calIdTeam.members.map((member) => {
-            const profile = member.user.profiles?.[0];
-            return {
-              id: member.user.id,
-              name: member.user.name,
-              username: profile?.username ?? member.user.username,
-              email: member.user.email,
-              avatarUrl: member.user.avatarUrl,
-              bio: member.user.bio,
-              timeZone: member.user.timeZone,
-              role: member.role,
-              accepted: member.acceptedInvitation,
-              organizationId: profile?.organizationId ?? null,
-              organization: profile?.organization,
-              bookerUrl: getBookerBaseUrlSync(profile?.organization?.slug || ""),
-              safeBio: markdownToSafeHTML(member.user.bio || ""),
-              profile: profile,
-            };
-          })
-        : [];
-
-      const safeBio = markdownToSafeHTML(calIdTeam.bio || "");
-      const markdownStrippedBio = stripMarkdown(calIdTeam.bio || "");
-
-      return {
-        props: {
-          team: {
-            ...calIdTeam,
-            // Map CalIdTeam fields to Team fields for compatibility
-            isPrivate: calIdTeam.isTeamPrivate,
-            hideBranding: calIdTeam.hideTeamBranding,
-            hideTeamProfileLink: calIdTeam.hideTeamProfileLink,
-            hideBookATeamMember: calIdTeam.hideBookATeamMember,
-            logoUrl: calIdTeam.logoUrl,
-            members: processedMembers,
-            eventTypes: processedEventTypes,
-            safeBio,
-            markdownStrippedBio,
-            // Add missing fields that Team component expects
-            isOrganization: false,
-            parent: null,
-            children: [],
-            membership: {
-              role: "OWNER",
-            },
-          },
-          themeBasis: calIdTeam.slug,
-          isValidOrgDomain: false,
-          currentOrgDomain: null,
-          isSEOIndexable: true,
-        },
-      } as const;
-    }
-
-    // Check for unpublished CalIdTeam
-    const unpublishedCalIdTeam = await prisma.calIdTeam.findFirst({
-      where: {
-        metadata: {
-          path: ["requestedSlug"],
-          equals: slug,
-        },
-      },
-    });
-
-    if (unpublishedCalIdTeam) {
-      return {
-        props: {
-          considerUnpublished: true,
-          team: {
-            ...unpublishedCalIdTeam,
-            isPrivate: unpublishedCalIdTeam.isTeamPrivate,
-            hideBranding: unpublishedCalIdTeam.hideTeamBranding,
-            hideTeamProfileLink: unpublishedCalIdTeam.hideTeamProfileLink,
-            hideBookATeamMember: unpublishedCalIdTeam.hideBookATeamMember,
-            logoUrl: unpublishedCalIdTeam.logoUrl,
-            members: [],
-            eventTypes: [],
-            isOrganization: false,
-            parent: null,
-            children: [],
-            membership: {
-              role: "OWNER",
-            },
-          },
-          isValidOrgDomain: false,
-          currentOrgDomain: null,
-        },
-      } as const;
-    }
-
-    return { notFound: true } as const;
+    } as const;
   }
 
   const organizationSettings = getOrganizationSettings(team);

@@ -1,3 +1,13 @@
+import { Button } from "@calid/features/ui/components/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@calid/features/ui/components/dialog";
 import { useState } from "react";
 
 import type { Dayjs } from "@calcom/dayjs";
@@ -5,8 +15,6 @@ import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { calculatePeriodLimits, isTimeViolatingFutureLimit } from "@calcom/lib/isOutOfBounds";
 import type { PeriodData } from "@calcom/types/Event";
-import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 
 // Determines if the next month will pass the booking limits for 'ROLLING' and 'RANGE' period types
 const useNoFutureAvailability = (browsingDate: Dayjs, periodData: PeriodData) => {
@@ -74,17 +82,19 @@ const NoAvailabilityDialog = ({
       onOpenChange={(open) => {
         setIsOpenDialog(open);
       }}>
-      <DialogContent
-        title={t("no_availability_in_month", { month: month })}
-        type="creation"
-        description={description}
-        preventCloseOnOutsideClick={false}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("no_availability_in_month", { month: month })}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
         <DialogFooter>
-          <DialogClose
-            color={noFutureAvailability ? "primary" : "secondary"}
-            onClick={closeDialog}
-            data-testid="close_dialog_button">
-            {t("close")}
+          <DialogClose asChild>
+            <Button
+              color={noFutureAvailability ? "primary" : "secondary"}
+              onClick={closeDialog}
+              data-testid="close_dialog_button">
+              {t("close")}
+            </Button>
           </DialogClose>
           {!noFutureAvailability && (
             <Button

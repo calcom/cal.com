@@ -1,6 +1,6 @@
 import { CustomI18nProvider } from "app/CustomI18nProvider";
 import { withAppDirSsr } from "app/WithAppDirSsr";
-import type { PageProps, SearchParams } from "app/_types";
+import type { PageProps as ServerPageProps, SearchParams } from "app/_types";
 import { generateMeetingMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
@@ -9,7 +9,7 @@ import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { loadTranslations } from "@calcom/lib/server/i18n";
 
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
-import { getServerSideProps } from "@lib/team/[slug]/[type]/getServerSideProps";
+import { getCalIdServerSideProps } from "@lib/team/[slug]/[type]/getCalIdServerSideProps";
 
 import LegacyPage from "~/team/type-view";
 import type { PageProps as LegacyPageProps } from "~/team/type-view";
@@ -24,7 +24,7 @@ async function isCachedTeamBookingEnabled(searchParams: SearchParams): Promise<b
   return isGloballyEnabled && searchParams.experimentalTeamBookingPageCache === "true";
 }
 
-export const generateMetadata = async ({ params, searchParams }: PageProps) => {
+export const generateMetadata = async ({ params, searchParams }: ServerPageProps) => {
   if (await isCachedTeamBookingEnabled(await searchParams)) {
     return await generateCachedMetadata({ params, searchParams });
   }
@@ -64,9 +64,11 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   };
 };
 
-const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);
+const getData = withAppDirSsr<LegacyPageProps>((context) => {
+  return getCalIdServerSideProps(context);
+});
 
-const ServerPage = async ({ params, searchParams }: PageProps) => {
+const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
   if (await isCachedTeamBookingEnabled(await searchParams)) {
     return await CachedTeamBooker({ params, searchParams });
   }

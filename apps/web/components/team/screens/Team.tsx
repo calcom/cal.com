@@ -1,3 +1,5 @@
+import { Button } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon";
 import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -27,29 +29,37 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
   const { slug: _slug, orgSlug: _orgSlug, user: _user, ...queryParamsToForward } = routerQuery;
 
   return (
-    <Link
-      key={member.id}
-      href={{ pathname: `${member.bookerUrl}/${member.username}`, query: queryParamsToForward }}>
-      <div className="bg-default hover:bg-muted border-subtle group flex min-h-full flex-col space-y-2 rounded-md border p-4 transition hover:cursor-pointer sm:w-80">
+    <div className="hover:bg-muted border-subtle rounded-lg border bg-white p-6 shadow-md transition-shadow hover:scale-[1.02]">
+      <div className="mb-4 flex items-center">
         <UserAvatar noOrganizationIndicator size="md" user={member} />
-        <section className="mt-2 line-clamp-4 w-full space-y-1">
-          <p className="text-default font-medium">{member.name}</p>
-          <div className="text-subtle line-clamp-3 overflow-ellipsis text-sm font-normal">
-            {!isBioEmpty ? (
-              <>
-                <div
-                  className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                  // eslint-disable-next-line react/no-danger
-                  dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(member.bio) }}
-                />
-              </>
-            ) : (
-              t("user_from_team", { user: member.name, team: teamName })
-            )}
-          </div>
-        </section>
+        <div className="ml-3">
+          <h3 className="text-lg font-semibold text-gray-900">{member.name}</h3>
+        </div>
       </div>
-    </Link>
+
+      <div className="mb-4">
+        <p className="text-sm text-gray-600">
+          {!isBioEmpty ? (
+            <div
+              className="text-sm text-gray-600"
+              // eslint-disable-next-line react/no-danger
+              dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(member.bio) }}
+            />
+          ) : (
+            t("user_from_team", { user: member.name, team: teamName })
+          )}
+        </p>
+      </div>
+
+      <Link
+        href={{ pathname: `${member.bookerUrl}/${member.username}`, query: queryParamsToForward }}
+        className="block">
+        <Button className="bg-active flex w-full items-center justify-center rounded px-4 py-2 font-medium text-white">
+          <Icon name="calendar" className="mr-2 h-4 w-4" />
+          Book with {member.name}
+        </Button>
+      </Link>
+    </div>
   );
 };
 
@@ -61,7 +71,7 @@ const Members = ({ members, teamName }: { members: MemberType[]; teamName: strin
   return (
     <section
       data-testid="team-members-container"
-      className="flex flex-col flex-wrap justify-center gap-5 p-2 sm:flex-row">
+      className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2 lg:px-12 xl:px-24">
       {members.map((member) => {
         return member.username !== null && <Member key={member.id} member={member} teamName={teamName} />;
       })}

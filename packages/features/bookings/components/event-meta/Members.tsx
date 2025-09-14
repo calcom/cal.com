@@ -1,5 +1,4 @@
 import { Avatar } from "@calid/features/ui/components/avatar";
-import { useEffect } from "react";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -62,7 +61,7 @@ export const EventMembers = ({
   return (
     <>
       {shownUsers.map((user) => (
-        <div className="mt-2 flex flex-row items-center gap-2">
+        <div key={user.username || user.name} className="mt-2 flex flex-row items-center gap-2">
           <Avatar href={getUserAvatarUrl(user)} />
           <p className="text-emphasis text-sm font-semibold">{user.name}</p>
         </div>
