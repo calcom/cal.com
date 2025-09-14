@@ -71,11 +71,8 @@ export class EventTypesAtomService {
   }
 
   private async getOrganizationSlug(orgId: number): Promise<string> {
-    const organization = await this.dbRead.prisma.team.findUnique({
-      where: {
-        id: orgId,
-        isOrganization: true,
-      },
+    const organization = await this.dbRead.prisma.team.findFirst({
+      where: { id: orgId, isOrganization: true },
       select: { slug: true },
     });
 
