@@ -17,7 +17,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { LocationObject } from "@calcom/lib/location";
 import type { Team } from "@calcom/prisma/client";
-import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import type { fieldsSchema as eventTypeBookingFields } from "@calcom/features/form-builder/schema";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { AppMeta } from "@calcom/types/App";

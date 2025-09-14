@@ -11,7 +11,6 @@ import type {
   ZodTypeAny,
 } from "zod";
 
-import type { FieldType as FormBuilderFieldType } from "@calcom/features/form-builder/schema";
 import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/schema";
 import { isPasswordValid } from "@calcom/lib/auth/isPasswordValid";
 import { emailSchema as emailRegexSchema, emailRegex } from "@calcom/lib/emailSchema";
@@ -136,8 +135,6 @@ export const eventTypeMetaDataSchemaWithoutApps = _eventTypeMetaDataSchemaWithou
 export type EventTypeMetadata = z.infer<typeof EventTypeMetaDataSchema>;
 
 export const eventTypeBookingFields = formBuilderFieldsSchema;
-export const BookingFieldTypeEnum = eventTypeBookingFields.element.shape.type.Enum;
-export type BookingFieldType = FormBuilderFieldType;
 
 // Validation of user added bookingFields' responses happen using `getBookingResponsesSchema` which requires `eventType`.
 // So it is a dynamic validation and thus entire validation can't exist here
