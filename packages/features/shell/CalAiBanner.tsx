@@ -33,7 +33,7 @@ export function CalAiBanner() {
     <div className="bg-launch-dark relative mb-6 w-full overflow-hidden rounded-lg text-white">
       <button
         onClick={handleDismiss}
-        className="bg-brand-default absolute right-2 top-2 z-10 rounded-[10px] p-2"
+        className="absolute right-2 top-2 z-10 rounded-[10px] p-2"
         aria-label="Close banner">
         <Icon name="x" className="h-4 w-4 text-white" />
       </button>
