@@ -26,7 +26,7 @@ module.exports = {
           "error",
           {
             paths: ["@calcom/trpc"],
-            patterns: ["@calcom/trpc/*"],
+            patterns: ["@calcom/trpc/*", "@trpc/*"],
           },
         ],
       },
