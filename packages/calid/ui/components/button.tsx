@@ -34,7 +34,10 @@ export type ButtonBaseProps = {
   disabled?: boolean;
   flex?: boolean;
 } & Omit<InferredVariantProps, "color"> & {
+    // If a string (e.g. hex/rgb/css var) is provided, it will be used as a custom
+    // color for primary-style buttons (background, border, and readable text color)
     color?: ButtonColor;
+    brandColor?: string;
   };
 
 export type ButtonProps = ButtonBaseProps &
@@ -153,22 +156,6 @@ export const buttonClasses = cva(
           "transition-shadow",
           "duration-200",
         ],
-
-        destructive_account: [
-          // Base colors
-          "bg-default",
-          "text-destructive",
-          // Hover state
-          "hover:bg-red-500",
-          "hover:text-white",
-          "hover:transform",
-          "!hover:scale-105", // Add transform class
-          // Transitions
-          "transition-all",
-          "duration-200",
-          // Disabled state
-          "disabled:opacity-30",
-        ],
       },
       size: {
         xs: "h-2 p-2 leading-none text-xs rounded-md",
@@ -257,6 +244,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     CustomStartIcon,
     EndIcon,
     shallow,
+    brandColor,
     // attributes propagated from `HTMLAnchorProps` or `HTMLButtonProps`
     ...passThroughProps
   } = props;
@@ -277,6 +265,10 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         const classes = classNames(buttonClasses({ color, size, loading, variant }), props.className);
         return classes;
       })(),
+      style: { 
+        backgroundColor: brandColor,
+        border: brandColor ? 'none' : undefined,
+      },
       // if we click a disabled button, we prevent going through the click handler
       onClick: disabled
         ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {

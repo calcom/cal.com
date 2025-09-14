@@ -224,22 +224,22 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
         keywords: "webhook automation",
         perform: () => router.push("/settings/developer/webhooks"),
       },
-      {
-        id: "api-keys",
-        name: "api_keys",
-        section: "developer",
-        shortcut: ["a", "p", "i"],
-        keywords: "api keys",
-        perform: () => router.push("/settings/developer/api-keys"),
-      },
-      {
-        id: "billing",
-        name: "manage_billing",
-        section: "billing",
-        shortcut: ["m", "b"],
-        keywords: "billing view manage",
-        perform: () => router.push("/settings/billing"),
-      },
+      // {
+      //   id: "api-keys",
+      //   name: "api_keys",
+      //   section: "developer",
+      //   shortcut: ["a", "p", "i"],
+      //   keywords: "api keys",
+      //   perform: () => router.push("/settings/developer/api-keys"),
+      // },
+      // {
+      //   id: "billing",
+      //   name: "manage_billing",
+      //   section: "billing",
+      //   shortcut: ["m", "b"],
+      //   keywords: "billing view manage",
+      //   perform: () => router.push("/settings/billing"),
+      // },
       ...appStoreActions,
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps

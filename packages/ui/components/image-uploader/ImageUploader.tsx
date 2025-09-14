@@ -7,8 +7,8 @@ import Cropper from "react-easy-crop";
 import checkIfItFallbackImage from "@calcom/lib/checkIfItFallbackImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Dialog, DialogClose, DialogContent, DialogTrigger, DialogFooter } from "../dialog";
-import { showToast } from "../toast";
+import { Dialog, DialogClose, DialogContent, DialogTrigger, DialogFooter } from "@calid/features/ui/components/dialog";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { useFileReader, createImage, Slider } from "./Common";
 import type { FileEvent, Area } from "./Common";
 
@@ -96,7 +96,7 @@ export default function ImageUploader({
     const file = e.target.files[0];
 
     if (file.size > limit) {
-      showToast(t("image_size_limit_exceed"), "error");
+      triggerToast(t("image_size_limit_exceed"), "error");
     } else {
       setFile(file);
     }
@@ -172,12 +172,11 @@ export default function ImageUploader({
           </div>
         </div>
         <DialogFooter className="relative">
-          <DialogClose color="minimal">{t("cancel")}</DialogClose>
-          <DialogClose
-            data-testid={testId ? `upload-${testId}` : "upload-avatar"}
-            color="primary"
-            onClick={() => showCroppedImage(croppedAreaPixels)}>
-            {t("save")}
+          <DialogClose asChild>
+            <Button color="minimal">{t("cancel")}</Button>
+          </DialogClose>
+          <DialogClose asChild>
+            <Button color="primary" onClick={() => showCroppedImage(croppedAreaPixels)}>{t("save")}</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>

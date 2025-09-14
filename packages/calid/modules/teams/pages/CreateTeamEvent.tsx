@@ -1,13 +1,13 @@
 "use client";
 
 import { Button } from "@calid/features/ui/components/button";
-import { Form } from "@calid/features/ui/components/form";
-import { TextField } from "@calid/features/ui/components/input/input";
+import { Form, FormField } from "@calid/features/ui/components/form";
+import { TextField, NumberInput } from "@calid/features/ui/components/input/input";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { useRouter } from "next/navigation";
-import { Controller } from "react-hook-form";
+import { useEffect } from "react";
 
-import { useCreateEventType } from "@calcom/lib/hooks/useCreateEventType";
+import { useCalIdCreateEventType } from "@calcom/lib/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import slugify from "@calcom/lib/slugify";
@@ -23,7 +23,7 @@ const CreateTeamEvent = () => {
 
   const teamId = Number(params.id);
 
-  const onSuccess = () => {
+  const onSuccess = (eventType: any) => {
     router.push(`/settings/teams/${teamId}/profile`);
   };
 
@@ -35,58 +35,78 @@ const CreateTeamEvent = () => {
     form,
     createMutation,
     isManagedEventType: _isManagedEventType,
-  } = useCreateEventType(onSuccess, onError);
+  } = useCalIdCreateEventType(onSuccess, onError);
+
+  useEffect(() => {
+    form.reset({
+      calIdTeamId: teamId,
+      schedulingType: SchedulingType.COLLECTIVE,
+      title: "",
+      slug: "",
+      description: "",
+      length: 15,
+      hidden: false,
+    });
+  }, [form, teamId]);
 
   if (!Number.isFinite(teamId) || teamId <= 0) return null;
 
+  const {
+    formState: { isSubmitting, isDirty, isValid },
+    watch,
+  } = form;
+
+  // Watch required fields for validation
+  const title = watch("title") || "";
+  const slug = watch("slug") || "";
+  const isFormValid = title && slug && title.trim() !== "" && slug.trim() !== "";
+  
   return (
     <Form
       form={form}
-      handleSubmit={(values) => {
+      onSubmit={(values) => {
         if (!createMutation.isPending) {
           createMutation.mutate(values);
         }
       }}>
       <div className="space-y-6">
-        <Controller
-          name="teamId"
+        <FormField
+          name="calIdTeamId"
           control={form.control}
-          defaultValue={teamId}
           render={() => (
-            <input type="hidden" value={teamId} {...form.register("teamId", { valueAsNumber: true })} />
+            <input type="hidden" {...form.register("calIdTeamId", { valueAsNumber: true })} />
           )}
         />
 
-        <Controller
+        <FormField
           name="title"
           control={form.control}
-          rules={{ required: t("title") as unknown as string }}
-          render={({ field: { value } }) => (
+          render={({ field: { value, onChange }, fieldState: { error } }) => (
             <TextField
               label={t("title")}
               placeholder={t("quick_chat")}
-              value={value}
+              value={value || ""}
               onChange={(e) => {
                 const next = e?.target.value;
-                form.setValue("title", next);
+                onChange(next);
                 if (form.formState.touchedFields["slug"] === undefined) {
                   form.setValue("slug", slugify(next));
                 }
               }}
               data-testid="event-type-title"
+              error={error ? error.message : undefined}
             />
           )}
         />
 
-        <Controller
+        <FormField
           name="slug"
           control={form.control}
-          rules={{ required: t("team_url_required") as unknown as string }}
           render={({ field: { value } }) => (
             <TextField
               label={t("team_url")}
               placeholder="quick-chat"
-              value={value}
+              value={value || ""}
               onChange={(e) => {
                 form.setValue("slug", slugify(e?.target.value, true), { shouldTouch: true });
                 form.clearErrors("slug");
@@ -96,23 +116,22 @@ const CreateTeamEvent = () => {
           )}
         />
 
-        <Controller
+        <FormField
           name="length"
           control={form.control}
           defaultValue={15}
           render={({ field: { value, onChange } }) => (
-            <TextField
-              type="number"
+            <NumberInput
               label={t("duration")}
               placeholder="30"
-              value={value}
+              value={value || 15}
               onChange={(e) => onChange(Number(e?.target.value))}
               data-testid="event-type-duration"
             />
           )}
         />
 
-        <Controller
+        <FormField
           name="schedulingType"
           control={form.control}
           defaultValue={SchedulingType.COLLECTIVE}
@@ -138,7 +157,7 @@ const CreateTeamEvent = () => {
           )}
         />
 
-        <Controller
+        <FormField
           name="description"
           control={form.control}
           render={({ field: { value, onChange } }) => (
@@ -157,7 +176,7 @@ const CreateTeamEvent = () => {
             className="w-full justify-center"
             type="button"
             onClick={() => router.push(`/settings/teams/${teamId}/onboard-members`)}
-            disabled={createMutation.isPending}>
+            disabled={createMutation.isPending || isSubmitting}>
             {t("back")}
           </Button>
           <Button
@@ -165,7 +184,8 @@ const CreateTeamEvent = () => {
             type="submit"
             color="primary"
             className="w-full justify-center"
-            disabled={createMutation.isPending}>
+            disabled={createMutation.isPending || isSubmitting}
+            >
             {t("finish")}
           </Button>
         </div>

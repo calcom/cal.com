@@ -97,8 +97,6 @@ export const generateMeetingMetadata = async (
   );
   const image = SEO_IMG_OGIMG + constructMeetingImage(meeting);
 
-  console.log("Image is: ", image);
-
   return {
     ...metadata,
     openGraph: {

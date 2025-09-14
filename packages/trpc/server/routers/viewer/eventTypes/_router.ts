@@ -4,6 +4,7 @@ import { logP } from "@calcom/lib/perf";
 
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
+import { ZCalIdCreateInputSchema } from "./calid/create.schema";
 import { ZCalIdDeleteInputSchema } from "./calid/delete.schema";
 import { ZCalIdGetInputSchema } from "./calid/get.schema";
 import { ZCalIdEventTypeInputSchema, ZCalIdGetEventTypesFromGroupSchema } from "./calid/getByViewer.schema";
@@ -18,6 +19,7 @@ import { ZGetTeamAndEventTypeOptionsSchema } from "./getTeamAndEventTypeOptions.
 import { get } from "./procedures/get";
 import { ZUpdateInputSchema } from "./update.schema";
 import { eventOwnerProcedure } from "./util";
+import { eventOwnerProcedure as calIdEventOwnerProcedure } from "./calid/util";
 
 type BookingsRouterHandlerCache = {
   getByViewer?: typeof import("./getByViewer.handler").getByViewerHandler;
@@ -198,6 +200,15 @@ export const eventTypesRouter = router({
     });
   }),
 
+  calid_create: authedProcedure.input(ZCalIdCreateInputSchema).mutation(async ({ ctx, input }) => {
+    const { createHandler } = await import("./calid/create.handler");
+
+    return createHandler({
+      ctx,
+      input,
+    });
+  }),
+
   calid_get: authedProcedure.input(ZCalIdGetInputSchema).query(async ({ ctx, input }) => {
     const { getHandler } = await import("./calid/get.handler");
 
@@ -207,7 +218,7 @@ export const eventTypesRouter = router({
     });
   }),
 
-  calid_update: eventOwnerProcedure.input(ZCalIdUpdateInputSchema).mutation(async ({ ctx, input }) => {
+  calid_update: calIdEventOwnerProcedure.input(ZCalIdUpdateInputSchema).mutation(async ({ ctx, input }) => {
     const { updateHandler } = await import("./calid/update.handler");
 
     return updateHandler({
@@ -216,7 +227,7 @@ export const eventTypesRouter = router({
     });
   }),
 
-  calid_delete: eventOwnerProcedure.input(ZCalIdDeleteInputSchema).mutation(async ({ ctx, input }) => {
+  calid_delete: calIdEventOwnerProcedure.input(ZCalIdDeleteInputSchema).mutation(async ({ ctx, input }) => {
     const { deleteHandler } = await import("./calid/delete.handler");
 
     return deleteHandler({

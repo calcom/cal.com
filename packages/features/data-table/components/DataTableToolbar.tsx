@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, type ButtonProps } from "@calid/features/ui/components/button";
+import { Input } from "@calid/features/ui/components/input/input";
 import type { Table } from "@tanstack/react-table";
 import { forwardRef, useEffect } from "react";
 import type { ComponentPropsWithoutRef } from "react";
@@ -8,7 +9,6 @@ import { useState, type Ref, type ChangeEvent } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import { Input } from "@calcom/ui/components/form";
 
 import { useColumnFilters, useDataTable } from "../hooks";
 

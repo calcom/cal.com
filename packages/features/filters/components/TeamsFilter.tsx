@@ -7,7 +7,7 @@ import { useSession } from "next-auth/react";
 import type { InputHTMLAttributes, ReactNode } from "react";
 import { forwardRef, useState } from "react";
 
-import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getDefaultAvatar } from "@calid/features/lib/defaultAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { trpc } from "@calcom/trpc/react";
@@ -121,7 +121,7 @@ export const TeamsFilter = ({
                     removeItemByKeyAndValue("teamIds", team.id);
                   }
                 }}
-                icon={<Avatar alt={team?.name} imageSrc={getOrgOrTeamAvatar(team)} size="xs" />}
+                icon={<Avatar alt={team?.name} imageSrc={getDefaultAvatar(team)} size="xs" />}
               />
             ))}
         </FilterCheckboxFieldsContainer>

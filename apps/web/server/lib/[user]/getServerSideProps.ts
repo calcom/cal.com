@@ -17,6 +17,7 @@ import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
 import { RedirectType, type EventType, type User } from "@calcom/prisma/client";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
@@ -41,9 +42,17 @@ type UserPageProps = {
   };
   users: (Pick<
     User,
-    "name" | "username" | "bio" | "verified" | "avatarUrl" | "bannerUrl" | "faviconUrl" | "hideBranding"
+    | "name"
+    | "username"
+    | "bio"
+    | "verified"
+    | "avatarUrl"
+    | "bannerUrl"
+    | "faviconUrl"
+    | "hideBranding"
   > & {
     profile: UserProfile;
+    metadata: z.infer<typeof userMetadataSchema> | null;
   })[];
   themeBasis: string | null;
   markdownStrippedBio: string;
@@ -134,7 +143,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     return {
       props: {
         userNotFound: true,
-        slug: context.query.user,
+        slug: String(context.query.user ?? ""),
       },
     } as const;
   }
@@ -194,6 +203,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         bannerUrl: user.bannerUrl,
         faviconUrl: user.faviconUrl,
         hideBranding: user.hideBranding,
+        metadata: (user.metadata as z.infer<typeof userMetadataSchema>) ?? null,
       })),
       entity: {
         ...(org?.logoUrl ? { logoUrl: org?.logoUrl } : {}),

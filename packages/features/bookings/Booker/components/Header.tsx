@@ -19,9 +19,11 @@ import type { BookerLayout } from "../types";
 
 export function Header({
   extraDays,
+  brandColor,
   isMobile,
   enabledLayouts,
   nextSlots,
+  profile,
   eventSlug,
   isMyLink,
   renderOverlay,
@@ -32,6 +34,7 @@ export function Header({
   nextSlots: number;
   eventSlug: string;
   isMyLink: boolean;
+  brandColor: string;
   renderOverlay?: () => JSX.Element | null;
 }) {
   const { t, i18n } = useLocale();
@@ -80,7 +83,8 @@ export function Header({
         <Tooltip content={t("go_back")} side="bottom">
           <Button
             variant="icon"
-            color="minimal"
+            brandColor={profile?.brandColor}
+            color="fab"
             StartIcon="arrow-left"
             onClick={() => {
               window.location = removeLastPathSection(window.location);
@@ -92,6 +96,7 @@ export function Header({
           <Tooltip content={t("troubleshooter_tooltip")} side="bottom">
             <Button
               color="primary"
+              brandColor={brandColor}
               target="_blank"
               href={`${WEBAPP_URL}/availability/troubleshoot?eventType=${eventSlug}`}>
               {t("need_help")}
@@ -138,6 +143,7 @@ export function Header({
         <ButtonGroup>
           <Button
             className="group rtl:ml-1 rtl:rotate-180"
+            brandColor={brandColor}
             variant="icon"
             color="minimal"
             StartIcon="chevron-left"
@@ -146,6 +152,7 @@ export function Header({
           />
           <Button
             className="group rtl:mr-1 rtl:rotate-180"
+            brandColor={brandColor}
             variant="icon"
             color="minimal"
             StartIcon="chevron-right"
@@ -155,6 +162,7 @@ export function Header({
           {selectedDateMin3DaysDifference && (
             <Button
               className="capitalize ltr:ml-2 rtl:mr-2"
+              brandColor={brandColor}
               color="secondary"
               onClick={() => setSelectedDate({ date: today.format("YYYY-MM-DD") })}>
               {t("today")}

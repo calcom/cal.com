@@ -7,7 +7,7 @@ import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
-import { showToast } from "@calcom/ui/components/toast";
+import { triggerToast } from "@calid/features/ui/components/toast";
 
 const SkeletonLoader = () => {
   return (
@@ -19,16 +19,16 @@ const SkeletonLoader = () => {
   );
 };
 
-const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get"] }) => {
+const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"]["calid_get"] }) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const [disableImpersonation, setDisableImpersonation] = useState<boolean | undefined>(
     user?.disableImpersonation
   );
 
-  const mutation = trpc.viewer.me.updateProfile.useMutation({
+  const mutation = trpc.viewer.me.calid_updateProfile.useMutation({
     onSuccess: () => {
-      showToast(t("profile_updated_successfully"), "success");
+      triggerToast(t("profile_updated_successfully"), "success");
     },
     onSettled: () => {
       utils.viewer.me.invalidate();
@@ -46,7 +46,7 @@ const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"
         utils.viewer.me.get.setData(undefined, context.previousValue);
         setDisableImpersonation(context.previousValue?.disableImpersonation);
       }
-      showToast(`${t("error")}, ${error.message}`, "error");
+      triggerToast(`${t("error")}, ${error.message}`, "error");
     },
   });
 
@@ -71,7 +71,7 @@ const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"
 };
 
 const ProfileImpersonationViewWrapper = () => {
-  const { data: user, isPending } = trpc.viewer.me.get.useQuery();
+  const { data: user, isPending } = trpc.viewer.me.calid_get.useQuery();
   if (isPending || !user) return <SkeletonLoader />;
 
   return <ProfileImpersonationView user={user} />;

@@ -3,6 +3,7 @@ import { ZCalIdCreateInputSchema } from "./calid/create.schema";
 import { ZCalIdDeleteInputSchema } from "./calid/delete.schema";
 import { ZCalIdEditInputSchema } from "./calid/edit.schema";
 import { ZCalIdListInputSchema } from "./calid/list.schema";
+import { calidWebhookProcedure } from "./calid/util";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZEditInputSchema } from "./edit.schema";
@@ -23,6 +24,7 @@ type WebhookRouterHandlerCache = {
   calid_edit?: typeof import("./calid/edit.handler").calIdEditHandler;
   calid_delete?: typeof import("./calid/delete.handler").calIdDeleteHandler;
   calid_list?: typeof import("./calid/list.handler").calIdListHandler;
+  calid_getByViewer?: typeof import("./calid/getByViewer.handler").getByViewerHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: WebhookRouterHandlerCache = {};
@@ -143,7 +145,7 @@ export const webhookRouter = router({
     });
   }),
 
-  calid_create: webhookProcedure.input(ZCalIdCreateInputSchema).mutation(async ({ ctx, input }) => {
+  calid_create: calidWebhookProcedure.input(ZCalIdCreateInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.calid_create) {
       UNSTABLE_HANDLER_CACHE.calid_create = await import("./calid/create.handler").then(
         (mod) => mod.calIdCreateHandler
@@ -161,7 +163,7 @@ export const webhookRouter = router({
     });
   }),
 
-  calid_edit: webhookProcedure.input(ZCalIdEditInputSchema).mutation(async ({ ctx, input }) => {
+  calid_edit: calidWebhookProcedure.input(ZCalIdEditInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.calid_edit) {
       UNSTABLE_HANDLER_CACHE.calid_edit = await import("./calid/edit.handler").then(
         (mod) => mod.calIdEditHandler
@@ -179,7 +181,7 @@ export const webhookRouter = router({
     });
   }),
 
-  calid_delete: webhookProcedure.input(ZCalIdDeleteInputSchema).mutation(async ({ ctx, input }) => {
+  calid_delete: calidWebhookProcedure.input(ZCalIdDeleteInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.calid_delete) {
       UNSTABLE_HANDLER_CACHE.calid_delete = await import("./calid/delete.handler").then(
         (mod) => mod.calIdDeleteHandler
@@ -197,7 +199,7 @@ export const webhookRouter = router({
     });
   }),
 
-  calid_list: webhookProcedure.input(ZCalIdListInputSchema).query(async ({ ctx, input }) => {
+  calid_list: calidWebhookProcedure.input(ZCalIdListInputSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.calid_list) {
       UNSTABLE_HANDLER_CACHE.calid_list = await import("./calid/list.handler").then(
         (mod) => mod.calIdListHandler
@@ -212,6 +214,21 @@ export const webhookRouter = router({
     return UNSTABLE_HANDLER_CACHE.calid_list({
       ctx,
       input,
+    });
+  }),
+
+  calid_getByViewer: calidWebhookProcedure.query(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.calid_getByViewer) {
+      UNSTABLE_HANDLER_CACHE.calid_getByViewer = await import("./calid/getByViewer.handler").then(
+        (mod) => mod.getByViewerHandler
+      );
+    }
+    if (!UNSTABLE_HANDLER_CACHE.calid_getByViewer) {
+      throw new Error("Failed to load CalId getByViewer handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.calid_getByViewer({
+      ctx,
     });
   }),
 });

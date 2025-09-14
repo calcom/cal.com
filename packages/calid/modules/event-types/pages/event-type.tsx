@@ -87,10 +87,18 @@ export const EventTypeWebWrapper = ({
   data: serverFetchedData,
   calIdTeamId,
 }: EventTypeWebWrapperProps) => {
+  // Get calIdTeamId from URL parameters as well
+  const searchParams = new URLSearchParams(window.location.search);
+  const urlCalIdTeamId = searchParams.get("calIdTeamId");
+
   const resolvedCalIdTeamId =
     calIdTeamId || (serverFetchedData as CalIdEventTypeData)?.eventType?.calIdTeamId;
 
-  const { data: eventTypeQueryData } = trpc.viewer.eventTypes.calid_get.useQuery(
+  const {
+    data: eventTypeQueryData,
+    error: eventTypeQueryError,
+    isPending,
+  } = trpc.viewer.eventTypes.calid_get.useQuery(
     { id, calIdTeamId: resolvedCalIdTeamId || 0 },
     { enabled: !serverFetchedData && !!resolvedCalIdTeamId }
   );
@@ -99,7 +107,9 @@ export const EventTypeWebWrapper = ({
     return <EventTypeWithNewUI {...(serverFetchedData as CalIdEventTypeData)} id={id} />;
   }
 
-  if (!eventTypeQueryData) return null;
+  if (!eventTypeQueryData) {
+    return null;
+  }
 
   return <EventTypeWithNewUI {...(eventTypeQueryData as CalIdEventTypeData)} id={id} />;
 };
@@ -145,8 +155,14 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
   const [pendingRoute, setPendingRoute] = useState("");
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isFormReady, setIsFormReady] = useState(false);
 
   const { eventType, locationOptions, team, teamMembers, destinationCalendar, currentUserMembership } = rest;
+
+  // Add defensive check for eventType
+  if (!eventType) {
+    return <div>Loading...</div>;
+  }
   const eventTypesLockedByOrg = (eventType as any).team?.parent?.organizationSettings
     ?.lockEventTypeCreationForUsers;
 
@@ -171,6 +187,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
   const updateMutation = trpc.viewer.eventTypes.calid_update.useMutation({
     onSuccess: async () => {
       const currentValues = form.getValues();
+
       currentValues.children = currentValues.children.map((child) => ({
         ...child,
         created: true,
@@ -200,8 +217,12 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
         message = `${err.data.code}: ${t(err.message)}`;
       } else if (err.data?.code === "INTERNAL_SERVER_ERROR") {
         message = t("unexpected_error_try_again");
+      } else if (err.message?.includes("Cannot read properties of undefined")) {
+        message = t("form_initialization_error_try_again");
+      } else {
+        message = err.message || t("unexpected_error_try_again");
       }
-      triggerToast(message ? t(message) : t(err.message), "error");
+      triggerToast(message, "error");
     },
   });
 
@@ -230,8 +251,11 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
     },
   });
 
-  // Form handling
-  const { form, handleSubmit } = useEventTypeForm({ eventType, onSubmit: updateMutation.mutate });
+  // Form handling - only initialize when eventType is available
+  const { form, handleSubmit } = useEventTypeForm({
+    eventType,
+    onSubmit: updateMutation.mutate,
+  });
   const slug = form.watch("slug") ?? eventType.slug;
 
   // URL and branding
@@ -363,10 +387,18 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
       // Set a small delay to ensure all data is loaded
       const timer = setTimeout(() => {
         setIsInitialLoad(false);
+        setIsFormReady(true);
       }, 100);
       return () => clearTimeout(timer);
     }
   }, [isInitialLoad]);
+
+  // Set form ready when eventType is available
+  useEffect(() => {
+    if (eventType && !isFormReady) {
+      setIsFormReady(true);
+    }
+  }, [eventType, isFormReady]);
 
   // Create the CTA component
   const cta = (
@@ -375,7 +407,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
       eventTypesLockedByOrg={eventTypesLockedByOrg}
       permalink={permalink}
       hasPermsToDelete={hasPermsToDelete}
-      isUpdatePending={updateMutation.isPending}
+      isUpdatePending={updateMutation.isPending || !isFormReady}
       onDeleteClick={() => setDeleteDialogOpen(true)}
     />
   );

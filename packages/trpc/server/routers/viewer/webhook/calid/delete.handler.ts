@@ -22,7 +22,7 @@ export const calIdDeleteHandler = async ({ ctx, input }: CalIdDeleteOptions) => 
     if (input.eventTypeId) {
       where.AND.push({ eventTypeId: input.eventTypeId });
     } else if (input.calIdTeamId) {
-      where.AND.push({ teamId: input.calIdTeamId });
+      where.AND.push({ calIdTeamId: input.calIdTeamId });
     } else if (ctx.user.role == "ADMIN") {
       where.AND.push({ OR: [{ platform: true }, { userId: ctx.user.id }] });
     } else {

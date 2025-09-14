@@ -1,12 +1,13 @@
 "use client";
 
+import { Branding } from "@calid/features/ui/Branding";
 import { Avatar } from "@calid/features/ui/components/avatar";
 import { Button } from "@calid/features/ui/components/button";
 import { Icon, type IconName } from "@calid/features/ui/components/icon";
-import { Branding } from "@calid/features/ui/Branding";
 import classNames from "classnames";
 import type { InferGetServerSidePropsType } from "next";
 import Link from "next/link";
+import type { z } from "zod";
 
 import {
   sdkActionManager,
@@ -20,6 +21,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import type { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
 
 import type { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
@@ -89,7 +91,9 @@ export function UserPage(props: PageProps) {
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const { user: _user, orgSlug: _orgSlug, redirect: _redirect, ...query } = useRouterQuery();
 
-  useTheme(profile?.theme);
+  useTheme(profile?.theme, false, false);
+
+  const headerUrl = (user?.metadata as z.infer<typeof userMetadataSchema> | null)?.headerUrl ?? undefined;
 
   if (entity?.considerUnpublished) {
     return (
@@ -120,7 +124,9 @@ export function UserPage(props: PageProps) {
           className={classNames(
             "border-subtle bg-cal-gradient text-default mb-4 flex flex-col items-center bg-cover bg-center p-4"
           )}
-          style={{ backgroundImage: user.bannerUrl ? `url(${user.bannerUrl})` : undefined }}>
+          style={{
+            backgroundImage: headerUrl ? `url(${headerUrl})` : undefined,
+          }}>
           <Avatar
             size="xl"
             imageSrc={user.avatarUrl}
@@ -156,69 +162,67 @@ export function UserPage(props: PageProps) {
         <DividerWithText />
 
         <div
-          className={classNames("bg-white flex flex-col gap-4 rounded-md lg:px-[15%] px-4 pt-2 pb-8")}
+          className={classNames("flex flex-col gap-4 rounded-md bg-white px-4 pb-8 pt-2 lg:px-[15%]")}
           data-testid="event-types">
           {eventTypes.map((type) => {
             const iconParams = getIconParamsFromMetadata(type.metadata);
             return (
-            <div
-              key={type.id}
-              className="bg-white dark:bg-muted dark:hover:bg-emphasis hover:bg-muted hover:scale-[1.02] shadow-md group relative rounded-md transition border border-subtle"
-              data-testid="event-type-link">
-              {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
-              <div className="block w-full px-2 py-4">
-                <div className="flex flex-row items-center gap-2 mb-2">
-                  <div className="self-start p-2">
-                    <Icon 
-                      name={iconParams.icon} 
-                      className="h-6 w-6"
-                      style={{ color: iconParams.color }}
-                    />
+              <div
+                key={type.id}
+                className="dark:bg-muted dark:hover:bg-emphasis hover:bg-muted border-subtle group relative rounded-md border bg-white shadow-md transition hover:scale-[1.02]"
+                data-testid="event-type-link">
+                {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
+                <div className="block w-full px-2 py-4">
+                  <div className="mb-2 flex flex-row items-center gap-2">
+                    <div className="self-start p-2">
+                      <Icon name={iconParams.icon} className="h-6 w-6" style={{ color: iconParams.color }} />
+                    </div>
+                    <div className="mr-20">
+                      <h3 className="text-default text-base font-semibold">{type.title}</h3>
+                      {type.descriptionAsSafeHTML && (
+                        <div
+                          className={classNames(
+                            "text-subtle line-clamp-3 break-words text-sm",
+                            "line-clamp-4 [&>*:not(:first-child)]:hidden"
+                          )}
+                          // eslint-disable-next-line react/no-danger
+                          dangerouslySetInnerHTML={{
+                            __html: markdownToSafeHTML(type.descriptionAsSafeHTML || ""),
+                          }}
+                        />
+                      )}
+                    </div>
                   </div>
-                  <div className="mr-20">
-                    <h3 className="text-default text-base font-semibold">{type.title}</h3>
-                    {type.descriptionAsSafeHTML && (
-                      <div
-                        className={classNames(
-                          "text-subtle line-clamp-3 break-words text-sm",
-                          "line-clamp-4 [&>*:not(:first-child)]:hidden"
-                        )}
-                        // eslint-disable-next-line react/no-danger
-                        dangerouslySetInnerHTML={{
-                          __html: markdownToSafeHTML(type.descriptionAsSafeHTML || ""),
-                        }}
-                      />
-                    )}
+                  <div className="flex w-full flex-row justify-between">
+                    <EventTypeDescription eventType={type} isPublic={true} shortenDescription />
+                    <Link
+                      key={type.id}
+                      style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
+                      prefetch={false}
+                      href={{
+                        pathname: `/${user.profile.username}/${type.slug}`,
+                        query,
+                      }}
+                      passHref
+                      onClick={async () => {
+                        sdkActionManager?.fire("eventTypeSelected", {
+                          eventType: type,
+                        });
+                      }}>
+                      <Button variant="button" brandColor={profile?.brandColor} type="button" size="base">
+                        {t("schedule")}
+                      </Button>
+                    </Link>
                   </div>
-                </div>
-                <div className="flex w-full flex-row justify-between">
-                  <EventTypeDescription eventType={type} isPublic={true} shortenDescription />
-                  <Link
-                    key={type.id}
-                    style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
-                    prefetch={false}
-                    href={{
-                      pathname: `/${user.profile.username}/${type.slug}`,
-                      query,
-                    }}
-                    passHref
-                    onClick={async () => {
-                      sdkActionManager?.fire("eventTypeSelected", {
-                        eventType: type,
-                      });
-                    }}>
-                    <Button variant="button" type="button" size="base">{t("schedule")}</Button>
-                  </Link>
                 </div>
               </div>
-            </div>
             );
           })}
         </div>
 
         {isEventListEmpty && <EmptyPage name={profile.name || "User"} />}
 
-        <div key="logo" className={classNames("flex w-full justify-center [&_img]:h-[32px] mb-8")}>
+        <div key="logo" className={classNames("mb-8 flex w-full justify-center [&_img]:h-[32px]")}>
           <Branding faviconUrl={user?.faviconUrl} />
         </div>
       </main>
@@ -229,12 +233,12 @@ export function UserPage(props: PageProps) {
 function DividerWithText() {
   const { t } = useLocale();
   return (
-    <div className="flex items-center justify-center mb-2">
-      <div className="bg-subtle h-px flex-none w-1/5 max-w-32" />
+    <div className="mb-2 flex items-center justify-center">
+      <div className="bg-subtle h-px w-1/5 max-w-32 flex-none" />
       <span className="text-subtle mx-4 whitespace-nowrap text-sm font-medium">
         {t("choose_a_meeting_type")}
       </span>
-      <div className="bg-subtle h-px flex-none w-1/5 max-w-32" />
+      <div className="bg-subtle h-px w-1/5 max-w-32 flex-none" />
     </div>
   );
 }

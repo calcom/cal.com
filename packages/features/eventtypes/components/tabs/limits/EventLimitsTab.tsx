@@ -1,4 +1,4 @@
-import { Button } from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import type { Key } from "react";

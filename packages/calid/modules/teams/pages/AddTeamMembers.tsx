@@ -144,7 +144,7 @@ const AddTeamMembers = () => {
       <div>
         <h3 className="mb-4 text-base font-semibold">{t("add_team_member")}</h3>
         <Form<InviteFormValues>
-          {...formMethods}
+          form={formMethods}
           onSubmit={(values) => {
             if (!inviteMutation.isPending) {
               inviteMutation.mutate({

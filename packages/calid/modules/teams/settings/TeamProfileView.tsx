@@ -15,7 +15,7 @@ import {
 import { Form, FormField } from "@calid/features/ui/components/form";
 import { TextField } from "@calid/features/ui/components/input/input";
 import { triggerToast } from "@calid/features/ui/components/toast";
-import { CustomImageUploader } from "@calid/features/ui/components/uploader";
+import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
@@ -188,15 +188,14 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
                       </div>
                       <div className="flex-1">
                         <div className="flex gap-2">
-                          <CustomImageUploader
-                            targetId="avatar-upload"
-                            buttonText={t("upload_logo")}
-                            onImageChange={onChange}
-                            currentImageSrc={getDefaultAvatar(value, form.getValues("name"))}
-                            targetType="logo"
-                            buttonColor="minimal"
-                            testIdentifier="logo"
-                          />
+                        <ImageUploader
+                          target="logo"
+                          id="avatar-upload"
+                          buttonMsg={t("upload_logo")}
+                          handleAvatarChange={onChange}
+                          triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
+                          imageSrc={getDefaultAvatar(value, form.getValues("name"))}
+                        />
                           {showRemoveLogoButton && (
                             <Button color="destructive" onClick={() => onChange(null)}>
                               {t("remove")}
@@ -267,7 +266,7 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
           </div>
         </Form>
       </div>
-      <div className="border-subtle rounded-md border p-4">
+      <div className="bg-cal-destructive-dim border-destructive rounded-md border p-4">
         <div className="mb-4">
           <Label className="text-destructive mb-0 text-base font-semibold">
             {t("team_profile_danger_zone")}
@@ -283,6 +282,7 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
                 color="destructive"
                 variant="button"
                 StartIcon="trash-2"
+                className="bg-default text-destructive"
                 data-testid="disband-team-button">
                 {t("team_profile_disband_team")}
               </Button>

@@ -1,10 +1,11 @@
 "use client";
 
+import type { HorizontalTabItemProps } from "@calid/features/ui/components/navigation";
+import { HorizontalTabItem } from "@calid/features/ui/components/navigation";
 import React from "react";
 
 import type { TeamTabsProps } from "../types/event-types";
-import type { HorizontalTabItemProps } from "@calid/features/ui/components/navigation";
-import { HorizontalTabItem } from "@calid/features/ui/components/navigation";
+
 export const TeamTabs: React.FC<TeamTabsProps> = ({
   eventTypeGroups,
   profiles,
@@ -34,11 +35,9 @@ export const TeamTabs: React.FC<TeamTabsProps> = ({
 
   return (
     <div className="mb-4 max-w-full">
-      <nav className="no-scrollbar flex overflow-x-scroll border-b border-muted" aria-label="Tabs">
+      <nav className="no-scrollbar border-muted flex overflow-x-scroll border-b" aria-label="Tabs">
         <HorizontalTabItem {...personalTab} />
-        {teamTabs.length > 0 && (
-          <div className="mx-3 h-6 w-0.5 bg-subtle self-center" />
-        )}
+        {teamTabs.length > 0 && <div className="bg-subtle mx-3 h-6 w-0.5 self-center" />}
         {teamTabs.map((tab, idx) => (
           <HorizontalTabItem {...tab} key={idx} />
         ))}

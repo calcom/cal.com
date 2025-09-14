@@ -3,7 +3,10 @@
 // import { Button } from "@calcom/ui/components/button";
 import { Avatar } from "@calid/features/ui/components/avatar";
 import { Button } from "@calid/features/ui/components/button";
-import { Icon } from "@calid/features/ui/components/icon";
+import ThemeCard from "@calid/features/ui/components/card/theme-card";
+import { Label } from "@calid/features/ui/components/label";
+import { triggerToast } from "@calid/features/ui/components/toast";
+import { CustomBannerUploader, CustomImageUploader } from "@calid/features/ui/components/uploader";
 import { revalidateSettingsAppearance } from "app/(use-page-wrapper)/settings/(settings-layout)/my-account/appearance/actions";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
@@ -11,11 +14,10 @@ import { Controller, useForm } from "react-hook-form";
 import type { z } from "zod";
 
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
-import ThemeLabel from "@calcom/features/settings/ThemeLabel";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import { APP_NAME, LOGO, FAVICON_32 } from "@calcom/lib/constants";
+import { APP_NAME } from "@calcom/lib/constants";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
-import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getPlaceholderHeader } from "@calcom/lib/defaultHeaderImage";
 import { getBrandLogoUrl } from "@calcom/lib/getAvatarUrl";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
@@ -25,12 +27,9 @@ import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
 import { SettingsToggle, ColorPicker, Form } from "@calcom/ui/components/form";
-import { BannerUploader } from "@calcom/ui/components/image-uploader";
-import { showToast } from "@calcom/ui/components/toast";
 import { useCalcomTheme } from "@calcom/ui/styles";
 
 const useBrandColors = (
@@ -447,13 +446,11 @@ const AppearanceView = ({
                       </span>
                       <div className="bg-muted mb-8 flex h-60 w-full items-center justify-start rounded-lg">
                         {!value ? (
-                          <p className="text-emphasis w-full text-center text-sm sm:text-xs">
-                            {t("no_target", { target: "Header" })}
-                          </p>
+                          <div class="bg-cal-gradient h-full w-full" />
                         ) : (
                           <img className="h-full w-full" src={value} />
                         )}
-                      </div> */}
+                      </div>
                       <div className="bg-muted flex h-60 w-full items-center justify-start rounded-sm">
                         {!value ? (
                           <p className="text-emphasis w-full text-center text-sm sm:text-xs">
@@ -481,21 +478,30 @@ const AppearanceView = ({
                           mimeType="image/svg+xml"
                           height={600}
                           width={3200}
-                          handleAvatarChange={onChange}
-                          imageSrc={getPlaceholderAvatar(
-                            value,
-                            headerUrlFormMethods.getValues("metadata.headerUrl")
-                          )}
+                          handleAvatarChange={(newHeaderUrl) => {
+                            onChange(newHeaderUrl);
+                            mutation.mutate({
+                              metadata: { headerUrl: newHeaderUrl },
+                            });
+                          }}
+                          imageSrc={
+                            getPlaceholderHeader(
+                              value,
+                              headerUrlFormMethods.getValues("metadata.headerUrl")
+                            ) ?? undefined
+                          }
                           triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
                         />
                         {showRemoveLogoButton && (
-                          <Button color="secondary" onClick={() => onChange(null)}>
+                          <Button
+                            color="secondary"
+                            onClick={() => {
+                              onChange(null);
+                              mutation.mutate({ metadata: { headerUrl: null } });
+                            }}>
                             {t("remove")}
                           </Button>
                         )}
-                        <Button type="submit" color="secondary">
-                          {t("save")}
-                        </Button>
                       </div>
                     </div>
                   );
@@ -503,6 +509,7 @@ const AppearanceView = ({
               />
             </div>
           </Form>
+
           <div className="border-subtle mt-6 rounded-md border p-6">
             <SettingsToggle
               toggleSwitchAtTheEnd={true}
@@ -513,36 +520,154 @@ const AppearanceView = ({
               Badge={<UpgradeTeamsBadge />}
               onCheckedChange={(checked) => {
                 setHideBrandingValue(checked);
-                mutation.mutate({ hideBranding: checked });
+                if (!checked) {
+                  // Clear custom branding when disabling
+                  bannerFormMethods.setValue("bannerUrl", null, { shouldDirty: false });
+                  faviconFormMethods.setValue("faviconUrl", null, { shouldDirty: false });
+                  setOrgBase64("");
+                  mutation.mutate({ hideBranding: checked, bannerUrl: "delete", faviconUrl: "delete" });
+                } else {
+                  mutation.mutate({ hideBranding: checked });
+                }
               }}
             />
-            <div className="mt-6 flex flex-row justify-between">
-              <div className="flex flex-col">
-                <div className="text-default text-sm font-semibold">{t("custom_brand_logo")}</div>
-                <div className="text-subtle text-xs">{t("custom_brand_logo_description")}</div>
-              </div>
-            </div>
 
-            <div className="mt-4 flex flex-row items-center gap-6">
-              <Avatar size="lg" alt="Avatar" imageSrc={LOGO} className="overflow-hidden" />
-              <Button StartIcon="upload" color="secondary">
-                {t("upload_logo")}
-              </Button>
-            </div>
+            {hasPaidPlan && hideBrandingValue && (
+              <Form
+                form={bannerFormMethods}
+                handleSubmit={(values) => {
+                  if (values.bannerUrl === null) {
+                    values.bannerUrl = "delete";
+                  }
+                  mutation.mutate(values);
+                }}>
+                <Controller
+                  control={bannerFormMethods.control}
+                  name="bannerUrl"
+                  render={({ field: { value, onChange } }) => {
+                    const showRemoveAvatarButton = !!value;
+                    return (
+                      <div>
+                        <div className="mt-6 flex flex-row justify-between">
+                          <div className="flex flex-col">
+                            <div className="text-sm">{t("custom_brand_logo")}</div>
+                            <div className="text-subtle text-xs">{t("custom_brand_logo_description")}</div>
+                          </div>
+                          <Button color="secondary" size="sm">
+                            {t("preview")}
+                          </Button>
+                        </div>
 
-            <div className="mt-6 flex flex-row justify-between">
-              <div className="flex flex-col">
-                <div className="text-default text-sm font-semibold">{t("custom_brand_favicon")}</div>
-                <div className="text-subtle text-xs">{t("custom_brand_favicon_description")}</div>
-              </div>
-            </div>
+                        <div className="mt-4 flex flex-row items-center gap-6">
+                          <Avatar imageSrc={getBrandLogoUrl({ bannerUrl: value })} size="lg" alt="" />
+                          <div className="flex items-center gap-3">
+                            <div className="w-[105px]">
+                              <CustomBannerUploader
+                                height={100}
+                                width={400}
+                                target="logo"
+                                // uploadInstruction={t("org_logo_instructions", { height: 100, width: 400 })}
+                                id="logo-upload"
+                                buttonMsg={t("upload_logo")}
+                                handleAvatarChange={(newAvatar) => {
+                                  onChange(newAvatar);
+                                  setOrgBase64(newAvatar);
+                                  mutation.mutate({ bannerUrl: newAvatar });
+                                }}
+                                imageSrc={getBrandLogoUrl({ bannerUrl: value })}
+                                mimeType="image/*"
+                              />
+                            </div>
+                            {showRemoveAvatarButton && (
+                              <Button
+                                color="secondary"
+                                onClick={() => {
+                                  onChange(null);
+                                  mutation.mutate({ bannerUrl: "delete" });
+                                }}>
+                                <p className="mx-auto">{t("remove")}</p>
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }}
+                />
+              </Form>
+            )}
 
-            <div className="mt-4 flex flex-row items-center gap-6">
-              <Avatar size="lg" alt="Avatar" imageSrc={FAVICON_32} className="overflow-hidden" />
-              <Button StartIcon="upload" color="secondary">
-                {t("upload_favicon")}
-              </Button>
-            </div>
+            {hasPaidPlan && hideBrandingValue && (
+              <Form
+                form={faviconFormMethods}
+                handleSubmit={(values) => {
+                  if (values.faviconUrl === null) {
+                    values.faviconUrl = "delete";
+                  }
+                  mutation.mutate(values);
+                }}>
+                {/* {showPreview && (
+                  <div className="flex flex-col justify-end gap-4">
+                    <UserFoundUI base64={orgBase64} />
+                    <LinkPreview base64={orgBase64} />
+                  </div>
+                )} */}
+                <Controller
+                  control={faviconFormMethods.control}
+                  name="faviconUrl"
+                  render={({ field: { value, onChange } }) => {
+                    const showRemoveFaviconButton = !!value;
+
+                    return (
+                      <div>
+                        <div className="mt-6 flex flex-row justify-between">
+                          <div className="flex flex-col">
+                            <div className="text-sm">{t("custom_brand_favicon")}</div>
+                            <div className="text-subtle text-xs">{t("custom_brand_favicon_description")}</div>
+                          </div>
+                        </div>
+
+                        <div className="mt-3 flex gap-2">
+                          <div className="flex">
+                            <Avatar
+                              alt={user.name || "User Favicon"}
+                              imageSrc={getBrandLogoUrl({ faviconUrl: value }, true)}
+                              size="lg"
+                            />
+                            <div className="ms-4 flex items-center">
+                              <div className="flex  gap-2">
+                                <CustomImageUploader
+                                  target="avatar"
+                                  id="avatar-upload"
+                                  buttonMsg={t("upload_favicon")}
+                                  handleAvatarChange={(newAvatar) => {
+                                    setOrgBase64(newAvatar);
+                                    onChange(newAvatar);
+                                    mutation.mutate({ faviconUrl: newAvatar });
+                                  }}
+                                  imageSrc={getBrandLogoUrl({ bannerUrl: value }, true)}
+                                />
+
+                                {showRemoveFaviconButton && (
+                                  <Button
+                                    color="secondary"
+                                    onClick={() => {
+                                      onChange(null);
+                                      mutation.mutate({ faviconUrl: "delete" });
+                                    }}>
+                                    <p className="mx-auto">{t("remove")}</p>
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }}
+                />
+              </Form>
+            )}
           </div>
         </>
       )}

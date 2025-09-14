@@ -614,6 +614,8 @@ export class EventTypeRepository {
           hideBookATeamMember: true,
           metadata: true,
           theme: true,
+          roundRobinResetInterval: true,
+          roundRobinTimestampBasis: true,
           brandColor: true,
           darkBrandColor: true,
           timeFormat: true,
@@ -797,7 +799,7 @@ export class EventTypeRepository {
     });
   }
 
-  async findByIdForCalIdTeam({ id, calIdTeamId }: { id: number; calIdTeamId: number }) {
+  async findByIdForCalIdTeam({ id, calIdTeamId }: { id: number; calIdTeamId: number | null }) {
     const userSelect = {
       name: true,
       avatarUrl: true,
@@ -904,6 +906,8 @@ export class EventTypeRepository {
           hideBookATeamMember: true,
           metadata: true,
           theme: true,
+          roundRobinResetInterval: true,
+          roundRobinTimestampBasis: true,
           brandColor: true,
           darkBrandColor: true,
           timeFormat: true,
@@ -1177,6 +1181,8 @@ export class EventTypeRepository {
           hideBookATeamMember: true,
           metadata: true,
           theme: true,
+          roundRobinResetInterval: true,
+          roundRobinTimestampBasis: true,
           brandColor: true,
           darkBrandColor: true,
           timeFormat: true,

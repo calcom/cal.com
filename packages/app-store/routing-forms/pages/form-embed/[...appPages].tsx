@@ -1,8 +1,8 @@
 "use client";
 
-import { Dialog, DialogTrigger, DialogContent, DialogTitle } from "@calid/features/ui";
-// import { Button } from "@calcom/ui/components/button";
-import { Button, TextField } from "@calid/features/ui";
+import { Dialog, DialogTrigger, DialogContent, DialogTitle } from "@calid/features/ui/components/dialog";
+import { Button } from "@calid/features/ui/components/button";
+import { TextField } from "@calid/features/ui/components/input/input";
 import { HorizontalTabs } from "@calid/features/ui/components/navigation";
 import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
@@ -23,7 +23,6 @@ import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import DatePicker from "@calcom/features/calendars/DatePicker";
-// import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import { EmbedTabName } from "@calcom/features/embed/lib/EmbedTabs";
 import { tabs } from "@calcom/features/embed/lib/EmbedTabs";
@@ -51,10 +50,8 @@ import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-// import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { Select, ColorPicker } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
-// import { TextField } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";

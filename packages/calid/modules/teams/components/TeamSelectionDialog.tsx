@@ -2,11 +2,8 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@calid/features/ui';
-// import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@calcom/features/components/controlled-dialog';
-
-// import {  Dialog, DialogContent, DialogHeader, DialogTitle  } from '@calcom/ui/components/dialog';
-import { Avatar } from "@calcom/ui/components/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@calid/features/ui/components/dialog';
+import { Avatar } from "@calid/features/ui/components/avatar";
 import { trpc } from "@calcom/trpc/react";
 
 interface TeamSelectionDialogProps {
@@ -65,14 +62,9 @@ export const TeamSelectionDialog: React.FC<TeamSelectionDialogProps> = ({
   return (open &&
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="w-full sm:max-w-md">
-        {/* <DialogHeader>
-          Select team or profile
-        </DialogHeader> */}
-
-        <h3 className="text-emphasis text-base font-medium leading-6" id="modal-title">
-          {t("create_routing_form_on")}
-        </h3>
-        
+        <DialogHeader>
+         <DialogTitle>{t("select_team_or_profile")}</DialogTitle>
+        </DialogHeader>
         <div className="space-y-2 py-4">
           {teamsAndUserProfiles.map((team, index) => (
             <button

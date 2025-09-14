@@ -1,6 +1,7 @@
 "use client";
 
-import { Checkbox, Button } from "@calid/features/ui";
+import { Checkbox } from "@calid/features/ui/components/input/checkbox-field";
+import { Button } from "@calid/features/ui/components/button";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";

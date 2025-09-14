@@ -10,15 +10,13 @@ import {
   DropdownMenuTrigger,
 } from "@calid/features/ui/components/dropdown-menu";
 import { Switch } from "@calid/features/ui/components/switch";
-import { Tooltip } from "@calid/features/ui/components/tooltip";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
-// import { Switch } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/components/toast";
-// import { Tooltip } from "@calcom/ui/components/tooltip";
+import { triggerToast } from "@calid/features/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 import { revalidateWebhooksList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/webhooks/(with-loader)/actions";
 
@@ -45,22 +43,22 @@ export default function WebhookListItem(props: {
   const { webhook } = props;
   const canEditWebhook = props.canEditWebhook ?? true;
 
-  const deleteWebhook = trpc.viewer.webhook.delete.useMutation({
+  const deleteWebhook = trpc.viewer.webhook.calid_delete.useMutation({
     async onSuccess() {
       if (webhook.eventTypeId) revalidateEventTypeEditPage(webhook.eventTypeId);
       revalidateWebhooksList();
-      showToast(t("webhook_removed_successfully"), "success");
+      triggerToast(t("webhook_removed_successfully"), "success");
       await utils.viewer.webhook.getByViewer.invalidate();
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
     },
   });
-  const toggleWebhook = trpc.viewer.webhook.edit.useMutation({
+  const toggleWebhook = trpc.viewer.webhook.calid_edit.useMutation({
     async onSuccess(data) {
       if (webhook.eventTypeId) revalidateEventTypeEditPage(webhook.eventTypeId);
       revalidateWebhooksList();
       // TODO: Better success message
-      showToast(t(data?.active ? "enabled" : "disabled"), "success");
+      triggerToast(t(data?.active ? "enabled" : "disabled"), "success");
       await utils.viewer.webhook.getByViewer.invalidate();
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();

@@ -43,6 +43,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 
 import { Checkbox } from "../../../ui/components/input/checkbox-field";
 import { AddTeamMemberModal } from "./AddTeamMemberModal";
+import { EditTeamMemberRoleModal } from "./EditTeamMemberRoleModal";
 import { TeamMembersListSkeletonLoader } from "./TeamMembersListSkeletonLoader";
 
 export type TeamMemberData = RouterOutputs["viewer"]["calidTeams"]["listMembers"]["members"][number];
@@ -72,7 +73,7 @@ export function TeamMembersList({
   const tableContainerRef = useRef<HTMLDivElement>(null);
 
   // Use the team member operations hook for member management
-  const { removeMember, isRemoving, updateMemberRole } = useTeamMemberOperations(team.id);
+  const { removeMember, isRemoving, updateMemberRole, isUpdating } = useTeamMemberOperations(team.id);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -85,6 +86,10 @@ export function TeamMembersList({
   const [membersToRemove, setMembersToRemove] = useState<TeamMemberData[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [allLoadedMembers, setAllLoadedMembers] = useState<TeamMemberData[]>([]);
+
+  // State for edit role modal
+  const [memberToEdit, setMemberToEdit] = useState<TeamMemberData | null>(null);
+  const [showEditRoleModal, setShowEditRoleModal] = useState(false);
 
   const { data: membersData, isLoading } = trpc.viewer.calidTeams.listMembers.useQuery(
     { teamId: team.id, limit: 25, searchQuery, paging: currentPage },
@@ -156,6 +161,12 @@ export function TeamMembersList({
       teamId: team.id,
     });
   }
+
+  const handleRoleUpdate = (memberId: number, role: MembershipRole) => {
+    updateMemberRole(memberId, role);
+    setShowEditRoleModal(false);
+    setMemberToEdit(null);
+  };
 
   const canManageMembers = useMemo(() => {
     if (!team?.membership) return false;
@@ -308,7 +319,17 @@ export function TeamMembersList({
                       </DropdownMenuItem>
                     )}
                     {canEditMember && (
-                      <DropdownMenuItem StartIcon="pencil-line" onClick={() => onMemberEdit?.(member)}>
+                      <DropdownMenuItem 
+                        StartIcon="pencil-line" 
+                        onClick={() => {
+                          if (onMemberEdit) {
+                            onMemberEdit(member);
+                          } else {
+                            setMemberToEdit(member);
+                            setShowEditRoleModal(true);
+                          }
+                        }}
+                      >
                         {t("edit_team_member")}
                       </DropdownMenuItem>
                     )}
@@ -630,6 +651,19 @@ export function TeamMembersList({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Team Member Role Modal */}
+      <EditTeamMemberRoleModal
+        isOpen={showEditRoleModal}
+        onClose={() => {
+          setShowEditRoleModal(false);
+          setMemberToEdit(null);
+        }}
+        member={memberToEdit}
+        currentUserRole={team?.membership?.role || MembershipRole.MEMBER}
+        onRoleUpdate={handleRoleUpdate}
+        isUpdating={isUpdating}
+      />
     </div>
   );
 }
@@ -643,17 +677,17 @@ export function useTeamMemberOperations(teamId: number) {
     onSuccess: () => {
       utils.viewer.calidTeams.listMembers.invalidate();
       utils.viewer.calidTeams.get.invalidate();
-      triggerToast(t("member_removed_successfully"), "success");
+      triggerToast(t("team_settings_updated_successfully"), "success");
     },
     onError: (error) => {
       triggerToast(error.message, "error");
     },
   });
 
-  const updateMemberMutation = trpc.viewer.calidTeams.updateMember.useMutation({
+  const changeMemberRoleMutation = trpc.viewer.calidTeams.changeMemberRole.useMutation({
     onSuccess: () => {
       utils.viewer.calidTeams.listMembers.invalidate();
-      triggerToast(t("member_updated_successfully"), "success");
+      triggerToast(t("team_settings_updated_successfully"), "success");
     },
     onError: (error) => {
       triggerToast(error.message, "error");
@@ -673,20 +707,20 @@ export function useTeamMemberOperations(teamId: number) {
 
   const updateMemberRole = useCallback(
     (memberId: number, role: MembershipRole) => {
-      updateMemberMutation.mutate({
+      changeMemberRoleMutation.mutate({
         teamId,
         memberId,
         role,
       });
     },
-    [teamId, updateMemberMutation]
+    [teamId, changeMemberRoleMutation]
   );
 
   return {
     removeMember,
     updateMemberRole,
     isRemoving: removeMemberMutation.isPending,
-    isUpdating: updateMemberMutation.isPending,
+    isUpdating: changeMemberRoleMutation.isPending,
   };
 }
 

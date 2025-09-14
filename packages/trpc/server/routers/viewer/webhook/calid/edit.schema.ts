@@ -12,6 +12,7 @@ export const ZCalIdEditInputSchema = calidWebhookIdAndEventTypeIdSchema.extend({
   active: z.boolean().optional(),
   payloadTemplate: z.string().nullable(),
   eventTypeId: z.number().optional(),
+  calIdTeamId: z.number().optional(),
   appId: z.string().optional().nullable(),
   secret: z.string().optional().nullable(),
   time: z.number().nullable().optional(),

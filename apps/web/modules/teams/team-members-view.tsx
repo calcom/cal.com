@@ -1,6 +1,7 @@
 "use client";
 
-import { MemberInvitationModalWithoutMembers } from "@calid/features/teams/components/MemberInvitationModal";
+import { AddTeamMemberModal } from "@calid/features/modules/teams/components/AddTeamMemberModal";
+import { TeamMembersList } from "@calid/features/modules/teams/components/TeamMembersList";
 import { useState } from "react";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
@@ -8,10 +9,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 
 interface TeamMembersViewProps {
-  team: NonNullable<RouterOutputs["viewer"]["teams"]["get"]>;
+  team: NonNullable<RouterOutputs["viewer"]["calidTeams"]["get"]>;
   facetedTeamValues?: {
     roles: { id: string; name: string }[];
-    teams: RouterOutputs["viewer"]["teams"]["get"][];
+    teams: RouterOutputs["viewer"]["calidTeams"]["get"][];
     attributes: {
       id: string;
       name: string;
@@ -20,13 +21,13 @@ interface TeamMembersViewProps {
       }[];
     }[];
   };
-  attributes?: any[];
+  attributes?: unknown[];
 }
 
-export const TeamMembersView = ({ team, facetedTeamValues }: TeamMembersViewProps) => {
+export const TeamMembersView = ({ team, facetedTeamValues: _facetedTeamValues }: TeamMembersViewProps) => {
   const { t } = useLocale();
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
-  const [showInviteLinkSettingsModal, setShowInviteLinkSettingsModal] = useState(false);
+  const [_showInviteLinkSettingsModal, _setShowInviteLinkSettingsModal] = useState(false);
 
   const isTeamAdminOrOwner = checkAdminOrOwner(team.membership.role);
   const canLoggedInUserSeeMembers = !team.isPrivate || isTeamAdminOrOwner;
@@ -35,13 +36,7 @@ export const TeamMembersView = ({ team, facetedTeamValues }: TeamMembersViewProp
     <div>
       {canLoggedInUserSeeMembers && (
         <div className="mb-6">
-          <MemberList
-            team={team}
-            isOrgAdminOrOwner={false}
-            setShowMemberInvitationModal={setShowMemberInvitationModal}
-            facetedTeamValues={facetedTeamValues}
-          />
-          {/* <SecurityAndPrivacyPanel team={team} /> */}
+          <TeamMembersList team={team} onInviteClick={() => setShowMemberInvitationModal(true)} />
         </div>
       )}
       {!canLoggedInUserSeeMembers && (
@@ -50,12 +45,10 @@ export const TeamMembersView = ({ team, facetedTeamValues }: TeamMembersViewProp
         </div>
       )}
       {showMemberInvitationModal && team && team.id && (
-        <MemberInvitationModalWithoutMembers
-          hideInvitationModal={() => setShowMemberInvitationModal(false)}
-          showMemberInvitationModal={showMemberInvitationModal}
+        <AddTeamMemberModal
           teamId={team.id}
-          token={team.inviteToken?.token}
-          onSettingsOpen={() => setShowInviteLinkSettingsModal(true)}
+          teamName={team.name}
+          onSuccess={() => setShowMemberInvitationModal(false)}
         />
       )}
     </div>

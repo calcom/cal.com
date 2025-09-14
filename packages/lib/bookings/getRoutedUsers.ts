@@ -2,7 +2,11 @@ import logger from "@calcom/lib/logger";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type { RRResetInterval } from "@calcom/prisma/client";
+import type {
+  RRResetInterval,
+  RoundRobinResetInterval,
+  RoundRobinTimestampBasis,
+} from "@calcom/prisma/client";
 import type { RRTimestampBasis } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -87,6 +91,10 @@ export type EventType = {
     parentId: number | null;
     rrResetInterval: RRResetInterval | null;
     rrTimestampBasis: RRTimestampBasis;
+  } | null;
+  calIdTeam: {
+    roundRobinResetInterval: RoundRobinResetInterval | null;
+    roundRobinTimestampBasis: RoundRobinTimestampBasis;
   } | null;
 };
 

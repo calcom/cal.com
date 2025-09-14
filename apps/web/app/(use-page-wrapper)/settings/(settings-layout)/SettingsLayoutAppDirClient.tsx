@@ -20,7 +20,7 @@ import type { TeamFeatures } from "@calcom/features/flags/config";
 import { useIsFeatureEnabledForTeam } from "@calcom/features/flags/hooks/useIsFeatureEnabledForTeam";
 import Shell from "@calcom/features/shell/Shell";
 import { HOSTED_CAL_FEATURES, IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
-import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getDefaultAvatar } from "@calid/features/lib/defaultAvatar";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -65,7 +65,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
       children: [
         //
         { name: "webhooks", href: "/settings/developer/webhooks", icon: "webhook" },
-        { name: "api_keys", href: "/settings/developer/api-keys", icon: "key" },
+        // { name: "api_keys", href: "/settings/developer/api-keys", icon: "key" },
         // { name: "admin_api", href: "/settings/organizations/admin-api" },
         // TODO: Add profile level for embeds
         // { name: "embeds", href: "/v2/settings/developer/embeds", icon: "code" },
@@ -186,7 +186,7 @@ const useTabs = ({
           ...tab,
           children: newArray,
           name: orgBranding?.name || "organization",
-          avatar: getPlaceholderAvatar(orgBranding?.logoUrl, orgBranding?.name),
+          avatar: getDefaultAvatar(orgBranding?.logoUrl, orgBranding?.name),
         };
       } else if (
         tab.href === "/settings/security" &&
@@ -314,8 +314,8 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
               href={href}>
               <div className="flex items-center text-sm">
                 <img
-                  src={getPlaceholderAvatar(team.logoUrl, team.name)}
-                  className="h-4 w-4 rounded-full stroke-[2px] md:mt-0 ltr:mr-2 rtl:ml-2"
+                  src={getDefaultAvatar(team.logoUrl, team.name)}
+                  className="h-4 w-4 rounded-full stroke-[2px] md:mt-0 ltr:mr-2 rtl:ml-2 border border-default"
                   alt={team.name || "Team logo"}
                 />
                 <p className="w-full truncate leading-normal">{team.name}</p>
@@ -548,7 +548,7 @@ const SettingsSidebarContainer = ({
                                   </div>
                                   {!otherTeam.parentId && (
                                     <img
-                                      src={getPlaceholderAvatar(otherTeam.logoUrl, otherTeam.name)}
+                                      src={getDefaultAvatar(otherTeam.logoUrl, otherTeam.name)}
                                       className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] md:mt-0 ltr:mr-2 rtl:ml-2"
                                       alt={otherTeam.name || "Team logo"}
                                     />
