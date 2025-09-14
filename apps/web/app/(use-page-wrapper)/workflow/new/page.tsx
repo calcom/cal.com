@@ -25,7 +25,7 @@ const WORKFLOW_TEMPLATES = {
     timeUnit: TimeUnit.MINUTE,
   },
   "wf-11": {
-    name: "Cal AI 1-hour Meeting Reminder",
+    name: "Cal.ai 1-hour Meeting Reminder",
     trigger: WorkflowTriggerEvents.BEFORE_EVENT,
     time: 1,
     timeUnit: TimeUnit.HOUR,
