@@ -28,6 +28,7 @@ function WorkflowOptionCard(props: WorkflowOptionCardProps) {
 
   return (
     <div
+      data-testid={`workflow-option-card-${value}`}
       onClick={onClick}
       className={cn(
         `relative flex flex-1 cursor-pointer flex-col rounded-lg border p-4 transition-colors`,
@@ -161,7 +162,11 @@ export function WorkflowCreationDialog({
           <Button type="button" color="minimal" onClick={() => onOpenChange(false)}>
             {t("cancel")}
           </Button>
-          <Button type="button" onClick={handleContinue} loading={createMutation.isPending || isLoading}>
+          <Button
+            data-testid="continue-button"
+            type="button"
+            onClick={handleContinue}
+            loading={createMutation.isPending || isLoading}>
             {t("continue")}
           </Button>
         </DialogFooter>
