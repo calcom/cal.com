@@ -773,8 +773,8 @@ export class CreditService {
         amount: rechargeInfo.amount,
         metadata: {
           creditBalanceId: rechargeInfo.id,
-          teamId: rechargeInfo.teamId?.toString(),
-          userId: rechargeInfo.userId?.toString(),
+          teamId: rechargeInfo.teamId ? rechargeInfo.teamId.toString() : "",
+          userId: rechargeInfo.userId ? rechargeInfo.userId.toString() : "",
           autoRecharge: "true",
         },
       });

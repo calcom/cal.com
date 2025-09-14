@@ -1,13 +1,13 @@
+/* eslint-disable turbo/no-undeclared-env-vars */
+
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import Stripe from "stripe";
 
-import type { BillingService } from "./billing-service";
-
-export class StripeBillingService implements BillingService {
+export class StripeBillingService {
   private stripe: Stripe;
-  constructor() {
-    this.stripe = new Stripe(process.env.STRIPE_PRIVATE_KEY!, {
-      apiVersion: "2020-08-27",
+  constructor(apiKey?: string) {
+    this.stripe = new Stripe(apiKey || (process.env.STRIPE_SECRET_KEY as string), {
+      apiVersion: "2023-10-16",
     });
   }
 
@@ -205,7 +205,12 @@ export class StripeBillingService implements BillingService {
   }: {
     customerId: string;
     amount: number;
-    metadata: Record<string, string>;
+    metadata: {
+      creditBalanceId: string;
+      teamId: string;
+      userId: string;
+      autoRecharge: string;
+    };
   }): Promise<{ success: boolean; error?: string }> {
     try {
       const priceInCents = 1; // Price per credit in cents

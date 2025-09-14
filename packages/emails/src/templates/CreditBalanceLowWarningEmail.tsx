@@ -11,60 +11,79 @@ export const CreditBalanceLowWarningEmail = (
       id: number;
       name: string;
     };
-    balance: number;
     user: {
       id: number;
       name: string;
       email: string;
       t: TFunction;
     };
+    balance: number;
+    autoRechargeEnabled?: boolean;
   } & Partial<React.ComponentProps<typeof BaseScheduledEmail>>
 ) => {
-  const { team, balance, user } = props;
+  const { team, user, balance, autoRechargeEnabled } = props;
 
-  if (team) {
+  const getContent = () => {
+    if (autoRechargeEnabled) {
+      return (
+        <>
+          <p style={{ fontWeight: 400, lineHeight: "24px" }}>
+            {user.t("hi_user_name", { name: user.name })},
+          </p>
+          <p style={{ fontWeight: 400, lineHeight: "24px", marginBottom: "20px" }}>
+            {team
+              ? user.t("team_credits_low_auto_recharge", { teamName: team.name, balance })
+              : user.t("user_credits_low_auto_recharge", { balance })}
+          </p>
+        </>
+      );
+    }
+
+    if (team) {
+      return (
+        <>
+          <p style={{ fontWeight: 400, lineHeight: "24px" }}>
+            {user.t("hi_user_name", { name: user.name })},
+          </p>
+          <p style={{ fontWeight: 400, lineHeight: "24px", marginBottom: "20px" }}>
+            {user.t("team_credits_low_warning_message", { teamName: team.name, balance })}
+          </p>
+          <div style={{ textAlign: "center", marginTop: "24px" }}>
+            <CallToAction
+              label={user.t("buy_credits")}
+              href={`${WEBAPP_URL}/settings/teams/${team.id}/billing`}
+              endIconName="linkIcon"
+            />
+          </div>
+        </>
+      );
+    }
+
     return (
-      <V2BaseEmailHtml subject={user.t("team_credits_low_warning", { teamName: team.name })}>
-        <p style={{ fontWeight: 400, lineHeight: "24px" }}>
-          <> {user.t("hi_user_name", { name: user.name })},</>
-        </p>
+      <>
+        <p style={{ fontWeight: 400, lineHeight: "24px" }}>{user.t("hi_user_name", { name: user.name })},</p>
         <p style={{ fontWeight: 400, lineHeight: "24px", marginBottom: "20px" }}>
-          <>{user.t("low_credits_warning_message", { teamName: team.name })}</>
-        </p>
-        <p
-          style={{
-            fontWeight: "500",
-            lineHeight: "24px",
-            color: "#000",
-          }}>
-          {user.t("current_credit_balance", { balance })}
+          {user.t("user_credits_low_warning_message", { balance })}
         </p>
         <div style={{ textAlign: "center", marginTop: "24px" }}>
           <CallToAction
             label={user.t("buy_credits")}
-            href={`${WEBAPP_URL}/settings/teams/${team.id}/billing`}
+            href={`${WEBAPP_URL}/settings/billing`}
             endIconName="linkIcon"
           />
         </div>
-      </V2BaseEmailHtml>
+      </>
     );
-  }
+  };
 
   return (
-    <V2BaseEmailHtml subject={user.t("user_credits_low_warning")}>
-      <p style={{ fontWeight: 400, lineHeight: "24px" }}>
-        <> {user.t("hi_user_name", { name: user.name })},</>
-      </p>
-      <p style={{ fontWeight: 400, lineHeight: "24px", marginBottom: "20px" }}>
-        <>{user.t("low_credits_warning_message_user")}</>
-      </p>
-      <div style={{ textAlign: "center", marginTop: "24px" }}>
-        <CallToAction
-          label={user.t("buy_credits")}
-          href={`${WEBAPP_URL}/settings/billing`}
-          endIconName="linkIcon"
-        />
-      </div>
+    <V2BaseEmailHtml
+      subject={
+        team
+          ? user.t("team_credits_low_warning", { teamName: team.name })
+          : user.t("user_credits_low_warning")
+      }>
+      {getContent()}
     </V2BaseEmailHtml>
   );
 };

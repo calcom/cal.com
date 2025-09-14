@@ -54,6 +54,7 @@ export default class CreditBalanceLimitReachedEmail extends BaseEmail {
         user: this.user,
         autoRechargeEnabled: this.autoRechargeEnabled,
         autoRechargeFailed: this.autoRechargeFailed,
+        calEvent: undefined,
       }),
       text: this.getTextBody(),
     };

@@ -50,6 +50,7 @@ export default class CreditBalanceLowWarningEmail extends BaseEmail {
         team: this.team,
         user: this.user,
         autoRechargeEnabled: this.autoRechargeEnabled,
+        calEvent: undefined,
       }),
       text: this.getTextBody(),
     };
