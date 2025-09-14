@@ -3580,7 +3580,7 @@ __metadata:
     "@calcom/dayjs": "*"
     "@calcom/tsconfig": "*"
     "@calcom/types": "*"
-    "@faker-js/faker": ^7.3.0
+    "@faker-js/faker": 9.2.0
     "@formbricks/api": ^1.7.0
     "@formbricks/js": ^2.1.0
     "@sendgrid/client": ^7.7.0
@@ -6047,17 +6047,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@faker-js/faker@npm:^10.0.0":
-  version: 10.0.0
-  resolution: "@faker-js/faker@npm:10.0.0"
-  checksum: a3bcb92091086d8c3fe9b9de6658761415c1a96c90b1f62da9ad82f5f733f67b46441a2ac7df945d3d319da043a34563fd91ca74c0ffc04aaf319c319ef0aaa8
-  languageName: node
-  linkType: hard
-
-"@faker-js/faker@npm:^7.3.0":
-  version: 7.4.0
-  resolution: "@faker-js/faker@npm:7.4.0"
-  checksum: 1acebb84bfb142c08e6ba2942910d16bd92ea147fa585fa2fa9ce9983f7a8c7c016002beb7fc20ef6f7aef6c4ae9cb3fa680b275823402e34802b8489d2b980d
+"@faker-js/faker@npm:9.2.0":
+  version: 9.2.0
+  resolution: "@faker-js/faker@npm:9.2.0"
+  checksum: 7cbff7363f198c24aa1a25499f200a25506f80df577a419ae878b6bdd4aa901ecfe071ae3bbecf8afafa5542c825623d55f5884d44db7b12420c898241332cd1
   languageName: node
   linkType: hard
 
@@ -21744,7 +21737,7 @@ __metadata:
     "@changesets/cli": 2.29.4
     "@daily-co/daily-js": ^0.83.1
     "@evyweb/ioctopus": ^1.2.0
-    "@faker-js/faker": ^10.0.0
+    "@faker-js/faker": 9.2.0
     "@jetstreamapp/soql-parser-js": ^6.1.0
     "@next/third-parties": ^14.2.5
     "@playwright/test": ^1.45.3
