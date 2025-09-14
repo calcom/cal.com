@@ -1,7 +1,7 @@
 import dayjs from "@calcom/dayjs";
-import prisma, { type PrismaTransaction } from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
-import type { CreditType } from "@calcom/prisma/enums";
+import type { PrismaTransaction } from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 export class CreditsRepository {
   static async findCreditBalance(
@@ -168,74 +168,88 @@ export class CreditsRepository {
       id?: string;
       teamId?: number | null;
       userId?: number | null;
-      data: Prisma.CreditBalanceUncheckedUpdateInput;
+      data: Prisma.CreditBalanceUpdateInput;
     },
-    tx?: PrismaTransaction
+    tx: PrismaTransaction = prisma
   ) {
-    const prismaClient = tx ?? prisma;
-    if (id) {
-      return prismaClient.creditBalance.update({
-        where: { id },
-        data,
-      });
-    }
+    const where: Prisma.CreditBalanceWhereUniqueInput = id
+      ? { id }
+      : {
+          teamId_userId: {
+            teamId: teamId ?? null,
+            userId: userId ?? null,
+          },
+        };
 
-    if (teamId) {
-      return prismaClient.creditBalance.update({
-        where: { teamId },
-        data,
-      });
-    }
-
-    if (userId) {
-      return prismaClient.creditBalance.update({
-        where: { userId },
-        data,
-      });
-    }
-
-    return null;
+    return tx.creditBalance.update({
+      where,
+      data,
+    });
   }
 
-  static async createCreditBalance(data: Prisma.CreditBalanceUncheckedCreateInput, tx?: PrismaTransaction) {
-    const { teamId, userId } = data;
-
-    if (!teamId && !userId) {
-      throw new Error("Team or user ID is required");
-    }
-
-    return (tx ?? prisma).creditBalance.create({
+  static async createCreditBalance(
+    {
+      teamId,
+      userId,
+      additionalCredits = 0,
+      autoRechargeEnabled = false,
+      autoRechargeThreshold = null,
+      autoRechargeAmount = null,
+      stripeCustomerId = null,
+    }: {
+      teamId?: number;
+      userId?: number;
+      additionalCredits?: number;
+      autoRechargeEnabled?: boolean;
+      autoRechargeThreshold?: number | null;
+      autoRechargeAmount?: number | null;
+      stripeCustomerId?: string | null;
+    },
+    tx: PrismaTransaction = prisma
+  ) {
+    return tx.creditBalance.create({
       data: {
-        ...data,
-        ...(!teamId ? { userId } : {}),
+        additionalCredits,
+        autoRechargeEnabled,
+        autoRechargeThreshold,
+        autoRechargeAmount,
+        stripeCustomerId,
+        team: teamId
+          ? {
+              connect: {
+                id: teamId,
+              },
+            }
+          : undefined,
+        user: userId
+          ? {
+              connect: {
+                id: userId,
+              },
+            }
+          : undefined,
       },
     });
   }
 
-  static async createCreditExpenseLog(
-    data: Prisma.CreditExpenseLogUncheckedCreateInput,
-    tx?: PrismaTransaction
+  static async createCreditPurchaseLog(
+    {
+      credits,
+      creditBalanceId,
+      autoRecharged = false,
+    }: {
+      credits: number;
+      creditBalanceId: string;
+      autoRecharged?: boolean;
+    },
+    tx: PrismaTransaction = prisma
   ) {
-    const prismaClient = tx ?? prisma;
-    try {
-      return await prismaClient.creditExpenseLog.create({
-        data,
-      });
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-        throw new Error(`Duplicate external reference - already processed: ${data?.externalRef}`);
-      }
-      throw error;
-    }
-  }
-
-  static async createCreditPurchaseLog(data: { credits: number; creditBalanceId: string }) {
-    const { credits, creditBalanceId } = data;
-
-    return prisma.creditPurchaseLog.create({
+    return tx.creditPurchaseLog.create({
       data: {
         credits,
         creditBalanceId,
+        autoRecharged,
+        date: new Date(),
       },
     });
   }

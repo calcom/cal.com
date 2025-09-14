@@ -593,24 +593,33 @@ model Team {
 
 model CreditBalance {
   id                String              @id @default(uuid())
-  team              Team?               @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId            Int?                @unique
-  // user credit balances will be supported in the future
-  user              User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId            Int?                @unique
+  teamId            Int?                @unique
   additionalCredits Int                 @default(0)
   limitReachedAt    DateTime?
   warningSentAt     DateTime?
+  team              Team?               @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user              User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
   expenseLogs       CreditExpenseLog[]
   purchaseLogs      CreditPurchaseLog[]
+
+  // Add auto-recharge fields
+  autoRechargeEnabled   Boolean   @default(false)
+  autoRechargeThreshold Int?
+  autoRechargeAmount    Int?
+  stripeCustomerId      String?
+  lastAutoRechargeAt    DateTime?
+
+  @@unique([teamId, userId])
 }
 
 model CreditPurchaseLog {
   id              String        @id @default(uuid())
-  creditBalanceId String
   creditBalance   CreditBalance @relation(fields: [creditBalanceId], references: [id], onDelete: Cascade)
+  creditBalanceId String
   credits         Int
-  createdAt       DateTime      @default(now())
+  date            DateTime
+  autoRecharged   Boolean       @default(false)
 }
 
 enum CreditUsageType {
@@ -2170,7 +2179,6 @@ model DelegationCredential {
   // Should be fair to assume that one domain can be only on one workspace platform at a time. So, one can't have two different workspace platforms for the same domain
   // Because we don't know which domain the organization might have, we couldn't make "domain" unique here as that would prevent an actual owner of the domain to be unable to use that domain if it is used by someone else.
   @@unique([organizationId, domain])
-  @@index([enabled])
 }
 
 // Deprecated and probably unused - Use DelegationCredential instead

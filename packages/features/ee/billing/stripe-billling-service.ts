@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import Stripe from "stripe";
 
 import type { BillingService } from "./billing-service";
@@ -58,7 +59,7 @@ export class StripeBillingService implements BillingService {
       invoice_creation: {
         enabled: true,
       },
-    } as any);
+    } as never);
 
     return {
       checkoutUrl: session.url,
@@ -126,7 +127,7 @@ export class StripeBillingService implements BillingService {
     };
   }
 
-  async handleSubscriptionCreation(subscriptionId: string) {
+  async handleSubscriptionCreation() {
     throw new Error("Method not implemented.");
   }
 
@@ -195,5 +196,52 @@ export class StripeBillingService implements BillingService {
   async getPrice(priceId: string) {
     const price = await this.stripe.prices.retrieve(priceId);
     return price;
+  }
+
+  async createAutoRechargePaymentIntent({
+    customerId,
+    amount,
+    metadata,
+  }: {
+    customerId: string;
+    amount: number;
+    metadata: Record<string, string>;
+  }): Promise<{ success: boolean; error?: string }> {
+    try {
+      const priceInCents = 1; // Price per credit in cents
+      const totalAmount = amount * priceInCents;
+
+      // Get customer's payment methods
+      const paymentMethods = await this.stripe.paymentMethods.list({
+        customer: customerId,
+        type: "card",
+      });
+
+      if (!paymentMethods.data.length) {
+        return { success: false, error: "No payment methods found for customer" };
+      }
+
+      // Use the default payment method (most recently added)
+      const defaultPaymentMethod = paymentMethods.data[0].id;
+
+      // Create and confirm a payment intent
+      await this.stripe.paymentIntents.create({
+        amount: totalAmount,
+        currency: "usd",
+        customer: customerId,
+        payment_method: defaultPaymentMethod,
+        off_session: true,
+        confirm: true,
+        metadata,
+      });
+
+      return { success: true };
+    } catch (error) {
+      console.error("Error processing auto-recharge payment:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
   }
 }

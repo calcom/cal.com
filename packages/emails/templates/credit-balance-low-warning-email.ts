@@ -1,3 +1,4 @@
+/* eslint-disable import/no-cycle */
 import type { TFunction } from "i18next";
 
 import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
@@ -17,20 +18,24 @@ export default class CreditBalanceLowWarningEmail extends BaseEmail {
     name: string;
   };
   balance: number;
+  autoRechargeEnabled: boolean;
 
   constructor({
     user,
     balance,
     team,
+    autoRechargeEnabled = false,
   }: {
     user: { id: number; name: string | null; email: string; t: TFunction };
     balance: number;
     team?: { id: number; name: string | null };
+    autoRechargeEnabled?: boolean;
   }) {
     super();
     this.user = { ...user, name: user.name || "" };
     this.team = team ? { ...team, name: team.name || "" } : undefined;
     this.balance = balance;
+    this.autoRechargeEnabled = autoRechargeEnabled;
   }
 
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
@@ -44,12 +49,16 @@ export default class CreditBalanceLowWarningEmail extends BaseEmail {
         balance: this.balance,
         team: this.team,
         user: this.user,
+        autoRechargeEnabled: this.autoRechargeEnabled,
       }),
       text: this.getTextBody(),
     };
   }
 
   protected getTextBody(): string {
+    if (this.autoRechargeEnabled) {
+      return "Your team is running low on credits. Auto-recharge will be triggered soon.";
+    }
     return "Your team is running low on credits. Please buy more credits.";
   }
 }

@@ -131,19 +131,33 @@ export class CreditService {
         });
 
         let lowCreditBalanceResult = null;
+        let autoRechargeResult = null;
+
         if (credits) {
-          lowCreditBalanceResult = await this._handleLowCreditBalance({
+          // Check for auto-recharge first
+          autoRechargeResult = await this._handleAutoRecharge({
             teamId: teamIdToCharge,
             userId: userIdToCharge,
             remainingCredits: remainingCredits ?? 0,
             tx,
           });
+
+          // Only send low balance warnings if auto-recharge didn't happen
+          if (!autoRechargeResult) {
+            lowCreditBalanceResult = await this._handleLowCreditBalance({
+              teamId: teamIdToCharge,
+              userId: userIdToCharge,
+              remainingCredits: remainingCredits ?? 0,
+              tx,
+            });
+          }
         }
 
         return {
           teamId: teamIdToCharge,
           userId: userIdToCharge,
           lowCreditBalanceResult,
+          autoRechargeResult,
         };
       })
       .then(async (result) => {
@@ -151,9 +165,16 @@ export class CreditService {
           // send emails after transaction is successfully committed
           await this._handleLowCreditBalanceResult(result.lowCreditBalanceResult);
         }
+
+        if (result?.autoRechargeResult) {
+          // Process auto-recharge after transaction is committed
+          await this._processAutoRecharge(result.autoRechargeResult);
+        }
+
         return {
           teamId: result?.teamId,
           userId: result?.userId,
+          autoRecharged: !!result?.autoRechargeResult,
         };
       });
   }
@@ -681,6 +702,176 @@ export class CreditService {
       totalMonthlyCredits,
       totalRemainingMonthlyCredits: Math.max(totalMonthlyCredits - totalMonthlyCreditsUsed, 0),
       additionalCredits: creditBalance?.additionalCredits ?? 0,
+    };
+  }
+
+  protected async _handleAutoRecharge({
+    teamId,
+    userId,
+    remainingCredits,
+    tx,
+  }: {
+    teamId?: number | null;
+    userId?: number | null;
+    remainingCredits: number;
+    tx: PrismaTransaction;
+  }) {
+    const creditBalance = await CreditsRepository.findCreditBalanceWithAutoRechargeSettings(
+      { teamId, userId },
+      tx
+    );
+
+    if (
+      !creditBalance ||
+      !creditBalance.autoRechargeEnabled ||
+      !creditBalance.autoRechargeThreshold ||
+      !creditBalance.autoRechargeAmount
+    ) {
+      return null;
+    }
+
+    // Check if balance is below threshold and auto-recharge is enabled
+    if (remainingCredits < creditBalance.autoRechargeThreshold) {
+      log.info("Auto recharge triggered", {
+        teamId,
+        userId,
+        remainingCredits,
+        threshold: creditBalance.autoRechargeThreshold,
+      });
+
+      // Don't update balance here - just return the info needed to process the payment
+      return {
+        id: creditBalance.id,
+        teamId,
+        userId,
+        stripeCustomerId: creditBalance.stripeCustomerId,
+        amount: creditBalance.autoRechargeAmount,
+      };
+    }
+
+    return null;
+  }
+
+  private async _processAutoRecharge(rechargeInfo: {
+    id: string;
+    teamId?: number | null;
+    userId?: number | null;
+    stripeCustomerId?: string | null;
+    amount: number;
+  }) {
+    try {
+      // Create a checkout session or charge directly using saved payment method
+      const billingService = new StripeBillingService();
+
+      if (!rechargeInfo.stripeCustomerId) {
+        log.error("Auto-recharge failed: No Stripe customer ID", rechargeInfo);
+        return;
+      }
+
+      const result = await billingService.createAutoRechargePaymentIntent({
+        customerId: rechargeInfo.stripeCustomerId,
+        amount: rechargeInfo.amount,
+        metadata: {
+          creditBalanceId: rechargeInfo.id,
+          teamId: rechargeInfo.teamId?.toString(),
+          userId: rechargeInfo.userId?.toString(),
+          autoRecharge: "true",
+        },
+      });
+
+      if (result.success) {
+        // Update credit balance with new credits
+        await CreditsRepository.updateCreditBalance({
+          id: rechargeInfo.id,
+          data: {
+            additionalCredits: { increment: rechargeInfo.amount },
+            limitReachedAt: null,
+            warningSentAt: null,
+            lastAutoRechargeAt: new Date(),
+          },
+        });
+
+        // Create purchase log
+        await CreditsRepository.createCreditPurchaseLog({
+          credits: rechargeInfo.amount,
+          creditBalanceId: rechargeInfo.id,
+          autoRecharged: true,
+        });
+
+        log.info("Auto-recharge successful", {
+          teamId: rechargeInfo.teamId,
+          userId: rechargeInfo.userId,
+          amount: rechargeInfo.amount,
+        });
+      } else {
+        log.error("Auto-recharge payment failed", {
+          teamId: rechargeInfo.teamId,
+          userId: rechargeInfo.userId,
+          error: result.error,
+        });
+      }
+    } catch (error) {
+      log.error("Error processing auto-recharge", error, { rechargeInfo });
+    }
+  }
+
+  async updateAutoRechargeSettings({
+    teamId,
+    userId,
+    enabled,
+    threshold,
+    amount,
+    stripeCustomerId,
+  }: {
+    teamId?: number;
+    userId?: number;
+    enabled: boolean;
+    threshold?: number;
+    amount?: number;
+    stripeCustomerId?: string;
+  }) {
+    if (!teamId && !userId) {
+      throw new Error("Either teamId or userId must be provided");
+    }
+
+    const creditBalance = await CreditsRepository.findCreditBalance({ teamId, userId });
+
+    if (creditBalance) {
+      return await CreditsRepository.updateCreditBalance({
+        id: creditBalance.id,
+        data: {
+          autoRechargeEnabled: enabled,
+          autoRechargeThreshold: threshold,
+          autoRechargeAmount: amount,
+          stripeCustomerId: stripeCustomerId,
+        },
+      });
+    } else {
+      return await CreditsRepository.createCreditBalance({
+        teamId,
+        userId: !teamId ? userId : undefined,
+        additionalCredits: 0,
+        autoRechargeEnabled: enabled,
+        autoRechargeThreshold: threshold,
+        autoRechargeAmount: amount,
+        stripeCustomerId: stripeCustomerId,
+      });
+    }
+  }
+
+  async getAutoRechargeSettings({ teamId, userId }: { teamId?: number; userId?: number }) {
+    if (!teamId && !userId) {
+      throw new Error("Either teamId or userId must be provided");
+    }
+
+    const creditBalance = await CreditsRepository.findCreditBalance({ teamId, userId });
+
+    return {
+      enabled: creditBalance?.autoRechargeEnabled ?? false,
+      threshold: creditBalance?.autoRechargeThreshold ?? 50,
+      amount: creditBalance?.autoRechargeAmount ?? 100,
+      stripeCustomerId: creditBalance?.stripeCustomerId ?? null,
+      lastAutoRechargeAt: creditBalance?.lastAutoRechargeAt ?? null,
     };
   }
 }
