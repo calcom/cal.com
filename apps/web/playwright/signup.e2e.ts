@@ -21,7 +21,7 @@ test.describe("Signup Main Page Test", async () => {
     await preventFlakyTest(page);
   });
 
-  test("Continue with email button must exist / work", async ({ page }) => {
+  test("Continue with Email button must exist / work", async ({ page }) => {
     const button = page.getByTestId("continue-with-email-button");
     await expect(button).toBeVisible();
     await expect(button).toBeEnabled();
