@@ -12,11 +12,9 @@ export type { EventTypesPublic } from "@calcom/lib/event-types/getEventTypesPubl
 export { getEventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
 export { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 
-export {
-  EventTypeMetaDataSchema,
-  eventTypeBookingFields,
-  eventTypeLocations,
-} from "@calcom/prisma/zod-utils";
+export { EventTypeMetaDataSchema, eventTypeLocations } from "@calcom/prisma/zod-utils";
+
+export { fieldsSchema as eventTypeBookingFields } from "@calcom/features/form-builder/schema";
 
 export { validateCustomEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 export { EventManager };

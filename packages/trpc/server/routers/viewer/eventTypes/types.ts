@@ -8,7 +8,7 @@ import {
   stringOrNumber,
   rrSegmentQueryValueSchema,
 } from "@calcom/prisma/zod-utils";
-import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import { fieldsSchema as eventTypeBookingFields } from "@calcom/features/form-builder/schema";
 import { DestinationCalendarSchema } from "@calcom/prisma/zod/modelSchema/DestinationCalendarSchema";
 import { EventTypeSchema } from "@calcom/prisma/zod/modelSchema/EventTypeSchema";
 
