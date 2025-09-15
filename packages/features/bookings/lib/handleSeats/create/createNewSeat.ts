@@ -2,8 +2,10 @@
 import { cloneDeep } from "lodash";
 import { uuid } from "short-uuid";
 
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { sendScheduledSeatsEmailsAndSMS } from "@calcom/emails";
 import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/refreshCredentials";
+import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
@@ -11,10 +13,9 @@ import {
 import EventManager from "@calcom/lib/EventManager";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
-import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 
 import { findBookingQuery } from "../../handleNewBooking/findBookingQuery";
 import type { IEventTypePaymentCredentialType } from "../../handleNewBooking/types";
@@ -48,8 +49,6 @@ const createNewSeat = async (
     return { ...attendee, language: { translate: tAttendees, locale: attendeeLanguage ?? "en" } };
   });
 
-  evt = { ...evt, attendees: [...bookingAttendees, invitee[0]] };
-
   if (
     eventType.seatsPerTimeSlot &&
     eventType.seatsPerTimeSlot <= seatedBooking.attendees.filter((attendee) => !!attendee.bookingSeat).length
@@ -75,9 +74,6 @@ const createNewSeat = async (
   await prisma.booking.update({
     where: {
       uid: seatedBooking.uid,
-    },
-    include: {
-      attendees: true,
     },
     data: {
       attendees: {
@@ -108,8 +104,16 @@ const createNewSeat = async (
     },
   });
 
-  evt.attendeeSeatId = attendeeUniqueId;
+  const newBookingSeat = await prisma.bookingSeat.findUnique({
+    where: {
+      referenceUid: attendeeUniqueId,
+    },
+  });
 
+  const attendeeWithSeat = { ...inviteeToAdd, bookingSeat: newBookingSeat ?? null };
+
+  evt = { ...evt, attendees: [...bookingAttendees, attendeeWithSeat] };
+  evt.attendeeSeatId = attendeeUniqueId;
   const newSeat = seatedBooking.attendees.length !== 0;
 
   /**
@@ -189,7 +193,15 @@ const createNewSeat = async (
 
     const payment = await handlePayment({
       evt,
-      selectedEventType: eventType,
+      selectedEventType: {
+        ...eventType,
+        metadata: eventType.metadata
+          ? {
+              ...eventType.metadata,
+              apps: eventType.metadata?.apps as Prisma.JsonValue,
+            }
+          : {},
+      },
       paymentAppCredentials: eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
       booking: seatedBooking,
       bookerName: fullName,

@@ -36,4 +36,5 @@ process.env = {
   CALENDSO_ENCRYPTION_KEY: "22gfxhWUlcKliUeXcu8xNah2+HP/29ZX",
   INTEGRATION_TEST_MODE: "true",
   e2e: "true",
+  SLOTS_CACHE_TTL: "1"
 };

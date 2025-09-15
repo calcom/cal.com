@@ -5,6 +5,8 @@ import logger from "./logger";
 
 const log = logger.getSubLogger({ prefix: ["RateLimit"] });
 
+export { type RatelimitResponse };
+
 export type RateLimitHelper = {
   rateLimitingType?: "core" | "forcedSlowMode" | "common" | "api" | "ai" | "sms" | "smsMonth";
   identifier: string;
@@ -30,6 +32,16 @@ export function rateLimiter() {
     ms: 5000,
   };
 
+  const onError = (err: Error, identifier: string) => {
+    log.error("Unkey rate limiter encountered unknown error", {
+      error: err.message,
+      stack: err.stack,
+      identifier,
+      timestamp: new Date().toISOString(),
+    });
+    return { success: true, limit: 10, remaining: 999, reset: 0 };
+  };
+
   const limiter = {
     core: new Ratelimit({
       rootKey: UNKEY_ROOT_KEY,
@@ -37,6 +49,7 @@ export function rateLimiter() {
       limit: 10,
       duration: "60s",
       timeout,
+      onError,
     }),
     common: new Ratelimit({
       rootKey: UNKEY_ROOT_KEY,
@@ -44,6 +57,7 @@ export function rateLimiter() {
       limit: 200,
       duration: "60s",
       timeout,
+      onError,
     }),
     forcedSlowMode: new Ratelimit({
       rootKey: UNKEY_ROOT_KEY,
@@ -51,6 +65,7 @@ export function rateLimiter() {
       limit: 1,
       duration: "30s",
       timeout,
+      onError,
     }),
     api: new Ratelimit({
       rootKey: UNKEY_ROOT_KEY,
@@ -58,6 +73,7 @@ export function rateLimiter() {
       limit: API_KEY_RATE_LIMIT,
       duration: "60s",
       timeout,
+      onError,
     }),
     ai: new Ratelimit({
       rootKey: UNKEY_ROOT_KEY,
@@ -65,6 +81,7 @@ export function rateLimiter() {
       limit: 20,
       duration: "1d",
       timeout,
+      onError,
     }),
     sms: new Ratelimit({
       rootKey: UNKEY_ROOT_KEY,
@@ -72,6 +89,7 @@ export function rateLimiter() {
       limit: 50,
       duration: "5m",
       timeout,
+      onError,
     }),
     smsMonth: new Ratelimit({
       rootKey: UNKEY_ROOT_KEY,
@@ -79,6 +97,7 @@ export function rateLimiter() {
       limit: 250,
       duration: "30d",
       timeout,
+      onError,
     }),
   };
 

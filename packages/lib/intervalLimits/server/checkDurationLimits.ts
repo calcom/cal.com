@@ -1,7 +1,8 @@
 import dayjs from "@calcom/dayjs";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
-import { getTotalBookingDuration } from "@calcom/lib/server/queries/booking";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import prisma from "@calcom/prisma";
 
 import { ascendingLimitKeys, intervalLimitKeyToUnit } from "../intervalLimit";
 import type { IntervalLimit, IntervalLimitKey } from "../intervalLimitSchema";
@@ -55,7 +56,8 @@ export async function checkDurationLimit({
     const startDate = dayjs(eventStartDate).startOf(unit).toDate();
     const endDate = dayjs(eventStartDate).endOf(unit).toDate();
 
-    const totalBookingDuration = await getTotalBookingDuration({
+    const bookingRepo = new BookingRepository(prisma);
+    const totalBookingDuration = await bookingRepo.getTotalBookingDuration({
       eventId,
       startDate,
       endDate,

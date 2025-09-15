@@ -1,6 +1,7 @@
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import prisma from "@calcom/prisma";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
 import { PermissionMapper } from "../domain/mappers/PermissionMapper";
@@ -12,9 +13,10 @@ import type {
   CrudAction,
   CustomAction,
 } from "../domain/types/permission-registry";
-import { PERMISSION_REGISTRY, filterResourceConfig } from "../domain/types/permission-registry";
 import { PermissionRepository } from "../infrastructure/repositories/PermissionRepository";
 import { PermissionService } from "./permission.service";
+
+const DOGFOOD_PBAC_INTERNALLY = true;
 
 export class PermissionCheckService {
   private readonly PBAC_FEATURE_FLAG = "pbac" as const;
@@ -24,7 +26,7 @@ export class PermissionCheckService {
 
   constructor(
     private readonly repository: IPermissionRepository = new PermissionRepository(),
-    featuresRepository: FeaturesRepository = new FeaturesRepository(),
+    featuresRepository: FeaturesRepository = new FeaturesRepository(prisma),
     permissionService: PermissionService = new PermissionService()
   ) {
     this.featuresRepository = featuresRepository;
@@ -80,19 +82,6 @@ export class PermissionCheckService {
         orgActions.forEach((action) => actions.add(action));
       }
 
-      // Check if user has "manage" permission - if so, grant all actions for this resource
-      if (actions.has("manage" as CrudAction)) {
-        // Get all possible actions for this resource from the permission registry
-        const resourceConfig = PERMISSION_REGISTRY[resource];
-        if (resourceConfig) {
-          const allActions = Object.keys(filterResourceConfig(resourceConfig)) as (
-            | CrudAction
-            | CustomAction
-          )[];
-          allActions.forEach((action) => actions.add(action));
-        }
-      }
-
       return Array.from(actions).map((action) => PermissionMapper.toPermissionString({ resource, action }));
     } catch (error) {
       this.logger.error(error);
@@ -139,7 +128,21 @@ export class PermissionCheckService {
           return false;
         }
 
-        return this.hasPermission({ membershipId: membership.id }, permission);
+        const hasPbacPermission = await this.hasPermission({ membershipId: membership.id }, permission);
+
+        if (DOGFOOD_PBAC_INTERNALLY && !hasPbacPermission) {
+          return this.dogfoodFallback({
+            userId,
+            teamId,
+            membershipId: membership.id,
+            permissions: [permission],
+            hasPbacPermission,
+            fallbackRoles,
+            membershipRole: membership.role,
+          });
+        }
+
+        return hasPbacPermission;
       }
 
       return this.checkFallbackRoles(membership.role, fallbackRoles);
@@ -188,7 +191,21 @@ export class PermissionCheckService {
           return false;
         }
 
-        return this.hasPermissions({ membershipId: membership.id }, permissions);
+        const hasPbacPermission = await this.hasPermissions({ membershipId: membership.id }, permissions);
+
+        if (DOGFOOD_PBAC_INTERNALLY && !hasPbacPermission) {
+          return this.dogfoodFallback({
+            userId,
+            teamId,
+            membershipId: membership.id,
+            permissions,
+            hasPbacPermission,
+            fallbackRoles,
+            membershipRole: membership.role,
+          });
+        }
+
+        return hasPbacPermission;
       }
 
       return this.checkFallbackRoles(membership.role, fallbackRoles);
@@ -211,22 +228,11 @@ export class PermissionCheckService {
         permission
       );
       if (hasTeamPermission) return true;
-
-      // Check if user has manage permission for this resource
-      const [resource] = permission.split(".");
-      const managePermission = `${resource}.manage` as PermissionString;
-      const hasManagePermission = await this.repository.checkRolePermission(
-        membership.customRoleId,
-        managePermission
-      );
-      if (hasManagePermission) return true;
     }
 
     // If no team permission, check org-level permissions
     if (orgMembership?.customRoleId) {
-      const [resource] = permission.split(".");
-      const managePermission = `${resource}.manage` as PermissionString;
-      return this.repository.checkRolePermission(orgMembership.customRoleId, managePermission);
+      return this.repository.checkRolePermission(orgMembership.customRoleId, permission);
     }
 
     return false;
@@ -236,11 +242,6 @@ export class PermissionCheckService {
    * Internal method to check multiple permissions for a specific role
    */
   private async hasPermissions(query: PermissionCheck, permissions: PermissionString[]): Promise<boolean> {
-    // Return false for empty permissions array to prevent privilege escalation
-    if (permissions.length === 0) {
-      return false;
-    }
-
     const { membership, orgMembership } = await this.getMembership(query);
 
     // First check team-level permissions
@@ -250,61 +251,11 @@ export class PermissionCheckService {
         permissions
       );
       if (hasTeamPermissions) return true;
-
-      // Check if user has manage permissions for all requested resources
-      const resourcesWithManage = new Set<string>();
-      for (const permission of permissions) {
-        const [resource] = permission.split(".");
-        if (!resourcesWithManage.has(resource)) {
-          const managePermission = `${resource}.manage` as PermissionString;
-          const hasManagePermission = await this.repository.checkRolePermission(
-            membership.customRoleId,
-            managePermission
-          );
-          if (hasManagePermission) {
-            resourcesWithManage.add(resource);
-          }
-        }
-      }
-
-      // Check if all requested permissions are covered by manage permissions
-      const allPermissionsCovered = permissions.every((permission) => {
-        const [resource] = permission.split(".");
-        return resourcesWithManage.has(resource);
-      });
-
-      if (allPermissionsCovered) return true;
     }
 
     // If no team permissions, check org-level permissions
     if (orgMembership?.customRoleId) {
-      const hasOrgPermissions = await this.repository.checkRolePermissions(
-        orgMembership.customRoleId,
-        permissions
-      );
-      if (hasOrgPermissions) return true;
-
-      // Check if user has manage permissions for all requested resources at org level
-      const resourcesWithManage = new Set<string>();
-      for (const permission of permissions) {
-        const [resource] = permission.split(".");
-        if (!resourcesWithManage.has(resource)) {
-          const managePermission = `${resource}.manage` as PermissionString;
-          const hasManagePermission = await this.repository.checkRolePermission(
-            orgMembership.customRoleId,
-            managePermission
-          );
-          if (hasManagePermission) {
-            resourcesWithManage.add(resource);
-          }
-        }
-      }
-
-      // Check if all requested permissions are covered by manage permissions
-      return permissions.every((permission) => {
-        const [resource] = permission.split(".");
-        return resourcesWithManage.has(resource);
-      });
+      return this.repository.checkRolePermissions(orgMembership.customRoleId, permissions);
     }
 
     return false;
@@ -329,6 +280,52 @@ export class PermissionCheckService {
 
   private checkFallbackRoles(userRole: MembershipRole, allowedRoles: MembershipRole[]): boolean {
     return allowedRoles.includes(userRole);
+  }
+
+  /**
+   * Internal dogfooding fallback for PBAC permissions
+   *
+   * This method is used internally at Cal.com to help us transition to PBAC.
+   * When PBAC is enabled but a user doesn't have the necessary permission strings,
+   * we fall back to checking their legacy fallback roles to avoid breaking existing workflows.
+   *
+   * An alert is logged to Axiom when this fallback occurs so we can identify and fix
+   * missing permissions in our PBAC configuration.
+   *
+   * @private
+   * @param params - Object containing userId, teamId, membershipId, permissions, hasPbacPermission, fallbackRoles, and membershipRole
+   * @returns boolean - Whether the user has permission via fallback roles
+   */
+  private dogfoodFallback(params: {
+    userId: number;
+    teamId: number;
+    membershipId: number;
+    permissions: PermissionString[];
+    hasPbacPermission: boolean;
+    fallbackRoles: MembershipRole[];
+    membershipRole: MembershipRole;
+  }): boolean {
+    const { userId, teamId, membershipId, permissions, hasPbacPermission, fallbackRoles, membershipRole } =
+      params;
+
+    const debugInfo = {
+      userId,
+      teamId,
+      membershipId,
+      permissions,
+      hasPbacPermission,
+      fallbackRoles,
+    };
+
+    this.logger.warn(
+      `PBAC INTERNAL - Failed but user doesnt have permission string to carry out this action. Falling back to fallback roles. \n JSON${JSON.stringify(
+        debugInfo,
+        null,
+        2
+      )}`
+    );
+
+    return this.checkFallbackRoles(membershipRole, fallbackRoles);
   }
 
   /**

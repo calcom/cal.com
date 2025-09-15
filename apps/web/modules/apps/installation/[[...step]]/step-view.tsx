@@ -9,6 +9,7 @@ import type { z } from "zod";
 import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import type { EventTypeAppSettingsComponentProps, EventTypeModel } from "@calcom/app-store/types";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import type { LocationFormValues } from "@calcom/features/eventtypes/lib/types";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
@@ -17,7 +18,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { LocationObject } from "@calcom/lib/location";
 import type { Team } from "@calcom/prisma/client";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { AppMeta } from "@calcom/types/App";
@@ -177,7 +177,7 @@ const OnboardingPage = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventTypeGroups]);
 
-  const updateMutation = trpc.viewer.eventTypes.update.useMutation({
+  const updateMutation = trpc.viewer.eventTypes.heavy.update.useMutation({
     onSuccess: async (data) => {
       showToast(t("event_type_updated_successfully", { eventTypeTitle: data.eventType?.title }), "success");
     },

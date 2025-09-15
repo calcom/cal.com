@@ -1,15 +1,20 @@
-import type { Prisma, WorkflowReminder } from "@prisma/client";
 import type { z } from "zod";
 
+import { DailyLocationType } from "@calcom/app-store/constants";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
-import { DailyLocationType } from "@calcom/app-store/locations";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { processNoShowFeeOnCancellation } from "@calcom/features/bookings/lib/payment/processNoShowFeeOnCancellation";
+import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
+import {
+  deleteWebhookScheduledTriggers,
+  cancelNoShowTasksForBooking,
+} from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import EventManager from "@calcom/lib/EventManager";
@@ -20,19 +25,15 @@ import { HttpError } from "@calcom/lib/http-error";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
-import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
+import type { Prisma, WorkflowReminder } from "@calcom/prisma/client";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
-import {
-  bookingMetadataSchema,
-  eventTypeMetaDataSchemaWithTypedApps,
-  bookingCancelInput,
-} from "@calcom/prisma/zod-utils";
+import { bookingMetadataSchema, bookingCancelInput } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -113,10 +114,20 @@ async function handler(input: CancelBookingInput) {
     });
   }
 
-  if (!platformClientId && !cancellationReason?.trim() && bookingToDelete.userId == userId) {
+  const isCancellationUserHost =
+    bookingToDelete.userId == userId || bookingToDelete.user.email === cancelledBy;
+
+  if (!platformClientId && !cancellationReason?.trim() && isCancellationUserHost) {
     throw new HttpError({
       statusCode: 400,
       message: "Cancellation reason is required when you are the host",
+    });
+  }
+
+  if (bookingToDelete.endTime && new Date() > new Date(bookingToDelete.endTime)) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "Cannot cancel a booking that has already ended",
     });
   }
 
@@ -184,7 +195,6 @@ async function handler(input: CancelBookingInput) {
 
   const teamMembersPromises = [];
   const attendeesListPromises = [];
-  const hostsPresent = !!bookingToDelete.eventType?.hosts;
   const hostEmails = new Set(bookingToDelete.eventType?.hosts?.map((host) => host.user.email) ?? []);
 
   for (let index = 0; index < bookingToDelete.attendees.length; index++) {
@@ -445,11 +455,25 @@ async function handler(input: CancelBookingInput) {
     });
     updatedBookings.push(updatedBooking);
 
-    if (!!bookingToDelete.payment.length) {
-      await processPaymentRefund({
-        booking: bookingToDelete,
-        teamId,
-      });
+    if (bookingToDelete.payment.some((payment) => payment.paymentOption === "ON_BOOKING")) {
+      try {
+        await processPaymentRefund({
+          booking: bookingToDelete,
+          teamId,
+        });
+      } catch (error) {
+        log.error(`Error processing payment refund for booking ${bookingToDelete.uid}:`, error);
+      }
+    } else if (bookingToDelete.payment.some((payment) => payment.paymentOption === "HOLD")) {
+      try {
+        await processNoShowFeeOnCancellation({
+          booking: bookingToDelete,
+          payments: bookingToDelete.payment,
+          cancelledByUserId: userId,
+        });
+      } catch (error) {
+        log.error(`Error processing no-show fee for booking ${bookingToDelete.uid}:`, error);
+      }
     }
   }
 
@@ -510,6 +534,7 @@ async function handler(input: CancelBookingInput) {
     for (const booking of updatedBookings) {
       // delete scheduled webhook triggers of cancelled bookings
       webhookTriggerPromises.push(deleteWebhookScheduledTriggers({ booking }));
+      webhookTriggerPromises.push(cancelNoShowTasksForBooking({ bookingUid: booking.uid }));
 
       //Workflows - cancel all reminders for cancelled bookings
       workflowReminderPromises.push(WorkflowRepository.deleteAllWorkflowReminders(booking.workflowReminders));

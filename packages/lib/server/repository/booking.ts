@@ -1,14 +1,22 @@
-import type { Prisma } from "@prisma/client";
-
-import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { PrismaClient } from "@calcom/prisma";
-import { bookingMinimalSelect } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import type { Booking } from "@calcom/prisma/client";
-import { RRTimestampBasis } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { RRTimestampBasis, BookingStatus } from "@calcom/prisma/enums";
+import { bookingMinimalSelect } from "@calcom/prisma/selects/booking";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import { UserRepository } from "./user";
+
+export type FormResponse = Record<
+  // Field ID
+  string,
+  {
+    value: number | string | string[];
+    label: string;
+    identifier?: string;
+  }
+>;
 
 type TeamBookingsParamsBase = {
   user: { id: number; email: string };
@@ -522,13 +530,15 @@ export class BookingRepository {
 
   async updateLocationById({
     where: { id },
-    data: { location, metadata, referencesToCreate },
+    data: { location, metadata, referencesToCreate, responses, iCalSequence },
   }: {
     where: { id: number };
     data: {
       location: string;
       metadata: Record<string, unknown>;
       referencesToCreate: Prisma.BookingReferenceCreateInput[];
+      responses?: Record<string, unknown>;
+      iCalSequence?: number;
     };
   }) {
     await this.prismaClient.booking.update({
@@ -537,7 +547,11 @@ export class BookingRepository {
       },
       data: {
         location,
-        metadata,
+        // FIXME: metadata is untyped
+        metadata: metadata as unknown as Prisma.InputJsonValue,
+        // FIXME: responses is untyped
+        ...(responses && { responses: responses as unknown as Prisma.InputJsonValue }),
+        ...(iCalSequence !== undefined && { iCalSequence }),
         references: {
           create: referencesToCreate,
         },
@@ -665,31 +679,24 @@ export class BookingRepository {
           select: {
             id: true,
             name: true,
+            username: true,
             email: true,
             locale: true,
             timeZone: true,
+            timeFormat: true,
             destinationCalendar: true,
             credentials: {
-              select: {
-                id: true,
-                userId: true,
-                key: true,
-                type: true,
-                teamId: true,
-                appId: true,
-                invalid: true,
-                user: {
-                  select: {
-                    email: true,
-                  },
-                },
-              },
+              select: credentialForCalendarServiceSelect,
             },
           },
         },
+        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         destinationCalendar: true,
+        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         payment: true,
+        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         references: true,
+        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         workflowReminders: true,
       },
     });
@@ -831,9 +838,173 @@ export class BookingRepository {
         status: filterForUnconfirmed ? BookingStatus.PENDING : BookingStatus.ACCEPTED,
       },
       include: {
+        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         attendees: true,
+        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         references: true,
+        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         user: true,
+        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
+        payment: true,
+      },
+    });
+  }
+
+  async countBookingsByEventTypeAndDateRange({
+    eventTypeId,
+    startDate,
+    endDate,
+    excludedUid,
+  }: {
+    eventTypeId: number;
+    startDate: Date;
+    endDate: Date;
+    excludedUid?: string;
+  }) {
+    return await this.prismaClient.booking.count({
+      where: {
+        status: BookingStatus.ACCEPTED,
+        eventTypeId,
+        startTime: {
+          gte: startDate,
+        },
+        endTime: {
+          lte: endDate,
+        },
+        uid: {
+          not: excludedUid,
+        },
+      },
+    });
+  }
+
+  async findAcceptedBookingByEventTypeId({
+    eventTypeId,
+    dateFrom,
+    dateTo,
+  }: {
+    eventTypeId?: number;
+    dateFrom: string;
+    dateTo: string;
+  }) {
+    return this.prismaClient.booking.findMany({
+      where: {
+        eventTypeId,
+        startTime: {
+          gte: dateFrom,
+          lte: dateTo,
+        },
+        status: BookingStatus.ACCEPTED,
+      },
+      select: {
+        uid: true,
+        startTime: true,
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+  }
+
+  async getTotalBookingDuration({
+    eventId,
+    startDate,
+    endDate,
+    rescheduleUid,
+  }: {
+    eventId: number;
+    startDate: Date;
+    endDate: Date;
+    rescheduleUid?: string;
+  }) {
+    let totalBookingTime;
+
+    if (rescheduleUid) {
+      [totalBookingTime] = await this.prismaClient.$queryRaw<[{ totalMinutes: number | null }]>`
+      SELECT SUM(EXTRACT(EPOCH FROM ("endTime" - "startTime")) / 60) as "totalMinutes"
+      FROM "Booking"
+      WHERE "status" = 'accepted'
+        AND "eventTypeId" = ${eventId}
+        AND "startTime" >= ${startDate}
+        AND "endTime" <= ${endDate}
+        AND "uid" != ${rescheduleUid};
+    `;
+    } else {
+      [totalBookingTime] = await this.prismaClient.$queryRaw<[{ totalMinutes: number | null }]>`
+      SELECT SUM(EXTRACT(EPOCH FROM ("endTime" - "startTime")) / 60) as "totalMinutes"
+      FROM "Booking"
+      WHERE "status" = 'accepted'
+        AND "eventTypeId" = ${eventId}
+        AND "startTime" >= ${startDate}
+        AND "endTime" <= ${endDate};
+    `;
+    }
+    return totalBookingTime.totalMinutes ?? 0;
+  }
+
+  async findOriginalRescheduledBookingUserId({ rescheduleUid }: { rescheduleUid: string }) {
+    return await this.prismaClient.booking.findFirst({
+      where: {
+        uid: rescheduleUid,
+        status: {
+          in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED, BookingStatus.PENDING],
+        },
+      },
+      select: {
+        userId: true,
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+  }
+
+  async getBookingForPaymentProcessing(bookingId: number) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        id: bookingId,
+      },
+      select: {
+        id: true,
+        uid: true,
+        title: true,
+        startTime: true,
+        endTime: true,
+        userPrimaryEmail: true,
+        status: true,
+        eventTypeId: true,
+        userId: true,
+        attendees: {
+          select: {
+            name: true,
+            email: true,
+            timeZone: true,
+            locale: true,
+          },
+        },
+        eventType: {
+          select: {
+            title: true,
+            hideOrganizerEmail: true,
+            teamId: true,
+            metadata: true,
+          },
+        },
+        payment: {
+          select: {
+            id: true,
+            amount: true,
+            currency: true,
+            paymentOption: true,
+            appId: true,
+            success: true,
+            data: true,
+          },
+        },
       },
     });
   }

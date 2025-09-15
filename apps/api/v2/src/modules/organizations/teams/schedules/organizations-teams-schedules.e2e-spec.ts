@@ -6,7 +6,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
 import * as request from "supertest";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
@@ -18,8 +17,12 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { ApiSuccessResponse, ScheduleOutput_2024_06_11 } from "@calcom/platform-types";
-import { Team, Schedule } from "@calcom/prisma/client";
+import type {
+  GetSchedulesOutput_2024_06_11,
+  ApiSuccessResponse,
+  ScheduleOutput_2024_06_11,
+} from "@calcom/platform-types";
+import type { User, Team, Schedule } from "@calcom/prisma/client";
 
 describe("Organizations Teams Schedules Endpoints", () => {
   describe("User Authentication - User is Org Admin", () => {
@@ -36,6 +39,8 @@ describe("Organizations Teams Schedules Endpoints", () => {
     let org: Team;
     let orgTeam: Team;
     let nonOrgTeam: Team;
+
+    let userSchedule: Schedule;
     let user2Schedule: Schedule;
 
     const userEmail = `organizations-teams-schedules-admin-${randomString()}@api.com`;
@@ -71,6 +76,16 @@ describe("Organizations Teams Schedules Endpoints", () => {
       user2 = await userRepositoryFixture.create({
         email: userEmail2,
         username: userEmail2,
+      });
+
+      userSchedule = await scheduleRepositoryFixture.create({
+        user: {
+          connect: {
+            id: user.id,
+          },
+        },
+        name: `organizations-teams-schedules-user-schedule-${randomString()}`,
+        timeZone: "America/New_York",
       });
 
       user2Schedule = await scheduleRepositoryFixture.create({
@@ -211,6 +226,32 @@ describe("Organizations Teams Schedules Endpoints", () => {
           const responseBody: ApiSuccessResponse<ScheduleOutput_2024_06_11[]> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data.find((d) => d.id === user2Schedule.id)?.name).toEqual(user2Schedule.name);
+        });
+    });
+
+    it("should get all the schedules of members in a team", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/organizations/${org.id}/teams/${orgTeam.id}/schedules`)
+        .expect(200)
+        .then((response) => {
+          const responseBody: GetSchedulesOutput_2024_06_11 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(Array.isArray(responseBody.data)).toBe(true);
+          expect(responseBody.data.length).toEqual(2);
+
+          const userOneSchedule = responseBody.data.find((schedule) => schedule.id === userSchedule.id);
+          const userTwoSchedule = responseBody.data.find((schedule) => schedule.id === user2Schedule.id);
+
+          expect(userOneSchedule).toBeDefined();
+          expect(userTwoSchedule).toBeDefined();
+
+          expect(userOneSchedule?.id).toEqual(userSchedule.id);
+          expect(userOneSchedule?.name).toEqual(userSchedule.name);
+          expect(userOneSchedule?.timeZone).toEqual(userSchedule.timeZone);
+
+          expect(userTwoSchedule?.id).toEqual(user2Schedule.id);
+          expect(userTwoSchedule?.name).toEqual(user2Schedule.name);
+          expect(userOneSchedule?.timeZone).toEqual(user2Schedule.timeZone);
         });
     });
 
