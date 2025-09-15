@@ -23,7 +23,7 @@ import { withReporting } from "@calcom/lib/sentryWrapper";
 import { PrismaRoutingFormRepository } from "@calcom/lib/server/repository/PrismaRoutingFormRepository";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
-
+import { TRPCError } from "@trpc/server";
 
 import { getUrlSearchParamsToForward } from "./getUrlSearchParamsToForward";
 import { HttpError } from "@calcom/lib/http-error";
@@ -171,7 +171,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
     crmContactOwnerRecordType = result.crmContactOwnerRecordType;
     crmAppSlug = result.crmAppSlug;
   } catch (e) {
-    if (e instanceof HttpError) {
+    if (e instanceof HttpError || e instanceof TRPCError) {
       return {
         props: {
           ...pageProps,
