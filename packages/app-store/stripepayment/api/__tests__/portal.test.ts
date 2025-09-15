@@ -2,6 +2,7 @@ import type { NextApiRequest } from "next";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -83,29 +84,29 @@ describe("Portal API - Service-Based Architecture", () => {
     it("should return default URL when returnTo is not provided", () => {
       const result = buildReturnUrl();
 
-      expect(result).toBe("http://localhost:3000/settings/billing");
+      expect(result).toBe(`${WEBAPP_URL}/settings/billing`);
     });
 
     it("should return default URL when returnTo is not a string", () => {
       const result = buildReturnUrl(123 as unknown as string);
 
-      expect(result).toBe("http://localhost:3000/settings/billing");
+      expect(result).toBe(`${WEBAPP_URL}/settings/billing`);
     });
 
     it("should return safe redirect URL when valid returnTo is provided", () => {
-      const returnTo = "/settings/teams";
+      const returnTo = `${WEBAPP_URL}/settings/teams`;
 
       const result = buildReturnUrl(returnTo);
 
-      expect(result).toBe("/settings/teams");
+      expect(result).toBe(`${WEBAPP_URL}/settings/teams`);
     });
 
-    it("should return default URL when unsafe redirect URL is provided", () => {
+    it("should return WEBAPP_URL root when unsafe redirect URL is provided", () => {
       const returnTo = "http://malicious-site.com";
 
       const result = buildReturnUrl(returnTo);
 
-      expect(result).toBe("http://localhost:3000/settings/billing");
+      expect(result).toBe(`${WEBAPP_URL}/`);
     });
   });
 
@@ -152,25 +153,10 @@ describe("Portal API - Service-Based Architecture", () => {
 
   describe("TeamBillingPortalService", () => {
     let service: TeamBillingPortalService;
+    let mockPermissionServiceInstance: MockPermissionService;
 
     beforeEach(() => {
-      service = new TeamBillingPortalService();
-
-      const mockPermissionServiceInstance: MockPermissionService = {
-        checkPermission: vi.fn(),
-      };
-      mockPermissionService.mockImplementation(
-        () => mockPermissionServiceInstance as unknown as PermissionCheckService
-      );
-
-      const mockTeamRepo: MockTeamRepository = {
-        findById: vi.fn(),
-      };
-      mockTeamRepository.mockImplementation(() => mockTeamRepo as unknown as TeamRepository);
-    });
-
-    it("should check team.manageBilling permission", async () => {
-      const mockPermissionServiceInstance: MockPermissionService = {
+      mockPermissionServiceInstance = {
         checkPermission: vi.fn().mockResolvedValue(true),
       };
 
@@ -178,6 +164,15 @@ describe("Portal API - Service-Based Architecture", () => {
         () => mockPermissionServiceInstance as unknown as PermissionCheckService
       );
 
+      const mockTeamRepo: MockTeamRepository = {
+        findById: vi.fn(),
+      };
+      mockTeamRepository.mockImplementation(() => mockTeamRepo as unknown as TeamRepository);
+
+      service = new TeamBillingPortalService();
+    });
+
+    it("should check team.manageBilling permission", async () => {
       const result = await service.checkPermissions(123, 456);
 
       expect(mockPermissionServiceInstance.checkPermission).toHaveBeenCalledWith({
@@ -192,20 +187,10 @@ describe("Portal API - Service-Based Architecture", () => {
 
   describe("OrganizationBillingPortalService", () => {
     let service: OrganizationBillingPortalService;
+    let mockPermissionServiceInstance: MockPermissionService;
 
     beforeEach(() => {
-      service = new OrganizationBillingPortalService();
-
-      const mockPermissionServiceInstance: MockPermissionService = {
-        checkPermission: vi.fn(),
-      };
-      mockPermissionService.mockImplementation(
-        () => mockPermissionServiceInstance as unknown as PermissionCheckService
-      );
-    });
-
-    it("should check organization.manageBilling permission", async () => {
-      const mockPermissionServiceInstance: MockPermissionService = {
+      mockPermissionServiceInstance = {
         checkPermission: vi.fn().mockResolvedValue(true),
       };
 
@@ -213,6 +198,10 @@ describe("Portal API - Service-Based Architecture", () => {
         () => mockPermissionServiceInstance as unknown as PermissionCheckService
       );
 
+      service = new OrganizationBillingPortalService();
+    });
+
+    it("should check organization.manageBilling permission", async () => {
       const result = await service.checkPermissions(123, 456);
 
       expect(mockPermissionServiceInstance.checkPermission).toHaveBeenCalledWith({
