@@ -27,12 +27,15 @@ export const BookingFields = ({
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
 
   return (
+    // TODO: It might make sense to extract this logic into BookingFields config, that would allow to quickly configure system fields and their editability in fresh booking and reschedule booking view
+    // The logic here intends to make modifications to booking fields based on the way we want to specifically show Booking Form
     <div>
       {fields.map((field, index) => {
         // Don't Display Location field in case of instant meeting as only Cal Video is supported
         if (isInstantMeeting && field.name === "location") return null;
 
         // During reschedule by default all system fields are readOnly. Make them editable on case by case basis.
+        // Allowing a system field to be edited might require sending emails to attendees, so we need to be careful
         const rescheduleReadOnly =
           (field.editable === "system" || field.editable === "system-but-optional") &&
           !!rescheduleUid &&
@@ -52,6 +55,7 @@ export const BookingFields = ({
           if (bookingData === null) {
             return null;
           }
+          // rescheduleReason is a reschedule specific field and thus should be editable during reschedule
           readOnly = false; // rescheduleReason is editable during reschedule
         }
 
@@ -60,14 +64,18 @@ export const BookingFields = ({
           field.name === SystemField.Enum.smsReminderNumber ||
           field.name === SystemField.Enum.aiAgentCallPhoneNumber
         ) {
+          // `smsReminderNumber` and location.optionValue when location.value===phone are the same data point. We should solve it in a better way in the Form Builder itself.
+          // I think we should have a way to connect 2 fields together and have them share the same value in Form Builder
           return null;
         }
 
         if (field.name === SystemField.Enum.guests) {
           readOnly = false;
+          // No matter what user configured for Guests field, we don't show it for dynamic group booking as that doesn't support guests
           hidden = isDynamicGroupBooking ? true : !!field.hidden;
         }
 
+        // We don't show `notes` field during reschedule but since it's a query param we better valid if rescheduleUid brought any bookingData
         if (field.name === SystemField.Enum.notes && bookingData !== null) {
           return null;
         }
@@ -83,6 +91,7 @@ export const BookingFields = ({
           }
           const optionsInputs = field.optionsInputs;
 
+          // TODO: Instead of `getLocationOptionsForSelect` options should be retrieved from dataStore[field.getOptionsAt]. It would make it agnostic of the `name` of the field.
           const options = getLocationOptionsForSelect(locations, t);
           options.forEach((option) => {
             const optionInput = optionsInputs[option.value as keyof typeof optionsInputs];
