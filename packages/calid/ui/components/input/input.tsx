@@ -9,7 +9,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Icon } from "../icon/Icon";
 import { Label } from "../label";
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "../tooltip";
+import { Tooltip } from "../tooltip";
 import { HintsOrErrors } from "./hint-or-errors";
 import type { InputProps, InputFieldProps } from "./types";
 
@@ -264,25 +264,20 @@ export const PasswordField = forwardRef<HTMLInputElement, TextFieldProps>(functi
         props.className
       )}
       addOnSuffix={
-        <TooltipProvider>
-          <Tooltip content={textLabel}>
-            <TooltipTrigger>
-              <button
-                className="text-emphasis"
-                tabIndex={-1}
-                type="button"
-                onClick={() => toggleIsPasswordVisible()}>
-                {isPasswordVisible ? (
-                  <Icon name="eye-off" className="h-4 w-4 stroke-[2.5px]" />
-                ) : (
-                  <Icon name="eye" className="h-4 w-4 stroke-[2.5px]" />
-                )}
-                <span className="sr-only">{textLabel}</span>
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>{textLabel}</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Tooltip content={textLabel}>
+          <button
+            className="text-emphasis"
+            tabIndex={-1}
+            type="button"
+            onClick={() => toggleIsPasswordVisible()}>
+            {isPasswordVisible ? (
+              <Icon name="eye-off" className="h-4 w-4 stroke-[2.5px]" />
+            ) : (
+              <Icon name="eye" className="h-4 w-4 stroke-[2.5px]" />
+            )}
+            <span className="sr-only">{textLabel}</span>
+          </button>
+        </Tooltip>
       }
     />
   );

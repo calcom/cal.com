@@ -254,25 +254,54 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
   // Form handling - only initialize when eventType is available
   const { form, handleSubmit } = useEventTypeForm({
     eventType,
-    onSubmit: updateMutation.mutate,
+    onSubmit: (data) => {
+      try {
+        updateMutation.mutate(data);
+      } catch (error) {
+        throw error;
+      }
+    },
   });
-  const slug = form.watch("slug") ?? eventType.slug;
+
+  let slug;
+  try {
+    slug = form?.watch("slug") ?? eventType.slug;
+  } catch (error) {
+    slug = eventType.slug;
+  }
 
   // URL and branding
   const orgBranding = useOrgBranding();
   const bookerUrl = orgBranding ? orgBranding?.fullDomain : WEBSITE_URL;
+
   const permalink = `${bookerUrl}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
     eventType.slug
   }`;
-  const embedLink = `${team ? `team/${team.slug}` : form.getValues("users")[0].username}/${form.getValues(
-    "slug"
-  )}`;
+
+  let embedLink;
+  try {
+    const formUsers = form?.getValues("users");
+    const formSlug = form?.getValues("slug");
+
+    embedLink = `${team ? `team/${team.slug}` : formUsers?.[0]?.username || eventType.users[0].username}/${
+      formSlug || eventType.slug
+    }`;
+  } catch (error) {
+    embedLink = `${team ? `team/${team.slug}` : eventType.users[0].username}/${eventType.slug}`;
+  }
 
   // Permissions
-  const hasPermsToDelete =
-    currentUserMembership?.role !== "MEMBER" ||
-    !currentUserMembership ||
-    form.getValues("schedulingType") === SchedulingType.MANAGED;
+  let hasPermsToDelete;
+  try {
+    const schedulingType = form?.getValues("schedulingType");
+
+    hasPermsToDelete =
+      currentUserMembership?.role !== "MEMBER" ||
+      !currentUserMembership ||
+      schedulingType === SchedulingType.MANAGED;
+  } catch (error) {
+    hasPermsToDelete = true; // Default to allowing delete if there's an error
+  }
   const connectedCalendarsQuery = trpc.viewer.calendars.connectedCalendars.useQuery();
 
   // Tab content mapping
@@ -441,7 +470,16 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
         {/* Content */}
         <div className="bg-background py-4">
           <div className="mx-auto max-w-none">
-            <Form form={form} id="event-type-form" handleSubmit={handleSubmit}>
+            <Form
+              form={form}
+              id="event-type-form"
+              handleSubmit={(values) => {
+                try {
+                  handleSubmit(values);
+                } catch (error) {
+                  throw error;
+                }
+              }}>
               <div
                 ref={animationParentRef}
                 className="transition-all duration-200 ease-in-out"

@@ -1,11 +1,6 @@
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipProvider,
-  TooltipContent,
-} from "@calid/features/ui/components/tooltip";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
 import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -217,17 +212,12 @@ const IntegrationRequests = () => {
 
   return (
     <div className="md:px-2 md:py-1.5">
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="flex gap-3 md:hidden md:gap-2 lg:flex">
-              <Icon name="webhook" className="h-4 w-4" />
-              <span className="text-default text-sm">Chat Integrations</span>
-            </div>
-          </TooltipTrigger>
-          <TooltipContent side="top">{t("chat_integration_desc")}</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip content={t("chat_integration_desc")}>
+        <div className="flex gap-3 md:hidden md:gap-2 lg:flex">
+          <Icon name="webhook" className="h-4 w-4" />
+          <span className="text-default text-sm">Chat Integrations</span>
+        </div>
+      </Tooltip>
 
       <div className="scrollbar-none max-h-[400px] overflow-y-auto overflow-x-hidden">
         {integrationRequests.map((req) => (

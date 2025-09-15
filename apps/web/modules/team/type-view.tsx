@@ -63,6 +63,7 @@ function Type({
             eventData.length
           )}
           orgBannerUrl={orgBannerUrl}
+          eventTypes={[]}
           teamMemberEmail={teamMemberEmail}
           crmOwnerRecordType={crmOwnerRecordType}
           crmAppSlug={crmAppSlug}

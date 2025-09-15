@@ -929,7 +929,7 @@ export const EventAdvanced = ({
     attendeeName: t("scheduler"),
     eventType: formMethods.getValues("title"),
     eventName: formMethods.getValues("eventName"),
-    host: formMethods.getValues("users")[0]?.name || "Nameless",
+    host: formMethods.getValues("users")?.[0]?.name || "Nameless",
     bookingFields,
     eventDuration: formMethods.getValues("length"),
     t,

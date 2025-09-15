@@ -8,6 +8,7 @@ import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/featu
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
+import { getEventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
 import { shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
 import { EventRepository } from "@calcom/lib/server/repository/event";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -16,7 +17,6 @@ import prisma from "@calcom/prisma";
 import { BookingStatus, RedirectType } from "@calcom/prisma/client";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
-import { getEventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
 
 import { getUsersInOrgContext } from "@server/lib/[user]/getServerSideProps";
 

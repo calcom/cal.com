@@ -16,7 +16,7 @@ import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
 import { RedirectType, type EventType, type User } from "@calcom/prisma/client";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
@@ -41,14 +41,7 @@ type UserPageProps = {
   };
   users: (Pick<
     User,
-    | "name"
-    | "username"
-    | "bio"
-    | "verified"
-    | "avatarUrl"
-    | "bannerUrl"
-    | "faviconUrl"
-    | "hideBranding"
+    "name" | "username" | "bio" | "verified" | "avatarUrl" | "bannerUrl" | "faviconUrl" | "hideBranding"
   > & {
     profile: UserProfile;
     metadata: z.infer<typeof userMetadataSchema> | null;

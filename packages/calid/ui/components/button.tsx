@@ -1,11 +1,6 @@
 import { Icon } from "@calid/features/ui/components/icon";
 import type { IconName } from "@calid/features/ui/components/icon/Icon";
-import {
-  Tooltip,
-  TooltipProvider,
-  TooltipContent,
-  TooltipTrigger,
-} from "@calid/features/ui/components/tooltip";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import type { LinkProps } from "next/link";
@@ -66,11 +61,11 @@ export const buttonClasses = cva(
           "focus-visible:outline-none",
           "focus-visible:ring-0",
           "focus-visible:shadow-outline-gray-focused",
-         // Border
-         "border border-active",
-         // Disabled
-         "disabled:opacity-30",
-         // Shadows and effects
+          // Border
+          "border border-active",
+          // Disabled
+          "disabled:opacity-30",
+          // Shadows and effects
           "transition-shadow",
           "transition-transform",
           "duration-100",
@@ -265,9 +260,9 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         const classes = classNames(buttonClasses({ color, size, loading, variant }), props.className);
         return classes;
       })(),
-      style: { 
+      style: {
         backgroundColor: brandColor,
-        border: brandColor ? 'none' : undefined,
+        border: brandColor ? "none" : undefined,
       },
       // if we click a disabled button, we prevent going through the click handler
       onClick: disabled
@@ -384,19 +379,9 @@ const Wrapper = ({
   }
 
   return (
-    <TooltipProvider> 
-      <Tooltip>
-        <TooltipTrigger asChild>{children}</TooltipTrigger>
-
-        <TooltipContent
-          side={tooltipSide}
-          sideOffset={tooltipOffset}
-          className={tooltipClassName}
-          data-testid="tooltip">
-          {tooltip}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Tooltip content={tooltip} side={tooltipSide} sideOffset={tooltipOffset} className={tooltipClassName}>
+      {children}
+    </Tooltip>
   );
 };
 
