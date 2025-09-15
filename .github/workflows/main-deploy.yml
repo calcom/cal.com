@@ -32,7 +32,7 @@ concurrency:
 jobs:
   # ONLY RUN JOB ON PR MERGE on MAIN OR DEVELOP BRANCH
   build-push-deploy:
-    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/deploy'
+    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/build'
     runs-on: ubuntu-latest      
 
     steps:
