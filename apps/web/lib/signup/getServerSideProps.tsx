@@ -15,6 +15,15 @@ import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 
 const checkValidEmail = (email: string) => emailSchema.safeParse(email).success;
 
+const decodeHtmlEntities = (str: string): string => {
+  return str
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+};
+
 const querySchema = z.object({
   username: z
     .string()
@@ -34,6 +43,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const token = z.string().optional().parse(ctx.query.token);
   const redirectUrlData = z
     .string()
+    .transform((value) => decodeHtmlEntities(value))
     .refine((value) => value.startsWith(WEBAPP_URL), {
       params: (value: string) => ({ value }),
       message: "Redirect URL must start with 'cal.com'",
