@@ -25,6 +25,7 @@ export function Header({
   eventSlug,
   isMyLink,
   renderOverlay,
+  isMonthViewProp,
 }: {
   extraDays: number;
   isMobile: boolean;
@@ -33,6 +34,7 @@ export function Header({
   eventSlug: string;
   isMyLink: boolean;
   renderOverlay?: () => JSX.Element | null;
+  isMonthViewProp?: boolean;
 }) {
   const { t, i18n } = useLocale();
   const isEmbed = useIsEmbed();
@@ -40,7 +42,7 @@ export function Header({
   const selectedDateString = useBookerStoreContext((state) => state.selectedDate);
   const setSelectedDate = useBookerStoreContext((state) => state.setSelectedDate);
   const addToSelectedDate = useBookerStoreContext((state) => state.addToSelectedDate);
-  const isMonthView = layout === BookerLayouts.MONTH_VIEW;
+  const isMonthView = isMonthViewProp !== undefined ? isMonthViewProp : layout === BookerLayouts.MONTH_VIEW;
   const today = dayjs();
   const selectedDate = selectedDateString ? dayjs(selectedDateString) : today;
   const selectedDateMin3DaysDifference = useMemo(() => {
