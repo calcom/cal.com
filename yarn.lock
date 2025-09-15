@@ -2849,7 +2849,6 @@ __metadata:
     "@calcom/features": "*"
     "@calcom/lib": "*"
     "@calcom/office365video": "*"
-    "@calcom/trpc": "*"
     "@calcom/types": "*"
     "@calcom/ui": "*"
     "@calcom/zoomvideo": "*"
