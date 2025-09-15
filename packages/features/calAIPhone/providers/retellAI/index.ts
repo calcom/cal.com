@@ -19,6 +19,8 @@ import type {
   RetellAgentWithDetails,
   Language,
   RetellDynamicVariables,
+  RetellCallListParams,
+  RetellCallListResponse,
 } from "./types";
 
 export { RetellAIService } from "./RetellAIService";
@@ -61,6 +63,8 @@ export type {
   RetellAgentWithDetails,
   Language,
   RetellDynamicVariables,
+  RetellCallListParams,
+  RetellCallListResponse,
 };
 
 export interface RetellAIPhoneServiceProviderTypeMap {
@@ -77,6 +81,8 @@ export interface RetellAIPhoneServiceProviderTypeMap {
   Tools: RetellLLMGeneralTools;
   CreatePhoneCallParams: { fromNumber: string; toNumber: string; dynamicVariables?: RetellDynamicVariables };
   AgentWithDetails: RetellAgentWithDetails;
+  ListCallsParams: RetellCallListParams;
+  ListCallsResponse: RetellCallListResponse;
 }
 
 // ===== USAGE EXAMPLES =====
