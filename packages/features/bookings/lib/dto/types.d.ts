@@ -179,3 +179,11 @@ export type LegacyHandlerResult =
       seatReferenceUid?: string;
       videoCallUrl?: string | null;
     };
+
+export type BookingFlowConfig = {
+  isDryRun: boolean;
+  useCacheIfEnabled: boolean;
+  noEmail: boolean;
+  hostname: string | null;
+  forcedSlug: string | null;
+};

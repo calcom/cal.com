@@ -3348,6 +3348,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/feature-private-link@workspace:packages/features/privateLink":
+  version: 0.0.0-use.local
+  resolution: "@calcom/feature-private-link@workspace:packages/features/privateLink"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/features@*, @calcom/features@workspace:packages/features":
   version: 0.0.0-use.local
   resolution: "@calcom/features@workspace:packages/features"

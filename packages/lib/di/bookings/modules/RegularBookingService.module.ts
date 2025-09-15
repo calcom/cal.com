@@ -13,6 +13,7 @@ import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import { moduleLoader as prismaModuleLoader } from "@calcom/prisma/prisma.module";
 
 import { bindModuleToClassOnToken, createModule } from "../../di";
+import { moduleLoader as bookingMessageBusModuleLoader } from "./BookingMessageBus";
 
 const thisModule = createModule();
 const token = DI_TOKENS.REGULAR_BOOKING_SERVICE;
@@ -34,6 +35,7 @@ const loadModule = bindModuleToClassOnToken({
     oooRepository: oooRepositoryModuleLoader,
     userRepository: userRepositoryModuleLoader,
     attributeRepository: attributeRepositoryModuleLoader,
+    bookingMessageBus: bookingMessageBusModuleLoader,
   },
 });
 
