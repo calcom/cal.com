@@ -500,13 +500,6 @@ export async function getBookings({
                 "EventType.customReplyToEmail",
                 "EventType.allowReschedulingPastBookings",
                 "EventType.hideOrganizerEmail",
-                jsonArrayFrom(
-                  eb
-                    .selectFrom("Host")
-                    .innerJoin("users", "Host.userId", "users.id")
-                    .select(["users.id", "users.email"])
-                    .whereRef("Host.eventTypeId", "=", "EventType.id")
-                ).as("hosts"),
                 jsonObjectFrom(
                   eb
                     .selectFrom("EventType as ParentEventType")
