@@ -926,12 +926,11 @@ model SelectedCalendar {
   channelExpiration  DateTime? @db.Timestamp(3)
 
   // Used to calendar cache and sync 
-  lastSyncToken   String?
-  lastSyncedAt    DateTime?
-  lastSyncErrorAt DateTime?
-  syncErrorCount  Int       @default(0)
-
-  cacheEnabled Boolean @default(true)
+  syncSubscribedAt DateTime? @db.Timestamp(3)
+  syncToken        String?
+  syncedAt         DateTime?
+  syncErrorAt      DateTime?
+  syncErrorCount   Int?      @default(0)
 
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   delegationCredentialId String?
@@ -2566,10 +2565,10 @@ model CalendarCacheEvent {
   selectedCalendarId String
 
   // External calendar event data (provider-agnostic)
-  externalEventId String
-  externalEtag    String
-  iCalUID         String?
-  iCalSequence    Int     @default(0)
+  externalId   String
+  externalEtag String
+  iCalUID      String?
+  iCalSequence Int     @default(0)
 
   // Event details
   summary     String?
@@ -2597,7 +2596,7 @@ model CalendarCacheEvent {
   externalCreatedAt DateTime?
   externalUpdatedAt DateTime?
 
-  @@unique([selectedCalendarId, externalEventId])
+  @@unique([selectedCalendarId, externalId])
   @@index([start, end, status])
   @@index([selectedCalendarId, iCalUID])
 }

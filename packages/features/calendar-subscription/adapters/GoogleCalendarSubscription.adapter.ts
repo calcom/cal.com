@@ -16,6 +16,12 @@ import type {
 
 const log = logger.getSubLogger({ prefix: ["GoogleCalendarSubscriptionAdapter"] });
 
+/**
+ * Google Calendar Subscription Adapter
+ *
+ * This adapter uses the Google Calendar API to create and manage calendar subscriptions
+ * @see https://developers.google.com/google-apps/calendar/quickstart/nodejs
+ */
 export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionPort {
   private GOOGLE_WEBHOOK_TOKEN = process.env.GOOGLE_WEBHOOK_TOKEN;
   private GOOGLE_WEBHOOK_URL = process.env.GOOGLE_WEBHOOK_URL;
@@ -69,7 +75,7 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
     const expiration = e ? new Date(/^\d+$/.test(e) ? +e : e) : null;
 
     return {
-      provider: "google",
+      provider: "google-calendar",
       id: result.data.id,
       resourceId: result.data.resourceId,
       resourceUri: result.data.resourceUri,
@@ -98,7 +104,7 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
   ): Promise<CalendarSubscriptionEvent> {
     const client = await this.getClient(credential);
 
-    let syncToken = selectedCalendar.lastSyncToken || undefined;
+    let syncToken = selectedCalendar.syncToken || undefined;
     let pageToken;
 
     const events: calendar_v3.Schema$Event[] = [];
@@ -117,17 +123,17 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
     } while (pageToken);
 
     return {
-      provider: "google",
+      provider: "google-calendar",
       syncToken: syncToken || null,
-      items: this.sanitizeEvents(events),
+      items: this.parseEvents(events),
     };
   }
 
-  private sanitizeEvents(events: calendar_v3.Schema$Event[]): CalendarSubscriptionEventItem[] {
+  private parseEvents(events: calendar_v3.Schema$Event[]): CalendarSubscriptionEventItem[] {
     const now = new Date();
     return events
       .map((event) => {
-        const busy = event.transparency === "opaque";
+        const busy = event.transparency === "opaque"; // opaque = busy, transparent = free
 
         const start = event.start?.dateTime
           ? new Date(event.start.dateTime)
@@ -153,11 +159,14 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
           kind: event.kind,
           status: event.status,
           isAllDay: !!event.start?.date && !event.start?.dateTime,
+          timeZone: event.start?.timeZone || null,
+          originalStartTime: event.originalStartTime?.dateTime,
+          createdAt: event.created ? new Date(event.created) : null,
+          updatedAt: event.updated ? new Date(event.updated) : null,
         };
       })
       .filter((e) => !!e.id) // safely remove events with no ID
-      .filter((e) => e.start < now) // remove old events
-      .filter((e) => !e.iCalUID?.endsWith("@Cal.com")); // remove Cal.com events
+      .filter((e) => e.start < now); // remove old events
   }
 
   private async getClient(credential: CalendarCredential) {

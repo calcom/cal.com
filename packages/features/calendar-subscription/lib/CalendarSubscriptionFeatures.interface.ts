@@ -3,13 +3,14 @@ import type {
   CredentialForCalendarService,
   CredentialForCalendarServiceWithEmail,
 } from "@calcom/types/Credential";
+import type { JsonValue } from "@calcom/types/Json";
 
-export type CalendarSubscriptionProvider = "google-calendar" | "office365-calendar";
+export type CalendarSubscriptionProvider = "google" | "microsoft";
 
 export type CalendarSubscriptionWebhookContext = {
   headers?: Headers;
   query?: URLSearchParams;
-  body?: { value?: { subscriptionId?: string }[] } | unknown;
+  body?: JsonValue;
 };
 
 export type CalendarSubscriptionResult = {
@@ -46,9 +47,6 @@ export type CalendarSubscriptionEvent = {
 
 export type CalendarCredential = CredentialForCalendarServiceWithEmail;
 
-/**
- * Calendar Subscription Port
- */
 export interface ICalendarSubscriptionPort {
   /**
    * Validates a webhook request

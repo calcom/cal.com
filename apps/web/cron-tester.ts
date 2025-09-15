@@ -22,12 +22,7 @@ try {
     // Each 5 seconds
     "*/5 * * * * *",
     async function () {
-      await Promise.allSettled([
-        fetchCron("/calendar-cache/cron"),
-        // fetchCron("/cron/calVideoNoShowWebhookTriggers"),
-        //
-        fetchCron("/tasks/cron"),
-      ]);
+      await Promise.allSettled([fetchCron("/calendar-cache/cron"), fetchCron("/tasks/cron")]);
     },
     null,
     true,

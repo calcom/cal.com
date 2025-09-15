@@ -2,8 +2,8 @@ import type { Params } from "app/_types";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { GoogleCalendarSubscriptionAdapter } from "@calcom/features/calendar-subscription/adapters/GoogleCalendarSubscription.adapter";
-import { MicrosoftCalendarSubscriptionAdapter } from "@calcom/features/calendar-subscription/adapters/MicrosoftCalendarSubscription.adapter";
+import { DefaultAdapterFactory } from "@calcom/features/calendar-subscription/adapters/AdaptersFactory";
+import type { CalendarSubscriptionProvider } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionPort.interface";
 import { CalendarSubscriptionService } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionService";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
@@ -13,28 +13,28 @@ import { defaultResponderForAppDir } from "@calcom/web/app/api/defaultResponderF
 
 const log = logger.getSubLogger({ prefix: ["calendar-webhook"] });
 
-const ADAPTERS = {
-  google: new GoogleCalendarSubscriptionAdapter(),
-  microsoft: new MicrosoftCalendarSubscriptionAdapter(),
-};
-
+/**
+ * Handles incoming POST requests for calendar webhooks.
+ * It processes the webhook based on the calendar provider specified in the URL.
+ * If the provider is unsupported, it returns a 400 response.
+ * If the webhook is processed successfully, it returns a 200 response.
+ * In case of errors during processing, it returns a 500 response with the error message.
+ * @param {NextRequest} request - The incoming request object.
+ * @param {Object} context - The context object containing route parameters.
+ * @param {Promise<Params>} context.params - A promise that resolves to the route parameters.
+ * @returns {Promise<NextResponse>} - A promise that resolves to the response object.
+ */
 async function postHandler(request: NextRequest, context: { params: Promise<Params> }) {
   log.debug("Received webhook");
 
   const provider = (await context.params).provider as string[];
-  const calendarSubscriptionAdapter = ADAPTERS[provider[0] as keyof typeof ADAPTERS];
-  if (!calendarSubscriptionAdapter) {
-    log.error("Unsupported provider", { provider });
-    return NextResponse.json({ message: "Unsupported provider" }, { status: 400 });
-  }
-
   try {
     const calendarSubscriptionService = new CalendarSubscriptionService({
-      calendarSubscriptionPort: calendarSubscriptionAdapter,
+      adapterFactory: new DefaultAdapterFactory(),
       selectedCalendarRepository: new SelectedCalendarRepository(prisma),
       featuresRepository: new FeaturesRepository(prisma),
     });
-    await calendarSubscriptionService.processWebhook({
+    await calendarSubscriptionService.processWebhook(provider[0] as CalendarSubscriptionProvider, {
       headers: request.headers,
       query: new URL(request.url).searchParams,
       body: await request.json(),

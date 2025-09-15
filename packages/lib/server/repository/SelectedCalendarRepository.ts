@@ -17,6 +17,13 @@ export class SelectedCalendarRepository {
     });
   }
 
+  async findNotSubscribed({ take }: { take: number }) {
+    return await this.prismaClient.selectedCalendar.findMany({
+      where: { syncSubscribedAt: null },
+      take,
+    });
+  }
+
   async findByChannelId(channelId: string) {
     return await this.prismaClient.selectedCalendar.findFirst({ where: { channelId } });
   }

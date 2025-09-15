@@ -5,7 +5,17 @@ import type { SelectedCalendar } from "@calcom/prisma/client";
 
 const log = logger.getSubLogger({ prefix: ["CalendarSyncService"] });
 
+/**
+ * Service to handle synchronization of calendar events.
+ */
 export class CalendarSyncService {
+  /**
+   * Handles synchronization of calendar events
+   *
+   * @param selectedCalendar calendar to process
+   * @param calendarSubscriptionEvents events to process
+   * @returns
+   */
   async handleEvents(
     selectedCalendar: SelectedCalendar,
     calendarSubscriptionEvents: CalendarSubscriptionEventItem[]
@@ -14,5 +24,17 @@ export class CalendarSyncService {
       externalId: selectedCalendar.externalId,
       countEvents: calendarSubscriptionEvents.length,
     });
+
+    // only process cal.com calendar events
+    const calEvents = calendarSubscriptionEvents.filter((e) =>
+      e.iCalUID?.toLowerCase()?.endsWith("@cal.com")
+    );
+    if (calEvents.length === 0) {
+      log.debug("handleEvents: no calendar events to process");
+      return;
+    }
+
+    log.debug("handleEvents: processing calendar events", { count: calEvents.length });
+    // TODO update booking
   }
 }
