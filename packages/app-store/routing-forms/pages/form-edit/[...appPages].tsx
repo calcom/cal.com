@@ -348,6 +348,7 @@ const FormEdit = ({
 
 export default function FormEditPage({
   appUrl,
+  permissions,
   ...props
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   return (
@@ -356,6 +357,7 @@ export default function FormEditPage({
       <SingleForm
         {...props}
         appUrl={appUrl}
+        permissions={permissions}
         Page={({ hookForm, form }) => <FormEdit appUrl={appUrl} hookForm={hookForm} form={form} />}
       />
     </>

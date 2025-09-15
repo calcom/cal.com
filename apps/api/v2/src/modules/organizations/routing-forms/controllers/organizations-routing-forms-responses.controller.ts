@@ -22,6 +22,7 @@ import {
   UseGuards,
   ParseIntPipe,
   Req,
+  Version,
 } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Request } from "express";
@@ -48,8 +49,8 @@ export class OrganizationsRoutingFormsResponsesController {
 
   @Get("/")
   @ApiOperation({ summary: "Get routing form responses" })
-  @UseGuards(RolesGuard)
   @Roles("ORG_ADMIN")
+  @UseGuards(RolesGuard)
   @PlatformPlan("ESSENTIALS")
   async getRoutingFormResponses(
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -75,8 +76,8 @@ export class OrganizationsRoutingFormsResponsesController {
 
   @Post("/")
   @ApiOperation({ summary: "Create routing form response and get available slots" })
-  @UseGuards(Or([RolesGuard, IsUserRoutingForm]))
   @Roles("ORG_ADMIN")
+  @UseGuards(Or([RolesGuard, IsUserRoutingForm]))
   @PlatformPlan("ESSENTIALS")
   async createRoutingFormResponse(
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -98,8 +99,8 @@ export class OrganizationsRoutingFormsResponsesController {
 
   @Patch("/:responseId")
   @ApiOperation({ summary: "Update routing form response" })
-  @UseGuards(RolesGuard)
   @Roles("ORG_ADMIN")
+  @UseGuards(RolesGuard)
   @PlatformPlan("ESSENTIALS")
   async updateRoutingFormResponse(
     @Param("orgId", ParseIntPipe) orgId: number,

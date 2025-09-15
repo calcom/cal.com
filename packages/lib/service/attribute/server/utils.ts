@@ -1,4 +1,4 @@
-import { AttributeToUserRepository } from "../../../server/repository/attributeToUser";
+import { PrismaAttributeToUserRepository } from "../../../server/repository/PrismaAttributeToUserRepository";
 
 export const getWhereClauseForAttributeOptionsManagedByCalcom = () => {
   // Neither created nor updated by DSync
@@ -10,7 +10,7 @@ export const getWhereClauseForAttributeOptionsManagedByCalcom = () => {
 };
 
 export const findAssignmentsForMember = async ({ memberId }: { memberId: number }) => {
-  const assignments = await AttributeToUserRepository.findManyIncludeAttribute({ memberId });
+  const assignments = await PrismaAttributeToUserRepository.findManyIncludeAttribute({ memberId });
   return assignments.map((assignment) => ({
     ...assignment,
     attributeOption: {

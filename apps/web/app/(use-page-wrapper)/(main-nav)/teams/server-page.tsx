@@ -1,13 +1,12 @@
-import { createRouterCaller } from "app/_trpc/context";
 import type { SearchParams } from "app/_types";
 import type { Session } from "next-auth";
 import { unstable_cache } from "next/cache";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { TeamsListing } from "@calcom/features/ee/teams/components/TeamsListing";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
-import { TeamService } from "@calcom/lib/server/service/team";
+import { TeamService } from "@calcom/lib/server/service/teamService";
 import prisma from "@calcom/prisma";
-import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 
 import { TRPCError } from "@trpc/server";
 
@@ -47,18 +46,24 @@ export const ServerTeamsListing = async ({
     }
   }
 
-  const meCaller = await createRouterCaller(meRouter);
-  const [user, teams] = await Promise.all([meCaller.get(), getCachedTeams(userId)]);
+  const teams = await getCachedTeams(userId);
+  const userProfile = session?.user?.profile;
+  const orgId = userProfile?.organizationId ?? session?.user.org?.id;
+  const orgRole =
+    session?.user?.org?.role ??
+    userProfile?.organization?.members.find((m: { userId: number }) => m.userId === userId)?.role;
+  const isOrgAdminOrOwner = checkAdminOrOwner(orgRole);
 
   return {
     Main: (
       <TeamsListing
         teams={teams}
-        user={user}
+        orgId={orgId ?? null}
+        isOrgAdmin={isOrgAdminOrOwner}
         teamNameFromInvite={teamNameFromInvite ?? null}
         errorMsgFromInvite={errorMsgFromInvite}
       />
     ),
-    CTA: !user.organizationId || user.organization.isOrgAdmin ? <TeamsCTA /> : null,
+    CTA: !orgId || isOrgAdminOrOwner ? <TeamsCTA /> : null,
   };
 };

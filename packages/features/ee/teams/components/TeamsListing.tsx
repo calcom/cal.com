@@ -18,14 +18,16 @@ import { UpgradeTip } from "../../../tips";
 import TeamList from "./TeamList";
 
 type TeamsListingProps = {
-  user: RouterOutputs["viewer"]["me"]["get"];
+  orgId: number | null;
+  isOrgAdmin: boolean;
   teams: RouterOutputs["viewer"]["teams"]["list"];
   teamNameFromInvite: string | null;
   errorMsgFromInvite: string | null;
 };
 
 export function TeamsListing({
-  user,
+  orgId,
+  isOrgAdmin,
   teams: data,
   teamNameFromInvite,
   errorMsgFromInvite,
@@ -49,7 +51,7 @@ export function TeamsListing({
     }
   );
 
-  const isCreateTeamButtonDisabled = !!(user?.organizationId && !user?.organization?.isOrgAdmin);
+  const isCreateTeamButtonDisabled = !!(orgId && !isOrgAdmin);
 
   const features = [
     {
@@ -105,18 +107,18 @@ export function TeamsListing({
       {organizationInvites.length > 0 && (
         <div className="bg-subtle mb-6 rounded-md p-5">
           <Label className="text-emphasis pb-2  font-semibold">{t("pending_organization_invites")}</Label>
-          <TeamList user={user} teams={organizationInvites} pending />
+          <TeamList orgId={orgId} teams={organizationInvites} pending />
         </div>
       )}
 
       {teamInvites.length > 0 && (
         <div className="bg-subtle mb-6 rounded-md p-5">
           <Label className="text-emphasis pb-2  font-semibold">{t("pending_invites")}</Label>
-          <TeamList user={user} teams={teamInvites} pending />
+          <TeamList orgId={orgId} teams={teamInvites} pending />
         </div>
       )}
 
-      {teams.length > 0 && <TeamList user={user} teams={teams} />}
+      {teams.length > 0 && <TeamList orgId={orgId} teams={teams} />}
 
       {teams.length === 0 && (
         <UpgradeTip
@@ -126,7 +128,7 @@ export function TeamsListing({
           features={features}
           background="/tips/teams"
           buttons={
-            !user?.organizationId || user?.organization.isOrgAdmin ? (
+            !orgId || isOrgAdmin ? (
               <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
                 <ButtonGroup>
                   <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>

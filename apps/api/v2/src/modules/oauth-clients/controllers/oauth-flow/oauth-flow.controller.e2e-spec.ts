@@ -15,6 +15,7 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test, TestingModule } from "@nestjs/testing";
 import { PlatformOAuthClient, Team, User } from "@prisma/client";
 import * as request from "supertest";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
@@ -63,6 +64,7 @@ describe("OAuthFlow Endpoints", () => {
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let oAuthClientsRepositoryFixture: OAuthClientRepositoryFixture;
     let profilesRepositoryFixture: ProfileRepositoryFixture;
+    let membershipRepositoryFixture: MembershipRepositoryFixture;
 
     let user: User;
     let organization: Team;
@@ -89,6 +91,7 @@ describe("OAuthFlow Endpoints", () => {
       organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       usersRepositoryFixtures = new UserRepositoryFixture(moduleRef);
       profilesRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
+      membershipRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
 
       user = await usersRepositoryFixtures.create({
         email: userEmail,
@@ -103,6 +106,13 @@ describe("OAuthFlow Endpoints", () => {
         user: { connect: { id: user.id } },
         movedFromUser: { connect: { id: user.id } },
         organization: { connect: { id: organization.id } },
+      });
+
+      await membershipRepositoryFixture.create({
+        user: { connect: { id: user.id } },
+        team: { connect: { id: organization.id } },
+        role: "OWNER",
+        accepted: true,
       });
       oAuthClient = await createOAuthClient(organization.id);
     });

@@ -1,38 +1,26 @@
-import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
+import { sha256Hash, isApiKey, stripApiKey } from "@/lib/api-key";
 import { AuthMethods } from "@/lib/enums/auth-methods";
 import { isOriginAllowed } from "@/lib/is-origin-allowed/is-origin-allowed";
 import { BaseStrategy } from "@/lib/passport/strategies/types";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { DeploymentsService } from "@/modules/deployments/deployments.service";
+import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
-import { ProfilesRepository } from "@/modules/profiles/profiles.repository";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { TokensService } from "@/modules/tokens/tokens.service";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
-import {
-  HttpException,
-  Injectable,
-  InternalServerErrorException,
-  UnauthorizedException,
-} from "@nestjs/common";
+import { Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
 import type { Request } from "express";
-import * as jwt from "jsonwebtoken";
 import { getToken } from "next-auth/jwt";
 
 import { INVALID_ACCESS_TOKEN, X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
 import type { AllowedAuthMethod } from "../../decorators/api-auth-guard-only-allow.decorator";
-
-interface OAuthTokenPayload {
-  userId?: number;
-  teamId?: number;
-  scope: string[];
-  token_type: string;
-}
 
 export type ApiAuthGuardUser = UserWithProfile & { isSystemAdmin: boolean };
 export type ApiAuthGuardRequest = Request & {
@@ -53,11 +41,12 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     private readonly config: ConfigService,
     private readonly oauthFlowService: OAuthFlowService,
     private readonly tokensRepository: TokensRepository,
+    private readonly tokensService: TokensService,
     private readonly userRepository: UsersRepository,
     private readonly apiKeyRepository: ApiKeysRepository,
     private readonly oauthRepository: OAuthClientRepository,
-    private readonly profilesRepository: ProfilesRepository,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    private readonly membershipsRepository: MembershipsRepository
   ) {
     super();
   }
@@ -105,12 +94,13 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
             if (thirdPartyAccessTokenAllowed && request.authMethod === AuthMethods["ACCESS_TOKEN"]) {
               request.authMethod = AuthMethods["THIRD_PARTY_ACCESS_TOKEN"];
               const result = await this.validateThirdPartyAccessToken(bearerToken, request);
+
               if (result.success) {
                 return this.success(this.getSuccessUser(result.data));
               }
             }
             // token was not third party token, rethrow error from authenticateBearerToken
-            if (err instanceof HttpException) {
+            if (err instanceof Error) {
               return this.error(err);
             }
           }
@@ -182,7 +172,9 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
       throw new UnauthorizedException("ApiAuthStrategy - oAuth client - Invalid client secret");
     }
 
-    const platformCreatorId = await this.profilesRepository.getPlatformOwnerUserId(client.organizationId);
+    const platformCreatorId =
+      (await this.membershipsRepository.findPlatformOwnerUserId(client.organizationId)) ||
+      (await this.membershipsRepository.findPlatformAdminUserId(client.organizationId));
 
     if (!platformCreatorId) {
       throw new UnauthorizedException(
@@ -214,21 +206,17 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
         : await this.accessTokenStrategy(authString, request, requestOrigin);
 
       if (!user) {
-        return this.error(
-          new UnauthorizedException(
-            "ApiAuthStrategy - bearer token - No user associated with the provided token"
-          )
+        throw new UnauthorizedException(
+          "ApiAuthStrategy - bearer token - No user associated with the provided token"
         );
       }
 
       return this.success(this.getSuccessUser(user));
     } catch (err) {
       if (err instanceof Error) {
-        return this.error(err);
+        throw err;
       }
-      return this.error(
-        new InternalServerErrorException("An error occurred while authenticating the request")
-      );
+      throw new InternalServerErrorException("An error occurred while authenticating the request");
     }
   }
 
@@ -240,7 +228,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
       );
     }
     const strippedApiKey = stripApiKey(apiKey, this.config.get<string>("api.keyPrefix"));
-    const apiKeyHash = hashAPIKey(strippedApiKey);
+    const apiKeyHash = sha256Hash(strippedApiKey);
     const keyData = await this.apiKeyRepository.getApiKeyFromHash(apiKeyHash);
     if (!keyData) {
       throw new UnauthorizedException("ApiAuthStrategy - api key - Your api key is not valid");
@@ -326,20 +314,8 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     token: string,
     request: ApiAuthGuardRequest
   ): Promise<{ success: true; data: UserWithProfile } | { success: false }> {
-    // Removed requiredScopes parameter
-    const encryptionKey = this.config.get<string>("CALENDSO_ENCRYPTION_KEY");
-    if (!encryptionKey) {
-      throw new InternalServerErrorException("CALENDSO_ENCRYPTION_KEY environment variable is not set.");
-    }
-
-    let decodedToken: OAuthTokenPayload;
-    try {
-      decodedToken = jwt.verify(token, encryptionKey) as OAuthTokenPayload;
-    } catch (e) {
-      return { success: false };
-    }
-
-    if (!decodedToken || decodedToken.token_type !== "Access Token") {
+    const decodedToken = this.tokensService.getDecodedThirdPartyAccessToken(token);
+    if (!decodedToken) {
       return { success: false };
     }
 

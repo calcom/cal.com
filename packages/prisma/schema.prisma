@@ -49,38 +49,56 @@ enum CreationSource {
 }
 
 model Host {
-  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId           Int
-  eventType        EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventType        EventType   @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId      Int
-  isFixed          Boolean   @default(false)
+  isFixed          Boolean     @default(false)
   priority         Int?
   weight           Int?
   // weightAdjustment is deprecated. We not calculate the calibratino value on the spot. Plan to drop this column.
   weightAdjustment Int?
-  schedule         Schedule? @relation(fields: [scheduleId], references: [id])
+  schedule         Schedule?   @relation(fields: [scheduleId], references: [id])
   scheduleId       Int?
-  createdAt        DateTime  @default(now())
+  createdAt        DateTime    @default(now())
+  group            HostGroup?  @relation(fields: [groupId], references: [id])
+  groupId          String?
+  memberId         Int?
+  member           Membership? @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
   @@id([userId, eventTypeId])
+  @@index([memberId])
   @@index([userId])
   @@index([eventTypeId])
   @@index([scheduleId])
+}
+
+model HostGroup {
+  id          String     @id @default(uuid())
+  name        String
+  hosts       Host[]
+  eventType   EventType? @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId Int?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([name])
+  @@index([eventTypeId])
 }
 
 model CalVideoSettings {
   eventTypeId Int       @id
   eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
 
-  disableRecordingForOrganizer     Boolean @default(false)
-  disableRecordingForGuests        Boolean @default(false)
-  enableAutomaticTranscription     Boolean @default(false)
-  redirectUrlOnExit                String?
-  disableTranscriptionForGuests    Boolean @default(false)
-  disableTranscriptionForOrganizer Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  disableRecordingForOrganizer         Boolean  @default(false)
+  disableRecordingForGuests            Boolean  @default(false)
+  enableAutomaticTranscription         Boolean  @default(false)
+  enableAutomaticRecordingForOrganizer Boolean  @default(false)
+  redirectUrlOnExit                    String?
+  disableTranscriptionForGuests        Boolean  @default(false)
+  disableTranscriptionForOrganizer     Boolean  @default(false)
+  createdAt                            DateTime @default(now())
+  updatedAt                            DateTime @updatedAt
 }
 
 model EventType {
@@ -99,9 +117,10 @@ model EventType {
   offsetStart       Int     @default(0)
   hidden            Boolean @default(false)
   hosts             Host[]
-  users             User[]  @relation("user_eventtype")
-  owner             User?   @relation("owner", fields: [userId], references: [id], onDelete: Cascade)
-  userId            Int?
+
+  users  User[] @relation("user_eventtype")
+  owner  User?  @relation("owner", fields: [userId], references: [id], onDelete: Cascade)
+  userId Int?
 
   profileId Int?
   profile   Profile? @relation(fields: [profileId], references: [id])
@@ -130,6 +149,7 @@ model EventType {
   periodDays                         Int?
   periodCountCalendarDays            Boolean?
   lockTimeZoneToggleOnBookingPage    Boolean                @default(false)
+  lockedTimeZone                     String?
   requiresConfirmation               Boolean                @default(false)
   requiresConfirmationWillBlockSlot  Boolean                @default(false)
   requiresConfirmationForFreeEmail   Boolean                @default(false)
@@ -148,6 +168,7 @@ model EventType {
   afterEventBuffer                         Int                       @default(0)
   seatsPerTimeSlot                         Int?
   onlyShowFirstAvailableSlot               Boolean                   @default(false)
+  showOptimizedSlots                       Boolean?                  @default(false)
   disableCancelling                        Boolean?                  @default(false)
   disableRescheduling                      Boolean?                  @default(false)
   seatsShowAttendees                       Boolean?                  @default(false)
@@ -203,9 +224,12 @@ model EventType {
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
 
-  useBookerTimezone     Boolean   @default(false)
+  useBookerTimezone     Boolean     @default(false)
   restrictionScheduleId Int?
-  restrictionSchedule   Schedule? @relation("restrictionSchedule", fields: [restrictionScheduleId], references: [id])
+  restrictionSchedule   Schedule?   @relation("restrictionSchedule", fields: [restrictionScheduleId], references: [id])
+  hostGroups            HostGroup[]
+
+  bookingRequiresAuthentication Boolean @default(false)
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -420,6 +444,8 @@ model User {
   filterSegmentPreferences       UserFilterSegmentPreference[]
   creditBalance                  CreditBalance?
   whitelistWorkflows             Boolean                       @default(false)
+  calAiPhoneNumbers              CalAiPhoneNumber[]
+  agents                         Agent[]
 
   @@unique([email])
   @@unique([email, username])
@@ -530,6 +556,8 @@ model Team {
   delegationCredentials  DelegationCredential[]
   domainWideDelegations  DomainWideDelegation[]
   roles                  Role[] // Added for Role relation
+  calAiPhoneNumbers      CalAiPhoneNumber[]
+  agents                 Agent[]
 
   features TeamFeatures[]
 
@@ -572,17 +600,27 @@ model CreditPurchaseLog {
   createdAt       DateTime      @default(now())
 }
 
+enum CreditUsageType {
+  SMS
+  CAL_AI_PHONE_CALL
+}
+
 model CreditExpenseLog {
-  id              String        @id @default(uuid())
+  id              String           @id @default(uuid())
   creditBalanceId String
-  creditBalance   CreditBalance @relation(fields: [creditBalanceId], references: [id], onDelete: Cascade)
+  creditBalance   CreditBalance    @relation(fields: [creditBalanceId], references: [id], onDelete: Cascade)
   bookingUid      String?
-  booking         Booking?      @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
+  booking         Booking?         @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
   credits         Int?
   creditType      CreditType
   date            DateTime
   smsSid          String?
   smsSegments     Int?
+  phoneNumber     String?
+  email           String?
+  callDuration    Int?
+  creditFor       CreditUsageType?
+  externalRef     String?          @unique
 }
 
 enum CreditType {
@@ -632,6 +670,7 @@ model Membership {
   AttributeToUser      AttributeToUser[]
   createdAt            DateTime?         @default(now())
   updatedAt            DateTime?         @updatedAt
+  Host                 Host[]
 
   @@unique([userId, teamId])
   @@index([teamId])
@@ -665,7 +704,7 @@ model InstantMeetingToken {
   token     String   @unique
   expires   DateTime
   teamId    Int
-  team      Team     @relation(fields: [teamId], references: [id])
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
   bookingId Int?     @unique
   booking   Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
@@ -1061,10 +1100,15 @@ model RateLimit {
 }
 
 model HashedLink {
-  id          Int       @id @default(autoincrement())
-  link        String    @unique()
-  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  eventTypeId Int
+  id            Int       @id @default(autoincrement())
+  link          String    @unique
+  eventTypeId   Int
+  eventType     EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  expiresAt     DateTime?
+  maxUsageCount Int       @default(1)
+  usageCount    Int       @default(0)
+
+  @@index([eventTypeId])
 }
 
 model Account {
@@ -1303,6 +1347,11 @@ enum WorkflowTriggerEvents {
   RESCHEDULE_EVENT
   AFTER_HOSTS_CAL_VIDEO_NO_SHOW
   AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+  BOOKING_REJECTED
+  BOOKING_REQUESTED
+  BOOKING_PAYMENT_INITIATED
+  BOOKING_PAID
+  BOOKING_NO_SHOW_UPDATED
 }
 
 enum WorkflowActions {
@@ -1313,6 +1362,7 @@ enum WorkflowActions {
   EMAIL_ADDRESS
   WHATSAPP_ATTENDEE
   WHATSAPP_NUMBER
+  CAL_AI_PHONE_CALL
 }
 
 model WorkflowStep {
@@ -1331,6 +1381,8 @@ model WorkflowStep {
   numberVerificationPending Boolean            @default(true)
   includeCalendarEvent      Boolean            @default(false)
   verifiedAt                DateTime?
+  agentId                   String?            @unique
+  agent                     Agent?             @relation(fields: [agentId], references: [id], onDelete: SetNull)
 
   @@index([workflowId])
 }
@@ -1468,6 +1520,7 @@ enum WorkflowMethods {
   EMAIL
   SMS
   WHATSAPP
+  AI_PHONE_CALL
 }
 
 model BookingSeat {
@@ -1715,6 +1768,8 @@ model CalendarCache {
   key          String
   value        Json
   expiresAt    DateTime
+  // Provide an initial value for legacy rows and future raw inserts
+  updatedAt    DateTime    @default(now()) @updatedAt
   credentialId Int
   userId       Int?
   credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
@@ -1924,6 +1979,13 @@ model Task {
   lastError           String?
   lastFailedAttemptAt DateTime?
   referenceUid        String?
+
+  // unique index on referenceUid,type to avoid duplicate tasks
+  @@unique([referenceUid, type])
+  // for finding succeeded tasks
+  @@index([succeededAt])
+  // for finding tasks that are scheduled to be executed
+  @@index([scheduledAt, succeededAt])
 }
 
 enum SMSLockState {
@@ -2267,7 +2329,7 @@ model InternalNotePreset {
   id                 Int     @id @default(autoincrement())
   name               String
   cancellationReason String?
-  team               Team    @relation(fields: [teamId], references: [id])
+  team               Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId             Int
 
   createdAt           DateTime              @default(now())
@@ -2312,15 +2374,15 @@ model FilterSegment {
 }
 
 model UserFilterSegmentPreference {
-  id              Int      @id @default(autoincrement())
+  id              Int            @id @default(autoincrement())
   userId          Int
   tableIdentifier String
-  segmentId       Int
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  segment FilterSegment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+  segmentId       Int?
+  systemSegmentId String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  segment         FilterSegment? @relation(fields: [segmentId], references: [id], onDelete: Cascade)
 
   @@unique([userId, tableIdentifier])
   @@index([userId])
@@ -2396,4 +2458,74 @@ model RolePermission {
   @@index([roleId])
   // TODO: come back to this with indexs.
   @@index([action])
+}
+
+enum PhoneNumberSubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+  TRIALING
+  UNPAID
+}
+
+// Cal AI Voice Agent
+model Agent {
+  id   String @id @default(uuid())
+  name String
+
+  // Either user-owned OR team-owned
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId Int?
+  team   Team? @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  // Provider-specific agent ID (e.g., Retell AI agent ID)
+  providerAgentId String @unique
+
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  inboundPhoneNumbers  CalAiPhoneNumber[] @relation("InboundAgent")
+  outboundPhoneNumbers CalAiPhoneNumber[] @relation("OutboundAgent")
+  workflowStep         WorkflowStep?
+
+  @@index([userId])
+  @@index([teamId])
+}
+
+model CalAiPhoneNumber {
+  id Int @id @default(autoincrement())
+
+  // Either user-owned OR team-owned
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId Int?
+  team   Team? @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  phoneNumber String @unique
+  provider    String
+
+  // Provider-specific phone number ID (e.g., Retell phone number ID)
+  providerPhoneNumberId String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  stripeCustomerId     String?
+  stripeSubscriptionId String?                        @unique
+  subscriptionStatus   PhoneNumberSubscriptionStatus?
+
+  // Agent associations
+  inboundAgentId  String?
+  inboundAgent    Agent?  @relation("InboundAgent", fields: [inboundAgentId], references: [id], onDelete: SetNull)
+  outboundAgentId String?
+  outboundAgent   Agent?  @relation("OutboundAgent", fields: [outboundAgentId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([teamId])
+  @@index([inboundAgentId])
+  @@index([outboundAgentId])
 }

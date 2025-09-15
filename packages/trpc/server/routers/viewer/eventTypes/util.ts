@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import type { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import type { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { PeriodType } from "@calcom/prisma/enums";
@@ -14,7 +14,7 @@ import { TRPCError } from "@trpc/server";
 import authedProcedure from "../../../procedures/authedProcedure";
 import type { TUpdateInputSchema } from "./types";
 
-type EventType = Awaited<ReturnType<typeof EventTypeRepository.findAllByUpId>>[number];
+type EventType = Awaited<ReturnType<EventTypeRepository["findAllByUpId"]>>[number];
 
 export const eventOwnerProcedure = authedProcedure
   .input(
@@ -190,6 +190,7 @@ type Host = {
   priority?: number | null | undefined;
   weight?: number | null | undefined;
   scheduleId?: number | null | undefined;
+  groupId: string | null;
 };
 
 type User = {

@@ -182,9 +182,9 @@ describe("Organizations Teams Routing Forms Responses", () => {
           isFallback: false,
         },
         {
-          id: "route-1",
+          id: "fallback-route",
           queryValue: {
-            id: "route-1",
+            id: "fallback-route",
             type: "group",
             children1: {},
           },

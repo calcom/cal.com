@@ -22,6 +22,9 @@ const initialData: AppFlags = {
   "use-api-v2-for-team-slots": false,
   pbac: false,
   "restriction-schedule": false,
+  "team-booking-page-cache": false,
+  "cal-ai-voice-agents": false,
+  "tiered-support-chat": false,
 };
 
 if (process.env.NEXT_PUBLIC_IS_E2E) {

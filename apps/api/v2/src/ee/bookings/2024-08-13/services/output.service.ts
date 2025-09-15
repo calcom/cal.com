@@ -68,6 +68,7 @@ type DatabaseBooking = Booking & {
   eventType: {
     id: number;
     slug: string;
+    seatsShowAttendees?: boolean | null;
   } | null;
   attendees: {
     name: string;
@@ -90,7 +91,7 @@ type DatabaseMetadata = z.infer<typeof bookingMetadataSchema>;
 export class OutputBookingsService_2024_08_13 {
   constructor(private readonly bookingsRepository: BookingsRepository_2024_08_13) {}
 
-  getOutputBooking(databaseBooking: DatabaseBooking) {
+  async getOutputBooking(databaseBooking: DatabaseBooking) {
     const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
     const dateEnd = DateTime.fromISO(databaseBooking.endTime.toISOString());
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
@@ -101,6 +102,14 @@ export class OutputBookingsService_2024_08_13 {
     );
     const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
+    const rescheduledToInfo = databaseBooking.rescheduled
+      ? await this.getRescheduledToInfo(databaseBooking.uid)
+      : undefined;
+
+    const rescheduledToUid = rescheduledToInfo?.uid;
+    const rescheduledByEmail = databaseBooking.rescheduled
+      ? rescheduledToInfo?.rescheduledBy
+      : databaseBooking.rescheduledBy;
 
     const booking = {
       id: databaseBooking.id,
@@ -113,7 +122,6 @@ export class OutputBookingsService_2024_08_13 {
         databaseBooking.status === "CANCELLED" ? databaseBooking.cancellationReason : undefined,
       cancelledByEmail: databaseBooking.status === "CANCELLED" ? databaseBooking.cancelledBy : undefined,
       reschedulingReason: bookingResponses?.rescheduledReason,
-      rescheduledByEmail: databaseBooking.rescheduledBy || undefined,
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
       start: databaseBooking.startTime,
       end: databaseBooking.endTime,
@@ -138,6 +146,8 @@ export class OutputBookingsService_2024_08_13 {
       updatedAt: databaseBooking.updatedAt,
       rating: databaseBooking.rating,
       icsUid: databaseBooking.iCalUID,
+      rescheduledToUid,
+      rescheduledByEmail,
     };
 
     const bookingTransformed = plainToClass(BookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
@@ -147,9 +157,18 @@ export class OutputBookingsService_2024_08_13 {
     return bookingTransformed;
   }
 
+  async getRescheduledToInfo(bookingUid: string): Promise<{ uid?: string; rescheduledBy?: string | null }> {
+    const rescheduledTo = await this.bookingsRepository.getByFromReschedule(bookingUid);
+    return {
+      uid: rescheduledTo?.uid,
+      rescheduledBy: rescheduledTo?.rescheduledBy,
+    };
+  }
+
   getUserDefinedMetadata(databaseMetadata: DatabaseMetadata) {
     if (databaseMetadata === null) return {};
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { videoCallUrl, ...userDefinedMetadata } = databaseMetadata;
 
     return userDefinedMetadata;
@@ -209,7 +228,6 @@ export class OutputBookingsService_2024_08_13 {
         databaseBooking.status === "CANCELLED" ? databaseBooking.cancellationReason : undefined,
       cancelledByEmail: databaseBooking.status === "CANCELLED" ? databaseBooking.cancelledBy : undefined,
       reschedulingReason: bookingResponses?.rescheduledReason,
-      rescheduledByEmail: databaseBooking.rescheduledBy || undefined,
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
       start: databaseBooking.startTime,
       end: databaseBooking.endTime,
@@ -246,20 +264,31 @@ export class OutputBookingsService_2024_08_13 {
     return bookingTransformed;
   }
 
-  getOutputCreateSeatedBooking(
+  async getOutputCreateSeatedBooking(
     databaseBooking: DatabaseBooking,
     seatUid: string
-  ): CreateSeatedBookingOutput_2024_08_13 {
-    const getSeatedBookingOutput = this.getOutputSeatedBooking(databaseBooking);
+  ): Promise<CreateSeatedBookingOutput_2024_08_13> {
+    const getSeatedBookingOutput = await this.getOutputSeatedBooking(
+      databaseBooking,
+      !!databaseBooking.eventType?.seatsShowAttendees
+    );
     return { ...getSeatedBookingOutput, seatUid };
   }
 
-  getOutputSeatedBooking(databaseBooking: DatabaseBooking) {
+  async getOutputSeatedBooking(databaseBooking: DatabaseBooking, showAttendees: boolean) {
     const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
     const dateEnd = DateTime.fromISO(databaseBooking.endTime.toISOString());
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
     const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
+    const rescheduledToInfo = databaseBooking.rescheduled
+      ? await this.getRescheduledToInfo(databaseBooking.uid)
+      : undefined;
+
+    const rescheduledToUid = rescheduledToInfo?.uid;
+    const rescheduledByEmail = databaseBooking.rescheduled
+      ? rescheduledToInfo?.rescheduledBy
+      : databaseBooking.rescheduledBy;
 
     const booking = {
       id: databaseBooking.id,
@@ -286,46 +315,50 @@ export class OutputBookingsService_2024_08_13 {
       updatedAt: databaseBooking.updatedAt,
       rating: databaseBooking.rating,
       icsUid: databaseBooking.iCalUID,
+      rescheduledToUid,
+      rescheduledByEmail,
     };
 
     const parsed = plainToClass(GetSeatedBookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
 
     // note(Lauris): I don't know why plainToClass erases booking.attendees[n].responses so attaching manually
-    parsed.attendees = databaseBooking.attendees.map((attendee) => {
-      const { responses } = safeParse(
-        seatedBookingDataSchema,
-        attendee.bookingSeat?.data,
-        defaultSeatedBookingData,
-        false
-      );
+    parsed.attendees = showAttendees
+      ? databaseBooking.attendees.map((attendee) => {
+          const { responses } = safeParse(
+            seatedBookingDataSchema,
+            attendee.bookingSeat?.data,
+            defaultSeatedBookingData,
+            false
+          );
 
-      const attendeeData = {
-        name: attendee.name,
-        email: attendee.email,
-        timeZone: attendee.timeZone,
-        language: attendee.locale,
-        absent: !!attendee.noShow,
-        seatUid: attendee.bookingSeat?.referenceUid,
-        bookingFieldsResponses: {},
-      };
-      const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
-      attendeeParsed.bookingFieldsResponses = responses || {};
-      attendeeParsed.metadata = safeParse(
-        seatedBookingMetadataSchema,
-        attendee.bookingSeat?.metadata,
-        defaultSeatedBookingMetadata,
-        false
-      );
-      // note(Lauris): as of now email is not returned for privacy
-      delete attendeeParsed.bookingFieldsResponses.email;
+          const attendeeData = {
+            name: attendee.name,
+            email: attendee.email,
+            timeZone: attendee.timeZone,
+            language: attendee.locale,
+            absent: !!attendee.noShow,
+            seatUid: attendee.bookingSeat?.referenceUid,
+            bookingFieldsResponses: {},
+          };
+          const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
+          attendeeParsed.bookingFieldsResponses = responses || {};
+          attendeeParsed.metadata = safeParse(
+            seatedBookingMetadataSchema,
+            attendee.bookingSeat?.metadata,
+            defaultSeatedBookingMetadata,
+            false
+          );
+          // note(Lauris): as of now email is not returned for privacy
+          delete attendeeParsed.bookingFieldsResponses.email;
 
-      return attendeeParsed;
-    });
+          return attendeeParsed;
+        })
+      : [];
 
     return parsed;
   }
 
-  async getOutputRecurringSeatedBookings(bookingsIds: number[]) {
+  async getOutputRecurringSeatedBookings(bookingsIds: number[], showAttendees: boolean) {
     const transformed = [];
 
     for (const bookingId of bookingsIds) {
@@ -335,7 +368,7 @@ export class OutputBookingsService_2024_08_13 {
         throw new Error(`Booking with id=${bookingId} was not found in the database`);
       }
 
-      transformed.push(this.getOutputRecurringSeatedBooking(databaseBooking));
+      transformed.push(this.getOutputRecurringSeatedBooking(databaseBooking, showAttendees));
     }
 
     return transformed.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
@@ -360,11 +393,14 @@ export class OutputBookingsService_2024_08_13 {
     databaseBooking: DatabaseBooking,
     seatUid: string
   ): CreateRecurringSeatedBookingOutput_2024_08_13 {
-    const getRecurringSeatedBookingOutput = this.getOutputRecurringSeatedBooking(databaseBooking);
+    const getRecurringSeatedBookingOutput = this.getOutputRecurringSeatedBooking(
+      databaseBooking,
+      !!databaseBooking.eventType?.seatsShowAttendees
+    );
     return { ...getRecurringSeatedBookingOutput, seatUid };
   }
 
-  getOutputRecurringSeatedBooking(databaseBooking: DatabaseBooking) {
+  getOutputRecurringSeatedBooking(databaseBooking: DatabaseBooking, showAttendees: boolean) {
     const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
     const dateEnd = DateTime.fromISO(databaseBooking.endTime.toISOString());
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
@@ -404,35 +440,37 @@ export class OutputBookingsService_2024_08_13 {
     });
 
     // note(Lauris): I don't know why plainToClass erases booking.attendees[n].responses so attaching manually
-    parsed.attendees = databaseBooking.attendees.map((attendee) => {
-      const { responses } = safeParse(
-        seatedBookingDataSchema,
-        attendee.bookingSeat?.data,
-        defaultSeatedBookingData,
-        false
-      );
+    parsed.attendees = showAttendees
+      ? databaseBooking.attendees.map((attendee) => {
+          const { responses } = safeParse(
+            seatedBookingDataSchema,
+            attendee.bookingSeat?.data,
+            defaultSeatedBookingData,
+            false
+          );
 
-      const attendeeData = {
-        name: attendee.name,
-        email: attendee.email,
-        timeZone: attendee.timeZone,
-        language: attendee.locale,
-        absent: !!attendee.noShow,
-        seatUid: attendee.bookingSeat?.referenceUid,
-        bookingFieldsResponses: {},
-      };
-      const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
-      attendeeParsed.bookingFieldsResponses = responses || {};
-      attendeeParsed.metadata = safeParse(
-        seatedBookingMetadataSchema,
-        attendee.bookingSeat?.metadata,
-        defaultSeatedBookingMetadata,
-        false
-      );
-      // note(Lauris): as of now email is not returned for privacy
-      delete attendeeParsed.bookingFieldsResponses.email;
-      return attendeeParsed;
-    });
+          const attendeeData = {
+            name: attendee.name,
+            email: attendee.email,
+            timeZone: attendee.timeZone,
+            language: attendee.locale,
+            absent: !!attendee.noShow,
+            seatUid: attendee.bookingSeat?.referenceUid,
+            bookingFieldsResponses: {},
+          };
+          const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
+          attendeeParsed.bookingFieldsResponses = responses || {};
+          attendeeParsed.metadata = safeParse(
+            seatedBookingMetadataSchema,
+            attendee.bookingSeat?.metadata,
+            defaultSeatedBookingMetadata,
+            false
+          );
+          // note(Lauris): as of now email is not returned for privacy
+          delete attendeeParsed.bookingFieldsResponses.email;
+          return attendeeParsed;
+        })
+      : [];
 
     return parsed;
   }

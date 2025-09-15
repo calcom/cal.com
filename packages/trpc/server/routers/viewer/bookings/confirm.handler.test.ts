@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Bring this test back with the correct setup (no illegal imports)
-import { describe, it, beforeEach, vi, expect } from "vitest";
+import { describe, beforeEach, vi, expect, test } from "vitest";
 
 import { BookingStatus } from "@calcom/prisma/enums";
 
@@ -12,9 +12,12 @@ describe.skip("confirmHandler", () => {
   beforeEach(() => {
     // Reset all mocks before each test
     vi.clearAllMocks();
+    // mockNoTranslations();
   });
 
-  it("should successfully confirm booking when event type doesn't have any default location", async () => {
+  test("should successfully confirm booking when event type doesn't have any default location", async ({
+    emails,
+  }) => {
     const attendeeUser = getOrganizer({
       email: "test@example.com",
       name: "test name",
@@ -46,6 +49,15 @@ describe.skip("confirmHandler", () => {
             appId: null,
           },
         ],
+        workflows: [
+          {
+            userId: organizer.id,
+            trigger: "NEW_EVENT",
+            action: "EMAIL_HOST",
+            template: "REMINDER",
+            activeOn: [1],
+          },
+        ],
         eventTypes: [
           {
             id: 1,
@@ -72,6 +84,7 @@ describe.skip("confirmHandler", () => {
             location: "integrations:daily",
             attendees: [attendeeUser],
             responses: { name: attendeeUser.name, email: attendeeUser.email, guests: [] },
+            userPrimaryEmail: organizer.email,
           },
         ],
         organizer,
@@ -98,5 +111,93 @@ describe.skip("confirmHandler", () => {
     });
 
     expect(res?.status).toBe(BookingStatus.ACCEPTED);
+    expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
+  });
+
+  test("should trigger BOOKING_REJECTED workflow when booking is rejected", async ({ emails }) => {
+    const attendeeUser = getOrganizer({
+      email: "test@example.com",
+      name: "test name",
+      id: 102,
+      schedules: [TestData.schedules.IstWorkHours],
+    });
+
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      schedules: [TestData.schedules.IstWorkHours],
+    });
+
+    const uidOfBooking = "n5Wv3eHgconAED2j4gcVhP";
+    const iCalUID = `${uidOfBooking}@Cal.com`;
+
+    const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+
+    await createBookingScenario(
+      getScenarioData({
+        workflows: [
+          {
+            userId: organizer.id,
+            trigger: "NEW_EVENT",
+            action: "EMAIL_HOST",
+            template: "REMINDER",
+            activeOn: [1],
+          },
+        ],
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 15,
+            length: 15,
+            locations: [],
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        bookings: [
+          {
+            id: 101,
+            uid: uidOfBooking,
+            eventTypeId: 1,
+            status: BookingStatus.PENDING,
+            startTime: `${plus1DateString}T05:00:00.000Z`,
+            endTime: `${plus1DateString}T05:15:00.000Z`,
+            references: [],
+            iCalUID,
+            location: "integrations:daily",
+            attendees: [attendeeUser],
+            responses: { name: attendeeUser.name, email: attendeeUser.email, guests: [] },
+            userPrimaryEmail: organizer.email,
+          },
+        ],
+        organizer,
+        apps: [TestData.apps["daily-video"]],
+      })
+    );
+
+    mockSuccessfulVideoMeetingCreation({
+      metadataLookupKey: "dailyvideo",
+    });
+
+    const ctx = {
+      user: {
+        id: organizer.id,
+        name: organizer.name,
+        timeZone: organizer.timeZone,
+        username: organizer.username,
+      } as NonNullable<TrpcSessionUser>,
+    };
+
+    const res = await confirmHandler({
+      ctx,
+      input: { bookingId: 101, confirmed: false, reason: "Testing rejection" },
+    });
+
+    expect(res?.status).toBe(BookingStatus.REJECTED);
+    expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
   });
 });

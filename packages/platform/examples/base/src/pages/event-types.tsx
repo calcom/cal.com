@@ -2,8 +2,9 @@ import { Navbar } from "@/components/Navbar";
 import { Inter } from "next/font/google";
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 
+import type { EventSettingsFromRef } from "@calcom/atoms";
 import {
   useEventTypes,
   useTeamEventTypes,
@@ -16,8 +17,31 @@ const inter = Inter({ subsets: ["latin"] });
 
 export default function Bookings(props: { calUsername: string; calEmail: string }) {
   const [eventTypeId, setEventTypeId] = useState<number | null>(null);
-  const [isTeamEvent, setIsTeamEvent] = useState<boolean>(false);
+  const [_isTeamEvent, setIsTeamEvent] = useState<boolean>(false);
   const router = useRouter();
+  const eventTypeRef = useRef<EventSettingsFromRef>(null);
+
+  const handleFormStateChange = useCallback((formState: unknown) => {
+    console.log(formState, "formStateeeeee");
+  }, []);
+
+  const handleValidate = async () => {
+    const result = await eventTypeRef.current?.validateForm();
+    console.log("Validation result:", result);
+  };
+
+  const handleSubmit = () => {
+    eventTypeRef.current?.handleFormSubmit({
+      onSuccess: () => {
+        console.log("Event type updated successfully");
+        // Additional success handling logic here
+      },
+      onError: (error) => {
+        console.error("Error updating event type:", error);
+        // Additional error handling logic here
+      },
+    });
+  };
   const { isLoading: isLoadingEvents, data: eventTypes, refetch } = useEventTypes(props.calUsername);
   const { data: teams } = useTeams();
   const {
@@ -49,13 +73,14 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
 
                 return (
                   <div
+                    data-testid="event-type-card"
                     onClick={() => {
                       setEventTypeId(event.id);
                       setIsTeamEvent(false);
                     }}
                     className="mx-10 w-[80vw] cursor-pointer rounded-md border-[0.8px] border-black px-10 py-4"
                     key={event.id}>
-                    <h1 className="text-lg font-semibold">{formatEventSlug}</h1>
+                    <h1 className="text-lg font-semibold">{event.title}</h1>
                     <p>{`/${event.slug}`}</p>
                     <span className="border-none bg-gray-800 px-2 text-white">{event?.lengthInMinutes}</span>
                   </div>
@@ -77,13 +102,14 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
 
                 return (
                   <div
+                    data-testid="team-event-type-card"
                     onClick={() => {
                       setEventTypeId(event.id);
                       setIsTeamEvent(true);
                     }}
                     className="mx-10 w-[80vw] cursor-pointer rounded-md border-[0.8px] border-black px-10 py-4"
                     key={event.id}>
-                    <h1 className="text-lg font-semibold">{formatEventSlug}</h1>
+                    <h1 className="text-lg font-semibold">{event.title}</h1>
                     <p>{`/${event.slug}`}</p>
                     <span className="border-none bg-gray-800 px-2 text-white">{event?.lengthInMinutes}</span>
                   </div>
@@ -93,7 +119,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
           </div>
         )}
         {eventTypeId && (
-          <div>
+          <div data-testid="event-type-settings-atom">
             <EventTypeSettings
               customClassNames={{
                 atomsWrapper: "!w-[50vw] !m-auto",
@@ -725,9 +751,10 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
               allowDelete={true}
               id={eventTypeId}
               tabs={["setup", "limits", "recurring", "advanced", "availability", "team", "payments"]}
-              onSuccess={(eventType) => {
+              onSuccess={(_eventType) => {
                 setEventTypeId(null);
                 refetch();
+                refetchTeamEvents();
               }}
               onError={(eventType, error) => {
                 console.log(eventType);
@@ -739,13 +766,28 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                 setEventTypeId(null);
               }}
               onDeleteError={console.error}
+              onFormStateChange={handleFormStateChange}
+              ref={eventTypeRef}
             />
+
+            <div className="mt-4 flex justify-center gap-4">
+              <button
+                onClick={handleValidate}
+                className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">
+                Validate Form
+              </button>
+              <button
+                onClick={handleSubmit}
+                className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600">
+                Submit Form
+              </button>
+            </div>
           </div>
         )}
 
         {!eventTypeId && (
           <div className="mt-8 flex flex-row items-center justify-center gap-24">
-            <div className="flex w-[30vw] flex-col gap-2">
+            <div data-testid="create-event-type-atom" className="flex w-[30vw] flex-col gap-2">
               <h1 className="font-semibold">Create Event Type</h1>
               <CreateEventType
                 customClassNames={{
@@ -758,7 +800,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
               />
             </div>
 
-            <div className="flex w-[30vw] flex-col gap-2">
+            <div data-testid="create-team-event-type-atom" className="flex w-[30vw] flex-col gap-2">
               <h1 className="font-semibold">Create Team Event Type</h1>
               {teams?.[0]?.id && (
                 <CreateEventType

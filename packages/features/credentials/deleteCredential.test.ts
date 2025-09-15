@@ -5,10 +5,10 @@ import {
 
 import { describe, test, expect, beforeEach } from "vitest";
 
-import { AppRepository } from "@calcom/lib/server/repository/app";
+import { PrismaAppRepository } from "@calcom/lib/server/repository/PrismaAppRepository";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { DestinationCalendarRepository } from "@calcom/lib/server/repository/destinationCalendar";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 
@@ -56,12 +56,13 @@ describe("deleteCredential", () => {
         },
       ]);
 
-      await AppRepository.seedApp("zoomvideo");
+      await PrismaAppRepository.seedApp("zoomvideo");
 
       await setupCredential({ userId: user.id, type: "zoom_video", appId: "zoom" });
 
       await handleDeleteCredential({ userId: user.id, userMetadata: user.metadata, credentialId: 123 });
-      const eventTypeQuery = await EventTypeRepository.findAllByUserId({ userId: user.id });
+      const eventTypeRepo = new EventTypeRepository(prisma);
+      const eventTypeQuery = await eventTypeRepo.findAllByUserId({ userId: user.id });
 
       // Ensure that the event type with the deleted app was converted back to daily
       const changedEventType = eventTypeQuery.find((eventType) => eventType.id === 1)?.locations;
@@ -86,7 +87,7 @@ describe("deleteCredential", () => {
         },
       ]);
 
-      await AppRepository.seedApp("googlecalendar");
+      await PrismaAppRepository.seedApp("googlecalendar");
 
       const credential = await setupCredential({
         userId: user.id,

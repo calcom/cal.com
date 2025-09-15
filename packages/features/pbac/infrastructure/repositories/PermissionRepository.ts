@@ -5,7 +5,11 @@ import { PermissionMapper } from "../../domain/mappers/PermissionMapper";
 import type { TeamPermissions } from "../../domain/models/Permission";
 import type { IPermissionRepository } from "../../domain/repositories/IPermissionRepository";
 import type { CrudAction, CustomAction } from "../../domain/types/permission-registry";
-import { Resource, type PermissionString } from "../../domain/types/permission-registry";
+import {
+  Resource,
+  type PermissionString,
+  parsePermissionString,
+} from "../../domain/types/permission-registry";
 
 export class PermissionRepository implements IPermissionRepository {
   private client: PrismaClientWithExtensions;
@@ -91,7 +95,7 @@ export class PermissionRepository implements IPermissionRepository {
   }
 
   async checkRolePermission(roleId: string, permission: PermissionString): Promise<boolean> {
-    const [resource, action] = permission.split(".");
+    const { resource, action } = parsePermissionString(permission);
     const hasPermission = await this.client.rolePermission.findFirst({
       where: {
         roleId,
@@ -107,8 +111,13 @@ export class PermissionRepository implements IPermissionRepository {
   }
 
   async checkRolePermissions(roleId: string, permissions: PermissionString[]): Promise<boolean> {
+    // Validate that permissions array is not empty to prevent privilege escalation
+    if (permissions.length === 0) {
+      return false;
+    }
+
     const permissionPairs = permissions.map((p) => {
-      const [resource, action] = p.split(".");
+      const { resource, action } = parsePermissionString(p);
       return { resource, action };
     });
     const resourceActions = permissionPairs.map((p) => [p.resource, p.action]);
@@ -172,5 +181,64 @@ export class PermissionRepository implements IPermissionRepository {
       },
     });
     return teamPermissions.map((p) => p.action as CrudAction | CustomAction);
+  }
+
+  async getResourcePermissionsByRoleId(
+    roleId: string,
+    resource: Resource
+  ): Promise<(CrudAction | CustomAction)[]> {
+    const permissions = await this.client.rolePermission.findMany({
+      where: {
+        roleId,
+        OR: [{ resource }, { resource: Resource.All }],
+      },
+      select: {
+        action: true,
+        resource: true,
+      },
+    });
+    return permissions.map((p) => p.action as CrudAction | CustomAction);
+  }
+
+  async getTeamIdsWithPermission(userId: number, permission: PermissionString): Promise<number[]> {
+    return this.getTeamIdsWithPermissions(userId, [permission]);
+  }
+
+  async getTeamIdsWithPermissions(userId: number, permissions: PermissionString[]): Promise<number[]> {
+    // Validate that permissions array is not empty to prevent privilege escalation
+    if (permissions.length === 0) {
+      return [];
+    }
+
+    const permissionPairs = permissions.map((p) => {
+      const { resource, action } = parsePermissionString(p);
+      return { resource, action };
+    });
+
+    const teamsWithPermission = await this.client.$queryRaw<{ teamId: number }[]>`
+      SELECT DISTINCT m."teamId"
+      FROM "Membership" m
+      INNER JOIN "Role" r ON m."customRoleId" = r.id
+      WHERE m."userId" = ${userId}
+        AND m."accepted" = true
+        AND m."customRoleId" IS NOT NULL
+        AND (
+          SELECT COUNT(*)
+          FROM jsonb_array_elements(${JSON.stringify(permissionPairs)}::jsonb) AS required_perm(perm)
+          WHERE EXISTS (
+            SELECT 1
+            FROM "RolePermission" rp
+            WHERE rp."roleId" = r.id
+              AND (
+                (rp."resource" = '*' AND rp."action" = '*') OR
+                (rp."resource" = '*' AND rp."action" = required_perm.perm->>'action') OR
+                (rp."resource" = required_perm.perm->>'resource' AND rp."action" = '*') OR
+                (rp."resource" = required_perm.perm->>'resource' AND rp."action" = required_perm.perm->>'action')
+              )
+          )
+        ) = ${permissions.length}
+    `;
+
+    return teamsWithPermission.map((team) => team.teamId);
   }
 }

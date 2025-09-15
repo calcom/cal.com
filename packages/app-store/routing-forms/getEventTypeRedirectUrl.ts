@@ -88,7 +88,12 @@ export function getAbsoluteEventTypeRedirectUrl({
     }
   }
 
-  const origin = teamSlugInRedirectUrl ? form.teamOrigin : form.userOrigin;
+  // We want origin to be the WEBAPP_URL as in E2E the org domain won't exist. E2E fake request from org domain using doOnOrgDomain
+  const origin = process.env.NEXT_PUBLIC_IS_E2E
+    ? WEBAPP_URL
+    : teamSlugInRedirectUrl
+    ? form.teamOrigin
+    : form.userOrigin;
 
   return `${origin}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
 }

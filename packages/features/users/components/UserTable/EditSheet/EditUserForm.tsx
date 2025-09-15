@@ -107,9 +107,22 @@ export function EditForm({
     }
   );
 
-  const customRoles = teamRoles?.filter((role) => role.type === "CUSTOM") ?? [];
-
   const membershipOptions = useMemo<MembershipOption[]>(() => {
+    // Add custom roles if they exist
+    if (teamRoles?.length > 0) {
+      const roles: MembershipOption[] = [];
+      // Add custom roles
+      teamRoles.forEach((role) => {
+        roles.push({
+          value: role.id,
+          label: role.name,
+          isCustomRole: true,
+        });
+      });
+
+      return roles;
+    }
+
     const options: MembershipOption[] = [
       {
         value: MembershipRole.MEMBER,
@@ -128,20 +141,8 @@ export function EditForm({
       });
     }
 
-    // Add custom roles if they exist
-    if (customRoles.length > 0) {
-      // Add custom roles
-      customRoles.forEach((role) => {
-        options.push({
-          value: role.id,
-          label: role.name,
-          isCustomRole: true,
-        });
-      });
-    }
-
     return options;
-  }, [t, isOwner, customRoles]);
+  }, [t, isOwner, teamRoles]);
 
   const mutation = trpc.viewer.organizations.updateUser.useMutation({
     onSuccess: () => {
@@ -219,7 +220,7 @@ export function EditForm({
           <TextAreaField label={t("about")} {...form.register("bio")} className="min-h-24 mb-6" />
           <div className="mb-6">
             <Label>{t("role")}</Label>
-            {customRoles.length > 0 ? (
+            {teamRoles?.length > 0 ? (
               <SelectField
                 defaultValue={membershipOptions.find(
                   (option) => option.value === (selectedUser?.role ?? "MEMBER")

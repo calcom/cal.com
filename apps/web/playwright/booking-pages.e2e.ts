@@ -4,7 +4,7 @@ import { JSDOM } from "jsdom";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { randomString } from "@calcom/lib/random";
-import { SchedulingType } from "@calcom/prisma/client";
+import { SchedulingType } from "@calcom/prisma/enums";
 import type { Schedule, TimeRange } from "@calcom/types/schedule";
 
 import { test, todo } from "./lib/fixtures";
@@ -155,7 +155,8 @@ test.describe("pro user", () => {
     await pro.apiLogin();
     await page.goto("/bookings/upcoming");
     await page.waitForSelector('[data-testid="bookings"]');
-    await page.locator('[data-testid="edit_booking"]').nth(0).click();
+    // Click the ellipsis menu button to open the dropdown
+    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
     await page.locator('[data-testid="reschedule"]').click();
     await page.waitForURL((url) => {
       const bookingId = url.searchParams.get("rescheduleUid");
@@ -205,6 +206,9 @@ test.describe("pro user", () => {
     await pro.apiLogin();
 
     await page.goto("/bookings/upcoming");
+    // Click the ellipsis menu button to open the dropdown
+    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+    // Click the cancel option in the dropdown
     await page.locator('[data-testid="cancel"]').click();
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking/");
@@ -237,6 +241,9 @@ test.describe("pro user", () => {
     await pro.apiLogin();
 
     await page.goto("/bookings/upcoming");
+    // Click the ellipsis menu button to open the dropdown
+    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+    // Click the cancel option in the dropdown
     await page.locator('[data-testid="cancel"]').click();
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking/");
@@ -541,9 +548,10 @@ test.describe("Booking round robin event", () => {
     users,
   }) => {
     const [testUser] = users.get();
-    await testUser.apiLogin();
 
     const team = await testUser.getFirstTeamMembership();
+
+    await testUser.apiLogin(`/team/${team.team.slug}`);
 
     // Click first event type (round robin)
     await page.click('[data-testid="event-type-link"]');
@@ -648,9 +656,12 @@ test.describe("Event type with disabled cancellation and rescheduling", () => {
   });
 
   test("Should prevent cancellation and show an error message", async ({ page }) => {
+    const csrfTokenResponse = await page.request.get("/api/csrf");
+    const { csrfToken } = await csrfTokenResponse.json();
     const response = await page.request.post("/api/cancel", {
       data: {
         uid: bookingId,
+        csrfToken,
       },
       headers: {
         "Content-Type": "application/json",
@@ -753,5 +764,33 @@ test.describe("GTM container", () => {
 
     const scriptContent = await injectedScript.textContent();
     expect(scriptContent).toContain("googletagmanager");
+  });
+});
+
+test.describe("Past booking cancellation", () => {
+  test("Cancel button should be hidden for past bookings", async ({ page, users, bookings }) => {
+    const user = await users.create({
+      name: "Test User",
+    });
+
+    await user.apiLogin();
+
+    const pastDate = new Date();
+    pastDate.setDate(pastDate.getDate() - 1);
+    const endDate = new Date(pastDate.getTime() + 30 * 60 * 1000);
+
+    const booking = await bookings.create(user.id, user.username, user.eventTypes[0].id, {
+      title: "Past Meeting",
+      startTime: pastDate,
+      endTime: endDate,
+      status: "ACCEPTED",
+    });
+
+    await page.goto("/bookings/past");
+    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+    await expect(page.locator('[data-testid="cancel"]')).toBeDisabled();
+
+    await page.goto(`/booking/${booking.uid}`);
+    await expect(page.locator('[data-testid="cancel"]')).toBeHidden();
   });
 });

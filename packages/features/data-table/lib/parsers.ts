@@ -18,7 +18,7 @@ export const columnVisibilityParser = parseAsJson(ZColumnVisibility.parse).withD
   DEFAULT_COLUMN_VISIBILITY
 );
 export const columnSizingParser = parseAsJson(ZColumnSizing.parse).withDefault(DEFAULT_COLUMN_SIZING);
-export const segmentIdParser = parseAsInteger.withDefault(-1);
+export const segmentIdParser = parseAsString.withDefault("");
 export const pageIndexParser = parseAsInteger.withDefault(0);
 export const pageSizeParser = parseAsInteger.withDefault(DEFAULT_PAGE_SIZE);
 export const searchTermParser = parseAsString.withDefault("");

@@ -4,12 +4,13 @@ import type { GaxiosResponse } from "googleapis-common";
 import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
 
-import { MeetLocationType } from "@calcom/app-store/locations";
+import { MeetLocationType } from "@calcom/app-store/constants";
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import type { FreeBusyArgs } from "@calcom/features/calendar-cache/calendar-cache.repository.interface";
 import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { uniqueBy } from "@calcom/lib/array";
+import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
@@ -85,10 +86,16 @@ export default class GoogleCalendarService implements Calendar {
     const selectedHostDestinationCalendar = event.destinationCalendar?.find(
       (cal) => cal.credentialId === this.credential.id
     );
+
+    const isOrganizerExempt = ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",")
+      .filter((domain) => domain.trim() !== "")
+      .some((domain) => event.organizer.email.toLowerCase().endsWith(domain.toLowerCase()));
+
     const eventAttendees = event.attendees.map(({ id: _id, ...rest }) => ({
       ...rest,
       responseStatus: "accepted",
     }));
+
     const attendees: calendar_v3.Schema$EventAttendee[] = [
       {
         ...event.organizer,
@@ -100,7 +107,7 @@ export default class GoogleCalendarService implements Calendar {
         // We use || instead of ?? here to handle empty strings
         email: hostExternalCalendarId || selectedHostDestinationCalendar?.externalId || event.organizer.email,
       },
-      ...eventAttendees,
+      ...(event.hideOrganizerEmail && !isOrganizerExempt ? [] : eventAttendees),
     ];
 
     if (event.team?.members) {
@@ -677,7 +684,7 @@ export default class GoogleCalendarService implements Calendar {
     const fromDate = new Date(dateFrom);
     const toDate = new Date(dateTo);
     const oneDayMs = 1000 * 60 * 60 * 24;
-    const diff = Math.floor((toDate.getTime() - fromDate.getTime()) / (oneDayMs));
+    const diff = Math.floor((toDate.getTime() - fromDate.getTime()) / oneDayMs);
 
     // Google API only allows a date range of 90 days for /freebusy
     if (diff <= 90) {
@@ -1019,6 +1026,9 @@ export default class GoogleCalendarService implements Calendar {
       const data = await this.fetchAvailability(parsedArgs);
       await this.setAvailabilityInCache(parsedArgs, data);
     }
+
+    // Update SelectedCalendar.updatedAt for all calendars under this credential
+    await SelectedCalendarRepository.updateManyByCredentialId(this.credential.id, {});
   }
 
   async createSelectedCalendar(
@@ -1108,6 +1118,20 @@ export default class GoogleCalendarService implements Calendar {
     } catch (error) {
       // should not be reached because Google Cal always has a primary cal
       logger.error("Error getting primary calendar", { error });
+      throw error;
+    }
+  }
+
+  async getMainTimeZone(): Promise<string> {
+    try {
+      const primaryCalendar = await this.getPrimaryCalendar();
+      if (!primaryCalendar?.timeZone) {
+        this.log.warn("No timezone found in primary calendar, defaulting to UTC");
+        return "UTC";
+      }
+      return primaryCalendar.timeZone;
+    } catch (error) {
+      this.log.error("Error getting main timezone from Google Calendar", { error });
       throw error;
     }
   }

@@ -25,9 +25,9 @@ export const getAllCreditsHandler = async ({ ctx, input }: GetAllCreditsOptions)
     }
   } else {
     //if user is part of team, don't return any credits if teamId is not given
-    const memberships = await MembershipRepository.findAllAcceptedMemberships(ctx.user.id);
+    const memberships = await MembershipRepository.findAllAcceptedPublishedTeamMemberships(ctx.user.id);
 
-    if (memberships.length > 0) {
+    if (memberships && memberships.length > 0) {
       return null;
     }
   }

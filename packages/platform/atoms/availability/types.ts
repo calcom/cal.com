@@ -28,4 +28,26 @@ export type scheduleClassNames = {
   timeRangeField?: string;
   labelAndSwitchContainer?: string;
   scheduleContainer?: string;
+  timePicker?: {
+    container?: string;
+    valueContainer?: string;
+    value?: string;
+    input?: string;
+    dropdown?: string;
+  };
 };
+
+export type AvailabilityFormValidationResult = {
+  isValid: boolean;
+  errors: Record<string, unknown>;
+};
+
+export interface AvailabilitySettingsFormCallbacks {
+  onSuccess?: () => void;
+  onError?: (error: Error) => void;
+}
+
+export interface AvailabilitySettingsFormRef {
+  validateForm: () => Promise<AvailabilityFormValidationResult>;
+  handleFormSubmit: (callbacks?: AvailabilitySettingsFormCallbacks) => void;
+}
