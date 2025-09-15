@@ -2,6 +2,8 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { Injectable } from "@nestjs/common";
 import { v4 as uuidv4 } from "uuid";
 
+import type { Prisma } from "@calcom/prisma/client";
+
 @Injectable()
 export class ProfilesRepository {
   constructor(private readonly dbRead: PrismaReadService) {}
@@ -27,6 +29,18 @@ export class ProfilesRepository {
         userId,
         username: userOrgUsername,
       },
+    });
+  }
+
+  async updateProfile(orgId: number, userId: number, body: Prisma.ProfileUpdateInput) {
+    return this.dbRead.prisma.profile.update({
+      where: {
+        userId_organizationId: {
+          userId,
+          organizationId: orgId,
+        },
+      },
+      data: body,
     });
   }
 }

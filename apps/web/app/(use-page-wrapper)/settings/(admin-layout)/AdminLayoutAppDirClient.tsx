@@ -12,7 +12,7 @@ export type AdminLayoutProps = {
   children: React.ReactNode;
   userRole: UserPermissionRole | "INACTIVE_ADMIN" | undefined;
 } & ComponentProps<typeof Shell>;
-export default function AdminLayoutAppDirClient({ userRole, children }: AdminLayoutProps) {
+export default function AdminLayoutAppDirClient({ children }: AdminLayoutProps) {
   const pathname = usePathname();
 
   const isAppsPage = pathname?.startsWith("/settings/admin/apps");

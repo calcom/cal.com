@@ -10,13 +10,12 @@ import * as request from "supertest";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
-import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import {
+import type {
   CreateScheduleInput_2024_06_11,
   CreateScheduleOutput_2024_06_11,
   GetScheduleOutput_2024_06_11,
@@ -26,7 +25,7 @@ import {
   UpdateScheduleInput_2024_06_11,
   UpdateScheduleOutput_2024_06_11,
 } from "@calcom/platform-types";
-import { User, Team, Membership, Profile } from "@calcom/prisma/client";
+import type { User, Team, Membership, Profile } from "@calcom/prisma/client";
 
 describe("Organizations Schedules Endpoints", () => {
   describe("User lacks required role", () => {
@@ -117,14 +116,11 @@ describe("Organizations Schedules Endpoints", () => {
     let profileRepositoryFixture: ProfileRepositoryFixture;
 
     const userEmail = `organizations-schedules-admin-${randomString()}@api.com`;
-    const userEmail2 = `organizations-schedules-member-${randomString()}@api.com`;
+
     let user: User;
-    let user2: User;
     let org: Team;
     let membership: Membership;
-    let membership2: Membership;
     let profile: Profile;
-    let profile2: Profile;
 
     let createdSchedule: ScheduleOutput_2024_06_11;
 

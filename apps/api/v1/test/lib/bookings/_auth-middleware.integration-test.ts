@@ -1,10 +1,10 @@
-import prismock from "../../../../../../tests/libs/__mocks__/prisma";
-
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, it, expect, test } from "vitest";
+import { describe, it, expect, test, beforeAll, afterAll } from "vitest";
 
+import { prisma } from "@calcom/prisma";
+import type { User, Team, Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import authMiddleware from "../../../pages/api/bookings/[id]/_auth-middleware";
@@ -12,229 +12,206 @@ import authMiddleware from "../../../pages/api/bookings/[id]/_auth-middleware";
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
 
+const createEventTypeEventSelect = {
+  bookings: true,
+} satisfies Prisma.EventTypeSelect;
+
 describe("Booking ownership and access in Middleware", () => {
-  const adminUserId = 1;
-  const ownerUserId = 2;
-  const memberUserId = 3;
-  const orgOwnerUserId = 4;
-  const adminUserEmail = "admin@example.com";
-  const ownerUserEmail = "owner@example.com";
-  const memberUserEmail = "member@example.com";
-  const orgOwnerUserEmail = "org-owner@example.com";
+  let adminUserRef: User;
+  let ownerUserRef: User;
+  let orgOwnerUserRef: User;
+  let memberUserRef: User;
+  let orgRef: Team;
+
+  let createEventResult1: Prisma.EventTypeGetPayload<{ select: typeof createEventTypeEventSelect }>;
+  let createEventResult2: Prisma.EventTypeGetPayload<{ select: typeof createEventTypeEventSelect }>;
+
   // mock user data
-  function buildMockData() {
+  beforeAll(async () => {
     //Create Users
-    prismock.user.create({
+    const createAdminUser = prisma.user.create({
       data: {
-        id: adminUserId,
-        username: "admin",
+        username: `admin-${Date.now()}`,
         name: "Admin User",
-        email: adminUserEmail,
+        email: `admin+${Date.now()}@example.com`,
       },
     });
-    prismock.user.create({
+    const createOwnerUser = prisma.user.create({
       data: {
-        id: ownerUserId,
-        username: "owner",
+        username: `owner-${Date.now()}`,
         name: "Owner User",
-        email: ownerUserEmail,
+        email: `owner+${Date.now()}@example.com`,
       },
     });
-    prismock.user.create({
+    const createOrgOwnerUser = prisma.user.create({
       data: {
-        id: orgOwnerUserId,
-        username: "org-owner",
+        username: `org-owner-${Date.now()}`,
         name: "Org Owner",
-        email: orgOwnerUserEmail,
+        email: `org-owner+${Date.now()}@example.com`,
       },
     });
-    prismock.user.create({
+    const createMemberUser = prisma.user.create({
       data: {
-        id: memberUserId,
-        username: "member",
+        username: `member-${Date.now()}`,
         name: "Member User",
-        email: memberUserEmail,
+        email: `member+${Date.now()}@example.com`,
+      },
+    });
+
+    [adminUserRef, ownerUserRef, orgOwnerUserRef, memberUserRef] = await Promise.all([
+      createAdminUser,
+      createOwnerUser,
+      createOrgOwnerUser,
+      createMemberUser,
+    ]);
+
+    //create Org & Team
+    orgRef = await prisma.team.create({
+      data: {
+        name: "Org",
+        slug: `org-${Date.now()}`,
+        isOrganization: true,
+        children: {
+          create: {
+            name: "Team 1",
+            slug: `team1-${Date.now()}`,
+            members: {
+              createMany: {
+                data: [
+                  {
+                    userId: adminUserRef.id,
+                    role: MembershipRole.ADMIN,
+                    accepted: true,
+                  },
+                  {
+                    userId: ownerUserRef.id,
+                    role: MembershipRole.OWNER,
+                    accepted: true,
+                  },
+                  {
+                    userId: memberUserRef.id,
+                    role: MembershipRole.MEMBER,
+                    accepted: true,
+                  },
+                ],
+              },
+            },
+          },
+        },
+        members: {
+          createMany: {
+            data: [
+              {
+                userId: ownerUserRef.id,
+                role: MembershipRole.OWNER,
+                accepted: true,
+              },
+              {
+                userId: memberUserRef.id,
+                role: MembershipRole.MEMBER,
+                accepted: true,
+              },
+              {
+                userId: adminUserRef.id,
+                role: MembershipRole.MEMBER,
+                accepted: true,
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    //create eventTypes
+    const createEventTypeEvent1 = prisma.eventType.create({
+      data: {
+        title: "Event 1",
+        slug: `event-1-${Date.now()}`,
+        userId: ownerUserRef.id,
+        length: 60,
         bookings: {
           create: {
-            id: 2,
-            uid: "2",
+            uid: `booking-2-${Date.now()}`,
             title: "Booking 2",
-            eventTypeId: 1,
+            userId: memberUserRef.id,
             startTime: "2024-08-30T06:45:00.000Z",
             endTime: "2024-08-30T07:45:00.000Z",
             attendees: {
               create: {
                 name: "Member User",
-                email: memberUserEmail,
+                email: memberUserRef.email,
                 timeZone: "UTC",
               },
             },
           },
         },
       },
+      select: createEventTypeEventSelect,
     });
-    //create team
-    prismock.team.create({
+    const createEventTypeEvent2 = prisma.eventType.create({
       data: {
-        id: 1,
-        name: "Team 1",
-        slug: "team1",
-        members: {
-          createMany: {
-            data: [
-              {
-                userId: adminUserId,
-                role: MembershipRole.ADMIN,
-                accepted: true,
-              },
-              {
-                userId: ownerUserId,
-                role: MembershipRole.OWNER,
-                accepted: true,
-              },
-              {
-                userId: memberUserId,
-                role: MembershipRole.MEMBER,
-                accepted: true,
-              },
-            ],
-          },
-        },
-      },
-    });
-    //create Org
-    prismock.team.create({
-      data: {
-        id: 2,
-        name: "Org",
-        slug: "org",
-        isOrganization: true,
-        children: {
-          connect: {
-            id: 1,
-          },
-        },
-        members: {
-          createMany: {
-            data: [
-              {
-                userId: orgOwnerUserId,
-                role: MembershipRole.OWNER,
-                accepted: true,
-              },
-              {
-                userId: memberUserId,
-                role: MembershipRole.MEMBER,
-                accepted: true,
-              },
-              {
-                userId: ownerUserId,
-                role: MembershipRole.MEMBER,
-                accepted: true,
-              },
-              {
-                userId: adminUserId,
-                role: MembershipRole.MEMBER,
-                accepted: true,
-              },
-            ],
-          },
-        },
-      },
-    });
-    //create eventTypes
-    prismock.eventType.create({
-      data: {
-        id: 1,
-        title: "Event 1",
-        slug: "event",
-        length: 60,
-        bookings: {
-          connect: {
-            id: 2,
-          },
-        },
-      },
-    });
-    prismock.eventType.create({
-      data: {
-        id: 2,
         title: "Event 2",
-        slug: "event",
+        slug: `event-2-${Date.now()}`,
         length: 60,
-        teamId: 1,
+        teamId: orgRef.id,
         bookings: {
-          connect: {
-            id: 1,
-          },
-        },
-      },
-    });
-    //link eventType to teams
-    prismock.eventType.update({
-      where: {
-        id: 1,
-      },
-      data: {
-        owner: {
-          connect: {
-            id: ownerUserId,
-          },
-        },
-      },
-    });
-    prismock.eventType.update({
-      where: {
-        id: 2,
-      },
-      data: {
-        team: {
-          connect: {
-            id: 1,
-          },
-        },
-      },
-    });
-    //link team to org
-    prismock.team.update({
-      where: {
-        id: 1,
-      },
-      data: {
-        parentId: 2,
-      },
-    });
-    // Call Prisma to create booking with attendees
-    prismock.booking.create({
-      data: {
-        id: 1,
-        uid: "1",
-        title: "Booking 1",
-        userId: 1,
-        startTime: "2024-08-30T06:45:00.000Z",
-        endTime: "2024-08-30T07:45:00.000Z",
-        eventTypeId: 2,
-        attendees: {
           create: {
-            name: "Admin User",
-            email: adminUserEmail,
-            timeZone: "UTC",
+            uid: `booking-1-${Date.now()}`,
+            title: "Booking 1",
+            userId: adminUserRef.id,
+            startTime: "2024-08-30T06:45:00.000Z",
+            endTime: "2024-08-30T07:45:00.000Z",
+            attendees: {
+              create: {
+                name: "Admin User",
+                email: adminUserRef.email,
+                timeZone: "UTC",
+              },
+            },
           },
         },
       },
+      select: createEventTypeEventSelect,
     });
-  }
+
+    [createEventResult1, createEventResult2] = await Promise.all([
+      createEventTypeEvent1,
+      createEventTypeEvent2,
+    ]);
+  });
+
+  afterAll(async () => {
+    console.log("Cleaning up org", orgRef.id);
+    await prisma.team.delete({
+      where: {
+        id: orgRef.id,
+      },
+    });
+    console.log("Cleaning up users", [
+      adminUserRef.id,
+      ownerUserRef.id,
+      orgOwnerUserRef.id,
+      memberUserRef.id,
+    ]);
+    await prisma.user.deleteMany({
+      where: {
+        id: {
+          in: [adminUserRef.id, ownerUserRef.id, orgOwnerUserRef.id, memberUserRef.id],
+        },
+      },
+    });
+  });
 
   test("should not throw error for bookings where user is an attendee", async () => {
+    console.log(createEventResult1.bookings[0].id);
     const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "GET",
       query: {
-        id: 2,
+        id: createEventResult1.bookings[0].id,
       },
-      prisma: prismock,
+      prisma,
     });
-    buildMockData();
-    req.userId = memberUserId;
+    req.userId = memberUserRef.id;
     await expect(authMiddleware(req)).resolves.not.toThrow();
   });
 
@@ -244,10 +221,9 @@ describe("Booking ownership and access in Middleware", () => {
       query: {
         id: 1,
       },
-      prisma: prismock,
+      prisma,
     });
-    buildMockData();
-    req.userId = memberUserId;
+    req.userId = memberUserRef.id;
 
     await expect(authMiddleware(req)).rejects.toThrow();
   });
@@ -256,12 +232,11 @@ describe("Booking ownership and access in Middleware", () => {
     const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "GET",
       query: {
-        id: 2,
+        id: createEventResult2.bookings[0].id,
       },
-      prisma: prismock,
+      prisma,
     });
-    buildMockData();
-    req.userId = ownerUserId;
+    req.userId = ownerUserRef.id;
     await expect(authMiddleware(req)).resolves.not.toThrow();
   });
 
@@ -269,21 +244,19 @@ describe("Booking ownership and access in Middleware", () => {
     const { req: req1 } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "GET",
       query: {
-        id: 1,
+        id: createEventResult2.bookings[0].id,
       },
-      prisma: prismock,
+      prisma,
     });
     const { req: req2 } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "GET",
       query: {
-        id: 1,
+        id: createEventResult2.bookings[0].id,
       },
-      prisma: prismock,
+      prisma,
     });
-    buildMockData();
-
-    req1.userId = adminUserId;
-    req2.userId = ownerUserId;
+    req1.userId = adminUserRef.id;
+    req2.userId = ownerUserRef.id;
 
     await expect(authMiddleware(req1)).resolves.not.toThrow();
     await expect(authMiddleware(req2)).resolves.not.toThrow();
@@ -292,13 +265,12 @@ describe("Booking ownership and access in Middleware", () => {
     const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "GET",
       query: {
-        id: 1,
+        id: createEventResult2.bookings[0].id,
       },
-      prisma: prismock,
+      prisma,
     });
-    buildMockData();
 
-    req.userId = memberUserId;
+    req.userId = memberUserRef.id;
 
     await expect(authMiddleware(req)).rejects.toThrow();
   });
@@ -308,10 +280,9 @@ describe("Booking ownership and access in Middleware", () => {
       query: {
         id: 2,
       },
-      prisma: prismock,
+      prisma,
     });
-    buildMockData();
-    req.userId = adminUserId;
+    req.userId = adminUserRef.id;
     req.isSystemWideAdmin = true;
 
     await authMiddleware(req);
@@ -323,12 +294,11 @@ describe("Booking ownership and access in Middleware", () => {
       query: {
         id: 1,
       },
-      prisma: prismock,
+      prisma,
     });
-    buildMockData();
-    req.userId = orgOwnerUserId;
+    req.userId = orgOwnerUserRef.id;
     req.isOrganizationOwnerOrAdmin = true;
 
-    await authMiddleware(req);
+    await expect(authMiddleware(req)).rejects.toThrow();
   });
 });

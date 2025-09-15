@@ -25,8 +25,10 @@ export default function AppCard({
   switchTooltip,
   hideSettingsIcon = false,
   hideAppCardOptions = false,
+  onAppInstallSuccess,
 }: {
   app: AppCardApp;
+  onAppInstallSuccess: () => void;
   description?: React.ReactNode;
   switchChecked?: boolean;
   switchOnClick?: (e: boolean) => void;
@@ -112,6 +114,7 @@ export default function AppCard({
                 appId={app.slug}
                 returnTo={returnTo}
                 teamId={teamId}
+                onAppInstallSuccess={onAppInstallSuccess}
               />
             )}
           </div>

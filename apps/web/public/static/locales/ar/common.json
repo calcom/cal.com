@@ -878,7 +878,7 @@
   "the_action_will_disconnect_phone_number": "سيؤدي هذا الإجراء إلى فصل رقم الهاتف عن الوكيل. لن يتمكن الوكيل من إجراء مكالمات حتى يتم توصيل رقم هاتف جديد.",
   "cal_ai_phone_numbers": "أرقام هواتف Cal AI",
   "connect_phone_number": "توصيل رقم الهاتف",
-  "cal_ai_phone_numbers_description": "إدارة أرقام هواتف Cal AI الخاصة بك",
+  "cal_ai_phone_numbers_description": "إدارة أرقام هواتف الخاصة بك",
   "import_number": "استيراد رقم",
   "this_action_will_also": "سيقوم هذا الإجراء أيضًا بـ:",
   "import_phone_number": "استيراد رقم الهاتف",

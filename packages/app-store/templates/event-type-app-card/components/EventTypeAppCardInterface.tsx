@@ -6,13 +6,18 @@ import { Icon } from "@calcom/ui/components/icon";
 
 import type { appDataSchema } from "../zod";
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ eventType, app }) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
+  eventType,
+  app,
+  onAppInstallSuccess,
+}) {
   const { getAppData, setAppData } = useAppContextWithSchema<typeof appDataSchema>();
   const isSunrise = getAppData("isSunrise");
   const { enabled, updateEnabled } = useIsAppEnabled(app);
 
   return (
     <AppCard
+      onAppInstallSuccess={onAppInstallSuccess}
       app={app}
       switchOnClick={(e) => {
         if (!e) {

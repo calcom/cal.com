@@ -457,7 +457,7 @@ export function AgentConfigurationSheet({
                     {!readOnly && (
                       <AddVariablesDropdown
                         addVariable={addVariableToGeneralPrompt}
-                        variables={DYNAMIC_TEXT_VARIABLES}
+                        variables={[...DYNAMIC_TEXT_VARIABLES, "number_to_call"]}
                         addVariableButtonClassName="border rounded-[10px] py-1 px-1"
                       />
                     )}
@@ -708,11 +708,41 @@ export function AgentConfigurationSheet({
             )}
           </SheetBody>
           <SheetFooter>
-            <Button type="button" color="secondary" onClick={() => onOpenChange(false)}>
+            <div className="mr-auto">
+              <Dropdown>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    color="secondary"
+                    className="rounded-[10px]"
+                    disabled={readOnly}
+                    EndIcon="chevron-down">
+                    {t("test_agent")}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem>
+                    <DropdownItem
+                      type="button"
+                      StartIcon="monitor"
+                      onClick={() => {
+                        setIsWebCallDialogOpen(true);
+                      }}>
+                      {t("web_call")}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </Dropdown>
+            </div>
+            <Button
+              className="justify-center"
+              type="button"
+              color="secondary"
+              onClick={() => onOpenChange(false)}>
               {t("cancel")}
             </Button>
             <Button
               type="button"
+              className="justify-center"
               onClick={agentForm.handleSubmit(handleAgentUpdate)}
               disabled={!agentForm.formState.isDirty || readOnly || updateAgentMutation.isPending}
               loading={updateAgentMutation.isPending}>
@@ -877,7 +907,7 @@ export function AgentConfigurationSheet({
                 </div>
 
                 {showAdvancedFields && (
-                  <div className="space-y-5 rounded-lg bg-white p-4">
+                  <div className="bg-default space-y-5 rounded-lg p-4">
                     <Controller
                       name="sipTrunkAuthUsername"
                       control={phoneNumberForm.control}

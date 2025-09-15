@@ -886,7 +886,7 @@
   "cancel_your_phone_number_subscription": "電話番号のサブスクリプションをキャンセルする",
   "delete_associated_phone_number": "関連付けられた電話番号を削除する",
   "unauthorized_create_workflow": "このワークフローを作成する権限がありません",
-  "import_phone_number_description": "Cal AI Phoneで使用するためにTwilioの電話番号をインポートする",
+  "import_phone_number_description": "Phoneで使用するためにTwilioの電話番号をインポートする",
   "phone_number_cost": "月額${{price}}",
   "buy_new_number": "新しい番号を購入",
   "buy_number_cost_x_per_month": "電話番号の購入は月額${{priceInDollars}}かかります。アクティブな電話番号ごとに毎月課金されます。",

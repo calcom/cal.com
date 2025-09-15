@@ -20,7 +20,7 @@ import { WebhookRepositoryFixture } from "test/fixtures/repository/webhooks.repo
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
-import { EventType, Webhook } from "@calcom/prisma/client";
+import type { EventType, Webhook } from "@calcom/prisma/client";
 
 describe("EventTypes WebhooksController (e2e)", () => {
   let app: INestApplication;
@@ -36,7 +36,6 @@ describe("EventTypes WebhooksController (e2e)", () => {
   let webhookRepositoryFixture: WebhookRepositoryFixture;
 
   let webhook: EventTypeWebhookOutputResponseDto["data"];
-  let webhook2: Webhook;
   let otherWebhook: Webhook;
 
   beforeAll(async () => {
@@ -155,7 +154,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
             eventTypeId: eventType2.id,
           },
         } satisfies EventTypeWebhookOutputResponseDto);
-        webhook2 = res.body.data;
+        //webhook2 = res.body.data;
       });
   });
 

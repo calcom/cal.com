@@ -15,6 +15,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   app,
   eventType,
   eventTypeFormMetadata,
+  onAppInstallSuccess,
 }) {
   const searchParams = useSearchParams();
   /** TODO "pathname" no longer contains square-bracket expressions. Rewrite the code relying on them if required. **/
@@ -32,6 +33,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
 
   return (
     <AppCard
+      onAppInstallSuccess={onAppInstallSuccess}
       returnTo={WEBAPP_URL + asPath}
       app={app}
       switchChecked={requirePayment}

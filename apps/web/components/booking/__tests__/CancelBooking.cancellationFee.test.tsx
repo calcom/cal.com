@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import * as React from "react";
 import { describe, expect, it, vi, beforeAll } from "vitest";
 
-import * as shouldChargeModule from "@calcom/lib/payment/shouldChargeNoShowCancellationFee";
+import * as shouldChargeModule from "@calcom/features/bookings/lib/payment/shouldChargeNoShowCancellationFee";
 
 import CancelBooking from "../CancelBooking";
 
@@ -76,7 +76,7 @@ vi.mock("next/router", () => ({
   }),
 }));
 
-vi.mock("@calcom/lib/payment/shouldChargeNoShowCancellationFee", () => ({
+vi.mock("@calcom/features/bookings/lib/payment/shouldChargeNoShowCancellationFee", () => ({
   shouldChargeNoShowCancellationFee: vi.fn(),
 }));
 

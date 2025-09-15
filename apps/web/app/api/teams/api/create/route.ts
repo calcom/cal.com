@@ -8,7 +8,8 @@ import stripe from "@calcom/features/ee/payments/server/stripe";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { _MembershipModel as Membership, _TeamModel as Team } from "@calcom/prisma/zod";
+import { MembershipSchema } from "@calcom/prisma/zod/modelSchema/MembershipSchema";
+import { TeamSchema } from "@calcom/prisma/zod/modelSchema/TeamSchema";
 
 const querySchema = z.object({
   session_id: z.string().min(1),
@@ -21,8 +22,8 @@ const checkoutSessionMetadataSchema = z.object({
 
 type CheckoutSessionMetadata = z.infer<typeof checkoutSessionMetadataSchema>;
 
-export const schemaTeamReadPublic = Team.omit({});
-export const schemaMembershipPublic = Membership.merge(z.object({ team: Team }).partial());
+export const schemaTeamReadPublic = TeamSchema.omit({});
+export const schemaMembershipPublic = MembershipSchema.merge(z.object({ team: TeamSchema }).partial());
 
 async function handler(request: NextRequest) {
   try {

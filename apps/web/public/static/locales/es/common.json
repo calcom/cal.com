@@ -886,7 +886,7 @@
   "cancel_your_phone_number_subscription": "Cancelar su suscripción de número de teléfono",
   "delete_associated_phone_number": "Eliminar el número de teléfono asociado",
   "unauthorized_create_workflow": "No está autorizado para crear este flujo de trabajo",
-  "import_phone_number_description": "Importe su número de teléfono de Twilio para usar con Cal AI Phone",
+  "import_phone_number_description": "Importe su número de teléfono de Twilio para usar con Phone",
   "phone_number_cost": "${{price}}/mes",
   "buy_new_number": "Comprar nuevo número",
   "buy_number_cost_x_per_month": "Comprar un número de teléfono cuesta ${{priceInDollars}} al mes. Se le cobrará mensualmente por cada número de teléfono activo.",

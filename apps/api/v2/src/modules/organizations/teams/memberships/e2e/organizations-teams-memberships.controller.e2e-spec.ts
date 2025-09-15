@@ -9,7 +9,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { EventType, User } from "@prisma/client";
 import * as request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
@@ -21,8 +20,8 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { ApiSuccessResponse } from "@calcom/platform-types";
-import { Membership, Team } from "@calcom/prisma/client";
+import type { ApiSuccessResponse } from "@calcom/platform-types";
+import type { EventType, User, Membership, Team } from "@calcom/prisma/client";
 
 describe("Organizations Teams Memberships Endpoints", () => {
   describe("User Authentication - User is Org Admin", () => {

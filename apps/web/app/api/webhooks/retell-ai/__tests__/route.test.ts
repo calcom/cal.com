@@ -2,8 +2,9 @@ import type { NextRequest } from "next/server";
 import { Retell } from "retell-sdk";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
 import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
-import type { CalAiPhoneNumber, User, Team } from "@calcom/prisma/client";
+import type { CalAiPhoneNumber, User, Team, Agent } from "@calcom/prisma/client";
 
 import { POST } from "../route";
 
@@ -25,6 +26,7 @@ type RetellWebhookBody = {
     from_number?: string;
     to_number?: string;
     direction?: "inbound" | "outbound";
+    call_type?: string;
     call_status?: string;
     start_timestamp?: number;
     end_timestamp?: number;
@@ -82,6 +84,12 @@ vi.mock("@calcom/features/ee/billing/credit-service", () => ({
 vi.mock("@calcom/lib/server/repository/PrismaPhoneNumberRepository", () => ({
   PrismaPhoneNumberRepository: {
     findByPhoneNumber: vi.fn(),
+  },
+}));
+
+vi.mock("@calcom/lib/server/repository/PrismaAgentRepository", () => ({
+  PrismaAgentRepository: {
+    findByProviderAgentId: vi.fn(),
   },
 }));
 
@@ -681,6 +689,181 @@ describe("Retell AI Webhook Handler", () => {
       const data = await response.json();
       expect(data.success).toBe(false);
       expect(data.message).toContain("Error charging credits for Retell AI call");
+    });
+  });
+
+  describe("Web Call Tests", () => {
+    const mockAgent: Pick<
+      Agent,
+      "id" | "name" | "providerAgentId" | "enabled" | "userId" | "teamId" | "createdAt" | "updatedAt"
+    > = {
+      id: "agent-123",
+      name: "Test Agent",
+      providerAgentId: "agent_5e3e0d29d692172c2c24d8f9a7",
+      enabled: true,
+      userId: 1,
+      teamId: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+      vi.mocked(Retell.verify).mockReturnValue(true);
+    });
+
+    it("should process web call with valid agent and charge credits", async () => {
+      vi.mocked(PrismaAgentRepository.findByProviderAgentId).mockResolvedValue(mockAgent);
+      mockChargeCredits.mockResolvedValue(undefined);
+
+      const body: RetellWebhookBody = {
+        event: "call_analyzed",
+        call: {
+          call_id: "call_bcd94f5a50832873a5fd68cb1aa",
+          call_type: "web_call",
+          agent_id: "agent_5e3e0d29d692172c2c24d8f9a7",
+          call_status: "ended",
+          start_timestamp: 1757673314024,
+          end_timestamp: 1757673321010,
+          call_cost: {
+            total_duration_seconds: 7,
+            combined_cost: 1.3416667,
+          },
+        },
+      };
+
+      const request = createMockRequest(body, "valid-signature");
+      const response = await callPOST(request);
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data.success).toBe(true);
+
+      expect(PrismaAgentRepository.findByProviderAgentId).toHaveBeenCalledWith({
+        providerAgentId: "agent_5e3e0d29d692172c2c24d8f9a7",
+      });
+
+      expect(mockChargeCredits).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 1,
+          teamId: undefined,
+          credits: 4, // 7 seconds = 0.117 minutes * $0.29 = $0.034 = 4 credits (rounded up)
+          callDuration: 7,
+          externalRef: "retell:call_bcd94f5a50832873a5fd68cb1aa",
+        })
+      );
+    });
+
+    it("should handle web call with team agent", async () => {
+      const teamAgent = { ...mockAgent, userId: 2, teamId: 10 };
+      vi.mocked(PrismaAgentRepository.findByProviderAgentId).mockResolvedValue(teamAgent);
+      mockChargeCredits.mockResolvedValue(undefined);
+
+      const body: RetellWebhookBody = {
+        event: "call_analyzed",
+        call: {
+          call_id: "web-call-team",
+          call_type: "web_call",
+          agent_id: "agent_team_123",
+          call_status: "ended",
+          start_timestamp: 1757673314024,
+          call_cost: {
+            total_duration_seconds: 60,
+            combined_cost: 2.0,
+          },
+        },
+      };
+
+      const request = createMockRequest(body, "valid-signature");
+      const response = await callPOST(request);
+
+      expect(response.status).toBe(200);
+      expect(mockChargeCredits).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 2,
+          teamId: 10,
+          credits: 29, // 60 seconds = 1 minute * $0.29 = 29 credits
+          callDuration: 60,
+        })
+      );
+    });
+
+    it("should handle web call without from_number", async () => {
+      vi.mocked(PrismaAgentRepository.findByProviderAgentId).mockResolvedValue(mockAgent);
+      mockChargeCredits.mockResolvedValue(undefined);
+
+      const body: RetellWebhookBody = {
+        event: "call_analyzed",
+        call: {
+          call_id: "web-call-no-phone",
+          agent_id: "agent_5e3e0d29d692172c2c24d8f9a7",
+          call_status: "ended",
+          start_timestamp: 1757673314024,
+          call_cost: {
+            total_duration_seconds: 30,
+            combined_cost: 1.0,
+          },
+        },
+      };
+
+      const request = createMockRequest(body, "valid-signature");
+      const response = await callPOST(request);
+
+      expect(response.status).toBe(200);
+      expect(PrismaAgentRepository.findByProviderAgentId).toHaveBeenCalled();
+      expect(PrismaPhoneNumberRepository.findByPhoneNumber).not.toHaveBeenCalled();
+      expect(mockChargeCredits).toHaveBeenCalled();
+    });
+
+    it("should handle web call with missing agent_id", async () => {
+      const body: RetellWebhookBody = {
+        event: "call_analyzed",
+        call: {
+          call_id: "web-call-no-agent",
+          call_type: "web_call",
+          call_status: "ended",
+          call_cost: {
+            total_duration_seconds: 30,
+            combined_cost: 1.0,
+          },
+        },
+      };
+
+      const request = createMockRequest(body, "valid-signature");
+      const response = await callPOST(request);
+
+      expect(response.status).toBe(200);
+      expect(PrismaAgentRepository.findByProviderAgentId).not.toHaveBeenCalled();
+      expect(mockChargeCredits).not.toHaveBeenCalled();
+    });
+
+    it("should handle web call with agent not found", async () => {
+      vi.mocked(PrismaAgentRepository.findByProviderAgentId).mockResolvedValue(null);
+
+      const body: RetellWebhookBody = {
+        event: "call_analyzed",
+        call: {
+          call_id: "web-call-no-agent-found",
+          call_type: "web_call",
+          agent_id: "non-existent-agent",
+          call_status: "ended",
+          start_timestamp: 1757673314024,
+          call_cost: {
+            total_duration_seconds: 30,
+            combined_cost: 1.0,
+          },
+          // Web calls don't have from_number, to_number, direction
+        },
+      };
+
+      const request = createMockRequest(body, "valid-signature");
+      const response = await callPOST(request);
+
+      expect(response.status).toBe(200);
+      expect(PrismaAgentRepository.findByProviderAgentId).toHaveBeenCalledWith({
+        providerAgentId: "non-existent-agent",
+      });
+      expect(mockChargeCredits).not.toHaveBeenCalled();
     });
   });
 });

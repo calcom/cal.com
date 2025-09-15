@@ -1,11 +1,14 @@
+import type { z } from "zod";
+
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import type { Prisma } from "@calcom/prisma/client";
-import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
-import type { EventTypeLocation } from "@calcom/prisma/zod/custom/eventtype";
+import { userMetadata as userMetadataSchema, type eventTypeLocations } from "@calcom/prisma/zod-utils";
 
 import { DailyLocationType } from "../constants";
 import getApps from "../utils";
 import getAppKeysFromSlug from "./getAppKeysFromSlug";
+
+type EventTypeLocation = z.infer<typeof eventTypeLocations>[number];
 
 type User = {
   id: number;

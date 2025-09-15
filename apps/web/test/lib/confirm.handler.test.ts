@@ -10,8 +10,8 @@ import { describe, it, beforeEach, vi, expect } from "vitest";
 
 import * as handleConfirmationModule from "@calcom/features/bookings/lib/handleConfirmation";
 import { BookingStatus } from "@calcom/prisma/enums";
-import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { confirmHandler } from "@calcom/trpc/server/routers/viewer/bookings/confirm.handler";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 describe("confirmHandler", () => {
   beforeEach(() => {

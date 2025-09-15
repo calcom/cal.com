@@ -8,7 +8,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { App_RoutingForms_Form, App_RoutingForms_FormResponse, Team, User } from "@prisma/client";
 import * as request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
@@ -19,6 +18,7 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { randomString } from "test/utils/randomString";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { App_RoutingForms_Form, Team, User } from "@calcom/prisma/client";
 
 describe("OrganizationsRoutingFormController", () => {
   let app: INestApplication;
@@ -27,8 +27,6 @@ describe("OrganizationsRoutingFormController", () => {
   let team: Team;
   let apiKeyString: string;
   let routingForm: App_RoutingForms_Form;
-  let routingFormResponse: App_RoutingForms_FormResponse;
-  let routingFormResponse2: App_RoutingForms_FormResponse;
 
   let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
   let teamRepositoryFixture: TeamRepositoryFixture;
@@ -105,14 +103,14 @@ describe("OrganizationsRoutingFormController", () => {
       },
     });
 
-    routingFormResponse = await prismaWriteService.prisma.app_RoutingForms_FormResponse.create({
+    await prismaWriteService.prisma.app_RoutingForms_FormResponse.create({
       data: {
         formId: routingForm.id,
         response: JSON.stringify({ question1: "answer1", question2: "answer2" }),
       },
     });
 
-    routingFormResponse2 = await prismaWriteService.prisma.app_RoutingForms_FormResponse.create({
+    await prismaWriteService.prisma.app_RoutingForms_FormResponse.create({
       data: {
         formId: routingForm.id,
         response: JSON.stringify({ question1: "answer1", question2: "answer2" }),

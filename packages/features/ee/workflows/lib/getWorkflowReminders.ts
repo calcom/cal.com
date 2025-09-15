@@ -1,6 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
-import type { EventType, User, WorkflowReminder, WorkflowStep, Prisma } from "@calcom/prisma/client";
+import type { EventType, User, WorkflowReminder, WorkflowStep } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import { WorkflowMethods } from "@calcom/prisma/enums";
 
 type PartialWorkflowStep =
@@ -74,7 +75,8 @@ async function getWorkflowReminders<T extends Prisma.WorkflowReminderSelect>(
     }
 
     filteredWorkflowReminders.push(
-      ...(newFilteredWorkflowReminders as Array<Prisma.WorkflowReminderGetPayload<{ select: T }>>)
+      // FIXME: This is a workaround to avoid type errors
+      ...(newFilteredWorkflowReminders as unknown as Array<Prisma.WorkflowReminderGetPayload<{ select: T }>>)
     );
     pageNumber++;
   }

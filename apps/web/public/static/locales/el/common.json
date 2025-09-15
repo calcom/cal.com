@@ -886,7 +886,7 @@
   "cancel_your_phone_number_subscription": "Ακύρωση της συνδρομής του αριθμού τηλεφώνου σας",
   "delete_associated_phone_number": "Διαγραφή του συσχετισμένου αριθμού τηλεφώνου",
   "unauthorized_create_workflow": "Δεν έχετε εξουσιοδότηση για τη δημιουργία αυτής της ροής εργασίας",
-  "import_phone_number_description": "Εισαγάγετε τον αριθμό τηλεφώνου Twilio για χρήση με το Cal AI Phone",
+  "import_phone_number_description": "Εισαγάγετε τον αριθμό τηλεφώνου Twilio για χρήση με το Phone",
   "phone_number_cost": "${{price}}/μήνα",
   "buy_new_number": "Αγορά νέου αριθμού",
   "buy_number_cost_x_per_month": "Η αγορά ενός αριθμού τηλεφώνου κοστίζει ${{priceInDollars}} ανά μήνα. Θα χρεώνεστε μηνιαία για κάθε ενεργό αριθμό τηλεφώνου.",

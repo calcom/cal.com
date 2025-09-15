@@ -179,6 +179,7 @@ export const useBootIntercom = () => {
           });
         },
       };
+      window.dispatchEvent(new Event("support:ready"));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, statsData, hasPaidPlan, isTieredSupportEnabled]);

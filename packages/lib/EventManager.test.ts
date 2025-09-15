@@ -1,10 +1,16 @@
-import type { DestinationCalendar } from "@prisma/client";
+import { prisma } from "@calcom/prisma/__mocks__/prisma";
+
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { symmetricDecrypt } from "@calcom/lib/crypto";
+import type { DestinationCalendar } from "@calcom/prisma/client";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import EventManager from "./EventManager";
+
+vi.mock("@calcom/prisma", () => ({
+  prisma,
+}));
 
 vi.mock("@calcom/lib/crypto", () => ({
   symmetricDecrypt: vi.fn(),

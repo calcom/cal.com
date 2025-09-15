@@ -1,6 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
@@ -41,6 +42,19 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     .safeParse(ctx.query.redirect);
 
   const redirectUrl = redirectUrlData.success && redirectUrlData.data ? redirectUrlData.data : null;
+
+  const session = await getServerSession({
+    req: ctx.req,
+  });
+
+  if (session?.user?.id) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: redirectUrl || "/",
+      },
+    } as const;
+  }
 
   const props = {
     redirectUrl,

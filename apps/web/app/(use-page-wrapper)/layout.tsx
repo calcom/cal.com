@@ -1,6 +1,8 @@
 import { headers } from "next/headers";
 import Script from "next/script";
 
+import { NavigationPermissionsProvider } from "@calcom/features/shell/permissions/NavigationPermissionsProvider";
+
 import PageWrapper from "@components/PageWrapperAppDir";
 
 export default async function PageWrapperLayout({ children }: { children: React.ReactNode }) {
@@ -21,7 +23,7 @@ export default async function PageWrapperLayout({ children }: { children: React.
   ].filter((script): script is { id: string; script: string } => !!script.script);
 
   return (
-    <>
+    <NavigationPermissionsProvider>
       <PageWrapper requiresLicense={false} nonce={nonce}>
         {children}
         {scripts.map((script) => (
@@ -36,6 +38,6 @@ export default async function PageWrapperLayout({ children }: { children: React.
           />
         ))}
       </PageWrapper>
-    </>
+    </NavigationPermissionsProvider>
   );
 }

@@ -237,4 +237,39 @@ test.describe("Insights", async () => {
     // Wait for the download process to complete and save the downloaded file somewhere.
     await download.saveAs("./" + "test-insights.csv");
   });
+
+  test("should render all ChartCard components with expected titles", async ({ page, users }) => {
+    const owner = await users.create();
+    const member = await users.create();
+
+    await createTeamsAndMembership(owner.id, member.id);
+
+    await owner.apiLogin();
+
+    await page.goto("/insights");
+
+    const expectedChartTitles = [
+      "Events",
+      "Performance",
+      "Event Trends",
+      "Bookings by Hour",
+      "Average Event Duration",
+      "Most Bookings Scheduled",
+      "Least Bookings Scheduled",
+      "Most Bookings Completed",
+      "Least Bookings Completed",
+      "Most Cancelled",
+      "Most No-Show",
+      "Recent No-Show Guests",
+      "Highest Rated",
+      "Lowest Rated",
+      "Recent Ratings",
+      "Popular Events",
+    ];
+
+    for (const title of expectedChartTitles) {
+      const chartCard = page.locator("[data-testid='panel-card'] h2").filter({ hasText: title });
+      await expect(chartCard).toBeVisible();
+    }
+  });
 });

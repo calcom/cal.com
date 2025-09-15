@@ -7,7 +7,7 @@ import type {
   AIPhoneServiceCall,
 } from "../../../interfaces/AIPhoneService.interface";
 import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
-import type { RetellAIRepository, RetellDynamicVariables } from "../types";
+import type { RetellAIRepository, RetellDynamicVariables, RetellCallListResponse } from "../types";
 
 interface RetellAIServiceInterface {
   updateToolsFromAgentId(
@@ -228,6 +228,7 @@ export class CallService {
       ADDITIONAL_NOTES: "This is a test web call to verify the AI phone agent",
       EVENT_START_TIME_IN_ATTENDEE_TIMEZONE: "2:00 PM",
       EVENT_END_TIME_IN_ATTENDEE_TIMEZONE: "2:30 PM",
+      NUMBER_TO_CALL: "+919876543210",
       eventTypeId: eventTypeId.toString(),
     };
 
@@ -282,6 +283,57 @@ export class CallService {
       throw new HttpError({
         statusCode: 500,
         message: "Unable to validate credits. Please try again.",
+      });
+    }
+  }
+
+  async listCalls({
+    limit = 50,
+    offset: _offset = 0,
+    filters,
+  }: {
+    limit?: number;
+    offset?: number;
+    filters: {
+      fromNumber: string[];
+      toNumber?: string[];
+      startTimestamp?: { lower_threshold?: number; upper_threshold?: number };
+    };
+  }): Promise<RetellCallListResponse> {
+    try {
+      if (filters.fromNumber.length === 0) {
+        this.logger.info("No phone numbers provided");
+        return [];
+      }
+
+      const callsResponse = await this.retellRepository.listCalls({
+        filter_criteria: {
+          from_number: filters.fromNumber,
+          ...(filters?.toNumber && { to_number: filters.toNumber }),
+          ...(filters?.startTimestamp && { start_timestamp: filters.startTimestamp }),
+        },
+        limit,
+        sort_order: "descending",
+      });
+
+      return callsResponse.map((call) => {
+        const { transcript_object: _transcript_object, call_cost: _call_cost, ...filteredCall } = call;
+        return {
+          ...filteredCall,
+          sessionOutcome:
+            call.call_status === "ended" && !call.disconnection_reason?.includes("error")
+              ? "successful"
+              : "unsuccessful",
+        };
+      }) as RetellCallListResponse;
+    } catch (error) {
+      this.logger.error("Failed to list calls", {
+        phoneNumbers: filters?.fromNumber,
+        error,
+      });
+      throw new HttpError({
+        statusCode: 500,
+        message: "Failed to retrieve call history",
       });
     }
   }

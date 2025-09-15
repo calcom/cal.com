@@ -1,11 +1,10 @@
 import "@calcom/lib/__mocks__/logger";
+import { prisma } from "@calcom/prisma/__mocks__/prisma";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { z } from "zod";
 
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
-import type { ZResponseInputSchema } from "@calcom/trpc/server/routers/viewer/routing-forms/response.schema";
 
 import isRouter from "../lib/isRouter";
 import routerGetCrmContactOwnerEmail from "./crmRouting/routerGetCrmContactOwnerEmail";
@@ -38,6 +37,10 @@ vi.mock("../lib/isRouter", () => ({
 
 vi.mock("@calcom/lib/sentryWrapper", () => ({
   withReporting: (fn: unknown) => fn,
+}));
+
+vi.mock("@calcom/prisma", () => ({
+  prisma,
 }));
 
 const mockForm: TargetRoutingFormForResponse = {
@@ -99,7 +102,14 @@ const mockForm: TargetRoutingFormForResponse = {
   updatedById: null,
 };
 
-const mockResponse: z.infer<typeof ZResponseInputSchema>["response"] = {
+const mockResponse: Record<
+  string,
+  {
+    value: (string | number | string[]) & (string | number | string[] | undefined);
+    label: string;
+    identifier?: string | undefined;
+  }
+> = {
   name: { value: "John Doe", label: "Name" },
   email: { value: "john.doe@example.com", label: "Email" },
 };
@@ -108,11 +118,12 @@ describe("handleResponse", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(RoutingFormResponseRepository).mockImplementation(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       () => mockRoutingFormResponseRepository as any
     );
   });
 
-  it("should throw a TRPCError for missing required fields", async () => {
+  it("should throw an Error for missing required fields", async () => {
     await expect(
       handleResponse({
         response: { email: { value: "test@test.com", label: "Email" } }, // Name is missing
@@ -125,7 +136,7 @@ describe("handleResponse", () => {
     ).rejects.toThrow(/Missing required fields Name/);
   });
 
-  it("should throw a TRPCError for invalid email", async () => {
+  it("should throw an Error for invalid email", async () => {
     await expect(
       handleResponse({
         response: {
@@ -251,16 +262,20 @@ describe("handleResponse", () => {
   it("should handle chosen route and call routing logic", async () => {
     const chosenRoute = {
       id: "route1",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       queryValue: { type: "group", children1: {} } as any,
       action: {
         type: "customPageMessage" as const,
         value: "Thank you for your submission!",
       },
       attributeRoutingConfig: null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       attributesQueryValue: { type: "group", children1: {} } as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fallbackAttributesQueryValue: { type: "group", children1: {} } as any,
       isFallback: false,
     };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const formWithRoute: TargetRoutingFormForResponse = { ...mockForm, routes: [chosenRoute as any] };
 
     vi.mocked(routerGetCrmContactOwnerEmail).mockResolvedValue({
@@ -270,6 +285,7 @@ describe("handleResponse", () => {
       recordId: "123",
     });
     vi.mocked(findTeamMembersMatchingAttributeLogic).mockResolvedValue({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       teamMembersMatchingAttributeLogic: [{ userId: 123, result: "MATCH" as any }],
       checkedFallback: false,
       fallbackAttributeLogicBuildingWarnings: [],
@@ -309,6 +325,7 @@ describe("handleResponse", () => {
     vi.mocked(isRouter).mockReturnValue(true);
     const formWithRoute: TargetRoutingFormForResponse = {
       ...mockForm,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       routes: [chosenRoute as any],
     };
 

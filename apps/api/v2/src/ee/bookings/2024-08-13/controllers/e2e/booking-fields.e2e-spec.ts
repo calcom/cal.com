@@ -26,7 +26,7 @@ import {
   GetSeatedBookingOutput_2024_08_13,
 } from "@calcom/platform-types";
 import { BookingOutput_2024_08_13 } from "@calcom/platform-types";
-import { Booking, PlatformOAuthClient, Team, User, EventType } from "@calcom/prisma/client";
+import type { Booking, PlatformOAuthClient, Team, User, EventType } from "@calcom/prisma/client";
 
 describe("Bookings Endpoints 2024-08-13", () => {
   describe("Booking fields", () => {

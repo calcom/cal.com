@@ -8,7 +8,7 @@ import {
 } from "@nestjs/common";
 import { Request } from "express";
 
-import { Membership } from "@calcom/prisma/client";
+import type { Membership } from "@calcom/prisma/client";
 
 @Injectable()
 export class IsMembershipInOrg implements CanActivate {

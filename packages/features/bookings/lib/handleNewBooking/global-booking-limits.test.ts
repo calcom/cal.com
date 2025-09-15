@@ -17,12 +17,12 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
+import { getNewBookingHandler } from "./test/getNewBookingHandler";
+
 // Local test runs sometime gets too slow
 const timeout = process.env.CI ? 5000 : 20000;
 
 const eventLength = 30;
-
-const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
 
 const booker = getBooker({
   email: "booker@example.com",
@@ -69,6 +69,7 @@ describe(
       // eslint-disable-next-line playwright/no-skipped-test
       test(`Booking limits per week
     `, async ({}) => {
+        const handleNewBooking = getNewBookingHandler();
         await createBookingScenario(
           getScenarioData({
             eventTypes: [
@@ -207,6 +208,7 @@ describe(
       });
 
       test(`Booking limits per day`, async ({}) => {
+        const handleNewBooking = getNewBookingHandler();
         await createBookingScenario(
           getScenarioData({
             eventTypes: [
@@ -293,6 +295,7 @@ describe(
       });
 
       test(`Booking limits per month`, async ({}) => {
+        const handleNewBooking = getNewBookingHandler();
         await createBookingScenario(
           getScenarioData({
             eventTypes: [
@@ -424,6 +427,7 @@ describe(
       });
 
       test(`Booking limits per year`, async ({}) => {
+        const handleNewBooking = getNewBookingHandler();
         await createBookingScenario(
           getScenarioData({
             eventTypes: [

@@ -3,12 +3,11 @@
  * Also, it is applicable only for sub-teams. Regular teams and user Routing Forms don't hit this endpoint.
  * Live mode uses findTeamMembersMatchingAttributeLogicOfRoute fn directly
  */
-import type { App_RoutingForms_Form } from "@prisma/client";
 import type { ServerResponse } from "http";
 import type { NextApiResponse } from "next";
 
 import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
-import { getUrlSearchParamsToForwardForTestPreview } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
+import { getUrlSearchParamsToForwardForTestPreview } from "@calcom/features/routing-forms/lib/getUrlSearchParamsToForward";
 import { enrichHostsWithDelegationCredentials } from "@calcom/lib/delegationCredential/server";
 import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils.server";
@@ -17,7 +16,7 @@ import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeam
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
-import prisma from "@calcom/prisma";
+import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import { getAbsoluteEventTypeRedirectUrl } from "@calcom/routing-forms/getEventTypeRedirectUrl";
 import { getSerializableForm } from "@calcom/routing-forms/lib/getSerializableForm";
 import { getServerTimingHeader } from "@calcom/routing-forms/lib/getServerTimingHeader";
@@ -52,7 +51,7 @@ async function getEnrichedSerializableForm<
       metadata: unknown;
     } | null;
   }
->(form: TForm) {
+>({ form, prisma }: { prisma: PrismaClient; form: TForm }) {
   const formWithUserInfoProfile = {
     ...form,
     user: await new UserRepository(prisma).enrichUserWithItsProfile({ user: form.user }),
@@ -126,7 +125,7 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
   }
 
   const beforeEnrichedForm = performance.now();
-  const serializableForm = await getEnrichedSerializableForm(form);
+  const serializableForm = await getEnrichedSerializableForm({ form, prisma });
   const afterEnrichedForm = performance.now();
   const timeTakenToEnrichForm = afterEnrichedForm - beforeEnrichedForm;
 

@@ -2,7 +2,7 @@ import { RoutingFormsRepository } from "@/modules/routing-forms/routing-forms.re
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { Request } from "express";
 
-import { Team } from "@calcom/prisma/client";
+import type { Team } from "@calcom/prisma/client";
 
 @Injectable()
 export class IsRoutingFormInTeam implements CanActivate {

@@ -1,9 +1,9 @@
-import { Prisma } from "@prisma/client";
-import type { PrismaClient } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 
 import { UsageEvent, LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
+import { Prisma } from "@calcom/prisma/client";
+import type { PrismaClient } from "@calcom/prisma/client";
 
 async function incrementUsage(prismaClient: PrismaClient, event?: UsageEvent) {
   const deploymentRepo = new DeploymentRepository(prismaClient);

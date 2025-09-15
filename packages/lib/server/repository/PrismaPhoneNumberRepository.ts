@@ -1,6 +1,5 @@
-import { Prisma } from "@prisma/client";
-
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
 interface _PhoneNumberRawResult {
@@ -355,7 +354,7 @@ export class PrismaPhoneNumberRepository {
       }
     }
 
-    const phoneNumbers = await prisma.$queryRaw<_PhoneNumberRawResult[]>`
+    const query = Prisma.sql`
       SELECT
         pn.id,
         pn."phoneNumber",
@@ -373,6 +372,8 @@ export class PrismaPhoneNumberRepository {
       WHERE ${whereCondition}
       ORDER BY pn."createdAt" DESC
     `;
+
+    const phoneNumbers = await prisma.$queryRaw<_PhoneNumberRawResult[]>(query);
 
     const phoneNumberIds = phoneNumbers.map((pn) => pn.id);
     const agents =

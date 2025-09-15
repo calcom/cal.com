@@ -3,7 +3,7 @@ import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from "@nestjs/common";
 import { Request } from "express";
 
-import { Webhook } from "@calcom/prisma/client";
+import type { Webhook } from "@calcom/prisma/client";
 
 @Injectable()
 export class IsUserWebhookGuard implements CanActivate {

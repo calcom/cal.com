@@ -11,7 +11,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
 import { DateTime } from "luxon";
 import * as request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
@@ -23,7 +22,7 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { randomString } from "test/utils/randomString";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
-import {
+import type {
   CancelBookingInput_2024_08_13,
   CancelSeatedBookingInput_2024_08_13,
   CreateSeatedBookingOutput_2024_08_13,
@@ -31,9 +30,9 @@ import {
   GetBookingsOutput_2024_08_13,
   GetSeatedBookingOutput_2024_08_13,
   RescheduleSeatedBookingInput_2024_08_13,
+  CreateBookingInput_2024_08_13,
 } from "@calcom/platform-types";
-import { CreateBookingInput_2024_08_13 } from "@calcom/platform-types";
-import { Team } from "@calcom/prisma/client";
+import type { Team, User } from "@calcom/prisma/client";
 
 describe("Bookings Endpoints 2024-08-13", () => {
   describe("Seated bookings", () => {

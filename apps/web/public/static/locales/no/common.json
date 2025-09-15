@@ -886,7 +886,7 @@
   "cancel_your_phone_number_subscription": "Kanseller ditt telefonnummer-abonnement",
   "delete_associated_phone_number": "Slett det tilknyttede telefonnummeret",
   "unauthorized_create_workflow": "Du har ikke tillatelse til å opprette denne arbeidsflyten",
-  "import_phone_number_description": "Importer ditt Twilio-telefonnummer for bruk med Cal AI Phone",
+  "import_phone_number_description": "Importer ditt Twilio-telefonnummer for bruk med Phone",
   "phone_number_cost": "${{price}}/måned",
   "buy_new_number": "Kjøp nytt nummer",
   "buy_number_cost_x_per_month": "Å kjøpe et telefonnummer koster ${{priceInDollars}} per måned. Du vil bli belastet månedlig for hvert aktivt telefonnummer.",
