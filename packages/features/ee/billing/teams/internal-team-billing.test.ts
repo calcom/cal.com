@@ -58,6 +58,7 @@ describe("InternalTeamBilling", () => {
         where: { id: 1 },
         data: {
           metadata: {},
+          plan: null,
         },
       });
     });
