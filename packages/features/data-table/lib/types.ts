@@ -117,7 +117,7 @@ export const ZFilterValue = z.union([
 export type DateRangeFilterOptions = {
   range?: "past" | "custom";
   endOfDay?: boolean;
-  preserveLocalTime?: boolean;
+  convertToTimeZone?: boolean;
 };
 
 export type TextFilterOptions = {

@@ -90,7 +90,7 @@ function InsightsPageContent() {
         <ButtonGroup combined>
           <DateRangeFilter
             column={dateTarget === "startTime" ? startTimeColumn : createdAtColumn}
-            options={{ preserveLocalTime: true }}
+            options={{ convertToTimeZone: true }}
           />
           <DateTargetSelector value={dateTarget as DateTarget} onChange={setDateTarget} />
         </ButtonGroup>

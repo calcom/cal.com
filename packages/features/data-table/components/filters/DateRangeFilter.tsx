@@ -50,7 +50,7 @@ export const DateRangeFilter = ({
 }: DateRangeFilterProps) => {
   const { open, onOpenChange } = useFilterPopoverOpen(column.id);
   const filterValue = useFilterValue(column.id, ZDateRangeFilterValue);
-  const { updateFilter, removeFilter, timeZone: profileTimeZone } = useDataTable();
+  const { updateFilter, removeFilter, timeZone: givenTimeZone } = useDataTable();
   const range = options?.range ?? "past";
   const endOfDay = options?.endOfDay ?? false;
   const forceCustom = range === "custom";
@@ -74,15 +74,15 @@ export const DateRangeFilter = ({
 
   const convertTimestamp = useCallback(
     (timestamp: string) => {
-      if (!options?.preserveLocalTime) {
+      if (!options?.convertToTimeZone) {
         return timestamp;
       }
-      if (!profileTimeZone || CURRENT_TIMEZONE === profileTimeZone) {
+      if (!givenTimeZone || CURRENT_TIMEZONE === givenTimeZone) {
         return timestamp;
       }
-      return preserveLocalTime(timestamp, CURRENT_TIMEZONE, profileTimeZone);
+      return preserveLocalTime(timestamp, CURRENT_TIMEZONE, givenTimeZone);
     },
-    [options?.preserveLocalTime, profileTimeZone]
+    [options?.convertToTimeZone, givenTimeZone]
   );
 
   const updateValues = useCallback(
