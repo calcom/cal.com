@@ -366,3 +366,13 @@ export default async function AdminPage() {
 * Put permission guards in every restricted page.tsx.
 * Never assume layouts are secure for guarding data.
 * Validate users before any sensitive queries or rendering.
+
+
+## Avoid using Dayjs if you don’t need to be strictly tz aware.
+
+When doing logic like Dayjs.startOf(".."), you can instead use date-fns' `startOfMonth(dateObj)` / `endOfDay(dateObj)`;
+When doing logic that depends on Browser locale, use i18n.language (prefer to deconstruct) like: `const { i18n: { language } } = useLocale();`, in combination with built-in Intl.
+
+Note that with Date, you’re dealing with System time, so it’s not suited to everywhere (such as in the Booker, where instead we’ll likely migrate to Temporal) - but in most cases the above are suitable.
+
+The main reason for doing so is that Dayjs uses a useful, but highly risky plugin system, which has led us to create `@calcom/dayjs` - this is heavy however, because it pre-loads ALL plugins, including locale handling. It’s a non-ideal solution to a problem that unfortunately exists due to Dayjs.
