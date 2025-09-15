@@ -140,6 +140,12 @@ export class BillingService {
     }
 
     try {
+      await this.phoneNumberRepository.updateSubscriptionStatus({
+        id: phoneNumberId,
+        subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
+        disconnectOutboundAgent: false,
+      });
+
       try {
         await stripe.subscriptions.cancel(phoneNumber.stripeSubscriptionId);
       } catch (error) {
@@ -152,10 +158,15 @@ export class BillingService {
             stripeMessage: parsedError.data.message,
           });
         } else {
+          await this.phoneNumberRepository.updateSubscriptionStatus({
+            id: phoneNumberId,
+            subscriptionStatus: PhoneNumberSubscriptionStatus.ACTIVE,
+          });
           throw error;
         }
       }
 
+      // Disconnnect agent after cancelling from stripe
       await this.phoneNumberRepository.updateSubscriptionStatus({
         id: phoneNumberId,
         subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
