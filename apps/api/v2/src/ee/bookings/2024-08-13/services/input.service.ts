@@ -25,7 +25,6 @@ import { ConfigService } from "@nestjs/config";
 import { cityMapping } from "city-timezones";
 import { isURL, isPhoneNumber } from "class-validator";
 import { Request } from "express";
-import { isNull } from "lodash";
 import { DateTime } from "luxon";
 import { NextApiRequest } from "next/types";
 import { v4 as uuidv4 } from "uuid";
@@ -84,6 +83,9 @@ const recurringEventSchema = z.object({
 
 @Injectable()
 export class InputBookingsService_2024_08_13 {
+  static readonly ALL_IANA_ZONES = Array.from(
+    new Set(cityMapping.map((c) => c.timezone).filter((z): z is string => !!z))
+  );
   private readonly logger = new Logger("InputBookingsService_2024_08_13");
 
   constructor(
@@ -171,9 +173,7 @@ export class InputBookingsService_2024_08_13 {
     const dt = DateTime.fromISO(dateStr, { setZone: true });
     const offset = dt.offset;
 
-    const allTimezones = [...new Set(cityMapping.map((city) => city.timezone))].filter(
-      (zone: string) => !isNull(zone)
-    );
+    const allTimezones = InputBookingsService_2024_08_13.ALL_IANA_ZONES;
     const matchingZones = allTimezones.filter((zone: string) => {
       try {
         const test = DateTime.fromISO(dateStr, { zone });
