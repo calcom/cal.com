@@ -21,12 +21,7 @@ import {
 } from "@calid/features/ui/components/dropdown-menu";
 import { Icon } from "@calid/features/ui/components/icon";
 import { triggerToast } from "@calid/features/ui/components/toast";
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-  TooltipProvider,
-} from "@calid/features/ui/components/tooltip";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import React from "react";
@@ -140,22 +135,17 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
                 </div>
                 <div className="flex items-center space-x-2">
                   <Badge variant="attention">{t("pending")}</Badge>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          color="minimal"
-                          variant="icon"
-                          size="sm"
-                          type="button"
-                          StartIcon="external-link"
-                          onClick={() => router.push(`${WEBAPP_URL}/settings/teams/${team.id}/profile`)}
-                          data-testid={`view-team-invite-${team.id}`}
-                        />
-                      </TooltipTrigger>
-                      <TooltipContent>{t("view_team")}</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <Tooltip content={t("view_team")}>
+                    <Button
+                      color="minimal"
+                      variant="icon"
+                      size="sm"
+                      type="button"
+                      StartIcon="external-link"
+                      onClick={() => router.push(`${WEBAPP_URL}/settings/teams/${team.id}/profile`)}
+                      data-testid={`view-team-invite-${team.id}`}
+                    />
+                  </Tooltip>
                 </div>
               </li>
             ))}

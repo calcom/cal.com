@@ -446,7 +446,7 @@ const AppearanceView = ({
                       </span>
                       <div className="bg-muted mb-8 flex h-60 w-full items-center justify-start rounded-lg">
                         {!value ? (
-                          <div class="bg-cal-gradient h-full w-full" />
+                          <div class="bg-cal-gradient dark:bg-cal-gradient h-full w-full" />
                         ) : (
                           <img className="h-full w-full" src={value} />
                         )}

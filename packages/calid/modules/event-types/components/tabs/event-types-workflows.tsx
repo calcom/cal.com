@@ -7,7 +7,7 @@ import { Button } from "@calid/features/ui/components/button";
 import { BlankCard } from "@calid/features/ui/components/card/blank-card";
 import { Icon } from "@calid/features/ui/components/icon";
 import { Switch } from "@calid/features/ui/components/switch/switch";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@calid/features/ui/components/tooltip";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
 import type { TFunction } from "i18next";
 import { default as get } from "lodash/get";
 import Link from "next/link";
@@ -147,33 +147,30 @@ const LockedIndicator = ({
   }
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <div className="inline">
-          <Badge
-            color={isLocked ? "gray" : "green"}
-            className={classNames(
-              "ml-2 transform justify-between p-1",
-              isManagedEventType && !options.simple && "w-28"
-            )}>
-            {!options.simple && (
-              <span className="inline-flex">
-                <Icon name={isLocked ? "lock" : "lock-open"} className="text-subtle h-3 w-3" />
-                <span className="ml-1 font-medium">{stateText}</span>
-              </span>
-            )}
-            {isManagedEventType && (
-              <Switch
-                data-testid={`locked-indicator-${fieldName}`}
-                onCheckedChange={handleToggle}
-                checked={isLocked}
-                size="sm"
-              />
-            )}
-          </Badge>
-        </div>
-      </TooltipTrigger>
-      <TooltipContent>{tooltipText}</TooltipContent>
+    <Tooltip content={tooltipText}>
+      <div className="inline">
+        <Badge
+          color={isLocked ? "gray" : "green"}
+          className={classNames(
+            "ml-2 transform justify-between p-1",
+            isManagedEventType && !options.simple && "w-28"
+          )}>
+          {!options.simple && (
+            <span className="inline-flex">
+              <Icon name={isLocked ? "lock" : "lock-open"} className="text-subtle h-3 w-3" />
+              <span className="ml-1 font-medium">{stateText}</span>
+            </span>
+          )}
+          {isManagedEventType && (
+            <Switch
+              data-testid={`locked-indicator-${fieldName}`}
+              onCheckedChange={handleToggle}
+              checked={isLocked}
+              size="sm"
+            />
+          )}
+        </Badge>
+      </div>
     </Tooltip>
   );
 };
@@ -377,22 +374,20 @@ const WorkflowListItem = React.memo(
           )}
 
           {/* Toggle switch */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="flex items-center ltr:mr-2 rtl:ml-2">
-                {workflow.readOnly && isChildrenManagedEventType && (
-                  <Icon name="lock" className="text-subtle h-4 w-4 ltr:mr-2 rtl:ml-2" />
-                )}
-                <Switch checked={isActive} disabled={workflow.readOnly} onCheckedChange={handleToggle} />
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              {workflow.readOnly && isChildrenManagedEventType
+          <Tooltip
+            content={
+              workflow.readOnly && isChildrenManagedEventType
                 ? t("locked_by_team_admin")
                 : isActive
                 ? t("turn_off")
-                : t("turn_on")}
-            </TooltipContent>
+                : t("turn_on")
+            }>
+            <div className="flex items-center ltr:mr-2 rtl:ml-2">
+              {workflow.readOnly && isChildrenManagedEventType && (
+                <Icon name="lock" className="text-subtle h-4 w-4 ltr:mr-2 rtl:ml-2" />
+              )}
+              <Switch checked={isActive} disabled={workflow.readOnly} onCheckedChange={handleToggle} />
+            </div>
           </Tooltip>
         </div>
       </div>

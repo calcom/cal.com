@@ -167,14 +167,14 @@
 .dark {
   /* Background Standard */
   --cal-bg-emphasis: hsla(0, 0%, 25%, 1); /* stone-700 */
-  --cal-bg: hsla(0, 0%, 6%, 1); /* stone-950 */
+  --cal-bg: hsla(240, 15%, 13%, 1)  /* stone-950 */
   --cal-bg-subtle: hsla(0, 0%, 15%, 1); /* stone-800 */
   --cal-bg-muted: hsla(0, 0%, 9%, 1); /* stone-900 */
   --cal-bg-inverted: hsla(0, 0%, 98%, 1); /* stone-50 */
-  --cal-id-bg-gradient: linear-gradient(
-    hsla(213, 100%, 97%, 1),
-    hsla(229, 100%, 97%, 1),
-    hsla(270, 100%, 98%, 1)
+  --cal-bg-gradient: linear-gradient(
+    hsla(213, 40%, 12%, 1),
+    hsla(229, 35%, 14%, 1),
+    hsla(270, 30%, 16%, 1)
   );
 
   /* Background Primary */

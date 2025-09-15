@@ -3,12 +3,7 @@
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
 import { Popover, PopoverTrigger, PopoverContent } from "@calid/features/ui/components/popover";
-import {
-  TooltipProvider,
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from "@calid/features/ui/components/tooltip";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
 import { type Table } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import startCase from "lodash/startCase";
@@ -72,19 +67,14 @@ function AddFilterButtonComponent<TData>(
           </PopoverTrigger>
         )}
         {variant === "sm" && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <PopoverTrigger asChild>
-                  <Button ref={ref} color="secondary" data-testid="add-filter-button" className="h-full">
-                    <span className="sr-only">{t("filter")}</span>
-                    <Icon name="plus" />
-                  </Button>
-                </PopoverTrigger>
-              </TooltipTrigger>
-              <TooltipContent>{t("add_filter")}</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Tooltip content={t("add_filter")}>
+            <PopoverTrigger asChild>
+              <Button ref={ref} color="secondary" data-testid="add-filter-button" className="h-full">
+                <span className="sr-only">{t("filter")}</span>
+                <Icon name="plus" />
+              </Button>
+            </PopoverTrigger>
+          </Tooltip>
         )}
         <PopoverContent className="w-[200px] p-0" align="start">
           <Command>

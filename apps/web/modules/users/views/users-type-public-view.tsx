@@ -24,7 +24,18 @@ export const getMultipleDurationValue = (
   return defaultValue;
 };
 
-function Type({ slug, user, isEmbed, booking, userBannerUrl, isBrandingHidden, eventData, orgBannerUrl, eventTypes, brandColor }: PageProps) {
+function Type({
+  slug,
+  user,
+  isEmbed,
+  booking,
+  userBannerUrl,
+  isBrandingHidden,
+  eventData,
+  orgBannerUrl,
+  eventTypes,
+  brandColor,
+}: PageProps) {
   const searchParams = useSearchParams();
   return (
     <BookingPageErrorBoundary>
@@ -38,7 +49,7 @@ function Type({ slug, user, isEmbed, booking, userBannerUrl, isBrandingHidden, e
           eventData={eventData}
           entity={{ ...eventData.entity, eventTypeId: eventData?.id }}
           durationConfig={eventData.metadata?.multipleDuration}
-          orgBannerUrl={orgBannerUrl || userBannerUrl}
+          orgBannerUrl={orgBannerUrl || null}
           eventTypes={eventTypes}
           /* TODO: Currently unused, evaluate it is needed-
            *       Possible alternative approach is to have onDurationChange.

@@ -7,7 +7,6 @@ import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomain
 import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { getEventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
-
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -17,7 +16,7 @@ import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
 import { RedirectType, type EventType, type User } from "@calcom/prisma/client";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
@@ -42,14 +41,7 @@ type UserPageProps = {
   };
   users: (Pick<
     User,
-    | "name"
-    | "username"
-    | "bio"
-    | "verified"
-    | "avatarUrl"
-    | "bannerUrl"
-    | "faviconUrl"
-    | "hideBranding"
+    "name" | "username" | "bio" | "verified" | "avatarUrl" | "bannerUrl" | "faviconUrl" | "hideBranding"
   > & {
     profile: UserProfile;
     metadata: z.infer<typeof userMetadataSchema> | null;
