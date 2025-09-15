@@ -565,24 +565,24 @@ export class BookingsService_2024_08_13 {
     }
   }
 
-  async getBooking(uid: string) {
+  async getBooking(uid: string, authUser?: AuthOptionalUser) {
     const booking = await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEvent(uid);
 
     if (booking) {
       const isRecurring = !!booking.recurringEventId;
       const isSeated = !!booking.eventType?.seatsPerTimeSlot;
 
+      // Determine if attendees should be shown
+      const showAttendees = await this.shouldShowAttendees(booking, authUser);
+
       if (isRecurring && !isSeated) {
         return this.outputService.getOutputRecurringBooking(booking);
       }
       if (isRecurring && isSeated) {
-        return this.outputService.getOutputRecurringSeatedBooking(
-          booking,
-          !!booking.eventType?.seatsShowAttendees
-        );
+        return this.outputService.getOutputRecurringSeatedBooking(booking, showAttendees);
       }
       if (isSeated) {
-        return this.outputService.getOutputSeatedBooking(booking, !!booking.eventType?.seatsShowAttendees);
+        return this.outputService.getOutputSeatedBooking(booking, showAttendees);
       }
       return this.outputService.getOutputBooking(booking);
     }
@@ -603,38 +603,66 @@ export class BookingsService_2024_08_13 {
     return this.outputService.getOutputRecurringBookings(ids);
   }
 
-  async getMySeat(bookingUid: string, user: { id: number; email: string }) {
-    const booking = await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEvent(bookingUid);
-    
-    if (!booking) {
-      throw new NotFoundException(`Booking with uid=${bookingUid} was not found`);
+  /**
+   * Determines whether attendees should be shown based on privacy settings and user authorization.
+   * Returns true if:
+   * 1. Event type allows showing attendees (seatsShowAttendees), OR
+   * 2. User is authenticated and is either:
+   *    - An attendee of the booking, OR  
+   *    - The event organizer/host, OR
+   *    - Has admin privileges for the event
+   */
+  private async shouldShowAttendees(
+    booking: { 
+      attendees: { email: string }[];
+      eventType: { 
+        seatsShowAttendees?: boolean | null; 
+        id?: number; 
+        teamId?: number | null; 
+        owner?: { id: number } | null 
+      } | null 
+    },
+    authUser?: AuthOptionalUser
+  ): Promise<boolean> {
+    // If event type allows showing attendees, always show them
+    if (booking.eventType?.seatsShowAttendees) {
+      return true;
     }
 
-    // Find the attendee that belongs to the authenticated user
-    const userAttendee = booking.attendees.find((attendee: any) => attendee.email === user.email);
-    
-    if (!userAttendee) {
-      throw new ForbiddenException("You are not an attendee of this booking");
+    // If no authentication provided, respect the privacy setting
+    if (!authUser || !booking.eventType) {
+      return false;
     }
 
-    // Check if this is a seated event
-    if (!booking.eventType?.seatsPerTimeSlot) {
-      throw new BadRequestException("This booking is not a seated event");
+    // Check if user is an attendee of this booking
+    const isAttendee = booking.attendees.some(attendee => attendee.email === authUser.email);
+    if (isAttendee) {
+      return true;
     }
 
-    // Get the booking seat information
-    if (!userAttendee.bookingSeat) {
-      throw new NotFoundException("No seat information found for this attendee");
+    // Check if user is the event organizer/host
+    if (booking.eventType.owner?.id === authUser.id) {
+      return true;
     }
 
-    return {
-      seatUid: userAttendee.bookingSeat.referenceUid,
-      seatNumber: userAttendee.bookingSeat.data?.seatNumber || 1,
-      bookingUid: booking.uid,
-      startTime: booking.startTime.toISOString(),
-      endTime: booking.endTime.toISOString(),
-      title: booking.title || booking.eventType?.title || "Event",
-    };
+    // For team events, check if user has admin access
+    if (booking.eventType.teamId) {
+      try {
+        const eventType = {
+          id: booking.eventType.id || 0,
+          teamId: booking.eventType.teamId,
+          owner: booking.eventType.owner,
+          bookingRequiresAuthentication: false, // We're not checking booking auth, just team access
+        } as EventTypeWithOwnerAndTeam;
+
+        await this.checkBookingRequiresAuthenticationSetting(eventType, authUser);
+        return true; // If no exception thrown, user has access
+      } catch {
+        // User doesn't have team admin access
+      }
+    }
+
+    return false;
   }
 
   async getBookings(

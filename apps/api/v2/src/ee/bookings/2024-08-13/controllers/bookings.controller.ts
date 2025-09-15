@@ -5,7 +5,6 @@ import { CalendarLinksOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs
 import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { MarkAbsentBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/mark-absent.output";
-import { GetMySeatOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/my-seat.output";
 import { ReassignBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reassign-booking.output";
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
 import { BookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-references.service";
@@ -162,7 +161,7 @@ export class BookingsController_2024_08_13 {
   }
 
   @Get("/:bookingUid")
-  @UseGuards(BookingUidGuard)
+  @UseGuards(OptionalApiAuthGuard, BookingUidGuard)
   @ApiOperation({
     summary: "Get a booking",
     description: `\`:bookingUid\` can be
@@ -173,8 +172,11 @@ export class BookingsController_2024_08_13 {
 
       3. uid of recurring booking which will return an array of all recurring booking recurrences (stored as recurringBookingUid on one of the individual recurrences).`,
   })
-  async getBooking(@Param("bookingUid") bookingUid: string): Promise<GetBookingOutput_2024_08_13> {
-    const booking = await this.bookingsService.getBooking(bookingUid);
+  async getBooking(
+    @Param("bookingUid") bookingUid: string,
+    @GetOptionalUser() user: AuthOptionalUser
+  ): Promise<GetBookingOutput_2024_08_13> {
+    const booking = await this.bookingsService.getBooking(bookingUid, user);
 
     return {
       status: SUCCESS_STATUS,
@@ -467,28 +469,6 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: bookingReferences,
-    };
-  }
-
-  @Get("/:bookingUid/my-seat")
-  @UseGuards(ApiAuthGuard)
-  @Permissions([BOOKING_READ])
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
-  @ApiOperation({
-    summary: "Get authenticated user's seat information for a booking",
-    description:
-      "Retrieve the seat UID and related information for a seated booking where the authenticated user is an attendee. This endpoint is useful for cancelling individual seats in a seated event.",
-  })
-  @HttpCode(HttpStatus.OK)
-  async getMySeat(
-    @Param("bookingUid") bookingUid: string,
-    @GetUser() user: UserWithProfile
-  ): Promise<GetMySeatOutput_2024_08_13> {
-    const seatData = await this.bookingsService.getMySeat(bookingUid, user);
-
-    return {
-      status: SUCCESS_STATUS,
-      data: seatData,
     };
   }
 }
