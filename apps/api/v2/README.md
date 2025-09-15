@@ -58,26 +58,22 @@ CALCOM_LICENSE_KEY=00000000-0000-0000-0000-000000000000
 
 # Development
 
+v2 api can't directly re-use monorepo code because nest.js works only with cjs. Which is why we have dependencies that we first build and watch for changes:
 ```bash
-$ yarn run start
+$ yarn local
 ```
+
+And then we run the app:
+```bash
+$ yarn dev
+```
+
+if you make changes to code that v2 uses from platform-libraries or some other manually built dependency changes then wait for v2 to restart.
 
 OR if you don't want to use docker, you can run following command.
 
 ```bash
 $ yarn dev:no-docker
-```
-
-Additionally you can run following command(in different terminal) to ensure that any change in any of the dependencies is rebuilt and detected. It watches platform-libraries, platform-constants, platform-enums, platform-utils, platform-types.
-
-```bash
-$ yarn run dev:build:watch
-```
-
-If you are making changes in packages/platform/libraries, you should run the following command too that would connect your local packages/platform/libraries to the api/v2
-
-```bash
-$ yarn local
 ```
 
 # watch mode
@@ -86,9 +82,6 @@ $ yarn run start:dev
 # production mode
 $ yarn run start:prod
 ```
-
-
-
 
 ## Test
 
