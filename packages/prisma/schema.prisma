@@ -1061,6 +1061,7 @@ model Webhook {
   scheduledTriggers     WebhookScheduledTriggers[]
   time                  Int?
   timeUnit              TimeUnit?
+  version               Int                        @default(1)
 
   @@unique([userId, subscriberUrl], name: "courseIdentifier")
   @@unique([platformOAuthClientId, subscriberUrl], name: "oauthclientwebhook")
