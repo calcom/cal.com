@@ -12,7 +12,7 @@ import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAn
 
 import { describe, it, vi, expect } from "vitest";
 
-import { getConnectedCalendars } from "@calcom/lib/CalendarManager";
+import { getConnectedCalendars } from "@calcom/features/calendars/lib/CalendarManager";
 import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";

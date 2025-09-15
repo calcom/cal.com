@@ -34,7 +34,7 @@ import type {
   PartialReference,
 } from "@calcom/types/EventManager";
 
-import { createEvent, updateEvent, deleteEvent } from "@calcom/lib/CalendarManager";
+import { createEvent, updateEvent, deleteEvent } from "@calcom/features/calendars/lib/CalendarManager";
 import CrmManager from "@calcom/lib/crmManager/crmManager";
 import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
 import { createMeeting, updateMeeting, deleteMeeting } from "@calcom/lib/videoClient";
