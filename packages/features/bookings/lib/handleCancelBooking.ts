@@ -20,7 +20,7 @@ import {
   ONEHASH_CHAT_SYNC_BASE_URL,
   MOBILE_NOTIFICATIONS_ENABLED,
 } from "@calcom/lib/constants";
-import firebaseService from "@calcom/lib/firebaseAdmin";
+import { sendMobileNotification } from "@calcom/lib/notifications";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -589,20 +589,19 @@ async function handler(input: CancelBookingInput) {
     log.error("Error deleting event", error);
   }
   if (MOBILE_NOTIFICATIONS_ENABLED) {
-    try {
-      await firebaseService.sendNotification(
-        `host_${organizer.id}`,
-        {
-          title: tOrganizer("booking_cancelled"),
-          body: evt.title,
-        },
-        {
-          bookingId: evt.bookingId,
-          status: "CANCELLED",
-        }
-      );
-    } catch (error) {
-      log.error("Error while send mobile notification", JSON.stringify({ error }));
+    const result = await sendMobileNotification(
+      `host_${organizer.id}`,
+      {
+        title: tOrganizer("booking_cancelled"),
+        body: evt.title,
+      },
+      {
+        bookingId: evt.bookingId,
+        status: "CANCELLED",
+      }
+    );
+    if (result !== "skipped:disabled" && result !== "skipped:unavailable") {
+      log.debug("Mobile notification sent", { result });
     }
   }
   if (organizerHasIntegratedOHChat) {
