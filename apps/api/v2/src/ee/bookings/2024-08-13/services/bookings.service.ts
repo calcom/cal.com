@@ -652,11 +652,11 @@ export class BookingsService_2024_08_13 {
           id: booking.eventType.id || 0,
           teamId: booking.eventType.teamId,
           owner: booking.eventType.owner,
-          bookingRequiresAuthentication: false, // We're not checking booking auth, just team access
+          bookingRequiresAuthentication: true, // Force authentication check for team access validation
         } as EventTypeWithOwnerAndTeam;
 
         await this.checkBookingRequiresAuthenticationSetting(eventType, authUser);
-        return true; // If no exception thrown, user has access
+        return true; // If no exception thrown, user has team admin access
       } catch {
         // User doesn't have team admin access
       }
