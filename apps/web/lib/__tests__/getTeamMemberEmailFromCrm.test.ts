@@ -7,7 +7,7 @@ import { getCRMContactOwnerForRRLeadSkip } from "@calcom/app-store/_utils/CRMRou
 import bookingFormHandlers from "@calcom/app-store/routing-forms/appBookingFormHandler";
 import { ROUTING_FORM_RESPONSE_ID_QUERY_STRING } from "@calcom/app-store/routing-forms/lib/constants";
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
-import { getTeamMemberEmailForResponseOrContactUsingUrlQuery } from "@calcom/lib/server/getTeamMemberEmailFromCrm";
+import { getTeamMemberEmailForResponseOrContactUsingUrlQuery } from "@calcom/features/ee/teams/lib/getTeamMemberEmailFromCrm";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 vi.mock("@calcom/app-store/routing-forms/appBookingFormHandler", () => ({
