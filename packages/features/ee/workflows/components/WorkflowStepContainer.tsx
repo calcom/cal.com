@@ -1,7 +1,7 @@
 import { type TFunction } from "i18next";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import "react-phone-number-input/style.css";
@@ -190,6 +190,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     onSuccess: async (data) => {
       showToast(t("agent_created_successfully"), "success");
 
+      const url = new URL(window.location.href);
+      url.searchParams.delete("autoCreateAgent");
+      url.searchParams.delete("templateWorkflowId");
+      router.replace(url.pathname + url.search);
+
       if (step) {
         const stepIndex = step.stepNumber - 1;
         form.setValue(`steps.${stepIndex}.agentId`, data.id);
@@ -250,7 +255,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const senderNeeded =
     step?.action === WorkflowActions.SMS_NUMBER || step?.action === WorkflowActions.SMS_ATTENDEE;
 
-  const [, setIsSenderIsNeeded] = useState(senderNeeded);
+  const [_isSenderIsNeeded, setIsSenderIsNeeded] = useState(senderNeeded);
 
   const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(
     step?.action === WorkflowActions.EMAIL_ADDRESS ? true : false
@@ -265,65 +270,79 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   );
 
   const [timeSectionText, setTimeSectionText] = useState(getTimeSectionText(form.getValues("trigger"), t));
-  const [autoAgentCreationAttempted, setAutoAgentCreationAttempted] = useState(false);
+  const isCreatingAgent = useRef(false);
+  const hasAutoCreated = useRef(false);
+
+  const handleCreateAgent = useCallback(
+    async (templateWorkflowId?: string) => {
+      if (isCreatingAgent.current || createAgentMutation.isPending) {
+        console.log("Agent creation already in progress, skipping...");
+        return;
+      }
+
+      isCreatingAgent.current = true;
+
+      try {
+        // Save workflow first to ensure we have step ID
+        if (onSaveWorkflow) {
+          await onSaveWorkflow();
+        }
+
+        const updatedSteps = form.getValues("steps");
+        const currentStepIndex = step ? step.stepNumber - 1 : 0;
+        const updatedStep = updatedSteps[currentStepIndex];
+
+        if (updatedStep?.action !== WorkflowActions.CAL_AI_PHONE_CALL) {
+          form.setValue(`steps.${currentStepIndex}.action`, WorkflowActions.CAL_AI_PHONE_CALL);
+        }
+
+        if (updatedStep?.id) {
+          createAgentMutation.mutate({
+            teamId,
+            workflowStepId: updatedStep.id,
+            ...(templateWorkflowId && { templateWorkflowId }),
+          });
+        } else {
+          showToast(t("failed_to_get_workflow_step_id"), "error");
+        }
+      } catch (error) {
+        console.error("Failed to create agent:", error);
+        showToast(t("failed_to_create_agent"), "error");
+      } finally {
+        isCreatingAgent.current = false;
+      }
+    },
+    [createAgentMutation, onSaveWorkflow, form, step, teamId, t]
+  );
+
+  const autoCreateAgent = searchParams?.get("autoCreateAgent");
+  const templateWorkflowId = searchParams?.get("templateWorkflowId");
 
   useEffect(() => {
-    const autoCreateAgent = searchParams?.get("autoCreateAgent");
-    const templateWorkflowId = searchParams?.get("templateWorkflowId");
-
-    if (
+    const shouldAutoCreate =
       autoCreateAgent === "true" &&
-      !autoAgentCreationAttempted &&
       templateWorkflowId &&
-      step &&
+      step?.id &&
       step.action === WorkflowActions.CAL_AI_PHONE_CALL &&
       !stepAgentId &&
-      step.id &&
-      onSaveWorkflow
-    ) {
-      setAutoAgentCreationAttempted(true);
+      !hasAutoCreated.current &&
+      !createAgentMutation.isPending &&
+      !createAgentMutation.isSuccess;
 
-      const createAgent = async () => {
-        try {
-          await onSaveWorkflow?.();
-
-          const updatedSteps = form.getValues("steps");
-          const currentStepIndex = step.stepNumber - 1;
-          const updatedStep = updatedSteps[currentStepIndex];
-
-          if (updatedStep?.id) {
-            createAgentMutation.mutate({
-              teamId,
-              workflowStepId: updatedStep.id,
-              templateWorkflowId,
-            });
-
-            const url = new URL(window.location.href);
-            url.searchParams.delete("autoCreateAgent");
-            url.searchParams.delete("templateWorkflowId");
-            router.replace(url.pathname + url.search);
-          } else {
-            showToast(t("failed_to_get_workflow_step_id"), "error");
-          }
-        } catch (error) {
-          console.error("Failed to auto-create agent:", error);
-          showToast(t("failed_to_create_agent"), "error");
-        }
-      };
-
-      createAgent();
+    if (shouldAutoCreate && onSaveWorkflow) {
+      hasAutoCreated.current = true;
+      handleCreateAgent(templateWorkflowId);
     }
   }, [
-    searchParams,
-    autoAgentCreationAttempted,
-    step,
+    autoCreateAgent,
+    templateWorkflowId,
+    step?.id,
+    step?.action,
     stepAgentId,
-    teamId,
+    createAgentMutation.isPending,
+    createAgentMutation.isSuccess,
     onSaveWorkflow,
-    createAgentMutation,
-    form,
-    t,
-    router,
+    handleCreateAgent,
   ]);
 
   const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
@@ -619,6 +638,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
       value: step.action,
       needsCredits: isSMSOrWhatsappAction(step.action),
+      isCalAi: isCalAIAction(step.action),
       creditsTeamId: teamId ?? creditsTeamId,
       isOrganization: props.isOrganization,
     };
@@ -743,7 +763,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           </div>
           {isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && !stepAgentId && (
             <div className="bg-muted border-muted mt-2 rounded-2xl border p-3">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center sm:gap-0">
                 <div>
                   <h2 className="text-emphasis text-sm font-medium leading-none">
                     {t("cal_ai_agent")}
@@ -757,34 +777,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </div>
                 <Button
                   color="primary"
-                  disabled={props.readOnly}
-                  onClick={async () => {
-                    // save the workflow first to get the step id
-                    if (onSaveWorkflow) {
-                      await onSaveWorkflow();
-
-                      // After saving, get the updated step ID from the form
-                      const updatedSteps = form.getValues("steps");
-                      const currentStepIndex = step.stepNumber - 1;
-                      const updatedStep = updatedSteps[currentStepIndex];
-
-                      // Ensure the action is still set correctly after save
-                      if (updatedStep.action !== WorkflowActions.CAL_AI_PHONE_CALL) {
-                        form.setValue(`steps.${currentStepIndex}.action`, WorkflowActions.CAL_AI_PHONE_CALL);
-                      }
-
-                      if (updatedStep && updatedStep.id) {
-                        // Create agent with the workflow step ID
-                        createAgentMutation.mutate({
-                          teamId,
-                          workflowStepId: updatedStep.id,
-                        });
-                      } else {
-                        showToast(t("failed_to_get_workflow_step_id"), "error");
-                      }
-                    }
-                  }}
-                  loading={createAgentMutation.isPending}>
+                  disabled={props.readOnly || isCreatingAgent.current || hasAutoCreated.current}
+                  className="flex items-center justify-center"
+                  onClick={() => handleCreateAgent()}
+                  loading={createAgentMutation.isPending || isCreatingAgent.current}>
                   {t("set_up_agent")}
                 </Button>
               </div>
