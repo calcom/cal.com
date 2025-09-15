@@ -1,4 +1,3 @@
-import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { AvailableSlotsService } from "@/lib/services/available-slots.service";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
@@ -24,14 +23,12 @@ import { DateTime } from "luxon";
 import { z } from "zod";
 
 import { SlotFormat } from "@calcom/platform-enums";
-import { SchedulingType } from "@calcom/platform-libraries";
-import {
+import type {
   GetSlotsInput_2024_09_04,
   GetSlotsInputWithRouting_2024_09_04,
   ReserveSlotInput_2024_09_04,
 } from "@calcom/platform-types";
-import { EventType } from "@calcom/prisma/client";
-import { Host } from "@calcom/prisma/client";
+import type { EventType } from "@calcom/prisma/client";
 
 const eventTypeMetadataSchema = z
   .object({

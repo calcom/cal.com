@@ -13,7 +13,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
 import { advanceTo, clear } from "jest-date-mock";
 import { DateTime } from "luxon";
 import * as request from "supertest";
@@ -26,13 +25,8 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 
-import {
-  CAL_API_VERSION_HEADER,
-  SUCCESS_STATUS,
-  VERSION_2024_09_04,
-  ERROR_STATUS,
-} from "@calcom/platform-constants";
-import {
+import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_09_04 } from "@calcom/platform-constants";
+import type {
   CreateScheduleInput_2024_06_11,
   ReserveSlotOutput_2024_09_04 as ReserveSlotOutputData_2024_09_04,
 } from "@calcom/platform-types";
