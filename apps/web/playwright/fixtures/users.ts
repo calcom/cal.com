@@ -45,7 +45,7 @@ export type CreateUsersFixture = ReturnType<typeof createUsersFixture>;
 
 const userIncludes = PrismaType.validator<PrismaType.UserInclude>()({
   eventTypes: true,
-  workflows: true,
+  calIdWorkflows: true,
   credentials: true,
   routingForms: true,
 });

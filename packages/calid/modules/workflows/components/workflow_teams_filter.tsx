@@ -10,12 +10,12 @@ import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { AnimatedPopover } from "@calcom/ui/components/popover";
 
-import type { TeamProfile, TeamFiltersState } from "../config/types";
+import type { CalIdTeamProfile, CalIdTeamFiltersState } from "../config/types";
 
 interface TeamsFilterProps {
-  profiles: TeamProfile[];
-  checked: TeamFiltersState;
-  setChecked: Dispatch<SetStateAction<TeamFiltersState>>;
+  profiles: CalIdTeamProfile[];
+  checked: CalIdTeamFiltersState;
+  setChecked: Dispatch<SetStateAction<CalIdTeamFiltersState>>;
 }
 
 export const TeamsFilter: React.FC<TeamsFilterProps> = ({ profiles, checked, setChecked }) => {
@@ -27,29 +27,29 @@ export const TeamsFilter: React.FC<TeamsFilterProps> = ({ profiles, checked, set
   const userName = session.data?.user.username;
   const userAvatar = `${WEBAPP_URL}/${userName}/avatar.png`;
 
-  const teams = useMemo(() => profiles.filter((profile) => !!profile.teamId), [profiles]);
+  const teams = useMemo(() => profiles.filter((profile) => !!profile.calIdTeamId), [profiles]);
   const [noFilter, setNoFilter] = useState(true);
 
   const handleUserToggle = useCallback(
     (isChecked: boolean) => {
       if (isChecked) {
-        setChecked({ userId: userId, teamIds: checked.teamIds });
-        if (checked.teamIds.length === teams.length) {
+        setChecked({ userId: userId, calIdTeamIds: checked.calIdTeamIds });
+        if (checked.calIdTeamIds.length === teams.length) {
           setNoFilter(true);
         }
       } else {
-        setChecked({ userId: null, teamIds: checked.teamIds });
+        setChecked({ userId: null, calIdTeamIds: checked.calIdTeamIds });
         setNoFilter(false);
       }
     },
-    [userId, checked.teamIds, teams.length, setChecked]
+    [userId, checked.calIdTeamIds, teams.length, setChecked]
   );
 
   const handleTeamToggle = useCallback(
     (teamId: number, isChecked: boolean) => {
       if (isChecked) {
-        const updatedTeamIds = [...checked.teamIds, teamId];
-        setChecked({ userId: checked.userId, teamIds: updatedTeamIds });
+        const updatedTeamIds = [...checked.calIdTeamIds, teamId];
+        setChecked({ userId: checked.userId, calIdTeamIds: updatedTeamIds });
 
         if (checked.userId && updatedTeamIds.length === teams.length) {
           setNoFilter(true);
@@ -57,8 +57,8 @@ export const TeamsFilter: React.FC<TeamsFilterProps> = ({ profiles, checked, set
           setNoFilter(false);
         }
       } else {
-        const updatedTeamIds = checked.teamIds.filter((id) => id !== teamId);
-        setChecked({ userId: checked.userId, teamIds: updatedTeamIds });
+        const updatedTeamIds = checked.calIdTeamIds.filter((id) => id !== teamId);
+        setChecked({ userId: checked.userId, calIdTeamIds: updatedTeamIds });
 
         if (checked.userId && updatedTeamIds.length === teams.length) {
           setNoFilter(true);
@@ -104,9 +104,9 @@ export const TeamsFilter: React.FC<TeamsFilterProps> = ({ profiles, checked, set
         {teams.map((profile) => (
           <div
             className="item-center focus-within:bg-subtle hover:bg-muted flex px-4 py-[6px] transition hover:cursor-pointer"
-            key={profile.teamId || 0}>
+            key={profile.calIdTeamId || 0}>
             <Avatar
-              imageSrc={profile.image || ""}
+              imageSrc={profile.logoUrl || ""}
               size="sm"
               alt={`${profile.slug} Avatar`}
               className="self-center"
@@ -121,8 +121,8 @@ export const TeamsFilter: React.FC<TeamsFilterProps> = ({ profiles, checked, set
               id={profile.slug || ""}
               name={profile.slug || ""}
               type="checkbox"
-              checked={checked.teamIds?.includes(profile.teamId || 0)}
-              onChange={(e) => handleTeamToggle(profile.teamId || 0, e.target.checked)}
+              checked={checked.calIdTeamIds?.includes(profile.calIdTeamId || 0)}
+              onChange={(e) => handleTeamToggle(profile.calIdTeamId || 0, e.target.checked)}
               className="text-emphasis focus:ring-emphasis dark:text-muted border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded transition"
             />
           </div>

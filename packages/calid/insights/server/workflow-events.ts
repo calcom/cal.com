@@ -25,16 +25,16 @@ type WorkflowStatusAggregate = {
   _all: number;
 };
 
-class WorkflowEventsInsights {
+class CalIdWorkflowEventsInsights {
   static countGroupedWorkflowByStatusForRanges = async (
-    whereConditional: Prisma.WorkflowInsightsWhereInput,
+    whereConditional: Prisma.CalIdWorkflowInsightsWhereInput,
     dateRanges: { startDate: string; endDate: string }[],
     timeZone: string
   ): Promise<Record<string, WorkflowStatusAggregate>> => {
     const conditions: string[] = [];
 
     if (whereConditional.AND) {
-      (whereConditional.AND as Prisma.WorkflowInsightsWhereInput[]).forEach((condition) => {
+      (whereConditional.AND as Prisma.CalIdWorkflowInsightsWhereInput[]).forEach((condition) => {
         if (condition.createdAt) {
           const dateFilter = condition.createdAt as Prisma.DateTimeFilter;
           if (dateFilter.gte) {
@@ -74,7 +74,7 @@ class WorkflowEventsInsights {
     FROM (
       SELECT "createdAt" AT TIME ZONE 'UTC' AT TIME ZONE ${Prisma.raw(`'${timeZone}'`)} AS "periodStart",
              "status"
-      FROM "WorkflowInsights"
+      FROM "CalIdWorkflowInsights"
       WHERE ${Prisma.raw(whereClause)}
     ) AS filtered_dates
     GROUP BY "periodStart", "status"
@@ -104,4 +104,4 @@ class WorkflowEventsInsights {
   };
 }
 
-export { WorkflowEventsInsights };
+export { CalIdWorkflowEventsInsights };

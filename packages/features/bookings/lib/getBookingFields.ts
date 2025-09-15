@@ -1,4 +1,4 @@
-import type { Workflow } from "@calid/features//workflows/config/types";
+import type { CalIdWorkflow as Workflow } from "@calid/features/modules/workflows/config/types";
 import type { EventTypeCustomInput, EventType } from "@prisma/client";
 import type { z } from "zod";
 

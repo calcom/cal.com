@@ -13,7 +13,7 @@ import prisma from "@calcom/prisma";
 import { SchedulingType, WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import type { PartialCalIdWorkflowReminder as PartialWorkflowReminder } from "../../config/types";
+import type { PartialCalIdWorkflowReminder } from "../../config/types";
 import { cancelScheduledEmail, getBatchId, sendSendgridMail } from "../../providers/sendgrid";
 import type { VariablesType } from "../../templates/customTemplate";
 import customTemplate from "../../templates/customTemplate";
@@ -23,7 +23,7 @@ import emailThankYouTemplate from "../../templates/email/thankYouTemplate";
 import { getAllRemindersToCancel, getAllUnscheduledReminders } from "../../utils/getWorkflows";
 
 const removePastNotifications = async (): Promise<void> => {
-  await prisma.workflowReminder.deleteMany({
+  await prisma.calIdWorkflowReminder.deleteMany({
     where: {
       method: WorkflowMethods.EMAIL,
       scheduledDate: {
@@ -43,7 +43,7 @@ const processCancelledNotifications = async (): Promise<void> => {
   notificationsToCancel.forEach((notification) => {
     const emailCancellation = cancelScheduledEmail(notification.referenceId);
 
-    const databaseUpdate = prisma.workflowReminder.update({
+    const databaseUpdate = prisma.calIdWorkflowReminder.update({
       where: {
         id: notification.id,
       },
@@ -64,10 +64,10 @@ const processCancelledNotifications = async (): Promise<void> => {
   });
 };
 
-const processNotificationScheduling = async (): Promise<PartialWorkflowReminder[]> => {
+const processNotificationScheduling = async (): Promise<PartialCalIdWorkflowReminder[]> => {
   const mailDeliveryTasks: Promise<any>[] = [];
 
-  const pendingNotifications: PartialWorkflowReminder[] = await getAllUnscheduledReminders();
+  const pendingNotifications: PartialCalIdWorkflowReminder[] = await getAllUnscheduledReminders();
 
   pendingNotifications.forEach(async (notification) => {
     if (!notification.booking) {
@@ -354,7 +354,7 @@ const processNotificationScheduling = async (): Promise<PartialWorkflowReminder[
                 }),
               }
             ).then(() =>
-              prisma.workflowReminder.update({
+              prisma.calIdWorkflowReminder.update({
                 where: {
                   id: notification.id,
                 },
@@ -418,7 +418,7 @@ const processNotificationScheduling = async (): Promise<PartialWorkflowReminder[
                 }),
               }
             ).then(() =>
-              prisma.workflowReminder.update({
+              prisma.calIdWorkflowReminder.update({
                 where: {
                   id: notification.id,
                 },
@@ -461,7 +461,7 @@ export async function POST(request: NextRequest) {
     await removePastNotifications();
     await processCancelledNotifications();
 
-    const pendingNotifications: PartialWorkflowReminder[] = await processNotificationScheduling();
+    const pendingNotifications: PartialCalIdWorkflowReminder[] = await processNotificationScheduling();
 
     return NextResponse.json(
       {

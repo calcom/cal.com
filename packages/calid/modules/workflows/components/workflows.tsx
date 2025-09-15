@@ -7,7 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
 
-import type { WorkflowsProps, TeamFiltersState } from "../config/types";
+import type { CalIdWorkflowsProps, CalIdTeamFiltersState } from "../config/types";
 import { useWorkflowMutations } from "../hooks/useWorkflowsMutations";
 import { WorkflowDeleteDialog } from "./workflow_delete_dialog";
 import { WorkflowEmptyState } from "./workflow_empty_state";
@@ -15,7 +15,7 @@ import { WorkflowLoading } from "./workflow_loading_state";
 import { TeamsFilter } from "./workflow_teams_filter";
 import { WorkflowsList } from "./workflows_list";
 
-export const Workflows: React.FC<WorkflowsProps> = ({ setHeaderMeta, filteredList }) => {
+export const Workflows: React.FC<CalIdWorkflowsProps> = ({ setHeaderMeta, filteredList }) => {
   const { t } = useLocale();
   const routerQuery = useRouterQuery();
   const utils = trpc.useUtils();
@@ -24,7 +24,7 @@ export const Workflows: React.FC<WorkflowsProps> = ({ setHeaderMeta, filteredLis
   const filters = useMemo(() => getTeamsFiltersFromQuery(routerQuery), [routerQuery]);
 
   // Fetch workflows data
-  const { data, isPending: _isPending } = trpc.viewer.workflows.filteredList.useQuery(
+  const { data, isPending: _isPending } = trpc.viewer.workflows.calid_filteredList.useQuery(
     { filters },
     { enabled: !filteredList }
   );
@@ -36,9 +36,9 @@ export const Workflows: React.FC<WorkflowsProps> = ({ setHeaderMeta, filteredLis
   const [copiedLink, setCopiedLink] = useState<number | null>(null);
   const [workflowDeleteDialogOpen, setWorkflowDeleteDialogOpen] = useState(false);
   const [workflowIdToDelete, setWorkflowIdToDelete] = useState(0);
-  const [teamFilters, setTeamFilters] = useState<TeamFiltersState>({
+  const [teamFilters, setTeamFilters] = useState<CalIdTeamFiltersState>({
     userId: null,
-    teamIds: [],
+    calIdTeamIds: [],
   });
 
   // Custom hook for mutations and handlers
@@ -115,7 +115,7 @@ export const Workflows: React.FC<WorkflowsProps> = ({ setHeaderMeta, filteredLis
         setIsOpenDialog={setWorkflowDeleteDialogOpen}
         workflowId={workflowIdToDelete}
         additionalFunction={async () => {
-          await utils.viewer.workflows.filteredList.invalidate();
+          await utils.viewer.workflows.calid_filteredList.invalidate();
         }}
       />
     </div>
