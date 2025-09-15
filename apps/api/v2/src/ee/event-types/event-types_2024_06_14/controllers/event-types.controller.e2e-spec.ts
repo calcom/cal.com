@@ -10,7 +10,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { PlatformOAuthClient, Team, User, Schedule, EventType } from "@prisma/client";
 import * as request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
@@ -32,7 +31,7 @@ import {
   FrequencyInput,
 } from "@calcom/platform-enums";
 import { SchedulingType } from "@calcom/platform-libraries";
-import {
+import type {
   ApiSuccessResponse,
   CreateEventTypeInput_2024_06_14,
   EventTypeOutput_2024_06_14,
@@ -41,6 +40,7 @@ import {
   NotesDefaultFieldInput_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
+import type { PlatformOAuthClient, Team, User, Schedule, EventType } from "@calcom/prisma/client";
 
 const orderBySlug = (a: { slug: string }, b: { slug: string }) => {
   if (a.slug < b.slug) return -1;
@@ -1141,6 +1141,9 @@ describe("Event types Endpoints", () => {
           disableRecordingForGuests: true,
           disableRecordingForOrganizer: true,
           enableAutomaticRecordingForOrganizer: true,
+          enableAutomaticTranscription: true,
+          disableTranscriptionForGuests: true,
+          disableTranscriptionForOrganizer: true,
         },
         bookingFields: [
           nameBookingField,
@@ -1273,6 +1276,15 @@ describe("Event types Endpoints", () => {
           );
           expect(updatedEventType.calVideoSettings?.enableAutomaticRecordingForOrganizer).toEqual(
             body.calVideoSettings?.enableAutomaticRecordingForOrganizer
+          );
+          expect(updatedEventType.calVideoSettings?.enableAutomaticTranscription).toEqual(
+            body.calVideoSettings?.enableAutomaticTranscription
+          );
+          expect(updatedEventType.calVideoSettings?.disableTranscriptionForGuests).toEqual(
+            body.calVideoSettings?.disableTranscriptionForGuests
+          );
+          expect(updatedEventType.calVideoSettings?.disableTranscriptionForOrganizer).toEqual(
+            body.calVideoSettings?.disableTranscriptionForOrganizer
           );
 
           eventType.title = newTitle;

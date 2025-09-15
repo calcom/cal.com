@@ -1,7 +1,6 @@
-import { createModule } from "@evyweb/ioctopus";
-
 import type { IFilterHostsService } from "../../bookings/filterHostsBySameRoundRobinHost";
 import { FilterHostsService } from "../../bookings/filterHostsBySameRoundRobinHost";
+import { createModule } from "../di";
 import { DI_TOKENS } from "../tokens";
 
 export const filterHostsModule = createModule();
