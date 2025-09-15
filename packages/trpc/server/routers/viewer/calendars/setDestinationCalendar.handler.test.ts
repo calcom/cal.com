@@ -20,7 +20,7 @@ import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../types";
 import { setDestinationCalendarHandler } from "./setDestinationCalendar.handler";
 
-vi.mock("@calcom/lib/CalendarManager", () => ({
+vi.mock("@calcom/features/calendars/lib/CalendarManager", () => ({
   getConnectedCalendars: vi.fn(),
   getCalendarCredentials: vi.fn().mockImplementation((creds) => creds),
 }));
