@@ -554,7 +554,7 @@ export class BookingsService_2024_08_13 {
         throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
       }
 
-      return this.outputService.getOutputCreateSeatedBooking(databaseBooking, booking.seatReferenceUid || "");
+      return this.outputService.getOutputCreateSeatedBooking(databaseBooking, booking.seatReferenceUid || "", true);
     } catch (error) {
       if (error instanceof Error) {
         if (error.message === "booking_seats_full_error") {
@@ -603,6 +603,40 @@ export class BookingsService_2024_08_13 {
     return this.outputService.getOutputRecurringBookings(ids);
   }
 
+  async getMySeat(bookingUid: string, user: { id: number; email: string }) {
+    const booking = await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEvent(bookingUid);
+    
+    if (!booking) {
+      throw new NotFoundException(`Booking with uid=${bookingUid} was not found`);
+    }
+
+    // Find the attendee that belongs to the authenticated user
+    const userAttendee = booking.attendees.find((attendee: any) => attendee.email === user.email);
+    
+    if (!userAttendee) {
+      throw new ForbiddenException("You are not an attendee of this booking");
+    }
+
+    // Check if this is a seated event
+    if (!booking.eventType?.seatsPerTimeSlot) {
+      throw new BadRequestException("This booking is not a seated event");
+    }
+
+    // Get the booking seat information
+    if (!userAttendee.bookingSeat) {
+      throw new NotFoundException("No seat information found for this attendee");
+    }
+
+    return {
+      seatUid: userAttendee.bookingSeat.referenceUid,
+      seatNumber: userAttendee.bookingSeat.data?.seatNumber || 1,
+      bookingUid: booking.uid,
+      startTime: booking.startTime.toISOString(),
+      endTime: booking.endTime.toISOString(),
+      title: booking.title || booking.eventType?.title || "Event",
+    };
+  }
+
   async getBookings(
     queryParams: GetBookingsInput_2024_08_13,
     user: { email: string; id: number; orgId?: number },
@@ -635,8 +669,8 @@ export class BookingsService_2024_08_13 {
     const ids = fetchedBookings.bookings.map((booking) => booking.id);
     const bookings = await this.bookingsRepository.getByIdsWithAttendeesWithBookingSeatAndUserAndEvent(ids);
 
-    const bookingMap = new Map(bookings.map((booking) => [booking.id, booking]));
-    const orderedBookings = ids.map((id) => bookingMap.get(id));
+    const bookingMap = new Map(bookings.map((booking: any) => [booking.id, booking]));
+    const orderedBookings = ids.map((id) => bookingMap.get(id)).filter(Boolean);
 
     const formattedBookings: (
       | BookingOutput_2024_08_13
@@ -645,17 +679,14 @@ export class BookingsService_2024_08_13 {
       | GetRecurringSeatedBookingOutput_2024_08_13
     )[] = [];
     for (const booking of orderedBookings) {
-      if (!booking) {
-        continue;
-      }
-
+      const bookingCasted = booking as any;
       const formatted = {
-        ...booking,
-        eventType: booking.eventType,
-        eventTypeId: booking.eventTypeId,
-        startTime: new Date(booking.startTime),
-        endTime: new Date(booking.endTime),
-        absentHost: !!booking.noShowHost,
+        ...bookingCasted,
+        eventType: bookingCasted.eventType,
+        eventTypeId: bookingCasted.eventTypeId,
+        startTime: new Date(bookingCasted.startTime),
+        endTime: new Date(bookingCasted.endTime),
+        absentHost: !!bookingCasted.noShowHost,
       };
 
       const isRecurring = !!formatted.recurringEventId;
@@ -756,13 +787,15 @@ export class BookingsService_2024_08_13 {
       if (isRecurring && isSeated) {
         return this.outputService.getOutputCreateRecurringSeatedBooking(
           databaseBooking,
-          booking?.seatReferenceUid || ""
+          booking?.seatReferenceUid || "",
+          true
         );
       }
       if (isSeated) {
         return this.outputService.getOutputCreateSeatedBooking(
           databaseBooking,
-          booking.seatReferenceUid || ""
+          booking.seatReferenceUid || "",
+          true
         );
       }
       return this.outputService.getOutputBooking(databaseBooking);

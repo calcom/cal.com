@@ -269,11 +269,12 @@ export class OutputBookingsService_2024_08_13 {
 
   async getOutputCreateSeatedBooking(
     databaseBooking: DatabaseBooking,
-    seatUid: string
+    seatUid: string,
+    showAttendees?: boolean
   ): Promise<CreateSeatedBookingOutput_2024_08_13> {
     const getSeatedBookingOutput = await this.getOutputSeatedBooking(
       databaseBooking,
-      !!databaseBooking.eventType?.seatsShowAttendees
+      showAttendees ?? !!databaseBooking.eventType?.seatsShowAttendees
     );
     return { ...getSeatedBookingOutput, seatUid };
   }
@@ -386,7 +387,7 @@ export class OutputBookingsService_2024_08_13 {
       if (!databaseBooking) {
         throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
       }
-      transformed.push(this.getOutputCreateRecurringSeatedBooking(databaseBooking, booking.seatUid));
+      transformed.push(this.getOutputCreateRecurringSeatedBooking(databaseBooking, booking.seatUid, true));
     }
 
     return transformed.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
@@ -394,11 +395,12 @@ export class OutputBookingsService_2024_08_13 {
 
   getOutputCreateRecurringSeatedBooking(
     databaseBooking: DatabaseBooking,
-    seatUid: string
+    seatUid: string,
+    showAttendees?: boolean
   ): CreateRecurringSeatedBookingOutput_2024_08_13 {
     const getRecurringSeatedBookingOutput = this.getOutputRecurringSeatedBooking(
       databaseBooking,
-      !!databaseBooking.eventType?.seatsShowAttendees
+      showAttendees ?? !!databaseBooking.eventType?.seatsShowAttendees
     );
     return { ...getRecurringSeatedBookingOutput, seatUid };
   }
