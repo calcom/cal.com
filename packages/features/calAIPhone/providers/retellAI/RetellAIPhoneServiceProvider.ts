@@ -266,6 +266,20 @@ export class RetellAIPhoneServiceProvider
     return await this.service.createTestCall(params);
   }
 
+  async createWebCall(params: {
+    agentId: string;
+    userId: number;
+    teamId?: number;
+    timeZone: string;
+    eventTypeId: number;
+  }): Promise<{
+    callId: string;
+    accessToken: string;
+    agentId: string;
+  }> {
+    return await this.service.createWebCall(params);
+  }
+
   async updateToolsFromAgentId(
     agentId: string,
     data: { eventTypeId: number | null; timeZone: string; userId: number | null; teamId?: number | null }
@@ -275,5 +289,17 @@ export class RetellAIPhoneServiceProvider
 
   async removeToolsForEventTypes(agentId: string, eventTypeIds: number[]): Promise<void> {
     return await this.service.removeToolsForEventTypes(agentId, eventTypeIds);
+  }
+
+  async listCalls(params: {
+    limit?: number;
+    offset?: number;
+    filters: {
+      fromNumber: string[];
+      toNumber?: string[];
+      startTimestamp?: { lower_threshold?: number; upper_threshold?: number };
+    };
+  }) {
+    return await this.service.listCalls(params);
   }
 }

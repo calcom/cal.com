@@ -11,7 +11,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
 import { DateTime } from "luxon";
 import * as request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
@@ -23,7 +22,7 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { randomString } from "test/utils/randomString";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
-import {
+import type {
   CancelBookingInput_2024_08_13,
   CancelSeatedBookingInput_2024_08_13,
   CreateSeatedBookingOutput_2024_08_13,
@@ -31,9 +30,9 @@ import {
   GetBookingsOutput_2024_08_13,
   GetSeatedBookingOutput_2024_08_13,
   RescheduleSeatedBookingInput_2024_08_13,
+  CreateBookingInput_2024_08_13,
 } from "@calcom/platform-types";
-import { CreateBookingInput_2024_08_13 } from "@calcom/platform-types";
-import { Team } from "@calcom/prisma/client";
+import type { Team, User } from "@calcom/prisma/client";
 
 describe("Bookings Endpoints 2024-08-13", () => {
   describe("Seated bookings", () => {
@@ -53,8 +52,10 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let apiKeyString: string;
 
     let seatedEventTypeId: number;
+    let seatedEventTypeIdAttendeesDisabledId: number;
 
     const seatedEventSlug = `seated-bookings-event-type-${randomString()}`;
+    const seatedEventSlugAttendeesDisabled = `seated-bookings-event-type-attendees-disabled-${randomString()}`;
 
     let createdSeatedBooking: CreateSeatedBookingOutput_2024_08_13;
     let createdSeatedBooking2: CreateSeatedBookingOutput_2024_08_13;
@@ -120,6 +121,28 @@ describe("Bookings Endpoints 2024-08-13", () => {
         user.id
       );
       seatedEventTypeId = seatedEvent.id;
+
+      const seatedEventAttendeesDisabled = await eventTypesRepositoryFixture.create(
+        {
+          title: `seated-bookings-2024-08-13-event-type-attendees-disabled-${randomString()}`,
+          slug: seatedEventSlugAttendeesDisabled,
+          length: 60,
+          seatsPerTimeSlot: 5,
+          seatsShowAttendees: false,
+          seatsShowAvailabilityCount: false,
+          locations: [{ type: "inPerson", address: "via 10, rome, italy" }],
+          metadata: {
+            disableStandardEmails: {
+              all: {
+                attendee: true,
+                host: true,
+              },
+            },
+          },
+        },
+        user.id
+      );
+      seatedEventTypeIdAttendeesDisabledId = seatedEventAttendeesDisabled.id;
 
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
@@ -410,6 +433,63 @@ describe("Bookings Endpoints 2024-08-13", () => {
             createdSeatedBooking = data;
           } else {
             throw new Error("Invalid response data - expected booking but received array response");
+          }
+        });
+    });
+
+    it("should book an event type with attendees disabled", async () => {
+      const body: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 9, 14, 0, 0)).toISOString(),
+        eventTypeId: seatedEventTypeIdAttendeesDisabledId,
+        attendee: {
+          name: nameAttendeeOne,
+          email: emailAttendeeOne,
+          timeZone: "Europe/Rome",
+          language: "it",
+        },
+        bookingFieldsResponses: {
+          codingLanguage: "TypeScript",
+        },
+        metadata: {
+          userId: "100",
+        },
+      };
+
+      return request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201)
+        .then(async (response) => {
+          const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(responseDataIsCreateSeatedBooking(responseBody.data)).toBe(true);
+
+          if (responseDataIsCreateSeatedBooking(responseBody.data)) {
+            const data: CreateSeatedBookingOutput_2024_08_13 = responseBody.data;
+            expect(data.seatUid).toBeDefined();
+            expect(data.id).toBeDefined();
+            expect(data.uid).toBeDefined();
+            expect(data.hosts[0].id).toEqual(user.id);
+            expect(data.status).toEqual("accepted");
+            expect(data.start).toEqual(body.start);
+            expect(data.end).toEqual(
+              DateTime.fromISO(body.start, { zone: "utc" }).plus({ hours: 1 }).toISO()
+            );
+            expect(data.duration).toEqual(60);
+            expect(data.eventTypeId).toEqual(seatedEventTypeIdAttendeesDisabledId);
+            expect(data.eventType).toEqual({
+              id: seatedEventTypeIdAttendeesDisabledId,
+              slug: seatedEventSlugAttendeesDisabled,
+            });
+            expect(data.attendees.length).toEqual(0);
+            expect(data.location).toBeDefined();
+            expect(data.absentHost).toEqual(false);
+          } else {
+            throw new Error(
+              "Invalid response data - expected seated booking but received non array response"
+            );
           }
         });
     });

@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RRResetInterval, RRTimestampBasis } from "@calcom/prisma/client";
+import { RRResetInterval, RRTimestampBasis } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";

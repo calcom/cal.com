@@ -10,6 +10,7 @@ import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/t
 import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";
+import { formatCalEventExtended } from "@calcom/lib/formatCalendarEvent";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
@@ -45,9 +46,6 @@ type ProcessWorkflowStepParams = {
 
 export interface ScheduleWorkflowRemindersArgs extends ProcessWorkflowStepParams {
   workflows: Workflow[];
-  isNotConfirmed?: boolean;
-  isRescheduleEvent?: boolean;
-  isFirstRecurringEvent?: boolean;
   isDryRun?: boolean;
 }
 
@@ -56,13 +54,15 @@ const processWorkflowStep = async (
   step: WorkflowStep,
   {
     smsReminderNumber,
-    calendarEvent: evt,
+    calendarEvent,
     emailAttendeeSendToOverride,
     hideBranding,
     seatReferenceUid,
   }: ProcessWorkflowStepParams
 ) => {
   if (!step?.verifiedAt) return;
+
+  const evt = formatCalEventExtended(calendarEvent);
 
   if (isSMSOrWhatsappAction(step.action)) {
     await checkSMSRateLimit({
@@ -159,8 +159,6 @@ const processWorkflowStep = async (
       seatReferenceUid,
       includeCalendarEvent: step.includeCalendarEvent,
       verifiedAt: step.verifiedAt,
-      userId: workflow.userId,
-      teamId: workflow.teamId,
     });
   } else if (isWhatsappAction(step.action)) {
     const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
@@ -204,37 +202,16 @@ const _scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersArgs) =
     workflows,
     smsReminderNumber,
     calendarEvent: evt,
-    isNotConfirmed = false,
-    isRescheduleEvent = false,
-    isFirstRecurringEvent = true,
     emailAttendeeSendToOverride = "",
     hideBranding,
     seatReferenceUid,
     isDryRun = false,
   } = args;
-  if (isDryRun) return;
-  if (isNotConfirmed || !workflows.length) return;
+  if (isDryRun || !workflows.length) return;
 
   for (const workflow of workflows) {
     if (workflow.steps.length === 0) continue;
 
-    const isNotBeforeOrAfterEvent =
-      workflow.trigger !== WorkflowTriggerEvents.BEFORE_EVENT &&
-      workflow.trigger !== WorkflowTriggerEvents.AFTER_EVENT;
-
-    if (
-      isNotBeforeOrAfterEvent &&
-      // Check if the trigger is not a new event without a reschedule and is the first recurring event.
-      !(
-        workflow.trigger === WorkflowTriggerEvents.NEW_EVENT &&
-        !isRescheduleEvent &&
-        isFirstRecurringEvent
-      ) &&
-      // Check if the trigger is not a rescheduled event that is rescheduled.
-      !(workflow.trigger === WorkflowTriggerEvents.RESCHEDULE_EVENT && isRescheduleEvent)
-    ) {
-      continue;
-    }
     for (const step of workflow.steps) {
       await processWorkflowStep(workflow, step, {
         calendarEvent: evt,
