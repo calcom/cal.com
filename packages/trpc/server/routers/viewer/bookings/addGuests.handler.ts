@@ -4,7 +4,7 @@ import EventManager from "@calcom/lib/EventManager";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
+import { isTeamAdmin, isTeamOwner } from "@calcom/features/ee/teams/lib/queries";
 import { prisma } from "@calcom/prisma";
 import type { BookingResponses } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";

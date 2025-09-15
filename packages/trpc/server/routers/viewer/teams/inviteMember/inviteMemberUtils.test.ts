@@ -1,7 +1,7 @@
 import { describe, it, vi, expect } from "vitest";
 
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
+import { isTeamAdmin } from "@calcom/features/ee/teams/lib/queries";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
