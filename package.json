@@ -119,6 +119,7 @@
     "vitest-mock-extended": "^2.0.2"
   },
   "dependencies": {
+    "react-live-chat-loader": "^2.8.1",
     "@daily-co/daily-js": "^0.76.0",
     "@evyweb/ioctopus": "^1.2.0",
     "@next/third-parties": "^14.2.5",
