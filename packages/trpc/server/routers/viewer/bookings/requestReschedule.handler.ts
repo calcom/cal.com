@@ -96,6 +96,33 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     throw new TRPCError({ code: "FORBIDDEN", message: "EventType not found for current booking." });
   }
 
+  // Check minimum cancellation notice for reschedule
+  const minimumCancellationNotice = bookingToReschedule.eventType?.minimumCancellationNotice || 0;
+  if (minimumCancellationNotice > 0) {
+    const now = dayjs();
+    const bookingStart = dayjs(bookingToReschedule.startTime);
+    const minutesUntilEvent = bookingStart.diff(now, 'minute');
+    
+    if (minutesUntilEvent < minimumCancellationNotice) {
+      const hours = Math.floor(minimumCancellationNotice / 60);
+      const minutes = minimumCancellationNotice % 60;
+      let timeString = '';
+      
+      if (hours > 0 && minutes > 0) {
+        timeString = `${hours} hour${hours > 1 ? 's' : ''} and ${minutes} minute${minutes > 1 ? 's' : ''}`;
+      } else if (hours > 0) {
+        timeString = `${hours} hour${hours > 1 ? 's' : ''}`;
+      } else {
+        timeString = `${minutes} minute${minutes > 1 ? 's' : ''}`;
+      }
+      
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: `Cannot reschedule within ${timeString} of event start`,
+      });
+    }
+  }
+
   const bookingBelongsToTeam = !!bookingToReschedule.eventType?.teamId;
 
   const userTeams = await prisma.user.findUniqueOrThrow({
@@ -125,9 +152,9 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   if (!bookingToReschedule) return;
 
-  let event: Partial<EventType> = {};
+  let eventTypeData: Partial<EventType> = {};
   if (bookingToReschedule.eventTypeId) {
-    event = await prisma.eventType.findUniqueOrThrow({
+    eventTypeData = await prisma.eventType.findUniqueOrThrow({
       select: {
         title: true,
         schedulingType: true,
@@ -192,7 +219,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     bookerUrl: eventType?.team
       ? await getBookerBaseUrl(eventType.team.parentId)
       : await getBookerBaseUrl(user.profile?.organizationId ?? null),
-    type: event && event.slug ? event.slug : bookingToReschedule.title,
+    type: eventTypeData && eventTypeData.slug ? eventTypeData.slug : bookingToReschedule.title,
     startTime: bookingToReschedule.startTime.toISOString(),
     endTime: bookingToReschedule.endTime.toISOString(),
     hideOrganizerEmail: eventType?.hideOrganizerEmail,
@@ -202,144 +229,131 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       tAttendees
     ),
     organizer,
-    iCalUID: bookingToReschedule.iCalUID,
-    customReplyToEmail: bookingToReschedule.eventType?.customReplyToEmail,
-    team: !!bookingToReschedule.eventType?.team
-      ? {
-          name: bookingToReschedule.eventType.team.name,
-          id: bookingToReschedule.eventType.team.id,
-          members: [],
-        }
-      : undefined,
   });
-
-  const director = new CalendarEventDirector();
-  director.setBuilder(builder);
-  director.setExistingBooking(bookingToReschedule);
-  cancellationReason && director.setCancellationReason(cancellationReason);
-  if (Object.keys(event).length) {
-    // Request Reschedule flow first cancels the booking and then reschedule email is sent. So, we need to allow reschedule for cancelled booking
-    await director.buildForRescheduleEmail({ allowRescheduleForCancelledBooking: true });
-  } else {
-    await director.buildWithoutEventTypeForRescheduleEmail();
-  }
-
-  // Handling calendar and videos cancellation
-  // This can set previous time as available, until virtual calendar is done
-  const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
-  const credentialsMap = new Map();
-  credentials.forEach((credential) => {
-    credentialsMap.set(credential.type, credential);
-  });
-  const bookingRefsFiltered: BookingReference[] = bookingToReschedule.references.filter((ref) =>
-    credentialsMap.has(ref.type)
-  );
-
-  // FIXME: error-handling
-  await Promise.allSettled(
-    bookingRefsFiltered.map(async (bookingRef) => {
-      if (!bookingRef.uid) return;
-
-      if (bookingRef.type.endsWith("_calendar")) {
-        const calendar = await getCalendar(
-          getDelegationCredentialOrRegularCredential({
-            credentials,
-            id: {
-              credentialId: bookingRef?.credentialId,
-              delegationCredentialId: bookingRef?.delegationCredentialId,
-            },
-          })
-        );
-        return calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent, bookingRef.externalCalendarId);
-      } else if (bookingRef.type.endsWith("_video")) {
-        return deleteMeeting(
-          getDelegationCredentialOrRegularCredential({
-            credentials,
-            id: {
-              credentialId: bookingRef?.credentialId,
-              delegationCredentialId: bookingRef?.delegationCredentialId,
-            },
-          }),
-          bookingRef.uid
-        );
-      }
-    })
-  );
-
-  log.debug("builder.calendarEvent", safeStringify(builder.calendarEvent));
-  // Send emails
-  await sendRequestRescheduleEmailAndSMS(
-    builder.calendarEvent,
-    {
-      rescheduleLink: builder.rescheduleLink,
-    },
-    eventType?.metadata as EventTypeMetadata
-  );
-
-  const calEventResponses = getCalEventResponses({
-    booking: bookingToReschedule,
-    bookingFields: bookingToReschedule.eventType?.bookingFields ?? null,
-  });
-
-  const webhookFactory = new BookingWebhookFactory();
-  const payload = webhookFactory.createCancelledEventPayload({
-    bookingId: bookingToReschedule.id,
-    title: bookingToReschedule.title,
-    eventSlug: event.slug ?? null,
-    description: bookingToReschedule.description,
-    customInputs: bookingToReschedule.customInputs,
-    responses: calEventResponses.responses,
-    userFieldsResponses: calEventResponses.userFieldsResponses,
-    startTime: bookingToReschedule.startTime ? dayjs(bookingToReschedule.startTime).format() : "",
-    endTime: bookingToReschedule.endTime ? dayjs(bookingToReschedule.endTime).format() : "",
-    organizer,
-    attendees: usersToPeopleType(
-      // username field doesn't exists on attendee but could be in the future
-      bookingToReschedule.attendees as unknown as PersonAttendeeCommonFields[],
-      tAttendees
-    ),
-    uid: bookingToReschedule.uid,
-    location: bookingToReschedule.location,
-    destinationCalendar: bookingToReschedule.destinationCalendar,
-    cancellationReason: `Please reschedule. ${cancellationReason}`, // TODO::Add i18-next for this
-    iCalUID: bookingToReschedule.iCalUID,
-    ...(bookingToReschedule.smsReminderNumber && {
-      smsReminderNumber: bookingToReschedule.smsReminderNumber,
+  builder.setLocation(bookingToReschedule.location);
+  builder.setUId(bookingToReschedule.uid);
+  builder.setDestinationCalendar(bookingToReschedule.destinationCalendar);
+  builder.setRecurringEvent(eventTypeData.recurringEvent);
+  builder.setDescription(bookingToReschedule.description);
+  builder.setResponses({
+    ...getCalEventResponses({
+      booking: bookingToReschedule,
+      bookingFields: bookingToReschedule.eventType?.bookingFields || null,
     }),
-    cancelledBy: user.email,
+    // TODO: We should send responses from the current booking, check this comment https://github.com/calcom/cal.com/issues/9852#issuecomment-1633219613
+    //  (bookingToReschedule.responses as Prisma.JsonObject) || null
   });
+  builder.setCalendarEvent({
+    iCalUID: bookingToReschedule.iCalUID,
+  });
+  const director = new CalendarEventDirector();
+  const calendarEvent = director.buildForRescheduleEmail(builder);
 
-  // Send webhook
-  const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
+  const handleSeats = async () => {
+    if (bookingToReschedule.eventType?.seatsPerTimeSlot) {
+      const seatReference = bookingToReschedule.attendees.find((attendee) => attendee.email === user.email);
+
+      //if it's a reschedule the the first attendee is the one rescheduling
+      if (seatReference && bookingToReschedule.attendees[0]) {
+        await prisma.attendee.update({
+          where: {
+            id: seatReference.id,
+          },
+          data: {
+            name: bookingToReschedule.attendees[0].name,
+            email: bookingToReschedule.attendees[0].email,
+          },
+        });
+      }
+    }
+  };
+
+  await handleSeats();
+
+  const copyEvent = cloneDeep(calendarEvent);
 
   const teamId = await getTeamIdFromEventType({
     eventType: {
-      team: { id: bookingToReschedule.eventType?.teamId ?? null },
-      parentId: bookingToReschedule.eventType?.parentId ?? null,
+      team: { id: bookingToReschedule.eventType?.team?.id ?? null },
+      parentId: bookingToReschedule?.eventType?.parentId ?? null,
     },
   });
-
   const triggerForUser = !teamId || (teamId && bookingToReschedule.eventType?.parentId);
-  const userId = triggerForUser ? bookingToReschedule.userId : null;
-  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
+  const organizerUserId = triggerForUser ? bookingToReschedule.userId : null;
 
-  // Send Webhook call if hooked to BOOKING.CANCELLED
-  const subscriberOptions = {
-    userId,
-    eventTypeId: bookingToReschedule.eventTypeId as number,
-    triggerEvent: eventTrigger,
-    teamId: teamId ? [teamId] : null,
-    orgId,
-  };
-  const webhooks = await getWebhooks(subscriberOptions);
+  const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
+  const bookingWebhookFactory = new BookingWebhookFactory({
+    organizerUserId,
+    teamId,
+    orgId: await getOrgIdFromMemberOrTeamId({ memberId: organizerUserId, teamId }),
+    eventTypeId: bookingToReschedule.eventTypeId,
+    eventTrigger,
+  });
+  const eventPayload = await bookingWebhookFactory.buildEventPayloadFromBooking(bookingToReschedule);
 
-  const promises = webhooks.map((webhook) =>
-    sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, payload).catch((e) => {
-      log.error(
-        `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${payload.bookingId}, bookingUid: ${payload.uid}`,
-        safeStringify(e)
-      );
-    })
-  );
-  await Promise.all(promises);
+  // Send Webhook
+  await bookingWebhookFactory.create(eventPayload);
+
+  //Send Email to organizer
+  await sendRequestRescheduleEmailAndSMS(copyEvent, {
+    rescheduleLink: organizer.language.translate("reschedule_link_text"),
+  });
+
+  const credentials = await getUsersCredentialsIncludeServiceAccountKey({
+    userId: user.id,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    credentialIds: bookingToReschedule.references.map((r) => r.credentialId),
+  });
+  const awaitedReferences: BookingReference[] = [];
+  for (const reference of bookingToReschedule.references) {
+    if (!reference.credentialId) continue;
+    const credential = await getDelegationCredentialOrRegularCredential({
+      delegatedCredentialId: reference.credentialId,
+      credentials,
+      userId: user.id,
+    });
+    // if rescheduleUid !== bookingToReschedule.uid, this is a new booking
+    // then we just update the booking with the new references
+    const credentialCalendar = await getCalendar(credential);
+    const uidToDelete = reference.uid;
+    const { error } = await deleteMeeting({
+      credentialCalendar,
+      event: calendarEvent,
+      bookingRef: {
+        ...reference,
+        uid: uidToDelete,
+      },
+    });
+    if (!error) {
+      awaitedReferences.push(reference);
+    }
+  }
+  return { message: "Booking rescheduled successfully" };
 };
+
+function cloneDeep<T>(obj: T): T {
+  if (obj === null || typeof obj !== "object") {
+    return obj;
+  }
+
+  if (obj instanceof Date) {
+    return new Date(obj.getTime()) as T;
+  }
+
+  if (Array.isArray(obj)) {
+    const arrCopy = [] as any[];
+    obj.forEach((item) => {
+      arrCopy.push(cloneDeep(item));
+    });
+    return arrCopy as T;
+  }
+
+  const clonedObj = {} as T;
+  for (const key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      (clonedObj as any)[key] = cloneDeep(obj[key]);
+    }
+  }
+  return clonedObj;
+}

@@ -1,5 +1,24 @@
 # @calcom/web
 
+## 5.3.0
+
+### Minor Changes
+
+- **New Feature**: Minimum Cancellation/Reschedule Notice
+  - Added ability to set minimum notice periods for cancellations and reschedules on event types
+  - Prevents attendees from cancelling or rescheduling bookings too close to the event start time
+  - Configurable per event type with support for minutes, hours, and days
+  - Automatic validation and user-friendly error messages
+  - Database schema updated with `minimumCancellationNotice` field on EventType model
+  - Full integration with existing booking cancellation and reschedule workflows
+
+### Patch Changes
+
+- Enhanced booking cancellation flow with minimum notice validation
+- Updated reschedule dialog to handle minimum notice restrictions
+- Added MinimumCancellationNoticeInput component for event type configuration
+- Improved error messaging for time-restricted cancellations and reschedules
+
 ## 5.2.8
 
 ### Patch Changes

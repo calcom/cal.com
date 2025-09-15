@@ -28,9 +28,14 @@ export const RescheduleDialog = (props: IRescheduleDialog) => {
       setIsOpenDialog(false);
       await utils.viewer.bookings.invalidate();
     },
-    onError() {
-      showToast(t("unexpected_error_try_again"), "error");
-      // @TODO: notify sentry
+    onError(error) {
+      // Check if the error is due to minimum cancellation notice
+      if (error.message.includes("Cannot reschedule within")) {
+        showToast(error.message, "error");
+      } else {
+        showToast(t("unexpected_error_try_again"), "error");
+      }
+      // @TODO: notify sentry for unexpected errors
     },
   });
 

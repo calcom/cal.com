@@ -113,6 +113,33 @@ async function handler(input: CancelBookingInput) {
     });
   }
 
+  // Check minimum cancellation notice
+  const minimumCancellationNotice = bookingToDelete.eventType?.minimumCancellationNotice || 0;
+  if (minimumCancellationNotice > 0) {
+    const now = dayjs();
+    const bookingStart = dayjs(bookingToDelete.startTime);
+    const minutesUntilEvent = bookingStart.diff(now, 'minute');
+    
+    if (minutesUntilEvent < minimumCancellationNotice) {
+      const hours = Math.floor(minimumCancellationNotice / 60);
+      const minutes = minimumCancellationNotice % 60;
+      let timeString = '';
+      
+      if (hours > 0 && minutes > 0) {
+        timeString = `${hours} hour${hours > 1 ? 's' : ''} and ${minutes} minute${minutes > 1 ? 's' : ''}`;
+      } else if (hours > 0) {
+        timeString = `${hours} hour${hours > 1 ? 's' : ''}`;
+      } else {
+        timeString = `${minutes} minute${minutes > 1 ? 's' : ''}`;
+      }
+      
+      throw new HttpError({
+        statusCode: 403,
+        message: `Cannot cancel within ${timeString} of event start`,
+      });
+    }
+  }
+
   if (!platformClientId && !cancellationReason?.trim() && bookingToDelete.userId == userId) {
     throw new HttpError({
       statusCode: 400,

@@ -1,0 +1,156 @@
+---
+title: "Minimum Cancellation Notice for Event Types"
+---
+
+This guide explains how the minimum cancellation notice feature works in Cal.com, allowing event organizers to prevent last-minute cancellations and reschedules.
+
+## Overview
+
+The minimum cancellation notice feature allows event type owners to set a time buffer that prevents attendees from cancelling or rescheduling bookings too close to the event start time. This helps reduce no-shows and last-minute disruptions.
+
+## How It Works
+
+### Configuration
+
+Event type owners can configure the minimum cancellation notice in the event type settings under the "Limits" section:
+
+1. Navigate to Event Types
+2. Edit an event type
+3. Go to the "Limits" tab
+4. Find "Minimum cancellation notice"
+5. Set the desired time period (minutes, hours, or days)
+
+### User Experience
+
+When an attendee attempts to cancel or reschedule:
+
+1. The system checks if the current time plus the minimum notice period exceeds the event start time
+2. If within the restricted period, the action is blocked with a clear error message
+3. If outside the restricted period, the action proceeds normally
+
+### Implementation Details
+
+#### Database Schema
+
+The feature adds a `minimumCancellationNotice` field to the EventType model:
+
+```prisma
+model EventType {
+  // ... existing fields
+  minimumCancellationNotice  Int?  @default(0) // in minutes
+}
+```
+
+#### API Validation
+
+The cancellation and reschedule endpoints validate the minimum notice:
+
+```typescript
+// Check if cancellation is allowed
+const currentTime = new Date();
+const eventStartTime = new Date(booking.startTime);
+const timeDifferenceMs = eventStartTime.getTime() - currentTime.getTime();
+const timeDifferenceMinutes = Math.floor(timeDifferenceMs / (1000 * 60));
+
+if (timeDifferenceMinutes < eventType.minimumCancellationNotice) {
+  throw new Error("Cancellation not allowed within minimum notice period");
+}
+```
+
+#### UI Components
+
+The `MinimumCancellationNoticeInput` component provides the configuration interface:
+
+- Time input field
+- Unit selector (minutes/hours/days)
+- Automatic conversion to minutes for storage
+
+## Configuration Examples
+
+### Common Use Cases
+
+1. **Business Meetings**: 24 hours notice
+   - Prevents last-minute cancellations that waste preparation time
+   
+2. **Medical Appointments**: 48 hours notice
+   - Allows time to fill the slot with waitlist patients
+   
+3. **Consultations**: 2 hours notice
+   - Provides flexibility while preventing immediate cancellations
+
+### Setting Up
+
+```typescript
+// Example: 24 hours minimum notice
+const eventType = {
+  minimumCancellationNotice: 1440 // 24 hours in minutes
+};
+
+// Example: 2 hours minimum notice
+const eventType = {
+  minimumCancellationNotice: 120 // 2 hours in minutes
+};
+```
+
+## Error Handling
+
+When a user attempts to cancel or reschedule within the restricted period, they receive a clear error message:
+
+- **Cancellation**: "You cannot cancel this booking because it's too close to the start time. The minimum cancellation notice is [X] [hours/days]."
+- **Reschedule**: "You cannot reschedule this booking because it's too close to the start time. The minimum reschedule notice is [X] [hours/days]."
+
+## Best Practices
+
+1. **Set Reasonable Limits**: Balance between protecting your time and providing flexibility to attendees
+2. **Communicate Clearly**: Include the cancellation policy in booking confirmation emails
+3. **Consider Time Zones**: The feature automatically handles time zone differences
+4. **Test Your Settings**: Book test events to ensure the restrictions work as expected
+
+## Technical Implementation
+
+### Frontend Components
+
+- `MinimumCancellationNoticeInput`: Configuration component in event type settings
+- `CancelBookingDialog`: Enhanced with minimum notice validation
+- `RescheduleDialog`: Checks minimum notice before allowing reschedule
+
+### Backend Services
+
+- `handleCancelBooking`: Validates minimum notice before processing cancellation
+- `rescheduleBooking`: Enforces minimum notice for reschedule requests
+- tRPC procedures updated with validation logic
+
+### Database Migration
+
+The feature includes a Prisma migration to add the necessary field:
+
+```sql
+ALTER TABLE "EventType" 
+ADD COLUMN "minimumCancellationNotice" INTEGER DEFAULT 0;
+```
+
+## Testing
+
+The feature includes comprehensive tests:
+
+1. **Unit Tests**: Validation logic for time calculations
+2. **Integration Tests**: API endpoint behavior
+3. **E2E Tests**: Complete user flows for cancellation and reschedule
+
+## Related Features
+
+- **Booking Limits**: Set minimum/maximum notice for new bookings
+- **Buffer Time**: Add time between bookings
+- **Availability Schedule**: Define when bookings can be made
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Cancellation Still Allowed**: Check that the event type has been saved with the minimum notice setting
+2. **Wrong Time Calculation**: Ensure time zones are properly configured
+3. **Missing UI Option**: Verify you have the latest version with this feature
+
+### Support
+
+For additional help, please refer to the Cal.com documentation or contact support.

@@ -31,6 +31,7 @@ import {
 } from "@calcom/ui/components/form";
 
 import MaxActiveBookingsPerBookerController from "./MaxActiveBookingsPerBookerController";
+import MinimumCancellationNoticeInput from "./MinimumCancellationNoticeInput";
 
 type IPeriodType = (typeof PeriodType)[keyof typeof PeriodType];
 
@@ -521,6 +522,25 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
               {...formMethods.register("minimumBookingNotice")}
             />
           </div>
+          <div
+            className={classNames(
+              "w-full",
+              customClassNames?.bufferAndNoticeSection?.minimumNoticeInput?.container
+            )}>
+            <Label
+              htmlFor="minimumCancellationNotice"
+              className={customClassNames?.bufferAndNoticeSection?.minimumNoticeInput?.label}>
+              {t("minimum_cancellation_notice")}
+              {shouldLockIndicator("minimumCancellationNotice")}
+            </Label>
+            <MinimumCancellationNoticeInput
+              customClassNames={customClassNames?.bufferAndNoticeSection?.minimumNoticeInput}
+              disabled={shouldLockDisableProps("minimumCancellationNotice").disabled}
+              {...formMethods.register("minimumCancellationNotice")}
+            />
+          </div>
+        </div>
+        <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
           <div
             className={classNames(
               "w-full",
