@@ -1,3 +1,5 @@
+import { prisma } from "@calcom/prisma/__mocks__/prisma";
+
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import type {
@@ -16,6 +18,10 @@ import type { TransactionInterface } from "../interfaces/TransactionInterface";
 import { RetellAIPhoneServiceProvider } from "./RetellAIPhoneServiceProvider";
 import type { RetellAIService } from "./RetellAIService";
 import type { RetellAIRepository } from "./types";
+
+vi.mock("@calcom/prisma", () => ({
+  prisma,
+}));
 
 function createMockRetellAIService(overrides: Partial<RetellAIService> = {}): RetellAIService {
   const defaultMocks = {

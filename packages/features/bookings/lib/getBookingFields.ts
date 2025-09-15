@@ -1,4 +1,3 @@
-import type { EventTypeCustomInput, EventType } from "@prisma/client";
 import type { z } from "zod";
 
 import {
@@ -10,6 +9,7 @@ import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/
 import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import slugify from "@calcom/lib/slugify";
+import type { EventTypeCustomInput, EventType } from "@calcom/prisma/client";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 import {
   BookingFieldTypeEnum,
