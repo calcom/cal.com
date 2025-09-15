@@ -267,7 +267,13 @@ describe("BillingService", () => {
       mocks.mockRetellRepository.deletePhoneNumber.mockResolvedValue(undefined);
 
       const stripe = (await import("@calcom/features/ee/payments/server/stripe")).default;
-      stripe.subscriptions.cancel.mockRejectedValue({ code: "resource_missing" });
+      stripe.subscriptions.cancel.mockRejectedValue({
+        type: "invalid_request_error",
+        code: "resource_missing",
+        message: "No such subscription: 'sub_123'",
+        param: "id",
+        doc_url: "https://stripe.com/docs/error-codes/resource-missing",
+      });
 
       const result = await service.cancelPhoneNumberSubscription(validCancelData);
 
