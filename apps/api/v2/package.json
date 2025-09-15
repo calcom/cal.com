@@ -110,7 +110,7 @@
     "ts-loader": "^9.4.3",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.1.0",
-    "typescript": "^5.9.0-beta"
+    "typescript": "^5.9.2"
   },
   "prisma": {
     "schema": "../../../packages/prisma/schema.prisma"

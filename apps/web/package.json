@@ -198,7 +198,7 @@
     "tailwindcss": "^3.3.3",
     "tailwindcss-animate": "^1.0.6",
     "ts-node": "^10.9.1",
-    "typescript": "^5.9.0-beta"
+    "typescript": "^5.9.2"
   },
   "nextBundleAnalysis": {
     "budget": 358400,
