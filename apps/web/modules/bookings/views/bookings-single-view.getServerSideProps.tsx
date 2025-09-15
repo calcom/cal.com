@@ -240,7 +240,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         ? true
         : await shouldHideBrandingForEvent({
             eventTypeId: eventType.id,
-            team: eventType.team,
+            team: eventType?.parent?.team ?? eventType?.team,
             owner: eventType.users[0] ?? null,
             organizationId: session?.user?.profile?.organizationId ?? session?.user?.org?.id ?? null,
           }),
