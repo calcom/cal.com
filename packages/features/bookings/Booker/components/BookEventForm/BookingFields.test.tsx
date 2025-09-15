@@ -163,7 +163,6 @@ describe("BookingFields", () => {
       },
     ];
 
-    // Set form default value to attendee phone number location
     renderComponent({
       props: {
         fields,
@@ -178,8 +177,8 @@ describe("BookingFields", () => {
       },
     });
 
-    // Attendee phone number field should not be in the document
-    expect(screen.queryByRole("textbox", { name: /attendee_phone_number/i })).toBeNull();
+    const phoneInputByName = document.querySelector('input[name="attendeePhoneNumber"]');
+    expect(phoneInputByName).toBeNull();
   });
 
   it("should show attendee phone number field if location is not attendee phone number", async () => {
@@ -231,13 +230,11 @@ describe("BookingFields", () => {
       },
     });
 
-    // Attendee phone number field should be in the document
-    // Try to find by placeholder or name attribute if label is not accessible
-    const input = screen.getByRole("textbox", { name: "" });
-    expect(input).toBeInTheDocument();
-    // eslint-disable-next-line prettier/prettier
-    await expect(input).toHaveAttribute("name", "attendeePhoneNumber");
-    await expect(input).toHaveAttribute("type", "tel");
+    const phoneInputByName = document.querySelector('input[name="attendeePhoneNumber"]');
+
+    expect(phoneInputByName).toBeInTheDocument();
+    expect(phoneInputByName).toHaveAttribute("name", "attendeePhoneNumber");
+    expect(phoneInputByName).toHaveAttribute("type", "tel");
   });
 });
 

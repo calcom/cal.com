@@ -37,6 +37,7 @@ export const IntercomContactForm = () => {
           setShowTrigger(showTrigger);
         },
       };
+      window.dispatchEvent(new Event("support:ready"));
     }
 
     return () => {
