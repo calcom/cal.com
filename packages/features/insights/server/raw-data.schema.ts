@@ -105,5 +105,6 @@ export const bookingRepositoryBaseInputSchema = z.object({
   selectedTeamId: z.number().optional(),
   startDate: z.string(),
   endDate: z.string(),
+  timeZone: z.string(),
   columnFilters: z.array(ZColumnFilter).optional(),
 });
