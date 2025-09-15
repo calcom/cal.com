@@ -1,7 +1,9 @@
+import React, { useId, useRef } from "react";
 import { CodeHighlightNode, CodeNode } from "@lexical/code";
 import { AutoLinkNode, LinkNode } from "@lexical/link";
 import { ListItemNode, ListNode } from "@lexical/list";
 import { TRANSFORMERS } from "@lexical/markdown";
+import type { LexicalEditor } from "lexical";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import LexicalErrorBoundary from "@lexical/react/LexicalErrorBoundary";
@@ -12,7 +14,7 @@ import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPl
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
-
+import ExposeEditorPlugin from "./plugins/ExposeEdtitor";
 import classNames from "@calcom/ui/classNames";
 
 import ExampleTheme from "./ExampleTheme";
@@ -59,9 +61,17 @@ const editorConfig = {
 export const Editor = (props: TextEditorProps) => {
   const editable = props.editable ?? true;
   const plainText = props.plainText ?? false;
+  const labelId = useId();
+  const editorRef = useRef<LexicalEditor | null>(null);
+
+  const handleLabelClick = () => {
+    if (!editable) return;
+    editorRef.current?.focus();
+  };
+
   return (
     <div className="editor rounded-md">
-      {props.label && <label className="mb-1 block text-sm font-medium leading-6">{props.label}</label>}
+      {props.label && <label className="mb-1 block text-sm font-medium leading-6" onClick={handleLabelClick}>{props.label}</label>}
       <LexicalComposer initialConfig={{ ...editorConfig }}>
         <div className="editor-container hover:border-emphasis focus-within:ring-brand-default !rounded-lg p-0 transition focus-within:ring-2 focus-within:ring-offset-0">
           <ToolbarPlugin
@@ -81,6 +91,9 @@ export const Editor = (props: TextEditorProps) => {
             <RichTextPlugin
               contentEditable={
                 <ContentEditable
+                  aria-labelledby={props.label ? labelId : undefined}
+                  role="textbox"
+                  aria-multiline="true"
                   readOnly={!editable}
                   style={{ height: props.height }}
                   className="editor-input focus:outline-none"
@@ -111,6 +124,7 @@ export const Editor = (props: TextEditorProps) => {
             />
           </div>
         </div>
+        <ExposeEditorPlugin onReady={(editor) => (editorRef.current = editor)} />
         <EditablePlugin editable={editable} />
         <PlainTextPlugin setText={props.setText} plainText={plainText} />
       </LexicalComposer>

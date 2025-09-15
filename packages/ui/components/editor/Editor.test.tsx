@@ -73,4 +73,23 @@ describe("Editor", () => {
     );
     expect(setFirstRender).toHaveBeenCalled();
   });
+
+  it("focuses editor when label is clicked", async () => {
+    const user = userEvent.setup();
+    render(<Editor {...defaultProps} label="Description" />);
+    const label = screen.getByText("Description");
+    const editor = screen.getByRole("textbox");
+    expect(editor).not.toHaveFocus();
+    await user.click(label);
+    expect(editor).toHaveFocus();
+  });
+
+  it("does not focus editor when label is clicked if editable is false", async () => {
+    const user = userEvent.setup();
+    render(<Editor {...defaultProps} label="Read-only" editable={false} />);
+    const label = screen.getByText("Read-only");
+    const editor = screen.getByRole("textbox");
+    await user.click(label);
+    expect(editor).not.toHaveFocus();
+  });
 });
