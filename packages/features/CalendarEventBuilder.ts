@@ -266,6 +266,14 @@ export class CalendarEventBuilder {
     return this;
   }
 
+  withHideBranding(hideBranding?: boolean) {
+    this.event = {
+      ...this.event,
+      hideBranding,
+    };
+    return this;
+  }
+
   build(): CalendarEvent | null {
     // Validate required fields
     if (

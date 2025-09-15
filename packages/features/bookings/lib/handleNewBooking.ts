@@ -1270,6 +1270,7 @@ async function handler(
       platformCancelUrl,
       platformBookingUrl,
     })
+    .withHideBranding(!!eventType.owner?.hideBranding)
     .build();
 
   if (!builtEvt) {

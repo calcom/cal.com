@@ -245,6 +245,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           members: [],
         }
       : undefined,
+    hideBranding: !!booking.eventType?.owner?.hideBranding,
     ...(platformClientParams ? platformClientParams : {}),
   };
 
