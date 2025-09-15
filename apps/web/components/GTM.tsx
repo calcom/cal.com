@@ -1,6 +1,8 @@
 import { GoogleTagManager } from "@next/third-parties/google";
 import { useQuery } from "@tanstack/react-query";
 
+import { localStorage } from "@calcom/lib/webstorage";
+
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
 
 const CACHE_KEY = "user_geolocation";

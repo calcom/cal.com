@@ -1,8 +1,6 @@
 "use client";
 
 import { Icon } from "@calid/features/ui/components/icon";
-
-
 import React, { useState, useMemo } from "react";
 import { Toaster } from "react-hot-toast";
 

@@ -2,6 +2,7 @@
 
 import { Button } from "@calid/features/ui/components/button";
 import { Label } from "@calid/features/ui/components/label";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { revalidateSettingsGeneral } from "app/(use-page-wrapper)/settings/(settings-layout)/my-account/general/actions";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
@@ -9,6 +10,7 @@ import { Controller, useForm } from "react-hook-form";
 
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { APP_NAME } from "@calcom/lib/constants";
 import { formatLocalizedDateTime } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localeOptions } from "@calcom/lib/i18n";
@@ -19,8 +21,6 @@ import classNames from "@calcom/ui/classNames";
 import { Form } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
-import { triggerToast } from "@calid/features/ui/components/toast";
-import { APP_NAME } from "@calcom/lib/constants";
 import { revalidateTravelSchedules } from "@calcom/web/app/cache/travelSchedule";
 
 import TravelScheduleModal from "@components/settings/TravelScheduleModal";
@@ -151,7 +151,10 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
   const watchedTzSchedules = formMethods.watch("travelSchedules");
 
   return (
-    <SettingsHeader title={t("general")} description={t("general_description", { appName: APP_NAME })} borderInShellHeader={false}>
+    <SettingsHeader
+      title={t("general")}
+      description={t("general_description", { appName: APP_NAME })}
+      borderInShellHeader={false}>
       <div>
         <Form
           form={formMethods}
@@ -347,16 +350,16 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
               }}
               switchContainerClassName="mt-6"
             />
-          <Button
-            loading={isUpdateBtnLoading}
-            disabled={isDisabled}
-            color="primary"
-            type="submit"
-            size="lg"
-            className="mt-4"
-            data-testid="general-submit-button">
-            <>{t("update")}</>
-          </Button>
+            <Button
+              loading={isUpdateBtnLoading}
+              disabled={isDisabled}
+              color="primary"
+              type="submit"
+              size="lg"
+              className="mt-4"
+              data-testid="general-submit-button">
+              <>{t("update")}</>
+            </Button>
           </div>
         </Form>
         <TravelScheduleModal

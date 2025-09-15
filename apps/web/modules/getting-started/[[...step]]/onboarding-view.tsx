@@ -1,6 +1,8 @@
 "use client";
 
 import { Button } from "@calid/features/ui/components/button";
+import { StepCard } from "@calid/features/ui/components/card";
+import { Steps } from "@calid/features/ui/components/card";
 import { Icon } from "@calid/features/ui/components/icon";
 import type { TFunction } from "i18next";
 import { signOut } from "next-auth/react";
@@ -14,8 +16,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { trpc } from "@calcom/trpc";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { StepCard } from "@calid/features/ui/components/card";
-import { Steps } from "@calid/features/ui/components/card";
 
 import type { getServerSideProps } from "@lib/getting-started/[[...step]]/getServerSideProps";
 
@@ -150,8 +150,11 @@ const OnboardingPage = (props: PageProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center" data-testid="onboarding" key={pathname}>
-      <div className="px-4 py-8 w-full max-w-[600px]">
+    <div
+      className="flex min-h-screen items-center justify-center bg-white"
+      data-testid="onboarding"
+      key={pathname}>
+      <div className="w-full max-w-[600px] px-4 py-8">
         <div className="relative">
           <div className="mx-auto sm:max-w-[520px]">
             <header className="text-center">
@@ -207,7 +210,7 @@ const OnboardingPage = (props: PageProps) => {
               color="minimal"
               data-testid="sign-out"
               onClick={() => signOut({ callbackUrl: "/auth/logout" })}
-              className="mt-8 cursor-pointer text-sm font-medium hover:text-emphasis border-none">
+              className="hover:text-emphasis mt-8 cursor-pointer border-none text-sm font-medium">
               {t("sign_out")}
             </Button>
           </div>

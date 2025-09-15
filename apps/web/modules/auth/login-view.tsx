@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@calid/features/ui/components/button";
+import { EmailField, PasswordField } from "@calid/features/ui/components/input/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import classNames from "classnames";
 import { signIn } from "next-auth/react";
@@ -21,8 +23,6 @@ import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
-import { Button } from "@calid/features/ui/components/button";
-import { EmailField, PasswordField } from "@calid/features/ui/components/input/input";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -177,35 +177,31 @@ export default function Login({
   );
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center px-4 sm:px-6 lg:px-8">
-      <div className="max-w-lg w-full border border-subtle shadow-xl rounded-2xl p-8">
+    <div className="flex min-h-screen items-center justify-center bg-white px-4 sm:px-6 lg:px-8">
+      <div className="border-subtle w-full max-w-lg rounded-2xl border p-8 shadow-xl">
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center items-center space-x-2 mb-8">
+        <div className="mb-8 text-center">
+          <div className="mb-8 flex items-center justify-center space-x-2">
             <span className="text-2xl font-bold text-gray-900">Cal ID</span>
           </div>
         </div>
 
         {/* Welcome Text */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-emphasis">
+        <div className="mb-8 text-center">
+          <h1 className="text-emphasis text-3xl font-bold">
             {twoFactorRequired ? t("2fa_code") : t("welcome_back")}
           </h1>
-          {!twoFactorRequired && (
-            <p className="text-subtle">
-              {t("sign_in_account")}
-            </p>
-          )}
+          {!twoFactorRequired && <p className="text-subtle">{t("sign_in_account")}</p>}
         </div>
 
         <FormProvider {...methods}>
           {!twoFactorRequired && (
             <>
-              <div className="space-y-2 mb-4">
+              <div className="mb-4 space-y-2">
                 {isGoogleLoginEnabled && (
                   <Button
                     color="secondary"
-                    className="w-full justify-center bg-white text-subtle rounded-md"
+                    className="text-subtle w-full justify-center rounded-md bg-white"
                     disabled={formState.isSubmitting}
                     data-testid="google"
                     CustomStartIcon={<GoogleIcon />}
@@ -223,13 +219,13 @@ export default function Login({
               </div>
 
               {/* Divider */}
-              {(isGoogleLoginEnabled) && (
+              {isGoogleLoginEnabled && (
                 <div className="relative mb-8">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-gray-300" />
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white text-subtle font-medium">
+                    <span className="text-subtle bg-white px-2 font-medium">
                       {t("or_continue_with_email")}
                     </span>
                   </div>
@@ -260,7 +256,11 @@ export default function Login({
                   required={!totpEmail}
                   {...register("password")}
                 />
-                <Link className="mt-4" href="/auth/forgot-password" tabIndex={-1} className="text-active hover:underline text-sm">
+                <Link
+                  className="mt-4"
+                  href="/auth/forgot-password"
+                  tabIndex={-1}
+                  className="text-active text-sm hover:underline">
                   {t("forgot_password")}
                 </Link>
               </div>
@@ -285,10 +285,10 @@ export default function Login({
 
           {/* Footer */}
           {!twoFactorRequired && process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true" && (
-            <div className="text-center mt-2">
+            <div className="mt-2 text-center">
               <p className="text-subtle text-sm">
                 {t("dont_have_an_account")}{" "}
-                <Link href={`${WEBSITE_URL}/signup`} className="text-active hover:underline font-medium">
+                <Link href={`${WEBSITE_URL}/signup`} className="text-active font-medium hover:underline">
                   {t("sign_up")}
                 </Link>
               </p>
@@ -297,9 +297,7 @@ export default function Login({
 
           {/* Two Factor Footer */}
           {twoFactorRequired && (
-            <div className="flex flex-col space-y-3">
-              {!totpEmail ? TwoFactorFooter : ExternalTotpFooter}
-            </div>
+            <div className="flex flex-col space-y-3">{!totpEmail ? TwoFactorFooter : ExternalTotpFooter}</div>
           )}
         </FormProvider>
       </div>

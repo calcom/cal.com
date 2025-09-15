@@ -1,9 +1,10 @@
 "use client";
 
+import { Button } from "@calid/features/ui/components/button";
+
 import { useWebPush } from "@calcom/features/notifications/WebPushContext";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calid/features/ui/components/button";
 
 const PushNotificationsView = () => {
   const { t } = useLocale();

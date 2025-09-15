@@ -1,5 +1,10 @@
 "use client";
 
+import { Button } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon";
+import { PasswordField, TextField } from "@calid/features/ui/components/input/input";
+import { Input } from "@calid/features/ui/components/input/input";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { Analytics as DubAnalytics } from "@dub/analytics/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
@@ -41,13 +46,6 @@ import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Form } from "@calcom/ui/components/form";
-import { Button } from "@calid/features/ui/components/button";
-import { PasswordField, TextField } from "@calid/features/ui/components/input/input";
-
-import { Icon } from "@calid/features/ui/components/icon";
-import { Input } from "@calid/features/ui/components/input/input";
-
-import { triggerToast } from "@calid/features/ui/components/toast";
 
 import type { getServerSideProps } from "@lib/signup/getServerSideProps";
 
@@ -288,37 +286,31 @@ export default function Signup({
 
   return (
     <>
-      <div className="min-h-screen bg-white flex items-center justify-center p-4">
-        <div className="w-full max-w-7xl rounded-2xl border border-subtle shadow-xl overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[600px]">
+      <div className="flex min-h-screen items-center justify-center bg-white p-4">
+        <div className="border-subtle w-full max-w-7xl overflow-hidden rounded-2xl border shadow-xl">
+          <div className="grid min-h-[600px] grid-cols-1 lg:grid-cols-2">
             {/* Left Column - Signup Form */}
             <div className="flex flex-col justify-center p-8 lg:p-12">
               {/* Header with Logo */}
-              <div className="flex items-center mb-4 self-center lg:self-start">
+              <div className="mb-4 flex items-center self-center lg:self-start">
                 <span className="text-2xl font-bold text-gray-900">Cal ID</span>
               </div>
-              
+
               <div className="mb-8 self-center lg:self-start">
-                <h1 className="lg:text-3xl text-2xl font-bold text-emphasis">
-                  {t("create_your_account")}
-                </h1>
+                <h1 className="text-emphasis text-2xl font-bold lg:text-3xl">{t("create_your_account")}</h1>
               </div>
 
               {/* Social Login Buttons */}
-              <div className="space-y-2 mb-4">
+              <div className="mb-4 space-y-2">
                 {/* Google Button */}
                 {isGoogleLoginEnabled && (
                   <Button
                     color="secondary"
                     loading={isGoogleLoading}
                     CustomStartIcon={
-                      <img
-                        className="mr-3 h-5 w-5"
-                        src="/google-icon-colored.svg"
-                        alt="Google"
-                      />
+                      <img className="mr-3 h-5 w-5" src="/google-icon-colored.svg" alt="Google" />
                     }
-                    className="w-full justify-center bg-white text-subtle rounded-md"
+                    className="text-subtle w-full justify-center rounded-md bg-white"
                     data-testid="continue-with-google-button"
                     onClick={async () => {
                       setIsSamlSignup(false);
@@ -343,20 +335,20 @@ export default function Signup({
                   </Button>
                 )}
                 {/* Divider */}
-                {(isGoogleLoginEnabled) && (
+                {isGoogleLoginEnabled && (
                   <div className="relative">
                     <div className="absolute inset-0 flex items-center">
                       <div className="w-full border-t border-gray-300" />
                     </div>
                     <div className="relative flex justify-center text-sm">
-                      <span className="px-2 bg-white text-subtle">{t("or_continue_with_email")}</span>
+                      <span className="text-subtle bg-white px-2">{t("or_continue_with_email")}</span>
                     </div>
                   </div>
                 )}
               </div>
 
-            {/* Form Container */}
-            <div>
+              {/* Form Container */}
+              <div>
                 <Form
                   className="flex flex-col gap-4"
                   form={formMethods}
@@ -379,7 +371,9 @@ export default function Signup({
                     disabled={!!orgSlug}
                     setUsernameTaken={(value) => setUsernameTaken(value)}
                     data-testid="signup-usernamefield"
-                    addOnLeading={truncateDomain(`${process.env.NEXT_PUBLIC_WEBSITE_URL.replace(URL_PROTOCOL_REGEX, "")}/`)}
+                    addOnLeading={truncateDomain(
+                      `${process.env.NEXT_PUBLIC_WEBSITE_URL.replace(URL_PROTOCOL_REGEX, "")}/`
+                    )}
                   />
                   {/* Email */}
                   <TextField
@@ -437,17 +431,17 @@ export default function Signup({
                     {t("create_account")}
                   </Button>
                 </Form>
-            </div>
+              </div>
 
               {/* Already have an account & T&C */}
               <div className="mt-4">
                 <div className="text-center">
                   <span className="text-subtle">{t("already_have_account")} </span>
-                  <Link href="/auth/login" className="text-active hover:underline font-medium">
+                  <Link href="/auth/login" className="text-active font-medium hover:underline">
                     {t("sign_in")}
                   </Link>
                 </div>
-                <div className="text-center text-xs text-subtle">
+                <div className="text-subtle text-center text-xs">
                   By proceeding, you agree to our{" "}
                   <Link href={WEBSITE_TERMS_URL} className="text-active hover:underline">
                     {t("terms")}
@@ -459,45 +453,50 @@ export default function Signup({
                 </div>
               </div>
             </div>
-            
+
             {/* Right Column - Welcome Section */}
-            <div className="hidden lg:flex bg-gradient-to-br from-blue-50 to-indigo-100 flex-col justify-center p-8 lg:p-12">
+            <div className="hidden flex-col justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-8 lg:flex lg:p-12">
               <div className="text-center lg:text-left">
                 {/* Welcome Title */}
-                <div className="space-y-2 mb-4">
-                  <h2 className="text-3xl font-bold text-empahsis">
-                    Welcome to Cal ID
-                  </h2>
-                  
+                <div className="mb-4 space-y-2">
+                  <h2 className="text-empahsis text-3xl font-bold">Welcome to Cal ID</h2>
+
                   {/* Description */}
                   <span className="text-subtle text-lg leading-relaxed">
-                    Cal ID provides scheduling infrastructure for absolutely everyone. Manage your calendar, events, and availability with ease.
+                    Cal ID provides scheduling infrastructure for absolutely everyone. Manage your calendar,
+                    events, and availability with ease.
                   </span>
                 </div>
-                
+
                 {/* Features List */}
                 <div className="space-y-2">
                   <div className="flex items-start space-x-2">
-                    <div className="w-2 h-2 bg-cal-active rounded-full mt-2 flex-shrink-0"></div>
+                    <div className="bg-cal-active mt-2 h-2 w-2 flex-shrink-0 rounded-full"></div>
                     <div>
                       <h3 className="font-semibold text-gray-900">Smart scheduling algorithms</h3>
-                      <span className="text-subtle text-sm">Automatically find the best meeting times for everyone</span>
+                      <span className="text-subtle text-sm">
+                        Automatically find the best meeting times for everyone
+                      </span>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-start space-x-2">
-                    <div className="w-2 h-2 bg-cal-active rounded-full mt-2 flex-shrink-0"></div>
+                    <div className="bg-cal-active mt-2 h-2 w-2 flex-shrink-0 rounded-full"></div>
                     <div>
                       <h3 className="font-semibold text-gray-900">Calendar integrations</h3>
-                      <span className="text-subtle text-sm">Connect with Google, Outlook, and other calendar services</span>
+                      <span className="text-subtle text-sm">
+                        Connect with Google, Outlook, and other calendar services
+                      </span>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-start space-x-2">
-                    <div className="w-2 h-2 bg-cal-active rounded-full mt-2 flex-shrink-0"></div>
+                    <div className="bg-cal-active mt-2 h-2 w-2 flex-shrink-0 rounded-full"></div>
                     <div>
                       <h3 className="font-semibold text-gray-900">Team collaboration tools</h3>
-                      <span className="text-subtle text-sm">Work together seamlessly with your team members</span>
+                      <span className="text-subtle text-sm">
+                        Work together seamlessly with your team members
+                      </span>
                     </div>
                   </div>
                 </div>

@@ -208,7 +208,7 @@ const OnboardingPage = ({
   });
 
   const handleSelectAccount = async (teamId?: number) => {
-     const returnTo = await getAppOnboardingUrl({
+    const returnTo = await getAppOnboardingUrl({
       slug: appMetadata.slug,
       teamId,
       step: AppOnboardingSteps.EVENT_TYPES_STEP,

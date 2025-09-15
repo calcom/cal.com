@@ -3479,6 +3479,8 @@ __metadata:
     "@calcom/tsconfig": "*"
     "@calcom/ui": "*"
     "@eslint/eslintrc": ^3
+    "@img/sharp-libvips-dev": ^1.0.6
+    "@img/sharp-wasm32": ^0.33.5
     "@radix-ui/react-tooltip": ^1.1.8
     "@types/mdx": ^2.0.13
     "@types/node": ^20
@@ -6759,6 +6761,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@img/sharp-libvips-dev@npm:^1.0.6":
+  version: 1.2.1
+  resolution: "@img/sharp-libvips-dev@npm:1.2.1"
+  checksum: fa10f5a85bf345fdef6ec17ce949973ccf0831973eb1964d51c7511664f57ee47bc05cb83bedea5846ad241cf6c31b15f1ff584d4606a2a11e64ca59c7ca7b34
+  languageName: node
+  linkType: hard
+
 "@img/sharp-libvips-linux-arm64@npm:1.0.4":
   version: 1.0.4
   resolution: "@img/sharp-libvips-linux-arm64@npm:1.0.4"
@@ -7006,11 +7015,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@img/sharp-wasm32@npm:0.33.5":
+"@img/sharp-wasm32@npm:0.33.5, @img/sharp-wasm32@npm:^0.33.5":
   version: 0.33.5
   resolution: "@img/sharp-wasm32@npm:0.33.5"
   dependencies:
     "@emnapi/runtime": ^1.2.0
+  checksum: 947c7c9156114c8d32ffcb1bf32da48e4f8b4eb923717699ae2728d6a0c231ea6ebc83c25742e599651f99e0ff7d6879fae483526adea54e7f2943af2fdf0a12
   conditions: cpu=wasm32
   languageName: node
   linkType: hard

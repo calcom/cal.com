@@ -42,14 +42,7 @@ type UserPageProps = {
   };
   users: (Pick<
     User,
-    | "name"
-    | "username"
-    | "bio"
-    | "verified"
-    | "avatarUrl"
-    | "bannerUrl"
-    | "faviconUrl"
-    | "hideBranding"
+    "name" | "username" | "bio" | "verified" | "avatarUrl" | "bannerUrl" | "faviconUrl" | "hideBranding"
   > & {
     profile: UserProfile;
     metadata: z.infer<typeof userMetadataSchema> | null;

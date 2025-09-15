@@ -34,11 +34,11 @@
   margin-bottom: 16px;
 }
 
-.cal-query-builder .group.group-or-rule:has(.group--header, :not(.group--header)):has(.group--children):has(.group--footer) {
+.cal-query-builder
+  .group.group-or-rule:has(.group--header, :not(.group--header)):has(.group--children):has(.group--footer) {
   background-color: var(--cal-bg);
   padding: 2px;
 }
-
 
 /* hide connectors */
 .cal-query-builder .group-or-rule::before,
@@ -73,7 +73,7 @@
 
 .cal-query-builder .widget--widget,
 .cal-query-builder .widget--widget,
-.cal-query-builder .widget--widget>* {
+.cal-query-builder .widget--widget > * {
   width: 100%;
 }
 
@@ -137,7 +137,6 @@
   .rule--body {
     flex-direction: column;
   }
-
 
   .cal-query-builder .rule--field,
   .cal-query-builder .rule--operator,

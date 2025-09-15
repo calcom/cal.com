@@ -123,7 +123,7 @@
   --cal-border-error: hsla(0, 96%, 89%, 1); /* Keeping existing error border */
   --cal-border-semantic-error: hsla(0, 96%, 89%, 1);
   --cal-border-booker: var(--cal-border-subtle);
-  --cal-border-active: hsla(207, 100%, 44.9%, 1); 
+  --cal-border-active: hsla(207, 100%, 44.9%, 1);
 
   /* Content/Text Standard */
   --cal-text-emphasis: hsla(210, 30%, 4%, 1); /* gray-900 */
@@ -186,7 +186,7 @@
   --cal-bg-brand: hsla(0, 0%, 98%, 1); /* gray-50 */
   --cal-bg-brand-emphasis: hsla(0, 0%, 96%, 1); /* stone-100 */
   --cal-bg-brand-muted: hsla(0, 0%, 96%, 1); /* stone-100 */
-  --cal-bg-primary-active:hsla(207, 100%, 45%, 1);
+  --cal-bg-primary-active: hsla(207, 100%, 45%, 1);
 
   /* Background Semantic */
   --cal-bg-semantic-info-subtle: hsla(236, 80%, 8%, 1); /* blue-800 */
@@ -706,11 +706,11 @@ select:focus {
 }
 
 .border-active {
-  border-color: var(--cal-bg-active);;
+  border-color: var(--cal-bg-active);
 }
 
 .border-destructive {
-  border-color: var(--cal-bg-destructive);;
+  border-color: var(--cal-bg-destructive);
 }
 
 .data-\[state\=checked\]\:cal-bg-active[data-state="checked"] {

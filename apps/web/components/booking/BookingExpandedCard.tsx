@@ -87,7 +87,7 @@ export function BookingExpandedCard(props: BookingItemProps) {
     setIsNoShowDialogOpen(true);
   };
 
-  const isCurrentTime = (time: Date) => true; // assume always true for demo
+  const isCurrentTime = (_time: Date) => true; // assume always true for demo
 
   const firstAttendee = props.attendees[0];
 
@@ -281,14 +281,21 @@ export function BookingExpandedCard(props: BookingItemProps) {
   );
 }
 
+type NoShowAttendee = {
+  id: number | string;
+  email: string;
+  name?: string | null;
+  noShow?: boolean;
+};
+
 const NoShowAttendeesDialog = ({
   attendees,
   bookingUid,
   setDialog,
 }: {
-  attendees: [];
+  attendees: NoShowAttendee[];
   bookingUid: string;
-  setDialog: () => void;
+  setDialog: (open?: boolean) => void;
 }) => {
   const { t } = useLocale();
   const [noShowAttendees, setNoShowAttendees] = useState(
@@ -360,7 +367,7 @@ const NoShowAttendeesDialog = ({
           </div>
 
           <div className="flex justify-end space-x-3">
-            <Button color="secondary" onClick={() => setDialog()}>
+            <Button color="secondary" onClick={() => setDialog(false)}>
               Cancel
             </Button>
             <Button
