@@ -89,13 +89,16 @@ export class CalendarCacheEventService {
    * @param selectedCalendarId calendar to enrich
    * @returns
    */
-  async enrichCalendar({ selectedCalendarId }: { selectedCalendarId: string }): Promise<void> {
-    log.debug("enrichCalendar", { selectedCalendarId });
-
-    const selectedCalendar = await this.deps.selectedCalendarRepository.findById(selectedCalendarId);
-    if (!selectedCalendar) {
-      log.debug("Selected calendar not found", { selectedCalendarId });
-      return;
+  async enrichCalendar<
+    T extends {
+      credentialId: number;
+      calendars?: { externalId: string; name?: string }[];
     }
+  >(calendars: T[]) {
+    log.debug("enrichCalendar", { count: calendars.length });
+    if (calendars.length === 0) {
+      return [];
+    }
+    return calendars;
   }
 }

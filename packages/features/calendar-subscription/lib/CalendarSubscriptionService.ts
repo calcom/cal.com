@@ -4,12 +4,11 @@ import logger from "@calcom/lib/logger";
 import type { SelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
 import { prisma } from "@calcom/prisma";
 
-import type { AdapterFactory } from "../adapters/AdaptersFactory";
+import type { AdapterFactory, CalendarSubscriptionProvider } from "../adapters/AdaptersFactory";
 import type {
   CalendarCredential,
   CalendarSubscriptionWebhookContext,
   CalendarSubscriptionEvent,
-  CalendarSubscriptionProvider,
 } from "../lib/CalendarSubscriptionPort.interface";
 
 const log = logger.getSubLogger({ prefix: ["CalendarSubscriptionService"] });

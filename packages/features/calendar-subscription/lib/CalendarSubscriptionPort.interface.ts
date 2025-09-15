@@ -4,7 +4,7 @@ import type {
   CredentialForCalendarServiceWithEmail,
 } from "@calcom/types/Credential";
 
-export type CalendarSubscriptionProvider = "google-calendar" | "office365-calendar";
+import type { CalendarSubscriptionProvider } from "../adapters/AdaptersFactory";
 
 export type CalendarSubscriptionWebhookContext = {
   headers?: Headers;

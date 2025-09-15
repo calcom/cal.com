@@ -33,7 +33,7 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
       return false;
     }
     if (token !== this.GOOGLE_WEBHOOK_TOKEN) {
-      log.warn("Invalid webhook token", { token, expected: this.GOOGLE_WEBHOOK_TOKEN });
+      log.warn("Invalid webhook token", { token });
       return false;
     }
     return true;

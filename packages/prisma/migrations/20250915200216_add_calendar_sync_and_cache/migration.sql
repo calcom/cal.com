@@ -17,6 +17,7 @@ CREATE TABLE "CalendarCacheEvent" (
     "externalId" TEXT NOT NULL,
     "externalEtag" TEXT NOT NULL,
     "iCalUID" TEXT,
+    "iCalSequence" INTEGER NOT NULL DEFAULT 0,
     "summary" TEXT,
     "description" TEXT,
     "location" TEXT,
