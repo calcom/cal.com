@@ -663,19 +663,9 @@ export class BookingsService_2024_08_13 {
       if (isRecurring && !isSeated) {
         formattedBookings.push(this.outputService.getOutputRecurringBooking(formatted));
       } else if (isRecurring && isSeated) {
-        formattedBookings.push(
-          this.outputService.getOutputRecurringSeatedBooking(
-            formatted,
-            !!formatted.eventType?.seatsShowAttendees
-          )
-        );
+        formattedBookings.push(this.outputService.getOutputRecurringSeatedBooking(formatted, true));
       } else if (isSeated) {
-        formattedBookings.push(
-          await this.outputService.getOutputSeatedBooking(
-            formatted,
-            !!formatted.eventType?.seatsShowAttendees
-          )
-        );
+        formattedBookings.push(await this.outputService.getOutputSeatedBooking(formatted, true));
       } else {
         formattedBookings.push(await this.outputService.getOutputBooking(formatted));
       }
