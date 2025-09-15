@@ -55,4 +55,9 @@ export const DI_TOKENS = {
   ATTRIBUTE_REPOSITORY_MODULE: Symbol("AttributeRepositoryModule"),
   // Booking service tokens
   ...BOOKING_DI_TOKENS,
+  BOOKING_CREATE_FACTORY: Symbol("BookingCreateFactory"),
+  BOOKING_CREATE_FACTORY_MODULE: Symbol("BookingCreateFactoryModule"),
+  QUICK_ENRICHMENT_SERVICE: Symbol("QuickEnrichmentService"),
+  QUICK_VALIDATION_SERVICE: Symbol("QuickValidationService"),
+  BOOKING_DATA_SCHEMA_GETTER: Symbol("BookingDataSchemaGetter"),
 };
