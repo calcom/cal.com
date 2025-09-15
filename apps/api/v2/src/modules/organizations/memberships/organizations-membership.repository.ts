@@ -6,7 +6,7 @@ import { Injectable } from "@nestjs/common";
 
 import type { Prisma } from "@calcom/prisma/client";
 
-import { UpdateOrgMembershipDto } from "./inputs/update-organization-membership.input";
+import type { UpdateOrgMembershipDto } from "./inputs/update-organization-membership.input";
 
 export type DbOrgMembership = Awaited<ReturnType<OrganizationsMembershipRepository["findOrgMembership"]>>;
 

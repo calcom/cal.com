@@ -1,8 +1,8 @@
-import type { Prisma as PrismaType } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
 import { randomString } from "@calcom/lib/random";
 import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 /**
  * Creates a team event type and assigns all team members as hosts
@@ -15,7 +15,7 @@ export async function createRoundRobinTeamEventType({
   eventType,
 }: {
   teamId: number;
-  eventType: PrismaType.EventTypeCreateInput;
+  eventType: Prisma.EventTypeCreateInput;
 }) {
   const createdEventType = await prisma.eventType.create({
     data: {

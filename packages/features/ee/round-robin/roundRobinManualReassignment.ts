@@ -1,33 +1,36 @@
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import {
   sendRoundRobinReassignedEmailsAndSMS,
   sendRoundRobinScheduledEmailsAndSMS,
   sendRoundRobinUpdatedEmailsAndSMS,
 } from "@calcom/emails";
+import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import AssignmentReasonRecorder, {
   RRReassignmentType,
 } from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
+import { BookingLocationService } from "@calcom/features/ee/round-robin/lib/bookingLocationService";
 import {
   scheduleEmailReminder,
   deleteScheduledEmailReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import EventManager from "@calcom/lib/EventManager";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
-import { getEventName } from "@calcom/lib/event";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { BookingLocationService } from "@calcom/lib/server/service/bookingLocationService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
@@ -290,6 +293,7 @@ export const roundRobinManualReassignment = async ({
     },
     attendees: attendeeList,
     uid: booking.uid,
+    iCalUID: booking.iCalUID,
     destinationCalendar,
     team: {
       members: teamMembers,
@@ -322,6 +326,41 @@ export const roundRobinManualReassignment = async ({
         where: { userId: originalOrganizer.id },
       })
     : null;
+
+  const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
+
+  // remove the event and meeting using the old host's credentials
+  if (hasOrganizerChanged && originalOrganizer.id !== newUser.id) {
+    const previousHostCredentials = await getAllCredentialsIncludeServiceAccountKey(
+      originalOrganizer,
+      eventType
+    );
+
+    const originalHostEventManager = new EventManager(
+      { ...originalOrganizer, credentials: previousHostCredentials },
+      apps
+    );
+
+    const deletionEvent: CalendarEvent = {
+      ...evt,
+      organizer: {
+        id: originalOrganizer.id,
+        name: originalOrganizer.name || "",
+        email: originalOrganizer.email,
+        username: originalOrganizer.username || undefined,
+        timeZone: originalOrganizer.timeZone,
+        language: { translate: originalOrganizerT, locale: originalOrganizer.locale ?? "en" },
+        timeFormat: getTimeFormatStringFromUserTimeFormat(originalOrganizer.timeFormat),
+      },
+      destinationCalendar: previousHostDestinationCalendar ? [previousHostDestinationCalendar] : [],
+      title: booking.title,
+    };
+
+    await originalHostEventManager.deleteEventsAndMeetings({
+      event: deletionEvent,
+      bookingReferences: booking.references,
+    });
+  }
 
   const { evtWithAdditionalInfo } = await handleRescheduleEventManager({
     evt,
@@ -502,8 +541,6 @@ export async function handleWorkflowsUpdate({
         includeCalendarEvent: workflowStep.includeCalendarEvent,
         workflowStepId: workflowStep.id,
         verifiedAt: workflowStep.verifiedAt,
-        userId: workflow.userId,
-        teamId: workflow.teamId,
       });
     }
 

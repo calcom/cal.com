@@ -1,4 +1,3 @@
-import type { DestinationCalendar, BookingReference } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep, merge } from "lodash";
 import { v5 as uuidv5 } from "uuid";
@@ -22,9 +21,9 @@ import {
 } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
+import type { DestinationCalendar, BookingReference } from "@calcom/prisma/client";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
-import type { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { Event } from "@calcom/types/Event";
@@ -130,20 +129,20 @@ type createdEventSchema = z.infer<typeof createdEventSchema>;
 
 export type EventManagerInitParams = {
   user: EventManagerUser;
-  eventTypeAppMetadata?: z.infer<typeof EventTypeAppMetadataSchema>;
+  eventTypeAppMetadata?: Record<string, any>;
 };
 
 export default class EventManager {
   calendarCredentials: CredentialForCalendarService[];
   videoCredentials: CredentialForCalendarService[];
   crmCredentials: CredentialForCalendarService[];
-  appOptions?: z.infer<typeof EventTypeAppMetadataSchema>;
+  appOptions?: Record<string, any>;
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
    *
    * @param user
    */
-  constructor(user: EventManagerUser, eventTypeAppMetadata?: z.infer<typeof EventTypeAppMetadataSchema>) {
+  constructor(user: EventManagerUser, eventTypeAppMetadata?: Record<string, any>) {
     log.silly("Initializing EventManager", safeStringify({ user: getPiiFreeUser(user) }));
     const appCredentials = getApps(user.credentials, true).flatMap((app) =>
       app.credentials.map((creds) => ({ ...creds, appName: app.name }))
@@ -447,12 +446,34 @@ export default class EventManager {
     }
 
     const referencesToCreate = results.map((result) => {
+      // For update operations, check updatedEvent first, then fall back to createdEvent
+      const updatedEvent = Array.isArray(result.updatedEvent) ? result.updatedEvent[0] : result.updatedEvent;
+      const createdEvent = result.createdEvent;
+      let event = updatedEvent;
+      if (!event) {
+        log.warn(
+          "updateLocation: No updatedEvent when doing updateLocation. Falling back to createdEvent but this is probably not what we want",
+          safeStringify({ bookingId: booking.id })
+        );
+        event = createdEvent;
+      }
+
+      const uid = event?.id?.toString() ?? "";
+      const meetingId = event?.id?.toString();
+
+      if (!uid) {
+        log.error(
+          "updateLocation: No uid for booking reference. The corresponding record in third party if created is orphan now",
+          safeStringify({ result })
+        );
+      }
+
       return {
         type: result.type,
-        uid: result.createdEvent?.id?.toString() ?? "",
-        meetingId: result.createdEvent?.id?.toString(),
-        meetingPassword: result.createdEvent?.password,
-        meetingUrl: result.createdEvent?.url,
+        uid,
+        meetingId,
+        meetingPassword: event?.password,
+        meetingUrl: event?.url,
         externalCalendarId: result.externalId,
         ...(result.credentialId && result.credentialId > 0 ? { credentialId: result.credentialId } : {}),
       };

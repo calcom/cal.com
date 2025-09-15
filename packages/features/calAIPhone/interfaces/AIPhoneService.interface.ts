@@ -89,6 +89,13 @@ export type AIPhoneServiceAgentWithDetails<
   T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType
 > = AIPhoneServiceProviderTypeMap[T]["AgentWithDetails"];
 
+export type AIPhoneServiceListCallsParams<T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType> =
+  AIPhoneServiceProviderTypeMap[T]["ListCallsParams"];
+
+export type AIPhoneServiceListCallsResponse<
+  T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType
+> = AIPhoneServiceProviderTypeMap[T]["ListCallsResponse"];
+
 export interface AIPhoneServiceDeletion {
   modelId?: string;
   agentId?: string;
@@ -328,6 +335,21 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
   }>;
 
   /**
+   * Create a web call
+   */
+  createWebCall(params: {
+    agentId: string;
+    userId: number;
+    teamId?: number;
+    timeZone: string;
+    eventTypeId: number;
+  }): Promise<{
+    callId: string;
+    accessToken: string;
+    agentId: string;
+  }>;
+
+  /**
    * Update tools from event type ID
    */
   updateToolsFromAgentId(
@@ -339,6 +361,19 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
    * Remove tools for event types
    */
   removeToolsForEventTypes(agentId: string, eventTypeIds: number[]): Promise<void>;
+
+  /**
+   * List calls with optional filters
+   */
+  listCalls(params: {
+    limit?: number;
+    offset?: number;
+    filters: {
+      fromNumber: string[];
+      toNumber?: string[];
+      startTimestamp?: { lower_threshold?: number; upper_threshold?: number };
+    };
+  }): Promise<AIPhoneServiceListCallsResponse<T>>;
 }
 
 /**

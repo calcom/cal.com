@@ -42,7 +42,8 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import type { FormValues } from "../pages/workflow";
-import { TestAgentDialog } from "./TestAgentDialog";
+import { TestPhoneCallDialog } from "./TestPhoneCallDialog";
+import { WebCallDialog } from "./WebCallDialog";
 
 // Utility functions for prompt display
 const cleanPromptForDisplay = (prompt: string): string => {
@@ -114,6 +115,7 @@ type AgentConfigurationSheetProps = {
   onUpdate: (data: AgentFormValues) => void;
   readOnly?: boolean;
   teamId?: number;
+  isOrganization?: boolean;
   workflowId?: string;
   workflowStepId?: number;
   activeTab?: "prompt" | "phoneNumber";
@@ -129,6 +131,7 @@ export function AgentConfigurationSheet({
   onUpdate,
   readOnly = false,
   teamId,
+  isOrganization = false,
   workflowId,
   workflowStepId: _workflowStepId,
   form,
@@ -141,6 +144,7 @@ export function AgentConfigurationSheet({
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [showAdvancedFields, setShowAdvancedFields] = useState(false);
   const [isTestAgentDialogOpen, setIsTestAgentDialogOpen] = useState(false);
+  const [isWebCallDialogOpen, setIsWebCallDialogOpen] = useState(false);
   const [cancellingNumberId, setCancellingNumberId] = useState<number | null>(null);
   const [numberToDelete, setNumberToDelete] = useState<string | null>(null);
   // const [toolDialogOpen, setToolDialogOpen] = useState(false);
@@ -453,7 +457,7 @@ export function AgentConfigurationSheet({
                     {!readOnly && (
                       <AddVariablesDropdown
                         addVariable={addVariableToGeneralPrompt}
-                        variables={DYNAMIC_TEXT_VARIABLES}
+                        variables={[...DYNAMIC_TEXT_VARIABLES, "number_to_call"]}
                         addVariableButtonClassName="border rounded-[10px] py-1 px-1"
                       />
                     )}
@@ -593,13 +597,39 @@ export function AgentConfigurationSheet({
                           </div>
                         </div>
                         <div className="flex items-center gap-1">
-                          <Button
-                            color="secondary"
-                            onClick={() => setIsTestAgentDialogOpen(true)}
-                            className="rounded-[10px]"
-                            disabled={readOnly}>
-                            {t("test_agent")}
-                          </Button>
+                          <Dropdown>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                color="secondary"
+                                className="rounded-[10px]"
+                                disabled={readOnly}
+                                EndIcon="chevron-down">
+                                {t("test_agent")}
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuItem>
+                                <DropdownItem
+                                  type="button"
+                                  StartIcon="phone"
+                                  onClick={() => {
+                                    setIsTestAgentDialogOpen(true);
+                                  }}>
+                                  {t("phone_call")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <DropdownItem
+                                  type="button"
+                                  StartIcon="monitor"
+                                  onClick={() => {
+                                    setIsWebCallDialogOpen(true);
+                                  }}>
+                                  {t("web_call")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </Dropdown>
                           <Dropdown>
                             <DropdownMenuTrigger asChild>
                               <Button type="button" color="secondary" variant="icon" StartIcon="ellipsis" />
@@ -678,11 +708,41 @@ export function AgentConfigurationSheet({
             )}
           </SheetBody>
           <SheetFooter>
-            <Button type="button" color="secondary" onClick={() => onOpenChange(false)}>
+            <div className="mr-auto">
+              <Dropdown>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    color="secondary"
+                    className="rounded-[10px]"
+                    disabled={readOnly}
+                    EndIcon="chevron-down">
+                    {t("test_agent")}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem>
+                    <DropdownItem
+                      type="button"
+                      StartIcon="monitor"
+                      onClick={() => {
+                        setIsWebCallDialogOpen(true);
+                      }}>
+                      {t("web_call")}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </Dropdown>
+            </div>
+            <Button
+              className="justify-center"
+              type="button"
+              color="secondary"
+              onClick={() => onOpenChange(false)}>
               {t("cancel")}
             </Button>
             <Button
               type="button"
+              className="justify-center"
               onClick={agentForm.handleSubmit(handleAgentUpdate)}
               disabled={!agentForm.formState.isDirty || readOnly || updateAgentMutation.isPending}
               loading={updateAgentMutation.isPending}>
@@ -847,7 +907,7 @@ export function AgentConfigurationSheet({
                 </div>
 
                 {showAdvancedFields && (
-                  <div className="space-y-5 rounded-lg bg-white p-4">
+                  <div className="bg-default space-y-5 rounded-lg p-4">
                     <Controller
                       name="sipTrunkAuthUsername"
                       control={phoneNumberForm.control}
@@ -964,11 +1024,22 @@ export function AgentConfigurationSheet({
       </Dialog>
 
       {agentId && (
-        <TestAgentDialog
+        <TestPhoneCallDialog
           open={isTestAgentDialogOpen}
           onOpenChange={setIsTestAgentDialogOpen}
           agentId={agentId}
           teamId={teamId}
+          form={form}
+        />
+      )}
+
+      {agentId && (
+        <WebCallDialog
+          open={isWebCallDialogOpen}
+          onOpenChange={setIsWebCallDialogOpen}
+          agentId={agentId}
+          teamId={teamId}
+          isOrganization={isOrganization}
           form={form}
         />
       )}
