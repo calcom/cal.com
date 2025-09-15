@@ -318,6 +318,7 @@ export class MembershipRepository {
     return await prisma.membership.findMany({
       where: { userId },
       select: {
+        accepted: true,
         user: {
           select: {
             isPlatformManaged: true,
@@ -325,12 +326,10 @@ export class MembershipRepository {
         },
         team: {
           select: {
-            id: true,
             slug: true,
+            plan: true,
             isOrganization: true,
             isPlatform: true,
-            parentId: true,
-            metadata: true,
             platformBilling: {
               select: {
                 plan: true,
@@ -338,10 +337,9 @@ export class MembershipRepository {
             },
             parent: {
               select: {
-                slug: true,
+                plan: true,
                 isOrganization: true,
                 isPlatform: true,
-                metadata: true,
               },
             },
           },

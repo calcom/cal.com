@@ -3,6 +3,7 @@ import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/pay
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { prisma } from "@calcom/prisma";
+import { Plans } from "@calcom/prisma/enums";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -26,7 +27,14 @@ export const publishHandler = async ({ ctx }: PublishOptions) => {
     where: {
       id: orgId,
     },
-    include: { members: true },
+    select: {
+      metadata: true,
+      id: true,
+      members: {
+        select: { id: true },
+      },
+    },
+    // include: { members: true },
   });
 
   if (!prevTeam) throw new TRPCError({ code: "NOT_FOUND", message: "Organization not found." });
@@ -64,13 +72,13 @@ export const publishHandler = async ({ ctx }: PublishOptions) => {
   }
 
   const { requestedSlug, ...newMetadata } = metadata.data;
-  let updatedTeam: Awaited<ReturnType<typeof prisma.team.update>>;
 
   try {
-    updatedTeam = await prisma.team.update({
+    await prisma.team.update({
       where: { id: orgId },
       data: {
         slug: requestedSlug,
+        plan: Plans.ORGANIZATIONS,
         metadata: { ...newMetadata },
       },
     });

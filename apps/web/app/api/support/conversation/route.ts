@@ -3,12 +3,13 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { BillingPlanService } from "@calcom/features/ee/billing/billing-plan-service";
+import { BillingPlanService } from "@calcom/features/ee/billing/domain/billing-plans";
 import type { Contact } from "@calcom/features/ee/support/lib/intercom/intercom";
 import { intercom } from "@calcom/features/ee/support/lib/intercom/intercom";
 import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 
@@ -44,7 +45,8 @@ export async function POST(req: NextRequest) {
 
   const { user } = session;
 
-  const plan = await BillingPlanService.getUserPlanByUserId(user.id);
+  const memberships = await MembershipRepository.findAllMembershipsByUserIdForBilling({ userId: user.id });
+  const plan = await BillingPlanService.getUserPlanByMemberships(memberships);
   if (!existingContact.data) {
     const additionalUserInfo = await new UserRepository(prisma).getUserStats({ userId: session.user.id });
     const sumOfTeamEventTypes = additionalUserInfo?.teams.reduce(

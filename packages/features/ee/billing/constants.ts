@@ -19,6 +19,3 @@ export enum BillingPlans {
   PLATFORM_ENTERPRISE = "PLATFORM_ENTERPRISE",
   UNKNOWN = "Unknown",
 }
-
-export const ENTERPRISE_SLUGS = ["i", "deel", "virtahealth", "cevidentia"];
-export const PLATFORM_ENTERPRISE_SLUGS = ["duda"];

@@ -7,7 +7,7 @@ import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
-import { MembershipRole, RedirectType } from "@calcom/prisma/enums";
+import { MembershipRole, Plans, RedirectType } from "@calcom/prisma/enums";
 import { teamMetadataSchema, teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -119,6 +119,7 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
             name,
             parentId: orgId,
             slug: slugify(name),
+            plan: Plans.ORGANIZATIONS,
             members: {
               create: { userId: ctx.user.id, role: MembershipRole.OWNER, accepted: true },
             },
@@ -231,6 +232,7 @@ async function moveTeam({
       data: {
         slug: newSlug,
         parentId: org.id,
+        plan: Plans.ORGANIZATIONS,
       },
     });
   } catch (error) {

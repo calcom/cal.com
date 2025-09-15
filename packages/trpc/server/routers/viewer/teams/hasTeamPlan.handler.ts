@@ -1,4 +1,4 @@
-import { BillingPlanService } from "@calcom/features/ee/billing/billing-plan-service";
+import { BillingPlanService } from "@calcom/features/ee/billing/domain/billing-plans";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 
 type HasTeamPlanOptions = {
@@ -10,8 +10,11 @@ type HasTeamPlanOptions = {
 export const hasTeamPlanHandler = async ({ ctx }: HasTeamPlanOptions) => {
   const userId = ctx.user.id;
 
-  const hasTeamPlan = await MembershipRepository.findFirstAcceptedMembershipByUserId(userId);
-  const plan = await BillingPlanService.getUserPlanByUserId(userId);
+  const memberships = await MembershipRepository.findAllMembershipsByUserIdForBilling({ userId });
+  const hasTeamPlan = memberships.some(
+    (membership) => membership.accepted === true && membership.team.slug !== null
+  );
+  const plan = await BillingPlanService.getUserPlanByMemberships(memberships);
 
   return { hasTeamPlan: !!hasTeamPlan, plan };
 };

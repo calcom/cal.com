@@ -7,7 +7,7 @@ import { z } from "zod";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole, Plans } from "@calcom/prisma/enums";
 
 const querySchema = z.object({
   session_id: z.string().min(1),
@@ -69,6 +69,7 @@ async function getHandler(req: NextRequest) {
     data: {
       name: checkoutSessionMetadata.teamName,
       slug: checkoutSessionMetadata.teamSlug,
+      plan: Plans.TEAMS,
       members: {
         create: {
           userId: checkoutSessionMetadata.userId as number,
