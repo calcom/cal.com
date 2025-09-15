@@ -9,7 +9,7 @@ import { z } from "zod";
 
 import { locationsResolver } from "@calcom/lib/event-types/utils/locationsResolver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { LocationObject } from "@calcom/lib/location";
+import type { LocationObject } from "@calcom/app-store/locations";
 import type { AppCategories } from "@calcom/prisma/enums";
 import type { EventTypeMetaDataSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { Avatar } from "@calcom/ui/components/avatar";
