@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
+import dayjs from "@calcom/dayjs";
 import { DEFAULT_PROMPT_VALUE, DEFAULT_BEGIN_MESSAGE } from "@calcom/features/calAIPhone/promptTemplates";
 import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
 import { sortHosts } from "@calcom/features/eventtypes/components/HostEditDialogs";
@@ -35,10 +36,16 @@ export const useEventTypeForm = ({
   }) => void;
 }) => {
   const { t } = useLocale();
-  const [periodDates] = useState<{ startDate: Date; endDate: Date }>({
-    startDate: new Date(eventType.periodStartDate || Date.now()),
-    endDate: new Date(eventType.periodEndDate || Date.now()),
-  });
+  const tz = eventType.owner?.timeZone ?? dayjs.tz.guess();
+
+  const [periodDates] = useState(() => ({
+    startDate: dayjs(eventType.periodStartDate || Date.now())
+      .tz(tz, true) // interpret as UTC then shift to tz
+      .toDate(),
+    endDate: dayjs(eventType.periodEndDate || Date.now())
+      .tz(tz, true)
+      .toDate(),
+  }));
   // this is a nightmare to type, will do in follow up PR
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const defaultValues: any = useMemo(() => {
