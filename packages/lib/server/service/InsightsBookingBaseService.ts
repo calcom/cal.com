@@ -618,6 +618,9 @@ export class InsightsBookingBaseService {
         endTime_date: dayjs(bookingTimeStatus.endTime).tz(timeZone).format(DATE_FORMAT),
         endTime_time: dayjs(bookingTimeStatus.endTime).tz(timeZone).format(TIME_FORMAT),
       };
+      bookingTimeStatus.createdAt = bookingTimeStatus.createdAt.toISOString();
+      bookingTimeStatus.startTime = bookingTimeStatus.startTime.toISOString();
+      bookingTimeStatus.endTime = bookingTimeStatus.endTime.toISOString();
 
       if (!bookingTimeStatus.uid) {
         // should not be reached because we filtered above
