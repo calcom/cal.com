@@ -42,7 +42,7 @@ import {
 } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
-import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
+import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import { extractHostTimezone } from "@calcom/lib/hashedLinksUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
