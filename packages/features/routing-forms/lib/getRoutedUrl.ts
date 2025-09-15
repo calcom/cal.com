@@ -24,9 +24,9 @@ import { PrismaRoutingFormRepository } from "@calcom/lib/server/repository/Prism
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 
-import { TRPCError } from "@trpc/server";
 
 import { getUrlSearchParamsToForward } from "./getUrlSearchParamsToForward";
+import { HttpError } from "@calcom/lib/http-error";
 
 const log = logger.getSubLogger({ prefix: ["[routing-forms]", "[router]"] });
 const querySchema = z
@@ -171,7 +171,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
     crmContactOwnerRecordType = result.crmContactOwnerRecordType;
     crmAppSlug = result.crmAppSlug;
   } catch (e) {
-    if (e instanceof TRPCError) {
+    if (e instanceof HttpError) {
       return {
         props: {
           ...pageProps,
@@ -181,7 +181,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
         },
       };
     }
-
+  
     log.error("Error handling the response", safeStringify(e));
     throw new Error("Error handling the response");
   }
