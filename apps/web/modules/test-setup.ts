@@ -35,7 +35,7 @@ vi.mock("@calcom/app-store/utils", () => ({
   getEventTypeAppData: vi.fn(),
 }));
 
-vi.mock("@calcom/lib/event", () => ({
+vi.mock("@calcom/features/eventtypes/lib/eventNaming", () => ({
   getEventName: vi.fn(),
 }));
 
@@ -128,10 +128,13 @@ vi.mock("@calcom/prisma/zod-utils", () => ({
   EventTypeMetaDataSchema: {
     parse: vi.fn(),
   },
-  eventTypeMetaDataSchemaWithTypedApps: {
+  bookingMetadataSchema: {
     parse: vi.fn(),
   },
-  bookingMetadataSchema: {
+}));
+
+vi.mock("@calcom/app-store/zod-utils", () => ({
+  eventTypeMetaDataSchemaWithTypedApps: {
     parse: vi.fn(),
   },
 }));

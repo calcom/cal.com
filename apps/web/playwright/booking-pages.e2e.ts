@@ -4,7 +4,7 @@ import { JSDOM } from "jsdom";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { randomString } from "@calcom/lib/random";
-import { SchedulingType } from "@calcom/prisma/client";
+import { SchedulingType } from "@calcom/prisma/enums";
 import type { Schedule, TimeRange } from "@calcom/types/schedule";
 
 import { test, todo } from "./lib/fixtures";
@@ -764,5 +764,33 @@ test.describe("GTM container", () => {
 
     const scriptContent = await injectedScript.textContent();
     expect(scriptContent).toContain("googletagmanager");
+  });
+});
+
+test.describe("Past booking cancellation", () => {
+  test("Cancel button should be hidden for past bookings", async ({ page, users, bookings }) => {
+    const user = await users.create({
+      name: "Test User",
+    });
+
+    await user.apiLogin();
+
+    const pastDate = new Date();
+    pastDate.setDate(pastDate.getDate() - 1);
+    const endDate = new Date(pastDate.getTime() + 30 * 60 * 1000);
+
+    const booking = await bookings.create(user.id, user.username, user.eventTypes[0].id, {
+      title: "Past Meeting",
+      startTime: pastDate,
+      endTime: endDate,
+      status: "ACCEPTED",
+    });
+
+    await page.goto("/bookings/past");
+    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+    await expect(page.locator('[data-testid="cancel"]')).toBeDisabled();
+
+    await page.goto(`/booking/${booking.uid}`);
+    await expect(page.locator('[data-testid="cancel"]')).toBeHidden();
   });
 });
