@@ -1,7 +1,7 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { JSDOM } from "jsdom";
-import type { createUsersFixture } from "playwright/fixtures/users";
+import type { CreateUsersFixture, createUsersFixture } from "playwright/fixtures/users";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
@@ -22,6 +22,7 @@ import {
   testEmail,
   testName,
 } from "./lib/testUtils";
+import { Team } from "@calcom/prisma/client";
 
 const freeUserObj = { name: `Free-user-${randomString(3)}` };
 
@@ -856,9 +857,9 @@ test.describe("GTM container", () => {
 
 test.describe("Organization members can cancel and reschedule when disabled", () => {
   let bookingId: string | undefined;
-  let org: any;
-  let user: any;
-  let team: any;
+  let org: Team;
+  let user: Awaited<ReturnType<CreateUsersFixture["create"]>>;
+  let team: Team;
   let teamEventSlug: string;
 
   test.beforeEach(async ({ page, users, prisma, orgs }) => {
@@ -927,7 +928,10 @@ test.describe("Organization members can cancel and reschedule when disabled", ()
     await testOrgMemberAction({
       page,
       users,
-      org,
+      org: {
+        id: org.id,
+        slug: org.slug ?? "",
+      },
       bookingId,
       role: "ADMIN",
       action: "reschedule",
@@ -939,7 +943,10 @@ test.describe("Organization members can cancel and reschedule when disabled", ()
     await testOrgMemberAction({
       page,
       users,
-      org,
+      org: {
+        id: org.id,
+        slug: org.slug ?? "",
+      },
       bookingId,
       role: "ADMIN",
       action: "cancel",
@@ -951,7 +958,10 @@ test.describe("Organization members can cancel and reschedule when disabled", ()
     await testOrgMemberAction({
       page,
       users,
-      org,
+      org: {
+        id: org.id,
+        slug: org.slug ?? "",
+      },
       bookingId,
       role: "OWNER",
       action: "reschedule",
@@ -963,7 +973,10 @@ test.describe("Organization members can cancel and reschedule when disabled", ()
     await testOrgMemberAction({
       page,
       users,
-      org,
+      org: {
+        id: org.id,
+        slug: org.slug ?? "",
+      },
       bookingId,
       role: "OWNER",
       action: "cancel",
