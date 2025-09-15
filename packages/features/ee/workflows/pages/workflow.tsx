@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Toaster } from "sonner";
@@ -66,6 +67,7 @@ function WorkflowPage({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [nameValue, setNameValue] = useState("");
+  const searchParams = useSearchParams();
 
   const form = useForm<FormValues>({
     mode: "onBlur",
@@ -283,12 +285,16 @@ function WorkflowPage({
     onSuccess: async ({ workflow }) => {
       utils.viewer.workflows.get.setData({ id: +workflow.id }, workflow);
       setFormData(workflow);
-      showToast(
-        t("workflow_updated_successfully", {
-          workflowName: workflow.name,
-        }),
-        "success"
-      );
+
+      const autoCreateAgent = searchParams?.get("autoCreateAgent");
+      if (!autoCreateAgent) {
+        showToast(
+          t("workflow_updated_successfully", {
+            workflowName: workflow.name,
+          }),
+          "success"
+        );
+      }
     },
     onError: (err) => {
       if (err instanceof HttpError) {
