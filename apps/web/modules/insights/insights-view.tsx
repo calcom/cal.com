@@ -84,7 +84,7 @@ function InsightsPageContent() {
         <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
         <DataTableFilters.ActiveFilters table={table} />
         <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />
-        <DataTableFilters.ClearFiltersButton exclude={["timestamp"]} />
+        <DataTableFilters.ClearFiltersButton exclude={["startTime", "createdAt"]} />
         <div className="grow" />
         <Download />
         <ButtonGroup combined>

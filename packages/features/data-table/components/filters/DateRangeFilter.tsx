@@ -96,7 +96,7 @@ export const DateRangeFilter = ({
           type: ColumnFilterType.DATE_RANGE,
           data: {
             startDate: convertTimestamp(startDate.toDate().toISOString()),
-            endDate: convertTimestamp((endOfDay ? endDate.endOf("day") : endDate).toDate().toISOString()),
+            endDate: convertTimestamp(endDate.toDate().toISOString()),
             preset: preset.value,
           },
         });
@@ -144,7 +144,7 @@ export const DateRangeFilter = ({
     updateValues({
       preset: CUSTOM_PRESET,
       startDate: startDate ? dayjs(startDate) : getDefaultStartDate(),
-      endDate: endDate ? dayjs(endDate) : undefined,
+      endDate: endDate ? dayjs(endDate).add(1, "day").subtract(1, "millisecond") : undefined,
     });
   };
 
