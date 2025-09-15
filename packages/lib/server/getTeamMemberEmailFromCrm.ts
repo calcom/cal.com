@@ -284,13 +284,15 @@ export async function getTeamMemberEmailForResponseOrContactUsingUrlQuery({
 
   const crmAppSlug = getEnabledRoutingFormAppSlugFromQuery(query);
 
-  const routingFormResponseId = getRoutingFormResponseIdFromQuery(query);
+  const routingFormResponseIdAndQueuedFormResponseId = getRoutingFormResponseIdFromQuery(query);
 
   return await getTeamMemberEmailForResponseOrContact({
     bookerEmail: query.email,
     eventData,
     chosenRoute,
     crmAppSlug,
-    ...(routingFormResponseId ? { ...routingFormResponseId } : {}),
+    ...(routingFormResponseIdAndQueuedFormResponseId
+      ? { ...routingFormResponseIdAndQueuedFormResponseId }
+      : {}),
   });
 }
