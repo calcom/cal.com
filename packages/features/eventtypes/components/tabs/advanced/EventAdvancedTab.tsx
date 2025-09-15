@@ -3,9 +3,6 @@ import {
   canDisableOrganizerNotifications,
 } from "@calid/features/modules/workflows/utils/notificationDisableCheck";
 import { Icon } from "@calid/features/ui/components/icon";
-
-
-
 import { useState, Suspense } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -426,7 +423,7 @@ export const EventAdvancedTab = ({
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
 
   const bookingFields: Prisma.JsonObject = {};
-  const workflows = eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow);
+  const workflows = eventType.calIdWorkflows.map((workflowOnEventType) => workflowOnEventType.workflow);
   const selectedThemeIsDark =
     user?.theme === "dark" ||
     (!user?.theme && typeof document !== "undefined" && document.documentElement.classList.contains("dark"));

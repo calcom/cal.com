@@ -42,7 +42,7 @@ export async function scanWorkflowBody(payload: string) {
 
   if (stepIdsToScan.length === 0) return;
 
-  const workflowSteps = await prisma.workflowStep.findMany({
+  const workflowSteps = await prisma.calIdWorkflowStep.findMany({
     where: {
       id: {
         in: stepIdsToScan,
@@ -66,7 +66,7 @@ export async function scanWorkflowBody(payload: string) {
   if (process.env.IFFY_API_KEY) {
     for (const workflowStep of workflowSteps) {
       if (!workflowStep.reminderBody) {
-        await prisma.workflowStep.update({
+        await prisma.calIdWorkflowStep.update({
           where: {
             id: workflowStep.id,
           },
@@ -96,7 +96,7 @@ export async function scanWorkflowBody(payload: string) {
       if (
         compareReminderBodyToTemplate({ reminderBody: workflowStep.reminderBody, template: defaultTemplate })
       ) {
-        await prisma.workflowStep.update({
+        await prisma.calIdWorkflowStep.update({
           where: {
             id: workflowStep.id,
           },
@@ -120,7 +120,7 @@ export async function scanWorkflowBody(payload: string) {
         log.warn(`For whitelisted user, workflow step ${workflowStep.id} marked as spam`);
       }
 
-      await prisma.workflowStep.update({
+      await prisma.calIdWorkflowStep.update({
         where: {
           id: workflowStep.id,
         },
@@ -133,7 +133,7 @@ export async function scanWorkflowBody(payload: string) {
 
   if (!process.env.IFFY_API_KEY) {
     log.info("IFFY_API_KEY not set, skipping scan");
-    await prisma.workflowStep.updateMany({
+    await prisma.calIdWorkflowStep.updateMany({
       where: {
         id: {
           in: stepIdsToScan,
@@ -145,7 +145,7 @@ export async function scanWorkflowBody(payload: string) {
     });
   }
 
-  const workflow = await prisma.workflow.findFirst({
+  const workflow = await prisma.calIdWorkflow.findFirst({
     where: {
       steps: {
         some: {

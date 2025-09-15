@@ -27,7 +27,7 @@ export const WorkflowDeleteDialog = ({
   const deleteMutation = trpc.viewer.workflows.calid_delete.useMutation({
     onSuccess: async () => {
       try {
-        await utils.viewer.workflows.filteredList.invalidate();
+        await utils.viewer.workflows.calid_filteredList.invalidate();
         await additionalFunction();
         triggerToast(t("workflow_deleted_successfully"), "success");
       } catch (error) {

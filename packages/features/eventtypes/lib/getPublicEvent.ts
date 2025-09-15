@@ -1,5 +1,4 @@
-import type { User as UserType } from "@prisma/client";
-import type { PeriodType, SchedulingType, CaptchaType } from "@calcom/prisma/enums";
+import { getDefaultAvatar } from "@calid/features/lib/defaultAvatar";
 import type { Prisma } from "@prisma/client";
 
 import type { LocationObject } from "@calcom/app-store/locations";
@@ -8,7 +7,6 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { getDefaultAvatar } from "@calid/features/lib/defaultAvatar";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
@@ -118,6 +116,15 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
     successRedirectUrl: true,
     forwardParamsSuccessRedirect: true,
     workflows: {
+      include: {
+        workflow: {
+          include: {
+            steps: true,
+          },
+        },
+      },
+    },
+    calIdWorkflows: {
       include: {
         workflow: {
           include: {

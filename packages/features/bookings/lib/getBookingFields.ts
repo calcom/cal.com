@@ -1,4 +1,4 @@
-import type { CalIdWorkflow as Workflow } from "@calid/features/modules/workflows/config/types";
+import type { CalIdWorkflow } from "@calid/features/modules/workflows/config/types";
 import type { EventTypeCustomInput, EventType } from "@prisma/client";
 import type { z } from "zod";
 
@@ -42,12 +42,12 @@ export const getSmsReminderNumberSource = ({
   workflowId,
   isSmsReminderNumberRequired,
 }: {
-  workflowId: Workflow["id"];
+  workflowId: CalIdWorkflow["id"];
   isSmsReminderNumberRequired: boolean;
 }) => ({
   id: `${workflowId}`,
   type: "workflow",
-  label: "Workflow",
+  label: "CalIdWorkflow",
   fieldRequired: isSmsReminderNumberRequired,
   editUrl: `/workflows/${workflowId}`,
 });
@@ -71,7 +71,7 @@ export const getBookingFieldsWithSystemFields = ({
   customInputs: EventTypeCustomInput[] | z.infer<typeof customInputSchema>[];
   metadata: EventType["metadata"] | z.infer<typeof EventTypeMetaDataSchema>;
   workflows: {
-    workflow: Workflow;
+    workflow: CalIdWorkflow;
   }[];
 }) => {
   const parsedMetaData = EventTypeMetaDataSchema.parse(metadata || {});
@@ -105,7 +105,7 @@ export const ensureBookingInputsHaveSystemFields = ({
   additionalNotesRequired: boolean;
   customInputs: z.infer<typeof customInputSchema>[];
   workflows: {
-    workflow: Workflow;
+    workflow: CalIdWorkflow;
   }[];
 }) => {
   // If bookingFields is set already, the migration is done.

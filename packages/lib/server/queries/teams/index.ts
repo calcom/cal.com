@@ -617,7 +617,7 @@ export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: 
 
   if (createdChildrenEventTypes.length > 0) {
     await Promise.allSettled([
-      prisma.workflowsOnEventTypes
+      prisma.calIdWorkflowsOnEventTypes
         .createMany({
           data: createdChildrenEventTypes
             .map((eventType) =>

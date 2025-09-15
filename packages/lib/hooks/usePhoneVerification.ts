@@ -32,8 +32,8 @@ export function usePhoneNumberVerification<T extends WithMetadata>({
     defaultValues?.metadata?.phoneNumber ? isValidPhoneNumber(defaultValues?.metadata?.phoneNumber) : false
   );
 
-  const { data: _verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery({
-    teamId: undefined,
+  const { data: _verifiedNumbers } = trpc.viewer.workflows.calid_getVerifiedNumbers.useQuery({
+    calIdTeamId: undefined,
   });
 
   const verifiedNumbers = useMemo(
@@ -47,7 +47,7 @@ export function usePhoneNumberVerification<T extends WithMetadata>({
     [verifiedNumbers]
   );
 
-  const sendVerificationCodeMutation = trpc.viewer.workflows.sendVerificationCode.useMutation({
+  const sendVerificationCodeMutation = trpc.viewer.workflows.calid_sendVerificationCode.useMutation({
     onMutate: () => {
       setOtpSent(false);
       setVerificationCode("");
@@ -61,7 +61,7 @@ export function usePhoneNumberVerification<T extends WithMetadata>({
     },
   });
 
-  const verifyPhoneNumberMutation = trpc.viewer.workflows.verifyPhoneNumber.useMutation({
+  const verifyPhoneNumberMutation = trpc.viewer.workflows.calid_verifyPhoneNumber.useMutation({
     onSuccess: (isVerified: boolean) => {
       showToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
       setNumberVerified(isVerified);

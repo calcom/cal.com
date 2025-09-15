@@ -481,7 +481,7 @@ export const EventWorkflows = ({ eventType, workflows }: EventWorkflowsProps) =>
   const activeWorkflowsCount = workflows.length;
 
   // Mutation for creating new workflows
-  const createMutation = trpc.viewer.workflows.create.useMutation({
+  const createMutation = trpc.viewer.workflows.calid_create.useMutation({
     onSuccess: async ({ workflow }) => {
       await router.replace(`/workflows/${workflow.id}?eventTypeId=${eventType.id}`);
     },
@@ -574,7 +574,7 @@ export const EventWorkflows = ({ eventType, workflows }: EventWorkflowsProps) =>
                 disabled={workflowsLockProps.isLocked && !isManagedEventType}
                 target="_blank"
                 color="primary"
-                onClick={() => createMutation.mutate({ teamId: eventType.calIdTeam?.id })}
+                onClick={() => createMutation.mutate({ calIdTeamId: eventType.calIdTeam?.id })}
                 loading={createMutation.isPending}>
                 {t("create_workflow")}
               </Button>
