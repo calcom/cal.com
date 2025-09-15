@@ -22,6 +22,7 @@ vi.mock("@calcom/features/ee/payments/server/stripe", () => ({
     },
     subscriptions: {
       cancel: vi.fn().mockResolvedValue({}),
+      retrieve: vi.fn().mockResolvedValue({ status: "active" }),
     },
   },
 }));
@@ -47,6 +48,7 @@ describe("BillingService", () => {
       url: "https://checkout.stripe.com/session-123",
     });
     stripe.subscriptions.cancel.mockResolvedValue({});
+    stripe.subscriptions.retrieve.mockResolvedValue({ status: "active" });
 
     service = new BillingService(mocks.mockPhoneNumberRepository, mocks.mockRetellRepository);
   });
@@ -253,6 +255,96 @@ describe("BillingService", () => {
       await expect(service.cancelPhoneNumberSubscription(validCancelData)).rejects.toThrow(
         "Failed to cancel subscription"
       );
+    });
+
+    it("should handle already cancelled subscription in Stripe", async () => {
+      const mockPhoneNumber = createMockPhoneNumberRecord({
+        id: 1,
+        stripeSubscriptionId: "sub_123",
+        subscriptionStatus: PhoneNumberSubscriptionStatus.ACTIVE,
+      });
+
+      mocks.mockPhoneNumberRepository.findByIdAndUserId.mockResolvedValue(mockPhoneNumber);
+      mocks.mockPhoneNumberRepository.updateSubscriptionStatus.mockResolvedValue(undefined);
+      mocks.mockRetellRepository.deletePhoneNumber.mockResolvedValue(undefined);
+
+      const stripe = (await import("@calcom/features/ee/payments/server/stripe")).default;
+      stripe.subscriptions.retrieve.mockResolvedValue({ status: "canceled" });
+
+      const result = await service.cancelPhoneNumberSubscription(validCancelData);
+
+      expect(result).toEqual({
+        success: true,
+        message: "Phone number subscription cancelled successfully.",
+      });
+
+      // Should retrieve subscription to check status
+      expect(stripe.subscriptions.retrieve).toHaveBeenCalledWith("sub_123");
+      // Should NOT attempt to cancel since it's already cancelled
+      expect(stripe.subscriptions.cancel).not.toHaveBeenCalled();
+      // Should still update database
+      expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenCalledWith({
+        id: 1,
+        subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
+        disconnectOutboundAgent: true,
+      });
+    });
+
+    it("should handle subscription not found in Stripe", async () => {
+      const mockPhoneNumber = createMockPhoneNumberRecord({
+        id: 1,
+        stripeSubscriptionId: "sub_123",
+        subscriptionStatus: PhoneNumberSubscriptionStatus.ACTIVE,
+      });
+
+      mocks.mockPhoneNumberRepository.findByIdAndUserId.mockResolvedValue(mockPhoneNumber);
+      mocks.mockPhoneNumberRepository.updateSubscriptionStatus.mockResolvedValue(undefined);
+      mocks.mockRetellRepository.deletePhoneNumber.mockResolvedValue(undefined);
+
+      const stripe = (await import("@calcom/features/ee/payments/server/stripe")).default;
+      stripe.subscriptions.retrieve.mockRejectedValue({ code: "resource_missing" });
+
+      const result = await service.cancelPhoneNumberSubscription(validCancelData);
+
+      expect(result).toEqual({
+        success: true,
+        message: "Phone number subscription cancelled successfully.",
+      });
+
+      // Should attempt to retrieve subscription
+      expect(stripe.subscriptions.retrieve).toHaveBeenCalledWith("sub_123");
+      // Should NOT attempt to cancel since it doesn't exist
+      expect(stripe.subscriptions.cancel).not.toHaveBeenCalled();
+      // Should still update database
+      expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenCalledWith({
+        id: 1,
+        subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
+        disconnectOutboundAgent: true,
+      });
+    });
+
+    it("should throw error on retrieve failure that is not resource_missing", async () => {
+      const mockPhoneNumber = createMockPhoneNumberRecord({
+        id: 1,
+        stripeSubscriptionId: "sub_123",
+        subscriptionStatus: PhoneNumberSubscriptionStatus.ACTIVE,
+      });
+
+      mocks.mockPhoneNumberRepository.findByIdAndUserId.mockResolvedValue(mockPhoneNumber);
+
+      const stripe = (await import("@calcom/features/ee/payments/server/stripe")).default;
+      stripe.subscriptions.retrieve.mockRejectedValue(new TestError("API Error"));
+
+      await expect(service.cancelPhoneNumberSubscription(validCancelData)).rejects.toThrow(
+        "Failed to cancel subscription"
+      );
+
+      // Should attempt to retrieve subscription
+      expect(stripe.subscriptions.retrieve).toHaveBeenCalledWith("sub_123");
+      // Should NOT attempt to cancel due to error
+      expect(stripe.subscriptions.cancel).not.toHaveBeenCalled();
+      // Should NOT update database due to error
+      expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).not.toHaveBeenCalled();
     });
   });
 });

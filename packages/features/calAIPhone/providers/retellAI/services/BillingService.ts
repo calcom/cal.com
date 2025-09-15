@@ -129,7 +129,31 @@ export class BillingService {
     }
 
     try {
-      await stripe.subscriptions.cancel(phoneNumber.stripeSubscriptionId);
+      let needsStripeCancellation = true;
+      try {
+        const subscription = await stripe.subscriptions.retrieve(phoneNumber.stripeSubscriptionId);
+        if (subscription.status === 'canceled') {
+          needsStripeCancellation = false;
+          this.logger.info("Subscription already cancelled in Stripe:", {
+            subscriptionId: phoneNumber.stripeSubscriptionId,
+            phoneNumberId,
+          });
+        }
+      } catch (error: any) {
+        if (error.code === 'resource_missing') {
+          needsStripeCancellation = false;
+          this.logger.warn("Subscription not found in Stripe:", {
+            subscriptionId: phoneNumber.stripeSubscriptionId,
+            phoneNumberId,
+          });
+        } else {
+          throw error;
+        }
+      }
+
+      if (needsStripeCancellation) {
+        await stripe.subscriptions.cancel(phoneNumber.stripeSubscriptionId);
+      }
 
       await this.phoneNumberRepository.updateSubscriptionStatus({
         id: phoneNumberId,
