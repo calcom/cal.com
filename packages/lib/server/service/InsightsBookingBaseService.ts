@@ -611,16 +611,16 @@ export class InsightsBookingBaseService {
     // 6. Combine booking data with attendee data and add ISO timestamp columns
     const data = csvData.map((bookingTimeStatus) => {
       const dateAndTime = {
+        createdAt: bookingTimeStatus.createdAt.toISOString(),
         createdAt_date: dayjs(bookingTimeStatus.createdAt).tz(timeZone).format(DATE_FORMAT),
         createdAt_time: dayjs(bookingTimeStatus.createdAt).tz(timeZone).format(TIME_FORMAT),
+        startTime: bookingTimeStatus.startTime.toISOString(),
         startTime_date: dayjs(bookingTimeStatus.startTime).tz(timeZone).format(DATE_FORMAT),
         startTime_time: dayjs(bookingTimeStatus.startTime).tz(timeZone).format(TIME_FORMAT),
+        endTime: bookingTimeStatus.endTime.toISOString(),
         endTime_date: dayjs(bookingTimeStatus.endTime).tz(timeZone).format(DATE_FORMAT),
         endTime_time: dayjs(bookingTimeStatus.endTime).tz(timeZone).format(TIME_FORMAT),
       };
-      bookingTimeStatus.createdAt = bookingTimeStatus.createdAt.toISOString();
-      bookingTimeStatus.startTime = bookingTimeStatus.startTime.toISOString();
-      bookingTimeStatus.endTime = bookingTimeStatus.endTime.toISOString();
 
       if (!bookingTimeStatus.uid) {
         // should not be reached because we filtered above
