@@ -133,7 +133,9 @@ export class BillingService {
         await stripe.subscriptions.cancel(phoneNumber.stripeSubscriptionId);
       } catch (error: any) {
         // Handle 404 gracefully - subscription doesn't exist or already cancelled
-        if (error.code === 'resource_missing') {
+        // Stripe errors have the code in error.raw.code or error.code
+        const errorCode = error?.raw?.code || error?.code;
+        if (errorCode === 'resource_missing') {
           this.logger.info("Subscription not found in Stripe (already cancelled or deleted):", {
             subscriptionId: phoneNumber.stripeSubscriptionId,
             phoneNumberId,
