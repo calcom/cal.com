@@ -25,7 +25,6 @@ module.exports = {
         "no-restricted-imports": [
           "error",
           {
-            allowTypeImports: false,
             patterns: [
               {
                 group: ["@calcom/trpc/*", "@trpc/*"],
