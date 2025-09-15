@@ -86,7 +86,7 @@ export const buttonClasses = cva(
 
         secondary: [
           // Base colors and border
-          "bg-white",
+          "bg-default",
           "text-default",
           // Hover state
           "enabled:hover:bg-muted",

@@ -1,5 +1,6 @@
 "use client";
 
+import { getDefaultAvatar } from "@calid/features/lib/defaultAvatar";
 import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
@@ -20,7 +21,6 @@ import type { TeamFeatures } from "@calcom/features/flags/config";
 import { useIsFeatureEnabledForTeam } from "@calcom/features/flags/hooks/useIsFeatureEnabledForTeam";
 import Shell from "@calcom/features/shell/Shell";
 import { HOSTED_CAL_FEATURES, IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
-import { getDefaultAvatar } from "@calid/features/lib/defaultAvatar";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -315,7 +315,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
               <div className="flex items-center text-sm">
                 <img
                   src={getDefaultAvatar(team.logoUrl, team.name)}
-                  className="h-4 w-4 rounded-full stroke-[2px] md:mt-0 ltr:mr-2 rtl:ml-2 border border-default"
+                  className="border-default h-4 w-4 rounded-full border stroke-[2px] md:mt-0 ltr:mr-2 rtl:ml-2"
                   alt={team.name || "Team logo"}
                 />
                 <p className="w-full truncate leading-normal">{team.name}</p>
@@ -399,7 +399,7 @@ const SettingsSidebarContainer = ({
     <nav
       style={{ maxHeight: `calc(100vh - ${bannersHeight}px)`, top: `${bannersHeight}px` }}
       className={classNames(
-        "no-scrollbar bg-cal-gradient border-muted fixed bottom-0 left-0 top-0 z-20 flex max-h-screen w-56 flex-col space-y-1 overflow-x-hidden overflow-y-scroll border-r px-2 pb-3 transition-transform max-lg:z-10 lg:sticky lg:flex lg:px-4",
+        "no-scrollbar bg-cal-gradient dark:bg-cal-gradient border-muted fixed bottom-0 left-0 top-0 z-20 flex max-h-screen w-56 flex-col space-y-1 overflow-x-hidden overflow-y-scroll border-r px-2 pb-3 transition-transform max-lg:z-10 lg:sticky lg:flex lg:px-4",
         className,
         navigationIsOpenedOnMobile
           ? "translate-x-0 opacity-100"

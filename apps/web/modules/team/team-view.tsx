@@ -189,7 +189,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
   return (
     <div className="bg-default flex min-h-screen w-full flex-col">
       <main className="bg-default h-full w-full">
-        <div className="border-subtle bg-cal-gradient text-default mb-4 flex flex-col items-center bg-cover bg-center p-4">
+        <div className="border-subtle bg-cal-gradient dark:bg-cal-gradient text-default mb-4 flex flex-col items-center bg-cover bg-center p-4">
           <Avatar
             size="xl"
             imageSrc={profileImageSrc}
@@ -235,7 +235,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
               ))}
             {!showMembers.isOn && team.eventTypes && team.eventTypes.length > 0 && (
               <div
-                className="flex flex-col gap-4 rounded-md bg-white px-4 pb-8 pt-2 lg:px-[15%]"
+                className="bg-default flex flex-col gap-4 rounded-md px-4 pb-8 pt-2 lg:px-[15%]"
                 data-testid="event-types">
                 <EventTypes eventTypes={team.eventTypes} />
 

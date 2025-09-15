@@ -726,15 +726,15 @@ model VerificationToken {
 }
 
 model InstantMeetingToken {
-  id        Int      @id @default(autoincrement())
-  token     String   @unique
-  expires   DateTime
-  teamId    Int
-  team      Team     @relation(fields: [teamId], references: [id])
-  bookingId Int?     @unique
-  booking   Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  id          Int       @id @default(autoincrement())
+  token       String    @unique
+  expires     DateTime
+  teamId      Int
+  team        Team      @relation(fields: [teamId], references: [id])
+  bookingId   Int?      @unique
+  booking     Booking?  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   calIdTeamId Int
-  calIdTeam   CalIdTeam   @relation(fields: [calIdTeamId], references: [id])
+  calIdTeam   CalIdTeam @relation(fields: [calIdTeamId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2544,46 +2544,46 @@ model RolePermission {
 }
 
 model CalIdTeam {
-  id                  Int                 @id @default(autoincrement())
-  name                String
-  slug                String?
-  logoUrl             String?
-  bio                 String?
-  hideTeamBranding    Boolean             @default(false)
-  hideTeamProfileLink Boolean             @default(false)
-  isTeamPrivate       Boolean             @default(false)
-  hideBookATeamMember Boolean             @default(false)
-  members             CalIdMembership[]
-  eventTypes          EventType[]
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
-  metadata            Json?
-  theme               String?
-  brandColor          String?
-  darkBrandColor      String?
-  verifiedNumbers     VerifiedNumber[]
-  verifiedEmails      VerifiedEmail[]
-  inviteTokens        VerificationToken[]
-  webhooks            Webhook[]
-  timeFormat          Int?
-  timeZone            String              @default("Asia/Kolkata")
-  weekStart           String              @default("Monday")
-  bookingFrequency    Json?
-  filterSegments      FilterSegment[]
-  bannerUrl           String?
+  id                   Int                   @id @default(autoincrement())
+  name                 String
+  slug                 String?
+  logoUrl              String?
+  bio                  String?
+  hideTeamBranding     Boolean               @default(false)
+  hideTeamProfileLink  Boolean               @default(false)
+  isTeamPrivate        Boolean               @default(false)
+  hideBookATeamMember  Boolean               @default(false)
+  members              CalIdMembership[]
+  eventTypes           EventType[]
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  metadata             Json?
+  theme                String?
+  brandColor           String?
+  darkBrandColor       String?
+  verifiedNumbers      VerifiedNumber[]
+  verifiedEmails       VerifiedEmail[]
+  inviteTokens         VerificationToken[]
+  webhooks             Webhook[]
+  timeFormat           Int?
+  timeZone             String                @default("Asia/Kolkata")
+  weekStart            String                @default("Monday")
+  bookingFrequency     Json?
+  filterSegments       FilterSegment[]
+  bannerUrl            String?
   instantMeetingTokens InstantMeetingToken[]
 
-  credentials     Credential[] // Teams can have credentials for integrations
-  accessCodes     AccessCode[] // Teams can have OAuth access codes
-  routingForms    App_RoutingForms_Form[] // Teams can own routing forms
-  apiKeys         ApiKey[] // Teams can have API keys for external access
-  attributes      Attribute[] // Teams can define custom attributes
-  roles           Role[] // Teams can have custom roles
-  features        CalIdTeamFeatures[] // Teams can have feature flags enabled
-  workflows       CalIdWorkflow[]
-  activeWorkflows CalIdWorkflowsOnTeams[]
-  roundRobinResetInterval     RoundRobinResetInterval?    @default(MONTH)
-  roundRobinTimestampBasis    RoundRobinTimestampBasis?   @default(CREATED_AT)
+  credentials              Credential[] // Teams can have credentials for integrations
+  accessCodes              AccessCode[] // Teams can have OAuth access codes
+  routingForms             App_RoutingForms_Form[] // Teams can own routing forms
+  apiKeys                  ApiKey[] // Teams can have API keys for external access
+  attributes               Attribute[] // Teams can define custom attributes
+  roles                    Role[] // Teams can have custom roles
+  features                 CalIdTeamFeatures[] // Teams can have feature flags enabled
+  workflows                CalIdWorkflow[]
+  activeWorkflows          CalIdWorkflowsOnTeams[]
+  roundRobinResetInterval  RoundRobinResetInterval?  @default(MONTH)
+  roundRobinTimestampBasis RoundRobinTimestampBasis? @default(CREATED_AT)
 
   @@unique([slug])
 }
