@@ -1,3 +1,32 @@
+# Professional Scheduling Platform (Cal.com Fork)
+
+This project is a fork of [Cal.com](https://github.com/calcom/cal.com) customized for professional service scheduling.
+
+## Original Project
+- **Original Repository**: https://github.com/calcom/cal.com
+- **License**: AGPLv3
+- **Copyright**: Cal.com, Inc.
+
+## Modifications
+This fork includes the following enhancements:
+- Custom user onboarding for service providers
+- Enhanced availability management
+- Integration with external booking platforms
+- Specialized scheduling workflows
+- [Additional customizations as needed]
+
+## License Compliance
+This fork maintains the AGPLv3 license as required. All modifications are open source and available under the same license terms.
+
+## Use Cases
+This customized version is designed for:
+- Professional consultation scheduling
+- Service provider platforms
+- Educational appointment booking
+- Healthcare scheduling systems
+- Any platform requiring integrated calendar management
+
+
 <!-- PROJECT LOGO -->
 <p align="center">
   <a href="https://github.com/calcom/cal.com">
