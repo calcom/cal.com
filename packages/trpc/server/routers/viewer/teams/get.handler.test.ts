@@ -12,7 +12,7 @@ vi.mock("@calcom/lib/server/repository/membership", () => ({
   },
 }));
 
-vi.mock("@calcom/lib/server/queries/teams", () => ({
+vi.mock("@calcom/features/ee/teams/lib/queries", () => ({
   getTeamWithoutMembers: vi.fn(),
 }));
 
