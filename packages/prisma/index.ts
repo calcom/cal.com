@@ -1,5 +1,4 @@
-import type { Prisma } from "@prisma/client";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, type Prisma } from "@calcom/prisma/client";
 
 import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency-key";
 import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallow-undefined-delete-update-many";
@@ -35,8 +34,7 @@ if (!isNaN(loggerLevel)) {
   }
 }
 
-const baseClient =
-  globalForPrisma.baseClient || new PrismaClient(prismaOptions);
+const baseClient = globalForPrisma.baseClient || new PrismaClient(prismaOptions);
 
 export const customPrisma = (options?: Prisma.PrismaClientOptions) =>
   new PrismaClient({ ...prismaOptions, ...options })
@@ -80,10 +78,10 @@ type OmitPrismaClient = Omit<
 >;
 
 // we cant pass tx to functions as types miss match since we have a custom prisma client https://github.com/prisma/prisma/discussions/20924#discussioncomment-10077649
-export type { 
-  OmitPrismaClient as PrismaTransaction, 
+export type {
+  OmitPrismaClient as PrismaTransaction,
   // we re-export the native PrismaClient type for backwards-compatibility.
-  PrismaClient
+  PrismaClient,
 };
 
 /**
