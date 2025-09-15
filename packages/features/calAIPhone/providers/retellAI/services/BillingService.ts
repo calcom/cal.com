@@ -129,30 +129,18 @@ export class BillingService {
     }
 
     try {
-      let needsStripeCancellation = true;
       try {
-        const subscription = await stripe.subscriptions.retrieve(phoneNumber.stripeSubscriptionId);
-        if (subscription.status === 'canceled') {
-          needsStripeCancellation = false;
-          this.logger.info("Subscription already cancelled in Stripe:", {
-            subscriptionId: phoneNumber.stripeSubscriptionId,
-            phoneNumberId,
-          });
-        }
+        await stripe.subscriptions.cancel(phoneNumber.stripeSubscriptionId);
       } catch (error: any) {
+        // Handle 404 gracefully - subscription doesn't exist or already cancelled
         if (error.code === 'resource_missing') {
-          needsStripeCancellation = false;
-          this.logger.warn("Subscription not found in Stripe:", {
+          this.logger.info("Subscription not found in Stripe (already cancelled or deleted):", {
             subscriptionId: phoneNumber.stripeSubscriptionId,
             phoneNumberId,
           });
         } else {
           throw error;
         }
-      }
-
-      if (needsStripeCancellation) {
-        await stripe.subscriptions.cancel(phoneNumber.stripeSubscriptionId);
       }
 
       await this.phoneNumberRepository.updateSubscriptionStatus({
