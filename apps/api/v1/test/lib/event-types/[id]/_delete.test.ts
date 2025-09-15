@@ -50,6 +50,7 @@ describe("DELETE /api/event-types/[id]", () => {
     // Mocking team.findUnique
     prismaMock.team.findUnique.mockResolvedValue({
       id: teamId,
+      // @ts-expect-error requires mockDeep which will be introduced in the Prisma 6.7.0 upgrade, ignore for now.
       members: [
         { userId: memberUser, role: MembershipRole.MEMBER, teamId: teamId },
         { userId: adminUser, role: MembershipRole.ADMIN, teamId: teamId },

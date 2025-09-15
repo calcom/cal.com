@@ -84,6 +84,7 @@ describe("GET /api/event-types/[id]", () => {
 
       prismaMock.team.findFirst.mockResolvedValue({
         id: teamId,
+        // @ts-expect-error requires mockDeep which will be introduced in the Prisma 6.7.0 upgrade, ignore for now.
         members: [
           {
             userId,

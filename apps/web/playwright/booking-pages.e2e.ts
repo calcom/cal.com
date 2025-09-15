@@ -6,7 +6,7 @@ import type { createUsersFixture } from "playwright/fixtures/users";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { randomString } from "@calcom/lib/random";
-import { SchedulingType } from "@calcom/prisma/client";
+import { SchedulingType } from "@calcom/prisma/enums";
 import type { Schedule, TimeRange } from "@calcom/types/schedule";
 
 import { test, todo } from "./lib/fixtures";

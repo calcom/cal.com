@@ -1,7 +1,7 @@
-import { createModule } from "@evyweb/ioctopus";
-
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
+
+import { createModule } from "../di";
 
 export const attributeRepositoryModule = createModule();
 attributeRepositoryModule
