@@ -20,9 +20,9 @@ export {
 
 export { validateCustomEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 export { EventManager };
-export { getEventTypeById } from "@calcom/lib/event-types/getEventTypeById";
+export { getEventTypeById } from "@calcom/features/eventtypes/lib/getEventTypeById";
 export { getEventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
-export type { EventType } from "@calcom/lib/event-types/getEventTypeById";
+export type { EventType } from "@calcom/features/eventtypes/lib/getEventTypeById";
 export type { EventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
 export type { UpdateEventTypeReturn } from "@calcom/trpc/server/routers/viewer/eventTypes/heavy/update.handler";
 export { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
