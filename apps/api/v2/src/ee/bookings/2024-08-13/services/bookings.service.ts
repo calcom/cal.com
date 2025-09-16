@@ -665,6 +665,16 @@ export class BookingsService_2024_08_13 {
     return false;
   }
 
+  /**
+   * Convert UserWithProfile to ApiAuthGuardUser format for proper authorization
+   */
+  private toApiAuthGuardUser(user: UserWithProfile): ApiAuthGuardUser {
+    return {
+      ...user,
+      isSystemAdmin: user.role === "ADMIN",
+    };
+  }
+
   async getBookings(
     queryParams: GetBookingsInput_2024_08_13,
     user: { email: string; id: number; orgId?: number },
@@ -948,8 +958,9 @@ export class BookingsService_2024_08_13 {
       return this.outputService.getOutputRecurringBooking(booking);
     }
     
-    // Use getBooking to ensure proper attendee authorization
-    return this.getBooking(bookingUid, bookingOwner);
+    // Convert to ApiAuthGuardUser and use getBooking to ensure proper attendee authorization
+    const authUser = this.toApiAuthGuardUser(bookingOwner);
+    return this.getBooking(bookingUid, authUser);
   }
 
   async billBookings(bookings: CreatedBooking[]) {
@@ -1103,7 +1114,8 @@ export class BookingsService_2024_08_13 {
       },
     });
 
-    return this.getBooking(bookingUid, requestUser);
+    const authUser = this.toApiAuthGuardUser(requestUser);
+    return this.getBooking(bookingUid, authUser);
   }
 
   async declineBooking(bookingUid: string, requestUser: UserWithProfile, reason?: string) {
@@ -1136,7 +1148,8 @@ export class BookingsService_2024_08_13 {
       },
     });
 
-    return this.getBooking(bookingUid, requestUser);
+    const authUser = this.toApiAuthGuardUser(requestUser);
+    return this.getBooking(bookingUid, authUser);
   }
 
   async getCalendarLinks(bookingUid: string): Promise<CalendarLink[]> {
