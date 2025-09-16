@@ -208,7 +208,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
         return { eventTypeId: newEventType.id, workflowId: workflow.workflowId };
       });
 
-      await prisma.workflowsOnEventTypes.createMany({
+      await prisma.calIdWorkflowsOnEventTypes.createMany({
         data: relationCreateData,
       });
     }

@@ -16,7 +16,7 @@ import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 
-import type { WorkflowType } from "../config/types";
+import type { CalIdWorkflowType } from "../config/types";
 import {
   generateTriggerText,
   generateEventTypeInfo,
@@ -25,7 +25,7 @@ import {
 } from "../config/utils";
 
 interface WorkflowCardProps {
-  workflow: WorkflowType;
+  workflow: CalIdWorkflowType;
   onEdit: (workflowId: number) => void;
   onToggle: (workflowId: number, enabled: boolean) => void;
   onDuplicate: (workflowId: number) => void;
@@ -131,10 +131,10 @@ export const WorkflowCard: React.FC<WorkflowCardProps> = ({
             <span className="bg-muted text-foreground inline-flex items-center rounded px-2 py-1 text-xs">
               <span className="mr-1">{actionText}</span>
             </span>
-            {workflow.team?.name && (
+            {workflow.calIdTeam?.name && (
               <Badge variant="gray" className="inline-flex items-center">
-                <Avatar alt={workflow.team.name} size="xs" className="mr-1" />
-                {workflow.team.name}
+                <Avatar alt={workflow.calIdTeam.name} size="xs" className="mr-1" />
+                {workflow.calIdTeam.name}
               </Badge>
             )}
           </div>

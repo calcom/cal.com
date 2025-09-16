@@ -174,7 +174,7 @@ export default function BannerUploader({
                   // <p className="text-emphasis w-full text-center text-sm sm:text-xs">
                   //   {t("no_target", { target })}
                   // </p>
-                  <div className="bg-cal-gradient h-full w-full" />
+                  <div className="bg-cal-gradient dark:bg-cal-gradient h-full w-full" />
                 ) : (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img className="h-full w-full" src={imageSrc} alt={target} />

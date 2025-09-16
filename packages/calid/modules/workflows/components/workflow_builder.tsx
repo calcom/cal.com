@@ -61,22 +61,6 @@ import emailReminderTemplate from "../templates/email/reminder";
 import emailThankYouTemplate from "../templates/email/thankYouTemplate";
 
 // Types migrated from old implementation
-export type FormValues = {
-  name: string;
-  activeOn: Option[];
-  steps: (WorkflowStep & { senderName: string | null })[];
-  trigger: WorkflowTriggerEvents;
-  time?: number;
-  timeUnit?: TimeUnit;
-  selectAll: boolean;
-};
-
-type Option = {
-  value: string;
-  label: string;
-};
-
-type User = RouterOutputs["viewer"]["me"]["get"];
 
 type WorkflowStep = {
   id: number;
@@ -94,6 +78,23 @@ type WorkflowStep = {
   includeCalendarEvent: boolean;
   verifiedAt: Date | null;
 };
+
+export type FormValues = {
+  name: string;
+  activeOn: Option[];
+  steps: (WorkflowStep & { senderName: string | null })[];
+  trigger: WorkflowTriggerEvents;
+  time?: number;
+  timeUnit?: TimeUnit;
+  selectAll: boolean;
+};
+
+type Option = {
+  value: string;
+  label: string;
+};
+
+type User = RouterOutputs["viewer"]["me"]["get"];
 
 const VariableDropdown: React.FC<{
   onSelect: (variable: string) => void;
@@ -139,37 +140,39 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
     isError,
     error,
     isPending: isPendingWorkflow,
-  } = trpc.viewer.workflows.get.useQuery(
-    { id: workflowId! },
-    {
-      enabled: !!workflowId,
-    }
-  );
+  } = trpc.viewer.workflows.calid_get.useQuery(workflowId ? { id: workflowId } : {}, {
+    enabled: !!workflowId,
+  });
 
   // Get verified numbers and emails
-  const { data: verifiedNumbersData } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
-    { teamId: workflowData?.team?.id },
+  const { data: verifiedNumbersData } = trpc.viewer.workflows.calid_getVerifiedNumbers.useQuery(
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    workflowData?.calIdTeamId ? { calIdTeamId: workflowData?.calIdTeamId } : {},
     {
-      enabled: !!workflowData?.id,
+      enabled: !!workflowData?.calIdTeamId,
     }
   );
 
-  const { data: verifiedEmailsData } = trpc.viewer.workflows.getVerifiedEmails.useQuery(
-    {
-      teamId: workflowData?.team?.id,
-    },
-    { enabled: !!workflowData?.id }
+  const { data: verifiedEmailsData } = trpc.viewer.workflows.calid_getVerifiedEmails.useQuery(
+    workflowData?.calIdTeamId
+      ? {
+          calIdTeamId: workflowData?.calIdTeamId,
+        }
+      : {},
+    { enabled: !!workflowData?.calIdTeamId }
   );
 
   // Get workflow action options
-  const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
+  const { data: actionOptions } = trpc.viewer.workflows.calid_getWorkflowActionOptions.useQuery();
 
   // Get time format
   const timeFormat = user ? getTimeFormatStringFromUserTimeFormat(user.timeFormat) : TimeFormat.TWELVE_HOUR;
 
   // Get event type options
-  const isOrg = workflowData?.team?.isOrganization ?? false;
-  const teamId = workflowData?.teamId ?? undefined;
+  // const isOrg = workflowData?.team?.isOrganization ?? false;
+  //TODO: TEAM_ORG
+  const isOrg = false;
+  const teamId = workflowData?.calIdTeamId ?? undefined;
 
   const { data: eventTypeData, isPending: isPendingEventTypes } =
     trpc.viewer.eventTypes.getTeamAndEventTypeOptions.useQuery(
@@ -195,10 +198,10 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
   // Permission check
   const readOnly = useMemo(() => {
     return (
-      workflowData?.team?.members?.find((member) => member.userId === session.data?.user.id)?.role ===
+      workflowData?.calIdTeam?.members?.find((member) => member.userId === session.data?.user.id)?.role ===
       MembershipRole.MEMBER
     );
-  }, [workflowData?.team?.members, session.data?.user.id]);
+  }, [workflowData?.calIdTeam?.members, session.data?.user.id]);
 
   // UI state variables
   const [workflowName, setWorkflowName] = useState("");
@@ -229,7 +232,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
   const triggerOptions = getWorkflowTriggerOptions(t);
 
   // Verification mutations -  Added proper success handlers for verification status updates
-  const sendVerificationCodeMutation = trpc.viewer.workflows.sendVerificationCode.useMutation({
+  const sendVerificationCodeMutation = trpc.viewer.workflows.calid_sendVerificationCode.useMutation({
     onSuccess: async (data, variables) => {
       showToast(t("verification_code_sent"), "success");
       //  Track that OTP was sent for this phone number
@@ -246,7 +249,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
     },
   });
 
-  const verifyPhoneNumberMutation = trpc.viewer.workflows.verifyPhoneNumber.useMutation({
+  const verifyPhoneNumberMutation = trpc.viewer.workflows.calid_verifyPhoneNumber.useMutation({
     onSuccess: async (isVerified, variables) => {
       showToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
 
@@ -267,7 +270,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
         });
       }
 
-      utils.viewer.workflows.getVerifiedNumbers.invalidate();
+      utils.viewer.workflows.calid_getVerifiedNumbers.invalidate();
     },
     onError: (err) => {
       if (err instanceof HttpError) {
@@ -293,7 +296,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
     },
   });
 
-  const verifyEmailCodeMutation = trpc.viewer.workflows.verifyEmailCode.useMutation({
+  const verifyEmailCodeMutation = trpc.viewer.workflows.calid_verifyEmailCode.useMutation({
     onSuccess: (isVerified, variables) => {
       showToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
 
@@ -313,7 +316,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
         });
       }
 
-      utils.viewer.workflows.getVerifiedEmails.invalidate();
+      utils.viewer.workflows.calid_getVerifiedEmails.invalidate();
     },
     onError: (err) => {
       if (err.message === "invalid_code") {
@@ -323,10 +326,10 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
   });
 
   // Update mutation
-  const updateMutation = trpc.viewer.workflows.update.useMutation({
+  const updateMutation = trpc.viewer.workflows.calid_update.useMutation({
     onSuccess: async ({ workflow }) => {
       if (workflow) {
-        utils.viewer.workflows.get.setData({ id: workflow.id }, workflow);
+        utils.viewer.workflows.calid_get.setData({ id: workflow.id }, workflow);
         showToast(
           t("workflow_updated_successfully", {
             workflowName: workflow.name,
@@ -378,7 +381,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
 
   // Set form data function
   const setFormData = useCallback(
-    (workflowDataInput: RouterOutputs["viewer"]["workflows"]["get"] | undefined) => {
+    (workflowDataInput: RouterOutputs["viewer"]["workflows"]["calid_get"] | undefined) => {
       if (workflowDataInput && !dataLoadedRef.current) {
         dataLoadedRef.current = true;
 
@@ -396,13 +399,13 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
         } else {
           if (isOrg) {
             activeOn = workflowDataInput.activeOnTeams?.flatMap((active) => ({
-              value: String(active.team.id) || "",
-              label: active.team.slug || "",
+              value: String(active.calIdTeam.id) || "",
+              label: active.calIdTeam.slug || "",
             }));
           } else {
             activeOn = workflowDataInput.activeOn
               ? workflowDataInput.activeOn.flatMap((active) => {
-                  if (workflowDataInput.teamId && active.eventType.parentId) return [];
+                  if (workflowDataInput.calIdTeamId && active.eventType.parentId) return [];
                   return {
                     value: active.eventType.id.toString(),
                     label: active.eventType.title,
@@ -894,11 +897,11 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
         verifyPhoneNumberMutation.mutate({
           phoneNumber: step.sendTo,
           code,
-          teamId: workflowData?.team?.id,
+          calIdTeamId: workflowData?.calIdTeam?.id,
         });
       }
     },
-    [verificationCodes, verifyPhoneNumberMutation, workflowData?.team?.id]
+    [verificationCodes, verifyPhoneNumberMutation, workflowData?.calIdTeam?.id]
   );
 
   // Helper function to send email verification
@@ -924,11 +927,11 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
         verifyEmailCodeMutation.mutate({
           code,
           email: step.sendTo,
-          teamId: workflowData?.team?.id,
+          calIdTeamId: workflowData?.calIdTeam?.id,
         });
       }
     },
-    [verificationCodes, verifyEmailCodeMutation, workflowData?.team?.id]
+    [verificationCodes, verifyEmailCodeMutation, workflowData?.calIdTeam?.id]
   );
 
   // Loading and error states
@@ -958,9 +961,9 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
               <div className={cn(workflowData && !workflowData.name ? "text-muted" : "")}>
                 {workflowData && workflowData.name ? workflowData.name : "untitled"}
               </div>
-              {workflowData && workflowData.team && (
+              {workflowData && workflowData.calIdTeam && (
                 <Badge className="ml-4 mt-1" variant="default">
-                  {workflowData.team.name}
+                  {workflowData.calIdTeam.name}
                 </Badge>
               )}
               {readOnly && (

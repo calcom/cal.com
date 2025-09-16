@@ -29,3 +29,13 @@ export async function revalidateTeamEventTypeCache({
 export async function revalidateCalIdTeamDataCache({ teamSlug }: { teamSlug: string }) {
   revalidateTag(`team:${teamSlug}`);
 }
+
+export async function revalidateCalIdTeamEventTypeCache({
+  teamSlug,
+  meetingSlug,
+}: {
+  teamSlug: string;
+  meetingSlug: string;
+}) {
+  revalidateTag(`event-type:${teamSlug}:${meetingSlug}`);
+}

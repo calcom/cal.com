@@ -129,7 +129,9 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
           ...style,
           ...(isDragging && { height: 0, overflow: "hidden" }),
         }}
-        className={`group relative flex items-center ${!isDragging ? "animate-fade-in" : "opacity-0 pointer-events-none"}`}>
+        className={`group relative flex items-center ${
+          !isDragging ? "animate-fade-in" : "pointer-events-none opacity-0"
+        }`}>
         {/* Drag handle */}
         <div
           {...attributes}
@@ -144,7 +146,7 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
 
         {/* Card content */}
         <div
-          className="border-subtle flex-1 cursor-pointer rounded-md border bg-white p-4 transition-all hover:shadow-md"
+          className="border-subtle bg-default flex-1 cursor-pointer rounded-md border p-4 transition-all hover:shadow-md"
           onClick={() => onEventEdit(event.id)}>
           <div className="flex items-start justify-between">
             <div className="flex flex-1 items-start space-x-3">

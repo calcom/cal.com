@@ -3,7 +3,7 @@ import type { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import logger from "@calcom/lib/logger";
 import { WorkflowTriggerEvents, TimeUnit, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 
-import type { Workflow } from "../config/types";
+import type { CalIdWorkflow } from "../config/types";
 import { scheduleEmailReminder } from "../managers/emailManager";
 import type { ExtendedCalendarEvent } from "./reminderScheduler";
 
@@ -13,7 +13,7 @@ export type NewBookingEventType = Awaited<ReturnType<typeof getDefaultEvent>> | 
 
 export async function scheduleMandatoryReminder(
   calendarEvent: ExtendedCalendarEvent,
-  workflowList: Workflow[],
+  workflowList: CalIdWorkflow[],
   needsConfirmation: boolean,
   brandingHidden: boolean,
   seatReference: string | undefined,

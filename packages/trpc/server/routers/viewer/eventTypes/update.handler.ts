@@ -461,7 +461,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (input.metadata?.disableStandardEmails?.confirmation) {
     //check if user is allowed to disabled standard emails
-    const workflows = await ctx.prisma.workflow.findMany({
+    const workflows = await ctx.prisma.calIdWorkflow.findMany({
       where: {
         activeOn: {
           some: {

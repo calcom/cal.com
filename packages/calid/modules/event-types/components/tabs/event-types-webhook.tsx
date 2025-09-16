@@ -20,8 +20,6 @@ import {
 import { Icon } from "@calid/features/ui/components/icon";
 import { Switch } from "@calid/features/ui/components/switch/switch";
 import { Tooltip } from "@calid/features/ui/components/tooltip";
-import { TooltipTrigger } from "@calid/features/ui/components/tooltip";
-import { TooltipContent } from "@calid/features/ui/components/tooltip";
 import type { Webhook } from "@prisma/client";
 import type { TFunction } from "i18next";
 import { default as get } from "lodash/get";
@@ -139,39 +137,36 @@ const useLockedFieldsManager = ({
     );
 
     const LockedIcon = (isManagedEventType || isChildrenManagedEventType) && (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className="inline">
-            <Badge
-              variant={isLocked ? "secondary" : "success"}
-              className={classNames(
-                "ml-2 transform justify-between p-1",
-                isManagedEventType && !options?.simple && "w-28"
-              )}>
-              {!options?.simple && (
-                <span className="inline-flex">
-                  <Icon name={isLocked ? "lock" : "lock-open"} className="text-subtle h-3 w-3" />
-                  <span className="ml-1 font-medium">{stateText}</span>
-                </span>
-              )}
-              {isManagedEventType && (
-                <Switch
-                  data-testid={`locked-indicator-${fieldName}`}
-                  onCheckedChange={(enabled) => {
-                    setFieldStates({
-                      ...fieldStates,
-                      [fieldName]: enabled,
-                    });
-                    setUnlockedFields(fieldName, !enabled || undefined);
-                  }}
-                  checked={isLocked}
-                  size="sm"
-                />
-              )}
-            </Badge>
-          </div>
-        </TooltipTrigger>
-        <TooltipContent>{tooltipText}</TooltipContent>
+      <Tooltip content={tooltipText}>
+        <div className="inline">
+          <Badge
+            variant={isLocked ? "secondary" : "success"}
+            className={classNames(
+              "ml-2 transform justify-between p-1",
+              isManagedEventType && !options?.simple && "w-28"
+            )}>
+            {!options?.simple && (
+              <span className="inline-flex">
+                <Icon name={isLocked ? "lock" : "lock-open"} className="text-subtle h-3 w-3" />
+                <span className="ml-1 font-medium">{stateText}</span>
+              </span>
+            )}
+            {isManagedEventType && (
+              <Switch
+                data-testid={`locked-indicator-${fieldName}`}
+                onCheckedChange={(enabled) => {
+                  setFieldStates({
+                    ...fieldStates,
+                    [fieldName]: enabled,
+                  });
+                  setUnlockedFields(fieldName, !enabled || undefined);
+                }}
+                checked={isLocked}
+                size="sm"
+              />
+            )}
+          </Badge>
+        </div>
       </Tooltip>
     );
 
@@ -571,23 +566,12 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
                                   </span>
                                 ))}
                                 {webhook.eventTriggers.length > 3 && (
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <span
-                                        className="cursor-help rounded-full bg-gray-100 px-2 py-1 text-gray-700"
-                                        style={{ fontSize: "12px" }}>
-                                        +{webhook.eventTriggers.length - 3} more
-                                      </span>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <div className="space-y-1">
-                                        {webhook.eventTriggers.slice(3).map((trigger) => (
-                                          <div key={trigger} className="text-sm">
-                                            {t(`${trigger.toLowerCase()}`)}
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </TooltipContent>
+                                  <Tooltip content={t("triggers_when")}>
+                                    <span
+                                      className="cursor-help rounded-full bg-gray-100 px-2 py-1 text-gray-700"
+                                      style={{ fontSize: "12px" }}>
+                                      +{webhook.eventTriggers.length - 3} more
+                                    </span>
                                   </Tooltip>
                                 )}
                               </div>

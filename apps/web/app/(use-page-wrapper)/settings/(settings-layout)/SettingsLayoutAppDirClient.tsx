@@ -401,7 +401,7 @@ const SettingsSidebarContainer = ({
     <nav
       style={{ maxHeight: `calc(100vh - ${bannersHeight}px)`, top: `${bannersHeight}px` }}
       className={classNames(
-        "no-scrollbar bg-cal-gradient border-muted fixed bottom-0 left-0 top-0 z-20 flex max-h-screen w-56 flex-col space-y-1 overflow-x-hidden overflow-y-scroll border-r px-2 pb-3 transition-transform max-lg:z-10 lg:sticky lg:flex lg:px-4",
+        "no-scrollbar bg-cal-gradient dark:bg-cal-gradient border-muted fixed bottom-0 left-0 top-0 z-20 flex max-h-screen w-56 flex-col space-y-1 overflow-x-hidden overflow-y-scroll border-r px-2 pb-3 transition-transform max-lg:z-10 lg:sticky lg:flex lg:px-4",
         className,
         navigationIsOpenedOnMobile
           ? "translate-x-0 opacity-100"

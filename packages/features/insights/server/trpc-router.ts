@@ -1,4 +1,4 @@
-import { WorkflowEventsInsights } from "@calid/features/insights/server/workflow-events";
+import { CalIdWorkflowEventsInsights } from "@calid/features/insights/server/workflow-events";
 import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 
@@ -1039,6 +1039,7 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
+
   workflowsByStatus: userBelongsToTeamProcedure
     .input(
       rawDataInputSchema.extend({
@@ -1079,9 +1080,9 @@ export const insightsRouter = router({
         eventTypeId ? { eventTypeId } : null,
 
         type ? { type } : null,
-      ].filter(Boolean) as Prisma.WorkflowInsightsWhereInput[]; // Type assertion
+      ].filter(Boolean) as Prisma.CalIdWorkflowInsightsWhereInput[]; // Type assertion
 
-      const whereQuery: Prisma.WorkflowInsightsWhereInput = whereConditions.length
+      const whereQuery: Prisma.CalIdWorkflowInsightsWhereInput = whereConditions.length
         ? { AND: whereConditions }
         : {};
       const eventTypeIds: number[] = [];
@@ -1098,7 +1099,7 @@ export const insightsRouter = router({
       if (teamId) {
         const _eventTypeIds = (
           await ctx.insightsDb.eventType.findMany({
-            where: { teamId },
+            where: { calIdTeamId: teamId },
             select: { id: true },
           })
         ).map(({ id }) => id);
@@ -1106,9 +1107,11 @@ export const insightsRouter = router({
       }
 
       if (!eventTypeId)
-        (whereQuery.AND as Prisma.WorkflowInsightsWhereInput[]).push({ eventTypeId: { in: eventTypeIds } });
+        (whereQuery.AND as Prisma.CalIdWorkflowInsightsWhereInput[]).push({
+          eventTypeId: { in: eventTypeIds },
+        });
 
-      const workflowInsights = await ctx.insightsDb.workflowInsights.findMany({
+      const workflowInsights = await ctx.insightsDb.calIdWorkflowInsights.findMany({
         where: whereQuery,
       });
 
@@ -1138,9 +1141,9 @@ export const insightsRouter = router({
         { createdAt: { lte: endDate } },
         eventTypeId ? { eventTypeId } : null,
         type ? { type } : null,
-      ].filter(Boolean) as Prisma.WorkflowInsightsWhereInput[];
+      ].filter(Boolean) as Prisma.CalIdWorkflowInsightsWhereInput[];
 
-      const whereQuery: Prisma.WorkflowInsightsWhereInput = whereConditions.length
+      const whereQuery: Prisma.CalIdWorkflowInsightsWhereInput = whereConditions.length
         ? { AND: whereConditions }
         : { AND: [] };
 
@@ -1158,7 +1161,7 @@ export const insightsRouter = router({
       if (teamId) {
         const _eventTypeIds = (
           await ctx.insightsDb.eventType.findMany({
-            where: { teamId },
+            where: { calIdTeamId: teamId },
             select: { id: true },
           })
         ).map(({ id }) => id);
@@ -1166,7 +1169,9 @@ export const insightsRouter = router({
       }
 
       if (!eventTypeId && eventTypeIds.length > 0)
-        (whereQuery.AND as Prisma.WorkflowInsightsWhereInput[]).push({ eventTypeId: { in: eventTypeIds } });
+        (whereQuery.AND as Prisma.CalIdWorkflowInsightsWhereInput[]).push({
+          eventTypeId: { in: eventTypeIds },
+        });
 
       const timeView = getTimeView(input.startDate, input.endDate);
       const dateRanges = getDateRanges({
@@ -1178,7 +1183,7 @@ export const insightsRouter = router({
       });
 
       // Fetch aggregated counts
-      const countsByStatus = await WorkflowEventsInsights.countGroupedWorkflowByStatusForRanges(
+      const countsByStatus = await CalIdWorkflowEventsInsights.countGroupedWorkflowByStatusForRanges(
         whereQuery,
         dateRanges,
         timeZone

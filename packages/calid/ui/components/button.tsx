@@ -1,11 +1,6 @@
 import { Icon } from "@calid/features/ui/components/icon";
 import type { IconName } from "@calid/features/ui/components/icon/Icon";
-import {
-  Tooltip,
-  TooltipProvider,
-  TooltipContent,
-  TooltipTrigger,
-} from "@calid/features/ui/components/tooltip";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import type { LinkProps } from "next/link";
@@ -91,7 +86,7 @@ export const buttonClasses = cva(
 
         secondary: [
           // Base colors and border
-          "bg-white",
+          "bg-default",
           "text-default",
           // Hover state
           "enabled:hover:bg-muted",
@@ -384,19 +379,9 @@ const Wrapper = ({
   }
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>{children}</TooltipTrigger>
-
-        <TooltipContent
-          side={tooltipSide}
-          sideOffset={tooltipOffset}
-          className={tooltipClassName}
-          data-testid="tooltip">
-          {tooltip}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Tooltip content={tooltip} side={tooltipSide} sideOffset={tooltipOffset} className={tooltipClassName}>
+      {children}
+    </Tooltip>
   );
 };
 

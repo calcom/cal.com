@@ -25,7 +25,7 @@ async function optOutPhoneNumber(phoneNumber: string) {
     },
   });
   // Delete scheduled workflows
-  const scheduledReminders = await prisma.workflowReminder.findMany({
+  const scheduledReminders = await prisma.calIdWorkflowReminder.findMany({
     where: {
       method: WorkflowMethods.SMS,
       cancelled: null,
@@ -51,7 +51,7 @@ async function optOutPhoneNumber(phoneNumber: string) {
       return [];
     }
 
-    return prisma.workflowReminder.deleteMany({
+    return prisma.calIdWorkflowReminder.deleteMany({
       where: {
         id: {
           in: ids,

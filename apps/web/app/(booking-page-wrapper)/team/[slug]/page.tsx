@@ -9,8 +9,8 @@ import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomai
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 import { getCalIdServerSideProps } from "@lib/team/[slug]/getCalIdServerSideProps";
 
-import type { PageProps } from "~/team/team-view";
-import LegacyPage from "~/team/team-view";
+import type { PageProps } from "~/team/calid-team-public-view";
+import LegacyPage from "~/team/calid-team-public-view";
 
 export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
   const { team, isSEOIndexable, currentOrgDomain } = await getData(

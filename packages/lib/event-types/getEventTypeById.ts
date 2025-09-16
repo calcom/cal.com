@@ -61,8 +61,6 @@ export const getEventTypeById = async ({
     prisma,
   });
 
-  console.log("rawEventType", rawEventType);
-
   if (!rawEventType) {
     if (isTrpcCall) {
       throw new TRPCError({ code: "NOT_FOUND" });

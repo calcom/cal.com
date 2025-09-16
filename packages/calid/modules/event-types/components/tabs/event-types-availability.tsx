@@ -4,7 +4,7 @@ import { CustomSelect } from "@calid/features/ui/components/custom-select";
 import { Icon } from "@calid/features/ui/components/icon";
 import { Label } from "@calid/features/ui/components/label";
 import { Separator } from "@calid/features/ui/components/separator";
-import { Skeleton } from "@calid/features/ui/components/skeleton";
+import { SkeletonText } from "@calid/features/ui/components/skeleton";
 import { SettingsSwitch } from "@calid/features/ui/components/switch";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { UseQueryResult } from "@tanstack/react-query";
@@ -14,7 +14,6 @@ import { useFormContext, Controller } from "react-hook-form";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
-import { SelectSkeletonLoader } from "@calcom/features/availability/components/SkeletonLoader";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { TeamMembers } from "@calcom/features/eventtypes/components/EventType";
 import type {
@@ -30,6 +29,8 @@ import { weekStartNum } from "@calcom/lib/weekstart";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+
+import { AvailabilityTabSkeleton } from "../../pages/tab-skeleton";
 
 export type GetAllSchedulesByUserIdQueryType =
   | typeof trpc.viewer.availability.schedule.calid_getAllSchedulesByUserId.useQuery
@@ -63,13 +64,6 @@ interface ScheduleDay {
   schedules: { startTime: string; endTime: string }[];
 }
 
-// ============================================================================
-// UTILITY FUNCTIONS
-// ============================================================================
-
-/**
- * Formats time according to user preferences (12/24 hour format)
- */
 const formatTime = (date: Date, hour12: boolean): string =>
   Intl.DateTimeFormat(undefined, {
     hour: "numeric",
@@ -77,9 +71,6 @@ const formatTime = (date: Date, hour12: boolean): string =>
     hourCycle: hour12 ? "h12" : "h24",
   }).format(new Date(dayjs.utc(date).format("YYYY-MM-DDTHH:mm:ss")));
 
-/**
- * Creates weekly schedule structure with availability and time slots
- */
 const createWeeklySchedule = (
   scheduleData: ScheduleQueryData,
   timeFormat: number | undefined,
@@ -382,7 +373,15 @@ const ScheduleDisplay = memo(
     }, [editAvailabilityRedirectUrl]);
 
     if (isSchedulePending) {
-      return <Skeleton className="h-5 w-60" />;
+      return (
+        <div className="space-y-4">
+          <SkeletonText className="h-6 w-40" />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <SkeletonText className="h-10 w-full" />
+            <SkeletonText className="h-10 w-full" />
+          </div>
+        </div>
+      );
     }
 
     return (
@@ -430,7 +429,7 @@ const ScheduleDisplay = memo(
                   isRestrictionSchedule && currentUseBookerTimezone ? "text-muted" : ""
                 }`}
               />
-              {scheduleQueryData?.timeZone || <Skeleton className="h-5 w-32" />}
+              {scheduleQueryData?.timeZone || <SkeletonText className="h-5 w-32" />}
             </span>
 
             {/* Booker Timezone Checkbox for Restriction Schedules */}
@@ -497,32 +496,37 @@ const ScheduleSelector = memo(
         </label>
         <Controller
           name={fieldName}
-          render={({ field: { onChange, value } }) => (
-            <div className="w-full md:w-1/5">
-              <CustomSelect
-                value={value?.toString() || ""}
-                onValueChange={(selectedValue) => {
-                  onChange(selectedValue ? parseInt(selectedValue) : null);
-                  if (fieldName === "restrictionScheduleId" && selectedValue) {
-                    formMethods.setValue("restrictionScheduleId", parseInt(selectedValue), {
-                      shouldDirty: true,
-                    });
-                  }
-                }}
-                options={options.map((opt) => ({
-                  value: opt.value.toString(),
-                  label: opt.isDefault
-                    ? `${opt.label} (${t("default")})`
-                    : opt.isManaged
-                    ? `${opt.label} (${t("managed")})`
-                    : opt.label,
-                }))}
-                placeholder={t("select")}
-                disabled={shouldLockDisableProps(fieldName).disabled}
-                className="bg-default"
-              />
-            </div>
-          )}
+          render={({ field: { onChange, value } }) => {
+            // Extract the ID from the value if it's an object, otherwise use the value as is
+            const scheduleId = typeof value === "object" && value !== null ? value.id : value;
+
+            return (
+              <div className="w-full md:w-1/5">
+                <CustomSelect
+                  value={scheduleId?.toString() || ""}
+                  onValueChange={(selectedValue) => {
+                    onChange(selectedValue ? parseInt(selectedValue) : null);
+                    if (fieldName === "restrictionScheduleId" && selectedValue) {
+                      formMethods.setValue("restrictionScheduleId", parseInt(selectedValue), {
+                        shouldDirty: true,
+                      });
+                    }
+                  }}
+                  options={options.map((opt) => ({
+                    value: opt.value.toString(),
+                    label: opt.isDefault
+                      ? `${opt.label} (${t("default")})`
+                      : opt.isManaged
+                      ? `${opt.label} (${t("managed")})`
+                      : opt.label,
+                  }))}
+                  placeholder={t("select")}
+                  disabled={shouldLockDisableProps(fieldName).disabled}
+                  className="bg-default"
+                />
+              </div>
+            );
+          }}
         />
       </div>
     );
@@ -736,9 +740,13 @@ export const EventAvailability = (props: EventAvailabilityProps) => {
   const isPlatform = useIsPlatform();
 
   // Watch form values for reactive updates
-  const scheduleId = formMethods.watch("schedule");
+  const scheduleValue = formMethods.watch("schedule");
   const restrictionScheduleId = formMethods.watch("restrictionScheduleId");
   const hosts = formMethods.watch("hosts");
+
+  // Extract the ID from the schedule value if it's an object, otherwise use the value as is
+  const scheduleId =
+    typeof scheduleValue === "object" && scheduleValue !== null ? scheduleValue.id : scheduleValue;
 
   // Get locked fields manager for form field permissions
   const { isManagedEventType, isChildrenManagedEventType, shouldLockDisableProps, shouldLockIndicator } =
@@ -859,18 +867,11 @@ export const EventAvailability = (props: EventAvailabilityProps) => {
     formMethods
   );
 
-  // ============================================================================
-  // RENDER CONDITIONS
-  // ============================================================================
-
   // Show loading state while schedules are being fetched
   if (isSchedulesPending) {
-    return <SelectSkeletonLoader />;
+    return <AvailabilityTabSkeleton />;
   }
 
-  // ============================================================================
-  // TEAM EVENT RENDER (Non-managed scheduling type)
-  // ============================================================================
   if (isTeamEvent && eventType.schedulingType !== SchedulingType.MANAGED) {
     return (
       <Card>

@@ -1,5 +1,4 @@
 import type { User as UserType } from "@prisma/client";
-import type { PeriodType, SchedulingType, CaptchaType } from "@calcom/prisma/enums";
 import type { Prisma } from "@prisma/client";
 
 import type { LocationObject } from "@calcom/app-store/locations";
@@ -8,7 +7,7 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { getDefaultAvatar } from "@calid/features/lib/defaultAvatar";
+import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
@@ -49,8 +48,6 @@ const userSelect = {
     },
   },
   defaultScheduleId: true,
-  bannerUrl: true,
-  faviconUrl: true,
 } satisfies Prisma.UserSelect;
 
 export const getPublicEventSelect = (fetchAllUsers: boolean) => {
@@ -91,7 +88,6 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
     allowReschedulingCancelledBookings: true,
     seatsShowAvailabilityCount: true,
     bookingFields: true,
-    captchaType: true,
     teamId: true,
     team: {
       select: {
@@ -118,6 +114,15 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
     successRedirectUrl: true,
     forwardParamsSuccessRedirect: true,
     workflows: {
+      include: {
+        workflow: {
+          include: {
+            steps: true,
+          },
+        },
+      },
+    },
+    calIdWorkflows: {
       include: {
         workflow: {
           include: {
@@ -884,7 +889,7 @@ export function getProfileFromEvent(event: GetProfileFromEventInput) {
     name: profile.name,
     weekStart,
     image: team
-      ? getDefaultAvatar(team)
+      ? getOrgOrTeamAvatar(team)
       : getUserAvatarUrl({
           avatarUrl: nonTeamprofile?.avatarUrl,
         }),

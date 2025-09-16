@@ -9,6 +9,7 @@ import { ZCalIdDeleteInputSchema } from "./calid/delete.schema";
 import { ZCalIdGetInputSchema } from "./calid/get.schema";
 import { ZCalIdEventTypeInputSchema, ZCalIdGetEventTypesFromGroupSchema } from "./calid/getByViewer.schema";
 import { ZCalIdUpdateInputSchema } from "./calid/update.schema";
+import { eventOwnerProcedure as calIdEventOwnerProcedure } from "./calid/util";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZDuplicateInputSchema } from "./duplicate.schema";
@@ -19,7 +20,6 @@ import { ZGetTeamAndEventTypeOptionsSchema } from "./getTeamAndEventTypeOptions.
 import { get } from "./procedures/get";
 import { ZUpdateInputSchema } from "./update.schema";
 import { eventOwnerProcedure } from "./util";
-import { eventOwnerProcedure as calIdEventOwnerProcedure } from "./calid/util";
 
 type BookingsRouterHandlerCache = {
   getByViewer?: typeof import("./getByViewer.handler").getByViewerHandler;

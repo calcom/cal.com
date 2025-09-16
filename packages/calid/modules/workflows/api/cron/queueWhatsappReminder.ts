@@ -6,11 +6,11 @@ import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
 
 import * as twilio from "../../providers/twilio";
-import type { PartialWorkflowReminder } from "../../utils/getWorkflows";
+import type { PartialCalIdWorkflowReminder } from "../../utils/getWorkflows";
 import { select } from "../../utils/getWorkflows";
 
 const removeExpiredNotifications = async (): Promise<void> => {
-  await prisma.workflowReminder.deleteMany({
+  await prisma.calIdWorkflowReminder.deleteMany({
     where: {
       method: WorkflowMethods.WHATSAPP,
       scheduledDate: {
@@ -23,7 +23,7 @@ const removeExpiredNotifications = async (): Promise<void> => {
 };
 
 const fetchPendingMessages = async () => {
-  return prisma.workflowReminder.findMany({
+  return prisma.calIdWorkflowReminder.findMany({
     where: {
       method: WorkflowMethods.WHATSAPP,
       scheduled: false,
@@ -37,14 +37,14 @@ const fetchPendingMessages = async () => {
 };
 
 const processMessageQueue = async (): Promise<number> => {
-  const pendingMessages = (await fetchPendingMessages()) as PartialWorkflowReminder[];
+  const pendingMessages = (await fetchPendingMessages()) as PartialCalIdWorkflowReminder[];
 
   for (const message of pendingMessages) {
     if (!message.workflowStep || !message.booking) {
       continue;
     }
     const workflowUserId = message.workflowStep.workflow.userId;
-    const workflowTeamId = message.workflowStep.workflow.teamId;
+    const workflowTeamId = message.workflowStep.workflow.calIdTeamId;
 
     try {
       const recipientNumber =
@@ -99,7 +99,7 @@ const processMessageQueue = async (): Promise<number> => {
         );
 
         if (dispatchedMessage) {
-          await prisma.workflowReminder.update({
+          await prisma.calIdWorkflowReminder.update({
             where: {
               id: message.id,
             },
@@ -119,7 +119,7 @@ const processMessageQueue = async (): Promise<number> => {
 };
 
 const executeCancellationProcess = async (): Promise<void> => {
-  const messagesToCancel = await prisma.workflowReminder.findMany({
+  const messagesToCancel = await prisma.calIdWorkflowReminder.findMany({
     where: {
       method: WorkflowMethods.WHATSAPP,
       scheduled: true,
@@ -135,7 +135,7 @@ const executeCancellationProcess = async (): Promise<void> => {
     if (messageToCancel.referenceId) {
       const twilioRequest = twilio.cancelSMS(messageToCancel.referenceId);
 
-      const databaseUpdate = prisma.workflowReminder
+      const databaseUpdate = prisma.calIdWorkflowReminder
         .update({
           where: {
             id: messageToCancel.id,

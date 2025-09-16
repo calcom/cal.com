@@ -49,7 +49,7 @@ function Type({
           eventData={eventData}
           entity={{ ...eventData.entity, eventTypeId: eventData?.id }}
           durationConfig={eventData.metadata?.multipleDuration}
-          orgBannerUrl={orgBannerUrl || userBannerUrl}
+          orgBannerUrl={orgBannerUrl || null}
           eventTypes={eventTypes}
           /* TODO: Currently unused, evaluate it is needed-
            *       Possible alternative approach is to have onDurationChange.

@@ -4,19 +4,16 @@ import { z } from "zod";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
+import { processEventDataShared } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
-import logger from "@calcom/lib/logger";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
 import { BookingStatus, RedirectType } from "@calcom/prisma/client";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
-
-const log = logger.getSubLogger({ prefix: ["team/[slug]/[type]"] });
 
 const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),
@@ -47,37 +44,7 @@ export const getCalIdServerSideProps = async (context: GetServerSidePropsContext
       return redirect;
     }
 
-    const allCalIdTeams = await prisma.calIdTeam.findMany({
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        _count: {
-          select: {
-            eventTypes: true,
-          },
-        },
-      },
-      take: 10,
-    });
-
     const calIdTeam = await getCalIdTeamWithEventsData(teamSlug, meetingSlug);
-
-    if (calIdTeam && (!calIdTeam.eventTypes || calIdTeam.eventTypes.length === 0)) {
-      const allEventTypes = await prisma.eventType.findMany({
-        where: {
-          calIdTeam: {
-            slug: teamSlug,
-          },
-        },
-        select: {
-          id: true,
-          title: true,
-          slug: true,
-          hidden: true,
-        },
-      });
-    }
 
     if (!calIdTeam || !calIdTeam.eventTypes?.[0]) {
       return { notFound: true } as const;
@@ -161,40 +128,115 @@ export const getCalIdServerSideProps = async (context: GetServerSidePropsContext
     );
     const useApiV2 = teamHasApiV2Route && hasApiV2RouteInEnv();
 
+    // Create a proper eventData object that matches getPublicEventSelect structure
+    const eventDataForProcessing = {
+      id: eventTypeId,
+      title: eventData.title,
+      description: eventData.description,
+      interfaceLanguage: eventData.interfaceLanguage,
+      eventName: eventData.title,
+      slug: meetingSlug,
+      isInstantEvent: eventData.isInstantEvent || false,
+      instantMeetingParameters: eventData.instantMeetingParameters,
+      aiPhoneCallConfig: null,
+      schedulingType: eventData.schedulingType,
+      length: eventData.length,
+      locations: [],
+      customInputs: [],
+      disableGuests: eventData.disableGuests,
+      metadata: eventData.metadata,
+      lockTimeZoneToggleOnBookingPage: eventData.lockTimeZoneToggleOnBookingPage,
+      lockedTimeZone: eventData.lockedTimeZone,
+      requiresConfirmation: eventData.requiresConfirmation,
+      autoTranslateDescriptionEnabled: eventData.autoTranslateDescriptionEnabled,
+      fieldTranslations: [],
+      requiresBookerEmailVerification: eventData.requiresBookerEmailVerification,
+      recurringEvent: eventData.recurringEvent,
+      price: eventData.price,
+      currency: eventData.currency,
+      seatsPerTimeSlot: eventData.seatsPerTimeSlot,
+      disableCancelling: eventData.disableCancelling || false,
+      disableRescheduling: eventData.disableRescheduling || false,
+      allowReschedulingCancelledBookings: eventData.allowReschedulingCancelledBookings || false,
+      seatsShowAvailabilityCount: eventData.seatsShowAvailabilityCount,
+      bookingFields: eventData.bookingFields,
+      teamId: eventData.teamId,
+      team: eventData.team,
+      successRedirectUrl: eventData.successRedirectUrl,
+      forwardParamsSuccessRedirect: eventData.forwardParamsSuccessRedirect,
+      workflows: eventData.calIdWorkflows,
+      hosts: eventHostsUserData.map((user) => ({
+        user: {
+          id: user.id,
+          avatarUrl: user.avatarUrl,
+          username: user.username,
+          name: user.name,
+          weekStart: user.weekStart,
+          brandColor: user.brandColor,
+          darkBrandColor: user.darkBrandColor,
+          theme: user.theme,
+          metadata: user.metadata,
+          organization: user.organization,
+          defaultScheduleId: user.defaultScheduleId,
+        },
+      })),
+      owner: eventHostsUserData[0],
+      schedule: {
+        id: eventHostsUserData[0].defaultScheduleId,
+        timeZone: "UTC",
+      },
+      instantMeetingSchedule: null,
+      periodType: "UNLIMITED" as const,
+      periodDays: eventData.periodDays,
+      periodEndDate: eventData.periodEndDate,
+      periodStartDate: eventData.periodStartDate,
+      periodCountCalendarDays: eventData.periodCountCalendarDays,
+      hidden: eventData.hidden,
+      assignAllTeamMembers: eventData.assignAllTeamMembers,
+      rescheduleWithSameRoundRobinHost: eventData.rescheduleWithSameRoundRobinHost,
+    };
+
+    // Process the eventData using the same function as getPublicEvent
+    const processedEventData = await processEventDataShared({
+      eventData: eventDataForProcessing as any,
+      metadata: eventData.metadata as any,
+      prisma,
+    });
+
     const props = {
       useApiV2,
       eventData: {
-        eventTypeId,
+        ...processedEventData,
+        // Add missing properties that are expected by Booker component
+        eventTypeId: eventTypeId,
+        aiPhoneCallConfig: null,
+        assignAllTeamMembers: false,
+        disableCancelling: eventData.disableCancelling || false,
+        disableRescheduling: eventData.disableRescheduling || false,
+        allowReschedulingCancelledBookings: eventData.allowReschedulingCancelledBookings || false,
         entity: {
           fromRedirectOfNonOrgLink,
           considerUnpublished: isUnpublished && !fromRedirectOfNonOrgLink,
           orgSlug: null, // CalIdTeams don't have org context
           teamSlug: calIdTeam.slug ?? null,
           name: calIdTeam.name,
+          hideProfileLink: false,
         },
-        length: eventData.length,
-        metadata: EventTypeMetaDataSchema.parse(eventData.metadata),
         profile: {
           image: getPlaceholderAvatar(calIdTeam.logoUrl, calIdTeam.name),
           name: calIdTeam.name,
           username: null, // CalIdTeams don't have username context
+          weekStart: "Sunday",
+          brandColor: null,
+          darkBrandColor: null,
+          theme: null,
+          bookerLayouts: null,
         },
-        title: eventData.title,
         users: eventHostsUserData,
         subsetOfUsers: eventHostsUserData,
-        hidden: eventData.hidden,
-        interfaceLanguage: eventData.interfaceLanguage,
-        schedulingType: eventData.schedulingType,
-        length: eventData.length,
-        description: null, // CalIdTeams don't have descriptions in this context
-        locations: [],
-        currency: null,
-        requiresConfirmation: false,
-        recurringEvent: null,
-        price: 0,
-        isDynamic: false,
-        fieldTranslations: [],
-        autoTranslateDescriptionEnabled: false,
+        subsetOfHosts: [],
+        hosts: [],
+        owner: null,
       },
       booking,
       user: teamSlug,
@@ -247,6 +289,7 @@ const getCalIdTeamWithEventsData = async (teamSlug: string, meetingSlug: string)
           select: {
             id: true,
             title: true,
+            description: true,
             isInstantEvent: true,
             schedulingType: true,
             metadata: true,
@@ -256,6 +299,24 @@ const getCalIdTeamWithEventsData = async (teamSlug: string, meetingSlug: string)
             disableRescheduling: true,
             allowReschedulingCancelledBookings: true,
             interfaceLanguage: true,
+            instantMeetingParameters: true,
+            disableGuests: true,
+            lockTimeZoneToggleOnBookingPage: true,
+            lockedTimeZone: true,
+            requiresConfirmation: true,
+            autoTranslateDescriptionEnabled: true,
+            requiresBookerEmailVerification: true,
+            recurringEvent: true,
+            price: true,
+            currency: true,
+            seatsPerTimeSlot: true,
+            seatsShowAvailabilityCount: true,
+            bookingFields: true,
+            teamId: true,
+            team: true,
+            successRedirectUrl: true,
+            forwardParamsSuccessRedirect: true,
+            calIdWorkflows: true,
             hosts: {
               take: 3,
               select: {
@@ -264,6 +325,14 @@ const getCalIdTeamWithEventsData = async (teamSlug: string, meetingSlug: string)
                     name: true,
                     username: true,
                     email: true,
+                    avatarUrl: true,
+                    weekStart: true,
+                    brandColor: true,
+                    darkBrandColor: true,
+                    theme: true,
+                    metadata: true,
+                    organization: true,
+                    defaultScheduleId: true,
                   },
                 },
               },
@@ -301,6 +370,14 @@ const getUsersData = async (
           select: {
             username: true,
             name: true,
+            avatarUrl: true,
+            weekStart: true,
+            brandColor: true,
+            darkBrandColor: true,
+            theme: true,
+            metadata: true,
+            organization: true,
+            defaultScheduleId: true,
           },
         },
       },

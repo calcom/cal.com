@@ -6,7 +6,7 @@ import * as React from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Button } from "./button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip";
+import { Tooltip } from "./tooltip";
 
 const badgeVariants = cva(
   "inline-flex items-center rounded-md text-[12px] font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
@@ -108,47 +108,28 @@ export const Badge = function Badge(props: BadgeProps) {
       {children}
       {isPublicUrl && (
         <div className="ml-1 flex items-center">
-          <TooltipProvider>
-            <Tooltip
-              open={isCopied ? true : undefined}
-              onOpenChange={(open) => {
-                if (!isCopied) {
-                  return;
-                }
-                if (!open) {
-                  setIsCopied(false);
-                }
-              }}>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="icon"
-                  StartIcon="copy"
-                  color="minimal"
-                  className="border-none"
-                  size="xs"
-                  onClick={handleCopyUrl}
-                  data-testid="copy-url-button"
-                />
-              </TooltipTrigger>
-              <TooltipContent>{isCopied ? t("copied") : t("copy")}</TooltipContent>{" "}
-            </Tooltip>
-          </TooltipProvider>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="icon"
-                  StartIcon="external-link"
-                  color="minimal"
-                  className="border-none"
-                  size="xs"
-                  onClick={handleRedirectUrl}
-                  data-testid="redirect-url-button"
-                />
-              </TooltipTrigger>
-              <TooltipContent>{t("preview")}</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Tooltip content={isCopied ? t("copied") : t("copy")}>
+            <Button
+              variant="icon"
+              StartIcon="copy"
+              color="minimal"
+              className="border-none"
+              size="xs"
+              onClick={handleCopyUrl}
+              data-testid="copy-url-button"
+            />
+          </Tooltip>
+          <Tooltip content={t("preview")}>
+            <Button
+              variant="icon"
+              StartIcon="external-link"
+              color="minimal"
+              className="border-none"
+              size="xs"
+              onClick={handleRedirectUrl}
+              data-testid="redirect-url-button"
+            />
+          </Tooltip>
         </div>
       )}
     </>
