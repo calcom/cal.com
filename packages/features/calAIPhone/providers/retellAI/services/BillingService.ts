@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import { getPhoneNumberMonthlyPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { CHECKOUT_SESSION_TYPES } from "@calcom/features/ee/billing/constants";
@@ -9,6 +11,15 @@ import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
 import type { PhoneNumberRepositoryInterface } from "../../interfaces/PhoneNumberRepositoryInterface";
 import type { RetellAIRepository } from "../types";
+
+const stripeResourceMissingErrorSchema = z.object({
+  type: z.literal("invalid_request_error"),
+  code: z.literal("resource_missing"),
+  message: z.string(),
+  param: z.string().optional(),
+  doc_url: z.string().optional(),
+  request_log_url: z.string().optional(),
+});
 
 export class BillingService {
   private logger = logger.getSubLogger({ prefix: ["BillingService"] });
@@ -129,7 +140,20 @@ export class BillingService {
     }
 
     try {
-      await stripe.subscriptions.cancel(phoneNumber.stripeSubscriptionId);
+      try {
+        await stripe.subscriptions.cancel(phoneNumber.stripeSubscriptionId);
+      } catch (error) {
+        const parsedError = stripeResourceMissingErrorSchema.safeParse(error);
+        if (parsedError.success) {
+          this.logger.info("Subscription not found in Stripe (already cancelled or deleted):", {
+            subscriptionId: phoneNumber.stripeSubscriptionId,
+            phoneNumberId,
+            stripeMessage: parsedError.data.message,
+          });
+        } else {
+          throw error;
+        }
+      }
 
       await this.phoneNumberRepository.updateSubscriptionStatus({
         id: phoneNumberId,
