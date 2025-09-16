@@ -5,10 +5,6 @@ import { test } from "./lib/fixtures";
 test.describe.configure({ mode: "parallel" });
 
 test.describe("Admin Users Management", () => {
-  test.afterEach(async ({ users }) => {
-    await users?.deleteAll();
-  });
-
   test("should add a new user successfully", async ({ page, users }) => {
     const adminUser = await users.create({
       role: "ADMIN",
