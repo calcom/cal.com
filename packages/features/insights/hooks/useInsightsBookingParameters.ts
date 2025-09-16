@@ -5,8 +5,8 @@ import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { useInsightsOrgTeams } from "./useInsightsOrgTeams";
 
 export function useInsightsBookingParameters() {
-  const { timeZone } = useDataTable();
   const { scope, selectedTeamId } = useInsightsOrgTeams();
+  const { timeZone } = useDataTable();
   const columnFilters = useColumnFilters();
 
   return {

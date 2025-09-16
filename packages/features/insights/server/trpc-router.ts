@@ -4,6 +4,10 @@ import dayjs from "@calcom/dayjs";
 import { ColumnFilterType, type ColumnFilter } from "@calcom/features/data-table/lib/types";
 import { isDateRangeFilterValue } from "@calcom/features/data-table/lib/utils";
 import {
+  extractDateRangeFromColumnFilters,
+  replaceDateRangeColumnFilter,
+} from "@calcom/features/insights/lib/bookingUtils";
+import {
   insightsRoutingServiceInputSchema,
   insightsRoutingServicePaginatedInputSchema,
   routingRepositoryBaseInputSchema,
@@ -13,7 +17,6 @@ import {
 } from "@calcom/features/insights/server/raw-data.schema";
 import { getInsightsBookingService } from "@calcom/lib/di/containers/InsightsBooking";
 import { getInsightsRoutingService } from "@calcom/lib/di/containers/InsightsRouting";
-import { extractDateRangeFromColumnFilters } from "@calcom/lib/server/service/InsightsBookingBaseService";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
@@ -362,26 +365,12 @@ export const insightsRouter = router({
 
       // Calculate previous period dates and create service for previous period
       const previousPeriodDates = currentPeriodService.calculatePreviousPeriodDates();
-      const previousPeriodColumnFilters = input.columnFilters?.map((filter) => {
-        if (
-          (filter.id === "startTime" || filter.id === "createdAt") &&
-          isDateRangeFilterValue(filter.value)
-        ) {
-          return {
-            id: filter.id,
-            value: {
-              type: ColumnFilterType.DATE_RANGE,
-              data: {
-                startDate: previousPeriodDates.startDate,
-                endDate: previousPeriodDates.endDate,
-                preset: filter.value.data.preset,
-              },
-            },
-          } satisfies ColumnFilter;
-        } else {
-          return filter;
-        }
+      const previousPeriodColumnFilters = replaceDateRangeColumnFilter({
+        columnFilters: input.columnFilters,
+        newStartDate: previousPeriodDates.startDate,
+        newEndDate: previousPeriodDates.endDate,
       });
+
       const previousPeriodService = createInsightsBookingService(ctx, {
         ...input,
         columnFilters: previousPeriodColumnFilters,

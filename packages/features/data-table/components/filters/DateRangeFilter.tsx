@@ -52,7 +52,6 @@ export const DateRangeFilter = ({
   const filterValue = useFilterValue(column.id, ZDateRangeFilterValue);
   const { updateFilter, removeFilter, timeZone: givenTimeZone } = useDataTable();
   const range = options?.range ?? "past";
-  const endOfDay = options?.endOfDay ?? false;
   const forceCustom = range === "custom";
   const forcePast = range === "past";
 
@@ -102,7 +101,7 @@ export const DateRangeFilter = ({
         });
       }
     },
-    [column.id, endOfDay, updateFilter, convertTimestamp]
+    [column.id, updateFilter, convertTimestamp]
   );
 
   useEffect(() => {
@@ -141,6 +140,8 @@ export const DateRangeFilter = ({
     startDate?: Date | undefined;
     endDate?: Date | undefined;
   }) => {
+    // DateRangePicker returns the beginning of the day,
+    // so we need to update `endDate` to the end of the day.
     updateValues({
       preset: CUSTOM_PRESET,
       startDate: startDate ? dayjs(startDate) : getDefaultStartDate(),

@@ -4,7 +4,7 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { makeSqlCondition } from "@calcom/features/data-table/lib/server";
 import { ZColumnFilter } from "@calcom/features/data-table/lib/types";
-import type { ColumnFilterType } from "@calcom/features/data-table/lib/types";
+import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { type ColumnFilter } from "@calcom/features/data-table/lib/types";
 import {
   isSingleSelectFilterValue,
@@ -13,6 +13,10 @@ import {
   isNumberFilterValue,
   isDateRangeFilterValue,
 } from "@calcom/features/data-table/lib/utils";
+import {
+  extractDateRangeFromColumnFilters,
+  replaceDateRangeColumnFilter,
+} from "@calcom/features/insights/lib/bookingUtils";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
@@ -1236,25 +1240,4 @@ export class InsightsBookingBaseService {
         (membership.role === MembershipRole.OWNER || membership.role === MembershipRole.ADMIN)
     );
   }
-}
-
-export function extractDateRangeFromColumnFilters(columnFilters?: ColumnFilter[]) {
-  if (!columnFilters) throw new Error("No date range filter found");
-
-  for (const filter of columnFilters) {
-    if ((filter.id === "startTime" || filter.id === "createdAt") && isDateRangeFilterValue(filter.value)) {
-      const dateFilter = filter.value as Extract<
-        ColumnFilter["value"],
-        { type: ColumnFilterType.DATE_RANGE }
-      >;
-      if (dateFilter.data.startDate && dateFilter.data.endDate) {
-        return {
-          startDate: dateFilter.data.startDate,
-          endDate: dateFilter.data.endDate,
-        };
-      }
-    }
-  }
-
-  throw new Error("No date range filter found");
 }
