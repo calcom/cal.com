@@ -22,6 +22,7 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { scheduleAIPhoneCall } from "./aiPhoneCallManager";
 import { scheduleEmailReminder } from "./emailReminderManager";
+import type { BookingInfo } from "./smsReminderManager";
 import { scheduleSMSReminder, type ScheduleTextReminderAction } from "./smsReminderManager";
 import { scheduleWhatsappReminder } from "./whatsappReminderManager";
 
@@ -79,6 +80,15 @@ const processWorkflowStep = async (
   if (!step?.verifiedAt) return;
 
   const evt = calendarEvent ? formatCalEventExtended(calendarEvent) : undefined;
+
+  if (!evt && !formData) return;
+
+  const contextData:
+    | { evt: BookingInfo; formData?: never }
+    | {
+        evt?: never;
+        formData: FormSubmissionData;
+      } = evt ? { evt } : { formData: formData as FormSubmissionData };
 
   if (isSMSOrWhatsappAction(step.action)) {
     await checkSMSRateLimit({
@@ -188,7 +198,7 @@ const processWorkflowStep = async (
       sender: step.sender || SENDER_NAME,
       hideBranding,
       includeCalendarEvent: step.includeCalendarEvent,
-      ...(evt ? { evt } : { formData }),
+      ...contextData,
       verifiedAt: step.verifiedAt,
     } as const;
 
