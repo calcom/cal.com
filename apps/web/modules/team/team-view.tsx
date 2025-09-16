@@ -46,7 +46,7 @@ function getIconParamsFromMetadata(metadata: any): IconParams {
 
 export type PageProps = inferSSRProps<typeof getCalIdServerSideProps>;
 function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
-  useTheme(team.theme);
+  useTheme(team.theme, false, false);
   const routerQuery = useRouterQuery();
   const pathname = usePathname();
   const showMembers = useToggleQuery("members");
