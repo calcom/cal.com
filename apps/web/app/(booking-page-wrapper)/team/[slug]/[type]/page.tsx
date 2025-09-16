@@ -1,33 +1,19 @@
 import { CustomI18nProvider } from "app/CustomI18nProvider";
 import { withAppDirSsr } from "app/WithAppDirSsr";
-import type { PageProps as ServerPageProps, SearchParams } from "app/_types";
+import type { PageProps as ServerPageProps } from "app/_types";
 import { generateMeetingMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { loadTranslations } from "@calcom/lib/server/i18n";
 
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 import { getCalIdServerSideProps } from "@lib/team/[slug]/[type]/getCalIdServerSideProps";
 
-import LegacyPage from "~/team/type-view";
-import type { PageProps as LegacyPageProps } from "~/team/type-view";
-
-import CachedTeamBooker, { generateMetadata as generateCachedMetadata } from "./pageWithCachedData";
-
-async function isCachedTeamBookingEnabled(searchParams: SearchParams): Promise<boolean> {
-  const featuresRepository = new FeaturesRepository();
-  const isGloballyEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally(
-    "team-booking-page-cache"
-  );
-  return isGloballyEnabled && searchParams.experimentalTeamBookingPageCache === "true";
-}
+import LegacyPage from "~/team/calid-team-type-public-view";
+import type { PageProps as LegacyPageProps } from "~/team/calid-team-type-public-view";
 
 export const generateMetadata = async ({ params, searchParams }: ServerPageProps) => {
-  if (await isCachedTeamBookingEnabled(await searchParams)) {
-    return await generateCachedMetadata({ params, searchParams });
-  }
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const props = await getData(legacyCtx);
   const { booking, isSEOIndexable, eventData, isBrandingHidden } = props;
@@ -69,10 +55,6 @@ const getData = withAppDirSsr<LegacyPageProps>((context) => {
 });
 
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
-  if (await isCachedTeamBookingEnabled(await searchParams)) {
-    return await CachedTeamBooker({ params, searchParams });
-  }
-
   const props = await getData(
     buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
   );

@@ -21,7 +21,6 @@ const _generateMetadataWithoutImage = async (
   getTitle: (t: TFunction<string, undefined>) => string,
   getDescription: (t: TFunction<string, undefined>) => string,
   hideBranding?: boolean,
-    bannerUrl?: string,
   origin?: string,
   pathname?: string
 ) => {

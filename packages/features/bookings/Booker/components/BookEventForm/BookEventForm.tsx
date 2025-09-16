@@ -1,3 +1,5 @@
+import { Button } from "@calid/features/ui/components/button";
+import { BlankCard } from "@calid/features/ui/components/card";
 import type { TFunction } from "i18next";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -12,8 +14,6 @@ import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import { Alert } from "@calcom/ui/components/alert";
-import { Button } from "@calcom/ui/components/button";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Form } from "@calcom/ui/components/form";
 
 import { useBookerStore } from "../../store";
@@ -92,10 +92,10 @@ export const BookEventForm = ({
   if (eventQuery.isPending || !eventQuery.data) return <FormSkeleton />;
   if (!timeslot)
     return (
-      <EmptyScreen
+      <BlankCard
+        Icon="calendar"
         headline={t("timeslot_missing_title")}
         description={t("timeslot_missing_description")}
-        Icon="calendar"
         buttonText={t("timeslot_missing_cta")}
         buttonOnClick={onCancel}
       />
