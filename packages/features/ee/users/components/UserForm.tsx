@@ -85,7 +85,7 @@ export const UserForm = ({
       bio: defaultValues?.bio,
       theme: defaultValues?.theme || null,
       defaultScheduleId: defaultValues?.defaultScheduleId || null,
-      allowDynamicBooking: defaultValues?.allowDynamicBooking || true,
+      allowDynamicBooking: defaultValues?.allowDynamicBooking ?? true,
       locale: {
         value: defaultLocale,
         label: new Intl.DisplayNames(defaultLocale, { type: "language" }).of(defaultLocale) || "",
