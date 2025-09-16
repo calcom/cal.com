@@ -183,184 +183,73 @@ jobs:
             echo "HOMEPAGE_URL=${{ secrets.HOMEPAGE_URL_STAG }}" >> $GITHUB_OUTPUT
           fi
 
-      # # BUILDING AND PUSHING DOCKER IMAGE USING AWS ECR
-      # - name: Set up Docker Buildx
-      #   id: setup_docker
-      #   uses: docker/setup-buildx-action@v3
-
-      # - name: Configure AWS Credentials
-      #   if: ${{ steps.setup_docker.outcome == 'success' }}
-      #   uses: aws-actions/configure-aws-credentials@v1
-      #   id: configure-aws
-      #   continue-on-error: true
-      #   with:
-      #     aws-region: ${{ secrets.AWS_REGION }}
-      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-      # - name: Check AWS Configure status
-      #   shell: bash
-      #   run: |
-      #     if [ "${{ steps.configure-aws.outcome }}" != "success" ]; then
-      #       echo "[ERROR]: ❌ AWS Configure failed" >> "$LOG_FILE"
-      #     else
-      #       echo "[INFO]: ✅ AWS Configure successful" >> "$LOG_FILE"
-      #     fi
-
-      # - name: Login to Amazon ECR
-      #   if: ${{ steps.configure-aws.outcome == 'success' }}
-      #   id: login-ecr
-      #   uses: aws-actions/amazon-ecr-login@v1
-      #   continue-on-error: true
-
-      # - name: Check ECR login status
-      #   shell: bash
-      #   if: ${{ steps.configure-aws.outcome == 'success' }}
-      #   run: |
-      #     if [ "${{ steps.login-ecr.outcome }}" != "success" ]; then
-      #       echo "[ERROR]: ❌ ECR login failed" >> "$LOG_FILE"
-      #     else
-      #       echo "[INFO]: ✅ ECR login successful" >> "$LOG_FILE"
-      #       echo "passed=success" >> $GITHUB_OUTPUT
-      #     fi
-      
-      # # Checking if the image already exists in ECR
-      # - name: Check if image already exists in ECR
-      #   if: ${{ steps.login-ecr.outcome == 'success' &&  github.event.inputs.rebuild != 'true' }}
-      #   id: check-ecr-image
-      #   uses: mnmandahalf/check-ecr-image-exists@v0.1.5
-      #   with:
-      #     region: ${{ secrets.AWS_REGION }}
-      #     repository-name: ${{ steps.key_values.outputs.REPO_NAME }}
-      #     image-tag: ${{ steps.hash.outputs.GIT_HASH }}
-      #     access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-      # # Log image does not exist, hence rollback step
-      # - name: Log ECR image existence status
-      #   if: ${{github.event.inputs.rebuild != 'true' }}
-      #   shell: bash
-      #   run: |
-      #     if [ "${{ steps.check-ecr-image.outputs.image-exists }}" == "1" ]; then
-      #       echo "[INFO]: ✅ ECR image already exists" >> "$LOG_FILE"
-      #     else
-      #       echo "[INFO]: ❌ ECR image does not exist, proceeding to build and push" >> "$LOG_FILE"
-      #     fi
-
-      # # If the image does not exist, build and push the Docker image OR if rebuild is true
-      # - name: Build and Push Docker image
-      #   if: ${{ steps.check-ecr-image.outputs.image-exists == '0' || github.event.inputs.rebuild == 'true' }}
-      #   id: docker_build
-      #   uses: docker/build-push-action@v5
-      #   continue-on-error: true
-      #   with:
-      #     context: .
-      #     file: ./Dockerfile
-      #     platforms: linux/amd64
-      #     push: true
-      #     tags: |
-      #       ${{ steps.login-ecr.outputs.registry }}/${{ steps.key_values.outputs.REPO_NAME }}:${{ steps.hash.outputs.GIT_HASH }}
-      #       ${{ steps.login-ecr.outputs.registry }}/${{ steps.key_values.outputs.REPO_NAME }}:latest
-      #     build-args: |
-      #       CALENDSO_ENCRYPTION_KEY=${{ secrets.CALENDSO_ENCRYPTION_KEY }}
-      #       NEXT_PUBLIC_WEBAPP_URL=${{ format('https://app.{0}', steps.key_values.outputs.DOMAIN_NAME) }}
-      #       NEXT_PUBLIC_WEBSITE_URL=${{ format('https://{0}', steps.key_values.outputs.DOMAIN_NAME) }}
-      #       NEXT_PUBLIC_API_V2_URL=${{ secrets.NEXT_PUBLIC_API_V2_URL }}
-      #       NEXT_PUBLIC_EMBED_LIB_URL=${{ format('https://{0}/embed/embed.js', steps.key_values.outputs.DOMAIN_NAME) }}
-      #       NEXT_PUBLIC_ONEHASH_URL=${{ secrets.NEXT_PUBLIC_ONEHASH_URL }}
-      #       NEXTAUTH_URL=${{ steps.key_values.outputs.DOMAIN_NAME }}
-      #       NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
-      #       NEXT_PUBLIC_SENDGRID_SENDER_NAME=${{ secrets.BRAND_NAME }}
-      #       NEXT_PUBLIC_SENTRY_DSN=${{ steps.key_values.outputs.NEXT_PUBLIC_SENTRY_DSN }}
-      #       NEXT_PUBLIC_LOGGER_LEVEL=${{ secrets.NEXT_PUBLIC_LOGGER_LEVEL }}
-      #       NEXT_PUBLIC_TEAM_IMPERSONATION=${{ secrets.NEXT_PUBLIC_TEAM_IMPERSONATION }}
-      #       NEXT_PUBLIC_APP_NAME=${{format('{0} Cal', secrets.BRAND_NAME)  }}
-      #       NEXT_PUBLIC_COMPANY_NAME=${{ secrets.BRAND_NAME }}
-      #       NEXT_PUBLIC_MINUTES_TO_BOOK=${{ secrets.NEXT_PUBLIC_MINUTES_TO_BOOK }}
-      #       NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD=${{ secrets.NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD }}
-      #       NEXT_PUBLIC_CALENDLY_OAUTH_URL=${{ secrets.NEXT_PUBLIC_CALENDLY_OAUTH_URL }}
-      #       NEXT_PUBLIC_CALENDLY_API_BASE_URL=${{ secrets.NEXT_PUBLIC_CALENDLY_API_BASE_URL }}
-      #       NEXT_PUBLIC_CALENDLY_CLIENT_ID=${{ steps.key_values.outputs.NEXT_PUBLIC_CALENDLY_CLIENT_ID }}
-      #       NEXT_PUBLIC_CALENDLY_REDIRECT_URI=${{ steps.key_values.outputs.NEXT_PUBLIC_CALENDLY_REDIRECT_URI }}
-      #       NEXT_PUBLIC_STRIPE_PUBLIC_KEY=${{ steps.key_values.outputs.NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}
-      #       NEXT_PUBLIC_ONEHASH_CHAT_URL=${{ steps.key_values.outputs.NEXT_PUBLIC_ONEHASH_CHAT_URL }}
-      #       NEXT_PUBLIC_RAZORPAY_CLIENT_ID=${{ steps.key_values.outputs.NEXT_PUBLIC_RAZORPAY_CLIENT_ID }}
-      #       NEXT_PUBLIC_SIGNUP_URL=${{ steps.key_values.outputs.NEXT_PUBLIC_SIGNUP_URL }}
-      #       NEXT_PUBLIC_VAPID_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
-      #       NEXT_PUBLIC_WEBSITE_TERMS_URL=${{ secrets.NEXT_PUBLIC_WEBSITE_TERMS_URL }}
-      #       NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL=${{ secrets.NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL }}
-      #       NEXT_PUBLIC_ONEHASH_CHAT_ORIGIN=${{ steps.key_values.outputs.NEXT_PUBLIC_ONEHASH_CHAT_URL }}
-      #       NEXT_PUBLIC_RECAPTCHA_LOW=${{ secrets.NEXT_PUBLIC_RECAPTCHA_LOW }}
-      #       NEXT_PUBLIC_RECAPTCHA_MEDIUM=${{ secrets.NEXT_PUBLIC_RECAPTCHA_MEDIUM }}
-      #       NEXT_PUBLIC_RECAPTCHA_HARD=${{ secrets.NEXT_PUBLIC_RECAPTCHA_HARD }}
-      #       NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS=${{ secrets.NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS }}
-      #       NEXT_PUBLIC_POSTHOG_HOST=${{ secrets.NEXT_PUBLIC_POSTHOG_HOST }}
-      #       NEXT_PUBLIC_POSTHOG_KEY=${{ steps.key_values.outputs.NEXT_PUBLIC_POSTHOG_KEY }}
-      #       NEXT_PUBLIC_ONEHASH_ERP_URL=${{secrets.NEXT_PUBLIC_ONEHASH_ERP_URL}}
-      #       NEXT_PUBLIC_ONEHASH_CRM_URL=${{secrets.NEXT_PUBLIC_ONEHASH_CRM_URL}}
-
-      # - name: Check Docker build status
-      #   shell: bash
-      #   id : check_docker_build_status
-      #   if: ${{ steps.check-ecr-image.outputs.image-exists == '0' }}
-      #   run: |
-      #     if [ "${{ steps.docker_build.outcome }}" != "success" ]; then
-      #       echo "[ERROR]: ❌ Docker build & push failed" >> "$LOG_FILE"
-      #     else
-      #       echo "[INFO]: ✅ Docker build & push succeeded" >> "$LOG_FILE"
-      #     fi
-          
-      # BUILDING AND PUSHING DOCKER IMAGE USING DOCKER HUB
+      # BUILDING AND PUSHING DOCKER IMAGE USING AWS ECR
       - name: Set up Docker Buildx
         id: setup_docker
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to Docker Hub
+      - name: Configure AWS Credentials
         if: ${{ steps.setup_docker.outcome == 'success' }}
-        id: login-dockerhub
-        uses: docker/login-action@v3
+        uses: aws-actions/configure-aws-credentials@v1
+        id: configure-aws
         continue-on-error: true
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Check Docker Hub login status
+      - name: Check AWS Configure status
         shell: bash
         run: |
-          if [ "${{ steps.login-dockerhub.outcome }}" != "success" ]; then
-            echo "[ERROR]: ❌ Docker Hub login failed" >> "$LOG_FILE"
+          if [ "${{ steps.configure-aws.outcome }}" != "success" ]; then
+            echo "[ERROR]: ❌ AWS Configure failed" >> "$LOG_FILE"
           else
-            echo "[INFO]: ✅ Docker Hub login successful" >> "$LOG_FILE"
+            echo "[INFO]: ✅ AWS Configure successful" >> "$LOG_FILE"
+          fi
+
+      - name: Login to Amazon ECR
+        if: ${{ steps.configure-aws.outcome == 'success' }}
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        continue-on-error: true
+
+      - name: Check ECR login status
+        shell: bash
+        if: ${{ steps.configure-aws.outcome == 'success' }}
+        run: |
+          if [ "${{ steps.login-ecr.outcome }}" != "success" ]; then
+            echo "[ERROR]: ❌ ECR login failed" >> "$LOG_FILE"
+          else
+            echo "[INFO]: ✅ ECR login successful" >> "$LOG_FILE"
             echo "passed=success" >> $GITHUB_OUTPUT
           fi
       
-      # Checking if the image already exists in Docker Hub
-      - name: Check if image already exists in Docker Hub
-        if: ${{ steps.login-dockerhub.outcome == 'success' && github.event.inputs.rebuild != 'true' }}
-        id: check-dockerhub-image
-        shell: bash
-        run: |
-          # Check if image exists by attempting to pull manifest
-          if docker manifest inspect ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.key_values.outputs.REPO_NAME }}:${{ steps.hash.outputs.GIT_HASH }} > /dev/null 2>&1; then
-            echo "image-exists=1" >> $GITHUB_OUTPUT
-          else
-            echo "image-exists=0" >> $GITHUB_OUTPUT
-          fi
+      # Checking if the image already exists in ECR
+      - name: Check if image already exists in ECR
+        if: ${{ steps.login-ecr.outcome == 'success' &&  github.event.inputs.rebuild != 'true' }}
+        id: check-ecr-image
+        uses: mnmandahalf/check-ecr-image-exists@v0.1.5
+        with:
+          region: ${{ secrets.AWS_REGION }}
+          repository-name: ${{ steps.key_values.outputs.REPO_NAME }}
+          image-tag: ${{ steps.hash.outputs.GIT_HASH }}
+          access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       # Log image does not exist, hence rollback step
-      - name: Log Docker Hub image existence status
-        if: ${{ github.event.inputs.rebuild != 'true' }}
+      - name: Log ECR image existence status
+        if: ${{github.event.inputs.rebuild != 'true' }}
         shell: bash
         run: |
-          if [ "${{ steps.check-dockerhub-image.outputs.image-exists }}" == "1" ]; then
-            echo "[INFO]: ✅ Docker Hub image already exists" >> "$LOG_FILE"
+          if [ "${{ steps.check-ecr-image.outputs.image-exists }}" == "1" ]; then
+            echo "[INFO]: ✅ ECR image already exists" >> "$LOG_FILE"
           else
-            echo "[INFO]: ❌ Docker Hub image does not exist, proceeding to build and push" >> "$LOG_FILE"
+            echo "[INFO]: ❌ ECR image does not exist, proceeding to build and push" >> "$LOG_FILE"
           fi
 
       # If the image does not exist, build and push the Docker image OR if rebuild is true
       - name: Build and Push Docker image
-        if: ${{ steps.check-dockerhub-image.outputs.image-exists == '0' || github.event.inputs.rebuild == 'true' }}
+        if: ${{ steps.check-ecr-image.outputs.image-exists == '0' || github.event.inputs.rebuild == 'true' }}
         id: docker_build
         uses: docker/build-push-action@v5
         continue-on-error: true
@@ -370,8 +259,8 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.key_values.outputs.REPO_NAME }}:${{ steps.hash.outputs.GIT_HASH }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.key_values.outputs.REPO_NAME }}:latest
+            ${{ steps.login-ecr.outputs.registry }}/${{ steps.key_values.outputs.REPO_NAME }}:${{ steps.hash.outputs.GIT_HASH }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ steps.key_values.outputs.REPO_NAME }}:latest
           build-args: |
             CALENDSO_ENCRYPTION_KEY=${{ secrets.CALENDSO_ENCRYPTION_KEY }}
             NEXT_PUBLIC_WEBAPP_URL=${{ format('https://app.{0}', steps.key_values.outputs.DOMAIN_NAME) }}
@@ -379,7 +268,7 @@ jobs:
             NEXT_PUBLIC_API_V2_URL=${{ secrets.NEXT_PUBLIC_API_V2_URL }}
             NEXT_PUBLIC_EMBED_LIB_URL=${{ format('https://{0}/embed/embed.js', steps.key_values.outputs.DOMAIN_NAME) }}
             NEXT_PUBLIC_ONEHASH_URL=${{ secrets.NEXT_PUBLIC_ONEHASH_URL }}
-            NEXTAUTH_URL=${{ steps.key_values.outputs.DOMAIN_NAME }}
+            NEXTAUTH_URL=${{ format('https://{0}', steps.key_values.outputs.DOMAIN_NAME) }}
             NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
             NEXT_PUBLIC_SENDGRID_SENDER_NAME=${{ secrets.BRAND_NAME }}
             NEXT_PUBLIC_SENTRY_DSN=${{ steps.key_values.outputs.NEXT_PUBLIC_SENTRY_DSN }}
@@ -414,18 +303,131 @@ jobs:
 
       - name: Check Docker build status
         shell: bash
-        id: check_docker_build_status
-        if: ${{ steps.check-dockerhub-image.outputs.image-exists == '0' }}
+        id : check_docker_build_status
+        if: ${{ steps.check-ecr-image.outputs.image-exists == '0' }}
         run: |
           if [ "${{ steps.docker_build.outcome }}" != "success" ]; then
             echo "[ERROR]: ❌ Docker build & push failed" >> "$LOG_FILE"
           else
             echo "[INFO]: ✅ Docker build & push succeeded" >> "$LOG_FILE"
           fi
+          
+      # # BUILDING AND PUSHING DOCKER IMAGE USING DOCKER HUB
+      # - name: Set up Docker Buildx
+      #   id: setup_docker
+      #   uses: docker/setup-buildx-action@v3
+
+      # - name: Login to Docker Hub
+      #   if: ${{ steps.setup_docker.outcome == 'success' }}
+      #   id: login-dockerhub
+      #   uses: docker/login-action@v3
+      #   continue-on-error: true
+      #   with:
+      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # - name: Check Docker Hub login status
+      #   shell: bash
+      #   run: |
+      #     if [ "${{ steps.login-dockerhub.outcome }}" != "success" ]; then
+      #       echo "[ERROR]: ❌ Docker Hub login failed" >> "$LOG_FILE"
+      #     else
+      #       echo "[INFO]: ✅ Docker Hub login successful" >> "$LOG_FILE"
+      #       echo "passed=success" >> $GITHUB_OUTPUT
+      #     fi
+      
+      # # Checking if the image already exists in Docker Hub
+      # - name: Check if image already exists in Docker Hub
+      #   if: ${{ steps.login-dockerhub.outcome == 'success' && github.event.inputs.rebuild != 'true' }}
+      #   id: check-dockerhub-image
+      #   shell: bash
+      #   run: |
+      #     # Check if image exists by attempting to pull manifest
+      #     if docker manifest inspect ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.key_values.outputs.REPO_NAME }}:${{ steps.hash.outputs.GIT_HASH }} > /dev/null 2>&1; then
+      #       echo "image-exists=1" >> $GITHUB_OUTPUT
+      #     else
+      #       echo "image-exists=0" >> $GITHUB_OUTPUT
+      #     fi
+
+      # # Log image does not exist, hence rollback step
+      # - name: Log Docker Hub image existence status
+      #   if: ${{ github.event.inputs.rebuild != 'true' }}
+      #   shell: bash
+      #   run: |
+      #     if [ "${{ steps.check-dockerhub-image.outputs.image-exists }}" == "1" ]; then
+      #       echo "[INFO]: ✅ Docker Hub image already exists" >> "$LOG_FILE"
+      #     else
+      #       echo "[INFO]: ❌ Docker Hub image does not exist, proceeding to build and push" >> "$LOG_FILE"
+      #     fi
+
+      # # If the image does not exist, build and push the Docker image OR if rebuild is true
+      # - name: Build and Push Docker image
+      #   if: ${{ steps.check-dockerhub-image.outputs.image-exists == '0' || github.event.inputs.rebuild == 'true' }}
+      #   id: docker_build
+      #   uses: docker/build-push-action@v5
+      #   continue-on-error: true
+      #   with:
+      #     context: .
+      #     file: ./Dockerfile
+      #     platforms: linux/amd64
+      #     push: true
+      #     tags: |
+      #       ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.key_values.outputs.REPO_NAME }}:${{ steps.hash.outputs.GIT_HASH }}
+      #       ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.key_values.outputs.REPO_NAME }}:latest
+      #     build-args: |
+      #       CALENDSO_ENCRYPTION_KEY=${{ secrets.CALENDSO_ENCRYPTION_KEY }}
+      #       NEXT_PUBLIC_WEBAPP_URL=${{ format('https://app.{0}', steps.key_values.outputs.DOMAIN_NAME) }}
+      #       NEXT_PUBLIC_WEBSITE_URL=${{ format('https://{0}', steps.key_values.outputs.DOMAIN_NAME) }}
+      #       NEXT_PUBLIC_API_V2_URL=${{ secrets.NEXT_PUBLIC_API_V2_URL }}
+      #       NEXT_PUBLIC_EMBED_LIB_URL=${{ format('https://{0}/embed/embed.js', steps.key_values.outputs.DOMAIN_NAME) }}
+      #       NEXT_PUBLIC_ONEHASH_URL=${{ secrets.NEXT_PUBLIC_ONEHASH_URL }}
+      #       NEXTAUTH_URL=${{ format('https://{0}', steps.key_values.outputs.DOMAIN_NAME) }}
+      #       NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+      #       NEXT_PUBLIC_SENDGRID_SENDER_NAME=${{ secrets.BRAND_NAME }}
+      #       NEXT_PUBLIC_SENTRY_DSN=${{ steps.key_values.outputs.NEXT_PUBLIC_SENTRY_DSN }}
+      #       NEXT_PUBLIC_LOGGER_LEVEL=${{ secrets.NEXT_PUBLIC_LOGGER_LEVEL }}
+      #       NEXT_PUBLIC_TEAM_IMPERSONATION=${{ secrets.NEXT_PUBLIC_TEAM_IMPERSONATION }}
+      #       NEXT_PUBLIC_APP_NAME=${{format('{0} Cal', secrets.BRAND_NAME)  }}
+      #       NEXT_PUBLIC_COMPANY_NAME=${{ secrets.BRAND_NAME }}
+      #       NEXT_PUBLIC_MINUTES_TO_BOOK=${{ secrets.NEXT_PUBLIC_MINUTES_TO_BOOK }}
+      #       NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD=${{ secrets.NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD }}
+      #       NEXT_PUBLIC_CALENDLY_OAUTH_URL=${{ secrets.NEXT_PUBLIC_CALENDLY_OAUTH_URL }}
+      #       NEXT_PUBLIC_CALENDLY_API_BASE_URL=${{ secrets.NEXT_PUBLIC_CALENDLY_API_BASE_URL }}
+      #       NEXT_PUBLIC_CALENDLY_CLIENT_ID=${{ steps.key_values.outputs.NEXT_PUBLIC_CALENDLY_CLIENT_ID }}
+      #       NEXT_PUBLIC_CALENDLY_REDIRECT_URI=${{ steps.key_values.outputs.NEXT_PUBLIC_CALENDLY_REDIRECT_URI }}
+      #       NEXT_PUBLIC_STRIPE_PUBLIC_KEY=${{ steps.key_values.outputs.NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}
+      #       NEXT_PUBLIC_ONEHASH_CHAT_URL=${{ steps.key_values.outputs.NEXT_PUBLIC_ONEHASH_CHAT_URL }}
+      #       NEXT_PUBLIC_RAZORPAY_CLIENT_ID=${{ steps.key_values.outputs.NEXT_PUBLIC_RAZORPAY_CLIENT_ID }}
+      #       NEXT_PUBLIC_SIGNUP_URL=${{ steps.key_values.outputs.NEXT_PUBLIC_SIGNUP_URL }}
+      #       NEXT_PUBLIC_VAPID_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
+      #       NEXT_PUBLIC_WEBSITE_TERMS_URL=${{ secrets.NEXT_PUBLIC_WEBSITE_TERMS_URL }}
+      #       NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL=${{ secrets.NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL }}
+      #       NEXT_PUBLIC_ONEHASH_CHAT_ORIGIN=${{ steps.key_values.outputs.NEXT_PUBLIC_ONEHASH_CHAT_URL }}
+      #       NEXT_PUBLIC_RECAPTCHA_LOW=${{ secrets.NEXT_PUBLIC_RECAPTCHA_LOW }}
+      #       NEXT_PUBLIC_RECAPTCHA_MEDIUM=${{ secrets.NEXT_PUBLIC_RECAPTCHA_MEDIUM }}
+      #       NEXT_PUBLIC_RECAPTCHA_HARD=${{ secrets.NEXT_PUBLIC_RECAPTCHA_HARD }}
+      #       NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS=${{ secrets.NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS }}
+      #       NEXT_PUBLIC_POSTHOG_HOST=${{ secrets.NEXT_PUBLIC_POSTHOG_HOST }}
+      #       NEXT_PUBLIC_POSTHOG_KEY=${{ steps.key_values.outputs.NEXT_PUBLIC_POSTHOG_KEY }}
+      #       NEXT_PUBLIC_ONEHASH_ERP_URL=${{secrets.NEXT_PUBLIC_ONEHASH_ERP_URL}}
+      #       NEXT_PUBLIC_ONEHASH_CRM_URL=${{secrets.NEXT_PUBLIC_ONEHASH_CRM_URL}}
+      #       NEXT_PUBLIC_WHITELISTED_ORGS=${{ secrets.NEXT_PUBLIC_WHITELISTED_ORGS }}
+      #       NEXT_PUBLIC_PIXEL=${{ secrets.NEXT_PUBLIC_PIXEL }}
+
+      # - name: Check Docker build status
+      #   shell: bash
+      #   id: check_docker_build_status
+      #   if: ${{ steps.check-dockerhub-image.outputs.image-exists == '0' }}
+      #   run: |
+      #     if [ "${{ steps.docker_build.outcome }}" != "success" ]; then
+      #       echo "[ERROR]: ❌ Docker build & push failed" >> "$LOG_FILE"
+      #     else
+      #       echo "[INFO]: ✅ Docker build & push succeeded" >> "$LOG_FILE"
+      #     fi
 
       # DEPLOYING TO EC2 , if the image build was successful or the image already exists in ECR
       - name: SSH into EC2 and Deploy
-        if: ${{ steps.docker_build.outcome == 'success' ||  steps.check-dockerhub-image.outputs.image-exists == '1'  }}
+        # if: ${{ steps.docker_build.outcome == 'success' ||  steps.check-dockerhub-image.outputs.image-exists == '1'  }}
         # if: ${{ steps.docker_build.outcome == 'success' ||  steps.check-ecr-image.outputs.image-exists == '1'  }}
         uses: appleboy/ssh-action@v0.1.10
         id: ssh_deploy
