@@ -1806,7 +1806,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Function"
+                "$ref": "#/components/schemas/CreateDelegationCredentialInput"
               }
             }
           }
@@ -9050,6 +9050,52 @@
         "description": "Get busy times from a calendar. Example request URL is `https://api.cal.com/v2/calendars/busy-times?loggedInUsersTz=Europe%2FMadrid&dateFrom=2024-12-18&dateTo=2024-12-18&calendarsToLoad[0][credentialId]=135&calendarsToLoad[0][externalId]=skrauciz%40gmail.com`",
         "parameters": [
           {
+            "name": "loggedInUsersTz",
+            "required": true,
+            "in": "query",
+            "description": "The timezone of the logged in user represented as a string",
+            "schema": {
+              "example": "America/New_York",
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateFrom",
+            "required": false,
+            "in": "query",
+            "description": "The starting date for the busy times query",
+            "schema": {
+              "example": "2023-10-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateTo",
+            "required": false,
+            "in": "query",
+            "description": "The ending date for the busy times query",
+            "schema": {
+              "example": "2023-10-31",
+              "type": "string"
+            }
+          },
+          {
+            "name": "credentialId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "externalId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "Authorization",
             "in": "header",
             "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
@@ -9244,7 +9290,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Function"
+                "$ref": "#/components/schemas/CreateCalendarCredentialsInput"
               }
             }
           }
@@ -25067,9 +25113,53 @@
           "status"
         ]
       },
-      "Function": {
+      "GoogleServiceAccountKeyInput": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "private_key": {
+            "type": "string"
+          },
+          "client_email": {
+            "type": "string"
+          },
+          "client_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "private_key",
+          "client_email",
+          "client_id"
+        ]
+      },
+      "CreateDelegationCredentialInput": {
+        "type": "object",
+        "properties": {
+          "workspacePlatformSlug": {
+            "type": "string"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "serviceAccountKey": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/GoogleServiceAccountKeyInput"
+                },
+                {
+                  "$ref": "#/components/schemas/MicrosoftServiceAccountKeyInput"
+                }
+              ]
+            }
+          }
+        },
+        "required": [
+          "workspacePlatformSlug",
+          "domain",
+          "serviceAccountKey"
+        ]
       },
       "WorkspacePlatformDto": {
         "type": "object",
@@ -25141,25 +25231,6 @@
         "required": [
           "status",
           "data"
-        ]
-      },
-      "GoogleServiceAccountKeyInput": {
-        "type": "object",
-        "properties": {
-          "private_key": {
-            "type": "string"
-          },
-          "client_email": {
-            "type": "string"
-          },
-          "client_id": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "private_key",
-          "client_email",
-          "client_id"
         ]
       },
       "UpdateDelegationCredentialInput": {
@@ -25618,6 +25689,21 @@
         "required": [
           "status",
           "data"
+        ]
+      },
+      "CreateCalendarCredentialsInput": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "password"
         ]
       },
       "DeleteCalendarCredentialsInputBodyDto": {
@@ -26871,6 +26957,11 @@
                 "$ref": "#/components/schemas/Routing"
               }
             ]
+          },
+          "emailVerificationCode": {
+            "type": "string",
+            "description": "Email verification code required when event type has email verification enabled.",
+            "example": "123456"
           }
         },
         "required": [
@@ -26998,6 +27089,11 @@
                 "$ref": "#/components/schemas/Routing"
               }
             ]
+          },
+          "emailVerificationCode": {
+            "type": "string",
+            "description": "Email verification code required when event type has email verification enabled.",
+            "example": "123456"
           },
           "instant": {
             "type": "boolean",
@@ -27131,6 +27227,11 @@
                 "$ref": "#/components/schemas/Routing"
               }
             ]
+          },
+          "emailVerificationCode": {
+            "type": "string",
+            "description": "Email verification code required when event type has email verification enabled.",
+            "example": "123456"
           },
           "recurrenceCount": {
             "type": "number",
@@ -28558,6 +28659,11 @@
             "type": "string",
             "example": "User requested reschedule",
             "description": "Reason for rescheduling the booking"
+          },
+          "emailVerificationCode": {
+            "type": "string",
+            "description": "Email verification code required when event type has email verification enabled.",
+            "example": "123456"
           }
         },
         "required": [
@@ -28580,6 +28686,11 @@
             "type": "string",
             "example": "3be561a9-31f1-4b8e-aefc-9d9a085f0dd1",
             "description": "Uid of the specific seat within booking."
+          },
+          "emailVerificationCode": {
+            "type": "string",
+            "description": "Email verification code required when event type has email verification enabled.",
+            "example": "123456"
           }
         },
         "required": [
