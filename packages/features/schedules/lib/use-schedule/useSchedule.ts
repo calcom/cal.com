@@ -29,22 +29,18 @@ export type UseScheduleWithCacheArgs = {
   teamMemberEmail?: string | null;
   useApiV2?: boolean;
   enabled?: boolean;
-  eventTitle?: string | null;
 };
 
 const getAvailabilityLoadedEventPayload = ({
   eventId,
   eventSlug,
-  eventTitle,
 }: {
-  eventId: number | null | undefined;
-  eventSlug: string | null | undefined;
-  eventTitle: string | null | undefined;
+  eventId: number;
+  eventSlug: string;
 }) => {
   return {
     eventId,
     eventSlug,
-    eventTitle,
   };
 };
 
@@ -65,7 +61,6 @@ export const useSchedule = ({
   teamMemberEmail,
   useApiV2 = false,
   enabled: enabledProp = true,
-  eventTitle,
 }: UseScheduleWithCacheArgs) => {
   const bookerState = useBookerStore((state) => state.state);
 
@@ -167,14 +162,10 @@ export const useSchedule = ({
       slotsQuery: teamScheduleV2,
     });
 
-    if (teamScheduleV2.isSuccess) {
+    if (teamScheduleV2.isSuccess && eventId && eventSlug) {
       sdkActionManager?.fire(
         "availabilityLoaded",
-        getAvailabilityLoadedEventPayload({
-          eventId,
-          eventSlug,
-          eventTitle,
-        })
+        getAvailabilityLoadedEventPayload({ eventId, eventSlug })
       );
     }
 
@@ -194,14 +185,10 @@ export const useSchedule = ({
     slotsQuery: schedule,
   });
 
-  if (schedule.isSuccess) {
+  if (schedule.isSuccess && eventId && eventSlug) {
     sdkActionManager?.fire(
       "availabilityLoaded",
-      getAvailabilityLoadedEventPayload({
-        eventId,
-        eventSlug,
-        eventTitle,
-      })
+      getAvailabilityLoadedEventPayload({ eventId, eventSlug })
     );
   }
 

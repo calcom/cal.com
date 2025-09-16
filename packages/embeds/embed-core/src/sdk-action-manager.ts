@@ -38,9 +38,8 @@ export type EventDataMap = {
   };
   linkReady: Record<string, never>;
   availabilityLoaded: {
-    eventId: number | null | undefined;
-    eventSlug: string | null | undefined;
-    eventTitle: string | null | undefined;
+    eventId: number;
+    eventSlug: string;
   };
   __connectInitiated: Record<string, never>;
   __connectCompleted: Record<string, never>;

@@ -296,7 +296,6 @@ const EmailEmbed = ({
     isTeamEvent,
     duration: selectedDuration,
     useApiV2: false,
-    eventTitle: event?.data?.title,
   });
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
 

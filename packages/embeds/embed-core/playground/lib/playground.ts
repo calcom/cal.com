@@ -636,7 +636,6 @@ const availabilityLoadedCallback = (e: EmbedEvent<"availabilityLoaded">) => {
   console.log("availabilityLoaded", {
     eventId: data.eventId,
     eventSlug: data.eventSlug,
-    eventTitle: data.eventTitle,
   });
 
   Cal("off", {
