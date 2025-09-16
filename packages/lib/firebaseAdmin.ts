@@ -22,7 +22,7 @@ class FirebaseService {
         throw new Error(
           error instanceof SyntaxError
             ? "Invalid FIREBASE_SERVICE_ACCOUNT JSON format"
-            : "Invalid FIREBASE_SERVICE_ACCOUNT"
+          : "Invalid FIREBASE_SERVICE_ACCOUNT"
         );
       }
     }
