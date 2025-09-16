@@ -1,16 +1,14 @@
 "use client";
 
 // eslint-disable-next-line no-restricted-imports
+import { Button } from "@calid/features/ui/components/button";
+import { EmailField } from "@calid/features/ui/components/input/input";
 import { debounce } from "lodash";
 import Link from "next/link";
-import type { CSSProperties, SyntheticEvent } from "react";
+import type { SyntheticEvent } from "react";
 import React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calid/features/ui/components/button";
-import { EmailField } from "@calid/features/ui/components/input/input";
-
-import AuthContainer from "@components/ui/AuthContainer";
 
 export type PageProps = {
   csrfToken?: string;
@@ -77,17 +75,14 @@ export default function ForgotPassword(props: PageProps) {
   const Success = () => {
     return (
       <div className="text-center">
-        <div className="flex justify-center mb-8">
+        <div className="mb-8 flex justify-center">
           <span className="text-2xl font-bold text-gray-900">Cal ID</span>
         </div>
-        <h1 className="text-2xl font-bold text-emphasis">{t("reset_link_sent")}</h1>
+        <h1 className="text-emphasis text-2xl font-bold">{t("reset_link_sent")}</h1>
         <p className="text-subtle mb-6">{t("password_reset_email", { email })}</p>
         <p className="text-subtle mb-8">{t("password_reset_leading")}</p>
-        {error && <p className="text-center text-red-600 mb-4">{error.message}</p>}
-        <Button 
-          color="primary" 
-          className="w-full justify-center py-3"
-          href="/auth/login">
+        {error && <p className="mb-4 text-center text-red-600">{error.message}</p>}
+        <Button color="primary" className="w-full justify-center py-3" href="/auth/login">
           {t("back_to_signin")}
         </Button>
       </div>
@@ -95,23 +90,23 @@ export default function ForgotPassword(props: PageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center px-4 sm:px-6 lg:px-8">
-      <div className="max-w-lg border border-subtle shadow-xl rounded-2xl p-8">
+    <div className="flex min-h-screen items-center justify-center bg-white px-4 sm:px-6 lg:px-8">
+      <div className="border-subtle max-w-lg rounded-2xl border p-8 shadow-xl">
         {success ? (
           <Success />
         ) : (
           <div className="text-center">
             {/* logo */}
-            <div className="flex justify-center mb-8">
+            <div className="mb-8 flex justify-center">
               <span className="text-2xl font-bold text-gray-900">Cal ID</span>
             </div>
-            
-            <h1 className="text-3xl font-bold text-emphasis">{t("forgot_password")}</h1>
+
+            <h1 className="text-emphasis text-3xl font-bold">{t("forgot_password")}</h1>
             <p className="text-subtle mb-8">{t("forgot_password_description")}</p>
-            
+
             <form className="space-y-6" onSubmit={handleSubmit}>
               <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
-              {error && <p className="text-red-600 text-sm">{error.message}</p>}
+              {error && <p className="text-sm text-red-600">{error.message}</p>}
               <div className="text-left">
                 <EmailField
                   onChange={handleChange}
@@ -132,7 +127,7 @@ export default function ForgotPassword(props: PageProps) {
                 {t("request_password_reset")}
               </Button>
             </form>
-            
+
             <div className="mt-4 text-center">
               <Link href="/auth/login" className="text-subtle hover:text-emphasis text-sm">
                 Back to sign in

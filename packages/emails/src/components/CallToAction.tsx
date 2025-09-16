@@ -31,7 +31,7 @@ export const CallToAction = (props: {
     <p
       style={{
         display: "inline-block",
-        background: secondary ? "#FFFFFF" : "#292929",
+        background: secondary ? "#FFFFFF" : "#007ee5",
         border: secondary ? "1px solid #d1d5db" : "",
         color: "#ffffff",
         fontFamily: "Roboto, Helvetica, sans-serif",
