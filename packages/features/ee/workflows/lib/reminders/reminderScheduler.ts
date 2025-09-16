@@ -12,6 +12,7 @@ import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/t
 import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/triggerFormSubmittedNoEventWebhook";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";
+import { formatCalEventExtended } from "@calcom/lib/formatCalendarEvent";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
@@ -68,7 +69,7 @@ const processWorkflowStep = async (
   step: WorkflowStep,
   {
     smsReminderNumber,
-    calendarEvent: evt,
+    calendarEvent,
     emailAttendeeSendToOverride,
     hideBranding,
     seatReferenceUid,
@@ -76,6 +77,8 @@ const processWorkflowStep = async (
   }: ProcessWorkflowStepParams
 ) => {
   if (!step?.verifiedAt) return;
+
+  const evt = formatCalEventExtended(calendarEvent);
 
   if (isSMSOrWhatsappAction(step.action)) {
     await checkSMSRateLimit({
