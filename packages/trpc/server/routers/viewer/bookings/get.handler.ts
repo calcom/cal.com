@@ -11,6 +11,7 @@ import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Booking, Prisma, Prisma as PrismaClientType } from "@calcom/prisma/client";
@@ -537,7 +538,7 @@ export async function getBookings({
                 jsonObjectFrom(
                   eb
                     .selectFrom("Team")
-                    .select(["Team.id", "Team.name", "Team.slug"])
+                    .select(["Team.id", "Team.name", "Team.slug", "Team.parentId"])
                     .whereRef("EventType.teamId", "=", "Team.id")
                 ).as("team"),
                 jsonArrayFrom(
@@ -694,7 +695,8 @@ export async function getBookings({
 
   const checkIfUserIsTeamAdminOrOwner = async (userId: number, booking: (typeof plainBookings)[number]) => {
     const isTeamAdminOrOwner = !!(await isTeamAdmin(userId, booking.eventType?.teamId ?? 0));
-    return isTeamAdminOrOwner;
+    const isOrgAdminOrOwner = !!(await isOrganisationAdmin(userId, booking.eventType?.team?.parentId ?? 0));
+    return isTeamAdminOrOwner || isOrgAdminOrOwner;
   };
 
   const bookings = await Promise.all(

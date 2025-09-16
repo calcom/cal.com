@@ -11,6 +11,7 @@ import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
+import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
@@ -165,8 +166,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     if (bookingInfo?.user?.id === userId) return true;
 
     const isTeamAdminOrOwner = !!(await isTeamAdmin(userId, eventType?.teamId ?? 0));
+    const isOrgAdminOrOwner = !!(await isOrganisationAdmin(userId, eventType?.team?.parentId ?? 0));
 
-    if (isTeamAdminOrOwner) return true;
+    if (isTeamAdminOrOwner || isOrgAdminOrOwner) return true;
 
     return (
       eventType.users.some(
