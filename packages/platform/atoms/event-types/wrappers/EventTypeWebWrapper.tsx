@@ -20,7 +20,7 @@ import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { showToast } from "@calcom/ui/components/toast";
-import { revalidateTeamEventTypeCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
+import { revalidateCalIdTeamEventTypeCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 
 import { TRPCClientError } from "@trpc/react-query";
@@ -142,10 +142,14 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
       if (eventType.team?.slug) {
         // When an event-type is updated,
         // guests could still hit a stale cache and see the old page.
-        revalidateTeamEventTypeCache({
+        // revalidateTeamEventTypeCache({
+        //   teamSlug: eventType.team.slug,
+        //   meetingSlug: eventType.slug,
+        //   orgSlug: eventType.team.parent?.slug ?? null,
+        // });
+        revalidateCalIdTeamEventTypeCache({
           teamSlug: eventType.team.slug,
           meetingSlug: eventType.slug,
-          orgSlug: eventType.team.parent?.slug ?? null,
         });
       }
       showToast(t("event_type_updated_successfully", { eventTypeTitle: eventType.title }), "success");
@@ -324,10 +328,14 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
       if (team?.slug) {
         // When a team event-type is deleted,
         // guests could still hit a stale cache and see the old page.
-        revalidateTeamEventTypeCache({
+        // revalidateTeamEventTypeCache({
+        //   teamSlug: team.slug,
+        //   meetingSlug: eventType.slug,
+        //   orgSlug: team.parent?.slug ?? null,
+        // });
+        revalidateCalIdTeamEventTypeCache({
           teamSlug: team.slug,
           meetingSlug: eventType.slug,
-          orgSlug: team.parent?.slug ?? null,
         });
       }
       showToast(t("event_type_deleted_successfully"), "success");
