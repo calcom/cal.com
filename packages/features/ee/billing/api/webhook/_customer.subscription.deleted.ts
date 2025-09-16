@@ -73,7 +73,6 @@ async function handleCalAIPhoneNumberSubscriptionDeleted(
 
   try {
     if (phoneNumber.subscriptionStatus === "CANCELLED") {
-      console.log("Phone number subscription already cancelled, skipping webhook processing");
       return { success: true, subscriptionId: subscription.id, skipped: true };
     }
 

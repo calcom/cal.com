@@ -13,12 +13,9 @@ import type { PhoneNumberRepositoryInterface } from "../../interfaces/PhoneNumbe
 import type { RetellAIRepository } from "../types";
 
 const stripeErrorSchema = z.object({
-  type: z.string(),
   raw: z.object({
-    code: z.literal("resource_missing"),
-    type: z.literal("invalid_request_error"),
+    code: z.string(),
   }),
-  code: z.literal("resource_missing"),
 });
 
 export class BillingService {
@@ -150,7 +147,7 @@ export class BillingService {
         await stripe.subscriptions.cancel(phoneNumber.stripeSubscriptionId);
       } catch (error) {
         const parsedError = stripeErrorSchema.safeParse(error);
-        if (parsedError.success) {
+        if (parsedError.success && parsedError.data.raw.code === "resource_missing") {
           this.logger.info("Subscription not found in Stripe (already cancelled or deleted):", {
             subscriptionId: phoneNumber.stripeSubscriptionId,
             phoneNumberId,
