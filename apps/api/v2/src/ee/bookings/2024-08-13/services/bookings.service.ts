@@ -7,6 +7,7 @@ import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { getPagination } from "@/lib/pagination/pagination";
 import { AuthOptionalUser } from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
+import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
 import { KyselyReadService } from "@/modules/kysely/kysely-read.service";
@@ -594,10 +595,9 @@ export class BookingsService_2024_08_13 {
     const ids = recurringBooking.map((booking) => booking.id);
     const isRecurringSeated = !!recurringBooking[0].eventType?.seatsPerTimeSlot;
     if (isRecurringSeated) {
-      return this.outputService.getOutputRecurringSeatedBookings(
-        ids,
-        !!recurringBooking[0].eventType?.seatsShowAttendees
-      );
+      // Use auth-aware attendee visibility for recurring seated bookings
+      const showAttendees = await this.shouldShowAttendees(recurringBooking[0], authUser);
+      return this.outputService.getOutputRecurringSeatedBookings(ids, showAttendees);
     }
 
     return this.outputService.getOutputRecurringBookings(ids);
@@ -882,13 +882,15 @@ export class BookingsService_2024_08_13 {
     }
 
     if ("cancelSubsequentBookings" in body && body.cancelSubsequentBookings) {
-      return this.getAllRecurringBookingsByIndividualUid(bookingUid);
+      return this.getAllRecurringBookingsByIndividualUid(bookingUid, request.user);
     }
 
-    return this.getBooking(bookingUid);
+    // Forward the request user for proper attendee authorization
+    const authUser = request.user as ApiAuthGuardUser | undefined;
+    return this.getBooking(bookingUid, authUser);
   }
 
-  private async getAllRecurringBookingsByIndividualUid(bookingUid: string) {
+  private async getAllRecurringBookingsByIndividualUid(bookingUid: string, authUser?: ApiAuthGuardUser) {
     const booking = await this.bookingsRepository.getByUid(bookingUid);
     const recurringBookingUid = booking?.recurringEventId;
     if (!recurringBookingUid) {
@@ -897,7 +899,7 @@ export class BookingsService_2024_08_13 {
       );
     }
 
-    return await this.getBooking(recurringBookingUid);
+    return await this.getBooking(recurringBookingUid, authUser);
   }
 
   async markAbsent(bookingUid: string, bookingOwnerId: number, body: MarkAbsentBookingInput_2024_08_13) {
@@ -935,11 +937,19 @@ export class BookingsService_2024_08_13 {
       throw new Error(`Booking with uid=${bookingUid} was not found in the database`);
     }
 
+    // Fetch the booking owner as authUser to ensure proper attendee authorization
+    const bookingOwner = await this.usersRepository.findById(bookingOwnerId);
+    if (!bookingOwner) {
+      throw new NotFoundException(`Booking owner with id=${bookingOwnerId} not found.`);
+    }
+
     const isRecurring = !!booking.recurringEventId;
     if (isRecurring) {
       return this.outputService.getOutputRecurringBooking(booking);
     }
-    return this.outputService.getOutputBooking(booking);
+    
+    // Use getBooking to ensure proper attendee authorization
+    return this.getBooking(bookingUid, bookingOwner);
   }
 
   async billBookings(bookings: CreatedBooking[]) {
@@ -1093,7 +1103,7 @@ export class BookingsService_2024_08_13 {
       },
     });
 
-    return this.getBooking(bookingUid);
+    return this.getBooking(bookingUid, requestUser);
   }
 
   async declineBooking(bookingUid: string, requestUser: UserWithProfile, reason?: string) {
@@ -1126,7 +1136,7 @@ export class BookingsService_2024_08_13 {
       },
     });
 
-    return this.getBooking(bookingUid);
+    return this.getBooking(bookingUid, requestUser);
   }
 
   async getCalendarLinks(bookingUid: string): Promise<CalendarLink[]> {
