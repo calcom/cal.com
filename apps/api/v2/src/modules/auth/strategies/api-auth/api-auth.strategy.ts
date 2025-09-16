@@ -60,8 +60,17 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
       const oAuthClientSecret = request.get(X_CAL_SECRET_KEY);
       const oAuthClientId = params.clientId || request.get(X_CAL_CLIENT_ID);
       const authHeader = request.get("Authorization");
-      // Handle empty Authorization headers the same as missing headers
-      const bearerToken = authHeader && authHeader.trim() ? authHeader.replace("Bearer ", "") : undefined;
+
+      // Parse Authorization header with case-insensitive Bearer scheme matching
+      let bearerToken: string | undefined = undefined;
+      if (authHeader && authHeader.trim()) {
+        const bearerMatch = authHeader.match(/^\s*Bearer\s+(.+)\s*$/i);
+        if (bearerMatch) {
+          const extractedToken = bearerMatch[1].trim();
+          // Treat zero-length tokens as absent
+          bearerToken = extractedToken.length > 0 ? extractedToken : undefined;
+        }
+      }
 
       const allowedMethods = request.allowedAuthMethods;
       const noSpecificAuthExpected = !allowedMethods || !allowedMethods.length;
