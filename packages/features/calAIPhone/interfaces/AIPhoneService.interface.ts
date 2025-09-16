@@ -311,6 +311,7 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
     beginMessage?: string | null;
     generalTools?: AIPhoneServiceTools<T>;
     voiceId?: string;
+    language?: string;
   }): Promise<{ message: string }>;
 
   /**
