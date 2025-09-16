@@ -44,6 +44,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import type { FormValues } from "../pages/workflow";
 import { TestPhoneCallDialog } from "./TestPhoneCallDialog";
+import { VoiceSelectionDialog } from "./VoiceSelectionDialog";
 import { WebCallDialog } from "./WebCallDialog";
 
 // Utility functions for prompt display
@@ -114,6 +115,7 @@ const agentSchema = z.object({
   beginMessage: z.string().min(1, "Begin message is required"),
   numberToCall: z.string().optional(),
   language: z.string().optional(),
+  voiceId: z.string().optional(),
   generalTools: z
     .array(
       z.object({
@@ -187,6 +189,7 @@ export function AgentConfigurationSheet({
   const [showAdvancedFields, setShowAdvancedFields] = useState(false);
   const [isTestAgentDialogOpen, setIsTestAgentDialogOpen] = useState(false);
   const [isWebCallDialogOpen, setIsWebCallDialogOpen] = useState(false);
+  const [isVoiceDialogOpen, setIsVoiceDialogOpen] = useState(false);
   const [cancellingNumberId, setCancellingNumberId] = useState<number | null>(null);
   const [numberToDelete, setNumberToDelete] = useState<string | null>(null);
   // const [toolDialogOpen, setToolDialogOpen] = useState(false);
@@ -202,6 +205,7 @@ export function AgentConfigurationSheet({
       beginMessage: "",
       numberToCall: "",
       language: "en-US",
+      voiceId: "",
       generalTools: [],
     },
   });
@@ -214,6 +218,7 @@ export function AgentConfigurationSheet({
         beginMessage: retellData.beginMessage || "",
         numberToCall: "",
         language: retellData.language || "en-US",
+        voiceId: retellData.voiceId || "",
         generalTools: retellData.generalTools || [],
       });
     }
@@ -334,6 +339,7 @@ export function AgentConfigurationSheet({
       generalPrompt: restorePromptComplexity(data.generalPrompt),
       beginMessage: data.beginMessage,
       language: data.language as Language,
+      voiceId: data.voiceId,
       // Don't include generalTools - they are managed by the backend
     };
 
@@ -496,6 +502,25 @@ export function AgentConfigurationSheet({
                       />
                     )}
                   />
+                </div>
+                <div>
+                  <Label className="text-emphasis mb-1 block text-sm font-medium">
+                    {t("voice")}
+                  </Label>
+                  <p className="text-subtle mb-1.5 text-xs">{t("select_voice_for_agent")}</p>
+                  <Button
+                    type="button"
+                    color="secondary"
+                    onClick={() => setIsVoiceDialogOpen(true)}
+                    disabled={readOnly}
+                    className="w-full justify-start">
+                    <Icon name="user" className="mr-2 h-4 w-4" />
+                    {agentForm.watch("voiceId") ? (
+                      <span className="font-mono text-sm">{agentForm.watch("voiceId")}</span>
+                    ) : (
+                      t("select_voice")
+                    )}
+                  </Button>
                 </div>
                 <div>
                   <Label className="text-emphasis mb-1 block text-sm font-medium">
@@ -1106,6 +1131,15 @@ export function AgentConfigurationSheet({
           form={form}
         />
       )}
+
+      <VoiceSelectionDialog
+        open={isVoiceDialogOpen}
+        onOpenChange={setIsVoiceDialogOpen}
+        selectedVoiceId={agentForm.watch("voiceId")}
+        onVoiceSelect={(voiceId) => {
+          agentForm.setValue("voiceId", voiceId, { shouldDirty: true });
+        }}
+      />
 
       <UIDialog open={cancellingNumberId !== null} onOpenChange={() => setCancellingNumberId(null)}>
         <ConfirmationDialogContent

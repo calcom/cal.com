@@ -303,4 +303,8 @@ export class RetellAIPhoneServiceProvider
   }) {
     return await this.service.listCalls(params);
   }
+
+  async listVoices() {
+    return await this.service.listVoices();
+  }
 }
