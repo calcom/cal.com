@@ -141,13 +141,13 @@ export class BookingsService_2024_08_13 {
       await this.hasRequiredBookingFieldsResponses(body, eventType);
 
       if (isRecurring && isSeated) {
-        return await this.createRecurringSeatedBooking(request, body, eventType);
+        return await this.createRecurringSeatedBooking(request, body, eventType, authUser);
       }
       if (isRecurring && !isSeated) {
         return await this.createRecurringBooking(request, body, eventType);
       }
       if (isSeated) {
-        return await this.createSeatedBooking(request, body, eventType);
+        return await this.createSeatedBooking(request, body, eventType, authUser);
       }
 
       return await this.createRegularBooking(request, body, eventType);
@@ -477,7 +477,8 @@ export class BookingsService_2024_08_13 {
   async createRecurringSeatedBooking(
     request: Request,
     body: CreateRecurringBookingInput_2024_08_13,
-    eventType: EventTypeWithOwnerAndTeam
+    eventType: EventTypeWithOwnerAndTeam,
+    authUser: AuthOptionalUser
   ) {
     const bookingRequest = await this.inputService.createRecurringBookingRequest(request, body, eventType);
     const bookings = await handleNewRecurringBooking({
@@ -491,8 +492,14 @@ export class BookingsService_2024_08_13 {
       platformBookingLocation: bookingRequest.platformBookingLocation,
       areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
     });
+    
+    // Compute proper attendee visibility based on event type and authentication
+    // For recurring bookings, use the event type settings to determine authorization
+    const showAttendees = eventType.seatsShowAttendees || false; // Default to secure for recurring bookings
+    
     return this.outputService.getOutputCreateRecurringSeatedBookings(
-      bookings.map((booking) => ({ uid: booking.uid || "", seatUid: booking.seatReferenceUid || "" }))
+      bookings.map((booking) => ({ uid: booking.uid || "", seatUid: booking.seatReferenceUid || "" })),
+      showAttendees
     );
   }
 
@@ -529,7 +536,8 @@ export class BookingsService_2024_08_13 {
   async createSeatedBooking(
     request: Request,
     body: CreateBookingInput_2024_08_13,
-    eventType: EventTypeWithOwnerAndTeam
+    eventType: EventTypeWithOwnerAndTeam,
+    authUser: AuthOptionalUser
   ) {
     const bookingRequest = await this.inputService.createBookingRequest(request, body, eventType);
     try {
@@ -555,7 +563,9 @@ export class BookingsService_2024_08_13 {
         throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
       }
 
-      return this.outputService.getOutputCreateSeatedBooking(databaseBooking, booking.seatReferenceUid || "", true);
+      // Compute proper attendee visibility instead of hardcoded true to prevent data leaks
+      const showAttendees = await this.shouldShowAttendees(databaseBooking, authUser);
+      return this.outputService.getOutputCreateSeatedBooking(databaseBooking, booking.seatReferenceUid || "", showAttendees);
     } catch (error) {
       if (error instanceof Error) {
         if (error.message === "booking_seats_full_error") {
@@ -729,20 +739,24 @@ export class BookingsService_2024_08_13 {
 
       const isRecurring = !!formatted.recurringEventId;
       const isSeated = !!formatted.eventType?.seatsPerTimeSlot;
+      
+      // Compute proper attendee visibility instead of just using event setting
+      const showAttendees = isSeated ? await this.shouldShowAttendees(formatted, this.toApiAuthGuardUser(user)) : true;
+      
       if (isRecurring && !isSeated) {
         formattedBookings.push(this.outputService.getOutputRecurringBooking(formatted));
       } else if (isRecurring && isSeated) {
         formattedBookings.push(
           this.outputService.getOutputRecurringSeatedBooking(
             formatted,
-            !!formatted.eventType?.seatsShowAttendees
+            showAttendees
           )
         );
       } else if (isSeated) {
         formattedBookings.push(
           await this.outputService.getOutputSeatedBooking(
             formatted,
-            !!formatted.eventType?.seatsShowAttendees
+            showAttendees
           )
         );
       } else {
@@ -818,6 +832,10 @@ export class BookingsService_2024_08_13 {
 
       const isRecurring = !!databaseBooking.recurringEventId;
       const isSeated = !!databaseBooking.eventType?.seatsPerTimeSlot;
+      
+      // Use request.user for proper attendee visibility calculation
+      const authUser = request.user as ApiAuthGuardUser | undefined;
+      const showAttendees = isSeated ? await this.shouldShowAttendees(databaseBooking, authUser) : true;
 
       if (isRecurring && !isSeated) {
         return this.outputService.getOutputRecurringBooking(databaseBooking);
@@ -826,14 +844,14 @@ export class BookingsService_2024_08_13 {
         return this.outputService.getOutputCreateRecurringSeatedBooking(
           databaseBooking,
           booking?.seatReferenceUid || "",
-          true
+          showAttendees
         );
       }
       if (isSeated) {
         return this.outputService.getOutputCreateSeatedBooking(
           databaseBooking,
           booking.seatReferenceUid || "",
-          true
+          showAttendees
         );
       }
       return this.outputService.getOutputBooking(databaseBooking);
