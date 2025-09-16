@@ -196,7 +196,10 @@ const AppearanceView = ({
       <Form
         form={userAppThemeFormMethods}
         handleSubmit={({ appTheme }) => {
-          if (appTheme === "system") appTheme = null;
+          if (appTheme === "system") {
+            appTheme = null;
+            localStorage.removeItem(`app-theme`);
+          }
           mutation.mutate({
             appTheme,
           });
