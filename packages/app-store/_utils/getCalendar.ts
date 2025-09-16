@@ -14,7 +14,6 @@ const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 export const getCalendar = async (
   credential: CredentialForCalendarService | null
 ): Promise<Calendar | null> => {
-  console.log("getCalendar", credential);
   if (!credential || !credential.key) return null;
   let { type: calendarType } = credential;
   if (calendarType?.endsWith("_other_calendar")) {
@@ -44,7 +43,6 @@ export const getCalendar = async (
 
   // check if Calendar Cache is supported and enabled
   if (CalendarCacheEventService.isAppSupported(credential.appId)) {
-    console.log("Calendar Cache is supported and enabled", JSON.stringify(credential));
     log.debug(
       `Using regular CalendarService for credential ${credential.id} (not Google or Office365 Calendar)`
     );
