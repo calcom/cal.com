@@ -21,9 +21,10 @@ import { useVoicePreview } from "../hooks/useVoicePreview";
 type Voice = {
   voice_id: string;
   voice_name: string;
-  voice_type: string;
-  gender?: string;
+  provider: 'elevenlabs' | 'openai' | 'deepgram';
+  gender: 'male' | 'female';
   accent?: string;
+  age?: string;
   preview_audio_url?: string;
 };
 
@@ -108,9 +109,14 @@ function VoiceSelectionContent({ selectedVoiceId, onVoiceSelect }: { selectedVoi
                 {row.original.gender}
               </span>
             )}
-            {row.original.voice_type && (
+            {row.original.provider && (
               <span className="px-2 py-1 bg-subtle text-default rounded-md text-xs">
-                {row.original.voice_type}
+                {row.original.provider}
+              </span>
+            )}
+            {row.original.age && (
+              <span className="px-2 py-1 bg-subtle text-default rounded-md text-xs">
+                {row.original.age}
               </span>
             )}
           </div>
@@ -133,13 +139,12 @@ function VoiceSelectionContent({ selectedVoiceId, onVoiceSelect }: { selectedVoi
           <Button
             type="button"
             size="sm"
-            variant={selectedVoiceId === row.original.voice_id ? "default" : "outline"}
+            color={selectedVoiceId === row.original.voice_id ? "primary" : "secondary"}
             onClick={() => handleUseVoice(row.original.voice_id)}
             className="whitespace-nowrap">
             {selectedVoiceId === row.original.voice_id ? (
               <>
-                <Icon name="check" className="mr-2 h-4 w-4" />
-                {t("use_voice")}
+                {t("current_voice")}
               </>
             ) : (
               t("use_voice")
@@ -172,7 +177,7 @@ function VoiceSelectionContent({ selectedVoiceId, onVoiceSelect }: { selectedVoi
         table={table}
         isPending={isLoading}
         totalRowCount={voiceData?.length || 0}
-        paginationMode="none"
+        paginationMode="standard"
         className="h-auto"
       />
     </div>
@@ -198,7 +203,6 @@ export function VoiceSelectionDialog({
         <DialogHeader
           title={t("select_voice")}
           subtitle={t("choose_a_voice_for_your_agent")}
-          showCloseButton={true}
         />
 
         <div className="flex-1 overflow-hidden min-h-0 mt-4">
