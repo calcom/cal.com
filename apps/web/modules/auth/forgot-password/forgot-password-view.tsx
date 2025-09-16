@@ -5,7 +5,7 @@ import { Button } from "@calid/features/ui/components/button";
 import { EmailField } from "@calid/features/ui/components/input/input";
 import { debounce } from "lodash";
 import Link from "next/link";
-import type { CSSProperties, SyntheticEvent } from "react";
+import type { SyntheticEvent } from "react";
 import React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
