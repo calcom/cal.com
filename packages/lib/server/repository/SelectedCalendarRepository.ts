@@ -18,18 +18,25 @@ export class SelectedCalendarRepository {
   }
 
   async findNotSubscribed({ take }: { take: number }) {
-    return await this.prismaClient.selectedCalendar.findMany({
+    return this.prismaClient.selectedCalendar.findMany({
       where: { syncSubscribedAt: null },
       take,
     });
   }
 
+  async findMany(args: { where: Prisma.SelectedCalendarWhereInput }) {
+    return this.prismaClient.selectedCalendar.findMany({
+      where: args.where,
+      select: { id: true, externalId: true, credentialId: true, syncedAt: true },
+    });
+  }
+
   async findByChannelId(channelId: string) {
-    return await this.prismaClient.selectedCalendar.findFirst({ where: { channelId } });
+    return this.prismaClient.selectedCalendar.findFirst({ where: { channelId } });
   }
 
   async updateById(id: string, data: Prisma.SelectedCalendarUpdateInput) {
-    return await this.prismaClient.selectedCalendar.update({
+    return this.prismaClient.selectedCalendar.update({
       where: { id },
       data,
     });

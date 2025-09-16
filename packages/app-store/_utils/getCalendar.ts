@@ -1,4 +1,8 @@
+import { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
+import { CalendarCacheWrapper } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheWrapper";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
+import { prisma } from "@calcom/prisma";
 import type { Calendar, CalendarClass } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
@@ -12,20 +16,10 @@ interface CalendarApp {
 
 const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 
-/**
- * @see [Using type predicates](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates)
- */
-const isCalendarService = (x: unknown): x is CalendarApp =>
-  !!x &&
-  typeof x === "object" &&
-  "lib" in x &&
-  typeof x.lib === "object" &&
-  !!x.lib &&
-  "CalendarService" in x.lib;
-
 export const getCalendar = async (
   credential: CredentialForCalendarService | null
 ): Promise<Calendar | null> => {
+  console.log("getCalendar", credential);
   if (!credential || !credential.key) return null;
   let { type: calendarType } = credential;
   if (calendarType?.endsWith("_other_calendar")) {
@@ -51,6 +45,29 @@ export const getCalendar = async (
   if (!CalendarService || typeof CalendarService !== "function") {
     log.warn(`calendar of type ${calendarType} is not implemented`);
     return null;
+  }
+
+  // check if Calendar Cache is supported and enabled
+  if (CalendarCacheEventService.isAppSupported(credential.appId)) {
+    console.log("Calendar Cache is supported and enabled", JSON.stringify(credential));
+    log.debug(
+      `Using regular CalendarService for credential ${credential.id} (not Google or Office365 Calendar)`
+    );
+    const featuresRepository = new FeaturesRepository(prisma);
+    const isCalendarSubscriptionCacheEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally(
+      "calendar-subscription-cache"
+    );
+
+    if (isCalendarSubscriptionCacheEnabled) {
+      log.debug(
+        `calendar-subscription-cache is enabled, using CalendarCacheService for credential ${credential.id}`
+      );
+      const originalCalendar = new CalendarService(credential as any);
+      if (originalCalendar) {
+        // return cacheable calendar
+        return new CalendarCacheWrapper(originalCalendar);
+      }
+    }
   }
 
   return new CalendarService(credential as any);

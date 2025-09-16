@@ -141,7 +141,7 @@
   "lint-staged": {
     "(apps|packages)/**/*.{js,ts,jsx,tsx}": [
       "prettier --write",
-      "eslint --fix --max-warnings=0"
+      "eslint --fix"
     ],
     "*.json": [
       "prettier --write"

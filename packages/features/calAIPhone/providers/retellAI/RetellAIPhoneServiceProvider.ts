@@ -290,4 +290,16 @@ export class RetellAIPhoneServiceProvider
   async removeToolsForEventTypes(agentId: string, eventTypeIds: number[]): Promise<void> {
     return await this.service.removeToolsForEventTypes(agentId, eventTypeIds);
   }
+
+  async listCalls(params: {
+    limit?: number;
+    offset?: number;
+    filters: {
+      fromNumber: string[];
+      toNumber?: string[];
+      startTimestamp?: { lower_threshold?: number; upper_threshold?: number };
+    };
+  }) {
+    return await this.service.listCalls(params);
+  }
 }

@@ -132,11 +132,11 @@ export class CalendarSubscriptionService {
       log.debug("Caching events", { count: events.items.length });
       const { CalendarCacheEventService } = await import("./cache/CalendarCacheEventService");
       const { CalendarCacheEventRepository } = await import("./cache/CalendarCacheEventRepository");
-      const cacheSvc = new CalendarCacheEventService({
+      const calendarCacheEventService = new CalendarCacheEventService({
         calendarCacheEventRepository: new CalendarCacheEventRepository(prisma),
         selectedCalendarRepository: this.deps.selectedCalendarRepository,
       });
-      await cacheSvc.handleEvents(selectedCalendar, events.items);
+      await calendarCacheEventService.handleEvents(selectedCalendar, events.items);
     }
 
     if (syncEnabled) {

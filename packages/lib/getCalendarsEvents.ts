@@ -164,7 +164,7 @@ const getCalendarsEvents = async (
 
     return eventBusyDates.map((a) => ({
       ...a,
-      source: `${appId}`,
+      source: a.source || `${appId}`,
     }));
   });
   const awaitedResults = await Promise.all(results);

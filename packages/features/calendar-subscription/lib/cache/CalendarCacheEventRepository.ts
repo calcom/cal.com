@@ -6,6 +6,31 @@ import type { CalendarCacheEvent } from "@calcom/prisma/client";
 export class CalendarCacheEventRepository implements ICalendarCacheEventRepository {
   constructor(private prismaClient: PrismaClient) {}
 
+  async findAllBySelectedCalendarIds(
+    selectedCalendarId: string[],
+    start: Date,
+    end: Date
+  ): Promise<Pick<CalendarCacheEvent, "start" | "end" | "timeZone">[]> {
+    return this.prismaClient.calendarCacheEvent.findMany({
+      where: {
+        selectedCalendarId: {
+          in: selectedCalendarId,
+        },
+        start: {
+          gte: start,
+        },
+        end: {
+          lte: end,
+        },
+      },
+      select: {
+        start: true,
+        end: true,
+        timeZone: true,
+      },
+    });
+  }
+
   async upsertMany(events: CalendarCacheEvent[]): Promise<void> {
     this.prismaClient.calendarCacheEvent.createMany({ data: events });
   }

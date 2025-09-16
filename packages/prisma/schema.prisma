@@ -2560,41 +2560,38 @@ model CalAiPhoneNumber {
   @@index([outboundAgentId])
 }
 
-model CalendarCacheEvent {
-  id                 String @id @default(uuid())
-  selectedCalendarId String
+enum CalendarCacheEventStatus {
+  confirmed @map("confirmed")
+  tentative @map("tentative")
+  cancelled @map("cancelled")
+}
 
-  // External calendar event data (provider-agnostic)
-  externalId   String
-  externalEtag String
-  iCalUID      String?
-  iCalSequence Int     @default(0)
+model CalendarCacheEvent {
+  id                 String  @id @default(uuid())
+  selectedCalendarId String
+  externalId         String
+  externalEtag       String
+  iCalUID            String?
+  iCalSequence       Int     @default(0)
 
   // Event details
-  summary     String?
-  description String?
-  location    String?
-  start       DateTime
-  end         DateTime
-  isAllDay    Boolean  @default(false)
-  // Event timezone (from event payload or inferred from calendar)
-  timeZone    String?
-  // Event metadata
-  status      String   @default("confirmed") // confirmed, tentative, cancelled
-  visibility  String   @default("default") // default, public, private
-
-  // Recurring events
+  summary           String?
+  description       String?
+  location          String?
+  start             DateTime
+  end               DateTime
+  isAllDay          Boolean                  @default(false)
+  timeZone          String?
+  status            CalendarCacheEventStatus @default(confirmed)
   recurringEventId  String?
   originalStartTime DateTime?
 
-  // Relations
-  selectedCalendar SelectedCalendar @relation(fields: [selectedCalendarId], references: [id], onDelete: Cascade)
-
-  // Timestamps
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   externalCreatedAt DateTime?
   externalUpdatedAt DateTime?
+
+  selectedCalendar SelectedCalendar @relation(fields: [selectedCalendarId], references: [id], onDelete: Cascade)
 
   @@unique([selectedCalendarId, externalId])
   @@index([start, end, status])

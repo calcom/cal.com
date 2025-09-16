@@ -1,7 +1,5 @@
-import { CalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository";
-import { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
+import { CalendarCacheRepository } from "@calcom/features/calendar-cache/calendar-cache.repository";
 import { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/lib/getConnectedDestinationCalendars";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -26,15 +24,16 @@ export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalenda
       prisma,
     });
 
-  // enrich calendars with data from the cache
-  const calendarCacheEventRepository = new CalendarCacheEventRepository(prisma);
-  const selectedCalendarRepository = new SelectedCalendarRepository(prisma);
-  const calendarCacheEventService = new CalendarCacheEventService({
-    calendarCacheEventRepository,
-    selectedCalendarRepository,
-  });
+  const credentialIds = connectedCalendars.map((cal) => cal.credentialId);
+  const cacheRepository = new CalendarCacheRepository();
+  const cacheStatuses = await cacheRepository.getCacheStatusByCredentialIds(credentialIds);
 
-  const enrichedConnectedCalendars = await calendarCacheEventService.enrichCalendar(connectedCalendars);
+  const cacheStatusMap = new Map(cacheStatuses.map((cache) => [cache.credentialId, cache.updatedAt]));
+
+  const enrichedConnectedCalendars = connectedCalendars.map((calendar) => ({
+    ...calendar,
+    cacheUpdatedAt: cacheStatusMap.get(calendar.credentialId) || null,
+  }));
 
   return {
     connectedCalendars: enrichedConnectedCalendars,

@@ -9,6 +9,10 @@ export type RetellDynamicVariables = { [key: string]: unknown };
 
 export type RetellAgent = Retell.AgentResponse;
 
+// Call list types
+export type RetellCallListParams = Retell.CallListParams;
+export type RetellCallListResponse = Retell.CallListResponse;
+
 export type RetellAgentWithRetellLm = Retell.AgentResponse & {
   response_engine: Retell.AgentResponse.ResponseEngineRetellLm;
 };
@@ -176,6 +180,9 @@ export interface RetellAIRepository {
 
   // Call operations
   createPhoneCall(data: CreatePhoneCallParams): Promise<RetellCall>;
+
+  listCalls(params: RetellCallListParams): Promise<RetellCallListResponse>;
+
   createWebCall(
     data: CreateWebCallParams
   ): Promise<{ call_id: string; access_token: string; agent_id: string }>;

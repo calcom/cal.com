@@ -21,4 +21,16 @@ export interface ICalendarCacheEventRepository {
    * @param selectedCalendarId the id of the calendar
    */
   deleteAllBySelectedCalendarId(selectedCalendarId: string): Promise<void>;
+
+  /**
+   *
+   * @param selectedCalendarId
+   * @param start
+   * @param end
+   */
+  findAllBySelectedCalendarIds(
+    selectedCalendarId: string[],
+    start: Date,
+    end: Date
+  ): Promise<Pick<CalendarCacheEvent, "start" | "end" | "timeZone">[]>;
 }

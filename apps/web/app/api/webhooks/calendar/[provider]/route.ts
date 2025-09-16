@@ -2,8 +2,8 @@ import type { Params } from "app/_types";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import type { CalendarSubscriptionProvider } from "@calcom/features/calendar-subscription/adapters/AdaptersFactory";
 import { DefaultAdapterFactory } from "@calcom/features/calendar-subscription/adapters/AdaptersFactory";
-import type { CalendarSubscriptionProvider } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionPort.interface";
 import { CalendarSubscriptionService } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionService";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
@@ -26,19 +26,21 @@ const log = logger.getSubLogger({ prefix: ["calendar-webhook"] });
  */
 async function postHandler(request: NextRequest, context: { params: Promise<Params> }) {
   log.debug("Received webhook");
-  const allowed = new Set<CalendarSubscriptionProvider>(["google-calendar", "office365-calendar"]);
+
+  // extract and validate provider
+  const provider = (await context.params).provider as string[][0] as CalendarSubscriptionProvider;
+  const allowed = new Set<CalendarSubscriptionProvider>(["google_calendar", "office365_calendar"]);
   if (!allowed.has(provider as CalendarSubscriptionProvider)) {
     return NextResponse.json({ message: "Unsupported provider" }, { status: 400 });
   }
 
-  const provider = (await context.params).provider as string[];
   try {
     const calendarSubscriptionService = new CalendarSubscriptionService({
       adapterFactory: new DefaultAdapterFactory(),
       selectedCalendarRepository: new SelectedCalendarRepository(prisma),
       featuresRepository: new FeaturesRepository(prisma),
     });
-    await calendarSubscriptionService.processWebhook(provider[0], {
+    await calendarSubscriptionService.processWebhook(provider, {
       headers: request.headers,
       query: new URL(request.url).searchParams,
       body: await request.json(),

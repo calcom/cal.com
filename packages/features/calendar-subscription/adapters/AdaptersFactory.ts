@@ -2,7 +2,7 @@ import { GoogleCalendarSubscriptionAdapter } from "../adapters/GoogleCalendarSub
 import type { ICalendarSubscriptionPort } from "../lib/CalendarSubscriptionPort.interface";
 import { Office365CalendarSubscriptionAdapter } from "./Office365CalendarSubscription.adapter";
 
-export type CalendarSubscriptionProvider = "google-calendar" | "office365-calendar";
+export type CalendarSubscriptionProvider = "google_calendar" | "office365_calendar";
 
 export interface AdapterFactory {
   get(provider: CalendarSubscriptionProvider): ICalendarSubscriptionPort;
@@ -13,8 +13,8 @@ export interface AdapterFactory {
  */
 export class DefaultAdapterFactory implements AdapterFactory {
   private singletons = {
-    "google-calendar": new GoogleCalendarSubscriptionAdapter(),
-    "office365-calendar": new Office365CalendarSubscriptionAdapter(),
+    google_calendar: new GoogleCalendarSubscriptionAdapter(),
+    office365_calendar: new Office365CalendarSubscriptionAdapter(),
   } as const;
 
   get(provider: CalendarSubscriptionProvider): ICalendarSubscriptionPort {

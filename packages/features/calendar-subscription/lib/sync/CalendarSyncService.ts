@@ -35,6 +35,33 @@ export class CalendarSyncService {
     }
 
     log.debug("handleEvents: processing calendar events", { count: calEvents.length });
-    // TODO update booking
+    await Promise.all(
+      calEvents.map((e) => {
+        if (e.status === "cancelled") {
+          return this.cancelBooking(e);
+        } else {
+          return this.rescheduleBooking(e);
+        }
+      })
+    );
+  }
+
+  /**
+   * Cancels a booking
+   * @param event
+   * @returns
+   */
+  async cancelBooking(event: CalendarSubscriptionEventItem) {
+    log.debug("cancelBooking", { event });
+    // TODO implement
+  }
+
+  /**
+   * Reschedule a booking
+   * @param event
+   */
+  async rescheduleBooking(event: CalendarSubscriptionEventItem) {
+    log.debug("rescheduleBooking", { event });
+    // TODO implement
   }
 }

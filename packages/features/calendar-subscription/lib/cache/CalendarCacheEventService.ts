@@ -3,6 +3,14 @@ import type { ICalendarCacheEventRepository } from "calendar-subscription/lib/ca
 import logger from "@calcom/lib/logger";
 import type { SelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
 import type { CalendarCacheEvent, SelectedCalendar } from "@calcom/prisma/client";
+import type {
+  Calendar,
+  CalendarEvent,
+  CalendarServiceEvent,
+  EventBusyDate,
+  IntegrationCalendar,
+  NewCalendarEventType,
+} from "@calcom/types/Calendar";
 
 import type { CalendarSubscriptionEventItem } from "../../lib/CalendarSubscriptionPort.interface";
 
@@ -11,7 +19,7 @@ const log = logger.getSubLogger({ prefix: ["CalendarCacheEventService"] });
 /**
  * Service to handle calendar cache
  */
-export class CalendarCacheEventService {
+export class CalendarCacheEventService implements Calendar {
   constructor(
     private deps: {
       selectedCalendarRepository: SelectedCalendarRepository;
@@ -94,11 +102,143 @@ export class CalendarCacheEventService {
       credentialId: number;
       calendars?: { externalId: string; name?: string }[];
     }
-  >(calendars: T[]) {
-    log.debug("enrichCalendar", { count: calendars.length });
+  >(
+    calendars: T[]
+  ): Promise<
+    (T & {
+      calendars?: ({ externalId: string; name?: string } & {
+        syncedAt: Date | null;
+      })[];
+    })[]
+  > {
     if (calendars.length === 0) {
       return [];
     }
-    return calendars;
+
+    // Get all unique external IDs and credential IDs
+    const calendarLookups = calendars.flatMap((cal) =>
+      (cal.calendars || []).map((calendar) => ({
+        externalId: calendar.externalId,
+        credentialId: cal.credentialId,
+      }))
+    );
+
+    // Find SelectedCalendar records in a single query
+    const selectedCalendars = await this.deps.selectedCalendarRepository.findMany({
+      where: {
+        OR: calendarLookups.map(({ externalId, credentialId }) => ({
+          externalId,
+          credentialId,
+        })),
+      },
+    });
+
+    const selectedCalendarMap = new Map(
+      selectedCalendars.map((selectedCalendar) => [
+        `${selectedCalendar.externalId}_${selectedCalendar.credentialId}`,
+        selectedCalendar.id,
+      ])
+    );
+
+    const selectedCalendarIds = calendarLookups.map(({ externalId, credentialId }) => ({
+      externalId,
+      credentialId,
+      selectedCalendarId: selectedCalendarMap.get(`${externalId}_${credentialId}`) || null,
+    }));
+
+    const cacheStatuses = selectedCalendars.map((selectedCalendar) => {
+      return {
+        selectedCalendarId: selectedCalendar.id,
+        lastSyncAt: selectedCalendar.syncedAt,
+      };
+    });
+
+    const cacheStatusMap = new Map(
+      cacheStatuses.map((cache) => [cache.selectedCalendarId, { updatedAt: cache.lastSyncAt }])
+    );
+
+    // Create a map from externalId+credentialId to cache status
+    const externalIdCredentialIdToCacheMap = new Map();
+    selectedCalendarIds.forEach(({ externalId, credentialId, selectedCalendarId }) => {
+      if (selectedCalendarId) {
+        const cacheInfo = cacheStatusMap.get(selectedCalendarId);
+        externalIdCredentialIdToCacheMap.set(`${externalId}_${credentialId}`, cacheInfo);
+      }
+    });
+
+    return calendars.map((calendar) => {
+      const enrichedCalendars = calendar.calendars?.map((cal) => {
+        const cacheKey = `${cal.externalId}_${calendar.credentialId}`;
+        const cacheInfo = externalIdCredentialIdToCacheMap.get(cacheKey);
+
+        return {
+          ...cal,
+          syncedAt: cacheInfo?.updatedAt || null,
+        };
+      });
+
+      return {
+        ...calendar,
+        calendars: enrichedCalendars,
+      };
+    });
+  }
+
+  getCredentialId?(): number {
+    throw new Error("Method not implemented.");
+  }
+  createEvent(
+    event: CalendarServiceEvent,
+    credentialId: number,
+    externalCalendarId?: string
+  ): Promise<NewCalendarEventType> {
+    throw new Error("Method not implemented.");
+  }
+  updateEvent(
+    uid: string,
+    event: CalendarServiceEvent,
+    externalCalendarId?: string | null
+  ): Promise<NewCalendarEventType | NewCalendarEventType[]> {
+    throw new Error("Method not implemented.");
+  }
+  deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<unknown> {
+    throw new Error("Method not implemented.");
+  }
+  getAvailability(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[],
+    shouldServeCache?: boolean,
+    fallbackToPrimary?: boolean
+  ): Promise<EventBusyDate[]> {
+    throw new Error("Method not implemented.");
+  }
+  getAvailabilityWithTimeZones?(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[],
+    fallbackToPrimary?: boolean
+  ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]> {
+    throw new Error("Method not implemented.");
+  }
+  fetchAvailabilityAndSetCache?(selectedCalendars: IntegrationCalendar[]): Promise<unknown> {
+    throw new Error("Method not implemented.");
+  }
+  listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]> {
+    throw new Error("Method not implemented.");
+  }
+  testDelegationCredentialSetup?(): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+
+  /**
+   * Checks if the app is supported
+   *
+   * @param appId
+   * @returns
+   */
+  static isAppSupported(appId: string | null): boolean {
+    if (!appId) return false;
+    return ["google-calendar", "office365-calendar"].includes(appId);
   }
 }
