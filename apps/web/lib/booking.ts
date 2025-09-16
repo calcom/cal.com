@@ -46,7 +46,6 @@ export const getEventTypesFromDB = async (id: number) => {
       disableRescheduling: true,
       disableGuests: true,
       timeZone: true,
-      parentId: true,
       profile: {
         select: {
           organizationId: true,
@@ -77,6 +76,7 @@ export const getEventTypesFromDB = async (id: number) => {
               hideBranding: true,
             },
           },
+          parentId: true,
           createdByOAuthClientId: true,
         },
       },
