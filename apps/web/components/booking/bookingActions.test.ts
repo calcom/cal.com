@@ -125,6 +125,7 @@ function createMockContext(overrides: Partial<BookingActionContext> = {}): Booki
     ],
     getSeatReferenceUid: () => undefined,
     t: mockT,
+    checkIfUserIsAuthorizedToConfirmBooking: () => true,
     ...overrides,
   } as BookingActionContext;
 }
