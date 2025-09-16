@@ -152,6 +152,47 @@ describe("Booking Actions", () => {
       });
     });
 
+
+    it("should return cancel action for pending bookings when user is booker", () => {
+      const context = createMockContext({
+        isPending: true,
+        isConfirmed: false,
+        checkIfUserIsAuthorizedToConfirmBooking: () => false,
+      });
+      const actions = getPendingActions(context);
+      expect(actions).toEqual([
+        {
+          id: "cancel",
+          label: "cancel_event",
+          href: "/booking/booking-123?cancel=true",
+          icon: "circle-x",
+          color: "destructive",
+          disabled: false,
+        },
+      ]);
+    });
+
+    it("should return cancel all action for pending recurring bookings when user is booker", () => {
+      const context = createMockContext({
+        isPending: true,
+        isConfirmed: false,
+        isRecurring: true,
+        isTabRecurring: true,
+        checkIfUserIsAuthorizedToConfirmBooking: () => false,
+      });
+      const actions = getPendingActions(context);
+      expect(actions).toEqual([
+        {
+          id: "cancel",
+          label: "cancel_all_remaining",
+          href: "/booking/booking-123?cancel=true&allRemainingBookings=true",
+          icon: "circle-x",
+          color: "destructive",
+          disabled: false,
+        },
+      ]);
+    });
+
     it("should return reject action only for non-pending booking", () => {
       const context = createMockContext({ isPending: false });
       const actions = getPendingActions(context);
