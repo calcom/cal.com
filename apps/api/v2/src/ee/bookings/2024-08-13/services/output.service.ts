@@ -229,7 +229,8 @@ export class OutputBookingsService_2024_08_13 {
       status: databaseBooking.status.toLowerCase(),
       cancellationReason:
         databaseBooking.status === BookingStatus.CANCELLED ? databaseBooking.cancellationReason : undefined,
-      cancelledByEmail: databaseBooking.status === BookingStatus.CANCELLED ? databaseBooking.cancelledBy : undefined,
+      cancelledByEmail:
+        databaseBooking.status === BookingStatus.CANCELLED ? databaseBooking.cancelledBy : undefined,
       reschedulingReason: bookingResponses?.rescheduledReason,
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
       start: databaseBooking.startTime,
@@ -398,6 +399,7 @@ export class OutputBookingsService_2024_08_13 {
     seatUid: string,
     showAttendees?: boolean
   ): CreateRecurringSeatedBookingOutput_2024_08_13 {
+    const showAttendees = userIsEventTypeAdminOrOwner || !!databaseBooking.eventType?.seatsShowAttendees;
     const getRecurringSeatedBookingOutput = this.getOutputRecurringSeatedBooking(
       databaseBooking,
       showAttendees ?? !!databaseBooking.eventType?.seatsShowAttendees

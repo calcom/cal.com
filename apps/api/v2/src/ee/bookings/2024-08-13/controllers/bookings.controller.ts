@@ -11,7 +11,12 @@ import { BookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/se
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { CalVideoService } from "@/ee/bookings/2024-08-13/services/cal-video.service";
 import { VERSION_2024_08_13_VALUE, VERSION_2024_08_13 } from "@/lib/api-versions";
-import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
+import {
+  API_KEY_OR_ACCESS_TOKEN_HEADER,
+  OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER,
+  OPTIONAL_X_CAL_CLIENT_ID_HEADER,
+  OPTIONAL_X_CAL_SECRET_KEY_HEADER,
+} from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import {
   AuthOptionalUser,
@@ -22,8 +27,8 @@ import { Permissions } from "@/modules/auth/decorators/permissions/permissions.d
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { OptionalApiAuthGuard } from "@/modules/auth/guards/optional-api-auth/optional-api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { UsersService } from "@/modules/users/services/users.service";
-import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
   Post,
@@ -101,6 +106,9 @@ export class BookingsController_2024_08_13 {
 
   @Post("/")
   @UseGuards(OptionalApiAuthGuard)
+  @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
+  @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
+  @ApiHeader(OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Create a booking",
     description: `
@@ -122,6 +130,9 @@ export class BookingsController_2024_08_13 {
       And 2 ways to book and event type belonging to a team:
       1. Provide \`eventTypeId\` in the request body.
       2. Provide \`eventTypeSlug\` and \`teamSlug\` and optionally \`organizationSlug\` if the team with the teamSlug is within an organization.
+
+      If you are creating a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or
+      you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.
       `,
   })
   @ApiBody({
@@ -161,7 +172,12 @@ export class BookingsController_2024_08_13 {
   }
 
   @Get("/:bookingUid")
-  @UseGuards(OptionalApiAuthGuard, BookingUidGuard)
+
+  @UseGuards(BookingUidGuard, OptionalApiAuthGuard)
+  @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
+  @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
+  @ApiHeader(OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER)
+
   @ApiOperation({
     summary: "Get a booking",
     description: `\`:bookingUid\` can be
@@ -170,7 +186,11 @@ export class BookingsController_2024_08_13 {
 
       2. uid of one of the recurring booking recurrences
 
-      3. uid of recurring booking which will return an array of all recurring booking recurrences (stored as recurringBookingUid on one of the individual recurrences).`,
+      3. uid of recurring booking which will return an array of all recurring booking recurrences (stored as recurringBookingUid on one of the individual recurrences).
+      
+      If you are fetching a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or
+      you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.
+      `,
   })
   async getBooking(
     @Param("bookingUid") bookingUid: string,
@@ -221,7 +241,7 @@ export class BookingsController_2024_08_13 {
   @ApiOperation({ summary: "Get all bookings" })
   async getBookings(
     @Query() queryParams: GetBookingsInput_2024_08_13,
-    @GetUser() user: UserWithProfile
+    @GetUser() user: ApiAuthGuardUser
   ): Promise<GetBookingsOutput_2024_08_13> {
     const profile = this.usersService.getUserMainProfile(user);
 
@@ -239,7 +259,10 @@ export class BookingsController_2024_08_13 {
   }
 
   @Post("/:bookingUid/reschedule")
-  @UseGuards(BookingUidGuard)
+  @UseGuards(BookingUidGuard, OptionalApiAuthGuard)
+  @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
+  @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
+  @ApiHeader(OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Reschedule a booking",
     description: "Reschedule a booking or seated booking",
@@ -251,17 +274,20 @@ export class BookingsController_2024_08_13 {
         { $ref: getSchemaPath(RescheduleSeatedBookingInput_2024_08_13) },
       ],
     },
-    description:
-      "Accepts different types of reschedule booking input: Reschedule Booking (Option 1) or Reschedule Seated Booking (Option 2)",
+    description: `Accepts different types of reschedule booking input: Reschedule Booking (Option 1) or Reschedule Seated Booking (Option 2).
+
+      If you are rescheduling a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or
+      you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.`,
   })
   @ApiExtraModels(RescheduleBookingInput_2024_08_13, RescheduleSeatedBookingInput_2024_08_13)
   async rescheduleBooking(
     @Param("bookingUid") bookingUid: string,
     @Body(new RescheduleBookingInputPipe())
     body: RescheduleBookingInput,
-    @Req() request: Request
+    @Req() request: Request,
+    @GetOptionalUser() user: AuthOptionalUser
   ): Promise<RescheduleBookingOutput_2024_08_13> {
-    const newBooking = await this.bookingsService.rescheduleBooking(request, bookingUid, body);
+    const newBooking = await this.bookingsService.rescheduleBooking(request, bookingUid, body, user);
     await this.bookingsService.billRescheduledBooking(newBooking, bookingUid);
 
     return {
@@ -271,7 +297,10 @@ export class BookingsController_2024_08_13 {
   }
 
   @Post("/:bookingUid/cancel")
-  @UseGuards(BookingUidGuard)
+  @UseGuards(BookingUidGuard, OptionalApiAuthGuard)
+  @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
+  @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
+  @ApiHeader(OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: "Cancel a booking",
@@ -284,7 +313,11 @@ export class BookingsController_2024_08_13 {
     
     \nCancelling recurring seated bookings:
     For recurring seated bookings it is not possible to cancel all of them with 1 call
-    like with non-seated recurring bookings by providing recurring bookind uid - you have to cancel each recurrence booking by its bookingUid + seatUid.`,
+    like with non-seated recurring bookings by providing recurring bookind uid - you have to cancel each recurrence booking by its bookingUid + seatUid.
+    
+    If you are cancelling a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or
+    you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.
+    `,
   })
   @ApiBody({
     schema: {
@@ -301,9 +334,10 @@ export class BookingsController_2024_08_13 {
     @Req() request: Request,
     @Param("bookingUid") bookingUid: string,
     @Body(new CancelBookingInputPipe())
-    body: CancelBookingInput
+    body: CancelBookingInput,
+    @GetOptionalUser() user: AuthOptionalUser
   ): Promise<CancelBookingOutput_2024_08_13> {
-    const cancelledBooking = await this.bookingsService.cancelBooking(request, bookingUid, body);
+    const cancelledBooking = await this.bookingsService.cancelBooking(request, bookingUid, body, user);
 
     return {
       status: SUCCESS_STATUS,
@@ -345,7 +379,7 @@ export class BookingsController_2024_08_13 {
   })
   async reassignBooking(
     @Param("bookingUid") bookingUid: string,
-    @GetUser() user: UserWithProfile
+    @GetUser() user: ApiAuthGuardUser
   ): Promise<ReassignBookingOutput_2024_08_13> {
     const booking = await this.bookingsService.reassignBooking(bookingUid, user);
 
@@ -395,7 +429,7 @@ export class BookingsController_2024_08_13 {
   })
   async confirmBooking(
     @Param("bookingUid") bookingUid: string,
-    @GetUser() user: UserWithProfile
+    @GetUser() user: ApiAuthGuardUser
   ): Promise<GetBookingOutput_2024_08_13> {
     const booking = await this.bookingsService.confirmBooking(bookingUid, user);
 
@@ -417,7 +451,7 @@ export class BookingsController_2024_08_13 {
   async declineBooking(
     @Param("bookingUid") bookingUid: string,
     @Body() body: DeclineBookingInput_2024_08_13,
-    @GetUser() user: UserWithProfile
+    @GetUser() user: ApiAuthGuardUser
   ): Promise<GetBookingOutput_2024_08_13> {
     const booking = await this.bookingsService.declineBooking(bookingUid, user, body.reason);
 

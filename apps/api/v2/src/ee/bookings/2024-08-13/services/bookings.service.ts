@@ -121,7 +121,10 @@ export class BookingsService_2024_08_13 {
       if (!eventType) {
         this.errorsBookingsService.handleEventTypeToBeBookedNotFound(body);
       }
-      await this.checkBookingRequiresAuthenticationSetting(eventType, authUser);
+      const userIsEventTypeAdminOrOwner = authUser
+        ? await this.userIsEventTypeAdminOrOwner(authUser, eventType)
+        : false;
+      await this.checkBookingRequiresAuthenticationSetting(eventType, authUser, userIsEventTypeAdminOrOwner);
 
       if (eventType.schedulingType === "MANAGED") {
         throw new BadRequestException(
@@ -158,7 +161,8 @@ export class BookingsService_2024_08_13 {
 
   async checkBookingRequiresAuthenticationSetting(
     eventType: EventTypeWithOwnerAndTeam,
-    authUser: AuthOptionalUser
+    authUser: AuthOptionalUser,
+    userIsEventTypeAdminOrOwner: boolean
   ) {
     if (!eventType.bookingRequiresAuthentication) return true;
     if (!authUser) {
@@ -167,15 +171,23 @@ export class BookingsService_2024_08_13 {
       );
     }
 
+    if (!userIsEventTypeAdminOrOwner) {
+      throw new ForbiddenException(
+        "checkBookingRequiresAuthentication - user is not authorized to access this event type. User has to be either event type owner, host, team admin or owner or org admin or owner."
+      );
+    }
+  }
+
+  async userIsEventTypeAdminOrOwner(authUser: ApiAuthGuardUser, eventType: EventType) {
     const authUserId = authUser.id;
     const authUserRole = authUser.role;
     const eventTypeId = eventType.id;
     const teamId = eventType.teamId;
-    const bookingUserId = eventType.owner?.id || null;
+    const eventTypeOwnerId = eventType.userId || null;
 
-    if (authUserRole === "ADMIN") return;
+    if (authUserRole === "ADMIN") return true;
 
-    if (bookingUserId === authUserId) return;
+    if (eventTypeOwnerId === authUserId) return true;
 
     if (eventTypeId) {
       const [isUserHost, isUserAssigned] = await Promise.all([
@@ -183,7 +195,7 @@ export class BookingsService_2024_08_13 {
         this.eventTypesRepository.isUserAssignedToEventType(authUserId, eventTypeId),
       ]);
 
-      if (isUserHost || isUserAssigned) return;
+      if (isUserHost || isUserAssigned) return true;
     }
 
     if (teamId) {
@@ -191,19 +203,17 @@ export class BookingsService_2024_08_13 {
         authUserId,
         teamId
       );
-      if (membership) return;
+      if (membership) return true;
     }
 
     if (
-      bookingUserId &&
-      (await this.membershipsService.isUserOrgAdminOrOwnerOfAnotherUser(authUserId, bookingUserId))
+      eventTypeOwnerId &&
+      (await this.membershipsService.isUserOrgAdminOrOwnerOfAnotherUser(authUserId, eventTypeOwnerId))
     ) {
-      return;
+      return true;
     }
 
-    throw new ForbiddenException(
-      "checkBookingRequiresAuthentication - user is not authorized to access this event type. User has to be either event type owner, host, team admin or owner or org admin or owner."
-    );
+    return false;
   }
 
   async getBookedEventType(body: CreateBookingInput) {
@@ -578,6 +588,10 @@ export class BookingsService_2024_08_13 {
 
   async getBooking(uid: string, authUser?: AuthOptionalUser) {
     const booking = await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEvent(uid);
+    const userIsEventTypeAdminOrOwner =
+      authUser && booking?.eventType
+        ? await this.userIsEventTypeAdminOrOwner(authUser, booking.eventType)
+        : false;
 
     if (booking) {
       const isRecurring = !!booking.recurringEventId;
@@ -590,8 +604,6 @@ export class BookingsService_2024_08_13 {
         return this.outputService.getOutputRecurringBooking(booking);
       }
       if (isRecurring && isSeated) {
-        return this.outputService.getOutputRecurringSeatedBooking(booking, showAttendees);
-      }
       if (isSeated) {
         return this.outputService.getOutputSeatedBooking(booking, showAttendees);
       }
@@ -801,7 +813,12 @@ export class BookingsService_2024_08_13 {
     return queryParamsAttendeeEmail;
   }
 
-  async rescheduleBooking(request: Request, bookingUid: string, body: RescheduleBookingInput) {
+  async rescheduleBooking(
+    request: Request,
+    bookingUid: string,
+    body: RescheduleBookingInput,
+    authUser: AuthOptionalUser
+  ) {
     try {
       await this.canRescheduleBooking(bookingUid);
       const bookingRequest = await this.inputService.createRescheduleBookingRequest(
@@ -830,6 +847,10 @@ export class BookingsService_2024_08_13 {
         throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
       }
 
+      const userIsEventTypeAdminOrOwner =
+        authUser && databaseBooking.eventType
+          ? await this.userIsEventTypeAdminOrOwner(authUser, databaseBooking.eventType)
+          : false;
       const isRecurring = !!databaseBooking.recurringEventId;
       const isSeated = !!databaseBooking.eventType?.seatsPerTimeSlot;
       
@@ -879,7 +900,12 @@ export class BookingsService_2024_08_13 {
     return booking;
   }
 
-  async cancelBooking(request: Request, bookingUid: string, body: CancelBookingInput) {
+  async cancelBooking(
+    request: Request,
+    bookingUid: string,
+    body: CancelBookingInput,
+    authUser: AuthOptionalUser
+  ) {
     if (this.inputService.isCancelSeatedBody(body)) {
       const seat = await this.bookingSeatRepository.getByReferenceUid(body.seatUid);
 
@@ -1103,7 +1129,7 @@ export class BookingsService_2024_08_13 {
     }
   }
 
-  async confirmBooking(bookingUid: string, requestUser: UserWithProfile) {
+  async confirmBooking(bookingUid: string, requestUser: ApiAuthGuardUser) {
     const booking = await this.bookingsRepository.getByUid(bookingUid);
     if (!booking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
@@ -1136,7 +1162,7 @@ export class BookingsService_2024_08_13 {
     return this.getBooking(bookingUid, authUser);
   }
 
-  async declineBooking(bookingUid: string, requestUser: UserWithProfile, reason?: string) {
+  async declineBooking(bookingUid: string, requestUser: ApiAuthGuardUser, reason?: string) {
     const booking = await this.bookingsRepository.getByUid(bookingUid);
     if (!booking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
