@@ -1,6 +1,6 @@
 "use client";
 
-import { PhoneNumberField, usePhoneNumberField, isPhoneNumberComplete } from "@calid/features/ui/components/input/phone-number-field";
+import { usePhoneNumberField } from "@calid/features/ui/components/input/phone-number-field";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useEffect, useState } from "react";
@@ -17,8 +17,6 @@ import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calid/features/ui/components/button";
-import { Input } from "@calid/features/ui/components/input/input";
 
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
@@ -189,7 +187,7 @@ const UserSettings = (props: IUserSettingsProps) => {
           </p>
         )}
       </div>
-      
+
       {/* Timezone select field */}
       <div className="w-full">
         <label htmlFor="timeZone" className="text-emphasis block text-sm font-medium">
@@ -207,7 +205,7 @@ const UserSettings = (props: IUserSettingsProps) => {
           {t("current_time")} {dayjs().tz(selectedTimeZone).format("LT").toString().toLowerCase()}
         </p>
       </div>
-      
+
       <Button
         EndIcon="arrow-right"
         type="submit"

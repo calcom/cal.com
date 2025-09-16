@@ -99,7 +99,7 @@ export const EventTypeWebWrapper = ({
     error: eventTypeQueryError,
     isPending,
   } = trpc.viewer.eventTypes.calid_get.useQuery(
-    { id, calIdTeamId: resolvedCalIdTeamId || 0 },
+    { id },
     { enabled: !serverFetchedData && !!resolvedCalIdTeamId }
   );
 
@@ -159,10 +159,6 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
 
   const { eventType, locationOptions, team, teamMembers, destinationCalendar, currentUserMembership } = rest;
 
-  // Add defensive check for eventType
-  if (!eventType) {
-    return <div>Loading...</div>;
-  }
   const eventTypesLockedByOrg = (eventType as any).team?.parent?.organizationSettings
     ?.lockEventTypeCreationForUsers;
 
@@ -444,6 +440,11 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
       onDeleteClick={() => setDeleteDialogOpen(true)}
     />
   );
+
+  // Add defensive check for eventType
+  if (!eventType) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <Shell

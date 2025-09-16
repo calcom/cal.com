@@ -1,3 +1,4 @@
+import { TeamSelectionDialog } from "@calid/features/modules/teams/components/TeamSelectionDialog";
 import { type ButtonProps } from "@calid/features/ui/components/button";
 import { Button } from "@calid/features/ui/components/button";
 import { Dialog, DialogContent, DialogFooter } from "@calid/features/ui/components/dialog";
@@ -159,7 +160,7 @@ function NewFormDialog({
           </div>
           <DialogFooter className="mt-12">
             {/* <DialogClose /> */}
-            <Button loading={mutation.isPending} data-testid="add-form" type="submit" variant="default">
+            <Button loading={mutation.isPending} data-testid="add-form" type="submit" color="primary">
               {t("continue")}
             </Button>
           </DialogFooter>

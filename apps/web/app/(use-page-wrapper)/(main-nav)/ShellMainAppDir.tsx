@@ -12,7 +12,7 @@ export function ShellMainAppDir(props: LayoutProps) {
       {(props.heading || !!props.backPath) && (
         <div
           className={classNames(
-            "flex items-center md:mb-6 md:mt-0 sticky top-0 z-10 bg-default",
+            "bg-default sticky top-0 z-10 flex items-center md:mb-6 md:mt-0",
             props.smallHeading ? "lg:mb-7" : "lg:mb-4"
           )}>
           {!!props.backPath && <ShellMainAppDirBackButton backPath={props.backPath} />}

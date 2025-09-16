@@ -16,7 +16,7 @@
     "type-check:ci": "tsc-absolute --pretty --noEmit",
     "sentry:release": "NODE_OPTIONS='--max-old-space-size=6144' node scripts/create-sentry-release.js",
     "copy-static": "node scripts/copy-app-store-static.js",
-    "build": "yarn copy-static && next build && yarn sentry:release",
+    "build": "NODE_OPTIONS=--max-old-space-size=8192 yarn copy-static && next build && yarn sentry:release",
     "start": "next start --port 3001",
     "lint": "eslint . --ignore-path .gitignore",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",

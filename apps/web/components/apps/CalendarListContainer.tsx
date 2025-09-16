@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@calid/features/ui/components/button";
+import { BlankCard } from "@calid/features/ui/components/card";
 import { useEffect, Suspense } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
@@ -12,7 +13,6 @@ import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { BlankCard } from "@calid/features/ui/components/card";
 import { ShellSubHeading } from "@calcom/ui/components/layout";
 import { List } from "@calcom/ui/components/list";
 import { showToast } from "@calcom/ui/components/toast";
@@ -79,7 +79,7 @@ const AddCalendarButton = () => {
 
 export const CalendarListContainerSkeletonLoader = ({ showHeader = true }: { showHeader?: boolean }) => {
   const { t } = useLocale();
-  
+
   if (showHeader) {
     return (
       <SettingsHeader title={t("calendars")} description={t("calendars_description")}>
@@ -87,7 +87,7 @@ export const CalendarListContainerSkeletonLoader = ({ showHeader = true }: { sho
       </SettingsHeader>
     );
   }
-  
+
   return <SkeletonLoader />;
 };
 
@@ -142,7 +142,7 @@ export function CalendarListContainer({
         <>
           {heading && (
             <>
-              <div className="flex flex-row justify-end mt-8">
+              <div className="mt-8 flex flex-row justify-end">
                 <AddCalendarButton />
               </div>
               <DestinationCalendarSettingsWebWrapper />

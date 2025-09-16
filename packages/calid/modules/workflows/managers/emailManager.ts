@@ -19,8 +19,8 @@ import {
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { timeUnitLowerCase } from "../config/constants";
-import type { ScheduleEmailReminderAction } from "../config/types";
-import type { AttendeeInBookingInfo, BookingInfo } from "../config/types";
+import type { CalIdScheduleEmailReminderAction } from "../config/types";
+import type { CalIdAttendeeInBookingInfo, CalIdBookingInfo } from "../config/types";
 import { getBatchId, sendSendgridMail } from "../providers/sendgrid";
 import type { VariablesType } from "../templates/customTemplate";
 import customTemplate from "../templates/customTemplate";
@@ -31,7 +31,7 @@ import emailThankYouTemplate from "../templates/email/thankYouTemplate";
 const messageLogger = logger.getSubLogger({ prefix: ["[emailReminderManager]"] });
 
 export interface ScheduleReminderArgs {
-  evt: BookingInfo;
+  evt: CalIdBookingInfo;
   triggerEvent: WorkflowTriggerEvents;
   timeSpan: {
     time: number | null;
@@ -45,9 +45,9 @@ export interface ScheduleReminderArgs {
 }
 
 interface EmailNotificationParameters extends ScheduleReminderArgs {
-  evt: BookingInfo;
+  evt: CalIdBookingInfo;
   sendTo: MailData["to"];
-  action: ScheduleEmailReminderAction;
+  action: CalIdScheduleEmailReminderAction;
   emailSubject?: string;
   emailBody?: string;
   hideBranding?: boolean;
@@ -63,7 +63,7 @@ interface EmailContentData {
 interface RecipientConfiguration {
   targetName: string;
   targetEmail: string | null;
-  participantInfo: AttendeeInBookingInfo | null;
+  participantInfo: CalIdAttendeeInBookingInfo | null;
   participantName: string;
   targetTimezone: string;
 }
@@ -119,13 +119,13 @@ const extractRecipientEmailFromSendTo = (sendToData: MailData["to"]): string | n
 };
 
 const resolveRecipientDetails = (
-  workflowAction: ScheduleEmailReminderAction,
-  eventData: BookingInfo,
+  workflowAction: CalIdScheduleEmailReminderAction,
+  eventData: CalIdBookingInfo,
   recipientTarget: MailData["to"]
 ): RecipientConfiguration => {
   let targetName = "";
   let targetEmail: string | null = null;
-  let participantInfo: AttendeeInBookingInfo | null = null;
+  let participantInfo: CalIdAttendeeInBookingInfo | null = null;
   let participantName = "";
   let targetTimezone = "";
 
@@ -165,8 +165,8 @@ const resolveRecipientDetails = (
 };
 
 const constructVariablesForTemplate = (
-  eventData: BookingInfo,
-  participantData: AttendeeInBookingInfo,
+  eventData: CalIdBookingInfo,
+  participantData: CalIdAttendeeInBookingInfo,
   eventStartTime: string,
   eventEndTime: string,
   targetTimezone: string,
@@ -200,9 +200,9 @@ const generateEmailContentFromTemplate = (
   templateType: WorkflowTemplates | undefined,
   customSubject: string,
   customBody: string,
-  eventData: BookingInfo,
+  eventData: CalIdBookingInfo,
   recipientDetails: RecipientConfiguration,
-  workflowAction: ScheduleEmailReminderAction,
+  workflowAction: CalIdScheduleEmailReminderAction,
   hideBrandingFlag?: boolean,
   bookerBaseUrl?: string
 ): EmailContentData => {
@@ -298,7 +298,7 @@ const generateEmailContentFromTemplate = (
 };
 
 const prepareEmailTransmission = async (
-  eventData: BookingInfo,
+  eventData: CalIdBookingInfo,
   emailContentData: EmailContentData,
   shouldIncludeCalendar?: boolean,
   customSender?: string | null,
@@ -365,7 +365,7 @@ const prepareEmailTransmission = async (
   };
 };
 
-const determineReplyToAddress = (recipientTarget: MailData["to"], eventData: BookingInfo): string => {
+const determineReplyToAddress = (recipientTarget: MailData["to"], eventData: CalIdBookingInfo): string => {
   const isRecipientArray = Array.isArray(recipientTarget);
   const isOrganizerRecipient = isRecipientArray
     ? recipientTarget[0] === eventData.organizer.email
@@ -415,14 +415,14 @@ const createReminderRecord = async (
   };
 
   if (!isMandatory) {
-    await prisma.workflowReminder.create({
+    await prisma.calIdWorkflowReminder.create({
       data: {
         ...baseReminderData,
         workflowStepId: workflowStepId,
       },
     });
   } else {
-    await prisma.workflowReminder.create({
+    await prisma.calIdWorkflowReminder.create({
       data: {
         ...baseReminderData,
         isMandatoryReminder: true,
@@ -572,7 +572,7 @@ export const deleteScheduledEmailReminder = async (
   referenceIdentifier: string | null
 ) => {
   try {
-    await prisma.workflowReminder.update({
+    await prisma.calIdWorkflowReminder.update({
       where: {
         id: reminderIdentifier,
       },

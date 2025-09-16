@@ -1,9 +1,6 @@
 "use client";
 
 import { Icon } from "@calid/features/ui/components/icon";
-
-
-
 import React, { Suspense } from "react";
 
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";

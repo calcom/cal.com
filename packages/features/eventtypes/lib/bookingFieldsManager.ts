@@ -27,6 +27,13 @@ async function getEventType(eventTypeId: EventType["id"]) {
           },
         },
       },
+      calIdWorkflows: {
+        select: {
+          workflow: {
+            select: workflowSelect,
+          },
+        },
+      },
     },
   });
 

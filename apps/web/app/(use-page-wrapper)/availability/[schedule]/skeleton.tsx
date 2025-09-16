@@ -17,8 +17,8 @@ export function AvailabilityScheduleSkeleton() {
 
             {/* Title section */}
             <header className="flex w-full max-w-full items-center truncate">
-              <div className="w-full truncate ltr:mr-4 rtl:ml-4 md:block">
-                <SkeletonText className="font-cal max-w-28 sm:max-w-72 md:max-w-80 hidden h-6 truncate text-xl font-semibold tracking-wide md:block" />
+              <div className="w-full truncate md:block ltr:mr-4 rtl:ml-4">
+                <SkeletonText className="font-cal hidden h-6 max-w-28 truncate text-xl font-semibold tracking-wide sm:max-w-72 md:block md:max-w-80" />
                 {/* Title */}
                 <SkeletonText className="mt-1 hidden h-4 w-64 text-sm md:block" /> {/* Subtitle */}
               </div>
@@ -106,8 +106,8 @@ export function AvailabilityScheduleSkeleton() {
               </div>
 
               {/* Sidebar - only visible on desktop */}
-              <div className="min-w-40 col-span-3 hidden space-y-2 md:block lg:col-span-1 xl:w-[25%]">
-                <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
+              <div className="col-span-3 hidden min-w-40 space-y-2 md:block lg:col-span-1 xl:w-[25%]">
+                <div className="w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0 xl:max-w-80">
                   <div>
                     <SkeletonText className="mb-1 h-4 w-24 text-sm" /> {/* Timezone */}
                     <SkeletonText className="mt-1 h-9 w-72 rounded-md" /> {/* Timezone selector */}

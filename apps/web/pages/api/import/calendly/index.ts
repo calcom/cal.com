@@ -18,22 +18,15 @@ import { sendImportDataEmail } from "@calcom/emails/email-manager";
 import { sendCampaigningEmail } from "@calcom/emails/email-manager";
 import type { CalendlyCampaignEmailProps } from "@calcom/emails/src/templates/CalendlyCampaignEmail";
 import type { ImportDataEmailProps } from "@calcom/emails/src/templates/ImportDataEmail";
-import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
-import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { INNGEST_ID } from "@calcom/lib/constants";
-import { defaultHandler,  } from "@calcom/lib/server/defaultHandler";
-import { defaultResponder} from "@calcom/lib/server/defaultResponder";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 // import {  getTranslation } from "@calcom/platform-libraries";
-
-
-import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
-import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { getServerTimezone } from "@calcom/lib/timezone";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, IntegrationProvider, SchedulingType } from "@calcom/prisma/client";
-import type { CalendarEvent } from "@calcom/types/Calendar";
 
 export const config = {
   api: {
@@ -878,127 +871,128 @@ const importEventTypesAndBookings = async (
   }
 };
 
-async function confirmUpcomingImportedBookings(createdBookings: any[], userIntID: number) {
-  try {
-    // Fetching created bookings with desired fields using the extracted IDs
-    // const createdBookings = await prisma.booking.findMany({
-    //   where: {
-    //     id: {
-    //       in: bookingIds,
-    //     },
-    //   },
-    //   include: {
-    //     eventType: true,
-    //     attendees: true,
-    //     destinationCalendar: true,
-    //   },
-    // });
+// async function confirmUpcomingImportedBookings(createdBookings: any[], userIntID: number) {
+//   try {
+//     // Fetching created bookings with desired fields using the extracted IDs
+//     // const createdBookings = await prisma.booking.findMany({
+//     //   where: {
+//     //     id: {
+//     //       in: bookingIds,
+//     //     },
+//     //   },
+//     //   include: {
+//     //     eventType: true,
+//     //     attendees: true,
+//     //     destinationCalendar: true,
+//     //   },
+//     // });
 
-    //handle booking confirmation
-    const handleBookingsConfirmation = async () => {
-      try {
-        const user = await prisma.user.findFirst({
-          where: {
-            id: userIntID,
-          },
-          include: {
-            destinationCalendar: true,
-          },
-        });
-        if (!user) throw new Error("Event organizer not found");
-        // Fetch user credentials and translation
-        const [credentials, tOrganizer] = await Promise.all([
-          getUsersCredentials(user),
-          // getTranslation(user.locale ?? "en", "common"),
-        ]);
-        const userWithCredentials = { ...user, credentials };
+//     //handle booking confirmation
+//     const handleBookingsConfirmation = async () => {
+//       try {
+//         const user = await prisma.user.findFirst({
+//           where: {
+//             id: userIntID,
+//           },
+//           include: {
+//             destinationCalendar: true,
+//           },
+//         });
+//         if (!user) throw new Error("Event organizer not found");
+//         // Fetch user credentials and translation
+//         const [credentials, tOrganizer] = await Promise.all([
+//           getUsersCredentials(user),
+//           // getTranslation(user.locale ?? "en", "common"),
+//         ]);
+//         const userWithCredentials = { ...user, credentials };
 
-        const bookingConfirmationPromises = createdBookings.map(async (booking) => {
-          // Retrieving translations for attendees' locales
-          const translations = new Map();
-          const attendeesListPromises = booking.attendees.map(async (attendee: any) => {
-            const locale = attendee.locale ?? "en";
-            let translate = translations.get(locale);
-            if (!translate) {
-              // translate = await getTranslation(locale, "common");
-              // translations.set(locale, translate);
-            }
-            return {
-              name: attendee.name,
-              email: attendee.email,
-              timeZone: attendee.timeZone,
-              language: { translate, locale },
-            };
-          });
-          const attendeesList = await Promise.all(attendeesListPromises);
+//         const bookingConfirmationPromises = createdBookings.map(async (booking) => {
+//           // Retrieving translations for attendees' locales
+//           const translations = new Map();
+//           const attendeesListPromises = booking.attendees.map(async (attendee: any) => {
+//             const locale = attendee.locale ?? "en";
+//             const translate = translations.get(locale);
+//             if (!translate) {
+//               // translate = await getTranslation(locale, "common");
+//               // translations.set(locale, translate);
+//             }
+//             return {
+//               name: attendee.name,
+//               email: attendee.email,
+//               timeZone: attendee.timeZone,
+//               language: { translate, locale },
+//             };
+//           });
+//           const attendeesList = await Promise.all(attendeesListPromises);
 
-          // Construct calendar event
-          const evt: CalendarEvent = {
-            type: booking?.eventType?.slug as string,
-            title: booking.title,
-            description: booking.description,
-            ...getCalEventResponses({
-              bookingFields: booking.eventType?.bookingFields ?? null,
-              booking,
-            }),
-            customInputs: isPrismaObjOrUndefined(booking.customInputs),
-            startTime: booking.startTime.toISOString(),
-            endTime: booking.endTime.toISOString(),
-            organizer: {
-              email: user.email,
-              name: user.name || "Unnamed",
-              username: user.username || undefined,
-              timeZone: user.timeZone,
-              timeFormat: getTimeFormatStringFromUserTimeFormat(user.timeFormat),
-              language: { translate: tOrganizer, locale: user.locale ?? "en" },
-            },
-            location: booking.location,
-            attendees: attendeesList,
-            uid: booking.uid,
-            destinationCalendar: booking?.destinationCalendar
-              ? [booking.destinationCalendar]
-              : user.destinationCalendar
-              ? [user.destinationCalendar]
-              : [],
-            requiresConfirmation: booking?.eventType?.requiresConfirmation ?? false,
-            eventTypeId: booking.eventType?.id,
-          };
+//           // Construct calendar event
+//           const evt: CalendarEvent = {
+//             type: booking?.eventType?.slug as string,
+//             title: booking.title,
+//             description: booking.description,
+//             ...getCalEventResponses({
+//               bookingFields: booking.eventType?.bookingFields ?? null,
+//               booking,
+//             }),
+//             customInputs: isPrismaObjOrUndefined(booking.customInputs),
+//             startTime: booking.startTime.toISOString(),
+//             endTime: booking.endTime.toISOString(),
+//             organizer: {
+//               email: user.email,
+//               name: user.name || "Unnamed",
+//               username: user.username || undefined,
+//               timeZone: user.timeZone,
+//               timeFormat: getTimeFormatStringFromUserTimeFormat(user.timeFormat),
+//               language: { translate: tOrganizer, locale: user.locale ?? "en" },
+//             },
+//             location: booking.location,
+//             attendees: attendeesList,
+//             uid: booking.uid,
+//             destinationCalendar: booking?.destinationCalendar
+//               ? [booking.destinationCalendar]
+//               : user.destinationCalendar
+//               ? [user.destinationCalendar]
+//               : [],
+//             requiresConfirmation: booking?.eventType?.requiresConfirmation ?? false,
+//             eventTypeId: booking.eventType?.id,
+//           };
 
-          // Handle confirmation for the booking
-          return handleConfirmation({
-            user: userWithCredentials,
-            evt: evt,
-            prisma: prisma,
-            bookingId: booking.id,
-            booking: {
-              eventType: booking.eventType,
-              smsReminderNumber: booking.smsReminderNumber,
-              eventTypeId: booking.eventType?.id ?? null,
-              userId: userIntID,
-              id: booking.id,
-              startTime: booking.startTime,
-            },
-          });
-        });
-        // Processing each booking concurrently
-        await Promise.all(bookingConfirmationPromises);
-      } catch (innerError) {
-        console.error("Error handling bookings confirmation:", innerError);
-        throw innerError; // Rethrow the error to be caught by the outer catch block
-      }
-    };
+//           // Handle confirmation for the booking
+//           return handleConfirmation({
+//             user: userWithCredentials,
+//             evt: evt,
+//             prisma: prisma,
+//             bookingId: booking.id,
+//             booking: {
+//               eventType: booking.eventType,
+//               smsReminderNumber: booking.smsReminderNumber,
+//               eventTypeId: booking.eventType?.id ?? null,
+//               userId: userIntID,
+//               id: booking.id,
+//               startTime: booking.startTime,
+//               location: booking.location,
+//             },
+//           });
+//         });
+//         // Processing each booking concurrently
+//         await Promise.all(bookingConfirmationPromises);
+//       } catch (innerError) {
+//         console.error("Error handling bookings confirmation:", innerError);
+//         throw innerError; // Rethrow the error to be caught by the outer catch block
+//       }
+//     };
 
-    await handleBookingsConfirmation();
-  } catch (error) {
-    console.error(
-      "Error - confirmUpcomingImportedBookings:",
-      error instanceof Error ? error.message : String(error)
-    );
-    throw new Error(
-      `Error - confirmUpcomingImportedBookings: ${error instanceof Error ? error.message : error}`
-    );
-  }
-}
+//     await handleBookingsConfirmation();
+//   } catch (error) {
+//     console.error(
+//       "Error - confirmUpcomingImportedBookings:",
+//       error instanceof Error ? error.message : String(error)
+//     );
+//     throw new Error(
+//       `Error - confirmUpcomingImportedBookings: ${error instanceof Error ? error.message : error}`
+//     );
+//   }
+// }
 const key = INNGEST_ID === "onehash-cal" ? "prod" : "stag";
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
@@ -1009,7 +1003,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const userIntID = parseInt(userId);
   try {
     //Checking if the user has authorized Calendly
-    console.log("Hello world")
+    console.log("Hello world");
     const userCalendlyIntegrationProvider = await prisma.integrationAccounts.findFirst({
       where: {
         userId: userIntID,
@@ -1026,8 +1020,8 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
         },
       },
     });
-    console.log("User calendly provider", userCalendlyIntegrationProvider)
-    
+    console.log("User calendly provider", userCalendlyIntegrationProvider);
+
     if (!userCalendlyIntegrationProvider) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -1099,7 +1093,7 @@ export const handleCalendlyImportEvent = async (
       expiresIn: userCalendlyIntegrationProvider.expiresIn,
     });
 
-    logger.info("1")
+    logger.info("1");
     //0. Getting user data from calendly
     const { userAvailabilitySchedules, userEventTypes, userScheduledEvents } = await fetchCalendlyData(
       user.id,
@@ -1108,7 +1102,7 @@ export const handleCalendlyImportEvent = async (
       step,
       logger
     );
-    logger.info("2")
+    logger.info("2");
 
     //run sequentially to ensure proper import of entire dataset
     //1.First importing the user availability schedules
@@ -1124,7 +1118,7 @@ export const handleCalendlyImportEvent = async (
         );
       }
     });
-    logger.info("3")
+    logger.info("3");
 
     //2. Then importing the user event types and bookings
     const importedData = await importEventTypesAndBookings(
@@ -1135,7 +1129,7 @@ export const handleCalendlyImportEvent = async (
       step,
       logger
     );
-    logger.info("4")
+    logger.info("4");
 
     const allEventsProcessed = !userScheduledEvents.hasNextPage;
     if (allEventsProcessed) {
@@ -1159,7 +1153,7 @@ export const handleCalendlyImportEvent = async (
           );
         }
       });
-      logger.info("5")
+      logger.info("5");
 
       //4. Sending campaign emails to Calendly user scheduled events bookers
       if (importedData && sendCampaignEmails)

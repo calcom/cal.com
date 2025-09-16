@@ -122,6 +122,15 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
         },
       },
     },
+    calIdWorkflows: {
+      include: {
+        workflow: {
+          include: {
+            steps: true,
+          },
+        },
+      },
+    },
     hosts: {
       select: {
         user: {

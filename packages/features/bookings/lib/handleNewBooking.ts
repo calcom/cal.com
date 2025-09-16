@@ -1,4 +1,4 @@
-import type { Workflow } from "@calid/features/modules/workflows/config/types";
+import type { CalIdWorkflow } from "@calid/features/modules/workflows/config/types";
 import {
   canDisableParticipantNotifications,
   canDisableOrganizerNotifications,
@@ -1249,7 +1249,7 @@ async function handler(
     oAuthClientId: platformClientId,
   };
 
-  const workflows: Workflow[] = await getAllWorkflowsFromEventType(
+  const workflows: CalIdWorkflow[] = await getAllWorkflowsFromEventType(
     {
       ...eventType,
       metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),

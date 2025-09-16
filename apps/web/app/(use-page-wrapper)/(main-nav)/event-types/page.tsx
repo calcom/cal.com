@@ -61,11 +61,8 @@ const Page = async ({ searchParams }: PageProps) => {
   //     description: "Manage your event types and booking configurations.",
   //   });
   return (
-    <ShellMainAppDir
-      heading={t("event_types_page_title")}
-      subtitle={t("event_types_page_subtitle")}
-    >
-      <EventTypes/>
+    <ShellMainAppDir heading={t("event_types_page_title")} subtitle={t("event_types_page_subtitle")}>
+      <EventTypes />
     </ShellMainAppDir>
   );
 };

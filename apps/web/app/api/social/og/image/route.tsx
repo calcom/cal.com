@@ -55,15 +55,16 @@ async function handler(req: NextRequest) {
     switch (imageType) {
       case "meeting": {
         try {
-          const { names, usernames, title, meetingProfileName, meetingImage, bannerUrl } = meetingSchema.parse({
-            bannerUrl: searchParams.get("bannerUrl"),
-            names: searchParams.getAll("names"),
-            usernames: searchParams.getAll("usernames"),
-            title: searchParams.get("title"),
-            meetingProfileName: searchParams.get("meetingProfileName"),
-            meetingImage: searchParams.get("meetingImage"),
-            imageType,
-          });
+          const { names, usernames, title, meetingProfileName, meetingImage, bannerUrl } =
+            meetingSchema.parse({
+              bannerUrl: searchParams.get("bannerUrl"),
+              names: searchParams.getAll("names"),
+              usernames: searchParams.getAll("usernames"),
+              title: searchParams.get("title"),
+              meetingProfileName: searchParams.get("meetingProfileName"),
+              meetingImage: searchParams.get("meetingImage"),
+              imageType,
+            });
 
           const img = new ImageResponse(
             (

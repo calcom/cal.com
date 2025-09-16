@@ -2,7 +2,7 @@ import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
+import { hashPasswordWithSalt } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
 import { prefillAvatar } from "@calcom/features/auth/signup/utils/prefillAvatar";
@@ -130,7 +130,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
   }
 
   // Hash the password
-  const hashedPassword = await hashPassword(password);
+  const { hash, salt } = hashPasswordWithSalt(password);
 
   if (foundToken && foundToken?.teamId) {
     const team = await prisma.team.findUnique({
@@ -157,8 +157,8 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
           identityProvider: IdentityProvider.CAL,
           password: {
             upsert: {
-              create: { hash: hashedPassword },
-              update: { hash: hashedPassword },
+              create: { hash, salt },
+              update: { hash, salt },
             },
           },
         },
@@ -166,7 +166,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
           username,
           email,
           identityProvider: IdentityProvider.CAL,
-          password: { create: { hash: hashedPassword } },
+          password: { create: { hash, salt } },
         },
       });
       // Wrapping in a transaction as if one fails we want to rollback the whole thing to preventa any data inconsistencies
@@ -197,7 +197,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
         username,
         email,
         locked: shouldLockByDefault,
-        password: { create: { hash: hashedPassword } },
+        password: { create: { hash, salt } },
         metadata: {
           stripeCustomerId: customer.stripeCustomerId,
           checkoutSessionId,

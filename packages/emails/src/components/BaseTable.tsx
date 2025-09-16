@@ -1,3 +1,4 @@
+import React from "react";
 type BaseTableProps = Omit<
   React.DetailedHTMLProps<React.TableHTMLAttributes<HTMLTableElement>, HTMLTableElement>,
   "border"

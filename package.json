@@ -31,6 +31,7 @@
     "build": "turbo run build --filter=@calcom/web...",
     "build:ai": "turbo run build --scope=\"@calcom/ai\"",
     "clean": "find . -name node_modules -o -name .next -o -name .turbo -o -name dist -type d -prune | xargs rm -rf",
+    "db-deploy": "turbo run db-deploy",
     "db-migrate": "yarn workspace @calcom/prisma run db-migrate",
     "db-rollback": "yarn workspace @calcom/prisma run db-rollback",
     "db-seed": "turbo run db-seed",

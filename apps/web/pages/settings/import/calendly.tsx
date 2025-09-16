@@ -1,6 +1,5 @@
 import { CalendlyOAuthProvider } from "@onehash/calendly";
 // import { Meta, SkeletonContainer } from "@calcom/ui/components";
-import { _generateMetadata } from "app/_utils";
 import { useRouter } from "next/navigation";
 import type { GetServerSidePropsContext } from "next/types";
 import { useState, useEffect } from "react";

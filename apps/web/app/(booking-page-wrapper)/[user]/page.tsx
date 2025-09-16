@@ -59,7 +59,6 @@ const ServerPage = async (props: PageProps) => {
   const awaitParams = await params;
   const awaitSearchParams = await searchParams;
 
-
   const nextProps = await getData(
     buildLegacyCtx(await headers(), await cookies(), awaitParams, awaitSearchParams)
   );

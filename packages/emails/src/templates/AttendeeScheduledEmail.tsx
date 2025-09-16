@@ -1,5 +1,5 @@
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
-
+import React from "react";
 import { BaseScheduledEmail } from "./BaseScheduledEmail";
 
 export const AttendeeScheduledEmail = (

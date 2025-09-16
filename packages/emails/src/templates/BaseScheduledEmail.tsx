@@ -1,4 +1,5 @@
 import type { TFunction } from "next-i18next";
+import React from "react";
 
 import dayjs from "@calcom/dayjs";
 import getRunningLateLink from "@calcom/features/bookings/lib/getRunningLateLink";

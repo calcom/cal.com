@@ -15,7 +15,8 @@ const ZWorkflow = z.object({
   time: z.number().nullable(),
   timeUnit: z.enum(TIME_UNITS).nullable(),
   userId: z.number().nullable(),
-  teamId: z.number().nullable(),
+  // teamId: z.number().nullable(),
+  calIdTeamId: z.number().nullable(),
   steps: z
     .object({
       id: z.number(),
@@ -43,10 +44,11 @@ export const ZGetAllActiveWorkflowsInputSchema = z.object({
   eventType: z.object({
     id: z.number(),
     teamId: z.number().optional().nullable(),
+    calIdTeamId: z.number().optional().nullable(),
     parent: z
       .object({
         id: z.number().nullable(),
-        teamId: z.number().nullable(),
+        calIdTeamId: z.number().nullable(),
       })
       .optional()
       .nullable(),

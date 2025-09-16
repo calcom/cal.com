@@ -1,4 +1,5 @@
 import type { TFunction } from "i18next";
+import React from "react";
 import { RRule } from "rrule";
 
 import dayjs from "@calcom/dayjs";

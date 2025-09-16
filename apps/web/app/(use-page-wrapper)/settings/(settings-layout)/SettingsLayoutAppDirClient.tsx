@@ -350,7 +350,8 @@ const SettingsSidebarContainer = ({
   >();
   const session = useSession();
 
-  const organizationId = session.data?.user?.org?.id;
+  // const organizationId = session.data?.user?.org?.id;
+  const organizationId = undefined;
 
   const isDelegationCredentialEnabled = useIsFeatureEnabledForTeam({
     teamFeatures,
@@ -371,7 +372,8 @@ const SettingsSidebarContainer = ({
   });
 
   const { data: otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
-    enabled: !!session.data?.user?.org,
+    // enabled: !!session.data?.user?.org,
+    enabled: !!organizationId,
   });
 
   // Same as above but for otherTeams

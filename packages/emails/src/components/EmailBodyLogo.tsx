@@ -1,3 +1,4 @@
+import React from "react";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import RawHtml from "./RawHtml";

@@ -37,7 +37,7 @@ export const createHandler = async ({ ctx, input }: CreateHandlerOptions) => {
     },
   });
 
-  const apiKeyPrefix = process.env.API_KEY_PREFIX ?? "cal_";
+  const apiKeyPrefix = process.env.API_KEY_PREFIX ?? "calid_";
 
   const prefixedApiKey = `${apiKeyPrefix}${apiKey}`;
 

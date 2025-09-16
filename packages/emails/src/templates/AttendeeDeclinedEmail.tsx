@@ -1,3 +1,4 @@
+import React from "react";
 import { AttendeeScheduledEmail } from "./AttendeeScheduledEmail";
 
 export const AttendeeDeclinedEmail = (props: React.ComponentProps<typeof AttendeeScheduledEmail>) => (

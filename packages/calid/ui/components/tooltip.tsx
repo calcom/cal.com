@@ -8,6 +8,7 @@ type TooltipProps = {
   delayDuration?: number;
   side?: "top" | "right" | "bottom" | "left";
   sideOffset?: number;
+  className?: string;
 };
 
 export function Tooltip({
@@ -16,6 +17,7 @@ export function Tooltip({
   delayDuration = 300,
   sideOffset = 4,
   side = "top",
+  className,
 }: TooltipProps) {
   return (
     <TooltipPrimitive.Provider delayDuration={delayDuration}>
@@ -35,7 +37,8 @@ export function Tooltip({
             "data-[side=top]:slide-in-from-bottom-2 data-[side=top]:origin-bottom",
             "data-[side=bottom]:slide-in-from-top-2 data-[side=bottom]:origin-top",
             "data-[side=left]:slide-in-from-right-2 data-[side=left]:origin-right",
-            "data-[side=right]:slide-in-from-left-2 data-[side=right]:origin-left"
+            "data-[side=right]:slide-in-from-left-2 data-[side=right]:origin-left",
+            className
           )}>
           {content}
         </TooltipPrimitive.Content>

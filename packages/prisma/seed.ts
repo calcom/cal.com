@@ -9,7 +9,7 @@ import googleMeetMeta from "@calcom/app-store/googlevideo/_metadata";
 import zoomMeta from "@calcom/app-store/zoomvideo/_metadata";
 import dayjs from "@calcom/dayjs";
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
+import { hashPasswordWithSalt } from "@calcom/features/auth/lib/hashPassword";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { BookingStatus, MembershipRole, RedirectType, SchedulingType } from "@calcom/prisma/enums";
 import type { Ensure } from "@calcom/types/utils";
@@ -78,13 +78,16 @@ const setupPlatformUser = async (user: PlatformUser) => {
     create: userData,
   });
 
+  const { hash, salt } = await hashPasswordWithSalt(user.password);
   await prisma.userPassword.upsert({
     where: { userId: platformUser.id },
     update: {
-      hash: await hashPassword(user.password),
+      hash,
+      salt,
     },
     create: {
-      hash: await hashPassword(user.password),
+      hash,
+      salt,
       user: {
         connect: {
           id: platformUser.id,
@@ -393,6 +396,8 @@ async function createOrganizationAndAddMembersAndTeams({
 
   await Promise.all([
     usersOutsideOrg.map(async (user) => {
+      const { hash, salt } = await hashPasswordWithSalt(user.username);
+
       return await prisma.user.create({
         data: {
           username: user.username,
@@ -401,7 +406,8 @@ async function createOrganizationAndAddMembersAndTeams({
           emailVerified: new Date(),
           password: {
             create: {
-              hash: await hashPassword(user.username),
+              hash,
+              salt,
             },
           },
         },
@@ -517,13 +523,15 @@ async function createOrganizationAndAddMembersAndTeams({
     const nonOrgMembers: User[] = [];
     const team = teams[teamIndex];
     for (const nonOrgMember of team.nonOrgMembers) {
+      const { hash, salt } = await hashPasswordWithSalt(nonOrgMember.username);
       nonOrgMembers.push(
         await prisma.user.create({
           data: {
             ...nonOrgMember,
             password: {
               create: {
-                hash: await hashPassword(nonOrgMember.username),
+                hash,
+                salt,
               },
             },
             emailVerified: new Date(),

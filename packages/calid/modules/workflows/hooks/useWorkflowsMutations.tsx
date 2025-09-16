@@ -13,7 +13,7 @@ export const useWorkflowMutations = (filters: any) => {
   const utils = trpc.useUtils();
 
   // Create workflow mutation
-  const createMutation = trpc.viewer.workflows.create.useMutation({
+  const createMutation = trpc.viewer.workflows.calid_create.useMutation({
     onSuccess: async ({ workflow }) => {
       await router.replace(`/workflows/${workflow.id}`);
     },
@@ -30,12 +30,12 @@ export const useWorkflowMutations = (filters: any) => {
   });
 
   // Toggle workflow mutation
-  const toggleMutation = trpc.viewer.workflows.toggle.useMutation({
+  const toggleMutation = trpc.viewer.workflows.calid_toggle.useMutation({
     onMutate: async ({ id, disabled }) => {
-      await utils.viewer.workflows.filteredList.cancel();
-      const previousData = utils.viewer.workflows.filteredList.getData({ filters });
+      await utils.viewer.workflows.calid_filteredList.cancel();
+      const previousData = utils.viewer.workflows.calid_filteredList.getData({ filters });
 
-      utils.viewer.workflows.filteredList.setData({ filters }, (old) => {
+      utils.viewer.workflows.calid_filteredList.setData({ filters }, (old) => {
         if (!old) return old;
         return {
           ...old,
@@ -61,7 +61,7 @@ export const useWorkflowMutations = (filters: any) => {
     },
     onError: (err, variables, context) => {
       if (context?.previousData) {
-        utils.viewer.workflows.filteredList.setData({ filters }, context.previousData);
+        utils.viewer.workflows.calid_filteredList.setData({ filters }, context.previousData);
       }
 
       if (err instanceof HttpError) {
@@ -72,12 +72,12 @@ export const useWorkflowMutations = (filters: any) => {
       }
     },
     onSettled: () => {
-      utils.viewer.workflows.filteredList.invalidate();
+      utils.viewer.workflows.calid_filteredList.invalidate();
     },
   });
 
   // Duplicate workflow mutation
-  const duplicateMutation = trpc.viewer.workflows.duplicate.useMutation({
+  const duplicateMutation = trpc.viewer.workflows.calid_duplicate.useMutation({
     onSuccess: async ({ workflow }) => {
       router.replace(`/workflows/${workflow.id}`);
     },
@@ -93,7 +93,7 @@ export const useWorkflowMutations = (filters: any) => {
 
   // Handler functions
   const handleCreateWorkflow = useCallback(() => {
-    createMutation.mutate({ teamId: undefined });
+    createMutation.mutate({ calIdTeamId: undefined });
   }, [createMutation]);
 
   const handleWorkflowEdit = useCallback(

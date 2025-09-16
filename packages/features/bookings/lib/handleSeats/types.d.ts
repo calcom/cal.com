@@ -1,4 +1,4 @@
-import type { Workflow } from "@calid/features/modules/workflows/config/types";
+import type { CalIdWorkflow } from "@calid/features/modules/workflows/config/types";
 
 import type { AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 
@@ -42,7 +42,7 @@ export type NewSeatedBookingObject = {
   eventTrigger: WebhookTriggerEvents;
   responses: z.infer<ReturnType<typeof getBookingDataSchema>>["responses"] | null;
   rescheduledBy?: string;
-  workflows: Workflow[];
+  workflows: CalIdWorkflow[];
   isDryRun?: boolean;
 };
 

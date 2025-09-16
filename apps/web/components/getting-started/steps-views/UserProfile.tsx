@@ -1,5 +1,8 @@
 "use client";
 
+import { Button } from "@calid/features/ui/components/button";
+import { triggerToast } from "@calid/features/ui/components/toast";
+import { CustomImageUploader } from "@calid/features/ui/components/uploader";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -11,11 +14,8 @@ import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import { UserAvatar } from "@calcom/ui/components/avatar";
-import { Button } from "@calid/features/ui/components/button";
 import { Editor } from "@calcom/ui/components/editor";
 import { Label } from "@calcom/ui/components/form";
-import { CustomImageUploader } from "@calid/features/ui/components/uploader";
-import { triggerToast } from "@calid/features/ui/components/toast";
 
 type FormData = {
   bio: string;
@@ -125,7 +125,7 @@ const UserProfile = () => {
           className="border-default focus:ring-empthasis mt-1 block w-full rounded-sm border px-3 py-2 text-sm focus:border-gray-800 focus:outline-none"
           defaultValue={imageSrc}
         />
-        <div className="flex items-center px-4 gap-2">
+        <div className="flex items-center gap-2 px-4">
           <CustomImageUploader
             targetId="avatar-upload"
             buttonText={t("upload_avatar")}

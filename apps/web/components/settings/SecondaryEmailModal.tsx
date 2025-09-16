@@ -1,3 +1,15 @@
+import { Button } from "@calid/features/ui/components/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@calid/features/ui/components/dialog";
+import { Form } from "@calid/features/ui/components/form";
+import { InputError } from "@calid/features/ui/components/input/hint-or-errors";
+import { TextField } from "@calid/features/ui/components/input/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -5,11 +17,6 @@ import { z } from "zod";
 
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calid/features/ui/components/button";
-import { Dialog, DialogContent, DialogFooter, DialogClose, DialogHeader, DialogTitle, DialogDescription } from "@calid/features/ui/components/dialog";
-import { Form } from "@calid/features/ui/components/form";
-import { TextField } from "@calid/features/ui/components/input/input";
-import { InputError } from "@calid/features/ui/components/input/hint-or-errors";
 
 interface SecondaryEmailModalProps {
   isLoading: boolean;
@@ -60,7 +67,9 @@ const SecondaryEmailModal = ({
           />
           {errorMessage && <InputError message={errorMessage} />}
           <DialogFooter className="mt-10">
-            <Button color="secondary" onClick={onCancel}>{t("cancel")}</Button>
+            <Button color="secondary" onClick={onCancel}>
+              {t("cancel")}
+            </Button>
             <Button type="submit" data-testid="add-secondary-email-button" disabled={isLoading}>
               {t("add_email")}
             </Button>

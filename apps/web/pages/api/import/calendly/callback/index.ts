@@ -1,5 +1,5 @@
 import { CalendlyOAuthProvider } from "@onehash/calendly";
-import { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
 import { IntegrationProvider } from "@calcom/prisma/client";

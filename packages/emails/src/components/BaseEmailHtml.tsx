@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-head-element */
 import BaseTable from "./BaseTable";
+import React from "react";
 import EmailBodyLogo from "./EmailBodyLogo";
 import EmailHead from "./EmailHead";
 import EmailScheduledBodyHeaderContent from "./EmailScheduledBodyHeaderContent";

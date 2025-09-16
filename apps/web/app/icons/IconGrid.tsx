@@ -2,9 +2,6 @@
 
 import { Icon } from "@calid/features/ui/components/icon";
 
-
-
-
 import type { IconName } from "@calcom/ui/components/icon";
 
 export const IconGrid = (props: {

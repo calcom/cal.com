@@ -1,5 +1,6 @@
 "use client";
 
+// import { Button } from "@calcom/ui/components/button";
 import { Avatar } from "@calid/features/ui/components/avatar";
 import { Button } from "@calid/features/ui/components/button";
 import ThemeCard from "@calid/features/ui/components/card/theme-card";
@@ -450,6 +451,25 @@ const AppearanceView = ({
                           <img className="h-full w-full" src={value} />
                         )}
                       </div>
+                      <div className="bg-muted flex h-60 w-full items-center justify-start rounded-sm">
+                        {!value ? (
+                          <p className="text-emphasis w-full text-center text-sm sm:text-xs">
+                            {t("no_target", { target: "Header" })}
+                          </p>
+                        ) : (
+                          <img className="h-full w-full" src={value} />
+                        )}
+                      </div>
+
+                      {/* <Avatar
+                        data-testid="profile-upload-logo"
+                        alt={headerUrlFormMethods.getValues("name")}
+                        imageSrc={getPlaceholderAvatar(
+                          value,
+                          headerUrlFormMethods.getValues("metadata.headerUrl")
+                        )}
+                        size="lg"
+                      /> */}
                       <div className="flex gap-2">
                         <CustomBannerUploader
                           target="metadata.headerUrl"
@@ -464,10 +484,12 @@ const AppearanceView = ({
                               metadata: { headerUrl: newHeaderUrl },
                             });
                           }}
-                          imageSrc={getPlaceholderHeader(
-                            value,
-                            headerUrlFormMethods.getValues("metadata.headerUrl")
-                          )}
+                          imageSrc={
+                            getPlaceholderHeader(
+                              value,
+                              headerUrlFormMethods.getValues("metadata.headerUrl")
+                            ) ?? undefined
+                          }
                           triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
                         />
                         {showRemoveLogoButton && (
@@ -537,7 +559,7 @@ const AppearanceView = ({
                         </div>
 
                         <div className="mt-4 flex flex-row items-center gap-6">
-                          <Avatar imageSrc={getBrandLogoUrl({ bannerUrl: value })} size="lg" />
+                          <Avatar imageSrc={getBrandLogoUrl({ bannerUrl: value })} size="lg" alt="" />
                           <div className="flex items-center gap-3">
                             <div className="w-[105px]">
                               <CustomBannerUploader
@@ -553,6 +575,7 @@ const AppearanceView = ({
                                   mutation.mutate({ bannerUrl: newAvatar });
                                 }}
                                 imageSrc={getBrandLogoUrl({ bannerUrl: value })}
+                                mimeType="image/*"
                               />
                             </div>
                             {showRemoveAvatarButton && (
@@ -583,12 +606,12 @@ const AppearanceView = ({
                   }
                   mutation.mutate(values);
                 }}>
-                {showPreview && (
+                {/* {showPreview && (
                   <div className="flex flex-col justify-end gap-4">
                     <UserFoundUI base64={orgBase64} />
                     <LinkPreview base64={orgBase64} />
                   </div>
-                )}
+                )} */}
                 <Controller
                   control={faviconFormMethods.control}
                   name="faviconUrl"

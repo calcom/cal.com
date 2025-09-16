@@ -89,7 +89,7 @@ export function PhoneNumberField<T extends Record<string, any>>({
     verifyPhoneNumber({
       phoneNumber: getValue() || "",
       code: verificationCode,
-      teamId: undefined,
+      calIdTeamId: undefined,
     });
   };
 
