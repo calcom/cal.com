@@ -25,7 +25,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { PlatformOAuthClient, User } from "@prisma/client";
 import * as request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
@@ -38,6 +37,7 @@ import { randomString } from "test/utils/randomString";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiSuccessResponse } from "@calcom/platform-types";
+import { PlatformOAuthClient, User } from "@calcom/prisma/client";
 import { Team } from "@calcom/prisma/client";
 
 describe("Organizations Teams Memberships Endpoints", () => {
