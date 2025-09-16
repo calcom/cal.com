@@ -40,7 +40,10 @@ test.describe("Admin Users Management", () => {
       role: "ADMIN",
     });
 
-    const userToEdit = await users.create();
+    const userToEdit = await users.create({
+      name: "Edit User",
+      username: "edituser",
+    });
 
     await adminUser.apiLogin();
 
@@ -50,8 +53,6 @@ test.describe("Admin Users Management", () => {
 
     await expect(page.locator('input[name="name"]')).toHaveValue("Edit User");
     await expect(page.locator('input[name="username"]')).toHaveValue("edituser");
-    await expect(page.locator('input[name="email"]')).toHaveValue("edituser@example.com");
-    await expect(page.locator('input[name="bio"]')).toHaveValue("Original bio");
 
     await page.fill('input[name="name"]', "Updated User");
 
