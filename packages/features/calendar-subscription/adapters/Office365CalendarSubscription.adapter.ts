@@ -53,7 +53,6 @@ type AdapterConfig = {
   baseUrl?: string;
   webhookToken?: string | null;
   webhookUrl?: string | null;
-  // duração padrão ~3 dias (Graph ~4230 min)
   subscriptionTtlMs?: number;
 };
 
