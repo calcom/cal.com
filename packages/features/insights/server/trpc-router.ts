@@ -559,7 +559,10 @@ export const insightsRouter = router({
       const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
-        return await insightsBookingService.getMembersStatsWithCount("cancelled", "DESC");
+        return await insightsBookingService.getMembersStatsWithCount({
+          type: "cancelled",
+          sortOrder: "DESC",
+        });
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
@@ -570,7 +573,11 @@ export const insightsRouter = router({
       const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
-        return await insightsBookingService.getMembersStatsWithCount("accepted", "DESC");
+        return await insightsBookingService.getMembersStatsWithCount({
+          type: "accepted",
+          sortOrder: "DESC",
+          completed: true,
+        });
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
@@ -581,7 +588,11 @@ export const insightsRouter = router({
       const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
-        return await insightsBookingService.getMembersStatsWithCount("accepted", "ASC");
+        return await insightsBookingService.getMembersStatsWithCount({
+          type: "accepted",
+          sortOrder: "ASC",
+          completed: true,
+        });
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
@@ -592,7 +603,7 @@ export const insightsRouter = router({
       const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
-        return await insightsBookingService.getMembersStatsWithCount("all", "DESC");
+        return await insightsBookingService.getMembersStatsWithCount({ type: "all", sortOrder: "DESC" });
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
@@ -603,7 +614,7 @@ export const insightsRouter = router({
       const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
-        return await insightsBookingService.getMembersStatsWithCount("all", "ASC");
+        return await insightsBookingService.getMembersStatsWithCount({ type: "all", sortOrder: "ASC" });
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
@@ -799,7 +810,7 @@ export const insightsRouter = router({
       const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
-        return await insightsBookingService.getMembersStatsWithCount("noShow", "DESC");
+        return await insightsBookingService.getMembersStatsWithCount({ type: "noShow", sortOrder: "DESC" });
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }

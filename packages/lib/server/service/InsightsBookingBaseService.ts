@@ -878,27 +878,42 @@ export class InsightsBookingBaseService {
     return result;
   }
 
-  async getMembersStatsWithCount(
-    type: "all" | "accepted" | "cancelled" | "noShow" = "all",
-    sortOrder: "ASC" | "DESC" = "DESC"
-  ): Promise<UserStatsData> {
+  async getMembersStatsWithCount({
+    type = "all",
+    sortOrder = "DESC",
+    completed,
+  }: {
+    type?: "all" | "accepted" | "cancelled" | "noShow";
+    sortOrder?: "ASC" | "DESC";
+    completed?: boolean;
+  } = {}): Promise<UserStatsData> {
     const baseConditions = await this.getBaseConditions();
 
-    let additionalCondition = Prisma.sql``;
+    const conditions: Prisma.Sql[] = [Prisma.sql`"userId" IS NOT NULL`];
+
     if (type === "cancelled") {
-      additionalCondition = Prisma.sql`AND status = 'cancelled'`;
+      conditions.push(Prisma.sql`status = 'cancelled'`);
     } else if (type === "noShow") {
-      additionalCondition = Prisma.sql`AND "noShowHost" = true`;
+      conditions.push(Prisma.sql`"noShowHost" = true`);
     } else if (type === "accepted") {
-      additionalCondition = Prisma.sql`AND status = 'accepted'`;
+      conditions.push(Prisma.sql`status = 'accepted'`);
     }
+
+    if (completed) {
+      conditions.push(Prisma.sql`"endTime" <= NOW()`);
+    }
+
+    const additionalCondition = conditions.reduce((acc, condition, index) => {
+      if (index === 0) return Prisma.sql`AND ${condition}`;
+      return Prisma.sql`${acc} AND ${condition}`;
+    });
 
     const query = Prisma.sql`
       SELECT
         "userId",
         COUNT(id)::int as count
       FROM "BookingTimeStatusDenormalized"
-      WHERE ${baseConditions} AND "userId" IS NOT NULL ${additionalCondition}
+      WHERE ${baseConditions} AND ${additionalCondition}
       GROUP BY "userId"
       ORDER BY count ${sortOrder === "ASC" ? Prisma.sql`ASC` : Prisma.sql`DESC`}
       LIMIT 10
