@@ -99,7 +99,7 @@ export const getBookingWithResponses = <
   return {
     ...booking,
     responses: booking.responses || getResponsesFromOldBooking(booking),
-  } as Omit<T, "responses"> & { responses: Record<string, unknown> };
+  } as Omit<T, "responses"> & { responses: Record<string, any> };
 };
 
 export default getBooking;
