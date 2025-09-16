@@ -78,7 +78,7 @@ const processWorkflowStep = async (
 ) => {
   if (!step?.verifiedAt) return;
 
-  const evt = formatCalEventExtended(calendarEvent);
+  const evt = calendarEvent ? formatCalEventExtended(calendarEvent) : undefined;
 
   if (isSMSOrWhatsappAction(step.action)) {
     await checkSMSRateLimit({
