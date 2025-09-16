@@ -96,6 +96,9 @@ export type AIPhoneServiceListCallsResponse<
   T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType
 > = AIPhoneServiceProviderTypeMap[T]["ListCallsResponse"];
 
+export type AIPhoneServiceVoice<T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType> =
+  AIPhoneServiceProviderTypeMap[T]["Voice"];
+
 export interface AIPhoneServiceDeletion {
   modelId?: string;
   agentId?: string;
@@ -375,6 +378,11 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
       startTimestamp?: { lower_threshold?: number; upper_threshold?: number };
     };
   }): Promise<AIPhoneServiceListCallsResponse<T>>;
+
+  /**
+   * List available voices
+   */
+  listVoices(): Promise<AIPhoneServiceVoice<T>[]>;
 }
 
 /**
