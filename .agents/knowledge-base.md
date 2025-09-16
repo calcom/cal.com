@@ -319,6 +319,55 @@ dates.map((date) => dayjs.utc(date).add(1, "day").format());
 dates.map((date) => new Date(date.valueOf() + 24 * 60 * 60 * 1000));
 ```
 
+## Next.js App Directory: Authorisation Checks in Pages
+
+This can include checking session.user exists or session.org etc.
+
+### TL;DR:
+
+Don’t put permission checks in layout.tsx! Always put them directly inside your page.tsx or relevant server components for every restricted route.
+
+
+### Why Not to Use Layouts for Permission Checks
+
+* Layouts don’t intercept all requests: If a user navigates directly or refreshes a protected route, layout checks might be skipped, exposing sensitive content.
+* APIs and server actions bypass layouts: Sensitive operations running on the server can’t be guarded by checks in the layout.
+* Risk of data leaks: Only page/server-level checks ensure that unauthorized users never get protected data.
+
+### ✅ How To Secure Routes (The Right Way)
+
+* Check permissions inside page.tsx or the actual server component.
+* Perform all session/user/role validation before querying or rendering sensitive content.
+* Redirect or return nothing to unauthorized users, before running restricted code.
+
+### 🛠️ Example: Page-Level Permission Check
+
+
+```tsx
+// app/admin/page.tsx
+
+import { redirect } from "next/navigation";
+import { getUserSession } from "@/lib/auth";
+
+export default async function AdminPage() {
+  const session = await getUserSession();
+
+  if (!session || session.user.role !== "admin") {
+    redirect("/"); // Or show an error
+  }
+
+  // Protected content here
+  return <div>Welcome, Admin!</div>;
+}
+```
+
+### 🧠 Key Reminders
+
+* Put permission guards in every restricted page.tsx.
+* Never assume layouts are secure for guarding data.
+* Validate users before any sensitive queries or rendering.
+
+
 ## Avoid using Dayjs if you don’t need to be strictly tz aware.
 
 When doing logic like Dayjs.startOf(".."), you can instead use date-fns' `startOfMonth(dateObj)` / `endOfDay(dateObj)`;
