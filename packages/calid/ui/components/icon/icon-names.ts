@@ -163,7 +163,6 @@ export type IconName =
   | "mic"
   | "microscope"
   | "monitor"
-  | "monitor"
   | "monitor-stop"
   | "moon"
   | "navigation"
