@@ -274,11 +274,15 @@ describe("BillingService", () => {
 
       const stripe = (await import("@calcom/features/ee/payments/server/stripe")).default;
       stripe.subscriptions.cancel.mockRejectedValue({
-        type: "invalid_request_error",
+        type: "StripeInvalidRequestError",
+        raw: {
+          code: "resource_missing",
+          doc_url: "https://stripe.com/docs/error-codes/resource-missing",
+          message: "No such subscription: 'sub_123'",
+          param: "id",
+          type: "invalid_request_error",
+        },
         code: "resource_missing",
-        message: "No such subscription: 'sub_123'",
-        param: "id",
-        doc_url: "https://stripe.com/docs/error-codes/resource-missing",
       });
 
       const result = await service.cancelPhoneNumberSubscription(validCancelData);
