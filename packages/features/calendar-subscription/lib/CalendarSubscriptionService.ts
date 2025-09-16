@@ -1,10 +1,13 @@
+import type {
+  AdapterFactory,
+  CalendarSubscriptionProvider,
+} from "@calcom/features/calendar-subscription/adapters/AdaptersFactory";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getCredentialForCalendarCache } from "@calcom/lib/delegationCredential/server";
 import logger from "@calcom/lib/logger";
 import type { SelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
 import { prisma } from "@calcom/prisma";
 
-import type { AdapterFactory, CalendarSubscriptionProvider } from "../adapters/AdaptersFactory";
 import type {
   CalendarCredential,
   CalendarSubscriptionWebhookContext,

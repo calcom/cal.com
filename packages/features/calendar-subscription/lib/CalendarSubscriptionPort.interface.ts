@@ -1,10 +1,9 @@
+import type { CalendarSubscriptionProvider } from "@calcom/features/calendar-subscription/adapters/AdaptersFactory";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import type {
   CredentialForCalendarService,
   CredentialForCalendarServiceWithEmail,
 } from "@calcom/types/Credential";
-
-import type { CalendarSubscriptionProvider } from "../adapters/AdaptersFactory";
 
 export type CalendarSubscriptionWebhookContext = {
   headers?: Headers;

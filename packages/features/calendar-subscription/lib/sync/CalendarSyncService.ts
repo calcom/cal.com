@@ -1,5 +1,4 @@
-import type { CalendarSubscriptionEventItem } from "calendar-subscription/lib/CalendarSubscriptionPort.interface";
-
+import type { CalendarSubscriptionEventItem } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionPort.interface";
 import logger from "@calcom/lib/logger";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 

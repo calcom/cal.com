@@ -1,3 +1,4 @@
+import type { ICalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository.interface";
 import logger from "@calcom/lib/logger";
 import type {
   Calendar,
@@ -8,8 +9,6 @@ import type {
   NewCalendarEventType,
   SelectedCalendarEventTypeIds,
 } from "@calcom/types/Calendar";
-
-import type { ICalendarCacheEventRepository } from "./CalendarCacheEventRepository.interface";
 
 const log = logger.getSubLogger({ prefix: ["CachedCalendarWrapper"] });
 
