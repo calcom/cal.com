@@ -82,4 +82,15 @@ export class CalendarCacheEventService {
     log.debug("cleanupCache", { selectedCalendarId: selectedCalendar.id });
     await this.deps.calendarCacheEventRepository.deleteAllBySelectedCalendarId(selectedCalendar.id);
   }
+
+  /**
+   * Checks if the app is supported
+   *
+   * @param appId
+   * @returns
+   */
+  static isAppSupported(appId: string | null): boolean {
+    if (!appId) return false;
+    return ["google-calendar", "office365-calendar"].includes(appId);
+  }
 }
