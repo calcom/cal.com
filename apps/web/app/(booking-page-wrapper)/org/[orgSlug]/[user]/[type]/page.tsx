@@ -10,8 +10,8 @@ import { loadTranslations } from "@calcom/lib/server/i18n";
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/org/[orgSlug]/[user]/[type]/getServerSideProps";
 
-import type { PageProps as TeamTypePageProps } from "~/team/team-type-public-view";
-import TeamTypePage from "~/team/team-type-public-view";
+import type { PageProps as TeamTypePageProps } from "~/team/team-view";
+import TeamTypePage from "~/team/team-view";
 import UserTypePage from "~/users/views/users-type-public-view";
 import type { PageProps as UserTypePageProps } from "~/users/views/users-type-public-view";
 

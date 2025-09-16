@@ -5,8 +5,8 @@ import { cookies, headers } from "next/headers";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/org/[orgSlug]/[user]/getServerSideProps";
 
-import type { PageProps as TeamPageProps } from "~/team/team-public-view";
-import TeamPage from "~/team/team-public-view";
+import type { PageProps as TeamPageProps } from "~/team/team-view";
+import TeamPage from "~/team/team-view";
 import UserPage from "~/users/views/users-public-view";
 import type { PageProps as UserPageProps } from "~/users/views/users-public-view";
 
