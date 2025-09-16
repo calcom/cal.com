@@ -638,52 +638,58 @@ jobs:
             #Running container
             log_message "INFO" "Starting Docker container '$CONTAINER_NAME' on port $NEW_PORT"
 
-            # AWS_ACCOUNT_ID=${{ env.AWS_ACCOUNT_ID }}
-            # AWS_REGION=${{ env.AWS_REGION }}
-            # REPO_NAME=${{ env.REPO_NAME }}
-            # DOCKER_IMAGE_TAG=${{ env.GIT_HASH }}
-            # IS_ROLLBACK=${{ env.IS_ROLLBACK}}
+            # Running container
+            log_message "INFO" "Starting Docker container '$CONTAINER_NAME' on port $NEW_PORT"
 
-            # if ! exec_command "Docker run" "docker run -d -it -e IS_ROLLBACK=\"$IS_ROLLBACK\" --name \"$CONTAINER_NAME\" --env-file \"/home/onehash/.env\" -p ${NEW_PORT}:3001 \"${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${DOCKER_IMAGE_TAG}\""; then
-            #   log_message "ERROR" "❌ Failed to start Docker container '$CONTAINER_NAME' - aborting deployment"
-            #   exit 1
-            # else
-            #   log_message "INFO" "✅ Docker container '$CONTAINER_NAME' started successfully on port $NEW_PORT"
-            # fi
-
-            DOCKERHUB_USERNAME=${{ env.DOCKERHUB_USERNAME }}
-            DOCKERHUB_TOKEN=${{ env.DOCKERHUB_TOKEN }}
+            AWS_ACCOUNT_ID=${{ env.AWS_ACCOUNT_ID }}
+            AWS_REGION=${{ env.AWS_REGION }}
             REPO_NAME=${{ env.REPO_NAME }}
             DOCKER_IMAGE_TAG=${{ env.GIT_HASH }}
-            IS_ROLLBACK=${{ env.IS_ROLLBACK}} 
+            IS_ROLLBACK=${{ env.IS_ROLLBACK}}
 
-            # Login to Docker Hub for private repository access
-            if ! exec_command "Docker Hub login" "docker login -u \"$DOCKERHUB_USERNAME\" -p \"$DOCKERHUB_TOKEN\""; then
-              log_message "ERROR" "❌ Failed to login to Docker Hub - aborting deployment"
-              exit 1
-            else
-              log_message "INFO" "✅ Successfully logged into Docker Hub"
-            fi
-
-            # if ! exec_command "Docker run" "docker run -d -it -e IS_ROLLBACK=\"$IS_ROLLBACK\" --name \"$CONTAINER_NAME\" --env-file \"/home/onehash/.env\" -p ${NEW_PORT}:3001 \"${DOCKERHUB_USERNAME}/${REPO_NAME}:${DOCKER_IMAGE_TAG}\""; then
-            #   log_message "ERROR" "❌ Failed to start Docker container '$CONTAINER_NAME' - aborting deployment"
-            #   exit 1
-            # else
-            #   log_message "INFO" "✅ Docker container '$CONTAINER_NAME' started successfully on port $NEW_PORT"
-            # fi
-
+            # --- ECR DEPLOYMENT (PRIMARY) ---
             if ! exec_command "Docker run" "docker run -d -it \
               --add-host=host.docker.internal:host-gateway \
               -e IS_ROLLBACK=\"$IS_ROLLBACK\" \
               --name \"$CONTAINER_NAME\" \
               --env-file \"/home/onehash/.env\" \
               -p ${NEW_PORT}:3001 \
-              \"${DOCKERHUB_USERNAME}/${REPO_NAME}:${DOCKER_IMAGE_TAG}\""; then
-                log_message "ERROR" "❌ Failed to start Docker container '$CONTAINER_NAME' - aborting deployment"
+              \"${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${DOCKER_IMAGE_TAG}\""; then
+                log_message "ERROR" "❌ Failed to start Docker container '$CONTAINER_NAME' from ECR - aborting deployment"
                 exit 1
             else
-                log_message "INFO" "✅ Docker container '$CONTAINER_NAME' started successfully on port $NEW_PORT"
+                log_message "INFO" "✅ Docker container '$CONTAINER_NAME' started successfully from ECR on port $NEW_PORT"
             fi
+
+
+            # --- DOCKER HUB DEPLOYMENT (FALLBACK / COMMENTED) ---
+            # DOCKERHUB_USERNAME=${{ env.DOCKERHUB_USERNAME }}
+            # DOCKERHUB_TOKEN=${{ env.DOCKERHUB_TOKEN }}
+            # REPO_NAME=${{ env.REPO_NAME }}
+            # DOCKER_IMAGE_TAG=${{ env.GIT_HASH }}
+            # IS_ROLLBACK=${{ env.IS_ROLLBACK}} 
+            #
+            # # Login to Docker Hub for private repository access
+            # if ! exec_command "Docker Hub login" "docker login -u \"$DOCKERHUB_USERNAME\" -p \"$DOCKERHUB_TOKEN\""; then
+            #   log_message "ERROR" "❌ Failed to login to Docker Hub - aborting deployment"
+            #   exit 1
+            # else
+            #   log_message "INFO" "✅ Successfully logged into Docker Hub"
+            # fi
+            #
+            # if ! exec_command "Docker run" "docker run -d -it \
+            #   --add-host=host.docker.internal:host-gateway \
+            #   -e IS_ROLLBACK=\"$IS_ROLLBACK\" \
+            #   --name \"$CONTAINER_NAME\" \
+            #   --env-file \"/home/onehash/.env\" \
+            #   -p ${NEW_PORT}:3001 \
+            #   \"${DOCKERHUB_USERNAME}/${REPO_NAME}:${DOCKER_IMAGE_TAG}\""; then
+            #     log_message "ERROR" "❌ Failed to start Docker container '$CONTAINER_NAME' from Docker Hub - aborting deployment"
+            #     exit 1
+            # else
+            #     log_message "INFO" "✅ Docker container '$CONTAINER_NAME' started successfully from Docker Hub on port $NEW_PORT"
+            # fi
+
 
             # HEALTH CHECK with progress tracking and better error handling
             log_message "INFO" "Starting health checks for application on port $NEW_PORT"
