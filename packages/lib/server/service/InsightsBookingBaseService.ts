@@ -339,17 +339,27 @@ export class InsightsBookingBaseService {
 
     if ((id === "startTime" || id === "createdAt") && isDateRangeFilterValue(value)) {
       const conditions: Prisma.Sql[] = [];
+      // if `startTime` filter -> x <= "startTime" AND "endTime" <= y
+      // if `createdAt` filter -> x <= "createdAt" AND "createdAt" <= y
       if (value.data.startDate) {
         if (isNaN(Date.parse(value.data.startDate))) {
           throw new Error(`Invalid date format: ${value.data.startDate}`);
         }
-        conditions.push(Prisma.sql`"${Prisma.raw(id)}" >= ${value.data.startDate}::timestamp`);
+        if (id === "startTime") {
+          conditions.push(Prisma.sql`${value.data.startDate}::timestamp <= "startTime"`);
+        } else {
+          conditions.push(Prisma.sql`${value.data.startDate}::timestamp <= "createdAt"`);
+        }
       }
       if (value.data.endDate) {
         if (isNaN(Date.parse(value.data.endDate))) {
           throw new Error(`Invalid date format: ${value.data.endDate}`);
         }
-        conditions.push(Prisma.sql`"${Prisma.raw(id)}" <= ${value.data.endDate}::timestamp`);
+        if (id === "startTime") {
+          conditions.push(Prisma.sql`"endTime" <= ${value.data.endDate}::timestamp`);
+        } else {
+          conditions.push(Prisma.sql`"createdAt" <= ${value.data.endDate}::timestamp`);
+        }
       }
       if (conditions.length === 0) {
         return null;
