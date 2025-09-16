@@ -12,13 +12,13 @@ import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 import type { PhoneNumberRepositoryInterface } from "../../interfaces/PhoneNumberRepositoryInterface";
 import type { RetellAIRepository } from "../types";
 
-const stripeResourceMissingErrorSchema = z.object({
-  type: z.literal("invalid_request_error"),
+const stripeErrorSchema = z.object({
+  type: z.string(),
+  raw: z.object({
+    code: z.literal("resource_missing"),
+    type: z.literal("invalid_request_error"),
+  }),
   code: z.literal("resource_missing"),
-  message: z.string(),
-  param: z.string().optional(),
-  doc_url: z.string().optional(),
-  request_log_url: z.string().optional(),
 });
 
 export class BillingService {
@@ -149,13 +149,13 @@ export class BillingService {
       try {
         await stripe.subscriptions.cancel(phoneNumber.stripeSubscriptionId);
       } catch (error) {
-        const parsedError = stripeResourceMissingErrorSchema.safeParse(error);
+        const parsedError = stripeErrorSchema.safeParse(error);
 
         if (parsedError.success) {
           this.logger.info("Subscription not found in Stripe (already cancelled or deleted):", {
             subscriptionId: phoneNumber.stripeSubscriptionId,
             phoneNumberId,
-            stripeMessage: parsedError.data.message,
+            stripeMessage: "Subscription resource not found",
           });
         } else {
           await this.phoneNumberRepository.updateSubscriptionStatus({
