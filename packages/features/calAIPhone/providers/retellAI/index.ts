@@ -21,6 +21,7 @@ import type {
   RetellDynamicVariables,
   RetellCallListParams,
   RetellCallListResponse,
+  RetellVoice,
 } from "./types";
 
 export { RetellAIService } from "./RetellAIService";
