@@ -109,7 +109,7 @@ export const buttonClasses = cva(
           // Base color
           "text-subtle",
           // Hover
-          "enabled:hover:border-emphasis hover:border",
+          "enabled:hover:border-emphasis",
           // Disabled
           "disabled:opacity-30",
           // Focus

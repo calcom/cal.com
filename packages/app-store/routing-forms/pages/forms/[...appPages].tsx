@@ -286,7 +286,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                             />
 
                             <FormActionsDropdown disabled={readOnly} className="ml-2">
-                              <FormAction action="edit" routingForm={form} className="!flex">
+                              <FormAction action="edit" color="minimal" routingForm={form} className="!flex">
                                 {t("edit")}
                               </FormAction>
                               <FormAction action="download" routingForm={form}>
