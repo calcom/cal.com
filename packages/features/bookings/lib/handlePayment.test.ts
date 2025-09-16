@@ -2,8 +2,8 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { handlePayment } from "./handlePayment";
 
-vi.mock("@calcom/prisma/zod-utils", () => ({
-  eventTypeAppMetadataOptionalSchema: {
+vi.mock("@calcom/app-store/zod-utils", () => ({
+  eventTypeMetaDataSchemaWithTypedApps: {
     parse: vi.fn((data) => data),
   },
 }));
