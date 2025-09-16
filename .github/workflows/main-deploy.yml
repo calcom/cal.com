@@ -534,42 +534,42 @@ jobs:
             fi
 
 
-            # # Set timeout for aws command to prevent hanging
-            # export AWS_CLI_TIMEOUT=60
-            # export AWS_SDK_TIMEOUT=60
+            # Set timeout for aws command to prevent hanging
+            export AWS_CLI_TIMEOUT=60
+            export AWS_SDK_TIMEOUT=60
 
-            # # Configure AWS credentials non-interactively
-            # log_message "INFO" "Configuring AWS credentials..."
-            # if ! exec_command "AWS Configure Access Key" "aws configure set aws_access_key_id \"${AWS_ACCESS_KEY_ID}\" >> \"$LOG_FILE\" 2>&1"; then
-            #   log_message "ERROR" "Failed to configure AWS access key - exiting deployment"
-            #   exit 1
-            # fi
+            # Configure AWS credentials non-interactively
+            log_message "INFO" "Configuring AWS credentials..."
+            if ! exec_command "AWS Configure Access Key" "aws configure set aws_access_key_id \"${AWS_ACCESS_KEY_ID}\" >> \"$LOG_FILE\" 2>&1"; then
+              log_message "ERROR" "Failed to configure AWS access key - exiting deployment"
+              exit 1
+            fi
 
-            # if ! exec_command "AWS Configure Secret Key" "aws configure set aws_secret_access_key \"${AWS_SECRET_ACCESS_KEY}\" >> \"$LOG_FILE\" 2>&1"; then
-            #   log_message "ERROR" "Failed to configure AWS secret key - exiting deployment"
-            #   exit 1
-            # fi
+            if ! exec_command "AWS Configure Secret Key" "aws configure set aws_secret_access_key \"${AWS_SECRET_ACCESS_KEY}\" >> \"$LOG_FILE\" 2>&1"; then
+              log_message "ERROR" "Failed to configure AWS secret key - exiting deployment"
+              exit 1
+            fi
 
-            # if ! exec_command "AWS Configure Region" "aws configure set default.region \"${AWS_REGION}\" >> \"$LOG_FILE\" 2>&1"; then
-            #   log_message "ERROR" "Failed to configure AWS region - exiting deployment"
-            #   exit 1
-            # fi
+            if ! exec_command "AWS Configure Region" "aws configure set default.region \"${AWS_REGION}\" >> \"$LOG_FILE\" 2>&1"; then
+              log_message "ERROR" "Failed to configure AWS region - exiting deployment"
+              exit 1
+            fi
 
-            # if ! exec_command "AWS Configure Output" "aws configure set default.output json >> \"$LOG_FILE\" 2>&1"; then
-            #   log_message "ERROR" "Failed to configure AWS output format - exiting deployment"
-            #   exit 1
-            # else
-            #   log_message "INFO" "AWS credentials configured successfully."
-            # fi
+            if ! exec_command "AWS Configure Output" "aws configure set default.output json >> \"$LOG_FILE\" 2>&1"; then
+              log_message "ERROR" "Failed to configure AWS output format - exiting deployment"
+              exit 1
+            else
+              log_message "INFO" "AWS credentials configured successfully."
+            fi
 
-            # # Login to AWS ECR with timeout
-            # log_message "INFO" "Logging into AWS ECR..."
-            # if ! exec_command "AWS ECR Login" "timeout 60s aws ecr get-login-password --region \"${AWS_REGION}\" | timeout 60s docker login --username AWS --password-stdin \"${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com\" >> \"$LOG_FILE\" 2>&1"; then
-            #   log_message "ERROR" "Failed to log into ECR - exiting deployment"
-            #   exit 1
-            # else
-            #   log_message "INFO" "Logged into ECR successfully."
-            # fi
+            # Login to AWS ECR with timeout
+            log_message "INFO" "Logging into AWS ECR..."
+            if ! exec_command "AWS ECR Login" "timeout 60s aws ecr get-login-password --region \"${AWS_REGION}\" | timeout 60s docker login --username AWS --password-stdin \"${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com\" >> \"$LOG_FILE\" 2>&1"; then
+              log_message "ERROR" "Failed to log into ECR - exiting deployment"
+              exit 1
+            else
+              log_message "INFO" "Logged into ECR successfully."
+            fi
 
             # Determine current and new ports
             PORT=$(sudo grep -oP '127.0.0.1:\K[0-9]+' /etc/nginx/conf.d/default.conf 2>/dev/null | head -1)
