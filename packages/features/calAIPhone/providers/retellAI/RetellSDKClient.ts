@@ -273,12 +273,10 @@ export class RetellSDKClient implements RetellAIRepository {
   }
 
   async listVoices(): Promise<RetellVoice[]> {
-    this.logger.info("Listing voices via SDK");
 
     try {
       const response = await this.client.voice.list();
-      this.logger.info("Voices listed successfully", { count: response.length });
-      
+
       return response;
     } catch (error) {
       this.logger.error("Failed to list voices", { error });

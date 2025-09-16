@@ -39,7 +39,7 @@ const languageSchema = z.enum([
   "sk-SK",
   "sv-SE",
   "multi",
-]) as z.ZodType<Language>;
+]) satisfies z.ZodType<Language>;
 
 export const ZUpdateInputSchema = z.object({
   id: z.string(),

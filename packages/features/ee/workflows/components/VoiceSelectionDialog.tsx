@@ -16,6 +16,8 @@ import { Dialog, DialogContent, DialogHeader } from "@calcom/ui/components/dialo
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
+import { useVoicePreview } from "../hooks/useVoicePreview";
+
 type Voice = {
   voice_id: string;
   voice_name: string;
@@ -42,58 +44,11 @@ function VoiceSelectionTable({ selectedVoiceId, onVoiceSelect }: { selectedVoice
 
 function VoiceSelectionContent({ selectedVoiceId, onVoiceSelect }: { selectedVoiceId?: string; onVoiceSelect: (voiceId: string) => void }) {
   const { t } = useLocale();
-  const [playingVoiceId, setPlayingVoiceId] = useState<string | null>(null);
-  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
+  const { playingVoiceId, handlePlayVoice } = useVoicePreview();
   const [rowSelection, setRowSelection] = useState({});
 
   const { data: voices, isLoading } = trpc.viewer.aiVoiceAgent.listVoices.useQuery();
 
-  const stopCurrentAudio = () => {
-    if (currentAudio) {
-      currentAudio.pause();
-      currentAudio.currentTime = 0;
-      setCurrentAudio(null);
-    }
-    setPlayingVoiceId(null);
-  };
-
-  const handlePlayVoice = (previewUrl?: string, voiceId?: string) => {
-    if (!previewUrl) {
-      showToast("Preview not available for this voice", "error");
-      return;
-    }
-
-    // If clicking on the same voice that's currently playing, stop it
-    if (playingVoiceId === voiceId) {
-      stopCurrentAudio();
-      return;
-    }
-
-    // Stop any currently playing audio
-    stopCurrentAudio();
-
-    // Start playing the new audio
-    const audio = new Audio(previewUrl);
-    setCurrentAudio(audio);
-    setPlayingVoiceId(voiceId || null);
-
-    audio.play().catch(() => {
-      setPlayingVoiceId(null);
-      setCurrentAudio(null);
-      showToast("Failed to play voice preview", "error");
-    });
-
-    audio.onended = () => {
-      setPlayingVoiceId(null);
-      setCurrentAudio(null);
-    };
-
-    audio.onerror = () => {
-      setPlayingVoiceId(null);
-      setCurrentAudio(null);
-      showToast("Failed to play voice preview", "error");
-    };
-  };
 
   const handleUseVoice = (voiceId: string) => {
     onVoiceSelect(voiceId);
