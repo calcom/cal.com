@@ -25,13 +25,13 @@ export const DateTargetSelector = ({ value, onChange }: DateTargetSelectorProps)
 
   const options: DateTargetOption[] = [
     {
-      label: t("start_time"),
-      description: t("start_time_description"),
+      label: t("booking_time_option"),
+      description: t("booking_time_option_description"),
       value: "startTime",
     },
     {
-      label: t("created_at"),
-      description: t("created_at_description"),
+      label: t("created_at_option"),
+      description: t("created_at_option_description"),
       value: "createdAt",
     },
   ];
