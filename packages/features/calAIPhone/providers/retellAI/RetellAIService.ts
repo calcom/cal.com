@@ -171,6 +171,7 @@ export class RetellAIService {
     beginMessage?: string | null;
     generalTools?: RetellLLMGeneralTools;
     voiceId?: string;
+    language?: Language;
   }) {
     return this.agentService.updateAgentConfiguration({
       ...params,

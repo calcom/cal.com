@@ -6,6 +6,7 @@ import type { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import type { Language } from "@calcom/features/calAIPhone/providers/retellAI/types";
 import { CAL_AI_PHONE_NUMBER_MONTHLY_PRICE } from "@calcom/lib/constants";
 import { formatPhoneNumber } from "@calcom/lib/formatPhoneNumber";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -27,7 +28,7 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { AddVariablesDropdown } from "@calcom/ui/components/editor";
 import { ToggleGroup, Switch } from "@calcom/ui/components/form";
-import { Label, TextArea, Input, TextField, Form } from "@calcom/ui/components/form";
+import { Label, TextArea, Input, TextField, Form, Select } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import {
   Sheet,
@@ -68,10 +69,51 @@ const restorePromptComplexity = (prompt: string): string => {
   return restoredPrompt;
 };
 
+// Language options for the dropdown
+const LANGUAGE_OPTIONS = [
+  { value: "en-US", label: "English (US)" },
+  { value: "en-IN", label: "English (India)" },
+  { value: "en-GB", label: "English (UK)" },
+  { value: "en-AU", label: "English (Australia)" },
+  { value: "en-NZ", label: "English (New Zealand)" },
+  { value: "de-DE", label: "German" },
+  { value: "es-ES", label: "Spanish (Spain)" },
+  { value: "es-419", label: "Spanish (Latin America)" },
+  { value: "hi-IN", label: "Hindi" },
+  { value: "fr-FR", label: "French (France)" },
+  { value: "fr-CA", label: "French (Canada)" },
+  { value: "ja-JP", label: "Japanese" },
+  { value: "pt-PT", label: "Portuguese (Portugal)" },
+  { value: "pt-BR", label: "Portuguese (Brazil)" },
+  { value: "zh-CN", label: "Chinese (Simplified)" },
+  { value: "ru-RU", label: "Russian" },
+  { value: "it-IT", label: "Italian" },
+  { value: "ko-KR", label: "Korean" },
+  { value: "nl-NL", label: "Dutch (Netherlands)" },
+  { value: "nl-BE", label: "Dutch (Belgium)" },
+  { value: "pl-PL", label: "Polish" },
+  { value: "tr-TR", label: "Turkish" },
+  { value: "th-TH", label: "Thai" },
+  { value: "vi-VN", label: "Vietnamese" },
+  { value: "ro-RO", label: "Romanian" },
+  { value: "bg-BG", label: "Bulgarian" },
+  { value: "ca-ES", label: "Catalan" },
+  { value: "da-DK", label: "Danish" },
+  { value: "fi-FI", label: "Finnish" },
+  { value: "el-GR", label: "Greek" },
+  { value: "hu-HU", label: "Hungarian" },
+  { value: "id-ID", label: "Indonesian" },
+  { value: "no-NO", label: "Norwegian" },
+  { value: "sk-SK", label: "Slovak" },
+  { value: "sv-SE", label: "Swedish" },
+  { value: "multi", label: "Multilingual" },
+];
+
 const agentSchema = z.object({
   generalPrompt: z.string().min(1, "General prompt is required"),
   beginMessage: z.string().min(1, "Begin message is required"),
   numberToCall: z.string().optional(),
+  language: z.string().optional(),
   generalTools: z
     .array(
       z.object({
@@ -159,6 +201,7 @@ export function AgentConfigurationSheet({
       generalPrompt: "",
       beginMessage: "",
       numberToCall: "",
+      language: "en-US",
       generalTools: [],
     },
   });
@@ -170,6 +213,7 @@ export function AgentConfigurationSheet({
         generalPrompt: cleanPromptForDisplay(retellData.generalPrompt || ""),
         beginMessage: retellData.beginMessage || "",
         numberToCall: "",
+        language: retellData.language || "en-US",
         generalTools: retellData.generalTools || [],
       });
     }
@@ -289,6 +333,7 @@ export function AgentConfigurationSheet({
     const updatePayload = {
       generalPrompt: restorePromptComplexity(data.generalPrompt),
       beginMessage: data.beginMessage,
+      language: data.language as Language,
       // Don't include generalTools - they are managed by the backend
     };
 
@@ -434,6 +479,24 @@ export function AgentConfigurationSheet({
           <SheetBody className="px-0">
             {activeTab === "prompt" && (
               <div className="space-y-4">
+                <div>
+                  <Label className="text-emphasis mb-1 block text-sm font-medium">
+                    {t("language")}
+                  </Label>
+                  <Controller
+                    name="language"
+                    control={agentForm.control}
+                    render={({ field }) => (
+                      <Select
+                        value={LANGUAGE_OPTIONS.find((option) => option.value === field.value)}
+                        onChange={(option) => field.onChange(option?.value)}
+                        options={LANGUAGE_OPTIONS}
+                        isDisabled={readOnly}
+                        className="mb-4"
+                      />
+                    )}
+                  />
+                </div>
                 <div>
                   <Label className="text-emphasis mb-1 block text-sm font-medium">
                     {t("initial_message")} *
