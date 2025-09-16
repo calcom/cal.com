@@ -21355,6 +21355,7 @@ __metadata:
     prettier: ^2.8.6
     prismock: ^1.33.4
     react-google-recaptcha: ^3.1.0
+    react-live-chat-loader: ^2.8.1
     resize-observer-polyfill: ^1.5.1
     tsc-absolute: ^1.0.0
     turbo: ^1.10.1
