@@ -12,10 +12,10 @@ import type { Prisma } from "@calcom/prisma/client";
 import type { App_RoutingForms_Form, User } from "@calcom/prisma/client";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
-import { getAllWorkflowsFromRoutingForm } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { Ensure } from "@calcom/types/utils";
 
 import type { FormResponse, SerializableForm, SerializableField, OrderedResponses } from "../types/types";
+import getFieldIdentifier from "./getFieldIdentifier";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/formSubmissionUtils"] });
 
@@ -218,7 +218,7 @@ export async function _onFormSubmission(
 
       await Promise.all(promises);
 
-      const workflows = await getAllWorkflowsFromRoutingForm(form);
+      const workflows = await WorkflowService.getAllWorkflowsFromRoutingForm(form);
 
       await WorkflowService.scheduleFormWorkflows({
         workflows,
