@@ -93,6 +93,7 @@ export function EditWebhookView({ webhook }: { webhook?: WebhookProps }) {
             secret: values.secret,
             time: values.time,
             timeUnit: values.timeUnit,
+            version: values.version,
           });
         }}
         apps={installedApps?.items.map((app) => app.slug)}

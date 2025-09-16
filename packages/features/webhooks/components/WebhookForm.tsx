@@ -33,6 +33,7 @@ export type WebhookFormData = {
   payloadTemplate: string | undefined | null;
   time?: number | null;
   timeUnit?: TimeUnit | null;
+  version: number;
 };
 
 export type WebhookFormSubmitData = WebhookFormData & {
@@ -229,6 +230,7 @@ export type WebhookFormValues = {
   payloadTemplate: string | undefined | null;
   time?: number | null;
   timeUnit?: TimeUnit | null;
+  version: number;
 };
 
 const WebhookForm = (props: {
@@ -276,6 +278,7 @@ const WebhookForm = (props: {
       payloadTemplate: props?.webhook?.payloadTemplate || undefined,
       timeUnit: props?.webhook?.timeUnit || undefined,
       time: props?.webhook?.time || undefined,
+      version: props?.webhook?.version || 1,
     },
   });
 
@@ -351,6 +354,29 @@ const WebhookForm = (props: {
                 }}
               />
             </>
+          )}
+        />
+        <Controller
+          name="version"
+          control={formMethods.control}
+          render={({ field: { value } }) => (
+            <div className="mt-6">
+              <Label className="font-sm text-emphasis font-medium">
+                <>{t("webhook_version")}</>
+              </Label>
+              <Select
+                options={[
+                  { value: 1, label: "V1" },
+                  { value: 2, label: "V2" },
+                ]}
+                value={{ value, label: value === 1 ? "V1" : "V2" }}
+                onChange={(option) => {
+                  if (option) {
+                    formMethods.setValue("version", option.value, { shouldDirty: true });
+                  }
+                }}
+              />
+            </div>
           )}
         />
         <Controller

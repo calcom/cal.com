@@ -70,6 +70,7 @@ export const NewWebhookView = ({ webhooks, installedApps }: Props) => {
       secret: values.secret,
       time: values.time,
       timeUnit: values.timeUnit,
+      version: values.version,
       teamId,
       platform,
     });
