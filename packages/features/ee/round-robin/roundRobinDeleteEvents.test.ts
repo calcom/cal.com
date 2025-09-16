@@ -115,6 +115,8 @@ describe("roundRobinReassignment test", () => {
 
     await roundRobinReassignment({
       bookingId: 123,
+      reassignedById: 101,
+      orgId: null,
     });
 
     // Verify that calendar deletion occurred (may be called multiple times due to duplicate references)
@@ -122,7 +124,7 @@ describe("roundRobinReassignment test", () => {
     const deleteCall = calendarMock.deleteEventCalls[0];
     expect(deleteCall.args.uid).toBe("ORIGINAL_EVENT_ID");
     expect(deleteCall.args.externalCalendarId).toBe("MOCK_EXTERNAL_CALENDAR_ID");
-    expect(deleteCall.args.event.organizer.email).toBe(newHost.email); // Current implementation uses new host credentials
+    expect(deleteCall.args.event.organizer.email).toBe(originalHost.email);
     expect(deleteCall.args.event.uid).toBe(bookingToReassignUid);
 
     // Verify that creation occurred with new host credentials

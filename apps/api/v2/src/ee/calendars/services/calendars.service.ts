@@ -11,22 +11,21 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import {
   Injectable,
   InternalServerErrorException,
-  UnauthorizedException,
   NotFoundException,
+  UnauthorizedException,
 } from "@nestjs/common";
-import { User } from "@prisma/client";
-import type { Prisma } from "@prisma/client";
 import { DateTime } from "luxon";
 import { z } from "zod";
 
 import { APPS_TYPE_ID_MAPPING } from "@calcom/platform-constants";
 import {
-  getConnectedDestinationCalendarsAndEnsureDefaultsInDb,
   getBusyCalendarTimes,
+  getConnectedDestinationCalendarsAndEnsureDefaultsInDb,
   type EventBusyDate,
 } from "@calcom/platform-libraries";
-import { Calendar } from "@calcom/platform-types";
-import { PrismaClient } from "@calcom/prisma";
+import type { Calendar } from "@calcom/platform-types";
+import type { PrismaClient } from "@calcom/prisma";
+import type { Prisma, User } from "@calcom/prisma/client";
 
 @Injectable()
 export class CalendarsService {

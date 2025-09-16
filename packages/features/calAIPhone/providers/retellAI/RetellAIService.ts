@@ -220,6 +220,16 @@ export class RetellAIService {
     return this.callService.createTestCall(params);
   }
 
+  async createWebCall(params: {
+    agentId: string;
+    userId: number;
+    teamId?: number;
+    timeZone: string;
+    eventTypeId: number;
+  }) {
+    return this.callService.createWebCall(params);
+  }
+
   async generatePhoneNumberCheckoutSession(params: {
     userId: number;
     teamId?: number;
@@ -231,5 +241,17 @@ export class RetellAIService {
 
   async cancelPhoneNumberSubscription(params: { phoneNumberId: number; userId: number; teamId?: number }) {
     return this.billingService.cancelPhoneNumberSubscription(params);
+  }
+
+  async listCalls(params: {
+    limit?: number;
+    offset?: number;
+    filters: {
+      fromNumber: string[];
+      toNumber?: string[];
+      startTimestamp?: { lower_threshold?: number; upper_threshold?: number };
+    };
+  }) {
+    return this.callService.listCalls(params);
   }
 }
