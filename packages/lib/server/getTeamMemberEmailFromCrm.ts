@@ -1,12 +1,19 @@
 import type { ParsedUrlQuery } from "querystring";
 
+/* eslint-disable */
 import { getCRMContactOwnerForRRLeadSkip } from "@calcom/app-store/_utils/CRMRoundRobinSkip";
-import { ROUTING_FORM_RESPONSE_ID_QUERY_STRING } from "@calcom/app-store/routing-forms/lib/constants";
+import {
+  ROUTING_FORM_RESPONSE_ID_QUERY_STRING,
+  ROUTING_FORM_QUEUED_RESPONSE_ID_QUERY_STRING,
+} from "@calcom/app-store/routing-forms/lib/constants";
 import { enabledAppSlugs } from "@calcom/app-store/routing-forms/lib/enabledApps";
 import type { AttributeRoutingConfig, LocalRoute } from "@calcom/app-store/routing-forms/types/types";
 import { zodRoutes as routesSchema } from "@calcom/app-store/routing-forms/zod";
+
+/* eslint-enable */
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -38,16 +45,25 @@ async function findUserByEmailWhoIsAHostOfEventType({
   });
 }
 
+/** Returns the form response id or the queued response id */
 function getRoutingFormResponseIdFromQuery(query: ParsedUrlQuery) {
   const routingFormResponseIdAsNumber = Number(query[ROUTING_FORM_RESPONSE_ID_QUERY_STRING]);
   const routingFormResponseId = isNaN(routingFormResponseIdAsNumber) ? null : routingFormResponseIdAsNumber;
-  return routingFormResponseId;
+
+  if (routingFormResponseId) return { routingFormResponseId, queuedFormResponseId: null };
+
+  const queuedFormResponseId = query[ROUTING_FORM_QUEUED_RESPONSE_ID_QUERY_STRING];
+  if (queuedFormResponseId && typeof queuedFormResponseId === "string")
+    return { queuedFormResponseId, routingFormResponseId: null };
+
+  return null;
 }
 
 async function getAttributeRoutingConfig(
   data:
     | {
-        routingFormResponseId: number;
+        routingFormResponseId?: number | null;
+        queuedFormResponseId?: string | null;
         eventTypeId: number;
       }
     | {
@@ -57,20 +73,14 @@ async function getAttributeRoutingConfig(
   if ("route" in data) {
     return data.route.attributeRoutingConfig ?? null;
   }
-  const { routingFormResponseId } = data;
+  const { routingFormResponseId, queuedFormResponseId } = data;
+  const routingFormResponseRepository = new RoutingFormResponseRepository(prisma);
 
-  const routingFormResponseQuery = await prisma.app_RoutingForms_FormResponse.findUnique({
-    where: {
-      id: routingFormResponseId,
-    },
-    include: {
-      form: {
-        select: {
-          routes: true,
-        },
-      },
-    },
-  });
+  const routingFormResponseQuery = routingFormResponseId
+    ? await routingFormResponseRepository.findFormResponseIncludeForm({ routingFormResponseId })
+    : queuedFormResponseId
+    ? await routingFormResponseRepository.findQueuedFormResponseIncludeForm({ queuedFormResponseId })
+    : null;
 
   if (!routingFormResponseQuery || !routingFormResponseQuery?.form.routes) return null;
   const parsedRoutes = routesSchema.safeParse(routingFormResponseQuery?.form.routes);
@@ -196,12 +206,14 @@ async function getTeamMemberEmailForResponseOrContact({
   bookerEmail,
   eventData,
   routingFormResponseId,
+  queuedFormResponseId,
   chosenRoute,
   crmAppSlug,
 }: {
   bookerEmail: string;
   eventData: EventData;
   routingFormResponseId?: number | null;
+  queuedFormResponseId?: string | null;
   /**
    * If provided, we won't go look for the route from DB.
    */
@@ -216,11 +228,12 @@ async function getTeamMemberEmailForResponseOrContact({
   const eventTypeId = eventData.id;
   if (eventData.schedulingType !== SchedulingType.ROUND_ROBIN) return returnNullValue;
 
-  const attributeRoutingConfigGetterData = routingFormResponseId
-    ? { routingFormResponseId, eventTypeId }
-    : chosenRoute
-    ? { route: chosenRoute }
-    : null;
+  const attributeRoutingConfigGetterData =
+    routingFormResponseId || queuedFormResponseId
+      ? { routingFormResponseId, queuedFormResponseId, eventTypeId }
+      : chosenRoute
+      ? { route: chosenRoute }
+      : null;
 
   // If we have found crmAppSlug, it means that the CRM App in the routing-form will handle the logic
   if (attributeRoutingConfigGetterData && crmAppSlug) {
@@ -271,13 +284,15 @@ export async function getTeamMemberEmailForResponseOrContactUsingUrlQuery({
 
   const crmAppSlug = getEnabledRoutingFormAppSlugFromQuery(query);
 
-  const routingFormResponseId = getRoutingFormResponseIdFromQuery(query);
+  const routingFormResponseIdAndQueuedFormResponseId = getRoutingFormResponseIdFromQuery(query);
 
   return await getTeamMemberEmailForResponseOrContact({
     bookerEmail: query.email,
     eventData,
-    routingFormResponseId,
     chosenRoute,
     crmAppSlug,
+    ...(routingFormResponseIdAndQueuedFormResponseId
+      ? { ...routingFormResponseIdAndQueuedFormResponseId }
+      : {}),
   });
 }
