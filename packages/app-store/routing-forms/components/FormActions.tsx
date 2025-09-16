@@ -1,6 +1,5 @@
 import { TeamSelectionDialog } from "@calid/features/modules/teams/components/TeamSelectionDialog";
 import { type ButtonProps } from "@calid/features/ui/components/button";
-import { TeamSelectionDialog } from "@calid/features/modules/teams/components/TeamSelectionDialog";
 import { Button } from "@calid/features/ui/components/button";
 import { Dialog, DialogContent, DialogFooter } from "@calid/features/ui/components/dialog";
 import { Icon } from "@calid/features/ui/components/icon";
@@ -626,11 +625,17 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
 
   const Component = as || Button;
   // for (const key in actionProps) {
+  console.log("All Props: ", props);
 
   if (!dropdown) {
     return (
       <Wrapper href={href} target={target}>
-        <Component data-testid={`form-action-${actionName}`} ref={forwardedRef} {...actionProps}>
+        <Component
+          data-testid={`form-action-${actionName}`}
+          ref={forwardedRef}
+          {...actionProps}
+          color="minimal"
+          variant="icon">
           {children}
         </Component>
       </Wrapper>
@@ -642,11 +647,13 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
         <Component
           ref={forwardedRef}
           {...actionProps}
+          variant="fab"
           className={classNames(
             props.className,
-            "w-full p-2 transition-none",
+            "w-full p-2 transition-none justify-start",
             props.color === "destructive" && "border-0"
-          )}>
+          )}
+          color="minimal">
           {icon && <Icon name={icon} className="h-4 w-4" />}
           {children}
         </Component>
