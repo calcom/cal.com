@@ -1,36 +1,27 @@
 import { createTransport } from "nodemailer";
+import type SMTPConnection from "nodemailer/lib/smtp-connection";
 
-interface PostmarkConfig {
-  host: string;
-  port: number;
-  secure: boolean;
-  auth: {
-    user: string;
-    pass: string;
-  };
-}
-
-function getPostmarkTransport(): PostmarkConfig {
-  if (!process.env.POSTMARK_SERVER_TOKEN) {
-    throw new Error("POSTMARK_SERVER_TOKEN environment variable is required");
+function getMarketingEmailTransport(): SMTPConnection.Options {
+  if (!process.env.MARKETING_EMAIL_SERVER_TOKEN) {
+    throw new Error("MARKETING_EMAIL_SERVER_TOKEN environment variable is required");
   }
 
   return {
-    host: process.env.POSTMARK_SMTP_HOST || "smtp.postmarkapp.com",
-    port: parseInt(process.env.POSTMARK_SMTP_PORT || "587"),
-    secure: process.env.POSTMARK_SMTP_PORT === "465",
+    host: process.env.EMAIL_SERVER_HOST || "smtp.postmarkapp.com",
+    port: parseInt(process.env.EMAIL_SERVER_PORT || "587"),
+    secure: process.env.EMAIL_SERVER_PORT === "465",
     auth: {
-      user: process.env.POSTMARK_SMTP_USER || process.env.POSTMARK_SERVER_TOKEN,
-      pass: process.env.POSTMARK_SERVER_TOKEN,
+      user: process.env.EMAIL_SERVER_USER || process.env.MARKETING_EMAIL_SERVER_TOKEN,
+      pass: process.env.MARKETING_EMAIL_SERVER_TOKEN,
     },
   };
 }
 
 export async function sendEmail(message: string, email: string): Promise<void> {
-  const transport = createTransport(getPostmarkTransport());
+  const transport = createTransport(getMarketingEmailTransport());
 
   const mailOptions = {
-    from: process.env.POSTMARK_FROM_EMAIL || process.env.EMAIL_FROM || "notifications@cal.com",
+    from: process.env.EMAIL_FROM || "notifications@cal.com",
     to: email,
     subject: "Message from Cal.com",
     text: message,
