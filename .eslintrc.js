@@ -22,7 +22,7 @@ module.exports = {
     {
       files: ["packages/app-store/**/*.{ts,tsx,js,jsx}"],
       rules: {
-        "no-restricted-imports": [
+        "@typescript-eslint/no-restricted-imports": [
           "error",
           {
             patterns: [
@@ -30,6 +30,8 @@ module.exports = {
                 group: ["@calcom/trpc/*", "@trpc/*"],
                 message:
                   "tRPC imports are blocked in packages/app-store. Move UI to apps/web/components/apps or introduce an API boundary.",
+                message: "tRPC imports are blocked in packages/app-store. Move UI to apps/web/components/apps or introduce an API boundary.",
+                allowTypeImports: false,
               },
             ],
           },

@@ -30,7 +30,11 @@ type OptionValues = {
   identityProvider: Option;
 };
 
-type FormValues = Pick<User, "avatarUrl" | "name" | "username" | "email" | "bio"> & OptionValues;
+type FormValues = Pick<
+  User,
+  "avatarUrl" | "name" | "username" | "email" | "bio" | "theme" | "defaultScheduleId" | "allowDynamicBooking"
+> &
+  OptionValues;
 
 export const UserForm = ({
   defaultValues,
@@ -79,6 +83,9 @@ export const UserForm = ({
       username: defaultValues?.username,
       email: defaultValues?.email,
       bio: defaultValues?.bio,
+      theme: defaultValues?.theme,
+      defaultScheduleId: defaultValues?.defaultScheduleId,
+      allowDynamicBooking: defaultValues?.allowDynamicBooking,
       locale: {
         value: defaultLocale,
         label: new Intl.DisplayNames(defaultLocale, { type: "language" }).of(defaultLocale) || "",
