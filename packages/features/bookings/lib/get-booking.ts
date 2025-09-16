@@ -1,5 +1,3 @@
-import type { z } from "zod";
-
 import { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import slugify from "@calcom/lib/slugify";
 import type { PrismaClient } from "@calcom/prisma";
@@ -116,7 +114,7 @@ export const getBookingWithResponses = <
   return {
     ...booking,
     responses: isSeatedEvent ? booking.responses : booking.responses || getResponsesFromOldBooking(booking),
-  };
+  } as Omit<T, "responses"> & { responses: Record<string, unknown> };
 };
 
 export default getBooking;
