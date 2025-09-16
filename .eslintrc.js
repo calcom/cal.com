@@ -22,7 +22,7 @@ module.exports = {
     {
       files: ["packages/app-store/**/*.{ts,tsx,js,jsx}"],
       rules: {
-        "no-restricted-imports": [
+        "@typescript-eslint/no-restricted-imports": [
           "error",
           {
             patterns: [
