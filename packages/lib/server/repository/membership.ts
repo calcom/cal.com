@@ -1,7 +1,7 @@
 
 import { availabilityUserSelect, prisma, type PrismaTransaction } from "@calcom/prisma";
-import type { Prisma, Membership, PrismaClient } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
+import type { Prisma, Membership, PrismaClient } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import logger from "../../logger";
