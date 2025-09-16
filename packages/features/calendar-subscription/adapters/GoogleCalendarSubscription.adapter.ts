@@ -24,7 +24,7 @@ const log = logger.getSubLogger({ prefix: ["GoogleCalendarSubscriptionAdapter"] 
  */
 export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionPort {
   private GOOGLE_WEBHOOK_TOKEN = process.env.GOOGLE_WEBHOOK_TOKEN;
-  private GOOGLE_WEBHOOK_URL = process.env.GOOGLE_WEBHOOK_URL;
+  private GOOGLE_WEBHOOK_URL = `${process.env.GOOGLE_WEBHOOK_URL}/api/webhooks/calendar-subscription/google_calendar`;
 
   async validate(context: CalendarSubscriptionWebhookContext): Promise<boolean> {
     const token = context?.headers?.get("X-Goog-Channel-Token");
