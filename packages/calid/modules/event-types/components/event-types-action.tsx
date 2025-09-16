@@ -7,9 +7,8 @@ import {
   ButtonOrLink,
 } from "@calid/features/ui/components/dropdown-menu";
 import { Icon } from "@calid/features/ui/components/icon";
-import { Label } from "@calid/features/ui/components/label";
 import { Switch } from "@calid/features/ui/components/switch";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@calid/features/ui/components/tooltip";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
 import type { UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -17,7 +16,7 @@ import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { showToast } from "@calcom/ui/components/toast";
 
 interface EventTypeActionsProps {
-  form: UseFormReturn<any>;
+  form: UseFormReturn<Record<string, unknown>>;
   eventTypesLockedByOrg?: boolean;
   permalink: string;
   hasPermsToDelete: boolean;
@@ -36,42 +35,60 @@ export const EventTypeActions = ({
   const { t } = useLocale();
 
   return (
-    <div className="flex items-center justify-end space-x-4 mr-2">
+    <div className="mr-2 flex items-center justify-end space-x-4">
       {/* Hidden toggle */}
-      {!form.getValues("metadata")?.managedEventConfig && (
+      {(() => {
+        try {
+          const metadata = form?.getValues("metadata");
+          return !metadata?.managedEventConfig;
+        } catch (error) {
+          return true;
+        }
+      })() && (
         <div className="flex items-center space-x-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Switch
-                id="hiddenSwitch"
-                disabled={eventTypesLockedByOrg}
-                checked={!form.watch("hidden")}
-                onCheckedChange={(e) => {
-                  form.setValue("hidden", !e, { shouldDirty: true });
-                }}
-              />
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              {form.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")}
-            </TooltipContent>
+          <Tooltip
+            content={(() => {
+              try {
+                const hidden = form?.watch("hidden");
+                return hidden ? t("show_eventtype_on_profile") : t("hide_from_profile");
+              } catch (error) {
+                return t("hide_from_profile");
+              }
+            })()}>
+            <Switch
+              id="hiddenSwitch"
+              disabled={eventTypesLockedByOrg}
+              checked={(() => {
+                try {
+                  const hidden = form?.watch("hidden");
+                  return !hidden;
+                } catch (error) {
+                  return true;
+                }
+              })()}
+              onCheckedChange={(e) => {
+                try {
+                  form?.setValue("hidden", !e, { shouldDirty: true });
+                } catch (error) {
+                  console.error("EventTypeActions - Error setting hidden value:", error);
+                }
+              }}
+            />
           </Tooltip>
         </div>
       )}
 
       {/* Action buttons */}
       <ButtonGroup>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              color="secondary"
-              variant="icon"
-              href={permalink}
-              target="_blank"
-              rel="noreferrer"
-              StartIcon="external-link"
-            />
-          </TooltipTrigger>
-          <TooltipContent side="bottom">{t("preview")}</TooltipContent>
+        <Tooltip content={t("preview")} sideOffset={4}>
+          <Button
+            color="secondary"
+            variant="icon"
+            href={permalink}
+            target="_blank"
+            rel="noreferrer"
+            StartIcon="external-link"
+          />
         </Tooltip>
 
         <Button
@@ -134,7 +151,14 @@ export const EventTypeActions = ({
       <Button
         type="submit"
         loading={isUpdatePending}
-        disabled={!form.formState.isDirty || isUpdatePending}
+        disabled={(() => {
+          try {
+            const isDirty = form?.formState?.isDirty;
+            return !isDirty || isUpdatePending;
+          } catch (error) {
+            return true;
+          }
+        })()}
         form="event-type-form">
         {t("save")}
       </Button>

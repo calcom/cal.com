@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
-import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 
 interface WebPushContextProps {
@@ -27,10 +26,10 @@ export function WebPushProvider({ children }: ProviderProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
 
-  const { mutate: addSubscription } =
-    trpc.viewer.loggedInViewerRouter.addNotificationsSubscription.useMutation();
-  const { mutate: removeSubscription } =
-    trpc.viewer.loggedInViewerRouter.removeNotificationsSubscription.useMutation();
+  // const { mutate: addSubscription } =
+  //   trpc.viewer.loggedInViewerRouter.addNotificationsSubscription.useMutation();
+  // const { mutate: removeSubscription } =
+  //   trpc.viewer.loggedInViewerRouter.removeNotificationsSubscription.useMutation();
 
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
@@ -65,7 +64,7 @@ export function WebPushProvider({ children }: ProviderProps) {
               userVisibleOnly: true,
               applicationServerKey: urlB64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || ""),
             });
-            addSubscription({ subscription: JSON.stringify(subscription) });
+            // addSubscription({ subscription: JSON.stringify(subscription) });
             setIsSubscribed(true);
             showToast("Notifications enabled successfully", "success");
           }
@@ -84,7 +83,7 @@ export function WebPushProvider({ children }: ProviderProps) {
           if (subscription) {
             const subscriptionJson = JSON.stringify(subscription);
             await subscription.unsubscribe();
-            removeSubscription({ subscription: subscriptionJson });
+            // removeSubscription({ subscription: subscriptionJson });
             setIsSubscribed(false);
             showToast("Notifications disabled successfully", "success");
           }
@@ -96,7 +95,13 @@ export function WebPushProvider({ children }: ProviderProps) {
         }
       },
     }),
-    [permission, isLoading, isSubscribed, pushManager, addSubscription, removeSubscription]
+    [
+      permission,
+      isLoading,
+      isSubscribed,
+      pushManager,
+      // addSubscription, removeSubscription
+    ]
   );
 
   return <WebPushContext.Provider value={contextValue}>{children}</WebPushContext.Provider>;

@@ -153,9 +153,7 @@ export const EventMeta = ({
   );
 
   return (
-    <div
-      className={`${classNames?.eventMetaContainer || ""} relative z-10 mb-10 p-6`}
-      data-testid="event-meta">
+    <div className={`${classNames?.eventMetaContainer || ""} relative z-10 p-6`} data-testid="event-meta">
       {isPending && (
         <m.div {...fadeInUp} initial="visible" layout>
           <EventMetaSkeleton />
@@ -170,13 +168,13 @@ export const EventMeta = ({
             entity={event.entity}
             isPrivateLink={isPrivateLink}
           />
-          <EventTitle className={`${classNames?.eventMetaTitle} my-2 mt-4`}>
+          <EventTitle className={`${classNames?.eventMetaTitle} my-2`}>
             {translatedTitle ?? event?.title}
           </EventTitle>
           {(event.description || translatedDescription) && (
             <EventMetaBlock
               data-testid="event-meta-description"
-              contentClassName="text-subtle text-sm mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">
+              contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">
               <div
                 // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{
@@ -202,7 +200,7 @@ export const EventMeta = ({
               </EventMetaBlock>
             )}
             {selectedTimeslot && (
-              <EventMetaBlock icon="calendar" label="Date and Time">
+              <EventMetaBlock icon="calendar">
                 <FromToTime
                   date={selectedTimeslot}
                   duration={selectedDuration || event.length}
@@ -216,8 +214,7 @@ export const EventMeta = ({
             <EventMetaBlock
               className="cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"
               contentClassName="relative max-w-[90%]"
-              icon="globe"
-              label="Timezone">
+              icon="globe">
               {bookerState === "booking" ? (
                 <>{timezone}</>
               ) : (
@@ -232,7 +229,7 @@ export const EventMeta = ({
                     timezoneSelectCustomClassname={classNames?.eventMetaTimezoneSelect}
                     classNames={{
                       control: () =>
-                        "!min-h-0 py-0 px-4 w-full border border-default mt-8 bg-transparent focus-within:ring-0 shadow-none!",
+                        "!min-h-0 p-0 w-full border-0 bg-transparent focus-within:ring-0 shadow-none!",
                       menu: () => "!w-64 max-w-[90vw] mb-1 ",
                       singleValue: () => "text-text py-1",
                       indicatorsContainer: () => "ml-auto",

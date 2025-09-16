@@ -6,15 +6,15 @@ import React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import type { WorkflowType, TeamProfile, TeamFiltersState } from "../config/types";
+import type { CalIdWorkflowType, CalIdTeamProfile, CalIdTeamFiltersState } from "../config/types";
 import { WorkflowCard } from "./workflow_card";
 import { TeamsFilter } from "./workflow_teams_filter";
 
 interface WorkflowsListProps {
-  workflows: WorkflowType[];
-  teamProfiles: TeamProfile[];
-  teamFilters: TeamFiltersState;
-  setTeamFilters: React.Dispatch<React.SetStateAction<TeamFiltersState>>;
+  workflows: CalIdWorkflowType[];
+  teamProfiles: CalIdTeamProfile[];
+  teamFilters: CalIdTeamFiltersState;
+  setTeamFilters: React.Dispatch<React.SetStateAction<CalIdTeamFiltersState>>;
   onCreateWorkflow: () => void;
   onEdit: (workflowId: number) => void;
   onToggle: (workflowId: number, enabled: boolean) => void;

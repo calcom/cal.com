@@ -14,12 +14,7 @@ import { Input } from "@calid/features/ui/components/input/input";
 import { Label } from "@calid/features/ui/components/label";
 import { RadioGroup, RadioGroupItem } from "@calid/features/ui/components/radio-group";
 import { triggerToast } from "@calid/features/ui/components/toast";
-import {
-  Tooltip,
-  TooltipProvider,
-  TooltipTrigger,
-  TooltipContent,
-} from "@calid/features/ui/components/tooltip";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
 import React from "react";
 
 import {
@@ -127,18 +122,11 @@ export const CreateTeamEventModal: React.FC<CreateTeamEventModalProps> = ({
               URL
             </Label>
             <div className="flex">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="inline-flex max-w-32 items-center overflow-hidden rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 pr-8 text-xs text-gray-500">
-                      /{!isManagedEventType ? `${teamSlug || teamName.toLowerCase()}` : "username"}/
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{!isManagedEventType ? `${teamSlug || teamName.toLowerCase()}` : "username"}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Tooltip content={!isManagedEventType ? `${teamSlug || teamName.toLowerCase()}` : "username"}>
+                <span className="inline-flex max-w-32 items-center overflow-hidden rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 pr-8 text-xs text-gray-500">
+                  /{!isManagedEventType ? `${teamSlug || teamName.toLowerCase()}` : "username"}/
+                </span>
+              </Tooltip>
               <Input
                 id="slug"
                 {...register("slug", { required: "URL is required" })}

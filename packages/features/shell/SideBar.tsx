@@ -4,7 +4,9 @@ import type { User as UserAuth } from "next-auth";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
 import classNames from "@calcom/ui/classNames";
+
 import { Navigation } from "./navigation/Navigation";
 
 export type SideBarContainerProps = {
@@ -42,7 +44,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
       <aside
         style={!isPlatformPages ? sidebarStylingAttributes : {}}
         className={classNames(
-          "bg-cal-gradient border-muted fixed left-0 hidden h-full w-14 flex-col overflow-y-auto overflow-x-hidden border-r md:sticky md:flex lg:w-56 lg:px-4",
+          "bg-cal-gradient dark:bg-cal-gradient border-muted fixed left-0 hidden h-full w-14 flex-col overflow-y-auto overflow-x-hidden border-r md:sticky md:flex lg:w-56 lg:px-4",
           !isPlatformPages && "max-h-screen"
         )}>
         <div className="flex h-full flex-col justify-between py-4 lg:pt-4">

@@ -22,7 +22,9 @@ export default function Insights({ tab }: PageProps) {
           <InsightsBookingPage timeZone={Intl.DateTimeFormat().resolvedOptions().timeZone} />
         )}
         {tab === "routing" && <InsightsRoutingFormResponsesPage />}
-        {tab === "workflows" && <InsightsWorkflowPage />}
+        {tab === "workflows" && (
+          <InsightsWorkflowPage timeZone={Intl.DateTimeFormat().resolvedOptions().timeZone} />
+        )}
       </InsightsLayout>
     </>
   );

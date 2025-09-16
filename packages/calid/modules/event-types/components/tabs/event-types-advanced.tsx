@@ -3,7 +3,6 @@ import {
   canDisableOrganizerNotifications,
 } from "@calid/features/modules/workflows/utils/notificationDisableCheck";
 import { Alert } from "@calid/features/ui/components/alert";
-import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
 import {
   Card,
@@ -367,16 +366,7 @@ const DestinationCalendarSettings = ({
                   value: String(secondaryEmail.value),
                   label: secondaryEmail.label,
                 }))}
-                placeholder={
-                  selectedSecondaryEmailId === -1 ? (
-                    <span className="text-default min-w-0 overflow-hidden truncate whitespace-nowrap">
-                      <Badge variant="attention" size="sm">
-                        {t("default")}
-                      </Badge>{" "}
-                      {userEmail}
-                    </span>
-                  ) : undefined
-                }
+                placeholder={selectedSecondaryEmailId === -1 ? `${t("default")} ${userEmail}` : undefined}
                 className="w-full"
               />
               <p className="text-subtle mt-1 text-sm">{t("select_which_cal")}</p>
@@ -870,7 +860,7 @@ export const EventAdvanced = ({
 
   // Derived state from form values
   const workflows =
-    eventType.workflows?.map((workflowOnEventType: any) => workflowOnEventType.workflow) ?? [];
+    eventType.calIdWorkflows?.map((workflowOnEventType: any) => workflowOnEventType.workflow) ?? [];
   const multiLocation = (formMethods.getValues("locations") || []).length > 1;
   const noShowFeeEnabled =
     formMethods.getValues("metadata")?.apps?.stripe?.enabled === true &&
@@ -929,7 +919,7 @@ export const EventAdvanced = ({
     attendeeName: t("scheduler"),
     eventType: formMethods.getValues("title"),
     eventName: formMethods.getValues("eventName"),
-    host: formMethods.getValues("users")[0]?.name || "Nameless",
+    host: formMethods.getValues("users")?.[0]?.name || "Nameless",
     bookingFields,
     eventDuration: formMethods.getValues("length"),
     t,
@@ -943,10 +933,10 @@ export const EventAdvanced = ({
   // Extract user timezone from event type configuration
   const userTimeZone = extractHostTimezone({
     userId: eventType.userId,
-    teamId: eventType.teamId,
+    teamId: eventType.calIdTeamId,
     hosts: eventType.hosts,
     owner: eventType.owner,
-    team: eventType.team,
+    team: eventType.calIdTeam,
   });
 
   // Platform-specific email processing

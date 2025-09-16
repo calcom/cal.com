@@ -12,14 +12,14 @@ export class WorkflowService {
     });
 
     if (team?.parentId) {
-      const activeWorkflowsOnTeam = await prisma.workflow.findMany({
+      const activeWorkflowsOnTeam = await prisma.calIdWorkflow.findMany({
         where: {
-          teamId: team.parentId,
+          calIdTeamId: team.parentId,
           OR: [
             {
               activeOnTeams: {
                 some: {
-                  teamId: team.id,
+                  calIdTeamId: team.id,
                 },
               },
             },
@@ -40,9 +40,9 @@ export class WorkflowService {
         let remainingActiveOnIds = [];
 
         if (workflow.isActiveOnAll) {
-          const allRemainingOrgTeams = await prisma.team.findMany({
+          const allRemainingOrgTeams = await prisma.calIdTeam.findMany({
             where: {
-              parentId: team.parentId,
+              // parentId: team.parentId,
               id: {
                 not: team.id,
               },
@@ -51,8 +51,8 @@ export class WorkflowService {
           remainingActiveOnIds = allRemainingOrgTeams.map((team) => team.id);
         } else {
           remainingActiveOnIds = workflow.activeOnTeams
-            .filter((activeOn) => activeOn.teamId !== team.id)
-            .map((activeOn) => activeOn.teamId);
+            .filter((activeOn) => activeOn.calIdTeamId !== team.id)
+            .map((activeOn) => activeOn.calIdTeamId);
         }
         const remindersToDelete = await WorkflowRepository.getRemindersFromRemovedTeams(
           [team.id],

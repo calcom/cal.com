@@ -100,7 +100,7 @@ const generateFooterContent = (brandingSuppressed?: boolean, designMode?: boolea
   const brandingText =
     !brandingSuppressed && !designMode ? `<div>_<br><br>Scheduling by ${APP_NAME}</div>` : "";
 
-  return `This survey was triggered by a Workflow in Cal.${brandingText}`;
+  return `This survey was triggered by a Workflow in Cal ID.${brandingText}`;
 };
 
 const assembleEmailBody = (

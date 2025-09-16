@@ -1,5 +1,5 @@
 import { sendCancelledReminders } from "@calid/features/modules/workflows/utils/reminderScheduler";
-import type { Prisma, WorkflowReminder } from "@prisma/client";
+import type { CalIdWorkflowReminder, Prisma } from "@prisma/client";
 import type { z } from "zod";
 
 import bookingCancelPaymentHandler from "@calcom/app-store/_utils/payments/bookingCancelPaymentHandler";
@@ -359,7 +359,7 @@ async function handler(input: CancelBookingInput) {
   let updatedBookings: {
     id: number;
     uid: string;
-    workflowReminders: WorkflowReminder[];
+    calIdWorkflowReminders: CalIdWorkflowReminder[];
     references: {
       type: string;
       credentialId: number | null;
@@ -385,7 +385,7 @@ async function handler(input: CancelBookingInput) {
         credentialId: true,
       },
     },
-    workflowReminders: true,
+    calIdWorkflowReminders: true,
     uid: true,
     payment: true,
     eventType: {
@@ -516,14 +516,16 @@ async function handler(input: CancelBookingInput) {
 
   try {
     const webhookTriggerPromises = [];
-    const workflowReminderPromises = [];
+    const calIdWorkflowReminderPromises = [];
     const paymentCancellationPromises = [];
     for (const booking of updatedBookings) {
       // delete scheduled webhook triggers of cancelled bookings
       webhookTriggerPromises.push(deleteWebhookScheduledTriggers({ booking }));
 
       //Workflows - cancel all reminders for cancelled bookings
-      workflowReminderPromises.push(WorkflowRepository.deleteAllWorkflowReminders(booking.workflowReminders));
+      calIdWorkflowReminderPromises.push(
+        WorkflowRepository.deleteAllWorkflowReminders(booking.calIdWorkflowReminders)
+      );
       if (autoRefund) {
         if (!booking.payment) {
           log.warn(`No payment found for booking ${booking.id}`);
@@ -551,15 +553,20 @@ async function handler(input: CancelBookingInput) {
       cancelledBookingsUids.push(booking.uid);
     }
 
-    await Promise.allSettled([...webhookTriggerPromises, ...workflowReminderPromises]).then((results) => {
-      const rejectedReasons = results
-        .filter((result): result is PromiseRejectedResult => result.status === "rejected")
-        .map((result) => result.reason);
+    await Promise.allSettled([...webhookTriggerPromises, ...calIdWorkflowReminderPromises]).then(
+      (results) => {
+        const rejectedReasons = results
+          .filter((result): result is PromiseRejectedResult => result.status === "rejected")
+          .map((result) => result.reason);
 
-      if (rejectedReasons.length > 0) {
-        log.error("An error occurred when deleting workflow reminders and webhook triggers", rejectedReasons);
+        if (rejectedReasons.length > 0) {
+          log.error(
+            "An error occurred when deleting workflow reminders and webhook triggers",
+            rejectedReasons
+          );
+        }
       }
-    });
+    );
   } catch (error) {
     log.error("Error deleting scheduled webhooks and workflows", safeStringify({ error }));
   }

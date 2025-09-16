@@ -11,7 +11,7 @@ import {
 } from "@calcom/prisma/enums";
 
 import type { timeUnitLowerCase } from "../config/constants";
-import type { ScheduleTextReminderArgs } from "../config/types";
+import type { CalIdScheduleTextReminderArgs } from "../config/types";
 import { deleteScheduledSMSReminder } from "../managers/smsManager";
 import * as twilio from "../providers/twilio";
 import {
@@ -257,7 +257,7 @@ const scheduleDelayedWhatsapp = async (
     );
 
     if (scheduledWHATSAPP) {
-      await prisma.workflowReminder.create({
+      await prisma.calIdWorkflowReminder.create({
         data: {
           bookingUid: uid,
           workflowStepId: workflowStepId,
@@ -283,7 +283,7 @@ const storeFutureWhatsappReminder = async (
   evt: any
 ): Promise<void> => {
   // Write to DB and send to CRON if scheduled reminder date is past 7 days
-  await prisma.workflowReminder.create({
+  await prisma.calIdWorkflowReminder.create({
     data: {
       bookingUid: uid,
       workflowStepId: workflowStepId,
@@ -334,7 +334,7 @@ const processScheduledWhatsapp = async (
   }
 };
 
-export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) => {
+export const scheduleWhatsappReminder = async (args: CalIdScheduleTextReminderArgs) => {
   const {
     evt,
     reminderPhone,
@@ -345,7 +345,7 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
     workflowStepId,
     template,
     userId,
-    teamId,
+    calIdTeamId: teamId,
     isVerificationPending = false,
     seatReferenceUid,
   } = args;

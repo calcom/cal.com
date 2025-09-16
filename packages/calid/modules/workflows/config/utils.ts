@@ -4,7 +4,7 @@ import type { TFunction } from "next-i18next";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { WorkflowActions, WorkflowTriggerEvents, WorkflowTemplates } from "@calcom/prisma/enums";
 
-import type { WorkflowType } from "../config/types";
+import type { CalIdWorkflowType } from "../config/types";
 import emailRatingTemplate from "../templates/email/ratingTemplate";
 import emailReminderTemplate from "../templates/email/reminder";
 import emailThankYouTemplate from "../templates/email/thankYouTemplate";
@@ -308,7 +308,7 @@ export {
 /**
  * Generate trigger text for a workflow
  */
-export const generateTriggerText = (workflow: WorkflowType, t: TFunction): string => {
+export const generateTriggerText = (workflow: CalIdWorkflowType, t: TFunction): string => {
   let triggerStr = t(`${workflow.trigger.toLowerCase()}_trigger`);
   if (workflow.timeUnit && workflow.time) {
     triggerStr = ` ${t(`${workflow.timeUnit.toLowerCase()}`, {
@@ -321,25 +321,27 @@ export const generateTriggerText = (workflow: WorkflowType, t: TFunction): strin
 /**
  * Generate event type info text for a workflow
  */
-export const generateEventTypeInfo = (workflow: WorkflowType, t: TFunction): string => {
+export const generateEventTypeInfo = (workflow: CalIdWorkflowType, t: TFunction): string => {
   if (workflow.isActiveOnAll) {
-    return workflow.isOrg ? t("active_on_all_teams") : t("active_on_all_event_types");
+    // return workflow.isOrg  ? t("active_on_all_teams") : t("active_on_all_event_types");
+    return t("active_on_all_event_types");
   } else if (workflow.activeOn && workflow.activeOn.length > 0) {
     const count = workflow.activeOn.filter((wf) =>
-      workflow.teamId ? wf.eventType.parentId === null : true
+      workflow.calIdTeamId ? wf.eventType.parentId === null : true
     ).length;
     return t("active_on_event_types", { count });
   } else if (workflow.activeOnTeams && workflow.activeOnTeams.length > 0) {
     return t("active_on_teams", { count: workflow.activeOnTeams.length });
   } else {
-    return workflow.isOrg ? t("no_active_teams") : t("no_active_event_types");
+    // return workflow.isOrg ? t("no_active_teams") : t("no_active_event_types");
+    return t("no_active_event_types");
   }
 };
 
 /**
  * Generate action count text for a workflow
  */
-export const generateActionText = (workflow: WorkflowType): string => {
+export const generateActionText = (workflow: CalIdWorkflowType): string => {
   const actionCount = workflow.steps?.length || 0;
   return `${actionCount} ${actionCount <= 1 ? "Action" : "Actions"} added`;
 };
@@ -347,7 +349,7 @@ export const generateActionText = (workflow: WorkflowType): string => {
 /**
  * Generate workflow title with fallback logic
  */
-export const generateWorkflowTitle = (workflow: WorkflowType, t: TFunction): string => {
+export const generateWorkflowTitle = (workflow: CalIdWorkflowType, t: TFunction): string => {
   if (workflow.name) return workflow.name;
 
   if (workflow.steps[0]) {

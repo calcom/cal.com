@@ -263,7 +263,7 @@ async function handleScheduledWorkflows(
   unMarkedNoShowAttendeesIDs: number[]
 ) {
   const [workflowRemindersToDisable, workflowRemindersToEnable] = await Promise.all([
-    prisma.workflowReminder.updateMany({
+    prisma.calIdWorkflowReminder.updateMany({
       where: {
         bookingUid: bookingUid,
         OR: [{ cancelled: null }, { cancelled: false }],
@@ -272,7 +272,7 @@ async function handleScheduledWorkflows(
       },
       data: { cancelled: true },
     }),
-    prisma.workflowReminder.updateMany({
+    prisma.calIdWorkflowReminder.updateMany({
       where: {
         bookingUid: bookingUid,
         cancelled: true,
@@ -281,9 +281,6 @@ async function handleScheduledWorkflows(
       data: { cancelled: false },
     }),
   ]);
-
-  console.log("workflowRemindersToDisable", workflowRemindersToDisable);
-  console.log("workflowRemindersToEnable", workflowRemindersToEnable);
 }
 
 export default handleMarkNoShow;

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { AVATAR_FALLBACK } from "@calcom/lib/constants";
 import classNames from "@calcom/ui/classNames";
 
-import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "./tooltip";
+import { Tooltip } from "./tooltip";
 
 type Maybe<T> = T | null | undefined;
 
@@ -102,14 +102,5 @@ export function Avatar(props: AvatarProps) {
     );
   }
 
-  return title ? (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>{avatar}</TooltipTrigger>
-        <TooltipContent>{title}</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  ) : (
-    avatar
-  );
+  return title ? <Tooltip content={title}>{avatar}</Tooltip> : avatar;
 }

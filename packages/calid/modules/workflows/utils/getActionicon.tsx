@@ -1,12 +1,9 @@
 import { isSMSOrWhatsappAction } from "@calid/features/modules/workflows/config/utils";
 import { Icon } from "@calid/features/ui/components/icon";
 
-
-
-
 import classNames from "@calcom/ui/classNames";
 
-import type { WorkflowStep } from "../config/types";
+import type { CalIdWorkflowStep } from "../config/types";
 
 const DEFAULT_STYLE_CLASSES = "mr-1.5 inline h-3 w-3";
 
@@ -18,16 +15,16 @@ const COMMUNICATION_TYPES = {
 
 type CommunicationType = (typeof COMMUNICATION_TYPES)[keyof typeof COMMUNICATION_TYPES];
 
-function determineStepCommunicationType(stepAction: WorkflowStep["action"]): CommunicationType {
+function determineStepCommunicationType(stepAction: CalIdWorkflowStep["action"]): CommunicationType {
   return isSMSOrWhatsappAction(stepAction) ? COMMUNICATION_TYPES.MOBILE : COMMUNICATION_TYPES.EMAIL;
 }
 
-function analyzeCommunicationPattern(workflowSteps: WorkflowStep[]): CommunicationType {
-  if (workflowSteps.length === 0) return COMMUNICATION_TYPES.EMAIL;
+function analyzeCommunicationPattern(CalIdWorkflowSteps: CalIdWorkflowStep[]): CommunicationType {
+  if (CalIdWorkflowSteps.length === 0) return COMMUNICATION_TYPES.EMAIL;
 
-  const firstStepType = determineStepCommunicationType(workflowSteps[0].action);
+  const firstStepType = determineStepCommunicationType(CalIdWorkflowSteps[0].action);
 
-  const hasMultipleTypes = workflowSteps.some((currentStep) => {
+  const hasMultipleTypes = CalIdWorkflowSteps.some((currentStep) => {
     const currentStepType = determineStepCommunicationType(currentStep.action);
     return currentStepType !== firstStepType;
   });
@@ -44,7 +41,7 @@ function createIconElement(
   return <Icon name={iconName} className={classNames(appliedStyles)} aria-hidden="true" />;
 }
 
-export function getActionIcon(steps: WorkflowStep[], className?: string): JSX.Element {
+export function getActionIcon(steps: CalIdWorkflowStep[], className?: string): JSX.Element {
   const stepCount = steps.length;
 
   if (stepCount === 0) {

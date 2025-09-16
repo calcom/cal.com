@@ -122,7 +122,7 @@ export function UserPage(props: PageProps) {
         )}>
         <div
           className={classNames(
-            "border-subtle bg-cal-gradient text-default mb-4 flex flex-col items-center bg-cover bg-center p-4"
+            "border-subtle bg-cal-gradient dark:bg-cal-gradient text-default mb-4 flex flex-col items-center bg-cover bg-center p-4"
           )}
           style={{
             backgroundImage: headerUrl ? `url(${headerUrl})` : undefined,
@@ -162,7 +162,7 @@ export function UserPage(props: PageProps) {
         <DividerWithText />
 
         <div
-          className={classNames("flex flex-col gap-4 rounded-md bg-white px-4 pb-8 pt-2 lg:px-[15%]")}
+          className={classNames("bg-default flex flex-col gap-4 rounded-md px-4 pb-8 pt-2 lg:px-[15%]")}
           data-testid="event-types">
           {eventTypes.map((type) => {
             const iconParams = getIconParamsFromMetadata(type.metadata);

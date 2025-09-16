@@ -8,9 +8,13 @@ import { CalIdMembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
+import type { TrpcSessionUser } from "../../../types";
 import type { ZUpdateCalidTeamInput } from "./update.schema";
 
 type UpdateOptions = {
+  ctx: {
+    user: NonNullable<TrpcSessionUser>;
+  };
   input: ZUpdateCalidTeamInput;
 };
 

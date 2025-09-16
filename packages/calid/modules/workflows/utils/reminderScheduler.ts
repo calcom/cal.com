@@ -1,8 +1,3 @@
-import type {
-  ScheduleEmailReminderAction,
-  Workflow,
-  WorkflowStep,
-} from "@calid/features/modules/workflows/config/types";
 import {
   isSMSAction,
   isSMSOrWhatsappAction,
@@ -14,7 +9,12 @@ import { SENDER_NAME } from "@calcom/lib/constants";
 import { SchedulingType, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import type { ScheduleTextReminderAction } from "../config/types";
+import type {
+  CalIdScheduleTextReminderAction,
+  CalIdScheduleEmailReminderAction,
+  CalIdWorkflow,
+  CalIdWorkflowStep,
+} from "../config/types";
 import { scheduleEmailReminder } from "../managers/emailManager";
 import { scheduleSMSReminder } from "../managers/smsManager";
 import { scheduleWhatsappReminder } from "../managers/whatsappManager";
@@ -40,7 +40,7 @@ type ProcessWorkflowStepParams = {
 };
 
 export interface ScheduleWorkflowRemindersArgs extends ProcessWorkflowStepParams {
-  workflows: Workflow[];
+  workflows: CalIdWorkflow[];
   isNotConfirmed?: boolean;
   isRescheduleEvent?: boolean;
   isFirstRecurringEvent?: boolean;
@@ -48,8 +48,8 @@ export interface ScheduleWorkflowRemindersArgs extends ProcessWorkflowStepParams
 }
 
 const executeStepLogic = async (
-  workflowConfig: Workflow,
-  stepConfig: WorkflowStep,
+  workflowConfig: CalIdWorkflow,
+  stepConfig: CalIdWorkflowStep,
   {
     smsReminderNumber,
     calendarEvent: eventData,
@@ -61,8 +61,8 @@ const executeStepLogic = async (
   const requiresRateLimiting = isSMSOrWhatsappAction(stepConfig.action);
 
   if (requiresRateLimiting) {
-    const rateLimitKey = workflowConfig.teamId
-      ? `sms:team:${workflowConfig.teamId}`
+    const rateLimitKey = workflowConfig.calIdTeamId
+      ? `sms:team:${workflowConfig.calIdTeamId}`
       : `sms:user:${workflowConfig.userId}`;
 
     await checkSMSRateLimit({
@@ -81,7 +81,7 @@ const executeStepLogic = async (
       evt: eventData,
       reminderPhone: recipientNumber,
       triggerEvent: workflowConfig.trigger,
-      action: stepConfig.action as ScheduleTextReminderAction,
+      action: stepConfig.action as CalIdScheduleTextReminderAction,
       timeSpan: {
         time: workflowConfig.time,
         timeUnit: workflowConfig.timeUnit,
@@ -91,7 +91,7 @@ const executeStepLogic = async (
       template: stepConfig.template,
       sender: stepConfig.sender,
       userId: workflowConfig.userId,
-      teamId: workflowConfig.teamId,
+      calIdTeamId: workflowConfig.calIdTeamId,
       isVerificationPending: stepConfig.numberVerificationPending,
       seatReferenceUid,
     });
@@ -166,7 +166,7 @@ const executeStepLogic = async (
       await scheduleEmailReminder({
         evt: eventData,
         triggerEvent: workflowConfig.trigger,
-        action: stepConfig.action as ScheduleEmailReminderAction,
+        action: stepConfig.action as CalIdScheduleEmailReminderAction,
         timeSpan: {
           time: workflowConfig.time,
           timeUnit: workflowConfig.timeUnit,
@@ -199,7 +199,7 @@ const executeStepLogic = async (
       evt: eventData,
       reminderPhone: whatsappRecipient,
       triggerEvent: workflowConfig.trigger,
-      action: stepConfig.action as ScheduleTextReminderAction,
+      action: stepConfig.action as CalIdScheduleTextReminderAction,
       timeSpan: {
         time: workflowConfig.time,
         timeUnit: workflowConfig.timeUnit,
@@ -208,7 +208,7 @@ const executeStepLogic = async (
       workflowStepId: stepConfig.id,
       template: stepConfig.template,
       userId: workflowConfig.userId,
-      teamId: workflowConfig.teamId,
+      calIdTeamId: workflowConfig.calIdTeamId,
       isVerificationPending: stepConfig.numberVerificationPending,
       seatReferenceUid,
     });
@@ -284,7 +284,7 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
 };
 
 export interface SendCancelledRemindersArgs {
-  workflows: Workflow[];
+  workflows: CalIdWorkflow[];
   smsReminderNumber: string | null;
   evt: ExtendedCalendarEvent;
   hideBranding?: boolean;

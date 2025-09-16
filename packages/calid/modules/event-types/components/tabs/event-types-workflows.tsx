@@ -1,5 +1,5 @@
 import SkeletonLoader from "@calid/features/modules/workflows/components/event_workflow_tab_skeleton";
-import type { CalIdWorkflowType as WorkflowType } from "@calid/features/modules/workflows/config/types";
+import type { CalIdWorkflowType } from "@calid/features/modules/workflows/config/types";
 import { getActionIcon } from "@calid/features/modules/workflows/utils/getActionicon";
 import { Alert } from "@calid/features/ui/components/alert";
 import { Badge } from "@calid/features/ui/components/badge";
@@ -7,7 +7,7 @@ import { Button } from "@calid/features/ui/components/button";
 import { BlankCard } from "@calid/features/ui/components/card/blank-card";
 import { Icon } from "@calid/features/ui/components/icon";
 import { Switch } from "@calid/features/ui/components/switch/switch";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@calid/features/ui/components/tooltip";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
 import type { TFunction } from "i18next";
 import { default as get } from "lodash/get";
 import Link from "next/link";
@@ -27,12 +27,12 @@ import { showToast } from "@calcom/ui/components/toast";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 
 // Type definitions for better type safety
-type PartialWorkflowType = Pick<WorkflowType, "name" | "activeOn" | "steps" | "id" | "readOnly">;
+type PartialCalIdWorkflowType = Pick<CalIdWorkflowType, "name" | "activeOn" | "steps" | "id" | "readOnly">;
 type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["calid_get"]["eventType"];
 
 export interface EventWorkflowsProps {
   eventType: EventTypeSetup;
-  workflows: PartialWorkflowType[];
+  workflows: PartialCalIdWorkflowType[];
 }
 
 interface LockedIndicatorOptions {
@@ -147,33 +147,30 @@ const LockedIndicator = ({
   }
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <div className="inline">
-          <Badge
-            color={isLocked ? "gray" : "green"}
-            className={classNames(
-              "ml-2 transform justify-between p-1",
-              isManagedEventType && !options.simple && "w-28"
-            )}>
-            {!options.simple && (
-              <span className="inline-flex">
-                <Icon name={isLocked ? "lock" : "lock-open"} className="text-subtle h-3 w-3" />
-                <span className="ml-1 font-medium">{stateText}</span>
-              </span>
-            )}
-            {isManagedEventType && (
-              <Switch
-                data-testid={`locked-indicator-${fieldName}`}
-                onCheckedChange={handleToggle}
-                checked={isLocked}
-                size="sm"
-              />
-            )}
-          </Badge>
-        </div>
-      </TooltipTrigger>
-      <TooltipContent>{tooltipText}</TooltipContent>
+    <Tooltip content={tooltipText}>
+      <div className="inline">
+        <Badge
+          color={isLocked ? "gray" : "green"}
+          className={classNames(
+            "ml-2 transform justify-between p-1",
+            isManagedEventType && !options.simple && "w-28"
+          )}>
+          {!options.simple && (
+            <span className="inline-flex">
+              <Icon name={isLocked ? "lock" : "lock-open"} className="text-subtle h-3 w-3" />
+              <span className="ml-1 font-medium">{stateText}</span>
+            </span>
+          )}
+          {isManagedEventType && (
+            <Switch
+              data-testid={`locked-indicator-${fieldName}`}
+              onCheckedChange={handleToggle}
+              checked={isLocked}
+              size="sm"
+            />
+          )}
+        </Badge>
+      </div>
     </Tooltip>
   );
 };
@@ -241,7 +238,7 @@ const WorkflowListItem = React.memo(
     isChildrenManagedEventType,
     isActive,
   }: {
-    workflow: PartialWorkflowType;
+    workflow: PartialCalIdWorkflowType;
     eventType: EventTypeSetup;
     isChildrenManagedEventType: boolean;
     isActive: boolean;
@@ -377,22 +374,20 @@ const WorkflowListItem = React.memo(
           )}
 
           {/* Toggle switch */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="flex items-center ltr:mr-2 rtl:ml-2">
-                {workflow.readOnly && isChildrenManagedEventType && (
-                  <Icon name="lock" className="text-subtle h-4 w-4 ltr:mr-2 rtl:ml-2" />
-                )}
-                <Switch checked={isActive} disabled={workflow.readOnly} onCheckedChange={handleToggle} />
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              {workflow.readOnly && isChildrenManagedEventType
+          <Tooltip
+            content={
+              workflow.readOnly && isChildrenManagedEventType
                 ? t("locked_by_team_admin")
                 : isActive
                 ? t("turn_off")
-                : t("turn_on")}
-            </TooltipContent>
+                : t("turn_on")
+            }>
+            <div className="flex items-center ltr:mr-2 rtl:ml-2">
+              {workflow.readOnly && isChildrenManagedEventType && (
+                <Icon name="lock" className="text-subtle h-4 w-4 ltr:mr-2 rtl:ml-2" />
+              )}
+              <Switch checked={isActive} disabled={workflow.readOnly} onCheckedChange={handleToggle} />
+            </div>
           </Tooltip>
         </div>
       </div>
@@ -408,7 +403,7 @@ WorkflowListItem.displayName = "WorkflowListItem";
  */
 const useProcessedWorkflows = (
   data: any,
-  workflows: PartialWorkflowType[],
+  workflows: PartialCalIdWorkflowType[],
   eventType: EventTypeSetup,
   isChildrenManagedEventType: boolean,
   isLocked: boolean,
@@ -423,13 +418,13 @@ const useProcessedWorkflows = (
       return {
         ...workflowOnEventType,
         readOnly: isChildrenManagedEventType && dataWf?.teamId ? true : dataWf?.readOnly ?? false,
-      } as WorkflowType;
+      } as CalIdWorkflowType;
     });
 
     // Get available but inactive workflows
     const inactiveWorkflows = data.workflows.filter(
       (workflow: any) =>
-        (!workflow.teamId || eventType.teamId === workflow.teamId) &&
+        (!workflow.calIdTeamId || eventType.calIdTeamId === workflow.calIdTeamId) &&
         !workflows.some((activeWf) => activeWf.id === workflow.id)
     );
 
@@ -438,7 +433,7 @@ const useProcessedWorkflows = (
   }, [
     data?.workflows,
     workflows,
-    eventType.teamId,
+    eventType.calIdTeamId,
     isChildrenManagedEventType,
     isLocked,
     isManagedEventType,
@@ -481,7 +476,7 @@ export const EventWorkflows = ({ eventType, workflows }: EventWorkflowsProps) =>
   const activeWorkflowsCount = workflows.length;
 
   // Mutation for creating new workflows
-  const createMutation = trpc.viewer.workflows.create.useMutation({
+  const createMutation = trpc.viewer.workflows.calid_create.useMutation({
     onSuccess: async ({ workflow }) => {
       await router.replace(`/workflows/${workflow.id}?eventTypeId=${eventType.id}`);
     },
@@ -574,7 +569,7 @@ export const EventWorkflows = ({ eventType, workflows }: EventWorkflowsProps) =>
                 disabled={workflowsLockProps.isLocked && !isManagedEventType}
                 target="_blank"
                 color="primary"
-                onClick={() => createMutation.mutate({ teamId: eventType.team?.id })}
+                onClick={() => createMutation.mutate({ calIdTeamId: eventType.calIdTeam?.id })}
                 loading={createMutation.isPending}>
                 {t("create_workflow")}
               </Button>

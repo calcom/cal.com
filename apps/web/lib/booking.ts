@@ -80,7 +80,7 @@ export const getEventTypesFromDB = async (id: number) => {
           },
         },
       },
-      workflows: {
+      calIdWorkflows: {
         select: {
           workflow: {
             select: workflowSelect,
@@ -113,7 +113,11 @@ export const getEventTypesFromDB = async (id: number) => {
   return {
     isDynamic: false,
     ...restEventType,
-    bookingFields: getBookingFieldsWithSystemFields({ ...eventType, isOrgTeamEvent }),
+    bookingFields: getBookingFieldsWithSystemFields({
+      ...eventType,
+      workflows: eventType.calIdWorkflows,
+      isOrgTeamEvent,
+    }),
     metadata,
   };
 };

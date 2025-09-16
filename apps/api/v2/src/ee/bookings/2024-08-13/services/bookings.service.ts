@@ -49,7 +49,7 @@ import {
   RecurringBookingOutput_2024_08_13,
   GetSeatedBookingOutput_2024_08_13,
   GetRecurringSeatedBookingOutput_2024_08_13,
-  RescheduleBookingInputRescheduleBookingInput,
+  RescheduleBookingInput,
   CancelBookingInput,
 } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";

@@ -98,7 +98,7 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     },
   });
 
-  const isTeamAdminOrOwner = isCalIdTeamAdminOrOwner;
+  const isTeamAdminOrOwner = !!isCalIdTeamAdminOrOwner;
 
   return {
     id: user.id,

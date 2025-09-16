@@ -3,7 +3,7 @@
 import { getDefaultAvatar } from "@calid/features/lib/defaultAvatar";
 import { Branding } from "@calid/features/ui/Branding";
 import { Button } from "@calid/features/ui/components/button";
-import { Icon } from "@calid/features/ui/components/icon";
+import { Icon, type IconName } from "@calid/features/ui/components/icon";
 // This route is reachable by
 // 1. /team/[slug]
 // 2. / (when on org domain e.g. http://calcom.cal.com/. This is through a rewrite from next.config.js)
@@ -33,6 +33,16 @@ import type { getCalIdServerSideProps } from "@lib/team/[slug]/getCalIdServerSid
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import Team from "@components/team/screens/Team";
+
+interface IconParams {
+  icon: IconName;
+  color: string;
+}
+
+function getIconParamsFromMetadata(metadata: any): IconParams {
+  const iconParams = metadata?.iconParams as IconParams;
+  return iconParams || { icon: "calendar", color: "#6B7280" };
+}
 
 export type PageProps = inferSSRProps<typeof getCalIdServerSideProps>;
 function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
@@ -73,60 +83,62 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
     );
   }
 
-  // slug is a route parameter, we don't want to forward it to the next route
   const { slug: _slug, orgSlug: _orgSlug, user: _user, ...queryParamsToForward } = routerQuery;
 
   const EventTypes = ({ eventTypes }: { eventTypes: NonNullable<(typeof team)["eventTypes"]> }) => (
     <>
-      {eventTypes.map((type: any, index: number) => (
-        <div
-          key={index}
-          className="dark:bg-muted dark:hover:bg-emphasis hover:bg-muted border-subtle group relative rounded-md border bg-white shadow-md transition hover:scale-[1.02]"
-          data-testid="event-type-link">
-          <div className="block w-full px-2 py-4">
-            <div className="mb-2 flex flex-row items-center gap-2">
-              <div className="self-start p-2">
-                <Icon name="calendar" className="h-6 w-6" style={{ color: "#6B7280" }} />
+      {eventTypes.map((type: any, index: number) => {
+        const iconParams = getIconParamsFromMetadata(type.metadata);
+        return (
+          <div
+            key={index}
+            className="dark:bg-muted dark:hover:bg-emphasis hover:bg-muted border-subtle group relative rounded-md border bg-white shadow-md transition hover:scale-[1.02]"
+            data-testid="event-type-link">
+            <div className="block w-full px-2 py-4">
+              <div className="mb-2 flex flex-row items-center gap-2">
+                <div className="self-start p-2">
+                  <Icon name={iconParams.icon} className="h-6 w-6" style={{ color: iconParams.color }} />
+                </div>
+                <div className="mr-20">
+                  <h3 className="text-default text-base font-semibold">{type.title}</h3>
+                  {type.description && (
+                    <div
+                      className={classNames(
+                        "text-subtle line-clamp-3 break-words text-sm",
+                        "line-clamp-4 [&>*:not(:first-child)]:hidden"
+                      )}
+                      // eslint-disable-next-line react/no-danger
+                      dangerouslySetInnerHTML={{
+                        __html: markdownToSafeHTML(type.descriptionAsSafeHTML || ""),
+                      }}
+                    />
+                  )}
+                </div>
               </div>
-              <div className="mr-20">
-                <h3 className="text-default text-base font-semibold">{type.title}</h3>
-                {type.description && (
-                  <div
-                    className={classNames(
-                      "text-subtle line-clamp-3 break-words text-sm",
-                      "line-clamp-4 [&>*:not(:first-child)]:hidden"
-                    )}
-                    // eslint-disable-next-line react/no-danger
-                    dangerouslySetInnerHTML={{
-                      __html: markdownToSafeHTML(type.descriptionAsSafeHTML || ""),
-                    }}
-                  />
-                )}
+              <div className="flex w-full flex-row justify-between">
+                <EventTypeDescription eventType={type} isPublic={true} shortenDescription />
+                <Link
+                  key={type.id}
+                  prefetch={false}
+                  href={{
+                    pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`,
+                    query: queryParamsToForward,
+                  }}
+                  passHref
+                  onClick={async () => {
+                    sdkActionManager?.fire("eventTypeSelected", {
+                      eventType: type,
+                    });
+                  }}>
+                  <Button variant="button" type="button" size="base">
+                    {t("schedule")}
+                  </Button>
+                </Link>
               </div>
-            </div>
-            <div className="flex w-full flex-row justify-between">
-              <EventTypeDescription eventType={type} isPublic={true} shortenDescription />
-              <Link
-                key={type.id}
-                prefetch={false}
-                href={{
-                  pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`,
-                  query: queryParamsToForward,
-                }}
-                passHref
-                onClick={async () => {
-                  sdkActionManager?.fire("eventTypeSelected", {
-                    eventType: type,
-                  });
-                }}>
-                <Button variant="button" type="button" size="base">
-                  {t("schedule")}
-                </Button>
-              </Link>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </>
   );
 
@@ -177,7 +189,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
   return (
     <div className="bg-default flex min-h-screen w-full flex-col">
       <main className="bg-default h-full w-full">
-        <div className="border-subtle bg-cal-gradient text-default mb-4 flex flex-col items-center bg-cover bg-center p-4">
+        <div className="border-subtle bg-cal-gradient dark:bg-cal-gradient text-default mb-4 flex flex-col items-center bg-cover bg-center p-4">
           <Avatar
             size="xl"
             imageSrc={profileImageSrc}
@@ -223,7 +235,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
               ))}
             {!showMembers.isOn && team.eventTypes && team.eventTypes.length > 0 && (
               <div
-                className="flex flex-col gap-4 rounded-md bg-white px-4 pb-8 pt-2 lg:px-[15%]"
+                className="bg-default flex flex-col gap-4 rounded-md px-4 pb-8 pt-2 lg:px-[15%]"
                 data-testid="event-types">
                 <EventTypes eventTypes={team.eventTypes} />
 

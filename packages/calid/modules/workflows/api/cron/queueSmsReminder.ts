@@ -14,11 +14,11 @@ import customTemplate from "../../templates/customTemplate";
 import type { VariablesType } from "../../templates/customTemplate";
 import smsReminderTemplate from "../../templates/sms/reminder";
 import { getSenderId } from "../../utils/getSenderId";
-import type { PartialWorkflowReminder } from "../../utils/getWorkflows";
+import type { PartialCalIdWorkflowReminder } from "../../utils/getWorkflows";
 import { select } from "../../utils/getWorkflows";
 
 const fetchPendingNotifications = async () => {
-  return prisma.workflowReminder.findMany({
+  return prisma.calIdWorkflowReminder.findMany({
     where: {
       method: WorkflowMethods.SMS,
       scheduled: false,
@@ -35,7 +35,7 @@ const fetchPendingNotifications = async () => {
 };
 
 const processNotificationQueue = async (): Promise<number> => {
-  const pendingNotifications = (await fetchPendingNotifications()) as (PartialWorkflowReminder & {
+  const pendingNotifications = (await fetchPendingNotifications()) as (PartialCalIdWorkflowReminder & {
     retryCount: number;
   })[];
 
@@ -44,7 +44,7 @@ const processNotificationQueue = async (): Promise<number> => {
       continue;
     }
     const workflowUserId = notification.workflowStep.workflow.userId;
-    const workflowTeamId = notification.workflowStep.workflow.teamId;
+    const workflowTeamId = notification.workflowStep.workflow.calIdTeamId;
 
     try {
       const recipientNumber =
@@ -146,7 +146,7 @@ const processNotificationQueue = async (): Promise<number> => {
         );
 
         if (dispatchedSMS) {
-          await prisma.workflowReminder.update({
+          await prisma.calIdWorkflowReminder.update({
             where: {
               id: notification.id,
             },
@@ -156,7 +156,7 @@ const processNotificationQueue = async (): Promise<number> => {
             },
           });
         } else {
-          await prisma.workflowReminder.update({
+          await prisma.calIdWorkflowReminder.update({
             where: {
               id: notification.id,
             },
@@ -167,7 +167,7 @@ const processNotificationQueue = async (): Promise<number> => {
         }
       }
     } catch (error) {
-      await prisma.workflowReminder.update({
+      await prisma.calIdWorkflowReminder.update({
         where: {
           id: notification.id,
         },
@@ -182,7 +182,7 @@ const processNotificationQueue = async (): Promise<number> => {
 };
 
 const removeExpiredNotifications = async (): Promise<void> => {
-  await prisma.workflowReminder.deleteMany({
+  await prisma.calIdWorkflowReminder.deleteMany({
     where: {
       OR: [
         {
@@ -204,7 +204,7 @@ const removeExpiredNotifications = async (): Promise<void> => {
 };
 
 const executeCancellationProcess = async (): Promise<void> => {
-  const messagesToCancel = await prisma.workflowReminder.findMany({
+  const messagesToCancel = await prisma.calIdWorkflowReminder.findMany({
     where: {
       method: WorkflowMethods.SMS,
       scheduled: true,
@@ -220,7 +220,7 @@ const executeCancellationProcess = async (): Promise<void> => {
     if (messageToCancel.referenceId) {
       const twilioRequest = twilio.cancelSMS(messageToCancel.referenceId);
 
-      const databaseUpdate = prisma.workflowReminder
+      const databaseUpdate = prisma.calIdWorkflowReminder
         .update({
           where: {
             id: messageToCancel.id,
