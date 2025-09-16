@@ -1,7 +1,7 @@
 "use client";
 
-import { Dialog, DialogTrigger, DialogContent, DialogTitle } from "@calid/features/ui/components/dialog";
 import { Button } from "@calid/features/ui/components/button";
+import { Dialog, DialogTrigger, DialogContent, DialogTitle } from "@calid/features/ui/components/dialog";
 import { TextField } from "@calid/features/ui/components/input/input";
 import { HorizontalTabs } from "@calid/features/ui/components/navigation";
 import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
@@ -24,6 +24,7 @@ import { useBookerStore, useInitializeBookerStore } from "@calcom/features/booki
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import DatePicker from "@calcom/features/calendars/DatePicker";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { EmbedTabName } from "@calcom/features/embed/lib/EmbedTabs";
 import { tabs } from "@calcom/features/embed/lib/EmbedTabs";
 import { buildCssVarsPerTheme } from "@calcom/features/embed/lib/buildCssVarsPerTheme";
@@ -42,6 +43,7 @@ import type {
 import type { Slot } from "@calcom/features/schedules/lib/use-schedule/types";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
 import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { APP_NAME, DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { weekdayToWeekIndex } from "@calcom/lib/dayjs";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -61,6 +63,7 @@ import type { getServerSidePropsForSingleFormView as getServerSideProps } from "
 
 type EventType = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"] | undefined;
 type EmbedDialogProps = {
+  routingFormId: string;
   types: EmbedTypes;
   tabs: EmbedTabs;
   eventTypeHideOptionDisabled: boolean;
@@ -710,12 +713,14 @@ export const EmbedTypeCodeAndPreviewDialogContent = ({
     shallow
   );
 
-  embedType = embedType ?? "inline"; // Default to inline if embedType is not provided
+  embedType = embedType ?? "button"; // Default to inline if embedType is not provided
+  console.log("Given embed type: ", embedType)
 
   const embedParams = useEmbedParams(noQueryParamMode);
   const eventId = embedParams.eventId;
   const parsedEventId = parseInt(eventId ?? "", 10);
   const calLink = decodeURIComponent(embedUrl);
+  console.log("Cal link is: ", calLink)
   const { data: eventTypeData } = trpc.viewer.eventTypes.get.useQuery(
     { id: parsedEventId },
     { enabled: !Number.isNaN(parsedEventId) && embedType === "email", refetchOnWindowFocus: false }
@@ -1272,13 +1277,13 @@ export const EmbedTypeCodeAndPreviewDialogContent = ({
       <div className="flex flex-col gap-2">
         {embedType !== "email" && previewTab && (
           <div className="flex-1">
-            <iframe
+            {/* <iframe
               src={calLink}
               ref={iframeRef}
               className="h-full w-full rounded-md border"
               title="Example Iframe"
               frameBorder="0"
-              allowFullScreen>
+              allowFullScreen> */}
               <previewTab.Component
                 namespace={namespace}
                 embedType={embedType}
@@ -1286,7 +1291,7 @@ export const EmbedTypeCodeAndPreviewDialogContent = ({
                 previewState={previewState}
                 ref={iframeRef}
               />
-            </iframe>
+            {/* </iframe> */}
           </div>
         )}
 
@@ -1422,6 +1427,7 @@ export const EmbedTypeCodeAndPreviewDialogContent = ({
 
 export const EmbedDialog = ({
   types,
+  routingFormId,
   tabs,
   eventTypeHideOptionDisabled,
   defaultBrandColor,
@@ -1429,6 +1435,9 @@ export const EmbedDialog = ({
 }: EmbedDialogProps) => {
   noQueryParamMode = true;
   const embedParams = useEmbedParams(noQueryParamMode);
+
+  const embedLink = `forms/${routingFormId}`;
+  const orgBranding = useOrgBranding();
 
   // const handleDialogClose = () => {
   //   if (noQueryParamMode) {
@@ -1458,7 +1467,7 @@ export const EmbedDialog = ({
             gotoState={setCurrentEmbedType}
             embedType={currentEmbedType.embedType}
             embedTabName={currentEmbedType.embedTabName}
-            embedUrl={embedParams.embedUrl}
+            embedUrl={embedLink}
             namespace={embedParams.namespace}
             tabs={tabs}
             types={types}
@@ -1498,6 +1507,7 @@ export default function FormEmbed({
         appUrl={appUrl}
         Page={({ hookForm, form, uptoDateForm }) => (
           <EmbedDialog
+            routingFormId={form?.id.toString()}
             types={routingFormTypes}
             tabs={tabs}
             eventTypeHideOptionDisabled={true}

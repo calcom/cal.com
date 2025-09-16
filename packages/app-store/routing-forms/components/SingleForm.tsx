@@ -1,4 +1,5 @@
 "use client";
+import type { SelectTeamDialogState, SetSelectTeamDialogState } from "../../components/FormActions";
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState, useMemo } from "react";
@@ -178,6 +179,8 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
     });
   };
 
+  const [selectTeamDialogState, setSelectTeamDialogState] = useState<SelectTeamDialogState>(null);
+
   return (
     <Shell>
       <>
@@ -185,7 +188,9 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
           <FormActionsProvider
             appUrl={appUrl}
             newFormDialogState={newFormDialogState}
-            setNewFormDialogState={setNewFormDialogState}>
+            setNewFormDialogState={setNewFormDialogState}
+            selectTeamDialogState={selectTeamDialogState}
+            setSelectTeamDialogState={setSelectTeamDialogState}>
             <div className="flex h-full min-h-screen w-full flex-col">
               <Header
                 routingForm={form}

@@ -1,5 +1,6 @@
 import { TeamSelectionDialog } from "@calid/features/modules/teams/components/TeamSelectionDialog";
 import { type ButtonProps } from "@calid/features/ui/components/button";
+import { TeamSelectionDialog } from "@calid/features/modules/teams/components/TeamSelectionDialog";
 import { Button } from "@calid/features/ui/components/button";
 import { Dialog, DialogContent, DialogFooter } from "@calid/features/ui/components/dialog";
 import { Icon } from "@calid/features/ui/components/icon";
@@ -253,9 +254,6 @@ function Dialogs({
     },
   });
 
-  useEffect(() => {
-    console.log("Select state: ", selectTeamDialogState);
-  });
   return (
     <div id="form-dialogs">
       <RoutingFormEmbedDialog />
