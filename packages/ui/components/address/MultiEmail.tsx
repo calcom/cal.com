@@ -22,36 +22,43 @@ function MultiEmail({ value, readOnly, label, setValue, placeholder }: MultiEmai
     <>
       {value.length ? (
         <div>
-          {/* <label htmlFor="emails" className="text-default my-2 block text-sm font-medium">
-            {label}
-          </label> */}
-          <ul className="flex flex-row w-full">
+          <ul className="space-y-2 w-full">
             {value.map((field, index) => (
-              <li className="flex flex-row w-full" key={index}>
-                <EmailField
-                  disabled={readOnly}
-                  value={field}
-                  className={inputClassName}
-                  onChange={(e) => {
-                    const updatedValue = [...value];
-                    updatedValue[index] = e.target.value;
-                    setValue(updatedValue);
-                  }}
-                  placeholder={placeholder}
-                  label={<></>}
-                  required
-                  onClickAddon={() => {
-                    const updatedValue = [...value];
-                    updatedValue.splice(index, 1);
-                    setValue(updatedValue);
-                  }}
-                />
-
-                <Tooltip content="Remove email">
-                  <button className="m-1" type="button">
-                    <Icon name="x" width={12} className="text-default" />
-                  </button>
-                </Tooltip>
+              <li className="flex flex-row w-full items-center" key={index}>
+                <div className="flex-1">
+                  <EmailField
+                    disabled={readOnly}
+                    value={field}
+                    className={inputClassName}
+                    onChange={(e) => {
+                      const updatedValue = [...value];
+                      updatedValue[index] = e.target.value;
+                      setValue(updatedValue);
+                    }}
+                    placeholder={placeholder}
+                    label={<></>}
+                    required
+                    onClickAddon={() => {
+                      const updatedValue = [...value];
+                      updatedValue.splice(index, 1);
+                      setValue(updatedValue);
+                    }}
+                  />
+                </div>
+                {!readOnly && (
+                  <Tooltip content="Remove email">
+                    <button 
+                      className="ml-2 p-1 hover:bg-gray-100 rounded" 
+                      type="button"
+                      onClick={() => {
+                        const updatedValue = [...value];
+                        updatedValue.splice(index, 1);
+                        setValue(updatedValue);
+                      }}>
+                      <Icon name="x" width={12} className="text-default" />
+                    </button>
+                  </Tooltip>
+                )}
               </li>
             ))}
           </ul>

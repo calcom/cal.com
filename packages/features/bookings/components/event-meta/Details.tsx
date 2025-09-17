@@ -1,4 +1,4 @@
-import { Icon } from "@calid/features/ui/components/icon";
+import { Icon, type IconName } from "@calid/features/ui/components/icon";
 import React, { Fragment } from "react";
 
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
@@ -7,7 +7,6 @@ import type { BookerEvent } from "@calcom/features/bookings/types";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import { type IconName } from "@calcom/ui/components/icon";
 
 import { EventDetailBlocks } from "../../types";
 import { AvailableEventLocations } from "./AvailableEventLocations";
@@ -115,7 +114,10 @@ export const EventMetaBlock = ({
         <span>{label}</span>
       </div>
 
-      <div className={classNames("relative z-10 max-w-full break-words text-subtle text-sm", contentClassName)}>{children}</div>
+      <div
+        className={classNames("text-subtle relative z-10 max-w-full break-words text-sm", contentClassName)}>
+        {children}
+      </div>
     </div>
   );
 };
@@ -159,7 +161,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
           case EventDetailBlocks.LOCATION:
             if (!event?.locations?.length || isInstantMeeting) return null;
             return (
-              <EventMetaBlock key={block}>
+              <EventMetaBlock key={block} label={t("location")}>
                 <AvailableEventLocations locations={event.locations} />
               </EventMetaBlock>
             );

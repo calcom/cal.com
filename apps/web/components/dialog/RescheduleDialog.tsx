@@ -1,5 +1,5 @@
 import { Button } from "@calid/features/ui/components/button";
-import { Dialog, DialogContent, DialogTitle, DialogFooter } from "@calid/features/ui/components/dialog";
+import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogFooter } from "@calid/features/ui/components/dialog";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 

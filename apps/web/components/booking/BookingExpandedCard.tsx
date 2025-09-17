@@ -4,6 +4,7 @@ import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
 import { Checkbox } from "@calid/features/ui/components/input/checkbox-field";
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -11,11 +12,11 @@ import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui/components/toast";
+import { triggerToast } from "@calid/features/ui/components/toast";
 
-import { MeetingNotesDialog } from "./MeetingNotesDialog";
+import { MeetingNotesDialog } from "@components/dialog/MeetingNotesDialog";
 
-type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
+type BookingItem = RouterOutputs["viewer"]["bookings"]["calid_get"]["bookings"][number];
 
 export type BookingItemProps = BookingItem & {
   isHost: boolean;
@@ -27,47 +28,49 @@ export type BookingItemProps = BookingItem & {
 };
 
 export function BookingExpandedCard(props: BookingItemProps) {
-  const { description: additionalNotes, id, startTime, endTime, responses } = props;
-
-  const isBookingInPast = new Date(props.endTime) < new Date();
-
-  const parsedMetadata = bookingMetadataSchema.safeParse(props.metadata ?? null);
-
-  const { meetingNote } = parsedMetadata.data;
-
-  const [notes, setNotes] = useState<string>(meetingNote || "");
-
+  const { t } = useLocale();
+  const utils = trpc.useUtils();
   const [showRTE, setShowRTE] = useState(false);
+  const { description: additionalNotes, id, startTime, endTime, responses } = props;
+  const isBookingInPast = new Date(props.endTime) < new Date();
+  const parsedMetadata = bookingMetadataSchema.safeParse(props.metadata ?? null);
+  const meetingNote = parsedMetadata.success && parsedMetadata.data ? parsedMetadata.data.meetingNote : undefined;
+  const [displayNotes, setDisplayNotes] = useState<string>(meetingNote || "");
+  const [editingNotes, setEditingNotes] = useState<string>(meetingNote || "");
+  const [showAttendeeDetails, setShowAttendeeDetails] = useState<string | null>(null);
+  const [dialogPosition, setDialogPosition] = useState<{ top: number; left: number } | null>(null);
+  const spanRefs = useRef<{ [key: string]: HTMLSpanElement | null }>({});
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const saveNotesMutation = trpc.viewer.bookings.saveNote.useMutation({
-    onSuccess: () => {
-      showToast(t("meeting_notes_saved"), "success");
+    onSuccess: async () => {
+      setDisplayNotes(editingNotes);
+      triggerToast(t("meeting_notes_saved"), "success");
+      await utils.viewer.bookings.invalidate();
     },
   });
 
   const handleMeetingNoteSave = async (): Promise<void> => {
-    await saveNotesMutation.mutate({ bookingId: props.id, meetingNote: notes });
+    await saveNotesMutation.mutate({ bookingId: props.id, meetingNote: editingNotes });
   };
+
+  useEffect(() => {
+    if (showRTE) {
+      setEditingNotes(displayNotes);
+    }
+  }, [showRTE, displayNotes]);
 
   const [isNoShowDialogOpen, setIsNoShowDialogOpen] = useState<boolean>(false);
   const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
     onSuccess: async (data) => {
-      showToast(t(data.message), "success");
+      triggerToast(t(data.message), "success");
       await utils.viewer.bookings.invalidate();
     },
     onError: (err) => {
-      showToast(err.message, "error");
+      triggerToast(err.message, "error");
     },
-    notes,
   });
 
-  const {
-    t,
-    i18n: { language },
-  } = useLocale();
-  const utils = trpc.useUtils();
-
-  const [showAttendeeDetails, setShowAttendeeDetails] = useState<string | null>(null);
   const { copyToClipboard } = useCopy();
 
   const showExpandedActions = true;
@@ -98,6 +101,7 @@ export function BookingExpandedCard(props: BookingItemProps) {
       id: attendee.id,
       noShow: attendee.noShow || false,
       phoneNumber: attendee.phoneNumber,
+      timeZone: attendee.timeZone,
     };
   });
 
@@ -105,7 +109,6 @@ export function BookingExpandedCard(props: BookingItemProps) {
 
   const attendeePhoneNo = isPrismaObjOrUndefined(responses)?.phone as string | undefined;
   const openWhatsAppChat = (phoneNumber: string) => {
-    // Dimensions and other properties of the popup window
     const width = 800;
     const height = 600;
     const left = (window.innerWidth - width) / 2;
@@ -134,12 +137,16 @@ export function BookingExpandedCard(props: BookingItemProps) {
     function handleClickOutside(event: MouseEvent) {
       if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
         setShowAttendeeDetails(null);
+        setDialogPosition(null);
       }
     }
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -156,12 +163,12 @@ export function BookingExpandedCard(props: BookingItemProps) {
       )}
 
       <div
-        className="border-border animate-fade-in rounded-b-lg border-t bg-[#f1f5f980]"
+        className="animate-fade-in rounded-b-lg border-t border-muted bg-muted"
         onClick={(e) => e.stopPropagation()}>
-        <div className="grid grid-cols-2 gap-8 p-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8 p-4">
           <div className="space-y-4">
             <div>
-              <div className="text-foreground mb-1 text-sm font-medium">Duration</div>
+              <div className="text-foreground text-sm font-medium">{t("duration")}</div>
               <div className="text-muted-foreground text-sm">
                 {endTime && startTime
                   ? `${Math.round((new Date(endTime).getTime() - new Date(startTime).getTime()) / 60000)} min`
@@ -170,68 +177,65 @@ export function BookingExpandedCard(props: BookingItemProps) {
             </div>
 
             <div>
-              <div className="text-foreground mb-2 text-sm font-medium">Invitee Details</div>
+              <div className="text-foreground text-sm font-medium">{t("invitee_details")}</div>
               <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                <div className="min-w-[40vh] overflow-auto">
+                <div className="min-w-0 flex gap-2 items-center overflow-auto">
                   <span>{firstAttendee?.name}</span>
                   <span>•</span>
                   <span>{firstAttendee?.timeZone}</span>
                   <span>•</span>
-                  <span>{firstAttendee?.email}</span>
+                  <span className="break-all">{firstAttendee?.email}</span>
                 </div>
-                <button
+                <Button
+                  StartIcon="copy"
+                  color="minimal"
+                  variant="icon"
+                  size="xs"
                   onClick={() => {
                     copyToClipboard(firstAttendee?.email || "");
-                    showToast(t("email_copied"), "success");
+                    triggerToast(t("email_copied"), "success");
                   }}
-                  className="text-muted-foreground hover:text-foreground ml-1"
                   aria-label="Copy email">
-                  <Icon name="copy" className="h-3 w-3" />
-                </button>
+                </Button>
               </div>
             </div>
 
             {attendeeList?.length > 1 && (
               <div>
-                <div className="text-foreground mb-2 text-sm font-medium">Attendees</div>
+                <div className="text-default text-sm font-medium">{t("attendees")}</div>
                 <div className="flex flex-wrap gap-2">
                   {attendeeList.slice(1).map((attendee, index) => {
                     const idKey = `${id}-${index}`;
                     return (
                       <div key={idKey} className="relative">
-                        <button
-                          className="bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-full px-3 py-1 text-sm transition-all hover:shadow-sm"
-                          onClick={() => setShowAttendeeDetails(showAttendeeDetails === idKey ? null : idKey)}
-                          aria-expanded={showAttendeeDetails === idKey}>
+                        <span 
+                          ref={(el) => (spanRefs.current[idKey] = el)}
+                          className="text-default text-sm font-normal cursor-pointer hover:bg-muted rounded-md transition-colors"
+                          aria-expanded={showAttendeeDetails === idKey}
+                          onMouseEnter={() => {
+                            if (hoverTimeoutRef.current) {
+                              clearTimeout(hoverTimeoutRef.current);
+                              hoverTimeoutRef.current = null;
+                            }
+                            
+                            const span = spanRefs.current[idKey];
+                            if (span) {
+                              const rect = span.getBoundingClientRect();
+                              setDialogPosition({
+                                top: rect.bottom + window.scrollY + 4,
+                                left: rect.left + window.scrollX
+                              });
+                            }
+                            setShowAttendeeDetails(idKey);
+                          }}
+                          onMouseLeave={() => {
+                            hoverTimeoutRef.current = setTimeout(() => {
+                              setShowAttendeeDetails(null);
+                              setDialogPosition(null);
+                            }, 100);
+                          }}>
                           {attendee.email.split(" ")[0]}
-                        </button>
-                        {showAttendeeDetails === idKey && (
-                          <div
-                            ref={popupRef}
-                            className="bg-popover border-border bg-default fixed left-[calculated-left] top-[calculated-top] z-[9999] mt-1 min-w-64 space-y-2 rounded-md border p-3 shadow-lg"
-                            style={
-                              {
-                                // You may need to calculate position dynamically based on button position
-                              }
-                            }>
-                            <div className="flex items-center gap-2">
-                              <Icon name="mail" className="text-muted-foreground h-4 w-4" />
-                              <span className="text-foreground text-sm">{attendee.email}</span>
-                              <button
-                                onClick={() => copyToClipboard(attendee.email)}
-                                className="text-muted-foreground hover:text-foreground ml-1"
-                                aria-label="Copy email">
-                                <Icon name="copy" className="h-3 w-3" />
-                              </button>
-                            </div>
-                            {attendee.timeZone && (
-                              <div className="flex items-center gap-2">
-                                <Icon name="globe" className="text-muted-foreground h-4 w-4" />
-                                <span className="text-foreground text-sm">{attendee.timeZone}</span>
-                              </div>
-                            )}
-                          </div>
-                        )}
+                        </span>
                       </div>
                     );
                   })}
@@ -241,18 +245,27 @@ export function BookingExpandedCard(props: BookingItemProps) {
 
             {additionalNotes && (
               <div>
-                <div className="text-foreground mb-2 text-sm font-medium">Additional Notes</div>
+                <div className="text-foreground text-sm font-medium">{t("additional_notes")}</div>
                 <div className="text-muted-foreground text-sm">{additionalNotes}</div>
+              </div>
+            )}
+
+            {displayNotes && (
+              <div>
+                <div className="text-foreground text-sm font-medium">{t("meeting_notes")}</div>
+                <div 
+                  className="text-muted-foreground text-sm prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: displayNotes }}
+                />
               </div>
             )}
           </div>
 
-          {/* Action Buttons for Expanded View */}
-          {showExpandedActions && (
-            <div className="flex flex-col items-end space-y-2">
+          {props.showExpandedActions && (
+            <div className="flex flex-col items-start lg:items-end space-y-2">
               <MeetingNotesDialog
-                notes={notes}
-                setNotes={setNotes}
+                notes={editingNotes}
+                setNotes={setEditingNotes}
                 isOpenDialog={showRTE}
                 setIsOpenDialog={setShowRTE}
                 handleMeetingNoteSave={handleMeetingNoteSave}
@@ -261,6 +274,7 @@ export function BookingExpandedCard(props: BookingItemProps) {
               {isBookingInPast && (
                 <Button
                   color="secondary"
+                  className="min-w-40 justify-center"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleMarkNoShow();
@@ -277,6 +291,58 @@ export function BookingExpandedCard(props: BookingItemProps) {
           )}
         </div>
       </div>
+
+      {showAttendeeDetails && dialogPosition && typeof document !== 'undefined' && 
+        createPortal(
+          <div
+            ref={popupRef}
+            className="fixed z-[99999] min-w-48 space-y-2 rounded-md border border-border bg-white p-2 shadow-xl"
+            style={{
+              top: `${dialogPosition.top}px`,
+              left: `${dialogPosition.left}px`,
+            }}
+            onMouseEnter={() => {
+              if (hoverTimeoutRef.current) {
+                clearTimeout(hoverTimeoutRef.current);
+                hoverTimeoutRef.current = null;
+              }
+            }}
+            onMouseLeave={() => {
+              setShowAttendeeDetails(null);
+              setDialogPosition(null);
+            }}>
+            {(() => {
+              const attendeeIndex = parseInt(showAttendeeDetails.split('-').pop() || '0') + 1;
+              const attendee = attendeeList[attendeeIndex];
+              
+              if (!attendee) return null;
+              
+              return (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Icon name="mail" className="h-4 w-4" />
+                    <span className="text-default text-sm font-normal">{attendee.email}</span>
+                    <Button
+                      onClick={() => {
+                        copyToClipboard(attendee.email);
+                      }}
+                      StartIcon="copy"
+                      color="minimal"
+                      variant="icon"
+                      size="xs"
+                      tooltip={t("copy")}>
+                    </Button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Icon name="globe" className="h-4 w-4" />
+                    <span className="text-default text-sm font-normal">{attendee.timeZone}</span>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>,
+          document.body
+        )}
     </>
   );
 }
@@ -292,10 +358,21 @@ const NoShowAttendeesDialog = ({
   attendees,
   bookingUid,
   setDialog,
+  setIsOpen,
+  isOpen,
 }: {
-  attendees: NoShowAttendee[];
+  attendees: Array<{
+    name: string;
+    email: string;
+    id: number;
+    noShow: boolean;
+    phoneNumber: string | null;
+    timeZone?: string;
+  }>;
   bookingUid: string;
-  setDialog: (open?: boolean) => void;
+  setDialog: () => void;
+  setIsOpen: (open: boolean) => void;
+  isOpen: boolean;
 }) => {
   const { t } = useLocale();
   const [noShowAttendees, setNoShowAttendees] = useState(
@@ -318,28 +395,28 @@ const NoShowAttendeesDialog = ({
           attendee.email === newValue.email ? { ...attendee, noShow: newValue.noShow } : attendee
         )
       );
-      showToast(t(data.message), "success");
+      triggerToast(t(data.message), "success");
       await utils.viewer.bookings.invalidate();
 
       setLoading(false);
       setDialog();
     },
     onError: (err) => {
-      showToast(err.message, "error");
+      triggerToast(err.message, "error");
     },
   });
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      onClick={() => setDialog(false)} // Close on backdrop click
+      onClick={() => setDialog()}
     >
       <div
         className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
         onClick={(e) => e.stopPropagation()}>
         <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-          <h2 className="mb-2 text-xl font-semibold">Mark as No-Show</h2>
-          <p className="mb-6 text-sm text-gray-600">Select attendees to mark as no-show</p>
+          <h2 className="mb-2 text-xl font-semibold">{t("mark_as_no_show_title")}</h2>
+          <p className="mb-6 text-sm text-gray-600">{t("no_show_description")}</p>
 
           <div className="mb-6 space-y-4">
             {noShowAttendees.map((attendee, index) => (
@@ -356,9 +433,9 @@ const NoShowAttendeesDialog = ({
                 <Checkbox
                   key={attendee.email}
                   checked={attendee.noShow}
-                  onCheckedChange={(e) => {
+                  onCheckedChange={(checked) => {
                     setNoShowAttendees((prev) =>
-                      prev.map((a) => (a.email === attendee.email ? { ...a, noShow: e } : a))
+                      prev.map((a) => (a.email === attendee.email ? { ...a, noShow: checked === true } : a))
                     );
                   }}
                 />
@@ -376,7 +453,8 @@ const NoShowAttendeesDialog = ({
                 e.preventDefault();
                 setLoading(true);
                 noShowAttendees.forEach((attendee) => {
-                  if (attendees.find((e) => e.email === attendee.email).noShow != attendee.noShow) {
+                  const originalAttendee = attendees.find((e) => e.email === attendee.email);
+                  if (originalAttendee && originalAttendee.noShow !== attendee.noShow) {
                     noShowMutation.mutate({
                       bookingUid,
                       attendees: [{ email: attendee.email, noShow: attendee.noShow }],
@@ -384,7 +462,7 @@ const NoShowAttendeesDialog = ({
                   }
                 });
               }}>
-              Mark as No-Show
+              {t("mark_as_no_show")}
             </Button>
           </div>
         </div>

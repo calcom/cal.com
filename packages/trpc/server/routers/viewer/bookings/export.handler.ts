@@ -64,8 +64,8 @@ const getUniqueBookings = <T extends { uid: string }>(arr: T[]) => {
 };
 
 const getTypeAndStartDate = (booking: any, timeZone: string) => {
-  const endTime = new Date(booking.endTime);
-  const isUpcoming = endTime >= new Date();
+  const endTime = dayjs(booking.endTime).tz(timeZone);
+  const isUpcoming = endTime >= dayjs().tz(timeZone);
   let type;
   let startDate: string;
 
