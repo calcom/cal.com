@@ -4,6 +4,7 @@ import { generateRandomText } from "../../src/lib/generateRandomText";
 
 test("create team event using CreateTeamEventTypeAtom", async ({ page }) => {
   await page.goto("/");
+  await page.reload();
 
   await page.goto("/event-types");
 

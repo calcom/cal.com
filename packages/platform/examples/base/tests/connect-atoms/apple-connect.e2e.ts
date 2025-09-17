@@ -5,6 +5,7 @@ test("connect calendar using the apple connect atom", async ({ page }) => {
   const appSpecificPassword = process.env.ATOMS_E2E_APPLE_CONNECT_APP_SPECIFIC_PASSCODE;
 
   await page.goto("/");
+  await page.reload();
 
   await expect(page.locator("body")).toBeVisible();
 
