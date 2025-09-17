@@ -75,6 +75,10 @@ export class RoleService {
     if (role.type === DomainRoleType.SYSTEM) {
       throw new Error("Cannot delete default roles");
     }
+
+    // Reassign all users with this role to the members_role
+    await this.repository.reassignUsersToRole(roleId, "member_role");
+
     await this.repository.delete(roleId);
   }
 
