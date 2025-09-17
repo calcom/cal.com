@@ -37,6 +37,18 @@ module.exports = {
             ],
           },
         ],
+        // Also catch alias imports like @calcom/features
+        "no-restricted-imports": [
+          "warn",
+          {
+            patterns: [
+              {
+                group: ["@calcom/features", "@calcom/features/*"],
+                message: "Avoid importing @calcom/features from app-store, prisma, or lib.",
+              },
+            ],
+          },
+        ],
       },
     },
     // WARN: lib must not import app-store or features
@@ -60,6 +72,18 @@ module.exports = {
             ],
           },
         ],
+        // Also catch alias imports
+        "no-restricted-imports": [
+          "warn",
+          {
+            patterns: [
+              {
+                group: ["@calcom/app-store", "@calcom/app-store/*", "@calcom/features", "@calcom/features/*"],
+                message: "packages/lib should not import @calcom/app-store or @calcom/features.",
+              },
+            ],
+          },
+        ],
       },
     },
     // ERROR: app-store must not import trpc
@@ -75,6 +99,19 @@ module.exports = {
                 from: "./packages/app-store",
                 message:
                   "packages/app-store must not import packages/trpc. Move UI to apps/web/components/apps or introduce an API boundary.",
+              },
+            ],
+          },
+        ],
+        // Also catch alias imports like @calcom/trpc
+        "no-restricted-imports": [
+          "error",
+          {
+            patterns: [
+              {
+                group: ["@calcom/trpc", "@calcom/trpc/*", "@trpc", "@trpc/*"],
+                message:
+                  "packages/app-store must not import @calcom/trpc or @trpc. Move UI to apps/web/components/apps or introduce an API boundary.",
               },
             ],
           },
