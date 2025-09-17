@@ -130,7 +130,9 @@ export function extractPricingInfoFromPayment(payment: Payment): {
   currency: string;
   hasVariablePricing: boolean;
 } {
-  const metadata = payment.metadata as Record<string, string> | null;
+  // Cast payment to a type that includes metadata
+  const paymentData = payment as unknown as { metadata?: Record<string, string> };
+  const metadata = paymentData.metadata || null;
 
   if (!metadata || !metadata.hasVariablePricing) {
     return {

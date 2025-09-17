@@ -3,15 +3,15 @@ import { z } from "zod";
 import { logP } from "@calcom/lib/perf";
 
 import authedProcedure from "../../../procedures/authedProcedure";
-import { router } from "../../../trpc";
+import { router, mergeRouters } from "../../../trpc";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZEventTypeInputSchema, ZGetEventTypesFromGroupSchema } from "./getByViewer.schema";
 import { ZGetHashedLinkInputSchema } from "./getHashedLink.schema";
 import { ZGetHashedLinksInputSchema } from "./getHashedLinks.schema";
 import { ZGetTeamAndEventTypeOptionsSchema } from "./getTeamAndEventTypeOptions.schema";
+import { pricingRouter } from "./pricing.router";
 import { get } from "./procedures/get";
 import { eventOwnerProcedure } from "./util";
-import { variablePricingRouter } from "./variablePricing";
 
 type BookingsRouterHandlerCache = {
   getByViewer?: typeof import("./getByViewer.handler").getByViewerHandler;
@@ -163,8 +163,10 @@ export const eventTypesRouterBase = router({
   }),
 });
 
-// Merge with the variable pricing router
-export const eventTypesRouter = router({
-  ...eventTypesRouterBase,
-  pricing: variablePricingRouter,
-});
+// Create the router with merged routers
+export const eventTypesRouter = mergeRouters(
+  eventTypesRouterBase,
+  router({
+    pricing: pricingRouter,
+  })
+);

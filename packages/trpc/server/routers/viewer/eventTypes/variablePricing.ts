@@ -2,11 +2,7 @@ import { z } from "zod";
 
 import { calculateVariablePrice, createPricingContext } from "@calcom/lib/pricing/calculator";
 import type { PriceModifier } from "@calcom/lib/pricing/types";
-import {
-  getVariablePricingConfig,
-  setVariablePricingConfig,
-  validateVariablePricingConfig,
-} from "@calcom/lib/pricing/utils";
+import { getVariablePricingConfig, validateVariablePricingConfig } from "@calcom/lib/pricing/utils";
 import type { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -195,7 +191,15 @@ export const variablePricingRouter = router({
       });
     }
 
-    const variablePricing = getVariablePricingConfig(eventType);
+    // Use the MinimalEventType interface to ensure compatibility
+    const minimalEventType = {
+      id: eventType.id,
+      metadata: eventType.metadata,
+      price: eventType.price,
+      currency: eventType.currency,
+    };
+
+    const variablePricing = getVariablePricingConfig(minimalEventType);
 
     return {
       pricingConfig: variablePricing,
@@ -247,7 +251,17 @@ export const variablePricingRouter = router({
                   currency: input.pricingConfig.currency,
                 }
               : {}),
-            metadata: setVariablePricingConfig(eventType, input.pricingConfig),
+            // Create a new metadata object with variable pricing config
+            metadata: {
+              // Cast the existing metadata to the correct type or use an empty object
+              ...((eventType.metadata as Record<string, unknown>) || {}),
+              variablePricing: {
+                enabled: input.pricingConfig.enabled,
+                basePrice: input.pricingConfig.basePrice,
+                currency: input.pricingConfig.currency,
+                rules: input.pricingConfig.rules,
+              },
+            },
           },
           select: {
             id: true,
@@ -296,8 +310,16 @@ export const variablePricingRouter = router({
       });
     }
 
+    // Use the MinimalEventType interface to ensure compatibility
+    const minimalEventType = {
+      id: eventType.id,
+      metadata: eventType.metadata,
+      price: eventType.price,
+      currency: eventType.currency,
+    };
+
     // Get variable pricing config
-    const variablePricing = getVariablePricingConfig(eventType);
+    const variablePricing = getVariablePricingConfig(minimalEventType);
 
     // If variable pricing is not enabled, return the base price
     if (!variablePricing.enabled) {
@@ -330,3 +352,8 @@ export const variablePricingRouter = router({
     return calculation;
   }),
 });
+
+// Export the procedures directly
+export const getPricingRules = variablePricingRouter.getPricingRules;
+export const updatePricingRules = variablePricingRouter.updatePricingRules;
+export const calculatePrice = variablePricingRouter.calculatePrice;

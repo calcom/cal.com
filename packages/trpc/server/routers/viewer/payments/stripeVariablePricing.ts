@@ -1,14 +1,10 @@
 import { z } from "zod";
 
-import {
-  getOrCreateStripePrice,
-  generatePaymentMetadata,
-} from "@calcom/app-store/stripepayment/lib/variablePricing";
+import { getOrCreateStripePrice } from "@calcom/app-store/stripepayment/lib/variablePricing";
 import logger from "@calcom/lib/logger";
 import { calculateVariablePrice } from "@calcom/lib/pricing/calculator";
 import type { PricingContext } from "@calcom/lib/pricing/types";
 import { getVariablePricingConfig } from "@calcom/lib/pricing/utils";
-import type { EventType } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
 
@@ -56,8 +52,16 @@ export const stripeVariablePricingRouter = router({
           });
         }
 
+        // Convert to MinimalEventType for compatibility
+        const minimalEventType = {
+          id: eventType.id,
+          metadata: eventType.metadata,
+          price: eventType.price,
+          currency: eventType.currency,
+        };
+
         // Get variable pricing config
-        const variablePricing = getVariablePricingConfig(eventType);
+        const variablePricing = getVariablePricingConfig(minimalEventType);
 
         // Create context for price calculation
         const startTime = new Date(input.startTime);
@@ -90,13 +94,14 @@ export const stripeVariablePricingRouter = router({
           eventType.id
         );
 
-        // Generate payment metadata
-        const metadata = generatePaymentMetadata(calculation, {
-          id: eventType.id,
-          price: eventType.price,
-          currency: eventType.currency,
-          metadata: eventType.metadata,
-        } as Partial<EventType>);
+        // Generate a properly typed metadata object
+        const metadata = {
+          hasVariablePricing: "true",
+          basePrice: String(calculation.basePrice),
+          calculatedPrice: String(calculation.totalPrice),
+          currency: calculation.currency.toLowerCase(),
+          eventTypeId: String(eventType.id),
+        };
 
         return {
           priceId,

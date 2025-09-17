@@ -20,10 +20,18 @@ export const DEFAULT_VARIABLE_PRICING_CONFIG: VariablePricingConfig = {
   rules: [],
 };
 
+// Define a minimal event type structure that's needed for pricing config
+export type MinimalEventType = {
+  id: number;
+  metadata: unknown;
+  price?: number;
+  currency?: string;
+};
+
 /**
  * Extract variable pricing configuration from event type metadata
  */
-export function getVariablePricingConfig(eventType: EventType): VariablePricingConfig {
+export function getVariablePricingConfig(eventType: MinimalEventType): VariablePricingConfig {
   try {
     const metadata = eventType.metadata as Record<string, unknown>;
     const pricingConfig = metadata?.variablePricing as Record<string, unknown>;
@@ -62,7 +70,7 @@ export function getVariablePricingConfig(eventType: EventType): VariablePricingC
  * Update variable pricing configuration in event type metadata
  */
 export function setVariablePricingConfig(
-  eventType: EventType,
+  eventType: MinimalEventType,
   config: VariablePricingConfig
 ): Record<string, unknown> {
   const metadata = (eventType.metadata as Record<string, unknown>) || {};
