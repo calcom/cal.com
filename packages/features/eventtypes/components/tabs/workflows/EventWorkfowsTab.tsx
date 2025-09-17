@@ -9,6 +9,7 @@ import SkeletonLoader from "@calcom/features/ee/workflows/components/SkeletonLoa
 import type { WorkflowType } from "@calcom/features/ee/workflows/components/WorkflowListPage";
 import { getActionIcon } from "@calcom/features/ee/workflows/lib/getActionIcon";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
+import { CalAiBanner } from "@calcom/features/shell/CalAiBanner";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
@@ -242,6 +243,7 @@ function EventWorkflowsTab(props: Props) {
 
   return (
     <LicenseRequired>
+      <CalAiBanner />
       {!isPending ? (
         <>
           {(isManagedEventType || isChildrenManagedEventType) && (
