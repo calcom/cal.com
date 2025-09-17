@@ -138,111 +138,151 @@ export default function BillingCredits() {
       : 0;
 
   return (
-    <div className="border-subtle mt-8 space-y-6 rounded-lg border px-6 py-6 pb-6 text-sm sm:space-y-8">
-      <div>
-        <h2 className="text-base font-semibold">{t("credits")}</h2>
-        <ServerTrans
-          t={t}
-          i18nKey="view_and_manage_credits_description"
-          components={[
-            <Link
-              key="Credit System"
-              className="underline underline-offset-2"
-              target="_blank"
-              href="https://cal.com/help/billing-and-usage/messaging-credits">
-              Learn more
-            </Link>,
-          ]}
-        />
-        <div className="-mx-6 mt-6">
-          <hr className="border-subtle" />
+    <>
+      <div className="bg-muted border-muted mt-5 rounded-xl p-1">
+        <div className="flex flex-col gap-1 px-4 py-5">
+          <h2 className="text-default text-base font-semibold leading-none">{t("credits")}</h2>
+          <p className="text-subtle text-sm font-medium leading-tight">{t("view_and_manage_credits")}</p>
         </div>
-        <div className="mt-6">
-          {creditsData.credits.totalMonthlyCredits > 0 ? (
-            <div className="mb-4">
-              <Label>{t("monthly_credits")}</Label>
-              <ProgressBar
-                color="green"
-                percentageValue={teamCreditsPercentageUsed}
-                label={`${Math.max(0, Math.round(teamCreditsPercentageUsed))}%`}
-              />
-              <div className="text-subtle">
-                <div>
-                  {t("total_credits", {
-                    totalCredits: creditsData.credits.totalMonthlyCredits,
-                  })}
-                </div>
-                <div>
-                  {t("remaining_credits", {
-                    remainingCredits: creditsData.credits.totalRemainingMonthlyCredits,
-                  })}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <></>
-          )}
-          <Label>
-            {creditsData.credits.totalMonthlyCredits ? t("additional_credits") : t("available_credits")}
-          </Label>
-          <div className="mt-2 text-sm">{creditsData.credits.additionalCredits}</div>
-          <div className="-mx-6 mb-6 mt-6">
-            <hr className="border-subtle mb-3 mt-3" />
-          </div>
-          <form onSubmit={handleSubmit(onSubmit)} className="flex">
-            <div className="-mb-1 mr-auto">
-              <Label>{t("buy_additional_credits")}</Label>
-              <div className="flex flex-col">
-                <TextField
-                  required
-                  type="number"
-                  {...register("quantity", {
-                    required: t("error_required_field"),
-                    min: { value: 50, message: t("minimum_of_credits_required") },
-                    valueAsNumber: true,
-                  })}
-                  label=""
-                  containerClassName="w-60"
-                  onChange={(e) => setValue("quantity", Number(e.target.value))}
-                  min={50}
-                  addOnSuffix={<>{t("credits")}</>}
+        <div className="bg-default border-muted flex rounded-[10px] px-5 py-4">
+          <div className="mt-6 w-full">
+            {creditsData.credits.totalMonthlyCredits > 0 ? (
+              <div className="mb-4">
+                <Label>{t("monthly_credits")}</Label>
+                <ProgressBar
+                  color="green"
+                  percentageValue={teamCreditsPercentageUsed}
+                  label={`${Math.max(0, Math.round(teamCreditsPercentageUsed))}%`}
                 />
-                {errors.quantity && <InputError message={errors.quantity.message ?? t("invalid_input")} />}
+                <div className="text-subtle">
+                  <div>
+                    {t("total_credits", {
+                      totalCredits: creditsData.credits.totalMonthlyCredits,
+                    })}
+                  </div>
+                  <div>
+                    {t("remaining_credits", {
+                      remainingCredits: creditsData.credits.totalRemainingMonthlyCredits,
+                    })}
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="mt-auto">
-              <Button
-                color="primary"
+            ) : (
+              <></>
+            )}
+            <Label>
+              {creditsData.credits.totalMonthlyCredits ? t("additional_credits") : t("available_credits")}
+            </Label>
+            <div className="mt-2 text-sm">{creditsData.credits.additionalCredits}</div>
+          </div>
+        </div>
+      </div>
+      <div className="border-subtle mt-8 space-y-6 rounded-lg border px-6 py-6 pb-6 text-sm sm:space-y-8">
+        <div>
+          <h2 className="text-base font-semibold">{t("credits")}</h2>
+          <ServerTrans
+            t={t}
+            i18nKey="view_and_manage_credits_description"
+            components={[
+              <Link
+                key="Credit System"
+                className="underline underline-offset-2"
                 target="_blank"
-                EndIcon="external-link"
-                type="submit"
-                data-testid="buy-credits">
-                {t("buy_credits")}
-              </Button>
-            </div>
-          </form>
-          <div className="-mx-6 mb-6 mt-6">
-            <hr className="border-subtle mb-3 mt-3" />
+                href="https://cal.com/help/billing-and-usage/messaging-credits">
+                Learn more
+              </Link>,
+            ]}
+          />
+          <div className="-mx-6 mt-6">
+            <hr className="border-subtle" />
           </div>
-          <div className="flex">
-            <div className="mr-auto">
-              <Label className="mb-4">{t("download_expense_log")}</Label>
-              <div className="mt-2 flex flex-col">
-                <Select
-                  options={monthOptions}
-                  value={selectedMonth}
-                  onChange={(option) => option && setSelectedMonth(option)}
+          <div className="mt-6">
+            {creditsData.credits.totalMonthlyCredits > 0 ? (
+              <div className="mb-4">
+                <Label>{t("monthly_credits")}</Label>
+                <ProgressBar
+                  color="green"
+                  percentageValue={teamCreditsPercentageUsed}
+                  label={`${Math.max(0, Math.round(teamCreditsPercentageUsed))}%`}
                 />
+                <div className="text-subtle">
+                  <div>
+                    {t("total_credits", {
+                      totalCredits: creditsData.credits.totalMonthlyCredits,
+                    })}
+                  </div>
+                  <div>
+                    {t("remaining_credits", {
+                      remainingCredits: creditsData.credits.totalRemainingMonthlyCredits,
+                    })}
+                  </div>
+                </div>
               </div>
+            ) : (
+              <></>
+            )}
+            <Label>
+              {creditsData.credits.totalMonthlyCredits ? t("additional_credits") : t("available_credits")}
+            </Label>
+            <div className="mt-2 text-sm">{creditsData.credits.additionalCredits}</div>
+            <div className="-mx-6 mb-6 mt-6">
+              <hr className="border-subtle mb-3 mt-3" />
             </div>
-            <div className="mt-auto">
-              <Button onClick={handleDownload} loading={isDownloading} StartIcon="file-down">
-                {t("download")}
-              </Button>
+            <form onSubmit={handleSubmit(onSubmit)} className="flex">
+              <div className="-mb-1 mr-auto">
+                <Label>{t("buy_additional_credits")}</Label>
+                <div className="flex flex-col">
+                  <TextField
+                    required
+                    type="number"
+                    {...register("quantity", {
+                      required: t("error_required_field"),
+                      min: { value: 50, message: t("minimum_of_credits_required") },
+                      valueAsNumber: true,
+                    })}
+                    label=""
+                    containerClassName="w-60"
+                    onChange={(e) => setValue("quantity", Number(e.target.value))}
+                    min={50}
+                    addOnSuffix={<>{t("credits")}</>}
+                  />
+                  {errors.quantity && <InputError message={errors.quantity.message ?? t("invalid_input")} />}
+                </div>
+              </div>
+              <div className="mt-auto">
+                <Button
+                  color="primary"
+                  target="_blank"
+                  EndIcon="external-link"
+                  type="submit"
+                  data-testid="buy-credits">
+                  {t("buy_credits")}
+                </Button>
+              </div>
+            </form>
+            <div className="-mx-6 mb-6 mt-6">
+              <hr className="border-subtle mb-3 mt-3" />
+            </div>
+            <div className="flex">
+              <div className="mr-auto">
+                <Label className="mb-4">{t("download_expense_log")}</Label>
+                <div className="mt-2 flex flex-col">
+                  <Select
+                    options={monthOptions}
+                    value={selectedMonth}
+                    onChange={(option) => option && setSelectedMonth(option)}
+                  />
+                </div>
+              </div>
+              <div className="mt-auto">
+                <Button onClick={handleDownload} loading={isDownloading} StartIcon="file-down">
+                  {t("download")}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
