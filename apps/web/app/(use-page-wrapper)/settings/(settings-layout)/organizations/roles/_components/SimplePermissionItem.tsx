@@ -1,7 +1,11 @@
 "use client";
 
-import type { Resource, Scope } from "@calcom/features/pbac/domain/types/permission-registry";
-import { PERMISSION_REGISTRY } from "@calcom/features/pbac/domain/types/permission-registry";
+import type { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
+import {
+  Scope,
+  PERMISSION_REGISTRY,
+  getPermissionsForScope,
+} from "@calcom/features/pbac/domain/types/permission-registry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ToggleGroup } from "@calcom/ui/components/form";
 
@@ -21,11 +25,13 @@ export function SimplePermissionItem({
   permissions,
   onChange,
   disabled,
-  scope,
+  scope = Scope.Organization,
 }: SimplePermissionItemProps) {
   const { t } = useLocale();
   const { getResourcePermissionLevel, toggleResourcePermissionLevel } = usePermissions(scope);
+  const scopedRegistry = getPermissionsForScope(scope);
 
+  const registry = scopedRegistry || PERMISSION_REGISTRY;
   const isAllResources = resource === "*";
   const options = isAllResources
     ? [
@@ -41,7 +47,7 @@ export function SimplePermissionItem({
   return (
     <div className="flex items-center justify-between px-3 py-2">
       <span className="text-default text-sm font-medium leading-none">
-        {t(PERMISSION_REGISTRY[resource as Resource]._resource?.i18nKey || resource)}
+        {t(registry[resource as Resource]._resource?.i18nKey || resource)}
       </span>
       <ToggleGroup
         onValueChange={(val) => {
