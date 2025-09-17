@@ -1,13 +1,13 @@
 import type { ErrorOption, FieldPath } from "react-hook-form";
 
-import type { SchedulingType } from "@calcom/prisma/enums";
 import type { RegularBookingCreateResult } from "@calcom/features/bookings/lib/dto/types";
-import type { BookingCreateBody } from "@calcom/prisma/zod/custom/booking";
+import type { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppsStatus } from "@calcom/types/Calendar";
 
 import type { DatePickerProps } from "../calendars/DatePicker";
 import type { BookingCreateBody } from "./lib/bookingCreateBodySchema";
+import type { InstantBookingCreateResult } from "./lib/dto/types";
 
 export type PublicEvent = NonNullable<RouterOutputs["viewer"]["public"]["event"]>;
 
@@ -97,6 +97,8 @@ export type RecurringBookingCreateBody = BookingCreateBody & {
 
 // TODO: Instead of using the two different names, we want to use RegularBookingCreateResult name only but the name BookingResponse is used at ton of places and would be fixed in a separate followup PR.
 export type BookingResponse = RegularBookingCreateResult;
+
+export type InstantBookingResponse = InstantBookingCreateResult;
 
 export type MarkNoShowResponse = Awaited<
   ReturnType<typeof import("@calcom/features/handleMarkNoShow").default>
