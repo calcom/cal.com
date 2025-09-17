@@ -64,6 +64,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
             weight: true,
             weightAdjustment: true,
             schedule: true,
+            eventTypeId: true,
           },
         },
         team: {
