@@ -236,7 +236,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
               ))}
             {!showMembers.isOn && team.eventTypes && team.eventTypes.length > 0 && (
               <div
-                className="flex flex-col gap-4 rounded-md bg-white px-4 pb-8 pt-2 lg:px-[15%]"
+                className="flex flex-col gap-4 rounded-md bg-white pb-8 pt-2 lg:max-w-4xl mx-auto"
                 data-testid="event-types">
                 <EventTypes eventTypes={team.eventTypes} />
 

@@ -2676,7 +2676,8 @@
   "account_already_linked": "Account is already linked",
   "send_email": "Send email",
   "mark_as_no_show": "Mark as no-show",
-  "your_notes": "Your notes",
+  "meeting_notes": "Meeting notes",
+  "meeting_notes_subtitle": "Add any notes that will help us get ready for our meeting.",
   "unmark_as_no_show": "Unmark no-show",
   "account_unlinked_success": "Account unlinked successfully",
   "account_unlinked_error": "There was an error unlinking the account",
@@ -3557,5 +3558,10 @@
   "try_different_search_term": "Try a different search term",
   "copy_url": "Copy URL",
   "preview_url": "Preview URL",
-  "select_team_or_profile": "Select team or profile"
+  "select_team_or_profile": "Select team or profile",
+  "google_calendar": "Google Calendar",
+  "microsoft_office": "Microsoft Office",
+  "microsoft_outlook": "Microsoft Outlook",
+  "ics": "ICS",
+  "invitee_details": "Invitee details"
 }

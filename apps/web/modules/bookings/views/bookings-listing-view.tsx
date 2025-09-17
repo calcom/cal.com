@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@calid/features/ui/components/button";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { BlankCard } from "@calid/features/ui/components/card";
 import type { HorizontalTabItemProps } from "@calid/features/ui/components/navigation";
 import { HorizontalTabs } from "@calid/features/ui/components/navigation";
@@ -31,8 +32,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/components/alert";
-import { Icon } from "@calcom/ui/components/icon";
-
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
@@ -93,10 +92,10 @@ function BookingsContent({ status }: BookingsProps) {
 
   const { mutate: fetchAllBookingsMutation, isPending } = trpc.viewer.bookings.export.useMutation({
     async onSuccess(response) {
-      showToast(response.message, "success");
+      triggerToast(response.message, "success");
     },
     onError() {
-      showToast(t("unexpected_error_try_again"), "error");
+      triggerToast(t("unexpected_error_try_again"), "error");
     },
   });
   const handleOnClickExportBookings = async () => {
@@ -407,9 +406,9 @@ function BookingsContent({ status }: BookingsProps) {
         <div className="flex h-[32px] flex-row gap-4 overflow-auto ">
           <Button
             color="secondary"
+            StartIcon="filter"
             onClick={() => setShowFilters(!showFilters)}
             className="flex items-center space-x-2">
-            <Icon name="filter" className="h-4 w-4" />
             <span>{t("filter")}</span>
           </Button>
 

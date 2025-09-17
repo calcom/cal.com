@@ -1,5 +1,4 @@
 import { Button } from "@calid/features/ui/components/button";
-import { Icon } from "@calid/features/ui/components/icon";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 export interface ExportBookingsButtonProps {
@@ -15,11 +14,10 @@ export default function ExportBookingsButton({
   return (
     <Button
       loading={isLoading}
-      StartIcon="link-2"
+      StartIcon="download"
       disabled={isLoading}
       color="secondary"
       onClick={() => handleOnClickExportBookings()}>
-      <Icon name="circle-arrow-out-up-right" className="h-4 w-4" />
       <div>{t("export_bookings")}</div>
     </Button>
   );

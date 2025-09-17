@@ -114,12 +114,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   bookingInfo["startTime"] = (bookingInfo?.startTime as Date)?.toISOString() as unknown as Date;
   bookingInfo["endTime"] = (bookingInfo?.endTime as Date)?.toISOString() as unknown as Date;
 
-  console.log("Event type raw: ", eventTypeRaw);
-
-  // eventTypeRaw.users = !!eventTypeRaw.hosts?.length
-  //   ? eventTypeRaw.hosts.map((host) => host.user)
-  //   : eventTypeRaw.users;
-
   eventTypeRaw.users = !!eventTypeRaw.hosts?.length
     ? eventTypeRaw.hosts.map((host) => ({
         ...host.user,

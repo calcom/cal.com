@@ -1,9 +1,18 @@
 "use client";
 
 import { Button } from "@calid/features/ui/components/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from "@calid/features/ui/components/dialog";
+import { Switch } from "@calid/features/ui/components/switch";
 import { useSession } from "next-auth/react";
 import type { Dispatch, SetStateAction } from "react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -12,9 +21,9 @@ import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui/components/toast";
+import { triggerToast } from "@calid/features/ui/components/toast";
 
-type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
+type BookingItem = RouterOutputs["viewer"]["bookings"]["calid_get"]["bookings"][number];
 
 export type CancelEventDialogProps = BookingItem & {
   isOpenDialog: boolean;
@@ -28,39 +37,48 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
   const [selectedRecurringDates, setSelectedRecurringDates] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [autoRefund, setAutoRefund] = useState(false);
 
   const refreshData = useRefreshData();
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    showToast("Email copied", "success");
+    triggerToast("Email copied", "success");
   };
 
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const { isOpenDialog, setIsOpenDialog, bookingUId: bookingId } = props;
 
-  const handleClose = () => {
-    setIsOpenDialog(false);
-  };
-
   const { data: session } = useSession();
 
   const currentUserEmail = session?.user?.email ?? undefined;
+  const currentUserId = session?.user?.id;
+
+  // Determine if current user is the host
+  const isHost = currentUserId && props.user?.id === currentUserId;
 
   const bookingCancelledEventProps = {
     booking: props,
     organizer: {
       name: props?.user?.name || "Nameless",
       email: props?.userPrimaryEmail || props?.user?.email || "Email-less",
-      timeZone: props?.user?.timeZone,
     },
     eventType: props.eventType,
   };
 
   const telemetry = useTelemetry();
 
+  // Clear error and reset autoRefund when dialog opens
+  useEffect(() => {
+    if (isOpenDialog) {
+      setError(null);
+      setAutoRefund(false);
+    }
+  }, [isOpenDialog]);
+
   const handleCancel = async () => {
     setLoading(true);
+    setError(null);
 
     telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
 
@@ -73,6 +91,7 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
         // seatReferenceUid: props.seatReferenceUid, // REVIEW: do we need this?
         cancelledBy: currentUserEmail,
         internalNote: null, // TODO: internalNote
+        autoRefund: autoRefund, // Dynamic value based on user selection
       }),
       headers: {
         "Content-Type": "application/json",
@@ -91,41 +110,31 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
         ...bookingCancelledEventProps,
         booking: bookingWithCancellationReason,
       });
+      triggerToast(t("booking_cancelled"), "success");
       refreshData();
+      setIsOpenDialog(false);
     } else {
-      showToast(
-        `${t("error_with_status_code_occured", { status: res.status })} ${t("please_try_again")}`,
-        "error"
-      );
-
-      // useToast({
-      //   id: "cancel-event-error",
-      //   title: t("failure"),
-      //   description:,
-      // });
-      // showToast({
-      //   message: `${t("error_with_status_code_occured", { status: res.status })} ${t("please_try_again")}`,
-      //   type: "failure",
-      // });
+      const errorData = await res.json().catch(() => ({}));
+      const errorMessage = errorData.message || `${t("error_with_status_code_occured", { status: res.status })} ${t("please_try_again")}`;
+      triggerToast(errorMessage, "error");
+      setError(errorMessage);
     }
 
     setLoading(false);
   };
 
-  if (!isOpenDialog) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
-        <div className="mx-[160px] flex items-center">
-          <h2 className="px-0 py-[12px] text-center text-xl font-semibold text-gray-900">Cancel Event</h2>
-        </div>
+    <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
+      <DialogContent size="default">
+        <DialogHeader>
+          <DialogTitle>{t("cancel_event")}</DialogTitle>
+        </DialogHeader>
 
         {props.recurringEventId && selectedRecurringDates.length > 0 ? (
-          <div className="mb-6 space-y-3 rounded-lg bg-gray-50 p-4">
+          <div className="mb-6 space-y-3 rounded-lg bg-muted p-4">
             <div className="flex gap-3">
-              <span className="min-w-16 font-medium text-gray-600">Event:</span>
-              <span className="text-gray-900">{props.eventType?.title || props.title}</span>
+              <span className="min-w-16 font-medium text-emphasis">{t("event")}</span>
+              <span className="text-default">{props.eventType?.title || props.title}</span>
             </div>
             <div className="flex gap-3">
               <span className="min-w-16 font-medium text-gray-600">When:</span>
@@ -145,7 +154,6 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
                 {props.attendees?.map((attendee, index) => (
                   <div key={index}>
                     <button
-                      variant="fab"
                       className="text-foreground hover:text-foreground hover:underline"
                       onClick={() => copyToClipboard(attendee.email)}
                       title="Copy email">
@@ -164,32 +172,31 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
             )}
           </div>
         ) : (
-          <div className="my-0 mb-6 space-y-3 rounded-lg bg-gray-50 p-4">
+          <div className="my-0 mb-6 space-y-3 rounded-lg bg-muted p-4">
             <div className="flex gap-3">
-              <span className="min-w-16 font-medium text-gray-600">{t("event_upper_case")}</span>
-              <span className="text-gray-900">{props.eventType?.title || props.title}</span>
+              <span className="min-w-16 font-medium text-emphasis">{t("event_upper_case")}</span>
+              <span className="text-default">{props.eventType?.title || props.title}</span>
             </div>
             <div className="flex gap-3">
-              <span className="min-w-16 font-medium text-gray-600">{t("when")}</span>
-              <span className="text-gray-900">
+              <span className="min-w-16 font-medium text-emphasis">{t("when")}</span>
+              <span className="text-default">
                 {new Date(props.startTime).toLocaleDateString()}{" "}
                 {new Date(props.startTime).toLocaleTimeString()} -{" "}
                 {new Date(props.endTime).toLocaleTimeString()}
               </span>
             </div>
             <div className="flex gap-3">
-              <span className="min-w-16 font-medium text-gray-600">{t("where")}</span>
-              <span className="text-gray-900">{props.location || "*LOCATION"}</span>
+              <span className="min-w-16 font-medium text-emphasis">{t("where")}</span>
+              <span className="text-default">{props.location?.split(":")[1] || "*LOCATION"}</span>
             </div>
             <div className="flex gap-3">
-              <span className="min-w-16 font-medium text-gray-600">{t("with")}</span>
+              <span className="min-w-16 font-medium text-emphasis">{t("with")}</span>
               <div className="flex flex-wrap gap-1">
                 {props.attendees?.map((attendee, index) => (
                   <div key={index}>
                     <button
-                      className="text-foreground hover:text-foreground hover:underline"
-                      onClick={() => copyToClipboard(attendee.email)}
-                      title="Copy email">
+                      className="text-default hover:text-default hover:underline"
+                      onClick={() => copyToClipboard(attendee.email)}>
                       {attendee.name}
                       {index < (props.attendees?.length || 0) - 1 && ","}
                     </button>
@@ -199,51 +206,67 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
             </div>
             {props.description && (
               <div className="flex gap-3">
-                <span className="min-w-16 font-medium text-gray-600">{t("additional_notes")}</span>
-                <span className="text-gray-900">{props.description}</span>
+                <span className="min-w-16 font-medium text-emphasis">{t("additional_notes")}</span>
+                <span className="text-default">{props.description}</span>
               </div>
             )}
           </div>
         )}
 
         <div className="mb-6">
-          <label className="mb-3 block text-sm font-medium text-gray-900">
+          <label className="mb-3 block text-sm font-medium text-emphasis">
             {t("cancellation_reason_host")}
           </label>
           <textarea
+            data-testid="cancel_reason"
             value={cancelReason}
             onChange={(e) => setCancelReason(e.target.value)}
-            className="h-24 w-full resize-none rounded-md border border-gray-200 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Why are you cancelling?"
+            className="h-24 w-full resize-none rounded-md border border-default p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder={t("cancellation_reason_placeholder")}
           />
-        </div>
-        {/* {error && (
-          <div className="my-3 flex flex-row">
-            <div className="bg-error mx-auto flex h-6 w-6 items-center justify-center rounded-full">
-              <Icon name="x" className="h-4 w-4 text-red-600" />
+          {error && (
+            <div className="mt-2 text-sm text-red-600">
+              {error}
             </div>
-            <div className="text-center ">
-              <h3 className="text-emphasis text-sm font-medium leading-6" id="modal-title">
-                {error}
-              </h3>
+          )}
+        </div>
+
+        {/* AutoRefund toggle - only show for hosts with paid bookings */}
+        {isHost && props.paid && (
+          <div className="mb-6">
+            <div className="flex w-full justify-between items-center">
+              <label className="text-default font-medium">{t("autorefund")}</label>
+              <Switch
+                tooltip={t("autorefund_info")}
+                checked={autoRefund}
+                onCheckedChange={(val) => {
+                  setAutoRefund(val);
+                }}
+              />
+            </div>
+            <div className="mt-2 flex items-center gap-2">
+              <span className="text-subtle text-sm">
+                {t("autorefund_description")}
+              </span>
             </div>
           </div>
-        )} */}
-
-        <div className="flex justify-end  space-x-3">
-          <Button variant="fab" color="secondary" onClick={handleClose}>
-            {t("nevermind")}
-          </Button>
+        )}
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button color="secondary" disabled={loading}>
+              {t("nevermind")}
+            </Button>
+          </DialogClose>
           <Button
-            variant="fab"
+            data-testid="confirm_cancel"
             color="primary"
             loading={loading}
-            onClick={handleCancel}
-            className="min-w-[7.5rem] text-white">
-            {t("cancel_event")}
+            disabled={loading}
+            onClick={handleCancel}>
+            {loading ? t("cancelling") : t("cancel_event")}
           </Button>
-        </div>
-      </div>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
