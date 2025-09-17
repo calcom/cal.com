@@ -4,6 +4,7 @@ import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooking";
 import { getClientSecretFromPayment } from "@calcom/features/ee/payments/pages/getClientSecretFromPayment";
+import { validateRoundRobinSlotAvailability } from "@calcom/features/ee/round-robin/utils/validateRoundRobinSlotAvailability";
 import {
   verifyPhoneNumber,
   sendVerificationCode,
@@ -138,3 +139,4 @@ export { checkEmailVerificationRequired } from "@calcom/trpc/server/routers/publ
 
 export { TeamService } from "@calcom/lib/server/service/teamService";
 export { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+export { validateRoundRobinSlotAvailability };
