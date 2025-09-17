@@ -11,7 +11,7 @@ import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 
 const passwordResetRequestSchema = z.object({
-  csrfToken: z.string().optional(),
+  csrfToken: z.string(),
   password: z.string().refine(validPassword, () => ({
     message: "Password does not meet the requirements",
   })),
@@ -29,7 +29,7 @@ async function handler(req: NextRequest) {
 
   const cookieToken = cookieStore.get("calcom.csrf_token")?.value;
 
-  if (!submittedToken || submittedToken !== cookieToken) {
+  if (submittedToken !== cookieToken) {
     return NextResponse.json({ error: "Invalid CSRF token" }, { status: 403 });
   }
 
