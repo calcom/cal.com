@@ -1,8 +1,7 @@
-import { Prisma } from "@prisma/client";
 import { captureException } from "@sentry/nextjs";
 
 import type { PrismaClient } from "@calcom/prisma";
-
+import { Prisma } from "@calcom/prisma/client";
 import type { AppFlags, TeamFeatures } from "./config";
 import type { IFeaturesRepository } from "./features.repository.interface";
 
@@ -36,7 +35,6 @@ export class FeaturesRepository implements IFeaturesRepository {
 
     const features = await this.prismaClient.feature.findMany({
       orderBy: { slug: "asc" },
-      cacheStrategy: { swr: 300, ttl: 300 },
     });
 
     FeaturesRepository.featuresCache = {

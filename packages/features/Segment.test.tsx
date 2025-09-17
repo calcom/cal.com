@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import React from "react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import type { Mock } from "vitest";
 
@@ -49,9 +50,10 @@ const mockAttributesWithSingleSelect = () => {
         slug: "department",
         name: "Department",
         type: AttributeType.SINGLE_SELECT,
+        isWeightsEnabled: false,
         options: [
-          { id: "1", value: "Sales", slug: "sales" },
-          { id: "2", value: "Engineering", slug: "engineering" },
+          { id: "1", value: "Sales", slug: "sales", contains: [], isGroup: false },
+          { id: "2", value: "Engineering", slug: "engineering", contains: [], isGroup: false },
         ],
       },
     ],
@@ -85,9 +87,24 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
 }));
 
 describe("Segment", () => {
+  const defaultQueryValue = {
+    id: "root",
+    type: "group",
+    children1: {
+      "rule-1": {
+        type: "rule",
+        properties: {
+          field: "department",
+          operator: "select_equals",
+          value: ["Sales"],
+        },
+      },
+    },
+  } as AttributesQueryValue;
+
   const defaultProps = {
     teamId: 1,
-    queryValue: null as AttributesQueryValue | null,
+    queryValue: defaultQueryValue,
     onQueryValueChange: vi.fn(),
     className: "test-class",
   };
@@ -132,7 +149,25 @@ describe("Segment", () => {
     });
   });
 
-  it("shows matching team members when query value is provided", async () => {
+  it("shows no filter selected message when empty query value is provided", async () => {
+    mockGetMatchingTeamMembers({
+      isPending: true,
+      data: undefined,
+    });
+
+    const emptyQueryValue = {
+      id: "root",
+      type: "group",
+      children1: {},
+    } as AttributesQueryValue;
+
+    render(<Segment {...defaultProps} queryValue={emptyQueryValue} />);
+    await waitFor(() => {
+      expect(screen.getByText("no_filter_set")).toBeInTheDocument();
+    });
+  });
+
+  it("shows matching team members when valid query value is provided", async () => {
     mockGetMatchingTeamMembers({
       isPending: false,
       data: {
@@ -149,12 +184,7 @@ describe("Segment", () => {
       },
     });
 
-    const queryValue = {
-      id: "root",
-      type: "group",
-    } as AttributesQueryValue;
-
-    render(<Segment {...defaultProps} queryValue={queryValue} />);
+    render(<Segment {...defaultProps} queryValue={defaultQueryValue} />);
     await waitFor(() => {
       expect(screen.getByText("John Doe")).toBeInTheDocument();
       expect(screen.getByText("(john@example.com)")).toBeInTheDocument();

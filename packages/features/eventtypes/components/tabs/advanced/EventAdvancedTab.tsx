@@ -20,6 +20,8 @@ import {
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { MultiplePrivateLinksController } from "@calcom/features/eventtypes/components";
+import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
+import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import type {
   FormValues,
   EventTypeSetupProps,
@@ -38,10 +40,9 @@ import {
   APP_NAME,
   MAX_SEATS_PER_TIME_SLOT,
 } from "@calcom/lib/constants";
-import type { EventNameObjectType } from "@calcom/lib/event";
-import { getEventName } from "@calcom/lib/event";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
+import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import { extractHostTimezone } from "@calcom/lib/hashedLinksUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
@@ -62,6 +63,7 @@ import {
 } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
+import AddVerifiedEmail from "../../AddVerifiedEmail";
 import type { CustomEventTypeModalClassNames } from "./CustomEventTypeModal";
 import CustomEventTypeModal from "./CustomEventTypeModal";
 import type { EmailNotificationToggleCustomClassNames } from "./DisableAllEmailsSetting";
@@ -508,7 +510,7 @@ export const EventAdvancedTab = ({
     "allowReschedulingCancelledBookings"
   );
 
-  const { isLocked, ...eventNameLocked } = shouldLockDisableProps("eventName");
+  const { isLocked: _isLocked, ...eventNameLocked } = shouldLockDisableProps("eventName");
 
   if (isManagedEventType) {
     multiplePrivateLinksLocked.disabled = true;
@@ -567,6 +569,21 @@ export const EventAdvancedTab = ({
     }));
     userEmail = removePlatformClientIdFromEmail(userEmail, platformContext.clientId);
   }
+
+  const metadata = formMethods.watch("metadata");
+  const paymentAppData = useMemo(() => {
+    const _eventType = {
+      price: 0,
+      currency: "",
+      metadata,
+    };
+    return getPaymentAppData(_eventType);
+  }, [metadata]);
+
+  const isPaidEvent = useMemo(
+    () => !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0,
+    [paymentAppData]
+  );
 
   const TimezoneSelect = useMemo(() => {
     return isPlatform ? PlatformTimzoneSelect : WebTimezoneSelect;
@@ -627,6 +644,8 @@ export const EventAdvancedTab = ({
               // Location field has a default value at backend so API can send no location but we don't allow it in UI and thus we want to show it as required to user
               return field.name === "location" ? true : field.required;
             }}
+            showPriceField={isPaidEvent}
+            paymentCurrency={paymentAppData?.currency || "usd"}
           />
         </div>
       </div>
@@ -1134,52 +1153,53 @@ export const EventAdvancedTab = ({
           />
         )}
       />
-      {!isPlatform && (
-        <>
-          <Controller
-            name="customReplyToEmail"
-            render={({ field: { value, onChange } }) => (
-              <>
-                <SettingsToggle
-                  labelClassName={classNames("text-sm", customClassNames?.customReplyToEmail?.label)}
-                  toggleSwitchAtTheEnd={true}
-                  switchContainerClassName={classNames(
-                    "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-                    !!value && "rounded-b-none",
-                    customClassNames?.customReplyToEmail?.container
-                  )}
-                  descriptionClassName={customClassNames?.customReplyToEmail?.description}
-                  childrenClassName={classNames("lg:ml-0", customClassNames?.customReplyToEmail?.children)}
-                  title={t("custom_reply_to_email_title")}
-                  {...customReplyToEmailLocked}
-                  data-testid="custom-reply-to-email"
-                  description={t("custom_reply_to_email_description")}
-                  checked={!!customReplyToEmail}
-                  onCheckedChange={(e) => {
-                    onChange(
-                      e
-                        ? customReplyToEmail || eventType.customReplyToEmail || verifiedEmails?.[0] || null
-                        : null
-                    );
-                  }}>
-                  <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-                    <SelectField
-                      className="w-full"
-                      label={t("custom_reply_to_email_title")}
-                      required={!!customReplyToEmail}
-                      placeholder={t("select_verified_email")}
-                      data-testid="custom-reply-to-email-input"
-                      value={value ? { label: value, value } : undefined}
-                      onChange={(option) => onChange(option?.value || null)}
-                      options={verifiedEmails?.map((email) => ({ label: email, value: email })) || []}
-                    />
-                  </div>
-                </SettingsToggle>
-              </>
-            )}
-          />
-        </>
-      )}
+      <>
+        <Controller
+          name="customReplyToEmail"
+          render={({ field: { value, onChange } }) => (
+            <>
+              <SettingsToggle
+                labelClassName={classNames("text-sm", customClassNames?.customReplyToEmail?.label)}
+                toggleSwitchAtTheEnd={true}
+                switchContainerClassName={classNames(
+                  "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                  !!value && "rounded-b-none",
+                  customClassNames?.customReplyToEmail?.container
+                )}
+                descriptionClassName={customClassNames?.customReplyToEmail?.description}
+                childrenClassName={classNames("lg:ml-0", customClassNames?.customReplyToEmail?.children)}
+                title={t("custom_reply_to_email_title")}
+                {...customReplyToEmailLocked}
+                data-testid="custom-reply-to-email"
+                description={t("custom_reply_to_email_description")}
+                checked={!!customReplyToEmail}
+                onCheckedChange={(e) => {
+                  onChange(
+                    e
+                      ? customReplyToEmail || eventType.customReplyToEmail || verifiedEmails?.[0] || null
+                      : null
+                  );
+                }}>
+                {isPlatform && (
+                  <AddVerifiedEmail username={eventType.users[0]?.name || "there"} showToast={showToast} />
+                )}
+                <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+                  <SelectField
+                    className="w-full"
+                    label={t("custom_reply_to_email_title")}
+                    required={!!customReplyToEmail}
+                    placeholder={t("select_verified_email")}
+                    data-testid="custom-reply-to-email-input"
+                    value={value ? { label: value, value } : undefined}
+                    onChange={(option) => onChange(option?.value || null)}
+                    options={verifiedEmails?.map((email) => ({ label: email, value: email })) || []}
+                  />
+                </div>
+              </SettingsToggle>
+            </>
+          )}
+        />
+      </>
       <Controller
         name="eventTypeColor"
         render={() => (
