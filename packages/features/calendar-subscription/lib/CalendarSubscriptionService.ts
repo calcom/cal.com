@@ -5,7 +5,7 @@ import type {
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getCredentialForCalendarCache } from "@calcom/lib/delegationCredential/server";
 import logger from "@calcom/lib/logger";
-import type { SelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
+import type { ISelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository.interface";
 import { prisma } from "@calcom/prisma";
 
 import type {
@@ -19,7 +19,7 @@ export class CalendarSubscriptionService {
   constructor(
     private deps: {
       adapterFactory: AdapterFactory;
-      selectedCalendarRepository: SelectedCalendarRepository;
+      selectedCalendarRepository: ISelectedCalendarRepository;
       featuresRepository: FeaturesRepository;
     }
   ) {}
@@ -167,7 +167,6 @@ export class CalendarSubscriptionService {
       const { CalendarCacheEventRepository } = await import("./cache/CalendarCacheEventRepository");
       const calendarCacheEventService = new CalendarCacheEventService({
         calendarCacheEventRepository: new CalendarCacheEventRepository(prisma),
-        selectedCalendarRepository: this.deps.selectedCalendarRepository,
       });
       await calendarCacheEventService.handleEvents(selectedCalendar, events.items);
     }

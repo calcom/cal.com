@@ -1,7 +1,6 @@
 import type { CalendarSubscriptionEventItem } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionPort.interface";
 import type { ICalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository.interface";
 import logger from "@calcom/lib/logger";
-import type { SelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
 import type { CalendarCacheEvent, SelectedCalendar } from "@calcom/prisma/client";
 
 const log = logger.getSubLogger({ prefix: ["CalendarCacheEventService"] });
@@ -12,7 +11,6 @@ const log = logger.getSubLogger({ prefix: ["CalendarCacheEventService"] });
 export class CalendarCacheEventService {
   constructor(
     private deps: {
-      selectedCalendarRepository: SelectedCalendarRepository;
       calendarCacheEventRepository: ICalendarCacheEventRepository;
     }
   ) {}
@@ -32,11 +30,6 @@ export class CalendarCacheEventService {
     const toDelete: Pick<CalendarCacheEvent, "externalId" | "selectedCalendarId">[] = [];
 
     for (const event of calendarSubscriptionEvents) {
-      if (!event.id) {
-        log.warn("handleEvents: skipping event with no ID", { event });
-        continue;
-      }
-
       // not storing free or cancelled events
       if (event.busy && event.status !== "cancelled") {
         toUpsert.push({

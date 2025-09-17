@@ -1,7 +1,9 @@
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
-export class SelectedCalendarRepository {
+import type { ISelectedCalendarRepository } from "./SelectedCalendarRepository.interface";
+
+export class SelectedCalendarRepository implements ISelectedCalendarRepository {
   constructor(private prismaClient: PrismaClient) {}
 
   async findById(id: string) {
