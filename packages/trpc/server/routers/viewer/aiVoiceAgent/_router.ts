@@ -82,4 +82,12 @@ export const aiVoiceAgentRouter = router({
       input,
     });
   }),
+
+  listVoices: authedProcedure.query(async ({ ctx }) => {
+    const { listVoicesHandler } = await import("./listVoices.handler");
+
+    return listVoicesHandler({
+      ctx,
+    });
+  }),
 });
