@@ -150,7 +150,7 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
                 <ScheduleListItem
                   displayOptions={{
                     hour12: user?.timeFormat ? user.timeFormat === 12 : undefined,
-                    timeZone: user?.timeZone,
+                    timeZone: schedule.timeZone || user?.timeZone,
                     weekStart: user?.weekStart || "Sunday",
                   }}
                   key={schedule.id}
