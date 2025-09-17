@@ -74,7 +74,7 @@ export const aiVoiceAgentRouter = router({
       ctx,
       input,
     });
-   }),
+  }),
 
   createWebCall: eventOwnerProcedure.input(ZCreateWebCallInputSchema).mutation(async ({ ctx, input }) => {
     const { createWebCallHandler } = await import("./createWebCall.handler");
@@ -102,12 +102,14 @@ export const aiVoiceAgentRouter = router({
     });
   }),
 
-  updateInboundAgentPrompt: authedProcedure.input(ZUpdateInboundAgentPromptInputSchema).mutation(async ({ ctx, input }) => {
-    const { updateInboundAgentPromptHandler } = await import("./updateInboundAgentPrompt.handler");
+  updateInboundAgentPrompt: authedProcedure
+    .input(ZUpdateInboundAgentPromptInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { updateInboundAgentPromptHandler } = await import("./updateInboundAgentPrompt.handler");
 
-    return updateInboundAgentPromptHandler({
-      ctx,
-      input,
-    });
-  }),
+      return updateInboundAgentPromptHandler({
+        ctx,
+        input,
+      });
+    }),
 });
