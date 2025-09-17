@@ -3710,5 +3710,13 @@
   "start_from_scratch_description": "Create your own workflow from scratch.",
   "cal_ai_template_title": "Cal.ai template",
   "cal_ai_template_description": "AI agents that book meetings, send reminders, and follow up!",
+  "voice": "Voice",
+  "select_voice": "Select Voice",
+  "select_voice_for_agent": "Select a voice for your agent",
+  "choose_a_voice_for_your_agent": "Choose a voice for your agent",
+  "trait": "Trait",
+  "voice_id": "Voice ID",
+  "use_voice": "Use Voice",
+  "current_voice": "Current Voice",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
