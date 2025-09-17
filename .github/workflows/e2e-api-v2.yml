@@ -71,9 +71,9 @@ jobs:
       - name: Run Tests
         working-directory: apps/api/v2
         run: |
-          yarn test:e2e
+          yarn workspace @calcom/platform-libraries build && yarn test:e2e
           EXIT_CODE=$?
-          echo "yarn test:e2e command exit code: $EXIT_CODE"
+          echo "yarn workspace @calcom/platform-libraries build && yarn test:e2e command exit code: $EXIT_CODE"
           exit $EXIT_CODE
       - name: Upload Test Results
         if: ${{ always() }}
