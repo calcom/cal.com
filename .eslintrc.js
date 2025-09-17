@@ -27,7 +27,8 @@ module.exports = {
                   "@calcom/features",
                   "@calcom/features/*",
                 ],
-                message: "Avoid importing packages/features from app-store, prisma, or lib.",
+                message:
+                  "Avoid importing @calcom/features from @calcom/app-store, @calcom/prisma, or @calcom/lib.",
               },
             ],
           },
@@ -56,7 +57,7 @@ module.exports = {
                   "@calcom/features",
                   "@calcom/features/*",
                 ],
-                message: "packages/lib should not import app-store or features.",
+                message: "@calcom/lib should not import @calcom/app-store or @calcom/features.",
               },
             ],
           },
@@ -83,7 +84,7 @@ module.exports = {
                   "@trpc/*",
                 ],
                 message:
-                  "packages/app-store must not import trpc. Move UI to apps/web/components/apps or introduce an API boundary.",
+                  "@calcom/app-store must not import trpc. Move UI to apps/web/components/apps or introduce an API boundary.",
               },
             ],
           },
