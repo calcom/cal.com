@@ -7,29 +7,74 @@ module.exports = {
     "import/no-cycle": ["warn", { maxDepth: Infinity }],
   },
   overrides: [
+    // WARN: features must not be imported by app-store, prisma, or lib
     {
-      files: ["packages/lib/**/*.{ts,tsx,js,jsx}", "packages/prisma/**/*.{ts,tsx,js,jsx}"],
+      files: [
+        "packages/app-store/**/*.{ts,tsx,js,jsx}",
+        "packages/prisma/**/*.{ts,tsx,js,jsx}",
+        "packages/lib/**/*.{ts,tsx,js,jsx}",
+      ],
       rules: {
-        "no-restricted-imports": [
+        "import/no-restricted-paths": [
           "warn",
           {
-            paths: ["@calcom/app-store"],
-            patterns: ["@calcom/app-store/*"],
+            zones: [
+              {
+                target: "./packages/features",
+                from: "./packages/app-store",
+                message: "Do not import packages/features from packages/app-store.",
+              },
+              {
+                target: "./packages/features",
+                from: "./packages/prisma",
+                message: "Do not import packages/features from packages/prisma.",
+              },
+              {
+                target: "./packages/features",
+                from: "./packages/lib",
+                message: "Do not import packages/features from packages/lib.",
+              },
+            ],
           },
         ],
       },
     },
+    // WARN: lib must not import app-store or features
+    {
+      files: ["packages/lib/**/*.{ts,tsx,js,jsx}"],
+      rules: {
+        "import/no-restricted-paths": [
+          "warn",
+          {
+            zones: [
+              {
+                target: "./packages/app-store",
+                from: "./packages/lib",
+                message: "packages/lib should not import packages/app-store.",
+              },
+              {
+                target: "./packages/features",
+                from: "./packages/lib",
+                message: "packages/lib should not import packages/features.",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    // ERROR: app-store must not import trpc
     {
       files: ["packages/app-store/**/*.{ts,tsx,js,jsx}"],
       rules: {
-        "@typescript-eslint/no-restricted-imports": [
+        "import/no-restricted-paths": [
           "error",
           {
-            patterns: [
+            zones: [
               {
-                group: ["@calcom/trpc/*", "@trpc/*"],
-                message: "tRPC imports are blocked in packages/app-store. Move UI to apps/web/components/apps or introduce an API boundary.",
-                allowTypeImports: false,
+                target: "./packages/trpc",
+                from: "./packages/app-store",
+                message:
+                  "packages/app-store must not import packages/trpc. Move UI to apps/web/components/apps or introduce an API boundary.",
               },
             ],
           },
