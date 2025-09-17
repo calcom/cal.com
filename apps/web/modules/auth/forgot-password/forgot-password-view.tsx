@@ -7,10 +7,7 @@ import { debounce } from "lodash";
 import Link from "next/link";
 import type { SyntheticEvent } from "react";
 import React from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-
-import AuthContainer from "@components/ui/AuthContainer";
 
 export type PageProps = {
   csrfToken?: string;
