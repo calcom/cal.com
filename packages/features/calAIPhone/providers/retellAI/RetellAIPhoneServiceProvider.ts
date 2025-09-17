@@ -22,7 +22,7 @@ import type { AgentRepositoryInterface } from "../interfaces/AgentRepositoryInte
 import type { PhoneNumberRepositoryInterface } from "../interfaces/PhoneNumberRepositoryInterface";
 import type { TransactionInterface } from "../interfaces/TransactionInterface";
 import { RetellAIService } from "./RetellAIService";
-import type { RetellAIRepository } from "./types";
+import type { RetellAIRepository, Language } from "./types";
 
 export class RetellAIPhoneServiceProvider
   implements AIPhoneServiceProvider<AIPhoneServiceProviderType.RETELL_AI>
@@ -243,6 +243,7 @@ export class RetellAIPhoneServiceProvider
     beginMessage?: string | null;
     generalTools?: AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>;
     voiceId?: string;
+    language?: Language;
   }): Promise<{ message: string }> {
     return await this.service.updateAgentConfiguration(params);
   }
@@ -301,5 +302,9 @@ export class RetellAIPhoneServiceProvider
     };
   }) {
     return await this.service.listCalls(params);
+  }
+
+  async listVoices() {
+    return await this.service.listVoices();
   }
 }
