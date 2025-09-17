@@ -11,6 +11,7 @@ import { test } from "../lib/fixtures";
 import {
   bookTeamEvent,
   bookTimeSlot,
+  confirmReschedule,
   doOnOrgDomain,
   expectPageToBeNotFound,
   selectFirstAvailableTimeSlotNextMonth,
@@ -20,6 +21,8 @@ import {
 import { expectExistingUserToBeInvitedToOrganization } from "../team/expects";
 import { gotoPathAndExpectRedirectToOrgDomain } from "./lib/gotoPathAndExpectRedirectToOrgDomain";
 import { acceptTeamOrOrgInvite, inviteExistingUserToOrganization } from "./lib/inviteUser";
+import { Team } from "@calcom/prisma/client";
+import { CreateUsersFixture } from "playwright/fixtures/users";
 
 function getOrgOrigin(orgSlug: string | null) {
   if (!orgSlug) {
@@ -744,6 +747,157 @@ test.describe("Bookings", () => {
           expectedPath: `/${usernameInOrg}/${event.slug}`,
         });
         // As the redirection correctly happens, the booking would work too which we have verified in previous step. But we can't test that with org domain as that domain doesn't exist.
+      });
+    });
+  });
+
+  test.describe("Organization admin actions on member bookings", () => {
+    const testEvent = {
+      title: "Test Event",
+      slug: "test-event",
+      length: 30,
+      disableCancelling: true,
+      disableRescheduling: true,
+    };
+    test.describe("Owner with event types, admin tries to manage bookings", () => {
+      let bookingId: string | undefined;
+      let org: Team;
+      let admin: Awaited<ReturnType<CreateUsersFixture['create']>>;
+
+      test.beforeEach(async ({ page, users, orgs }) => {
+        org = await orgs.create({
+          name: "TestOrg",
+        });
+
+        const owner = await users.create({
+          username: "owner",
+          name: "owner",
+          organizationId: org.id,
+          roleInOrganization: MembershipRole.OWNER,
+          eventTypes: [testEvent],
+        });
+
+        admin = await users.create({
+          username: "admin",
+          name: "admin",
+          organizationId: org.id,
+          roleInOrganization: MembershipRole.ADMIN,
+        });
+
+        await doOnOrgDomain(
+          {
+            orgSlug: org.slug,
+            page,
+          },
+          async () => {
+            await bookUserEvent({ page, user: owner, event: testEvent });
+
+            const url = new URL(page.url());
+            const pathSegments = url.pathname.split("/");
+            bookingId = pathSegments[pathSegments.length - 1];
+          }
+        );
+      });
+
+      test("Organization admin should be able to reschedule owner's booking", async ({ page }) => {
+        await admin.apiLogin();
+
+        await doOnOrgDomain({ orgSlug: org.slug, page }, async ({ page, goToUrlWithErrorHandling }) => {
+          await page.goto(`/booking/${bookingId}`);
+
+          await expect(page.locator('[data-testid="reschedule-link"]')).toBeVisible();
+
+          const result = await goToUrlWithErrorHandling(`/reschedule/${bookingId}`);
+          await page.goto(result.url.replace(org.slug ?? "", "app"));
+          await selectFirstAvailableTimeSlotNextMonth(page);
+          await confirmReschedule(page);
+          await expect(page.locator('[data-testid="success-page"]')).toBeVisible();
+        });
+      });
+
+      test("Organization admin should be able to cancel owner's booking", async ({ page }) => {
+        await admin.apiLogin();
+
+        await doOnOrgDomain({ orgSlug: org.slug, page }, async ({ page, goToUrlWithErrorHandling }) => {
+          await goToUrlWithErrorHandling(`/booking/${bookingId}`);
+
+          await expect(page.locator('[data-testid="cancel"]')).toBeVisible();
+          await page.locator('[data-testid="cancel"]').click();
+          await page.locator('[data-testid="cancel_reason"]').fill("Admin cancellation of owner's booking");
+          await page.locator('[data-testid="confirm_cancel"]').click();
+          await expect(page.locator('[data-testid="cancelled-headline"]')).toBeVisible();
+        });
+      });
+    });
+
+    test.describe("Admin with event types, another admin tries to manage bookings", () => {
+      let bookingId: string | undefined;
+      let org: Team;
+      let managerAdmin: Awaited<ReturnType<CreateUsersFixture['create']>>;
+
+      test.beforeEach(async ({ page, users, orgs }) => {
+        org = await orgs.create({
+          name: "TestOrg",
+        });
+
+        const eventAdmin = await users.create({
+          name: `Event-Admin`,
+          username: `event-admin`,
+          organizationId: org.id,
+          roleInOrganization: MembershipRole.ADMIN,
+          eventTypes: [testEvent],
+        });
+
+        managerAdmin = await users.create({
+          username: `manager-admin`,
+          name: `Manager Admin`,
+          organizationId: org.id,
+          roleInOrganization: MembershipRole.ADMIN,
+        });
+
+        await doOnOrgDomain(
+          {
+            orgSlug: org.slug,
+            page,
+          },
+          async () => {
+            await bookUserEvent({ page, user: eventAdmin, event: testEvent });
+
+            const url = new URL(page.url());
+            const pathSegments = url.pathname.split("/");
+            bookingId = pathSegments[pathSegments.length - 1];
+          }
+        );
+      });
+
+      test("Organization admin should be able to reschedule another admin's booking", async ({ page }) => {
+        await managerAdmin.apiLogin();
+
+        await doOnOrgDomain({ orgSlug: "app", page }, async ({ page, goToUrlWithErrorHandling }) => {
+          await page.goto(`/booking/${bookingId}`);
+
+          await expect(page.locator('[data-testid="reschedule-link"]')).toBeVisible();
+
+          const result = await goToUrlWithErrorHandling(`/reschedule/${bookingId}`);
+          await page.goto(result.url.replace(org.slug ?? "", "app"));
+          await selectFirstAvailableTimeSlotNextMonth(page);
+          await confirmReschedule(page);
+          await expect(page.locator('[data-testid="success-page"]')).toBeVisible();
+        });
+      });
+
+      test("Organization admin should be able to cancel another admin's booking", async ({ page }) => {
+        await managerAdmin.apiLogin();
+
+        await doOnOrgDomain({ orgSlug: org.slug, page }, async ({ page }) => {
+          await page.goto(`/booking/${bookingId}`);
+
+          await expect(page.locator('[data-testid="cancel"]')).toBeVisible();
+          await page.locator('[data-testid="cancel"]').click();
+          await page.locator('[data-testid="cancel_reason"]').fill("Admin cancellation of another admin's booking");
+          await page.locator('[data-testid="confirm_cancel"]').click();
+          await expect(page.locator('[data-testid="cancelled-headline"]')).toBeVisible();
+        });
       });
     });
   });

@@ -18,6 +18,8 @@ import {
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import EventManager from "@calcom/lib/EventManager";
+import { checkIfUserIsHost } from "@calcom/lib/event-types/utils/checkIfUserIsHost";
+import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -30,7 +32,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
-import type { Prisma, WorkflowReminder } from "@calcom/prisma/client";
+import type { Prisma, WorkflowReminder, MembershipRole } from "@calcom/prisma/client";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema, bookingCancelInput } from "@calcom/prisma/zod-utils";
@@ -42,7 +44,7 @@ import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsFo
 import { getBookingToDelete } from "./getBookingToDelete";
 import { handleInternalNote } from "./handleInternalNote";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
-
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
 
 type PlatformParams = {
@@ -57,6 +59,7 @@ export type BookingToDelete = Awaited<ReturnType<typeof getBookingToDelete>>;
 
 export type CancelBookingInput = {
   userId?: number;
+  userOrgRole?: MembershipRole;
   bookingData: z.infer<typeof bookingCancelInput>;
 } & PlatformParams;
 
@@ -83,6 +86,7 @@ async function handler(input: CancelBookingInput) {
   const bookingToDelete = await getBookingToDelete(id, uid);
   const {
     userId,
+    userOrgRole,
     platformBookingUrl,
     platformCancelUrl,
     platformClientId,
@@ -107,7 +111,22 @@ async function handler(input: CancelBookingInput) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
 
-  if (bookingToDelete.eventType?.disableCancelling) {
+  // Check if user is a host or owner of the event type
+  const userIsHost = checkIfUserIsHost(
+    userId,
+    {
+      user: bookingToDelete.user,
+      attendees: bookingToDelete.attendees,
+    },
+    bookingToDelete.eventType || undefined
+  );
+  const userIsOwnerOfEventType = userId !== undefined && bookingToDelete.eventType?.owner?.id === userId;
+  const isHostOrOwner = !!userIsHost || !!userIsOwnerOfEventType;
+
+  const hasTeamOrOrgPermissions = userId !== undefined ? !!(await isTeamAdmin(userId, bookingToDelete.eventType?.team?.id ?? 0)) : false;
+  const isOrgAdminOrOwner = checkAdminOrOwner(userOrgRole);
+
+  if (bookingToDelete.eventType?.disableCancelling && !isHostOrOwner && !hasTeamOrOrgPermissions && !isOrgAdminOrOwner) {
     throw new HttpError({
       statusCode: 400,
       message: "This event type does not allow cancellations",
@@ -139,7 +158,7 @@ async function handler(input: CancelBookingInput) {
 
     const userIsOwnerOfEventType = bookingToDelete.eventType.owner?.id === userId;
 
-    if (!userIsHost && !userIsOwnerOfEventType) {
+    if (!userIsHost && !userIsOwnerOfEventType && !hasTeamOrOrgPermissions && !isOrgAdminOrOwner) {
       throw new HttpError({ statusCode: 401, message: "User not a host of this event" });
     }
   }
