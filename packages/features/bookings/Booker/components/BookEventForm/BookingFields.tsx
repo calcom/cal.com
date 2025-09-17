@@ -30,10 +30,7 @@ export const BookingFields = ({
   isPaidEvent?: boolean;
   paymentCurrency?: string;
 }) => {
-  const { t } = useLocale();
   const { t, i18n } = useLocale();
-  const { watch, setValue } = useFormContext();
-  const locationResponse = watch("responses.location");
   const currentView = rescheduleUid ? "reschedule" : "";
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
 
