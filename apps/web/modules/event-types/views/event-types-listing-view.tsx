@@ -4,7 +4,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FC } from "react";
-import { memo, useEffect, useState } from "react";
+import React, { memo, useEffect, useState } from "react";
 import { z } from "zod";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -104,12 +104,38 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
       group: { teamId: activeEventTypeGroup?.teamId, parentId: activeEventTypeGroup?.parentId },
     },
     {
-      refetchOnWindowFocus: true,
-      refetchOnMount: true,
-      staleTime: 0,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      staleTime: 1 * 60 * 60 * 1000, // 1 hour to match server-side cache
+      gcTime: 1 * 60 * 60 * 1000, // 1 hour garbage collection time
       getNextPageParam: (lastPage) => lastPage.nextCursor,
     }
   );
+
+  React.useEffect(() => {
+    if (query.data && query.isSuccess) {
+      console.log("[EventTypes Cache] Data loaded from cache or server:", {
+        timestamp: new Date().toISOString(),
+        teamId: activeEventTypeGroup?.teamId,
+        searchQuery: debouncedSearchTerm,
+        pagesCount: query.data?.pages?.length || 0,
+        totalItems: query.data?.pages?.reduce((acc, page) => acc + (page?.eventTypes?.length || 0), 0) || 0,
+        isFetching: query.isFetching,
+        isStale: query.isStale,
+      });
+    }
+    if (query.error) {
+      console.error("[EventTypes Cache] Query error:", query.error);
+    }
+  }, [
+    query.data,
+    query.isSuccess,
+    query.error,
+    query.isFetching,
+    query.isStale,
+    activeEventTypeGroup?.teamId,
+    debouncedSearchTerm,
+  ]);
 
   const buttonInView = useInViewObserver(() => {
     if (!query.isFetching && query.hasNextPage && query.status === "success") {
