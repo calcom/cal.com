@@ -43,6 +43,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import type { FormValues } from "../pages/workflow";
+import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 import { TestPhoneCallDialog } from "./TestPhoneCallDialog";
 import { VoiceSelectionDialog } from "./VoiceSelectionDialog";
 import { WebCallDialog } from "./WebCallDialog";
@@ -155,6 +156,7 @@ type AgentConfigurationSheetProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   agentId?: string | null;
+  inboundAgentId?: string | null;
   agentData?: RouterOutputs["viewer"]["aiVoiceAgent"]["get"];
   onUpdate: (data: AgentFormValues) => void;
   readOnly?: boolean;
@@ -162,8 +164,9 @@ type AgentConfigurationSheetProps = {
   isOrganization?: boolean;
   workflowId?: string;
   workflowStepId?: number;
-  activeTab?: "prompt" | "phoneNumber";
+  activeTab?: "outgoingCalls" | "phoneNumber" | "incomingCalls";
   form: UseFormReturn<FormValues>;
+  eventTypeOptions?: Option[];
 };
 
 export function AgentConfigurationSheet({
@@ -171,6 +174,7 @@ export function AgentConfigurationSheet({
   activeTab: _activeTab,
   onOpenChange,
   agentId,
+  inboundAgentId,
   agentData,
   onUpdate,
   readOnly = false,
@@ -179,11 +183,12 @@ export function AgentConfigurationSheet({
   workflowId,
   workflowStepId: _workflowStepId,
   form,
+  eventTypeOptions = [],
 }: AgentConfigurationSheetProps) {
   const { t } = useLocale();
 
   const utils = trpc.useUtils();
-  const [activeTab, setActiveTab] = useState<"prompt" | "phoneNumber">(_activeTab ?? "prompt");
+  const [activeTab, setActiveTab] = useState<"outgoingCalls" | "phoneNumber" | "incomingCalls">(_activeTab ?? "outgoingCalls");
   const [isBuyDialogOpen, setIsBuyDialogOpen] = useState(false);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [showAdvancedFields, setShowAdvancedFields] = useState(false);
@@ -312,10 +317,14 @@ export function AgentConfigurationSheet({
     },
   });
 
+  // Determine which agent ID to use
+  const currentAgentId = agentId || inboundAgentId;
+  const isInboundAgent = !!inboundAgentId && !agentId;
+
   const agentQuery = trpc.viewer.aiVoiceAgent.get.useQuery(
-    { id: agentId || "" },
+    { id: currentAgentId || "" },
     {
-      enabled: !!agentId,
+      enabled: !!currentAgentId,
       refetchOnMount: false,
     }
   );
@@ -331,8 +340,32 @@ export function AgentConfigurationSheet({
     },
   });
 
+  const setupInboundAgentMutation = trpc.viewer.aiVoiceAgent.setupInboundAgent.useMutation({
+    onSuccess: async () => {
+      showToast(t("inbound_agent_setup_success"), "success");
+      if (currentAgentId) {
+        await agentQuery.refetch();
+      }
+    },
+    onError: (error: { message: string }) => {
+      showToast(error.message, "error");
+    },
+  });
+
+  const updateInboundAgentPromptMutation = trpc.viewer.aiVoiceAgent.updateInboundAgentPrompt.useMutation({
+    onSuccess: async () => {
+      showToast(t("agent_prompt_updated_successfully"), "success");
+      if (currentAgentId) {
+        await agentQuery.refetch();
+      }
+    },
+    onError: (error: { message: string }) => {
+      showToast(error.message, "error");
+    },
+  });
+
   const handleAgentUpdate = async (data: AgentFormValues) => {
-    if (!agentId) return;
+    if (!currentAgentId) return;
 
     // Only send prompt-related fields, not tools
     const updatePayload = {
@@ -344,7 +377,7 @@ export function AgentConfigurationSheet({
     };
 
     await updateAgentMutation.mutateAsync({
-      id: agentId,
+      id: currentAgentId,
       teamId: teamId,
       ...updatePayload,
     });
@@ -407,14 +440,14 @@ export function AgentConfigurationSheet({
   // };
 
   const handleImportPhoneNumber = (values: PhoneNumberFormValues) => {
-    if (!agentId) {
+    if (!currentAgentId) {
       showToast(t("agent_required_for_import"), "error");
       return;
     }
     const mutationPayload = {
       ...values,
       workflowId: workflowId,
-      agentId: agentId,
+      agentId: currentAgentId,
       teamId: teamId,
     };
     importNumberMutation.mutate(mutationPayload);
@@ -472,18 +505,19 @@ export function AgentConfigurationSheet({
             <SheetTitle className="mb-6">{t("cal_ai_agent_configuration")}</SheetTitle>
             <ToggleGroup
               onValueChange={(val) => {
-                setActiveTab((val || "prompt") as "prompt" | "phoneNumber");
+                setActiveTab((val || "outgoingCalls") as "outgoingCalls" | "phoneNumber" | "incomingCalls");
               }}
               value={activeTab}
               options={[
-                { value: "prompt", label: t("prompt") },
+                { value: "outgoingCalls", label: t("outgoing_calls") },
                 { value: "phoneNumber", label: t("phone_number") },
+                { value: "incomingCalls", label: t("incoming_calls") },
               ]}
               isFullWidth={true}
             />
           </SheetHeader>
           <SheetBody className="px-0">
-            {activeTab === "prompt" && (
+            {activeTab === "outgoingCalls" && (
               <div className="space-y-4">
                 <div>
                   <Label className="text-emphasis mb-1 block text-sm font-medium">
@@ -789,6 +823,205 @@ export function AgentConfigurationSheet({
                           {t("import")}
                         </Button>
                       </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === "incomingCalls" && (
+              <div className="space-y-2">
+                {agentData?.outboundPhoneNumbers &&
+                agentData.outboundPhoneNumbers.filter(
+                  (phone) =>
+                    phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
+                    !phone.subscriptionStatus
+                ).length > 0 ? (
+                  <>
+                    {!inboundAgentId ? (
+                      // Show setup button section when no inbound agent exists
+                      <div className="border-subtle rounded-xl border p-8">
+                        <div className="flex flex-col items-center space-y-6 text-center">
+                          <div className="bg-muted flex h-16 w-16 items-center justify-center rounded-lg">
+                            <Icon name="phone-incoming" className="text-subtle h-8 w-8" />
+                          </div>
+                          <div className="space-y-2">
+                            <h3 className="text-emphasis text-lg font-semibold">{t("setup_inbound_agent")}</h3>
+                            <p className="text-subtle text-sm">
+                              {t("setup_inbound_agent_for_incoming_calls")}
+                            </p>
+                          </div>
+                          <Button
+                            onClick={() => {
+                              const phoneNumber = agentData?.outboundPhoneNumbers?.filter(
+                                (phone) =>
+                                  phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
+                                  !phone.subscriptionStatus
+                              )[0]?.phoneNumber;
+                              
+                              if (phoneNumber && workflowId) {
+                                setupInboundAgentMutation.mutate({
+                                  phoneNumber,
+                                  teamId,
+                                  workflowId: parseInt(workflowId || "0"),
+                                });
+                              }
+                            }}
+                            className="px-6"
+                            loading={setupInboundAgentMutation.isPending}
+                            disabled={setupInboundAgentMutation.isPending || !workflowId}>
+                            {t("setup_inbound_agent")}
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      // Show configuration form when inbound agent exists
+                      <div className="space-y-4">
+                        {/* Event Type Selection */}
+                        <div>
+                          <Label className="text-emphasis mb-1 block text-sm font-medium">
+                            {t("event_type")}
+                          </Label>
+                          <p className="text-subtle mb-1.5 text-xs">{t("select_event_type_for_inbound_calls")}</p>
+                          <Controller
+                            name="activeOn"
+                            control={form.control}
+                            render={({ field }) => {
+                              const selectedEventType = eventTypeOptions.find(opt => opt.value === field.value?.[0]?.value);
+                              return (
+                                <Select
+                                  isSearchable={false}
+                                  innerClassNames={{ valueContainer: "font-medium" }}
+                                  className="text-sm font-medium"
+                                  isDisabled={readOnly}
+                                  onChange={(val) => {
+                                    if (val) {
+                                      // Update selected event type
+                                      field.onChange([val]);
+                                      // Trigger workflow update if agent exists
+                                      if (inboundAgentId && val.value) {
+                                        updateInboundAgentPromptMutation.mutate({
+                                          agentId: inboundAgentId,
+                                          eventTypeId: parseInt(val.value),
+                                        });
+                                      }
+                                    }
+                                  }}
+                                  defaultValue={selectedEventType}
+                                  value={selectedEventType}
+                                  options={eventTypeOptions}
+                                  placeholder={t("select_event_type")}
+                                />
+                              );
+                            }}
+                          />
+                        </div>
+
+                        {/* Language Selection */}
+                        <div>
+                          <Label className="text-emphasis mb-1 block text-sm font-medium">
+                            {t("language")}
+                          </Label>
+                          <Controller
+                            name="language"
+                            control={agentForm.control}
+                            render={({ field }) => (
+                              <Select
+                                value={LANGUAGE_OPTIONS.find((option) => option.value === field.value)}
+                                onChange={(option) => field.onChange(option?.value)}
+                                options={LANGUAGE_OPTIONS}
+                                isDisabled={readOnly}
+                                className="mb-4"
+                              />
+                            )}
+                          />
+                        </div>
+
+                        {/* Voice Selection */}
+                        <div>
+                          <Label className="text-emphasis mb-1 block text-sm font-medium">
+                            {t("voice")}
+                          </Label>
+                          <p className="text-subtle mb-1.5 text-xs">{t("select_voice_for_agent")}</p>
+                          <Button
+                            type="button"
+                            color="secondary"
+                            onClick={() => setIsVoiceDialogOpen(true)}
+                            disabled={readOnly}
+                            className="w-full justify-start">
+                            <Icon name="user" className="mr-2 h-4 w-4" />
+                            {agentForm.watch("voiceId") ? (
+                              <span className="font-mono text-sm">{agentForm.watch("voiceId")}</span>
+                            ) : (
+                              t("select_voice")
+                            )}
+                          </Button>
+                        </div>
+
+                        {/* Initial Message */}
+                        <div>
+                          <Label className="text-emphasis mb-1 block text-sm font-medium">
+                            {t("initial_message")} *
+                          </Label>
+                          <p className="text-subtle mb-1.5 text-xs">{t("initial_message_description")}</p>
+                          <Input
+                            type="text"
+                            {...agentForm.register("beginMessage")}
+                            placeholder={t("hi_how_are_you_doing")}
+                            disabled={readOnly}
+                          />
+                        </div>
+
+                        {/* General Prompt */}
+                        <div>
+                          <div className="mb-1.5">
+                            <Label className="text-emphasis mb-1 block text-sm font-medium">
+                              {t("general_prompt")} *
+                            </Label>
+                            <p className="text-subtle text-xs">{t("general_prompt_description")}</p>
+                          </div>
+                          <div className="flex items-center justify-between rounded-t-lg border border-b-0 p-2">
+                            {!readOnly && (
+                              <AddVariablesDropdown
+                                addVariable={addVariableToGeneralPrompt}
+                                variables={[...DYNAMIC_TEXT_VARIABLES, "number_to_call"]}
+                                addVariableButtonClassName="border rounded-[10px] py-1 px-1"
+                              />
+                            )}
+                          </div>
+                          <TextArea
+                            {...agentForm.register("generalPrompt")}
+                            ref={(e) => {
+                              agentForm.register("generalPrompt").ref(e);
+                              generalPromptRef.current = e;
+                            }}
+                            placeholder={t("enter_the_general_prompt_for_the_agent")}
+                            className="min-h-[500px] rounded-t-none"
+                            disabled={readOnly}
+                          />
+                        </div>
+
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="border-subtle rounded-xl border p-8">
+                    <div className="flex flex-col items-center space-y-6 text-center">
+                      <div className="bg-muted flex h-16 w-16 items-center justify-center rounded-lg">
+                        <Icon name="info" className="text-subtle h-8 w-8" />
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="text-emphasis text-lg font-semibold">{t("setup_incoming_agent")}</h3>
+                        <p className="text-subtle text-sm">
+                          {t("setup_incoming_agent_description")}
+                        </p>
+                      </div>
+                      <Button
+                        onClick={() => setActiveTab("phoneNumber")}
+                        color="secondary"
+                        className="px-6">
+                        {t("setup_incoming_agent_action")}
+                      </Button>
                     </div>
                   </div>
                 )}

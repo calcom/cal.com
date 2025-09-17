@@ -3712,5 +3712,17 @@
   "voice_id": "Voice ID",
   "use_voice": "Use Voice",
   "current_voice": "Current Voice",
+  "setup_incoming_agent": "Setup incoming agent",
+  "setup_incoming_agent_description": "Configure an AI agent to handle incoming calls on your phone number",
+  "setup_incoming_agent_action": "Go to Phone Number",
+  "setup_agent_for_incoming_calls": "Setup Agent for incoming calls",
+  "configure_agent_to_handle_incoming_calls": "Configure agent to handle incoming calls",
+  "incoming_calls": "Incoming Calls",
+  "outgoing_calls": "Outgoing Calls",
+  "inbound_agent_setup_success": "Inbound agent setup successful",
+  "inbound_agent_configured": "Inbound agent configured",
+  "setup_inbound_agent": "Setup Inbound Agent",
+  "please_select_event_type_first": "Please select an event type first",
+  "edit_configuration": "Edit Configuration",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

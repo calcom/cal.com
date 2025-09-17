@@ -165,6 +165,19 @@ export class RetellAIService {
     });
   }
 
+  async createInboundAgent(params: {
+    name?: string;
+    userId: number;
+    teamId?: number;
+    workflowId: number;
+    userTimeZone: string;
+  }) {
+    return this.agentService.createInboundAgent({
+      ...params,
+      aiConfigurationService: this.aiConfigurationService,
+    });
+  }
+
   async updateAgentConfiguration(params: {
     id: string;
     userId: number;

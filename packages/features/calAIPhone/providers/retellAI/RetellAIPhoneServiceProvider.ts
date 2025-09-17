@@ -233,6 +233,25 @@ export class RetellAIPhoneServiceProvider
     };
   }
 
+  async createInboundAgent(params: {
+    name?: string;
+    userId: number;
+    teamId?: number;
+    workflowId: number;
+    userTimeZone: string;
+  }): Promise<{
+    id: string;
+    providerAgentId: string;
+    message: string;
+  }> {
+    const result = await this.service.createInboundAgent(params);
+    return {
+      id: result.id,
+      providerAgentId: result.providerAgentId,
+      message: result.message,
+    };
+  }
+
   async updateAgentConfiguration(params: {
     id: string;
     userId: number;

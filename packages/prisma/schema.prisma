@@ -244,6 +244,9 @@ model EventType {
 
   bookingRequiresAuthentication Boolean @default(false)
 
+  // Inbound agents for this event type
+  inboundAgents Agent[] @relation("inboundAgentEventType")
+
   @@unique([userId, slug])
   @@unique([teamId, slug])
   @@unique([userId, parentId])
@@ -1396,8 +1399,12 @@ model WorkflowStep {
   verifiedAt                DateTime?
   agentId                   String?            @unique
   agent                     Agent?             @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  
+  inboundAgentId            String?            @unique
+  inboundAgent              Agent?             @relation("WorkflowStepInboundAgent", fields: [inboundAgentId], references: [id], onDelete: SetNull)
 
   @@index([workflowId])
+  @@index([inboundAgentId])
 }
 
 model Workflow {
@@ -2483,6 +2490,7 @@ enum PhoneNumberSubscriptionStatus {
   UNPAID
 }
 
+
 // Cal AI Voice Agent
 model Agent {
   id   String @id @default(uuid())
@@ -2497,6 +2505,10 @@ model Agent {
   // Provider-specific agent ID (e.g., Retell AI agent ID)
   providerAgentId String @unique
 
+  // Event type association for inbound agents
+  eventTypeId Int?
+  eventType   EventType? @relation("inboundAgentEventType", fields: [eventTypeId], references: [id], onDelete: SetNull)
+
   enabled   Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2504,9 +2516,11 @@ model Agent {
   inboundPhoneNumbers  CalAiPhoneNumber[] @relation("InboundAgent")
   outboundPhoneNumbers CalAiPhoneNumber[] @relation("OutboundAgent")
   workflowStep         WorkflowStep?
+  inboundWorkflowSteps WorkflowStep[]     @relation("WorkflowStepInboundAgent")
 
   @@index([userId])
   @@index([teamId])
+  @@index([eventTypeId])
 }
 
 model CalAiPhoneNumber {

@@ -207,6 +207,7 @@ export default function WorkflowDetailsPage(props: Props) {
                         isDeleteStepDialogOpen={isDeleteStepDialogOpen}
                         isAgentLoading={isAgentLoading}
                         agentData={agentData}
+                        allOptions={allOptions}
                       />
                     </FormCardBody>
                   </FormCard>

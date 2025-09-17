@@ -302,6 +302,21 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
   }>;
 
   /**
+   * Create a new inbound agent
+   */
+  createInboundAgent(params: {
+    name?: string;
+    userId: number;
+    teamId?: number;
+    workflowId: number;
+    userTimeZone: string;
+  }): Promise<{
+    id: string;
+    providerAgentId: string;
+    message: string;
+  }>;
+
+  /**
    * Update agent configuration
    */
   updateAgentConfiguration(params: {

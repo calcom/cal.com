@@ -498,6 +498,55 @@ export class AgentService {
     };
   }
 
+  async createInboundAgent({
+    name: _name,
+    userId,
+    teamId,
+    workflowId,
+    aiConfigurationService,
+  }: {
+    name?: string;
+    userId: number;
+    teamId?: number;
+    workflowId: number;
+    aiConfigurationService: { setupInboundAIConfiguration: () => Promise<{ llmId: string; agentId: string }> };
+  }) {
+    if (teamId) {
+      const canManage = await this.agentRepository.canManageTeamResources({
+        userId,
+        teamId,
+      });
+      if (!canManage) {
+        throw new HttpError({
+          statusCode: 403,
+          message: "You don't have permission to create agents for this team.",
+        });
+      }
+    }
+
+    const agentName = _name || `Inbound Agent - ${workflowId}`;
+
+    const llmConfig = await aiConfigurationService.setupInboundAIConfiguration();
+
+    const agent = await this.agentRepository.create({
+      name: agentName,
+      providerAgentId: llmConfig.agentId,
+      userId,
+      teamId,
+    });
+
+    await this.agentRepository.linkInboundAgentToWorkflow({
+      workflowId,
+      agentId: agent.id,
+    });
+
+    return {
+      id: agent.id,
+      providerAgentId: agent.providerAgentId,
+      message: "Inbound agent created successfully",
+    };
+  }
+
   async updateAgentConfiguration({
     id,
     userId,
