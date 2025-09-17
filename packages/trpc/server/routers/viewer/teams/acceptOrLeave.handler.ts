@@ -1,5 +1,6 @@
 import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
 import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries/teams";
+import { UserPlanUtils } from "@calcom/lib/user-plan-utils";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -56,6 +57,7 @@ export const acceptOrLeaveHandler = async ({ ctx, input }: AcceptOrLeaveOptions)
       });
     }
     await updateNewTeamMemberEventTypes(ctx.user.id, input.teamId);
+    await UserPlanUtils.updateUserPlan(ctx.user.id);
   } else {
     try {
       const membership = await prisma.membership.delete({
@@ -74,6 +76,7 @@ export const acceptOrLeaveHandler = async ({ ctx, input }: AcceptOrLeaveOptions)
           },
         });
       }
+      await UserPlanUtils.updateUserPlan(ctx.user.id);
     } catch (e) {
       console.log(e);
     }

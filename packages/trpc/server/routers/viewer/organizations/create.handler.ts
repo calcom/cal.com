@@ -214,7 +214,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     name,
     slug,
     isOrganizationConfigured,
-    isOrganizationAdminReviewed: IS_USER_ADMIN,
+    isAdminReviewed: IS_USER_ADMIN,
     autoAcceptEmail,
     seats: seats ?? null,
     pricePerSeat: pricePerSeat ?? null,
