@@ -3,7 +3,6 @@ import { featureFlagRouter } from "@calcom/features/flags/server/router";
 import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
 
 import { router } from "../../trpc";
-import app_Basecamp3 from "../apps/basecamp3/_router";
 import app_RoutingForms from "../apps/routing-forms/_router";
 import { loggedInViewerRouter } from "../loggedInViewer/_router";
 import { publicViewerRouter } from "../publicViewer/_router";
