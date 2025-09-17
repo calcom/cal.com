@@ -50,6 +50,7 @@ export class CalendarCacheEventService {
           isAllDay: event.isAllDay,
           timeZone: event.timeZone,
           originalStartTime: event.originalStartDate,
+          recurringEventId: event.recurringEventId,
           externalEtag: event.etag,
           externalCreatedAt: event.createdAt,
           externalUpdatedAt: event.updatedAt,

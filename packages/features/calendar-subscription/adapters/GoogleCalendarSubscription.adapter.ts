@@ -183,6 +183,7 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
           status: event.status,
           isAllDay: event.start?.date && !event.start?.dateTime,
           timeZone: event.start?.timeZone || null,
+          recurringEventId: event.recurringEventId,
           originalStartTime: event.originalStartTime?.dateTime,
           createdAt: event.created ? new Date(event.created) : null,
           updatedAt: event.updated ? new Date(event.updated) : null,

@@ -27,6 +27,7 @@ export type CalendarSubscriptionEventItem = {
   status?: string | null;
   location?: string | null;
   originalStartDate?: Date | null;
+  recurringEventId?: string | null;
   timeZone?: string | null;
   createdAt?: Date | null;
   updatedAt?: Date | null;
