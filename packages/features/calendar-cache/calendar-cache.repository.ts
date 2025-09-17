@@ -102,13 +102,13 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
       // Security/Privacy wise, it is fine to query solely based on userId as userId and key(which has external email Ids in there) together can be used to uniquely identify the cache
       // A user could have multiple third party calendars connected, but they key would still be different for each case in calendar-cache because of the presence of emails in there.
       // Sample key: {"timeMin":"2025-04-01T00:00:00.000Z","timeMax":"2025-08-01T00:00:00.000Z","items":[{"id":"owner@example.com"}]} <- Notice it has emailId in there for which busytimes are fetched, we could assume that these emailIds would be unique across different calendars like Google/Outlook
+      const now = new Date(Date.now());
       cached = await prisma.calendarCache.findFirst({
         // We have index on userId and key, so this should be fast
         // TODO: Should we consider index on all three - userId, key and expiresAt?
         where: {
           userId,
           key,
-          expiresAt: { gte: new Date(Date.now()) },
         },
         orderBy: {
           // In case of multiple entries for same key and userId, we prefer the one with highest expiry, which will be the most updated one
@@ -116,16 +116,22 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
           expiresAt: "desc",
         },
       });
+
+      if (cached && cached.expiresAt < now) {
+        cached = null;
+      }
     } else {
-      cached = await prisma.calendarCache.findUnique({
+      const now = new Date(Date.now());
+      cached = await prisma.calendarCache.findFirst({
         where: {
-          credentialId_key: {
-            credentialId,
-            key,
-          },
-          expiresAt: { gte: new Date(Date.now()) },
+          credentialId,
+          key,
         },
       });
+
+      if (cached && cached.expiresAt < now) {
+        cached = null;
+      }
     }
     log.info(
       "Got cached availability",
@@ -170,19 +176,29 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
   }
 
   async getCacheStatusByCredentialIds(credentialIds: number[]) {
-    const cacheStatuses = await prisma.calendarCache.groupBy({
-      by: ["credentialId"],
-      where: {
-        credentialId: { in: credentialIds },
-      },
-      _max: {
+    const allCacheEntries = await prisma.calendarCache.findMany({
+      select: {
+        credentialId: true,
         updatedAt: true,
+      },
+      orderBy: {
+        updatedAt: "desc",
       },
     });
 
-    return cacheStatuses.map((cache) => ({
-      credentialId: cache.credentialId,
-      updatedAt: cache._max.updatedAt,
+    const filteredEntries = allCacheEntries.filter((entry) => credentialIds.includes(entry.credentialId));
+
+    const statusMap = new Map<number, Date>();
+    for (const entry of filteredEntries) {
+      const existingDate = statusMap.get(entry.credentialId);
+      if (!existingDate || entry.updatedAt > existingDate) {
+        statusMap.set(entry.credentialId, entry.updatedAt);
+      }
+    }
+
+    return Array.from(statusMap.entries()).map(([credentialId, updatedAt]) => ({
+      credentialId,
+      updatedAt: updatedAt,
     }));
   }
 }

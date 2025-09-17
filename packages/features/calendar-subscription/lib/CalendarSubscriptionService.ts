@@ -7,6 +7,7 @@ import { getCredentialForCalendarCache } from "@calcom/lib/delegationCredential/
 import logger from "@calcom/lib/logger";
 import type { ISelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository.interface";
 import { prisma } from "@calcom/prisma";
+import type { SelectedCalendar } from "@calcom/prisma/client";
 
 import type {
   CalendarCredential,
@@ -56,7 +57,7 @@ export class CalendarSubscriptionService {
     });
 
     // initial event loading
-    await processEvents(selectedCalendar);
+    await this.processEvents(selectedCalendar);
   }
 
   /**
@@ -84,7 +85,10 @@ export class CalendarSubscriptionService {
     // cleanup cache after unsubscribe
     if (await this.isCacheEnabled()) {
       const { CalendarCacheEventService } = await import("./cache/CalendarCacheEventService");
-      const calendarCacheEventService = new CalendarCacheEventService(this.deps);
+      const { CalendarCacheEventRepository } = await import("./cache/CalendarCacheEventRepository");
+      const calendarCacheEventService = new CalendarCacheEventService({
+        calendarCacheEventRepository: new CalendarCacheEventRepository(prisma),
+      });
       await calendarCacheEventService.cleanupCache(selectedCalendar);
     }
   }
@@ -133,6 +137,7 @@ export class CalendarSubscriptionService {
     }
 
     log.info("processEvents", { channelId: selectedCalendar.channelId });
+    if (!selectedCalendar.credentialId) return;
     const credential = await this.getCalendarCredential(selectedCalendar.credentialId);
     if (!credential) return;
 
