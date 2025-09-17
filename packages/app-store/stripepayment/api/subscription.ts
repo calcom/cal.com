@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import type Stripe from "stripe";
 
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
@@ -12,7 +13,8 @@ import stripe from "../lib/server";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
-    const userId = req.session?.user.id;
+    const session = await getServerSession({ req });
+    const userId = session?.user?.id;
     let { intentUsername = null } = req.query;
     const { callbackUrl } = req.query;
     if (!userId || !intentUsername) {
