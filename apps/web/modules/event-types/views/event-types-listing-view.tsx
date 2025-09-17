@@ -113,29 +113,68 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
   );
 
   React.useEffect(() => {
-    if (query.data && query.isSuccess) {
-      console.log("[EventTypes Cache] Data loaded from cache or server:", {
-        timestamp: new Date().toISOString(),
-        teamId: activeEventTypeGroup?.teamId,
-        searchQuery: debouncedSearchTerm,
-        pagesCount: query.data?.pages?.length || 0,
-        totalItems: query.data?.pages?.reduce((acc, page) => acc + (page?.eventTypes?.length || 0), 0) || 0,
-        isFetching: query.isFetching,
-        isStale: query.isStale,
-      });
+    console.log("[EventTypes Cache] Query state changed:", {
+      timestamp: new Date().toISOString(),
+      teamId: activeEventTypeGroup?.teamId,
+      searchQuery: debouncedSearchTerm,
+      status: query.status,
+      fetchStatus: query.fetchStatus,
+      isFetching: query.isFetching,
+      isLoading: query.isLoading,
+      isPending: query.isPending,
+      isStale: query.isStale,
+      isSuccess: query.isSuccess,
+      isError: query.isError,
+      dataUpdatedAt: query.dataUpdatedAt ? new Date(query.dataUpdatedAt).toISOString() : null,
+      errorUpdatedAt: query.errorUpdatedAt ? new Date(query.errorUpdatedAt).toISOString() : null,
+      hasData: !!query.data,
+      pagesCount: query.data?.pages?.length || 0,
+      totalItems: query.data?.pages?.reduce((acc, page) => acc + (page?.eventTypes?.length || 0), 0) || 0,
+    });
+
+    if (query.isFetching) {
+      console.log("[EventTypes Cache] 🌐 NETWORK REQUEST - Client is fetching from server");
+    } else if (query.data && !query.isFetching) {
+      console.log("[EventTypes Cache] ⚡ CACHE HIT - Using cached data, no network request");
     }
+
     if (query.error) {
-      console.error("[EventTypes Cache] Query error:", query.error);
+      console.error("[EventTypes Cache] ❌ Query error:", query.error);
     }
   }, [
-    query.data,
-    query.isSuccess,
-    query.error,
+    query.status,
+    query.fetchStatus,
     query.isFetching,
+    query.isLoading,
+    query.isPending,
     query.isStale,
+    query.isSuccess,
+    query.isError,
+    query.dataUpdatedAt,
+    query.errorUpdatedAt,
+    query.data,
+    query.error,
     activeEventTypeGroup?.teamId,
     debouncedSearchTerm,
   ]);
+
+  React.useEffect(() => {
+    console.log("[EventTypes Cache] 🔄 Component mounted/remounted for team:", {
+      timestamp: new Date().toISOString(),
+      teamId: activeEventTypeGroup?.teamId,
+      searchQuery: debouncedSearchTerm,
+    });
+  }, [activeEventTypeGroup?.teamId, debouncedSearchTerm]);
+
+  React.useEffect(() => {
+    if (debouncedSearchTerm !== searchTerm) {
+      console.log("[EventTypes Cache] 🔍 Search term debounced:", {
+        timestamp: new Date().toISOString(),
+        from: searchTerm,
+        to: debouncedSearchTerm,
+      });
+    }
+  }, [debouncedSearchTerm, searchTerm]);
 
   const buttonInView = useInViewObserver(() => {
     if (!query.isFetching && query.hasNextPage && query.status === "success") {
