@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
@@ -38,6 +38,9 @@ export function Header({
 }) {
   const { t, i18n } = useLocale();
   const isEmbed = useIsEmbed();
+  // pass this later to our soon to be custom hook
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const isPlatform = useIsPlatform();
   const [layout, setLayout] = useBookerStoreContext((state) => [state.layout, state.setLayout], shallow);
   const selectedDateString = useBookerStoreContext((state) => state.selectedDate);
   const setSelectedDate = useBookerStoreContext((state) => state.setSelectedDate);
@@ -49,6 +52,18 @@ export function Header({
     const diff = today.diff(selectedDate, "days");
     return diff > 3 || diff < -3;
   }, [today, selectedDate]);
+
+  // and we need to make sure only to do it for atom and nothing else
+  // since selectedDate is null initially for calendar view atom, we set it to today's date for now
+  // ideally we set it to monday of the current week
+  // ideally we have a custom hook that does this for us
+  // we pass it isPlatform or not from outside
+  // if its not platform return nothing else
+  // else if not platform implement the below logic
+  useEffect(() => {
+    setSelectedDate({ date: selectedDate as unknown as string });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const onLayoutToggle = useCallback(
     (newLayout: string) => {
