@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let { intentUsername = null } = req.query;
     const { callbackUrl } = req.query;
     if (!userId || !intentUsername) {
-      res.status(404).end();
+      res.status(404).json({ message: "Missing required parameters: userId or intentUsername" });
       return;
     }
     if (intentUsername && typeof intentUsername === "object") {
