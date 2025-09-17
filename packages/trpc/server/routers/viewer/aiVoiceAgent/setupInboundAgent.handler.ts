@@ -48,7 +48,6 @@ export const setupInboundAgentHandler = async ({ ctx, input }: SetupInboundAgent
       });
     }
 
-
     // Use the validated phone number from phoneNumberRecord
 
     const aiService = createDefaultAIPhoneServiceProvider();
@@ -91,7 +90,7 @@ export const setupInboundAgentHandler = async ({ ctx, input }: SetupInboundAgent
     };
   } catch (error) {
     log.error("Failed to setup inbound agent", { error });
-    
+
     if (error instanceof HttpError) {
       throw error;
     }

@@ -5,8 +5,8 @@ import { Controller, useForm } from "react-hook-form";
 import type { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 
-import { Dialog } from "@calcom/features/components/controlled-dialog";
 import type { Language } from "@calcom/features/calAIPhone/providers/retellAI/types";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { CAL_AI_PHONE_NUMBER_MONTHLY_PRICE } from "@calcom/lib/constants";
 import { formatPhoneNumber } from "@calcom/lib/formatPhoneNumber";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -29,6 +29,7 @@ import {
 import { AddVariablesDropdown } from "@calcom/ui/components/editor";
 import { ToggleGroup, Switch } from "@calcom/ui/components/form";
 import { Label, TextArea, Input, TextField, Form, Select } from "@calcom/ui/components/form";
+import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import {
   Sheet,
@@ -43,7 +44,6 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import type { FormValues } from "../pages/workflow";
-import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 import { TestPhoneCallDialog } from "./TestPhoneCallDialog";
 import { VoiceSelectionDialog } from "./VoiceSelectionDialog";
 import { WebCallDialog } from "./WebCallDialog";
@@ -188,7 +188,9 @@ export function AgentConfigurationSheet({
   const { t } = useLocale();
 
   const utils = trpc.useUtils();
-  const [activeTab, setActiveTab] = useState<"outgoingCalls" | "phoneNumber" | "incomingCalls">(_activeTab ?? "outgoingCalls");
+  const [activeTab, setActiveTab] = useState<"outgoingCalls" | "phoneNumber" | "incomingCalls">(
+    _activeTab ?? "outgoingCalls"
+  );
   const [isBuyDialogOpen, setIsBuyDialogOpen] = useState(false);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [showAdvancedFields, setShowAdvancedFields] = useState(false);
@@ -520,9 +522,7 @@ export function AgentConfigurationSheet({
             {activeTab === "outgoingCalls" && (
               <div className="space-y-4">
                 <div>
-                  <Label className="text-emphasis mb-1 block text-sm font-medium">
-                    {t("language")}
-                  </Label>
+                  <Label className="text-emphasis mb-1 block text-sm font-medium">{t("language")}</Label>
                   <Controller
                     name="language"
                     control={agentForm.control}
@@ -538,9 +538,7 @@ export function AgentConfigurationSheet({
                   />
                 </div>
                 <div>
-                  <Label className="text-emphasis mb-1 block text-sm font-medium">
-                    {t("voice")}
-                  </Label>
+                  <Label className="text-emphasis mb-1 block text-sm font-medium">{t("voice")}</Label>
                   <p className="text-subtle mb-1.5 text-xs">{t("select_voice_for_agent")}</p>
                   <Button
                     type="button"
@@ -846,7 +844,9 @@ export function AgentConfigurationSheet({
                             <Icon name="phone-incoming" className="text-subtle h-8 w-8" />
                           </div>
                           <div className="space-y-2">
-                            <h3 className="text-emphasis text-lg font-semibold">{t("setup_inbound_agent")}</h3>
+                            <h3 className="text-emphasis text-lg font-semibold">
+                              {t("setup_inbound_agent")}
+                            </h3>
                             <p className="text-subtle text-sm">
                               {t("setup_inbound_agent_for_incoming_calls")}
                             </p>
@@ -858,7 +858,7 @@ export function AgentConfigurationSheet({
                                   phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
                                   !phone.subscriptionStatus
                               )[0]?.phoneNumber;
-                              
+
                               if (phoneNumber && workflowId) {
                                 setupInboundAgentMutation.mutate({
                                   phoneNumber,
@@ -882,12 +882,16 @@ export function AgentConfigurationSheet({
                           <Label className="text-emphasis mb-1 block text-sm font-medium">
                             {t("event_type")}
                           </Label>
-                          <p className="text-subtle mb-1.5 text-xs">{t("select_event_type_for_inbound_calls")}</p>
+                          <p className="text-subtle mb-1.5 text-xs">
+                            {t("select_event_type_for_inbound_calls")}
+                          </p>
                           <Controller
                             name="activeOn"
                             control={form.control}
                             render={({ field }) => {
-                              const selectedEventType = eventTypeOptions.find(opt => opt.value === field.value?.[0]?.value);
+                              const selectedEventType = eventTypeOptions.find(
+                                (opt) => opt.value === field.value?.[0]?.value
+                              );
                               return (
                                 <Select
                                   isSearchable={false}
@@ -939,9 +943,7 @@ export function AgentConfigurationSheet({
 
                         {/* Voice Selection */}
                         <div>
-                          <Label className="text-emphasis mb-1 block text-sm font-medium">
-                            {t("voice")}
-                          </Label>
+                          <Label className="text-emphasis mb-1 block text-sm font-medium">{t("voice")}</Label>
                           <p className="text-subtle mb-1.5 text-xs">{t("select_voice_for_agent")}</p>
                           <Button
                             type="button"
@@ -1000,7 +1002,6 @@ export function AgentConfigurationSheet({
                             disabled={readOnly}
                           />
                         </div>
-
                       </div>
                     )}
                   </>
@@ -1012,14 +1013,9 @@ export function AgentConfigurationSheet({
                       </div>
                       <div className="space-y-2">
                         <h3 className="text-emphasis text-lg font-semibold">{t("setup_incoming_agent")}</h3>
-                        <p className="text-subtle text-sm">
-                          {t("setup_incoming_agent_description")}
-                        </p>
+                        <p className="text-subtle text-sm">{t("setup_incoming_agent_description")}</p>
                       </div>
-                      <Button
-                        onClick={() => setActiveTab("phoneNumber")}
-                        color="secondary"
-                        className="px-6">
+                      <Button onClick={() => setActiveTab("phoneNumber")} color="secondary" className="px-6">
                         {t("setup_incoming_agent_action")}
                       </Button>
                     </div>

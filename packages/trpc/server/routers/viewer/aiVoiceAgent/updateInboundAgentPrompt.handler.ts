@@ -11,7 +11,10 @@ type UpdateInboundAgentPromptHandlerOptions = {
   input: TUpdateInboundAgentPromptInputSchema;
 };
 
-export const updateInboundAgentPromptHandler = async ({ ctx, input }: UpdateInboundAgentPromptHandlerOptions) => {
+export const updateInboundAgentPromptHandler = async ({
+  ctx,
+  input,
+}: UpdateInboundAgentPromptHandlerOptions) => {
   const log = logger.getSubLogger({ prefix: ["updateInboundAgentPromptHandler"] });
 
   try {
