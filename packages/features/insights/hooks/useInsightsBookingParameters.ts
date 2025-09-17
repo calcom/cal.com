@@ -8,7 +8,7 @@ import {
   getDefaultEndDate,
   DEFAULT_PRESET,
 } from "@calcom/features/data-table/lib/dateRange";
-import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
+import { ColumnFilterType, type ColumnFilter } from "@calcom/features/data-table/lib/types";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 
 import { useInsightsOrgTeams } from "./useInsightsOrgTeams";
@@ -36,7 +36,7 @@ export function useInsightsBookingParameters() {
               preset: DEFAULT_PRESET.value,
             },
           },
-        },
+        } satisfies ColumnFilter,
       ];
     }
   }, [columnFilters]);
