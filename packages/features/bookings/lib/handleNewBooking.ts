@@ -54,7 +54,7 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
-import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
+import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import type { CheckBookingLimitsService } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
@@ -78,6 +78,7 @@ import {
   CreationSource,
 } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
+import { verifyCodeUnAuthenticated } from "@calcom/trpc/server/routers/viewer/auth/util";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type {
   AdditionalInformation,
@@ -497,6 +498,25 @@ async function handler(
       bookerEmail,
       offerToRescheduleLastBooking: eventType.maxActiveBookingPerBookerOfferReschedule,
     });
+  }
+
+  if (eventType.requiresBookerEmailVerification) {
+    const verificationCode = reqBody.verificationCode;
+    if (!verificationCode) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "email_verification_required",
+      });
+    }
+
+    try {
+      await verifyCodeUnAuthenticated(bookerEmail, verificationCode);
+    } catch (error) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "invalid_verification_code",
+      });
+    }
   }
 
   if (isEventTypeLoggingEnabled({ eventTypeId, usernameOrTeamName: reqBody.user })) {
@@ -2082,6 +2102,8 @@ async function handler(
       bookerEmail,
       bookerPhoneNumber,
       isDryRun,
+      bookingFields: eventType.bookingFields,
+      locale: language,
     });
     const subscriberOptionsPaymentInitiated: GetSubscriberOptions = {
       userId: triggerForUser ? organizerUser.id : null,

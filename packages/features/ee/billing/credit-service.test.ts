@@ -435,8 +435,8 @@ describe("CreditService", () => {
         expect(result).toBe(1500); // (3 members * 1000 price) / 2
       });
 
-      it("should calculate credits with 20% multiplier for organizations", async () => {
-        vi.stubEnv("STRIPE_ORG_MONTHLY_PRICE_ID", "price_org_monthly");
+      it("should calculate credits for organizations using ORG_MONTHLY_CREDITS", async () => {
+        vi.stubEnv("ORG_MONTHLY_CREDITS", "1500");
         const mockTeamRepo = {
           findTeamWithMembers: vi.fn().mockResolvedValue({
             id: 1,
@@ -453,15 +453,31 @@ describe("CreditService", () => {
           mockTeamBillingService.getSubscriptionStatus
         );
 
-        const mockStripeBillingService = {
-          getPrice: vi.fn().mockResolvedValue({ unit_amount: 3700 }),
+        const result = await creditService.getMonthlyCredits(1);
+        expect(result).toBe(3000); // 2 members * 1500 credits per seat
+      });
+
+      it("should calculate credits for organizations with default 1000 credits per seat", async () => {
+        // Clear ORG_MONTHLY_CREDITS to test default behavior
+        vi.stubEnv("ORG_MONTHLY_CREDITS", undefined);
+        const mockTeamRepo = {
+          findTeamWithMembers: vi.fn().mockResolvedValue({
+            id: 1,
+            isOrganization: true,
+            members: [{ accepted: true }, { accepted: true }, { accepted: true }],
+          }),
         };
-        vi.spyOn(StripeBillingService.prototype, "getPrice").mockImplementation(
-          mockStripeBillingService.getPrice
+        vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo as any);
+
+        const mockTeamBillingService = {
+          getSubscriptionStatus: vi.fn().mockResolvedValue("active"),
+        };
+        vi.spyOn(InternalTeamBilling.prototype, "getSubscriptionStatus").mockImplementation(
+          mockTeamBillingService.getSubscriptionStatus
         );
 
         const result = await creditService.getMonthlyCredits(1);
-        expect(result).toBe(1480); // (2 members * 3700 price) * 0.2
+        expect(result).toBe(3000); // 3 members * 1000 credits per seat (default)
       });
     });
 

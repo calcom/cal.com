@@ -886,7 +886,7 @@
   "cancel_your_phone_number_subscription": "Anulați abonamentul pentru numărul de telefon",
   "delete_associated_phone_number": "Ștergeți numărul de telefon asociat",
   "unauthorized_create_workflow": "Nu sunteți autorizat să creați acest flux de lucru",
-  "import_phone_number_description": "Importați numărul dvs. de telefon Twilio pentru a-l utiliza cu Cal AI Phone",
+  "import_phone_number_description": "Importați numărul dvs. de telefon Twilio pentru a-l utiliza cu Phone",
   "phone_number_cost": "${{price}}/lună",
   "buy_new_number": "Cumpărați un număr nou",
   "buy_number_cost_x_per_month": "Achiziționarea unui număr de telefon costă ${{priceInDollars}} pe lună. Veți fi taxat lunar pentru fiecare număr de telefon activ.",
