@@ -1,10 +1,11 @@
-import { useCallback, useMemo, useEffect } from "react";
+import { useCallback, useMemo } from "react";
 import { shallow } from "zustand/shallow";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import { useInitializeWeekStart } from "@calcom/features/bookings/Booker/components/hooks/useInitializeWeekStart";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
@@ -25,7 +26,7 @@ export function Header({
   eventSlug,
   isMyLink,
   renderOverlay,
-  isMonthViewProp,
+  isCalendarView,
 }: {
   extraDays: number;
   isMobile: boolean;
@@ -34,18 +35,16 @@ export function Header({
   eventSlug: string;
   isMyLink: boolean;
   renderOverlay?: () => JSX.Element | null;
-  isMonthViewProp?: boolean;
+  isCalendarView?: boolean;
 }) {
   const { t, i18n } = useLocale();
   const isEmbed = useIsEmbed();
-  // pass this later to our soon to be custom hook
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const isPlatform = useIsPlatform();
   const [layout, setLayout] = useBookerStoreContext((state) => [state.layout, state.setLayout], shallow);
   const selectedDateString = useBookerStoreContext((state) => state.selectedDate);
   const setSelectedDate = useBookerStoreContext((state) => state.setSelectedDate);
   const addToSelectedDate = useBookerStoreContext((state) => state.addToSelectedDate);
-  const isMonthView = isMonthViewProp !== undefined ? isMonthViewProp : layout === BookerLayouts.MONTH_VIEW;
+  const isMonthView = isCalendarView !== undefined ? !isCalendarView : layout === BookerLayouts.MONTH_VIEW;
   const today = dayjs();
   const selectedDate = selectedDateString ? dayjs(selectedDateString) : today;
   const selectedDateMin3DaysDifference = useMemo(() => {
@@ -53,17 +52,7 @@ export function Header({
     return diff > 3 || diff < -3;
   }, [today, selectedDate]);
 
-  // and we need to make sure only to do it for atom and nothing else
-  // since selectedDate is null initially for calendar view atom, we set it to today's date for now
-  // ideally we set it to monday of the current week
-  // ideally we have a custom hook that does this for us
-  // we pass it isPlatform or not from outside
-  // if its not platform return nothing else
-  // else if not platform implement the below logic
-  useEffect(() => {
-    setSelectedDate({ date: selectedDate as unknown as string });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useInitializeWeekStart(isPlatform, isCalendarView ?? false);
 
   const onLayoutToggle = useCallback(
     (newLayout: string) => {
@@ -147,7 +136,10 @@ export function Header({
             <Button
               className="capitalize ltr:ml-2 rtl:mr-2"
               color="secondary"
-              onClick={() => setSelectedDate({ date: today.format("YYYY-MM-DD") })}>
+              onClick={() => {
+                const selectedDate = isCalendarView ? today.startOf("week") : today.format("YYYY-MM-DD");
+                setSelectedDate({ date: selectedDate as unknown as string });
+              }}>
               {t("today")}
             </Button>
           )}
