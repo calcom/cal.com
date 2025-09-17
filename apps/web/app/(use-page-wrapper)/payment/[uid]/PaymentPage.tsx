@@ -141,7 +141,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                       <div className="col-span-2 mb-6 font-semibold">
                         <Price
                           currency={paymentAppData.currency}
-                          price={paymentAppData.price}
+                          price={props.payment?.amount ?? paymentAppData.price}
                           displayAlternateSymbol={false}
                         />
                       </div>
