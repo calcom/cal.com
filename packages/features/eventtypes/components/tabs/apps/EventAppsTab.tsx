@@ -25,6 +25,8 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     teamId: eventType.team?.id || eventType.parent?.teamId,
   });
 
+  const utils = trpc.useUtils();
+
   const formMethods = useFormContext<FormValues>();
   const installedApps =
     eventTypeApps?.items.filter((app) => app.userCredentialIds.length || app.teams.length) || [];
@@ -40,6 +42,14 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
   });
   const appsDisableProps = shouldLockDisableProps("apps", { simple: true });
   const lockedText = appsDisableProps.isLocked ? "locked" : "unlocked";
+
+  const handleAppInstallSuccess = (appId: string) => () => {
+    utils.viewer.apps.appById.invalidate({ appId });
+    utils.viewer.apps.integrations.invalidate({
+      extendsFeature: "EventType",
+      ...(eventType.team?.id && { teamId: eventType.team.id }),
+    });
+  };
 
   const appsWithTeamCredentials = eventTypeApps?.items.filter((app) => app.teams.length) || [];
   const cardsForAppsWithTeams = appsWithTeamCredentials.map((app) => {
@@ -58,6 +68,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
           app={app}
           eventType={eventType}
           eventTypeFormMetadata={eventTypeFormMetadata}
+          onAppInstallSuccess={handleAppInstallSuccess(app.slug)}
         />
       );
     }
@@ -82,6 +93,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
             eventType={eventType}
             eventTypeFormMetadata={eventTypeFormMetadata}
             disabled={shouldLockDisableProps("apps").disabled}
+            onAppInstallSuccess={handleAppInstallSuccess(app.slug)}
           />
         );
       }
@@ -147,6 +159,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
                   app={app}
                   eventType={eventType}
                   eventTypeFormMetadata={eventTypeFormMetadata}
+                  onAppInstallSuccess={handleAppInstallSuccess(app.slug)}
                 />
               );
           })}
@@ -180,6 +193,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
                 app={app}
                 eventType={eventType}
                 eventTypeFormMetadata={eventTypeFormMetadata}
+                onAppInstallSuccess={handleAppInstallSuccess(app.slug)}
               />
             ))}
           </div>
