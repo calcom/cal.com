@@ -186,8 +186,7 @@ export default function Page({ requestId, isRequestExpired }: PageProps) {
 
   return (
     <AuthContainer showLogo heading={!success ? t("reset_password") : undefined}>
-      {!success && <PasswordResetForm form={formMethods} requestId={requestId} />}
-      {success && <Success />}
+      {success ? <Success /> : <PasswordResetForm form={formMethods} requestId={requestId} />}
     </AuthContainer>
   );
 }
