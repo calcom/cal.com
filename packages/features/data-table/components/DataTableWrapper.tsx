@@ -144,7 +144,7 @@ export function DataTableWrapper<TData>({
                   fetchMoreOnBottomReached(e.target as HTMLDivElement)
               : undefined
           }>
-          <div style={{ gridArea: "footer" }} className="px-3 py-2">
+          <div style={{ gridArea: "footer" }} className="py-2">
             <DataTablePagination<TData>
               table={table}
               totalRowCount={totalRowCount}

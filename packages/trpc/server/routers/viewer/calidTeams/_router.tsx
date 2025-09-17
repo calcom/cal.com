@@ -11,6 +11,7 @@ import { ZLeaveTeamSchema } from "./leaveTeam.schema";
 import { ZUpdateCalidTeamSchema } from "./update.schema";
 import { ZUpdateMemberSchema } from "./updateMember.schema";
 import { ZChangeCalidMemberRoleInputSchema } from "./changeMemberRole.schema";
+import { ZAddMembersToEventType } from "./addMemberstoEventType.schema";
 
 export const calIdTeamsRouter = router({
   // Create a new calidTeam
@@ -89,5 +90,11 @@ export const calIdTeamsRouter = router({
   listPendingInvitations: authedProcedure.query(async ({ ctx }) => {
     const { listPendingInvitationsHandler } = await import("./listPendingInvitations.handler");
     return listPendingInvitationsHandler({ ctx });
+  }),
+
+  // Add members to event types
+  addMembersToEventType: authedProcedure.input(ZAddMembersToEventType).mutation(async ({ ctx, input }) => {
+    const { addMembersToEventTypesHandler } = await import("./addMemberstoEventType.handler");
+    return addMembersToEventTypesHandler({ ctx, input });
   }),
 });

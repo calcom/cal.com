@@ -123,7 +123,7 @@ export function TeamMembersList({
     filters: { teamIds: [team.id], schedulingTypes: [SchedulingType.ROUND_ROBIN] },
   });
 
-  const addMembersToEventTypesMutation = trpc.viewer.calidTeams.addMembersToEventTypes.useMutation({
+  const addMembersToEventTypesMutation = trpc.viewer.calidTeams.addMembersToEventType.useMutation({
     onSuccess: (_res, variables) => {
       const userCount = variables.userIds.length;
       const eventCount = variables.eventTypeIds.length;

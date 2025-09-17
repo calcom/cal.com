@@ -162,7 +162,7 @@ export function UserPage(props: PageProps) {
         <DividerWithText />
 
         <div
-          className={classNames("bg-default flex flex-col gap-4 rounded-md px-4 pb-8 pt-2 lg:px-[15%]")}
+          className={classNames("bg-default flex flex-col gap-4 rounded-md pb-8 pt-2 lg:max-w-4xl mx-auto")}
           data-testid="event-types">
           {eventTypes.map((type) => {
             const iconParams = getIconParamsFromMetadata(type.metadata);

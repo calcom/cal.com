@@ -1,10 +1,12 @@
 import {
   Dialog,
   DialogTitle,
+  DialogDescription,
   DialogContent,
   DialogTrigger,
   DialogFooter,
   DialogHeader,
+  DialogClose,
 } from "@calid/features/ui/components/dialog";
 import { Button} from "@calid/features/ui/components/button";
 import BulletList from "@tiptap/extension-bullet-list";
@@ -51,15 +53,19 @@ export const MeetingNotesDialog = (props: IMeetingNotesDialog) => {
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogTrigger>
-        <Button color="secondary">{t("your_notes")}</Button>
+        <Button className="min-w-40 justify-center" color="secondary">{t("meeting_notes")}</Button>
       </DialogTrigger>
       <DialogContent>
-        <DialogTitle>{t("your_notes")}</DialogTitle>
-        <DialogHeader title={t("meeting_notes")} subtitle={t("meeting_notes_subtitle")} />
+        <DialogHeader>
+          <DialogTitle className="text-default font-medium">{t("meeting_notes")}</DialogTitle>
+          <DialogDescription className="text-sm">{t("meeting_notes_subtitle")}</DialogDescription>
+        </DialogHeader>
         <Tiptap onChange={(e) => setNotes(e)} content={notes} />
         <DialogFooter>
-          <Button onClick={handleMeetingNoteSave}>{t("save")}</Button>
-          {/* <DialogClose className="border" /> */}
+          <DialogClose className="flex flex-row gap-2">
+            <Button color="secondary">{t("close")}</Button>
+            <Button onClick={handleMeetingNoteSave}>{t("save")}</Button>
+          </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -88,7 +94,7 @@ const Tiptap = ({ onChange, content }: TipTapProps) => {
     editorProps: {
       attributes: {
         class:
-          "flex flex-col px-4 py-3 justify-start border-b border-r border-l  border-gray-700  w-full gap-3 font-medium text-[16px] pt-4 rounded-bl-md rounded-br-md outline-none",
+          "flex flex-col px-4 py-3 justify-start border-b border-r border-l border-default  w-full gap-3 font-normal text-sm pt-4 rounded-bl-md rounded-br-md outline-none",
       },
     },
     onUpdate: ({ editor }) => {
@@ -112,7 +118,7 @@ const Toolbar = ({ editor }: ToolbarProps) => {
   return (
     <div
       className="flex w-full flex-wrap items-start justify-between gap-5 rounded-tl-md
-    rounded-tr-md border border-gray-700 px-4 py-3">
+    rounded-tr-md border border-default px-4 py-3">
       <div className="flex w-full flex-wrap items-center justify-start gap-3 md:gap-5 ">
         <button
           onClick={(e) => {
