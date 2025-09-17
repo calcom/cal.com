@@ -182,7 +182,7 @@ export const getCalIdServerSideProps = async (context: GetServerSidePropsContext
       })),
       owner: eventHostsUserData[0],
       schedule: {
-        id: eventHostsUserData[0].defaultScheduleId,
+        id: eventHostsUserData[0]?.defaultScheduleId,
         timeZone: "UTC",
       },
       instantMeetingSchedule: null,

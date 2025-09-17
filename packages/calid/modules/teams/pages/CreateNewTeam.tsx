@@ -58,9 +58,12 @@ const CreateNewTeamPage = () => {
     },
   });
 
+  console.log("Form methods: ", formMethods);
+
   return (
     <>
       <Form
+        form={formMethods.control}
         {...formMethods}
         onSubmit={(values) => {
           if (!createTeam.isPending) {
