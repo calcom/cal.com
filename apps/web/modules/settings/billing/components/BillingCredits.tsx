@@ -18,6 +18,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Select } from "@calcom/ui/components/form";
 import { TextField, Label, InputError } from "@calcom/ui/components/form";
 import { ProgressBar } from "@calcom/ui/components/progress-bar";
+import { Tip } from "@calcom/ui/components/tip";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { BillingCreditsSkeleton } from "./BillingCreditsSkeleton";
@@ -178,21 +179,27 @@ export default function BillingCredits() {
                   })}
                 </div>
               </div>
+              <Tip className="mt-4">You receive 750 credits per month for each member of your team.</Tip>
+              <div className="flex">
+                <div className="mr-auto" />
+                <Button className="mt-4">+ Add members</Button>
+              </div>
             </div>
           ) : (
             <></>
           )}
+          <div className="-mx-6 mb-6 mt-6">
+            <hr className="btrder-subtle mb-3 mt-3" />
+          </div>
           <Label>
             {creditsData.credits.totalMonthlyCredits ? t("additional_credits") : t("available_credits")}
           </Label>
           <div className="mt-2 text-sm">{creditsData.credits.additionalCredits}</div>
-          <div className="-mx-6 mb-6 mt-6">
-            <hr className="border-subtle mb-3 mt-3" />
-          </div>
           <form onSubmit={handleSubmit(onSubmit)} className="flex">
-            <div className="-mb-1 mr-auto">
-              <Label>{t("buy_additional_credits")}</Label>
-              <div className="flex flex-col">
+            <div className="-mb-1 mr-auto mt-4">
+              <Label>Add Credits</Label>
+
+              <div className="-mt-2 flex flex-col">
                 <TextField
                   required
                   type="number"
@@ -222,12 +229,12 @@ export default function BillingCredits() {
             </div>
           </form>
           <div className="-mx-6 mb-6 mt-6">
-            <hr className="border-subtle mb-3 mt-3" />
+            <hr className="btrder-subtle mb-3 mt-3" />
           </div>
           <div className="flex">
             <div className="mr-auto">
               <Label className="mb-4">{t("download_expense_log")}</Label>
-              <div className="mt-2 flex flex-col">
+              <div className="fle mt-2 flex">
                 <Select
                   options={monthOptions}
                   value={selectedMonth}

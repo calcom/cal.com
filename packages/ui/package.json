@@ -50,6 +50,7 @@
     "./components/skeleton": "./components/skeleton/index.ts",
     "./components/table": "./components/table/index.ts",
     "./components/toast": "./components/toast/index.ts",
+    "./components/tip": "./components/tip/index.ts",
     "./components/tooltip": "./components/tooltip/index.ts",
     "./components/top-banner": "./components/top-banner/index.ts",
     "./components/filter-select": "./components/filter-select/index.ts",
