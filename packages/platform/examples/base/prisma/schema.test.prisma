@@ -1,0 +1,19 @@
+generator testClient {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/test-client"
+}
+datasource testDb {
+  provider = "sqlite"
+  url      = "file:./test.db"
+}
+model User {
+  id    Int     @id @default(autoincrement())
+  email String  @unique(map: "TestUser_email_key")
+  name  String?
+  calcomUserId Int? @unique(map: "TestUser_calcomUserId_key")
+  calcomUsername String? @unique(map: "TestUser_calcomUsername_key")
+  refreshToken String? @unique(map: "TestUser_refreshToken_key")
+  accessToken String? @unique(map: "TestUser_accessToken_key")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
