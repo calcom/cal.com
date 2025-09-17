@@ -42,6 +42,7 @@ import {
 } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
+import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import { extractHostTimezone } from "@calcom/lib/hashedLinksUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
@@ -569,6 +570,21 @@ export const EventAdvancedTab = ({
     userEmail = removePlatformClientIdFromEmail(userEmail, platformContext.clientId);
   }
 
+  const metadata = formMethods.watch("metadata");
+  const paymentAppData = useMemo(() => {
+    const _eventType = {
+      price: 0,
+      currency: "",
+      metadata,
+    };
+    return getPaymentAppData(_eventType);
+  }, [metadata]);
+
+  const isPaidEvent = useMemo(
+    () => !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0,
+    [paymentAppData]
+  );
+
   const TimezoneSelect = useMemo(() => {
     return isPlatform ? PlatformTimzoneSelect : WebTimezoneSelect;
   }, [isPlatform]);
@@ -628,6 +644,8 @@ export const EventAdvancedTab = ({
               // Location field has a default value at backend so API can send no location but we don't allow it in UI and thus we want to show it as required to user
               return field.name === "location" ? true : field.required;
             }}
+            showPriceField={isPaidEvent}
+            paymentCurrency={paymentAppData?.currency || "usd"}
           />
         </div>
       </div>
