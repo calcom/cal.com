@@ -156,8 +156,9 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
           disabled: false,
         }
       : null,
-    // Reassign (if round robin)
-    booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN
+    // Reassign if round robin with no or one host groups
+    booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+    (!booking.eventType.hostGroups || booking.eventType.hostGroups?.length <= 1)
       ? {
           id: "reassign",
           label: t("reassign"),
@@ -219,7 +220,7 @@ export function isActionDisabled(actionId: string, context: BookingActionContext
     case "reschedule_request":
       return (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling;
     case "cancel":
-      return isDisabledCancelling || (isBookingInPast && isPending && !isConfirmed);
+      return isDisabledCancelling || isBookingInPast;
     case "view_recordings":
       return !(isBookingInPast && booking.status === BookingStatus.ACCEPTED && context.isCalVideoLocation);
     case "meeting_session_details":

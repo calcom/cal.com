@@ -5,6 +5,7 @@ import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar
 import { WEBAPP_URL, WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { handleErrorsJson } from "@calcom/lib/errors";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
@@ -91,7 +92,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         "Content-Type": "application/json",
       },
     });
+
+    logger.info("Office365 Calendar: Received calendar response", {
+      userId: req.session?.user?.id,
+      status: calRequest.status,
+      statusText: calRequest.statusText,
+      url: calRequest.url,
+    });
+
     let calBody = await handleErrorsJson<{ value: OfficeCalendar[]; "@odata.nextLink"?: string }>(calRequest);
+
+    logger.info("Office365 Calendar: handleErrorsJson completed", {
+      userId: req.session?.user?.id,
+      calendarCount: calBody.value.length ?? 0,
+    });
 
     if (typeof responseBody === "string") {
       calBody = JSON.parse(responseBody) as { value: OfficeCalendar[] };

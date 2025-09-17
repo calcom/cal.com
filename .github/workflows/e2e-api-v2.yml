@@ -22,6 +22,7 @@ env:
   STRIPE_API_KEY: ${{ secrets.CI_STRIPE_PRIVATE_KEY }}
   STRIPE_CLIENT_ID: ${{ secrets.CI_STRIPE_CLIENT_ID }}
   STRIPE_WEBHOOK_SECRET: ${{ secrets.CI_STRIPE_WEBHOOK_SECRET }}
+  SLOTS_CACHE_TTL: ${{ secrets.CI_SLOTS_CACHE_TTL }}
 jobs:
   e2e:
     timeout-minutes: 20
@@ -70,9 +71,9 @@ jobs:
       - name: Run Tests
         working-directory: apps/api/v2
         run: |
-          yarn test:e2e
+          yarn workspace @calcom/platform-libraries build && yarn test:e2e
           EXIT_CODE=$?
-          echo "yarn test:e2e command exit code: $EXIT_CODE"
+          echo "yarn workspace @calcom/platform-libraries build && yarn test:e2e command exit code: $EXIT_CODE"
           exit $EXIT_CODE
       - name: Upload Test Results
         if: ${{ always() }}

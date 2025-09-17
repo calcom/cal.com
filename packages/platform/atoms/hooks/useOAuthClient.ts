@@ -55,7 +55,7 @@ export const useOAuthClient = ({
         console.error(err);
       }
     }
-  }, [isEmbed, clientId, onError, prevClientId, onSuccess]);
+  }, [isEmbed, clientId, onError, prevClientId, onSuccess, http.getUrl()]);
 
   return { isInit };
 };

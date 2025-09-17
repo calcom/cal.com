@@ -152,6 +152,27 @@ export class CalVideoSettings {
     description: "If true, enables the automatic recording for the event when organizer joins the call",
   })
   enableAutomaticRecordingForOrganizer?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, enables the automatic transcription for the event whenever someone joins the call",
+  })
+  enableAutomaticTranscription?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, the guests will not be able to receive transcription of the meeting",
+  })
+  disableTranscriptionForGuests?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, the organizer will not be able to receive transcription of the meeting",
+  })
+  disableTranscriptionForOrganizer?: boolean;
 }
 
 class BaseCreateEventTypeInput {
@@ -446,6 +467,20 @@ class BaseCreateEventTypeInput {
     type: CalVideoSettings,
   })
   calVideoSettings?: CalVideoSettings;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional()
+  hidden?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    default: false,
+    description:
+      "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type.",
+  })
+  bookingRequiresAuthentication?: boolean;
 }
 export class CreateEventTypeInput_2024_06_14 extends BaseCreateEventTypeInput {
   @IsOptional()

@@ -3,7 +3,7 @@ import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
 import { describe, expect, it } from "vitest";
 
 import dayjs from "@calcom/dayjs";
-import { getCheckBookingLimitsService } from "@calcom/lib/di/containers/booking-limits";
+import { getCheckBookingLimitsService } from "@calcom/lib/di/containers/BookingLimits";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 

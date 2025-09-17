@@ -9,6 +9,7 @@ import prettier from "prettier";
 //@ts-ignore
 import prettierConfig from "@calcom/config/prettier-preset";
 import type { AppMeta } from "@calcom/types/App";
+import { AppMetaSchema } from "@calcom/types/AppMetaSchema";
 
 import { APP_STORE_PATH } from "./constants";
 import { getAppName } from "./utils/getAppName";
@@ -21,7 +22,7 @@ const formatOutput = (source: string) =>
     ...prettierConfig,
   });
 
-const getVariableName = (appName: string) => appName.replace(/[-.]/g, "_");
+const getVariableName = (appName: string) => appName.replace(/[-.\/]/g, "_");
 
 // INFO: Handle stripe separately as it's an old app with different dirName than slug/appId
 const getAppId = (app: { name: string }) => (app.name === "stripepayment" ? "stripe" : app.name);
@@ -72,7 +73,14 @@ function generateFiles() {
       let app;
 
       if (fs.existsSync(configPath)) {
-        app = JSON.parse(fs.readFileSync(configPath).toString());
+        try {
+          const rawConfig = fs.readFileSync(configPath, "utf8");
+          const parsedConfig = JSON.parse(rawConfig);
+          app = AppMetaSchema.parse(parsedConfig);
+        } catch (error) {
+          const prefix = `Config error in ${path.join(APP_STORE_PATH, appDirs[i].path, "config.json")}`;
+          throw new Error(`${prefix}: ${error instanceof Error ? error.message : String(error)}`);
+        }
       } else if (fs.existsSync(metadataPath)) {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         app = require(metadataPath).metadata;
@@ -345,12 +353,135 @@ function generateFiles() {
     )
   );
 
+  const calendarOutput = [];
+  const calendarServices = getExportedObject(
+    "CalendarServiceMap",
+    {
+      importConfig: {
+        fileToBeImported: "lib/CalendarService.ts",
+        importName: "default",
+      },
+      lazyImport: true,
+    },
+    isCalendarApp
+  );
+
+  // Find the export line and wrap it with E2E conditional
+  const exportLineIndex = calendarServices.findIndex((line) =>
+    line.startsWith("export const CalendarServiceMap")
+  );
+  if (exportLineIndex !== -1) {
+    const exportLine = calendarServices[exportLineIndex];
+    const objectContent = calendarServices.slice(exportLineIndex + 1, -1); // Remove export line and closing brace
+
+    calendarOutput.push(
+      exportLine.replace(
+        "export const CalendarServiceMap = {",
+        "export const CalendarServiceMap = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {"
+      ),
+      ...objectContent,
+      "};"
+    );
+  } else {
+    calendarOutput.push(...calendarServices);
+  }
+
+  const analyticsOutput = [];
+  const analyticsServices = getExportedObject(
+    "AnalyticsServiceMap",
+    {
+      importConfig: {
+        fileToBeImported: "lib/AnalyticsService.ts",
+        importName: "default",
+      },
+      lazyImport: true,
+    },
+    (app: App) => {
+      const hasAnalyticsService = fs.existsSync(
+        path.join(APP_STORE_PATH, app.path, "lib/AnalyticsService.ts")
+      );
+      return hasAnalyticsService;
+    }
+  );
+
+  const analyticsExportLineIndex = analyticsServices.findIndex((line) =>
+    line.startsWith("export const AnalyticsServiceMap")
+  );
+  if (analyticsExportLineIndex !== -1) {
+    const exportLine = analyticsServices[analyticsExportLineIndex];
+    const objectContent = analyticsServices.slice(analyticsExportLineIndex + 1, -1);
+
+    analyticsOutput.push(
+      exportLine.replace(
+        "export const AnalyticsServiceMap = {",
+        "export const AnalyticsServiceMap = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {"
+      ),
+      ...objectContent,
+      "};"
+    );
+  } else {
+    analyticsOutput.push(...analyticsServices);
+  }
+
+  const paymentOutput = [];
+  const paymentServices = getExportedObject(
+    "PaymentServiceMap",
+    {
+      importConfig: {
+        fileToBeImported: "lib/PaymentService.ts",
+        importName: "PaymentService",
+      },
+      lazyImport: true,
+    },
+    (app: App) => {
+      const hasPaymentService = fs.existsSync(path.join(APP_STORE_PATH, app.path, "lib/PaymentService.ts"));
+      return hasPaymentService;
+    }
+  );
+
+  paymentOutput.push(...paymentServices);
+
+  const videoOutput = [];
+  const videoAdapters = getExportedObject(
+    "VideoApiAdapterMap",
+    {
+      importConfig: {
+        fileToBeImported: "lib/VideoApiAdapter.ts",
+        importName: "default",
+      },
+      lazyImport: true,
+    },
+    (app: App) => {
+      return fs.existsSync(path.join(APP_STORE_PATH, app.path, "lib/VideoApiAdapter.ts"));
+    }
+  );
+
+  const videoExportLineIndex = videoAdapters.findIndex((line) =>
+    line.startsWith("export const VideoApiAdapterMap")
+  );
+  if (videoExportLineIndex !== -1) {
+    const exportLine = videoAdapters[videoExportLineIndex];
+    const objectContent = videoAdapters.slice(videoExportLineIndex + 1, -1);
+
+    videoOutput.push(
+      exportLine.replace(
+        "export const VideoApiAdapterMap = {",
+        "export const VideoApiAdapterMap = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {"
+      ),
+      ...objectContent,
+      "};"
+    );
+  } else {
+    videoOutput.push(...videoAdapters);
+  }
+
   const banner = `/**
     This file is autogenerated using the command \`yarn app-store:build --watch\`.
     Don't modify this file manually.
 **/
 `;
   const filesToGenerate: [string, string[]][] = [
+    ["analytics.services.generated.ts", analyticsOutput],
     ["apps.metadata.generated.ts", metadataOutput],
     ["apps.server.generated.ts", serverOutput],
     ["apps.browser.generated.tsx", browserOutput],
@@ -358,6 +489,9 @@ function generateFiles() {
     ["apps.keys-schemas.generated.ts", appKeysSchemasOutput],
     ["bookerApps.metadata.generated.ts", bookerMetadataOutput],
     ["crm.apps.generated.ts", crmOutput],
+    ["calendar.services.generated.ts", calendarOutput],
+    ["payment.services.generated.ts", paymentOutput],
+    ["video.adapters.generated.ts", videoOutput],
   ];
   filesToGenerate.forEach(([fileName, output]) => {
     fs.writeFileSync(`${APP_STORE_PATH}/${fileName}`, formatOutput(`${banner}${output.join("\n")}`));
@@ -404,4 +538,8 @@ function isBookerApp(app: App) {
 
 function isCrmApp(app: App) {
   return !!app.categories?.includes("crm");
+}
+
+function isCalendarApp(app: App) {
+  return !!app.categories?.includes("calendar");
 }

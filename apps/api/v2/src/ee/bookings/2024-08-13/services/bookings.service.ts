@@ -6,9 +6,13 @@ import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/servi
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { getPagination } from "@/lib/pagination/pagination";
+import { AuthOptionalUser } from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
+import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
 import { KyselyReadService } from "@/modules/kysely/kysely-read.service";
+import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
+import { MembershipsService } from "@/modules/memberships/services/memberships.service";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
@@ -18,7 +22,14 @@ import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-eve
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
-import { ConflictException, Injectable, Logger, NotFoundException } from "@nestjs/common";
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { BadRequestException } from "@nestjs/common";
 import { Request } from "express";
 import { DateTime } from "luxon";
@@ -52,8 +63,8 @@ import {
   RescheduleBookingInput,
   CancelBookingInput,
 } from "@calcom/platform-types";
-import { PrismaClient } from "@calcom/prisma";
-import { EventType, User, Team } from "@calcom/prisma/client";
+import type { PrismaClient } from "@calcom/prisma";
+import type { EventType, User, Team } from "@calcom/prisma/client";
 
 type CreatedBooking = {
   hosts: { id: number }[];
@@ -95,10 +106,12 @@ export class BookingsService_2024_08_13 {
     private readonly organizationsRepository: OrganizationsRepository,
     private readonly teamsRepository: TeamsRepository,
     private readonly teamsEventTypesRepository: TeamsEventTypesRepository,
+    private readonly membershipsRepository: MembershipsRepository,
+    private readonly membershipsService: MembershipsService,
     private readonly errorsBookingsService: ErrorsBookingsService_2024_08_13
   ) {}
 
-  async createBooking(request: Request, body: CreateBookingInput) {
+  async createBooking(request: Request, body: CreateBookingInput, authUser: AuthOptionalUser) {
     let bookingTeamEventType = false;
     try {
       const eventType = await this.getBookedEventType(body);
@@ -108,6 +121,10 @@ export class BookingsService_2024_08_13 {
       if (!eventType) {
         this.errorsBookingsService.handleEventTypeToBeBookedNotFound(body);
       }
+      const userIsEventTypeAdminOrOwner = authUser
+        ? await this.userIsEventTypeAdminOrOwner(authUser, eventType)
+        : false;
+      await this.checkBookingRequiresAuthenticationSetting(eventType, authUser, userIsEventTypeAdminOrOwner);
 
       if (eventType.schedulingType === "MANAGED") {
         throw new BadRequestException(
@@ -127,19 +144,76 @@ export class BookingsService_2024_08_13 {
       await this.hasRequiredBookingFieldsResponses(body, eventType);
 
       if (isRecurring && isSeated) {
-        return await this.createRecurringSeatedBooking(request, body, eventType);
+        return await this.createRecurringSeatedBooking(request, body, eventType, userIsEventTypeAdminOrOwner);
       }
       if (isRecurring && !isSeated) {
         return await this.createRecurringBooking(request, body, eventType);
       }
       if (isSeated) {
-        return await this.createSeatedBooking(request, body, eventType);
+        return await this.createSeatedBooking(request, body, eventType, userIsEventTypeAdminOrOwner);
       }
 
       return await this.createRegularBooking(request, body, eventType);
     } catch (error) {
       this.errorsBookingsService.handleBookingError(error, bookingTeamEventType);
     }
+  }
+
+  async checkBookingRequiresAuthenticationSetting(
+    eventType: EventTypeWithOwnerAndTeam,
+    authUser: AuthOptionalUser,
+    userIsEventTypeAdminOrOwner: boolean
+  ) {
+    if (!eventType.bookingRequiresAuthentication) return true;
+    if (!authUser) {
+      throw new UnauthorizedException(
+        "checkBookingRequiresAuthentication - request must be authenticated by passing credentials belonging to event type owner, host or team or org admin or owner."
+      );
+    }
+
+    if (!userIsEventTypeAdminOrOwner) {
+      throw new ForbiddenException(
+        "checkBookingRequiresAuthentication - user is not authorized to access this event type. User has to be either event type owner, host, team admin or owner or org admin or owner."
+      );
+    }
+  }
+
+  async userIsEventTypeAdminOrOwner(authUser: ApiAuthGuardUser, eventType: EventType) {
+    const authUserId = authUser.id;
+    const authUserRole = authUser.role;
+    const eventTypeId = eventType.id;
+    const teamId = eventType.teamId;
+    const eventTypeOwnerId = eventType.userId || null;
+
+    if (authUserRole === "ADMIN") return true;
+
+    if (eventTypeOwnerId === authUserId) return true;
+
+    if (eventTypeId) {
+      const [isUserHost, isUserAssigned] = await Promise.all([
+        this.eventTypesRepository.isUserHostOfEventType(authUserId, eventTypeId),
+        this.eventTypesRepository.isUserAssignedToEventType(authUserId, eventTypeId),
+      ]);
+
+      if (isUserHost || isUserAssigned) return true;
+    }
+
+    if (teamId) {
+      const membership = await this.membershipsRepository.getUserAdminOrOwnerTeamMembership(
+        authUserId,
+        teamId
+      );
+      if (membership) return true;
+    }
+
+    if (
+      eventTypeOwnerId &&
+      (await this.membershipsService.isUserOrgAdminOrOwnerOfAnotherUser(authUserId, eventTypeOwnerId))
+    ) {
+      return true;
+    }
+
+    return false;
   }
 
   async getBookedEventType(body: CreateBookingInput) {
@@ -413,7 +487,8 @@ export class BookingsService_2024_08_13 {
   async createRecurringSeatedBooking(
     request: Request,
     body: CreateRecurringBookingInput_2024_08_13,
-    eventType: EventTypeWithOwnerAndTeam
+    eventType: EventTypeWithOwnerAndTeam,
+    userIsEventTypeAdminOrOwner: boolean
   ) {
     const bookingRequest = await this.inputService.createRecurringBookingRequest(request, body, eventType);
     const bookings = await handleNewRecurringBooking({
@@ -428,7 +503,8 @@ export class BookingsService_2024_08_13 {
       areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
     });
     return this.outputService.getOutputCreateRecurringSeatedBookings(
-      bookings.map((booking) => ({ uid: booking.uid || "", seatUid: booking.seatReferenceUid || "" }))
+      bookings.map((booking) => ({ uid: booking.uid || "", seatUid: booking.seatReferenceUid || "" })),
+      userIsEventTypeAdminOrOwner
     );
   }
 
@@ -465,7 +541,8 @@ export class BookingsService_2024_08_13 {
   async createSeatedBooking(
     request: Request,
     body: CreateBookingInput_2024_08_13,
-    eventType: EventTypeWithOwnerAndTeam
+    eventType: EventTypeWithOwnerAndTeam,
+    userIsEventTypeAdminOrOwner: boolean
   ) {
     const bookingRequest = await this.inputService.createBookingRequest(request, body, eventType);
     try {
@@ -491,7 +568,11 @@ export class BookingsService_2024_08_13 {
         throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
       }
 
-      return this.outputService.getOutputCreateSeatedBooking(databaseBooking, booking.seatReferenceUid || "");
+      return this.outputService.getOutputCreateSeatedBooking(
+        databaseBooking,
+        booking.seatReferenceUid || "",
+        userIsEventTypeAdminOrOwner
+      );
     } catch (error) {
       if (error instanceof Error) {
         if (error.message === "booking_seats_full_error") {
@@ -502,8 +583,12 @@ export class BookingsService_2024_08_13 {
     }
   }
 
-  async getBooking(uid: string) {
+  async getBooking(uid: string, authUser: AuthOptionalUser) {
     const booking = await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEvent(uid);
+    const userIsEventTypeAdminOrOwner =
+      authUser && booking?.eventType
+        ? await this.userIsEventTypeAdminOrOwner(authUser, booking.eventType)
+        : false;
 
     if (booking) {
       const isRecurring = !!booking.recurringEventId;
@@ -513,10 +598,12 @@ export class BookingsService_2024_08_13 {
         return this.outputService.getOutputRecurringBooking(booking);
       }
       if (isRecurring && isSeated) {
-        return this.outputService.getOutputRecurringSeatedBooking(booking);
+        const showAttendees = userIsEventTypeAdminOrOwner || !!booking.eventType?.seatsShowAttendees;
+        return this.outputService.getOutputRecurringSeatedBooking(booking, showAttendees);
       }
       if (isSeated) {
-        return this.outputService.getOutputSeatedBooking(booking);
+        const showAttendees = userIsEventTypeAdminOrOwner || !!booking.eventType?.seatsShowAttendees;
+        return this.outputService.getOutputSeatedBooking(booking, showAttendees);
       }
       return this.outputService.getOutputBooking(booking);
     }
@@ -528,7 +615,9 @@ export class BookingsService_2024_08_13 {
     const ids = recurringBooking.map((booking) => booking.id);
     const isRecurringSeated = !!recurringBooking[0].eventType?.seatsPerTimeSlot;
     if (isRecurringSeated) {
-      return this.outputService.getOutputRecurringSeatedBookings(ids);
+      const showAttendees =
+        userIsEventTypeAdminOrOwner || !!recurringBooking[0].eventType?.seatsShowAttendees;
+      return this.outputService.getOutputRecurringSeatedBookings(ids, showAttendees);
     }
 
     return this.outputService.getOutputRecurringBookings(ids);
@@ -594,9 +683,9 @@ export class BookingsService_2024_08_13 {
       if (isRecurring && !isSeated) {
         formattedBookings.push(this.outputService.getOutputRecurringBooking(formatted));
       } else if (isRecurring && isSeated) {
-        formattedBookings.push(this.outputService.getOutputRecurringSeatedBooking(formatted));
+        formattedBookings.push(this.outputService.getOutputRecurringSeatedBooking(formatted, true));
       } else if (isSeated) {
-        formattedBookings.push(await this.outputService.getOutputSeatedBooking(formatted));
+        formattedBookings.push(await this.outputService.getOutputSeatedBooking(formatted, true));
       } else {
         formattedBookings.push(await this.outputService.getOutputBooking(formatted));
       }
@@ -639,7 +728,12 @@ export class BookingsService_2024_08_13 {
     return queryParamsAttendeeEmail;
   }
 
-  async rescheduleBooking(request: Request, bookingUid: string, body: RescheduleBookingInput) {
+  async rescheduleBooking(
+    request: Request,
+    bookingUid: string,
+    body: RescheduleBookingInput,
+    authUser: AuthOptionalUser
+  ) {
     try {
       await this.canRescheduleBooking(bookingUid);
       const bookingRequest = await this.inputService.createRescheduleBookingRequest(
@@ -668,6 +762,10 @@ export class BookingsService_2024_08_13 {
         throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
       }
 
+      const userIsEventTypeAdminOrOwner =
+        authUser && databaseBooking.eventType
+          ? await this.userIsEventTypeAdminOrOwner(authUser, databaseBooking.eventType)
+          : false;
       const isRecurring = !!databaseBooking.recurringEventId;
       const isSeated = !!databaseBooking.eventType?.seatsPerTimeSlot;
 
@@ -677,13 +775,15 @@ export class BookingsService_2024_08_13 {
       if (isRecurring && isSeated) {
         return this.outputService.getOutputCreateRecurringSeatedBooking(
           databaseBooking,
-          booking?.seatReferenceUid || ""
+          booking?.seatReferenceUid || "",
+          userIsEventTypeAdminOrOwner
         );
       }
       if (isSeated) {
         return this.outputService.getOutputCreateSeatedBooking(
           databaseBooking,
-          booking.seatReferenceUid || ""
+          booking.seatReferenceUid || "",
+          userIsEventTypeAdminOrOwner
         );
       }
       return this.outputService.getOutputBooking(databaseBooking);
@@ -711,7 +811,12 @@ export class BookingsService_2024_08_13 {
     return booking;
   }
 
-  async cancelBooking(request: Request, bookingUid: string, body: CancelBookingInput) {
+  async cancelBooking(
+    request: Request,
+    bookingUid: string,
+    body: CancelBookingInput,
+    authUser: AuthOptionalUser
+  ) {
     if (this.inputService.isCancelSeatedBody(body)) {
       const seat = await this.bookingSeatRepository.getByReferenceUid(body.seatUid);
 
@@ -742,13 +847,13 @@ export class BookingsService_2024_08_13 {
     }
 
     if ("cancelSubsequentBookings" in body && body.cancelSubsequentBookings) {
-      return this.getAllRecurringBookingsByIndividualUid(bookingUid);
+      return this.getAllRecurringBookingsByIndividualUid(bookingUid, authUser);
     }
 
-    return this.getBooking(bookingUid);
+    return this.getBooking(bookingUid, authUser);
   }
 
-  private async getAllRecurringBookingsByIndividualUid(bookingUid: string) {
+  private async getAllRecurringBookingsByIndividualUid(bookingUid: string, authUser: AuthOptionalUser) {
     const booking = await this.bookingsRepository.getByUid(bookingUid);
     const recurringBookingUid = booking?.recurringEventId;
     if (!recurringBookingUid) {
@@ -757,7 +862,7 @@ export class BookingsService_2024_08_13 {
       );
     }
 
-    return await this.getBooking(recurringBookingUid);
+    return await this.getBooking(recurringBookingUid, authUser);
   }
 
   async markAbsent(bookingUid: string, bookingOwnerId: number, body: MarkAbsentBookingInput_2024_08_13) {
@@ -924,7 +1029,7 @@ export class BookingsService_2024_08_13 {
     }
   }
 
-  async confirmBooking(bookingUid: string, requestUser: UserWithProfile) {
+  async confirmBooking(bookingUid: string, requestUser: ApiAuthGuardUser) {
     const booking = await this.bookingsRepository.getByUid(bookingUid);
     if (!booking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
@@ -953,10 +1058,10 @@ export class BookingsService_2024_08_13 {
       },
     });
 
-    return this.getBooking(bookingUid);
+    return this.getBooking(bookingUid, requestUser);
   }
 
-  async declineBooking(bookingUid: string, requestUser: UserWithProfile, reason?: string) {
+  async declineBooking(bookingUid: string, requestUser: ApiAuthGuardUser, reason?: string) {
     const booking = await this.bookingsRepository.getByUid(bookingUid);
     if (!booking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
@@ -986,7 +1091,7 @@ export class BookingsService_2024_08_13 {
       },
     });
 
-    return this.getBooking(bookingUid);
+    return this.getBooking(bookingUid, requestUser);
   }
 
   async getCalendarLinks(bookingUid: string): Promise<CalendarLink[]> {

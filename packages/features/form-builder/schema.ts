@@ -82,7 +82,15 @@ const baseFieldSchema = z.object({
    * It is the list of options that is valid for a certain type of fields.
    *
    */
-  options: z.array(z.object({ label: z.string(), value: z.string() })).optional(),
+  options: z
+    .array(
+      z.object({
+        label: z.string(),
+        value: z.string(),
+        price: z.coerce.number().min(0).optional(),
+      })
+    )
+    .optional(),
   /**
    * This is an alternate way to specify options when the options are stored elsewhere. Form Builder expects options to be present at `dataStore[getOptionsAt]`
    * This allows keeping a single source of truth in DB.
@@ -124,6 +132,8 @@ const baseFieldSchema = z.object({
   excludeEmails: excludeOrRequireEmailSchema.optional(),
   // Emails that need to be required
   requireEmails: excludeOrRequireEmailSchema.optional(),
+  // Price associated with the field which works like addons which users can add to the booking
+  price: z.coerce.number().min(0).optional(),
 });
 
 export const variantsConfigSchema = z.object({
@@ -162,6 +172,8 @@ export const fieldTypeConfigSchema = z
         maxLength: z.number(),
       })
       .optional(),
+    supportsPricing: z.boolean().default(false).optional(),
+    optionsSupportPricing: z.boolean().default(false).optional(),
     propsType: z.enum([
       "text",
       "textList",
@@ -418,9 +430,12 @@ export const fieldTypesSchemaMap: Partial<
       }
 
       // 2. If it failed, try prepending https://
-      const valueWithHttps = `https://${value}`;
-      if (urlSchema.safeParse(valueWithHttps).success) {
-        return;
+      const domainLike = /^[a-z0-9.-]+\.[a-z]{2,}(\/.*)?$/i;
+      if (domainLike.test(value)) {
+        const valueWithHttps = `https://${value}`;
+        if (urlSchema.safeParse(valueWithHttps).success) {
+          return;
+        }
       }
 
       // 3. If all attempts fail, throw err

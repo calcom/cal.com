@@ -71,6 +71,7 @@ export async function handler(req: NextRequest) {
     //cancel reminders for cancelled/rescheduled bookings that are scheduled within the next hour
     const remindersToCancel: { referenceId: string | null; id: number }[] = await getAllRemindersToCancel();
 
+    //eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cancelUpdatePromises: Promise<any>[] = [];
 
     for (const reminder of remindersToCancel) {
@@ -98,6 +99,7 @@ export async function handler(req: NextRequest) {
   }
 
   // schedule all unscheduled reminders within the next 72 hours
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sendEmailPromises: Promise<any>[] = [];
 
   const unscheduledReminders = await getAllUnscheduledReminders();
@@ -342,9 +344,7 @@ export async function handler(req: NextRequest) {
             attachments: reminder.workflowStep.includeCalendarEvent
               ? [
                   {
-                    content: Buffer.from(generateIcsString({ event, status: "CONFIRMED" }) || "").toString(
-                      "base64"
-                    ),
+                    content: generateIcsString({ event, status: "CONFIRMED" }) || "",
                     filename: "event.ics",
                     type: "text/calendar; method=REQUEST",
                     disposition: "attachment",

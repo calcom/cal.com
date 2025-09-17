@@ -1,4 +1,5 @@
 import CalendarManagerMock from "../../../../tests/libs/__mocks__/CalendarManager";
+import { constantsScenarios } from "@calcom/lib/__mocks__/constants";
 
 import {
   getDate,
@@ -16,19 +17,19 @@ import {
 import { describe, vi, test } from "vitest";
 
 import dayjs from "@calcom/dayjs";
-import { getAvailableSlotsService } from "@calcom/lib/di/containers/available-slots";
+import { getAvailableSlotsService } from "@calcom/lib/di/containers/AvailableSlots";
 import { SchedulingType, type BookingStatus } from "@calcom/prisma/enums";
 
 import { expect, expectedSlotsForSchedule } from "./getSchedule/expects";
 import { setupAndTeardown } from "./getSchedule/setupAndTeardown";
 import { timeTravelToTheBeginningOfToday } from "./getSchedule/utils";
 
-vi.mock("@calcom/lib/constants", () => ({
-  IS_PRODUCTION: true,
+constantsScenarios.set({
+  IS_PRODUCTION: true as any,
   WEBAPP_URL: "http://localhost:3000",
-  RESERVED_SUBDOMAINS: ["auth", "docs"],
-  SINGLE_ORG_SLUG: "",
-}));
+  RESERVED_SUBDOMAINS: ["auth", "docs"] as any,
+  SINGLE_ORG_SLUG: "" as any,
+});
 
 describe("getSchedule", () => {
   const availableSlotsService = getAvailableSlotsService();

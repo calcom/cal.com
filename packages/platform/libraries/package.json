@@ -23,7 +23,7 @@
   "devDependencies": {
     "@types/node": "^20.3.1",
     "@vitejs/plugin-react": "^4.2.1",
-    "typescript": "^5.7.2",
+    "typescript": "^5.9.0-beta",
     "vite": "^5.0.12",
     "vite-plugin-dts": "^3.7.2",
     "vite-plugin-environment": "^1.1.3"
@@ -78,6 +78,11 @@
       "import": "./dist/bookings.js",
       "require": "./dist/bookings.cjs",
       "types": "./dist/bookings.d.ts"
+    },
+    "./private-links": {
+      "import": "./dist/private-links.js",
+      "require": "./dist/private-links.cjs",
+      "types": "./dist/private-links.d.ts"
     }
   },
   "typesVersions": {
@@ -108,6 +113,9 @@
       ],
       "bookings": [
         "dist/bookings.d.ts"
+      ],
+      "private-links": [
+        "dist/private-links.d.ts"
       ]
     }
   }

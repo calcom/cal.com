@@ -3,7 +3,7 @@ import { expect } from "@playwright/test";
 import { randomString } from "@calcom/lib/random";
 import prisma from "@calcom/prisma";
 
-import { addFilter, openFilter, clearFilters } from "./filter-helpers";
+import { clearFilters, applySelectFilter } from "./filter-helpers";
 import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
@@ -202,33 +202,11 @@ test.describe("Insights", async () => {
     await page.locator('[data-testid="org-teams-filter-item"]').nth(1).click();
     await page.keyboard.press("Escape");
 
-    // Choose User filter item from dropdown
-    await addFilter(page, "bookingUserId");
-
-    // Wait for the URL to include bookingUserId
-    await page.waitForURL((url) => url.toString().includes("bookingUserId"));
-
-    // Click User filter to see a user list
-    await openFilter(page, "bookingUserId");
-
-    await page
-      .locator('[data-testid="select-filter-options-bookingUserId"]')
-      .getByRole("option")
-      .nth(0)
-      .click();
-
-    await page
-      .locator('[data-testid="select-filter-options-bookingUserId"]')
-      .getByRole("option")
-      .nth(1)
-      .click();
-
-    // press escape button to close the filter
-    await page.keyboard.press("Escape");
+    await applySelectFilter(page, "userId", member.username || "");
 
     await clearFilters(page);
 
-    await expect(page.url()).not.toContain("bookingUserId");
+    await expect(page).not.toHaveURL(/[?&]userId=/);
   });
 
   test("should test download button", async ({ page, users }) => {
@@ -258,5 +236,40 @@ test.describe("Insights", async () => {
 
     // Wait for the download process to complete and save the downloaded file somewhere.
     await download.saveAs("./" + "test-insights.csv");
+  });
+
+  test("should render all ChartCard components with expected titles", async ({ page, users }) => {
+    const owner = await users.create();
+    const member = await users.create();
+
+    await createTeamsAndMembership(owner.id, member.id);
+
+    await owner.apiLogin();
+
+    await page.goto("/insights");
+
+    const expectedChartTitles = [
+      "Events",
+      "Performance",
+      "Event Trends",
+      "Bookings by Hour",
+      "Average Event Duration",
+      "Most Bookings Scheduled",
+      "Least Bookings Scheduled",
+      "Most Bookings Completed",
+      "Least Bookings Completed",
+      "Most Cancelled",
+      "Most No-Show",
+      "Recent No-Show Guests",
+      "Highest Rated",
+      "Lowest Rated",
+      "Recent Ratings",
+      "Popular Events",
+    ];
+
+    for (const title of expectedChartTitles) {
+      const chartCard = page.locator("[data-testid='panel-card'] h2").filter({ hasText: title });
+      await expect(chartCard).toBeVisible();
+    }
   });
 });
