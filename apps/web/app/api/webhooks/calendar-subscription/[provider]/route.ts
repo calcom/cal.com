@@ -40,11 +40,7 @@ async function postHandler(request: NextRequest, context: { params: Promise<Para
       selectedCalendarRepository: new SelectedCalendarRepository(prisma),
       featuresRepository: new FeaturesRepository(prisma),
     });
-    await calendarSubscriptionService.processWebhook(provider, {
-      headers: request.headers,
-      query: new URL(request.url).searchParams,
-      body: await request.json(),
-    });
+    await calendarSubscriptionService.processWebhook(provider, request);
     return NextResponse.json({ message: "Webhook processed" }, { status: 200 });
   } catch (error) {
     log.error("Error processing webhook", { error });

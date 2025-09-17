@@ -11,7 +11,6 @@ import type {
   CalendarSubscriptionEvent,
   CalendarSubscriptionEventItem,
   CalendarCredential,
-  CalendarSubscriptionWebhookContext,
 } from "../lib/CalendarSubscriptionPort.interface";
 
 const log = logger.getSubLogger({ prefix: ["GoogleCalendarSubscriptionAdapter"] });
@@ -24,10 +23,12 @@ const log = logger.getSubLogger({ prefix: ["GoogleCalendarSubscriptionAdapter"] 
  */
 export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionPort {
   private GOOGLE_WEBHOOK_TOKEN = process.env.GOOGLE_WEBHOOK_TOKEN;
-  private GOOGLE_WEBHOOK_URL = `${process.env.GOOGLE_WEBHOOK_URL}/api/webhooks/calendar-subscription/google_calendar`;
+  private GOOGLE_WEBHOOK_URL = `${
+    process.env.GOOGLE_WEBHOOK_URL || process.env.NEXT_PUBLIC_WEBAPP_URL
+  }/api/webhooks/calendar-subscription/google_calendar`;
 
-  async validate(context: CalendarSubscriptionWebhookContext): Promise<boolean> {
-    const token = context?.headers?.get("X-Goog-Channel-Token");
+  async validate(request: Request): Promise<boolean> {
+    const token = request?.headers?.get("X-Goog-Channel-Token");
     if (!this.GOOGLE_WEBHOOK_TOKEN) {
       log.warn("GOOGLE_WEBHOOK_TOKEN not configured");
       return false;
@@ -39,8 +40,8 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
     return true;
   }
 
-  async extractChannelId(context: CalendarSubscriptionWebhookContext): Promise<string | null> {
-    const channelId = context?.headers?.get("X-Goog-Channel-ID");
+  async extractChannelId(request: Request): Promise<string | null> {
+    const channelId = request?.headers?.get("X-Goog-Channel-ID");
     if (!channelId) {
       log.warn("Missing channel ID in webhook");
       return null;
@@ -54,6 +55,12 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
   ): Promise<CalendarSubscriptionResult> {
     log.debug("Attempt to subscribe to Google Calendar", { externalId: selectedCalendar.externalId });
     selectedCalendar;
+
+    console.log(
+      "🚀 ~ file: GoogleCalendarSubscription.adapter.ts:45 ~ GoogleCalendarSubscriptionAdapter ~ subscribe ~ this.GOOGLE_WEBHOOK_TOKEN",
+      this.GOOGLE_WEBHOOK_TOKEN,
+      this.GOOGLE_WEBHOOK_URL
+    );
 
     const MONTH_IN_SECONDS = 60 * 60 * 24 * 30;
 
@@ -102,19 +109,34 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
     selectedCalendar: SelectedCalendar,
     credential: CalendarCredential
   ): Promise<CalendarSubscriptionEvent> {
+    log.info("Attempt to fetch events from Google Calendar", { externalId: selectedCalendar.externalId });
     const client = await this.getClient(credential);
 
     let syncToken = selectedCalendar.syncToken || undefined;
     let pageToken;
 
+    const params: calendar_v3.Params$Resource$Events$List = {
+      calendarId: selectedCalendar.externalId,
+      pageToken,
+      singleEvents: true,
+    };
+
+    if (!syncToken) {
+      // first sync or unsync (30 days)
+      const DAYS_30_IN_MS = 30 * 24 * 60 * 60 * 1000;
+      const now = new Date();
+      const timeMinISO = now.toISOString();
+      const timeMaxISO = new Date(now.getTime() + DAYS_30_IN_MS).toISOString();
+      params.timeMin = timeMinISO;
+      params.timeMax = timeMaxISO;
+    } else {
+      // incremental sync
+      params.syncToken = syncToken;
+    }
+
     const events: calendar_v3.Schema$Event[] = [];
     do {
-      const { data }: { data: calendar_v3.Schema$Events } = await client.events.list({
-        calendarId: selectedCalendar.externalId,
-        syncToken,
-        pageToken,
-        singleEvents: true,
-      });
+      const { data }: { data: calendar_v3.Schema$Events } = await client.events.list(params);
 
       syncToken = data.nextSyncToken || syncToken;
       pageToken = data.nextPageToken ?? null;
@@ -130,10 +152,10 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
   }
 
   private parseEvents(events: calendar_v3.Schema$Event[]): CalendarSubscriptionEventItem[] {
-    const now = new Date();
     return events
       .map((event) => {
-        const busy = event.transparency === "opaque"; // opaque = busy, transparent = free
+        // empty or opaque is busy
+        const busy = !event.transparency || event.transparency === "opaque";
 
         const start = event.start?.dateTime
           ? new Date(event.start.dateTime)
@@ -157,16 +179,16 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
           description: event.description,
           location: event.location,
           kind: event.kind,
+          etag: event.etag,
           status: event.status,
-          isAllDay: !!event.start?.date && !event.start?.dateTime,
+          isAllDay: event.start?.date && !event.start?.dateTime,
           timeZone: event.start?.timeZone || null,
           originalStartTime: event.originalStartTime?.dateTime,
           createdAt: event.created ? new Date(event.created) : null,
           updatedAt: event.updated ? new Date(event.updated) : null,
         };
       })
-      .filter((e) => !!e.id) // safely remove events with no ID
-      .filter((e) => e.start < now); // remove old events
+      .filter(({ id }) => !!id);
   }
 
   private async getClient(credential: CalendarCredential) {

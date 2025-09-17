@@ -5,12 +5,6 @@ import type {
   CredentialForCalendarServiceWithEmail,
 } from "@calcom/types/Credential";
 
-export type CalendarSubscriptionWebhookContext = {
-  headers?: Headers;
-  query?: URLSearchParams;
-  body?: { value?: { subscriptionId?: string }[] } | unknown;
-};
-
 export type CalendarSubscriptionResult = {
   provider: CalendarSubscriptionProvider;
   id?: string | null;
@@ -29,6 +23,7 @@ export type CalendarSubscriptionEventItem = {
   summary?: string | null;
   description?: string | null;
   kind?: string | null;
+  etag?: string | null;
   status?: string | null;
   location?: string | null;
   originalStartDate?: Date | null;
@@ -53,13 +48,13 @@ export interface ICalendarSubscriptionPort {
    * Validates a webhook request
    * @param context
    */
-  validate(context: CalendarSubscriptionWebhookContext): Promise<boolean>;
+  validate(context: Request): Promise<boolean>;
 
   /**
    * Extracts channel ID from a webhook request
    * @param request
    */
-  extractChannelId(context: CalendarSubscriptionWebhookContext): Promise<string | null>;
+  extractChannelId(context: Request): Promise<string | null>;
 
   /**
    * Subscribes to a calendar

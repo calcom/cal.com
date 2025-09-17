@@ -6,7 +6,6 @@ import type {
   ICalendarSubscriptionPort,
   CalendarSubscriptionResult,
   CalendarCredential,
-  CalendarSubscriptionWebhookContext,
   CalendarSubscriptionEventItem,
 } from "../lib/CalendarSubscriptionPort.interface";
 
@@ -75,16 +74,16 @@ export class Office365CalendarSubscriptionAdapter implements ICalendarSubscripti
     this.subscriptionTtlMs = cfg.subscriptionTtlMs ?? 3 * 24 * 60 * 60 * 1000;
   }
 
-  async validate(context: CalendarSubscriptionWebhookContext): Promise<boolean> {
+  async validate(request: Request): Promise<boolean> {
     // validate handshake
-    const validationToken = context?.query?.get("validationToken");
+    const validationToken = request?.query?.get("validationToken");
     if (validationToken) return true;
 
     // validate notifications
     const clientState =
-      context?.headers?.get("clientState") ??
-      (typeof context?.body === "object" && context.body !== null && "clientState" in context.body
-        ? (context.body as { clientState?: string }).clientState
+      request?.headers?.get("clientState") ??
+      (typeof request?.body === "object" && request.body !== null && "clientState" in request.body
+        ? (request.body as { clientState?: string }).clientState
         : undefined);
     if (!this.webhookToken) {
       log.warn("MICROSOFT_WEBHOOK_TOKEN missing");
@@ -97,12 +96,12 @@ export class Office365CalendarSubscriptionAdapter implements ICalendarSubscripti
     return true;
   }
 
-  async extractChannelId(context: CalendarSubscriptionWebhookContext): Promise<string | null> {
+  async extractChannelId(request: Request): Promise<string | null> {
     let id: string | null = null;
-    if (context?.body && typeof context.body === "object" && "subscriptionId" in context.body) {
-      id = (context.body as { subscriptionId?: string }).subscriptionId ?? null;
-    } else if (context?.headers?.get("subscriptionId")) {
-      id = context.headers.get("subscriptionId");
+    if (request?.body && typeof request.body === "object" && "subscriptionId" in request.body) {
+      id = (request.body as { subscriptionId?: string }).subscriptionId ?? null;
+    } else if (request?.headers?.get("subscriptionId")) {
+      id = request.headers.get("subscriptionId");
     }
     if (!id) {
       log.warn("subscriptionId missing in webhook");

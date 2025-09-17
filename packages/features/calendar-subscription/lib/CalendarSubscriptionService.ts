@@ -10,7 +10,6 @@ import { prisma } from "@calcom/prisma";
 
 import type {
   CalendarCredential,
-  CalendarSubscriptionWebhookContext,
   CalendarSubscriptionEvent,
 } from "../lib/CalendarSubscriptionPort.interface";
 
@@ -55,6 +54,9 @@ export class CalendarSubscriptionService {
       channelExpiration: res?.expiration,
       syncSubscribedAt: new Date(),
     });
+
+    // initial event loading
+    await processEvents(selectedCalendar);
   }
 
   /**
@@ -71,39 +73,66 @@ export class CalendarSubscriptionService {
     const calendarSubscriptionAdapter = this.deps.adapterFactory.get(
       selectedCalendar.integration as CalendarSubscriptionProvider
     );
+
     await Promise.all([
       calendarSubscriptionAdapter.unsubscribe(selectedCalendar, credential),
       this.deps.selectedCalendarRepository.updateById(selectedCalendarId, {
         syncSubscribedAt: null,
       }),
     ]);
+
+    // cleanup cache after unsubscribe
+    if (await this.isCacheEnabled()) {
+      const { CalendarCacheEventService } = await import("./cache/CalendarCacheEventService");
+      const calendarCacheEventService = new CalendarCacheEventService(this.deps);
+      await calendarCacheEventService.cleanupCache(selectedCalendar);
+    }
   }
 
   /**
    * Process webhook
    */
-  async processWebhook(provider: CalendarSubscriptionProvider, context: CalendarSubscriptionWebhookContext) {
+  async processWebhook(provider: CalendarSubscriptionProvider, request: Request) {
     log.debug("processWebhook", { provider });
     const calendarSubscriptionAdapter = this.deps.adapterFactory.get(provider);
 
-    const isValid = await calendarSubscriptionAdapter.validate(context);
+    const isValid = await calendarSubscriptionAdapter.validate(request);
     if (!isValid) throw new Error("Invalid webhook request");
 
-    const channelId = await calendarSubscriptionAdapter.extractChannelId(context);
+    const channelId = await calendarSubscriptionAdapter.extractChannelId(request);
     if (!channelId) throw new Error("Missing channel ID in webhook");
 
     log.debug("Processing webhook", { channelId });
-    const [selectedCalendar, cacheEnabled, syncEnabled] = await Promise.all([
-      this.deps.selectedCalendarRepository.findByChannelId(channelId),
-      this.deps.featuresRepository.checkIfFeatureIsEnabledGlobally("calendar-subscription-cache"),
-      this.deps.featuresRepository.checkIfFeatureIsEnabledGlobally("calendar-subscription-sync"),
-    ]);
-
-    if (!selectedCalendar?.credentialId || (!cacheEnabled && !syncEnabled)) {
+    const selectedCalendar = await this.deps.selectedCalendarRepository.findByChannelId(channelId);
+    if (!selectedCalendar?.credentialId) {
       log.debug("Selected calendar not found", { channelId });
       return;
     }
 
+    // incremental event loading
+    await this.processEvents(selectedCalendar);
+  }
+
+  /**
+   * Process events
+   * - fetch events from calendar
+   * - process events
+   * - update selected calendar
+   * - update cache
+   * - update sync
+   */
+  async processEvents(selectedCalendar: SelectedCalendar): Promise<void> {
+    const calendarSubscriptionAdapter = this.deps.adapterFactory.get(
+      selectedCalendar.integration as CalendarSubscriptionProvider
+    );
+
+    const [cacheEnabled, syncEnabled] = await Promise.all([this.isCacheEnabled(), this.isSyncEnabled()]);
+    if (!cacheEnabled && !syncEnabled) {
+      log.debug("No cache or sync enabled", { channelId: selectedCalendar.channelId });
+      return;
+    }
+
+    log.info("processEvents", { channelId: selectedCalendar.channelId });
     const credential = await this.getCalendarCredential(selectedCalendar.credentialId);
     if (!credential) return;
 
@@ -111,7 +140,7 @@ export class CalendarSubscriptionService {
     try {
       events = await calendarSubscriptionAdapter.fetchEvents(selectedCalendar, credential);
     } catch (err) {
-      log.error("Error fetching events", { channelId, err });
+      log.debug("Error fetching events", { channelId: selectedCalendar.channelId, err });
       await this.deps.selectedCalendarRepository.updateById(selectedCalendar.id, {
         syncErrorAt: new Date(),
         syncErrorCount: (selectedCalendar.syncErrorCount || 0) + 1,
@@ -120,10 +149,11 @@ export class CalendarSubscriptionService {
     }
 
     if (!events?.items?.length) {
-      log.debug("No events fetched", { channelId });
+      log.debug("No events fetched", { channelId: selectedCalendar.channelId });
       return;
     }
 
+    log.debug("Processing events", { channelId: selectedCalendar.channelId, count: events.items.length });
     await this.deps.selectedCalendarRepository.updateById(selectedCalendar.id, {
       syncToken: events.syncToken || selectedCalendar.syncToken,
       syncedAt: new Date(),
@@ -156,6 +186,22 @@ export class CalendarSubscriptionService {
     log.debug("checkForNewSubscriptions");
     const rows = await this.deps.selectedCalendarRepository.findNotSubscribed({ take: 100 });
     await Promise.allSettled(rows.map(({ id }) => this.subscribe(id)));
+  }
+
+  /**
+   * Check if cache is enabled
+   * @returns true if cache is enabled
+   */
+  async isCacheEnabled(): Promise<boolean> {
+    return this.deps.featuresRepository.checkIfFeatureIsEnabledGlobally("calendar-subscription-cache");
+  }
+
+  /**
+   * Check if sync is enabled
+   * @returns true if sync is enabled
+   */
+  async isSyncEnabled(): Promise<boolean> {
+    return this.deps.featuresRepository.checkIfFeatureIsEnabledGlobally("calendar-subscription-sync");
   }
 
   /**

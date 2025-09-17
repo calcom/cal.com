@@ -31,16 +31,42 @@ export class CalendarCacheEventRepository implements ICalendarCacheEventReposito
   }
 
   async upsertMany(events: CalendarCacheEvent[]): Promise<void> {
-    this.prismaClient.calendarCacheEvent.createMany({ data: events });
+    if (events.length === 0) {
+      return;
+    }
+    // lack of upsertMany in prisma
+    return Promise.all(
+      events.map((event) => {
+        return this.prismaClient.calendarCacheEvent.upsert({
+          where: {
+            selectedCalendarId_externalId: {
+              externalId: event.externalId,
+              selectedCalendarId: event.selectedCalendarId,
+            },
+          },
+          update: {
+            start: event.start,
+            end: event.end,
+            summary: event.summary,
+            description: event.description,
+            location: event.location,
+            isAllDay: event.isAllDay,
+            timeZone: event.timeZone,
+          },
+          create: event,
+        });
+      })
+    );
   }
 
   async deleteMany(events: Pick<CalendarCacheEvent, "externalId" | "selectedCalendarId">[]): Promise<void> {
+    // Only delete events with externalId and selectedCalendarId
     const conditions = events.filter((c) => c.externalId && c.selectedCalendarId);
     if (conditions.length === 0) {
       return;
     }
 
-    this.prismaClient.calendarCacheEvent.deleteMany({
+    return this.prismaClient.calendarCacheEvent.deleteMany({
       where: {
         OR: conditions,
       },

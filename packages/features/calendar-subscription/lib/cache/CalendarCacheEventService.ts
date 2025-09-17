@@ -37,7 +37,8 @@ export class CalendarCacheEventService {
         continue;
       }
 
-      if (event.busy) {
+      // not storing free or cancelled events
+      if (event.busy && event.status !== "cancelled") {
         toUpsert.push({
           externalId: event.id,
           selectedCalendarId: selectedCalendar.id,
@@ -49,6 +50,7 @@ export class CalendarCacheEventService {
           isAllDay: event.isAllDay,
           timeZone: event.timeZone,
           originalStartTime: event.originalStartDate,
+          externalEtag: event.etag,
           externalCreatedAt: event.createdAt,
           externalUpdatedAt: event.updatedAt,
         });
@@ -60,7 +62,7 @@ export class CalendarCacheEventService {
       }
     }
 
-    log.debug("handleEvents: applying changes to the database", {
+    log.info("handleEvents: applying changes to the database", {
       received: calendarSubscriptionEvents.length,
       toUpsert: toUpsert.length,
       toDelete: toDelete.length,
