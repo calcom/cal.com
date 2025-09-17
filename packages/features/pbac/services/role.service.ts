@@ -5,7 +5,7 @@ import { RoleType as DomainRoleType } from "../domain/models/Role";
 import type { CreateRoleData, UpdateRolePermissionsData } from "../domain/models/Role";
 import type { IRoleRepository } from "../domain/repositories/IRoleRepository";
 import { RoleRepository } from "../infrastructure/repositories/RoleRepository";
-import { DEFAULT_ROLE_IDS } from "../lib/constants";
+import { DEFAULT_ROLE_IDS, DefaultPBACRole } from "../lib/constants";
 import { PermissionDiffService } from "./permission-diff.service";
 import { PermissionService } from "./permission.service";
 
@@ -77,7 +77,7 @@ export class RoleService {
     }
 
     // Reassign all users with this role to the members_role
-    await this.repository.reassignUsersToRole(roleId, "member_role");
+    await this.repository.reassignUsersToRole(roleId, DefaultPBACRole.MEMBER_ROLE);
 
     await this.repository.delete(roleId);
   }
