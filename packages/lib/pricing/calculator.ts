@@ -9,14 +9,126 @@ import type {
   DurationCondition,
   TimeOfDayCondition,
   DayOfWeekCondition,
+  EnhancedPricingContext,
+  BulkPricingRequest,
+  BulkPricingResult,
 } from "./types";
 
 const DAYS_OF_WEEK = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 
+// Simple in-memory cache for pricing calculations
+const calculationCache = new Map<string, CacheEntry>();
+
+// Cache configuration
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const MAX_CACHE_SIZE = 1000;
+
+interface CacheEntry {
+  result: PriceCalculationResult;
+  timestamp: number;
+}
+
+/**
+ * Generate cache key for pricing calculation
+ */
+function generateCacheKey(config: VariablePricingConfig, context: PricingContext): string {
+  const configHash = JSON.stringify({
+    enabled: config.enabled,
+    basePrice: config.basePrice,
+    currency: config.currency,
+    rules: config.rules
+      .filter((r) => r.enabled)
+      .map((r) => ({
+        id: r.id,
+        type: r.type,
+        priority: r.priority,
+        condition: r.condition,
+        price: r.price,
+        priceModifier: r.priceModifier,
+      })),
+  });
+
+  const contextHash = JSON.stringify({
+    eventTypeId: context.eventTypeId,
+    duration: context.duration,
+    startTime: context.startTime.toISOString(),
+    endTime: context.endTime.toISOString(),
+    timezone: context.timezone,
+  });
+
+  return `${configHash}|${contextHash}`;
+}
+
+/**
+ * Get calculation from cache if valid
+ */
+function getFromCache(cacheKey: string): PriceCalculationResult | null {
+  const entry = calculationCache.get(cacheKey);
+
+  if (!entry) return null;
+
+  // Check if cache entry is expired
+  if (Date.now() - entry.timestamp > CACHE_TTL_MS) {
+    calculationCache.delete(cacheKey);
+    return null;
+  }
+
+  return entry.result;
+}
+
+/**
+ * Store calculation result in cache
+ */
+function storeInCache(cacheKey: string, result: PriceCalculationResult): void {
+  // Prevent cache from growing too large
+  if (calculationCache.size >= MAX_CACHE_SIZE) {
+    // Remove oldest entries (simple LRU-like behavior)
+    const oldestKeys = Array.from(calculationCache.keys()).slice(0, MAX_CACHE_SIZE / 4);
+    oldestKeys.forEach((key) => calculationCache.delete(key));
+  }
+
+  calculationCache.set(cacheKey, {
+    result,
+    timestamp: Date.now(),
+  });
+}
+
+/**
+ * Clear the pricing calculation cache
+ */
+export function clearPricingCache(): void {
+  calculationCache.clear();
+}
+
 /**
  * Calculate the total price for a booking based on variable pricing rules
+ * Now includes caching for improved performance
  */
 export function calculateVariablePrice(
+  config: VariablePricingConfig,
+  context: PricingContext
+): PriceCalculationResult {
+  // Check cache first
+  const cacheKey = generateCacheKey(config, context);
+  const cachedResult = getFromCache(cacheKey);
+
+  if (cachedResult) {
+    return cachedResult;
+  }
+
+  // Perform calculation
+  const result = calculateVariablePriceInternal(config, context);
+
+  // Store in cache
+  storeInCache(cacheKey, result);
+
+  return result;
+}
+
+/**
+ * Internal calculation method (without caching)
+ */
+function calculateVariablePriceInternal(
   config: VariablePricingConfig,
   context: PricingContext
 ): PriceCalculationResult {
@@ -54,7 +166,7 @@ export function calculateVariablePrice(
     .sort((a, b) => {
       const priorityDiff = (b.priority || 0) - (a.priority || 0);
       if (priorityDiff !== 0) return priorityDiff;
-      
+
       // Secondary sort by type order: duration > timeOfDay > dayOfWeek > custom
       const typeOrder = { duration: 0, timeOfDay: 1, dayOfWeek: 2, custom: 3 };
       return typeOrder[a.type] - typeOrder[b.type];
@@ -172,7 +284,11 @@ function isDayOfWeekRuleApplicable(condition: DayOfWeekCondition, context: Prici
 /**
  * Calculate the price modifier for a rule
  */
-function calculateModifier(rule: PricingRule, currentPrice: number, context: PricingContext): PriceBreakdownItem {
+function calculateModifier(
+  rule: PricingRule,
+  currentPrice: number,
+  _context: PricingContext
+): PriceBreakdownItem {
   const { priceModifier } = rule;
   if (!priceModifier) {
     return {
@@ -241,7 +357,7 @@ export function createPricingContext(
   timezone: string
 ): PricingContext {
   const duration = Math.round((endTime.getTime() - startTime.getTime()) / (1000 * 60));
-  
+
   return {
     eventTypeId,
     startTime,
@@ -249,5 +365,178 @@ export function createPricingContext(
     duration,
     timezone,
     dayOfWeek: startTime.getDay(),
+  };
+}
+
+/**
+ * Calculate pricing for multiple scenarios at once (bulk operation)
+ * Useful for displaying pricing tables or analytics
+ */
+export function calculateBulkPricing(
+  config: VariablePricingConfig,
+  request: BulkPricingRequest
+): BulkPricingResult {
+  const results: Record<string, PriceCalculationResult> = {};
+  const prices: number[] = [];
+
+  for (const scenario of request.scenarios) {
+    const context = createPricingContext(
+      request.eventTypeId,
+      scenario.startTime,
+      scenario.endTime,
+      scenario.timezone
+    );
+
+    const result = calculateVariablePrice(config, context);
+    results[scenario.id] = result;
+    prices.push(result.totalPrice);
+  }
+
+  return {
+    results,
+    statistics: {
+      averagePrice: prices.reduce((sum, price) => sum + price, 0) / prices.length,
+      minPrice: Math.min(...prices),
+      maxPrice: Math.max(...prices),
+      totalScenarios: prices.length,
+    },
+  };
+}
+
+/**
+ * Calculate pricing for a time range with different durations
+ * Useful for showing pricing options to users
+ */
+export function calculatePricingOptions(
+  config: VariablePricingConfig,
+  eventTypeId: number,
+  startTime: Date,
+  durations: number[], // Array of durations in minutes
+  timezone: string
+): Array<{
+  duration: number;
+  endTime: Date;
+  pricing: PriceCalculationResult;
+}> {
+  return durations.map((duration) => {
+    const endTime = new Date(startTime.getTime() + duration * 60 * 1000);
+    const context = createPricingContext(eventTypeId, startTime, endTime, timezone);
+    const pricing = calculateVariablePrice(config, context);
+
+    return {
+      duration,
+      endTime,
+      pricing,
+    };
+  });
+}
+
+/**
+ * Get pricing preview for different time slots in a day
+ * Useful for showing users how prices vary throughout the day
+ */
+export function getPricingPreviewForDay(
+  config: VariablePricingConfig,
+  eventTypeId: number,
+  date: Date,
+  duration: number,
+  timezone: string,
+  options: {
+    intervalMinutes?: number;
+    startHour?: number;
+    endHour?: number;
+  } = {}
+): Array<{
+  startTime: Date;
+  endTime: Date;
+  pricing: PriceCalculationResult;
+}> {
+  const { intervalMinutes = 60, startHour = 8, endHour = 20 } = options;
+  const previews: Array<{
+    startTime: Date;
+    endTime: Date;
+    pricing: PriceCalculationResult;
+  }> = [];
+
+  for (let hour = startHour; hour <= endHour; hour += intervalMinutes / 60) {
+    const startTime = new Date(date);
+    startTime.setHours(Math.floor(hour), (hour % 1) * 60, 0, 0);
+
+    const endTime = new Date(startTime.getTime() + duration * 60 * 1000);
+    const context = createPricingContext(eventTypeId, startTime, endTime, timezone);
+    const pricing = calculateVariablePrice(config, context);
+
+    previews.push({
+      startTime,
+      endTime,
+      pricing,
+    });
+  }
+
+  return previews;
+}
+
+/**
+ * Advanced price calculation with enhanced context
+ * Supports additional business rules and user-specific pricing
+ */
+export function calculateEnhancedPrice(
+  config: VariablePricingConfig,
+  context: EnhancedPricingContext
+): PriceCalculationResult {
+  // Start with base calculation
+  const baseResult = calculateVariablePrice(config, context);
+
+  // Apply enhanced rules based on additional context
+  let totalPrice = baseResult.totalPrice;
+  const enhancedModifiers: PriceBreakdownItem[] = [...baseResult.modifiers];
+  const enhancedBreakdown: PriceBreakdownItem[] = [...baseResult.breakdown];
+
+  // Membership tier discounts
+  if (context.membershipTier) {
+    const tierDiscounts: Partial<Record<typeof context.membershipTier, number>> = {
+      premium: 10, // 10% discount
+      enterprise: 20, // 20% discount
+    };
+
+    const discountPercentage = tierDiscounts[context.membershipTier];
+    if (discountPercentage) {
+      const discountAmount = Math.round((totalPrice * discountPercentage) / 100);
+      const tierModifier: PriceBreakdownItem = {
+        description: `${context.membershipTier} member discount (${discountPercentage}%)`,
+        amount: -discountAmount,
+        type: "discount",
+        ruleId: `tier-${context.membershipTier}`,
+      };
+
+      enhancedModifiers.push(tierModifier);
+      enhancedBreakdown.push(tierModifier);
+      totalPrice -= discountAmount;
+    }
+  }
+
+  // Repeat booking discount
+  if (context.isRepeatBooking) {
+    const repeatDiscount = Math.round(totalPrice * 0.05); // 5% repeat booking discount
+    const repeatModifier: PriceBreakdownItem = {
+      description: "Repeat booking discount (5%)",
+      amount: -repeatDiscount,
+      type: "discount",
+      ruleId: "repeat-booking",
+    };
+
+    enhancedModifiers.push(repeatModifier);
+    enhancedBreakdown.push(repeatModifier);
+    totalPrice -= repeatDiscount;
+  }
+
+  // Ensure price is not negative
+  totalPrice = Math.max(0, totalPrice);
+
+  return {
+    ...baseResult,
+    modifiers: enhancedModifiers,
+    breakdown: enhancedBreakdown,
+    totalPrice,
   };
 }

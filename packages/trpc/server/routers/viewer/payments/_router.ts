@@ -1,6 +1,7 @@
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZChargerCardInputSchema } from "./chargeCard.schema";
+import { stripeVariablePricingRouter } from "./stripeVariablePricing";
 
 interface PaymentsRouterHandlerCache {
   chargeCard?: typeof import("./chargeCard.handler").chargeCardHandler;
@@ -26,4 +27,6 @@ export const paymentsRouter = router({
       input,
     });
   }),
+  // Include the Stripe variable pricing router
+  stripe: stripeVariablePricingRouter,
 });

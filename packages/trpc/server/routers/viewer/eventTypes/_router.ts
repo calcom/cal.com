@@ -11,6 +11,7 @@ import { ZGetHashedLinksInputSchema } from "./getHashedLinks.schema";
 import { ZGetTeamAndEventTypeOptionsSchema } from "./getTeamAndEventTypeOptions.schema";
 import { get } from "./procedures/get";
 import { eventOwnerProcedure } from "./util";
+import { variablePricingRouter } from "./variablePricing";
 
 type BookingsRouterHandlerCache = {
   getByViewer?: typeof import("./getByViewer.handler").getByViewerHandler;
@@ -26,9 +27,9 @@ type BookingsRouterHandlerCache = {
 };
 
 // Init the handler cache
-const UNSTABLE_HANDLER_CACHE: BookingsRouterHandlerCache = {};
+const _UNSTABLE_HANDLER_CACHE: BookingsRouterHandlerCache = {};
 
-export const eventTypesRouter = router({
+export const eventTypesRouterBase = router({
   // REVIEW: What should we name this procedure?
   getByViewer: authedProcedure.input(ZEventTypeInputSchema).query(async ({ ctx, input }) => {
     const { getByViewerHandler } = await import("./getByViewer.handler");
@@ -160,4 +161,10 @@ export const eventTypesRouter = router({
       input,
     });
   }),
+});
+
+// Merge with the variable pricing router
+export const eventTypesRouter = router({
+  ...eventTypesRouterBase,
+  pricing: variablePricingRouter,
 });
