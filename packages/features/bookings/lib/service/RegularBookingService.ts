@@ -3,6 +3,7 @@ import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
+import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import {
   getLocationValueForDB,
@@ -21,6 +22,9 @@ import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
+// TODO: Must be injected from DI
+import { BOOKING_MESSAGES } from "@calcom/features/bookings/lib/messageBus/BookingMessageBus";
+import type { IBookingMessageBus } from "@calcom/features/bookings/lib/messageBus/BookingMessageBus";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes/lib/eventNaming";
@@ -50,7 +54,6 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
-import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import type { CheckBookingLimitsService } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
@@ -65,7 +68,6 @@ import type { HostRepository } from "@calcom/lib/server/repository/host";
 import type { PrismaOOORepository as OooRepository } from "@calcom/lib/server/repository/ooo";
 import type { UserRepository } from "@calcom/lib/server/repository/user";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
-import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
@@ -78,7 +80,6 @@ import {
   CreationSource,
 } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
-import { verifyCodeUnAuthenticated } from "@calcom/trpc/server/routers/viewer/auth/util";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type {
   AdditionalInformation,
@@ -119,6 +120,7 @@ import { scheduleNoShowTriggers } from "../handleNewBooking/scheduleNoShowTrigge
 import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from "../handleNewBooking/types";
 import handleSeats from "../handleSeats/handleSeats";
 import type { IBookingService } from "../interfaces/IBookingService";
+import { registerBookingMessageHandlers } from "../messageBus/registry";
 import { BookingValidationService } from "../utils/BookingValidationService";
 
 const translator = short();
@@ -417,6 +419,7 @@ export interface IBookingServiceDependencies {
   oooRepository: OooRepository;
   userRepository: UserRepository;
   attributeRepository: AttributeRepository;
+  bookingMessageBus: IBookingMessageBus;
 }
 
 async function _handler(
@@ -432,6 +435,7 @@ async function _handler(
     checkBookingAndDurationLimitsService,
     luckyUserService,
     bookingRepository,
+    bookingMessageBus,
   } = deps;
 
   const loggerWithEventDetails = createLoggerWithEventDetails(
@@ -450,7 +454,7 @@ async function _handler(
     eventType,
     bookingFormData,
     recurringBookingData,
-    config: { noEmail, isDryRun, useCacheIfEnabled, hostname, forcedSlug },
+    config: bookingFlowConfig,
     loggedInUser,
     bookingMeta,
     hashedBookingLinkData,
@@ -479,6 +483,8 @@ async function _handler(
     rawGuests: reqGuests,
     rescheduleData,
   } = bookingFormData;
+
+  const { isDryRun, useCacheIfEnabled, hostname, forcedSlug, noEmail } = bookingFlowConfig;
 
   const luckyUsers = recurringBookingData.luckyUsers;
   const isPlatformBooking = !!bookingMeta.platform?.clientId;
@@ -584,9 +590,6 @@ async function _handler(
 
   const shouldServeCache = await cacheService.getShouldServeCache(useCacheIfEnabled, eventType.team?.id);
 
-  const isTeamEventType =
-    !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
-
   loggerWithEventDetails.info(
     `Booking eventType ${eventTypeId} started`,
     safeStringify({
@@ -600,7 +603,7 @@ async function _handler(
         location: rawBookingLocation,
         timeZone: booker.timeZone,
       },
-      isTeamEventType,
+      isTeamEventType: eventType.isTeamEventType,
       eventType: getPiiFreeEventType(eventType),
       dynamicUserList,
       paymentAppData: {
@@ -1036,7 +1039,7 @@ async function _handler(
     if (organizerMetadata?.defaultConferencingApp?.appSlug) {
       const app = getAppFromSlug(organizerMetadata?.defaultConferencingApp?.appSlug);
       locationBodyString = app?.appData?.location?.type || locationBodyString;
-      if (isManagedEventType || isTeamEventType) {
+      if (isManagedEventType || eventType.isTeamEventType) {
         organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
           organizerMetadata?.defaultConferencingApp?.appLink;
       }
@@ -1071,7 +1074,7 @@ async function _handler(
       return guestArray;
     }
     // If it's a team event, remove the team member from guests
-    if (isTeamEventType && users.some((user) => user.email === guest)) {
+    if (eventType.isTeamEventType && users.some((user) => user.email === guest)) {
       return guestArray;
     }
     guestArray.push({
@@ -1246,7 +1249,7 @@ async function _handler(
     evt = updatedEvt;
   }
 
-  if (isTeamEventType) {
+  if (eventType.isTeamEventType) {
     const teamEvt = await buildEventForTeamEventType({
       existingEvent: evt,
       schedulingType: eventType.schedulingType,
@@ -1627,6 +1630,7 @@ async function _handler(
 
   let videoCallUrl;
 
+  const isRescheduling = !!originalRescheduledBooking?.uid;
   // this is the actual rescheduling logic
   if (!eventType.seatsPerTimeSlot && originalRescheduledBooking?.uid) {
     log.silly("Rescheduling booking", originalRescheduledBooking.uid);
@@ -1997,6 +2001,28 @@ async function _handler(
       }
     : undefined;
 
+  const bookingCreationPayload = {
+    booking,
+    eventType,
+    config: bookingFlowConfig,
+  };
+  if (originalRescheduledBooking) {
+    await bookingMessageBus.emit(BOOKING_MESSAGES.BOOKING_RESCHEDULED, {
+      ...bookingCreationPayload,
+      reschedule: {
+        originalBooking: {
+          uid: originalRescheduledBooking.uid,
+        },
+        rescheduleReason: rescheduleData.reason,
+        rescheduledBy: rescheduleData.rescheduledBy,
+      },
+    });
+  } else {
+    await bookingMessageBus.emit(BOOKING_MESSAGES.BOOKING_CREATED, {
+      ...bookingCreationPayload,
+    });
+  }
+
   const webhookData: EventPayloadType = {
     ...evt,
     ...eventTypeInfo,
@@ -2236,23 +2262,6 @@ async function _handler(
     });
   }
 
-  try {
-    const hashedLinkService = new HashedLinkService();
-    if (hashedBookingLinkData?.hasHashedBookingLink && hashedBookingLinkData.hashedLink && !isDryRun) {
-      await hashedLinkService.validateAndIncrementUsage(hashedBookingLinkData.hashedLink as string);
-    }
-  } catch (error) {
-    loggerWithEventDetails.error("Error while updating hashed link", JSON.stringify({ error }));
-
-    // Handle repository errors and convert to HttpErrors
-    if (error instanceof Error) {
-      throw new HttpError({ statusCode: 410, message: error.message });
-    }
-
-    // For unexpected errors, provide a generic message
-    throw new HttpError({ statusCode: 500, message: "Failed to process booking link" });
-  }
-
   if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
 
   try {
@@ -2342,7 +2351,7 @@ async function _handler(
         email: booker.email,
         eventName: "Cal.com lead",
       },
-      isTeamEventType,
+      isTeamEventType: eventType.isTeamEventType,
     });
   }
 
@@ -2381,6 +2390,7 @@ export interface IBookingServiceDependencies {
   oooRepository: OooRepository;
   userRepository: UserRepository;
   attributeRepository: AttributeRepository;
+  bookingMessageBus: IBookingMessageBus;
 }
 /**
  * Takes care of creating/rescheduling non-recurring, non-instant bookings. Such bookings could be TeamBooking, UserBooking, SeatedUserBooking, SeatedTeamBooking, etc.
@@ -2388,7 +2398,9 @@ export interface IBookingServiceDependencies {
  * We are open to renaming it to something more descriptive.
  */
 export class RegularBookingService implements IBookingService {
-  constructor(private readonly deps: IBookingServiceDependencies) {}
+  constructor(private readonly deps: IBookingServiceDependencies) {
+    registerBookingMessageHandlers(this.deps.bookingMessageBus);
+  }
 
   async createBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
     // deps to be passed to handler in follow-up PR

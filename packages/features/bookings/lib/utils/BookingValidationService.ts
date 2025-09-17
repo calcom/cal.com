@@ -1,9 +1,16 @@
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
+import { HttpError } from "@calcom/lib/http-error";
 import type logger from "@calcom/lib/logger";
 import type { BookingRepository } from "@calcom/lib/server/repository/booking";
 import type { UserRepository } from "@calcom/lib/server/repository/user";
 import { verifyCodeUnAuthenticated } from "@calcom/trpc/server/routers/viewer/auth/util";
-import type { BookingDataSchemaGetter, CreateBookingMeta, CreateRegularBookingData } from "../dto/types";
+
+import type {
+  BookingDataSchemaGetter,
+  BookingFlowConfig,
+  CreateBookingMeta,
+  CreateRegularBookingData,
+} from "../dto/types";
 import { checkActiveBookingsLimitForBooker } from "../handleNewBooking/checkActiveBookingsLimitForBooker";
 import { checkIfBookerEmailIsBlocked } from "../handleNewBooking/checkIfBookerEmailIsBlocked";
 import { getBookingData } from "../handleNewBooking/getBookingData";
@@ -11,15 +18,18 @@ import { getEventType } from "../handleNewBooking/getEventType";
 import type { getEventTypeResponse } from "../handleNewBooking/getEventTypesFromDB";
 import { validateBookingTimeIsNotOutOfBounds } from "../handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "../handleNewBooking/validateEventLength";
-import { HttpError } from "@calcom/lib/http-error";  
 
 export type EnrichmentInput = {
   eventTypeId: number;
   eventTypeSlug: string;
 };
 
+type EnrichedEventType = getEventTypeResponse & {
+  isTeamEventType: boolean;
+};
+
 export type EnrichmentOutput = {
-  eventType: getEventTypeResponse;
+  eventType: EnrichedEventType;
 };
 
 export type ValidationInputContext = EnrichmentInput & {
@@ -56,7 +66,7 @@ export type BookingFormData = {
   tracking: CreateRegularBookingData["tracking"];
 };
 export type ValidationOutput = {
-  eventType: getEventTypeResponse;
+  eventType: EnrichedEventType;
   bookingFormData: BookingFormData;
   loggedInUser: {
     id: number | null;
@@ -82,13 +92,7 @@ export type ValidationOutput = {
       bookingLocation: string | null;
     } | null;
   };
-  config: {
-    isDryRun: boolean;
-    useCacheIfEnabled: boolean;
-    noEmail: boolean;
-    hostname: string | null;
-    forcedSlug: string | null;
-  };
+  config: BookingFlowConfig;
   hashedBookingLinkData: {
     hasHashedBookingLink: boolean;
     hashedLink: string | null;
@@ -142,6 +146,8 @@ export class BookingValidationService {
     return {
       eventType: {
         ...eventType,
+        isTeamEventType:
+          !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType),
         timeZone: eventTimeZone,
       },
     };
@@ -252,7 +258,7 @@ export class BookingValidationService {
           message: "email_verification_required",
         });
       }
-  
+
       try {
         await verifyCodeUnAuthenticated(bookerEmail, verificationCode);
       } catch (error) {
