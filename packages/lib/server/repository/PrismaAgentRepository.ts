@@ -90,7 +90,7 @@ export class PrismaAgentRepository {
       whereCondition = Prisma.sql`id = ${agentId} AND "userId" = ${userId}`;
     }
 
-    const agents = await prisma.$queryRaw<_AgentRawResult[]>`
+    const query = Prisma.sql`
       SELECT
         id,
         name,
@@ -104,6 +104,8 @@ export class PrismaAgentRepository {
       WHERE ${whereCondition}
       LIMIT 1
     `;
+
+    const agents = await prisma.$queryRaw<_AgentRawResult[]>(query);
 
     return agents.length > 0 ? agents[0] : null;
   }
@@ -126,7 +128,7 @@ export class PrismaAgentRepository {
       whereCondition = Prisma.sql`"providerAgentId" = ${providerAgentId} AND "userId" = ${userId}`;
     }
 
-    const agents = await prisma.$queryRaw<_AgentRawResult[]>`
+    const query = Prisma.sql`
       SELECT
         id,
         name,
@@ -140,6 +142,8 @@ export class PrismaAgentRepository {
       WHERE ${whereCondition}
       LIMIT 1
     `;
+
+    const agents = await prisma.$queryRaw<_AgentRawResult[]>(query);
 
     return agents.length > 0 ? agents[0] : null;
   }
@@ -227,7 +231,7 @@ export class PrismaAgentRepository {
       }
     }
 
-    const agents = await prisma.$queryRaw<_AgentRawResult[]>`
+    const query = Prisma.sql`
       SELECT
         a.id,
         a.name,
@@ -250,6 +254,8 @@ export class PrismaAgentRepository {
       WHERE ${whereCondition}
       ORDER BY a."teamId" ASC, a."createdAt" DESC
     `;
+
+    const agents = await prisma.$queryRaw<_AgentRawResult[]>(query);
 
     // Get phone numbers for each agent in a separate query to avoid N+1
     const agentIds = agents.map((agent) => agent.id);
@@ -343,7 +349,7 @@ export class PrismaAgentRepository {
       whereCondition = Prisma.sql`a.id = ${id} AND a."userId" = ${userId}`;
     }
 
-    const agents = await prisma.$queryRaw<_AgentRawResult[]>`
+    const query = Prisma.sql`
       SELECT
         a.id,
         a.name,
@@ -365,6 +371,8 @@ export class PrismaAgentRepository {
       WHERE ${whereCondition}
       LIMIT 1
     `;
+
+    const agents = await prisma.$queryRaw<_AgentRawResult[]>(query);
 
     if (agents.length === 0) {
       return null;
@@ -464,7 +472,7 @@ export class PrismaAgentRepository {
       whereCondition = Prisma.sql`id = ${id} AND "userId" = ${userId}`;
     }
 
-    const agents = await prisma.$queryRaw<_AgentRawResult[]>`
+    const query = Prisma.sql`
       SELECT
         id,
         name,
@@ -478,6 +486,8 @@ export class PrismaAgentRepository {
       WHERE ${whereCondition}
       LIMIT 1
     `;
+
+    const agents = await prisma.$queryRaw<_AgentRawResult[]>(query);
 
     return agents.length > 0 ? agents[0] : null;
   }
@@ -494,7 +504,7 @@ export class PrismaAgentRepository {
       whereCondition = Prisma.sql`a.id = ${id} AND a."userId" = ${userId}`;
     }
 
-    const agents = await prisma.$queryRaw<_AgentRawResult[]>`
+    const query = Prisma.sql`
       SELECT
         a.id,
         a.name,
@@ -508,6 +518,8 @@ export class PrismaAgentRepository {
       WHERE ${whereCondition}
       LIMIT 1
     `;
+
+    const agents = await prisma.$queryRaw<_AgentRawResult[]>(query);
 
     if (agents.length === 0) {
       return null;
