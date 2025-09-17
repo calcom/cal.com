@@ -144,16 +144,11 @@ export default function BillingCredits() {
           <h2 className="text-default text-base font-semibold leading-none">{t("credits")}</h2>
           <p className="text-subtle text-sm font-medium leading-tight">{t("view_and_manage_credits")}</p>
         </div>
-        <div className="bg-default border-muted flex rounded-[10px] px-5 py-4">
-          <div className="mt-6 w-full">
+        <div className="bg-default border-muted flex w-full rounded-[10px] px-5 py-4">
+          <div className="w-full">
             {creditsData.credits.totalMonthlyCredits > 0 ? (
               <div className="mb-4">
                 <Label>{t("monthly_credits")}</Label>
-                <ProgressBar
-                  color="green"
-                  percentageValue={teamCreditsPercentageUsed}
-                  label={`${Math.max(0, Math.round(teamCreditsPercentageUsed))}%`}
-                />
                 <div className="text-subtle">
                   <div>
                     {t("total_credits", {
@@ -166,6 +161,11 @@ export default function BillingCredits() {
                     })}
                   </div>
                 </div>
+                <ProgressBar
+                  color="green"
+                  percentageValue={teamCreditsPercentageUsed}
+                  label={`${Math.max(0, Math.round(teamCreditsPercentageUsed))}%`}
+                />
               </div>
             ) : (
               <></>

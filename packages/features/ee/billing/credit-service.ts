@@ -591,9 +591,9 @@ export class CreditService {
     const teamBillingService = new InternalTeamBilling(team);
     const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
 
-    if (subscriptionStatus !== "active" && subscriptionStatus !== "past_due") {
-      return 0;
-    }
+    // if (subscriptionStatus !== "active" && subscriptionStatus !== "past_due") {
+    //   return 0;
+    // }
 
     const activeMembers = team.members.filter((member) => member.accepted).length;
 
