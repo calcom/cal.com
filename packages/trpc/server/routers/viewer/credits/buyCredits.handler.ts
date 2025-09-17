@@ -66,6 +66,7 @@ export const buyCreditsHandler = async ({ ctx, input }: BuyCreditsOptions) => {
     quantity,
     successUrl: redirectUrl,
     cancelUrl: redirectUrl,
+    allowPromotionCodes: true,
     metadata: {
       ...(teamId && { teamId: teamId.toString() }),
       userId: ctx.user.id.toString(),
