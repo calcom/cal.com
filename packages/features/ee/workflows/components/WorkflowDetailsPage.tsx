@@ -82,6 +82,7 @@ export default function WorkflowDetailsPage(props: Props) {
           label,
           creditsTeamId: teamId,
           isOrganization: isOrg,
+          isCalAi: isCalAIAction(option.value),
         };
       }) ?? [];
 
