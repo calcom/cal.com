@@ -6,6 +6,7 @@ export type RetellLLM = Retell.LlmResponse;
 export type RetellPhoneNumber = Retell.PhoneNumberResponse;
 export type RetellCall = Retell.PhoneCallResponse;
 export type RetellDynamicVariables = { [key: string]: unknown };
+export type RetellVoice = Retell.VoiceResponse;
 
 export type RetellAgent = Retell.AgentResponse;
 
@@ -186,4 +187,7 @@ export interface RetellAIRepository {
   createWebCall(
     data: CreateWebCallParams
   ): Promise<{ call_id: string; access_token: string; agent_id: string }>;
+
+  // Voice operations
+  listVoices(): Promise<RetellVoice[]>;
 }
