@@ -179,6 +179,13 @@ describe("Organizations Event Types Endpoints", () => {
       });
 
       await membershipsRepositoryFixture.create({
+        role: "ADMIN",
+        user: { connect: { id: userAdmin.id } },
+        team: { connect: { id: team.id } },
+        accepted: true,
+      });
+
+      await membershipsRepositoryFixture.create({
         role: "MEMBER",
         user: { connect: { id: teammate1.id } },
         team: { connect: { id: team.id } },
@@ -901,7 +908,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
 
           const data = responseBody.data;
-          expect(data.length).toEqual(3);
+          expect(data.length).toEqual(4);
 
           const teammate1EventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(teammate1.id);
           const teammate2EventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(teammate2.id);
