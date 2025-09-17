@@ -57,6 +57,9 @@ export class StripeBillingService implements BillingService {
       cancel_url: cancelUrl,
       metadata: metadata,
       allow_promotion_codes: allowPromotionCodes,
+      invoice_creation: {
+       enabled: true,
+      },
     });
 
     return {
