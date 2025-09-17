@@ -25,14 +25,6 @@ module.exports = {
         "@typescript-eslint/no-restricted-imports": [
           "error",
           {
-            paths: [
-              {
-                name: "@calcom/trpc",
-                message:
-                  "tRPC imports are blocked in packages/app-store. Move UI to apps/web/components/apps or introduce an API boundary.",
-                allowTypeImports: false,
-              },
-            ],
             patterns: [
               {
                 group: ["@calcom/trpc/*", "@trpc/*"],
