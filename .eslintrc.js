@@ -28,8 +28,24 @@ module.exports = {
             patterns: [
               {
                 group: ["@calcom/trpc/*", "@trpc/*"],
-                message: "tRPC imports are blocked in packages/app-store. Move UI to apps/web/components/apps or introduce an API boundary.",
-                allowTypeImports: false,
+                message:
+                  "tRPC imports are blocked in packages/app-store. Move UI to apps/web/components/apps or introduce an API boundary.",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      files: ["apps/web/app/api/platform/**/*"],
+      rules: {
+        "no-restricted-imports": [
+          "error",
+          {
+            patterns: [
+              {
+                group: ["**/ee/**"],
+                message: "Enterprise features not allowed in platform code",
               },
             ],
           },

@@ -289,10 +289,6 @@
       "dependsOn": ["@calcom/prisma#db-up"],
       "inputs": ["./schema.prisma", "./migrations/**/*.sql"]
     },
-    "@calcom/prisma#db-seed": {
-      "cache": false,
-      "dependsOn": ["@calcom/prisma#db-deploy"]
-    },
     "@calcom/prisma#db-up": {
       "cache": false
     },

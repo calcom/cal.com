@@ -1,0 +1,13 @@
+name: Enterprise Code Check
+on: [pull_request]
+jobs:
+  check-enterprise:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check for enterprise imports
+        run: |
+          if grep -r "from.*ee/" --include="*.ts" --include="*.tsx" .; then
+            echo "Enterprise code detected!"
+            exit 1
+          fi
