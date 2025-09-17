@@ -17,6 +17,7 @@ import {
   Switch,
   TextField,
   showToast,
+  Spinner,
 } from "@calcom/ui";
 import { Plus, Edit2, Trash2 } from "@calcom/ui/components/icon";
 
@@ -33,49 +34,49 @@ type FormData = {
 };
 
 const PRICE_MODIFIER_ACTIONS = [
-  { value: "add", label: "Add (Fixed Amount)" },
-  { value: "subtract", label: "Subtract (Fixed Amount)" },
-  { value: "multiply", label: "Multiply (Percentage)" },
-  { value: "divide", label: "Divide (Percentage)" },
-  { value: "set", label: "Set Fixed Price" },
+  { value: "add", label: t("add_fixed_amount") },
+  { value: "subtract", label: t("subtract_fixed_amount") },
+  { value: "multiply", label: t("multiply_percentage") },
+  { value: "divide", label: t("divide_percentage") },
+  { value: "set", label: t("set_fixed_price") },
 ];
 
 const CONDITION_TYPES = [
-  { value: "duration", label: "Duration" },
-  { value: "timeOfDay", label: "Time of Day" },
-  { value: "dayOfWeek", label: "Day of Week" },
-  { value: "custom", label: "Custom Field" },
+  { value: "duration", label: t("duration") },
+  { value: "timeOfDay", label: t("time_of_day") },
+  { value: "dayOfWeek", label: t("day_of_week") },
+  { value: "custom", label: t("custom_field") },
 ];
 
 const COMPARISON_OPERATORS = [
-  { value: "eq", label: "Equals" },
-  { value: "neq", label: "Not Equals" },
-  { value: "gt", label: "Greater Than" },
-  { value: "gte", label: "Greater Than or Equal" },
-  { value: "lt", label: "Less Than" },
-  { value: "lte", label: "Less Than or Equal" },
-  { value: "contains", label: "Contains" },
-  { value: "custom", label: "Custom Function" },
+  { value: "eq", label: t("equals") },
+  { value: "neq", label: t("not_equals") },
+  { value: "gt", label: t("greater_than") },
+  { value: "gte", label: t("greater_than_or_equal") },
+  { value: "lt", label: t("less_than") },
+  { value: "lte", label: t("less_than_or_equal") },
+  { value: "contains", label: t("contains") },
+  { value: "custom", label: t("custom_function") },
 ];
 
 const DAYS_OF_WEEK = [
-  { value: "sunday", label: "Sunday" },
-  { value: "monday", label: "Monday" },
-  { value: "tuesday", label: "Tuesday" },
-  { value: "wednesday", label: "Wednesday" },
-  { value: "thursday", label: "Thursday" },
-  { value: "friday", label: "Friday" },
-  { value: "saturday", label: "Saturday" },
+  { value: "sunday", label: t("sunday") },
+  { value: "monday", label: t("monday") },
+  { value: "tuesday", label: t("tuesday") },
+  { value: "wednesday", label: t("wednesday") },
+  { value: "thursday", label: t("thursday") },
+  { value: "friday", label: t("friday") },
+  { value: "saturday", label: t("saturday") },
 ];
 
 const CURRENCIES = [
-  { value: "USD", label: "USD ($)" },
-  { value: "EUR", label: "EUR (€)" },
-  { value: "GBP", label: "GBP (£)" },
-  { value: "CAD", label: "CAD ($)" },
-  { value: "AUD", label: "AUD ($)" },
-  { value: "JPY", label: "JPY (¥)" },
-  { value: "INR", label: "INR (₹)" },
+  { value: "USD", label: t("currency_usd") },
+  { value: "EUR", label: t("currency_eur") },
+  { value: "GBP", label: t("currency_gbp") },
+  { value: "CAD", label: t("currency_cad") },
+  { value: "AUD", label: t("currency_aud") },
+  { value: "JPY", label: t("currency_jpy") },
+  { value: "INR", label: t("currency_inr") },
 ];
 
 export function VariablePricingModal({ eventTypeId, onClose }: VariablePricingProps) {
@@ -105,7 +106,7 @@ export function VariablePricingModal({ eventTypeId, onClose }: VariablePricingPr
       const config = pricingData.pricingConfig;
       form.setValue("variablePricing.enabled", config.enabled);
       form.setValue("variablePricing.basePrice", config.basePrice / 100); // Convert cents to dollars
-      form.setValue("variablePricing.currency", config.currency);
+      form.setValue("variablePricing.currency", config.currency?.toUpperCase?.() || "USD");
       form.setValue("variablePricing.rules", config.rules);
     }
   }, [pricingData, form]);
@@ -121,15 +122,30 @@ export function VariablePricingModal({ eventTypeId, onClose }: VariablePricingPr
         enabled: data.enabled,
         basePrice,
         currency: data.currency,
-        rules: data.rules.map((rule) => ({
-          id: rule.id,
-          type: rule.type,
-          enabled: rule.enabled,
-          description: rule.description,
-          action: rule.action,
-          amount: rule.amount,
-          condition: rule.condition,
-        })),
+        rules: data.rules.map((rule) => {
+          return {
+            id: rule.id,
+            type: rule.type,
+            enabled: rule.enabled,
+            description: rule.description,
+            priority: rule.priority ?? 0,
+            condition: rule.condition,
+            // map UI fields to pricing model
+            ...(rule.price != null
+              ? { price: Math.round(rule.price) } // already cents if editing existing
+              : rule.action === "set"
+              ? { price: Math.round((rule.amount || 0) * 100) }
+              : rule.action === "add"
+              ? { priceModifier: { type: "surcharge", value: Math.round((rule.amount || 0) * 100) } }
+              : rule.action === "subtract"
+              ? { priceModifier: { type: "discount", value: Math.round((rule.amount || 0) * 100) } }
+              : rule.action === "multiply"
+              ? { priceModifier: { type: "surcharge", value: 0, percentage: rule.amount || 0 } }
+              : rule.action === "divide"
+              ? { priceModifier: { type: "discount", value: 0, percentage: rule.amount || 0 } }
+              : {}),
+          };
+        }),
       },
     });
   };
@@ -164,7 +180,7 @@ export function VariablePricingModal({ eventTypeId, onClose }: VariablePricingPr
 
         {isLoading ? (
           <div className="flex justify-center py-8">
-            <div className="spinner">Loading...</div>
+            <Spinner />
           </div>
         ) : (
           <>
@@ -356,8 +372,11 @@ function AddRuleDialog({ onClose, onAddRule, initialRule }: AddRuleDialogProps) 
   const [ruleType, setRuleType] = useState<PricingRule["type"]>(initialRule?.type || "duration");
   const [enabled, setEnabled] = useState(initialRule?.enabled ?? true);
   const [description, setDescription] = useState(initialRule?.description || "");
-  const [action, setAction] = useState(initialRule?.action || "add");
-  const [amount, setAmount] = useState(initialRule?.amount || 0);
+  const [action, setAction] = useState<"add" | "subtract" | "multiply" | "divide" | "set">(
+    // @ts-expect-error UI-only state
+    initialRule?.price ? "set" : "add"
+  );
+  const [amount, setAmount] = useState<number>(0);
 
   // Duration condition fields
   const [minDuration, setMinDuration] = useState(
@@ -435,9 +454,18 @@ function AddRuleDialog({ onClose, onAddRule, initialRule }: AddRuleDialogProps) 
       type: ruleType,
       enabled,
       description,
-      action: action as PricingRule["action"],
-      amount: parseInt(amount.toString()),
       condition,
+      ...(action === "set"
+        ? { price: Math.round(amount * 100) }
+        : action === "add"
+        ? { priceModifier: { type: "surcharge", value: Math.round(amount * 100) } }
+        : action === "subtract"
+        ? { priceModifier: { type: "discount", value: Math.round(amount * 100) } }
+        : action === "multiply"
+        ? { priceModifier: { type: "surcharge", value: 0, percentage: amount } }
+        : action === "divide"
+        ? { priceModifier: { type: "discount", value: 0, percentage: amount } }
+        : {}),
     };
 
     onAddRule(rule);
