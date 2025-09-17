@@ -1,4 +1,4 @@
-import { WEBSITE_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import slugify from "@calcom/lib/slugify";
 
 interface ResponseUsernameApi {
@@ -10,7 +10,7 @@ interface ResponseUsernameApi {
 
 export async function checkPremiumUsername(_username: string): Promise<ResponseUsernameApi> {
   const username = slugify(_username);
-  const response = await fetch(`${WEBSITE_URL}/api/username`, {
+  const response = await fetch(`${WEBAPP_URL}/api/username`, {
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
