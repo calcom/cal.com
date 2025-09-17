@@ -552,11 +552,16 @@ export class PrismaAgentRepository {
     });
   }
 
-  static async linkInboundAgentToWorkflow({ workflowId, agentId }: { workflowId: number; agentId: string }) {
-    return await prisma.workflowStep.updateMany({
+  static async linkInboundAgentToWorkflow({
+    workflowStepId,
+    agentId,
+  }: {
+    workflowStepId: number;
+    agentId: string;
+  }) {
+    return await prisma.workflowStep.update({
       where: {
-        workflowId: workflowId,
-        action: "CAL_AI_PHONE_CALL",
+        id: workflowStepId,
       },
       data: {
         inboundAgentId: agentId,

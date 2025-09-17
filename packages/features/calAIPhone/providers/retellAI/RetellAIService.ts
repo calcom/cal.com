@@ -42,7 +42,7 @@ export class RetellAIService {
     private transactionManager: TransactionInterface
   ) {
     this.aiConfigurationService = new AIConfigurationService(repository);
-    this.agentService = new AgentService(repository, agentRepository);
+    this.agentService = new AgentService(repository, agentRepository, phoneNumberRepository);
     this.billingService = new BillingService(phoneNumberRepository, repository);
     this.callService = new CallService(repository, agentRepository);
     this.phoneNumberService = new PhoneNumberService(
@@ -167,9 +167,10 @@ export class RetellAIService {
 
   async createInboundAgent(params: {
     name?: string;
+    phoneNumber: string;
     userId: number;
     teamId?: number;
-    workflowId: number;
+    workflowStepId: number;
     userTimeZone: string;
   }) {
     return this.agentService.createInboundAgent({

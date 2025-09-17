@@ -1,7 +1,8 @@
 import { useSearchParams } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import type { UseFormReturn } from "react-hook-form";
+import { useWatch } from "react-hook-form";
 
 import { SENDER_ID, SENDER_NAME, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -58,8 +59,6 @@ export default function WorkflowDetailsPage(props: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventTypeId]);
 
-  const steps = form.getValues("steps") || [];
-
   const addAction = (
     action: WorkflowActions,
     sendTo?: string,
@@ -96,20 +95,91 @@ export default function WorkflowDetailsPage(props: Props) {
       includeCalendarEvent: false,
       verifiedAt: SCANNING_WORKFLOW_STEPS ? null : new Date(),
       agentId: null,
+      inboundAgentId: null,
     };
     steps?.push(step);
     form.setValue("steps", steps);
   };
 
-  const agentQueriesTrpc = trpc.useQueries((t) =>
-    steps.map((step, index) => {
-      const watchedAgentId = form.watch(`steps.${index}.agentId`);
-      const agentId = step?.agentId ?? watchedAgentId ?? null;
+  // Watch all agent IDs at once instead of individually per step
+  const watchedSteps = useWatch({
+    control: form.control,
+    name: "steps",
+  });
+  console.log("watchedSteps", watchedSteps);
+  // Memoize agent IDs (both outbound and inbound) to prevent unnecessary query re-runs
+  const allAgentIds = useMemo(() => {
+    const outboundAgentIds = (watchedSteps || []).map((step) => step?.agentId || null);
+    const inboundAgentIds = (watchedSteps || []).map((step) => step?.inboundAgentId || null);
+    return { outboundAgentIds, inboundAgentIds };
+  }, [watchedSteps]);
 
-      return t.viewer.aiVoiceAgent.get({ id: agentId ?? "" }, { enabled: !!agentId });
+  // Only create queries for unique, non-null agent IDs (combining both types)
+  const uniqueAgentIds = useMemo((): string[] => {
+    const allIds = [...allAgentIds.outboundAgentIds, ...allAgentIds.inboundAgentIds];
+    const validIds: string[] = [];
+
+    for (const id of allIds) {
+      if (id && typeof id === "string") {
+        validIds.push(id);
+      }
+    }
+
+    return Array.from(new Set(validIds));
+  }, [allAgentIds]);
+
+  // Create queries only for unique agent IDs
+  const uniqueAgentQueries = trpc.useQueries((t) =>
+    uniqueAgentIds.map((agentId) => {
+      return t.viewer.aiVoiceAgent.get(
+        { id: agentId },
+        {
+          enabled: true,
+          // Add stale time to prevent unnecessary refetches
+          staleTime: 5 * 60 * 1000, // 5 minutes
+        }
+      );
     })
   );
 
+  // Create a lookup map for agent data
+  const agentDataMap = useMemo(() => {
+    const map = new Map();
+    uniqueAgentIds.forEach((agentId, index) => {
+      const query = uniqueAgentQueries[index];
+      if (query) {
+        map.set(agentId, {
+          data: query.data,
+          isPending: query.isPending,
+          isLoading: query.isLoading,
+          error: query.error,
+        });
+      }
+    });
+    return map;
+  }, [uniqueAgentIds, uniqueAgentQueries]);
+
+  // Create the expected array structure for backward compatibility (outbound agents)
+  const agentQueriesTrpc = useMemo(() => {
+    return allAgentIds.outboundAgentIds.map((agentId) => {
+      if (!agentId) {
+        return { data: null, isPending: false, isLoading: false, error: null };
+      }
+      return agentDataMap.get(agentId) || { data: null, isPending: false, isLoading: false, error: null };
+    });
+  }, [allAgentIds.outboundAgentIds, agentDataMap]);
+
+  // Create similar structure for inbound agents
+  const inboundAgentQueriesTrpc = useMemo(() => {
+    return allAgentIds.inboundAgentIds.map((agentId) => {
+      if (!agentId) {
+        return { data: null, isPending: false, isLoading: false, error: null };
+      }
+      return agentDataMap.get(agentId) || { data: null, isPending: false, isLoading: false, error: null };
+    });
+  }, [allAgentIds.inboundAgentIds, agentDataMap]);
+
+  console.log("agentQueriesTrpc", agentQueriesTrpc);
   return (
     <>
       <div>
@@ -145,6 +215,8 @@ export default function WorkflowDetailsPage(props: Props) {
             {form.getValues("steps")?.map((step, index) => {
               const agentData = agentQueriesTrpc[index]?.data;
               const isAgentLoading = agentQueriesTrpc[index]?.isPending;
+              const inboundAgentData = inboundAgentQueriesTrpc[index]?.data;
+              const isInboundAgentLoading = inboundAgentQueriesTrpc[index]?.isPending;
 
               return (
                 <div key={index}>
@@ -207,6 +279,8 @@ export default function WorkflowDetailsPage(props: Props) {
                         isDeleteStepDialogOpen={isDeleteStepDialogOpen}
                         isAgentLoading={isAgentLoading}
                         agentData={agentData}
+                        inboundAgentData={inboundAgentData}
+                        isInboundAgentLoading={isInboundAgentLoading}
                         allOptions={allOptions}
                       />
                     </FormCardBody>

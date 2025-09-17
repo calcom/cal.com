@@ -235,9 +235,10 @@ export class RetellAIPhoneServiceProvider
 
   async createInboundAgent(params: {
     name?: string;
+    phoneNumber: string;
     userId: number;
     teamId?: number;
-    workflowId: number;
+    workflowStepId: number;
     userTimeZone: string;
   }): Promise<{
     id: string;

@@ -2,23 +2,23 @@ import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone
 import logger from "@calcom/lib/logger";
 
 import type { TrpcSessionUser } from "../../../types";
-import type { TUpdateInboundAgentPromptInputSchema } from "./updateInboundAgentPrompt.schema";
+import type { TUpdateInboundAgentEventTypeInputSchema } from "./updateInboundAgentEventType.schema";
 
-type UpdateInboundAgentPromptHandlerOptions = {
+type UpdateInboundAgentEventTypeHandlerOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
-  input: TUpdateInboundAgentPromptInputSchema;
+  input: TUpdateInboundAgentEventTypeInputSchema;
 };
 
-export const updateInboundAgentPromptHandler = async ({
+export const updateInboundAgentEventTypeHandler = async ({
   ctx,
   input,
-}: UpdateInboundAgentPromptHandlerOptions) => {
-  const log = logger.getSubLogger({ prefix: ["updateInboundAgentPromptHandler"] });
+}: UpdateInboundAgentEventTypeHandlerOptions) => {
+  const log = logger.getSubLogger({ prefix: ["updateInboundAgentEventTypeHandler"] });
 
   try {
-    const { agentId, eventTypeId } = input;
+    const { agentId, eventTypeId, teamId } = input;
     const userId = ctx.user.id;
     const userTimeZone = ctx.user.timeZone || "UTC";
 
@@ -27,7 +27,10 @@ export const updateInboundAgentPromptHandler = async ({
     const agentDetails = await aiService.getAgentWithDetails({
       id: agentId,
       userId,
+      teamId,
     });
+
+    console.log("agentDetails", agentDetails);
 
     if (!agentDetails.retellData.generalPrompt) {
       throw new Error("Agent configuration not found");
@@ -40,17 +43,25 @@ export const updateInboundAgentPromptHandler = async ({
       .replace(/check_availability_\{\{eventTypeId\}\}/g, `check_availability_${eventTypeId}`)
       .replace(/book_appointment_\{\{eventTypeId\}\}/g, `book_appointment_${eventTypeId}`);
 
+    // Update tools and prompt using existing updateAgentConfiguration method
     await aiService.updateToolsFromAgentId(agentDetails.retellData.agentId, {
       eventTypeId,
       timeZone: userTimeZone,
       userId,
-      teamId: undefined,
+      teamId,
     });
 
     const result = await aiService.updateAgentConfiguration({
       id: agentId,
       userId,
       generalPrompt: updatedPrompt,
+    });
+
+    console.log("result", result);
+
+    log.info("Inbound agent prompt updated", {
+      agentId,
+      eventTypeId,
     });
 
     return {

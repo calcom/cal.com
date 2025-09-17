@@ -10,7 +10,7 @@ import { ZListCallsInputSchema } from "./listCalls.schema";
 import { ZSetupInboundAgentInputSchema } from "./setupInboundAgent.schema";
 import { ZTestCallInputSchema } from "./testCall.schema";
 import { ZUpdateInputSchema } from "./update.schema";
-import { ZUpdateInboundAgentPromptInputSchema } from "./updateInboundAgentPrompt.schema";
+import { ZUpdateInboundAgentEventTypeInputSchema } from "./updateInboundAgentEventType.schema";
 
 export const aiVoiceAgentRouter = router({
   list: authedProcedure.input(ZListInputSchema).query(async ({ ctx, input }) => {
@@ -102,12 +102,12 @@ export const aiVoiceAgentRouter = router({
     });
   }),
 
-  updateInboundAgentPrompt: authedProcedure
-    .input(ZUpdateInboundAgentPromptInputSchema)
+  updateInboundAgentEventType: eventOwnerProcedure
+    .input(ZUpdateInboundAgentEventTypeInputSchema)
     .mutation(async ({ ctx, input }) => {
-      const { updateInboundAgentPromptHandler } = await import("./updateInboundAgentPrompt.handler");
+      const { updateInboundAgentEventTypeHandler } = await import("./updateInboundAgentEventType.handler");
 
-      return updateInboundAgentPromptHandler({
+      return updateInboundAgentEventTypeHandler({
         ctx,
         input,
       });

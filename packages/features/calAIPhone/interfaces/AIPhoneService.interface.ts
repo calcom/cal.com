@@ -306,9 +306,10 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
    */
   createInboundAgent(params: {
     name?: string;
+    phoneNumber: string;
     userId: number;
     teamId?: number;
-    workflowId: number;
+    workflowStepId: number;
     userTimeZone: string;
   }): Promise<{
     id: string;

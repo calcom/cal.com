@@ -160,15 +160,7 @@ export class AIConfigurationService {
   }
 
   async setupInboundAIConfiguration(): Promise<{ llmId: string; agentId: string }> {
-    const inboundConfig: AIConfigurationSetup = {
-      generalPrompt:
-        "You are a helpful AI assistant handling incoming phone calls. Please assist callers with their requests and help them schedule appointments when needed.",
-      beginMessage: "Hello! How can I help you today?",
-      generalTools: [],
-      eventTypeId: undefined,
-    };
-
-    return this.setupAIConfiguration(inboundConfig);
+    return this.setupAIConfiguration({});
   }
 
   async getLLMDetails(llmId: string): Promise<AIPhoneServiceModel<AIPhoneServiceProviderType.RETELL_AI>> {

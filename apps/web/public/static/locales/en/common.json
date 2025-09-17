@@ -835,6 +835,7 @@
   "please_enter_phone_number": "Please enter a phone number",
   "agent_updated_successfully": "Agent updated successfully",
   "agent_created_successfully": "Agent created successfully",
+  "agent_event_type_updated_successfully": "Event type added successfully",
   "phone_number_unsubscribed_successfully": "Phone number unsubscribed successfully",
   "general_prompt_description": "This prompt defines the agent's role and primary objectives",
   "prompt": "Prompt",
@@ -3714,7 +3715,7 @@
   "current_voice": "Current Voice",
   "setup_incoming_agent": "Setup incoming agent",
   "setup_incoming_agent_description": "Configure an AI agent to handle incoming calls on your phone number",
-  "setup_incoming_agent_action": "Go to Phone Number",
+  "setup_incoming_agent_action": "Connect a Phone Number first",
   "setup_agent_for_incoming_calls": "Setup Agent for incoming calls",
   "configure_agent_to_handle_incoming_calls": "Configure agent to handle incoming calls",
   "incoming_calls": "Incoming Calls",
@@ -3724,5 +3725,6 @@
   "setup_inbound_agent": "Setup Inbound Agent",
   "please_select_event_type_first": "Please select an event type first",
   "edit_configuration": "Edit Configuration",
+  "select_event_type_for_inbound_calls": "Inbound calls can book only one event type. Select the event type where meetings will be scheduled when callers reach your agent.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

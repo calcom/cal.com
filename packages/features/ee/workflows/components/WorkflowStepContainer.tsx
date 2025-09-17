@@ -91,6 +91,8 @@ type WorkflowStepProps = {
   isDeleteStepDialogOpen?: boolean;
   agentData?: RetellAgentWithDetails;
   isAgentLoading?: boolean;
+  inboundAgentData?: RetellAgentWithDetails;
+  isInboundAgentLoading?: boolean;
 };
 
 const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
@@ -156,6 +158,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     allOptions,
     agentData,
     isAgentLoading,
+    inboundAgentData,
+    isInboundAgentLoading,
     isDeleteStepDialogOpen,
     setIsDeleteStepDialogOpen,
     onSaveWorkflow,
@@ -209,7 +213,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   });
 
   const stepAgentId = step?.agentId || form.watch(`steps.${step ? step.stepNumber - 1 : 0}.agentId`) || null;
-  const stepInboundAgentId = step?.inboundAgentId || form.watch(`steps.${step ? step.stepNumber - 1 : 0}.inboundAgentId`) || null;
+  const stepInboundAgentId =
+    step?.inboundAgentId || form.watch(`steps.${step ? step.stepNumber - 1 : 0}.inboundAgentId`) || null;
 
   const updateAgentMutation = trpc.viewer.aiVoiceAgent.update.useMutation({
     onSuccess: async () => {
@@ -764,7 +769,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               }}
             />
           </div>
-          {isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && !stepAgentId && !stepInboundAgentId && (
+          {isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && !stepAgentId && (
             <div className="bg-muted border-muted mt-2 rounded-2xl border p-3">
               <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center sm:gap-0">
                 <div>
@@ -923,7 +928,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         <DropdownItem
                           type="button"
                           StartIcon="pencil"
-                          onClick={() => setAgentConfigurationSheet({ open: true, activeTab: "outgoingCalls" })}>
+                          onClick={() =>
+                            setAgentConfigurationSheet({ open: true, activeTab: "outgoingCalls" })
+                          }>
                           {t("edit")}
                         </DropdownItem>
                       </DropdownMenuItem>
@@ -1482,6 +1489,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             agentId={stepAgentId}
             inboundAgentId={stepInboundAgentId}
             agentData={agentData}
+            inboundAgentData={inboundAgentData}
             onUpdate={(data) => {
               updateAgentMutation.mutate({
                 //eslint-disable-next-line @typescript-eslint/no-non-null-assertion

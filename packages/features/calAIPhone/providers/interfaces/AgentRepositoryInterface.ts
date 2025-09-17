@@ -73,7 +73,7 @@ export interface AgentRepositoryInterface {
   /**
    * Link inbound agent to workflow
    */
-  linkInboundAgentToWorkflow(params: { workflowId: number; agentId: string }): Promise<void>;
+  linkInboundAgentToWorkflow(params: { workflowStepId: number; agentId: string }): Promise<void>;
 }
 
 /**

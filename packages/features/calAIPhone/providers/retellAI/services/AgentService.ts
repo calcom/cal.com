@@ -14,6 +14,7 @@ import type {
   AIPhoneServiceTools,
 } from "../../../interfaces/AIPhoneService.interface";
 import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
+import type { PhoneNumberRepositoryInterface } from "../../interfaces/PhoneNumberRepositoryInterface";
 import { RetellAIServiceMapper } from "../RetellAIServiceMapper";
 import type { RetellAIRepository, Language } from "../types";
 import { getLlmId } from "../types";
@@ -23,7 +24,8 @@ export class AgentService {
 
   constructor(
     private retellRepository: RetellAIRepository,
-    private agentRepository: AgentRepositoryInterface
+    private agentRepository: AgentRepositoryInterface,
+    private phoneNumberRepository: PhoneNumberRepositoryInterface
   ) {}
 
   private async createApiKey({ userId, teamId }: { userId: number; teamId?: number }) {
@@ -62,6 +64,7 @@ export class AgentService {
     agentId: string,
     data: { eventTypeId: number | null; timeZone: string; userId: number | null; teamId?: number | null }
   ) {
+    console.log("updateToolsFromAgentId", agentId, data);
     if (!agentId?.trim()) {
       throw new HttpError({
         statusCode: 400,
@@ -159,6 +162,8 @@ export class AgentService {
       }
 
       const updatedGeneralTools = [...existing, ...newEventTools];
+
+      console.log("updatedGeneralTools", updatedGeneralTools);
 
       await this.retellRepository.updateLLM(llmId, { general_tools: updatedGeneralTools });
     } catch (error) {
@@ -499,17 +504,21 @@ export class AgentService {
   }
 
   async createInboundAgent({
-    name: _name,
+    name,
+    phoneNumber,
     userId,
     teamId,
-    workflowId,
+    workflowStepId,
     aiConfigurationService,
   }: {
     name?: string;
+    phoneNumber: string;
     userId: number;
     teamId?: number;
-    workflowId: number;
-    aiConfigurationService: { setupInboundAIConfiguration: () => Promise<{ llmId: string; agentId: string }> };
+    workflowStepId: number;
+    aiConfigurationService: {
+      setupInboundAIConfiguration: () => Promise<{ llmId: string; agentId: string }>;
+    };
   }) {
     if (teamId) {
       const canManage = await this.agentRepository.canManageTeamResources({
@@ -524,7 +533,35 @@ export class AgentService {
       }
     }
 
-    const agentName = _name || `Inbound Agent - ${workflowId}`;
+    let phoneNumberRecord;
+    if (teamId) {
+      phoneNumberRecord = await this.phoneNumberRepository.findByPhoneNumberAndTeamId({
+        phoneNumber,
+        teamId,
+        userId,
+      });
+    } else {
+      phoneNumberRecord = await this.phoneNumberRepository.findByPhoneNumberAndUserId({
+        phoneNumber,
+        userId,
+      });
+    }
+
+    if (!phoneNumberRecord) {
+      throw new HttpError({
+        statusCode: 404,
+        message: "Phone number not found or you don't have access to it",
+      });
+    }
+
+    if (phoneNumberRecord.inboundAgentId) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Inbound agent already configured for this phone number",
+      });
+    }
+
+    const agentName = name || `Inbound Agent - ${workflowStepId}`;
 
     const llmConfig = await aiConfigurationService.setupInboundAIConfiguration();
 
@@ -536,8 +573,13 @@ export class AgentService {
     });
 
     await this.agentRepository.linkInboundAgentToWorkflow({
-      workflowId,
+      workflowStepId,
       agentId: agent.id,
+    });
+
+    await this.phoneNumberRepository.updateAgents({
+      id: phoneNumberRecord.id,
+      inboundProviderAgentId: agent.providerAgentId,
     });
 
     return {

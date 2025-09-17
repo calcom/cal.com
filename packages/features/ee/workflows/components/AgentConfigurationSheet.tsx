@@ -158,6 +158,7 @@ type AgentConfigurationSheetProps = {
   agentId?: string | null;
   inboundAgentId?: string | null;
   agentData?: RouterOutputs["viewer"]["aiVoiceAgent"]["get"];
+  inboundAgentData?: RouterOutputs["viewer"]["aiVoiceAgent"]["get"];
   onUpdate: (data: AgentFormValues) => void;
   readOnly?: boolean;
   teamId?: number;
@@ -176,6 +177,7 @@ export function AgentConfigurationSheet({
   agentId,
   inboundAgentId,
   agentData,
+  inboundAgentData,
   onUpdate,
   readOnly = false,
   teamId,
@@ -186,6 +188,10 @@ export function AgentConfigurationSheet({
   eventTypeOptions = [],
 }: AgentConfigurationSheetProps) {
   const { t } = useLocale();
+  const workflowStepId = _workflowStepId;
+
+  console.log("agentId", agentId);
+  console.log("inboundAgentId", inboundAgentId);
 
   const utils = trpc.useUtils();
   const [activeTab, setActiveTab] = useState<"outgoingCalls" | "phoneNumber" | "incomingCalls">(
@@ -205,7 +211,21 @@ export function AgentConfigurationSheet({
 
   const generalPromptRef = useRef<HTMLTextAreaElement | null>(null);
 
-  const agentForm = useForm<AgentFormValues>({
+  // State to track the dynamically created inbound agent ID
+
+  const outboundAgentForm = useForm<AgentFormValues>({
+    resolver: zodResolver(agentSchema),
+    defaultValues: {
+      generalPrompt: "",
+      beginMessage: "",
+      numberToCall: "",
+      language: "en-US",
+      voiceId: "",
+      generalTools: [],
+    },
+  });
+
+  const inboundAgentForm = useForm<AgentFormValues>({
     resolver: zodResolver(agentSchema),
     defaultValues: {
       generalPrompt: "",
@@ -220,7 +240,7 @@ export function AgentConfigurationSheet({
   useEffect(() => {
     if (agentData?.retellData) {
       const retellData = agentData.retellData;
-      agentForm.reset({
+      outboundAgentForm.reset({
         generalPrompt: cleanPromptForDisplay(retellData.generalPrompt || ""),
         beginMessage: retellData.beginMessage || "",
         numberToCall: "",
@@ -229,7 +249,22 @@ export function AgentConfigurationSheet({
         generalTools: retellData.generalTools || [],
       });
     }
-  }, [agentData, agentForm]);
+  }, [agentData, outboundAgentForm]);
+
+  useEffect(() => {
+    if (inboundAgentData?.retellData) {
+      const retellData = inboundAgentData.retellData;
+
+      inboundAgentForm.reset({
+        generalPrompt: cleanPromptForDisplay(retellData.generalPrompt || ""),
+        beginMessage: retellData.beginMessage || "",
+        numberToCall: "",
+        language: retellData.language || "en-US",
+        voiceId: retellData.voiceId || "",
+        generalTools: retellData.generalTools || [],
+      });
+    }
+  }, [inboundAgentData, inboundAgentForm]);
 
   const phoneNumberForm = useForm<PhoneNumberFormValues>({
     resolver: zodResolver(phoneNumberFormSchema),
@@ -248,7 +283,7 @@ export function AgentConfigurationSheet({
   //   remove: removeTool,
   //   update: updateTool,
   // } = useFieldArray({
-  //   control: agentForm.control,
+  //   control: outboundAgentForm.control,
   //   name: "generalTools",
   // });
 
@@ -319,22 +354,10 @@ export function AgentConfigurationSheet({
     },
   });
 
-  // Determine which agent ID to use
-  const currentAgentId = agentId || inboundAgentId;
-  const isInboundAgent = !!inboundAgentId && !agentId;
-
-  const agentQuery = trpc.viewer.aiVoiceAgent.get.useQuery(
-    { id: currentAgentId || "" },
-    {
-      enabled: !!currentAgentId,
-      refetchOnMount: false,
-    }
-  );
-
   const updateAgentMutation = trpc.viewer.aiVoiceAgent.update.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
       if (agentId) {
-        agentQuery.refetch();
+        await utils.viewer.aiVoiceAgent.get.invalidate({ id: agentId });
       }
     },
     onError: (error: { message: string }) => {
@@ -343,10 +366,19 @@ export function AgentConfigurationSheet({
   });
 
   const setupInboundAgentMutation = trpc.viewer.aiVoiceAgent.setupInboundAgent.useMutation({
-    onSuccess: async () => {
+    onSuccess: async (data) => {
       showToast(t("inbound_agent_setup_success"), "success");
-      if (currentAgentId) {
-        await agentQuery.refetch();
+      // Update the form with the new inbound agent ID
+      if (data.agentId && form && workflowStepId) {
+        const stepIndex = form.getValues("steps")?.findIndex((s) => s.id === workflowStepId);
+        if (stepIndex !== undefined && stepIndex !== -1) {
+          form.setValue(`steps.${stepIndex}.inboundAgentId`, data.agentId);
+        }
+      }
+
+      // Invalidate and refetch the agent data
+      if (data.agentId) {
+        await utils.viewer.aiVoiceAgent.get.invalidate({ id: data.agentId });
       }
     },
     onError: (error: { message: string }) => {
@@ -354,20 +386,21 @@ export function AgentConfigurationSheet({
     },
   });
 
-  const updateInboundAgentPromptMutation = trpc.viewer.aiVoiceAgent.updateInboundAgentPrompt.useMutation({
-    onSuccess: async () => {
-      showToast(t("agent_prompt_updated_successfully"), "success");
-      if (currentAgentId) {
-        await agentQuery.refetch();
-      }
-    },
-    onError: (error: { message: string }) => {
-      showToast(error.message, "error");
-    },
-  });
+  const updateInboundAgentEventTypeMutation =
+    trpc.viewer.aiVoiceAgent.updateInboundAgentEventType.useMutation({
+      onSuccess: async () => {
+        showToast(t("agent_event_type_updated_successfully"), "success");
+        if (inboundAgentId) {
+          await utils.viewer.aiVoiceAgent.get.invalidate({ id: inboundAgentId });
+        }
+      },
+      onError: (error: { message: string }) => {
+        showToast(error.message, "error");
+      },
+    });
 
   const handleAgentUpdate = async (data: AgentFormValues) => {
-    if (!currentAgentId) return;
+    if (!agentId) return;
 
     // Only send prompt-related fields, not tools
     const updatePayload = {
@@ -379,7 +412,28 @@ export function AgentConfigurationSheet({
     };
 
     await updateAgentMutation.mutateAsync({
-      id: currentAgentId,
+      id: agentId,
+      teamId: teamId,
+      ...updatePayload,
+    });
+
+    onUpdate(updatePayload);
+  };
+
+  const handleInboundAgentUpdate = async (data: AgentFormValues) => {
+    if (!inboundAgentId) return;
+
+    // Only send prompt-related fields, not tools
+    const updatePayload = {
+      generalPrompt: restorePromptComplexity(data.generalPrompt),
+      beginMessage: data.beginMessage,
+      language: data.language as Language,
+      voiceId: data.voiceId,
+      // Don't include generalTools - they are managed by the backend
+    };
+
+    await updateAgentMutation.mutateAsync({
+      id: inboundAgentId,
       teamId: teamId,
       ...updatePayload,
     });
@@ -442,14 +496,14 @@ export function AgentConfigurationSheet({
   // };
 
   const handleImportPhoneNumber = (values: PhoneNumberFormValues) => {
-    if (!currentAgentId) {
+    if (!agentId) {
       showToast(t("agent_required_for_import"), "error");
       return;
     }
     const mutationPayload = {
       ...values,
       workflowId: workflowId,
-      agentId: currentAgentId,
+      agentId: agentId,
       teamId: teamId,
     };
     importNumberMutation.mutate(mutationPayload);
@@ -485,7 +539,12 @@ export function AgentConfigurationSheet({
         cursorPosition
       )}${variableName}${currentPrompt.substring(cursorPosition)}`;
 
-      agentForm.setValue("generalPrompt", newPrompt, { shouldDirty: true, shouldTouch: true });
+      // Use the appropriate form based on the active tab
+      if (activeTab === "incomingCalls") {
+        inboundAgentForm.setValue("generalPrompt", newPrompt, { shouldDirty: true, shouldTouch: true });
+      } else {
+        outboundAgentForm.setValue("generalPrompt", newPrompt, { shouldDirty: true, shouldTouch: true });
+      }
 
       requestAnimationFrame(() => {
         if (generalPromptRef.current) {
@@ -525,7 +584,7 @@ export function AgentConfigurationSheet({
                   <Label className="text-emphasis mb-1 block text-sm font-medium">{t("language")}</Label>
                   <Controller
                     name="language"
-                    control={agentForm.control}
+                    control={outboundAgentForm.control}
                     render={({ field }) => (
                       <Select
                         value={LANGUAGE_OPTIONS.find((option) => option.value === field.value)}
@@ -547,8 +606,8 @@ export function AgentConfigurationSheet({
                     disabled={readOnly}
                     className="w-full justify-start">
                     <Icon name="user" className="mr-2 h-4 w-4" />
-                    {agentForm.watch("voiceId") ? (
-                      <span className="font-mono text-sm">{agentForm.watch("voiceId")}</span>
+                    {outboundAgentForm.watch("voiceId") ? (
+                      <span className="font-mono text-sm">{outboundAgentForm.watch("voiceId")}</span>
                     ) : (
                       t("select_voice")
                     )}
@@ -561,7 +620,7 @@ export function AgentConfigurationSheet({
                   <p className="text-subtle mb-1.5 text-xs">{t("initial_message_description")}</p>
                   <Input
                     type="text"
-                    {...agentForm.register("beginMessage")}
+                    {...outboundAgentForm.register("beginMessage")}
                     placeholder={t("hi_how_are_you_doing")}
                     disabled={readOnly}
                   />
@@ -583,9 +642,9 @@ export function AgentConfigurationSheet({
                     )}
                   </div>
                   <TextArea
-                    {...agentForm.register("generalPrompt")}
+                    {...outboundAgentForm.register("generalPrompt")}
                     ref={(e) => {
-                      agentForm.register("generalPrompt").ref(e);
+                      outboundAgentForm.register("generalPrompt").ref(e);
                       generalPromptRef.current = e;
                     }}
                     placeholder={t("enter_the_general_prompt_for_the_agent")}
@@ -672,7 +731,7 @@ export function AgentConfigurationSheet({
 
             {activeTab === "phoneNumber" && (
               <div className="relative space-y-2">
-                {agentQuery.isFetching && (
+                {updateAgentMutation.isPending && (
                   <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/50">
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <Icon name="loader" className="h-4 w-4 animate-spin" />
@@ -859,17 +918,17 @@ export function AgentConfigurationSheet({
                                   !phone.subscriptionStatus
                               )[0]?.phoneNumber;
 
-                              if (phoneNumber && workflowId) {
+                              if (phoneNumber && workflowStepId) {
                                 setupInboundAgentMutation.mutate({
                                   phoneNumber,
                                   teamId,
-                                  workflowId: parseInt(workflowId || "0"),
+                                  workflowStepId: workflowStepId,
                                 });
                               }
                             }}
                             className="px-6"
                             loading={setupInboundAgentMutation.isPending}
-                            disabled={setupInboundAgentMutation.isPending || !workflowId}>
+                            disabled={setupInboundAgentMutation.isPending || !workflowStepId}>
                             {t("setup_inbound_agent")}
                           </Button>
                         </div>
@@ -877,7 +936,6 @@ export function AgentConfigurationSheet({
                     ) : (
                       // Show configuration form when inbound agent exists
                       <div className="space-y-4">
-                        {/* Event Type Selection */}
                         <div>
                           <Label className="text-emphasis mb-1 block text-sm font-medium">
                             {t("event_type")}
@@ -897,16 +955,18 @@ export function AgentConfigurationSheet({
                                   isSearchable={false}
                                   innerClassNames={{ valueContainer: "font-medium" }}
                                   className="text-sm font-medium"
-                                  isDisabled={readOnly}
+                                  isDisabled={readOnly || updateInboundAgentEventTypeMutation.isPending}
+                                  isLoading={updateInboundAgentEventTypeMutation.isPending}
                                   onChange={(val) => {
                                     if (val) {
                                       // Update selected event type
                                       field.onChange([val]);
                                       // Trigger workflow update if agent exists
                                       if (inboundAgentId && val.value) {
-                                        updateInboundAgentPromptMutation.mutate({
+                                        updateInboundAgentEventTypeMutation.mutate({
                                           agentId: inboundAgentId,
                                           eventTypeId: parseInt(val.value),
+                                          teamId,
                                         });
                                       }
                                     }
@@ -928,7 +988,7 @@ export function AgentConfigurationSheet({
                           </Label>
                           <Controller
                             name="language"
-                            control={agentForm.control}
+                            control={inboundAgentForm.control}
                             render={({ field }) => (
                               <Select
                                 value={LANGUAGE_OPTIONS.find((option) => option.value === field.value)}
@@ -952,8 +1012,8 @@ export function AgentConfigurationSheet({
                             disabled={readOnly}
                             className="w-full justify-start">
                             <Icon name="user" className="mr-2 h-4 w-4" />
-                            {agentForm.watch("voiceId") ? (
-                              <span className="font-mono text-sm">{agentForm.watch("voiceId")}</span>
+                            {inboundAgentForm.watch("voiceId") ? (
+                              <span className="font-mono text-sm">{inboundAgentForm.watch("voiceId")}</span>
                             ) : (
                               t("select_voice")
                             )}
@@ -968,7 +1028,7 @@ export function AgentConfigurationSheet({
                           <p className="text-subtle mb-1.5 text-xs">{t("initial_message_description")}</p>
                           <Input
                             type="text"
-                            {...agentForm.register("beginMessage")}
+                            {...inboundAgentForm.register("beginMessage")}
                             placeholder={t("hi_how_are_you_doing")}
                             disabled={readOnly}
                           />
@@ -992,9 +1052,9 @@ export function AgentConfigurationSheet({
                             )}
                           </div>
                           <TextArea
-                            {...agentForm.register("generalPrompt")}
+                            {...inboundAgentForm.register("generalPrompt")}
                             ref={(e) => {
-                              agentForm.register("generalPrompt").ref(e);
+                              inboundAgentForm.register("generalPrompt").ref(e);
                               generalPromptRef.current = e;
                             }}
                             placeholder={t("enter_the_general_prompt_for_the_agent")}
@@ -1060,8 +1120,21 @@ export function AgentConfigurationSheet({
             <Button
               type="button"
               className="justify-center"
-              onClick={agentForm.handleSubmit(handleAgentUpdate)}
-              disabled={!agentForm.formState.isDirty || readOnly || updateAgentMutation.isPending}
+              onClick={() => {
+                if (activeTab === "incomingCalls" && inboundAgentId) {
+                  inboundAgentForm.handleSubmit(handleInboundAgentUpdate)();
+                } else if (activeTab === "outgoingCalls" && agentId) {
+                  outboundAgentForm.handleSubmit(handleAgentUpdate)();
+                }
+              }}
+              disabled={
+                readOnly ||
+                updateAgentMutation.isPending ||
+                (activeTab === "outgoingCalls" && !outboundAgentForm.formState.isDirty) ||
+                (activeTab === "incomingCalls" && !inboundAgentForm.formState.isDirty) ||
+                (activeTab === "outgoingCalls" && !agentId) ||
+                (activeTab === "incomingCalls" && !inboundAgentId)
+              }
               loading={updateAgentMutation.isPending}>
               {t("save")}
             </Button>
@@ -1364,9 +1437,17 @@ export function AgentConfigurationSheet({
       <VoiceSelectionDialog
         open={isVoiceDialogOpen}
         onOpenChange={setIsVoiceDialogOpen}
-        selectedVoiceId={agentForm.watch("voiceId")}
+        selectedVoiceId={
+          activeTab === "incomingCalls"
+            ? inboundAgentForm.watch("voiceId")
+            : outboundAgentForm.watch("voiceId")
+        }
         onVoiceSelect={(voiceId) => {
-          agentForm.setValue("voiceId", voiceId, { shouldDirty: true });
+          if (activeTab === "incomingCalls") {
+            inboundAgentForm.setValue("voiceId", voiceId, { shouldDirty: true });
+          } else {
+            outboundAgentForm.setValue("voiceId", voiceId, { shouldDirty: true });
+          }
         }}
       />
 
