@@ -61,7 +61,7 @@ const CalendarViewPlatformWrapperComponent = (props: CalendarViewPlatformWrapper
     isTeamEvent,
     teamId,
     hostsLimit,
-    allowUpdatingUrlParams,
+    allowUpdatingUrlParams = false,
     teamMemberEmail,
     crmAppSlug,
     crmOwnerRecordType,
@@ -213,7 +213,7 @@ const CalendarViewPlatformWrapperComponent = (props: CalendarViewPlatformWrapper
         visible={true}
         className="border-subtle sticky top-0 ml-[-1px] h-full md:border-l">
         <Header
-          isMonthViewProp={false}
+          isCalendarView={true}
           isMyLink={true}
           eventSlug={eventSlug}
           enabledLayouts={bookerLayout.bookerLayouts.enabledLayouts}
