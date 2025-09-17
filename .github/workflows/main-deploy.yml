@@ -122,6 +122,7 @@ jobs:
           check "${{ secrets.HOMEPAGE_URL_STAG }}" "HOMEPAGE_URL_STAG" 
           check "${{ secrets.HOMEPAGE_URL_PROD }}" "HOMEPAGE_URL_PROD"
           check "${{ secrets.NEXT_PUBLIC_PIXEL }}" "NEXT_PUBLIC_PIXEL"
+          check "${{ secrets.NEXT_PUBLIC_SINGLE_ORG_SLUG }}" "NEXT_PUBLIC_SINGLE_ORG_SLUG"
 
       # SETTING NECESSARY ENV VARIABLES
       - name: Extract Git commit hash
@@ -300,6 +301,7 @@ jobs:
             NEXT_PUBLIC_ONEHASH_CRM_URL=${{secrets.NEXT_PUBLIC_ONEHASH_CRM_URL}}
             NEXT_PUBLIC_WHITELISTED_ORGS=${{ secrets.NEXT_PUBLIC_WHITELISTED_ORGS }}
             NEXT_PUBLIC_PIXEL=${{ secrets.NEXT_PUBLIC_PIXEL }}
+            NEXT_PUBLIC_SINGLE_ORG_SLUG=${{ secrets.NEXT_PUBLIC_SINGLE_ORG_SLUG }}
 
       - name: Check Docker build status
         shell: bash
