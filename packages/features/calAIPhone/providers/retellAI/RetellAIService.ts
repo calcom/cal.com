@@ -12,6 +12,7 @@ import { AgentService } from "./services/AgentService";
 import { BillingService } from "./services/BillingService";
 import { CallService } from "./services/CallService";
 import { PhoneNumberService } from "./services/PhoneNumberService";
+import { VoiceService } from "./services/VoiceService";
 import type {
   RetellLLM,
   RetellCall,
@@ -32,6 +33,7 @@ export class RetellAIService {
   private billingService: BillingService;
   private callService: CallService;
   private phoneNumberService: PhoneNumberService;
+  private voiceService: VoiceService;
 
   constructor(
     private repository: RetellAIRepository,
@@ -49,6 +51,7 @@ export class RetellAIService {
       phoneNumberRepository,
       transactionManager
     );
+    this.voiceService = new VoiceService(repository);
 
     // Inject RetellAIService reference into CallService
     this.callService.setRetellAIService(this);
@@ -171,6 +174,7 @@ export class RetellAIService {
     beginMessage?: string | null;
     generalTools?: RetellLLMGeneralTools;
     voiceId?: string;
+    language?: Language;
   }) {
     return this.agentService.updateAgentConfiguration({
       ...params,
@@ -253,5 +257,9 @@ export class RetellAIService {
     };
   }) {
     return this.callService.listCalls(params);
+  }
+
+  async listVoices() {
+    return this.voiceService.listVoices();
   }
 }

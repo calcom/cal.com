@@ -1141,6 +1141,9 @@ describe("Event types Endpoints", () => {
           disableRecordingForGuests: true,
           disableRecordingForOrganizer: true,
           enableAutomaticRecordingForOrganizer: true,
+          enableAutomaticTranscription: true,
+          disableTranscriptionForGuests: true,
+          disableTranscriptionForOrganizer: true,
         },
         bookingFields: [
           nameBookingField,
@@ -1273,6 +1276,15 @@ describe("Event types Endpoints", () => {
           );
           expect(updatedEventType.calVideoSettings?.enableAutomaticRecordingForOrganizer).toEqual(
             body.calVideoSettings?.enableAutomaticRecordingForOrganizer
+          );
+          expect(updatedEventType.calVideoSettings?.enableAutomaticTranscription).toEqual(
+            body.calVideoSettings?.enableAutomaticTranscription
+          );
+          expect(updatedEventType.calVideoSettings?.disableTranscriptionForGuests).toEqual(
+            body.calVideoSettings?.disableTranscriptionForGuests
+          );
+          expect(updatedEventType.calVideoSettings?.disableTranscriptionForOrganizer).toEqual(
+            body.calVideoSettings?.disableTranscriptionForOrganizer
           );
 
           eventType.title = newTitle;
