@@ -206,7 +206,9 @@ function BookingListItem(booking: BookingItemProps) {
     return (
       booking.user?.id === userId ||
       booking.eventType.hosts?.some(
-        (host) => host.id === userId && booking.attendees.some((attendee) => attendee.email === host.email)
+        (host) =>
+          host.user?.id === userId &&
+          booking.attendees.some((attendee) => attendee.email === host.user?.email)
       )
     );
   };
