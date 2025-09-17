@@ -222,14 +222,7 @@ const CalendarViewPlatformWrapperComponent = (props: CalendarViewPlatformWrapper
           nextSlots={6}
         />
 
-        <LargeCalendar
-          // large calendar needs to be its own component so that it can be used in the booker
-          // need to use the displayStartDate prop to make sure we always pass in monday of the following week
-          extraDays={7}
-          schedule={schedule.data}
-          isLoading={schedule.isPending}
-          event={event}
-        />
+        <LargeCalendar extraDays={7} schedule={schedule.data} isLoading={schedule.isPending} event={event} />
       </BookerSection>
     </AtomsWrapper>
   );
