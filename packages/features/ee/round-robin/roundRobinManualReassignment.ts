@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import {
   sendRoundRobinReassignedEmailsAndSMS,
@@ -22,7 +23,7 @@ import {
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import EventManager from "@calcom/lib/EventManager";
+import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
@@ -34,7 +35,6 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata, PlatformClientParams } from "@calcom/prisma/zod-utils";
-import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { handleRescheduleEventManager } from "./handleRescheduleEventManager";
