@@ -20,13 +20,11 @@ export const defaultResponderForAppDir = <T extends NextResponse | Response = Ne
     try {
       performance.mark("Start");
       let result: T | undefined;
-      if (process.env.NODE_ENV === "development") {
+      if (process.env.NODE_ENV === "development" || !endpointRoute) {
         result = await handler(req, { params });
-      } else if (endpointRoute) {
+      } else {
         const { wrapApiHandlerWithSentry } = await import("@sentry/nextjs");
         result = await wrapApiHandlerWithSentry(async () => await handler(req, { params }), endpointRoute)();
-      } else {
-        result = await handler(req, { params });
       }
 
       ok = true;
