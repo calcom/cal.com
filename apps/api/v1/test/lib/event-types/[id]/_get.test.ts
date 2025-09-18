@@ -36,6 +36,24 @@ describe("GET /api/event-types/[id]", () => {
 
       expect(res.statusCode).toBe(403);
     });
+    test("Returns 404 if event type not found", async () => {
+      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "GET",
+        body: {},
+        query: {
+          id: 123456,
+        },
+      });
+
+      req.isSystemWideAdmin = true;
+
+      prismaMock.eventType.findUnique.mockResolvedValue(null);
+
+      req.userId = 333333;
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(404);
+    });
   });
 
   describe("Success", async () => {
