@@ -3566,7 +3566,7 @@ __metadata:
     "@calcom/dayjs": "*"
     "@calcom/tsconfig": "*"
     "@calcom/types": "*"
-    "@faker-js/faker": 9.2.0
+    "@faker-js/faker": ^7.3.0
     "@formbricks/api": ^1.7.0
     "@formbricks/js": ^2.1.0
     "@sendgrid/client": ^7.7.0
@@ -6028,6 +6028,13 @@ __metadata:
   version: 9.2.0
   resolution: "@faker-js/faker@npm:9.2.0"
   checksum: 7cbff7363f198c24aa1a25499f200a25506f80df577a419ae878b6bdd4aa901ecfe071ae3bbecf8afafa5542c825623d55f5884d44db7b12420c898241332cd1
+  languageName: node
+  linkType: hard
+
+"@faker-js/faker@npm:^7.3.0":
+  version: 7.6.0
+  resolution: "@faker-js/faker@npm:7.6.0"
+  checksum: 942af6221774e8c98a0eb6bc75265e05fb81a941170377666c3439aab9495dd321d6beedc5406f07e6ad44262b3e43c20961f666d116ad150b78e7437dd1bb2b
   languageName: node
   linkType: hard
 
