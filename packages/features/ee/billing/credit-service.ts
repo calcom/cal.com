@@ -651,6 +651,9 @@ export class CreditService {
         totalMonthlyCredits: 0,
         totalRemainingMonthlyCredits: 0,
         additionalCredits: creditBalance?.additionalCredits ?? 0,
+        totalCreditsForMonth: 0,
+        totalCreditsUsedThisMonth: 0,
+        totalRemainingCreditsForMonth: 0,
       };
     }
 
@@ -658,6 +661,9 @@ export class CreditService {
       totalMonthlyCredits: 0,
       totalRemainingMonthlyCredits: 0,
       additionalCredits: 0,
+      totalCreditsForMonth: 0,
+      totalCreditsUsedThisMonth: 0,
+      totalRemainingCreditsForMonth: 0,
     };
   }
 
