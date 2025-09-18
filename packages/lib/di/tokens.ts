@@ -1,3 +1,5 @@
+import { BOOKING_DI_TOKENS } from "./bookings/tokens";
+
 export const DI_TOKENS = {
   PRISMA_CLIENT: Symbol("PrismaClient"),
   READ_ONLY_PRISMA_CLIENT: Symbol("ReadOnlyPrismaClient"),
@@ -45,4 +47,12 @@ export const DI_TOKENS = {
   NO_SLOTS_NOTIFICATION_SERVICE_MODULE: Symbol("NoSlotsNotificationServiceModule"),
   MEMBERSHIP_REPOSITORY: Symbol("MembershipRepository"),
   MEMBERSHIP_REPOSITORY_MODULE: Symbol("MembershipRepositoryModule"),
+  LUCKY_USER_SERVICE: Symbol("LuckyUserService"),
+  LUCKY_USER_SERVICE_MODULE: Symbol("LuckyUserServiceModule"),
+  HOST_REPOSITORY: Symbol("HostRepository"),
+  HOST_REPOSITORY_MODULE: Symbol("HostRepositoryModule"),
+  ATTRIBUTE_REPOSITORY: Symbol("AttributeRepository"),
+  ATTRIBUTE_REPOSITORY_MODULE: Symbol("AttributeRepositoryModule"),
+  // Booking service tokens
+  ...BOOKING_DI_TOKENS,
 };

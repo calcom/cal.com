@@ -1,4 +1,3 @@
-import type { Booking, Prisma, Prisma as PrismaClientType } from "@prisma/client";
 import type { Kysely } from "kysely";
 import { type SelectQueryBuilder } from "kysely";
 import { jsonObjectFrom, jsonArrayFrom } from "kysely/helpers/postgres";
@@ -13,6 +12,7 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
+import type { Booking, Prisma, Prisma as PrismaClientType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -151,10 +151,12 @@ export async function getBookings({
       userIdsWhereUserIsAdminOrOwner.includes(userId)
     );
 
+    const isCurrentUser = filters.userIds.length === 1 && user.id === filters.userIds[0];
+
     //  Scope depends on `user.orgId`:
     // - Throw an error if trying to filter by usersIds that are not within your ORG
     // - Throw an error if trying to filter by usersIds that are not within your TEAM
-    if (!areUserIdsWithinUserOrgOrTeam) {
+    if (!areUserIdsWithinUserOrgOrTeam && !isCurrentUser) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "You do not have permissions to fetch bookings for specified userIds",

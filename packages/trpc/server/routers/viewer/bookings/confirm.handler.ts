@@ -1,5 +1,3 @@
-import { Prisma } from "@prisma/client";
-
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { sendDeclinedEmailsAndSMS } from "@calcom/emails";
@@ -7,6 +5,7 @@ import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/book
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
+import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
@@ -15,18 +14,21 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import {
   BookingStatus,
   MembershipRole,
   WebhookTriggerEvents,
+  WorkflowTriggerEvents,
   UserPermissionRole,
 } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
+import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -82,6 +84,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           price: true,
           bookingFields: true,
           hideOrganizerEmail: true,
+          hideCalendarNotes: true,
+          hideCalendarEventDetails: true,
           disableGuests: true,
           customReplyToEmail: true,
           metadata: true,
@@ -230,6 +234,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       : [],
     requiresConfirmation: booking?.eventType?.requiresConfirmation ?? false,
     hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
+    hideCalendarNotes: booking.eventType?.hideCalendarNotes,
+    hideCalendarEventDetails: booking.eventType?.hideCalendarEventDetails,
     eventTypeId: booking.eventType?.id,
     customReplyToEmail: booking.eventType?.customReplyToEmail,
     team: !!booking.eventType?.team
@@ -378,6 +384,30 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       smsReminderNumber: booking.smsReminderNumber || undefined,
     };
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
+
+    const workflows = await getAllWorkflowsFromEventType(booking.eventType, user.id);
+    try {
+      await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
+        workflows,
+        smsReminderNumber: booking.smsReminderNumber,
+        calendarEvent: {
+          ...evt,
+          bookerUrl: bookerUrl,
+          eventType: {
+            ...eventTypeInfo,
+            slug: booking.eventType?.slug as string,
+          },
+        },
+        hideBranding: !!booking.eventType?.owner?.hideBranding,
+        triggers: [WorkflowTriggerEvents.BOOKING_REJECTED],
+      });
+    } catch (error) {
+      // Silently fail
+      console.error(
+        "Error while scheduling workflow reminders for BOOKING_REJECTED:",
+        error instanceof Error ? error.message : String(error)
+      );
+    }
   }
 
   const message = `Booking ${confirmed}` ? "confirmed" : "rejected";

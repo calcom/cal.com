@@ -30,12 +30,13 @@ beforeEach(() => {
     id: userId,
     email: "test@example.com",
     name: "Test User",
-  });
+  } as any);
   (getAccessibleUsers as any).mockResolvedValue([userId]);
   (retrieveOrgScopedAccessibleUsers as any).mockResolvedValue([userId]);
 
   prismaMock.membership.findMany.mockResolvedValue([
     {
+      // @ts-expect-error Will be fixed by Prisma 6.7.0 upgrade mock changes - which uses vitest-mock-extended
       team: {
         id: 1,
         isOrganization: true,
@@ -48,7 +49,7 @@ beforeEach(() => {
       id: userId,
       email: "test@example.com",
     },
-  ]);
+  ] as any);
 });
 
 afterEach(() => {

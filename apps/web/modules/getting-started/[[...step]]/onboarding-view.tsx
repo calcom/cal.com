@@ -42,7 +42,7 @@ const getStepsAndHeadersForUser = (t: TFunction) => {
   }[] = [
     {
       title: t("welcome_to_cal_header", { appName: APP_NAME }),
-      subtitle: [t("we_just_need_basic_info"), t("edit_form_later_subtitle")],
+      subtitle: [t("we_just_need_basic_info")],
     },
     {
       title: t("connect_your_calendar"),
@@ -57,8 +57,9 @@ const getStepsAndHeadersForUser = (t: TFunction) => {
     {
       title: t("set_availability"),
       subtitle: [
-        t("set_availability_getting_started_subtitle_1"),
-        t("set_availability_getting_started_subtitle_2"),
+        `${t("set_availability_getting_started_subtitle_1")} ${t(
+          "set_availability_getting_started_subtitle_2"
+        )}`,
       ],
     },
     {
@@ -124,6 +125,13 @@ const OnboardingPage = (props: PageProps) => {
   };
   const currentStepIndex = steps.indexOf(currentStep);
 
+  const goToStep = (step: number) => {
+    const newStep = steps[step];
+    startTransition(() => {
+      router.push(`/getting-started/${stepTransform(newStep)}`);
+    });
+  };
+
   const goToNextStep = () => {
     const nextIndex = currentStepIndex + 1;
     const newStep = steps[nextIndex];
@@ -158,7 +166,7 @@ const OnboardingPage = (props: PageProps) => {
                   </p>
                 ))}
               </header>
-              <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} nextStep={goToNextStep} />
+              <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} navigateToStep={goToStep} />
             </div>
             <StepCard>
               <Suspense fallback={<Icon name="loader" />}>

@@ -1,11 +1,10 @@
 import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 
-import prisma from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/client";
-import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
+import { prisma } from "@calcom/prisma";
+import { BookingStatus, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
-import { addFilter, openFilter } from "./filter-helpers";
+import { addFilter } from "./filter-helpers";
 import { createTeamEventType } from "./fixtures/users";
 import type { Fixtures } from "./lib/fixtures";
 import { test } from "./lib/fixtures";
@@ -78,7 +77,6 @@ test.describe("Bookings", () => {
       await bookingsGetResponse;
 
       await addFilter(page, "dateRange");
-      await openFilter(page, "dateRange");
 
       await expect(page.locator('[data-testid="date-range-options-c"]')).toBeHidden();
       await expect(page.locator('[data-testid="date-range-options-w"]')).toBeHidden();
@@ -244,7 +242,6 @@ test.describe("Bookings", () => {
       await bookingsGetResponse;
 
       await addFilter(page, "dateRange");
-      await openFilter(page, "dateRange");
 
       await expect(page.locator('[data-testid="date-range-options-c"]')).toBeVisible();
       await expect(page.locator('[data-testid="date-range-options-w"]')).toBeVisible();
@@ -354,7 +351,6 @@ test.describe("Bookings", () => {
     await bookingsGetResponse;
 
     await addFilter(page, "userId");
-    await openFilter(page, "userId");
 
     const bookingsGetResponse2 = page.waitForResponse(
       (response) => response.url().includes("/api/trpc/bookings/get?batch=1") && response.status() === 200
@@ -463,7 +459,6 @@ test.describe("Bookings", () => {
     await bookingsGetResponse1;
 
     await addFilter(page, "userId");
-    await openFilter(page, "userId");
     const bookingsGetResponse2 = page.waitForResponse((response) =>
       /\/api\/trpc\/bookings\/get.*/.test(response.url())
     );

@@ -1,19 +1,24 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
 
-import type { EventType } from "@prisma/client";
 import { describe, expect, it, vi } from "vitest";
 
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import { buildEventType } from "@calcom/lib/test/builder";
+import type { EventType, User, WorkflowsOnEventTypes } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
-import type { CompleteEventType, CompleteWorkflowsOnEventTypes } from "@calcom/prisma/zod";
 
-const mockFindFirstEventType = (data?: Partial<CompleteEventType>) => {
-  const eventType = buildEventType(data as Partial<EventType>);
+// create input does not allow ID
+const mockFindFirstEventType = (
+  data?: Partial<EventType> & { workflows?: WorkflowsOnEventTypes[] } & { users?: User[] }
+) => {
+  const eventType = buildEventType({
+    ...data,
+    metadata: !data?.metadata || data.metadata === null ? {} : (data.metadata as Prisma.JsonValue),
+  });
   // const { scheduleId, destinationCalendar, ...restEventType } = eventType;
-  prismaMock.eventType.findFirst.mockResolvedValue(eventType as EventType);
+  prismaMock.eventType.findFirst.mockResolvedValue(eventType);
 
   return eventType;
 };
@@ -121,6 +126,7 @@ describe("handleChildrenEventTypes", () => {
         autoTranslateDescriptionEnabled,
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
+        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -182,6 +188,7 @@ describe("handleChildrenEventTypes", () => {
         assignRRMembersUsingSegment,
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
+        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -292,6 +299,7 @@ describe("handleChildrenEventTypes", () => {
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
         assignRRMembersUsingSegment,
+        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -356,6 +364,7 @@ describe("handleChildrenEventTypes", () => {
         assignRRMembersUsingSegment,
         rrSegmentQueryValue,
         useEventLevelSelectedCalendars,
+        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -421,6 +430,7 @@ describe("handleChildrenEventTypes", () => {
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
         assignRRMembersUsingSegment,
+        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -428,7 +438,7 @@ describe("handleChildrenEventTypes", () => {
         workflows: [
           {
             workflowId: 11,
-          } as CompleteWorkflowsOnEventTypes,
+          } as WorkflowsOnEventTypes,
         ],
       });
 
@@ -444,6 +454,7 @@ describe("handleChildrenEventTypes", () => {
         requiresBookerEmailVerification: false,
         lockTimeZoneToggleOnBookingPage: false,
         useEventTypeDestinationCalendarEmail: false,
+        showOptimizedSlots: false,
         workflows: [],
         parentId: 1,
         locations: [],
