@@ -100,7 +100,7 @@ export const insightsBookingServiceOptionsSchema = z.discriminatedUnion("scope",
   z.object({
     scope: z.literal("user"),
     userId: z.number(),
-    orgId: z.number().optional(),
+    orgId: z.number().nullish(),
   }),
   z.object({
     scope: z.literal("org"),
@@ -110,7 +110,7 @@ export const insightsBookingServiceOptionsSchema = z.discriminatedUnion("scope",
   z.object({
     scope: z.literal("team"),
     userId: z.number(),
-    orgId: z.number().optional(),
+    orgId: z.number().nullish(),
     teamId: z.number(),
   }),
 ]);
