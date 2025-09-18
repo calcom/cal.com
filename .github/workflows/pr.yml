@@ -211,7 +211,7 @@ jobs:
   merge-reports:
     name: Merge reports
     if: ${{ !cancelled() && needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    needs: [changes, check-label, e2e, e2e-embed, e2e-embed-react, e2e-app-store, e2e-atoms]
+    needs: [changes, check-label, deps, e2e, e2e-embed, e2e-embed-react, e2e-app-store, e2e-atoms]
     uses: ./.github/workflows/merge-reports.yml
     secrets: inherit
 
