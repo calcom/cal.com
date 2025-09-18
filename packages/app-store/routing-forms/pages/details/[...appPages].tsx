@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@calid/features/ui/components/button";
 import { Checkbox } from "@calid/features/ui/components/input/checkbox-field";
 import { Input } from "@calid/features/ui/components/input/input";
 import Link from "next/link";
