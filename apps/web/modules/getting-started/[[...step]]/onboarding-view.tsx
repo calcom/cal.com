@@ -92,7 +92,7 @@ const OnboardingPage = (props: PageProps) => {
   const params = useParamsWithFallback();
 
   const router = useRouter();
-  const [user] = trpc.viewer.me.get.useSuspenseQuery();
+  const [user] = trpc.viewer.me.calid_get.useSuspenseQuery();
   const { t } = useLocale();
   const [isNextStepLoading, startTransition] = useTransition();
 
