@@ -137,24 +137,26 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
         </div>
       ) : (
         <>
-          <div className="border-subtle bg-default overflow-hidden rounded-md border">
-            <ul className="divide-subtle divide-y" data-testid="schedules" ref={animationParentRef}>
-              {availabilities.schedules.map((schedule) => (
+          <div className="mb-4 flex justify-end">
+            <NewScheduleButton />
+          </div>
+          <div className="space-y-2" data-testid="schedules" ref={animationParentRef}>
+            {availabilities.schedules.map((schedule) => (
+              <div key={schedule.id} className="border-subtle bg-default rounded-md border">
                 <ScheduleListItem
                   displayOptions={{
                     hour12: user?.timeFormat ? user.timeFormat === 12 : undefined,
                     timeZone: user?.timeZone,
                     weekStart: user?.weekStart || "Sunday",
                   }}
-                  key={schedule.id}
                   schedule={schedule}
                   isDeletable={availabilities.schedules.length !== 1}
                   updateDefault={updateMutation.mutate}
                   deleteFunction={deleteMutation.mutate}
                   duplicateFunction={duplicateMutation.mutate}
                 />
-              ))}
-            </ul>
+              </div>
+            ))}
           </div>
           <div className="text-default mb-16 mt-4 hidden text-center text-sm md:block">
             {t("temporarily_out_of_office")}{" "}
@@ -195,7 +197,7 @@ export const AvailabilityCTA = ({ toggleGroupOptions }: AvailabilityCTAProps) =>
   // searchParams with a provided key/value pair
   const createQueryString = useCallback(
     (name: string, value: string) => {
-      const params = new URLSearchParams(searchParams ?? undefined);
+      const params = new URLSearchParams(searchParams?.toString() ?? "");
       params.set(name, value);
 
       return params.toString();
@@ -209,7 +211,7 @@ export const AvailabilityCTA = ({ toggleGroupOptions }: AvailabilityCTAProps) =>
         className="hidden h-fit md:block"
         defaultValue={searchParams?.get("type") ?? "mine"}
         onValueChange={(value) => {
-          if (!value) return;
+          if (!value || value === searchParams?.get("type")) return;
           router.push(`${pathname}?${createQueryString("type", value)}`);
         }}
         options={toggleGroupOptions}

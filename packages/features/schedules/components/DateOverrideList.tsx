@@ -101,7 +101,6 @@ const DateOverrideList = ({
           <div className="flex flex-row-reverse gap-1 space-x-2 rtl:space-x-reverse">
             <Tooltip content="Delete">
               <Button
-                className="h-5"
                 data-testid="delete-button"
                 title={t("date_overrides_delete_on_date", {
                   date: isPlatform
@@ -139,13 +138,7 @@ const DateOverrideList = ({
               }}
               Trigger={
                 <DialogTrigger asChild>
-                  <Button
-                    tooltip={t("edit")}
-                    className="h-5"
-                    color="minimal"
-                    variant="icon"
-                    StartIcon="pen-line"
-                  />
+                  <Button tooltip={t("edit")} color="minimal" variant="icon" StartIcon="pen-line" />
                 </DialogTrigger>
               }
             />

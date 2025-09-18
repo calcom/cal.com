@@ -3,6 +3,7 @@
 import { cn } from "@calid/features/lib/cn";
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
+import { Label } from "@calid/features/ui/components/label";
 import { Switch } from "@calid/features/ui/components/switch";
 import { Tooltip } from "@calid/features/ui/components/tooltip";
 import type { SetStateAction, Dispatch } from "react";
@@ -40,7 +41,6 @@ import classNames from "@calcom/ui/classNames";
 import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { EditableHeading } from "@calcom/ui/components/editable-heading";
 import { Form } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
 import { SkeletonText, SelectSkeletonLoader, Skeleton } from "@calcom/ui/components/skeleton";
 
 import { Shell as PlatformShell } from "../src/components/ui/shell";
@@ -383,7 +383,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
           )
         }
         CTA={
-          <div className={cn(customClassNames?.ctaClassName, "flex items-center justify-end")}>
+          <div className={cn(customClassNames?.ctaClassName, "mr-1 flex items-center justify-end")}>
             <div className="hidden items-center rounded-md px-2 transition sm:flex">
               {!openSidebar && allowSetToDefault ? (
                 <>
