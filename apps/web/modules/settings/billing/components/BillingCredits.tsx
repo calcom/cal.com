@@ -34,6 +34,7 @@ type CreditRowProps = {
   label: string;
   value: number;
   isBold?: boolean;
+  isDashed?: boolean;
   className?: string;
 };
 
