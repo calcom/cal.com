@@ -1,7 +1,9 @@
 import type z from "zod";
 
+import type { FieldType } from "@calcom/prisma/zod-utils";
+
 import { propsTypes } from "./propsTypes";
-import type { FieldType, fieldTypeConfigSchema } from "./schema";
+import type { fieldTypeConfigSchema } from "./schema";
 
 const configMap: Record<FieldType, Omit<z.infer<typeof fieldTypeConfigSchema>, "propsType">> = {
   // This won't be stored in DB. It allows UI to be configured from the codebase for all existing booking fields stored in DB as well
