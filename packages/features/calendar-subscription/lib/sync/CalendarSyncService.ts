@@ -1,6 +1,7 @@
 import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import type { CalendarSubscriptionEventItem } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionPort.interface";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import type { SelectedCalendar } from "@calcom/prisma/client";
@@ -81,7 +82,7 @@ export class CalendarSyncService {
       return rescheduleResult;
     } catch (error) {
       // silently fail for now
-      log.error("Failed to reschedule booking", { bookingId }, safeStringify(error));
+      log.error("Failed to reschedule booking", { bookingId: booking.id }, safeStringify(error));
     }
   }
 
@@ -132,7 +133,6 @@ export class CalendarSyncService {
           rescheduleReason: tEnglish("event_moved_in_calendar"),
         },
       },
-      skipAvailabilityCheck: true,
       skipEventLimitsCheck: true,
       skipCalendarSyncTaskCreation: true,
     });
