@@ -34,35 +34,3 @@ export const localStorage = {
     }
   },
 };
-
-export const sessionStorage = {
-  getItem(key: string) {
-    try {
-      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
-      return window.sessionStorage.getItem(key);
-    } catch (e) {
-      // In case storage is restricted. Possible reasons
-      // 1. Third Party Context in Chrome Incognito mode.
-      return null;
-    }
-  },
-  setItem(key: string, value: string) {
-    try {
-      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
-      window.sessionStorage.setItem(key, value);
-    } catch (e) {
-      // In case storage is restricted. Possible reasons
-      // 1. Third Party Context in Chrome Incognito mode.
-      // 2. Storage limit reached
-      return;
-    }
-  },
-  removeItem: (key: string) => {
-    try {
-      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
-      window.sessionStorage.removeItem(key);
-    } catch (e) {
-      return;
-    }
-  },
-};

@@ -4,7 +4,7 @@ import { getEventLocationType, OrganizerDefaultConferencingAppType } from "@calc
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { sendLocationChangeEmailsAndSMS } from "@calcom/emails";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import EventManager from "@calcom/lib/EventManager";
+import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";

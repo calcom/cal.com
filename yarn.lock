@@ -2700,7 +2700,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.359"
+    "@calcom/platform-libraries": "*"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
     "@calcom/prisma": "*"
@@ -2936,6 +2936,7 @@ __metadata:
     "@types/react": ^18
     "@types/react-dom": ^18
     autoprefixer: ^10.0.1
+    dotenv: ^17.2.1
     eslint: ^8.34.0
     eslint-config-next: 14.0.4
     next: 14.0.4
@@ -3759,17 +3760,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.359":
-  version: 0.0.359
-  resolution: "@calcom/platform-libraries@npm:0.0.359"
-  dependencies:
-    "@calcom/features": "*"
-    "@calcom/lib": "*"
-  checksum: 265d73c95334e34d076406d943ba6e80cff0037b4cf4620ed86519d41ac8e24e643000b84773c1f17cece28c4f50bd1cd70a0306764908248a55af49b44f054f
-  languageName: node
-  linkType: hard
-
-"@calcom/platform-libraries@workspace:packages/platform/libraries":
+"@calcom/platform-libraries@*, @calcom/platform-libraries@workspace:packages/platform/libraries":
   version: 0.0.0-use.local
   resolution: "@calcom/platform-libraries@workspace:packages/platform/libraries"
   dependencies:
@@ -24758,6 +24749,13 @@ __metadata:
   version: 16.6.1
   resolution: "dotenv@npm:16.6.1"
   checksum: e8bd63c9a37f57934f7938a9cf35de698097fadf980cb6edb61d33b3e424ceccfe4d10f37130b904a973b9038627c2646a3365a904b4406514ea94d7f1816b69
+  languageName: node
+  linkType: hard
+
+"dotenv@npm:^17.2.1":
+  version: 17.2.2
+  resolution: "dotenv@npm:17.2.2"
+  checksum: 673825993b16a6722332b2e1f8c24b1c2ebe3dd3b81ae5df9be35f1483bf52e0b463555b09da65b756c7abee3cf55ba2ae2628c22874a899556fa787fac56019
   languageName: node
   linkType: hard
 

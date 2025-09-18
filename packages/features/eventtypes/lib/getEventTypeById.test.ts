@@ -1,4 +1,4 @@
-import prismock from "../../../tests/libs/__mocks__/prisma";
+import prismock from "../../../../tests/libs/__mocks__/prisma";
 
 import { mockNoTranslations } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 
