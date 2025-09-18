@@ -783,6 +783,8 @@ export const fieldTypeEnum = z.enum([
   "url",
 ]);
 
+export type FieldType = z.infer<typeof fieldTypeEnum>;
+
 export const excludeOrRequireEmailSchema = z.string().superRefine((val, ctx) => {
   const allDomains = val.split(",").map((dom) => dom.trim());
 

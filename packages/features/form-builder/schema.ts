@@ -1,21 +1,12 @@
 import { z } from "zod";
 
-import {
-  fieldSchema,
-  fieldTypeEnum,
-  EditableSchema,
-  variantsConfigSchema,
-  excludeOrRequireEmailSchema,
-} from "@calcom/prisma/zod-utils";
+import { fieldSchema, fieldTypeEnum, variantsConfigSchema, type FieldType } from "@calcom/prisma/zod-utils";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { preprocessNameFieldDataWithVariant } from "./utils";
 import { getConfig as getVariantsConfig } from "./utils/variantsConfig";
 
-export { fieldSchema, EditableSchema, variantsConfigSchema, excludeOrRequireEmailSchema };
 const nonEmptyString = () => z.string().refine((value: string) => value.trim().length > 0);
-
-export type FieldType = z.infer<typeof fieldTypeEnum>;
 
 export type ALL_VIEWS = "ALL_VIEWS";
 
