@@ -283,7 +283,7 @@
     "_CAL_INTERNAL_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS"
   ],
   "tasks": {
-    "copy-app-store-static": {
+    "@calcom/web#copy-app-store-static": {
       "inputs": ["../../packages/app-store/**/static/**/*"],
       "outputs": ["public/app-store/**"]
     },
