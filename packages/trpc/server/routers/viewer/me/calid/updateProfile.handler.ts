@@ -23,7 +23,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
-import { getDefaultScheduleId } from "../../availability/calid/util";
+import { getDefaultScheduleId } from "../../availability/util";
 import { updateUserMetadataAllowedKeys, type TCalIdUpdateProfileInputSchema } from "./updateProfile.schema";
 
 const log = logger.getSubLogger({ prefix: ["updateProfile"] });
@@ -36,8 +36,6 @@ type CalIdUpdateProfileOptions = {
 };
 
 export const calidUpdateProfileHandler = async ({ ctx, input }: CalIdUpdateProfileOptions) => {
-
-  logger.info("Upload profile input: ", input);
   const { user } = ctx;
   const billingService = new StripeBillingService();
   const userMetadata = await handleUserMetadata({ ctx, input });
