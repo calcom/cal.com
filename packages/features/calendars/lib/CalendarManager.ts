@@ -11,6 +11,8 @@ import { CalendarAppDelegationCredentialError } from "@calcom/lib/CalendarAppErr
 import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
 import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential/clientAndServer";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
+import getCalendarsEvents from "@calcom/lib/getCalendarsEvents";
+import { getCalendarsEventsWithTimezones } from "@calcom/lib/getCalendarsEvents";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -24,9 +26,6 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 import type { EventResult } from "@calcom/types/EventManager";
-
-import getCalendarsEvents from "./getCalendarsEvents";
-import { getCalendarsEventsWithTimezones } from "./getCalendarsEvents";
 
 const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 
