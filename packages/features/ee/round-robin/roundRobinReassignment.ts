@@ -32,7 +32,7 @@ import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
-import { userMetadata as userMetadataSchema, bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata, PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -304,9 +304,6 @@ export const roundRobinReassignment = async ({
         },
       })
     : null;
-
-  const parsedMetadata = bookingMetadataSchema.safeParse(booking.metadata ?? null);
-  const bookingMetadata = parsedMetadata.success ? parsedMetadata.data : null;
 
   const evt: CalendarEvent = {
     organizer: {
