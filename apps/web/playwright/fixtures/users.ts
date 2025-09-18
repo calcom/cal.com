@@ -22,6 +22,76 @@ import { selectFirstAvailableTimeSlotNextMonth, teamEventSlug, teamEventTitle } 
 import type { createEmailsFixture } from "./emails";
 import { TimeZoneEnum } from "./types";
 
+// Helper function to create a custom role with all permissions for e2e testing
+const createFullAccessCustomRole = async (teamId: number, roleName = "E2E Full Access") => {
+  const allPermissions = [
+    { resource: "team", action: "create" },
+    { resource: "team", action: "read" },
+    { resource: "team", action: "update" },
+    { resource: "team", action: "changeMemberRole" },
+    { resource: "team", action: "remove" },
+    { resource: "team", action: "invite" },
+
+    // Event Type permissions
+    { resource: "eventType", action: "create" },
+    { resource: "eventType", action: "read" },
+    { resource: "eventType", action: "update" },
+    { resource: "eventType", action: "delete" },
+
+    // Booking permissions
+    { resource: "booking", action: "read" },
+    { resource: "booking", action: "update" },
+    { resource: "booking", action: "readTeamBookings" },
+    { resource: "booking", action: "readOrgBookings" },
+    { resource: "booking", action: "readRecordings" },
+
+    { resource: "organization", action: "read" },
+    { resource: "organization", action: "create" },
+    { resource: "organization", action: "listMembers" },
+
+    { resource: "apiKey", action: "create" },
+    { resource: "apiKey", action: "findKeyOfType" },
+
+    { resource: "workflow", action: "create" },
+    { resource: "workflow", action: "read" },
+    { resource: "workflow", action: "update" },
+    { resource: "workflow", action: "delete" },
+
+    { resource: "routingForm", action: "create" },
+    { resource: "routingForm", action: "read" },
+    { resource: "routingForm", action: "update" },
+    { resource: "routingForm", action: "delete" },
+
+    // Insights permissions
+    { resource: "insights", action: "read" },
+
+    { resource: "availability", action: "override" },
+  ];
+
+  return await prisma.role.create({
+    data: {
+      id: `e2e_full_access_${teamId}_${Date.now()}`,
+      name: roleName,
+      description: "Full access role for e2e testing - allows all permissions",
+      color: "#059669",
+      teamId: teamId,
+      type: "CUSTOM",
+      permissions: {
+        create: allPermissions,
+      },
+    },
+    include: {
+      permissions: {
+        select: {
+          id: true,
+          resource: true,
+          action: true,
+        },
+      },
+    },
+  });
+};
+
 // Don't import hashPassword from app as that ends up importing next-auth and initializing it before NEXTAUTH_URL can be updated during tests.
 export function hashPassword(password: string) {
   const hashedPassword = hash(password, 12);
@@ -225,6 +295,17 @@ const createTeamAndAddUser = async (
     data,
   });
 
+  await prisma.teamFeatures.create({
+    data: {
+      featureId: "pbac",
+      teamId: team.id,
+      assignedBy: "e2e-fixture",
+      assignedAt: new Date(),
+    },
+  });
+
+  const customRole = await createFullAccessCustomRole(team.id);
+
   const { role = MembershipRole.OWNER, id: userId } = user;
   await prisma.membership.create({
     data: {
@@ -232,7 +313,18 @@ const createTeamAndAddUser = async (
       teamId: team.id,
       userId,
       role: role,
+      customRoleId: role === MembershipRole.OWNER ? null : customRole.id,
       accepted: true,
+    },
+  });
+
+  await prisma.team.update({
+    where: { id: team.id },
+    data: {
+      metadata: {
+        ...data.metadata,
+        e2eCustomRoleId: customRole.id,
+      },
     },
   });
 
@@ -380,6 +472,13 @@ export const createUsersFixture = (
                 data: createUser(workerInfo, teammateObj),
               });
 
+              const teamWithMetadata = await prisma.team.findUnique({
+                where: { id: team.id },
+                select: { metadata: true },
+              });
+              const customRoleId = (teamWithMetadata?.metadata as Record<string, unknown>)
+                ?.e2eCustomRoleId as string;
+
               // Add teammates to the team
               await prisma.membership.create({
                 data: {
@@ -387,6 +486,7 @@ export const createUsersFixture = (
                   teamId: team.id,
                   userId: teamUser.id,
                   role: MembershipRole.MEMBER,
+                  customRoleId: customRoleId,
                   accepted: true,
                 },
               });
@@ -651,7 +751,16 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     (await prisma.user.findUnique({
       where: { id: store.user.id },
-      include: { eventTypes: true },
+      include: {
+        eventTypes: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            length: true,
+          },
+        },
+      },
     }))!;
   return {
     id: user.id,
@@ -688,7 +797,24 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     getFirstTeamMembership: async () => {
       const memberships = await prisma.membership.findMany({
         where: { userId: user.id },
-        include: { team: true, user: true },
+        include: {
+          team: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              isOrganization: true,
+              metadata: true,
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              username: true,
+              email: true,
+            },
+          },
+        },
       });
 
       const membership = memberships
@@ -718,8 +844,19 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
         include: {
           team: {
             include: {
-              children: true,
-              organizationSettings: true,
+              children: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                },
+              },
+              organizationSettings: {
+                select: {
+                  id: true,
+                  isOrganizationConfigured: true,
+                },
+              },
             },
           },
         },

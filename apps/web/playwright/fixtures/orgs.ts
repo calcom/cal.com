@@ -60,9 +60,17 @@ export async function createOrgInDb({
             }
           : null),
       },
+      features: {
+        create: {
+          featureId: "pbac",
+          assignedBy: "e2e-fixture",
+          assignedAt: new Date(),
+        },
+      },
     },
     include: {
       organizationSettings: true,
+      features: true,
     },
   });
 }
