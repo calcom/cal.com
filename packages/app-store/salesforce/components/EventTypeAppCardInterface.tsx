@@ -20,7 +20,7 @@ import { SalesforceRecordEnum } from "../lib/enums";
 import type { appDataSchema } from "../zod";
 import WriteToObjectSettings, { BookingActionEnum } from "./components/WriteToObjectSettings";
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType, onAppInstallSuccess }) {
   const pathname = usePathname();
 
   const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();
@@ -95,6 +95,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
 
   return (
     <AppCard
+      onAppInstallSuccess={onAppInstallSuccess}
       returnTo={`${WEBAPP_URL}${pathname}?tabName=apps`}
       app={app}
       teamId={eventType.team?.id || undefined}

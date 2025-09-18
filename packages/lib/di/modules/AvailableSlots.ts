@@ -1,8 +1,7 @@
-import { createModule } from "@evyweb/ioctopus";
-
 import type { IAvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
 import { AvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
 
+import { createModule } from "../di";
 import { DI_TOKENS } from "../tokens";
 
 export const availableSlotsModule = createModule();

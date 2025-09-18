@@ -6,6 +6,7 @@ import type { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import type { Language } from "@calcom/features/calAIPhone/providers/retellAI/types";
 import { CAL_AI_PHONE_NUMBER_MONTHLY_PRICE } from "@calcom/lib/constants";
 import { formatPhoneNumber } from "@calcom/lib/formatPhoneNumber";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -27,7 +28,7 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { AddVariablesDropdown } from "@calcom/ui/components/editor";
 import { ToggleGroup, Switch } from "@calcom/ui/components/form";
-import { Label, TextArea, Input, TextField, Form } from "@calcom/ui/components/form";
+import { Label, TextArea, Input, TextField, Form, Select } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import {
   Sheet,
@@ -42,7 +43,9 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import type { FormValues } from "../pages/workflow";
-import { TestAgentDialog } from "./TestAgentDialog";
+import { TestPhoneCallDialog } from "./TestPhoneCallDialog";
+import { VoiceSelectionDialog } from "./VoiceSelectionDialog";
+import { WebCallDialog } from "./WebCallDialog";
 
 // Utility functions for prompt display
 const cleanPromptForDisplay = (prompt: string): string => {
@@ -67,10 +70,52 @@ const restorePromptComplexity = (prompt: string): string => {
   return restoredPrompt;
 };
 
+// Language options for the dropdown
+const LANGUAGE_OPTIONS = [
+  { value: "en-US", label: "English (US)" },
+  { value: "en-IN", label: "English (India)" },
+  { value: "en-GB", label: "English (UK)" },
+  { value: "en-AU", label: "English (Australia)" },
+  { value: "en-NZ", label: "English (New Zealand)" },
+  { value: "de-DE", label: "German" },
+  { value: "es-ES", label: "Spanish (Spain)" },
+  { value: "es-419", label: "Spanish (Latin America)" },
+  { value: "hi-IN", label: "Hindi" },
+  { value: "fr-FR", label: "French (France)" },
+  { value: "fr-CA", label: "French (Canada)" },
+  { value: "ja-JP", label: "Japanese" },
+  { value: "pt-PT", label: "Portuguese (Portugal)" },
+  { value: "pt-BR", label: "Portuguese (Brazil)" },
+  { value: "zh-CN", label: "Chinese (Simplified)" },
+  { value: "ru-RU", label: "Russian" },
+  { value: "it-IT", label: "Italian" },
+  { value: "ko-KR", label: "Korean" },
+  { value: "nl-NL", label: "Dutch (Netherlands)" },
+  { value: "nl-BE", label: "Dutch (Belgium)" },
+  { value: "pl-PL", label: "Polish" },
+  { value: "tr-TR", label: "Turkish" },
+  { value: "th-TH", label: "Thai" },
+  { value: "vi-VN", label: "Vietnamese" },
+  { value: "ro-RO", label: "Romanian" },
+  { value: "bg-BG", label: "Bulgarian" },
+  { value: "ca-ES", label: "Catalan" },
+  { value: "da-DK", label: "Danish" },
+  { value: "fi-FI", label: "Finnish" },
+  { value: "el-GR", label: "Greek" },
+  { value: "hu-HU", label: "Hungarian" },
+  { value: "id-ID", label: "Indonesian" },
+  { value: "no-NO", label: "Norwegian" },
+  { value: "sk-SK", label: "Slovak" },
+  { value: "sv-SE", label: "Swedish" },
+  { value: "multi", label: "Multilingual" },
+];
+
 const agentSchema = z.object({
   generalPrompt: z.string().min(1, "General prompt is required"),
   beginMessage: z.string().min(1, "Begin message is required"),
   numberToCall: z.string().optional(),
+  language: z.string().optional(),
+  voiceId: z.string().optional(),
   generalTools: z
     .array(
       z.object({
@@ -114,6 +159,7 @@ type AgentConfigurationSheetProps = {
   onUpdate: (data: AgentFormValues) => void;
   readOnly?: boolean;
   teamId?: number;
+  isOrganization?: boolean;
   workflowId?: string;
   workflowStepId?: number;
   activeTab?: "prompt" | "phoneNumber";
@@ -129,6 +175,7 @@ export function AgentConfigurationSheet({
   onUpdate,
   readOnly = false,
   teamId,
+  isOrganization = false,
   workflowId,
   workflowStepId: _workflowStepId,
   form,
@@ -141,6 +188,8 @@ export function AgentConfigurationSheet({
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [showAdvancedFields, setShowAdvancedFields] = useState(false);
   const [isTestAgentDialogOpen, setIsTestAgentDialogOpen] = useState(false);
+  const [isWebCallDialogOpen, setIsWebCallDialogOpen] = useState(false);
+  const [isVoiceDialogOpen, setIsVoiceDialogOpen] = useState(false);
   const [cancellingNumberId, setCancellingNumberId] = useState<number | null>(null);
   const [numberToDelete, setNumberToDelete] = useState<string | null>(null);
   // const [toolDialogOpen, setToolDialogOpen] = useState(false);
@@ -155,6 +204,8 @@ export function AgentConfigurationSheet({
       generalPrompt: "",
       beginMessage: "",
       numberToCall: "",
+      language: "en-US",
+      voiceId: "",
       generalTools: [],
     },
   });
@@ -166,6 +217,8 @@ export function AgentConfigurationSheet({
         generalPrompt: cleanPromptForDisplay(retellData.generalPrompt || ""),
         beginMessage: retellData.beginMessage || "",
         numberToCall: "",
+        language: retellData.language || "en-US",
+        voiceId: retellData.voiceId || "",
         generalTools: retellData.generalTools || [],
       });
     }
@@ -285,6 +338,8 @@ export function AgentConfigurationSheet({
     const updatePayload = {
       generalPrompt: restorePromptComplexity(data.generalPrompt),
       beginMessage: data.beginMessage,
+      language: data.language as Language,
+      voiceId: data.voiceId,
       // Don't include generalTools - they are managed by the backend
     };
 
@@ -432,6 +487,43 @@ export function AgentConfigurationSheet({
               <div className="space-y-4">
                 <div>
                   <Label className="text-emphasis mb-1 block text-sm font-medium">
+                    {t("language")}
+                  </Label>
+                  <Controller
+                    name="language"
+                    control={agentForm.control}
+                    render={({ field }) => (
+                      <Select
+                        value={LANGUAGE_OPTIONS.find((option) => option.value === field.value)}
+                        onChange={(option) => field.onChange(option?.value)}
+                        options={LANGUAGE_OPTIONS}
+                        isDisabled={readOnly}
+                        className="mb-4"
+                      />
+                    )}
+                  />
+                </div>
+                <div>
+                  <Label className="text-emphasis mb-1 block text-sm font-medium">
+                    {t("voice")}
+                  </Label>
+                  <p className="text-subtle mb-1.5 text-xs">{t("select_voice_for_agent")}</p>
+                  <Button
+                    type="button"
+                    color="secondary"
+                    onClick={() => setIsVoiceDialogOpen(true)}
+                    disabled={readOnly}
+                    className="w-full justify-start">
+                    <Icon name="user" className="mr-2 h-4 w-4" />
+                    {agentForm.watch("voiceId") ? (
+                      <span className="font-mono text-sm">{agentForm.watch("voiceId")}</span>
+                    ) : (
+                      t("select_voice")
+                    )}
+                  </Button>
+                </div>
+                <div>
+                  <Label className="text-emphasis mb-1 block text-sm font-medium">
                     {t("initial_message")} *
                   </Label>
                   <p className="text-subtle mb-1.5 text-xs">{t("initial_message_description")}</p>
@@ -453,7 +545,7 @@ export function AgentConfigurationSheet({
                     {!readOnly && (
                       <AddVariablesDropdown
                         addVariable={addVariableToGeneralPrompt}
-                        variables={DYNAMIC_TEXT_VARIABLES}
+                        variables={[...DYNAMIC_TEXT_VARIABLES, "number_to_call"]}
                         addVariableButtonClassName="border rounded-[10px] py-1 px-1"
                       />
                     )}
@@ -593,13 +685,39 @@ export function AgentConfigurationSheet({
                           </div>
                         </div>
                         <div className="flex items-center gap-1">
-                          <Button
-                            color="secondary"
-                            onClick={() => setIsTestAgentDialogOpen(true)}
-                            className="rounded-[10px]"
-                            disabled={readOnly}>
-                            {t("test_agent")}
-                          </Button>
+                          <Dropdown>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                color="secondary"
+                                className="rounded-[10px]"
+                                disabled={readOnly}
+                                EndIcon="chevron-down">
+                                {t("test_agent")}
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuItem>
+                                <DropdownItem
+                                  type="button"
+                                  StartIcon="phone"
+                                  onClick={() => {
+                                    setIsTestAgentDialogOpen(true);
+                                  }}>
+                                  {t("phone_call")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <DropdownItem
+                                  type="button"
+                                  StartIcon="monitor"
+                                  onClick={() => {
+                                    setIsWebCallDialogOpen(true);
+                                  }}>
+                                  {t("web_call")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </Dropdown>
                           <Dropdown>
                             <DropdownMenuTrigger asChild>
                               <Button type="button" color="secondary" variant="icon" StartIcon="ellipsis" />
@@ -678,11 +796,41 @@ export function AgentConfigurationSheet({
             )}
           </SheetBody>
           <SheetFooter>
-            <Button type="button" color="secondary" onClick={() => onOpenChange(false)}>
+            <div className="mr-auto">
+              <Dropdown>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    color="secondary"
+                    className="rounded-[10px]"
+                    disabled={readOnly}
+                    EndIcon="chevron-down">
+                    {t("test_agent")}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem>
+                    <DropdownItem
+                      type="button"
+                      StartIcon="monitor"
+                      onClick={() => {
+                        setIsWebCallDialogOpen(true);
+                      }}>
+                      {t("web_call")}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </Dropdown>
+            </div>
+            <Button
+              className="justify-center"
+              type="button"
+              color="secondary"
+              onClick={() => onOpenChange(false)}>
               {t("cancel")}
             </Button>
             <Button
               type="button"
+              className="justify-center"
               onClick={agentForm.handleSubmit(handleAgentUpdate)}
               disabled={!agentForm.formState.isDirty || readOnly || updateAgentMutation.isPending}
               loading={updateAgentMutation.isPending}>
@@ -847,7 +995,7 @@ export function AgentConfigurationSheet({
                 </div>
 
                 {showAdvancedFields && (
-                  <div className="space-y-5 rounded-lg bg-white p-4">
+                  <div className="bg-default space-y-5 rounded-lg p-4">
                     <Controller
                       name="sipTrunkAuthUsername"
                       control={phoneNumberForm.control}
@@ -964,7 +1112,7 @@ export function AgentConfigurationSheet({
       </Dialog>
 
       {agentId && (
-        <TestAgentDialog
+        <TestPhoneCallDialog
           open={isTestAgentDialogOpen}
           onOpenChange={setIsTestAgentDialogOpen}
           agentId={agentId}
@@ -972,6 +1120,26 @@ export function AgentConfigurationSheet({
           form={form}
         />
       )}
+
+      {agentId && (
+        <WebCallDialog
+          open={isWebCallDialogOpen}
+          onOpenChange={setIsWebCallDialogOpen}
+          agentId={agentId}
+          teamId={teamId}
+          isOrganization={isOrganization}
+          form={form}
+        />
+      )}
+
+      <VoiceSelectionDialog
+        open={isVoiceDialogOpen}
+        onOpenChange={setIsVoiceDialogOpen}
+        selectedVoiceId={agentForm.watch("voiceId")}
+        onVoiceSelect={(voiceId) => {
+          agentForm.setValue("voiceId", voiceId, { shouldDirty: true });
+        }}
+      />
 
       <UIDialog open={cancellingNumberId !== null} onOpenChange={() => setCancellingNumberId(null)}>
         <ConfirmationDialogContent

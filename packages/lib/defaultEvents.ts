@@ -1,15 +1,14 @@
-import type { Prisma, SelectedCalendar } from "@prisma/client";
-
 import { DailyLocationType } from "@calcom/app-store/constants";
 import slugify from "@calcom/lib/slugify";
+import type { Prisma, SelectedCalendar } from "@calcom/prisma/client";
 import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { userSelect } from "@calcom/prisma/selects";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-type User = Omit<Prisma.UserGetPayload<typeof userSelect>, "selectedCalendars"> & {
+type User = Omit<Prisma.UserGetPayload<{ select: typeof userSelect }>, "selectedCalendars"> & {
   allSelectedCalendars: SelectedCalendar[];
   userLevelSelectedCalendars: SelectedCalendar[];
 };
@@ -93,6 +92,7 @@ const commons = {
   disableRescheduling: false,
   onlyShowFirstAvailableSlot: false,
   allowReschedulingPastBookings: false,
+  allowReschedulingCancelledBookings: false,
   hideOrganizerEmail: false,
   showOptimizedSlots: false,
   id: 0,
