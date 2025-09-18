@@ -251,7 +251,7 @@ describe("InsightsRoutingService Integration Tests", () => {
     it("should return NOTHING for invalid options", async () => {
       const service = new InsightsRoutingService({
         prisma,
-        options: null as any,
+        options: null,
         filters: createDefaultFilters(),
       });
 
@@ -317,6 +317,56 @@ describe("InsightsRoutingService Integration Tests", () => {
           scope: "user",
           userId: testData.user.id,
           orgId: testData.org.id,
+          teamId: undefined,
+        },
+        filters: createDefaultFilters(),
+      });
+
+      const conditions = await service.getAuthorizationConditions();
+      expect(conditions).toEqual(
+        Prisma.sql`rfrd."formUserId" = ${testData.user.id} AND rfrd."formTeamId" IS NULL`
+      );
+
+      await testData.cleanup();
+    });
+
+    it("should build user scope conditions with null orgId", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "user",
+          userId: testData.user.id,
+          orgId: null,
+          teamId: undefined,
+        },
+        filters: createDefaultFilters(),
+      });
+
+      const conditions = await service.getAuthorizationConditions();
+      expect(conditions).toEqual(
+        Prisma.sql`rfrd."formUserId" = ${testData.user.id} AND rfrd."formTeamId" IS NULL`
+      );
+
+      await testData.cleanup();
+    });
+
+    it("should build user scope conditions with undefined orgId", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "user",
+          userId: testData.user.id,
+          orgId: null,
           teamId: undefined,
         },
         filters: createDefaultFilters(),
@@ -423,6 +473,123 @@ describe("InsightsRoutingService Integration Tests", () => {
       // Clean up
       await prisma.team.delete({
         where: { id: unrelatedTeam.id },
+      });
+      await testData.cleanup();
+    });
+
+    it("should build team scope conditions with null orgId for standalone team", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const standaloneTeam = await prisma.team.create({
+        data: {
+          name: "Standalone Team",
+          slug: `standalone-team-${randomUUID()}`,
+          isOrganization: false,
+          parentId: null,
+        },
+      });
+
+      await prisma.membership.create({
+        data: {
+          userId: testData.user.id,
+          teamId: standaloneTeam.id,
+          role: MembershipRole.OWNER,
+          accepted: true,
+        },
+      });
+
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "team",
+          userId: testData.user.id,
+          orgId: null,
+          teamId: standaloneTeam.id,
+        },
+        filters: createDefaultFilters(),
+      });
+
+      const conditions = await service.getAuthorizationConditions();
+      expect(conditions).toEqual(Prisma.sql`rfrd."formTeamId" = ${standaloneTeam.id}`);
+
+      await prisma.membership.deleteMany({
+        where: { teamId: standaloneTeam.id },
+      });
+      await prisma.team.delete({
+        where: { id: standaloneTeam.id },
+      });
+      await testData.cleanup();
+    });
+
+    it("should return NOTHING_CONDITION for team scope when team belongs to org but no orgId provided", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "team",
+          userId: testData.user.id,
+          orgId: null,
+          teamId: testData.team.id,
+        },
+        filters: createDefaultFilters(),
+      });
+
+      const conditions = await service.getAuthorizationConditions();
+      expect(conditions).toEqual(NOTHING_CONDITION);
+
+      await testData.cleanup();
+    });
+
+    it("should build team scope conditions with undefined orgId for standalone team", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const standaloneTeam = await prisma.team.create({
+        data: {
+          name: "Standalone Team 2",
+          slug: `standalone-team-2-${randomUUID()}`,
+          isOrganization: false,
+          parentId: null,
+        },
+      });
+
+      await prisma.membership.create({
+        data: {
+          userId: testData.user.id,
+          teamId: standaloneTeam.id,
+          role: MembershipRole.OWNER,
+          accepted: true,
+        },
+      });
+
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "team",
+          userId: testData.user.id,
+          orgId: null,
+          teamId: standaloneTeam.id,
+        },
+        filters: createDefaultFilters(),
+      });
+
+      const conditions = await service.getAuthorizationConditions();
+      expect(conditions).toEqual(Prisma.sql`rfrd."formTeamId" = ${standaloneTeam.id}`);
+
+      await prisma.membership.deleteMany({
+        where: { teamId: standaloneTeam.id },
+      });
+      await prisma.team.delete({
+        where: { id: standaloneTeam.id },
       });
       await testData.cleanup();
     });

@@ -23,7 +23,7 @@ export const insightsRoutingServiceOptionsSchema = z.discriminatedUnion("scope",
   z.object({
     scope: z.literal("user"),
     userId: z.number(),
-    orgId: z.number(),
+    orgId: z.number().optional(),
   }),
   z.object({
     scope: z.literal("org"),
@@ -33,7 +33,7 @@ export const insightsRoutingServiceOptionsSchema = z.discriminatedUnion("scope",
   z.object({
     scope: z.literal("team"),
     userId: z.number(),
-    orgId: z.number(),
+    orgId: z.number().optional(),
     teamId: z.number(),
   }),
 ]);
@@ -852,13 +852,23 @@ export class InsightsRoutingBaseService {
     options: Extract<InsightsRoutingServiceOptions, { scope: "team" }>
   ): Promise<Prisma.Sql> {
     const teamRepo = new TeamRepository(this.prisma);
-    const childTeamOfOrg = await teamRepo.findByIdAndParentId({
-      id: options.teamId,
-      parentId: options.orgId,
-      select: { id: true },
-    });
-    if (options.orgId && !childTeamOfOrg) {
-      return NOTHING_CONDITION;
+
+    if (options.orgId !== undefined) {
+      const childTeamOfOrg = await teamRepo.findByIdAndParentId({
+        id: options.teamId,
+        parentId: options.orgId,
+        select: { id: true },
+      });
+      if (!childTeamOfOrg) {
+        return NOTHING_CONDITION;
+      }
+    } else {
+      const team = await teamRepo.findById({
+        id: options.teamId,
+      });
+      if (team?.parentId) {
+        return NOTHING_CONDITION;
+      }
     }
 
     return Prisma.sql`rfrd."formTeamId" = ${options.teamId}`;
