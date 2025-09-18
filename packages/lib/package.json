@@ -34,7 +34,7 @@
   "devDependencies": {
     "@calcom/tsconfig": "*",
     "@calcom/types": "*",
-    "@faker-js/faker": "9.2.0",
+    "@faker-js/faker": "^7.3.0",
     "typescript": "^5.9.0-beta"
   }
 }
