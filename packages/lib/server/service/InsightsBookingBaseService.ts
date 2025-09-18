@@ -12,6 +12,7 @@ import {
   isNumberFilterValue,
 } from "@calcom/features/data-table/lib/utils";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -1238,13 +1239,12 @@ export class InsightsBookingBaseService {
   }
 
   private async isOwnerOrAdmin(userId: number, targetId: number): Promise<boolean> {
-    // Check if the user is an owner or admin of the organization or team
-    const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: targetId });
-    return Boolean(
-      membership &&
-        membership.accepted &&
-        membership.role &&
-        (membership.role === MembershipRole.OWNER || membership.role === MembershipRole.ADMIN)
-    );
+    const permissionCheckService = new PermissionCheckService();
+    return await permissionCheckService.checkPermission({
+      userId,
+      teamId: targetId,
+      permission: "insights.read",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+    });
   }
 }
