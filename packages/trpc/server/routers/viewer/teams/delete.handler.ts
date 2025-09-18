@@ -1,4 +1,4 @@
-import { isTeamOwner } from "@calcom/lib/server/queries/teams";
+import { isTeamOwner } from "@calcom/features/ee/teams/lib/queries";
 import { TeamService } from "@calcom/lib/server/service/teamService";
 
 import { TRPCError } from "@trpc/server";

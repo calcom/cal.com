@@ -2,7 +2,7 @@ import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { isTeamOwner } from "@calcom/lib/server/queries/teams";
+import { isTeamOwner } from "@calcom/features/ee/teams/lib/queries";
 import { TeamService } from "@calcom/lib/server/service/teamService";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
