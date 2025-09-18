@@ -274,7 +274,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           members: [],
         }
       : undefined,
-    hideBranding: !!booking.eventType?.owner?.hideBranding,
+    hideBranding: hideBranding,
     ...(platformClientParams ? platformClientParams : {}),
   };
 
@@ -337,6 +337,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       booking,
       emailsEnabled,
       platformClientParams,
+      hideBranding,
     });
   } else {
     evt.rejectionReason = rejectionReason;

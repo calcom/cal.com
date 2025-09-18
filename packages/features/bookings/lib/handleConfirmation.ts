@@ -34,31 +34,6 @@ import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTrigger
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 
-async function calculateHideBrandingForBooking(booking: {
-  eventType: {
-    id: number;
-    owner?: {
-      hideBranding?: boolean | null;
-    } | null;
-  } | null;
-}) {
-  if (!booking.eventType?.id) {
-    return false;
-  }
-
-  // Use comprehensive branding logic
-  try {
-    return await shouldHideBrandingForEvent({
-      eventTypeId: booking.eventType.id,
-      team: null, // We'll need to query this separately in a follow-up
-      owner: null, // We'll need to query this separately in a follow-up
-      organizationId: null, // We'll need to query this separately in a follow-up
-    });
-  } catch (error) {
-    // Fallback to simple logic if comprehensive check fails
-    return !!booking.eventType.owner?.hideBranding;
-  }
-}
 
 export async function handleConfirmation(args: {
   user: EventManagerUser & { username: string | null };
@@ -100,6 +75,7 @@ export async function handleConfirmation(args: {
   paid?: boolean;
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
+  hideBranding?: boolean; // Add the calculated hideBranding value
 }) {
   const {
     user,
@@ -111,6 +87,7 @@ export async function handleConfirmation(args: {
     paid,
     emailsEnabled = true,
     platformClientParams,
+    hideBranding = false,
   } = args;
   const eventType = booking.eventType;
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
@@ -383,7 +360,7 @@ export async function handleConfirmation(args: {
           evt: evtOfBooking,
           workflows,
           requiresConfirmation: false,
-          hideBranding: await calculateHideBrandingForBooking(updatedBookings[index]),
+          hideBranding: hideBranding,
           seatReferenceUid: evt.attendeeSeatId,
           isPlatformNoEmail: !emailsEnabled && Boolean(platformClientParams?.platformClientId),
         });
@@ -604,7 +581,7 @@ export async function handleConfirmation(args: {
           workflows,
           smsReminderNumber: booking.smsReminderNumber,
           calendarEvent: calendarEventForWorkflow,
-          hideBranding: await calculateHideBrandingForBooking(updatedBookings[0]),
+          hideBranding: hideBranding,
           triggers: [WorkflowTriggerEvents.BOOKING_PAID],
         });
       } catch (error) {
