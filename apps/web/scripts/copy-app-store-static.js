@@ -1,7 +1,6 @@
 const fs = require("fs");
 const path = require("path");
 const glob = require("glob");
-const crypto = require("crypto");
 
 const copyAppStoreStatic = () => {
   // Get all static files from app-store packages
@@ -21,30 +20,11 @@ const copyAppStoreStatic = () => {
       fs.mkdirSync(destDir, { recursive: true });
     }
 
-    // Check if the file already exists in the destination directory
+    // Copy file to destination (Turborepo caching handles change detection)
     const destPath = path.join(destDir, fileName);
-    if (fs.existsSync(destPath)) {
-      // Perform MD5 check to see if the file has changed
-      const sourceHash = getFileHash(file);
-      const destHash = getFileHash(destPath);
-
-      if (sourceHash === destHash) {
-        return; // Skip copying the file if hashes match
-      }
-    }
-
-    // Copy file to destination
     fs.copyFileSync(file, destPath);
     console.log(`Copied ${file} to ${destPath}`);
   });
-};
-
-// Helper function to calculate the MD5 hash of a file
-const getFileHash = (filePath) => {
-  const hash = crypto.createHash("md5");
-  const fileBuffer = fs.readFileSync(filePath);
-  hash.update(fileBuffer);
-  return hash.digest("hex");
 };
 
 // Run the copy function
