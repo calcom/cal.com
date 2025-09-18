@@ -574,6 +574,11 @@ export class AgentService {
       agentId: agent.id,
     });
 
+    // Update the Retell phone number with the new inbound agent ID
+    await this.retellRepository.updatePhoneNumber(phoneNumber, {
+      inbound_agent_id: llmConfig.agentId,
+    });
+
     await this.phoneNumberRepository.updateAgents({
       id: phoneNumberRecord.id,
       inboundProviderAgentId: agent.providerAgentId,

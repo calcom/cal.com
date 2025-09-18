@@ -106,8 +106,7 @@ export default function WorkflowDetailsPage(props: Props) {
     control: form.control,
     name: "steps",
   });
-  console.log("watchedSteps", watchedSteps);
-  // Memoize agent IDs (both outbound and inbound) to prevent unnecessary query re-runs
+
   const allAgentIds = useMemo(() => {
     const outboundAgentIds = (watchedSteps || []).map((step) => step?.agentId || null);
     const inboundAgentIds = (watchedSteps || []).map((step) => step?.inboundAgentId || null);
@@ -128,7 +127,6 @@ export default function WorkflowDetailsPage(props: Props) {
     return Array.from(new Set(validIds));
   }, [allAgentIds]);
 
-  // Create queries only for unique agent IDs
   const uniqueAgentQueries = trpc.useQueries((t) =>
     uniqueAgentIds.map((agentId) => {
       return t.viewer.aiVoiceAgent.get(
@@ -142,7 +140,6 @@ export default function WorkflowDetailsPage(props: Props) {
     })
   );
 
-  // Create a lookup map for agent data
   const agentDataMap = useMemo(() => {
     const map = new Map();
     uniqueAgentIds.forEach((agentId, index) => {
@@ -159,7 +156,6 @@ export default function WorkflowDetailsPage(props: Props) {
     return map;
   }, [uniqueAgentIds, uniqueAgentQueries]);
 
-  // Create the expected array structure for backward compatibility (outbound agents)
   const agentQueriesTrpc = useMemo(() => {
     return allAgentIds.outboundAgentIds.map((agentId) => {
       if (!agentId) {
@@ -169,7 +165,6 @@ export default function WorkflowDetailsPage(props: Props) {
     });
   }, [allAgentIds.outboundAgentIds, agentDataMap]);
 
-  // Create similar structure for inbound agents
   const inboundAgentQueriesTrpc = useMemo(() => {
     return allAgentIds.inboundAgentIds.map((agentId) => {
       if (!agentId) {
@@ -179,7 +174,6 @@ export default function WorkflowDetailsPage(props: Props) {
     });
   }, [allAgentIds.inboundAgentIds, agentDataMap]);
 
-  console.log("agentQueriesTrpc", agentQueriesTrpc);
   return (
     <>
       <div>
