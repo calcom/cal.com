@@ -950,3 +950,4 @@ export const fieldSchema = baseFieldSchema.merge(
 );
 
 export const eventTypeBookingFields = z.array(fieldSchema);
+export const BookingFieldTypeEnum = eventTypeBookingFields.element.shape.type.Enum;
