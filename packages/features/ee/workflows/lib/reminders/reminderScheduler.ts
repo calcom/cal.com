@@ -12,6 +12,7 @@ import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/t
 import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";
+import { formatCalEventExtended } from "@calcom/lib/formatCalendarEvent";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
@@ -21,6 +22,7 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { scheduleAIPhoneCall } from "./aiPhoneCallManager";
 import { scheduleEmailReminder } from "./emailReminderManager";
+import type { BookingInfo } from "./smsReminderManager";
 import { scheduleSMSReminder, type ScheduleTextReminderAction } from "./smsReminderManager";
 import { scheduleWhatsappReminder } from "./whatsappReminderManager";
 
@@ -68,7 +70,7 @@ const processWorkflowStep = async (
   step: WorkflowStep,
   {
     smsReminderNumber,
-    calendarEvent: evt,
+    calendarEvent,
     emailAttendeeSendToOverride,
     hideBranding,
     seatReferenceUid,
@@ -76,6 +78,17 @@ const processWorkflowStep = async (
   }: ProcessWorkflowStepParams
 ) => {
   if (!step?.verifiedAt) return;
+
+  const evt = calendarEvent ? formatCalEventExtended(calendarEvent) : undefined;
+
+  if (!evt && !formData) return;
+
+  const contextData:
+    | { evt: BookingInfo; formData?: never }
+    | {
+        evt?: never;
+        formData: FormSubmissionData;
+      } = evt ? { evt } : { formData: formData as FormSubmissionData };
 
   if (isSMSOrWhatsappAction(step.action)) {
     await checkSMSRateLimit({
@@ -185,7 +198,7 @@ const processWorkflowStep = async (
       sender: step.sender || SENDER_NAME,
       hideBranding,
       includeCalendarEvent: step.includeCalendarEvent,
-      ...(evt ? { evt } : { formData }),
+      ...contextData,
       verifiedAt: step.verifiedAt,
     } as const;
 

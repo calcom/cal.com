@@ -1,4 +1,3 @@
-import type { Workflow } from "@prisma/client";
 import type { z } from "zod";
 
 import { isSMSOrWhatsappAction } from "@calcom/ee/workflows/lib/actionHelperFunctions";
@@ -31,6 +30,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
+import type { Workflow } from "@calcom/prisma/client";
 import type { Prisma, WorkflowStep } from "@calcom/prisma/client";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
@@ -979,57 +979,6 @@ export async function getAllWorkflowsFromEventType(
     orgId,
     workflowsLockedForUser,
     triggerType: "eventType",
-  });
-
-  return allWorkflows;
-}
-
-export async function getAllWorkflowsFromRoutingForm(routingForm: {
-  id: string;
-  userId: number | null;
-  teamId: number | null;
-}) {
-  const routingFormWorkflows = await prisma.workflow.findMany({
-    where: {
-      activeOnRoutingForms: {
-        some: {
-          routingFormId: routingForm.id,
-        },
-      },
-      trigger: {
-        in: [WorkflowTriggerEvents.FORM_SUBMITTED],
-      },
-    },
-    select: {
-      id: true,
-      name: true,
-      trigger: true,
-      time: true,
-      timeUnit: true,
-      userId: true,
-      teamId: true,
-      steps: true,
-      team: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-        },
-      },
-    },
-  });
-
-  const teamId = routingForm.teamId;
-  const userId = routingForm.userId;
-  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
-
-  const allWorkflows = await getAllWorkflows({
-    entityWorkflows: routingFormWorkflows,
-    userId,
-    teamId,
-    orgId,
-    workflowsLockedForUser: false,
-    triggerType: "routingForm",
   });
 
   return allWorkflows;

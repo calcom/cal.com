@@ -1,4 +1,5 @@
 import "@calcom/lib/__mocks__/logger";
+import { prisma } from "@calcom/prisma/__mocks__/prisma";
 
 import { describe, it, vi, expect, beforeEach, afterEach } from "vitest";
 
@@ -11,9 +12,12 @@ import {
   WorkflowActions,
   WorkflowTemplates,
 } from "@calcom/prisma/enums";
-import { getAllWorkflowsFromRoutingForm } from "@calcom/trpc/server/routers/viewer/workflows/util";
 
 import { _onFormSubmission } from "./formSubmissionUtils";
+
+vi.mock("@calcom/prisma", () => ({
+  prisma,
+}));
 
 // Mock dependencies
 vi.mock("@calcom/lib/getOrgIdFromMemberOrTeamId", () => ({
@@ -35,11 +39,9 @@ vi.mock("@calcom/features/tasker", () => {
 // Mock workflow dependencies
 vi.mock("@calcom/lib/server/service/workflows", () => ({
   WorkflowService: {
+    getAllWorkflowsFromRoutingForm: vi.fn(() => Promise.resolve([])),
     scheduleFormWorkflows: vi.fn(() => Promise.resolve()),
   },
-}));
-vi.mock("@calcom/trpc/server/routers/viewer/workflows/util", () => ({
-  getAllWorkflowsFromRoutingForm: vi.fn(() => Promise.resolve([])),
 }));
 
 const mockSendEmail = vi.fn(() => Promise.resolve());
@@ -167,11 +169,11 @@ describe("_onFormSubmission", () => {
         },
       ];
 
-      vi.mocked(getAllWorkflowsFromRoutingForm).mockResolvedValueOnce(mockWorkflows as any);
+      vi.mocked(WorkflowService.getAllWorkflowsFromRoutingForm).mockResolvedValueOnce(mockWorkflows as any);
 
       await _onFormSubmission(mockForm as any, mockResponse, responseId);
 
-      expect(getAllWorkflowsFromRoutingForm).toHaveBeenCalledWith(mockForm);
+      expect(WorkflowService.getAllWorkflowsFromRoutingForm).toHaveBeenCalledWith(mockForm);
       expect(WorkflowService.scheduleFormWorkflows).toHaveBeenCalledWith({
         workflows: mockWorkflows,
         responses: {

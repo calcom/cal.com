@@ -1,4 +1,4 @@
-import type { PlatformOAuthClient } from "@prisma/client";
+import type { PlatformOAuthClient } from "@calcom/prisma/client";
 
 export function getPlatformParams(platformOAuthClient: PlatformOAuthClient) {
   return {
