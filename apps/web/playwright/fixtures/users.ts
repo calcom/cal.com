@@ -798,15 +798,8 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
       const memberships = await prisma.membership.findMany({
         where: { userId: user.id },
         include: {
-          team: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-              isOrganization: true,
-              metadata: true,
-            },
-          },
+          // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
+          team: true,
           user: {
             select: {
               id: true,
@@ -855,6 +848,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
                 select: {
                   id: true,
                   isOrganizationConfigured: true,
+                  orgAutoAcceptEmail: true,
                 },
               },
             },
