@@ -152,6 +152,7 @@ export class AIConfigurationService {
 
     try {
       const updateRequest = RetellAIServiceMapper.mapToUpdateLLMRequest(data);
+
       return await this.retellRepository.updateLLM(llmId, updateRequest);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);

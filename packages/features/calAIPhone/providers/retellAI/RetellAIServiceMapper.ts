@@ -102,7 +102,7 @@ export class RetellAIServiceMapper {
     return {
       general_prompt: data.general_prompt,
       begin_message: data.begin_message,
-      general_tools: data.general_tools ?? null,
+      general_tools: data.general_tools ?? undefined,
     };
   }
 

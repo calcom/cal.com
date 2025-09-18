@@ -64,7 +64,6 @@ export class AgentService {
     agentId: string,
     data: { eventTypeId: number | null; timeZone: string; userId: number | null; teamId?: number | null }
   ) {
-    console.log("updateToolsFromAgentId", agentId, data);
     if (!agentId?.trim()) {
       throw new HttpError({
         statusCode: 400,
@@ -162,8 +161,6 @@ export class AgentService {
       }
 
       const updatedGeneralTools = [...existing, ...newEventTools];
-
-      console.log("updatedGeneralTools", updatedGeneralTools);
 
       await this.retellRepository.updateLLM(llmId, { general_tools: updatedGeneralTools });
     } catch (error) {
