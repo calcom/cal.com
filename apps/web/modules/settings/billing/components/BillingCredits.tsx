@@ -202,7 +202,9 @@ export default function BillingCredits() {
                 {/*750 credits per tip*/}
                 {orgSlug ? (
                   <div className="mt-4 flex flex-1 justify-between">
-                    <p className="text-subtle text-sm font-medium leading-tight">{t("credits_per_tip")}</p>
+                    <p className="text-subtle text-sm font-medium leading-tight">
+                      {t("credits_per_tip_org")}
+                    </p>
                     <Button href={`/settings/organizations/${orgSlug}/members`} size="sm" color="secondary">
                       {t("add_members_no_elipsis")}
                     </Button>
