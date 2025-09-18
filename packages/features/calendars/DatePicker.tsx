@@ -70,8 +70,6 @@ const Day = ({
   away,
   emoji,
   customClassName,
-  showMonthTooltip,
-  isFirstDayOfNextMonth,
   ...props
 }: JSX.IntrinsicElements["button"] & {
   active: boolean;
@@ -82,12 +80,11 @@ const Day = ({
     dayContainer?: string;
     dayActive?: string;
   };
-  showMonthTooltip?: boolean;
-  isFirstDayOfNextMonth?: boolean;
 }) => {
   const { t } = useLocale();
   const enabledDateButtonEmbedStyles = useEmbedStyles("enabledDateButton");
   const disabledDateButtonEmbedStyles = useEmbedStyles("disabledDateButton");
+  const [month] = useBookerStoreContext((state) => [state.month], shallow);
 
   const buttonContent = (
     <button
@@ -123,15 +120,16 @@ const Day = ({
     </button>
   );
 
-  const content = showMonthTooltip ? (
-    <Tooltip content={date.format("MMMM")}>{buttonContent}</Tooltip>
-  ) : (
-    buttonContent
-  );
+  const content =
+    !disabled && month !== date.format("YYYY-MM") ? (
+      <Tooltip content={date.format("MMMM")}>{buttonContent}</Tooltip>
+    ) : (
+      buttonContent
+    );
 
   return (
     <>
-      {isFirstDayOfNextMonth && (
+      {month !== date.format("YYYY-MM") && date.date() === 1 && (
         <div
           className={classNames(
             "absolute top-0 z-10 mx-auto w-fit rounded-full font-semibold uppercase tracking-wide",
@@ -198,7 +196,6 @@ const Days = ({
   const totalDays = daysInMonth(browsingDate);
 
   const showNextMonthDays = isSecondWeekOver && !isCompact;
-
   // Only apply end-of-month logic for main monthly view (not compact sidebar)
   if (showNextMonthDays) {
     const startDay = 8;
@@ -262,7 +259,6 @@ const Days = ({
     const oooInfo = daySlots.find((slot) => slot.away) || null;
 
     const isNextMonth = day.month() !== browsingDate.month();
-    const isFirstDayOfNextMonth = isSecondWeekOver && !isCompact && isNextMonth && day.date() === 1;
 
     const included = includedDates?.includes(dateKey);
     const excluded = excludedDates.includes(dateKey);
@@ -272,27 +268,25 @@ const Days = ({
     const away = isOOOAllDay;
 
     const disabled = away ? !oooInfo?.toUser : isNextMonth ? !hasAvailableSlots : !included || excluded;
-
     return {
       day,
       disabled,
       away,
       emoji: oooInfo?.emoji,
-      isFirstDayOfNextMonth,
     };
   });
+
+  const hasDatesLoaded = Boolean(daysToRenderForTheMonth.find((day) => !day.disabled));
 
   /**
    * Takes care of selecting a valid date in the month if the selected date is not available in the month
    */
-
   const useHandleInitialDateSelection = () => {
     // Let's not do something for now in case of multiple selected dates as behaviour is unclear and it's not needed at the moment
-    if (selected instanceof Array) {
+    if (!hasDatesLoaded || selected instanceof Array) {
       return;
     }
     const firstAvailableDateOfTheMonth = daysToRenderForTheMonth.find((day) => !day.disabled)?.day;
-
     const isSelectedDateAvailable = selected
       ? daysToRenderForTheMonth.some(({ day, disabled }) => {
           if (day && yyyymmdd(day) === yyyymmdd(selected) && !disabled) return true;
@@ -303,20 +297,16 @@ const Days = ({
       // If selected date not available in the month, select the first available date of the month
       const shouldOmitUpdatingParams = selected?.isValid() ? false : true; // In case a date is selected and it is not available, then we have to change search params
       props.onChange(firstAvailableDateOfTheMonth, shouldOmitUpdatingParams);
-    }
-    if (isSelectedDateAvailable) {
+    } else if (isSelectedDateAvailable) {
       props.onChange(dayjs(selected), true);
-    }
-    if (!firstAvailableDateOfTheMonth) {
-      props.onChange(null);
     }
   };
 
-  useEffect(useHandleInitialDateSelection);
+  useEffect(useHandleInitialDateSelection, [hasDatesLoaded, month]);
 
   return (
     <>
-      {daysToRenderForTheMonth.map(({ day, disabled, away, emoji, isFirstDayOfNextMonth }, idx) => (
+      {daysToRenderForTheMonth.map(({ day, disabled, away, emoji }, idx) => (
         <div key={day === null ? `e-${idx}` : `day-${day.format()}`} className="relative w-full pt-[100%]">
           {day === null ? (
             <div key={`e-${idx}`} />
@@ -342,8 +332,6 @@ const Days = ({
               active={isActive(day)}
               away={away}
               emoji={emoji}
-              showMonthTooltip={showNextMonthDays && !disabled && day.month() !== browsingDate.month()}
-              isFirstDayOfNextMonth={isFirstDayOfNextMonth}
             />
           )}
         </div>
@@ -407,6 +395,7 @@ const DatePicker = ({
       onMonthChange(browsingDate.add(newMonth, "month"));
     }
   };
+
   const month = browsingDate
     ? new Intl.DateTimeFormat(i18n.language, { month: "long" }).format(
         new Date(browsingDate.year(), browsingDate.month())

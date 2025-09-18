@@ -1,50 +1,12 @@
 import { shallow } from "zustand/shallow";
 
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { useSchedule } from "@calcom/features/schedules/lib/use-schedule/useSchedule";
+import { useSchedule } from "@calcom/features/schedules/hooks/useSchedule";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-import { trpc } from "@calcom/trpc/react";
 
 import { useBookerTime } from "../components/hooks/useBookerTime";
 
-export type useEventReturnType = ReturnType<typeof useEvent>;
-export type useScheduleForEventReturnType = ReturnType<typeof useScheduleForEvent>;
-
-/**
- * Wrapper hook around the trpc query that fetches
- * the event currently viewed in the booker. It will get
- * the current event slug and username from the booker store.
- *
- * Using this hook means you only need to use one hook, instead
- * of combining multiple conditional hooks.
- */
-export const useEvent = (props?: { fromRedirectOfNonOrgLink?: boolean; disabled?: boolean }) => {
-  const [username, eventSlug, isTeamEvent, org] = useBookerStoreContext(
-    (state) => [state.username, state.eventSlug, state.isTeamEvent, state.org],
-    shallow
-  );
-
-  const event = trpc.viewer.public.event.useQuery(
-    {
-      username: username ?? "",
-      eventSlug: eventSlug ?? "",
-      isTeamEvent,
-      org: org ?? null,
-      fromRedirectOfNonOrgLink: props?.fromRedirectOfNonOrgLink,
-    },
-    {
-      refetchOnWindowFocus: false,
-      enabled: !props?.disabled && Boolean(username) && Boolean(eventSlug),
-    }
-  );
-
-  return {
-    data: event?.data,
-    isSuccess: event?.isSuccess,
-    isError: event?.isError,
-    isPending: event?.isPending,
-  };
-};
+export type UseScheduleForEventReturnType = ReturnType<typeof useScheduleForEvent>;
 
 /**
  * Gets schedule for the current event and current month.
@@ -54,12 +16,8 @@ export const useEvent = (props?: { fromRedirectOfNonOrgLink?: boolean; disabled?
  * Using this hook means you only need to use one hook, instead
  * of combining multiple conditional hooks.
  *
- * The prefetchNextMonth argument can be used to prefetch two months at once,
- * useful when the user is viewing dates near the end of the month,
- * this way the multi day view will show data of both months.
  */
 export const useScheduleForEvent = ({
-  prefetchNextMonth,
   username,
   eventSlug,
   eventId,
@@ -73,7 +31,6 @@ export const useScheduleForEvent = ({
   isTeamEvent,
   useApiV2 = true,
 }: {
-  prefetchNextMonth?: boolean;
   username?: string | null;
   eventSlug?: string | null;
   eventId?: number | null;
@@ -103,7 +60,6 @@ export const useScheduleForEvent = ({
     eventId,
     timezone,
     selectedDate,
-    prefetchNextMonth,
     monthCount,
     dayCount,
     rescheduleUid,
