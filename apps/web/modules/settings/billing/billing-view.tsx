@@ -79,8 +79,8 @@ const BillingView = () => {
   // description={t("view_and_edit_billing_details")}>
   return (
     <>
-      <div className="bg-muted border-muted mt-5 rounded-xl p-1">
-        <div className="bg-default border-muted flex rounded-[10px] px-5 py-4">
+      <div className="bg-muted border-muted mt-5 rounded-xl border p-1">
+        <div className="bg-default border-muted flex rounded-[10px] border px-5 py-4">
           <div className="flex w-full flex-col gap-1">
             <h3 className="text-emphasis text-sm font-semibold leading-none">{t("manage_billing")}</h3>
             <p className="text-subtle text-sm font-medium leading-tight">
