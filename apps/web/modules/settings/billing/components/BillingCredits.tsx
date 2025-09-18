@@ -1,19 +1,18 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { trpc } from "@calcom/trpc/react";
+import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Select } from "@calcom/ui/components/form";
 import { TextField, Label, InputError } from "@calcom/ui/components/form";
@@ -27,6 +26,29 @@ type MonthOption = {
   label: string;
   startDate: string;
   endDate: string;
+};
+
+type CreditRowProps = {
+  label: string;
+  value: number;
+  isBold?: boolean;
+  className?: string;
+};
+
+const CreditRow = ({ label, value, isBold = false, className = "" }: CreditRowProps) => {
+  const numberFormatter = new Intl.NumberFormat();
+  return (
+    <div className={classNames(`flex justify-between`, className)}>
+      <span
+        className={classNames("text-sm", isBold ? "font-semibold" : "text-subtle font-medium leading-tight")}>
+        {label}
+      </span>
+      <span
+        className={classNames(`text-sm`, isBold ? "font-semibold" : "text-subtle font-medium leading-tight")}>
+        {numberFormatter.format(value)}
+      </span>
+    </div>
+  );
 };
 
 const getMonthOptions = (): MonthOption[] => {
@@ -128,23 +150,18 @@ export default function BillingCredits() {
   if (isLoading && teamId) return <BillingCreditsSkeleton />;
   if (!creditsData) return null;
 
-  const numberFormatter = new Intl.NumberFormat();
-
   const onSubmit = (data: { quantity: number }) => {
     buyCreditsMutation.mutate({ quantity: data.quantity, teamId });
   };
 
-  const totalCredits = (creditsData.credits.totalCreditsForMonth ?? 0) ||
-    (creditsData.credits.totalMonthlyCredits + creditsData.credits.additionalCredits);
-  const totalUsed = (creditsData.credits.totalCreditsUsedThisMonth ?? 0) ||
-    (totalCredits - (creditsData.credits.totalRemainingCreditsForMonth ?? 0));
-  const totalRemaining = (creditsData.credits.totalRemainingCreditsForMonth ?? 0) ||
-    (creditsData.credits.totalRemainingMonthlyCredits + creditsData.credits.additionalCredits);
+  const totalCredits =
+    (creditsData.credits.totalCreditsForMonth ?? 0) ||
+    creditsData.credits.totalMonthlyCredits + creditsData.credits.additionalCredits;
+  const totalUsed =
+    (creditsData.credits.totalCreditsUsedThisMonth ?? 0) ||
+    totalCredits - (creditsData.credits.totalRemainingCreditsForMonth ?? 0);
 
-  const teamCreditsPercentageUsed =
-    totalCredits > 0
-      ? (totalUsed / totalCredits) * 100
-      : 0;
+  const teamCreditsPercentageUsed = totalCredits > 0 ? (totalUsed / totalCredits) * 100 : 0;
 
   return (
     <>
@@ -155,116 +172,46 @@ export default function BillingCredits() {
         </div>
         <div className="bg-default border-muted flex w-full rounded-[10px] px-5 py-4">
           <div className="w-full">
-            {creditsData.credits.totalMonthlyCredits > 0 ? (
-              <div className="mb-4">
-                <div className="flex justify-between">
-                  <p className="text-default text-sm font-semibold leading-none">{t("monthly_credits")}</p>
-                  <span className="text-sm font-semibold leading-none">
-                    {numberFormatter.format(creditsData.credits.totalMonthlyCredits)}
-                  </span>
-                </div>
-                {creditsData.credits.additionalCredits > 0 && (
-                  <div className="mb-1 mt-1 flex justify-between">
-                    <p className="text-subtle text-sm font-medium leading-tight">{t("additional_credits")}</p>
-                    <span className="text-muted text-sm font-medium leading-tight">
-                      {numberFormatter.format(creditsData.credits.additionalCredits)}
-                    </span>
-                  </div>
-                )}
-                <div className="mb-1 mt-1 flex justify-between">
-                  <p className="text-subtle text-sm font-medium leading-tight">{t("remaining")}</p>
-                  <span className="text-muted text-sm font-medium leading-tight">
-                    {numberFormatter.format(creditsData.credits.totalRemainingMonthlyCredits)}
-                  </span>
-                </div>
-
-                <ProgressBar
-                  color="green"
-                  percentageValue={teamCreditsPercentageUsed}
-                  label={`${Math.max(0, Math.round(teamCreditsPercentageUsed))}%`}
+            {totalCredits > 0 ? (
+              <div className="mb-4 space-y-1">
+                <CreditRow
+                  label={t("monthly_credits")}
+                  value={creditsData.credits.totalMonthlyCredits ?? 0}
+                  isBold={true}
                 />
+                {creditsData.credits.additionalCredits > 0 && (
+                  <>
+                    <CreditRow
+                      label={t("additional_credits")}
+                      value={creditsData.credits.additionalCredits}
+                    />
+                    <CreditRow label={t("total")} value={totalCredits} isDashed={true} />
+                  </>
+                )}
+                <CreditRow
+                  label={t("remaining")}
+                  value={creditsData.credits.totalRemainingMonthlyCredits}
+                  isDashed={creditsData.credits.additionalCredits > 0}
+                />
+                <div className="mt-4">
+                  <ProgressBar color="green" percentageValue={100 - teamCreditsPercentageUsed} />
+                </div>
               </div>
             ) : (
               <></>
             )}
-            <Label>
-              {creditsData.credits.totalMonthlyCredits ? t("additional_credits") : t("available_credits")}
-            </Label>
-            <div className="mt-2 text-sm">{creditsData.credits.additionalCredits}</div>
-          </div>
-        </div>
-      </div>
-      <div className="border-subtle mt-8 space-y-6 rounded-lg border px-6 py-6 pb-6 text-sm sm:space-y-8">
-        <div>
-          <h2 className="text-base font-semibold">{t("credits")}</h2>
-          <ServerTrans
-            t={t}
-            i18nKey="view_and_manage_credits_description"
-            components={[
-              <Link
-                key="Credit System"
-                className="underline underline-offset-2"
-                target="_blank"
-                href="https://cal.com/help/billing-and-usage/messaging-credits">
-                Learn more
-              </Link>,
-            ]}
-          />
-          <div className="-mx-6 mt-6">
-            <hr className="border-subtle" />
-          </div>
-          <div className="mt-6">
-            {totalCredits > 0 ? (
-              <div className="mb-4">
-                <div className="space-y-2 mb-4">
-                  {creditsData.credits.totalMonthlyCredits > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-sm">{t("monthly_credits")}</span>
-                      <span className="text-sm font-medium">
-                        {numberFormatter.format(creditsData.credits.totalMonthlyCredits)}
-                      </span>
-                    </div>
-                  )}
-                  {creditsData.credits.additionalCredits > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-sm">{t("additional_credits")}</span>
-                      <span className="text-sm font-medium">
-                        {numberFormatter.format(creditsData.credits.additionalCredits)}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex justify-between font-semibold">
-                    <span className="text-sm">{t("total")}</span>
-                    <span className="text-sm">
-                      {numberFormatter.format(totalCredits)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">{t("remaining")}</span>
-                    <span className="text-sm font-medium">
-                      {numberFormatter.format(totalRemaining)}
-                    </span>
-                  </div>
-                </div>
-                <ProgressBar
-                  color="green"
-                  percentageValue={100 - teamCreditsPercentageUsed}
-                  label=""
-                />
-              </div>
-            ) : (
-              <>
-                <Label>{t("available_credits")}</Label>
-                <div className="mt-2 text-sm">{creditsData.credits.additionalCredits}</div>
-              </>
-            )}
-            <div className="-mx-6 mb-6 mt-6">
-              <hr className="border-subtle mb-3 mt-3" />
+            <div className="-mx-5 mt-5">
+              <hr className="border-subtle" />
             </div>
-            <form onSubmit={handleSubmit(onSubmit)} className="flex">
-              <div className="-mb-1 mr-auto">
-                <Label>{t("buy_additional_credits")}</Label>
-                <div className="flex flex-col">
+            {/*Auto Top-Up goes here when we have it*/}
+            {/*<div className="-mx-5 mt-5">
+              <hr className="border-subtle" />
+            </div>*/}
+            {/*Additional Credits*/}
+            <form onSubmit={handleSubmit(onSubmit)} className="mt-4 flex">
+              <div className="-mb-1 mr-auto w-full">
+                <Label>{t("additional_credits")}</Label>
+                <div className="flex w-full ">
                   <TextField
                     required
                     type="number"
@@ -274,7 +221,8 @@ export default function BillingCredits() {
                       valueAsNumber: true,
                     })}
                     label=""
-                    containerClassName="w-60"
+                    containerClassName="w-full -mt-1"
+                    size="sm"
                     onChange={(e) => setValue("quantity", Number(e.target.value))}
                     min={50}
                     addOnSuffix={<>{t("credits")}</>}
@@ -282,25 +230,26 @@ export default function BillingCredits() {
                   {errors.quantity && <InputError message={errors.quantity.message ?? t("invalid_input")} />}
                 </div>
               </div>
-              <div className="mt-auto">
-                <Button
-                  color="primary"
-                  target="_blank"
-                  EndIcon="external-link"
-                  type="submit"
-                  data-testid="buy-credits">
-                  {t("buy_credits")}
+              <div className="ml-2 mt-auto">
+                <Button color="secondary" target="_blank" size="sm" type="submit" data-testid="buy-credits">
+                  {t("buy")}
                 </Button>
               </div>
             </form>
-            <div className="-mx-6 mb-6 mt-6">
-              <hr className="border-subtle mb-3 mt-3" />
+            <div className="-mx-5 mt-5">
+              <hr className="border-subtle" />
             </div>
-            <div className="flex">
-              <div className="mr-auto">
+            {/*Download Expense Log*/}
+            <div className="mt-4 flex">
+              <div className="mr-auto w-full">
                 <Label className="mb-4">{t("download_expense_log")}</Label>
-                <div className="mt-2 flex flex-col">
+                <div className="mr-2 mt-1">
                   <Select
+                    size="sm"
+                    className="w-full"
+                    innerClassNames={{
+                      control: "font-medium text-emphasis",
+                    }}
                     options={monthOptions}
                     value={selectedMonth}
                     onChange={(option) => option && setSelectedMonth(option)}
@@ -308,7 +257,7 @@ export default function BillingCredits() {
                 </div>
               </div>
               <div className="mt-auto">
-                <Button onClick={handleDownload} loading={isDownloading} StartIcon="file-down">
+                <Button onClick={handleDownload} loading={isDownloading} color="secondary" size="sm">
                   {t("download")}
                 </Button>
               </div>

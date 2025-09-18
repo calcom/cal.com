@@ -3422,6 +3422,7 @@
   "total_credits": "Total credits: {{totalCredits}}",
   "remaining_credits": "Remaining credits: {{remainingCredits}}",
   "remaining": "Remaining",
+  "total": "Total",
   "additional_credits": "Additional credits",
   "routing_form_next_in_queue": "{{count}} next in queue",
   "routing_form_select_members_to_email": "Send email responses to",
