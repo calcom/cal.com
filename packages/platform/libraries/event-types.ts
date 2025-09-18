@@ -14,8 +14,8 @@ export { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 
 export {
   EventTypeMetaDataSchema,
-  eventTypeLocations,
   eventTypeBookingFields,
+  eventTypeLocations,
 } from "@calcom/prisma/zod-utils";
 
 export { validateCustomEventName } from "@calcom/features/eventtypes/lib/eventNaming";

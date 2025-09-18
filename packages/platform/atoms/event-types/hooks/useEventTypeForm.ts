@@ -17,7 +17,7 @@ import { locationsResolver } from "@calcom/lib/event-types/utils/locationsResolv
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
-import { eventTypeBookingFields as eventTypeBookingFieldsSchema } from "@calcom/platform-libraries/event-types";
+import { eventTypeBookingFields as eventTypeBookingFieldsSchema } from "@calcom/prisma/zod-utils";
 
 type Fields = z.infer<typeof eventTypeBookingFieldsSchema>;
 
