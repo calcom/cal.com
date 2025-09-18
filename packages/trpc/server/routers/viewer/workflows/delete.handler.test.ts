@@ -213,7 +213,7 @@ describe("deleteHandler", () => {
         phoneNumberId: "phone-active",
         userId: mockUser.id,
       });
-      d;
+
       expect(mockAIPhoneService.deletePhoneNumber).toHaveBeenCalledWith({
         phoneNumber: "+2222222222",
         userId: mockUser.id,
