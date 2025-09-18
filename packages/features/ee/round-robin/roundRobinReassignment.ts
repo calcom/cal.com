@@ -483,6 +483,7 @@ export const roundRobinReassignment = async ({
       // send email with event updates to attendees
       await sendRoundRobinUpdatedEmailsAndSMS({
         calEvent: evtWithoutCancellationReason,
+        eventTypeMetadata: eventType?.metadata as EventTypeMetadata,
       });
     }
 
