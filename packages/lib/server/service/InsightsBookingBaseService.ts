@@ -4,13 +4,19 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { makeSqlCondition } from "@calcom/features/data-table/lib/server";
 import { ZColumnFilter } from "@calcom/features/data-table/lib/types";
-import type { ColumnFilter } from "@calcom/features/data-table/lib/types";
+import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
+import { type ColumnFilter } from "@calcom/features/data-table/lib/types";
 import {
   isSingleSelectFilterValue,
   isMultiSelectFilterValue,
   isTextFilterValue,
   isNumberFilterValue,
+  isDateRangeFilterValue,
 } from "@calcom/features/data-table/lib/utils";
+import {
+  extractDateRangeFromColumnFilters,
+  replaceDateRangeColumnFilter,
+} from "@calcom/features/insights/lib/bookingUtils";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
@@ -127,13 +133,6 @@ export type InsightsBookingServiceOptions = z.infer<typeof insightsBookingServic
 export type InsightsBookingServiceFilterOptions = z.infer<typeof insightsBookingServiceFilterOptionsSchema>;
 
 export const insightsBookingServiceFilterOptionsSchema = z.object({
-  dateRange: z
-    .object({
-      target: z.enum(["createdAt", "startTime"]),
-      startDate: z.string(),
-      endDate: z.string(),
-    })
-    .optional(),
   columnFilters: z.array(ZColumnFilter).optional(),
 });
 
@@ -273,23 +272,6 @@ export class InsightsBookingBaseService {
       }
     }
 
-    // Use dateRange object for date filtering
-    if (this.filters.dateRange) {
-      const { target, startDate, endDate } = this.filters.dateRange;
-      if (startDate) {
-        if (isNaN(Date.parse(startDate))) {
-          throw new Error(`Invalid date format: ${startDate}`);
-        }
-        conditions.push(Prisma.sql`"${Prisma.raw(target)}" >= ${startDate}::timestamp`);
-      }
-      if (endDate) {
-        if (isNaN(Date.parse(endDate))) {
-          throw new Error(`Invalid date format: ${endDate}`);
-        }
-        conditions.push(Prisma.sql`"${Prisma.raw(target)}" <= ${endDate}::timestamp`);
-      }
-    }
-
     if (conditions.length === 0) {
       return null;
     }
@@ -353,6 +335,39 @@ export class InsightsBookingBaseService {
       if (condition) {
         return Prisma.sql`"rating" ${condition}`;
       }
+    }
+
+    if ((id === "startTime" || id === "createdAt") && isDateRangeFilterValue(value)) {
+      const conditions: Prisma.Sql[] = [];
+      // if `startTime` filter -> x <= "startTime" AND "endTime" <= y
+      // if `createdAt` filter -> x <= "createdAt" AND "createdAt" <= y
+      if (value.data.startDate) {
+        if (isNaN(Date.parse(value.data.startDate))) {
+          throw new Error(`Invalid date format: ${value.data.startDate}`);
+        }
+        if (id === "startTime") {
+          conditions.push(Prisma.sql`${value.data.startDate}::timestamp <= "startTime"`);
+        } else {
+          conditions.push(Prisma.sql`${value.data.startDate}::timestamp <= "createdAt"`);
+        }
+      }
+      if (value.data.endDate) {
+        if (isNaN(Date.parse(value.data.endDate))) {
+          throw new Error(`Invalid date format: ${value.data.endDate}`);
+        }
+        if (id === "startTime") {
+          conditions.push(Prisma.sql`"endTime" <= ${value.data.endDate}::timestamp`);
+        } else {
+          conditions.push(Prisma.sql`"createdAt" <= ${value.data.endDate}::timestamp`);
+        }
+      }
+      if (conditions.length === 0) {
+        return null;
+      }
+      return conditions.reduce((acc, condition, index) => {
+        if (index === 0) return condition;
+        return Prisma.sql`(${acc}) AND (${condition})`;
+      });
     }
 
     return null;
@@ -863,27 +878,42 @@ export class InsightsBookingBaseService {
     return result;
   }
 
-  async getMembersStatsWithCount(
-    type: "all" | "accepted" | "cancelled" | "noShow" = "all",
-    sortOrder: "ASC" | "DESC" = "DESC"
-  ): Promise<UserStatsData> {
+  async getMembersStatsWithCount({
+    type = "all",
+    sortOrder = "DESC",
+    completed,
+  }: {
+    type?: "all" | "accepted" | "cancelled" | "noShow";
+    sortOrder?: "ASC" | "DESC";
+    completed?: boolean;
+  } = {}): Promise<UserStatsData> {
     const baseConditions = await this.getBaseConditions();
 
-    let additionalCondition = Prisma.sql``;
+    const conditions: Prisma.Sql[] = [Prisma.sql`"userId" IS NOT NULL`];
+
     if (type === "cancelled") {
-      additionalCondition = Prisma.sql`AND status = 'cancelled'`;
+      conditions.push(Prisma.sql`status = 'cancelled'`);
     } else if (type === "noShow") {
-      additionalCondition = Prisma.sql`AND "noShowHost" = true`;
+      conditions.push(Prisma.sql`"noShowHost" = true`);
     } else if (type === "accepted") {
-      additionalCondition = Prisma.sql`AND status = 'accepted'`;
+      conditions.push(Prisma.sql`status = 'accepted'`);
     }
+
+    if (completed) {
+      conditions.push(Prisma.sql`"endTime" <= NOW()`);
+    }
+
+    const additionalCondition = conditions.reduce((acc, condition, index) => {
+      if (index === 0) return condition;
+      return Prisma.sql`(${acc}) AND (${condition})`;
+    });
 
     const query = Prisma.sql`
       SELECT
         "userId",
         COUNT(id)::int as count
       FROM "BookingTimeStatusDenormalized"
-      WHERE ${baseConditions} AND "userId" IS NOT NULL ${additionalCondition}
+      WHERE (${baseConditions}) AND (${additionalCondition})
       GROUP BY "userId"
       ORDER BY count ${sortOrder === "ASC" ? Prisma.sql`ASC` : Prisma.sql`DESC`}
       LIMIT 10
@@ -1208,12 +1238,10 @@ export class InsightsBookingBaseService {
   }
 
   calculatePreviousPeriodDates() {
-    if (!this.filters?.dateRange) {
-      throw new Error("Date range is required for calculating previous period");
-    }
+    const result = extractDateRangeFromColumnFilters(this.filters?.columnFilters);
+    const startDate = dayjs(result.startDate);
+    const endDate = dayjs(result.endDate);
 
-    const startDate = dayjs(this.filters.dateRange.startDate);
-    const endDate = dayjs(this.filters.dateRange.endDate);
     const startTimeEndTimeDiff = endDate.diff(startDate, "day");
 
     const lastPeriodStartDate = startDate.subtract(startTimeEndTimeDiff, "day");
