@@ -1,7 +1,14 @@
 import { TeamSelectionDialog } from "@calid/features/modules/teams/components/TeamSelectionDialog";
 import { type ButtonProps } from "@calid/features/ui/components/button";
 import { Button } from "@calid/features/ui/components/button";
-import { Dialog, DialogContent, DialogFooter } from "@calid/features/ui/components/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@calid/features/ui/components/dialog";
 import { Icon } from "@calid/features/ui/components/icon";
 import { Input } from "@calid/features/ui/components/input/input";
 import { TextArea } from "@calid/features/ui/components/input/text-area";
@@ -257,26 +264,40 @@ function Dialogs({
     <div id="form-dialogs">
       <RoutingFormEmbedDialog />
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        {/* <ConfirmationDialogContent
-          isPending={deleteMutation.isPending}
-          variety="danger"
-          title={t("delete_form")}
-          confirmBtnText={t("delete_form_action")}
-          loadingText={t("delete_form_action")}
-          onConfirm={(e) => {
-            if (!deleteDialogFormId) {
-              return;
-            }
-            e.preventDefault();
-            deleteMutation.mutate({
-              id: deleteDialogFormId,
-            });
-          }}>
-          <ul className="list-disc pl-3">
-            <li> {t("delete_form_confirmation")}</li>
-            <li> {t("delete_form_confirmation_2")}</li>
-          </ul>
-        </ConfirmationDialogContent> */}
+        <DialogContent size="default">
+          <DialogHeader>
+            <DialogTitle>{t("delete_form")}</DialogTitle>
+          </DialogHeader>
+          <div className="text-subtle mt-2 text-sm">
+            <p>{t("delete_form_confirmation")}</p>
+            <p>{t("delete_form_confirmation_2")}</p>
+          </div>
+
+          <DialogFooter className="mt-8">
+            <DialogClose />
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setDeleteDialogOpen(false);
+              }}>
+              {t("cancel")}
+            </Button>
+            <Button
+              loading={deleteMutation.isPending}
+              color="destructive"
+              onClick={(e) => {
+                if (!deleteDialogFormId) {
+                  return;
+                }
+                e.preventDefault();
+                deleteMutation.mutate({
+                  id: deleteDialogFormId,
+                });
+              }}>
+              {t("delete_form_action")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
 
       <TeamSelectionDialog
@@ -630,12 +651,8 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
   if (!dropdown) {
     return (
       <Wrapper href={href} target={target}>
-        <Component
-          data-testid={`form-action-${actionName}`}
-          ref={forwardedRef}
-          {...actionProps}
-          color="minimal"
-          variant="icon">
+        <Component data-testid={`form-action-${actionName}`} ref={forwardedRef} {...actionProps}>
+          {props.icon && <Icon name={icon} className="h-4 w-4" />}
           {children}
         </Component>
       </Wrapper>
@@ -650,7 +667,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
           variant="fab"
           className={classNames(
             props.className,
-            "w-full p-2 transition-none justify-start",
+            "w-full justify-start p-2 transition-none",
             props.color === "destructive" && "border-0"
           )}
           color="minimal">

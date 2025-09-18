@@ -1,15 +1,16 @@
 "use client";
-import { useSearchParams } from "next/navigation";
-import { Icon } from "@calid/features/ui/components/icon";
-import { Button } from "@calid/features/ui/components/button";
-import { HorizontalTabs } from "@calid/features/ui/components/navigation";
+
 import { Profile } from "@calid/features/ui/Profile";
+import { Button } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon";
+import { HorizontalTabs } from "@calid/features/ui/components/navigation";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import Link from "next/link";
 import type { RoutingFormWithResponseCount } from "@calcom/routing-forms/types/types";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 
@@ -83,34 +84,34 @@ const Actions = ({
             routingForm={form}
             extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] pr-4 transition"
           />
-          <ButtonGroup combined className="border-r-subtle border-l-subtle">
-            <FormAction
-              action="_delete"
-              variant="fab"
-              routingForm={form}
-              size="xs"
-              type="button"
-              color="secondary">
-              {t("delete")}
-            </FormAction>
-            <Button
-              data-testid={isMobile ? "update-form-mobile" : "update-form"}
-              variant="fab"
-              size="xs"
-              className="w-[52px]"
-              loading={isSaving}
-              type="submit"
-              color="secondary">
-              {t("save")}
-            </Button>
-          </ButtonGroup>
+          {/* <ButtonGroup combined className="border-r-subtle border-l-subtle"> */}
+          <FormAction
+            action="_delete"
+            variant="fab"
+            routingForm={form}
+            size="xs"
+            icon="trash"
+            type="button"
+            className="h-[34px] w-[40px]"
+            color="destructive"></FormAction>
+          <Button
+            data-testid={isMobile ? "update-form-mobile" : "update-form"}
+            variant="button"
+            size="xs"
+            className="h-[34px]"
+            loading={isSaving}
+            type="submit"
+            color="primary">
+            <span className='text-sm'>{t("save")}</span>
+          </Button>
+          {/* </ButtonGroup> */}
           <FormActionsDropdown>
             <FormAction
               action="incompleteBooking"
-              variant="ghost"
+              variant="button"
               className="w-full"
               routingForm={form}
-              color="minimal"
+              color="primary"
               type="button">
               <Icon name="calendar" className="h-4 w-4" />
               {t("routing_incomplete_booking_tab")}
