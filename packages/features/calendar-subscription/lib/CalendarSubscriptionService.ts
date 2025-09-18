@@ -2,17 +2,15 @@ import type {
   AdapterFactory,
   CalendarSubscriptionProvider,
 } from "@calcom/features/calendar-subscription/adapters/AdaptersFactory";
+import type {
+  CalendarCredential,
+  CalendarSubscriptionEvent,
+} from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionPort.interface";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getCredentialForCalendarCache } from "@calcom/lib/delegationCredential/server";
 import logger from "@calcom/lib/logger";
 import type { ISelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository.interface";
-import { prisma } from "@calcom/prisma";
 import type { SelectedCalendar } from "@calcom/prisma/client";
-
-import type {
-  CalendarCredential,
-  CalendarSubscriptionEvent,
-} from "../lib/CalendarSubscriptionPort.interface";
 
 const log = logger.getSubLogger({ prefix: ["CalendarSubscriptionService"] });
 
@@ -25,6 +23,8 @@ export class CalendarSubscriptionService {
       adapterFactory: AdapterFactory;
       selectedCalendarRepository: ISelectedCalendarRepository;
       featuresRepository: FeaturesRepository;
+      calendarCacheEventService: CalendarCacheEventService;
+      calendarSyncService: CalendarSyncService;
     }
   ) {}
 
@@ -87,12 +87,8 @@ export class CalendarSubscriptionService {
 
     // cleanup cache after unsubscribe
     if (await this.isCacheEnabled()) {
-      const { CalendarCacheEventService } = await import("./cache/CalendarCacheEventService");
-      const { CalendarCacheEventRepository } = await import("./cache/CalendarCacheEventRepository");
-      const calendarCacheEventService = new CalendarCacheEventService({
-        calendarCacheEventRepository: new CalendarCacheEventRepository(prisma),
-      });
-      await calendarCacheEventService.cleanupCache(selectedCalendar);
+      log.debug("cleanupCache", { selectedCalendarId });
+      await this.deps.calendarCacheEventService.cleanupCache(selectedCalendar);
     }
   }
 
@@ -179,18 +175,12 @@ export class CalendarSubscriptionService {
     // it requires both global and team/user feature cache enabled
     if (cacheEnabled && cacheEnabledForUser) {
       log.debug("Caching events", { count: events.items.length });
-      const { CalendarCacheEventService } = await import("./cache/CalendarCacheEventService");
-      const { CalendarCacheEventRepository } = await import("./cache/CalendarCacheEventRepository");
-      const calendarCacheEventService = new CalendarCacheEventService({
-        calendarCacheEventRepository: new CalendarCacheEventRepository(prisma),
-      });
-      await calendarCacheEventService.handleEvents(selectedCalendar, events.items);
+      await this.deps.calendarCacheEventService.handleEvents(selectedCalendar, events.items);
     }
 
     if (syncEnabled) {
       log.debug("Syncing events", { count: events.items.length });
-      const { CalendarSyncService } = await import("./sync/CalendarSyncService");
-      await new CalendarSyncService().handleEvents(selectedCalendar, events.items);
+      await this.deps.calendarSyncService.handleEvents(selectedCalendar, events.items);
     }
   }
 

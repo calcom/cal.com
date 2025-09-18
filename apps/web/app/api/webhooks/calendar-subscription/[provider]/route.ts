@@ -5,6 +5,9 @@ import { NextResponse } from "next/server";
 import type { CalendarSubscriptionProvider } from "@calcom/features/calendar-subscription/adapters/AdaptersFactory";
 import { DefaultAdapterFactory } from "@calcom/features/calendar-subscription/adapters/AdaptersFactory";
 import { CalendarSubscriptionService } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionService";
+import { CalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository";
+import { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
+import { CalendarSyncService } from "@calcom/features/calendar-subscription/lib/sync/CalendarSyncService";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
@@ -35,10 +38,19 @@ async function postHandler(request: NextRequest, context: { params: Promise<Para
   }
 
   try {
+    // instantiate dependencies
+    const calendarSyncService = new CalendarSyncService();
+    const calendarCacheEventRepository = new CalendarCacheEventRepository(prisma);
+    const calendarCacheEventService = new CalendarCacheEventService({
+      calendarCacheEventRepository,
+    });
+
     const calendarSubscriptionService = new CalendarSubscriptionService({
       adapterFactory: new DefaultAdapterFactory(),
       selectedCalendarRepository: new SelectedCalendarRepository(prisma),
       featuresRepository: new FeaturesRepository(prisma),
+      calendarSyncService,
+      calendarCacheEventService,
     });
 
     // are features globally enabled

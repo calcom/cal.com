@@ -4,6 +4,9 @@ import { NextResponse } from "next/server";
 
 import { DefaultAdapterFactory } from "@calcom/features/calendar-subscription/adapters/AdaptersFactory";
 import { CalendarSubscriptionService } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionService";
+import { CalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository";
+import { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
+import { CalendarSyncService } from "@calcom/features/calendar-subscription/lib/sync/CalendarSyncService";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
@@ -25,11 +28,32 @@ async function postHandler(request: NextRequest) {
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
+  // instantiate dependencies
+  const calendarSyncService = new CalendarSyncService();
+  const calendarCacheEventRepository = new CalendarCacheEventRepository(prisma);
+  const calendarCacheEventService = new CalendarCacheEventService({
+    calendarCacheEventRepository,
+  });
+
+  // are features globally enabled
+  const [isCacheEnabled, isSyncEnabled] = await Promise.all([
+    calendarSubscriptionService.isCacheEnabled(),
+    calendarSubscriptionService.isSyncEnabled(),
+  ]);
+
+  if (!isCacheEnabled || !isSyncEnabled) {
+    log.info("Calendar subscriptions are disabled");
+    return NextResponse.json({ ok: true });
+  }
+
   const calendarSubscriptionService = new CalendarSubscriptionService({
     adapterFactory: new DefaultAdapterFactory(),
     selectedCalendarRepository: new SelectedCalendarRepository(prisma),
     featuresRepository: new FeaturesRepository(prisma),
+    calendarSyncService,
+    calendarCacheEventService,
   });
+
   try {
     await calendarSubscriptionService.checkForNewSubscriptions();
     log.info("Checked for new calendar subscriptions successfully");
