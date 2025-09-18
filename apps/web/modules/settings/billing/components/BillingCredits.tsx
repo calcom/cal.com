@@ -37,10 +37,15 @@ type CreditRowProps = {
   className?: string;
 };
 
-const CreditRow = ({ label, value, isBold = false, className = "" }: CreditRowProps) => {
+const CreditRow = ({ label, value, isBold = false, isDashed, className = "" }: CreditRowProps) => {
   const numberFormatter = new Intl.NumberFormat();
   return (
-    <div className={classNames(`mt-1 flex justify-between`, className)}>
+    <div
+      className={classNames(
+        `mt-1 flex justify-between`,
+        isDashed ? "border-subtle border-t border-dashed" : "mt-1",
+        className
+      )}>
       <span
         className={classNames("text-sm", isBold ? "font-semibold" : "text-subtle font-medium leading-tight")}>
         {label}
@@ -182,11 +187,11 @@ export default function BillingCredits() {
                   value={creditsData.credits.totalMonthlyCredits ?? 0}
                   isBold={true}
                 />
-                {creditsData.credits.additionalCredits > 0 && (
+                {1 && (
                   <>
                     <CreditRow
                       label={t("additional_credits")}
-                      value={creditsData.credits.additionalCredits}
+                      value={10000 + creditsData.credits.additionalCredits}
                     />
                     <CreditRow label={t("total")} value={totalCredits} isDashed={true} />
                   </>
@@ -194,7 +199,7 @@ export default function BillingCredits() {
                 <CreditRow
                   label={t("remaining")}
                   value={creditsData.credits.totalRemainingMonthlyCredits}
-                  isDashed={creditsData.credits.additionalCredits > 0}
+                  isDashed={1}
                 />
                 <div className="mt-4">
                   <ProgressBar color="green" percentageValue={100 - teamCreditsPercentageUsed} />
