@@ -151,7 +151,7 @@ model EventType {
   parentId                           Int?
   parent                             EventType?             @relation("managed_eventtype", fields: [parentId], references: [id], onDelete: Cascade)
   children                           EventType[]            @relation("managed_eventtype")
-  /// @zod.import(["import { eventTypeBookingFields } from '@calcom/platform-libraries/event-types'"]).custom.use(eventTypeBookingFields)
+  /// @zod.import(["import { fieldsSchema } from '@calcom/features/form-builder/schema'"]).custom.use(fieldsSchema)
   bookingFields                      Json?
   timeZone                           String?
   periodType                         PeriodType             @default(UNLIMITED)
