@@ -2936,7 +2936,6 @@ __metadata:
     "@types/react": ^18
     "@types/react-dom": ^18
     autoprefixer: ^10.0.1
-    dotenv: ^17.2.1
     eslint: ^8.34.0
     eslint-config-next: 14.0.4
     next: 14.0.4
@@ -24749,13 +24748,6 @@ __metadata:
   version: 16.6.1
   resolution: "dotenv@npm:16.6.1"
   checksum: e8bd63c9a37f57934f7938a9cf35de698097fadf980cb6edb61d33b3e424ceccfe4d10f37130b904a973b9038627c2646a3365a904b4406514ea94d7f1816b69
-  languageName: node
-  linkType: hard
-
-"dotenv@npm:^17.2.1":
-  version: 17.2.2
-  resolution: "dotenv@npm:17.2.2"
-  checksum: 673825993b16a6722332b2e1f8c24b1c2ebe3dd3b81ae5df9be35f1483bf52e0b463555b09da65b756c7abee3cf55ba2ae2628c22874a899556fa787fac56019
   languageName: node
   linkType: hard
 
