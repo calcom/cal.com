@@ -200,16 +200,21 @@ export default function BillingCredits() {
                   <ProgressBar color="green" percentageValue={100 - teamCreditsPercentageUsed} />
                 </div>
                 {/*750 credits per tip*/}
-                {orgSlug ? (
-                  <div className="mt-4 flex flex-1 justify-between">
-                    <p className="text-subtle text-sm font-medium leading-tight">
-                      {t("credits_per_tip_org")}
-                    </p>
-                    <Button href={`/settings/organizations/${orgSlug}/members`} size="sm" color="secondary">
-                      {t("add_members_no_elipsis")}
-                    </Button>
-                  </div>
-                ) : null}
+                <div className="mt-4 flex flex-1 justify-between">
+                  <p className="text-subtle text-sm font-medium leading-tight">
+                    {orgSlug ? t("credits_per_tip_org") : t("credits_per_tip_teams")}
+                  </p>
+                  <Button
+                    href={
+                      orgSlug
+                        ? `/settings/organizations/${orgSlug}/members`
+                        : `/settings/teams/${teamId}/members`
+                    }
+                    size="sm"
+                    color="secondary">
+                    {t("add_members_no_elipsis")}
+                  </Button>
+                </div>
               </div>
             ) : (
               <></>
