@@ -90,7 +90,9 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
     if (!text || text.length <= maxLength) return text;
     const truncated = text.substring(0, maxLength);
     const lastSpace = truncated.lastIndexOf(" ");
-    return `${lastSpace > 0 ? text.substring(0, lastSpace) : truncated}...`;
+    let finalText = `${lastSpace > 0 ? text.substring(0, lastSpace) : truncated}...`;
+    finalText = `${finalText.replace(/[\s,;:.!?-]+$/, "")}...`; // for cases like ,... ;... ,;...
+    return finalText;
   };
 
   return (
@@ -128,9 +130,6 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
         className="text-default mt-2 flex-grow text-sm"
         style={{
           overflow: "hidden",
-          display: "-webkit-box",
-          WebkitBoxOrient: "vertical",
-          WebkitLineClamp: 3,
         }}>
         {truncateText(app.description)}
       </p>
