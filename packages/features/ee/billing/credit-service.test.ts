@@ -65,8 +65,12 @@ vi.mock("../workflows/lib/reminders/reminderScheduler", () => ({
 const creditService = new CreditService();
 
 vi.spyOn(creditService, "_getAllCreditsForTeam").mockResolvedValue({
+  totalMonthlyCredits: 10,
   totalRemainingMonthlyCredits: 5,
   additionalCredits: 0,
+  totalCreditsForMonth: 10,
+  totalCreditsUsedThisMonth: 5,
+  totalRemainingCreditsForMonth: 5,
 });
 
 vi.spyOn(creditService, "_getTeamWithAvailableCredits").mockResolvedValue({
@@ -233,6 +237,9 @@ describe("CreditService", () => {
           totalMonthlyCredits: 500,
           totalRemainingMonthlyCredits: 20,
           additionalCredits: 60,
+          totalCreditsForMonth: 560,
+          totalCreditsUsedThisMonth: 480,
+          totalRemainingCreditsForMonth: 80,
         });
 
         await creditService.chargeCredits({
@@ -291,6 +298,9 @@ describe("CreditService", () => {
           totalMonthlyCredits: 500,
           totalRemainingMonthlyCredits: -1,
           additionalCredits: 0,
+          totalCreditsForMonth: 500,
+          totalCreditsUsedThisMonth: 501,
+          totalRemainingCreditsForMonth: -1,
         });
 
         await creditService.chargeCredits({
@@ -321,6 +331,9 @@ describe("CreditService", () => {
           totalMonthlyCredits: 500,
           totalRemainingMonthlyCredits: 100,
           additionalCredits: 50,
+          totalCreditsForMonth: 550,
+          totalCreditsUsedThisMonth: 400,
+          totalRemainingCreditsForMonth: 150,
         });
 
         const result = await creditService.getUserOrTeamToCharge({
@@ -340,6 +353,9 @@ describe("CreditService", () => {
           totalMonthlyCredits: 500,
           totalRemainingMonthlyCredits: 0,
           additionalCredits: 50,
+          totalCreditsForMonth: 550,
+          totalCreditsUsedThisMonth: 500,
+          totalRemainingCreditsForMonth: 50,
         });
 
         const result = await creditService.getUserOrTeamToCharge({
@@ -483,13 +499,20 @@ describe("CreditService", () => {
 
     describe("getAllCreditsForTeam", () => {
       it("should calculate total and remaining credits correctly", async () => {
-        vi.mocked(CreditsRepository.findCreditBalanceWithExpenseLogs).mockResolvedValue({
-          additionalCredits: 100,
-          expenseLogs: [
-            { credits: 50, date: new Date() },
-            { credits: 30, date: new Date() },
-          ],
-        });
+        vi.mocked(CreditsRepository.findCreditBalanceWithExpenseLogs)
+          .mockResolvedValueOnce({
+            additionalCredits: 100,
+            expenseLogs: [
+              { credits: 50, date: new Date() },
+              { credits: 30, date: new Date() },
+            ],
+          })
+          .mockResolvedValueOnce({
+            additionalCredits: 100,
+            expenseLogs: [
+              { credits: 80, date: new Date() },
+            ],
+          });
 
         vi.spyOn(CreditService.prototype, "getMonthlyCredits").mockResolvedValue(500);
 
@@ -498,14 +521,22 @@ describe("CreditService", () => {
           totalMonthlyCredits: 500,
           totalRemainingMonthlyCredits: 420, // 500 - (50 + 30)
           additionalCredits: 100,
+          totalCreditsForMonth: 600, // 500 + 100
+          totalCreditsUsedThisMonth: 160, // (50 + 30) + 80
+          totalRemainingCreditsForMonth: 440, // 600 - 160
         });
       });
 
       it("should handle no expense logs", async () => {
-        vi.mocked(CreditsRepository.findCreditBalanceWithExpenseLogs).mockResolvedValue({
-          additionalCredits: 100,
-          expenseLogs: [],
-        });
+        vi.mocked(CreditsRepository.findCreditBalanceWithExpenseLogs)
+          .mockResolvedValueOnce({
+            additionalCredits: 100,
+            expenseLogs: [],
+          })
+          .mockResolvedValueOnce({
+            additionalCredits: 100,
+            expenseLogs: [],
+          });
 
         vi.spyOn(CreditService.prototype, "getMonthlyCredits").mockResolvedValue(500);
 
@@ -514,6 +545,65 @@ describe("CreditService", () => {
           totalMonthlyCredits: 500,
           totalRemainingMonthlyCredits: 500,
           additionalCredits: 100,
+          totalCreditsForMonth: 600, // 500 + 100
+          totalCreditsUsedThisMonth: 0, // no expenses
+          totalRemainingCreditsForMonth: 600, // 600 - 0
+        });
+      });
+
+      it("should calculate total credits including additional credits for the month", async () => {
+        vi.mocked(CreditsRepository.findCreditBalanceWithExpenseLogs)
+          .mockResolvedValueOnce({
+            additionalCredits: 150,
+            expenseLogs: [
+              { credits: 80, date: new Date() },
+              { credits: 40, date: new Date() },
+            ],
+          })
+          .mockResolvedValueOnce({
+            additionalCredits: 150,
+            expenseLogs: [
+              { credits: 25, date: new Date() },
+              { credits: 15, date: new Date() },
+            ],
+          });
+
+        vi.spyOn(CreditService.prototype, "getMonthlyCredits").mockResolvedValue(500);
+
+        const result = await creditService.getAllCreditsForTeam(1);
+        expect(result).toEqual({
+          totalMonthlyCredits: 500,
+          totalRemainingMonthlyCredits: 380, // 500 - (80 + 40)
+          additionalCredits: 150,
+          totalCreditsForMonth: 650, // 500 + 150
+          totalCreditsUsedThisMonth: 160, // (80 + 40) + (25 + 15)
+          totalRemainingCreditsForMonth: 490, // 650 - 160
+        });
+      });
+
+      it("should handle zero additional credits", async () => {
+        vi.mocked(CreditsRepository.findCreditBalanceWithExpenseLogs)
+          .mockResolvedValueOnce({
+            additionalCredits: 0,
+            expenseLogs: [
+              { credits: 100, date: new Date() },
+            ],
+          })
+          .mockResolvedValueOnce({
+            additionalCredits: 0,
+            expenseLogs: [],
+          });
+
+        vi.spyOn(CreditService.prototype, "getMonthlyCredits").mockResolvedValue(500);
+
+        const result = await creditService.getAllCreditsForTeam(1);
+        expect(result).toEqual({
+          totalMonthlyCredits: 500,
+          totalRemainingMonthlyCredits: 400, // 500 - 100
+          additionalCredits: 0,
+          totalCreditsForMonth: 500, // 500 + 0
+          totalCreditsUsedThisMonth: 100, // 100 + 0
+          totalRemainingCreditsForMonth: 400, // 500 - 100
         });
       });
     });
@@ -704,6 +794,9 @@ describe("CreditService", () => {
         totalMonthlyCredits: 500,
         totalRemainingMonthlyCredits: 200,
         additionalCredits: 100,
+        totalCreditsForMonth: 600,
+        totalCreditsUsedThisMonth: 300,
+        totalRemainingCreditsForMonth: 300,
       });
       const result = await creditService.getTeamWithAvailableCredits(1);
       expect(result).toEqual({
@@ -827,6 +920,9 @@ describe("CreditService", () => {
         totalMonthlyCredits: 500,
         totalRemainingMonthlyCredits: 100,
         additionalCredits: 100,
+        totalCreditsForMonth: 600,
+        totalCreditsUsedThisMonth: 400,
+        totalRemainingCreditsForMonth: 200,
       });
 
       await creditService.chargeCredits({

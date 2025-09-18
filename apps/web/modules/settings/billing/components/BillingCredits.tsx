@@ -128,13 +128,22 @@ export default function BillingCredits() {
   if (isLoading && teamId) return <BillingCreditsSkeleton />;
   if (!creditsData) return null;
 
+  const numberFormatter = new Intl.NumberFormat();
+
   const onSubmit = (data: { quantity: number }) => {
     buyCreditsMutation.mutate({ quantity: data.quantity, teamId });
   };
 
+  const totalCredits = (creditsData.credits.totalCreditsForMonth ?? 0) ||
+    (creditsData.credits.totalMonthlyCredits + creditsData.credits.additionalCredits);
+  const totalUsed = (creditsData.credits.totalCreditsUsedThisMonth ?? 0) ||
+    (totalCredits - (creditsData.credits.totalRemainingCreditsForMonth ?? 0));
+  const totalRemaining = (creditsData.credits.totalRemainingCreditsForMonth ?? 0) ||
+    (creditsData.credits.totalRemainingMonthlyCredits + creditsData.credits.additionalCredits);
+
   const teamCreditsPercentageUsed =
-    creditsData.credits.totalMonthlyCredits > 0
-      ? (creditsData.credits.totalRemainingMonthlyCredits / creditsData.credits.totalMonthlyCredits) * 100
+    totalCredits > 0
+      ? (totalUsed / totalCredits) * 100
       : 0;
 
   return (
@@ -148,19 +157,27 @@ export default function BillingCredits() {
           <div className="w-full">
             {creditsData.credits.totalMonthlyCredits > 0 ? (
               <div className="mb-4">
-                <Label>{t("monthly_credits")}</Label>
-                <div className="text-subtle">
-                  <div>
-                    {t("total_credits", {
-                      totalCredits: creditsData.credits.totalMonthlyCredits,
-                    })}
-                  </div>
-                  <div>
-                    {t("remaining_credits", {
-                      remainingCredits: creditsData.credits.totalRemainingMonthlyCredits,
-                    })}
-                  </div>
+                <div className="flex justify-between">
+                  <p className="text-default text-sm font-semibold leading-none">{t("monthly_credits")}</p>
+                  <span className="text-sm font-semibold leading-none">
+                    {numberFormatter.format(creditsData.credits.totalMonthlyCredits)}
+                  </span>
                 </div>
+                {creditsData.credits.additionalCredits > 0 && (
+                  <div className="mb-1 mt-1 flex justify-between">
+                    <p className="text-subtle text-sm font-medium leading-tight">{t("additional_credits")}</p>
+                    <span className="text-muted text-sm font-medium leading-tight">
+                      {numberFormatter.format(creditsData.credits.additionalCredits)}
+                    </span>
+                  </div>
+                )}
+                <div className="mb-1 mt-1 flex justify-between">
+                  <p className="text-subtle text-sm font-medium leading-tight">{t("remaining")}</p>
+                  <span className="text-muted text-sm font-medium leading-tight">
+                    {numberFormatter.format(creditsData.credits.totalRemainingMonthlyCredits)}
+                  </span>
+                </div>
+
                 <ProgressBar
                   color="green"
                   percentageValue={teamCreditsPercentageUsed}
@@ -197,34 +214,50 @@ export default function BillingCredits() {
             <hr className="border-subtle" />
           </div>
           <div className="mt-6">
-            {creditsData.credits.totalMonthlyCredits > 0 ? (
+            {totalCredits > 0 ? (
               <div className="mb-4">
-                <Label>{t("monthly_credits")}</Label>
-                <ProgressBar
-                  color="green"
-                  percentageValue={teamCreditsPercentageUsed}
-                  label={`${Math.max(0, Math.round(teamCreditsPercentageUsed))}%`}
-                />
-                <div className="text-subtle">
-                  <div>
-                    {t("total_credits", {
-                      totalCredits: creditsData.credits.totalMonthlyCredits,
-                    })}
+                <div className="space-y-2 mb-4">
+                  {creditsData.credits.totalMonthlyCredits > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-sm">{t("monthly_credits")}</span>
+                      <span className="text-sm font-medium">
+                        {numberFormatter.format(creditsData.credits.totalMonthlyCredits)}
+                      </span>
+                    </div>
+                  )}
+                  {creditsData.credits.additionalCredits > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-sm">{t("additional_credits")}</span>
+                      <span className="text-sm font-medium">
+                        {numberFormatter.format(creditsData.credits.additionalCredits)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex justify-between font-semibold">
+                    <span className="text-sm">{t("total")}</span>
+                    <span className="text-sm">
+                      {numberFormatter.format(totalCredits)}
+                    </span>
                   </div>
-                  <div>
-                    {t("remaining_credits", {
-                      remainingCredits: creditsData.credits.totalRemainingMonthlyCredits,
-                    })}
+                  <div className="flex justify-between">
+                    <span className="text-sm">{t("remaining")}</span>
+                    <span className="text-sm font-medium">
+                      {numberFormatter.format(totalRemaining)}
+                    </span>
                   </div>
                 </div>
+                <ProgressBar
+                  color="green"
+                  percentageValue={100 - teamCreditsPercentageUsed}
+                  label=""
+                />
               </div>
             ) : (
-              <></>
+              <>
+                <Label>{t("available_credits")}</Label>
+                <div className="mt-2 text-sm">{creditsData.credits.additionalCredits}</div>
+              </>
             )}
-            <Label>
-              {creditsData.credits.totalMonthlyCredits ? t("additional_credits") : t("available_credits")}
-            </Label>
-            <div className="mt-2 text-sm">{creditsData.credits.additionalCredits}</div>
             <div className="-mx-6 mb-6 mt-6">
               <hr className="border-subtle mb-3 mt-3" />
             </div>
