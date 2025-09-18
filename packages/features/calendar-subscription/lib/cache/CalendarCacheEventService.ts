@@ -33,7 +33,7 @@ export class CalendarCacheEventService {
       // not storing free or cancelled events
       if (event.busy && event.status !== "cancelled") {
         toUpsert.push({
-          externalId: event.id,
+          externalId: event.id || "",
           selectedCalendarId: selectedCalendar.id,
           start: event.start,
           end: event.end,
@@ -44,14 +44,14 @@ export class CalendarCacheEventService {
           timeZone: event.timeZone,
           originalStartTime: event.originalStartDate,
           recurringEventId: event.recurringEventId,
-          externalEtag: event.etag,
+          externalEtag: event.etag || "",
           externalCreatedAt: event.createdAt,
           externalUpdatedAt: event.updatedAt,
         });
       } else {
         toDelete.push({
           selectedCalendarId: selectedCalendar.id,
-          externalId: event.id,
+          externalId: event.id || "",
         });
       }
     }

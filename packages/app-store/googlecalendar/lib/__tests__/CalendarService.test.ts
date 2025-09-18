@@ -1507,7 +1507,7 @@ describe("Date Optimization Benchmarks", () => {
       .mockResolvedValue(mockBusyData.map((item) => ({ ...item, id: "test@calendar.com" })));
 
     // Test single API call scenario (≤ 90 days)
-    type CalendarServiceWithFetch = CalendarService & {
+    const calendarServiceWithFetchMethod = calendarService as CalendarService & {
       fetchAvailabilityData: (
         calendarIds: string[],
         dateFrom: string,
@@ -1515,7 +1515,6 @@ describe("Date Optimization Benchmarks", () => {
         useCache: boolean
       ) => Promise<Array<{ start: string; end: string }>>;
     };
-    const calendarServiceWithFetchMethod = calendarService as CalendarServiceWithFetch;
     const shortRangeResult = await calendarServiceWithFetchMethod.fetchAvailabilityData(
       ["test@calendar.com"],
       "2024-01-01T00:00:00Z",

@@ -35,7 +35,7 @@ async function postHandler(request: NextRequest) {
     return NextResponse.json({ ok: true });
   } catch (e) {
     log.error(e);
-    return NextResponse.json({ message: e.message }, { status: 500 });
+    return NextResponse.json({ message: e instanceof Error ? e.message : "Unknown error" }, { status: 500 });
   }
 }
 

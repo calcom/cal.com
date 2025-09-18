@@ -1,9 +1,13 @@
-import type { Prisma } from "@calcom/prisma/client";
+import type { Prisma, SelectedCalendar } from "@calcom/prisma/client";
 
-export class ISelectedCalendarRepository {
-  findById(id: string): Promise<Prisma.SelectedCalendar | null>;
-  findNotSubscribed({ take }: { take: number }): Promise<Prisma.SelectedCalendar[]>;
-  findMany(args: { where: Prisma.SelectedCalendarWhereInput }): Promise<Prisma.SelectedCalendar[]>;
-  findByChannelId(channelId: string): Promise<Prisma.SelectedCalendar | null>;
-  updateById(id: string, data: Prisma.SelectedCalendarUpdateInput): Promise<Prisma.SelectedCalendar>;
+export interface ISelectedCalendarRepository {
+  findById(
+    id: string
+  ): Promise<(SelectedCalendar & { credential: { delegationCredential: unknown } | null }) | null>;
+  findNotSubscribed({ take }: { take: number }): Promise<SelectedCalendar[]>;
+  findMany(args: {
+    where: Prisma.SelectedCalendarWhereInput;
+  }): Promise<{ id: string; externalId: string; credentialId: number | null; syncedAt: Date | null }[]>;
+  findByChannelId(channelId: string): Promise<SelectedCalendar | null>;
+  updateById(id: string, data: Prisma.SelectedCalendarUpdateInput): Promise<SelectedCalendar>;
 }
