@@ -3,7 +3,6 @@ import { useMemo, useEffect, useState } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
-import type { BookerProps } from "@calcom/features/bookings/Booker";
 import {
   BookerStoreProvider,
   useBookerStoreContext,
@@ -17,49 +16,25 @@ import { LargeCalendar } from "@calcom/features/calendar-view/LargeCalendar";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
-import type { RoutingFormSearchParams } from "@calcom/platform-types";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
+import { formatUsername } from "../../booker/BookerPlatformWrapper";
+import type {
+  BookerPlatformWrapperAtomPropsForIndividual,
+  BookerPlatformWrapperAtomPropsForTeam,
+} from "../../booker/types";
 import { useGetBookingForReschedule } from "../../hooks/bookings/useGetBookingForReschedule";
 import { useAtomGetPublicEvent } from "../../hooks/event-types/public/useAtomGetPublicEvent";
 import { useEventType } from "../../hooks/event-types/public/useEventType";
 import { useTeamEventType } from "../../hooks/event-types/public/useTeamEventType";
 import { useAvailableSlots } from "../../hooks/useAvailableSlots";
 
-type CalendarViewPlatformWrapperProps = {
-  username: string;
-  eventSlug: string;
-  isTeamEvent?: false;
-  teamId?: number;
-  hostsLimit?: number;
-  defaultFormValues?: {
-    firstName?: string;
-    lastName?: string;
-    guests?: string[];
-    name?: string;
-    email?: string;
-    notes?: string;
-    rescheduleReason?: string;
-  } & Record<string, string | string[]>;
-  entity?: BookerProps["entity"];
-  rescheduleUid?: string;
-  duration?: number | null;
-  teamMemberEmail?: string | null;
-  routingFormSearchParams?: RoutingFormSearchParams;
-  bookingUid?: string;
-  allowUpdatingUrlParams?: boolean;
-  crmAppSlug?: string | null;
-  crmOwnerRecordType?: string | null;
-  crmRecordId?: string | null;
-  view?: "MONTH_VIEW" | "WEEK_VIEW" | "COLUMN_VIEW";
-};
-
-const CalendarViewPlatformWrapperComponent = (props: CalendarViewPlatformWrapperProps) => {
+const CalendarViewPlatformWrapperComponent = (
+  props: BookerPlatformWrapperAtomPropsForIndividual | BookerPlatformWrapperAtomPropsForTeam
+) => {
   const {
-    username,
     eventSlug,
     isTeamEvent,
-    teamId,
     hostsLimit,
     allowUpdatingUrlParams = false,
     teamMemberEmail,
@@ -67,6 +42,14 @@ const CalendarViewPlatformWrapperComponent = (props: CalendarViewPlatformWrapper
     crmOwnerRecordType,
     view = "MONTH_VIEW",
   } = props;
+
+  const teamId: number | undefined = props.isTeamEvent ? props.teamId : undefined;
+  const username = useMemo(() => {
+    if (props.username) {
+      return formatUsername(props.username);
+    }
+    return "";
+  }, [props.username]);
 
   const { isPending } = useEventType(username, eventSlug, isTeamEvent);
   const { isPending: isTeamPending } = useTeamEventType(teamId, eventSlug, isTeamEvent, hostsLimit);
@@ -228,7 +211,9 @@ const CalendarViewPlatformWrapperComponent = (props: CalendarViewPlatformWrapper
   );
 };
 
-export const CalendarViewPlatformWrapper = (props: CalendarViewPlatformWrapperProps) => {
+export const CalendarViewPlatformWrapper = (
+  props: BookerPlatformWrapperAtomPropsForIndividual | BookerPlatformWrapperAtomPropsForTeam
+) => {
   return (
     <BookerStoreProvider>
       <CalendarViewPlatformWrapperComponent {...props} />
