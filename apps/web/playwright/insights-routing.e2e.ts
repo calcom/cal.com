@@ -1,9 +1,13 @@
+import { expect } from "@playwright/test";
+
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+
 import { test } from "./lib/fixtures";
 
 test.afterEach(({ users }) => users.deleteAll());
 
 test.describe("Insights > Routing", () => {
-  test("applies routing form filter by default", async ({ page, users, routingForms }) => {
+  test("applies routing form filter by default", async ({ page, users, routingForms, prisma }) => {
     const owner = await users.create(undefined, {
       hasTeam: true,
       isUnpublished: true,
@@ -11,6 +15,19 @@ test.describe("Insights > Routing", () => {
       hasSubteam: true,
     });
     await owner.apiLogin();
+
+    const memberships = await prisma.membership.findMany({
+      where: {
+        userId: owner.id,
+      },
+    });
+    expect(memberships.length).toBeGreaterThan(0);
+
+    const featuresRepository = new FeaturesRepository(prisma);
+    for (const membership of memberships) {
+      const isPBACEnabled = await featuresRepository.checkIfTeamHasFeature(membership.teamId, "pbac");
+      expect(isPBACEnabled).toBe(true);
+    }
 
     const membership = await owner.getOrgMembership();
 
