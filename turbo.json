@@ -285,6 +285,7 @@
   "tasks": {
     "@calcom/web#copy-app-store-static": {
       "inputs": ["../../packages/app-store/**/static/**/*"],
+      "outputLogs": "new-only",
       "outputs": ["public/app-store/**"]
     },
     "@calcom/prisma#build": {
