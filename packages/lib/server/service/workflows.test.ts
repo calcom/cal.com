@@ -9,7 +9,6 @@ import { WorkflowService } from "./workflows";
 
 vi.mock("../../../features/ee/workflows/lib/reminders/reminderScheduler");
 vi.mock("@calcom/features/tasker");
-vi.mock("../../hideBranding");
 
 const mockScheduleWorkflowReminders = vi.mocked(scheduleWorkflowReminders);
 const mockTasker = vi.mocked(tasker);

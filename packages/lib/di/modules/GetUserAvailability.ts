@@ -1,7 +1,6 @@
-import { createModule } from "@evyweb/ioctopus";
-
 import type { IUserAvailabilityService } from "../../getUserAvailability";
 import { UserAvailabilityService } from "../../getUserAvailability";
+import { createModule } from "../di";
 import { DI_TOKENS } from "../tokens";
 
 export const getUserAvailabilityModule = createModule();

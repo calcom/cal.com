@@ -456,57 +456,57 @@ async function getAllUserAndTeamEventTypes(teamIds: number[], notMemberOfTeamId:
 export async function isAuthorizedToAddActiveOnIds({
   newEventTypeIds,
   newRoutingFormIds,
-  isOrg,
+  newTeamIds,
   teamId,
   userId,
 }: {
   newEventTypeIds: number[];
   newRoutingFormIds: string[];
-  isOrg: boolean;
+  newTeamIds: number[];
   teamId?: number | null;
   userId?: number | null;
 }) {
+  for (const id of newTeamIds) {
+    const newTeam = await prisma.team.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        parent: true,
+      },
+    });
+    if (newTeam?.parent?.id !== teamId) {
+      return false;
+    }
+  }
+
   // Check authorization for event type IDs
   for (const id of newEventTypeIds) {
-    if (isOrg) {
-      const newTeam = await prisma.team.findUnique({
-        where: {
-          id,
+    const newEventType = await prisma.eventType.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        users: {
+          select: {
+            id: true,
+          },
         },
-        select: {
-          parent: true,
-        },
-      });
-      if (newTeam?.parent?.id !== teamId) {
+        children: true,
+      },
+    });
+
+    if (newEventType) {
+      if (teamId && teamId !== newEventType.teamId) {
         return false;
       }
-    } else {
-      const newEventType = await prisma.eventType.findUnique({
-        where: {
-          id,
-        },
-        include: {
-          users: {
-            select: {
-              id: true,
-            },
-          },
-          children: true,
-        },
-      });
-
-      if (newEventType) {
-        if (teamId && teamId !== newEventType.teamId) {
-          return false;
-        }
-        if (
-          !teamId &&
-          userId &&
-          newEventType.userId !== userId &&
-          !newEventType?.users.find((eventTypeUser) => eventTypeUser.id === userId)
-        ) {
-          return false;
-        }
+      if (
+        !teamId &&
+        userId &&
+        newEventType.userId !== userId &&
+        !newEventType?.users.find((eventTypeUser) => eventTypeUser.id === userId)
+      ) {
+        return false;
       }
     }
   }
