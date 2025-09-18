@@ -10,7 +10,7 @@ import {
   ROUTING_FORM_QUEUED_RESPONSE_ID_QUERY_STRING,
 } from "@calcom/app-store/routing-forms/lib/constants";
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
-import { getTeamMemberEmailForResponseOrContactUsingUrlQuery } from "@calcom/lib/server/getTeamMemberEmailFromCrm";
+import { getTeamMemberEmailForResponseOrContactUsingUrlQuery } from "@calcom/features/ee/teams/lib/getTeamMemberEmailFromCrm";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 vi.mock("@calcom/app-store/routing-forms/appBookingFormHandler", () => ({
