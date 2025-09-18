@@ -313,7 +313,7 @@ const createTeamAndAddUser = async (
       teamId: team.id,
       userId,
       role: role,
-      customRoleId: role === MembershipRole.OWNER ? null : customRole.id,
+      customRoleId: customRole.id,
       accepted: true,
     },
   });
