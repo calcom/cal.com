@@ -8,7 +8,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import type { LocationObject } from "@calcom/lib/location";
+import type { LocationObject } from "@calcom/app-store/locations";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
