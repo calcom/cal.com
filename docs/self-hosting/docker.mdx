@@ -3,7 +3,15 @@ title: "Docker"
 icon: "docker"
 ---
 
-The Docker configuration for Cal is an effort powered by people within the community. Cal.com, Inc. does not provide official support for Docker, but we will accept fixes and documentation. Use at your own risk.
+### Introduction
+
+This image can be found on DockerHub at https://hub.docker.com/r/calcom/cal.com.
+
+Note for ARM Users: Use the {version}-arm suffix for pulling images. Example: `docker pull calcom/cal.com:v5.6.19-arm`.
+
+### Contributing
+
+The Docker configuration for Cal.com is an effort powered by people within the community. Cal.com, Inc. does not yet provide official support for Docker, but we will accept fixes and documentation at this time. Use at your own risk.
 
 If you want to contribute to the Docker repository, [reply here](https://github.com/calcom/docker/discussions/32).
 
@@ -26,24 +34,63 @@ Note: `docker compose` without the hyphen is now the primary method of using doc
 2. Change into the directory
     
     ```
-    cd calcom-docker
+    cd docker
     ```
 
-4. Rename `.env.example` to `.env` and then update `.env`
+3. Prepare your configuration: Rename .env.example to .env and then update .env
+    ```
+    cp .env.example .env
+    ```
+    Most configurations can be left as-is, but for configuration options see Important Run-time variables below.
 
-5. Build and start Cal.com via docker compose
+    Update the appropriate values in your .env file, then proceed.
+
+4. (optional) Pre-Pull the images by running the following command
     
     ```
-    docker compose up --build
+    docker compose pull
+    ```
+5. Start Cal.com via docker compose
+
+    (Most basic users, and for First Run) To run the complete stack, which includes a local Postgres database, Cal.com web app, and Prisma Studio:
+
+    ```bash
+    docker compose up -d
     ```
 
-6. (First Run) Open a browser to [http://localhost:5555](http://localhost:5555/) to look at or modify the database content.
-    
-    a. Click on the `User` model to add a new user record.
-    
-    b. Fill out the fields (remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)) and click `Save 1 Record` to create your first user.
+    To run Cal.com web app and Prisma Studio against a remote database, ensure that DATABASE_URL is configured for an available database and run:
 
-7. Open a browser to [http://localhost:3000](http://localhost:3000/) and login with your just created, first user.
+    ```bash
+    docker compose up -d calcom studio
+    ```
+
+    To run only the Cal.com web app, ensure that DATABASE_URL is configured for an available database and run:
+
+    ```bash
+    docker compose up -d calcom
+    ```
+
+6. Open a browser to [http://localhost:3000](http://localhost:3000), or your defined NEXT_PUBLIC_WEBAPP_URL. The first time you run Cal.com, a setup wizard will initialize. Define your first user, and you're ready to go!
+
+### Update Calcom Instance
+
+1. Stop the Cal.com stack
+
+    ```bash
+    docker compose down
+    ```
+
+2. Pull the latest changes
+
+    ```bash
+    docker compose pull
+    ```
+3. Update environment variables as necessary.
+4. Re-start the Cal.com stack
+
+    ```bash
+    docker compose up -d
+    ```
 
 ### Configuration
 
