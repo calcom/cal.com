@@ -40,6 +40,18 @@ async function postHandler(request: NextRequest, context: { params: Promise<Para
       selectedCalendarRepository: new SelectedCalendarRepository(prisma),
       featuresRepository: new FeaturesRepository(prisma),
     });
+
+    // are features globally enabled
+    const [isCacheEnabled, isSyncEnabled] = await Promise.all([
+      calendarSubscriptionService.isCacheEnabled(),
+      calendarSubscriptionService.isSyncEnabled(),
+    ]);
+
+    if (!isCacheEnabled && !isSyncEnabled) {
+      log.debug("No cache or sync enabled");
+      return NextResponse.json({ message: "No cache or sync enabled" }, { status: 200 });
+    }
+
     await calendarSubscriptionService.processWebhook(provider, request);
     return NextResponse.json({ message: "Webhook processed" }, { status: 200 });
   } catch (error) {

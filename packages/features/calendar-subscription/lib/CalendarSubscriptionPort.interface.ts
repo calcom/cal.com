@@ -14,7 +14,7 @@ export type CalendarSubscriptionResult = {
 };
 
 export type CalendarSubscriptionEventItem = {
-  id?: string | null;
+  id: string;
   iCalUID?: string | null;
   start?: Date;
   end?: Date;

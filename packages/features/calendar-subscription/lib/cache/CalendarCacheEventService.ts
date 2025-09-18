@@ -44,7 +44,7 @@ export class CalendarCacheEventService {
           timeZone: event.timeZone,
           originalStartTime: event.originalStartDate,
           recurringEventId: event.recurringEventId,
-          externalEtag: event.etag,
+          externalEtag: event.etag || "",
           externalCreatedAt: event.createdAt,
           externalUpdatedAt: event.updatedAt,
         });
@@ -83,8 +83,8 @@ export class CalendarCacheEventService {
    * @param appId
    * @returns
    */
-  static isAppSupported(appId: string | null): boolean {
+  static isCalendarTypeSupported(appId: string | null): boolean {
     if (!appId) return false;
-    return ["google-calendar", "office365-calendar"].includes(appId);
+    return ["google_calendar", "office365_calendar"].includes(appId);
   }
 }

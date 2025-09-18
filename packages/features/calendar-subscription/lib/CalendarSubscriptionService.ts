@@ -7,6 +7,7 @@ import { getCredentialForCalendarCache } from "@calcom/lib/delegationCredential/
 import logger from "@calcom/lib/logger";
 import type { ISelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository.interface";
 import { prisma } from "@calcom/prisma";
+import type { SelectedCalendar } from "@calcom/prisma/client";
 
 import type {
   CalendarCredential,
@@ -16,6 +17,9 @@ import type {
 const log = logger.getSubLogger({ prefix: ["CalendarSubscriptionService"] });
 
 export class CalendarSubscriptionService {
+  static CALENDAR_SUBSCRIPTION_CACHE_FEATURE = "calendar-subscription-cache" as const;
+  static CALENDAR_SUBSCRIPTION_SYNC_FEATURE = "calendar-subscription-sync" as const;
+
   constructor(
     private deps: {
       adapterFactory: AdapterFactory;
@@ -35,7 +39,7 @@ export class CalendarSubscriptionService {
       return;
     }
 
-    const credential = await this.getCalendarCredential(selectedCalendar.credentialId);
+    const credential = await this.getCredential(selectedCalendar.credentialId);
     if (!credential) {
       log.debug("Calendar credential not found", { selectedCalendarId });
       return;
@@ -46,7 +50,7 @@ export class CalendarSubscriptionService {
     );
     const res = await calendarSubscriptionAdapter.subscribe(selectedCalendar, credential);
 
-    await this.deps.selectedCalendarRepository.updateById(selectedCalendarId, {
+    await this.deps.selectedCalendarRepository.updateSubscription(selectedCalendarId, {
       channelId: res?.id,
       channelResourceId: res?.resourceId,
       channelResourceUri: res?.resourceUri,
@@ -56,7 +60,7 @@ export class CalendarSubscriptionService {
     });
 
     // initial event loading
-    await processEvents(selectedCalendar);
+    await this.processEvents(selectedCalendar);
   }
 
   /**
@@ -67,7 +71,7 @@ export class CalendarSubscriptionService {
     const selectedCalendar = await this.deps.selectedCalendarRepository.findById(selectedCalendarId);
     if (!selectedCalendar?.credentialId) return;
 
-    const credential = await this.getCalendarCredential(selectedCalendar.credentialId);
+    const credential = await this.getCredential(selectedCalendar.credentialId);
     if (!credential) return;
 
     const calendarSubscriptionAdapter = this.deps.adapterFactory.get(
@@ -76,7 +80,7 @@ export class CalendarSubscriptionService {
 
     await Promise.all([
       calendarSubscriptionAdapter.unsubscribe(selectedCalendar, credential),
-      this.deps.selectedCalendarRepository.updateById(selectedCalendarId, {
+      this.deps.selectedCalendarRepository.updateSubscription(selectedCalendarId, {
         syncSubscribedAt: null,
       }),
     ]);
@@ -84,7 +88,10 @@ export class CalendarSubscriptionService {
     // cleanup cache after unsubscribe
     if (await this.isCacheEnabled()) {
       const { CalendarCacheEventService } = await import("./cache/CalendarCacheEventService");
-      const calendarCacheEventService = new CalendarCacheEventService(this.deps);
+      const { CalendarCacheEventRepository } = await import("./cache/CalendarCacheEventRepository");
+      const calendarCacheEventService = new CalendarCacheEventService({
+        calendarCacheEventRepository: new CalendarCacheEventRepository(prisma),
+      });
       await calendarCacheEventService.cleanupCache(selectedCalendar);
     }
   }
@@ -104,10 +111,8 @@ export class CalendarSubscriptionService {
 
     log.debug("Processing webhook", { channelId });
     const selectedCalendar = await this.deps.selectedCalendarRepository.findByChannelId(channelId);
-    if (!selectedCalendar?.credentialId) {
-      log.debug("Selected calendar not found", { channelId });
-      return;
-    }
+    // it maybe caused by an old subscription being triggered
+    if (!selectedCalendar) return null;
 
     // incremental event loading
     await this.processEvents(selectedCalendar);
@@ -126,14 +131,24 @@ export class CalendarSubscriptionService {
       selectedCalendar.integration as CalendarSubscriptionProvider
     );
 
-    const [cacheEnabled, syncEnabled] = await Promise.all([this.isCacheEnabled(), this.isSyncEnabled()]);
+    if (!selectedCalendar.credentialId) {
+      log.debug("Selected calendar credential not found", { channelId: selectedCalendar.channelId });
+      return;
+    }
+    // for cache the feature should be enabled globally and by user/team features
+    const [cacheEnabled, syncEnabled, cacheEnabledForUser] = await Promise.all([
+      this.isCacheEnabled(),
+      this.isSyncEnabled(),
+      this.isCacheEnabledForUser(selectedCalendar.userId),
+    ]);
+
     if (!cacheEnabled && !syncEnabled) {
-      log.debug("No cache or sync enabled", { channelId: selectedCalendar.channelId });
+      log.debug("Cache and sync are globally disabled", { channelId: selectedCalendar.channelId });
       return;
     }
 
-    log.info("processEvents", { channelId: selectedCalendar.channelId });
-    const credential = await this.getCalendarCredential(selectedCalendar.credentialId);
+    log.debug("Processing events", { channelId: selectedCalendar.channelId });
+    const credential = await this.getCredential(selectedCalendar.credentialId);
     if (!credential) return;
 
     let events: CalendarSubscriptionEvent | null = null;
@@ -141,7 +156,7 @@ export class CalendarSubscriptionService {
       events = await calendarSubscriptionAdapter.fetchEvents(selectedCalendar, credential);
     } catch (err) {
       log.debug("Error fetching events", { channelId: selectedCalendar.channelId, err });
-      await this.deps.selectedCalendarRepository.updateById(selectedCalendar.id, {
+      await this.deps.selectedCalendarRepository.updateSyncStatus(selectedCalendar.id, {
         syncErrorAt: new Date(),
         syncErrorCount: (selectedCalendar.syncErrorCount || 0) + 1,
       });
@@ -154,14 +169,15 @@ export class CalendarSubscriptionService {
     }
 
     log.debug("Processing events", { channelId: selectedCalendar.channelId, count: events.items.length });
-    await this.deps.selectedCalendarRepository.updateById(selectedCalendar.id, {
+    await this.deps.selectedCalendarRepository.updateSyncStatus(selectedCalendar.id, {
       syncToken: events.syncToken || selectedCalendar.syncToken,
       syncedAt: new Date(),
       syncErrorAt: null,
       syncErrorCount: 0,
     });
 
-    if (cacheEnabled) {
+    // it requires both global and team/user feature cache enabled
+    if (cacheEnabled && cacheEnabledForUser) {
       log.debug("Caching events", { count: events.items.length });
       const { CalendarCacheEventService } = await import("./cache/CalendarCacheEventService");
       const { CalendarCacheEventRepository } = await import("./cache/CalendarCacheEventRepository");
@@ -183,7 +199,10 @@ export class CalendarSubscriptionService {
    */
   async checkForNewSubscriptions() {
     log.debug("checkForNewSubscriptions");
-    const rows = await this.deps.selectedCalendarRepository.findNotSubscribed({ take: 100 });
+    const rows = await this.deps.selectedCalendarRepository.findNextSubscriptionBatch({
+      take: 100,
+      integrations: this.deps.adapterFactory.getProviders(),
+    });
     await Promise.allSettled(rows.map(({ id }) => this.subscribe(id)));
   }
 
@@ -192,7 +211,20 @@ export class CalendarSubscriptionService {
    * @returns true if cache is enabled
    */
   async isCacheEnabled(): Promise<boolean> {
-    return this.deps.featuresRepository.checkIfFeatureIsEnabledGlobally("calendar-subscription-cache");
+    return this.deps.featuresRepository.checkIfFeatureIsEnabledGlobally(
+      CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
+    );
+  }
+
+  /**
+   * Check if cache is enabled for user
+   * @returns true if cache is enabled
+   */
+  async isCacheEnabledForUser(userId: number): Promise<boolean> {
+    return this.deps.featuresRepository.checkIfUserHasFeature(
+      userId,
+      CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
+    );
   }
 
   /**
@@ -200,13 +232,15 @@ export class CalendarSubscriptionService {
    * @returns true if sync is enabled
    */
   async isSyncEnabled(): Promise<boolean> {
-    return this.deps.featuresRepository.checkIfFeatureIsEnabledGlobally("calendar-subscription-sync");
+    return this.deps.featuresRepository.checkIfFeatureIsEnabledGlobally(
+      CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_SYNC_FEATURE
+    );
   }
 
   /**
    * Get credential with delegation if available
    */
-  private async getCalendarCredential(credentialId: number): Promise<CalendarCredential | null> {
+  private async getCredential(credentialId: number): Promise<CalendarCredential | null> {
     const credential = await getCredentialForCalendarCache({ credentialId });
     if (!credential) return null;
     return {

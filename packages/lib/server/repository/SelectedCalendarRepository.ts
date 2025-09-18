@@ -1,7 +1,6 @@
+import type { ISelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository.interface";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-
-import type { ISelectedCalendarRepository } from "./SelectedCalendarRepository.interface";
 
 export class SelectedCalendarRepository implements ISelectedCalendarRepository {
   constructor(private prismaClient: PrismaClient) {}
@@ -19,25 +18,52 @@ export class SelectedCalendarRepository implements ISelectedCalendarRepository {
     });
   }
 
-  async findNotSubscribed({ take }: { take: number }) {
-    return this.prismaClient.selectedCalendar.findMany({
-      where: { syncSubscribedAt: null },
-      take,
-    });
-  }
-
-  async findMany(args: { where: Prisma.SelectedCalendarWhereInput }) {
-    return this.prismaClient.selectedCalendar.findMany({
-      where: args.where,
-      select: { id: true, externalId: true, credentialId: true, syncedAt: true },
-    });
-  }
-
   async findByChannelId(channelId: string) {
     return this.prismaClient.selectedCalendar.findFirst({ where: { channelId } });
   }
 
-  async updateById(id: string, data: Prisma.SelectedCalendarUpdateInput) {
+  async findNextSubscriptionBatch({ take, integrations }: { take: number; integrations: string[] }) {
+    return this.prismaClient.selectedCalendar.findMany({
+      where: {
+        integration: { in: integrations },
+        OR: [
+          {
+            syncSubscribedAt: null,
+            channelExpiration: {
+              gte: new Date(),
+            },
+          },
+        ],
+      },
+      take,
+    });
+  }
+
+  async updateSyncStatus(
+    id: string,
+    data: Pick<
+      Prisma.SelectedCalendarUpdateInput,
+      "syncToken" | "syncedAt" | "syncErrorAt" | "syncErrorCount"
+    >
+  ) {
+    return this.prismaClient.selectedCalendar.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async updateSubscription(
+    id: string,
+    data: Pick<
+      Prisma.SelectedCalendarUpdateInput,
+      | "channelId"
+      | "channelResourceId"
+      | "channelResourceUri"
+      | "channelKind"
+      | "channelExpiration"
+      | "syncSubscribedAt"
+    >
+  ) {
     return this.prismaClient.selectedCalendar.update({
       where: { id },
       data,

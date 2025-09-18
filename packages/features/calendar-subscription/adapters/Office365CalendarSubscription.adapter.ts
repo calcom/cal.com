@@ -76,7 +76,15 @@ export class Office365CalendarSubscriptionAdapter implements ICalendarSubscripti
 
   async validate(request: Request): Promise<boolean> {
     // validate handshake
-    const validationToken = request?.query?.get("validationToken");
+    let validationToken: string | null = null;
+    if (request?.url) {
+      try {
+        const urlObj = new URL(request.url);
+        validationToken = urlObj.searchParams.get("validationToken");
+      } catch (e) {
+        log.warn("Invalid request URL", { url: request.url });
+      }
+    }
     if (validationToken) return true;
 
     // validate notifications

@@ -8,19 +8,19 @@ export interface ICalendarCacheEventRepository {
    * Upserts many events
    * @param events the list of events to upsert
    */
-  upsertMany(events: Partial<CalendarCacheEvent>[]): Promise<void>;
+  upsertMany(events: Partial<CalendarCacheEvent>[]): Promise<unknown>;
 
   /**
    * Deletes many events
    * @param events the list of events to delete
    */
-  deleteMany(events: Pick<CalendarCacheEvent, "externalId" | "selectedCalendarId">[]): Promise<void>;
+  deleteMany(events: Pick<CalendarCacheEvent, "externalId" | "selectedCalendarId">[]): Promise<unknown>;
 
   /**
    * Deletes all events for a selected calendar
    * @param selectedCalendarId the id of the calendar
    */
-  deleteAllBySelectedCalendarId(selectedCalendarId: string): Promise<void>;
+  deleteAllBySelectedCalendarId(selectedCalendarId: string): Promise<unknown>;
 
   /**
    *

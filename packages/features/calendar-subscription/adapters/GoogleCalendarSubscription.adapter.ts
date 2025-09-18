@@ -153,6 +153,7 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
 
   private parseEvents(events: calendar_v3.Schema$Event[]): CalendarSubscriptionEventItem[] {
     return events
+      .filter((event) => typeof event.id === "string" && !!event.id)
       .map((event) => {
         // empty or opaque is busy
         const busy = !event.transparency || event.transparency === "opaque";
@@ -170,7 +171,7 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
           : new Date();
 
         return {
-          id: event.id,
+          id: event.id as string,
           iCalUID: event.iCalUID,
           start,
           end,
@@ -181,15 +182,14 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
           kind: event.kind,
           etag: event.etag,
           status: event.status,
-          isAllDay: event.start?.date && !event.start?.dateTime,
+          isAllDay: typeof event.start?.date === "string" && !event.start?.dateTime ? true : undefined,
           timeZone: event.start?.timeZone || null,
           recurringEventId: event.recurringEventId,
           originalStartTime: event.originalStartTime?.dateTime,
           createdAt: event.created ? new Date(event.created) : null,
           updatedAt: event.updated ? new Date(event.updated) : null,
         };
-      })
-      .filter(({ id }) => !!id);
+      });
   }
 
   private async getClient(credential: CalendarCredential) {

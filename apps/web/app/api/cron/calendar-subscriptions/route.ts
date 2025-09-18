@@ -32,10 +32,12 @@ async function postHandler(request: NextRequest) {
   });
   try {
     await calendarSubscriptionService.checkForNewSubscriptions();
+    log.info("Checked for new calendar subscriptions successfully");
     return NextResponse.json({ ok: true });
   } catch (e) {
-    log.error(e);
-    return NextResponse.json({ message: e.message }, { status: 500 });
+    log.error("Error checking for new calendar subscriptions", { error: e });
+    const message = e instanceof Error ? e.message : "Unknown error";
+    return NextResponse.json({ message }, { status: 500 });
   }
 }
 

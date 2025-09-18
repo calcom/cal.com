@@ -1,9 +1,62 @@
-import type { Prisma } from "@calcom/prisma/client";
+import type { Prisma, SelectedCalendar } from "@calcom/prisma/client";
 
-export class ISelectedCalendarRepository {
-  findById(id: string): Promise<Prisma.SelectedCalendar | null>;
-  findNotSubscribed({ take }: { take: number }): Promise<Prisma.SelectedCalendar[]>;
-  findMany(args: { where: Prisma.SelectedCalendarWhereInput }): Promise<Prisma.SelectedCalendar[]>;
-  findByChannelId(channelId: string): Promise<Prisma.SelectedCalendar | null>;
-  updateById(id: string, data: Prisma.SelectedCalendarUpdateInput): Promise<Prisma.SelectedCalendar>;
+export interface ISelectedCalendarRepository {
+  /**
+   * Find selected calendar by id
+   *
+   * @param id
+   */
+  findById(id: string): Promise<SelectedCalendar | null>;
+
+  /**
+   * Find selected calendar by channel id
+   *
+   * @param channelId
+   */
+  findByChannelId(channelId: string): Promise<SelectedCalendar | null>;
+
+  /**
+   *  Find next batch of selected calendars
+   *  Will check if syncSubscribedAt is null or channelExpiration is greater than current date
+   *
+   * @param take the number of calendars to take
+   * @param integrations the list of integrations
+   */
+  findNextSubscriptionBatch({
+    take,
+    integrations,
+  }: {
+    take: number;
+    integrations?: string[];
+  }): Promise<SelectedCalendar[]>;
+
+  /**
+   * Update status of sync for selected calendar
+   *
+   * @param id
+   * @param data
+   */
+  updateSyncStatus(
+    id: string,
+    data: Pick<
+      Prisma.SelectedCalendarUpdateInput,
+      "syncToken" | "syncedAt" | "syncErrorAt" | "syncErrorCount"
+    >
+  ): Promise<SelectedCalendar>;
+
+  /**
+   * Update subscription status for selected calendar
+   */
+  updateSubscription(
+    id: string,
+    data: Pick<
+      Prisma.SelectedCalendarUpdateInput,
+      | "channelId"
+      | "channelResourceId"
+      | "channelResourceUri"
+      | "channelKind"
+      | "channelExpiration"
+      | "syncSubscribedAt"
+    >
+  ): Promise<SelectedCalendar>;
 }

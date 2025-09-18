@@ -6,6 +6,7 @@ export type CalendarSubscriptionProvider = "google_calendar" | "office365_calend
 
 export interface AdapterFactory {
   get(provider: CalendarSubscriptionProvider): ICalendarSubscriptionPort;
+  getProviders(): CalendarSubscriptionProvider[];
 }
 
 /**
@@ -17,11 +18,26 @@ export class DefaultAdapterFactory implements AdapterFactory {
     office365_calendar: new Office365CalendarSubscriptionAdapter(),
   } as const;
 
+  /**
+   * Returns the adapter for the given provider
+   *
+   * @param provider
+   * @returns
+   */
   get(provider: CalendarSubscriptionProvider): ICalendarSubscriptionPort {
     const adapter = this.singletons[provider];
     if (!adapter) {
       throw new Error(`No adapter found for provider ${provider}`);
     }
     return adapter;
+  }
+
+  /**
+   * Returns all available providers
+   *
+   * @returns
+   */
+  getProviders(): CalendarSubscriptionProvider[] {
+    return Object.keys(this.singletons) as CalendarSubscriptionProvider[];
   }
 }
