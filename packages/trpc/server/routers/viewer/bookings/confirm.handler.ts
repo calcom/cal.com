@@ -12,6 +12,7 @@ import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
+import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
@@ -95,6 +96,12 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
               id: true,
               name: true,
               parentId: true,
+              hideBranding: true,
+              parent: {
+                select: {
+                  hideBranding: true,
+                },
+              },
             },
           },
           workflows: {
@@ -136,6 +143,28 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       status: true,
       smsReminderNumber: true,
     },
+  });
+
+  // Calculate hide branding setting using comprehensive logic that considers team and organization settings
+  const hideBranding = await shouldHideBrandingForEvent({
+    eventTypeId: booking.eventType?.id || 0,
+    team: booking.eventType?.team
+      ? {
+          hideBranding: booking.eventType.team.hideBranding,
+          parent: booking.eventType.team.parent
+            ? {
+                hideBranding: booking.eventType.team.parent.hideBranding,
+              }
+            : null,
+        }
+      : null,
+    owner: booking.eventType?.owner
+      ? {
+          id: booking.eventType.owner.id,
+          hideBranding: booking.eventType.owner.hideBranding,
+        }
+      : null,
+    organizationId: booking.eventType?.team?.parentId || null,
   });
 
   await checkIfUserIsAuthorizedToConfirmBooking({
@@ -399,7 +428,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
             slug: booking.eventType?.slug as string,
           },
         },
-        hideBranding: !!booking.eventType?.owner?.hideBranding,
+        hideBranding: hideBranding,
         triggers: [WorkflowTriggerEvents.BOOKING_REJECTED],
       });
     } catch (error) {

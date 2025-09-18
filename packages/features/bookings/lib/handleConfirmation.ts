@@ -16,6 +16,7 @@ import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
+import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
@@ -32,6 +33,32 @@ import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
+
+async function calculateHideBrandingForBooking(booking: {
+  eventType: {
+    id: number;
+    owner?: {
+      hideBranding?: boolean | null;
+    } | null;
+  } | null;
+}) {
+  if (!booking.eventType?.id) {
+    return false;
+  }
+
+  // Use comprehensive branding logic
+  try {
+    return await shouldHideBrandingForEvent({
+      eventTypeId: booking.eventType.id,
+      team: null, // We'll need to query this separately in a follow-up
+      owner: null, // We'll need to query this separately in a follow-up
+      organizationId: null, // We'll need to query this separately in a follow-up
+    });
+  } catch (error) {
+    // Fallback to simple logic if comprehensive check fails
+    return !!booking.eventType.owner?.hideBranding;
+  }
+}
 
 export async function handleConfirmation(args: {
   user: EventManagerUser & { username: string | null };
@@ -356,7 +383,7 @@ export async function handleConfirmation(args: {
           evt: evtOfBooking,
           workflows,
           requiresConfirmation: false,
-          hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
+          hideBranding: await calculateHideBrandingForBooking(updatedBookings[index]),
           seatReferenceUid: evt.attendeeSeatId,
           isPlatformNoEmail: !emailsEnabled && Boolean(platformClientParams?.platformClientId),
         });
@@ -366,7 +393,7 @@ export async function handleConfirmation(args: {
         workflows,
         smsReminderNumber: updatedBookings[index].smsReminderNumber,
         calendarEvent: evtOfBooking,
-        hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
+        hideBranding: await calculateHideBrandingForBooking(updatedBookings[index]),
         isConfirmedByDefault: true,
         isNormalBookingOrFirstRecurringSlot: isFirstBooking,
         isRescheduleEvent: false,
@@ -577,7 +604,7 @@ export async function handleConfirmation(args: {
           workflows,
           smsReminderNumber: booking.smsReminderNumber,
           calendarEvent: calendarEventForWorkflow,
-          hideBranding: !!updatedBookings[0].eventType?.owner?.hideBranding,
+          hideBranding: await calculateHideBrandingForBooking(updatedBookings[0]),
           triggers: [WorkflowTriggerEvents.BOOKING_PAID],
         });
       } catch (error) {

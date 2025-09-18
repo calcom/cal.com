@@ -27,6 +27,7 @@ import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
@@ -467,6 +468,28 @@ export async function handleWorkflowsUpdate({
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>>;
   orgId: number | null;
 }) {
+  // Calculate hide branding setting using comprehensive logic that considers team and organization settings
+  const hideBranding = await shouldHideBrandingForEvent({
+    eventTypeId: eventType?.id || 0,
+    team: eventType?.team
+      ? {
+          hideBranding: eventType.team.hideBranding,
+          parent: eventType.team.parent
+            ? {
+                hideBranding: eventType.team.parent.hideBranding,
+              }
+            : null,
+        }
+      : null,
+    owner: eventType?.owner
+      ? {
+          id: eventType.owner.id,
+          hideBranding: eventType.owner.hideBranding,
+        }
+      : null,
+    organizationId: eventType?.team?.parentId || null,
+  });
+
   const workflowReminders = await prisma.workflowReminder.findMany({
     where: {
       bookingUid: booking.uid,
@@ -603,7 +626,7 @@ export async function handleWorkflowsUpdate({
       eventType: { slug: eventType.slug },
       bookerUrl,
     },
-    hideBranding: !!eventType?.owner?.hideBranding,
+    hideBranding: hideBranding,
   });
 }
 
