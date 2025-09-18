@@ -10,6 +10,7 @@ import {
   DialogClose,
 } from "@calid/features/ui/components/dialog";
 import { Switch } from "@calid/features/ui/components/switch";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { useSession } from "next-auth/react";
 import type { Dispatch, SetStateAction } from "react";
 import React, { useState, useEffect } from "react";
@@ -21,7 +22,6 @@ import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { triggerToast } from "@calid/features/ui/components/toast";
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["calid_get"]["bookings"][number];
 
@@ -115,7 +115,9 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
       setIsOpenDialog(false);
     } else {
       const errorData = await res.json().catch(() => ({}));
-      const errorMessage = errorData.message || `${t("error_with_status_code_occured", { status: res.status })} ${t("please_try_again")}`;
+      const errorMessage =
+        errorData.message ||
+        `${t("error_with_status_code_occured", { status: res.status })} ${t("please_try_again")}`;
       triggerToast(errorMessage, "error");
       setError(errorMessage);
     }
@@ -131,9 +133,9 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
         </DialogHeader>
 
         {props.recurringEventId && selectedRecurringDates.length > 0 ? (
-          <div className="mb-6 space-y-3 rounded-lg bg-muted p-4">
+          <div className="bg-muted mb-6 space-y-3 rounded-lg p-4">
             <div className="flex gap-3">
-              <span className="min-w-16 font-medium text-emphasis">{t("event")}</span>
+              <span className="text-emphasis min-w-16 font-medium">{t("event")}</span>
               <span className="text-default">{props.eventType?.title || props.title}</span>
             </div>
             <div className="flex gap-3">
@@ -172,23 +174,26 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
             )}
           </div>
         ) : (
-          <div className="my-0 mb-6 space-y-3 rounded-lg bg-muted p-4">
+          <div className="bg-muted my-0 mb-6 space-y-3 rounded-lg p-4">
             <div className="flex gap-3">
-              <span className="min-w-16 font-medium text-emphasis">{t("event_upper_case")}</span>
+              <span className="text-emphasis min-w-16 font-medium">{t("event_upper_case")}</span>
               <span className="text-default">{props.eventType?.title || props.title}</span>
             </div>
             <div className="flex gap-3">
-              <span className="min-w-16 font-medium text-emphasis">{t("when")}</span>
+              <span className="text-emphasis min-w-16 font-medium">{t("when")}</span>
               <span className="text-default">
-                {props.startTime} - {props.endTime}
+                {new Date(props.startTime).toLocaleDateString()}{" "}
+                {new Date(props.startTime).toLocaleTimeString()} -
+                {new Date(props.endTime).toLocaleDateString()}{" "}
+                {new Date(props.endTime).toLocaleTimeString()}
               </span>
             </div>
             <div className="flex gap-3">
-              <span className="min-w-16 font-medium text-emphasis">{t("where")}</span>
+              <span className="text-emphasis min-w-16 font-medium">{t("where")}</span>
               <span className="text-default">{props.location?.split(":")[1] || "*LOCATION"}</span>
             </div>
             <div className="flex gap-3">
-              <span className="min-w-16 font-medium text-emphasis">{t("with")}</span>
+              <span className="text-emphasis min-w-16 font-medium">{t("with")}</span>
               <div className="flex flex-wrap gap-1">
                 {props.attendees?.map((attendee, index) => (
                   <div key={index}>
@@ -204,7 +209,7 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
             </div>
             {props.description && (
               <div className="flex gap-3">
-                <span className="min-w-16 font-medium text-emphasis">{t("additional_notes")}</span>
+                <span className="text-emphasis min-w-16 font-medium">{t("additional_notes")}</span>
                 <span className="text-default">{props.description}</span>
               </div>
             )}
@@ -212,27 +217,23 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
         )}
 
         <div className="mb-6">
-          <label className="mb-3 block text-sm font-medium text-emphasis">
+          <label className="text-emphasis mb-3 block text-sm font-medium">
             {t("cancellation_reason_host")}
           </label>
           <textarea
             data-testid="cancel_reason"
             value={cancelReason}
             onChange={(e) => setCancelReason(e.target.value)}
-            className="h-24 w-full resize-none rounded-md border border-default p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border-default h-24 w-full resize-none rounded-md border p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder={t("cancellation_reason_placeholder")}
           />
-          {error && (
-            <div className="mt-2 text-sm text-red-600">
-              {error}
-            </div>
-          )}
+          {error && <div className="mt-2 text-sm text-red-600">{error}</div>}
         </div>
 
         {/* AutoRefund toggle - only show for hosts with paid bookings */}
         {isHost && props.paid && (
           <div className="mb-6">
-            <div className="flex w-full justify-between items-center">
+            <div className="flex w-full items-center justify-between">
               <label className="text-default font-medium">{t("autorefund")}</label>
               <Switch
                 tooltip={t("autorefund_info")}
@@ -243,9 +244,7 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
               />
             </div>
             <div className="mt-2 flex items-center gap-2">
-              <span className="text-subtle text-sm">
-                {t("autorefund_description")}
-              </span>
+              <span className="text-subtle text-sm">{t("autorefund_description")}</span>
             </div>
           </div>
         )}
