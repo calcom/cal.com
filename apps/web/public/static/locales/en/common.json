@@ -3236,6 +3236,7 @@
   "credits": "Credits",
   "view_and_manage_credits": "View and manage credits for sending SMS messages",
   "view_and_manage_credits_description": "View and manage credits for sending SMS messages. One credit is worth 1¢ (USD). <0>Learn more</0>",
+  "credit_worth_description": "One credit is worth 1¢ (USD). <0>Learn more</0>",
   "buy_additional_credits": "Buy additional credits ($0.01 per credit)",
   "overview": "Overview",
   "organization_slug_taken": "Organization slug is already taken",
