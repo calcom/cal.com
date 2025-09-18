@@ -2,7 +2,6 @@ import type { NextApiRequest } from "next";
 import type { z } from "zod";
 
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -250,4 +249,4 @@ async function checkPermissions(req: NextApiRequest, body: z.infer<typeof schema
   await checkTeamEventEditPermission(req, body);
 }
 
-export default defaultResponder(patchHandler);
+export default patchHandler;

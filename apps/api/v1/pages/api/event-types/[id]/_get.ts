@@ -1,7 +1,6 @@
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -101,4 +100,4 @@ async function checkPermissions<T extends BaseEventTypeCheckPermissions>(
   throw new HttpError({ statusCode: 403, message: "Forbidden" });
 }
 
-export default defaultResponder(getHandler);
+export default getHandler;
