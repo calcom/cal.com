@@ -410,9 +410,7 @@ export async function handleBookingExportEvent({
         return bookings.map((booking) => {
           const { type, startDate } = getTypeAndStartDate(booking, user.timeZone);
 
-
-      return `${formatInTimeZone(start, "UTC", "h a")} - ${formatInTimeZone(end, "UTC", "h a")}`;
-
+          return `${formatInTimeZone(start, "UTC", "h a")} - ${formatInTimeZone(end, "UTC", "h a")}`;
 
           const interval = `${formatTime(
             booking.startTime,

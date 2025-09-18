@@ -1,5 +1,6 @@
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import type { AssignmentReason } from "@prisma/client";
 import Link from "next/link";
 import type { Dispatch, SetStateAction } from "react";
@@ -45,18 +46,17 @@ import { TextAreaField } from "@calcom/ui/components/form";
 import { MeetingTimeInTimezones } from "@calcom/ui/components/popover";
 import { TableActions } from "@calcom/ui/components/table";
 import type { ActionType } from "@calcom/ui/components/table";
-import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
 import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
+import { BookingCancelDialog } from "@components/dialog/BookingCancelDialog";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { ReassignDialog } from "@components/dialog/ReassignDialog";
 import { RerouteDialog } from "@components/dialog/RerouteDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
-import { BookingCancelDialog } from "@components/dialog/BookingCancelDialog";
 
 import { BookingExpandedCard } from "./BookingExpandedCard";
 import {
@@ -151,12 +151,12 @@ export default function BookingListItem(booking: BookingItemProps) {
 
   const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
     onSuccess: async (data) => {
-      showToast(data.message, "success");
+      triggerToast(data.message, "success");
       // Invalidate and refetch the bookings query to update the UI
       await utils.viewer.bookings.invalidate();
     },
     onError: (err) => {
-      showToast(err.message, "error");
+      triggerToast(err.message, "error");
     },
   });
 
@@ -183,14 +183,14 @@ export default function BookingListItem(booking: BookingItemProps) {
     onSuccess: (data) => {
       if (data?.status === BookingStatus.REJECTED) {
         setRejectionDialogIsOpen(false);
-        showToast(t("booking_rejection_success"), "success");
+        triggerToast(t("booking_rejection_success"), "success");
       } else {
-        showToast(t("booking_confirmation_success"), "success");
+        triggerToast(t("booking_confirmation_success"), "success");
       }
       utils.viewer.bookings.invalidate();
     },
     onError: () => {
-      showToast(t("booking_confirmation_failed"), "error");
+      triggerToast(t("booking_confirmation_failed"), "error");
       utils.viewer.bookings.invalidate();
     },
   });
@@ -210,6 +210,11 @@ export default function BookingListItem(booking: BookingItemProps) {
   const isTabRecurring = booking.listingStatus === "recurring";
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
   const isBookingFromRoutingForm = isBookingReroutable(parsedBooking);
+
+  console.log("attendees", booking.attendees);
+  console.log("startTime", booking.startTime);
+  console.log("endTime", booking.endTime);
+  console.log("timezone", userTimeZone);
 
   const paymentAppData = getPaymentAppData(booking.eventType);
 
@@ -324,7 +329,7 @@ export default function BookingListItem(booking: BookingItemProps) {
   const [rerouteDialogIsOpen, setRerouteDialogIsOpen] = useState(false);
   const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
     onSuccess: () => {
-      showToast(t("location_updated"), "success");
+      triggerToast(t("location_updated"), "success");
       setIsOpenLocationDialog(false);
       utils.viewer.bookings.invalidate();
     },
@@ -335,7 +340,7 @@ export default function BookingListItem(booking: BookingItemProps) {
       };
 
       const message = errorMessages[e.data?.code as string] || t("location_update_failed");
-      showToast(message, "error");
+      triggerToast(message, "error");
     },
   });
 
@@ -601,17 +606,15 @@ export default function BookingListItem(booking: BookingItemProps) {
                     <div
                       title={title}
                       className={classNames(
-                        "flex items-center gap-2 text-emphasis align-top text-base font-semibold leading-6 w-full lg:max-w-56 xl:max-w-full"
+                        "text-emphasis flex w-full items-center gap-2 align-top text-base font-semibold leading-6 lg:max-w-56 xl:max-w-full"
                       )}>
                       <span className={isCancelled ? "line-through" : ""}>{booking.eventType?.title}</span>
-                      <span className="align-center text-xs font-medium text-subtle">
-                        with
-                      </span>
-                      <span className="align-center !decoration-none text-sm font-medium text-default">
+                      <span className="align-center text-subtle text-xs font-medium">with</span>
+                      <span className="align-center !decoration-none text-default text-sm font-medium">
                         {attendeeList[0].name}
                       </span>
                       {attendeeList.length > 1 && (
-                        <span className="align-center text-sm font-medium text-default">
+                        <span className="align-center text-default text-sm font-medium">
                           + {attendeeList.length - 1} more
                         </span>
                       )}
@@ -650,7 +653,7 @@ export default function BookingListItem(booking: BookingItemProps) {
                               target="_blank"
                               title={locationToDisplay}
                               rel="noreferrer"
-                              className="text-xs leading-6 text-active hover:underline">
+                              className="text-active text-xs leading-6 hover:underline">
                               <div className="flex items-center gap-2">
                                 <Icon name={getIconFromLocationValue(location)} className="h-3.5 w-3.5" />
                                 {provider?.label
@@ -669,7 +672,7 @@ export default function BookingListItem(booking: BookingItemProps) {
                   </div>
                 </div>
 
-                <div className="flex flex-col w-full lg:w-auto">
+                <div className="flex w-full flex-col lg:w-auto">
                   <div className="flex w-full flex-row flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium lg:flex-row lg:flex-nowrap lg:items-start lg:space-y-0 lg:pl-0 ltr:pr-4 rtl:pl-4">
                     {shouldShowPendingActions(actionContext) && <TableActions actions={pendingActions} />}
 
@@ -694,14 +697,10 @@ export default function BookingListItem(booking: BookingItemProps) {
                     {!isCancelled && (
                       <Dropdown>
                         <DropdownMenuTrigger asChild>
-                          <Button StartIcon="ellipsis" color="secondary" variant="icon">
-                          </Button>
+                          <Button StartIcon="ellipsis" color="secondary" variant="icon" />
                         </DropdownMenuTrigger>
                         <DropdownMenuPortal>
                           <DropdownMenuContent>
-                            <DropdownMenuLabel className="px-2 pb-1 pt-1.5">
-                              {t("edit_event")}
-                            </DropdownMenuLabel>
                             {editEventActions.map((action) => (
                               <DropdownMenuItem
                                 className="rounded-lg"
@@ -783,7 +782,12 @@ export default function BookingListItem(booking: BookingItemProps) {
                         setExpandedBooking(expandedBooking === booking.id ? null : booking.id);
                       }}>
                       <span>{t("details")}</span>
-                      <Icon name="chevron-down" className={`h-4 w-4 transition-transform ${expandedBooking === booking.id ? "rotate-180" : ""}`} />
+                      <Icon
+                        name="chevron-down"
+                        className={`h-4 w-4 transition-transform ${
+                          expandedBooking === booking.id ? "rotate-180" : ""
+                        }`}
+                      />
                     </button>
                   </div>
                 </div>
@@ -843,36 +847,24 @@ const BookingItemBadges = ({
   const { t } = useLocale();
 
   return (
-    <div className="flex flex-row flex-wrap items-center pb-2 pl-4 gap-2">
-      {isPending && (
-        <Badge variant="orange">
-          {t("unconfirmed")}
-        </Badge>
-      )}
+    <div className="flex flex-row flex-wrap items-center gap-2 pb-2 pl-4">
+      {isPending && <Badge variant="orange">{t("unconfirmed")}</Badge>}
       {isRescheduled && (
         <Tooltip content={`${t("rescheduled_by")} ${booking.rescheduler}`}>
-          <Badge variant="orange">
-            {t("rescheduled")}
-          </Badge>
+          <Badge variant="orange">{t("rescheduled")}</Badge>
         </Tooltip>
       )}
-      {booking.eventType?.team && (
-        <Badge variant="gray">
-          {booking.eventType.team.name}
-        </Badge>
-      )}
+      {booking.eventType?.team && <Badge variant="gray">{booking.eventType.team.name}</Badge>}
       {booking?.assignmentReason.length > 0 && (
-        <AssignmentReasonTooltip 
+        <AssignmentReasonTooltip
           assignmentReason={{
             ...booking.assignmentReason[0],
-            createdAt: new Date(booking.assignmentReason[0].createdAt)
-          }} 
+            createdAt: new Date(booking.assignmentReason[0].createdAt),
+          }}
         />
       )}
       {booking.paid && !booking.payment[0] ? (
-        <Badge variant="orange">
-          {t("error_collecting_card")}
-        </Badge>
+        <Badge variant="orange">{t("error_collecting_card")}</Badge>
       ) : booking.paid ? (
         <Badge variant="green" data-testid="paid_badge">
           {booking.payment[0].paymentOption === "HOLD" ? t("card_held") : t("paid")}
@@ -1018,11 +1010,11 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
 
   const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
     onSuccess: async (data) => {
-      showToast(data.message, "success");
+      triggerToast(data.message, "success");
       await utils.viewer.bookings.invalidate();
     },
     onError: (err) => {
-      showToast(err.message, "error");
+      triggerToast(err.message, "error");
     },
   });
 
@@ -1066,7 +1058,7 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
                 const isEmailCopied = isSmsCalEmail(email);
                 copyToClipboard(isEmailCopied ? email : phoneNumber ?? "");
                 setOpenDropdown(false);
-                showToast(isEmailCopied ? t("email_copied") : t("phone_number_copied"), "success");
+                triggerToast(isEmailCopied ? t("email_copied") : t("phone_number_copied"), "success");
               }}>
               {!isCopied ? t("copy") : t("copied")}
             </DropdownItem>
@@ -1111,11 +1103,11 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
   const utils = trpc.useUtils();
   const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
     onSuccess: async (data) => {
-      showToast(t(data.message), "success");
+      triggerToast(t(data.message), "success");
       await utils.viewer.bookings.invalidate();
     },
     onError: (err) => {
-      showToast(err.message, "error");
+      triggerToast(err.message, "error");
     },
   });
   const { control, handleSubmit } = useForm<{
@@ -1222,11 +1214,11 @@ const NoShowAttendeesDialog = ({
           attendee.email === newValue.email ? { ...attendee, noShow: newValue.noShow } : attendee
         )
       );
-      showToast(t(data.message), "success");
+      triggerToast(t(data.message), "success");
       await utils.viewer.bookings.invalidate();
     },
     onError: (err) => {
-      showToast(err.message, "error");
+      triggerToast(err.message, "error");
     },
   });
 
@@ -1316,7 +1308,7 @@ const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
             onClick={(e) => {
               e.preventDefault();
               copyToClipboard(selectedEmail);
-              showToast(t("email_copied"), "success");
+              triggerToast(t("email_copied"), "success");
             }}>
             {!isCopied ? t("copy") : t("copied")}
           </Button>

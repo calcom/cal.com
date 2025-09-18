@@ -180,9 +180,7 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
             <div className="flex gap-3">
               <span className="min-w-16 font-medium text-emphasis">{t("when")}</span>
               <span className="text-default">
-                {new Date(props.startTime).toLocaleDateString()}{" "}
-                {new Date(props.startTime).toLocaleTimeString()} -{" "}
-                {new Date(props.endTime).toLocaleTimeString()}
+                {props.startTime} - {props.endTime}
               </span>
             </div>
             <div className="flex gap-3">

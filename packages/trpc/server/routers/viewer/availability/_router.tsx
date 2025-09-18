@@ -1,6 +1,7 @@
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZCalendarOverlayInputSchema } from "./calendarOverlay.schema";
+import { ZCalIdCalendarOverlayInputSchema } from "./calid/calendarOverlay.schema";
 import { scheduleRouter } from "./schedule/_router";
 import { ZListTeamAvailaiblityScheme } from "./team/listTeamAvailability.schema";
 import { ZUserInputSchema } from "./user.schema";
@@ -10,6 +11,7 @@ type AvailabilityRouterHandlerCache = {
   user?: typeof import("./user.handler").userHandler;
   calendarOverlay?: typeof import("./calendarOverlay.handler").calendarOverlayHandler;
   listTeamAvailability?: typeof import("./team/listTeamAvailability.handler").listTeamAvailabilityHandler;
+  calid_calendarOverlay?: typeof import("./calid/calendarOverlay.handler").calIdCalendarOverlayHandler;
 };
 
 export const availabilityRouter = router({
@@ -46,4 +48,14 @@ export const availabilityRouter = router({
       input,
     });
   }),
+  calid_calendarOverlay: authedProcedure
+    .input(ZCalIdCalendarOverlayInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { calIdCalendarOverlayHandler } = await import("./calid/calendarOverlay.handler");
+
+      return calIdCalendarOverlayHandler({
+        ctx,
+        input,
+      });
+    }),
 });
