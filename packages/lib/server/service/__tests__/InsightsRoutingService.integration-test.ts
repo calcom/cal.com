@@ -8,7 +8,10 @@ import type { Team, User, Membership } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
-import { InsightsRoutingBaseService as InsightsRoutingService } from "../../service/InsightsRoutingBaseService";
+import {
+  InsightsRoutingBaseService as InsightsRoutingService,
+  type InsightsRoutingServicePublicOptions,
+} from "../../service/InsightsRoutingBaseService";
 
 // SQL condition constants for testing
 const NOTHING_CONDITION = Prisma.sql`1=0`;
@@ -251,7 +254,7 @@ describe("InsightsRoutingService Integration Tests", () => {
     it("should return NOTHING for invalid options", async () => {
       const service = new InsightsRoutingService({
         prisma,
-        options: null,
+        options: null as unknown as InsightsRoutingServicePublicOptions,
         filters: createDefaultFilters(),
       });
 
