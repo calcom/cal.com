@@ -65,7 +65,7 @@ export const DateTargetSelector = ({ value, onChange }: DateTargetSelectorProps)
                   <div className="font-medium">{option.label}</div>
                   <div className="text-muted-foreground text-sm">{option.description}</div>
                 </div>
-                {selectedOption.label === option.label && (
+                {selectedOption.value === option.value && (
                   <Icon name="check" className="text-primary-foreground h-4 w-4" />
                 )}
               </CommandItem>
