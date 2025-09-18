@@ -8,7 +8,7 @@ import {
   stringOrNumber,
   rrSegmentQueryValueSchema,
 } from "@calcom/prisma/zod-utils";
-import { fieldsSchema as eventTypeBookingFields } from "@calcom/features/form-builder/schema";
+import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { DestinationCalendarSchema } from "@calcom/prisma/zod/modelSchema/DestinationCalendarSchema";
 import { EventTypeSchema } from "@calcom/prisma/zod/modelSchema/EventTypeSchema";
 
@@ -82,12 +82,10 @@ const BaseEventTypeUpdateInput = EventTypeSchema.extend({
   calVideoSettings: calVideoSettingsSchema,
   calAiPhoneScript: z.string(),
   customInputs: z.array(customInputSchema),
-  destinationCalendar: DestinationCalendarSchema
-    .pick({
-      integration: true,
-      externalId: true,
-    })
-    .nullable(),
+  destinationCalendar: DestinationCalendarSchema.pick({
+    integration: true,
+    externalId: true,
+  }).nullable(),
   users: z.array(stringOrNumber),
   children: z.array(childSchema),
   hosts: z.array(hostSchema),

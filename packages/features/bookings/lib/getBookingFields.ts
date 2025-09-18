@@ -6,16 +6,13 @@ import {
 } from "@calcom/features/bookings/lib/SystemField";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
-import {
-  fieldsSchema as eventTypeBookingFields,
-  BookingFieldTypeEnum,
-} from "@calcom/features/form-builder/schema";
+import { BookingFieldTypeEnum } from "@calcom/features/form-builder/schema";
 import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import slugify from "@calcom/lib/slugify";
 import type { EventTypeCustomInput, EventType } from "@calcom/prisma/client";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
-import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { customInputSchema, EventTypeMetaDataSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
 export type Fields = z.infer<typeof eventTypeBookingFields>;
 

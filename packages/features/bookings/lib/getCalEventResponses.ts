@@ -7,7 +7,7 @@ import { getBookingWithResponses } from "@calcom/lib/getBooking";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import type { EventType, Prisma } from "@calcom/prisma/client";
-import { fieldsSchema as eventTypeBookingFields } from "@calcom/features/form-builder/schema";
+import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 const log = logger.getSubLogger({ prefix: ["[getCalEventResponses]"] });

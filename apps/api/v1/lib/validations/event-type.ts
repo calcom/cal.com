@@ -1,12 +1,12 @@
 import { z } from "zod";
 
-import { fieldsSchema as eventTypeBookingFields } from "@calcom/features/form-builder/schema";
 import {
   MAX_SEATS_PER_TIME_SLOT,
   MAX_EVENT_DURATION_MINUTES,
   MIN_EVENT_DURATION_MINUTES,
 } from "@calcom/lib/constants";
 import slugify from "@calcom/lib/slugify";
+import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { customInputSchema } from "@calcom/prisma/zod-utils";
 import { EventTypeSchema } from "@calcom/prisma/zod/modelSchema/EventTypeSchema";
 import { HostSchema } from "@calcom/prisma/zod/modelSchema/HostSchema";

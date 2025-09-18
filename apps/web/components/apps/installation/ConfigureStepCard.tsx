@@ -8,11 +8,11 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import type { LocationObject } from "@calcom/app-store/locations";
-import type { fieldsSchema as eventTypeBookingFields } from "@calcom/features/form-builder/schema";
 import NoSSR from "@calcom/lib/components/NoSSR";
 import { locationsResolver } from "@calcom/lib/event-types/utils/locationsResolver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
+import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
