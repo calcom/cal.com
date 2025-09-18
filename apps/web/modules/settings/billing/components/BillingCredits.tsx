@@ -18,8 +18,10 @@ import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Select } from "@calcom/ui/components/form";
 import { TextField, Label, InputError } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import { ProgressBar } from "@calcom/ui/components/progress-bar";
 import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { BillingCreditsSkeleton } from "./BillingCreditsSkeleton";
 
@@ -34,17 +36,21 @@ type CreditRowProps = {
   label: string;
   value: number;
   isBold?: boolean;
-  isDashed?: boolean;
+  underline?: "dashed" | "solid";
   className?: string;
 };
 
-const CreditRow = ({ label, value, isBold = false, isDashed, className = "" }: CreditRowProps) => {
+const CreditRow = ({ label, value, isBold = false, underline, className = "" }: CreditRowProps) => {
   const numberFormatter = new Intl.NumberFormat();
   return (
     <div
       className={classNames(
-        `mt-1 flex justify-between`,
-        isDashed ? "border-subtle border-t border-dashed" : "mt-1",
+        `my-1 flex justify-between`,
+        underline === "dashed"
+          ? "border-subtle border-b border-dashed"
+          : underline === "solid"
+          ? "border-subtle border-b border-solid"
+          : "mt-1",
         className
       )}>
       <span
@@ -171,6 +177,7 @@ export default function BillingCredits() {
     totalCredits - (creditsData.credits.totalRemainingCreditsForMonth ?? 0);
 
   const teamCreditsPercentageUsed = totalCredits > 0 ? (totalUsed / totalCredits) * 100 : 0;
+  const numberFormatter = new Intl.NumberFormat();
 
   return (
     <>
@@ -187,26 +194,18 @@ export default function BillingCredits() {
                   label={t("monthly_credits")}
                   value={creditsData.credits.totalMonthlyCredits ?? 0}
                   isBold={true}
+                  underline="dashed"
                 />
-                {creditsData.credits.additionalCredits > 0 && (
-                  <>
-                    <CreditRow
-                      label={t("additional_credits")}
-                      value={creditsData.credits.additionalCredits}
-                    />
-                    <CreditRow label={t("total")} value={totalCredits} isDashed={true} />
-                  </>
-                )}
+                <CreditRow label={t("credits_used")} value={totalUsed} underline="solid" />
                 <CreditRow
-                  label={t("remaining")}
+                  label={t("total_credits_remaining")}
                   value={creditsData.credits.totalRemainingCreditsForMonth}
-                  isDashed={creditsData.credits.additionalCredits > 0}
                 />
                 <div className="mt-4">
                   <ProgressBar color="green" percentageValue={100 - teamCreditsPercentageUsed} />
                 </div>
                 {/*750 credits per tip*/}
-                <div className="mt-4 flex flex-1 justify-between">
+                <div className="mt-4 flex flex-1 items-center justify-between">
                   <p className="text-subtle text-sm font-medium leading-tight">
                     {orgSlug ? t("credits_per_tip_org") : t("credits_per_tip_teams")}
                   </p>
@@ -235,8 +234,18 @@ export default function BillingCredits() {
             {/*Additional Credits*/}
             <form onSubmit={handleSubmit(onSubmit)} className="mt-4 flex">
               <div className="-mb-1 mr-auto w-full">
-                <Label>{t("additional_credits")}</Label>
-                <div className="flex w-full ">
+                <div className="flex justify-between">
+                  <div className="flex gap-1">
+                    <Label>{t("additional_credits")}</Label>
+                    <Tooltip content={t("view_additional_credits_expense_tip")}>
+                      <Icon name="info" className="text-muted-foreground mt-0.5 h-3 w-3" />
+                    </Tooltip>
+                  </div>
+                  <p className="text-sm font-semibold leading-none">
+                    {numberFormatter.format(creditsData.credits.additionalCredits)}
+                  </p>
+                </div>
+                <div className="flex w-full items-center gap-2">
                   <TextField
                     required
                     type="number"
@@ -252,13 +261,11 @@ export default function BillingCredits() {
                     min={50}
                     addOnSuffix={<>{t("credits")}</>}
                   />
-                  {errors.quantity && <InputError message={errors.quantity.message ?? t("invalid_input")} />}
+                  <Button color="secondary" target="_blank" size="sm" type="submit" data-testid="buy-credits">
+                    {t("buy")}
+                  </Button>
                 </div>
-              </div>
-              <div className="ml-2 mt-auto">
-                <Button color="secondary" target="_blank" size="sm" type="submit" data-testid="buy-credits">
-                  {t("buy")}
-                </Button>
+                {errors.quantity && <InputError message={errors.quantity.message ?? t("invalid_input")} />}
               </div>
             </form>
             <div className="-mx-5 mt-5">
