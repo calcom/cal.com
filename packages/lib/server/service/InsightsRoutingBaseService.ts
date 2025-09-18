@@ -815,7 +815,7 @@ export class InsightsRoutingBaseService {
     const targetId =
       scope === "org" ? this.options.orgId : scope === "team" ? this.options.teamId : undefined;
 
-    if (targetId && scope !== "user") {
+    if (targetId && (scope === "org" || (scope === "team" && this.options.orgId !== undefined))) {
       const isOwnerOrAdmin = await this.isOwnerOrAdmin(this.options.userId, targetId);
       if (!isOwnerOrAdmin) {
         return NOTHING_CONDITION;
