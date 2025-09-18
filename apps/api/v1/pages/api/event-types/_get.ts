@@ -55,6 +55,7 @@ async function getHandler(req: NextApiRequest) {
       slug: slug, // slug will be undefined if not provided in query
     },
     include: {
+      // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
       customInputs: true,
       hashedLink: { select: { link: true } },
       team: { select: { slug: true } },
