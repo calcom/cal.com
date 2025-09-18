@@ -85,18 +85,20 @@ export class TeamsMembershipsController {
   }
 
   @Get("/")
-  @ApiOperation({ summary: "Get all memberships" })
+  @ApiOperation({
+    summary: "Get all memberships",
+    description: "Retrieve team memberships with optional filtering by email addresses. Supports pagination.",
+  })
   @Roles("TEAM_ADMIN")
   @HttpCode(HttpStatus.OK)
   async getTeamMemberships(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Query() queryParams: GetUsersInput
   ): Promise<GetTeamMembershipsOutput> {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { skip, take, emails } = queryParams;
-    // TODO: Update service to accept emails parameter in Task 2
     const orgTeamMemberships = await this.teamsMembershipsService.getPaginatedTeamMemberships(
       teamId,
+      emails,
       skip ?? 0,
       take ?? 250
     );
