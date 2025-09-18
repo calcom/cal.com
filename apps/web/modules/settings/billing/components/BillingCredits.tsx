@@ -198,7 +198,7 @@ export default function BillingCredits() {
                 )}
                 <CreditRow
                   label={t("remaining")}
-                  value={creditsData.credits.totalRemainingMonthlyCredits}
+                  value={creditsData.credits.totalRemainingCreditsForMonth}
                   isDashed={creditsData.credits.additionalCredits > 0}
                 />
                 <div className="mt-4">
