@@ -752,14 +752,8 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     (await prisma.user.findUnique({
       where: { id: store.user.id },
       include: {
-        eventTypes: {
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            length: true,
-          },
-        },
+        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
+        eventTypes: true,
       },
     }))!;
   return {
@@ -800,13 +794,8 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
         include: {
           // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
           team: true,
-          user: {
-            select: {
-              id: true,
-              username: true,
-              email: true,
-            },
-          },
+          // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
+          user: true,
         },
       });
 
@@ -837,20 +826,10 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
         include: {
           team: {
             include: {
-              children: {
-                select: {
-                  id: true,
-                  name: true,
-                  slug: true,
-                },
-              },
-              organizationSettings: {
-                select: {
-                  id: true,
-                  isOrganizationConfigured: true,
-                  orgAutoAcceptEmail: true,
-                },
-              },
+              // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
+              children: true,
+              // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
+              organizationSettings: true,
             },
           },
         },
