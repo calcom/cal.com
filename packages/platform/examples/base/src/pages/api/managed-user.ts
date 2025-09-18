@@ -133,10 +133,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   await createOrgMembershipAdmin(+organizationId, managedUserResponseFive.user.id);
 
   return res.status(200).json({
-    id: managedUserResponseOne?.user?.id,
-    email: (managedUserResponseOne.user.email as string) ?? "",
-    username: (managedUserResponseOne.user.username as string) ?? "",
-    accessToken: (managedUserResponseOne.accessToken as string) ?? "",
+    id: managedUserResponseFive?.user?.id,
+    email: (managedUserResponseFive.user.email as string) ?? "",
+    username: (managedUserResponseFive.user.username as string) ?? "",
+    accessToken: (managedUserResponseFive.accessToken as string) ?? "",
   });
 }
 
