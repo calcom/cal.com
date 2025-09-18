@@ -14,9 +14,9 @@ import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, MembershipRole, RedirectType, SchedulingType } from "@calcom/prisma/enums";
 import type { Ensure } from "@calcom/types/utils";
 
-import mainHugeEventTypesSeed from "../packages/prisma/seed-huge-event-types";
 import type { teamMetadataSchema } from "../packages/prisma/zod-utils";
 import mainAppStore from "./seed-app-store";
+import mainHugeEventTypesSeed from "./seed-huge-event-types";
 import { createUserAndEventType } from "./seed-utils";
 
 type PlatformUser = {
