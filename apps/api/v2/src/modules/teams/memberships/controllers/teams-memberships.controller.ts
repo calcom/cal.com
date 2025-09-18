@@ -28,7 +28,7 @@ import {
   HttpStatus,
   Logger,
 } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -88,6 +88,27 @@ export class TeamsMembershipsController {
   @ApiOperation({
     summary: "Get all memberships",
     description: "Retrieve team memberships with optional filtering by email addresses. Supports pagination.",
+  })
+  @ApiQuery({
+    name: "emails",
+    required: false,
+    type: [String],
+    description: "Filter by email addresses (comma-separated list, max 50 emails)",
+    example: "user1@example.com,user2@example.com",
+  })
+  @ApiQuery({
+    name: "skip",
+    required: false,
+    type: Number,
+    description: "Number of items to skip for pagination",
+    example: 0,
+  })
+  @ApiQuery({
+    name: "take",
+    required: false,
+    type: Number,
+    description: "Number of items to return (max 1000)",
+    example: 25,
   })
   @Roles("TEAM_ADMIN")
   @HttpCode(HttpStatus.OK)

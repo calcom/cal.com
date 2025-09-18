@@ -435,7 +435,6 @@ describe("Teams Memberships Endpoints", () => {
           const responseBody: GetTeamMembershipsOutput = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data.length).toEqual(1);
-
           const membership = responseBody.data[0];
           expect(membership.user.email).toEqual(teamMemberEmail);
           expect(membership.user.bio).toEqual(teamMember.bio);
@@ -445,6 +444,13 @@ describe("Teams Memberships Endpoints", () => {
           expect(membership.userId).toEqual(teamMember.id);
           expect(membership.role).toEqual("MEMBER");
         });
+    });
+
+    it("should validate email array size limits", async () => {
+      const tooManyEmails = Array.from({ length: 51 }, (_, i) => `test${i}@example.com`).join(",");
+      return request(app.getHttpServer())
+        .get(`/v2/teams/${team.id}/memberships?emails=${tooManyEmails}`)
+        .expect(400);
     });
 
     afterAll(async () => {
