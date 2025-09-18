@@ -2,25 +2,24 @@ import { z } from "zod";
 
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { DATABASE_CHUNK_SIZE } from "@calcom/lib/constants";
+import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { getTeam, getOrg } from "@calcom/lib/server/repository/team";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
-import { EventTypeSchema } from "@calcom/prisma/zod/modelSchema/EventTypeSchema";
 import {
   EventTypeMetaDataSchema,
   allManagedEventTypeProps,
   unlockedManagedEventTypeProps,
   eventTypeLocations,
 } from "@calcom/prisma/zod-utils";
-
-import { getBookerBaseUrlSync } from "../../../getBookerUrl/client";
-import { getTeam, getOrg } from "../../repository/team";
-import { UserRepository } from "../../repository/user";
+import { EventTypeSchema } from "@calcom/prisma/zod/modelSchema/EventTypeSchema";
 
 export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
 
