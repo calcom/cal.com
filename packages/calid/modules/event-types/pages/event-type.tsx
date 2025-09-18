@@ -138,10 +138,12 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
       .optional()
       .default("setup"),
   });
+
   const {
     data: { tabName: tab },
     setQuery,
   } = useTypedQuery(querySchema);
+
   const { data: user, isPending: isLoggedInUserPending } = useMeQuery();
   const isTeamEventTypeDeleted = useRef(false);
   const leaveWithoutAssigningHosts = useRef(false);
@@ -204,6 +206,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
       await utils.viewer.eventTypes.getByViewer.invalidate();
     },
     onError: (err) => {
+      console.log('Error occured during event type update:', err);
       let message = "";
       if (err instanceof HttpError) {
         message = `${err.statusCode}: ${err.message}`;
@@ -252,6 +255,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
     eventType,
     onSubmit: (data) => {
       try {
+        console.log('Submitting event type form with data:', data);
         updateMutation.mutate(data);
       } catch (error) {
         throw error;
@@ -433,6 +437,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
   const cta = (
     <EventTypeActions
       form={form}
+      handleSubmit={handleSubmit}
       eventTypesLockedByOrg={eventTypesLockedByOrg}
       permalink={permalink}
       hasPermsToDelete={hasPermsToDelete}

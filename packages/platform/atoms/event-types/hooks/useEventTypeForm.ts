@@ -42,6 +42,7 @@ export const useEventTypeForm = ({
     startDate: new Date(eventType.periodStartDate || Date.now()),
     endDate: new Date(eventType.periodEndDate || Date.now()),
   });
+
   // this is a nightmare to type, will do in follow up PR
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const defaultValues: any = useMemo(() => {
@@ -310,8 +311,10 @@ export const useEventTypeForm = ({
   };
 
   const handleSubmit = async (values: FormValues) => {
+    console.log("Fields values: ", values);
     const { children } = values;
     const dirtyValues = getDirtyFields(values);
+    console.log("Dirty fields: ", dirtyValues);
     const dirtyFieldExists = Object.keys(dirtyValues).length !== 0;
     const {
       periodDates,
