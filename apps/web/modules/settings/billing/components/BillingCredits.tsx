@@ -40,7 +40,7 @@ type CreditRowProps = {
 const CreditRow = ({ label, value, isBold = false, className = "" }: CreditRowProps) => {
   const numberFormatter = new Intl.NumberFormat();
   return (
-    <div className={classNames(`flex justify-between`, className)}>
+    <div className={classNames(`mt-1 flex justify-between`, className)}>
       <span
         className={classNames("text-sm", isBold ? "font-semibold" : "text-subtle font-medium leading-tight")}>
         {label}
@@ -95,6 +95,7 @@ export default function BillingCredits() {
 
   const params = useParamsWithFallback();
   const orgId = session.data?.user?.org?.id;
+  const orgSlug = session.data?.user?.org?.slug;
 
   const parsedTeamId = Number(params.id);
   const teamId: number | undefined = Number.isFinite(parsedTeamId)
@@ -175,7 +176,7 @@ export default function BillingCredits() {
         <div className="bg-default border-muted flex w-full rounded-[10px] px-5 py-4">
           <div className="w-full">
             {totalCredits > 0 ? (
-              <div className="mb-4 space-y-1">
+              <div className="mb-4">
                 <CreditRow
                   label={t("monthly_credits")}
                   value={creditsData.credits.totalMonthlyCredits ?? 0}
@@ -198,6 +199,15 @@ export default function BillingCredits() {
                 <div className="mt-4">
                   <ProgressBar color="green" percentageValue={100 - teamCreditsPercentageUsed} />
                 </div>
+                {/*750 credits per tip*/}
+                {orgSlug ? (
+                  <div className="mt-4 flex flex-1 justify-between">
+                    <p className="text-subtle text-sm font-medium leading-tight">{t("credits_per_tip")}</p>
+                    <Button href={`/settings/organizations/${orgSlug}/members`} size="sm" color="secondary">
+                      {t("add_members_no_elipsis")}
+                    </Button>
+                  </div>
+                ) : null}
               </div>
             ) : (
               <></>
