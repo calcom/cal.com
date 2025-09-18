@@ -904,8 +904,8 @@ export class InsightsBookingBaseService {
     }
 
     const additionalCondition = conditions.reduce((acc, condition, index) => {
-      if (index === 0) return Prisma.sql`AND ${condition}`;
-      return Prisma.sql`${acc} AND ${condition}`;
+      if (index === 0) return condition;
+      return Prisma.sql`(${acc}) AND (${condition})`;
     });
 
     const query = Prisma.sql`
@@ -913,7 +913,7 @@ export class InsightsBookingBaseService {
         "userId",
         COUNT(id)::int as count
       FROM "BookingTimeStatusDenormalized"
-      WHERE ${baseConditions} AND ${additionalCondition}
+      WHERE (${baseConditions}) AND (${additionalCondition})
       GROUP BY "userId"
       ORDER BY count ${sortOrder === "ASC" ? Prisma.sql`ASC` : Prisma.sql`DESC`}
       LIMIT 10

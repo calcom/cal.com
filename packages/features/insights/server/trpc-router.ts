@@ -497,7 +497,7 @@ export const insightsRouter = router({
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const { columnFilters, timeZone } = input;
-      const { startDate, endDate } = extractDateRangeFromColumnFilters(columnFilters);
+      const { startDate, endDate, dateTarget } = extractDateRangeFromColumnFilters(columnFilters);
 
       const insightsBookingService = createInsightsBookingService(ctx, input);
 
@@ -521,6 +521,7 @@ export const insightsRouter = router({
           select: {
             eventLength: true,
             createdAt: true,
+            startTime: true,
           },
         });
 
@@ -532,7 +533,9 @@ export const insightsRouter = router({
         }
 
         for (const booking of allBookings) {
-          const periodStart = dayjs(booking.createdAt).startOf(startOfEndOf).format("ll");
+          const periodStart = dayjs(dateTarget === "startTime" ? booking.startTime : booking.createdAt)
+            .startOf(startOfEndOf)
+            .format("ll");
           if (resultMap.has(periodStart)) {
             const current = resultMap.get(periodStart);
             if (!current) continue;

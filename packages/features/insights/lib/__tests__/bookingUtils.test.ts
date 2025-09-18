@@ -55,6 +55,7 @@ describe("extractDateRangeFromColumnFilters", () => {
       expect(result).toEqual({
         startDate: "2024-01-01T00:00:00.000Z",
         endDate: "2024-01-31T23:59:59.999Z",
+        dateTarget: "startTime",
       });
     });
 
@@ -64,6 +65,7 @@ describe("extractDateRangeFromColumnFilters", () => {
       expect(result).toEqual({
         startDate: "2024-02-01T00:00:00.000Z",
         endDate: "2024-02-29T23:59:59.999Z",
+        dateTarget: "createdAt",
       });
     });
 
@@ -77,6 +79,7 @@ describe("extractDateRangeFromColumnFilters", () => {
       expect(result).toEqual({
         startDate: "2024-01-01T00:00:00.000Z",
         endDate: "2024-01-31T23:59:59.999Z",
+        dateTarget: "startTime",
       });
     });
 
@@ -90,6 +93,7 @@ describe("extractDateRangeFromColumnFilters", () => {
       expect(result).toEqual({
         startDate: "2024-01-01T00:00:00.000Z",
         endDate: "2024-01-31T23:59:59.999Z",
+        dateTarget: "startTime",
       });
     });
   });
@@ -216,6 +220,7 @@ describe("extractDateRangeFromColumnFilters", () => {
       expect(result).toEqual({
         startDate: "2024-01-01T00:00:00.000Z",
         endDate: "2024-01-31T23:59:59.999Z",
+        dateTarget: "startTime",
       });
     });
   });
