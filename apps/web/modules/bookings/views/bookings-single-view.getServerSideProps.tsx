@@ -11,7 +11,7 @@ import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
-import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
+import { isTeamAdmin, isTeamMember } from "@calcom/lib/server/queries/teams";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import { customInputSchema } from "@calcom/prisma/zod-utils";
@@ -175,27 +175,27 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     );
   };
 
-  const checkIfUserIsTeamAdmin = async (userId?: number | null) => {
+  const checkIfUserIsTeamMember = async (userId?: number | null) => {
     if (!userId) return false;
 
     const teamId = eventType.team?.id;
     if (teamId) {
-      const teamAdminResult = await isTeamAdmin(userId, teamId);
-      if (teamAdminResult) return true;
+      const teamMemberResult = await isTeamMember(userId, teamId);
+      if (teamMemberResult) return true;
     }
 
     const parentTeamId = eventType.parent?.teamId;
     if (parentTeamId) {
-      const parentTeamAdminResult = await isTeamAdmin(userId, parentTeamId);
-      if (parentTeamAdminResult) return true;
+      const parentTeamMemberResult = await isTeamMember(userId, parentTeamId);
+      if (parentTeamMemberResult) return true;
     }
 
     return false;
   };
 
   const isLoggedInUserHost = checkIfUserIsHost(userId);
-  const isLoggedInUserTeamAdmin = await checkIfUserIsTeamAdmin(userId);
-  const canViewHiddenData = isLoggedInUserHost || isLoggedInUserTeamAdmin;
+  const isLoggedInUserTeamMember = await checkIfUserIsTeamMember(userId);
+  const canViewHiddenData = isLoggedInUserHost || isLoggedInUserTeamMember;
 
   if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
     await handleSeatsEventTypeOnBooking(eventType, bookingInfo, seatReferenceUid, isLoggedInUserHost);
