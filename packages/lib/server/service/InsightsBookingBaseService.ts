@@ -366,7 +366,7 @@ export class InsightsBookingBaseService {
     const targetId =
       scope === "org" ? this.options.orgId : scope === "team" ? this.options.teamId : undefined;
 
-    if (targetId && (scope === "org" || (scope === "team" && this.options.orgId !== undefined))) {
+    if (targetId && (scope === "org" || (scope === "team" && this.options.orgId != null))) {
       const isOwnerOrAdmin = await this.isOwnerOrAdmin(this.options.userId, targetId);
       if (!isOwnerOrAdmin) {
         return NOTHING_CONDITION;
@@ -421,7 +421,7 @@ export class InsightsBookingBaseService {
   ): Promise<Prisma.Sql> {
     const teamRepo = new TeamRepository(this.prisma);
 
-    if (options.orgId !== undefined) {
+    if (options.orgId != null) {
       const childTeamOfOrg = await teamRepo.findByIdAndParentId({
         id: options.teamId,
         parentId: options.orgId,
