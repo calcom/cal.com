@@ -187,11 +187,11 @@ export default function BillingCredits() {
                   value={creditsData.credits.totalMonthlyCredits ?? 0}
                   isBold={true}
                 />
-                {1 && (
+                {creditsData.credits.additionalCredits > 0 && (
                   <>
                     <CreditRow
                       label={t("additional_credits")}
-                      value={10000 + creditsData.credits.additionalCredits}
+                      value={creditsData.credits.additionalCredits}
                     />
                     <CreditRow label={t("total")} value={totalCredits} isDashed={true} />
                   </>
@@ -199,7 +199,7 @@ export default function BillingCredits() {
                 <CreditRow
                   label={t("remaining")}
                   value={creditsData.credits.totalRemainingMonthlyCredits}
-                  isDashed={1}
+                  isDashed={creditsData.credits.additionalCredits > 0}
                 />
                 <div className="mt-4">
                   <ProgressBar color="green" percentageValue={100 - teamCreditsPercentageUsed} />
