@@ -23,6 +23,11 @@ export interface ICalendarCacheEventRepository {
   deleteAllBySelectedCalendarId(selectedCalendarId: string): Promise<unknown>;
 
   /**
+   * Deletes all stale events
+   */
+  deleteStale(): Promise<unknown>;
+
+  /**
    *
    * @param selectedCalendarId
    * @param start

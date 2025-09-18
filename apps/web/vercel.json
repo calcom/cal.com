@@ -9,6 +9,10 @@
       "schedule": "*/5 * * * *"
     },
     {
+      "path": "/api/cron/calendar-subscriptions-cleanup",
+      "schedule": "0 3 * * *"
+    },
+    {
       "path": "/api/cron/queuedFormResponseCleanup",
       "schedule": "0 */12 * * *"
     },

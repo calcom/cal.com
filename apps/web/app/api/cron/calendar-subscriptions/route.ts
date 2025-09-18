@@ -15,6 +15,7 @@ import { prisma } from "@calcom/prisma";
 const log = logger.getSubLogger({ prefix: ["cron"] });
 
 /**
+ * Cron webhook
  * Checks for new calendar subscriptions (rollouts)
  *
  * @param request
@@ -35,6 +36,14 @@ async function postHandler(request: NextRequest) {
     calendarCacheEventRepository,
   });
 
+  const calendarSubscriptionService = new CalendarSubscriptionService({
+    adapterFactory: new DefaultAdapterFactory(),
+    selectedCalendarRepository: new SelectedCalendarRepository(prisma),
+    featuresRepository: new FeaturesRepository(prisma),
+    calendarSyncService,
+    calendarCacheEventService,
+  });
+
   // are features globally enabled
   const [isCacheEnabled, isSyncEnabled] = await Promise.all([
     calendarSubscriptionService.isCacheEnabled(),
@@ -45,14 +54,6 @@ async function postHandler(request: NextRequest) {
     log.info("Calendar subscriptions are disabled");
     return NextResponse.json({ ok: true });
   }
-
-  const calendarSubscriptionService = new CalendarSubscriptionService({
-    adapterFactory: new DefaultAdapterFactory(),
-    selectedCalendarRepository: new SelectedCalendarRepository(prisma),
-    featuresRepository: new FeaturesRepository(prisma),
-    calendarSyncService,
-    calendarCacheEventService,
-  });
 
   try {
     await calendarSubscriptionService.checkForNewSubscriptions();

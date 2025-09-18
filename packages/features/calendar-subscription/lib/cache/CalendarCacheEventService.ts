@@ -78,6 +78,14 @@ export class CalendarCacheEventService {
   }
 
   /**
+   * Removes stale events from the cache
+   */
+  async cleanupStaleCache(): Promise<void> {
+    log.debug("cleanupStaleCache");
+    await this.deps.calendarCacheEventRepository.deleteStale();
+  }
+
+  /**
    * Checks if the app is supported
    *
    * @param appId
