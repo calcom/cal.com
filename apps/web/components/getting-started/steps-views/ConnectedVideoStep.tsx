@@ -15,7 +15,9 @@ interface ConnectedAppStepProps {
   isPageLoading: boolean;
 }
 
-const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
+const ConnectedVideoStep = ({
+  ...props
+}: ConnectedAppStepProps) => {
   const { nextStep, isPageLoading } = props;
 
   const updateProfileMutation = trpc.viewer.me.updateProfile.useMutation({
@@ -52,6 +54,7 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
   const { data } = useMeQuery();
   const { t } = useLocale();
 
+  console.log("Data is: ", data);
   const metadata = userMetadata.parse(data?.metadata);
 
   const hasAnyInstalledVideoApps = queryConnectedVideoApps?.items.some(
