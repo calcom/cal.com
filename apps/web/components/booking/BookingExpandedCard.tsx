@@ -72,11 +72,8 @@ export function BookingExpandedCard(props: BookingItemProps) {
   });
 
   const { copyToClipboard } = useCopy();
-
-  const showExpandedActions = true;
-
-  // const setSelectedMeeting = (booking: BookingItemProps | null) => {};
-  // const setShowMeetingNotes = (show: boolean) => {};
+  const setSelectedMeeting = (booking: BookingItemProps | null) => {};
+  const setShowMeetingNotes = (show: boolean) => {};
 
   const handleMarkNoShow = () => {
     if (attendeeList.length === 1) {
@@ -90,7 +87,7 @@ export function BookingExpandedCard(props: BookingItemProps) {
     setIsNoShowDialogOpen(true);
   };
 
-  const isCurrentTime = (_time: Date) => true; // assume always true for demo
+  const isCurrentTime = (time: Date) => true;
 
   const firstAttendee = props.attendees[0];
 

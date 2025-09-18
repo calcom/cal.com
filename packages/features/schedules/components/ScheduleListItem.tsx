@@ -40,8 +40,8 @@ export function ScheduleListItem({
   const { t, i18n } = useLocale();
 
   return (
-    <li key={schedule.id}>
-      <div className="border-subtle flex items-center justify-between px-3 py-5 transition-shadow hover:shadow-lg sm:px-4">
+    <div key={schedule.id}>
+      <div className="flex items-center justify-between px-3 py-5 transition-shadow hover:shadow-md sm:px-4">
         <div className="group flex w-full items-center justify-between">
           <Link
             href={`/availability/${schedule.id}`}
@@ -130,6 +130,6 @@ export function ScheduleListItem({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-    </li>
+    </div>
   );
 }

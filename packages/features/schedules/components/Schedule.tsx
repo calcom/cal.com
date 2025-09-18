@@ -1,4 +1,5 @@
 import { Button } from "@calid/features/ui/components/button";
+import { CheckboxField } from "@calid/features/ui/components/input/checkbox-field";
 import { Switch } from "@calid/features/ui/components/switch";
 import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
@@ -25,7 +26,6 @@ import type { TimeRange } from "@calcom/types/schedule";
 import cn from "@calcom/ui/classNames";
 import { Dropdown, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/components/dropdown";
 import { Select } from "@calcom/ui/components/form";
-import { CheckboxField } from "@calid/features/ui/components/input/checkbox-field";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 export type { TimeRange };
@@ -133,12 +133,11 @@ const CopyButton = ({
       <DropdownMenuTrigger asChild>
         <Button
           className={cn(
-            "text-default",
+            "text-default h-8 w-8",
             open && "ring-brand-500 !bg-subtle outline-none ring-2 ring-offset-1"
           )}
           data-testid="copy-button"
           type="button"
-          size="lg"
           tooltip={labels?.copyTime ?? t("copy_times_to_tooltip")}
           color="minimal"
           variant="icon"
@@ -270,9 +269,8 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 disabled={disabled}
                 data-testid="add-time-availability"
                 tooltip={labels?.addTime ?? t("add_time_availability")}
-                className="text-default"
+                className="text-default h-8 w-8"
                 type="button"
-                size="lg"
                 color="minimal"
                 variant="icon"
                 StartIcon="plus"
@@ -319,12 +317,11 @@ const RemoveTimeButton = ({
     <Button
       disabled={disabled}
       type="button"
-      size="lg"
       variant="icon"
       color="destructive"
       StartIcon="trash-2"
       onClick={() => remove(index)}
-      className={className}
+      className={cn("h-8 w-8", className)}
       tooltip={labels?.deleteTime ?? t("delete")}
     />
   );

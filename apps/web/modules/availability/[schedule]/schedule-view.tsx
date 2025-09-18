@@ -1,5 +1,6 @@
 "use client";
 
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { revalidateAvailabilityList } from "app/(use-page-wrapper)/(main-nav)/availability/actions";
 import { revalidateSchedulePage } from "app/(use-page-wrapper)/availability/[schedule]/actions";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -13,7 +14,6 @@ import { HttpError } from "@calcom/lib/http-error";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { showToast } from "@calcom/ui/components/toast";
 
 type PageProps = {
   scheduleData: RouterOutputs["viewer"]["availability"]["schedule"]["get"];
@@ -50,7 +50,7 @@ export const AvailabilitySettingsWebWrapper = ({
           utils.viewer.availability.list.invalidate();
           revalidateAvailabilityList();
           callback();
-          showToast(t("success"), "success");
+          triggerToast(t("success"), "success");
         },
       }
     );
@@ -76,7 +76,7 @@ export const AvailabilitySettingsWebWrapper = ({
       revalidateSchedulePage(scheduleId);
       utils.viewer.availability.list.invalidate();
       revalidateAvailabilityList();
-      showToast(
+      triggerToast(
         t("availability_updated_successfully", {
           scheduleName: data.schedule.name,
         }),
@@ -86,20 +86,20 @@ export const AvailabilitySettingsWebWrapper = ({
     onError: (err) => {
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
+        triggerToast(message, "error");
       }
     },
   });
 
   const deleteMutation = trpc.viewer.availability.schedule.delete.useMutation({
     onError: withErrorFromUnknown((err) => {
-      showToast(err.message, "error");
+      triggerToast(err.message, "error");
     }),
     onSettled: () => {
       utils.viewer.availability.list.invalidate();
     },
     onSuccess: () => {
-      showToast(t("schedule_deleted_successfully"), "success");
+      triggerToast(t("schedule_deleted_successfully"), "success");
       revalidateAvailabilityList();
       router.push("/availability");
     },

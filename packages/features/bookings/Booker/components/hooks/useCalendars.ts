@@ -37,7 +37,7 @@ export const useCalendars = ({ hasSession }: UseCalendarsProps) => {
     shallow
   );
 
-  const { data: overlayBusyDates, isError } = trpc.viewer.availability.calendarOverlay.useQuery(
+  const { data: overlayBusyDates, isError } = trpc.viewer.availability.calid_calendarOverlay.useQuery(
     {
       loggedInUsersTz: timezone || "Europe/London",
       dateFrom: selectedDate,
@@ -70,7 +70,7 @@ export const useCalendars = ({ hasSession }: UseCalendarsProps) => {
     connectedCalendars: data?.connectedCalendars || [],
     loadingConnectedCalendar: isPending,
     onToggleCalendar: (data: ToggledConnectedCalendars) => {
-      utils.viewer.availability.calendarOverlay.reset();
+      utils.viewer.availability.calid_calendarOverlay.reset();
     },
   };
 };

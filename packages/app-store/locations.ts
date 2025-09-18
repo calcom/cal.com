@@ -318,7 +318,7 @@ export const getMessageForOrganizer = (location: string, t: TFunction) => {
     return t(defaultLocation.messageForOrganizer);
   }
   if (videoLocation && videoLocation.linkType !== "static" && videoLocation.type !== "integrations:zoom") {
-    return t(`Cal will provide a ${videoLocation.label} URL.`);
+    return t(`Cal ID will provide a ${videoLocation.label} URL.`);
   }
   return "";
 };

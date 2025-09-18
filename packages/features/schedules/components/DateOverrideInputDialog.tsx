@@ -1,18 +1,23 @@
+import { Button } from "@calid/features/ui/components/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTrigger,
+  DialogClose,
+} from "@calid/features/ui/components/dialog";
+import { Switch } from "@calid/features/ui/components/switch";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { yyyymmdd } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WorkingHours } from "@calcom/types/schedule";
 import cs from "@calcom/ui/classNames";
-import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogHeader, DialogTrigger, DialogClose } from "@calcom/ui/components/dialog";
-import { Switch } from "@calcom/ui/components/form";
 import { Form } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/components/toast";
 
 import DatePicker from "../../calendars/DatePicker";
 import type { TimeRange } from "./Schedule";
@@ -177,7 +182,7 @@ const DateOverrideForm = ({
                 color="primary"
                 type="submit"
                 onClick={() => {
-                  showToast(t("date_successfully_added"), "success", 500);
+                  triggerToast(t("date_successfully_added"), "success", 500);
                 }}
                 disabled={selectedDates.length === 0}
                 data-testid="add-override-submit-btn">

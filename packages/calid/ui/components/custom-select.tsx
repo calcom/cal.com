@@ -1,7 +1,6 @@
 "use client";
 
 import { cn } from "@calid/features/lib/cn";
-import { Icon } from "@calid/features/ui/components/icon";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,6 +8,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@calid/features/ui/components/dropdown-menu";
+import { Icon } from "@calid/features/ui/components/icon";
 import React, { useState } from "react";
 
 interface CustomSelectProps {
@@ -37,33 +37,26 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   const selectedOption = options.find((opt) => opt.value === value);
 
   return (
-    <DropdownMenu
-      open={menuOpen}
-      onOpenChange={setMenuOpen}
-    >
+    <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
       <DropdownMenuTrigger asChild>
-        <button 
+        <button
           disabled={disabled}
           className={cn(
-            "hover:border-emphasis border border-default flex w-full items-center justify-between rounded-md py-1 px-3 text-sm text-default font-normal transition-colors min-w-0 h-8 focus:shadow-outline-gray-focused",
-            disabled && "opacity-50 cursor-not-allowed",
+            "hover:border-emphasis border-default text-default focus:shadow-outline-gray-focused flex h-8 w-full min-w-0 items-center justify-between rounded-md border px-3 py-1 text-sm font-normal transition-colors",
+            disabled && "cursor-not-allowed opacity-50",
             className
-          )}
-        >
-          <span className="truncate text-left flex-1">
-            {selectedOption?.label || placeholder}
-          </span>
+          )}>
+          <span className="flex-1 truncate text-left">{selectedOption?.label || placeholder}</span>
           <Icon
             name="chevron-down"
             className={`ml-auto h-4 w-4 transition-transform ${menuOpen ? "rotate-180" : ""}`}
           />
         </button>
       </DropdownMenuTrigger>
-      
-      <DropdownMenuContent 
-        className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-60 overflow-y-auto"
-        align="start"
-      >
+
+      <DropdownMenuContent
+        className="max-h-60 w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-auto"
+        align="start">
         {options.map((option) => (
           <div key={option.value}>
             {option.type === "header" ? (
@@ -74,8 +67,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
               <DropdownMenuItem
                 onClick={() => onValueChange(option.value)}
                 className="cursor-pointer"
-                StartIcon={option.icon as any}
-              >
+                StartIcon={option.icon as any}>
                 {option.label}
               </DropdownMenuItem>
             )}
