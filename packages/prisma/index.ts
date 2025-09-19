@@ -84,8 +84,4 @@ export type {
   PrismaClient,
 };
 
-/**
- * @deprecated Use named export `prisma` instead
- */
-export default prisma;
 export * from "./selects";
