@@ -181,15 +181,4 @@ export class BookingsRepository_2024_08_13 {
       },
     });
   }
-
-  async getByEventTypeIdAndSlot(eventTypeId: number, slotStartTime: Date, slotEndTime: Date) {
-    return this.dbRead.prisma.booking.findFirst({
-      where: {
-        eventTypeId,
-        startTime: slotStartTime,
-        endTime: slotEndTime,
-      },
-      select: { attendees: true, userId: true, status: true },
-    });
-  }
 }

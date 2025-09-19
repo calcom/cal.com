@@ -1,4 +1,3 @@
-import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { AvailableSlotsModule } from "@/lib/modules/available-slots.module";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
@@ -36,7 +35,6 @@ import { Module } from "@nestjs/common";
     OrganizationsUsersRepository,
     OrganizationsRepository,
     OrganizationsTeamsRepository,
-    BookingsRepository_2024_08_13,
   ],
   controllers: [SlotsController_2024_09_04],
   exports: [SlotsService_2024_09_04],
