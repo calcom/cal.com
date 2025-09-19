@@ -423,6 +423,7 @@ export class InsightsBookingBaseService {
     const teamRepo = new TeamRepository(this.prisma);
 
     if (options.orgId) {
+      // team under org
       const childTeamOfOrg = await teamRepo.findByIdAndParentId({
         id: options.teamId,
         parentId: options.orgId,
@@ -433,6 +434,7 @@ export class InsightsBookingBaseService {
         return NOTHING_CONDITION;
       }
     } else {
+      // standalone team
       const team = await teamRepo.findById({
         id: options.teamId,
       });
