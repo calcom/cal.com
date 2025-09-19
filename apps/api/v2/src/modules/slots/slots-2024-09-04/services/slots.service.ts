@@ -23,7 +23,7 @@ import { DateTime } from "luxon";
 import { z } from "zod";
 
 import { SlotFormat } from "@calcom/platform-enums";
-import { SchedulingType } from "@calcom/platform-libraries/";
+import { SchedulingType } from "@calcom/platform-libraries";
 import { validateRoundRobinSlotAvailability } from "@calcom/platform-libraries/slots";
 import type {
   GetSlotsInput_2024_09_04,
