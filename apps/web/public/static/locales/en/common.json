@@ -900,7 +900,7 @@
   "yes_cancel_subscription": "Yes, Cancel Subscription",
   "cancel_phone_number_subscription_confirmation": "Are you sure you want to cancel this phone number subscription? This action cannot be undone and you will lose access to this phone number.",
   "add_members": "Add members...",
-  "add_members_no_elipsis": "Add members",
+  "add_members_no_ellipsis": "Add members",
   "no_assigned_members": "No assigned members",
   "assigned_to": "Assigned to",
   "you_must_be_logged_in_to": "You must be logged in to {{url}}",

@@ -218,7 +218,7 @@ export default function BillingCredits() {
                       }
                       size="sm"
                       color="secondary">
-                      {t("add_members_no_elipsis")}
+                      {t("add_members_no_ellipsis")}
                     </Button>
                   </div>
                 </div>
