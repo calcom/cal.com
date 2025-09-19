@@ -3,6 +3,7 @@ import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
+import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import {
   getLocationValueForDB,
@@ -16,6 +17,7 @@ import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
+import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import type { BookingDataSchemaGetter } from "@calcom/features/bookings/lib/dto/types";
 import type { CreateRegularBookingData, CreateBookingMeta } from "@calcom/features/bookings/lib/dto/types";
 import type { CheckBookingAndDurationLimitsService } from "@calcom/features/bookings/lib/handleNewBooking/checkBookingAndDurationLimits";
@@ -36,7 +38,6 @@ import {
   scheduleTrigger,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { handleAnalyticsEvents } from "@calcom/lib/analyticsManager/handleAnalyticsEvents";
 import { groupHostsByGroupId } from "@calcom/lib/bookings/hostGroupUtils";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
@@ -54,7 +55,6 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
-import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import type { CheckBookingLimitsService } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
@@ -62,6 +62,7 @@ import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { PrismaSelectedSlotRepository } from "@calcom/lib/server/repository/PrismaSelectedSlotRepository";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
@@ -479,6 +480,7 @@ async function handler(
     routingFormResponseId,
     _isDryRun: isDryRun = false,
     _shouldServeCache,
+    reservedSlotUid,
     ...reqBody
   } = bookingData;
 
@@ -828,6 +830,55 @@ async function handler(
     }
 
     if (!input.bookingData.allRecurringDates || input.bookingData.isFirstRecurringSlot) {
+      // Check for reserved slots - if reservedSlotUid is provided, verify this booking owns the reservation
+      // If no reservedSlotUid but slot is reserved by someone else, reject the booking
+      if (!isDryRun) {
+        const slotsRepo = new PrismaSelectedSlotRepository(prisma);
+        const slot = {
+          utcStartIso: dayjs(reqBody.start).utc().toISOString(),
+          utcEndIso: dayjs(reqBody.end).utc().toISOString(),
+        };
+
+        if (reservedSlotUid) {
+          // Check if this reservation still exists and belongs to this user
+          const reservation = await slotsRepo.findReservedByOthers({
+            slot,
+            eventTypeId,
+            uid: reservedSlotUid,
+          });
+
+          if (reservation) {
+            loggerWithEventDetails.error("Slot is reserved by someone else", {
+              reservedSlotUid,
+              eventTypeId,
+              slot,
+            });
+            throw new HttpError({
+              statusCode: 409,
+              message: "selected_timeslot_unavailable",
+            });
+          }
+        } else {
+          // Check if slot is reserved by anyone (for bookings without a reservation)
+          const reservation = await slotsRepo.findReservedByOthers({
+            slot,
+            eventTypeId,
+            uid: "dummy-uid-to-check-all-reservations",
+          });
+
+          if (reservation) {
+            loggerWithEventDetails.error("Slot is reserved by another user", {
+              eventTypeId,
+              slot,
+            });
+            throw new HttpError({
+              statusCode: 409,
+              message: "selected_timeslot_unavailable",
+            });
+          }
+        }
+      }
+
       try {
         availableUsers = await ensureAvailableUsers(
           { ...eventTypeWithUsers, users: [...qualifiedRRUsers, ...fixedUsers] as IsFixedAwareUser[] },
@@ -1561,6 +1612,30 @@ async function handler(
             teamId,
             isRerouting: !!reroutingFormResponses,
             reroutedByEmail: reqBody.rescheduledBy,
+          });
+        }
+      }
+
+      // Clean up reserved slot after successful booking creation
+      if (reservedSlotUid && booking) {
+        try {
+          await prisma.selectedSlots.deleteMany({
+            where: {
+              uid: reservedSlotUid,
+              eventTypeId,
+              slotUtcStartDate: dayjs(reqBody.start).utc().toDate(),
+              slotUtcEndDate: dayjs(reqBody.end).utc().toDate(),
+            },
+          });
+          loggerWithEventDetails.debug("Reserved slot deleted after booking creation", {
+            reservedSlotUid,
+            bookingUid: booking.uid,
+          });
+        } catch (error) {
+          // Log but don't fail the booking if slot cleanup fails
+          loggerWithEventDetails.warn("Failed to clean up reserved slot after booking creation", {
+            reservedSlotUid,
+            error,
           });
         }
       }

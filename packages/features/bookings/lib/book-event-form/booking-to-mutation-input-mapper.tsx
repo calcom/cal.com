@@ -32,6 +32,7 @@ export type BookingOptions = {
   routingFormSearchParams?: RoutingFormSearchParams;
   isDryRunProp?: boolean;
   verificationCode?: string;
+  reservedSlotUid?: string;
 };
 
 export const mapBookingToMutationInput = ({
@@ -56,6 +57,7 @@ export const mapBookingToMutationInput = ({
   routingFormSearchParams,
   isDryRunProp,
   verificationCode,
+  reservedSlotUid,
 }: BookingOptions): BookingCreateBody => {
   const searchParams = new URLSearchParams(routingFormSearchParams ?? window.location.search);
   const routedTeamMemberIds = getRoutedTeamMemberIdsFromSearchParams(searchParams);
@@ -101,6 +103,7 @@ export const mapBookingToMutationInput = ({
     _shouldServeCache,
     dub_id,
     verificationCode,
+    reservedSlotUid,
   };
 };
 

@@ -90,7 +90,10 @@ export const useSlots = (event: { id: number; length: number } | null) => {
       ],
       shallow
     );
-  const [slotReservationId, setSlotReservationId] = useSlotReservationId();
+  const [slotReservationId, setSlotReservationId] = useBookerStoreContext(
+    (state) => [state.slotReservationId, state.setSlotReservationId],
+    shallow
+  );
   const reserveSlotMutation = trpc.viewer.slots.reserveSlot.useMutation({
     trpc: {
       context: {
