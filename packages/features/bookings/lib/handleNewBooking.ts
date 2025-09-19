@@ -40,7 +40,6 @@ import {
   scheduleTrigger,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import { handleAnalyticsEvents } from "@calcom/lib/analyticsManager/handleAnalyticsEvents";
 import { groupHostsByGroupId } from "@calcom/lib/bookings/hostGroupUtils";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
