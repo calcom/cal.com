@@ -262,6 +262,8 @@ export class BookingsService_2024_08_13 {
       attendeePhoneNumber: body.attendee.phoneNumber,
       smsReminderNumber: body.attendee.phoneNumber,
     };
+
+    const isReschedule = "rescheduleUid" in body && !!body.rescheduleUid;
     if (!eventType?.bookingFields) {
       return true;
     }
@@ -338,7 +340,7 @@ export class BookingsService_2024_08_13 {
             if (isValidType && Array.isArray(eventTypeBookingField.options)) {
               const submittedValue = bookingFieldResponseValue as string | number;
               const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
-              if (!this.isValidSingleOptionValue(submittedValue, allowedOptionValues)) {
+              if (!isReschedule && !this.isValidSingleOptionValue(submittedValue, allowedOptionValues)) {
                 throw new BadRequestException(
                   `Invalid option '${submittedValue}' for booking field '${
                     eventTypeBookingField.name
@@ -353,7 +355,7 @@ export class BookingsService_2024_08_13 {
             if (isValidType && Array.isArray(eventTypeBookingField.options)) {
               const submittedValues = bookingFieldResponseValue as (string | number)[];
               const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
-              if (!this.areValidMultipleOptionValues(submittedValues, allowedOptionValues)) {
+              if (!isReschedule && !this.areValidMultipleOptionValues(submittedValues, allowedOptionValues)) {
                 throw new BadRequestException(
                   `One or more invalid options for booking field '${
                     eventTypeBookingField.name
@@ -368,7 +370,7 @@ export class BookingsService_2024_08_13 {
             if (isValidType && Array.isArray(eventTypeBookingField.options)) {
               const submittedValues = bookingFieldResponseValue as (string | number)[];
               const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
-              if (!this.areValidMultipleOptionValues(submittedValues, allowedOptionValues)) {
+              if (!isReschedule && !this.areValidMultipleOptionValues(submittedValues, allowedOptionValues)) {
                 throw new BadRequestException(
                   `One or more invalid options for booking field '${
                     eventTypeBookingField.name
@@ -384,7 +386,7 @@ export class BookingsService_2024_08_13 {
             if (isValidType && Array.isArray(eventTypeBookingField.options)) {
               const submittedValue = bookingFieldResponseValue as string | number;
               const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
-              if (!this.isValidSingleOptionValue(submittedValue, allowedOptionValues)) {
+              if (!isReschedule && !this.isValidSingleOptionValue(submittedValue, allowedOptionValues)) {
                 throw new BadRequestException(
                   `Invalid option '${submittedValue}' for booking field '${
                     eventTypeBookingField.name
