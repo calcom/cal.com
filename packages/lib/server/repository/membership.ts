@@ -1,3 +1,4 @@
+
 import { availabilityUserSelect, prisma, type PrismaTransaction } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { Prisma, Membership, PrismaClient } from "@calcom/prisma/client";
@@ -474,6 +475,35 @@ export class MembershipRepository {
       },
     });
     return teams;
+  }
+
+  static async findAllByUserId({
+    userId,
+    filters,
+  }: {
+    userId: number;
+    filters?: {
+      accepted?: boolean;
+      roles?: MembershipRole[];
+    };
+  }) {
+    return prisma.membership.findMany({
+      where: {
+        userId,
+        ...(filters?.accepted !== undefined && { accepted: filters.accepted }),
+        ...(filters?.roles && { role: { in: filters.roles } }),
+      },
+      select: {
+        teamId: true,
+        role: true,
+        team: {
+          select: {
+            id: true,
+            parentId: true,
+          },
+        },
+      },
+    });
   }
 
   async findTeamAdminsByTeamId({ teamId }: { teamId: number }) {

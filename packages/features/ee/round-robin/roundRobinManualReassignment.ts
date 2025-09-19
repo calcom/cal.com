@@ -1,12 +1,14 @@
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import {
   sendRoundRobinReassignedEmailsAndSMS,
   sendRoundRobinScheduledEmailsAndSMS,
   sendRoundRobinUpdatedEmailsAndSMS,
 } from "@calcom/emails";
+import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
@@ -21,6 +23,7 @@ import {
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
@@ -324,6 +327,41 @@ export const roundRobinManualReassignment = async ({
       })
     : null;
 
+  const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
+
+  // remove the event and meeting using the old host's credentials
+  if (hasOrganizerChanged && originalOrganizer.id !== newUser.id) {
+    const previousHostCredentials = await getAllCredentialsIncludeServiceAccountKey(
+      originalOrganizer,
+      eventType
+    );
+
+    const originalHostEventManager = new EventManager(
+      { ...originalOrganizer, credentials: previousHostCredentials },
+      apps
+    );
+
+    const deletionEvent: CalendarEvent = {
+      ...evt,
+      organizer: {
+        id: originalOrganizer.id,
+        name: originalOrganizer.name || "",
+        email: originalOrganizer.email,
+        username: originalOrganizer.username || undefined,
+        timeZone: originalOrganizer.timeZone,
+        language: { translate: originalOrganizerT, locale: originalOrganizer.locale ?? "en" },
+        timeFormat: getTimeFormatStringFromUserTimeFormat(originalOrganizer.timeFormat),
+      },
+      destinationCalendar: previousHostDestinationCalendar ? [previousHostDestinationCalendar] : [],
+      title: booking.title,
+    };
+
+    await originalHostEventManager.deleteEventsAndMeetings({
+      event: deletionEvent,
+      bookingReferences: booking.references,
+    });
+  }
+
   const { evtWithAdditionalInfo } = await handleRescheduleEventManager({
     evt,
     rescheduleUid: booking.uid,
@@ -395,6 +433,7 @@ export const roundRobinManualReassignment = async ({
       // send email with event updates to attendees
       await sendRoundRobinUpdatedEmailsAndSMS({
         calEvent: evtWithoutCancellationReason,
+        eventTypeMetadata: eventType?.metadata as EventTypeMetadata,
       });
     }
 

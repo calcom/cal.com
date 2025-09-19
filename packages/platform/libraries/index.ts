@@ -4,6 +4,7 @@ import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooking";
 import { getClientSecretFromPayment } from "@calcom/features/ee/payments/pages/getClientSecretFromPayment";
+import { getTeamMemberEmailForResponseOrContactUsingUrlQuery } from "@calcom/features/ee/teams/lib/getTeamMemberEmailFromCrm";
 import {
   verifyPhoneNumber,
   sendVerificationCode,
@@ -14,7 +15,6 @@ import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleI
 import { getRoutedUrl } from "@calcom/features/routing-forms/lib/getRoutedUrl";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
-import { getTeamMemberEmailForResponseOrContactUsingUrlQuery } from "@calcom/lib/server/getTeamMemberEmailFromCrm";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -39,7 +39,7 @@ export {
   WorkflowTemplates,
 } from "@calcom/prisma/enums";
 
-export { getUsernameList } from "@calcom/lib/defaultEvents";
+export { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 
 const handleNewBooking = newBookingMethods.default;
 export { handleNewBooking };
@@ -53,7 +53,7 @@ export { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleN
 
 export { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/lib/getConnectedDestinationCalendars";
 
-export { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
+export { getBusyCalendarTimes } from "@calcom/features/calendars/lib/CalendarManager";
 
 export type { BookingCreateBody, BookingResponse } from "@calcom/features/bookings/types";
 export { HttpError } from "@calcom/lib/http-error";
@@ -75,7 +75,7 @@ export { userMetadata, bookingMetadataSchema, teamMetadataSchema } from "@calcom
 export { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 
 export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-export { dynamicEvent } from "@calcom/lib/defaultEvents";
+export { dynamicEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 
 export { symmetricEncrypt, symmetricDecrypt };
 
@@ -128,7 +128,7 @@ export { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 
 export { verifyPhoneNumber, sendVerificationCode };
 
-export { verifyCodeUnAuthenticated } from "@calcom/trpc/server/routers/viewer/auth/verifyCodeUnAuthenticated.handler";
+export { verifyCodeUnAuthenticated } from "@calcom/trpc/server/routers/viewer/auth/util";
 
 export { verifyCode as verifyCodeAuthenticated } from "@calcom/trpc/server/routers/viewer/organizations/verifyCode.handler";
 

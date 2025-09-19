@@ -21,7 +21,7 @@ import {
   HttpStatus,
   Logger,
   Delete,
-  BadRequestException,
+  ParseIntPipe,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiExcludeController } from "@nestjs/swagger";
@@ -51,7 +51,7 @@ export class BillingController {
   @UseGuards(NextAuthGuard, OrganizationRolesGuard)
   @MembershipRoles(["OWNER", "ADMIN", "MEMBER"])
   async checkTeamBilling(
-    @Param("teamId") teamId: number
+    @Param("teamId", ParseIntPipe) teamId: number
   ): Promise<ApiResponse<CheckPlatformBillingResponseDto>> {
     const { status, plan } = await this.billingService.getBillingData(teamId);
 
