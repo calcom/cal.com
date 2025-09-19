@@ -86,6 +86,7 @@
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.1",
     "@changesets/cli": "2.29.4",
+    "@faker-js/faker": "9.2.0",
     "@jetstreamapp/soql-parser-js": "^6.1.0",
     "@playwright/test": "^1.45.3",
     "@snaplet/copycat": "^4.1.0",
@@ -106,7 +107,7 @@
     "node-gyp": "^10.2.0",
     "node-ical": "^0.16.1",
     "prettier": "^2.8.6",
-    "prismock": "^1.33.4",
+    "prismock": "1.35.3",
     "resize-observer-polyfill": "^1.5.1",
     "tsc-absolute": "^1.0.0",
     "typescript": "5.9.0-beta",
@@ -136,8 +137,6 @@
     "dayjs@1.11.2": "patch:dayjs@npm%3A1.11.4#./.yarn/patches/dayjs-npm-1.11.4-97921cd375.patch",
     "dayjs@^1": "patch:dayjs@npm%3A1.11.4#./.yarn/patches/dayjs-npm-1.11.4-97921cd375.patch",
     "dayjs@^1.8.29": "patch:dayjs@npm%3A1.11.4#./.yarn/patches/dayjs-npm-1.11.4-97921cd375.patch",
-    "@prisma/client@^5.4.2": "patch:@prisma/client@npm%3A5.4.2#./.yarn/patches/@prisma-client-npm-5.4.2-fca489b2dc.patch",
-    "@prisma/client@5.4.2": "patch:@prisma/client@npm%3A5.4.2#./.yarn/patches/@prisma-client-npm-5.4.2-fca489b2dc.patch",
     "import-in-the-middle": "1.13.1"
   },
   "lint-staged": {
