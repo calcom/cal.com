@@ -1,4 +1,5 @@
 "use client";
+import { revalidateCalIdTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 import { getDefaultAvatar } from "@calid/features/lib/defaultAvatar";
 import { Avatar } from "@calid/features/ui/components/avatar";
@@ -31,7 +32,6 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc/react";
-import { revalidateCalIdTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 import { getTeamUrl } from "../lib/getTeamUrl";
 
@@ -101,6 +101,24 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
     }
   }, []);
 
+  const acceptOrLeaveMutation = trpc.viewer.calidTeams.acceptOrLeave.useMutation({
+    onSuccess: async () => {
+      showToast(t("success"), "success");
+      await utils.viewer.calidTeams.get.invalidate();
+      await utils.viewer.calidTeams.list.invalidate();
+      revalidateCalIdTeamsList();
+    },
+  });
+
+  function acceptOrLeave(accept: boolean, teamId: number) {
+    console.log("Hello world")
+    acceptOrLeaveMutation.mutate({
+      teamId: teamId,
+      accept,
+    });
+  }
+
+
   return (
     <>
       {(teams.length > 0 || teamInvitation.length > 0) && (
@@ -135,6 +153,24 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
                 </div>
                 <div className="flex items-center space-x-2">
                   <Badge variant="attention">{t("pending")}</Badge>
+
+                  <Button
+                    type="button"
+                    className="border-empthasis mr-3"
+                    variant="icon"
+                    color="secondary"
+                    onClick={() => acceptOrLeave(false, team.id)}
+                    StartIcon="ban"
+                  />
+                  <Button
+                    type="button"
+                    className="border-empthasis"
+                    variant="icon"
+                    color="secondary"
+                    onClick={() => acceptOrLeave(true, team.id)}
+                    StartIcon="check"
+                  />
+
                   <Tooltip content={t("view_team")}>
                     <Button
                       color="minimal"

@@ -165,6 +165,7 @@ export const AddTeamMemberModal = ({ teamId, teamName, onSuccess }: AddTeamMembe
       teamId,
       usernameOrEmail,
       role: data.role,
+      language: i18n.language,
     });
   };
 

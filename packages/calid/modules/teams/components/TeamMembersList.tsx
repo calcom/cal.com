@@ -594,7 +594,7 @@ export function TeamMembersList({
               color="destructive"
               onClick={() => {
                 if (memberToRemove) {
-                  removeMember(memberToRemove.id);
+                  removeMember(memberToRemove.user.id);
                   setShowRemoveDialog(false);
                   setMemberToRemove(null);
                 }
@@ -638,7 +638,7 @@ export function TeamMembersList({
                 color="destructive"
                 onClick={() => {
                   membersToRemove.forEach((member) => {
-                    removeMember(member.id);
+                    removeMember(member.user.id);
                   });
                   setSelectedMembers({});
                   setShowBulkRemoveDialog(false);
