@@ -1,5 +1,5 @@
 import type logger from "@calcom/lib/logger";
-import { default as webPrisma } from "@calcom/prisma";
+import { prisma as webPrisma } from "@calcom/prisma";
 
 export type UserInfo = {
   email: string;

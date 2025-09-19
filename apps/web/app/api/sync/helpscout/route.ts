@@ -8,7 +8,7 @@ import getRawBody from "raw-body";
 import z from "zod";
 
 import { emailSchema } from "@calcom/lib/emailSchema";
-import { default as webPrisma } from "@calcom/prisma";
+import { prisma as webPrisma } from "@calcom/prisma";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
