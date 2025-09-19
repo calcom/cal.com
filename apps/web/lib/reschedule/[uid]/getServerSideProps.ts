@@ -9,7 +9,7 @@ import { buildEventUrlFromBooking } from "@calcom/lib/bookings/buildEventUrlFrom
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+import { prisma, bookingMinimalSelect } from "@calcom/prisma";
 
 const querySchema = z.object({
   uid: z.string(),

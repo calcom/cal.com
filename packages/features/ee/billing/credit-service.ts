@@ -14,7 +14,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
-import prisma, { type PrismaTransaction } from "@calcom/prisma";
+import { prisma, type PrismaTransaction } from "@calcom/prisma";
 import type { CreditUsageType } from "@calcom/prisma/enums";
 import { CreditType } from "@calcom/prisma/enums";
 
