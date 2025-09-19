@@ -123,7 +123,7 @@ async function getTeamLogos(subdomain: string, isValidOrgDomain: boolean) {
       throw new Error("No custom logo needed");
     }
     // load from DB
-    const { default: prisma } = await import("@calcom/prisma");
+    const { prisma } = await import("@calcom/prisma");
     const team = await prisma.team.findFirst({
       where: {
         slug: subdomain,
