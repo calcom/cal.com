@@ -187,7 +187,7 @@ export class BookingsController_2024_08_13 {
       3. uid of recurring booking which will return an array of all recurring booking recurrences (stored as recurringBookingUid on one of the individual recurrences).
       
       If you are fetching a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or
-      you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.
+      you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner in order bypass the show attendees event-type setting .
       `,
   })
   async getBooking(
