@@ -60,7 +60,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   if (ctx.user.organizationId) {
     try {
-      const orgPermissions = await getResourcePermissions({
+      /* const orgPermissions = await getResourcePermissions({
         userId,
         teamId: ctx.user.organizationId,
         resource: Resource.EventType,
@@ -71,7 +71,8 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
           },
         },
       });
-      hasOrgEventTypeCreatePermission = orgPermissions.canCreate;
+      hasOrgEventTypeCreatePermission = orgPermissions.canCreate; */
+      hasOrgEventTypeCreatePermission = isOrgAdmin;
     } catch (error) {
       // If PBAC check fails, fall back to isOrgAdmin
       hasOrgEventTypeCreatePermission = isOrgAdmin;
@@ -116,38 +117,41 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       },
     });
 
-    const isSystemAdmin = ctx.user.role === "ADMIN";
-
-    let hasCreatePermission = false;
-
-    // Only check for team-level permissions if the user is actually a member of the team.
-    if (hasMembership) {
-      try {
-        const permissions = await getResourcePermissions({
-          userId,
-          teamId,
-          resource: Resource.EventType,
-          userRole: hasMembership.role,
-          fallbackRoles: {
-            create: {
-              roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-            },
-          },
-        });
-        hasCreatePermission = permissions.canCreate;
-      } catch (error) {
-        console.warn(
-          `PBAC check failed for user ${userId} on team ${teamId}, falling back to role check:`,
-          error
-        );
-        hasCreatePermission = ["ADMIN", "OWNER"].includes(hasMembership.role);
-      }
+    if (!hasMembership) {
+      console.warn(`User ${userId} is not a member of team ${teamId}`);
+      throw new TRPCError({ code: "UNAUTHORIZED" });
     }
 
-    if (!isSystemAdmin && !hasOrgEventTypeCreatePermission && !hasCreatePermission) {
+    const isSystemAdmin = ctx.user.role === "ADMIN";
+
+    // Check PBAC permissions for eventType.create with fallback to role-based check
+    let hasCreatePermission = false;
+
+    try {
+      const permissions = await getResourcePermissions({
+        userId,
+        teamId,
+        resource: Resource.EventType,
+        userRole: hasMembership.role,
+        fallbackRoles: {
+          create: {
+            roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+          },
+        },
+      });
+      hasCreatePermission = permissions.canCreate;
+    } catch (error) {
+      // If PBAC check fails, fall back to role-based check
       console.warn(
-        `User ${userId} does not have eventType.create permission for team ${teamId}. Membership found: ${!!hasMembership}`
+        `PBAC check failed for user ${userId} on team ${teamId}, falling back to role check:`,
+        error
       );
+      hasCreatePermission = ["ADMIN", "OWNER"].includes(hasMembership.role);
+    }
+
+    // System admins and users with org-level eventType.create permission can always create event types
+    if (!isSystemAdmin && !hasOrgEventTypeCreatePermission && !hasCreatePermission) {
+      console.warn(`User ${userId} does not have eventType.create permission for team ${teamId}`);
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
 
