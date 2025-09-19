@@ -8,7 +8,7 @@ import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomain
 import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
 import { EventRepository } from "@calcom/lib/server/repository/event";
 import slugify from "@calcom/lib/slugify";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),

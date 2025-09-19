@@ -5,7 +5,7 @@ import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/t
 import { IS_SMS_CREDITS_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPublishedOrgIdFromMemberOrTeamId } from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { CreditUsageType } from "@calcom/prisma/enums";
 
 const InputSchema = z.object({

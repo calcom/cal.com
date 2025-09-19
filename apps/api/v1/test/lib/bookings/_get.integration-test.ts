@@ -4,7 +4,7 @@ import { createMocks } from "node-mocks-http";
 import { describe, expect, it } from "vitest";
 import { ZodError } from "zod";
 
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import { handler } from "../../../pages/api/bookings/_get";
 

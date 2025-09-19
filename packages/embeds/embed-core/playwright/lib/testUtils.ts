@@ -1,7 +1,7 @@
 import type { Page, Frame } from "@playwright/test";
 import { expect } from "@playwright/test";
 
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 export async function getQueuedFormResponse(queuedFormResponseId: string) {
   return prisma.app_RoutingForms_QueuedFormResponse.findFirst({

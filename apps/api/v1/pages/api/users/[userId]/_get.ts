@@ -2,7 +2,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import { schemaQueryUserId } from "~/lib/validations/shared/queryUserId";
 import { schemaUserReadPublic } from "~/lib/validations/user";

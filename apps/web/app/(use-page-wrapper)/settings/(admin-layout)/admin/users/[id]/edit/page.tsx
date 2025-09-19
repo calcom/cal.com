@@ -6,7 +6,7 @@ import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequir
 import { UsersEditView } from "@calcom/features/ee/users/pages/users-edit-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 const userIdSchema = z.object({ id: z.coerce.number() });
 

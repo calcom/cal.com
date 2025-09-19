@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
 import type { OAuthTokenPayload } from "@calcom/types/oauth";
 

@@ -9,7 +9,7 @@ import { isPasswordValid } from "@calcom/lib/auth/isPasswordValid";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { HttpError } from "@calcom/lib/http-error";
 import slugify from "@calcom/lib/slugify";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { CreationSource } from "@calcom/prisma/enums";
 

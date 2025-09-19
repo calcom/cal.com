@@ -1,6 +1,6 @@
 import type { NextApiRequest } from "next";
 
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 

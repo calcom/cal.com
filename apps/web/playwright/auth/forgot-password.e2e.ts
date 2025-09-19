@@ -2,7 +2,7 @@ import { expect } from "@playwright/test";
 import { uuid } from "short-uuid";
 
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import { test } from "../lib/fixtures";
 

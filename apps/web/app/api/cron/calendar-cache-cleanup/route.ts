@@ -2,7 +2,7 @@ import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 async function postHandler(request: NextRequest) {
   const apiKey = request.headers.get("authorization") || request.nextUrl.searchParams.get("apiKey");

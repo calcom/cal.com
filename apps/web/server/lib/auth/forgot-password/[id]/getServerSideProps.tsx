@@ -1,7 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken } from "next-auth/react";
 
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const id = context.params?.id as string;

@@ -6,7 +6,7 @@ import { z } from "zod";
 
 import { validPassword } from "@calcom/features/auth/lib/validPassword";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 
 const passwordResetRequestSchema = z.object({

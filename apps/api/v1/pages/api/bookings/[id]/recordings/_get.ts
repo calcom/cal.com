@@ -6,7 +6,7 @@ import {
   getRecordingsOfCalVideoByRoomName,
   getDownloadLinkOfCalVideoByRecordingId,
 } from "@calcom/lib/videoClient";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { RecordingItemSchema } from "@calcom/prisma/zod-utils";
 import type { PartialReference } from "@calcom/types/EventManager";
 

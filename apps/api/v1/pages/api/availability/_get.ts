@@ -4,7 +4,7 @@ import { z } from "zod";
 import { getUserAvailabilityService } from "@calcom/lib/di/containers/GetUserAvailability";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { availabilityUserSelect } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";

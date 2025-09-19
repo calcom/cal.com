@@ -1,5 +1,5 @@
 import { isTeamAdmin, isTeamOwner } from "@calcom/features/ee/teams/lib/queries";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 

@@ -5,7 +5,7 @@ import { uuid } from "short-uuid";
 
 import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 import { md } from "@calcom/lib/markdownIt";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 

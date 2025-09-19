@@ -8,7 +8,7 @@ import { hostedCal, isSAMLLoginEnabled, samlProductID, samlTenantID } from "@cal
 import { ssoTenantProduct } from "@calcom/features/ee/sso/lib/sso";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 

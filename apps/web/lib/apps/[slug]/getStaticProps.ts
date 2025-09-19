@@ -6,7 +6,7 @@ import { z } from "zod";
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
 import { getAppAssetFullPath } from "@calcom/app-store/getAppAssetFullPath";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 export const sourceSchema = z.object({
   content: z.string(),

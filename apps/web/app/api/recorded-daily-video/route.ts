@@ -19,7 +19,7 @@ import {
   submitBatchProcessorTranscriptionJob,
 } from "@calcom/lib/videoClient";
 import { generateVideoToken } from "@calcom/lib/videoTokens";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { getBooking } from "@calcom/web/lib/daily-webhook/getBooking";
 import { getBookingReference } from "@calcom/web/lib/daily-webhook/getBookingReference";
 import { getCalendarEvent } from "@calcom/web/lib/daily-webhook/getCalendarEvent";

@@ -16,7 +16,7 @@ import { describe, afterEach, test, vi, beforeEach, beforeAll, expect } from "vi
 import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
 import { getRoomNameFromRecordingId, getBatchProcessorJobAccessLink } from "@calcom/app-store/dailyvideo/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import * as recordedDailyVideoRoute from "@calcom/web/app/api/recorded-daily-video/route";

@@ -4,7 +4,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/enums";

@@ -6,7 +6,7 @@ import {
   getTranscriptsAccessLinkFromRecordingId,
   checkIfRoomNameMatchesInRecording,
 } from "@calcom/lib/videoClient";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { PartialReference } from "@calcom/types/EventManager";
 
 import { getTranscriptFromRecordingId } from "~/lib/validations/shared/queryIdTransformParseInt";

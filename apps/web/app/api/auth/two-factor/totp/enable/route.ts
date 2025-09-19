@@ -8,7 +8,7 @@ import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { totpAuthenticatorCheck } from "@calcom/lib/totp";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 

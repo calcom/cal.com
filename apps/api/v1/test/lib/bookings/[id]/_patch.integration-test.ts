@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
 import { describe, it, expect } from "vitest";
 
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import handler from "../../../../pages/api/bookings/[id]/_patch";
 

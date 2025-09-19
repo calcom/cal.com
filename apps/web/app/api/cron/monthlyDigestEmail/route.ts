@@ -7,7 +7,7 @@ import dayjs from "@calcom/dayjs";
 import { sendMonthlyDigestEmails } from "@calcom/emails/email-manager";
 import { EventsInsights } from "@calcom/features/insights/server/events";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
 const querySchema = z.object({

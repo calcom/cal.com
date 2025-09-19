@@ -10,7 +10,7 @@ import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwI
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 

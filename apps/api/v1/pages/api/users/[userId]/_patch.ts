@@ -3,7 +3,7 @@ import type { NextApiRequest } from "next";
 import { HttpError } from "@calcom/lib/http-error";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
 import { schemaQueryUserId } from "~/lib/validations/shared/queryUserId";

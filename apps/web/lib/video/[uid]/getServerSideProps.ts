@@ -15,7 +15,7 @@ import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 

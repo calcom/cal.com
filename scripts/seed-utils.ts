@@ -6,7 +6,7 @@ import type z from "zod";
 import dayjs from "@calcom/dayjs";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { Prisma, UserPermissionRole } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";

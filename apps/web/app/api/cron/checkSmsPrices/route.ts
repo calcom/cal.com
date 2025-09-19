@@ -6,7 +6,7 @@ import dayjs from "@calcom/dayjs";
 import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { CreditType } from "@calcom/prisma/enums";
 
 async function postHandler(req: NextRequest) {

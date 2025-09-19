@@ -8,7 +8,7 @@ import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSeri
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import { defaultResponderForAppDir } from "../../defaultResponderForAppDir";
 
