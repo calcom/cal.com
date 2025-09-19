@@ -34,6 +34,7 @@ export const fieldTypeConfigSchema = z
       "boolean",
       "objectiveWithInput",
       "variants",
+      "date",
     ]),
     // It is the config that can tweak what an existing or a new field shows in the App UI or booker UI.
     variantsConfig: z
@@ -256,6 +257,48 @@ export const fieldTypesSchemaMap: Partial<
         code: z.ZodIssueCode.custom,
         message: m("url_validation_error"),
       });
+    },
+  },
+  date: {
+    preprocess: ({ response }) => {
+      return response.trim();
+    },
+    superRefine: ({ response, ctx, m, field, isPartialSchema }) => {
+      const value = response ?? "";
+      
+      // Allow empty value if field is not required or this is a partial schema
+      if (!value && (!field.required || isPartialSchema)) {
+        return;
+      }
+      
+      // For required fields, ensure value is not empty
+      if (!value && field.required && !isPartialSchema) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: m("required"),
+        });
+        return;
+      }
+      
+      // Validate date format (YYYY-MM-DD)
+      const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format");
+      if (!dateSchema.safeParse(value).success) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: m("invalid_date_format"),
+        });
+        return;
+      }
+      
+      // Validate that it's a valid date
+      const date = new Date(value);
+      if (isNaN(date.getTime()) || date.toISOString().split('T')[0] !== value) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: m("invalid_date"),
+        });
+        return;
+      }
     },
   },
 };

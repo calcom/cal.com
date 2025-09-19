@@ -14,6 +14,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button as CalButton } from "@calcom/ui/components/button";
 import { TextArea } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
+import {DatePicker} from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
 const Select = dynamic(
@@ -368,6 +369,27 @@ const FieldSelect = function FieldSelect(props: FieldProps) {
   );
 };
 
+function DateWidget({ value, setValue, ...remainingProps }: TextLikeComponentPropsRAQB) {
+  // Use current date as default if no value is set
+  const dateValue = value ? new Date(value) : new Date();
+  
+  const handleDateChange = (date: Date) => {
+    // Format date as YYYY-MM-DD
+    const formattedDate = date.toISOString().split('T')[0];
+    setValue(formattedDate);
+  };
+  
+  return (
+    <div className="w-full mb-2">
+      <DatePicker
+        date={dateValue}
+        onDatesChange={handleDateChange}
+        {...remainingProps}
+      />
+    </div>
+  );
+}
+
 const Provider = ({ children }: ProviderProps) => children;
 
 const widgets = {
@@ -376,6 +398,7 @@ const widgets = {
   SelectWidget,
   NumberWidget,
   MultiSelectWidget,
+  DateWidget,
   FieldSelect,
   Button,
   ButtonGroup,
