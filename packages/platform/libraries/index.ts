@@ -4,6 +4,7 @@ import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooking";
 import { getClientSecretFromPayment } from "@calcom/features/ee/payments/pages/getClientSecretFromPayment";
+import { getTeamMemberEmailForResponseOrContactUsingUrlQuery } from "@calcom/features/ee/teams/lib/getTeamMemberEmailFromCrm";
 import {
   verifyPhoneNumber,
   sendVerificationCode,
@@ -14,7 +15,6 @@ import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleI
 import { getRoutedUrl } from "@calcom/features/routing-forms/lib/getRoutedUrl";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
-import { getTeamMemberEmailForResponseOrContactUsingUrlQuery } from "@calcom/lib/server/getTeamMemberEmailFromCrm";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -53,7 +53,7 @@ export { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleN
 
 export { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/lib/getConnectedDestinationCalendars";
 
-export { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
+export { getBusyCalendarTimes } from "@calcom/features/calendars/lib/CalendarManager";
 
 export type { BookingCreateBody, BookingResponse } from "@calcom/features/bookings/types";
 export { HttpError } from "@calcom/lib/http-error";

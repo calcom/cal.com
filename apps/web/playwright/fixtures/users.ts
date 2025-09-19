@@ -584,6 +584,10 @@ export const createUsersFixture = (
     get: () => store.users,
     logout: async () => {
       await page.goto("/auth/logout");
+      const logoutBtn = page.getByTestId("logout-btn");
+      await expect(logoutBtn).toHaveText("Go back to the login page");
+      await page.reload();
+      await expect(logoutBtn).toHaveText("Go back to the login page");
     },
     deleteAll: async () => {
       const ids = store.users.map((u) => u.id);
