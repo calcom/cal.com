@@ -55,7 +55,6 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     emailsEnabled,
     platformClientParams,
   } = input;
-  console.log("Got input: ", input)
 
   const booking = await prisma.booking.findUniqueOrThrow({
     where: {
@@ -110,6 +109,14 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           parent: {
             select: {
               teamId: true,
+              calIdTeamId: true,
+            },
+          },
+          calIdTeamId: true,
+          calIdTeam: {
+            select: {
+              id: true,
+              name: true,
             },
           },
         },
@@ -143,7 +150,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   await checkIfUserIsAuthorizedToConfirmBooking({
     eventTypeId: booking.eventTypeId,
     loggedInUserId: user.id,
-    teamId: booking.eventType?.teamId || booking.eventType?.parent?.teamId,
+    // teamId: booking.eventType?.teamId || booking.eventType?.parent?.teamId,
+    teamId: booking.eventType?.calIdTeamId,
     bookingUserId: booking.userId,
     userRole: user.role,
   });
@@ -257,10 +265,17 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
     eventTypeId: booking.eventType?.id,
     customReplyToEmail: booking.eventType?.customReplyToEmail,
-    team: !!booking.eventType?.team
+    // team: !!booking.eventType?.team
+    //   ? {
+    //       name: booking.eventType.team.name,
+    //       id: booking.eventType.team.id,
+    //       members: [],
+    //     }
+    //   : undefined,
+    team: !!booking.eventType?.calIdTeam
       ? {
-          name: booking.eventType.team.name,
-          id: booking.eventType.team.id,
+          name: booking.eventType.calIdTeam.name,
+          id: booking.eventType.calIdTeam.id,
           members: [],
         }
       : undefined,
@@ -363,7 +378,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       if (!!booking.payment.length) {
         await processPaymentRefund({
           booking: booking,
-          teamId: booking.eventType?.teamId,
+          // teamId: booking.eventType?.teamId,
+          teamId: booking.eventType?.calIdTeamId,
         });
       }
       // end handle refunds.
@@ -383,21 +399,21 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       await sendDeclinedEmailsAndSMS(evt, booking.eventType?.metadata as EventTypeMetadata);
     }
 
-    const teamId = await getTeamIdFromEventType({
+    const calIdTeamId = await getTeamIdFromEventType({
       eventType: {
-        team: { id: booking.eventType?.teamId ?? null },
+        team: { id: booking.eventType?.calIdTeamId ?? null },
         parentId: booking?.eventType?.parentId ?? null,
       },
     });
 
-    const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
+    const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, calIdTeamId });
 
     // send BOOKING_REJECTED webhooks
     const subscriberOptions: GetSubscriberOptions = {
       userId: booking.userId,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_REJECTED,
-      teamId,
+      teamId: calIdTeamId,
       orgId,
       oAuthClientId: platformClientParams?.platformClientId,
     };
@@ -469,11 +485,23 @@ const checkIfUserIsAuthorizedToConfirmBooking = async ({
   }
 
   // Check if the user is an admin/owner of the team the booking belongs to
+  // if (teamId) {
+  //   const membership = await prisma.membership.findFirst({
+  //     where: {
+  //       userId: loggedInUserId,
+  //       teamId: teamId,
+  //       role: {
+  //         in: [MembershipRole.OWNER, MembershipRole.ADMIN],
+  //       },
+  //     },
+  //   });
+  //   if (membership) return;
+  // }
   if (teamId) {
-    const membership = await prisma.membership.findFirst({
+    const membership = await prisma.calIdMembership.findFirst({
       where: {
         userId: loggedInUserId,
-        teamId: teamId,
+        calIdTeamId: teamId,
         role: {
           in: [MembershipRole.OWNER, MembershipRole.ADMIN],
         },
