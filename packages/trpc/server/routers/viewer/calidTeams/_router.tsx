@@ -13,6 +13,7 @@ import { ZListMembersSchema } from "./listMembers.schema";
 import { ZRemoveMemberSchema } from "./removeMember.schema";
 import { ZUpdateCalidTeamSchema } from "./update.schema";
 import { ZUpdateMemberSchema } from "./updateMember.schema";
+import { ZResendCalidInvitationSchema } from "./resendInvitation.schema";
 
 export const calIdTeamsRouter = router({
   // Create a new calidTeam
@@ -104,5 +105,11 @@ export const calIdTeamsRouter = router({
   addMembersToEventType: authedProcedure.input(ZAddMembersToEventType).mutation(async ({ ctx, input }) => {
     const { addMembersToEventTypesHandler } = await import("./addMemberstoEventType.handler");
     return addMembersToEventTypesHandler({ ctx, input });
+  }),
+
+  // Resend invitation
+  resendInvitation: authedProcedure.input(ZResendCalidInvitationSchema).mutation(async ({ ctx, input }) => {
+    const { resendCalidInvitationHandler } = await import("./resendInvitation.handler");
+    return resendCalidInvitationHandler({ ctx, input });
   }),
 });
