@@ -6032,9 +6032,9 @@ __metadata:
   linkType: hard
 
 "@faker-js/faker@npm:^7.3.0":
-  version: 7.4.0
-  resolution: "@faker-js/faker@npm:7.4.0"
-  checksum: 1acebb84bfb142c08e6ba2942910d16bd92ea147fa585fa2fa9ce9983f7a8c7c016002beb7fc20ef6f7aef6c4ae9cb3fa680b275823402e34802b8489d2b980d
+  version: 7.6.0
+  resolution: "@faker-js/faker@npm:7.6.0"
+  checksum: 942af6221774e8c98a0eb6bc75265e05fb81a941170377666c3439aab9495dd321d6beedc5406f07e6ad44262b3e43c20961f666d116ad150b78e7437dd1bb2b
   languageName: node
   linkType: hard
 
@@ -21669,6 +21669,7 @@ __metadata:
     "@changesets/cli": 2.29.4
     "@daily-co/daily-js": ^0.83.1
     "@evyweb/ioctopus": ^1.2.0
+    "@faker-js/faker": 9.2.0
     "@jetstreamapp/soql-parser-js": ^6.1.0
     "@next/third-parties": ^14.2.5
     "@playwright/test": ^1.45.3
