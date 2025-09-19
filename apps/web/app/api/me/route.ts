@@ -9,7 +9,7 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 async function getHandler() {
   const prePrismaDate = performance.now();
-  const prisma = (await import("@calcom/prisma")).prisma;
+  const { prisma } = await import("@calcom/prisma");
   const preSessionDate = performance.now();
 
   // Create a legacy request object for compatibility

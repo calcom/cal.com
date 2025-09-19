@@ -25,7 +25,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
   form: TForm;
   withDeletedFields?: boolean;
 }) {
-  const prisma = (await import("@calcom/prisma")).prisma;
+  const { prisma } = await import("@calcom/prisma");
   const routesParsed = zodRoutes.safeParse(form.routes);
   if (!routesParsed.success) {
     log.error("Error parsing routes", safeStringify({ error: routesParsed.error, routes: form.routes }));
