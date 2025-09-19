@@ -190,11 +190,7 @@ const CalendarViewPlatformWrapperComponent = (
 
   return (
     <AtomsWrapper>
-      <BookerSection
-        key="large-calendar"
-        area="main"
-        visible={true}
-        className="border-subtle sticky top-0 ml-[-1px] h-full md:border-l">
+      <BookerSection area="header" className="bg-default dark:bg-muted sticky top-0 z-10">
         <Header
           isCalendarView={true}
           isMyLink={true}
@@ -204,7 +200,12 @@ const CalendarViewPlatformWrapperComponent = (
           isMobile={false}
           nextSlots={6}
         />
-
+      </BookerSection>
+      <BookerSection
+        key="large-calendar"
+        area="main"
+        visible={true}
+        className="border-subtle sticky top-0 ml-[-1px] h-full md:border-l">
         <LargeCalendar extraDays={7} schedule={schedule.data} isLoading={schedule.isPending} event={event} />
       </BookerSection>
     </AtomsWrapper>
