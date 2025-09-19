@@ -1,4 +1,5 @@
 import { BOOKING_DI_TOKENS } from "./bookings/tokens";
+import { WATCHLIST_DI_TOKENS } from "./watchlist/di/tokens";
 
 export const DI_TOKENS = {
   PRISMA_CLIENT: Symbol("PrismaClient"),
@@ -53,6 +54,10 @@ export const DI_TOKENS = {
   HOST_REPOSITORY_MODULE: Symbol("HostRepositoryModule"),
   ATTRIBUTE_REPOSITORY: Symbol("AttributeRepository"),
   ATTRIBUTE_REPOSITORY_MODULE: Symbol("AttributeRepositoryModule"),
+
+  // Watchlist service tokens
+  ...WATCHLIST_DI_TOKENS,
+
   // Booking service tokens
   ...BOOKING_DI_TOKENS,
 };

@@ -1,6 +1,6 @@
 import { startSpan } from "@sentry/nextjs";
 
-import { WatchlistRepository } from "../watchlist.repository";
+import { getWatchlistRepository } from "../di/containers/watchlist";
 
 function presenter(containsBlockedUser: boolean) {
   return startSpan({ name: "checkIfUsersAreBlocked Presenter", op: "serialize" }, () => {
@@ -24,7 +24,7 @@ export async function checkIfUsersAreBlocked(
     domainsToCheck.push(emailDomain);
   }
 
-  const watchlistRepository = new WatchlistRepository();
+  const watchlistRepository = getWatchlistRepository();
   const blockedRecords = await watchlistRepository.searchForAllBlockedRecords({
     usernames: usernamesToCheck,
     emails: emailsToCheck,
