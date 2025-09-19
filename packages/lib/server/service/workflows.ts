@@ -1,7 +1,11 @@
+import dayjs from "@calcom/dayjs";
+import { FORM_TRIGGER_WORKFLOW_EVENTS } from "@calcom/ee/workflows/lib/constants";
 import { getAllWorkflows } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import type { ScheduleWorkflowRemindersArgs } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
+import type { timeUnitLowerCase } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import type { Workflow } from "@calcom/ee/workflows/lib/types";
+import { tasker } from "@calcom/features/tasker";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { prisma } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
@@ -29,7 +33,9 @@ export class WorkflowService {
             routingFormId: routingForm.id,
           },
         },
-        trigger: WorkflowTriggerEvents.FORM_SUBMITTED,
+        trigger: {
+          in: FORM_TRIGGER_WORKFLOW_EVENTS,
+        },
       },
       select: {
         id: true,
@@ -180,6 +186,44 @@ export class WorkflowService {
       hideBranding,
       workflows: workflowsToTrigger,
     });
+
+    const workflowsToSchedule: Workflow[] = [];
+
+    workflowsToSchedule.push(
+      ...workflows.filter((workflow) => workflow.trigger === WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT)
+    );
+
+    const promisesFormSubmittedNoEvent = workflowsToSchedule.map((workflow) => {
+      const timeUnit: timeUnitLowerCase = (workflow.timeUnit?.toLowerCase() as timeUnitLowerCase) ?? "minute";
+
+      const scheduledAt = dayjs()
+        .add(workflow.time ?? 15, timeUnit)
+        .toDate();
+
+      return tasker.create(
+        "triggerFormSubmittedNoEventWorkflow",
+        {
+          responseId,
+          responses,
+          smsReminderNumber,
+          hideBranding,
+          form: {
+            id: form.id,
+            userId: form.userId,
+            teamId: form.teamId ?? undefined,
+            user: {
+              email: form.user.email,
+              timeFormat: form.user.timeFormat,
+              locale: form.user.locale ?? "en",
+            },
+          },
+          workflow,
+          submittedAt: new Date(),
+        },
+        { scheduledAt }
+      );
+    });
+    await Promise.all(promisesFormSubmittedNoEvent);
   }
 
   static async scheduleWorkflowsForNewBooking({
