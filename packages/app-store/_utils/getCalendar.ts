@@ -62,7 +62,8 @@ export const getCalendar = async (
 
     if (isCalendarSubscriptionCacheEnabled && isCalendarSubscriptionCacheEnabledForUser) {
       log.debug(`Calendar Cache is enabled, using CalendarCacheService for credential ${credential.id}`);
-      const originalCalendar = new CalendarService(credential as unknown);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const originalCalendar = new CalendarService(credential as any);
       if (originalCalendar) {
         // return cacheable calendar
         const calendarCacheEventRepository = new CalendarCacheEventRepository(prisma);
