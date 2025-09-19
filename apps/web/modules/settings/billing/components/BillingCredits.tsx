@@ -16,21 +16,17 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@calcom/ui/components/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogFooter } from "@calcom/ui/components/dialog";
 import { Select } from "@calcom/ui/components/form";
 import { TextField, Label, InputError } from "@calcom/ui/components/form";
+import { Checkbox } from "@calcom/ui/components/form";
 import { ProgressBar } from "@calcom/ui/components/progress-bar";
-import { Switch } from "@calcom/ui/components/switch";
+// Fix Switch import
 import { showToast } from "@calcom/ui/components/toast";
 
 import { BillingCreditsSkeleton } from "./BillingCreditsSkeleton";
+
+/* eslint-disable prettier/prettier */
 
 /* eslint-disable prettier/prettier */
 
@@ -109,11 +105,6 @@ export default function BillingCredits() {
     { enabled: shouldRender }
   );
 
-  const { data: autoRechargeData } = trpc.viewer.credits.getAutoRechargeSettings.useQuery(
-    { teamId },
-    { enabled: shouldRender }
-  );
-
   if (!shouldRender) return null;
 
   const buyCreditsMutation = trpc.viewer.credits.buyCredits.useMutation({
@@ -126,19 +117,6 @@ export default function BillingCredits() {
       showToast(t("credit_purchase_failed"), "error");
     },
   });
-
-  const updateAutoRechargeMutation = trpc.viewer.credits.updateAutoRechargeSettings.useMutation({
-    onSuccess: () => {
-      showToast(t("auto_recharge_settings_updated"), "success");
-      setShowAutoRechargeModal(false);
-      utils.viewer.credits.getAutoRechargeSettings.invalidate({ teamId });
-    },
-    onError: () => {
-      showToast(t("auto_recharge_settings_failed"), "error");
-    },
-  });
-
-  if (!shouldRender) return null;
 
   const handleDownload = async () => {
     setIsDownloading(true);
@@ -168,21 +146,12 @@ export default function BillingCredits() {
     buyCreditsMutation.mutate({ quantity: data.quantity, teamId });
   };
 
-  const handleAutoRechargeSubmit = (data: { enabled: boolean; threshold: number; amount: number }) => {
-    updateAutoRechargeMutation.mutate({
-      teamId,
-      enabled: data.enabled,
-      threshold: data.threshold,
-      amount: data.amount,
-    });
-  };
-
   const teamCreditsPercentageUsed =
     creditsData.credits.totalMonthlyCredits > 0
       ? (creditsData.credits.totalRemainingMonthlyCredits / creditsData.credits.totalMonthlyCredits) * 100
       : 0;
 
-  const autoRechargeSettings = autoRechargeData?.settings;
+  const autoRechargeSettings = creditsData?.settings;
 
   return (
     <div className="border-subtle mt-8 space-y-6 rounded-lg border px-6 py-6 pb-6 text-sm sm:space-y-8">
@@ -374,14 +343,12 @@ function AutoRechargeModal({
   return (
     <Dialog open onOpenChange={onCancel}>
       <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t("auto_recharge_settings")}</DialogTitle>
-          <DialogDescription>{t("auto_recharge_description")}</DialogDescription>
-        </DialogHeader>
+        <DialogHeader title={t("auto_recharge_settings")} />
+        <p className="text-subtle mb-4">{t("auto_recharge_description")}</p>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-4 py-4">
             <div className="flex items-center">
-              <Switch
+              <Checkbox
                 {...register("enabled")}
                 defaultChecked={defaultValues?.enabled}
                 id="auto-recharge-toggle"
