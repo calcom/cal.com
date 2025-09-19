@@ -204,7 +204,7 @@ jobs:
 
   analyze:
     name: Analyze Build
-    needs: [build]
+    needs: [build, changes, check-label]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/nextjs-bundle-analysis.yml
     secrets: inherit

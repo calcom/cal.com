@@ -6,7 +6,8 @@ runs:
     - name: Get installed Playwright version
       shell: bash
       id: playwright-version
-      run: echo "PLAYWRIGHT_VERSION=$(node -e "console.log(require('./package.json').devDependencies['@playwright/test'])")" >> $GITHUB_ENV
+      run: |
+        echo "PLAYWRIGHT_VERSION=$(node -p 'require("./package.json").devDependencies?.["@playwright/test"] ?? require("./package.json").dependencies?.["@playwright/test"]')" >> "$GITHUB_ENV"
     
     - name: Cache playwright binaries
       id: playwright-cache

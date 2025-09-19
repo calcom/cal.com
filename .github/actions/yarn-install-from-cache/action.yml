@@ -26,27 +26,31 @@ runs:
         key: yarn-download-cache-${{ hashFiles('yarn.lock') }}
 
     - name: Restore node_modules
+      id: nm-cache
       uses: buildjet/cache@v4
       with:
         path: "**/node_modules/"
         key: ${{ runner.os }}-yarn-nm-cache-${{ hashFiles('yarn.lock', '.yarnrc.yml') }}
 
     - name: Restore yarn install state
+      id: install-state-cache
       uses: buildjet/cache@v4
       with:
         path: .yarn/ci-cache/
         key: ${{ runner.os }}-yarn-install-state-cache-${{ hashFiles('yarn.lock', '.yarnrc.yml') }}
 
     - name: Install only if cache miss
+      if: ${{ !(steps.nm-cache.outputs.cache-hit == 'true' && steps.install-state-cache.outputs.cache-hit == 'true') }}
       shell: bash
       run: |
-        if [ ! -d "node_modules" ] || [ ! -f "node_modules/.yarn-integrity" ]; then
-          echo "Cache miss detected, installing dependencies..."
-          yarn install --inline-builds --frozen-lockfile
-          yarn prisma generate
-        else
-          echo "Dependencies restored from cache successfully"
-        fi
+        echo "Cache miss detected, installing dependencies..."
+        yarn install --inline-builds --immutable
+        yarn prisma generate
+      
+    - name: Dependencies restored from cache successfully
+      if: ${{ steps.nm-cache.outputs.cache-hit == 'true' && steps.install-state-cache.outputs.cache-hit == 'true' }}
+      shell: bash
+      run: echo "Dependencies restored from cache successfully"
       env:
         YARN_ENABLE_IMMUTABLE_INSTALLS: "false"
         YARN_ENABLE_GLOBAL_CACHE: "false"
