@@ -3,12 +3,14 @@ import { getLocationGroupedOptions } from "@calcom/app-store/server";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-import type { LocationObject } from "@calcom/lib/location";
+import type { LocationObject } from "@calcom/app-store/locations";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -18,9 +20,6 @@ import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
 import { customInputSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
-
-import { WEBSITE_URL } from "../constants";
-import { getBookerBaseUrl } from "../getBookerUrl/server";
 
 interface getEventTypeByIdProps {
   eventTypeId: number;

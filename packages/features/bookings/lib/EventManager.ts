@@ -34,10 +34,10 @@ import type {
   PartialReference,
 } from "@calcom/types/EventManager";
 
-import { createEvent, updateEvent, deleteEvent } from "./CalendarManager";
-import CrmManager from "./crmManager/crmManager";
-import { isDelegationCredential } from "./delegationCredential/clientAndServer";
-import { createMeeting, updateMeeting, deleteMeeting } from "./videoClient";
+import { createEvent, updateEvent, deleteEvent } from "@calcom/features/calendars/lib/CalendarManager";
+import CrmManager from "@calcom/lib/crmManager/crmManager";
+import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
+import { createMeeting, updateMeeting, deleteMeeting } from "@calcom/lib/videoClient";
 
 const log = logger.getSubLogger({ prefix: ["EventManager"] });
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";

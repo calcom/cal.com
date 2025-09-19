@@ -44,6 +44,7 @@ export async function getHandler(req: NextApiRequest) {
 
   const booking = await prisma.booking.findUnique({
     where: { id },
+    // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
     include: { references: true },
   });
 
