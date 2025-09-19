@@ -610,7 +610,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should book an event type with attendees disabled and owner auth not provided", async () => {
+      it("should book an event type with attendees disabled and owner auth not provided, in this case attendees are hidden", async () => {
         const body: CreateBookingInput_2024_08_13 = {
           start: new Date(Date.UTC(2030, 0, 9, 15, 0, 0)).toISOString(),
           eventTypeId: seatedEventTypeIdAttendeesDisabledId,
