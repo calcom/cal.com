@@ -136,8 +136,11 @@ describe("Platform Billing Controller (e2e)", () => {
   it("/billing/webhook (GET) should  get billing plan for org", () => {
     return request(app.getHttpServer())
       .get(`/v2/billing/${organization.id}/check`)
-
-      .expect(200);
+      .expect(200)
+      .then(async (res) => {
+        const data = res.body as CheckPlatformBillingResponseDto;
+        expect(data?.plan).toEqual("FREE");
+      });
   });
 
   it("/billing/webhook (POST) failed payment should set billing free plan to overdue", () => {
