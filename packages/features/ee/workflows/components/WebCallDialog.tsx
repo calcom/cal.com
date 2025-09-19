@@ -454,7 +454,8 @@ export function WebCallDialog({
                   type="button"
                   onClick={handleStartCall}
                   loading={createWebCallMutation.isPending || callStatus === "connecting"}
-                  disabled={!hasCredits || createWebCallMutation.isPending || callStatus === "connecting"}>
+                  disabled={!hasCredits || createWebCallMutation.isPending || callStatus === "connecting"}
+                  >
                   <Icon name="phone" className="mr-2 h-4 w-4" />
                   {callStatus === "connecting" ? t("connecting") : t("start_web_call")}
                 </Button>
