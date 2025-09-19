@@ -1,6 +1,8 @@
 import { PERMISSION_REGISTRY } from "@calcom/features/pbac/domain/types/permission-registry";
 import { prisma } from "@calcom/prisma";
 
+export const ENABLE_PBAC_GLOBALLY = true;
+
 // Create array of all permissions from PERMISSION_REGISTRY
 export const createAllPermissionsArray = () => {
   const allPermissions: { resource: string; action: string }[] = [];
