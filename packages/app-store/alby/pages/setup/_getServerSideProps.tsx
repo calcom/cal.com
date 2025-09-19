@@ -4,7 +4,13 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
 
 import { getAlbyKeys } from "../../lib/getAlbyKeys";
-import type { IAlbySetupProps } from "./index";
+
+export interface IAlbySetupProps {
+  email: string | null;
+  lightningAddress: string | null;
+  clientId: string;
+  clientSecret: string;
+}
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const notFound = { notFound: true } as const;
