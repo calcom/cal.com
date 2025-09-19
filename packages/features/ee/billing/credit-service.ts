@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { TFunction } from "i18next";
 
@@ -466,7 +468,7 @@ export class CreditService {
         ? {
             ...creditBalance.team,
             adminAndOwners: await Promise.all(
-              creditBalance.team.members.map(async (member) => ({
+              creditBalance.team.members.map(async (member: any) => ({
                 id: member.user.id,
                 name: member.user.name,
                 email: member.user.email,
@@ -695,12 +697,13 @@ export class CreditService {
     );
 
     const totalMonthlyCredits = await this.getMonthlyCredits(teamId);
-    const totalMonthlyCreditsUsed = Array.isArray(creditBalance?.expenseLogs)
-      ? creditBalance.expenseLogs.reduce(
-          (sum: number, log: { credits?: number }) => sum + (log?.credits ?? 0),
-          0
-        )
-      : 0;
+    const totalMonthlyCreditsUsed =
+      Array.isArray(creditBalance?.expenseLogs) && creditBalance?.expenseLogs
+        ? creditBalance.expenseLogs.reduce(
+            (sum: number, log: { credits?: number }) => sum + (log?.credits ?? 0),
+            0
+          )
+        : 0;
 
     return {
       totalMonthlyCredits,

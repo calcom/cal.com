@@ -16,7 +16,7 @@ export class CreditsRepository {
     }
     if (where.teamId != null) {
       return tx.creditBalance.findUnique({
-        where: { teamId: where.teamId },
+        where: { teamId: where.teamId ?? undefined },
         select: {
           id: true,
           additionalCredits: true,
@@ -31,7 +31,7 @@ export class CreditsRepository {
       });
     } else if (where.userId != null) {
       return tx.creditBalance.findUnique({
-        where: { userId: where.userId },
+        where: { userId: where.userId ?? undefined },
         select: {
           id: true,
           additionalCredits: true,
@@ -120,7 +120,7 @@ export class CreditsRepository {
       userId?: number | null;
       startDate?: Date;
       endDate?: Date;
-      creditType?: CreditType; // or: CreditType.MONTHLY | CreditType.ADDITIONAL
+      creditType?: CreditType;
     },
     tx: PrismaTransaction = prisma
   ) {
@@ -130,8 +130,8 @@ export class CreditsRepository {
 
     return await prismaClient.creditBalance.findUnique({
       where: {
-        teamId,
-        ...(!teamId ? { userId } : {}),
+        teamId: teamId ?? undefined,
+        ...(!teamId ? { userId: userId ?? undefined } : {}),
       },
       select: {
         additionalCredits: true,
@@ -278,7 +278,7 @@ export class CreditsRepository {
     }: {
       creditBalanceId: string;
       credits: number | null;
-      creditType: $Enums.CreditType;
+      creditType: CreditType;
       date: Date;
       bookingUid?: string;
       smsSid?: string;
