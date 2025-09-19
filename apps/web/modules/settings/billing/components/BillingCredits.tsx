@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useMemo } from "react";
+import React from "react";
 import { useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
@@ -69,6 +70,18 @@ export default function BillingCredits() {
     formState: { errors },
   } = useForm<{ quantity: number }>({ defaultValues: { quantity: 50 } });
 
+  const {
+    register: registerAutoTopUp,
+    handleSubmit: handleSubmitAutoTopUp,
+    watch: watchAutoTopUp,
+    formState: { errors: autoTopUpErrors },
+    reset: resetAutoTopUp,
+  } = useForm<{
+    autoTopUpEnabled: boolean;
+    autoTopUpThreshold: number;
+    autoTopUpAmount: number;
+  }>();
+
   const params = useParamsWithFallback();
   const orgId = session.data?.user?.org?.id;
 
@@ -91,8 +104,6 @@ export default function BillingCredits() {
     { enabled: shouldRender }
   );
 
-  if (!shouldRender) return null;
-
   const buyCreditsMutation = trpc.viewer.credits.buyCredits.useMutation({
     onSuccess: (data) => {
       if (data.sessionUrl) {
@@ -101,6 +112,16 @@ export default function BillingCredits() {
     },
     onError: () => {
       showToast(t("credit_purchase_failed"), "error");
+    },
+  });
+
+  const updateAutoTopUpMutation = trpc.viewer.credits.updateAutoTopUpSettings.useMutation({
+    onSuccess: () => {
+      showToast(t("auto_top_up_settings_saved"), "success");
+      utils.viewer.credits.getAllCredits.invalidate();
+    },
+    onError: () => {
+      showToast(t("error_updating_settings"), "error");
     },
   });
 
@@ -125,12 +146,36 @@ export default function BillingCredits() {
     }
   };
 
+  React.useEffect(() => {
+    if (creditsData) {
+      resetAutoTopUp({
+        autoTopUpEnabled: creditsData.autoTopUpEnabled || false,
+        autoTopUpThreshold: creditsData.autoTopUpThreshold || 100,
+        autoTopUpAmount: creditsData.autoTopUpAmount || 500,
+      });
+    }
+  }, [creditsData, resetAutoTopUp]);
+
+  if (!shouldRender) return null;
   if (isLoading && teamId) return <BillingCreditsSkeleton />;
   if (!creditsData) return null;
 
   const onSubmit = (data: { quantity: number }) => {
     buyCreditsMutation.mutate({ quantity: data.quantity, teamId });
   };
+
+  const onSubmitAutoTopUp = (data: {
+    autoTopUpEnabled: boolean;
+    autoTopUpThreshold: number;
+    autoTopUpAmount: number;
+  }) => {
+    updateAutoTopUpMutation.mutate({
+      teamId,
+      ...data,
+    });
+  };
+
+  const autoTopUpEnabled = watchAutoTopUp("autoTopUpEnabled");
 
   const teamCreditsPercentageUsed =
     creditsData.credits.totalMonthlyCredits > 0
@@ -241,6 +286,72 @@ export default function BillingCredits() {
               </Button>
             </div>
           </div>
+
+          <div className="-mx-6 mb-6 mt-6">
+            <hr className="border-subtle mb-3 mt-3" />
+          </div>
+
+          <form onSubmit={handleSubmitAutoTopUp(onSubmitAutoTopUp)}>
+            <div className="mb-4">
+              <Label className="mb-4">{t("auto_top_up")}</Label>
+              <p className="text-subtle mb-4 text-sm">{t("auto_top_up_description")}</p>
+
+              <div className="mb-4 flex items-center">
+                <input type="checkbox" {...registerAutoTopUp("autoTopUpEnabled")} className="mr-2" />
+                <Label>{t("enable_auto_top_up")}</Label>
+              </div>
+
+              {autoTopUpEnabled && (
+                <div className="ml-6 space-y-4">
+                  <div>
+                    <Label>{t("auto_top_up_threshold")}</Label>
+                    <TextField
+                      type="number"
+                      {...registerAutoTopUp("autoTopUpThreshold", {
+                        required: t("error_required_field"),
+                        min: { value: 1, message: t("minimum_threshold_required") },
+                        valueAsNumber: true,
+                      })}
+                      label=""
+                      containerClassName="w-60"
+                      min={1}
+                      addOnSuffix={<>{t("credits")}</>}
+                    />
+                    <p className="text-subtle mt-1 text-xs">{t("auto_top_up_threshold_help")}</p>
+                    {autoTopUpErrors.autoTopUpThreshold && (
+                      <InputError
+                        message={autoTopUpErrors.autoTopUpThreshold.message ?? t("invalid_input")}
+                      />
+                    )}
+                  </div>
+
+                  <div>
+                    <Label>{t("auto_top_up_amount")}</Label>
+                    <TextField
+                      type="number"
+                      {...registerAutoTopUp("autoTopUpAmount", {
+                        required: t("error_required_field"),
+                        min: { value: 50, message: t("minimum_of_credits_required") },
+                        valueAsNumber: true,
+                      })}
+                      label=""
+                      containerClassName="w-60"
+                      min={50}
+                      addOnSuffix={<>{t("credits")}</>}
+                    />
+                    <p className="text-subtle mt-1 text-xs">{t("auto_top_up_amount_help")}</p>
+                    {autoTopUpErrors.autoTopUpAmount && (
+                      <InputError message={autoTopUpErrors.autoTopUpAmount.message ?? t("invalid_input")} />
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <Button type="submit" loading={updateAutoTopUpMutation.isPending} className="mt-4">
+                {t("save")}
+              </Button>
+            </div>
+          </form>
         </div>
       </div>
     </div>

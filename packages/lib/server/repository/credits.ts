@@ -5,7 +5,7 @@ import type { CreditType } from "@calcom/prisma/enums";
 
 export class CreditsRepository {
   static async findCreditBalance(
-    { teamId, userId }: { teamId?: number; userId?: number },
+    { teamId, userId }: { teamId?: number | null; userId?: number | null },
     tx?: PrismaTransaction
   ) {
     const prismaClient = tx ?? prisma;
@@ -15,6 +15,9 @@ export class CreditsRepository {
       additionalCredits: true,
       limitReachedAt: true,
       warningSentAt: true,
+      autoTopUpEnabled: true,
+      autoTopUpThreshold: true,
+      autoTopUpAmount: true,
     };
 
     if (teamId) {
