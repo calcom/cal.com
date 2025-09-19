@@ -3424,6 +3424,7 @@
   "credit_limit_reached_message": "Your Cal.com team {{teamName}} has run out of credits. As a result, SMS messages are now being sent via email instead. To resume sending SMS, please purchase additional credits.",
   "credit_limit_reached_message_user": "Your Cal.com account has run out of credits. As a result, SMS messages are now being sent via email instead. To resume sending SMS, please purchase additional credits.",
   "current_credit_balance": "Current balance: {{balance}} credits",
+  "current_balance": "Current balance:",
   "notification_about_your_booking": "Notification about your booking",
   "monthly_credits": "Monthly credits",
   "total_credits": "Total credits: {{totalCredits}}",

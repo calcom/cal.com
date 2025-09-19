@@ -238,15 +238,16 @@ export default function BillingCredits() {
             <form onSubmit={handleSubmit(onSubmit)} className="mt-4 flex">
               <div className="-mb-1 mr-auto w-full">
                 <div className="flex justify-between">
-                  <div className="flex gap-1">
-                    <Label>{t("additional_credits")}</Label>
+                  <Label>{t("additional_credits")}</Label>
+                  <div className="flex items-center gap-1">
+                    <p className="text-sm font-semibold leading-none">
+                      <span className="text-subtle font-medium">{t("current_balance")}</span>{" "}
+                      {numberFormatter.format(creditsData.credits.additionalCredits)}
+                    </p>
                     <Tooltip content={t("view_additional_credits_expense_tip")}>
-                      <Icon name="info" className="text-muted-foreground mt-0.5 h-3 w-3" />
+                      <Icon name="info" className="text-emphasis h-3 w-3" />
                     </Tooltip>
                   </div>
-                  <p className="text-sm font-semibold leading-none">
-                    {numberFormatter.format(creditsData.credits.additionalCredits)}
-                  </p>
                 </div>
                 <div className="flex w-full items-center gap-2">
                   <TextField
