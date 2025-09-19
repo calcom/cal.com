@@ -5,7 +5,7 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import {
   getRecordingsOfCalVideoByRoomName,
   getDownloadLinkOfCalVideoByRecordingId,
-} from "@calcom/lib/videoClient";
+} from "@calcom/app-store/videoClient";
 import prisma from "@calcom/prisma";
 import type { RecordingItemSchema } from "@calcom/prisma/zod-utils";
 import type { PartialReference } from "@calcom/types/EventManager";
