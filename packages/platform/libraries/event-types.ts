@@ -8,8 +8,8 @@ export { createHandler as createEventType } from "@calcom/trpc/server/routers/vi
 export { updateHandler as updateEventType } from "@calcom/trpc/server/routers/viewer/eventTypes/heavy/update.handler";
 
 export type { TUpdateInputSchema as TUpdateEventTypeInputSchema } from "@calcom/trpc/server/routers/viewer/eventTypes/heavy/update.schema";
-export type { EventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
-export { getEventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
+export type { EventTypesPublic } from "@calcom/features/eventtypes/lib/getEventTypesPublic";
+export { getEventTypesPublic } from "@calcom/features/eventtypes/lib/getEventTypesPublic";
 export { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 
 export {
@@ -21,9 +21,9 @@ export {
 export { validateCustomEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 export { EventManager };
 export { getEventTypeById } from "@calcom/features/eventtypes/lib/getEventTypeById";
-export { getEventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
+export { getEventTypesByViewer } from "@calcom/features/eventtypes/lib/getEventTypesByViewer";
 export type { EventType } from "@calcom/features/eventtypes/lib/getEventTypeById";
-export type { EventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
+export type { EventTypesByViewer } from "@calcom/features/eventtypes/lib/getEventTypesByViewer";
 export type { UpdateEventTypeReturn } from "@calcom/trpc/server/routers/viewer/eventTypes/heavy/update.handler";
 export { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 
