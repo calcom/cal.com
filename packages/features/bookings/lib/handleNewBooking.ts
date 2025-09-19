@@ -41,7 +41,7 @@ import { handleAnalyticsEvents } from "@calcom/lib/analyticsManager/handleAnalyt
 import { groupHostsByGroupId } from "@calcom/lib/bookings/hostGroupUtils";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
-import { getUsernameList } from "@calcom/lib/defaultEvents";
+import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import {
   enrichHostsWithDelegationCredentials,
   getFirstDelegationConferencingCredentialAppLocation,
