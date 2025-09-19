@@ -34,7 +34,7 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
       return false;
     }
     if (token !== this.GOOGLE_WEBHOOK_TOKEN) {
-      log.warn("Invalid webhook token", { token });
+      log.warn("Invalid webhook token");
       return false;
     }
     return true;
@@ -55,12 +55,6 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
   ): Promise<CalendarSubscriptionResult> {
     log.debug("Attempt to subscribe to Google Calendar", { externalId: selectedCalendar.externalId });
     selectedCalendar;
-
-    console.log(
-      "🚀 ~ file: GoogleCalendarSubscription.adapter.ts:45 ~ GoogleCalendarSubscriptionAdapter ~ subscribe ~ this.GOOGLE_WEBHOOK_TOKEN",
-      this.GOOGLE_WEBHOOK_TOKEN,
-      this.GOOGLE_WEBHOOK_URL
-    );
 
     const MONTH_IN_SECONDS = 60 * 60 * 24 * 30;
 
@@ -96,7 +90,8 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
     await client.channels
       .stop({
         requestBody: {
-          resourceId: selectedCalendar.channelResourceId,
+          id: selectedCalendar.channelId as string,
+          resourceId: selectedCalendar.channelResourceId as string,
         },
       })
       .catch((err) => {
@@ -185,7 +180,11 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
           isAllDay: typeof event.start?.date === "string" && !event.start?.dateTime ? true : undefined,
           timeZone: event.start?.timeZone || null,
           recurringEventId: event.recurringEventId,
-          originalStartTime: event.originalStartTime?.dateTime,
+          originalStartDate: event.originalStartTime?.dateTime
+            ? new Date(event.originalStartTime.dateTime)
+            : event.originalStartTime?.date
+            ? new Date(event.originalStartTime.date)
+            : null,
           createdAt: event.created ? new Date(event.created) : null,
           updatedAt: event.updated ? new Date(event.updated) : null,
         };

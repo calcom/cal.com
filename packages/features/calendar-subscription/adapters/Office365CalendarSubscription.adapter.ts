@@ -98,7 +98,7 @@ export class Office365CalendarSubscriptionAdapter implements ICalendarSubscripti
       return false;
     }
     if (clientState !== this.webhookToken) {
-      log.warn("Invalid clientState", { clientState });
+      log.warn("Invalid clientState");
       return false;
     }
     return true;

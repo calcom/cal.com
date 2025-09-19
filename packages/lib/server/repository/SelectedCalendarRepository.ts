@@ -26,14 +26,7 @@ export class SelectedCalendarRepository implements ISelectedCalendarRepository {
     return this.prismaClient.selectedCalendar.findMany({
       where: {
         integration: { in: integrations },
-        OR: [
-          {
-            syncSubscribedAt: null,
-            channelExpiration: {
-              gte: new Date(),
-            },
-          },
-        ],
+        OR: [{ syncSubscribedAt: null }, { channelExpiration: { lte: new Date() } }],
       },
       take,
     });

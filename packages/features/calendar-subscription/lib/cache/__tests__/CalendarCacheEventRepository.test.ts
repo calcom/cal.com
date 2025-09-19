@@ -64,12 +64,10 @@ describe("CalendarCacheEventRepository", () => {
           selectedCalendarId: {
             in: ["calendar-1", "calendar-2"],
           },
-          start: {
-            gte: new Date("2023-12-01T00:00:00Z"),
-          },
-          end: {
-            lte: new Date("2023-12-01T23:59:59Z"),
-          },
+          AND: [
+            { start: { lt: new Date("2023-12-01T23:59:59Z") } },
+            { end: { gt: new Date("2023-12-01T00:00:00Z") } },
+          ],
         },
         select: {
           start: true,

@@ -245,6 +245,7 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
 
       expect(mockClient.channels.stop).toHaveBeenCalledWith({
         requestBody: {
+          id: "test-channel-id",
           resourceId: "test-resource-id",
         },
       });
@@ -320,7 +321,7 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
             isAllDay: undefined,
             timeZone: "UTC",
             recurringEventId: undefined,
-            originalStartTime: undefined,
+            originalStartDate: null,
             createdAt: new Date("2023-12-01T09:00:00Z"),
             updatedAt: new Date("2023-12-01T09:30:00Z"),
           },

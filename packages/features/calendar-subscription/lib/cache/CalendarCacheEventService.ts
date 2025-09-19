@@ -61,7 +61,7 @@ export class CalendarCacheEventService {
       toUpsert: toUpsert.length,
       toDelete: toDelete.length,
     });
-    await Promise.allSettled([
+    await Promise.all([
       this.deps.calendarCacheEventRepository.deleteMany(toDelete),
       this.deps.calendarCacheEventRepository.upsertMany(toUpsert),
     ]);

@@ -15,12 +15,7 @@ export class CalendarCacheEventRepository implements ICalendarCacheEventReposito
         selectedCalendarId: {
           in: selectedCalendarId,
         },
-        start: {
-          gte: start,
-        },
-        end: {
-          lte: end,
-        },
+        AND: [{ start: { lt: end } }, { end: { gt: start } }],
       },
       select: {
         start: true,
@@ -30,7 +25,7 @@ export class CalendarCacheEventRepository implements ICalendarCacheEventReposito
     });
   }
 
-  async upsertMany(events: CalendarCacheEvent[]): Promise<unknown> {
+  async upsertMany(events: Partial<CalendarCacheEvent>[]): Promise<unknown> {
     if (events.length === 0) {
       return;
     }

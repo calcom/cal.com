@@ -94,32 +94,11 @@ describe("/api/cron/calendar-subscriptions", () => {
   });
 
   describe("Feature flag checks", () => {
-    test("should return early when cache is disabled", async () => {
+    test("should return early when cache AND sync are disabled", async () => {
       const request = new NextRequest("http://localhost/api/cron/calendar-subscriptions");
       request.headers.set("authorization", "test-cron-key");
 
       const mockIsCacheEnabled = vi.fn().mockResolvedValue(false);
-      const mockIsSyncEnabled = vi.fn().mockResolvedValue(true);
-      const mockCheckForNewSubscriptions = vi.fn();
-
-      mockCalendarSubscriptionService.prototype.isCacheEnabled = mockIsCacheEnabled;
-      mockCalendarSubscriptionService.prototype.isSyncEnabled = mockIsSyncEnabled;
-      mockCalendarSubscriptionService.prototype.checkForNewSubscriptions = mockCheckForNewSubscriptions;
-
-      const { GET } = await import("../route");
-      const response = await GET(request, { params: Promise.resolve({}) });
-
-      expect(response.status).toBe(200);
-      const body = await response.json();
-      expect(body.ok).toBe(true);
-      expect(mockCheckForNewSubscriptions).not.toHaveBeenCalled();
-    });
-
-    test("should return early when sync is disabled", async () => {
-      const request = new NextRequest("http://localhost/api/cron/calendar-subscriptions");
-      request.headers.set("authorization", "test-cron-key");
-
-      const mockIsCacheEnabled = vi.fn().mockResolvedValue(true);
       const mockIsSyncEnabled = vi.fn().mockResolvedValue(false);
       const mockCheckForNewSubscriptions = vi.fn();
 

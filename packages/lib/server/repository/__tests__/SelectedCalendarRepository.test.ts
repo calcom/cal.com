@@ -129,14 +129,7 @@ describe("SelectedCalendarRepository", () => {
       expect(mockPrismaClient.selectedCalendar.findMany).toHaveBeenCalledWith({
         where: {
           integration: { in: ["google_calendar", "office365_calendar"] },
-          OR: [
-            {
-              syncSubscribedAt: null,
-              channelExpiration: {
-                gte: expect.any(Date),
-              },
-            },
-          ],
+          OR: [{ syncSubscribedAt: null }, { channelExpiration: { lte: expect.any(Date) } }],
         },
         take: 10,
       });
@@ -156,14 +149,7 @@ describe("SelectedCalendarRepository", () => {
       expect(mockPrismaClient.selectedCalendar.findMany).toHaveBeenCalledWith({
         where: {
           integration: { in: [] },
-          OR: [
-            {
-              syncSubscribedAt: null,
-              channelExpiration: {
-                gte: expect.any(Date),
-              },
-            },
-          ],
+          OR: [{ syncSubscribedAt: null }, { channelExpiration: { lte: expect.any(Date) } }],
         },
         take: 5,
       });
