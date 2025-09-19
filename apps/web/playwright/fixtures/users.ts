@@ -22,6 +22,78 @@ import { selectFirstAvailableTimeSlotNextMonth, teamEventSlug, teamEventTitle } 
 import type { createEmailsFixture } from "./emails";
 import { TimeZoneEnum } from "./types";
 
+// Helper function to create a custom role without insights.read permission for e2e testing
+const createCustomRoleWithoutInsights = async (teamId: number, roleName = "E2E Role Without Insights") => {
+  const permissionsWithoutInsights = [
+    { resource: "team", action: "create" },
+    { resource: "team", action: "read" },
+    { resource: "team", action: "update" },
+    { resource: "team", action: "changeMemberRole" },
+    { resource: "team", action: "remove" },
+    { resource: "team", action: "invite" },
+
+    // Event Type permissions
+    { resource: "eventType", action: "create" },
+    { resource: "eventType", action: "read" },
+    { resource: "eventType", action: "update" },
+    { resource: "eventType", action: "delete" },
+
+    // Booking permissions
+    { resource: "booking", action: "read" },
+    { resource: "booking", action: "update" },
+    { resource: "booking", action: "readTeamBookings" },
+    { resource: "booking", action: "readOrgBookings" },
+    { resource: "booking", action: "readRecordings" },
+
+    { resource: "organization", action: "read" },
+    { resource: "organization", action: "create" },
+    { resource: "organization", action: "listMembers" },
+
+    { resource: "apiKey", action: "create" },
+    { resource: "apiKey", action: "findKeyOfType" },
+
+    { resource: "workflow", action: "create" },
+    { resource: "workflow", action: "read" },
+    { resource: "workflow", action: "update" },
+    { resource: "workflow", action: "delete" },
+
+    { resource: "routingForm", action: "create" },
+    { resource: "routingForm", action: "read" },
+    { resource: "routingForm", action: "update" },
+    { resource: "routingForm", action: "delete" },
+
+    // NOTE: Intentionally excluding insights.read permission
+    // { resource: "insights", action: "read" },
+
+    { resource: "availability", action: "override" },
+  ];
+
+  return await prisma.role.create({
+    data: {
+      id: `e2e_no_insights_${teamId}_${Date.now()}`,
+      name: roleName,
+      description: "E2E role for testing - has all permissions except insights.read",
+      color: "#dc2626",
+      teamId: teamId,
+      type: "CUSTOM",
+      permissions: {
+        create: permissionsWithoutInsights,
+      },
+    },
+  });
+};
+
+const enablePBACForTeam = async (teamId: number) => {
+  await prisma.teamFeatures.create({
+    data: {
+      featureId: "pbac",
+      teamId: teamId,
+      assignedBy: "e2e-fixture",
+      assignedAt: new Date(),
+    },
+  });
+};
+
 // Don't import hashPassword from app as that ends up importing next-auth and initializing it before NEXTAUTH_URL can be updated during tests.
 export function hashPassword(password: string) {
   const hashedPassword = hash(password, 12);
@@ -651,7 +723,22 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     (await prisma.user.findUnique({
       where: { id: store.user.id },
-      include: { eventTypes: true },
+      include: {
+        eventTypes: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            length: true,
+            description: true,
+            price: true,
+            currency: true,
+            hidden: true,
+            userId: true,
+            teamId: true,
+          },
+        },
+      },
     }))!;
   return {
     id: user.id,
@@ -688,7 +775,25 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     getFirstTeamMembership: async () => {
       const memberships = await prisma.membership.findMany({
         where: { userId: user.id },
-        include: { team: true, user: true },
+        include: {
+          team: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              isOrganization: true,
+              metadata: true,
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              username: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
       });
 
       const membership = memberships
@@ -717,9 +822,26 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
         },
         include: {
           team: {
-            include: {
-              children: true,
-              organizationSettings: true,
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              isOrganization: true,
+              metadata: true,
+              children: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                },
+              },
+              organizationSettings: {
+                select: {
+                  id: true,
+                  orgAutoAcceptEmail: true,
+                  isOrganizationConfigured: true,
+                },
+              },
             },
           },
         },

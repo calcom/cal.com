@@ -1,5 +1,6 @@
 import { expect } from "@playwright/test";
 
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { randomString } from "@calcom/lib/random";
 import prisma from "@calcom/prisma";
 
@@ -271,5 +272,72 @@ test.describe("Insights", async () => {
       const chartCard = page.locator("[data-testid='panel-card'] h2").filter({ hasText: title });
       await expect(chartCard).toBeVisible();
     }
+  });
+
+  test("should be able to access insights page with custom role lacking insights.read permission", async ({
+    page,
+    users,
+  }) => {
+    const owner = await users.create(undefined, {
+      hasTeam: true,
+      isUnpublished: true,
+      isOrg: true,
+    });
+
+    const membership = await owner.getOrgMembership();
+    const orgId = membership.team.id;
+
+    await prisma.teamFeatures.create({
+      data: {
+        featureId: "pbac",
+        teamId: orgId,
+        assignedBy: "e2e-fixture",
+        assignedAt: new Date(),
+      },
+    });
+
+    const customRole = await prisma.role.create({
+      data: {
+        id: `e2e_no_insights_${orgId}_${Date.now()}`,
+        name: "E2E Role Without Insights",
+        description: "E2E role for testing - has all permissions except insights.read",
+        color: "#dc2626",
+        teamId: orgId,
+        type: "CUSTOM",
+        permissions: {
+          create: [
+            { resource: "team", action: "read" },
+            { resource: "eventType", action: "read" },
+            { resource: "booking", action: "read" },
+            { resource: "organization", action: "read" },
+            // Intentionally excluding insights.read permission
+          ],
+        },
+      },
+    });
+
+    const testUser = await users.create();
+    await prisma.membership.create({
+      data: {
+        userId: testUser.id,
+        teamId: orgId,
+        role: "MEMBER",
+        customRoleId: customRole.id,
+        accepted: true,
+      },
+    });
+
+    const featuresRepository = new FeaturesRepository(prisma);
+    const isPBACEnabled = await featuresRepository.checkIfTeamHasFeature(orgId, "pbac");
+    expect(isPBACEnabled).toBe(true);
+
+    await testUser.apiLogin();
+
+    await page.goto("/insights");
+
+    // Verify the user can access the insights page
+    await page.locator('[data-testid^="insights-filters-"]').waitFor();
+
+    expect(page.url()).toContain("/insights");
   });
 });
