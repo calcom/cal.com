@@ -163,7 +163,7 @@ export class BookingsService_2024_08_13 {
     authUser: AuthOptionalUser
   ) {
     if (!eventType.bookingRequiresAuthentication) return true;
-    if (!eventType.bookingRequiresAuthentication && !authUser) {
+    if (!authUser) {
       throw new UnauthorizedException(
         "checkBookingRequiresAuthentication - request must be authenticated by passing credentials belonging to event type owner, host or team or org admin or owner."
       );
