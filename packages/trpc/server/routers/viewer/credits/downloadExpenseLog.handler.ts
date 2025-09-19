@@ -53,25 +53,25 @@ export const downloadExpenseLogHandler = async ({ ctx, input }: DownloadExpenseL
         (log: {
           date: Date;
           credits: number | null;
-          creditType?: string;
-          bookingUid?: string;
-          smsSid?: string;
-          smsSegments?: number;
-          phoneNumber?: string;
-          email?: string;
-          callDuration?: number;
-          externalRef?: string;
+          creditType: CreditType;
+          bookingUid: string | null;
+          smsSid: string | null;
+          smsSegments: number | null;
+          phoneNumber: string | null;
+          email: string | null;
+          callDuration: number | null;
+          externalRef: string | null;
         }) => [
           log.date,
           log.credits,
           log.creditType,
-          log.bookingUid,
-          log.smsSid,
-          log.smsSegments,
-          log.phoneNumber,
-          log.email,
-          log.callDuration,
-          log.externalRef,
+          log.bookingUid ?? undefined,
+          log.smsSid ?? undefined,
+          log.smsSegments ?? undefined,
+          log.phoneNumber ?? undefined,
+          log.email ?? undefined,
+          log.callDuration ?? undefined,
+          log.externalRef ?? undefined,
         ]
       )
     : [];
