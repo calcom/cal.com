@@ -2,6 +2,7 @@ import { AppConfig } from "@/config/type";
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
 import { BILLING_QUEUE, INCREMENT_JOB, IncrementJobDataType } from "@/modules/billing/billing.processor";
 import { BillingRepository } from "@/modules/billing/billing.repository";
+import { BillingCacheService } from "@/modules/billing/services/billing-cache.service";
 import { BillingConfigService } from "@/modules/billing/services/billing.config.service";
 import { PlatformPlan } from "@/modules/billing/types";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
@@ -36,22 +37,37 @@ export class BillingService implements OnModuleDestroy {
     private readonly usersRepository: UsersRepository,
     private readonly oAuthClientRepository: OAuthClientRepository,
     private readonly bookingsRepository: BookingsRepository_2024_08_13,
+    private readonly billingCacheService: BillingCacheService,
     @InjectQueue(BILLING_QUEUE) private readonly billingQueue: Queue
   ) {
     this.webAppUrl = this.configService.get("app.baseUrl", { infer: true }) ?? "https://app.cal.com";
   }
 
   async getBillingData(teamId: number) {
+    const cachedBillingData = await this.billingCacheService.getBillingCache(teamId);
+    if (cachedBillingData) {
+      return cachedBillingData;
+    }
+
     const teamWithBilling = await this.teamsRepository.findByIdIncludeBilling(teamId);
+    let billingData;
+
     if (teamWithBilling?.platformBilling) {
       if (!teamWithBilling?.platformBilling.subscriptionId) {
-        return { team: teamWithBilling, status: "no_subscription", plan: "none" };
+        billingData = { team: teamWithBilling, status: "no_subscription" as const, plan: "none" };
+      } else {
+        billingData = {
+          team: teamWithBilling,
+          status: "valid" as const,
+          plan: teamWithBilling.platformBilling.plan,
+        };
       }
-
-      return { team: teamWithBilling, status: "valid", plan: teamWithBilling.platformBilling.plan };
     } else {
-      return { team: teamWithBilling, status: "no_billing", plan: "none" };
+      billingData = { team: teamWithBilling, status: "no_billing" as const, plan: "none" };
     }
+
+    await this.billingCacheService.setBillingCache(teamId, billingData);
+    return billingData;
   }
 
   async createTeamBilling(teamId: number) {
@@ -168,6 +184,7 @@ export class BillingService implements OnModuleDestroy {
       const currentBilling = await this.billingRepository.getBillingForTeam(Number.parseInt(teamId));
       if (currentBilling?.subscriptionId === subscription.id) {
         await this.billingRepository.deleteBilling(currentBilling.id);
+        await this.billingCacheService.deleteBillingCache(Number.parseInt(teamId));
         this.logger.log(`Stripe Subscription deleted`, {
           customerId: currentBilling.customerId,
           subscriptionId: currentBilling.subscriptionId,
@@ -207,6 +224,13 @@ export class BillingService implements OnModuleDestroy {
     const customerId = this.getCustomerIdFromInvoice(invoice);
     if (subscriptionId && customerId) {
       await this.billingRepository.updateBillingOverdue(subscriptionId, customerId, false);
+      const teamBilling = await this.billingRepository.getBillingForTeamBySubscriptionId(subscriptionId);
+      if (teamBilling) {
+        const team = await this.teamsRepository.findTeamByPlatformBillingId(teamBilling.id);
+        if (team?.id) {
+          await this.billingCacheService.deleteBillingCache(team.id);
+        }
+      }
     }
   }
 
@@ -216,6 +240,13 @@ export class BillingService implements OnModuleDestroy {
     const customerId = this.getCustomerIdFromInvoice(invoice);
     if (subscriptionId && customerId) {
       await this.billingRepository.updateBillingOverdue(subscriptionId, customerId, true);
+      const teamBilling = await this.billingRepository.getBillingForTeamBySubscriptionId(subscriptionId);
+      if (teamBilling) {
+        const team = await this.teamsRepository.findTeamByPlatformBillingId(teamBilling.id);
+        if (team?.id) {
+          await this.billingCacheService.deleteBillingCache(team.id);
+        }
+      }
     }
   }
 
@@ -235,6 +266,14 @@ export class BillingService implements OnModuleDestroy {
 
       if (existingUserSubscription.status === "active") {
         await this.billingRepository.updateBillingOverdue(subscriptionId, customerId, false);
+      }
+
+      const teamBilling = await this.billingRepository.getBillingForTeamBySubscriptionId(subscriptionId);
+      if (teamBilling) {
+        const team = await this.teamsRepository.findTeamByPlatformBillingId(teamBilling.id);
+        if (team?.id) {
+          await this.billingCacheService.deleteBillingCache(team.id);
+        }
       }
     }
 
@@ -278,6 +317,8 @@ export class BillingService implements OnModuleDestroy {
     if (checkoutSession.mode === "setup") {
       await this.updateStripeSubscriptionForTeam(teamId, plan as PlatformPlan);
     }
+
+    await this.billingCacheService.deleteBillingCache(teamId);
 
     return;
   }
@@ -459,6 +500,8 @@ export class BillingService implements OnModuleDestroy {
       await this.stripeService
         .getStripe()
         .subscriptions.cancel(teamWithBilling?.platformBilling?.subscriptionId);
+
+      await this.billingCacheService.deleteBillingCache(teamId);
     } catch (error) {
       this.logger.log(error, "error while cancelling team subscription in stripe");
       throw new BadRequestException("Failed to cancel team subscription");
