@@ -5,8 +5,9 @@ import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-f
 import type { z } from "zod";
 import { ZodError } from "zod";
 
-import { getCurrencySymbol } from "@calcom/app-store/_utils/payments/currencyConversions";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { getCurrencySymbol } from "@calcom/lib/currencyConversions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
@@ -572,6 +573,7 @@ function FieldEditDialog({
   paymentCurrency: string;
 }) {
   const { t } = useLocale();
+  const isPlatform = useIsPlatform();
   const fieldForm = useForm<RhfFormField>({
     defaultValues: dialog.data || {},
     //resolver: zodResolver(fieldSchema),
@@ -649,7 +651,7 @@ function FieldEditDialog({
                       {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
                     />
                     <div>
-                      {formFieldType === "boolean" ? (
+                      {formFieldType === "boolean" && !isPlatform ? (
                         <CheckboxFieldLabel fieldForm={fieldForm} />
                       ) : (
                         <InputField
