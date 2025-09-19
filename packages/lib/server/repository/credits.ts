@@ -1,14 +1,17 @@
 import type { PrismaTransaction } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import type { CreditType } from "@calcom/prisma/enums";
+import type { CreditType } from "@calcom/prisma/client";
 
 export class CreditsRepository {
   static async findCreditBalance(
     where: { teamId?: number | null; userId?: number | null },
     tx: PrismaTransaction = prisma
   ) {
-    if (where.teamId) {
+    if (where.teamId != null && where.userId != null) {
+      throw new Error("Provide exactly one of teamId or userId");
+    }
+    if (where.teamId != null) {
       return tx.creditBalance.findUnique({
         where: { teamId: where.teamId },
         select: {
@@ -23,7 +26,7 @@ export class CreditsRepository {
           lastAutoRechargeAt: true,
         },
       });
-    } else if (where.userId) {
+    } else if (where.userId != null) {
       return tx.creditBalance.findUnique({
         where: { userId: where.userId },
         select: {
@@ -46,7 +49,10 @@ export class CreditsRepository {
     where: { teamId?: number | null; userId?: number | null },
     tx: PrismaTransaction = prisma
   ) {
-    if (where.teamId) {
+    if (where.teamId != null && where.userId != null) {
+      throw new Error("Provide exactly one of teamId or userId");
+    }
+    if (where.teamId != null) {
       return tx.creditBalance.findUnique({
         where: { teamId: where.teamId },
         select: {
@@ -57,7 +63,7 @@ export class CreditsRepository {
           stripeCustomerId: true,
         },
       });
-    } else if (where.userId) {
+    } else if (where.userId != null) {
       return tx.creditBalance.findUnique({
         where: { userId: where.userId },
         select: {
@@ -159,7 +165,7 @@ export class CreditsRepository {
       userId?: number | null;
       startDate?: Date;
       endDate?: Date;
-      creditType?: typeof CreditType.MONTHLY | typeof CreditType.ADDITIONAL;
+      creditType?: CreditType; // or: CreditType.MONTHLY | CreditType.ADDITIONAL
     },
     tx: PrismaTransaction = prisma
   ) {
@@ -306,7 +312,6 @@ export class CreditsRepository {
       creditBalanceId,
       credits,
       creditType,
-      creditFor,
       date,
       bookingUid,
       smsSid,
@@ -318,8 +323,7 @@ export class CreditsRepository {
     }: {
       creditBalanceId: string;
       credits: number | null;
-      creditType: typeof CreditType.MONTHLY | typeof CreditType.ADDITIONAL;
-      creditFor?: never;
+      creditType: CreditType;
       date: Date;
       bookingUid?: string;
       smsSid?: string;
@@ -335,7 +339,6 @@ export class CreditsRepository {
       data: {
         credits,
         creditType,
-        creditFor,
         date,
         bookingUid,
         smsSid,

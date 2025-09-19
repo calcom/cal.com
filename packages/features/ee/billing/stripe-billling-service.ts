@@ -127,7 +127,7 @@ export class StripeBillingService {
     };
   }
 
-  async handleSubscriptionCreation() {
+  async handleSubscriptionCreation(_args: Parameters<BillingService["handleSubscriptionCreation"]>[0]) {
     throw new Error("Method not implemented.");
   }
 
@@ -200,7 +200,7 @@ export class StripeBillingService {
 
   async createAutoRechargePaymentIntent({
     customerId,
-    amount,
+    amount, // quantity of credits to buy
     metadata,
   }: {
     customerId: string;
@@ -213,8 +213,16 @@ export class StripeBillingService {
     };
   }): Promise<{ success: boolean; error?: string }> {
     try {
-      const priceInCents = 1; // Price per credit in cents
-      const totalAmount = amount * priceInCents;
+      const creditsPriceId = process.env.NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID;
+      if (!creditsPriceId) {
+        return { success: false, error: "CREDITS price not configured" };
+      }
+      const price = await this.stripe.prices.retrieve(creditsPriceId);
+      const unitAmount = price.unit_amount;
+      if (!unitAmount) {
+        return { success: false, error: "Unit amount missing on credits price" };
+      }
+      const totalAmount = unitAmount * amount;
 
       // Get customer's payment methods
       const paymentMethods = await this.stripe.paymentMethods.list({
@@ -226,8 +234,12 @@ export class StripeBillingService {
         return { success: false, error: "No payment methods found for customer" };
       }
 
-      // Use the default payment method (most recently added)
-      const defaultPaymentMethod = paymentMethods.data[0].id;
+      // Use default payment method if set; else first available
+      const customer = await this.stripe.customers.retrieve(customerId);
+      const defaultPm = (customer as Stripe.Customer).invoice_settings?.default_payment_method as
+        | string
+        | null;
+      const defaultPaymentMethod = defaultPm ?? paymentMethods.data[0].id;
 
       // Create and confirm a payment intent
       await this.stripe.paymentIntents.create({
@@ -237,6 +249,7 @@ export class StripeBillingService {
         payment_method: defaultPaymentMethod,
         off_session: true,
         confirm: true,
+        error_on_requires_action: true,
         metadata,
       });
 

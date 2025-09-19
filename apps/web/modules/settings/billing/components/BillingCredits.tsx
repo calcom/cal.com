@@ -1,6 +1,4 @@
 /* eslint-disable prettier/prettier */
-
-/* eslint-disable react/jsx-no-undef */
 "use client";
 
 import { useSession } from "next-auth/react";
@@ -18,15 +16,27 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@calcom/ui/components/dialog";
 import { Select } from "@calcom/ui/components/form";
 import { TextField, Label, InputError } from "@calcom/ui/components/form";
 import { ProgressBar } from "@calcom/ui/components/progress-bar";
+import { Switch } from "@calcom/ui/components/switch";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { BillingCreditsSkeleton } from "./BillingCreditsSkeleton";
 
 /* eslint-disable prettier/prettier */
-/* eslint-disable react/jsx-no-undef */
+
+/* eslint-disable prettier/prettier */
+
+/* eslint-disable prettier/prettier */
 
 type MonthOption = {
   value: string;
@@ -127,6 +137,8 @@ export default function BillingCredits() {
       showToast(t("auto_recharge_settings_failed"), "error");
     },
   });
+
+  if (!shouldRender) return null;
 
   const handleDownload = async () => {
     setIsDownloading(true);
