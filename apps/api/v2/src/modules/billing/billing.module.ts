@@ -45,7 +45,7 @@ import { Module } from "@nestjs/common";
     OAuthClientRepository,
     BookingsRepository_2024_08_13,
   ],
-  exports: [BillingService, BillingRepository, ManagedOrganizationsBillingService],
+  exports: [BillingService, BillingRepository, ManagedOrganizationsBillingService, "IBillingService"],
   controllers: [BillingController],
 })
 export class BillingModule {}

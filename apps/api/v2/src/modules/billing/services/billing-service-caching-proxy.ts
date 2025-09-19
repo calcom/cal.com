@@ -24,18 +24,31 @@ export class BillingServiceCachingProxy implements IBillingService {
   }
 
   private async deleteBillingCache(teamId: number) {
-    await this.redisService.del(REDIS_BILLING_CACHE_KEY(teamId));
+    try {
+      await this.redisService.del(REDIS_BILLING_CACHE_KEY(teamId));
+    } catch (error) {
+      console.warn("Redis cache delete failed:", error);
+    }
   }
 
   private async getBillingCache(teamId: number) {
-    const cachedResult = await this.redisService.get<BillingData>(REDIS_BILLING_CACHE_KEY(teamId));
-    return cachedResult;
+    try {
+      const cachedResult = await this.redisService.get<BillingData>(REDIS_BILLING_CACHE_KEY(teamId));
+      return cachedResult;
+    } catch (error) {
+      console.warn("Redis cache get failed, falling back to database:", error);
+      return null;
+    }
   }
 
   private async setBillingCache(teamId: number, billingData: BillingData): Promise<void> {
-    await this.redisService.set<BillingData>(REDIS_BILLING_CACHE_KEY(teamId), billingData, {
-      ttl: BILLING_CACHE_TTL_MS,
-    });
+    try {
+      await this.redisService.set<BillingData>(REDIS_BILLING_CACHE_KEY(teamId), billingData, {
+        ttl: BILLING_CACHE_TTL_MS,
+      });
+    } catch (error) {
+      console.warn("Redis cache set failed:", error);
+    }
   }
 
   async createTeamBilling(teamId: number): Promise<string> {
