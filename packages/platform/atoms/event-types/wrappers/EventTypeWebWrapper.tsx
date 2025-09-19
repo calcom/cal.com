@@ -9,8 +9,6 @@ import { useOrgBranding } from "@calcom/features/ee/organizations/context/provid
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
-import { EventPermissionProvider } from "@calcom/features/pbac/client/context/EventPermissionContext";
-import { useWorkflowPermission } from "@calcom/features/pbac/client/hooks/useEventPermission";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
@@ -30,21 +28,6 @@ import { TRPCClientError } from "@trpc/react-query";
 import { useEventTypeForm } from "../hooks/useEventTypeForm";
 import { useHandleRouteChange } from "../hooks/useHandleRouteChange";
 import { useTabsNavigations } from "../hooks/useTabsNavigations";
-
-type EventPermissions = {
-  eventTypes: {
-    canRead: boolean;
-    canCreate: boolean;
-    canUpdate: boolean;
-    canDelete: boolean;
-  };
-  workflows: {
-    canRead: boolean;
-    canCreate: boolean;
-    canUpdate: boolean;
-    canDelete: boolean;
-  };
-};
 
 const ManagedEventTypeDialog = dynamic(
   () => import("@calcom/features/eventtypes/components/dialogs/ManagedEventDialog")
@@ -108,47 +91,21 @@ const EventAITab = dynamic(() =>
 export type EventTypeWebWrapperProps = {
   id: number;
   data: RouterOutputs["viewer"]["eventTypes"]["get"];
-  permissions?: EventPermissions;
 };
 
-export const EventTypeWebWrapper = ({
-  id,
-  data: serverFetchedData,
-  permissions = {
-    eventTypes: {
-      canRead: false,
-      canCreate: false,
-      canUpdate: false,
-      canDelete: false,
-    },
-    workflows: {
-      canRead: false,
-      canCreate: false,
-      canUpdate: false,
-      canDelete: false,
-    },
-  },
-}: EventTypeWebWrapperProps) => {
+export const EventTypeWebWrapper = ({ id, data: serverFetchedData }: EventTypeWebWrapperProps) => {
   const { data: eventTypeQueryData } = trpc.viewer.eventTypes.get.useQuery(
     { id },
     { enabled: !serverFetchedData }
   );
 
   if (serverFetchedData) {
-    return (
-      <EventPermissionProvider initialPermissions={permissions}>
-        <EventTypeWeb {...serverFetchedData} id={id} />
-      </EventPermissionProvider>
-    );
+    return <EventTypeWeb {...serverFetchedData} id={id} />;
   }
 
   if (!eventTypeQueryData) return null;
 
-  return (
-    <EventPermissionProvider initialPermissions={permissions}>
-      <EventTypeWeb {...eventTypeQueryData} id={id} />
-    </EventPermissionProvider>
-  );
+  return <EventTypeWeb {...eventTypeQueryData} id={id} />;
 };
 
 const EventTypeWeb = ({
@@ -174,9 +131,6 @@ const EventTypeWeb = ({
     teamId: eventType.team?.id || eventType.parent?.teamId,
     onlyInstalled: true,
   });
-
-  // Check workflow permissions
-  const { hasPermission: canReadWorkflows } = useWorkflowPermission("canRead");
   const updateMutation = trpc.viewer.eventTypes.heavy.update.useMutation({
     onSuccess: async () => {
       const currentValues = form.getValues();
@@ -287,12 +241,11 @@ const EventTypeWeb = ({
     instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
     recurring: <EventRecurringTab eventType={eventType} />,
     apps: <EventAppsTab eventType={{ ...eventType, URL: permalink }} />,
-    workflows:
-      allActiveWorkflows && canReadWorkflows ? (
-        <EventWorkflowsTab eventType={eventType} workflows={allActiveWorkflows} />
-      ) : (
-        <></>
-      ),
+    workflows: allActiveWorkflows ? (
+      <EventWorkflowsTab eventType={eventType} workflows={allActiveWorkflows} />
+    ) : (
+      <></>
+    ),
     webhooks: <EventWebhooksTab eventType={eventType} />,
     ai: <EventAITab eventType={eventType} isTeamEvent={!!team} />,
   } as const;
@@ -405,7 +358,6 @@ const EventTypeWeb = ({
     team,
     eventTypeApps,
     allActiveWorkflows,
-    canReadWorkflows,
   });
 
   return (

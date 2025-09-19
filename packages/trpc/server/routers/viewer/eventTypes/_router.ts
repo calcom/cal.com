@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 import { logP } from "@calcom/lib/perf";
-import { MembershipRole } from "@calcom/prisma/enums";
 
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
@@ -11,7 +10,23 @@ import { ZGetHashedLinkInputSchema } from "./getHashedLink.schema";
 import { ZGetHashedLinksInputSchema } from "./getHashedLinks.schema";
 import { ZGetTeamAndEventTypeOptionsSchema } from "./getTeamAndEventTypeOptions.schema";
 import { get } from "./procedures/get";
-import { createEventPbacProcedure } from "./util";
+import { eventOwnerProcedure } from "./util";
+
+type BookingsRouterHandlerCache = {
+  getByViewer?: typeof import("./getByViewer.handler").getByViewerHandler;
+  getUserEventGroups?: typeof import("./getUserEventGroups.handler").getUserEventGroups;
+  getEventTypesFromGroup?: typeof import("./getEventTypesFromGroup.handler").getEventTypesFromGroup;
+  getTeamAndEventTypeOptions?: typeof import("./getTeamAndEventTypeOptions.handler").getTeamAndEventTypeOptions;
+  list?: typeof import("./list.handler").listHandler;
+  listWithTeam?: typeof import("./listWithTeam.handler").listWithTeamHandler;
+  get?: typeof import("./get.handler").getHandler;
+  delete?: typeof import("./delete.handler").deleteHandler;
+  bulkEventFetch?: typeof import("./bulkEventFetch.handler").bulkEventFetchHandler;
+  bulkUpdateToDefaultLocation?: typeof import("./bulkUpdateToDefaultLocation.handler").bulkUpdateToDefaultLocationHandler;
+};
+
+// Init the handler cache
+const UNSTABLE_HANDLER_CACHE: BookingsRouterHandlerCache = {};
 
 export const eventTypesRouter = router({
   // REVIEW: What should we name this procedure?
@@ -96,16 +111,14 @@ export const eventTypesRouter = router({
 
   get,
 
-  delete: createEventPbacProcedure("eventType.delete", [MembershipRole.ADMIN, MembershipRole.OWNER])
-    .input(ZDeleteInputSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { deleteHandler } = await import("./delete.handler");
+  delete: eventOwnerProcedure.input(ZDeleteInputSchema).mutation(async ({ ctx, input }) => {
+    const { deleteHandler } = await import("./delete.handler");
 
-      return deleteHandler({
-        ctx,
-        input,
-      });
-    }),
+    return deleteHandler({
+      ctx,
+      input,
+    });
+  }),
 
   bulkEventFetch: authedProcedure.query(async ({ ctx }) => {
     const { bulkEventFetchHandler } = await import("./bulkEventFetch.handler");

@@ -265,7 +265,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "team",
       i18nKey: "pbac_action_invite",
       descriptionI18nKey: "pbac_desc_invite_team_members",
-      dependsOn: ["team.read", "team.listMembers", "role.read"],
+      dependsOn: ["team.read", "team.listMembers"],
     },
     [CustomAction.Remove]: {
       description: "Remove team members",
@@ -285,7 +285,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "team",
       i18nKey: "pbac_action_change_member_role",
       descriptionI18nKey: "pbac_desc_change_team_member_role",
-      dependsOn: ["team.read", "team.listMembers", "role.read"],
+      dependsOn: ["team.read", "team.listMembers"],
     },
     [CustomAction.Impersonate]: {
       description: "Impersonate team members",

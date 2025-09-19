@@ -107,9 +107,9 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
 
   const { isAdvancedMode, permissions, color } = form.watch();
 
-  const { filteredResources, scopedRegistry } = useMemo(() => {
+  const filteredResources = useMemo(() => {
     const scopedRegistry = getPermissionsForScope(scope);
-    const filteredResources = Object.keys(scopedRegistry).filter((resource) =>
+    return Object.keys(scopedRegistry).filter((resource) =>
       t(
         scopedRegistry[resource as Resource][CrudAction.All as keyof (typeof scopedRegistry)[Resource]]
           ?.i18nKey || ""
@@ -117,7 +117,6 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
         .toLowerCase()
         .includes(searchQuery.toLowerCase())
     );
-    return { filteredResources, scopedRegistry };
   }, [searchQuery, t, scope]);
 
   const createMutation = trpc.viewer.pbac.createRole.useMutation({
@@ -213,6 +212,7 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
                       disabled={isSystemRole}
                     />
                   </div>
+
                   {filteredResources.map((resource) => (
                     <AdvancedPermissionGroup
                       key={resource}
@@ -222,7 +222,7 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
                       disabled={isSystemRole}
                       scope={scope}
                     />
-                  ))}{" "}
+                  ))}
                 </div>
               ) : (
                 <div className="bg-muted rounded-xl p-1">
@@ -237,7 +237,7 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
                     </div>
                   </div>
                   <div className="bg-default border-subtle divide-subtle divide-y rounded-[10px] border">
-                    {Object.keys(scopedRegistry).map((resource) => (
+                    {Object.keys(getPermissionsForScope(scope)).map((resource) => (
                       <SimplePermissionItem
                         key={resource}
                         resource={resource}
@@ -247,7 +247,7 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
                         scope={scope}
                       />
                     ))}
-                  </div>{" "}
+                  </div>
                 </div>
               )}
             </div>

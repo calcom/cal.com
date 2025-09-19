@@ -25,10 +25,7 @@ import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 
-type PartialWorkflowType = Pick<
-  WorkflowType,
-  "name" | "activeOn" | "isOrg" | "steps" | "id" | "readOnly" | "permissions"
->;
+type PartialWorkflowType = Pick<WorkflowType, "name" | "activeOn" | "isOrg" | "steps" | "id" | "readOnly">;
 
 type ItemProps = {
   workflow: PartialWorkflowType;
@@ -44,6 +41,14 @@ type ItemProps = {
 const WorkflowListItem = (props: ItemProps) => {
   const { workflow, eventType, isActive } = props;
   const { t } = useLocale();
+
+  const [activeEventTypeIds, setActiveEventTypeIds] = useState(
+    workflow.activeOn?.map((active) => {
+      if (active.eventType) {
+        return active.eventType.id;
+      }
+    }) ?? []
+  );
 
   const utils = trpc.useUtils();
 
@@ -132,7 +137,7 @@ const WorkflowListItem = (props: ItemProps) => {
             </div>
           </>
         </div>
-        {workflow.permissions?.canUpdate && (
+        {!workflow.readOnly && (
           <div className="flex-none">
             <Link href={`/workflows/${workflow.id}`} passHref={true} target="_blank">
               <Button type="button" color="minimal" className="mr-4" EndIcon="external-link">
@@ -157,7 +162,7 @@ const WorkflowListItem = (props: ItemProps) => {
             )}
             <Switch
               checked={isActive}
-              disabled={!workflow.permissions?.canUpdate}
+              disabled={workflow.readOnly}
               onCheckedChange={() => {
                 activateEventTypeMutation.mutate({ workflowId: workflow.id, eventTypeId: eventType.id });
               }}
@@ -225,7 +230,7 @@ function EventWorkflowsTab(props: Props) {
 
   const createMutation = trpc.viewer.workflows.create.useMutation({
     onSuccess: async ({ workflow }) => {
-      router.replace(`/workflows/${workflow.id}?eventTypeId=${eventType.id}`);
+      await router.replace(`/workflows/${workflow.id}?eventTypeId=${eventType.id}`);
     },
     onError: (err) => {
       if (err instanceof HttpError) {
