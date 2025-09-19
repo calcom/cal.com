@@ -3,5 +3,5 @@ SELECT
   gen_random_uuid(), 'admin_role', resource, action, NOW()
 FROM (
   VALUES
-    ('team', 'manageBilling'),
+    ('team', 'manageBilling')
 ) AS permissions(resource, action);
