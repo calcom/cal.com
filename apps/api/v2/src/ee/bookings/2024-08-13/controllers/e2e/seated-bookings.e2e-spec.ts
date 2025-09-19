@@ -50,7 +50,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     const userEmail = `seated-bookings-user-${randomString()}@api.com`;
     let user: User;
     let apiKeyString: string;
-
+    let attendeeApiKey: string;
     let seatedEventTypeId: number;
     let seatedEventTypeIdAttendeesDisabledId: number;
 
@@ -91,8 +91,18 @@ describe("Bookings Endpoints 2024-08-13", () => {
         email: userEmail,
       });
 
+      const attendeeUser = await userRepositoryFixture.create({
+        email: emailAttendeeTwo,
+      });
+
       const { keyString } = await apiKeysRepositoryFixture.createApiKey(user.id, null);
       apiKeyString = `cal_test_${keyString}`;
+
+      const { keyString: attendeeApiKeyString } = await apiKeysRepositoryFixture.createApiKey(
+        attendeeUser.id,
+        null
+      );
+      attendeeApiKey = `cal_test_${attendeeApiKeyString}`;
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
         name: `seated-bookings-2024-08-13-schedule-${randomString()}`,
@@ -600,6 +610,65 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
+      it("should book an event type with attendees disabled and owner auth not provided", async () => {
+        const body: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2030, 0, 9, 15, 0, 0)).toISOString(),
+          eventTypeId: seatedEventTypeIdAttendeesDisabledId,
+          attendee: {
+            name: nameAttendeeOne,
+            email: emailAttendeeOne,
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          bookingFieldsResponses: {
+            codingLanguage: "TypeScript",
+          },
+          metadata: {
+            userId: "100",
+          },
+        };
+
+        return request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set("Authorization", attendeeApiKey)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsCreateSeatedBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsCreateSeatedBooking(responseBody.data)) {
+              const data: CreateSeatedBookingOutput_2024_08_13 = responseBody.data;
+              expect(data.seatUid).toBeDefined();
+              expect(data.id).toBeDefined();
+              expect(data.uid).toBeDefined();
+              expect(data.hosts[0].id).toEqual(user.id);
+              expect(data.status).toEqual("accepted");
+              expect(data.start).toEqual(body.start);
+              expect(data.end).toEqual(
+                DateTime.fromISO(body.start, { zone: "utc" }).plus({ hours: 1 }).toISO()
+              );
+              expect(data.duration).toEqual(60);
+              expect(data.eventTypeId).toEqual(seatedEventTypeIdAttendeesDisabledId);
+              expect(data.eventType).toEqual({
+                id: seatedEventTypeIdAttendeesDisabledId,
+                slug: seatedEventSlugAttendeesDisabled,
+              });
+              expect(data.attendees.length).toEqual(0);
+              expect(data.location).toBeDefined();
+              expect(data.absentHost).toEqual(false);
+              booking = data;
+            } else {
+              throw new Error(
+                "Invalid response data - expected seated booking but received non array response"
+              );
+            }
+          });
+      });
+
       it("should fetch booking and have attendees", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings/${booking.uid}`)
@@ -825,6 +894,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     afterAll(async () => {
       await teamRepositoryFixture.delete(organization.id);
       await userRepositoryFixture.deleteByEmail(user.email);
+      await userRepositoryFixture.deleteByEmail(emailAttendeeTwo);
       await bookingsRepositoryFixture.deleteAllBookings(user.id, user.email);
       await app.close();
     });

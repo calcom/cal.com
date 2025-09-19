@@ -24,7 +24,6 @@ import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
 import {
   ConflictException,
-  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
@@ -124,7 +123,7 @@ export class BookingsService_2024_08_13 {
       const userIsEventTypeAdminOrOwner = authUser
         ? await this.userIsEventTypeAdminOrOwner(authUser, eventType)
         : false;
-      await this.checkBookingRequiresAuthenticationSetting(eventType, authUser, userIsEventTypeAdminOrOwner);
+      await this.checkBookingRequiresAuthenticationSetting(eventType, authUser);
 
       if (eventType.schedulingType === "MANAGED") {
         throw new BadRequestException(
@@ -161,19 +160,12 @@ export class BookingsService_2024_08_13 {
 
   async checkBookingRequiresAuthenticationSetting(
     eventType: EventTypeWithOwnerAndTeam,
-    authUser: AuthOptionalUser,
-    userIsEventTypeAdminOrOwner: boolean
+    authUser: AuthOptionalUser
   ) {
     if (!eventType.bookingRequiresAuthentication) return true;
-    if (!authUser) {
+    if (!eventType.bookingRequiresAuthentication && !authUser) {
       throw new UnauthorizedException(
         "checkBookingRequiresAuthentication - request must be authenticated by passing credentials belonging to event type owner, host or team or org admin or owner."
-      );
-    }
-
-    if (!userIsEventTypeAdminOrOwner) {
-      throw new ForbiddenException(
-        "checkBookingRequiresAuthentication - user is not authorized to access this event type. User has to be either event type owner, host, team admin or owner or org admin or owner."
       );
     }
   }
