@@ -35,7 +35,7 @@ const getTemporaryOrgRedirect = async ({
   currentQuery: ParsedUrlQuery;
   useRelativePath?: boolean;
 }): Promise<NextJsRedirect | null> => {
-  const prisma = (await import("@calcom/prisma")).default;
+  const prisma = (await import("@calcom/prisma")).prisma;
   log.debug(
     `Looking for redirect for`,
     safeStringify({

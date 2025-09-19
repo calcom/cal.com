@@ -24,7 +24,7 @@ const querySchema = z.object({
 });
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
-  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
+  const prisma = await import("@calcom/prisma").then((mod) => mod.prisma);
   const featuresRepository = new FeaturesRepository(prisma);
   const emailVerificationEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally(
     "email-verification"

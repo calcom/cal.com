@@ -109,7 +109,7 @@ export default class ICSFeedCalendarService implements Calendar {
    * @returns {Promise<string | undefined>} - A Promise that resolves to the user's timezone or "Europe/London" as a default value if the timezone is not found.
    */
   getUserTimezoneFromDB = async (id: number): Promise<string | undefined> => {
-    const prisma = await import("@calcom/prisma").then((mod) => mod.default);
+    const prisma = await import("@calcom/prisma").then((mod) => mod.prisma);
     const user = await prisma.user.findUnique({
       where: {
         id,

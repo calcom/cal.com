@@ -152,7 +152,7 @@ describe("RetellAIService", () => {
     mockTransactionManager = transactionManager as unknown as TransactionInterface;
 
     // Get reference to the mocked prisma and its transaction method
-    const prisma = (await import("@calcom/prisma")).default;
+    const prisma = (await import("@calcom/prisma")).prisma;
     mockTransaction = prisma.$transaction as vi.Mock;
 
     // Reset transaction mock to simulate successful transaction by default
