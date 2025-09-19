@@ -5,6 +5,7 @@ import type { Team } from "@calcom/prisma/client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 const getRandomSlug = () => `org-${Math.random().toString(36).substring(7)}`;
+const ENABLE_PBAC_GLOBALLY = true;
 
 // creates a user fixture instance and stores the collection
 export const createOrgsFixture = (page: Page) => {
@@ -60,13 +61,17 @@ export async function createOrgInDb({
             }
           : null),
       },
-      features: {
-        create: {
-          featureId: "pbac",
-          assignedBy: "e2e-fixture",
-          assignedAt: new Date(),
-        },
-      },
+      ...(ENABLE_PBAC_GLOBALLY
+        ? {
+            features: {
+              create: {
+                featureId: "pbac",
+                assignedBy: "e2e-fixture",
+                assignedAt: new Date(),
+              },
+            },
+          }
+        : {}),
     },
     include: {
       organizationSettings: true,

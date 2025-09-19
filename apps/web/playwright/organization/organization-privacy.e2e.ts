@@ -2,6 +2,7 @@ import { expect } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
 
+import { createAllPermissionsArray } from "../fixtures/users";
 import { test } from "../lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
@@ -12,9 +13,9 @@ test.afterEach(async ({ users, orgs }) => {
 });
 
 test.describe("Organization - Privacy", () => {
-  test(`Private Org \n 
+  test(`Private Org \n
         1) Org Member cannot see members of orgs\n
-        2) Org Owner/Admin can see members`, async ({ page, users, orgs }) => {
+        2) Org Owner/Admin can see members`, async ({ page, users, orgs, prisma }) => {
     const org = await orgs.create({
       name: "TestOrg",
       isPrivate: true,
@@ -38,11 +39,28 @@ test.describe("Organization - Privacy", () => {
         teammates: teamMatesObj,
       }
     );
+
+    const memberPermissions = createAllPermissionsArray().filter(
+      ({ resource, action }) => !(resource === "organization" && action === "listMembers")
+    );
+    const memberCustomRole = await prisma.role.create({
+      data: {
+        id: `organization_privacy_member_${Date.now()}`,
+        name: "full access except for organization:listMembers",
+        teamId: org.id,
+        type: "CUSTOM",
+        permissions: {
+          create: memberPermissions,
+        },
+      },
+    });
+
     const memberInOrg = await users.create({
       username: "org-member-user",
       name: "org-member-user",
       organizationId: org.id,
       roleInOrganization: "MEMBER",
+      customRoleId: memberCustomRole.id,
     });
 
     await owner.apiLogin();
@@ -61,9 +79,9 @@ test.describe("Organization - Privacy", () => {
     await expect(userDataTable).toBeHidden();
     await expect(membersPrivacyWarning).toBeVisible();
   });
-  test(`Private Org - Private Team\n 
+  test(`Private Org - Private Team\n
         1) Team Member cannot see members in team\n
-        2) Team Admin/Owner can see members in team`, async ({ page, users, orgs }) => {
+        2) Team Admin/Owner can see members in team`, async ({ page, users, orgs, prisma }) => {
     const org = await orgs.create({
       name: "TestOrg",
       isPrivate: true,
@@ -118,6 +136,32 @@ test.describe("Organization - Privacy", () => {
     expect(memberUser?.user.email).toBeDefined();
     // @ts-expect-error expect doesnt assert on a type level
     const memberOfTeam = await users.set(memberUser?.user.email);
+
+    // const memberPermissions = createAllPermissionsArray().filter(
+    //   ({ resource, action }) => !(resource === "team" && action === "listMembers")
+    // );
+    // const memberCustomRole = await prisma.role.create({
+    //   data: {
+    //     id: `organization_privacy_member_${Date.now()}`,
+    //     name: "full access except for organization:listMembers",
+    //     teamId: teamId,
+    //     type: "CUSTOM",
+    //     permissions: {
+    //       create: memberPermissions,
+    //     },
+    //   },
+    // });
+    // await prisma.membership.update({
+    //   where: {
+    //     userId_teamId: {
+    //       userId: memberOfTeam.id,
+    //       teamId: teamId,
+    //     },
+    //   },
+    //   data: {
+    //     customRoleId: memberCustomRole.id,
+    //   },
+    // });
     await memberOfTeam.apiLogin();
 
     await page.goto(`/settings/teams/${teamId}/settings`);
@@ -134,7 +178,7 @@ test.describe("Organization - Privacy", () => {
     const hiddenTableLocator = await page.getByTestId("team-member-list-container");
     await expect(hiddenTableLocator).toBeHidden();
   });
-  test(`Private Org - Public Team\n 
+  test(`Private Org - Public Team\n
         1) All team members can see members in team \n
         2) Privacy settings are hidden to non-admin members \n
         3) Admin/Owner can see members in team \n

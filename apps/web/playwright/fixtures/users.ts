@@ -6,6 +6,7 @@ import { v4 } from "uuid";
 
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import stripe from "@calcom/features/ee/payments/server/stripe";
+import { PERMISSION_REGISTRY } from "@calcom/features/pbac/domain/types/permission-registry";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
@@ -22,51 +23,26 @@ import { selectFirstAvailableTimeSlotNextMonth, teamEventSlug, teamEventTitle } 
 import type { createEmailsFixture } from "./emails";
 import { TimeZoneEnum } from "./types";
 
+const ENABLE_PBAC_GLOBALLY = true;
+
+// Create array of all permissions from PERMISSION_REGISTRY
+export const createAllPermissionsArray = () => {
+  const allPermissions: { resource: string; action: string }[] = [];
+
+  Object.entries(PERMISSION_REGISTRY).forEach(([resource, resourceConfig]) => {
+    Object.entries(resourceConfig).forEach(([action, _details]) => {
+      if (action !== "_resource") {
+        allPermissions.push({ resource, action });
+      }
+    });
+  });
+
+  return allPermissions;
+};
+
 // Helper function to create a custom role with all permissions for e2e testing
 const createFullAccessCustomRole = async (teamId: number, roleName = "E2E Full Access") => {
-  const allPermissions = [
-    { resource: "team", action: "create" },
-    { resource: "team", action: "read" },
-    { resource: "team", action: "update" },
-    { resource: "team", action: "changeMemberRole" },
-    { resource: "team", action: "remove" },
-    { resource: "team", action: "invite" },
-
-    // Event Type permissions
-    { resource: "eventType", action: "create" },
-    { resource: "eventType", action: "read" },
-    { resource: "eventType", action: "update" },
-    { resource: "eventType", action: "delete" },
-
-    // Booking permissions
-    { resource: "booking", action: "read" },
-    { resource: "booking", action: "update" },
-    { resource: "booking", action: "readTeamBookings" },
-    { resource: "booking", action: "readOrgBookings" },
-    { resource: "booking", action: "readRecordings" },
-
-    { resource: "organization", action: "read" },
-    { resource: "organization", action: "create" },
-    { resource: "organization", action: "listMembers" },
-
-    { resource: "apiKey", action: "create" },
-    { resource: "apiKey", action: "findKeyOfType" },
-
-    { resource: "workflow", action: "create" },
-    { resource: "workflow", action: "read" },
-    { resource: "workflow", action: "update" },
-    { resource: "workflow", action: "delete" },
-
-    { resource: "routingForm", action: "create" },
-    { resource: "routingForm", action: "read" },
-    { resource: "routingForm", action: "update" },
-    { resource: "routingForm", action: "delete" },
-
-    // Insights permissions
-    { resource: "insights", action: "read" },
-
-    { resource: "availability", action: "override" },
-  ];
+  const allPermissions = createAllPermissionsArray();
 
   return await prisma.role.create({
     data: {
@@ -231,7 +207,13 @@ const createTeamAndAddUser = async (
     schedulingType,
     assignAllTeamMembersForSubTeamEvents,
   }: {
-    user: { id: number; email: string; username: string | null; role?: MembershipRole };
+    user: {
+      id: number;
+      email: string;
+      username: string | null;
+      role?: MembershipRole;
+      customRoleId?: string;
+    };
     isUnpublished?: boolean;
     isOrg?: boolean;
     isOrgVerified?: boolean;
@@ -295,25 +277,32 @@ const createTeamAndAddUser = async (
     data,
   });
 
-  await prisma.teamFeatures.create({
-    data: {
-      featureId: "pbac",
-      teamId: team.id,
-      assignedBy: "e2e-fixture",
-      assignedAt: new Date(),
-    },
-  });
+  if (ENABLE_PBAC_GLOBALLY) {
+    await prisma.teamFeatures.create({
+      data: {
+        featureId: "pbac",
+        teamId: team.id,
+        assignedBy: "e2e-fixture",
+        assignedAt: new Date(),
+      },
+    });
+  }
 
-  const customRole = await createFullAccessCustomRole(team.id);
+  const { role = MembershipRole.OWNER, id: userId, customRoleId } = user;
 
-  const { role = MembershipRole.OWNER, id: userId } = user;
+  let finalCustomRoleId = customRoleId;
+  if (!finalCustomRoleId && ENABLE_PBAC_GLOBALLY) {
+    const customRole = await createFullAccessCustomRole(team.id);
+    finalCustomRoleId = customRole.id;
+  }
+
   await prisma.membership.create({
     data: {
       createdAt: new Date(),
       teamId: team.id,
       userId,
       role: role,
-      customRoleId: customRole.id,
+      customRoleId: finalCustomRoleId,
       accepted: true,
     },
   });
@@ -323,7 +312,7 @@ const createTeamAndAddUser = async (
     data: {
       metadata: {
         ...data.metadata,
-        e2eCustomRoleId: customRole.id,
+        e2eCustomRoleId: finalCustomRoleId,
       },
     },
   });
@@ -449,6 +438,7 @@ export const createUsersFixture = (
                 email: user.email,
                 username: user.username,
                 role: scenario.teamRole || "OWNER",
+                customRoleId: opts?.customRoleId,
               },
               isUnpublished: scenario.isUnpublished,
               isOrg: scenario.isOrg,
@@ -922,6 +912,7 @@ type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
   password?: string | null;
   emailDomain?: string;
   profileUsername?: string;
+  customRoleId?: string;
 };
 
 // creates the actual user in the db.
