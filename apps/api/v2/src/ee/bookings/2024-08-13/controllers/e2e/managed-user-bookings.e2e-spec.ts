@@ -810,7 +810,7 @@ describe("Managed user bookings 2024-08-13", () => {
         .expect(401);
     });
 
-    it("can't be booked with managed user credentials who is not admin and not event type owner", async () => {
+    it("can be booked with managed user credentials who is not admin and not event type owner", async () => {
       await request(app.getHttpServer())
         .post(`/v2/bookings`)
         .send(body)
