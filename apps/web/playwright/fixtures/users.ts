@@ -6,7 +6,6 @@ import { v4 } from "uuid";
 
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import stripe from "@calcom/features/ee/payments/server/stripe";
-import { PERMISSION_REGISTRY } from "@calcom/features/pbac/domain/types/permission-registry";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
@@ -18,27 +17,13 @@ import { MembershipRole, SchedulingType, TimeUnit, WorkflowTriggerEvents } from 
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { Schedule } from "@calcom/types/schedule";
 
+import { createAllPermissionsArray } from "../lib/test-helpers/pbac";
 import { createRoutingForm } from "../lib/test-helpers/routingFormHelpers";
 import { selectFirstAvailableTimeSlotNextMonth, teamEventSlug, teamEventTitle } from "../lib/testUtils";
 import type { createEmailsFixture } from "./emails";
 import { TimeZoneEnum } from "./types";
 
 const ENABLE_PBAC_GLOBALLY = true;
-
-// Create array of all permissions from PERMISSION_REGISTRY
-export const createAllPermissionsArray = () => {
-  const allPermissions: { resource: string; action: string }[] = [];
-
-  Object.entries(PERMISSION_REGISTRY).forEach(([resource, resourceConfig]) => {
-    Object.entries(resourceConfig).forEach(([action, _details]) => {
-      if (action !== "_resource") {
-        allPermissions.push({ resource, action });
-      }
-    });
-  });
-
-  return allPermissions;
-};
 
 // Helper function to create a custom role with all permissions for e2e testing
 const createFullAccessCustomRole = async (teamId: number, roleName = "E2E Full Access") => {
