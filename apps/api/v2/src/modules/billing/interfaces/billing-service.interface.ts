@@ -1,9 +1,12 @@
 import { PlatformPlan } from "@/modules/billing/types";
+import type { StripeService } from "@/modules/stripe/stripe.service";
 import Stripe from "stripe";
+
+import { PlatformBilling, Team } from "@calcom/prisma/client";
 
 export interface IBillingService {
   getBillingData(teamId: number): Promise<{
-    team: any;
+    team: (Team & { platformBilling: PlatformBilling | null }) | null;
     status: "valid" | "no_subscription" | "no_billing";
     plan: string;
   }>;
@@ -19,5 +22,5 @@ export interface IBillingService {
   handleStripeSubscriptionForActiveManagedUsers(event: Stripe.Event): Promise<void>;
   getSubscriptionIdFromInvoice(invoice: Stripe.Invoice): string | null;
   getCustomerIdFromInvoice(invoice: Stripe.Invoice): string | null;
-  stripeService: any;
+  stripeService: StripeService;
 }
