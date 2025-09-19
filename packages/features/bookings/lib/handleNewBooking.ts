@@ -36,7 +36,7 @@ import {
   scheduleTrigger,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager";
+import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { handleAnalyticsEvents } from "@calcom/lib/analyticsManager/handleAnalyticsEvents";
 import { groupHostsByGroupId } from "@calcom/lib/bookings/hostGroupUtils";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
@@ -2102,6 +2102,8 @@ async function handler(
       bookerEmail,
       bookerPhoneNumber,
       isDryRun,
+      bookingFields: eventType.bookingFields,
+      locale: language,
     });
     const subscriberOptionsPaymentInitiated: GetSubscriberOptions = {
       userId: triggerForUser ? organizerUser.id : null,
