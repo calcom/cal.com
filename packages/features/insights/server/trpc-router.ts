@@ -324,7 +324,7 @@ function createInsightsBookingService(
     options: {
       scope,
       userId: ctx.user.id,
-      orgId: ctx.user.organizationId ?? 0,
+      orgId: ctx.user.organizationId,
       ...(selectedTeamId && { teamId: selectedTeamId }),
     },
     filters: {
