@@ -2,11 +2,11 @@ import { faker } from "@faker-js/faker";
 import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
+import { hashPassword } from "@calcom/lib/auth/hashPassword";
+import type { Prisma } from "@calcom/prisma/client";
+import { PrismaClient } from "@calcom/prisma/client";
 import { BookingStatus, AssignmentReasonEnum } from "@calcom/prisma/enums";
 
-import type { Prisma } from "./client";
-import { PrismaClient } from "./client";
 import { seedAttributes, seedRoutingFormResponses, seedRoutingForms } from "./seed-utils";
 
 function getRandomRatingFeedback() {
