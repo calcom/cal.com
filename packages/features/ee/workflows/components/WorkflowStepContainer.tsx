@@ -586,12 +586,19 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       }
                       if (isFormTrigger(val.value)) {
                         const steps = form.getValues("steps");
-                        if (steps && steps.length > 0) {
-                          const updatedSteps = steps.map((step) => ({
-                            ...step,
-                            template: WorkflowTemplates.CUSTOM,
-                          }));
+                        if (steps?.length) {
+                          const updatedSteps = steps.map((step) =>
+                            step.template === WorkflowTemplates.CUSTOM
+                              ? step
+                              : {
+                                  ...step,
+                                  reminderBody: " ",
+                                  emailSubject: " ",
+                                  template: WorkflowTemplates.CUSTOM,
+                                }
+                          );
                           form.setValue("steps", updatedSteps);
+                          setUpdateTemplate(!updateTemplate);
                         }
                       }
                     }
@@ -1311,6 +1318,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </Label>
               </div>
               <Editor
+                key={`editor-${step.stepNumber}-${props.form.getValues(
+                  `steps.${step.stepNumber - 1}.template`
+                )}-${
+                  props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)?.slice(0, 20) || "empty"
+                }`}
                 getText={() => {
                   return props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
                 }}
