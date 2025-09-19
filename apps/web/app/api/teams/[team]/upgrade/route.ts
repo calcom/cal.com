@@ -11,7 +11,8 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
-import prisma from "@calcom/prisma";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
+import { prisma } from "@calcom/prisma";
 import { Plans } from "@calcom/prisma/enums";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
@@ -42,22 +43,15 @@ async function getHandler(req: NextRequest, { params }: { params: Promise<Params
       throw new HttpError({ statusCode: 402, message: "Payment required" });
     }
 
-    let team = await prisma.team.findFirst({
-      where: { metadata: { path: ["paymentId"], equals: checkoutSession.id } },
-      select: {
-        metadata: true,
-        id: true,
-        isOrganization: true,
-      },
-    });
+    const teamRepository = new TeamRepository(prisma);
+    let team = await teamRepository.findFirstByMetadataPaymentId({ paymentId: checkoutSession.id });
 
     let metadata;
 
     if (!team) {
-      const prevTeam = await prisma.team.findFirstOrThrow({
-        where: { id },
-        select: { metadata: true, slug: true },
-      });
+      const prevTeam = await teamRepository.findById({ id });
+
+      if (!prevTeam) throw new Error("Prev team not found");
 
       metadata = teamMetadataStrictSchema.safeParse(prevTeam.metadata);
       if (!metadata.success) {
@@ -65,8 +59,8 @@ async function getHandler(req: NextRequest, { params }: { params: Promise<Params
       }
 
       const { requestedSlug, ...newMetadata } = metadata.data || {};
-      team = await prisma.team.update({
-        where: { id },
+      team = await teamRepository.updateById({
+        id,
         data: {
           metadata: {
             ...newMetadata,
@@ -80,10 +74,10 @@ async function getHandler(req: NextRequest, { params }: { params: Promise<Params
       const slug = prevTeam.slug || requestedSlug;
       if (slug) {
         try {
-          team = await prisma.team.update({ where: { id }, data: { slug } });
+          team = await teamRepository.updateById({ id, data: { slug } });
         } catch (error) {
-          await prisma.team.update({
-            where: { id },
+          await teamRepository.updateById({
+            id,
             data: {
               plan: team.isOrganization ? Plans.ORGANIZATIONS : Plans.TEAMS,
             },
@@ -101,8 +95,8 @@ async function getHandler(req: NextRequest, { params }: { params: Promise<Params
       }
     }
 
-    await prisma.team.update({
-      where: { id },
+    await teamRepository.updateById({
+      id,
       data: {
         plan: team.isOrganization ? Plans.ORGANIZATIONS : Plans.TEAMS,
       },

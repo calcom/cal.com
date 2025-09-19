@@ -46,7 +46,8 @@ export async function POST(req: NextRequest) {
   const { user } = session;
 
   const memberships = await MembershipRepository.findAllMembershipsByUserIdForBilling({ userId: user.id });
-  const plan = await BillingPlanService.getUserPlanByMemberships(memberships);
+  const billingPlanService = new BillingPlanService();
+  const plan = await billingPlanService.getUserPlanByMemberships(memberships);
   if (!existingContact.data) {
     const additionalUserInfo = await new UserRepository(prisma).getUserStats({ userId: session.user.id });
     const sumOfTeamEventTypes = additionalUserInfo?.teams.reduce(

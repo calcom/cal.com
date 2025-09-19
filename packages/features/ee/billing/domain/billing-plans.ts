@@ -2,7 +2,7 @@ import { BillingPlans } from "@calcom/ee/billing/constants";
 import type { Plans } from "@calcom/prisma/enums";
 
 export class BillingPlanService {
-  static async getUserPlanByMemberships(
+  async getUserPlanByMemberships(
     memberships: {
       team: {
         plan: Plans | null;
