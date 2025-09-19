@@ -75,8 +75,6 @@ const BillingView = () => {
     }
   };
 
-  // title={t("view_and_manage_billing_details")}
-  // description={t("view_and_edit_billing_details")}>
   return (
     <>
       <div className="bg-muted border-muted mt-5 rounded-xl border p-1">
