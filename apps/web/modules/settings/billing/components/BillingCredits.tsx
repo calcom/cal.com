@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { MemberInvitationModalWithoutMembers } from "@calcom/features/ee/teams/components/MemberInvitationModal";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
@@ -96,6 +97,7 @@ export default function BillingCredits() {
   const monthOptions = useMemo(() => getMonthOptions(), []);
   const [selectedMonth, setSelectedMonth] = useState<MonthOption>(monthOptions[0]);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
   const utils = trpc.useUtils();
 
   const {
@@ -210,14 +212,7 @@ export default function BillingCredits() {
                     <p className="text-subtle text-sm font-medium leading-tight">
                       {orgSlug ? t("credits_per_tip_org") : t("credits_per_tip_teams")}
                     </p>
-                    <Button
-                      href={
-                        orgSlug
-                          ? `/settings/organizations/${orgSlug}/members`
-                          : `/settings/teams/${teamId}/members`
-                      }
-                      size="sm"
-                      color="secondary">
+                    <Button onClick={() => setShowMemberInvitationModal(true)} size="sm" color="secondary">
                       {t("add_members_no_ellipsis")}
                     </Button>
                   </div>
@@ -317,6 +312,14 @@ export default function BillingCredits() {
           />
         </div>
       </div>
+      {teamId && (
+        <MemberInvitationModalWithoutMembers
+          teamId={teamId}
+          showMemberInvitationModal={showMemberInvitationModal}
+          hideInvitationModal={() => setShowMemberInvitationModal(false)}
+          onSettingsOpen={undefined}
+        />
+      )}
     </>
   );
 }
