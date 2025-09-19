@@ -22,7 +22,7 @@ import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { BookingWebhookFactory } from "@calcom/lib/server/service/BookingWebhookFactory";
-import { deleteMeeting } from "@calcom/lib/videoClient";
+import { deleteMeeting } from "@calcom/app-store/videoClient";
 import { prisma } from "@calcom/prisma";
 import type { BookingReference, EventType } from "@calcom/prisma/client";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
