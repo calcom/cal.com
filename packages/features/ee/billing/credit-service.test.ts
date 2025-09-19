@@ -509,9 +509,7 @@ describe("CreditService", () => {
           })
           .mockResolvedValueOnce({
             additionalCredits: 100,
-            expenseLogs: [
-              { credits: 80, date: new Date() },
-            ],
+            expenseLogs: [{ credits: 80, date: new Date() }],
           });
 
         vi.spyOn(CreditService.prototype, "getMonthlyCredits").mockResolvedValue(500);
@@ -521,9 +519,9 @@ describe("CreditService", () => {
           totalMonthlyCredits: 500,
           totalRemainingMonthlyCredits: 420, // 500 - (50 + 30)
           additionalCredits: 100,
-          totalCreditsForMonth: 600, // 500 + 100
-          totalCreditsUsedThisMonth: 160, // (50 + 30) + 80
-          totalRemainingCreditsForMonth: 440, // 600 - 160
+          totalCreditsForMonth: 500, // just monthly credits
+          totalCreditsUsedThisMonth: 80, // just monthly usage (50 + 30)
+          totalRemainingCreditsForMonth: 420, // 500 - 80
         });
       });
 
@@ -545,9 +543,9 @@ describe("CreditService", () => {
           totalMonthlyCredits: 500,
           totalRemainingMonthlyCredits: 500,
           additionalCredits: 100,
-          totalCreditsForMonth: 600, // 500 + 100
+          totalCreditsForMonth: 500, // just monthly credits
           totalCreditsUsedThisMonth: 0, // no expenses
-          totalRemainingCreditsForMonth: 600, // 600 - 0
+          totalRemainingCreditsForMonth: 500, // 500 - 0
         });
       });
 
@@ -575,9 +573,9 @@ describe("CreditService", () => {
           totalMonthlyCredits: 500,
           totalRemainingMonthlyCredits: 380, // 500 - (80 + 40)
           additionalCredits: 150,
-          totalCreditsForMonth: 650, // 500 + 150
-          totalCreditsUsedThisMonth: 160, // (80 + 40) + (25 + 15)
-          totalRemainingCreditsForMonth: 490, // 650 - 160
+          totalCreditsForMonth: 500, // just monthly credits
+          totalCreditsUsedThisMonth: 120, // just monthly usage (80 + 40)
+          totalRemainingCreditsForMonth: 380, // 500 - 120
         });
       });
 
@@ -585,9 +583,7 @@ describe("CreditService", () => {
         vi.mocked(CreditsRepository.findCreditBalanceWithExpenseLogs)
           .mockResolvedValueOnce({
             additionalCredits: 0,
-            expenseLogs: [
-              { credits: 100, date: new Date() },
-            ],
+            expenseLogs: [{ credits: 100, date: new Date() }],
           })
           .mockResolvedValueOnce({
             additionalCredits: 0,
