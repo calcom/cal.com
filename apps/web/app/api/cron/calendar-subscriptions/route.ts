@@ -1,4 +1,3 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -11,6 +10,7 @@ import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
 import { prisma } from "@calcom/prisma";
+import { defaultResponderForAppDir } from "@calcom/web/app/api/defaultResponderForAppDir";
 
 const log = logger.getSubLogger({ prefix: ["cron"] });
 
@@ -21,7 +21,7 @@ const log = logger.getSubLogger({ prefix: ["cron"] });
  * @param request
  * @returns
  */
-async function postHandler(request: NextRequest) {
+async function getHandler(request: NextRequest) {
   log.info("Checking for new calendar subscriptions");
   const apiKey = request.headers.get("authorization") || request.nextUrl.searchParams.get("apiKey");
 
@@ -66,4 +66,4 @@ async function postHandler(request: NextRequest) {
   }
 }
 
-export const GET = defaultResponderForAppDir(postHandler);
+export const GET = defaultResponderForAppDir(getHandler);
