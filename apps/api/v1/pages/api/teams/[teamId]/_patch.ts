@@ -62,6 +62,7 @@ export async function patchHandler(req: NextApiRequest) {
 
   /** Only OWNERS and ADMINS can edit teams */
   const _team = await prisma.team.findFirst({
+    // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
     include: { members: true },
     where: { id: teamId, members: { some: { userId, role: { in: ["OWNER", "ADMIN"] } } } },
   });
