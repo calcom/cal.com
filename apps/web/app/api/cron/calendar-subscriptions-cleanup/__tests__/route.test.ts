@@ -34,6 +34,36 @@ vi.mock("next/server", () => ({
 }));
 
 vi.mock("@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService");
+vi.mock("@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository");
+vi.mock("@calcom/lib/logger", () => ({
+  default: {
+    getSubLogger: vi.fn(() => ({
+      info: vi.fn(),
+      error: vi.fn(),
+    })),
+  },
+}));
+vi.mock("@calcom/lib/server/perfObserver", () => ({
+  performance: {
+    mark: vi.fn(),
+    measure: vi.fn(),
+  },
+}));
+vi.mock("@sentry/nextjs", () => ({
+  wrapApiHandlerWithSentry: vi.fn((handler) => handler),
+  captureException: vi.fn(),
+}));
+vi.mock("@calcom/lib/server/getServerErrorFromUnknown", () => ({
+  getServerErrorFromUnknown: vi.fn((error) => ({
+    message: error instanceof Error ? error.message : "Unknown error",
+    statusCode: 500,
+    url: "test-url",
+    method: "GET",
+  })),
+}));
+vi.mock("../../defaultResponderForAppDir", () => ({
+  defaultResponderForAppDir: vi.fn((handler) => handler),
+}));
 vi.mock("@calcom/prisma", () => ({
   prisma: {},
 }));
