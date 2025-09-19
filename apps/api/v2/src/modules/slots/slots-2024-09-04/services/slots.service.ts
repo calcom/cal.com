@@ -23,6 +23,8 @@ import { DateTime } from "luxon";
 import { z } from "zod";
 
 import { SlotFormat } from "@calcom/platform-enums";
+import { SchedulingType } from "@calcom/platform-libraries/";
+import { validateRoundRobinSlotAvailability } from "@calcom/platform-libraries/slots";
 import type {
   GetSlotsInput_2024_09_04,
   GetSlotsInputWithRouting_2024_09_04,
@@ -49,7 +51,6 @@ export class SlotsService_2024_09_04 {
     private readonly membershipsService: MembershipsService,
     private readonly membershipsRepository: MembershipsRepository,
     private readonly teamsRepository: TeamsRepository,
-    private readonly bookingsRepository: BookingsRepository_2024_08_13,
     private readonly availableSlotsService: AvailableSlotsService
   ) {}
 
@@ -155,7 +156,7 @@ export class SlotsService_2024_09_04 {
     }
 
     if (isRoundRobinEvent) {
-      await this.validateRoundRobinSlotAvailability(input.eventTypeId, startDate, endDate, eventType.hosts);
+      await validateRoundRobinSlotAvailability(input.eventTypeId, startDate, endDate, eventType.hosts);
     } else {
       await this.checkSlotOverlap(input.eventTypeId, startDate.toISO(), endDate.toISO());
     }
@@ -218,64 +219,6 @@ export class SlotsService_2024_09_04 {
         `Provided 'slotDuration' is not one of the possible lengths for the event type. The possible lengths for this variable length event type are: ${eventTypeMetadata.multipleDuration.join(
           ", "
         )}`
-      );
-    }
-  }
-
-  async validateRoundRobinSlotAvailability(
-    eventTypeId: number,
-    startDate: DateTime,
-    endDate: DateTime,
-    hosts: Host[]
-  ) {
-    const fixedHosts = hosts.filter((host) => host.isFixed === true);
-    const nonFixedHosts = hosts.filter((host) => host.isFixed === false);
-
-    if (fixedHosts.length > 0) {
-      await this.validateFixedHostsAvailability(eventTypeId, startDate, endDate, fixedHosts);
-    } else {
-      await this.validateNonFixedHostsAvailability(eventTypeId, startDate, endDate, nonFixedHosts);
-    }
-  }
-
-  async validateFixedHostsAvailability(
-    eventTypeId: number,
-    startDate: DateTime,
-    endDate: DateTime,
-    hosts: Host[]
-  ) {
-    const existingBooking = await this.bookingsRepository.getByEventTypeIdAndSlot(
-      eventTypeId,
-      startDate.toJSDate(),
-      endDate.toJSDate()
-    );
-
-    const hasHostAsAttendee = hosts.some(
-      (host) =>
-        existingBooking?.attendees.some((attendee) => attendee.id === host.userId) ||
-        existingBooking?.userId === host.userId
-    );
-
-    if (hasHostAsAttendee) {
-      throw new UnprocessableEntityException(`Can't reserve a slot if the event is already booked.`);
-    }
-  }
-
-  async validateNonFixedHostsAvailability(
-    eventTypeId: number,
-    startDate: DateTime,
-    endDate: DateTime,
-    hosts: Host[]
-  ) {
-    const existingSlotReservations = await this.slotsRepository.getExistingSlotsReservationCount(
-      eventTypeId,
-      startDate.toISO() ?? "",
-      endDate.toISO() ?? ""
-    );
-
-    if (existingSlotReservations === hosts.length) {
-      throw new UnprocessableEntityException(
-        `Can't reserve the slot because the round robin event type has no available hosts left at this time slot.`
       );
     }
   }
