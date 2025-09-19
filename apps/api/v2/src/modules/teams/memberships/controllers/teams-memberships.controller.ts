@@ -4,6 +4,7 @@ import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { CreateTeamMembershipInput } from "@/modules/teams/memberships/inputs/create-team-membership.input";
+import { GetTeamMembershipsInput } from "@/modules/teams/memberships/inputs/get-team-memberships.input";
 import { UpdateTeamMembershipInput } from "@/modules/teams/memberships/inputs/update-team-membership.input";
 import { CreateTeamMembershipOutput } from "@/modules/teams/memberships/outputs/create-team-membership.output";
 import { DeleteTeamMembershipOutput } from "@/modules/teams/memberships/outputs/delete-team-membership.output";
@@ -12,7 +13,6 @@ import { GetTeamMembershipsOutput } from "@/modules/teams/memberships/outputs/ge
 import { TeamMembershipOutput } from "@/modules/teams/memberships/outputs/team-membership.output";
 import { UpdateTeamMembershipOutput } from "@/modules/teams/memberships/outputs/update-team-membership.output";
 import { TeamsMembershipsService } from "@/modules/teams/memberships/services/teams-memberships.service";
-import { GetUsersInput } from "@/modules/users/inputs/get-users.input";
 import {
   Controller,
   UseGuards,
@@ -28,7 +28,7 @@ import {
   HttpStatus,
   Logger,
 } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -89,32 +89,11 @@ export class TeamsMembershipsController {
     summary: "Get all memberships",
     description: "Retrieve team memberships with optional filtering by email addresses. Supports pagination.",
   })
-  @ApiQuery({
-    name: "emails",
-    required: false,
-    type: [String],
-    description: "Filter by email addresses (comma-separated list, max 50 emails)",
-    example: "user1@example.com,user2@example.com",
-  })
-  @ApiQuery({
-    name: "skip",
-    required: false,
-    type: Number,
-    description: "Number of items to skip for pagination",
-    example: 0,
-  })
-  @ApiQuery({
-    name: "take",
-    required: false,
-    type: Number,
-    description: "Number of items to return (max 1000)",
-    example: 25,
-  })
   @Roles("TEAM_ADMIN")
   @HttpCode(HttpStatus.OK)
   async getTeamMemberships(
     @Param("teamId", ParseIntPipe) teamId: number,
-    @Query() queryParams: GetUsersInput
+    @Query() queryParams: GetTeamMembershipsInput
   ): Promise<GetTeamMembershipsOutput> {
     const { skip, take, emails } = queryParams;
     const orgTeamMemberships = await this.teamsMembershipsService.getPaginatedTeamMemberships(

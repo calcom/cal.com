@@ -447,7 +447,7 @@ describe("Teams Memberships Endpoints", () => {
     });
 
     it("should validate email array size limits", async () => {
-      const tooManyEmails = Array.from({ length: 51 }, (_, i) => `test${i}@example.com`).join(",");
+      const tooManyEmails = Array.from({ length: 21 }, (_, i) => `test${i}@example.com`).join(",");
       return request(app.getHttpServer())
         .get(`/v2/teams/${team.id}/memberships?emails=${tooManyEmails}`)
         .expect(400);
