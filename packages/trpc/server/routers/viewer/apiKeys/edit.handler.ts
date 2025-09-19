@@ -1,4 +1,4 @@
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TEditInputSchema } from "./edit.schema";

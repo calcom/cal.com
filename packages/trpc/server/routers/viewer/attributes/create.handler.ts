@@ -1,7 +1,7 @@
 import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import slugify from "@calcom/lib/slugify";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { Attribute } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";

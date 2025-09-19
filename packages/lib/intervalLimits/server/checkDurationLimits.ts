@@ -2,7 +2,7 @@ import dayjs from "@calcom/dayjs";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import { ascendingLimitKeys, intervalLimitKeyToUnit } from "../intervalLimit";
 import type { IntervalLimit, IntervalLimitKey } from "../intervalLimitSchema";

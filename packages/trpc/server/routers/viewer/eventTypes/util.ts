@@ -5,7 +5,7 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { PeriodType } from "@calcom/prisma/enums";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
