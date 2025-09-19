@@ -1,4 +1,5 @@
 import dayjs from "@calcom/dayjs";
+import { FORM_TRIGGER_WORKFLOW_EVENTS } from "@calcom/ee/workflows/lib/constants";
 import { getAllWorkflows } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import type { ScheduleWorkflowRemindersArgs } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
@@ -32,7 +33,9 @@ export class WorkflowService {
             routingFormId: routingForm.id,
           },
         },
-        trigger: WorkflowTriggerEvents.FORM_SUBMITTED,
+        trigger: {
+          in: FORM_TRIGGER_WORKFLOW_EVENTS,
+        },
       },
       select: {
         id: true,

@@ -1,10 +1,11 @@
+import { FORM_TRIGGER_WORKFLOW_EVENTS } from "@calcom/ee/workflows/lib/constants";
 import type { WorkflowType } from "@calcom/features/ee/workflows/components/WorkflowListPage";
 // import dayjs from "@calcom/dayjs";
 // import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { addPermissionsToWorkflows } from "@calcom/lib/server/repository/workflow-permissions";
 import { prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
-import { MembershipRole, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TListInputSchema } from "./list.schema";
@@ -24,7 +25,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
     ? {
         trigger: {
           not: {
-            in: [WorkflowTriggerEvents.FORM_SUBMITTED, WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT],
+            in: FORM_TRIGGER_WORKFLOW_EVENTS,
           },
         },
       }

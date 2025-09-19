@@ -94,7 +94,7 @@ describe("WorkflowService.scheduleFormWorkflows", () => {
     });
   });
 
-  test("should create tasker for FORM_SUBMITTED_NO_EVENT triggers", async () => {
+  test("should create task for FORM_SUBMITTED_NO_EVENT triggers", async () => {
     const workflows = [
       {
         id: 2,
