@@ -1,7 +1,6 @@
-import type { Prisma } from "@prisma/client";
-
-import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
+import { isTeamAdmin, isTeamOwner } from "@calcom/features/ee/teams/lib/queries";
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
 

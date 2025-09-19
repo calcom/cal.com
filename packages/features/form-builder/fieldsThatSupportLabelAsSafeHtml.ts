@@ -1,4 +1,4 @@
-import type { FieldType } from "./schema";
+import type { FieldType } from "@calcom/prisma/zod-utils";
 
 /**
  * Once a component supports `labelAsSafeHtml`, add it's field's type here

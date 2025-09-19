@@ -17,7 +17,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export default function Bookings(props: { calUsername: string; calEmail: string }) {
   const [eventTypeId, setEventTypeId] = useState<number | null>(null);
-  const [isTeamEvent, setIsTeamEvent] = useState<boolean>(false);
+  const [_isTeamEvent, setIsTeamEvent] = useState<boolean>(false);
   const router = useRouter();
   const eventTypeRef = useRef<EventSettingsFromRef>(null);
 
@@ -751,7 +751,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
               allowDelete={true}
               id={eventTypeId}
               tabs={["setup", "limits", "recurring", "advanced", "availability", "team", "payments"]}
-              onSuccess={(eventType) => {
+              onSuccess={(_eventType) => {
                 setEventTypeId(null);
                 refetch();
                 refetchTeamEvents();
