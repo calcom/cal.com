@@ -17,7 +17,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import {
   getAllTranscriptsAccessLinkFromMeetingId,
   submitBatchProcessorTranscriptionJob,
-} from "@calcom/lib/videoClient";
+} from "@calcom/app-store/videoClient";
 import { generateVideoToken } from "@calcom/lib/videoTokens";
 import { prisma } from "@calcom/prisma";
 import { getBooking } from "@calcom/web/lib/daily-webhook/getBooking";
