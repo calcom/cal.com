@@ -290,7 +290,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const handleCreateAgent = useCallback(
     async (templateWorkflowId?: string) => {
       if (isCreatingAgent.current || createAgentMutation.isPending) {
-        console.log("Agent creation already in progress, skipping...");
         return;
       }
 
@@ -372,7 +371,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const hasEmailToHostAction = steps.some((s) => s.action === WorkflowActions.EMAIL_HOST);
 
   const disallowFormTriggers = hasAiAction || hasSMSAction || hasEmailToHostAction;
-  console.log(`trigger options ${JSON.stringify(triggerOptions)}`);
 
   const filteredTriggerOptions = triggerOptions.filter(
     (option) => !(isFormTrigger(option.value) && disallowFormTriggers)
