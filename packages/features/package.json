@@ -27,8 +27,22 @@
     "web-push": "^3.6.7",
     "zustand": "^4.3.2"
   },
+  "scripts": {
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "type-check": "tsc --noEmit"
+  },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.8.0",
+    "@testing-library/react": "^16.3.0",
     "@testing-library/react-hooks": "^8.0.1",
-    "@types/web-push": "^3.6.3"
+    "@types/web-push": "^3.6.3",
+    "@vitejs/plugin-react": "^5.0.3",
+    "jsdom": "^22.1.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "vitest": "^3.2.4"
   }
 }

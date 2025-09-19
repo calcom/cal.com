@@ -1,4 +1,5 @@
 "use client";
+"use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import * as React from "react";
@@ -15,16 +16,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-interface CheckedTeamSelectProps extends Omit<Props<CheckedSelectOption, true>, "value" | "onChange"> {
-  options?: CheckedSelectOption[];
-  value?: readonly CheckedSelectOption[];
-  onChange: (value: readonly CheckedSelectOption[]) => void;
-  isRRWeightsEnabled?: boolean;
-  customClassNames?: CheckedTeamSelectCustomClassNames;
-  groupId: string | null;
-}
-
-// Email utilities
+// Email validation utilities
 const EMAIL_RE =
   /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
 const isValidEmail = (val: string) => EMAIL_RE.test(val.trim());
@@ -63,6 +55,15 @@ export interface CheckedTeamSelectCustomClassNames {
   };
 }
 
+interface CheckedTeamSelectProps extends Omit<Props<CheckedSelectOption, true>, "value" | "onChange"> {
+  options?: CheckedSelectOption[];
+  value?: readonly CheckedSelectOption[];
+  onChange: (value: readonly CheckedSelectOption[]) => void;
+  isRRWeightsEnabled?: boolean;
+  customClassNames?: CheckedTeamSelectCustomClassNames;
+  groupId: string | null;
+}
+
 export const CheckedTeamSelect = ({
   options = [],
   value = [],
@@ -71,33 +72,17 @@ export const CheckedTeamSelect = ({
   groupId,
   ...props
 }: CheckedTeamSelectProps) => {
-  // ✅ Hooks MUST come after props destructure
   const isPlatform = useIsPlatform();
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
-  // Fix: Add required state management hooks for dialogs and option selection
-  const [priorityDialogOpen, setPriorityDialogOpen] = useState<boolean>(false);
-  const [weightDialogOpen, setWeightDialogOpen] = useState<boolean>(false);
-  const [currentOption, setCurrentOption] = useState<CheckedSelectOption | null>(null);
+  // State for dialog management - will be used in the next PR
+  // const [priorityDialogOpen, setPriorityDialogOpen] = useState<boolean>(false);
+  // const [weightDialogOpen, setWeightDialogOpen] = useState<boolean>(false);
+  // const [currentOption, setCurrentOption] = useState<CheckedSelectOption | null>(null);
 
   const valueFromGroup = groupId ? value.filter((host) => host.groupId === groupId) : value;
 
-  // Helper functions
-  function getPriorityTextAndColor(priority?: number) {
-    switch (priority) {
-      case 0:
-        return { text: t("low"), color: "text-gray-500" };
-      case 1:
-        return { text: t("medium"), color: "text-blue-500" };
-      case 2:
-        return { text: t("high"), color: "text-red-500" };
-      default:
-        return { text: t("normal"), color: "text-black" };
-    }
-  }
-
-  // Helper
   function getPriorityTextAndColor(priority?: number) {
     switch (priority) {
       case 0:
@@ -143,7 +128,7 @@ export const CheckedTeamSelect = ({
             }));
             props.onChange([...(value || []), ...newOptions]);
           } else {
-            showToast("Please enter valid email address(es)", "error");
+            showToast(t("please_enter_valid_email"), "error");
           }
         }}
       />
@@ -173,7 +158,7 @@ export const CheckedTeamSelect = ({
 
             <p
               className={classNames(
-                "text-emphasis my-auto ms-3 text-sm",
+                "text-emphasis my-auto ms-3 text-base",
                 customClassNames?.selectedHostList?.listItem?.name
               )}>
               {option.label}
@@ -186,14 +171,14 @@ export const CheckedTeamSelect = ({
                     <Button
                       color="minimal"
                       className={classNames(
-                        "mr-6 h-2 p-0 text-sm hover:bg-transparent",
+                        "mr-6 h-2 p-0 text-base opacity-100 hover:opacity-75",
                         getPriorityTextAndColor(option.priority).color,
                         customClassNames?.selectedHostList?.listItem?.changePriorityButton
                       )}
                       onClick={() => {
-                        // Fix: Properly handle state updates for priority changes
-                        setCurrentOption(option);
-                        setPriorityDialogOpen(true);
+                        // TODO: Add dialog management in next PR
+                        // setCurrentOption(option);
+                        // setPriorityDialogOpen(true);
                       }}>
                       {t(getPriorityTextAndColor(option.priority).text)}
                     </Button>
@@ -203,13 +188,13 @@ export const CheckedTeamSelect = ({
                     <Button
                       color="minimal"
                       className={classNames(
-                        "mr-6 h-2 w-4 p-0 text-sm hover:bg-transparent",
+                        "mr-6 h-2 w-4 p-0 text-base opacity-100 hover:opacity-75",
                         customClassNames?.selectedHostList?.listItem?.changeWeightButton
                       )}
                       onClick={() => {
-                        // Fix: Properly handle state updates for weight changes
-                        setCurrentOption(option);
-                        setWeightDialogOpen(true);
+                        // TODO: Add dialog management in next PR
+                        // setCurrentOption(option);
+                        // setWeightDialogOpen(true);
                       }}>
                       {option.weight ?? 100}%
                     </Button>
