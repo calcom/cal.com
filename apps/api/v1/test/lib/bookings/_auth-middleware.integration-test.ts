@@ -123,12 +123,15 @@ describe("Booking ownership and access in Middleware", () => {
     });
 
     //create eventTypes
+    const now = new Date();
     const createEventTypeEvent1 = prisma.eventType.create({
       data: {
         title: "Event 1",
         slug: `event-1-${Date.now()}`,
         userId: ownerUserRef.id,
         length: 60,
+        createdAt: now,
+        updatedAt: now,
         bookings: {
           create: {
             uid: `booking-2-${Date.now()}`,
@@ -154,6 +157,8 @@ describe("Booking ownership and access in Middleware", () => {
         slug: `event-2-${Date.now()}`,
         length: 60,
         teamId: orgRef.id,
+        createdAt: now,
+        updatedAt: now,
         bookings: {
           create: {
             uid: `booking-1-${Date.now()}`,
