@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable @typescript-eslint/adjacent-overload-signatures */
 import type { PrismaTransaction } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -92,65 +95,17 @@ export class CreditsRepository {
     });
   }
 
-  static async findCreditBalanceWithTeamOrUser(
-    {
-      teamId,
-      userId,
-    }: {
-      teamId?: number | null;
-      userId?: number | null;
-    },
+  static async findCreditBalance(
+    { teamId, userId }: { teamId?: number | null; userId?: number | null },
     tx?: PrismaTransaction
   ) {
-    const prismaClient = tx ?? prisma;
-
-    const select = {
-      id: true,
-      additionalCredits: true,
-      limitReachedAt: true,
-      warningSentAt: true,
-      team: {
-        select: {
-          id: true,
-          name: true,
-          members: {
-            select: {
-              user: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
-                  locale: true,
-                },
-              },
-            },
-          },
-        },
+    const prismaClient = tx || prisma;
+    return prismaClient.creditBalance.findUnique({
+      where: {
+        teamId: teamId ?? undefined,
+        userId: userId ?? undefined,
       },
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          locale: true,
-        },
-      },
-    };
-    if (teamId) {
-      return await prismaClient.creditBalance.findUnique({
-        where: {
-          teamId,
-        },
-        select,
-      });
-    }
-
-    if (userId) {
-      return await prismaClient.creditBalance.findUnique({
-        where: { userId },
-        select,
-      });
-    }
+    });
   }
 
   static async findCreditBalanceWithExpenseLogs(
@@ -323,7 +278,7 @@ export class CreditsRepository {
     }: {
       creditBalanceId: string;
       credits: number | null;
-      creditType: CreditType;
+      creditType: $Enums.CreditType;
       date: Date;
       bookingUid?: string;
       smsSid?: string;
@@ -333,26 +288,24 @@ export class CreditsRepository {
       callDuration?: number;
       externalRef?: string;
     },
-    tx: PrismaTransaction = prisma
+    tx?: PrismaTransaction
   ) {
-    return tx.creditExpenseLog.create({
-      data: {
-        credits,
-        creditType,
-        date,
-        bookingUid,
-        smsSid,
-        smsSegments,
-        phoneNumber,
-        email,
-        callDuration,
-        externalRef,
-        creditBalance: {
-          connect: {
-            id: creditBalanceId,
-          },
-        },
-      },
-    });
+    const prismaClient = tx || prisma;
+    const data: any = {
+      credits,
+      creditType,
+      date,
+      smsSid,
+      smsSegments,
+      phoneNumber,
+      email,
+      callDuration,
+      externalRef,
+      creditBalance: { connect: { id: creditBalanceId } },
+    };
+    if (typeof bookingUid !== "undefined") {
+      data.bookingUid = bookingUid;
+    }
+    return prismaClient.creditExpenseLog.create({ data });
   }
 }

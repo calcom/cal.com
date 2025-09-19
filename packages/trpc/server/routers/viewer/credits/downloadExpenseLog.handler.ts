@@ -48,17 +48,33 @@ export const downloadExpenseLogHandler = async ({ ctx, input }: DownloadExpenseL
     return { csvData: headers.join(",") };
   }
 
-  const rows = creditBalance.expenseLogs.map((log) => [
-    log.date.toISOString(),
-    log.credits?.toString() ?? "",
-    log.creditType,
-    log.bookingUid ?? "",
-    log.smsSegments?.toString() ?? "-",
-    log.phoneNumber ?? "",
-    log.email ?? "",
-    log.callDuration?.toString() ?? "-",
-    log.externalRef ?? "-",
-  ]);
+  const rows =
+    Array.isArray(creditBalance.expenseLogs) &&
+    creditBalance.expenseLogs.map(
+      (log: {
+        date: Date;
+        credits?: number;
+        creditType?: string;
+        bookingUid?: string;
+        smsSid?: string;
+        smsSegments?: number;
+        phoneNumber?: string;
+        email?: string;
+        callDuration?: number;
+        externalRef?: string;
+      }) => [
+        log.date,
+        log.credits,
+        log.creditType,
+        log.bookingUid,
+        log.smsSid,
+        log.smsSegments,
+        log.phoneNumber,
+        log.email,
+        log.callDuration,
+        log.externalRef,
+      ]
+    );
 
   const csvData = [headers, ...rows].map((row) => row.join(",")).join("\n");
 

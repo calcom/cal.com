@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import type { TFunction } from "i18next";
 
 import dayjs from "@calcom/dayjs";
@@ -408,7 +409,6 @@ export class CreditService {
           creditBalanceId: creditBalance.id,
           credits,
           creditType,
-          creditFor,
           date: new Date(),
           bookingUid,
           smsSid,
@@ -695,8 +695,12 @@ export class CreditService {
     );
 
     const totalMonthlyCredits = await this.getMonthlyCredits(teamId);
-    const totalMonthlyCreditsUsed =
-      creditBalance?.expenseLogs.reduce((sum, log) => sum + (log?.credits ?? 0), 0) || 0;
+    const totalMonthlyCreditsUsed = Array.isArray(creditBalance?.expenseLogs)
+      ? creditBalance.expenseLogs.reduce(
+          (sum: number, log: { credits?: number }) => sum + (log?.credits ?? 0),
+          0
+        )
+      : 0;
 
     return {
       totalMonthlyCredits,

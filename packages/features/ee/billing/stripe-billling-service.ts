@@ -1,17 +1,17 @@
-/* eslint-disable turbo/no-undeclared-env-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable turbo/no-undeclared-env-vars */
 import Stripe from "stripe";
 
 export class StripeBillingService {
   private stripe: Stripe;
   constructor(apiKey?: string) {
     this.stripe = new Stripe(apiKey || (process.env.STRIPE_SECRET_KEY as string), {
-      apiVersion: "2023-10-16",
+      apiVersion: "2020-08-27",
     });
   }
 
-  async createCustomer(args: Parameters<BillingService["createCustomer"]>[0]) {
+  async createCustomer(args: any) {
     const { email, metadata } = args;
     const customer = await this.stripe.customers.create({
       email,
@@ -23,7 +23,7 @@ export class StripeBillingService {
     return { stripeCustomerId: customer.id };
   }
 
-  async createPaymentIntent(args: Parameters<BillingService["createPaymentIntent"]>[0]) {
+  async createPaymentIntent(args: any) {
     const { customerId, amount, metadata } = args;
     const paymentIntent = await this.stripe.paymentIntents.create({
       customer: customerId,
@@ -67,7 +67,7 @@ export class StripeBillingService {
     };
   }
 
-  async createSubscriptionCheckout(args: Parameters<BillingService["createSubscriptionCheckout"]>[0]) {
+  async createSubscriptionCheckout(args: any) {
     const {
       customerId,
       successUrl,
@@ -108,7 +108,7 @@ export class StripeBillingService {
     };
   }
 
-  async createPrice(args: Parameters<BillingService["createPrice"]>[0]) {
+  async createPrice(args: any) {
     const { amount, currency, interval, productId, nickname, metadata } = args;
 
     const price = await this.stripe.prices.create({
@@ -127,7 +127,7 @@ export class StripeBillingService {
     };
   }
 
-  async handleSubscriptionCreation(_args: Parameters<BillingService["handleSubscriptionCreation"]>[0]) {
+  async handleSubscriptionCreation(_args: any) {
     throw new Error("Method not implemented.");
   }
 
@@ -135,7 +135,7 @@ export class StripeBillingService {
     await this.stripe.subscriptions.cancel(subscriptionId);
   }
 
-  async handleSubscriptionUpdate(args: Parameters<BillingService["handleSubscriptionUpdate"]>[0]) {
+  async handleSubscriptionUpdate(args: any) {
     const { subscriptionId, subscriptionItemId, membershipCount } = args;
     const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
     const subscriptionQuantity = subscription.items.data.find(
@@ -185,7 +185,7 @@ export class StripeBillingService {
     return subscriptions.data;
   }
 
-  async updateCustomer(args: Parameters<BillingService["updateCustomer"]>[0]) {
+  async updateCustomer(args: any) {
     const { customerId, email, userId } = args;
     const metadata: { email?: string; userId?: number } = {};
     if (email) metadata.email = email;
