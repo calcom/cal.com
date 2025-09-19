@@ -37,20 +37,47 @@ async function handler(req: NextRequest) {
 
   const secretKey = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
-  let decodedRefreshToken: OAuthTokenPayload;
+  let decodedRefreshToken: OAuthTokenPayload | null = null;
 
   try {
     const refreshToken = req.headers.get("authorization")?.split(" ")[1] || "";
     decodedRefreshToken = jwt.verify(refreshToken, secretKey) as OAuthTokenPayload;
-  } catch {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  } catch (err) {
+    // If the token is expired, allow a short grace period to refresh.
+    // This enables clients to recover even if they attempt refresh slightly after expiry.
+    // IMPORTANT: We only allow this if the token is otherwise valid (decodable) and within grace window.
+    const isExpired = (err as Error & { name?: string }).name === "TokenExpiredError";
+    if (!isExpired) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const refreshToken = req.headers.get("authorization")?.split(" ")[1] || "";
+    const decoded = jwt.decode(refreshToken) as (OAuthTokenPayload & { exp?: number }) | null;
+    if (!decoded) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    // 7-day grace period by default
+    const REFRESH_GRACE_SECONDS = 7 * 24 * 60 * 60;
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    const exp = decoded.exp ?? 0;
+    if (exp === 0 || nowSeconds - exp > REFRESH_GRACE_SECONDS) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+    decodedRefreshToken = decoded;
   }
 
   if (!decodedRefreshToken || decodedRefreshToken.token_type !== "Refresh Token") {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const payload: OAuthTokenPayload = {
+  // Ensure the refresh token was issued for the same client that is attempting to use it.
+  if (decodedRefreshToken.clientId !== client_id) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  // Issue a new short-lived access token.
+  const accessPayload: OAuthTokenPayload = {
     userId: decodedRefreshToken.userId,
     teamId: decodedRefreshToken.teamId,
     scope: decodedRefreshToken.scope,
@@ -58,11 +85,27 @@ async function handler(req: NextRequest) {
     clientId: client_id,
   };
 
-  const access_token = jwt.sign(payload, secretKey, {
+  const access_token = jwt.sign(accessPayload, secretKey, {
     expiresIn: 1800, // 30 min
   });
 
-  return NextResponse.json({ access_token }, { status: 200 });
+  // Rotate refresh token: issue a brand-new refresh token so clients can continue beyond the current token's lifetime.
+  const refreshPayload: OAuthTokenPayload = {
+    userId: decodedRefreshToken.userId,
+    teamId: decodedRefreshToken.teamId,
+    scope: decodedRefreshToken.scope,
+    token_type: "Refresh Token",
+    clientId: client_id,
+  };
+
+  const refresh_token = jwt.sign(refreshPayload, secretKey, {
+    expiresIn: 30 * 24 * 60 * 60, // 30 days
+  });
+
+  return NextResponse.json({ access_token, refresh_token }, { status: 200 });
 }
 
 export const POST = defaultResponderForAppDir(handler);
+
+// Export a testable handler for unit tests without affecting the runtime POST export
+export { handler as refreshTokenHandler };
