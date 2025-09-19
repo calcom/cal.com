@@ -7,10 +7,10 @@ import { useFieldArray, useFormContext } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import type { LocationObject } from "@calcom/app-store/locations";
 import NoSSR from "@calcom/lib/components/NoSSR";
 import { locationsResolver } from "@calcom/lib/event-types/utils/locationsResolver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { LocationObject } from "@calcom/app-store/locations";
 import type { AppCategories } from "@calcom/prisma/enums";
 import type { EventTypeMetaDataSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -213,6 +213,7 @@ const ConfigureStepCardContent: FC<ConfigureStepCardProps> = (props) => {
   );
 
   const [submit, setSubmit] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const allUpdated = updatedEventTypesStatus.every((item) => item.every((iitem) => iitem.updated));
 
   useEffect(() => {
@@ -222,7 +223,11 @@ const ConfigureStepCardContent: FC<ConfigureStepCardProps> = (props) => {
     }
   }, [submit, allUpdated, mainForSubmitRef]);
 
-  if (!formPortalRef?.current) {
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!formPortalRef?.current || !mounted) {
     return null;
   }
 
