@@ -119,7 +119,8 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
     setIsIconPickerOpen(true);
   };
 
-  const cleanPublicUrl = `${bookerUrl}${eventUrl}`.replace(/^https?:\/\//, "");
+  const publicUrl = `${bookerUrl}${eventUrl}`;
+  const cleanPublicUrl = `${publicUrl}`.replace(/^https?:\/\//, "");
 
   return (
     <>
@@ -231,7 +232,7 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
                       <DropdownMenuItem
                         onClick={(e) => {
                           e.preventDefault();
-                          window.open(`${bookerUrl}${eventUrl}`, "_blank");
+                          window.open(`${publicUrl}`, "_blank");
                         }}
                         className="text-sm">
                         <Icon name="external-link" className="mr-2 h-3 w-3" />
