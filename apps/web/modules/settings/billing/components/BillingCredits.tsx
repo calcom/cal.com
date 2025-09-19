@@ -186,19 +186,19 @@ export default function BillingCredits() {
         </div>
         <div className="bg-default border-muted flex w-full rounded-[10px] border px-5 py-4">
           <div className="w-full">
-            {creditsData.credits.totalCreditsForMonth > 0 ? (
+            {totalCredits > 0 ? (
               <>
                 <div className="mb-4">
                   <CreditRow
                     label={t("monthly_credits")}
-                    value={creditsData.credits.totalMonthlyCredits ?? 0}
+                    value={totalCredits}
                     isBold={true}
                     underline="dashed"
                   />
                   <CreditRow label={t("credits_used")} value={totalUsed} underline="solid" />
                   <CreditRow
                     label={t("total_credits_remaining")}
-                    value={creditsData.credits.totalRemainingCreditsForMonth}
+                    value={creditsData.credits.totalRemainingMonthlyCredits}
                   />
                   <div className="mt-4">
                     <ProgressBar color="green" percentageValue={100 - teamCreditsPercentageUsed} />
@@ -313,7 +313,9 @@ export default function BillingCredits() {
           teamId={teamId}
           showMemberInvitationModal={showMemberInvitationModal}
           hideInvitationModal={() => setShowMemberInvitationModal(false)}
-          onSettingsOpen={undefined}
+          onSettingsOpen={() => {
+            return;
+          }}
         />
       )}
     </>
