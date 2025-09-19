@@ -3,6 +3,7 @@ import { Icon, type IconName } from "@calid/features/ui/components/icon/Icon";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
+import { IS_DEV } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Button } from "./button";
@@ -91,8 +92,16 @@ export const Badge = function Badge(props: BadgeProps) {
   };
   const handleRedirectUrl = (e: React.MouseEvent) => {
     e.stopPropagation();
+
     if (typeof children === "string") {
-      window.open(children, "_blank", "noopener,noreferrer");
+      let url = children.trim();
+
+      // Check if it already starts with http:// or https://
+      if (!/^https?:\/\//i.test(url)) {
+        url = IS_DEV ? `http://${url}` : `https://${url}`;
+      }
+
+      window.open(url, "_blank");
     }
   };
 
