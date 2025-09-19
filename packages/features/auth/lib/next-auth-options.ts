@@ -16,6 +16,7 @@ import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/crea
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
+import { isPasswordValid } from "@calcom/lib/auth/isPasswordValid";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import {
   GOOGLE_CALENDAR_SCOPES,
@@ -46,7 +47,6 @@ import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 import { getOrgUsernameFromEmail } from "../signup/utils/getOrgUsernameFromEmail";
 import { ErrorCode } from "./ErrorCode";
 import { dub } from "./dub";
-import { isPasswordValid } from "./isPasswordValid";
 import CalComAdapter from "./next-auth-custom-adapter";
 import { verifyPassword } from "./verifyPassword";
 
