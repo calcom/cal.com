@@ -20,10 +20,20 @@ export const createAllPermissionsArray = () => {
 };
 
 export const enablePBACForTeam = async (teamId: number) => {
-  await prisma.teamFeatures.create({
-    data: {
+  await prisma.teamFeatures.upsert({
+    where: {
+      teamId_featureId: {
+        teamId: teamId,
+        featureId: "pbac",
+      },
+    },
+    create: {
       featureId: "pbac",
       teamId: teamId,
+      assignedBy: "e2e",
+      assignedAt: new Date(),
+    },
+    update: {
       assignedBy: "e2e",
       assignedAt: new Date(),
     },
