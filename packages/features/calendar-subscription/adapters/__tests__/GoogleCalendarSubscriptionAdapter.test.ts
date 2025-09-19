@@ -1,8 +1,9 @@
 import "../__mocks__/CalendarAuth";
 
-import { describe, test, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import type { SelectedCalendar } from "@calcom/prisma/client";
+import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 
 import { GoogleCalendarSubscriptionAdapter } from "../GoogleCalendarSubscription.adapter";
 
@@ -48,7 +49,9 @@ const mockCredential = {
   key: { access_token: "test-token" },
   user: { email: "test@example.com" },
   delegatedTo: null,
-};
+  type: null,
+  teamId: null,
+} as unknown as CredentialForCalendarServiceWithEmail;
 
 describe("GoogleCalendarSubscriptionAdapter", () => {
   let adapter: GoogleCalendarSubscriptionAdapter;
@@ -91,7 +94,7 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
         headers: {
           get: vi.fn().mockReturnValue("test-webhook-token"),
         },
-      } as Request;
+      } as unknown as Request;
 
       const result = await adapter.validate(mockRequest);
 
@@ -104,7 +107,7 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
         headers: {
           get: vi.fn().mockReturnValue("wrong-token"),
         },
-      } as Request;
+      } as unknown as Request;
 
       const result = await adapter.validate(mockRequest);
 
@@ -119,7 +122,7 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
         headers: {
           get: vi.fn().mockReturnValue("test-webhook-token"),
         },
-      } as Request;
+      } as unknown as Request;
 
       const result = await adapter.validate(mockRequest);
 
@@ -131,7 +134,7 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
         headers: {
           get: vi.fn().mockReturnValue(null),
         },
-      } as Request;
+      } as unknown as Request;
 
       const result = await adapter.validate(mockRequest);
 
@@ -145,7 +148,7 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
         headers: {
           get: vi.fn().mockReturnValue("test-channel-id"),
         },
-      } as Request;
+      } as unknown as Request;
 
       const result = await adapter.extractChannelId(mockRequest);
 
@@ -158,7 +161,7 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
         headers: {
           get: vi.fn().mockReturnValue(null),
         },
-      } as Request;
+      } as unknown as Request;
 
       const result = await adapter.extractChannelId(mockRequest);
 

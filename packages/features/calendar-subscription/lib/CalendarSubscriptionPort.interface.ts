@@ -15,22 +15,22 @@ export type CalendarSubscriptionResult = {
 
 export type CalendarSubscriptionEventItem = {
   id: string;
-  iCalUID?: string | null;
+  iCalUID: string | null;
   start?: Date;
   end?: Date;
   busy: boolean;
-  isAllDay?: boolean;
-  summary?: string | null;
-  description?: string | null;
-  kind?: string | null;
-  etag?: string | null;
-  status?: string | null;
-  location?: string | null;
-  originalStartDate?: Date | null;
-  recurringEventId?: string | null;
-  timeZone?: string | null;
-  createdAt?: Date | null;
-  updatedAt?: Date | null;
+  isAllDay: boolean;
+  summary: string | null;
+  description: string | null;
+  kind: string | null;
+  etag: string | null;
+  status: string | null;
+  location: string | null;
+  originalStartDate: Date | null;
+  recurringEventId: string | null;
+  timeZone: string | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
 };
 
 export type CalendarSubscriptionEvent = {

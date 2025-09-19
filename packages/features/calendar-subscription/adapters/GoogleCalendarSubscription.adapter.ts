@@ -167,19 +167,19 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
 
         return {
           id: event.id as string,
-          iCalUID: event.iCalUID,
+          iCalUID: event.iCalUID ?? null,
           start,
           end,
           busy,
-          summary: event.summary,
-          description: event.description,
-          location: event.location,
-          kind: event.kind,
-          etag: event.etag,
-          status: event.status,
-          isAllDay: typeof event.start?.date === "string" && !event.start?.dateTime ? true : undefined,
-          timeZone: event.start?.timeZone || null,
-          recurringEventId: event.recurringEventId,
+          summary: event.summary ?? null,
+          description: event.description ?? null,
+          location: event.location ?? null,
+          kind: event.kind ?? null,
+          etag: event.etag ?? null,
+          status: event.status ?? null,
+          isAllDay: typeof event.start?.date === "string" && !event.start?.dateTime ? true : false,
+          timeZone: event.start?.timeZone ?? null,
+          recurringEventId: event.recurringEventId ?? null,
           originalStartDate: event.originalStartTime?.dateTime
             ? new Date(event.originalStartTime.dateTime)
             : event.originalStartTime?.date

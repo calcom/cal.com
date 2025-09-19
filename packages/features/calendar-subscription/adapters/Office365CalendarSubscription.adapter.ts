@@ -199,20 +199,25 @@ export class Office365CalendarSubscriptionAdapter implements ICalendarSubscripti
 
         return {
           id: e.id,
-          iCalUID: e.iCalUId ?? e.id,
+          iCalUID: e.iCalUId ?? null,
           start,
           end,
           busy,
-          summary: e.subject,
-          description: e.bodyPreview,
-          location: e.location?.displayName,
+          etag: null,
+          summary: e.subject ?? null,
+          description: e.bodyPreview ?? null,
+          location: e.location?.displayName ?? null,
           kind: e.type ?? "microsoftgraph#event",
           status: e.isCancelled ? "cancelled" : "confirmed",
-          isAllDay: !!e.isAllDay,
+          isAllDay: e.isAllDay ?? false,
           timeZone: e.start?.timeZone ?? null,
+          recurringEventId: null,
+          originalStartDate: null,
+          createdAt: null,
+          updatedAt: null,
         };
       })
-      .filter((i: CalendarSubscriptionEventItem) => Boolean(i.id));
+      .filter(({ id }) => !!id);
   }
 
   private async getGraphClient(credential: CalendarCredential): Promise<GraphClient> {

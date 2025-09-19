@@ -25,7 +25,7 @@ export class CalendarCacheEventRepository implements ICalendarCacheEventReposito
     });
   }
 
-  async upsertMany(events: Partial<CalendarCacheEvent>[]): Promise<unknown> {
+  async upsertMany(events: CalendarCacheEvent[]): Promise<unknown> {
     if (events.length === 0) {
       return;
     }

@@ -15,10 +15,13 @@ const mockPrismaClient = {
 
 const mockCalendarCacheEvent: CalendarCacheEvent = {
   id: "test-id",
+  iCalUID: null,
+  iCalSequence: 0,
   selectedCalendarId: "test-calendar-id",
   externalId: "external-event-id",
   start: new Date("2023-12-01T10:00:00Z"),
   end: new Date("2023-12-01T11:00:00Z"),
+  status: "confirmed",
   summary: "Test Event",
   description: "Test Description",
   location: "Test Location",
@@ -49,7 +52,7 @@ describe("CalendarCacheEventRepository", () => {
           end: new Date("2023-12-01T11:00:00Z"),
           timeZone: "UTC",
         },
-      ];
+      ] as unknown as CalendarCacheEvent[];
 
       vi.mocked(mockPrismaClient.calendarCacheEvent.findMany).mockResolvedValue(mockEvents);
 
