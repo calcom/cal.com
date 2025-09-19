@@ -32,7 +32,7 @@ export class WorkflowService {
             routingFormId: routingForm.id,
           },
         },
-        trigger: "FORM_SUBMITTED" as any, // Temporary cast until Prisma client is regenerated
+        trigger: WorkflowTriggerEvents.FORM_SUBMITTED,
       },
       select: {
         id: true,
