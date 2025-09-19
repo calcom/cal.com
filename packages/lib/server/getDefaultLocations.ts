@@ -29,11 +29,18 @@ export async function getDefaultLocations(user: User): Promise<EventTypeLocation
     return [{ type: locationType, link: defaultConferencingData.appLink }];
   }
 
-  const appKeys = await getAppKeysFromSlug("daily-video");
+  // const appKeys = await getAppKeysFromSlug("daily-video");
 
-  if (typeof appKeys.api_key === "string") {
-    return [{ type: DailyLocationType }];
-  }
+  // if (typeof appKeys.api_key === "string") {
+  //   return [{ type: DailyLocationType }];
+  // }
 
-  return [];
+  // const appKeys = await getAppKeysFromSlug("jitsi");
+
+  // if (typeof appKeys.api_key === "string") {
+  //   return [{ type: JitsiLocationType }];
+  // }
+
+
+  return [{ type: JitsiLocationType }];
 }

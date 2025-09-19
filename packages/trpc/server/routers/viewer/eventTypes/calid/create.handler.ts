@@ -57,7 +57,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const locations: EventTypeLocation[] =
     inputLocations && inputLocations.length !== 0 ? inputLocations : await getDefaultLocations(ctx.user);
 
-  const isCalVideoLocationActive = locations.some((location) => location.type === DailyLocationType);
+  // const isCalVideoLocationActive = locations.some((location) => location.type === DailyLocationType);
 
   const data: Prisma.EventTypeCreateInput = {
     ...rest,
@@ -69,19 +69,19 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     schedule: scheduleId ? { connect: { id: scheduleId } } : undefined,
   };
 
-  if (isCalVideoLocationActive && calVideoSettings) {
-    data.calVideoSettings = {
-      create: {
-        disableRecordingForGuests: calVideoSettings.disableRecordingForGuests ?? false,
-        disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer ?? false,
-        enableAutomaticTranscription: calVideoSettings.enableAutomaticTranscription ?? false,
-        enableAutomaticRecordingForOrganizer: calVideoSettings.enableAutomaticRecordingForOrganizer ?? false,
-        disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
-        disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
-        redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
-      },
-    };
-  }
+  // if (isCalVideoLocationActive && calVideoSettings) {
+  //   data.calVideoSettings = {
+  //     create: {
+  //       disableRecordingForGuests: calVideoSettings.disableRecordingForGuests ?? false,
+  //       disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer ?? false,
+  //       enableAutomaticTranscription: calVideoSettings.enableAutomaticTranscription ?? false,
+  //       enableAutomaticRecordingForOrganizer: calVideoSettings.enableAutomaticRecordingForOrganizer ?? false,
+  //       disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
+  //       disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
+  //       redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
+  //     },
+  //   };
+  // }
 
   if (calIdTeamId && schedulingType) {
     const hasCalIdMembership = await ctx.prisma.calIdMembership.findFirst({
