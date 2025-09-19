@@ -1,9 +1,5 @@
-import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import type { CalendarSubscriptionEventItem } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionPort.interface";
 import logger from "@calcom/lib/logger";
-import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/lib/server/i18n";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 
 const log = logger.getSubLogger({ prefix: ["CalendarSyncService"] });
@@ -65,76 +61,5 @@ export class CalendarSyncService {
    */
   async rescheduleBooking(event: CalendarSubscriptionEventItem) {
     log.debug("rescheduleBooking", { event });
-    const booking = await BookingRepository.findMany({
-      iCalUID: event.iCalUID,
-    });
-    if (!booking) {
-      log.debug("rescheduleBooking: no booking found", { iCalUID: event.iCalUID });
-      return;
-    }
-    try {
-      const rescheduleResult = await handleBookingTimeChange({
-        booking,
-        newStartTime: startTime,
-        newEndTime: endTime,
-        rescheduledBy,
-      });
-      return rescheduleResult;
-    } catch (error) {
-      // silently fail for now
-      log.error("Failed to reschedule booking", { bookingId: booking.id }, safeStringify(error));
-    }
-  }
-
-  /**
-   * Handles a booking time change
-   */
-  private async handleBookingTimeChange({
-    booking,
-    newStartTime,
-    newEndTime,
-    rescheduledBy,
-  }: {
-    booking: {
-      id: number;
-      eventType: {
-        id: number;
-        slug: string;
-      };
-      uid: string;
-      bookerAttendee: {
-        timeZone: string;
-      };
-      responses: Record<string, unknown> & {
-        rescheduleReason: string;
-      };
-    };
-    newStartTime: Date;
-    newEndTime: Date;
-    rescheduledBy: string;
-  }) {
-    const tEnglish = await getTranslation("en", "common");
-    await handleNewBooking({
-      bookingData: {
-        bookingUid: booking.uid,
-        bookingId: booking.id,
-        eventTypeId: booking.eventType.id,
-        eventTypeSlug: booking.eventType.slug,
-        start: newStartTime.toISOString(),
-        end: newEndTime.toISOString(),
-        rescheduledBy,
-        rescheduleUid: booking.uid,
-        hasHashedBookingLink: false,
-        language: "en",
-        timeZone: booking.bookerAttendee.timeZone,
-        metadata: {},
-        responses: {
-          ...booking.responses,
-          rescheduleReason: tEnglish("event_moved_in_calendar"),
-        },
-      },
-      skipEventLimitsCheck: true,
-      skipCalendarSyncTaskCreation: true,
-    });
   }
 }
