@@ -129,8 +129,13 @@ export async function createUserAndEventType({
       );
       continue;
     }
+    const now = new Date();
     const { id } = await prisma.eventType.create({
-      data: eventTypeData,
+      data: {
+        ...eventTypeData,
+        createdAt: now,
+        updatedAt: now,
+      },
     });
 
     console.log(

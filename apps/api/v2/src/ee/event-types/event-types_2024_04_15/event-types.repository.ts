@@ -20,10 +20,13 @@ export class EventTypesRepository_2024_04_15 {
     userId: number,
     body: Pick<CreateEventTypeInput_2024_04_15, "title" | "slug" | "length" | "hidden">
   ) {
+    const now = new Date();
     return this.dbWrite.prisma.eventType.create({
       data: {
         ...body,
         userId,
+        createdAt: now,
+        updatedAt: now,
         users: { connect: { id: userId } },
       },
     });

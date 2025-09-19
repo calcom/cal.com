@@ -489,11 +489,16 @@ async function createPerformanceData() {
         },
       },
     }));
-    const createEventPromises = createEvents.map((data) =>
-      prisma.eventType.create({
-        data,
-      })
-    );
+    const createEventPromises = createEvents.map((data) => {
+      const now = new Date();
+      return prisma.eventType.create({
+        data: {
+          ...data,
+          createdAt: now,
+          updatedAt: now,
+        },
+      });
+    });
     await Promise.all(createEventPromises);
 
     // load the events we just created
