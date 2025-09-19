@@ -3,9 +3,8 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/components/badge";
@@ -32,7 +31,7 @@ export default function TeamCollapsible({ type, isOrgAdmin }: TeamCollapsiblePro
 
   // Find the teams or other_teams tab
   const teamsTab = tabs.find((tab) => tab.key === type);
-  const teams = teamsTab?.children || [];
+  const teams = useMemo(() => teamsTab?.children || [], [teamsTab]);
 
   // Initialize expansion state from URL params
   useEffect(() => {
@@ -49,6 +48,8 @@ export default function TeamCollapsible({ type, isOrgAdmin }: TeamCollapsiblePro
           // Scroll to the team after a short delay
           setTimeout(() => {
             const element = document.querySelector(`[data-team-id="${id}"]`);
+            // This isnt in embed.
+            // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed
             element?.scrollIntoView({ behavior: "smooth" });
           }, 100);
         }
@@ -79,7 +80,7 @@ export default function TeamCollapsible({ type, isOrgAdmin }: TeamCollapsiblePro
       {teams.map((team) => {
         const teamId = team.key.split("_").pop() || "";
         const isExpanded = teamExpansionState[teamId] || false;
-        const teamData = team as any; // This would have additional team data in real implementation
+        const teamData = team;
 
         return (
           <Collapsible
