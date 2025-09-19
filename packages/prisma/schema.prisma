@@ -1809,6 +1809,7 @@ view BookingTimeStatusDenormalized {
   noShowHost     Boolean?
   isTeamBooking  Boolean
   timeStatus     String? // this is the addition on top of BookingDenormalized
+  calIdTeamId    Int?
 }
 
 model CalendarCache {
