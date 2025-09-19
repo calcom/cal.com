@@ -4,7 +4,7 @@
  * Cleanup script to remove PBAC demo organization and related data
  * Run with: npx tsx packages/prisma/cleanup-pbac.ts
  */
-import prisma from ".";
+import { prisma } from ".";
 
 async function cleanupPBACOrganization() {
   console.log("🧹 Cleaning up PBAC Demo Organization...");
