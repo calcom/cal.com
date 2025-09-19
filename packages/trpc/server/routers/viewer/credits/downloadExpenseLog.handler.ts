@@ -52,7 +52,7 @@ export const downloadExpenseLogHandler = async ({ ctx, input }: DownloadExpenseL
     ? creditBalance.expenseLogs.map(
         (log: {
           date: Date;
-          credits?: number;
+          credits: number | null;
           creditType?: string;
           bookingUid?: string;
           smsSid?: string;

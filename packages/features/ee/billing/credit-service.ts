@@ -697,17 +697,19 @@ export class CreditService {
     );
 
     const totalMonthlyCredits = await this.getMonthlyCredits(teamId);
-    const totalMonthlyCreditsUsed =
-      Array.isArray(creditBalance?.expenseLogs) && creditBalance?.expenseLogs
-        ? creditBalance.expenseLogs.reduce(
-            (sum: number, log: { credits?: number }) => sum + (log?.credits ?? 0),
-            0
-          )
-        : 0;
+    const totalMonthlyCreditsUsed = Array.isArray(creditBalance?.expenseLogs)
+      ? creditBalance.expenseLogs.reduce(
+          (sum: number, log: { credits: number | null }) => sum + (log.credits ?? 0),
+          0
+        )
+      : 0;
 
     return {
       totalMonthlyCredits,
-      totalRemainingMonthlyCredits: Math.max(totalMonthlyCredits - totalMonthlyCreditsUsed, 0),
+      totalRemainingMonthlyCredits: Math.max(
+        Number(totalMonthlyCredits) - Number(totalMonthlyCreditsUsed),
+        0
+      ),
       additionalCredits: creditBalance?.additionalCredits ?? 0,
     };
   }

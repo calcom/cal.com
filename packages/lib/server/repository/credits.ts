@@ -1,3 +1,5 @@
+/* eslint-disable @calcom/eslint/no-prisma-include-true */
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /* eslint-disable @typescript-eslint/adjacent-overload-signatures */
@@ -95,17 +97,45 @@ export class CreditsRepository {
     });
   }
 
-  static async findCreditBalance(
+  static async findCreditBalanceWithTeamOrUser(
     { teamId, userId }: { teamId?: number | null; userId?: number | null },
-    tx?: PrismaTransaction
+    tx: PrismaTransaction = prisma
   ) {
-    const prismaClient = tx || prisma;
-    return prismaClient.creditBalance.findUnique({
-      where: {
-        teamId: teamId ?? undefined,
-        userId: userId ?? undefined,
-      },
-    });
+    const prismaClient = tx ?? prisma;
+    if (teamId) {
+      return prismaClient.creditBalance.findUnique({
+        where: { teamId: teamId ?? undefined },
+        include: {
+          team: {
+            include: {
+              members: {
+                include: {
+                  user: true,
+                },
+              },
+            },
+          },
+          user: true,
+        },
+      });
+    } else if (userId) {
+      return prismaClient.creditBalance.findUnique({
+        where: { userId: userId ?? undefined },
+        include: {
+          team: {
+            include: {
+              members: {
+                include: {
+                  user: true,
+                },
+              },
+            },
+          },
+          user: true,
+        },
+      });
+    }
+    return null;
   }
 
   static async findCreditBalanceWithExpenseLogs(
