@@ -59,7 +59,7 @@ vi.mock("@calcom/lib/server/repository/membership");
 vi.mock("@calcom/lib/server/repository/team");
 vi.mock("@calcom/emails/email-manager");
 vi.mock("../workflows/lib/reminders/reminderScheduler", () => ({
-  cancelScheduledMessagesAndScheduleEmails: vi.fn(),
+  cancelScheduledMessagesAndScheduleEmails: vi.fn().mockResolvedValue(undefined),
 }));
 
 const creditService = new CreditService();
@@ -68,9 +68,7 @@ vi.spyOn(creditService, "_getAllCreditsForTeam").mockResolvedValue({
   totalMonthlyCredits: 10,
   totalRemainingMonthlyCredits: 5,
   additionalCredits: 0,
-  totalCreditsForMonth: 10,
   totalCreditsUsedThisMonth: 5,
-  totalRemainingCreditsForMonth: 5,
 });
 
 vi.spyOn(creditService, "_getTeamWithAvailableCredits").mockResolvedValue({
@@ -237,9 +235,7 @@ describe("CreditService", () => {
           totalMonthlyCredits: 500,
           totalRemainingMonthlyCredits: 20,
           additionalCredits: 60,
-          totalCreditsForMonth: 560,
           totalCreditsUsedThisMonth: 480,
-          totalRemainingCreditsForMonth: 80,
         });
 
         await creditService.chargeCredits({
@@ -298,9 +294,7 @@ describe("CreditService", () => {
           totalMonthlyCredits: 500,
           totalRemainingMonthlyCredits: -1,
           additionalCredits: 0,
-          totalCreditsForMonth: 500,
           totalCreditsUsedThisMonth: 501,
-          totalRemainingCreditsForMonth: -1,
         });
 
         await creditService.chargeCredits({
@@ -331,9 +325,7 @@ describe("CreditService", () => {
           totalMonthlyCredits: 500,
           totalRemainingMonthlyCredits: 100,
           additionalCredits: 50,
-          totalCreditsForMonth: 550,
           totalCreditsUsedThisMonth: 400,
-          totalRemainingCreditsForMonth: 150,
         });
 
         const result = await creditService.getUserOrTeamToCharge({
@@ -353,9 +345,7 @@ describe("CreditService", () => {
           totalMonthlyCredits: 500,
           totalRemainingMonthlyCredits: 0,
           additionalCredits: 50,
-          totalCreditsForMonth: 550,
           totalCreditsUsedThisMonth: 500,
-          totalRemainingCreditsForMonth: 50,
         });
 
         const result = await creditService.getUserOrTeamToCharge({
@@ -519,9 +509,7 @@ describe("CreditService", () => {
           totalMonthlyCredits: 500,
           totalRemainingMonthlyCredits: 420, // 500 - (50 + 30)
           additionalCredits: 100,
-          totalCreditsForMonth: 500, // just monthly credits
-          totalCreditsUsedThisMonth: 80, // just monthly usage (50 + 30)
-          totalRemainingCreditsForMonth: 420, // 500 - 80
+          totalCreditsUsedThisMonth: 80, // 50 + 30
         });
       });
 
@@ -543,9 +531,7 @@ describe("CreditService", () => {
           totalMonthlyCredits: 500,
           totalRemainingMonthlyCredits: 500,
           additionalCredits: 100,
-          totalCreditsForMonth: 500, // just monthly credits
           totalCreditsUsedThisMonth: 0, // no expenses
-          totalRemainingCreditsForMonth: 500, // 500 - 0
         });
       });
 
@@ -573,9 +559,7 @@ describe("CreditService", () => {
           totalMonthlyCredits: 500,
           totalRemainingMonthlyCredits: 380, // 500 - (80 + 40)
           additionalCredits: 150,
-          totalCreditsForMonth: 500, // just monthly credits
-          totalCreditsUsedThisMonth: 120, // just monthly usage (80 + 40)
-          totalRemainingCreditsForMonth: 380, // 500 - 120
+          totalCreditsUsedThisMonth: 120, // 80 + 40
         });
       });
 
@@ -597,9 +581,7 @@ describe("CreditService", () => {
           totalMonthlyCredits: 500,
           totalRemainingMonthlyCredits: 400, // 500 - 100
           additionalCredits: 0,
-          totalCreditsForMonth: 500, // 500 + 0
-          totalCreditsUsedThisMonth: 100, // 100 + 0
-          totalRemainingCreditsForMonth: 400, // 500 - 100
+          totalCreditsUsedThisMonth: 100,
         });
       });
     });
@@ -790,9 +772,7 @@ describe("CreditService", () => {
         totalMonthlyCredits: 500,
         totalRemainingMonthlyCredits: 200,
         additionalCredits: 100,
-        totalCreditsForMonth: 600,
         totalCreditsUsedThisMonth: 300,
-        totalRemainingCreditsForMonth: 300,
       });
       const result = await creditService.getTeamWithAvailableCredits(1);
       expect(result).toEqual({
@@ -916,9 +896,7 @@ describe("CreditService", () => {
         totalMonthlyCredits: 500,
         totalRemainingMonthlyCredits: 100,
         additionalCredits: 100,
-        totalCreditsForMonth: 600,
         totalCreditsUsedThisMonth: 400,
-        totalRemainingCreditsForMonth: 200,
       });
 
       await creditService.chargeCredits({

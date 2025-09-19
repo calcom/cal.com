@@ -651,9 +651,7 @@ export class CreditService {
         totalMonthlyCredits: 0,
         totalRemainingMonthlyCredits: 0,
         additionalCredits: creditBalance?.additionalCredits ?? 0,
-        totalCreditsForMonth: 0,
         totalCreditsUsedThisMonth: 0,
-        totalRemainingCreditsForMonth: 0,
       };
     }
 
@@ -661,9 +659,7 @@ export class CreditService {
       totalMonthlyCredits: 0,
       totalRemainingMonthlyCredits: 0,
       additionalCredits: 0,
-      totalCreditsForMonth: 0,
       totalCreditsUsedThisMonth: 0,
-      totalRemainingCreditsForMonth: 0,
     };
   }
 
@@ -684,16 +680,13 @@ export class CreditService {
       creditBalance?.expenseLogs.reduce((sum, log) => sum + (log?.credits ?? 0), 0) || 0;
 
     const additionalCredits = creditBalance?.additionalCredits ?? 0;
-    const totalCreditsForMonth = totalMonthlyCredits;
     const totalCreditsUsedThisMonth = totalMonthlyCreditsUsed;
 
     return {
       totalMonthlyCredits,
       totalRemainingMonthlyCredits: Math.max(totalMonthlyCredits - totalMonthlyCreditsUsed, 0),
       additionalCredits,
-      totalCreditsForMonth,
       totalCreditsUsedThisMonth,
-      totalRemainingCreditsForMonth: Math.max(totalCreditsForMonth - totalCreditsUsedThisMonth, 0),
     };
   }
 }

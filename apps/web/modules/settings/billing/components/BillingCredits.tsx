@@ -171,12 +171,8 @@ export default function BillingCredits() {
     buyCreditsMutation.mutate({ quantity: data.quantity, teamId });
   };
 
-  const totalCredits =
-    (creditsData.credits.totalCreditsForMonth ?? 0) ||
-    creditsData.credits.totalMonthlyCredits + creditsData.credits.additionalCredits;
-  const totalUsed =
-    (creditsData.credits.totalCreditsUsedThisMonth ?? 0) ||
-    totalCredits - (creditsData.credits.totalRemainingCreditsForMonth ?? 0);
+  const totalCredits = creditsData.credits.totalMonthlyCredits ?? 0;
+  const totalUsed = creditsData.credits.totalCreditsUsedThisMonth ?? 0;
 
   const teamCreditsPercentageUsed = totalCredits > 0 ? (totalUsed / totalCredits) * 100 : 0;
   const numberFormatter = new Intl.NumberFormat();
