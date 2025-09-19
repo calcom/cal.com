@@ -115,7 +115,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   await createOrgTeamMembershipMember(+organizationId, team.id, managedUserResponseTwo.user.id, "MEMBER");
   await createOrgTeamMembershipMember(+organizationId, team.id, managedUserResponseThree.user.id, "MEMBER");
   await createOrgTeamMembershipMember(+organizationId, team.id, managedUserResponseFour.user.id, "MEMBER");
-  await createOrgTeamMembershipMember(+organizationId, team.id, managedUserResponseFive.user.id, "ADMIN");
 
   await createCollectiveEventType(+organizationId, team.id, [
     managedUserResponseOne.user.id,

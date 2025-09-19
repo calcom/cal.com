@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 import { generateRandomText } from "../../src/lib/generateRandomText";
 
 // eslint-disable-next-line playwright/no-skipped-test
-test.skip("create team event using CreateTeamEventTypeAtom", async ({ page }) => {
+test("create team event using CreateTeamEventTypeAtom", async ({ page }) => {
   await page.goto("/");
 
   await page.goto("/event-types");
