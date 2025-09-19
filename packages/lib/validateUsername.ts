@@ -1,5 +1,5 @@
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 export const getUsernameForOrgMember = async ({
   email,

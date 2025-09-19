@@ -9,7 +9,7 @@ import { getPiiFreeBooking } from "@calcom/lib/piiFreeData";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { performance } from "@calcom/lib/server/perfObserver";
 import type { BookingRepository } from "@calcom/lib/server/repository/booking";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { Booking, EventType } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import type { SelectedCalendar } from "@calcom/prisma/client";

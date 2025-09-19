@@ -1,7 +1,7 @@
 import { unstable_cache } from "next/cache";
 import { z } from "zod";
 
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 const computeInstallCountsFromDB = async (): Promise<Record<string, number>> => {
   const mostPopularApps = z.array(z.object({ appId: z.string(), installCount: z.number() })).parse(

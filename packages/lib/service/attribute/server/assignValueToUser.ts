@@ -1,6 +1,6 @@
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import { PrismaAttributeOptionRepository } from "../../../server/repository/PrismaAttributeOptionRepository";
 import { PrismaAttributeRepository } from "../../../server/repository/PrismaAttributeRepository";
