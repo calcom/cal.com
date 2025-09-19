@@ -1,5 +1,6 @@
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import type { CreditType } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
 
