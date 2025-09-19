@@ -189,44 +189,47 @@ export default function BillingCredits() {
         <div className="bg-default border-muted flex w-full rounded-[10px] border px-5 py-4">
           <div className="w-full">
             {totalCredits > 0 ? (
-              <div className="mb-4">
-                <CreditRow
-                  label={t("monthly_credits")}
-                  value={creditsData.credits.totalMonthlyCredits ?? 0}
-                  isBold={true}
-                  underline="dashed"
-                />
-                <CreditRow label={t("credits_used")} value={totalUsed} underline="solid" />
-                <CreditRow
-                  label={t("total_credits_remaining")}
-                  value={creditsData.credits.totalRemainingCreditsForMonth}
-                />
-                <div className="mt-4">
-                  <ProgressBar color="green" percentageValue={100 - teamCreditsPercentageUsed} />
+              <>
+                <div className="mb-4">
+                  <CreditRow
+                    label={t("monthly_credits")}
+                    value={creditsData.credits.totalMonthlyCredits ?? 0}
+                    isBold={true}
+                    underline="dashed"
+                  />
+                  <CreditRow label={t("credits_used")} value={totalUsed} underline="solid" />
+                  <CreditRow
+                    label={t("total_credits_remaining")}
+                    value={creditsData.credits.totalRemainingCreditsForMonth}
+                  />
+                  <div className="mt-4">
+                    <ProgressBar color="green" percentageValue={100 - teamCreditsPercentageUsed} />
+                  </div>
+                  {/*750 credits per tip*/}
+                  <div className="mt-4 flex flex-1 items-center justify-between">
+                    <p className="text-subtle text-sm font-medium leading-tight">
+                      {orgSlug ? t("credits_per_tip_org") : t("credits_per_tip_teams")}
+                    </p>
+                    <Button
+                      href={
+                        orgSlug
+                          ? `/settings/organizations/${orgSlug}/members`
+                          : `/settings/teams/${teamId}/members`
+                      }
+                      size="sm"
+                      color="secondary">
+                      {t("add_members_no_elipsis")}
+                    </Button>
+                  </div>
                 </div>
-                {/*750 credits per tip*/}
-                <div className="mt-4 flex flex-1 items-center justify-between">
-                  <p className="text-subtle text-sm font-medium leading-tight">
-                    {orgSlug ? t("credits_per_tip_org") : t("credits_per_tip_teams")}
-                  </p>
-                  <Button
-                    href={
-                      orgSlug
-                        ? `/settings/organizations/${orgSlug}/members`
-                        : `/settings/teams/${teamId}/members`
-                    }
-                    size="sm"
-                    color="secondary">
-                    {t("add_members_no_elipsis")}
-                  </Button>
+                <div className="-mx-5 mt-5">
+                  <hr className="border-subtle" />
                 </div>
-              </div>
+              </>
             ) : (
               <></>
             )}
-            <div className="-mx-5 mt-5">
-              <hr className="border-subtle" />
-            </div>
+
             {/*Auto Top-Up goes here when we have it*/}
             {/*<div className="-mx-5 mt-5">
               <hr className="border-subtle" />
