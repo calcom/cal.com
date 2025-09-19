@@ -479,7 +479,17 @@ export class InsightsBookingBaseService {
     });
   }
 
-  async getCsvData({ limit = 100, offset = 0 }: { limit?: number; offset?: number }) {
+  async getCsvData({
+    limit = 100,
+    offset = 0,
+    timeZone,
+  }: {
+    limit?: number;
+    offset?: number;
+    timeZone: string;
+  }) {
+    const DATE_FORMAT = "YYYY-MM-DD";
+    const TIME_FORMAT = "HH:mm:ss";
     const baseConditions = await this.getBaseConditions();
 
     // Get total count first
@@ -628,8 +638,20 @@ export class InsightsBookingBaseService {
       })
     );
 
-    // 6. Combine booking data with attendee data
+    // 6. Combine booking data with attendee data and add ISO timestamp columns
     const data = csvData.map((bookingTimeStatus) => {
+      const dateAndTime = {
+        createdAt: bookingTimeStatus.createdAt.toISOString(),
+        createdAt_date: dayjs(bookingTimeStatus.createdAt).tz(timeZone).format(DATE_FORMAT),
+        createdAt_time: dayjs(bookingTimeStatus.createdAt).tz(timeZone).format(TIME_FORMAT),
+        startTime: bookingTimeStatus.startTime.toISOString(),
+        startTime_date: dayjs(bookingTimeStatus.startTime).tz(timeZone).format(DATE_FORMAT),
+        startTime_time: dayjs(bookingTimeStatus.startTime).tz(timeZone).format(TIME_FORMAT),
+        endTime: bookingTimeStatus.endTime.toISOString(),
+        endTime_date: dayjs(bookingTimeStatus.endTime).tz(timeZone).format(DATE_FORMAT),
+        endTime_time: dayjs(bookingTimeStatus.endTime).tz(timeZone).format(TIME_FORMAT),
+      };
+
       if (!bookingTimeStatus.uid) {
         // should not be reached because we filtered above
         const nullAttendeeFields: Record<string, null> = {};
@@ -639,6 +661,7 @@ export class InsightsBookingBaseService {
 
         return {
           ...bookingTimeStatus,
+          ...dateAndTime,
           noShowGuests: null,
           noShowGuestsCount: 0,
           ...nullAttendeeFields,
@@ -655,6 +678,7 @@ export class InsightsBookingBaseService {
 
         return {
           ...bookingTimeStatus,
+          ...dateAndTime,
           noShowGuests: null,
           noShowGuestsCount: 0,
           ...nullAttendeeFields,
@@ -663,6 +687,7 @@ export class InsightsBookingBaseService {
 
       return {
         ...bookingTimeStatus,
+        ...dateAndTime,
         noShowGuests: attendeeData.noShowGuests,
         noShowGuestsCount: attendeeData.noShowGuestsCount,
         ...Object.fromEntries(Object.entries(attendeeData).filter(([key]) => key.startsWith("attendee"))),
