@@ -65,4 +65,6 @@ export const eventTypeSelect = {
       userId: true,
     },
   },
+  createdAt: true,
+  updatedAt: true,
 } satisfies Prisma.EventTypeSelect;

@@ -244,6 +244,9 @@ model EventType {
 
   bookingRequiresAuthentication Boolean @default(false)
 
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+
   @@unique([userId, slug])
   @@unique([teamId, slug])
   @@unique([userId, parentId])
