@@ -679,21 +679,13 @@ export class CreditService {
       tx
     );
 
-    const additionalCreditBalance = await CreditsRepository.findCreditBalanceWithExpenseLogs(
-      { teamId, creditType: CreditType.ADDITIONAL },
-      tx
-    );
-
     const totalMonthlyCredits = await this.getMonthlyCredits(teamId);
     const totalMonthlyCreditsUsed =
       creditBalance?.expenseLogs.reduce((sum, log) => sum + (log?.credits ?? 0), 0) || 0;
 
-    const totalAdditionalCreditsUsed =
-      additionalCreditBalance?.expenseLogs.reduce((sum, log) => sum + (log?.credits ?? 0), 0) || 0;
-
     const additionalCredits = creditBalance?.additionalCredits ?? 0;
-    const totalCreditsForMonth = totalMonthlyCredits + additionalCredits;
-    const totalCreditsUsedThisMonth = totalMonthlyCreditsUsed + totalAdditionalCreditsUsed;
+    const totalCreditsForMonth = totalMonthlyCredits;
+    const totalCreditsUsedThisMonth = totalMonthlyCreditsUsed;
 
     return {
       totalMonthlyCredits,

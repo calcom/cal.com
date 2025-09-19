@@ -188,7 +188,7 @@ export default function BillingCredits() {
         </div>
         <div className="bg-default border-muted flex w-full rounded-[10px] border px-5 py-4">
           <div className="w-full">
-            {totalCredits > 0 ? (
+            {creditsData.credits.totalCreditsForMonth > 0 ? (
               <>
                 <div className="mb-4">
                   <CreditRow
@@ -239,7 +239,7 @@ export default function BillingCredits() {
               <div className="-mb-1 mr-auto w-full">
                 <div className="flex justify-between">
                   <Label>{t("additional_credits")}</Label>
-                  <div className="flex items-center gap-1">
+                  <div className="mb-2 flex items-center gap-1">
                     <p className="text-sm font-semibold leading-none">
                       <span className="text-subtle font-medium">{t("current_balance")}</span>{" "}
                       {numberFormatter.format(creditsData.credits.additionalCredits)}
