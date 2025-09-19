@@ -58,6 +58,7 @@ function preprocess<T extends z.ZodType>({
   isPartialSchema: boolean;
   checkOptional?: boolean;
 }): z.ZodType<z.infer<T>, z.infer<T>, z.infer<T>> {
+  const isReschedule = currentView === "reschedule";
   const preprocessed = z.preprocess(
     (responses) => {
       const parsedResponses = z.record(z.any()).nullable().parse(responses) || {};
@@ -265,12 +266,30 @@ function preprocess<T extends z.ZodType>({
           if (!stringSchema.array().safeParse(value).success) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid array of strings") });
           }
+
+          if (isReschedule && bookingField.options && Array.isArray(value)) {
+            const allowedOptionValues = bookingField.options.map((opt) => opt.value);
+            const submittedValues = value as string[];
+            const hasInvalidOptions = submittedValues.some((val) => !allowedOptionValues.includes(val));
+            if (hasInvalidOptions) {
+              continue;
+            }
+          }
           continue;
         }
 
         if (bookingField.type === "checkbox") {
           if (!stringSchema.array().safeParse(value).success) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid array of strings") });
+          }
+
+          if (isReschedule && bookingField.options && Array.isArray(value)) {
+            const allowedOptionValues = bookingField.options.map((opt) => opt.value);
+            const submittedValues = value as string[];
+            const hasInvalidOptions = submittedValues.some((val) => !allowedOptionValues.includes(val));
+            if (hasInvalidOptions) {
+              continue;
+            }
           }
           continue;
         }
@@ -327,6 +346,18 @@ function preprocess<T extends z.ZodType>({
           const schema = stringSchema;
           if (!schema.safeParse(value).success) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid string") });
+          }
+
+          if (
+            (bookingField.type === "select" || bookingField.type === "radio") &&
+            isReschedule &&
+            bookingField.options
+          ) {
+            const allowedOptionValues = bookingField.options.map((opt) => opt.value);
+            const submittedValue = value as string;
+            if (!allowedOptionValues.includes(submittedValue)) {
+              continue;
+            }
           }
           continue;
         }
