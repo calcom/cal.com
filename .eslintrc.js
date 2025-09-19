@@ -6,13 +6,9 @@ module.exports = {
     "import/no-cycle": ["warn", { maxDepth: Infinity }],
   },
   overrides: [
-    // WARN: features must not be imported by app-store, prisma, or lib
+    // WARN: features must not be imported by app-store or lib
     {
-      files: [
-        "packages/app-store/**/*.{ts,tsx,js,jsx}",
-        "packages/prisma/**/*.{ts,tsx,js,jsx}",
-        "packages/lib/**/*.{ts,tsx,js,jsx}",
-      ],
+      files: ["packages/app-store/**/*.{ts,tsx,js,jsx}", "packages/lib/**/*.{ts,tsx,js,jsx}"],
       rules: {
         "no-restricted-imports": [
           "warn",
@@ -27,8 +23,7 @@ module.exports = {
                   "@calcom/features",
                   "@calcom/features/*",
                 ],
-                message:
-                  "Avoid importing @calcom/features from @calcom/app-store, @calcom/prisma, or @calcom/lib.",
+                message: "Avoid importing @calcom/features from @calcom/app-store or @calcom/lib.",
               },
             ],
           },
@@ -85,6 +80,31 @@ module.exports = {
                 ],
                 message:
                   "@calcom/app-store must not import trpc. Move UI to apps/web/components/apps or introduce an API boundary.",
+              },
+            ],
+          },
+        ],
+      },
+    },
+
+    // ERROR: prisma must not import `features` package
+    {
+      files: ["packages/prisma/**/*.{ts,tsx,js,jsx}"],
+      rules: {
+        "no-restricted-imports": [
+          "error",
+          {
+            patterns: [
+              {
+                group: [
+                  // Catch all relative paths into features
+                  "**/features",
+                  "**/features/*",
+                  // Catch all alias imports
+                  "@calcom/features",
+                  "@calcom/features/*",
+                ],
+                message: "Avoid importing @calcom/features from @calcom/prisma.",
               },
             ],
           },
