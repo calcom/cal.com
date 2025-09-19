@@ -1,4 +1,4 @@
-import { getCalendarCredentials, getConnectedCalendars } from "@calcom/lib/CalendarManager";
+import { getCalendarCredentials, getConnectedCalendars } from "@calcom/features/calendars/lib/CalendarManager";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { DestinationCalendarRepository } from "@calcom/lib/server/repository/destinationCalendar";
 import { prisma } from "@calcom/prisma";

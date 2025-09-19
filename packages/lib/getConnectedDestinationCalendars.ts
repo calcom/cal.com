@@ -1,4 +1,4 @@
-import { getCalendarCredentials, getConnectedCalendars } from "@calcom/lib/CalendarManager";
+import { getCalendarCredentials, getConnectedCalendars } from "@calcom/features/calendars/lib/CalendarManager";
 import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
 import logger from "@calcom/lib/logger";

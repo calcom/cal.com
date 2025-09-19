@@ -1,4 +1,4 @@
-import { getTeamWithoutMembers } from "@calcom/lib/server/queries/teams";
+import { getTeamWithoutMembers } from "@calcom/features/ee/teams/lib/queries";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 
 import { TRPCError } from "@trpc/server";

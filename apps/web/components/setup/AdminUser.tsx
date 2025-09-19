@@ -5,7 +5,7 @@ import React from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
+import { isPasswordValid } from "@calcom/lib/auth/isPasswordValid";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

@@ -139,21 +139,33 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
 
   const isEmbed = useIsEmbed();
 
+  const _month = dayjs(date).month();
+  const _monthAfterAdding1Month = dayjs(date).add(1, "month").month();
+  const _monthAfterAddingExtraDays = dayjs(date).add(bookerLayout.extraDays, "day").month();
+  const _monthAfterAddingExtraDaysColumnView = dayjs(date)
+    .add(bookerLayout.columnViewExtraDays.current, "day")
+    .month();
+
+  const _isValidDate = dayjs(date).isValid();
+  const _2WeeksAfter = dayjs(month).startOf("month").add(2, "week");
+  const _isSameMonth = dayjs().isSame(dayjs(month), "month");
+  const _isAfter2Weeks = dayjs().isAfter(_2WeeksAfter);
+
   const prefetchNextMonth =
     (bookerLayout.layout === BookerLayouts.WEEK_VIEW &&
       !!bookerLayout.extraDays &&
-      dayjs(date).month() !== dayjs(date).add(bookerLayout.extraDays, "day").month()) ||
-    (bookerLayout.layout === BookerLayouts.COLUMN_VIEW &&
-      dayjs(date).month() !== dayjs(date).add(bookerLayout.columnViewExtraDays.current, "day").month()) ||
+      _month !== _monthAfterAddingExtraDays) ||
+    (bookerLayout.layout === BookerLayouts.COLUMN_VIEW && _month !== _monthAfterAddingExtraDaysColumnView) ||
     ((bookerLayout.layout === BookerLayouts.MONTH_VIEW || bookerLayout.layout === "mobile") &&
-      (!dayjs(date).isValid() || dayjs().isSame(dayjs(month), "month")) &&
-      dayjs().isAfter(dayjs(month).startOf("month").add(2, "week")));
+      (!_isValidDate || _isSameMonth) &&
+      _isAfter2Weeks);
 
   const monthCount =
     ((bookerLayout.layout !== BookerLayouts.WEEK_VIEW && bookerState === "selecting_time") ||
       bookerLayout.layout === BookerLayouts.COLUMN_VIEW) &&
-    dayjs(date).add(1, "month").month() !==
-      dayjs(date).add(bookerLayout.columnViewExtraDays.current, "day").month()
+    !isNaN(_monthAfterAdding1Month) &&
+    !isNaN(_monthAfterAddingExtraDaysColumnView) &&
+    _monthAfterAdding1Month !== _monthAfterAddingExtraDaysColumnView
       ? 2
       : undefined;
   /**

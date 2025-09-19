@@ -1,5 +1,5 @@
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
-import { isTeamOwner } from "@calcom/lib/server/queries/teams";
+import { isTeamOwner } from "@calcom/features/ee/teams/lib/queries";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";

@@ -9,6 +9,7 @@ export enum Resource {
   Role = "role",
   RoutingForm = "routingForm",
   Workflow = "workflow",
+  Webhook = "webhook",
 }
 
 export enum CrudAction {
@@ -264,7 +265,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "team",
       i18nKey: "pbac_action_invite",
       descriptionI18nKey: "pbac_desc_invite_team_members",
-      dependsOn: ["team.read", "team.listMembers"],
+      dependsOn: ["team.read", "team.listMembers", "role.read"],
     },
     [CustomAction.Remove]: {
       description: "Remove team members",
@@ -284,7 +285,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "team",
       i18nKey: "pbac_action_change_member_role",
       descriptionI18nKey: "pbac_desc_change_team_member_role",
-      dependsOn: ["team.read", "team.listMembers"],
+      dependsOn: ["team.read", "team.listMembers", "role.read"],
     },
     [CustomAction.Impersonate]: {
       description: "Impersonate team members",
@@ -514,6 +515,38 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       i18nKey: "pbac_action_delete",
       descriptionI18nKey: "pbac_desc_delete_routing_forms",
       dependsOn: ["routingForm.read"],
+    },
+  },
+  [Resource.Webhook]: {
+    _resource: {
+      i18nKey: "pbac_resource_webhook",
+    },
+    [CrudAction.Create]: {
+      description: "Create webhooks",
+      category: "webhook",
+      i18nKey: "pbac_action_create",
+      descriptionI18nKey: "pbac_desc_create_webhooks",
+      dependsOn: ["webhook.read"],
+    },
+    [CrudAction.Read]: {
+      description: "View webhooks",
+      category: "webhook",
+      i18nKey: "pbac_action_read",
+      descriptionI18nKey: "pbac_desc_view_webhooks",
+    },
+    [CrudAction.Update]: {
+      description: "Update webhooks",
+      category: "webhook",
+      i18nKey: "pbac_action_update",
+      descriptionI18nKey: "pbac_desc_update_webhooks",
+      dependsOn: ["webhook.read"],
+    },
+    [CrudAction.Delete]: {
+      description: "Delete webhooks",
+      category: "webhook",
+      i18nKey: "pbac_action_delete",
+      descriptionI18nKey: "pbac_desc_delete_webhooks",
+      dependsOn: ["webhook.read"],
     },
   },
 };

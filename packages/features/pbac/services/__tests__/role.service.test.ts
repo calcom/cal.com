@@ -39,6 +39,7 @@ describe("RoleService", () => {
       update: vi.fn(),
       roleBelongsToTeam: vi.fn(),
       getPermissions: vi.fn(),
+      reassignUsersToRole: vi.fn(),
     };
 
     mockPermissionDiffService = {
@@ -300,7 +301,7 @@ describe("RoleService", () => {
   });
 
   describe("deleteRole", () => {
-    it("should delete a custom role", async () => {
+    it("should delete a custom role and reassign users to member_role", async () => {
       const roleId = "role-id";
       const role: Role = {
         id: roleId,
@@ -314,9 +315,43 @@ describe("RoleService", () => {
       };
 
       mockRepository.findById.mockResolvedValueOnce(role);
+      mockRepository.reassignUsersToRole.mockResolvedValueOnce(void 0);
       mockRepository.delete.mockResolvedValueOnce(void 0);
 
       await service.deleteRole(roleId);
+      expect(mockRepository.reassignUsersToRole).toHaveBeenCalledWith(roleId, "member_role");
+      expect(mockRepository.delete).toHaveBeenCalledWith(roleId);
+    });
+
+    it("should reassign users before deleting the role", async () => {
+      const roleId = "role-id";
+      const role: Role = {
+        id: roleId,
+        name: "Test Role",
+        teamId: 1,
+        color: "#000000",
+        type: RoleType.CUSTOM,
+        permissions: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const callOrder: string[] = [];
+      mockRepository.findById.mockResolvedValueOnce(role);
+      mockRepository.reassignUsersToRole.mockImplementation(() => {
+        callOrder.push("reassignUsersToRole");
+        return Promise.resolve();
+      });
+      mockRepository.delete.mockImplementation(() => {
+        callOrder.push("delete");
+        return Promise.resolve();
+      });
+
+      await service.deleteRole(roleId);
+
+      // Verify that reassignment happens before deletion
+      expect(callOrder).toEqual(["reassignUsersToRole", "delete"]);
+      expect(mockRepository.reassignUsersToRole).toHaveBeenCalledWith(roleId, "member_role");
       expect(mockRepository.delete).toHaveBeenCalledWith(roleId);
     });
 
@@ -334,6 +369,7 @@ describe("RoleService", () => {
       });
 
       await expect(service.deleteRole(roleId)).rejects.toThrow("Cannot delete default roles");
+      expect(mockRepository.reassignUsersToRole).not.toHaveBeenCalled();
       expect(mockRepository.delete).not.toHaveBeenCalled();
     });
 
@@ -342,6 +378,7 @@ describe("RoleService", () => {
       mockRepository.findById.mockResolvedValueOnce(null);
 
       await expect(service.deleteRole(roleId)).rejects.toThrow("Role not found");
+      expect(mockRepository.reassignUsersToRole).not.toHaveBeenCalled();
       expect(mockRepository.delete).not.toHaveBeenCalled();
     });
   });

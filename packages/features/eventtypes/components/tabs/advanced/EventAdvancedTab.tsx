@@ -3,6 +3,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
 
+import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import { useAtomsContext } from "@calcom/atoms/hooks/useAtomsContext";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import {
@@ -31,8 +32,6 @@ import type {
   SettingsToggleClassNames,
 } from "@calcom/features/eventtypes/lib/types";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
-import type { fieldSchema } from "@calcom/features/form-builder/schema";
-import type { EditableSchema } from "@calcom/features/form-builder/schema";
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
 import {
   DEFAULT_LIGHT_BRAND_COLOR,
@@ -42,11 +41,12 @@ import {
 } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
-import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import { extractHostTimezone } from "@calcom/lib/hashedLinksUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
+import type { EditableSchema } from "@calcom/prisma/zod-utils";
+import type { fieldSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";

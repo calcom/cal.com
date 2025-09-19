@@ -1,9 +1,9 @@
 import { z } from "zod";
 
+import type { EventLocationType } from "@calcom/app-store/locations";
 import type { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
-import type { EventLocationType } from "@calcom/lib/location";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import type { EventTypeTranslation } from "@calcom/prisma/client";
 import { type PeriodType, SchedulingType } from "@calcom/prisma/enums";

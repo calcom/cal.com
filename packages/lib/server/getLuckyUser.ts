@@ -1,7 +1,7 @@
 import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
 import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
-import { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
+import { getBusyCalendarTimes } from "@calcom/features/calendars/lib/CalendarManager";
 import logger from "@calcom/lib/logger";
 import { acrossQueryValueCompatiblity } from "@calcom/lib/raqb/raqbUtils";
 import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";

@@ -1,5 +1,5 @@
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
+import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { CreationSource, UserPermissionRole, IdentityProvider } from "@calcom/prisma/enums";

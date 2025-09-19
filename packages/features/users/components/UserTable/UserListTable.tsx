@@ -386,9 +386,6 @@ function UserListTableContent({
         meta: {
           filter: {
             type: ColumnFilterType.DATE_RANGE,
-            dateRangeOptions: {
-              endOfDay: true,
-            },
           },
         },
         cell: ({ row }) => <div>{row.original.lastActiveAt}</div>,
@@ -402,9 +399,6 @@ function UserListTableContent({
         meta: {
           filter: {
             type: ColumnFilterType.DATE_RANGE,
-            dateRangeOptions: {
-              endOfDay: true,
-            },
           },
         },
         cell: ({ row }) => <div>{row.original.createdAt || ""}</div>,
@@ -418,9 +412,6 @@ function UserListTableContent({
         meta: {
           filter: {
             type: ColumnFilterType.DATE_RANGE,
-            dateRangeOptions: {
-              endOfDay: true,
-            },
           },
         },
         cell: ({ row }) => <div>{row.original.updatedAt || ""}</div>,

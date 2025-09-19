@@ -111,6 +111,9 @@ export function createAppsFixture(page: Page) {
     },
     goToEventType: async (eventType: string) => {
       await page.getByRole("link", { name: eventType }).click();
+      // fix the race condition
+      await page.waitForSelector('[data-testid="event-title"]');
+      await expect(page.getByTestId("vertical-tab-basics")).toHaveAttribute("aria-current", "page");
     },
     goToAppsTab: async () => {
       await page.getByTestId("vertical-tab-apps").click();

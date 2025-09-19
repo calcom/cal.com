@@ -164,6 +164,7 @@ function BookingListItem(booking: BookingItemProps) {
         showToast(t("booking_confirmation_success"), "success");
       }
       utils.viewer.bookings.invalidate();
+      utils.viewer.me.bookingUnconfirmedCount.invalidate();
     },
     onError: () => {
       showToast(t("booking_confirmation_failed"), "error");

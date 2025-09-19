@@ -15,7 +15,7 @@ import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
-import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { getBusyTimesService } from "@calcom/lib/di/containers/BusyTimes";
 import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
 import type { BusyTimesService } from "@calcom/lib/getBusyTimes";

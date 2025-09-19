@@ -36,7 +36,7 @@ type EventTrendsData = RouterOutputs["viewer"]["insights"]["eventTrends"][number
 const CustomTooltip = ({
   active,
   payload,
-  label,
+  label: _label,
 }: {
   active?: boolean;
   payload?: Array<{

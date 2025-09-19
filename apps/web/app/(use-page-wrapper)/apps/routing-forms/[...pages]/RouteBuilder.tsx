@@ -41,8 +41,8 @@ import type {
 import type { zodRoutes } from "@calcom/app-store/routing-forms/zod";
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import type { EventTypesByViewer } from "@calcom/features/eventtypes/lib/getEventTypesByViewer";
 import { areTheySiblingEntities } from "@calcom/lib/entityPermissionUtils.shared";
-import type { EventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { buildEmptyQueryValue, raqbQueryValueUtils } from "@calcom/lib/raqb/raqbUtils";
 import type { Prisma } from "@calcom/prisma/client";

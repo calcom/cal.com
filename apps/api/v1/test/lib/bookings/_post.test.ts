@@ -86,7 +86,7 @@ vi.mock("@calcom/lib/di/containers/QualifiedHosts", () => ({
   }),
 }));
 
-vi.mock("@calcom/lib/EventManager", () => ({
+vi.mock("@calcom/features/bookings/lib/EventManager", () => ({
   default: vi.fn().mockImplementation(() => ({
     reschedule: vi.fn().mockResolvedValue({
       results: [],
