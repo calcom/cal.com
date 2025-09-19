@@ -1744,6 +1744,7 @@ model BookingDenormalized {
   @@index([status])
   @@index([teamId, isTeamBooking])
   @@index([userId, isTeamBooking])
+  @@index([startTime, endTime])
 }
 
 view BookingTimeStatusDenormalized {
