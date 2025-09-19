@@ -1,31 +1,12 @@
-import { fieldSchema, fieldTypeEnum, variantsConfigSchema } from "@calcom/prisma/zod-utils";
 import { z } from "zod";
+
+import { fieldSchema, fieldTypeEnum, variantsConfigSchema, type FieldType } from "@calcom/prisma/zod-utils";
+
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { preprocessNameFieldDataWithVariant } from "./utils";
 import { getConfig as getVariantsConfig } from "./utils/variantsConfig";
 
 const nonEmptyString = () => z.string().refine((value: string) => value.trim().length > 0);
-
-type FieldTypeSchemaConfig<TInput = unknown, TPreprocessedOutput = unknown> = {
-  preprocess: (data: {
-    field: z.infer<typeof fieldSchema>;
-    response: TInput;
-    isPartialSchema: boolean;
-  }) => TPreprocessedOutput;
-  superRefine: (data: {
-    field: z.infer<typeof fieldSchema>;
-    response: TPreprocessedOutput;
-    isPartialSchema: boolean;
-    ctx: FieldZodCtx;
-    m: (key: string, options?: Record<string, unknown>) => string;
-  }) => void;
-};
-
-function defineFieldSchema<TInput, TOutput>(
-  config: FieldTypeSchemaConfig<TInput, TOutput>
-): FieldTypeSchemaConfig<TInput, TOutput> {
-  return config;
-}
 
 export type ALL_VIEWS = "ALL_VIEWS";
 
@@ -53,6 +34,7 @@ export const fieldTypeConfigSchema = z
       "boolean",
       "objectiveWithInput",
       "variants",
+      "date",
     ]),
     // It is the config that can tweak what an existing or a new field shows in the App UI or booker UI.
     variantsConfig: z
@@ -111,16 +93,36 @@ export const fieldTypeConfigSchema = z
 
 export const fieldsSchema = z.array(fieldSchema);
 
-function stringifyResponse(response: unknown): string {
-  if (typeof response !== "string") {
-    return String(response);
-  } else {
-    return response;
-  }
-}
-
-export const fieldTypesSchemaMap = {
-  name: defineFieldSchema<unknown, unknown>({
+export const fieldTypesSchemaMap: Partial<
+  Record<
+    FieldType,
+    {
+      /**
+       * - preprocess the responses received through prefill query params
+       * - preprocess the values being filled in the booking form.
+       * - does not run for the responses received from DB
+       */
+      preprocess: (data: {
+        field: z.infer<typeof fieldSchema>;
+        response: string;
+        isPartialSchema: boolean;
+      }) => unknown;
+      /**
+       * - Validates the response received through prefill query params
+       * - Validates the values being filled in the booking form.
+       * - does not run for the responses received from DB
+       */
+      superRefine: (data: {
+        field: z.infer<typeof fieldSchema>;
+        response: string;
+        isPartialSchema: boolean;
+        ctx: z.RefinementCtx;
+        m: (key: string, options?: Record<string, unknown>) => string;
+      }) => void;
+    }
+  >
+> = {
+  name: {
     preprocess: ({ response, field }) => {
       const fieldTypeConfig = fieldTypesConfigMap[field.type];
 
@@ -137,41 +139,7 @@ export const fieldTypesSchemaMap = {
         correctedVariant = variantInResponse;
       }
 
-      // We return this default value so that it meets the requirement of 'name' field being required in  zod-utils#bookingResponses
-      const defaultValue = "";
-      if (response === null || response === undefined) {
-        return defaultValue;
-      }
-
-      if (typeof response === "string") {
-        const nameJsonSchema = z.object({
-          firstName: z.string(),
-          lastName: z.string().optional().default(""),
-        });
-
-        try {
-          const parsed = nameJsonSchema.safeParse(JSON.parse(response));
-          if (parsed.success) {
-            return preprocessNameFieldDataWithVariant(correctedVariant, parsed.data);
-          }
-        } catch {
-          // if invalid JSON, then treat as regular string
-        }
-        return preprocessNameFieldDataWithVariant(correctedVariant, response);
-      }
-
-      if (typeof response === "object" && "firstName" in response && typeof response.firstName === "string") {
-        const firstAndLastNameResponse = {
-          firstName: response.firstName,
-          lastName: "",
-        };
-        if ("lastName" in response && typeof response.lastName === "string") {
-          firstAndLastNameResponse.lastName = response.lastName;
-        }
-        return preprocessNameFieldDataWithVariant(correctedVariant, firstAndLastNameResponse);
-      }
-
-      return defaultValue;
+      return preprocessNameFieldDataWithVariant(correctedVariant, response);
     },
     superRefine: ({ field, response, isPartialSchema, ctx, m }) => {
       const stringSchema = z.string();
@@ -209,7 +177,7 @@ export const fieldTypesSchemaMap = {
         if (!variantSupportedFields.includes(subField.type)) {
           throw new Error(`Unsupported field.type with variants: ${subField.type}`);
         }
-        const valueIdentified = response as Record<string, string>;
+        const valueIdentified = response as unknown as Record<string, string>;
         if (subField.required) {
           if (!isPartialSchema && !valueIdentified[subField.name])
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
@@ -220,10 +188,10 @@ export const fieldTypesSchemaMap = {
         }
       });
     },
-  }),
-  textarea: defineFieldSchema<unknown, string>({
+  },
+  textarea: {
     preprocess: ({ response }) => {
-      return stringifyResponse(response).trim();
+      return response.trim();
     },
     superRefine: ({ field, response, ctx, m }) => {
       const fieldTypeConfig = fieldTypesConfigMap[field.type];
@@ -252,17 +220,17 @@ export const fieldTypesSchemaMap = {
         return;
       }
     },
-  }),
-  url: defineFieldSchema<unknown, string>({
+  },
+  url: {
     preprocess: ({ response }) => {
-      return stringifyResponse(response).trim();
+      return response.trim();
     },
     superRefine: ({ response, ctx, m }) => {
       const value = response ?? "";
       const urlSchema = z.string().url();
 
       // Check for malformed protocols (missing second slash test case)
-      if (value.match(/^https?:\/[^/]/)) {
+      if (value.match(/^https?:\/[^\/]/)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: m("url_validation_error"),
@@ -290,9 +258,45 @@ export const fieldTypesSchemaMap = {
         message: m("url_validation_error"),
       });
     },
-  }),
-};
+  },
+  date: {
+    preprocess: ({ response }) => {
+      return response.trim();
+    },
+    superRefine: ({ response, ctx, m, field, isPartialSchema }) => {
+      const value = response ?? "";
 
-export type FieldZodCtx = {
-  addIssue: (issue: z.IssueData) => void;
+      if (!value && (!field.required || isPartialSchema)) {
+        return;
+      }
+
+      if (!value && field.required && !isPartialSchema) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: m("required"),
+        });
+        return;
+      }
+
+      // Validate date format (YYYY-MM-DD)
+      const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format");
+      if (!dateSchema.safeParse(value).success) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: m("invalid_date_format"),
+        });
+        return;
+      }
+
+      // Validate that it's a valid date
+      const date = new Date(value);
+      if (isNaN(date.getTime()) || date.toISOString().split('T')[0] !== value) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: m("invalid_date"),
+        });
+        return;
+      }
+    },
+  },
 };

@@ -21,6 +21,7 @@ const inputBookingFieldTypes = [
   "radio",
   "boolean",
   "url",
+  "date",
 ] as const;
 
 const inputBookingFieldSlugs = ["title", "location", "notes", "guests", "rescheduleReason"] as const;
@@ -397,7 +398,6 @@ export class AddressFieldInput_2024_06_14 {
 
   @IsString()
   @IsOptional()
-  @DocsProperty()
   @DocsProperty({ example: "e.g., 1234 Main St" })
   placeholder?: string;
 
@@ -445,7 +445,6 @@ export class TextFieldInput_2024_06_14 {
   @IsString()
   @DocsProperty({ example: "e.g., Enter text here" })
   @IsOptional()
-  @DocsProperty()
   placeholder?: string;
 
   @IsBoolean()
@@ -492,7 +491,6 @@ export class UrlFieldInput_2024_06_14 {
   @IsString()
   @DocsProperty({ example: "e.g., Enter url here" })
   @IsOptional()
-  @DocsProperty()
   placeholder?: string;
 
   @IsBoolean()
@@ -539,7 +537,6 @@ export class NumberFieldInput_2024_06_14 {
   @IsString()
   @DocsProperty({ example: "e.g., 100" })
   @IsOptional()
-  @DocsProperty()
   placeholder?: string;
 
   @IsBoolean()
@@ -586,7 +583,6 @@ export class TextAreaFieldInput_2024_06_14 {
   @IsString()
   @DocsProperty({ example: "e.g., Detailed description here..." })
   @IsOptional()
-  @DocsProperty()
   placeholder?: string;
 
   @IsBoolean()
@@ -633,7 +629,6 @@ export class SelectFieldInput_2024_06_14 {
   @IsString()
   @DocsProperty({ example: "Select..." })
   @IsOptional()
-  @DocsProperty()
   placeholder?: string;
 
   @IsArray()
@@ -729,7 +724,6 @@ export class MultiEmailFieldInput_2024_06_14 {
   @IsString()
   @DocsProperty({ example: "e.g., example@example.com" })
   @IsOptional()
-  @DocsProperty()
   placeholder?: string;
 
   @IsBoolean()
@@ -883,6 +877,52 @@ export class BooleanFieldInput_2024_06_14 {
   hidden?: boolean;
 }
 
+export class DateFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
+  @DocsProperty({ example: "date", description: "only allowed value for type is `date`" })
+  type!: "date";
+
+  @IsString()
+  @DocsProperty({
+    description:
+      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    example: "some-slug",
+  })
+  slug!: string;
+
+  @IsString()
+  @DocsProperty({ example: "Please select a date" })
+  label!: string;
+
+  @IsBoolean()
+  @DocsProperty()
+  required!: boolean;
+
+  @IsString()
+  @DocsProperty({ example: "e.g., Select a date" })
+  @IsOptional()
+  placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if the slug is `appointment-date` and the URL contains query parameter `&appointment-date=2024-12-25`,\
+      the date field will be prefilled with this value and disabled. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value e.g. `defaultFormValues={{'appointment-date': '2024-12-25'}}`. See guide https://cal.com/docs/platform/guides/booking-field",
+  })
+  disableOnPrefill?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
+}
+
 type InputDefaultField_2024_06_14 =
   | NameDefaultFieldInput_2024_06_14
   | SplitNameDefaultFieldInput_2024_06_14
@@ -906,7 +946,8 @@ export type InputBookingField_2024_06_14 =
   | CheckboxGroupFieldInput_2024_06_14
   | RadioGroupFieldInput_2024_06_14
   | BooleanFieldInput_2024_06_14
-  | UrlFieldInput_2024_06_14;
+  | UrlFieldInput_2024_06_14
+  | DateFieldInput_2024_06_14;
 
 @ValidatorConstraint({ async: true })
 class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterface {
@@ -931,6 +972,7 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
     radio: RadioGroupFieldInput_2024_06_14,
     boolean: BooleanFieldInput_2024_06_14,
     url: UrlFieldInput_2024_06_14,
+    date: DateFieldInput_2024_06_14,
   };
 
   async validate(bookingFields: { type: string; slug: string }[]) {
