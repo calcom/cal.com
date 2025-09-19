@@ -4,8 +4,8 @@ import type {
   IWatchlistWriteRepository,
   CreateWatchlistInput,
   UpdateWatchlistInput,
-} from "../interfaces/IWatchlistRepository";
-import type { Watchlist } from "../watchlist.model";
+} from "../interfaces/IWatchlistRepositories";
+import type { Watchlist } from "../types";
 
 export class PrismaWatchlistRepository implements IWatchlistRepository {
   constructor(

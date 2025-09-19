@@ -1,5 +1,5 @@
 import type { BlockingResult } from "../interfaces/IBlockingService";
-import type { IWatchlistReadRepository } from "../interfaces/IWatchlistRepository";
+import type { IWatchlistReadRepository } from "../interfaces/IWatchlistRepositories";
 import type { IBlockingStrategy } from "./IBlockingStrategy";
 
 export class EmailBlockingStrategy implements IBlockingStrategy {

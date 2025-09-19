@@ -1,4 +1,4 @@
-import type { Watchlist } from "../watchlist.model";
+import type { Watchlist } from "../types";
 
 export interface CreateWatchlistInput {
   type: "EMAIL" | "DOMAIN" | "USERNAME";

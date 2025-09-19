@@ -3,8 +3,8 @@ import { captureException } from "@sentry/nextjs";
 import type { PrismaClient } from "@calcom/prisma";
 import { WatchlistType, WatchlistSeverity } from "@calcom/prisma/enums";
 
-import type { IWatchlistReadRepository } from "../interfaces/IWatchlistRepository";
-import type { Watchlist } from "../watchlist.model";
+import type { IWatchlistReadRepository } from "../interfaces/IWatchlistRepositories";
+import type { Watchlist } from "../types";
 
 export class PrismaWatchlistReadRepository implements IWatchlistReadRepository {
   constructor(private readonly prisma: PrismaClient) {}

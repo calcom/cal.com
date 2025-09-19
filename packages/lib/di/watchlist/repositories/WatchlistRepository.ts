@@ -3,7 +3,7 @@ import { captureException } from "@sentry/nextjs";
 import db from "@calcom/prisma";
 import { WatchlistType, WatchlistSeverity } from "@calcom/prisma/enums";
 
-import type { IWatchlistRepository } from "../interfaces/IWatchlistRepository";
+import type { IWatchlistRepository } from "../interfaces/IWatchlistRepositories";
 
 export class WatchlistRepository implements IWatchlistRepository {
   async getBlockedEmailInWatchlist(email: string) {

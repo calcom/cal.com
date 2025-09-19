@@ -1,5 +1,5 @@
 import { BOOKING_DI_TOKENS } from "./bookings/tokens";
-import { WATCHLIST_DI_TOKENS } from "./watchlist/di/tokens";
+import { WATCHLIST_DI_TOKENS } from "./watchlist/tokens";
 
 export const DI_TOKENS = {
   PRISMA_CLIENT: Symbol("PrismaClient"),

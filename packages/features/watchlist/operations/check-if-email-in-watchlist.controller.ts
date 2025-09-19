@@ -1,7 +1,7 @@
 import { startSpan } from "@sentry/nextjs";
 
-import { getWatchlistRepository } from "../di/containers/watchlist";
-import type { Watchlist } from "../watchlist.model";
+import { getWatchlistRepository } from "@calcom/lib/di/watchlist/containers/watchlist";
+import type { Watchlist } from "@calcom/lib/di/watchlist/types";
 
 /**
  * Controllers use Presenters to convert the data to a UI-friendly format just before

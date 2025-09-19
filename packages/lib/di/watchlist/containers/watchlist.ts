@@ -3,8 +3,8 @@ import { createContainer } from "@evyweb/ioctopus";
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 
-import type { IBlockingService } from "../../interfaces/IBlockingService";
-import type { IWatchlistRepository } from "../../interfaces/IWatchlistRepository";
+import type { IBlockingService } from "../interfaces/IBlockingService";
+import type { IWatchlistRepository } from "../interfaces/IWatchlistRepositories";
 import { auditServiceModule } from "../modules/audit";
 import { blockingServiceModule } from "../modules/blocking";
 import { watchlistRepositoryModule } from "../modules/watchlist";

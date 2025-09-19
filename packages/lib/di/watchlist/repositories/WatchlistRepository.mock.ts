@@ -1,6 +1,6 @@
 import { WatchlistType } from "@calcom/prisma/enums";
 
-import type { IWatchlistRepository } from "../interfaces/IWatchlistRepository";
+import type { IWatchlistRepository } from "../interfaces/IWatchlistRepositories";
 
 export class MockFeaturesRepository implements IWatchlistRepository {
   async getBlockedEmailInWatchlist(email: string) {

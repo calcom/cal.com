@@ -2,9 +2,9 @@ import { createModule } from "@evyweb/ioctopus";
 
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
 
-import { PrismaWatchlistReadRepository } from "../../repositories/PrismaWatchlistReadRepository";
-import { PrismaWatchlistRepository } from "../../repositories/PrismaWatchlistRepository";
-import { PrismaWatchlistWriteRepository } from "../../repositories/PrismaWatchlistWriteRepository";
+import { PrismaWatchlistReadRepository } from "../repositories/PrismaWatchlistReadRepository";
+import { PrismaWatchlistRepository } from "../repositories/PrismaWatchlistRepository";
+import { PrismaWatchlistWriteRepository } from "../repositories/PrismaWatchlistWriteRepository";
 import { WATCHLIST_DI_TOKENS } from "../tokens";
 
 export const watchlistRepositoryModule = createModule();

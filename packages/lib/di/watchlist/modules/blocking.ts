@@ -1,7 +1,7 @@
 import { createModule } from "@evyweb/ioctopus";
 
-import { BlockingService } from "../../services/BlockingService";
-import { EmailBlockingStrategy, DomainBlockingStrategy } from "../../strategies";
+import { BlockingService } from "../services/BlockingService";
+import { EmailBlockingStrategy, DomainBlockingStrategy } from "../strategies";
 import { WATCHLIST_DI_TOKENS } from "../tokens";
 
 export const blockingServiceModule = createModule();
