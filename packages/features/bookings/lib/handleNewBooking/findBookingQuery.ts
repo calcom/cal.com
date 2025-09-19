@@ -1,5 +1,5 @@
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 // Define the function with underscore prefix
 const _findBookingQuery = async (bookingId: number) => {

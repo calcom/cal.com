@@ -9,7 +9,7 @@ import logger from "@calcom/lib/logger";
 import { isUsernameReservedDueToMigration } from "@calcom/lib/server/username";
 import slugify from "@calcom/lib/slugify";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/lib/validateUsername";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 

@@ -1,7 +1,7 @@
 import { describe, expect, beforeEach, afterEach, it } from "vitest";
 
 import type { Field as FormField } from "@calcom/app-store/routing-forms/types/types";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 

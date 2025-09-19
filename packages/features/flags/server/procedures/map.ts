@@ -1,5 +1,5 @@
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import publicProcedure from "@calcom/trpc/server/procedures/publicProcedure";
 
 /**

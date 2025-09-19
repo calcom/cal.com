@@ -4,7 +4,7 @@ import { stringify } from "querystring";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import { getBasecampKeys } from "../lib/getBasecampKeys";
 

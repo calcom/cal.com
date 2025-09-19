@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
 
 import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { sendExistingUserTeamInviteEmails } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 import type { UserWithMembership } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 

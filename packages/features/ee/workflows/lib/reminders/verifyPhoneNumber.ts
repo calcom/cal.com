@@ -1,4 +1,4 @@
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import * as twilio from "./providers/twilioProvider";
 

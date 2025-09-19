@@ -6,7 +6,7 @@ import { Task } from "@calcom/features/tasker/repository";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { scheduleWorkflowNotifications } from "@calcom/trpc/server/routers/viewer/workflows/util";
 
 export const scanWorkflowBodySchema = z.object({

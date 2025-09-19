@@ -3,7 +3,7 @@ import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getCredentialForCalendarCache } from "@calcom/lib/delegationCredential/server";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { Calendar } from "@calcom/types/Calendar";
 
 import { CalendarCacheRepository } from "./calendar-cache.repository";

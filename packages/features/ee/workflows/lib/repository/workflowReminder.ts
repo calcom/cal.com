@@ -1,4 +1,4 @@
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { WorkflowMethods, WorkflowActions } from "@calcom/prisma/enums";
 
 export class WorkflowReminderRepository {

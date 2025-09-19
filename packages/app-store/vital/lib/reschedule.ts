@@ -7,7 +7,7 @@ import { CalendarEventDirector } from "@calcom/lib/builders/CalendarEvent/direct
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { deleteMeeting } from "@calcom/lib/videoClient";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { Booking, BookingReference, User } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";

@@ -1,7 +1,7 @@
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { getBulkUserEventTypes } from "@calcom/lib/event-types/getBulkEventTypes";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 
 const setDefaultConferencingApp = async (userId: number, appSlug: string) => {

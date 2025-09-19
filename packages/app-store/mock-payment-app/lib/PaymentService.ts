@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { Booking, Payment, Prisma, PaymentOption } from "@calcom/prisma/client";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 

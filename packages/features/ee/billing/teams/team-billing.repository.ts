@@ -1,5 +1,5 @@
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import type { ITeamBillingRepository } from "./team-billing.repository.interface";
 import { teamBillingSelect } from "./team-billing.repository.interface";

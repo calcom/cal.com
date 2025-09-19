@@ -8,7 +8,7 @@ import parseInvoice from "@calcom/app-store/alby/lib/parseInvoice";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 export const config = {
   api: {

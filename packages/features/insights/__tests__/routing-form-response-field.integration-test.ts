@@ -1,6 +1,6 @@
 import { describe, expect, beforeEach, afterEach, it } from "vitest";
 
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 

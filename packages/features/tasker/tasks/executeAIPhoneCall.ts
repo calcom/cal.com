@@ -4,7 +4,7 @@ import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 interface ExecuteAIPhoneCallPayload {
   workflowReminderId: number;
