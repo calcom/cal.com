@@ -5,6 +5,7 @@ import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApi
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails";
+import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { processNoShowFeeOnCancellation } from "@calcom/features/bookings/lib/payment/processNoShowFeeOnCancellation";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
@@ -17,7 +18,6 @@ import {
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -117,11 +117,22 @@ async function handler(input: CancelBookingInput) {
   const isCancellationUserHost =
     bookingToDelete.userId == userId || bookingToDelete.user.email === cancelledBy;
 
-  if (!platformClientId && !cancellationReason?.trim() && isCancellationUserHost) {
-    throw new HttpError({
-      statusCode: 400,
-      message: "Cancellation reason is required when you are the host",
-    });
+  if (!platformClientId && !cancellationReason?.trim()) {
+    const teamCancellationSetting =
+      bookingToDelete.eventType?.team?.cancellationReasonRequired ?? "MANDATORY_FOR_HOST_ONLY";
+
+    const shouldRequireReason =
+      teamCancellationSetting === "MANDATORY_FOR_BOTH" ||
+      (teamCancellationSetting === "MANDATORY_FOR_HOST_ONLY" && isCancellationUserHost) ||
+      (teamCancellationSetting === "MANDATORY_FOR_ATTENDEE_ONLY" && !isCancellationUserHost);
+
+    if (shouldRequireReason) {
+      const messageKey = isCancellationUserHost ? "host" : "attendee";
+      throw new HttpError({
+        statusCode: 400,
+        message: `Cancellation reason is required when you are the ${messageKey}`,
+      });
+    }
   }
 
   if (bookingToDelete.endTime && new Date() > new Date(bookingToDelete.endTime)) {

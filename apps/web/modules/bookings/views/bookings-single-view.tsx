@@ -378,7 +378,6 @@ export default function Success(props: PageProps) {
   const isRescheduled = bookingInfo?.rescheduled;
 
   const canCancelOrReschedule = !eventType?.disableCancelling || !eventType?.disableRescheduling;
-  const canCancelAndReschedule = !eventType?.disableCancelling && !eventType?.disableRescheduling;
 
   const canCancel = !eventType?.disableCancelling;
   const canReschedule = !eventType?.disableRescheduling;
@@ -876,6 +875,7 @@ export default function Success(props: PageProps) {
                             recurringEvent={eventType.recurringEvent}
                             team={eventType?.team?.name}
                             teamId={eventType?.team?.id}
+                            teamCancellationReasonRequired={eventType?.team?.cancellationReasonRequired}
                             setIsCancellationMode={setIsCancellationMode}
                             theme={isSuccessBookingPage ? props.profile.theme : "light"}
                             allRemainingBookings={allRemainingBookings}

@@ -20,6 +20,11 @@ export type TUpdateInputSchema = {
   theme?: string | null;
   bookingLimits?: IntervalLimit | null;
   includeManagedEventsInLimits?: boolean;
+  cancellationReasonRequired?:
+    | "MANDATORY_FOR_BOTH"
+    | "MANDATORY_FOR_HOST_ONLY"
+    | "MANDATORY_FOR_ATTENDEE_ONLY"
+    | "OPTIONAL_FOR_BOTH";
   rrResetInterval?: "DAY" | "MONTH";
   rrTimestampBasis?: "CREATED_AT" | "START_TIME";
 };
@@ -46,6 +51,14 @@ export const ZUpdateInputSchema: z.Schema<TUpdateInputSchema> = z.object({
   theme: z.string().optional().nullable(),
   bookingLimits: intervalLimitsType.optional(),
   includeManagedEventsInLimits: z.boolean().optional(),
+  cancellationReasonRequired: z
+    .enum([
+      "MANDATORY_FOR_BOTH",
+      "MANDATORY_FOR_HOST_ONLY",
+      "MANDATORY_FOR_ATTENDEE_ONLY",
+      "OPTIONAL_FOR_BOTH",
+    ])
+    .optional(),
   rrResetInterval: z.enum(["DAY", "MONTH"]).optional(),
   rrTimestampBasis: z.enum(["CREATED_AT", "START_TIME"]).optional(),
 });
