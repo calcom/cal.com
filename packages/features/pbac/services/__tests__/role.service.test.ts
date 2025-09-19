@@ -13,7 +13,7 @@ vi.mock("../permission-diff.service");
 
 // Mock db.$transaction
 vi.mock("@calcom/prisma", () => ({
-  default: {
+  prisma: {
     $transaction: vi.fn((cb) => cb({ membership: { update: vi.fn() } })),
     membership: { update: vi.fn() },
   },

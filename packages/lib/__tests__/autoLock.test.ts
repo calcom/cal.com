@@ -13,7 +13,7 @@ vi.mock("@calcom/features/ee/api-keys/lib/apiKeys", () => ({
   hashAPIKey: vi.fn((key) => `hashed_${key}`),
 }));
 vi.mock("@calcom/prisma", () => ({
-  default: {
+  prisma: {
     user: {
       update: vi.fn(),
     },

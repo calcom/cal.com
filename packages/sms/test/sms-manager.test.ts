@@ -11,7 +11,7 @@ import SMSManager from "../sms-manager";
 vi.mock("@calcom/lib/checkRateLimitAndThrowError");
 vi.mock("@calcom/features/ee/workflows/lib/reminders/messageDispatcher");
 vi.mock("@calcom/prisma", () => ({
-  default: {
+  prisma: {
     team: {
       findUnique: vi.fn(),
     },

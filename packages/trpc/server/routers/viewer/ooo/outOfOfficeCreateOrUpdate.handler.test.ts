@@ -7,7 +7,7 @@ import { outOfOfficeCreateOrUpdate } from "./outOfOfficeCreateOrUpdate.handler";
 
 // Mock the module first with a default export object (empty for now)
 vi.mock("@calcom/prisma", () => ({
-  default: {
+  prisma: {
     outOfOfficeEntry: {
       findFirst: vi.fn(),
       findUnique: vi.fn(),

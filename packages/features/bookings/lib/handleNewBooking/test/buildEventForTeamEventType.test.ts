@@ -11,7 +11,7 @@ vi.mock("@calcom/lib/server/i18n", () => ({
 
 vi.mock("@calcom/prisma", () => {
   return {
-    default: vi.fn(),
+    prisma: vi.fn(),
   };
 });
 

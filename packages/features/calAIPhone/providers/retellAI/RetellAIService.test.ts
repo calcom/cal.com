@@ -78,7 +78,7 @@ vi.mock("@calcom/ee/api-keys/lib/apiKeys", () => ({
 
 // Mock Prisma client with transaction support
 vi.mock("@calcom/prisma", () => ({
-  default: {
+  prisma: {
     $transaction: vi.fn(),
     calAiPhoneNumber: {
       create: vi.fn(),

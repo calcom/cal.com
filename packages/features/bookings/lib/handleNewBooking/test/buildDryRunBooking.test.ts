@@ -4,9 +4,11 @@ import { BookingStatus, CreationSource } from "@calcom/prisma/enums";
 
 import { buildDryRunBooking } from "../../handleNewBooking";
 
-vi.mock("@calcom/prisma", () => ({
-  default: {}, // empty object as default export
-}));
+vi.mock("@calcom/prisma", () => {
+  return {
+    prisma: vi.fn(),
+  };
+});
 
 describe("buildDryRunBooking", () => {
   const baseOrganizerUser = {

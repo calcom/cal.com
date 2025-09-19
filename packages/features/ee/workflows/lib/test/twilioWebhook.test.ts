@@ -26,7 +26,7 @@ vi.mock("@calcom/features/ee/billing/credit-service", () => ({
 
 const mockFindFirst = vi.fn();
 vi.mock("@calcom/prisma", () => ({
-  default: {
+  prisma: {
     membership: {
       findFirst: mockFindFirst,
     },
