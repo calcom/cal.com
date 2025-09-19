@@ -3,7 +3,7 @@ import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { getAllDelegationCredentialsForUserIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
 import { getDelegationCredentialOrFindRegularCredential } from "@calcom/lib/delegationCredential/server";
 import { deleteMeeting } from "@calcom/lib/videoClient";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { Attendee } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
