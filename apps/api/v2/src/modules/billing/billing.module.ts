@@ -3,6 +3,7 @@ import { BillingProcessor } from "@/modules/billing/billing.processor";
 import { BillingRepository } from "@/modules/billing/billing.repository";
 import { BillingController } from "@/modules/billing/controllers/billing.controller";
 import { BillingCacheService } from "@/modules/billing/services/billing-cache.service";
+import { BillingServiceCachingProxy } from "@/modules/billing/services/billing-service-caching-proxy";
 import { BillingConfigService } from "@/modules/billing/services/billing.config.service";
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { ManagedOrganizationsBillingService } from "@/modules/billing/services/managed-organizations.billing.service";
@@ -36,6 +37,10 @@ import { Module } from "@nestjs/common";
     BillingConfigService,
     BillingService,
     BillingCacheService,
+    {
+      provide: "IBillingService",
+      useClass: BillingServiceCachingProxy,
+    },
     BillingRepository,
     BillingProcessor,
     ManagedOrganizationsBillingService,
