@@ -223,6 +223,7 @@ async function main() {
   });
 
   if (teamEvents?.length === 0) {
+    const now = new Date();
     await prisma.eventType.createMany({
       data: [
         {
@@ -233,6 +234,8 @@ async function main() {
           teamId: insightsTeam.id,
           schedulingType: "ROUND_ROBIN",
           assignAllTeamMembers: true,
+          createdAt: now,
+          updatedAt: now,
         },
         {
           title: "Team Lunch",
@@ -242,6 +245,8 @@ async function main() {
           teamId: insightsTeam.id,
           schedulingType: "ROUND_ROBIN",
           assignAllTeamMembers: true,
+          createdAt: now,
+          updatedAt: now,
         },
         {
           title: "Team javascript",
@@ -251,6 +256,8 @@ async function main() {
           teamId: insightsTeam.id,
           schedulingType: "ROUND_ROBIN",
           assignAllTeamMembers: true,
+          createdAt: now,
+          updatedAt: now,
         },
       ],
     });
