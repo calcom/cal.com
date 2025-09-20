@@ -176,6 +176,28 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const isLoggedInUserHost = checkIfUserIsHost(userId);
 
+  const isLoggedInUserTeamAdmin = !!(
+    userId &&
+    ((eventType.team?.id &&
+      (await prisma.membership.findUnique({
+        where: {
+          userId_teamId: { userId, teamId: eventType.team.id },
+          accepted: true,
+          OR: [{ role: "ADMIN" }, { role: "OWNER" }],
+        },
+      }))) ||
+      (eventType.parent?.teamId &&
+        (await prisma.membership.findUnique({
+          where: {
+            userId_teamId: { userId, teamId: eventType.parent.teamId },
+            accepted: true,
+            OR: [{ role: "ADMIN" }, { role: "OWNER" }],
+          },
+        }))))
+  );
+
+  const canViewHiddenData = isLoggedInUserHost || isLoggedInUserTeamAdmin;
+
   if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
     await handleSeatsEventTypeOnBooking(eventType, bookingInfo, seatReferenceUid, isLoggedInUserHost);
   }
@@ -194,8 +216,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
 
-  if (!isLoggedInUserHost) {
-    // Removing hidden fields from responses
+  if (!canViewHiddenData) {
     for (const key in bookingInfo.responses) {
       const field = eventTypeRaw.bookingFields.find((field) => field.name === key);
       if (field && !!field.hidden) {
@@ -207,7 +228,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { currentOrgDomain } = orgDomainConfig(context.req);
 
   async function getInternalNotePresets(teamId: number | null) {
-    if (!teamId || !isLoggedInUserHost) return [];
+    if (!teamId || !canViewHiddenData) return [];
     return await prisma.internalNotePreset.findMany({
       where: {
         teamId,
@@ -256,6 +277,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       requiresLoginToUpdate,
       rescheduledToUid,
       isLoggedInUserHost,
+      canViewHiddenData,
       internalNotePresets: internalNotes,
     },
   };
