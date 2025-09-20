@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useQueryClient } from "@tanstack/react-query";
 // eslint-disable-next-line no-restricted-imports
 import debounce from "lodash/debounce";
@@ -92,6 +93,7 @@ const BookerPlatformWrapperComponent = (
   );
   const prevStateRef = useRef<BookerStoreValues | null>(null);
   const bookerStoreContext = useContext(BookerStoreContext);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getStateValues = useCallback((state: any): BookerStoreValues => {
     return Object.fromEntries(
       Object.entries(state).filter(([_, value]) => typeof value !== "function")
@@ -599,7 +601,7 @@ export const BookerPlatformWrapper = (
   );
 };
 
-function formatUsername(username: string | string[]): string {
+export function formatUsername(username: string | string[]): string {
   if (typeof username === "string") {
     return username;
   }

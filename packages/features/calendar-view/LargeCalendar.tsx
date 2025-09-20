@@ -8,9 +8,9 @@ import { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
 import { localStorage } from "@calcom/lib/webstorage";
 
-import type { useScheduleForEventReturnType } from "../utils/event";
-import { getQueryParam } from "../utils/query-param";
-import { useOverlayCalendarStore } from "./OverlayCalendar/store";
+import { useOverlayCalendarStore } from "../bookings/Booker/components/OverlayCalendar/store";
+import type { useScheduleForEventReturnType } from "../bookings/Booker/utils/event";
+import { getQueryParam } from "../bookings/Booker/utils/query-param";
 
 export const LargeCalendar = ({
   extraDays,
@@ -26,7 +26,6 @@ export const LargeCalendar = ({
   };
 }) => {
   const selectedDate = useBookerStoreContext((state) => state.selectedDate);
-  const setSelectedTimeslot = useBookerStoreContext((state) => state.setSelectedTimeslot);
   const selectedEventDuration = useBookerStoreContext((state) => state.selectedDuration);
   const overlayEvents = useOverlayCalendarStore((state) => state.overlayBusyDates);
   const displayOverlay =
@@ -71,7 +70,6 @@ export const LargeCalendar = ({
         events={overlayEventsForDate}
         startDate={startDate}
         endDate={endDate}
-        onEmptyCellClick={(date) => setSelectedTimeslot(date.toISOString())}
         gridCellsPerHour={60 / eventDuration}
         hoverEventDuration={eventDuration}
         hideHeader
