@@ -115,7 +115,7 @@ describe("CalendarSubscriptionService", () => {
     };
 
     mockSelectedCalendarRepository = {
-      findById: vi.fn().mockResolvedValue(mockSelectedCalendar),
+      findByIdWithCredentials: vi.fn().mockResolvedValue(mockSelectedCalendar),
       findByChannelId: vi.fn().mockResolvedValue(mockSelectedCalendar),
       findNextSubscriptionBatch: vi.fn().mockResolvedValue([mockSelectedCalendar]),
       updateSyncStatus: vi.fn().mockResolvedValue(mockSelectedCalendar),
@@ -153,7 +153,7 @@ describe("CalendarSubscriptionService", () => {
     test("should successfully subscribe to a calendar", async () => {
       await service.subscribe("test-calendar-id");
 
-      expect(mockSelectedCalendarRepository.findById).toHaveBeenCalledWith("test-calendar-id");
+      expect(mockSelectedCalendarRepository.findByIdWithCredentials).toHaveBeenCalledWith("test-calendar-id");
       expect(mockAdapterFactory.get).toHaveBeenCalledWith("google_calendar");
       expect(mockAdapter.subscribe).toHaveBeenCalledWith(mockSelectedCalendar, mockCredential);
       expect(mockSelectedCalendarRepository.updateSubscription).toHaveBeenCalledWith("test-calendar-id", {
@@ -167,7 +167,7 @@ describe("CalendarSubscriptionService", () => {
     });
 
     test("should return early if selected calendar not found", async () => {
-      mockSelectedCalendarRepository.findById.mockResolvedValue(null);
+      mockSelectedCalendarRepository.findByIdWithCredentials.mockResolvedValue(null);
 
       await service.subscribe("non-existent-id");
 
@@ -176,7 +176,7 @@ describe("CalendarSubscriptionService", () => {
     });
 
     test("should return early if selected calendar has no credentialId", async () => {
-      mockSelectedCalendarRepository.findById.mockResolvedValue({
+      mockSelectedCalendarRepository.findByIdWithCredentials.mockResolvedValue({
         ...mockSelectedCalendar,
         credentialId: null,
       });
@@ -194,7 +194,7 @@ describe("CalendarSubscriptionService", () => {
 
       await service.unsubscribe("test-calendar-id");
 
-      expect(mockSelectedCalendarRepository.findById).toHaveBeenCalledWith("test-calendar-id");
+      expect(mockSelectedCalendarRepository.findByIdWithCredentials).toHaveBeenCalledWith("test-calendar-id");
       expect(mockAdapter.unsubscribe).toHaveBeenCalledWith(mockSelectedCalendar, mockCredential);
       expect(mockSelectedCalendarRepository.updateSubscription).toHaveBeenCalledWith("test-calendar-id", {
         syncSubscribedAt: null,
@@ -211,7 +211,7 @@ describe("CalendarSubscriptionService", () => {
     });
 
     test("should return early if selected calendar not found", async () => {
-      mockSelectedCalendarRepository.findById.mockResolvedValue(null);
+      mockSelectedCalendarRepository.findByIdWithCredentials.mockResolvedValue(null);
 
       await service.unsubscribe("non-existent-id");
 

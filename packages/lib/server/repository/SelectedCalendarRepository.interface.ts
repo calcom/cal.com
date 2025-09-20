@@ -2,11 +2,11 @@ import type { Prisma, SelectedCalendar } from "@calcom/prisma/client";
 
 export interface ISelectedCalendarRepository {
   /**
-   * Find selected calendar by id
+   * Find selected calendar by id with credentials
    *
    * @param id
    */
-  findById(id: string): Promise<SelectedCalendar | null>;
+  findByIdWithCredentials(id: string): Promise<SelectedCalendar | null>;
 
   /**
    * Find selected calendar by channel id

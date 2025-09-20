@@ -5,7 +5,7 @@ import type { Prisma } from "@calcom/prisma/client";
 export class SelectedCalendarRepository implements ISelectedCalendarRepository {
   constructor(private prismaClient: PrismaClient) {}
 
-  async findById(id: string) {
+  async findByIdWithCredentials(id: string) {
     return this.prismaClient.selectedCalendar.findUnique({
       where: { id },
       include: {

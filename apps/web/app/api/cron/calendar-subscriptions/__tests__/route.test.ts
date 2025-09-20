@@ -51,27 +51,27 @@ describe("/api/cron/calendar-subscriptions", () => {
   });
 
   describe("Authentication", () => {
-    test("should return 401 when no API key is provided", async () => {
+    test("should return 403 when no API key is provided", async () => {
       const request = new NextRequest("http://localhost/api/cron/calendar-subscriptions");
 
       const { GET } = await import("../route");
       const response = await GET(request, { params: Promise.resolve({}) });
 
-      expect(response.status).toBe(401);
+      expect(response.status).toBe(403);
       const body = await response.json();
-      expect(body.message).toBe("Not authenticated");
+      expect(body.message).toBe("Forbiden");
     }, 10000);
 
-    test("should return 401 when invalid API key is provided", async () => {
+    test("should return 403 when invalid API key is provided", async () => {
       const request = new NextRequest("http://localhost/api/cron/calendar-subscriptions");
       request.headers.set("authorization", "invalid-key");
 
       const { GET } = await import("../route");
       const response = await GET(request, { params: Promise.resolve({}) });
 
-      expect(response.status).toBe(401);
+      expect(response.status).toBe(403);
       const body = await response.json();
-      expect(body.message).toBe("Not authenticated");
+      expect(body.message).toBe("Forbiden");
     });
 
     test("should accept valid API key", async () => {

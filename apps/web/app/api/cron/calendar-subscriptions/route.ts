@@ -7,12 +7,9 @@ import { CalendarCacheEventRepository } from "@calcom/features/calendar-subscrip
 import { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
 import { CalendarSyncService } from "@calcom/features/calendar-subscription/lib/sync/CalendarSyncService";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import logger from "@calcom/lib/logger";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
 import { prisma } from "@calcom/prisma";
 import { defaultResponderForAppDir } from "@calcom/web/app/api/defaultResponderForAppDir";
-
-const log = logger.getSubLogger({ prefix: ["cron"] });
 
 /**
  * Cron webhook
@@ -22,11 +19,10 @@ const log = logger.getSubLogger({ prefix: ["cron"] });
  * @returns
  */
 async function getHandler(request: NextRequest) {
-  log.info("Checking for new calendar subscriptions");
   const apiKey = request.headers.get("authorization") || request.nextUrl.searchParams.get("apiKey");
 
   if (![process.env.CRON_API_KEY, `Bearer ${process.env.CRON_SECRET}`].includes(`${apiKey}`)) {
-    return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
+    return NextResponse.json({ message: "Forbiden" }, { status: 403 });
   }
 
   // instantiate dependencies
@@ -51,16 +47,13 @@ async function getHandler(request: NextRequest) {
   ]);
 
   if (!isCacheEnabled && !isSyncEnabled) {
-    log.info("Calendar subscriptions are disabled");
     return NextResponse.json({ ok: true });
   }
 
   try {
     await calendarSubscriptionService.checkForNewSubscriptions();
-    log.info("Checked for new calendar subscriptions successfully");
     return NextResponse.json({ ok: true });
   } catch (e) {
-    log.error("Error checking for new calendar subscriptions", { error: e });
     const message = e instanceof Error ? e.message : "Unknown error";
     return NextResponse.json({ message }, { status: 500 });
   }

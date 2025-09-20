@@ -35,7 +35,9 @@ export class CalendarSubscriptionService {
    */
   async subscribe(selectedCalendarId: string): Promise<void> {
     log.debug("subscribe", { selectedCalendarId });
-    const selectedCalendar = await this.deps.selectedCalendarRepository.findById(selectedCalendarId);
+    const selectedCalendar = await this.deps.selectedCalendarRepository.findByIdWithCredentials(
+      selectedCalendarId
+    );
     if (!selectedCalendar?.credentialId) {
       log.debug("Selected calendar not found", { selectedCalendarId });
       return;
@@ -70,7 +72,9 @@ export class CalendarSubscriptionService {
    */
   async unsubscribe(selectedCalendarId: string): Promise<void> {
     log.debug("unsubscribe", { selectedCalendarId });
-    const selectedCalendar = await this.deps.selectedCalendarRepository.findById(selectedCalendarId);
+    const selectedCalendar = await this.deps.selectedCalendarRepository.findByIdWithCredentials(
+      selectedCalendarId
+    );
     if (!selectedCalendar?.credentialId) return;
 
     const credential = await this.getCredential(selectedCalendar.credentialId);

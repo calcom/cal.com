@@ -27,13 +27,16 @@ const log = logger.getSubLogger({ prefix: ["calendar-webhook"] });
  * @param {Promise<Params>} context.params - A promise that resolves to the route parameters.
  * @returns {Promise<NextResponse>} - A promise that resolves to the response object.
  */
-async function postHandler(request: NextRequest, context: { params: Promise<Params> }) {
-  log.debug("Received webhook");
 
+function isCalendarSubscriptionProvider(provider: string): provider is CalendarSubscriptionProvider {
+  return provider === "google_calendar" || provider === "office365_calendar";
+}
+
+async function postHandler(request: NextRequest, context: { params: Promise<Params> }) {
   // extract and validate provider
-  const provider = (await context.params).provider as string[][0] as CalendarSubscriptionProvider;
-  const allowed = new Set<CalendarSubscriptionProvider>(["google_calendar", "office365_calendar"]);
-  if (!allowed.has(provider as CalendarSubscriptionProvider)) {
+  const providerFromParams = (await context.params).provider as string[][0];
+
+  if (!isCalendarSubscriptionProvider(providerFromParams)) {
     return NextResponse.json({ message: "Unsupported provider" }, { status: 400 });
   }
 
@@ -64,7 +67,7 @@ async function postHandler(request: NextRequest, context: { params: Promise<Para
       return NextResponse.json({ message: "No cache or sync enabled" }, { status: 200 });
     }
 
-    await calendarSubscriptionService.processWebhook(provider, request);
+    await calendarSubscriptionService.processWebhook(providerFromParams, request);
     return NextResponse.json({ message: "Webhook processed" }, { status: 200 });
   } catch (error) {
     log.error("Error processing webhook", { error });

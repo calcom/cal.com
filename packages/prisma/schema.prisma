@@ -901,22 +901,30 @@ model Availability {
 }
 
 model SelectedCalendar {
-  id                       String      @id @default(uuid())
-  user                     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId                   Int
-  integration              String
-  externalId               String
-  credential               Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
-  credentialId             Int?
-  createdAt                DateTime?   @default(now())
-  updatedAt                DateTime?   @updatedAt
+  id              String      @id @default(uuid())
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          Int
+  integration     String
+  externalId      String
+  credential      Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  credentialId    Int?
+  createdAt       DateTime?   @default(now())
+  updatedAt       DateTime?   @updatedAt
   // Used to identify a watched calendar channel in Google Calendar
-  // @deprecated("")
-  googleChannelId          String?
-  googleChannelKind        String?
-  googleChannelResourceId  String?
+  // @deprecated use channelId instead
+  googleChannelId String?
+
+  // @deprecated use channelKind instead
+  googleChannelKind String?
+
+  // @deprecated use channelResourceId instead
+  googleChannelResourceId String?
+
+  // @deprecated use channelResourceUri instead
   googleChannelResourceUri String?
-  googleChannelExpiration  String?
+
+  // @deprecated use channelExpoiration instead
+  googleChannelExpiration String?
 
   // Used to identify a watched calendar
   channelId          String?
@@ -925,7 +933,7 @@ model SelectedCalendar {
   channelResourceUri String?
   channelExpiration  DateTime? @db.Timestamp(3)
 
-  // Used to calendar cache and sync 
+  // Used to calendar cache and sync
   syncSubscribedAt DateTime? @db.Timestamp(3)
   syncToken        String?
   syncedAt         DateTime?

@@ -25,12 +25,12 @@ export class CalendarCacheEventRepository implements ICalendarCacheEventReposito
     });
   }
 
-  async upsertMany(events: CalendarCacheEvent[]): Promise<unknown> {
+  async upsertMany(events: CalendarCacheEvent[]) {
     if (events.length === 0) {
       return;
     }
     // lack of upsertMany in prisma
-    return Promise.all(
+    return Promise.allSettled(
       events.map((event) => {
         return this.prismaClient.calendarCacheEvent.upsert({
           where: {
@@ -54,9 +54,7 @@ export class CalendarCacheEventRepository implements ICalendarCacheEventReposito
     );
   }
 
-  async deleteMany(
-    events: Pick<CalendarCacheEvent, "externalId" | "selectedCalendarId">[]
-  ): Promise<unknown> {
+  async deleteMany(events: Pick<CalendarCacheEvent, "externalId" | "selectedCalendarId">[]) {
     // Only delete events with externalId and selectedCalendarId
     const conditions = events.filter((c) => c.externalId && c.selectedCalendarId);
     if (conditions.length === 0) {
@@ -70,7 +68,11 @@ export class CalendarCacheEventRepository implements ICalendarCacheEventReposito
     });
   }
 
-  async deleteAllBySelectedCalendarId(selectedCalendarId: string): Promise<unknown> {
+  async deleteAllBySelectedCalendarId(selectedCalendarId: string) {
+    if (!selectedCalendarId) {
+      return;
+    }
+
     return this.prismaClient.calendarCacheEvent.deleteMany({
       where: {
         selectedCalendarId,
@@ -78,7 +80,7 @@ export class CalendarCacheEventRepository implements ICalendarCacheEventReposito
     });
   }
 
-  async deleteStale(): Promise<unknown> {
+  async deleteStale() {
     return this.prismaClient.calendarCacheEvent.deleteMany({
       where: {
         end: {
