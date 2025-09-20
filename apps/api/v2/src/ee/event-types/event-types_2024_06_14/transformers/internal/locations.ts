@@ -36,6 +36,7 @@ const integrationsApiUnavailable = {
   "discord-video": z.literal("integrations:discord_video"),
   "demodesk-video": z.literal("integrations:demodesk_video"),
   "campfire-video": z.literal("integrations:campfire_video"),
+  "azure-communication-service": z.literal("integrations:azure-communication-service_video"),
 };
 
 export const integrationsApiToInternalMappingSchema = {
@@ -72,6 +73,7 @@ const OrganizerIntegrationSchema = z.object({
     integrationsApiToInternalMappingSchema["element-call-video"],
     integrationsApiToInternalMappingSchema["eightxeight-video"],
     integrationsApiToInternalMappingSchema["discord-video"],
+    integrationsApiToInternalMappingSchema["azure-communication-service"],
     integrationsApiToInternalMappingSchema["demodesk-video"],
     integrationsApiToInternalMappingSchema["campfire-video"],
   ]),
