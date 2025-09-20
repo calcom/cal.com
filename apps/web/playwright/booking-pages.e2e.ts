@@ -798,25 +798,22 @@ test.describe("Past booking cancellation", () => {
 });
 
 async function createTeamWithBooking(users: Fixtures["users"], bookings: Fixtures["bookings"]) {
+  const suffix = randomString(6);
   const TEST_ATTENDEE = {
     name: "Test Attendee",
-    email: "attendee@example.com",
+    email: `attendee-${suffix}@example.com`,
   };
-  const TEAMMATE_CONFIG = [{ name: "team-member", username: "team-member" }];
-
+  const TEAMMATE_CONFIG = [{ name: "team-member", username: `team-member-${suffix}` }];
   const teamOwner = await users.create(
-    { username: "team-owner", name: "Team Owner" },
+    { username: `team-owner-${suffix}`, name: "Team Owner" },
     { hasTeam: true, teammates: TEAMMATE_CONFIG }
   );
-
   const attendeeUser = await users.create({
     name: TEST_ATTENDEE.name,
     email: TEST_ATTENDEE.email,
   });
-
   const { team } = await teamOwner.getFirstTeamMembership();
   const teamEventType = await teamOwner.getFirstTeamEvent(team.id);
-
   const booking = await bookings.create(teamOwner.id, teamOwner.username, teamEventType.id, {
     title: "Test Team Meeting",
     status: "ACCEPTED",
@@ -830,7 +827,6 @@ async function createTeamWithBooking(users: Fixtures["users"], bookings: Fixture
       ],
     },
   });
-
   return {
     teamId: team.id,
     bookingUid: booking.uid,
