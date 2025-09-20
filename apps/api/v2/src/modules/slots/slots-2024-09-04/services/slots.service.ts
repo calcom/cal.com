@@ -23,6 +23,8 @@ import { DateTime } from "luxon";
 import { z } from "zod";
 
 import { SlotFormat } from "@calcom/platform-enums";
+import { SchedulingType } from "@calcom/platform-libraries";
+import { validateRoundRobinSlotAvailability } from "@calcom/platform-libraries/slots";
 import type {
   GetSlotsInput_2024_09_04,
   GetSlotsInputWithRouting_2024_09_04,
@@ -147,13 +149,19 @@ export class SlotsService_2024_09_04 {
     }
 
     const nonSeatedEventAlreadyBooked = !eventType.seatsPerTimeSlot && booking;
-    if (nonSeatedEventAlreadyBooked) {
+    const isRoundRobinEvent = eventType.schedulingType === SchedulingType.ROUND_ROBIN;
+
+    if (nonSeatedEventAlreadyBooked && !isRoundRobinEvent) {
       throw new UnprocessableEntityException(`Can't reserve a slot if the event is already booked.`);
     }
 
-    const reservationDuration = input.reservationDuration ?? DEFAULT_RESERVATION_DURATION;
+    if (isRoundRobinEvent) {
+      await validateRoundRobinSlotAvailability(input.eventTypeId, startDate, endDate, eventType.hosts);
+    } else {
+      await this.checkSlotOverlap(input.eventTypeId, startDate.toISO(), endDate.toISO());
+    }
 
-    await this.checkSlotOverlap(input.eventTypeId, startDate.toISO(), endDate.toISO());
+    const reservationDuration = input.reservationDuration ?? DEFAULT_RESERVATION_DURATION;
 
     if (eventType.userId) {
       const slot = await this.slotsRepository.createSlot(
