@@ -223,6 +223,7 @@ export interface CalendarEvent {
   domainWideDelegationCredentialId?: string | null;
   customReplyToEmail?: string | null;
   rescheduledBy?: string;
+  hideBranding?: boolean;
 }
 
 export interface EntryPoint {

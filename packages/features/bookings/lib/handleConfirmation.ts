@@ -16,6 +16,7 @@ import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
+import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
@@ -32,6 +33,7 @@ import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
+
 
 export async function handleConfirmation(args: {
   user: EventManagerUser & { username: string | null };
@@ -73,6 +75,7 @@ export async function handleConfirmation(args: {
   paid?: boolean;
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
+  hideBranding?: boolean; // Add the calculated hideBranding value
 }) {
   const {
     user,
@@ -84,6 +87,7 @@ export async function handleConfirmation(args: {
     paid,
     emailsEnabled = true,
     platformClientParams,
+    hideBranding = false,
   } = args;
   const eventType = booking.eventType;
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
@@ -356,7 +360,7 @@ export async function handleConfirmation(args: {
           evt: evtOfBooking,
           workflows,
           requiresConfirmation: false,
-          hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
+          hideBranding: hideBranding,
           seatReferenceUid: evt.attendeeSeatId,
           isPlatformNoEmail: !emailsEnabled && Boolean(platformClientParams?.platformClientId),
         });
@@ -366,7 +370,7 @@ export async function handleConfirmation(args: {
         workflows,
         smsReminderNumber: updatedBookings[index].smsReminderNumber,
         calendarEvent: evtOfBooking,
-        hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
+        hideBranding: await calculateHideBrandingForBooking(updatedBookings[index]),
         isConfirmedByDefault: true,
         isNormalBookingOrFirstRecurringSlot: isFirstBooking,
         isRescheduleEvent: false,
@@ -577,7 +581,7 @@ export async function handleConfirmation(args: {
           workflows,
           smsReminderNumber: booking.smsReminderNumber,
           calendarEvent: calendarEventForWorkflow,
-          hideBranding: !!updatedBookings[0].eventType?.owner?.hideBranding,
+          hideBranding: hideBranding,
           triggers: [WorkflowTriggerEvents.BOOKING_PAID],
         });
       } catch (error) {

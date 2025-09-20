@@ -104,7 +104,7 @@ export default function Success(props: PageProps) {
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
 
-  const { eventType, bookingInfo, previousBooking, requiresLoginToUpdate, rescheduledToUid } = props;
+  const { eventType, bookingInfo, previousBooking, requiresLoginToUpdate, rescheduledToUid, canViewSensitiveBookingData } = props;
 
   const {
     allRemainingBookings,
@@ -700,7 +700,7 @@ export default function Success(props: PageProps) {
                             </div>
                           </>
                         )}
-                        {!!utmParams && isHost && (
+                        {!!utmParams && canViewSensitiveBookingData && (
                           <>
                             <div className="mt-9 pr-2 font-medium sm:pr-0">{t("utm_params")}</div>
                             <div className="col-span-2 mb-2 ml-3 mt-9 sm:ml-0">
