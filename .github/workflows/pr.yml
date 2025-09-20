@@ -91,7 +91,6 @@ jobs:
   build-deps-image-if-needed:
     name: Build dependencies image if needed
     needs: [changes, check-label]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     runs-on: buildjet-4vcpu-ubuntu-2204
     permissions:
       contents: read
