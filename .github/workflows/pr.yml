@@ -171,6 +171,7 @@ jobs:
 
           # Copy package files first for better caching
           COPY package.json yarn.lock .yarnrc.yml ./
+          COPY .yarn/ ./.yarn/
 
           # Copy all package.json files from packages and apps
           COPY packages/ ./packages/
