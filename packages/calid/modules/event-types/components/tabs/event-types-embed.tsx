@@ -645,16 +645,13 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
         {/* Embed Type Selection - Horizontal Tabs */}
         <div className="flex w-full gap-2">
           {embedTypeOptions.map((type) => (
-            <button
+            <Button
               key={type.key}
+              color={selectedEmbedType === type.key ? "primary_dim" : "secondary"}
               onClick={() => setSelectedEmbedType(type.key as EmbedType)}
-              className={`flex-1 rounded-lg border-2 px-6 py-3 text-center transition-all ${
-                selectedEmbedType === type.key
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-gray-200 hover:border-gray-300"
-              }`}>
+              className={`flex-1 rounded-lg border-2 px-6 py-3 text-center transition-all`}>
               <span className="text-sm font-medium">{type.label}</span>
-            </button>
+            </Button>
           ))}
         </div>
 

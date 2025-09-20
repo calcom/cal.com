@@ -515,7 +515,14 @@ export const getEventTypeByIdForCalIdTeam = async ({
   }
 
   const finalObj = {
-    eventType: eventTypeObject,
+    eventType: {
+      ...eventTypeObject,
+      bookerUrl: eventTypeObject.calIdTeam
+        ? await getBookerBaseUrl(eventTypeObject.calIdTeam.parentId)
+        : eventTypeObject.owner
+        ? await getBookerBaseUrl(currentOrganizationId)
+        : WEBSITE_URL,
+    },
     locationOptions,
     destinationCalendar,
     team: eventTypeObject.calIdTeam || null,
