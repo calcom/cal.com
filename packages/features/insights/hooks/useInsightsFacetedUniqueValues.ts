@@ -107,7 +107,9 @@ export const useInsightsFacetedUniqueValues = ({
         return convertFacetedValuesToMap(
           eventTypes?.map((eventType) => ({
             value: eventType.id,
-            label: eventType.teamId ? `${eventType.title} (${eventType.team?.name})` : eventType.title,
+            label: eventType.calIdTeamId
+              ? `${eventType.title} (${eventType.calIdTeam?.name})`
+              : eventType.title,
           })) ?? []
         );
       } else if (columnId === "workflowType") {
