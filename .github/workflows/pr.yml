@@ -11,6 +11,7 @@ on:
 permissions:
   actions: write
   contents: read
+  packages: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
