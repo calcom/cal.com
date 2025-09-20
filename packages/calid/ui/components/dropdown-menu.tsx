@@ -76,7 +76,7 @@ const DropdownMenuItem = React.forwardRef<
     inset?: boolean;
     StartIcon?: React.ComponentProps<typeof Icon>["name"];
     href?: string;
-    color?: "default" | "destructive";
+    color?: "default" | "minimal" | "destructive";
   }
 >(({ className, inset, disabled, StartIcon, href, color = "default", children, ...props }, ref) => {
   const itemClasses = cn(

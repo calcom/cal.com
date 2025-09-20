@@ -1,4 +1,4 @@
-import { workflowTypeToText } from "@calid/features/insights/lib/workflowTypeToText";
+import { workflowTypeToText } from "@calid/features/modules/insights/lib/workflowTypeToText";
 import type { Table } from "@tanstack/react-table";
 import { useCallback } from "react";
 

@@ -1,4 +1,4 @@
-import { CalIdWorkflowEventsInsights } from "@calid/features/insights/server/workflow-events";
+import { CalIdWorkflowEventsInsights } from "@calid/features/modules/insights/server/workflow-events";
 import type { CalIdMembership, Prisma } from "@prisma/client";
 import { z } from "zod";
 

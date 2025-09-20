@@ -2,12 +2,13 @@
 
 import { Checkbox } from "@calid/features/ui/components/input/checkbox-field";
 import { Input } from "@calid/features/ui/components/input/input";
+import { TextArea } from "@calid/features/ui/components/input/text-area";
 import Link from "next/link";
 import { Controller } from "react-hook-form";
 import type { UseFormReturn } from "react-hook-form";
 import { Toaster } from "sonner";
-import { Button } from "@calid/features/ui/components/button";
-import { TextArea } from "@calid/features/ui/components/input/text-area";
+import { Switch } from "@calcom/ui/components/form";
+
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { IS_CALCOM } from "@calcom/lib/constants";
@@ -15,17 +16,15 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Badge } from "@calcom/ui/components/badge";
 import { FormCard } from "@calcom/ui/components/card";
-import { Icon } from "@calcom/ui/components/icon";
-import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import { FormAction } from "../../components/FormActions";
 import SingleForm from "../../components/SingleForm";
 import { PreviewRenderer, type UptoDateForm } from "../../components/_components/TestForm";
-import type { getServerSidePropsForSingleFormView as getServerSideProps } from "../../components/getServerSidePropsSingleForm";
-import type { RoutingFormWithResponseCount } from "../../types/types";
+import { TeamMemberSelect } from "../../components/_components/TeamMemberSelect";
+import type { getServerSidePropsForSingleFormViewCalId as getServerSideProps } from "../../components/getServerSidePropsSingleFormCalId";
+import type { RoutingFormWithResponseCount, SerializableForm } from "../../types/types";
 
 type HookForm = UseFormReturn<RoutingFormWithResponseCount>;
 
@@ -50,13 +49,10 @@ const FormSettings = ({
   const formLink = `${orgBranding?.fullDomain ?? WEBSITE_URL}/forms/${form.id}`;
 
   return (
-    <div className="flex w-full py-4 lg:py-8">
+    <div className="flex w-full py-4">
       <div className="flex w-full gap-6">
-        {/* Basic Information Card */}
-        {/* <FormCard label={t("basic_information")}> */}
-
         <div className="flex grid w-full grid-cols-1 justify-between gap-10 sm:grid-cols-2 md:grid-cols-2">
-          <div className="bg-default border-default gap-3 rounded-2xl border p-6">
+          <div className="bg-default border-subtle gap-3 rounded-md border p-6">
             <div className="mb-3">
               <span className="text-default text-sm font-semibold">{t("form_name_lable")}</span>
               <Input
@@ -75,6 +71,7 @@ const FormSettings = ({
                 id="description"
                 data-testid="description"
                 placeholder={t("form_description_placeholder")}
+                className="border-default rounded-md border text-sm"
                 {...hookForm.register("description")}
                 defaultValue={form.description || ""}
               />
@@ -93,20 +90,17 @@ const FormSettings = ({
                 <Tooltip content={t("copy_link_to_form")}>
                   <Button
                     onClick={() => {
-                      showToast(t("link_copied"), "success");
                       navigator.clipboard.writeText(formLink);
                     }}
                     type="button"
                     color="minimal"
-                    size="sm">
-                    <Icon name="clipboard" className="h-3 w-3" />
-                  </Button>
+                    StartIcon="clipboard"
+                    className="h-8"
+                  />
                 </Tooltip>
                 <Tooltip content={t("preview")}>
                   <Link href={formLink} target="_blank">
-                    <Button type="button" color="minimal" size="sm">
-                      <Icon name="external-link" className="h-3 w-3" />
-                    </Button>
+                    <Button type="button" color="minimal" StartIcon="external-link" className="h-8" />
                   </Link>
                 </Tooltip>
               </div>
@@ -117,95 +111,60 @@ const FormSettings = ({
               control={hookForm.control}
               render={({ field: { value, onChange } }) => {
                 return (
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      checked={value}
-                      onCheckedChange={(val) => {
-                        onChange(val);
-                        hookForm.unregister("settings.sendUpdatesTo");
-                      }}
-                      id="emailOwnerOnSubmission"
-                    />
-                    <label
-                      htmlFor="emailOwnerOnSubmission"
-                      className="text-default text-sm font-medium leading-none">
-                      {t("routing_forms_send_email_owner")}
-                    </label>
-                  </div>
+                  <>
+                    {form.calIdTeamId && (
+                      <>
+                        <div className="mt-4">
+                          <div className="space-y-4">
+                            <TeamMemberSelect
+                              teamMembers={form.teamMembers || []}
+                              selectedMembers={sendUpdatesTo}
+                              onChange={(memberIds) => {
+                                hookForm.setValue("settings.sendUpdatesTo", memberIds, { shouldDirty: true });
+                                hookForm.setValue("settings.emailOwnerOnSubmission", false, {
+                                  shouldDirty: true,
+                                });
+                              }}
+                              onSelectAll={(selectAll) => {
+                                hookForm.setValue("settings.sendToAll", selectAll, { shouldDirty: true });
+                              }}
+                              selectAllEnabled={true}
+                              sendToAll={sendToAll}
+                              placeholder={t("select_members")}
+                            />
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {!form.calIdTeamId && (
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          checked={value}
+                          onCheckedChange={(val) => {
+                            onChange(val);
+                            hookForm.unregister("settings.sendUpdatesTo");
+                          }}
+                          id="emailOwnerOnSubmission"
+                        />
+                        <label
+                          htmlFor="emailOwnerOnSubmission"
+                          className="text-default text-sm font-medium leading-none">
+                          {t("routing_forms_send_email_owner")}
+                        </label>
+                      </div>
+                    )}
+                  </>
                 );
               }}
             />
-            <div className="mt-4">
-              <FormAction
-                action="download"
-                className="w-full justify-center"
-                routingForm={form}
-                color="minimal"
-                type="button"
-                data-testid="download-responses">
-                <Icon name="download" className="h-4 w-4" />
-                {t("download_responses")}
-              </FormAction>
-            </div>
+
+              
           </div>
 
-          <div className="bg-default border-default w-full gap-3 rounded-2xl border p-6">
+          <div className="bg-default border-subtle w-full gap-3 rounded-md border p-6">
             <PreviewRenderer testForm={uptoDateForm} />
           </div>
         </div>
-
-        {/* </FormCard> */}
-
-        {/* Notification Settings Card */}
-        {/* <FormCard label={t("notification_settings")}>
-          <div className="bg-default border-default w-full gap-3 rounded-2xl border p-6"> */}
-        {/* {form.teamId ? (
-              <div className="flex flex-col">
-                <TeamMemberSelect
-                  teamMembers={form.teamMembers}
-                  selectedMembers={sendUpdatesTo}
-                  onChange={(memberIds) => {
-                    hookForm.setValue("settings.sendUpdatesTo", memberIds, { shouldDirty: true });
-                    hookForm.setValue("settings.emailOwnerOnSubmission", false, {
-                      shouldDirty: true,
-                    });
-                  }}
-                  onSelectAll={(selectAll) => {
-                    hookForm.setValue("settings.sendToAll", selectAll, { shouldDirty: true });
-                  }}
-                  selectAllEnabled={true}
-                  sendToAll={sendToAll}
-                  placeholder={t("select_members")}
-                />
-              </div>
-            ) : (
-              <Controller
-                name="settings.emailOwnerOnSubmission"
-                control={hookForm.control}
-                render={({ field: { value, onChange } }) => {
-                  return (
-                    <div className="flex items-center gap-2">
-                      <label
-                        htmlFor="emailOwnerOnSubmission"
-                        className="text-default text-sm font-medium leading-none">
-                        {t("routing_forms_send_email_owner")}
-                      </label>
-                      <Switch
-                        size="sm"
-                        id="emailOwnerOnSubmission"
-                        checked={value}
-                        onCheckedChange={(val) => {
-                          onChange(val);
-                          hookForm.unregister("settings.sendUpdatesTo");
-                        }}
-                      />
-                    </div>
-                  );
-                }}
-              />
-            )} */}
-        {/* </div>
-        </FormCard> */}
 
         {/* Routers Card */}
         {form.routers.length ? (
@@ -244,22 +203,6 @@ const FormSettings = ({
             </div>
           </FormCard>
         ) : null}
-
-        {/* Support Card */}
-        {IS_CALCOM && (
-          <FormCard label={t("support")}>
-            <div className="bg-default border-default w-full gap-3 rounded-2xl border p-6">
-              <Button
-                target="_blank"
-                color="minimal"
-                href={`https://i.cal.com/support/routing-support-session?email=${encodeURIComponent(
-                  user?.email ?? ""
-                )}&name=${encodeURIComponent(user?.name ?? "")}&form=${encodeURIComponent(form.id)}`}>
-                {t("need_help")}
-              </Button>
-            </div>
-          </FormCard>
-        )}
       </div>
     </div>
   );
@@ -269,14 +212,24 @@ export default function Details({
   appUrl,
   ...props
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
+  // Convert the form type to match SingleFormComponentProps expectations
+  const adaptedForm: RoutingFormWithResponseCount = {
+    ...props.form,
+    team: props.form.calIdTeam ? {
+      slug: props.form.calIdTeam.slug,
+      name: props.form.calIdTeam.name,
+    } : null,
+  };
+
   return (
     <>
       <Toaster position="bottom-right" />
       <SingleForm
         {...props}
+        form={adaptedForm}
         appUrl={appUrl}
         Page={({ hookForm, form, uptoDateForm }) => (
-          <FormSettings appUrl={appUrl} hookForm={hookForm} form={form} uptoDateForm={uptoDateForm} />
+          <FormSettings appUrl={appUrl} hookForm={hookForm} form={props.form} uptoDateForm={uptoDateForm} />
         )}
       />
     </>

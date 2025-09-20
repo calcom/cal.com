@@ -1,6 +1,10 @@
 "use client";
-import { TextArea } from "@calid/features/ui/components/input/text-area";
+
+import { Button } from "@calid/features/ui/components/button";
+import { BlankCard } from "@calid/features/ui/components/card";
 import { Icon } from "@calid/features/ui/components/icon";
+import { TextField } from "@calid/features/ui/components/input/input";
+import { TextArea } from "@calid/features/ui/components/input/text-area";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { Prisma } from "@prisma/client";
 import Link from "next/link";
@@ -22,7 +26,6 @@ import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calid/features/ui/components/button";
 import { FormCard } from "@calcom/ui/components/card";
 import { SelectWithValidation as Select } from "@calcom/ui/components/form";
 // import { TextField } from "@calcom/ui/components/form";
@@ -33,7 +36,6 @@ import type { IconName } from "@calcom/ui/components/icon";
 import { routingFormAppComponents } from "../../appComponents";
 import DynamicAppComponent from "../../components/DynamicAppComponent";
 import SingleForm from "../../components/SingleForm";
-import { EmptyState } from "../../components/_components/EmptyState";
 import { RoutingSkeleton } from "../../components/_components/RoutingSkeleton";
 import type { getServerSidePropsForSingleFormView as getServerSideProps } from "../../components/getServerSidePropsSingleForm";
 import {
@@ -63,7 +65,7 @@ import type {
 import type { zodRoutes } from "../../zod";
 import { RouteActionType } from "../../zod";
 
-type EventTypesByGroup = RouterOutputs["viewer"]["eventTypes"]["getByViewer"];
+type EventTypesByGroup = RouterOutputs["viewer"]["eventTypes"]["calid_getByViewer"];
 
 type Form = inferSSRProps<typeof getServerSideProps>["form"];
 
@@ -160,6 +162,9 @@ const buildEventsData = ({
     }
   >();
   eventTypesByGroup?.eventTypeGroups.forEach((group) => {
+    // For CalId forms, use calIdTeamId instead of teamId
+    const formTeamId = form.calIdTeamId ?? form.teamId ?? null;
+    
     const eventTypeValidInContext = areTheySiblingEntities({
       entity1: {
         teamId: group.teamId ?? null,
@@ -167,7 +172,7 @@ const buildEventsData = ({
         userId: form.userId,
       },
       entity2: {
-        teamId: form.teamId ?? null,
+        teamId: formTeamId,
         userId: form.userId,
       },
     });
@@ -198,6 +203,7 @@ const buildEventsData = ({
         eventTypeAppMetadata,
         isRRWeightsEnabled: eventType.isRRWeightsEnabled,
       });
+      
     });
   });
 
@@ -1134,7 +1140,7 @@ const Routes = ({
     hookForm,
   });
 
-  const { data: allForms } = trpc.viewer.appRoutingForms.forms.useQuery();
+  const { data: allForms } = trpc.viewer.appRoutingForms.calid_forms.useQuery();
 
   const notHaveAttributesQuery = ({ form }: { form: { routes: z.infer<typeof zodRoutes> } }) => {
     return form.routes?.every((route) => {
@@ -1272,7 +1278,7 @@ const Routes = ({
   const fieldIdentifiers = fields ? fields.map((field) => field.identifier ?? field.label) : [];
 
   return (
-    <div className="w-full py-4 lg:py-8">
+    <div className="w-full py-4">
       <div ref={animationRef} className="w-full ltr:mr-2 rtl:ml-2">
         {mainRoutes.map((route, key) => {
           return (
@@ -1306,15 +1312,12 @@ const Routes = ({
           );
         })}
         {mainRoutes.length === 0 ? (
-          <EmptyState
-            icon="menu"
-            header="Create your first route"
-            text="Routes determine where your form responses will be sent based on the answers provided."
+          <BlankCard
+            Icon="list-tree"
+            headline={t("create_your_first_route")}
+            description={t("create_your_first_route_description")}
             buttonText={t("add_a_new_route")}
             buttonOnClick={createRoute}
-            buttonStartIcon="plus"
-            buttonClassName="mt-6"
-            buttonDataTestId="add-route-button"
           />
         ) : (
           <Button
@@ -1323,7 +1326,6 @@ const Routes = ({
             className="mb-6"
             onClick={createRoute}
             data-testid="add-route-button">
-            <Icon name="plus" className="h-4 w-4" />
             {t("add_a_new_route")}
           </Button>
         )}
@@ -1364,15 +1366,16 @@ function Page({
   const { t } = useLocale();
   const values = hookForm.getValues();
   const { data: attributes, isPending: isAttributesLoading } =
-    trpc.viewer.appRoutingForms.getAttributesForTeam.useQuery(
+    trpc.viewer.appRoutingForms.calid_getAttributesForTeam.useQuery(
       { teamId: values.teamId! },
       { enabled: !!values.teamId }
     );
 
-  const { data: eventTypesByGroup, isLoading: areEventsLoading } =
-    trpc.viewer.eventTypes.getByViewer.useQuery({
+  const { data: eventTypesByGroup, isLoading: areEventsLoading, error: eventsError } =
+    trpc.viewer.eventTypes.calid_getByViewer.useQuery({
       forRoutingForms: true,
     });
+
 
   // If hookForm hasn't been initialized, don't render anything
   // This is important here because some states get initialized which aren't reset when the hookForm is reset with the form values and they don't get the updated values

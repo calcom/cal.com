@@ -1,17 +1,17 @@
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
+import { ZAddMembersToEventType } from "./addMemberstoEventType.schema";
+import { ZChangeCalidMemberRoleInputSchema } from "./changeMemberRole.schema";
 import { ZCreateCalidTeamSchema } from "./create.schema";
 import { ZDeleteCalidTeamSchema } from "./delete.schema";
 import { ZGetCalidTeamSchema } from "./get.schema";
 import { ZGetMemberSchema } from "./getMember.schema";
 import { ZInviteMemberSchema } from "./inviteMember.schema";
+import { ZLeaveTeamSchema } from "./leaveTeam.schema";
 import { ZListMembersSchema } from "./listMembers.schema";
 import { ZRemoveMemberSchema } from "./removeMember.schema";
-import { ZLeaveTeamSchema } from "./leaveTeam.schema";
 import { ZUpdateCalidTeamSchema } from "./update.schema";
 import { ZUpdateMemberSchema } from "./updateMember.schema";
-import { ZChangeCalidMemberRoleInputSchema } from "./changeMemberRole.schema";
-import { ZAddMembersToEventType } from "./addMemberstoEventType.schema";
 
 export const calIdTeamsRouter = router({
   // Create a new calidTeam
@@ -75,10 +75,12 @@ export const calIdTeamsRouter = router({
   }),
 
   // Change member role
-  changeMemberRole: authedProcedure.input(ZChangeCalidMemberRoleInputSchema).mutation(async ({ ctx, input }) => {
-    const { changeCalidMemberRoleHandler } = await import("./changeMemberRole.handler");
-    return changeCalidMemberRoleHandler({ ctx, input });
-  }),
+  changeMemberRole: authedProcedure
+    .input(ZChangeCalidMemberRoleInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { changeCalidMemberRoleHandler } = await import("./changeMemberRole.handler");
+      return changeCalidMemberRoleHandler({ ctx, input });
+    }),
 
   // List members
   listMembers: authedProcedure.input(ZListMembersSchema).query(async ({ ctx, input }) => {

@@ -1,6 +1,5 @@
 "use client";
 
-import { TeamEditLayout } from "@calid/features/modules/teams/components/TeamEditLayout";
 import { TeamSelectionDialog } from "@calid/features/modules/teams/components/TeamSelectionDialog";
 import { Button } from "@calid/features/ui/components/button";
 import { useRouter } from "next/navigation";

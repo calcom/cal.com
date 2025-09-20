@@ -18,7 +18,7 @@ export const getPublicCalidTeamHandler = async ({ input }: GetPublicCalidTeamOpt
     include: {
       members: {
         where: {
-          accepted: true,
+          acceptedInvitation: true,
         },
         include: {
           user: {
@@ -62,7 +62,7 @@ export const getPublicCalidTeamHandler = async ({ input }: GetPublicCalidTeamOpt
     members: calIdTeam.members.map((member) => ({
       id: member.id,
       role: member.role,
-      accepted: member.accepted,
+      acceptedInvitation: member.acceptedInvitation,
       user: member.user,
     })),
   };

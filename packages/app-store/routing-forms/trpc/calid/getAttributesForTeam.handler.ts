@@ -1,30 +1,30 @@
-import { getAttributesForCalIdTeam } from "@calcom/lib/service/attribute/server/getAttributes";
+import { calid_getAttributesForTeam } from "@calcom/lib/service/attribute/server/getAttributes";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TGetAttributesForCalIdTeamInputSchema } from "./getAttributesForCalIdTeam.schema";
+import type { TCalIdGetAttributesForTeamInputSchema } from "./getAttributesForTeam.schema";
 
-type GetAttributesForCalIdTeamHandlerOptions = {
+type CalIdGetAttributesForTeamHandlerOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
-  input: TGetAttributesForCalIdTeamInputSchema;
+  input: TCalIdGetAttributesForTeamInputSchema;
 };
 
-export default async function getAttributesForCalIdTeamHandler({
+export default async function calIdGetAttributesForTeamHandler({
   ctx,
   input,
-}: GetAttributesForCalIdTeamHandlerOptions) {
-  const { calIdTeamId } = input;
+}: CalIdGetAttributesForTeamHandlerOptions) {
+  const { teamId } = input;
   const { user } = ctx;
-  
+
   // Check if user is a member of the calId team
   const isMemberOfCalIdTeam = await prisma.calIdMembership.findFirst({
     where: {
       userId: user.id,
-      calIdTeamId,
+      calIdTeamId: teamId,
       acceptedInvitation: true,
     },
   });
@@ -36,5 +36,5 @@ export default async function getAttributesForCalIdTeamHandler({
     });
   }
 
-  return getAttributesForCalIdTeam({ calIdTeamId });
+  return calid_getAttributesForTeam({ teamId });
 }
