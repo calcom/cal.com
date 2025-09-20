@@ -2,10 +2,10 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 
-import { schemaEventTypeReadPublic } from "~/lib/validations/event-type";
+import { eventTypeSelect } from "~/lib/selects/event-type";
 import { schemaQuerySlug } from "~/lib/validations/shared/querySlug";
 import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";
 
@@ -54,14 +54,7 @@ async function getHandler(req: NextApiRequest) {
       userId: shouldUseUserId ? { in: userIds } : undefined,
       slug: slug, // slug will be undefined if not provided in query
     },
-    include: {
-      customInputs: true,
-      hashedLink: { select: { link: true } },
-      team: { select: { slug: true } },
-      hosts: { select: { userId: true, isFixed: true } },
-      owner: { select: { username: true, id: true } },
-      children: { select: { id: true, userId: true } },
-    },
+    select: eventTypeSelect,
   });
   // this really should return [], but backwards compatibility..
   if (data.length === 0) new HttpError({ statusCode: 404, message: "No event types were found" });
@@ -69,7 +62,7 @@ async function getHandler(req: NextApiRequest) {
     event_types: (await defaultScheduleId<(typeof data)[number]>({ eventTypes: data, prisma, userIds })).map(
       (eventType) => {
         const link = getCalLink(eventType);
-        return schemaEventTypeReadPublic.parse({ ...eventType, link });
+        return { ...eventType, link };
       }
     ),
   };
