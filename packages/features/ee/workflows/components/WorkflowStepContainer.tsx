@@ -9,7 +9,7 @@ import "react-phone-number-input/style.css";
 import type { RetellAgentWithDetails } from "@calcom/features/calAIPhone/providers/retellAI";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import PhoneInput from "@calcom/features/components/phone-input";
-import { SENDER_ID } from "@calcom/lib/constants";
+import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { formatPhoneNumber } from "@calcom/lib/formatPhoneNumber";
 import { useHasActiveTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -43,6 +43,7 @@ import { Editor } from "@calcom/ui/components/editor";
 import { CheckboxField } from "@calcom/ui/components/form";
 import { EmailField } from "@calcom/ui/components/form";
 import { TextArea } from "@calcom/ui/components/form";
+import { Input } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
@@ -761,6 +762,47 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               }}
             />
           </div>
+          {!isWhatsappAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) &&
+            !isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
+              <div>
+                {_isSenderIsNeeded ? (
+                  <>
+                    <div className="pt-4">
+                      <div className="flex items-center">
+                        <Label>{t("sender_id")}</Label>
+                      </div>
+                      <Input
+                        type="text"
+                        placeholder={SENDER_ID}
+                        disabled={props.readOnly}
+                        maxLength={11}
+                        {...form.register(`steps.${step.stepNumber - 1}.sender`)}
+                      />
+                      <div className="mt-1.5 flex items-center gap-1">
+                        <Icon name="info" size="10" className="text-gray-500" />
+                        <div className="text-subtle text-xs">{t("sender_id_info")}</div>
+                      </div>
+                    </div>
+                    {form.formState.errors.steps &&
+                      form.formState?.errors?.steps[step.stepNumber - 1]?.sender && (
+                        <p className="text-error mt-1 text-xs">{t("sender_id_error_message")}</p>
+                      )}
+                  </>
+                ) : (
+                  <>
+                    <div className="pt-4">
+                      <Label>{t("sender_name")}</Label>
+                      <Input
+                        type="text"
+                        disabled={props.readOnly}
+                        placeholder={SENDER_NAME}
+                        {...form.register(`steps.${step.stepNumber - 1}.senderName`)}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           {isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && !stepAgentId && (
             <div className="bg-muted border-muted mt-2 rounded-2xl border p-3">
               <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center sm:gap-0">

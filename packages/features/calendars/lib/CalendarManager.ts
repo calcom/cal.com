@@ -134,7 +134,7 @@ export const getConnectedCalendars = async (
           errorMessage = error.message;
         }
 
-        log.error("getConnectedCalendars failed", safeStringify(error), safeStringify({ item }));
+        log.error("getConnectedCalendars failed", errorMessage, safeStringify({ item }));
 
         return {
           integration: cleanIntegrationKeys(item.integration),
