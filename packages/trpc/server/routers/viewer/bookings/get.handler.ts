@@ -4,6 +4,7 @@ import { jsonObjectFrom, jsonArrayFrom } from "kysely/helpers/postgres";
 
 import dayjs from "@calcom/dayjs";
 import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
+import { isTeamAdmin } from "@calcom/features/ee/teams/lib/queries";
 import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
@@ -11,6 +12,7 @@ import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Booking, Prisma, Prisma as PrismaClientType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -532,10 +534,11 @@ export async function getBookings({
                     .whereRef("Host.eventTypeId", "=", "EventType.id")
                 ).as("hosts"),
                 "EventType.length",
+                "EventType.teamId",
                 jsonObjectFrom(
                   eb
                     .selectFrom("Team")
-                    .select(["Team.id", "Team.name", "Team.slug"])
+                    .select(["Team.id", "Team.name", "Team.slug", "Team.parentId"])
                     .whereRef("EventType.teamId", "=", "Team.id")
                 ).as("team"),
                 jsonArrayFrom(
@@ -689,13 +692,20 @@ export async function getBookings({
       return hostUser?.id === userId && attendeeEmails.has(hostUser.email);
     });
   };
+
+  const checkIfUserIsTeamAdminOrOwner = async (userId: number, booking: (typeof plainBookings)[number]) => {
+    const isTeamAdminOrOwner = !!(await isTeamAdmin(userId, booking.eventType?.teamId ?? 0));
+    const isOrgAdminOrOwner = !!(await isOrganisationAdmin(userId, booking.eventType?.team?.parentId ?? 0));
+    return isTeamAdminOrOwner || isOrgAdminOrOwner;
+  };
+
   const bookings = await Promise.all(
     plainBookings.map(async (booking) => {
       // If seats are enabled, the event is not set to show attendees, and the current user is not the host, filter out attendees who are not the current user
       if (
-        booking.seatsReferences.length &&
         !booking.eventType?.seatsShowAttendees &&
-        !checkIfUserIsHost(user.id, booking)
+        !checkIfUserIsHost(user.id, booking) &&
+        !(await checkIfUserIsTeamAdminOrOwner(user.id, booking))
       ) {
         booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
       }

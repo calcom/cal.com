@@ -6,11 +6,13 @@ import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-util
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
+import { isTeamAdmin } from "@calcom/features/ee/teams/lib/queries";
 import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
+import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import { customInputSchema } from "@calcom/prisma/zod-utils";
@@ -158,11 +160,17 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const userId = session?.user?.id;
 
-  const checkIfUserIsHost = (userId?: number | null) => {
+  const checkIfUserIsHostOrTeamAdmin = async (userId?: number | null) => {
     if (!userId) return false;
 
+    if (bookingInfo?.user?.id === userId) return true;
+
+    const isTeamAdminOrOwner = !!(await isTeamAdmin(userId, eventType?.teamId ?? 0));
+    const isOrgAdminOrOwner = !!(await isOrganisationAdmin(userId, eventType?.team?.parentId ?? 0));
+
+    if (isTeamAdminOrOwner || isOrgAdminOrOwner) return true;
+
     return (
-      bookingInfo?.user?.id === userId ||
       eventType.users.some(
         (user) =>
           user.id === userId && bookingInfo.attendees.some((attendee) => attendee.email === user.email)
@@ -174,7 +182,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     );
   };
 
-  const isLoggedInUserHost = checkIfUserIsHost(userId);
+  const isLoggedInUserHost = await checkIfUserIsHostOrTeamAdmin(userId);
 
   if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
     await handleSeatsEventTypeOnBooking(eventType, bookingInfo, seatReferenceUid, isLoggedInUserHost);

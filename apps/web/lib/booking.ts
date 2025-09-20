@@ -76,6 +76,7 @@ export const getEventTypesFromDB = async (id: number) => {
               hideBranding: true,
             },
           },
+          parentId: true,
           createdByOAuthClientId: true,
         },
       },
