@@ -135,6 +135,107 @@ describe("BookingFields", () => {
       },
     });
   });
+
+  it("should hide attendee phone number field if attendee phone number location is selected", () => {
+    const AttendeePhoneNumberOption = {
+      label: "attendee_phone_number",
+      value: "phone",
+    };
+
+    const fields = getBookingFieldsWithSystemFields({
+      disableGuests: false,
+      bookingFields: [
+        {
+          name: "attendeePhoneNumber",
+          type: "phone",
+          required: true,
+          editable: "system",
+        },
+      ],
+      metadata: null,
+      workflows: [],
+      customInputs: [],
+    });
+
+    const locations = [
+      {
+        type: AttendeePhoneNumberOption.value,
+      },
+    ];
+
+    renderComponent({
+      props: {
+        fields,
+        locations,
+        isDynamicGroupBooking: false,
+        bookingData: null,
+      },
+      formDefaultValues: {
+        responses: {
+          location: { value: "phone", optionValue: "" },
+        },
+      },
+    });
+
+    const phoneInputByName = document.querySelector('input[name="attendeePhoneNumber"]');
+    expect(phoneInputByName).toBeNull();
+  });
+
+  it("should show attendee phone number field if location is not attendee phone number", async () => {
+    const AttendeePhoneNumberOption = {
+      label: "attendee_phone_number",
+      value: "phone",
+    };
+    const ZoomOption = {
+      label: "Zoom",
+      value: "zoom",
+    };
+
+    const fields = getBookingFieldsWithSystemFields({
+      disableGuests: false,
+      bookingFields: [
+        {
+          name: "attendeePhoneNumber",
+          type: "phone",
+          required: true,
+          editable: "system",
+        },
+      ],
+      metadata: null,
+      workflows: [],
+      customInputs: [],
+    });
+
+    const locations = [
+      {
+        type: AttendeePhoneNumberOption.value,
+      },
+      {
+        type: ZoomOption.value,
+      },
+    ];
+
+    // Set form default value to Zoom location
+    renderComponent({
+      props: {
+        fields,
+        locations,
+        isDynamicGroupBooking: false,
+        bookingData: null,
+      },
+      formDefaultValues: {
+        responses: {
+          location: { value: "zoom", optionValue: "" },
+        },
+      },
+    });
+
+    const phoneInputByName = document.querySelector('input[name="attendeePhoneNumber"]');
+
+    expect(phoneInputByName).toBeInTheDocument();
+    expect(phoneInputByName).toHaveAttribute("name", "attendeePhoneNumber");
+    expect(phoneInputByName).toHaveAttribute("type", "tel");
+  });
 });
 
 const component = {
