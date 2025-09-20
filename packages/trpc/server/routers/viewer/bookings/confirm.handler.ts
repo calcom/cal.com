@@ -406,7 +406,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       },
     });
 
-    const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, calIdTeamId });
+    const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId: calIdTeamId });
 
     // send BOOKING_REJECTED webhooks
     const subscriberOptions: GetSubscriberOptions = {

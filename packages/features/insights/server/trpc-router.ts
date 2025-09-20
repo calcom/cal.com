@@ -1,5 +1,5 @@
 import { CalIdWorkflowEventsInsights } from "@calid/features/insights/server/workflow-events";
-import type { Prisma } from "@prisma/client";
+import type { CalIdMembership, Prisma } from "@prisma/client";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
@@ -197,31 +197,26 @@ const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, getRa
     throw new TRPCError({ code: "BAD_REQUEST" });
   }
 
-  //early return for now,as we don't have the full implementation of orgs
-  return next({
-    ctx: {
-      user: {
-        ...ctx.user,
-        // isOwnerAdminOfParentTeam,
-      },
-    },
-  });
-
   // // If teamId is provided, check if user belongs to team
   // // If teamId is not provided, check if user belongs to any team
 
-  // const membershipWhereConditional: Prisma.CalIdMembershipWhereInput = {
-  //   userId: ctx.user.id,
-  //   acceptedInvitation: true,
-  // };
+  const membershipWhereConditional: Prisma.CalIdMembershipWhereInput = {
+    userId: ctx.user.id,
+    acceptedInvitation: true,
+  };
 
-  // if (parse.data.teamId) {
-  //   membershipWhereConditional["calIdTeamId"] = parse.data.teamId;
-  // }
+  if (parse.data.teamId) {
+    membershipWhereConditional["calIdTeamId"] = parse.data.teamId;
+  }
 
-  // const membership = await ctx.insightsDb.calIdMembership.findFirst({
-  //   where: membershipWhereConditional,
-  // });
+  const membership = await ctx.insightsDb.calIdMembership.findFirst({
+    where: membershipWhereConditional,
+  });
+
+  if (!membership && !parse.data.teamId) {
+    // User doesn't belong to any team
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
 
   // // let isOwnerAdminOfParentTeam = false;
 
@@ -257,14 +252,14 @@ const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, getRa
   // //   isOwnerAdminOfParentTeam = true;
   // // }
 
-  // return next({
-  //   ctx: {
-  //     user: {
-  //       ...ctx.user,
-  //       // isOwnerAdminOfParentTeam,
-  //     },
-  //   },
-  // });
+  return next({
+    ctx: {
+      user: {
+        ...ctx.user,
+        // isOwnerAdminOfParentTeam,
+      },
+    },
+  });
 });
 
 const userSelect = {
@@ -467,14 +462,14 @@ export const insightsRouter = router({
         startDate,
         endDate,
         timeView,
-        timeZone,
+        timeZone: timeZone === "Asia/Calcutta" ? "Asia/Kolkata" : timeZone,
         weekStart: ctx.user.weekStart,
       });
 
       const insightsBookingService = createInsightsBookingService(ctx, input);
       try {
         return await insightsBookingService.getEventTrendsStats({
-          timeZone,
+          timeZone: timeZone === "Asia/Calcutta" ? "Asia/Kolkata" : timeZone,
           dateRanges,
         });
       } catch (e) {
@@ -1044,7 +1039,7 @@ export const insightsRouter = router({
 
       try {
         return await insightsBookingService.getBookingsByHourStats({
-          timeZone,
+          timeZone: timeZone === "Asia/Calcutta" ? "Asia/Kolkata" : timeZone,
         });
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
@@ -1261,23 +1256,24 @@ async function getEventTypeList({
   //   };
   // }
 
+  let membership: CalIdMembership | null = null;
   if (teamId && !isAll) {
     membershipWhereConditional["calIdTeamId"] = teamId;
     membershipWhereConditional["userId"] = user.id;
-  }
-  if (userId) {
-    membershipWhereConditional["userId"] = userId;
-  }
 
-  // I'm not using unique here since when userId comes from input we should look for every
-  // event type that user owns
-  const membership = await prisma.calIdMembership.findFirst({
-    where: membershipWhereConditional,
-  });
+    // I'm not using unique here since when userId comes from input we should look for every
+    // event type that user owns
+    membership = await prisma.calIdMembership.findFirst({
+      where: membershipWhereConditional,
+    });
 
-  if (!membership && !user.isOwnerAdminOfParentTeam) {
-    throw new Error("User is not part of a team/org");
+    if (!membership && !user.isOwnerAdminOfParentTeam) {
+      throw new Error("User is not part of a team/org");
+    }
   }
+  // if (userId) {
+  //   membershipWhereConditional["userId"] = userId;
+  // }
 
   const eventTypeWhereConditional: Prisma.EventTypeWhereInput = {};
   // if (isAll && childrenTeamIds.length > 0 && user.organizationId && user.isOwnerAdminOfParentTeam) {
