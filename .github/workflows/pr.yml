@@ -91,11 +91,107 @@ jobs:
             console.log('Found the label?', labelFound);
             core.setOutput('run-e2e', labelFound);
 
-  deps:
-    name: Install dependencies
+  build-deps-image-if-needed:
+    name: Build dependencies image if needed
     needs: [changes, check-label]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/yarn-install.yml
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/dangerous-git-checkout
+      - name: Check if yarn.lock changed
+        id: check-yarn-lock
+        run: |
+          if git diff --name-only origin/main...HEAD | grep -q "yarn.lock"; then
+            echo "yarn-lock-changed=true" >> $GITHUB_OUTPUT
+            echo "yarn.lock has changed, will build new image"
+          else
+            echo "yarn-lock-changed=false" >> $GITHUB_OUTPUT
+            echo "yarn.lock unchanged, will use existing image"
+          fi
+      - name: Build image if yarn.lock changed
+        if: steps.check-yarn-lock.outputs.yarn-lock-changed == 'true'
+        run: |
+          YARN_LOCK_HASH=$(sha256sum yarn.lock | cut -d' ' -f1 | cut -c1-12)
+          PLAYWRIGHT_VERSION=$(node -e "console.log(require('./package.json').devDependencies['@playwright/test'])")
+          IMAGE_TAG="yarn-${YARN_LOCK_HASH}-playwright-${PLAYWRIGHT_VERSION}"
+          FULL_IMAGE="ghcr.io/calcom/cal.com-deps:${IMAGE_TAG}"
+          
+          # Log in to GitHub Container Registry
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          
+          # Check if image already exists
+          if docker manifest inspect ${FULL_IMAGE} > /dev/null 2>&1; then
+            echo "Image already exists, skipping build"
+            exit 0
+          fi
+          
+          # Build the image
+          cat > Dockerfile.deps << 'EOF'
+          FROM ubuntu:22.04
+          
+          # Install system dependencies
+          RUN apt-get update && apt-get install -y \
+              curl \
+              git \
+              build-essential \
+              python3 \
+              python3-pip \
+              && rm -rf /var/lib/apt/lists/*
+          
+          # Install Node.js 20
+          RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+              apt-get install -y nodejs
+          
+          # Install yarn
+          RUN npm install -g yarn
+          
+          # Set working directory
+          WORKDIR /workspace
+          
+          # Copy package files first for better caching
+          COPY package.json yarn.lock .yarnrc.yml ./
+          
+          # Copy all package.json files from packages and apps
+          COPY packages/ ./packages/
+          COPY apps/ ./apps/
+          
+          # Install dependencies with same optimizations as yarn-install action
+          ENV YARN_ENABLE_IMMUTABLE_INSTALLS=false
+          ENV YARN_ENABLE_GLOBAL_CACHE=false
+          ENV YARN_NM_MODE=hardlinks-local
+          ENV HUSKY=0
+          ENV YARN_INSTALL_STATE_PATH=.yarn/ci-cache/install-state.gz
+          
+          RUN yarn install --inline-builds && \
+              yarn prisma generate
+          
+          # Get Playwright version and install with dependencies
+          RUN PLAYWRIGHT_VERSION=$(node -e "console.log(require('./package.json').devDependencies['@playwright/test'])") && \
+              yarn playwright install --with-deps
+          
+          # Clean up
+          RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+          EOF
+          
+          docker build -f Dockerfile.deps -t ${FULL_IMAGE} .
+          docker push ${FULL_IMAGE}
+
+  deps:
+    name: Install dependencies
+    needs: [changes, check-label, build-deps-image-if-needed]
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/dangerous-git-checkout
+      - uses: ./.github/actions/use-deps-image
 
   type-check:
     name: Type check

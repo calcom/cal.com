@@ -14,6 +14,7 @@ jobs:
       id-token: write # for NPM provenance - developers can verify where and how it was built
       contents: write # to create release by changesets/action below
       pull-requests: write # to create pull request by changesets/action below
+      packages: read # to read Docker images from GitHub container registry
     name: Release
     runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
@@ -22,7 +23,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Setup node, yarn and install dependencies
-        uses: ./.github/actions/yarn-install
+        uses: ./.github/actions/use-deps-image
       - name: Create Release Pull Request or Publish to npm
         id: changesets
         uses: changesets/action@v1

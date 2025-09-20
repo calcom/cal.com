@@ -1,0 +1,101 @@
+name: Build Docker Dependencies Image
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-deps-image:
+    name: Build Dependencies Docker Image
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    outputs:
+      image-tag: ${{ steps.generate-tag.outputs.image-tag }}
+      should-build: ${{ steps.check-cache.outputs.should-build }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Generate image tag
+        id: generate-tag
+        run: |
+          YARN_LOCK_HASH=$(sha256sum yarn.lock | cut -d' ' -f1 | cut -c1-12)
+          PLAYWRIGHT_VERSION=$(node -e "console.log(require('./package.json').devDependencies['@playwright/test'])")
+          IMAGE_TAG="yarn-${YARN_LOCK_HASH}-playwright-${PLAYWRIGHT_VERSION}"
+          echo "image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "full-image=ghcr.io/calcom/cal.com-deps:${IMAGE_TAG}" >> $GITHUB_OUTPUT
+      
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Check if image exists
+        id: check-cache
+        run: |
+          if docker manifest inspect ghcr.io/calcom/cal.com-deps:${{ steps.generate-tag.outputs.image-tag }} > /dev/null 2>&1; then
+            echo "should-build=false" >> $GITHUB_OUTPUT
+            echo "Image already exists, skipping build"
+          else
+            echo "should-build=true" >> $GITHUB_OUTPUT
+            echo "Image does not exist, will build"
+          fi
+      
+      - name: Build and push Docker image
+        if: steps.check-cache.outputs.should-build == 'true'
+        run: |
+          cat > Dockerfile.deps << 'EOF'
+          FROM ubuntu:22.04
+          
+          # Install system dependencies
+          RUN apt-get update && apt-get install -y \
+              curl \
+              git \
+              build-essential \
+              python3 \
+              python3-pip \
+              && rm -rf /var/lib/apt/lists/*
+          
+          # Install Node.js 20
+          RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+              apt-get install -y nodejs
+          
+          # Install yarn
+          RUN npm install -g yarn
+          
+          # Set working directory
+          WORKDIR /workspace
+          
+          # Copy package files first for better caching
+          COPY package.json yarn.lock .yarnrc.yml ./
+          
+          # Copy all package.json files from packages and apps
+          COPY packages/ ./packages/
+          COPY apps/ ./apps/
+          
+          # Install dependencies with same optimizations as yarn-install action
+          ENV YARN_ENABLE_IMMUTABLE_INSTALLS=false
+          ENV YARN_ENABLE_GLOBAL_CACHE=false
+          ENV YARN_NM_MODE=hardlinks-local
+          ENV HUSKY=0
+          ENV YARN_INSTALL_STATE_PATH=.yarn/ci-cache/install-state.gz
+          
+          RUN yarn install --inline-builds && \
+              yarn prisma generate
+          
+          # Get Playwright version and install with dependencies
+          RUN PLAYWRIGHT_VERSION=$(node -e "console.log(require('./package.json').devDependencies['@playwright/test'])") && \
+              yarn playwright install --with-deps
+          
+          # Clean up
+          RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+          EOF
+          
+          docker build -f Dockerfile.deps -t ${{ steps.generate-tag.outputs.full-image }} .
+          docker push ${{ steps.generate-tag.outputs.full-image }}

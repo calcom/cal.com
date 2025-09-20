@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: write
+  packages: read
 
 jobs:
   draft_release:
@@ -46,7 +47,7 @@ jobs:
           git config --local user.email "$USER_EMAIL"
           git config --local user.name "${{ github.actor }}"
 
-      - uses: ./.github/actions/yarn-install
+      - uses: ./.github/actions/use-deps-image
 
       - name: Bump version
         run: |

@@ -10,6 +10,7 @@ on:
 permissions:
   actions: write
   contents: read
+  packages: read
 
 env:
   ALLOWED_HOSTNAMES: ${{ vars.CI_ALLOWED_HOSTNAMES }}
@@ -55,7 +56,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
-      - uses: ./.github/actions/yarn-install
+      - uses: ./.github/actions/use-deps-image
       - uses: ./.github/actions/cache-build
       - name: Analyze bundle
         run: |
