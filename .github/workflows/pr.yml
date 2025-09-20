@@ -102,32 +102,43 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
-      - name: Check if yarn.lock changed
-        id: check-yarn-lock
-        run: |
-          if git diff --name-only origin/main...HEAD | grep -q "yarn.lock"; then
-            echo "yarn-lock-changed=true" >> $GITHUB_OUTPUT
-            echo "yarn.lock has changed, will build new image"
-          else
-            echo "yarn-lock-changed=false" >> $GITHUB_OUTPUT
-            echo "yarn.lock unchanged, will use existing image"
-          fi
-      - name: Build image if yarn.lock changed
-        if: steps.check-yarn-lock.outputs.yarn-lock-changed == 'true'
+      - name: Check if yarn.lock changed and if image exists
+        id: check-build-needed
         run: |
           YARN_LOCK_HASH=$(sha256sum yarn.lock | cut -d' ' -f1 | cut -c1-12)
           PLAYWRIGHT_VERSION=$(node -e "console.log(require('./package.json').devDependencies['@playwright/test'])")
           IMAGE_TAG="yarn-${YARN_LOCK_HASH}-playwright-${PLAYWRIGHT_VERSION}"
           FULL_IMAGE="ghcr.io/calcom/cal.com-deps:${IMAGE_TAG}"
           
-          # Log in to GitHub Container Registry
+          # Log in to GitHub Container Registry to check if image exists
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           
-          # Check if image already exists
-          if docker manifest inspect ${FULL_IMAGE} > /dev/null 2>&1; then
-            echo "Image already exists, skipping build"
-            exit 0
+          # Check if yarn.lock changed
+          if git diff --name-only origin/main...HEAD | grep -q "yarn.lock"; then
+            echo "yarn-lock-changed=true" >> $GITHUB_OUTPUT
+            echo "yarn.lock has changed, will build new image"
+            echo "build-needed=true" >> $GITHUB_OUTPUT
+          else
+            echo "yarn-lock-changed=false" >> $GITHUB_OUTPUT
+            echo "yarn.lock unchanged, checking if image exists"
+            
+            # Check if image exists in registry
+            if docker manifest inspect ${FULL_IMAGE} > /dev/null 2>&1; then
+              echo "Image exists in registry, no build needed"
+              echo "build-needed=false" >> $GITHUB_OUTPUT
+            else
+              echo "Image does not exist in registry, will build"
+              echo "build-needed=true" >> $GITHUB_OUTPUT
+            fi
           fi
+          
+          echo "image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "full-image=${FULL_IMAGE}" >> $GITHUB_OUTPUT
+      - name: Build image if needed
+        if: steps.check-build-needed.outputs.build-needed == 'true'
+        run: |
+          IMAGE_TAG="${{ steps.check-build-needed.outputs.image-tag }}"
+          FULL_IMAGE="${{ steps.check-build-needed.outputs.full-image }}"
           
           # Build the image
           cat > Dockerfile.deps << 'EOF'
