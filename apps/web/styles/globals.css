@@ -647,3 +647,8 @@ select:focus {
 [data-radix-popper-content-wrapper] {
   border: none;
 }
+
+html[dir="rtl"] .react-tel-input .flag-dropdown {
+  left: auto !important;
+  right: 0 !important;
+}
