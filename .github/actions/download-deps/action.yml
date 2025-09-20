@@ -1,0 +1,30 @@
+name: "Download dependencies"
+description: "Download pre-installed dependencies from artifacts"
+inputs:
+  node_version:
+    required: false
+    default: v20.x
+
+runs:
+  using: "composite"
+  steps:
+    - name: Use Node ${{ inputs.node_version }}
+      uses: buildjet/setup-node@v4
+      with:
+        node-version: ${{ inputs.node_version }}
+    - name: Download node_modules
+      uses: actions/download-artifact@v4
+      with:
+        name: node_modules-${{ github.run_id }}
+        path: .
+    - name: Restore Playwright cache location
+      shell: bash
+      run: |
+        mkdir -p ~/.cache/ms-playwright
+        if [ -d "ms-playwright" ]; then
+          mv ms-playwright/* ~/.cache/ms-playwright/ 2>/dev/null || true
+          rmdir ms-playwright 2>/dev/null || true
+        fi
+    - name: Make node_modules executable
+      shell: bash
+      run: find . -name "node_modules" -type d -exec chmod -R +x {}/. \; 2>/dev/null || true
