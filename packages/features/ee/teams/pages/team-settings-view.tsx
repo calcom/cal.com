@@ -249,6 +249,7 @@ const CancellationReasonSettingsView = ({ team }: ProfileViewProps) => {
                 name="cancellationReasonRequired"
                 render={({ field: { value, onChange } }) => (
                   <Select
+                    data-testid="cancellation-reason-dropdown"
                     value={cancellationReasonOptions.find((option) => option.value === value)}
                     onChange={(selectedOption) => {
                       if (selectedOption) {

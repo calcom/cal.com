@@ -190,7 +190,7 @@ export default function CancelBooking(props: Props) {
   return (
     <>
       {error && (
-        <div className="mt-8">
+        <div className="mt-8" data-testid="error-message">
           <div className="bg-error mx-auto flex h-12 w-12 items-center justify-center rounded-full">
             <Icon name="x" className="h-6 w-6 text-red-600" />
           </div>
