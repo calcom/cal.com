@@ -11,11 +11,29 @@ on:
 
 permissions:
   contents: write
+  packages: read
 
 jobs:
-  draft_release:
-    runs-on: ubuntu-latest
+  get-image:
+    name: Get Docker Image
+    runs-on: buildjet-2vcpu-ubuntu-2204
+    outputs:
+      image: ${{ steps.get-image.outputs.full-image }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/dangerous-git-checkout
+      - name: Get image tag
+        id: get-image
+        uses: ./.github/actions/use-deps-image
 
+  draft_release:
+    needs: get-image
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    container:
+      image: ${{ needs.get-image.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     steps:
       
       - name: Checkout code
@@ -24,6 +42,8 @@ jobs:
           fetch-depth: 0
           ref: 'main'
           token: ${{ secrets.GH_ACCESS_TOKEN }}
+
+      - uses: ./.github/actions/dangerous-git-checkout
 
       - name: Configure git
         run: |
@@ -45,8 +65,6 @@ jobs:
           
           git config --local user.email "$USER_EMAIL"
           git config --local user.name "${{ github.actor }}"
-
-      - uses: ./.github/actions/yarn-install
 
       - name: Bump version
         run: |

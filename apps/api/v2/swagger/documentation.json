@@ -2852,31 +2852,6 @@
             "schema": {
               "type": "number"
             }
-          },
-          {
-            "name": "take",
-            "required": false,
-            "in": "query",
-            "description": "Maximum number of items to return",
-            "example": 25,
-            "schema": {
-              "minimum": 1,
-              "maximum": 250,
-              "default": 250,
-              "type": "number"
-            }
-          },
-          {
-            "name": "skip",
-            "required": false,
-            "in": "query",
-            "description": "Number of items to skip",
-            "example": 0,
-            "schema": {
-              "minimum": 0,
-              "default": 0,
-              "type": "number"
-            }
           }
         ],
         "responses": {
@@ -2999,31 +2974,6 @@
             "required": true,
             "in": "path",
             "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "take",
-            "required": false,
-            "in": "query",
-            "description": "Maximum number of items to return",
-            "example": 25,
-            "schema": {
-              "minimum": 1,
-              "maximum": 250,
-              "default": 250,
-              "type": "number"
-            }
-          },
-          {
-            "name": "skip",
-            "required": false,
-            "in": "query",
-            "description": "Number of items to skip",
-            "example": 0,
-            "schema": {
-              "minimum": 0,
-              "default": 0,
               "type": "number"
             }
           }
@@ -7926,7 +7876,7 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_createBooking",
         "summary": "Create a booking",
-        "description": "\n      POST /v2/bookings is used to create regular bookings, recurring bookings and instant bookings. The request bodies for all 3 are almost the same except:\n      If eventTypeId in the request body is id of a regular event, then regular booking is created.\n\n      If it is an id of a recurring event type, then recurring booking is created.\n\n      Meaning that the request bodies are equal but the outcome depends on what kind of event type it is with the goal of making it as seamless for developers as possible.\n\n      For team event types it is possible to create instant meeting. To do that just pass `\"instant\": true` to the request body.\n\n      The start needs to be in UTC aka if the timezone is GMT+2 in Rome and meeting should start at 11, then UTC time should have hours 09:00 aka without time zone.\n\n      Finally, there are 2 ways to book an event type belonging to an individual user:\n      1. Provide `eventTypeId` in the request body.\n      2. Provide `eventTypeSlug` and `username` and optionally `organizationSlug` if the user with the username is within an organization.\n\n      And 2 ways to book and event type belonging to a team:\n      1. Provide `eventTypeId` in the request body.\n      2. Provide `eventTypeSlug` and `teamSlug` and optionally `organizationSlug` if the team with the teamSlug is within an organization.\n      ",
+        "description": "\n      POST /v2/bookings is used to create regular bookings, recurring bookings and instant bookings. The request bodies for all 3 are almost the same except:\n      If eventTypeId in the request body is id of a regular event, then regular booking is created.\n\n      If it is an id of a recurring event type, then recurring booking is created.\n\n      Meaning that the request bodies are equal but the outcome depends on what kind of event type it is with the goal of making it as seamless for developers as possible.\n\n      For team event types it is possible to create instant meeting. To do that just pass `\"instant\": true` to the request body.\n\n      The start needs to be in UTC aka if the timezone is GMT+2 in Rome and meeting should start at 11, then UTC time should have hours 09:00 aka without time zone.\n\n      Finally, there are 2 ways to book an event type belonging to an individual user:\n      1. Provide `eventTypeId` in the request body.\n      2. Provide `eventTypeSlug` and `username` and optionally `organizationSlug` if the user with the username is within an organization.\n\n      And 2 ways to book and event type belonging to a team:\n      1. Provide `eventTypeId` in the request body.\n      2. Provide `eventTypeSlug` and `teamSlug` and optionally `organizationSlug` if the team with the teamSlug is within an organization.\n\n      If you are creating a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or\n      you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -7936,6 +7886,33 @@
             "schema": {
               "type": "string",
               "default": "2024-08-13"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -8249,7 +8226,7 @@
       "get": {
         "operationId": "BookingsController_2024_08_13_getBooking",
         "summary": "Get a booking",
-        "description": "`:bookingUid` can be\n\n      1. uid of a normal booking\n\n      2. uid of one of the recurring booking recurrences\n\n      3. uid of recurring booking which will return an array of all recurring booking recurrences (stored as recurringBookingUid on one of the individual recurrences).",
+        "description": "`:bookingUid` can be\n\n      1. uid of a normal booking\n\n      2. uid of one of the recurring booking recurrences\n\n      3. uid of recurring booking which will return an array of all recurring booking recurrences (stored as recurringBookingUid on one of the individual recurrences).\n      \n      If you are fetching a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or\n      you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -8265,6 +8242,33 @@
             "name": "bookingUid",
             "required": true,
             "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
             "schema": {
               "type": "string"
             }
@@ -8394,11 +8398,38 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
           "required": true,
-          "description": "Accepts different types of reschedule booking input: Reschedule Booking (Option 1) or Reschedule Seated Booking (Option 2)",
+          "description": "Accepts different types of reschedule booking input: Reschedule Booking (Option 1) or Reschedule Seated Booking (Option 2).\n\n      If you are rescheduling a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or\n      you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.",
           "content": {
             "application/json": {
               "schema": {
@@ -8435,7 +8466,7 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_cancelBooking",
         "summary": "Cancel a booking",
-        "description": ":bookingUid can be :bookingUid of an usual booking, individual recurrence or recurring booking to cancel all recurrences.\n    \n    \nCancelling seated bookings:\n    It is possible to cancel specific seat within a booking as an attendee or all of the seats as the host.\n    \n1. As an attendee - provide :bookingUid in the request URL `/bookings/:bookingUid/cancel` and seatUid in the request body `{\"seatUid\": \"123-123-123\"}` . This will remove this particular attendance from the booking.\n    \n2. As the host - host can cancel booking for all attendees aka for every seat. Provide :bookingUid in the request URL `/bookings/:bookingUid/cancel` and cancellationReason in the request body `{\"cancellationReason\": \"Will travel\"}` and `Authorization: Bearer token` request header where token is event type owner (host) credential. This will cancel the booking for all attendees.\n    \n    \nCancelling recurring seated bookings:\n    For recurring seated bookings it is not possible to cancel all of them with 1 call\n    like with non-seated recurring bookings by providing recurring bookind uid - you have to cancel each recurrence booking by its bookingUid + seatUid.",
+        "description": ":bookingUid can be :bookingUid of an usual booking, individual recurrence or recurring booking to cancel all recurrences.\n    \n    \nCancelling seated bookings:\n    It is possible to cancel specific seat within a booking as an attendee or all of the seats as the host.\n    \n1. As an attendee - provide :bookingUid in the request URL `/bookings/:bookingUid/cancel` and seatUid in the request body `{\"seatUid\": \"123-123-123\"}` . This will remove this particular attendance from the booking.\n    \n2. As the host - host can cancel booking for all attendees aka for every seat. Provide :bookingUid in the request URL `/bookings/:bookingUid/cancel` and cancellationReason in the request body `{\"cancellationReason\": \"Will travel\"}` and `Authorization: Bearer token` request header where token is event type owner (host) credential. This will cancel the booking for all attendees.\n    \n    \nCancelling recurring seated bookings:\n    For recurring seated bookings it is not possible to cancel all of them with 1 call\n    like with non-seated recurring bookings by providing recurring bookind uid - you have to cancel each recurrence booking by its bookingUid + seatUid.\n    \n    If you are cancelling a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or\n    you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -8451,6 +8482,33 @@
             "name": "bookingUid",
             "required": true,
             "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
             "schema": {
               "type": "string"
             }
@@ -9858,6 +9916,7 @@
       "get": {
         "operationId": "EventTypesController_2024_06_14_getEventTypes",
         "summary": "Get all event types",
+        "description": "Hidden event types are returned only if authentication is provided and it belongs to the event type owner.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -9912,6 +9971,33 @@
             "description": "ID of the organization of the user you want the get the event-types of, orgSlug is not needed when using this parameter",
             "schema": {
               "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -16422,6 +16508,18 @@
           "enableAutomaticRecordingForOrganizer": {
             "type": "boolean",
             "description": "If true, enables the automatic recording for the event when organizer joins the call"
+          },
+          "enableAutomaticTranscription": {
+            "type": "boolean",
+            "description": "If true, enables the automatic transcription for the event whenever someone joins the call"
+          },
+          "disableTranscriptionForGuests": {
+            "type": "boolean",
+            "description": "If true, the guests will not be able to receive transcription of the meeting"
+          },
+          "disableTranscriptionForOrganizer": {
+            "type": "boolean",
+            "description": "If true, the organizer will not be able to receive transcription of the meeting"
           }
         }
       },
@@ -23638,7 +23736,12 @@
                 "afterEvent",
                 "rescheduleEvent",
                 "afterHostsCalVideoNoShow",
-                "afterGuestsCalVideoNoShow"
+                "afterGuestsCalVideoNoShow",
+                "bookingRejected",
+                "bookingRequested",
+                "bookingPaymentInitiated",
+                "bookingPaid",
+                "bookingNoShowUpdated"
               ]
             ],
             "description": "Trigger type for the workflow"
@@ -26962,6 +27065,11 @@
                 "$ref": "#/components/schemas/Routing"
               }
             ]
+          },
+          "emailVerificationCode": {
+            "type": "string",
+            "description": "Email verification code required when event type has email verification enabled.",
+            "example": "123456"
           }
         },
         "required": [
@@ -27089,6 +27197,11 @@
                 "$ref": "#/components/schemas/Routing"
               }
             ]
+          },
+          "emailVerificationCode": {
+            "type": "string",
+            "description": "Email verification code required when event type has email verification enabled.",
+            "example": "123456"
           },
           "instant": {
             "type": "boolean",
@@ -27222,6 +27335,11 @@
                 "$ref": "#/components/schemas/Routing"
               }
             ]
+          },
+          "emailVerificationCode": {
+            "type": "string",
+            "description": "Email verification code required when event type has email verification enabled.",
+            "example": "123456"
           },
           "recurrenceCount": {
             "type": "number",
@@ -28649,6 +28767,11 @@
             "type": "string",
             "example": "User requested reschedule",
             "description": "Reason for rescheduling the booking"
+          },
+          "emailVerificationCode": {
+            "type": "string",
+            "description": "Email verification code required when event type has email verification enabled.",
+            "example": "123456"
           }
         },
         "required": [
@@ -28671,6 +28794,11 @@
             "type": "string",
             "example": "3be561a9-31f1-4b8e-aefc-9d9a085f0dd1",
             "description": "Uid of the specific seat within booking."
+          },
+          "emailVerificationCode": {
+            "type": "string",
+            "description": "Email verification code required when event type has email verification enabled.",
+            "example": "123456"
           }
         },
         "required": [

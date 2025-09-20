@@ -15,6 +15,7 @@ import {
 import { showToast, showProgressToast, hideProgressToast } from "@calcom/ui/components/toast";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
+import { extractDateRangeFromColumnFilters } from "../../lib/bookingUtils";
 
 type RawData = RouterOutputs["viewer"]["insights"]["rawData"]["data"][number];
 
@@ -23,7 +24,7 @@ const BATCH_SIZE = 100;
 const Download = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
-  const { startDate, endDate } = insightsBookingParams;
+  const { startDate, endDate } = extractDateRangeFromColumnFilters(insightsBookingParams.columnFilters);
   const [isDownloading, setIsDownloading] = useState(false);
   const utils = trpc.useUtils();
 

@@ -8,11 +8,30 @@ env:
   DATABASE_DIRECT_URL: ${{ secrets.CI_DATABASE_URL }}
 
 jobs:
+  get-image:
+    name: Get Docker Image
+    runs-on: buildjet-2vcpu-ubuntu-2204
+    outputs:
+      image: ${{ steps.get-image.outputs.full-image }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/dangerous-git-checkout
+      - name: Get image tag
+        id: get-image
+        uses: ./.github/actions/use-deps-image
+
   build:
     name: Build API v2
+    needs: get-image
     permissions:
       contents: read
+      packages: read
     runs-on: buildjet-4vcpu-ubuntu-2204
+    container:
+      image: ${{ needs.get-image.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     timeout-minutes: 30
     services:
       postgres:
@@ -34,7 +53,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
-      - uses: ./.github/actions/yarn-install
       - name: Cache API v2 production build
         uses: buildjet/cache@v4
         id: cache-api-v2-build

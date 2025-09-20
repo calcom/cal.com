@@ -41,7 +41,7 @@ export async function getEntityPermissionLevel(
   userId: number
 ) {
   if (entity.teamId) {
-    const { prisma } = await import("@calcom/prisma");
+    const { default: prisma } = await import("@calcom/prisma");
     const membership = await prisma.membership.findFirst({
       where: {
         teamId: entity.teamId,
@@ -73,7 +73,7 @@ export async function getEntityPermissionLevel(
 }
 
 async function getMembership(teamId: number | null, userId: number) {
-  const { prisma } = await import("@calcom/prisma");
+  const { default: prisma } = await import("@calcom/prisma");
 
   const team = teamId
     ? await prisma.team.findFirst({

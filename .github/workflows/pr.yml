@@ -22,6 +22,7 @@ on:
 permissions:
   contents: read
   pull-requests: read
+  packages: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || inputs.pr_number || github.run_id }}
@@ -44,7 +45,7 @@ jobs:
         with:
           filters: |
             has-files-requiring-all-checks:
-              - "!(**.md|.github/CODEOWNERS|docs/**|help/**|apps/web/public/static/locales/**/common.json|i18n.lock)"
+              - "!(**.md|**.mdx|.github/CODEOWNERS|docs/**|help/**|apps/web/public/static/locales/**/common.json|i18n.lock)"
       - name: Get Latest Commit SHA
         id: get_sha
         run: |
@@ -102,11 +103,120 @@ jobs:
             console.log('Found the label?', labelFound);
             core.setOutput('run-e2e', labelFound);
 
+  build-deps-image-if-needed:
+    name: Build dependencies image if needed
+    needs: [changes, check-label]
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/dangerous-git-checkout
+      - name: Check if yarn.lock changed and if image exists
+        id: check-build-needed
+        run: |
+          YARN_LOCK_HASH=$(sha256sum yarn.lock | cut -d' ' -f1 | cut -c1-12)
+          PLAYWRIGHT_VERSION=$(node -e "console.log(require('./package.json').devDependencies['@playwright/test'])")
+          IMAGE_TAG="yarn-${YARN_LOCK_HASH}-playwright-${PLAYWRIGHT_VERSION}"
+          FULL_IMAGE="ghcr.io/calcom/cal.com-deps:${IMAGE_TAG}"
+          
+          # Log in to GitHub Container Registry to check if image exists
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          
+          # Check if yarn.lock changed
+          if git diff --name-only origin/main...HEAD | grep -q "yarn.lock"; then
+            echo "yarn-lock-changed=true" >> $GITHUB_OUTPUT
+            echo "yarn.lock has changed, will build new image"
+            echo "build-needed=true" >> $GITHUB_OUTPUT
+          else
+            echo "yarn-lock-changed=false" >> $GITHUB_OUTPUT
+            echo "yarn.lock unchanged, checking if image exists"
+            
+            # Check if image exists in registry
+            if docker manifest inspect ${FULL_IMAGE} > /dev/null 2>&1; then
+              echo "Image exists in registry, no build needed"
+              echo "build-needed=false" >> $GITHUB_OUTPUT
+            else
+              echo "Image does not exist in registry, will build"
+              echo "build-needed=true" >> $GITHUB_OUTPUT
+            fi
+          fi
+          
+          echo "image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "full-image=${FULL_IMAGE}" >> $GITHUB_OUTPUT
+      - name: Build image if needed
+        if: steps.check-build-needed.outputs.build-needed == 'true'
+        run: |
+          IMAGE_TAG="${{ steps.check-build-needed.outputs.image-tag }}"
+          FULL_IMAGE="${{ steps.check-build-needed.outputs.full-image }}"
+          
+          # Build the image
+          cat > Dockerfile.deps << 'EOF'
+          FROM ubuntu:22.04
+
+          # Install system dependencies
+          RUN apt-get update && apt-get install -y \
+              curl \
+              git \
+              build-essential \
+              python3 \
+              python3-pip \
+              && rm -rf /var/lib/apt/lists/*
+
+          # Install Node.js 20
+          RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+              apt-get install -y nodejs
+
+          # Install yarn
+          RUN npm install -g yarn
+
+          # Set working directory
+          WORKDIR /workspace
+
+          # Copy package files first for better caching
+          COPY package.json yarn.lock .yarnrc.yml ./
+
+          # Copy all package.json files from packages and apps
+          COPY packages/ ./packages/
+          COPY apps/ ./apps/
+
+          # Install dependencies with same optimizations as yarn-install action
+          ENV YARN_ENABLE_IMMUTABLE_INSTALLS=false
+          ENV YARN_ENABLE_GLOBAL_CACHE=false
+          ENV YARN_NM_MODE=hardlinks-local
+          ENV HUSKY=0
+          ENV YARN_INSTALL_STATE_PATH=.yarn/ci-cache/install-state.gz
+
+          RUN yarn install --inline-builds && \
+              yarn prisma generate
+
+          # Get Playwright version and install with dependencies
+          RUN PLAYWRIGHT_VERSION=$(node -e "console.log(require('./package.json').devDependencies['@playwright/test'])") && \
+              yarn playwright install --with-deps
+
+          # Clean up
+          RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+          EOF
+
+          docker build -f Dockerfile.deps -t ${FULL_IMAGE} .
+          docker push ${FULL_IMAGE}
   deps:
     name: Install dependencies
-    needs: [changes, check-label]
+    needs: [changes, check-label, build-deps-image-if-needed]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/yarn-install.yml
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    container:
+      image: ${{ needs.build-deps-image-if-needed.outputs.full-image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/dangerous-git-checkout
 
   type-check:
     name: Type check
@@ -252,6 +362,7 @@ jobs:
     needs:
       [
         changes,
+        build-deps-image-if-needed,
         lint,
         type-check,
         unit-test,

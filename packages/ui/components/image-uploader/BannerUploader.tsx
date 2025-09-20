@@ -4,7 +4,6 @@ import { useCallback, useState, useEffect } from "react";
 import Cropper from "react-easy-crop";
 
 import checkIfItFallbackImage from "@calcom/lib/checkIfItFallbackImage";
-import { MAX_BANNER_SIZE } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import type { ButtonColor } from "../button";
@@ -13,7 +12,6 @@ import { Dialog, DialogClose, DialogContent, DialogTrigger, DialogFooter } from 
 import { showToast } from "../toast";
 import { useFileReader, createImage, Slider } from "./Common";
 import type { FileEvent, Area } from "./Common";
-import { validateImageFile } from "./imageValidation";
 
 type BannerUploaderProps = {
   id: string;
@@ -92,21 +90,14 @@ export default function BannerUploader({
       return;
     }
 
+    const limit = 5 * 1000000; // max limit 5mb
     const file = e.target.files[0];
 
-    const validation = await validateImageFile(file, MAX_BANNER_SIZE);
-
-    if (!validation.isValid) {
-      if (validation.errorKey && validation.errorParams) {
-        showToast(t(validation.errorKey, validation.errorParams) as string, "error");
-      } else if (validation.error) {
-        showToast(t(validation.error), "error");
-      }
-      e.target.value = "";
-      return;
+    if (file.size > limit) {
+      showToast(t("image_size_limit_exceed"), "error");
+    } else {
+      setFile(file);
     }
-
-    setFile(file);
   };
 
   const showCroppedImage = useCallback(
@@ -184,7 +175,7 @@ export default function BannerUploader({
                 name={id}
                 placeholder={t("upload_image")}
                 className="text-default pointer-events-none absolute mt-4 opacity-0 "
-                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,image/bmp,image/x-icon,image/svg+xml"
+                accept="image/*"
               />
               {t("choose_a_file")}
             </label>
