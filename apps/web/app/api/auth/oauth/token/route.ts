@@ -83,9 +83,7 @@ async function handler(req: NextRequest) {
     expiresIn: 1800, // 30 min
   });
 
-  const refresh_token = jwt.sign(payloadRefreshToken, secretKey, {
-    expiresIn: 30 * 24 * 60 * 60, // 30 days
-  });
+  const refresh_token = jwt.sign(payloadRefreshToken, secretKey);
 
   return NextResponse.json({ access_token, refresh_token }, { status: 200 });
 }
