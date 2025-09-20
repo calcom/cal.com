@@ -11,19 +11,19 @@ import {
   isSingleSelectFilterValue,
 } from "@calcom/features/data-table/lib/utils";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { MembershipRepository } from "../repository/membership";
 import { TeamRepository } from "../repository/team";
 
 export const insightsRoutingServiceOptionsSchema = z.discriminatedUnion("scope", [
   z.object({
     scope: z.literal("user"),
     userId: z.number(),
-    orgId: z.number(),
+    orgId: z.number().nullish().optional(),
   }),
   z.object({
     scope: z.literal("org"),
@@ -33,7 +33,7 @@ export const insightsRoutingServiceOptionsSchema = z.discriminatedUnion("scope",
   z.object({
     scope: z.literal("team"),
     userId: z.number(),
-    orgId: z.number(),
+    orgId: z.number().nullish().optional(),
     teamId: z.number(),
   }),
 ]);
@@ -41,8 +41,8 @@ export const insightsRoutingServiceOptionsSchema = z.discriminatedUnion("scope",
 export type InsightsRoutingServicePublicOptions = {
   scope: "user" | "org" | "team";
   userId: number;
-  orgId: number | null;
-  teamId: number | undefined;
+  orgId: number | null | undefined;
+  teamId?: number;
 };
 
 export type InsightsRoutingServiceOptions = z.infer<typeof insightsRoutingServiceOptionsSchema>;
@@ -852,27 +852,40 @@ export class InsightsRoutingBaseService {
     options: Extract<InsightsRoutingServiceOptions, { scope: "team" }>
   ): Promise<Prisma.Sql> {
     const teamRepo = new TeamRepository(this.prisma);
-    const childTeamOfOrg = await teamRepo.findByIdAndParentId({
-      id: options.teamId,
-      parentId: options.orgId,
-      select: { id: true },
-    });
-    if (options.orgId && !childTeamOfOrg) {
-      return NOTHING_CONDITION;
+
+    if (options.orgId) {
+      // team under org
+      const childTeamOfOrg = await teamRepo.findByIdAndParentId({
+        id: options.teamId,
+        parentId: options.orgId,
+        select: { id: true },
+      });
+      if (!childTeamOfOrg) {
+        // teamId and its orgId does not match
+        return NOTHING_CONDITION;
+      }
+    } else {
+      // standalone team
+      const team = await teamRepo.findById({
+        id: options.teamId,
+      });
+      if (team?.parentId) {
+        // a team without orgId is not supposed to have parentId
+        return NOTHING_CONDITION;
+      }
     }
 
     return Prisma.sql`rfrd."formTeamId" = ${options.teamId}`;
   }
 
   private async isOwnerOrAdmin(userId: number, targetId: number): Promise<boolean> {
-    // Check if the user is an owner or admin of the organization or team
-    const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: targetId });
-    return Boolean(
-      membership &&
-        membership.accepted &&
-        membership.role &&
-        (membership.role === MembershipRole.OWNER || membership.role === MembershipRole.ADMIN)
-    );
+    const permissionCheckService = new PermissionCheckService();
+    return await permissionCheckService.checkPermission({
+      userId,
+      teamId: targetId,
+      permission: "insights.read",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+    });
   }
 
   private buildFormFieldSqlCondition(fieldId: string, filterValue: FilterValue): Prisma.Sql | null {

@@ -35,7 +35,7 @@ import type {
 import type { User, Team } from "@calcom/prisma/client";
 
 describe("Organizations Event Types Endpoints", () => {
-  describe("User Authentication - User is Org Admin", () => {
+  describe("User Authentication - User is Org member and team admin", () => {
     let app: INestApplication;
 
     let userRepositoryFixture: UserRepositoryFixture;
@@ -172,7 +172,7 @@ describe("Organizations Event Types Endpoints", () => {
       });
 
       await membershipsRepositoryFixture.create({
-        role: "ADMIN",
+        role: "MEMBER",
         user: { connect: { id: userAdmin.id } },
         team: { connect: { id: org.id } },
         accepted: true,
@@ -247,7 +247,7 @@ describe("Organizations Event Types Endpoints", () => {
       return request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/teams/${falseTestTeam.id}/event-types`)
         .send(body)
-        .expect(404);
+        .expect(403);
     });
 
     it("should not be able to create event-type for user outside org", async () => {
@@ -511,7 +511,7 @@ describe("Organizations Event Types Endpoints", () => {
     it("should not get an event-type of team outside org", async () => {
       return request(app.getHttpServer())
         .get(`/v2/organizations/${org.id}/teams/${falseTestTeam.id}/event-types/${collectiveEventType.id}`)
-        .expect(404);
+        .expect(403);
     });
 
     it("should not get a non existing event-type", async () => {
@@ -576,7 +576,7 @@ describe("Organizations Event Types Endpoints", () => {
       return request(app.getHttpServer())
         .patch(`/v2/organizations/${org.id}/teams/${falseTestTeam.id}/event-types/${collectiveEventType.id}`)
         .send(body)
-        .expect(404);
+        .expect(403);
     });
 
     it("should not be able to update non existing event-type", async () => {
@@ -950,7 +950,7 @@ describe("Organizations Event Types Endpoints", () => {
     it("should not delete event-type of team outside org", async () => {
       return request(app.getHttpServer())
         .delete(`/v2/organizations/${org.id}/teams/${falseTestTeam.id}/event-types/${collectiveEventType.id}`)
-        .expect(404);
+        .expect(403);
     });
 
     it("should delete event-type not part of the team", async () => {

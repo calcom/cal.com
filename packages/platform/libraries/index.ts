@@ -39,7 +39,7 @@ export {
   WorkflowTemplates,
 } from "@calcom/prisma/enums";
 
-export { getUsernameList } from "@calcom/lib/defaultEvents";
+export { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 
 const handleNewBooking = newBookingMethods.default;
 export { handleNewBooking };
@@ -75,7 +75,7 @@ export { userMetadata, bookingMetadataSchema, teamMetadataSchema } from "@calcom
 export { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 
 export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-export { dynamicEvent } from "@calcom/lib/defaultEvents";
+export { dynamicEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 
 export { symmetricEncrypt, symmetricDecrypt };
 
