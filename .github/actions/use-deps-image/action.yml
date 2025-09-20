@@ -1,0 +1,64 @@
+name: "Get Dependencies Docker Image"
+description: "Determines the Docker image name and checks if it needs to be built"
+inputs:
+  check-registry:
+    description: "Whether to check if the image exists in the registry"
+    required: false
+    default: "true"
+outputs:
+  full-image:
+    description: "Full Docker image name with registry and tag"
+    value: ${{ steps.get-image.outputs.full-image }}
+  image-tag:
+    description: "Docker image tag based on yarn.lock hash and Playwright version"
+    value: ${{ steps.get-image.outputs.image-tag }}
+  build-needed:
+    description: "Whether the Docker image needs to be built"
+    value: ${{ steps.get-image.outputs.build-needed }}
+  yarn-lock-changed:
+    description: "Whether yarn.lock has changed compared to main branch"
+    value: ${{ steps.get-image.outputs.yarn-lock-changed }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Get Docker image info
+      id: get-image
+      shell: bash
+      run: |
+        YARN_LOCK_HASH=$(sha256sum yarn.lock | cut -d' ' -f1 | cut -c1-12)
+        PLAYWRIGHT_VERSION=$(node -e "console.log(require('./package.json').devDependencies['@playwright/test'])")
+        # Sanitize version string for Docker tag (remove ^, ~, and other invalid characters)
+        PLAYWRIGHT_VERSION_CLEAN=$(echo "$PLAYWRIGHT_VERSION" | sed 's/[^a-zA-Z0-9.-]//g')
+        IMAGE_TAG="yarn-${YARN_LOCK_HASH}-playwright-${PLAYWRIGHT_VERSION_CLEAN}"
+        FULL_IMAGE="ghcr.io/calcom/cal.com-deps:${IMAGE_TAG}"
+        
+        echo "image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+        echo "full-image=${FULL_IMAGE}" >> $GITHUB_OUTPUT
+        
+        # Check if yarn.lock changed
+        if git diff --name-only origin/main...HEAD | grep -q "yarn.lock"; then
+          echo "yarn-lock-changed=true" >> $GITHUB_OUTPUT
+          echo "yarn.lock has changed, will build new image"
+          echo "build-needed=true" >> $GITHUB_OUTPUT
+        else
+          echo "yarn-lock-changed=false" >> $GITHUB_OUTPUT
+          echo "yarn.lock unchanged"
+          
+          if [ "${{ inputs.check-registry }}" = "true" ]; then
+            # Log in to GitHub Container Registry to check if image exists
+            echo "${{ github.token }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            
+            # Check if image exists in registry
+            if docker manifest inspect ${FULL_IMAGE} > /dev/null 2>&1; then
+              echo "Image exists in registry, no build needed"
+              echo "build-needed=false" >> $GITHUB_OUTPUT
+            else
+              echo "Image does not exist in registry, will build"
+              echo "build-needed=true" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "Skipping registry check"
+            echo "build-needed=false" >> $GITHUB_OUTPUT
+          fi
+        fi
