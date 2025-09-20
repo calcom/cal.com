@@ -169,13 +169,8 @@ jobs:
           # Set working directory
           WORKDIR /workspace
 
-          # Copy package files first for better caching
-          COPY package.json yarn.lock .yarnrc.yml ./
-          COPY .yarn/ ./.yarn/
-
-          # Copy all package.json files from packages and apps
-          COPY packages/ ./packages/
-          COPY apps/ ./apps/
+          # Copy the entire repository
+          COPY . .
 
           # Install dependencies with same optimizations as yarn-install action
           ENV YARN_ENABLE_IMMUTABLE_INSTALLS=false
