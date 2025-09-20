@@ -178,9 +178,13 @@ export class InputEventTypesService_2024_06_14 {
       disableGuests,
       ...rest
     } = inputEventType;
-    const eventTypeDb = await this.eventTypesRepository.getEventTypeWithMetaData(eventTypeId);
-    const metadataTransformed = !!eventTypeDb?.metadata
-      ? EventTypeMetaDataSchema.parse(eventTypeDb.metadata)
+
+    const eventTypeDb = await this.eventTypesRepository.getEventTypeWithBookingFields(eventTypeId);
+    const existingBookingFields = eventTypeDb?.bookingFields as InputBookingField_2024_06_14[] | null;
+
+    const metadataEventType = await this.eventTypesRepository.getEventTypeWithMetaData(eventTypeId);
+    const metadataTransformed = !!metadataEventType?.metadata
+      ? EventTypeMetaDataSchema.parse(metadataEventType.metadata)
       : {};
 
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
@@ -190,13 +194,15 @@ export class InputEventTypesService_2024_06_14 {
         ? this.getBookingFieldsWithGuestsToggled(bookingFields, disableGuests)
         : bookingFields;
 
+    const finalBookingFields = effectiveBookingFields
+      ? this.mergeBookingFields(existingBookingFields, effectiveBookingFields)
+      : undefined;
+
     const eventType = {
       ...rest,
       length: lengthInMinutes,
       locations: locations ? this.transformInputLocations(locations) : undefined,
-      bookingFields: effectiveBookingFields
-        ? this.transformInputBookingFields(effectiveBookingFields)
-        : undefined,
+      bookingFields: finalBookingFields ? this.transformInputBookingFields(finalBookingFields) : undefined,
       bookingLimits: bookingLimitsCount ? this.transformInputIntervalLimits(bookingLimitsCount) : undefined,
       durationLimits: bookingLimitsDuration
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
@@ -299,6 +305,66 @@ export class InputEventTypesService_2024_06_14 {
       attendeePhoneNumberField?.required && !attendeePhoneNumberField?.hidden;
 
     return isEmailFieldRequiredAndVisible || isAttendeePhoneNumberFieldRequiredAndVisible;
+  }
+
+  private mergeBookingFields(
+    existingFields: InputBookingField_2024_06_14[] | null,
+    newFields: InputBookingField_2024_06_14[]
+  ): InputBookingField_2024_06_14[] {
+    if (!existingFields || existingFields.length === 0) return this.dedupePreserveLast(newFields);
+
+    const keyOf = (f: InputBookingField_2024_06_14) => this.getFieldIdentifier(f);
+
+    const newByKey = new Map<string, InputBookingField_2024_06_14>();
+    for (const nf of newFields) {
+      const k = keyOf(nf);
+      if (k) newByKey.set(k, nf);
+    }
+
+    const merged: InputBookingField_2024_06_14[] = [];
+    for (const ef of existingFields) {
+      const k = keyOf(ef);
+      if (!k) {
+        merged.push(ef);
+        continue;
+      }
+      if (newByKey.has(k)) {
+        merged.push(newByKey.get(k)!);
+        newByKey.delete(k);
+      } else {
+        merged.push(ef);
+      }
+    }
+    for (const nf of newFields) {
+      const k = keyOf(nf);
+      if (k && newByKey.has(k)) {
+        merged.push(nf);
+        newByKey.delete(k);
+      }
+    }
+    return merged;
+  }
+
+  private getFieldIdentifier(field: InputBookingField_2024_06_14): string | null {
+    if ("slug" in field && field.slug) return `slug:${field.slug}`;
+    const name = (field as any).name as string | undefined;
+    if (name && ["title", "notes", "guests", "rescheduleReason", "location"].includes(name)) {
+      return `sys:name:${name}`;
+    }
+    const type = (field as any).type as string | undefined;
+    if (type && ["name", "email"].includes(type)) {
+      return `sys:type:${type}`;
+    }
+    return null;
+  }
+
+  private dedupePreserveLast(fields: InputBookingField_2024_06_14[]): InputBookingField_2024_06_14[] {
+    const byKey = new Map<string, InputBookingField_2024_06_14>();
+    for (const f of fields) {
+      const k = this.getFieldIdentifier(f);
+      if (k) byKey.set(k, f);
+    }
+    return Array.from(byKey.values());
   }
 
   isUserCustomField(field: SystemField | CustomField): field is CustomField {
