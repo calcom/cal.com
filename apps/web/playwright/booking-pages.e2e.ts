@@ -1089,7 +1089,7 @@ test.describe("Cancellation reason requirements", () => {
         slug: "team-event",
         length: 30,
         teamId: team.id,
-        ownerId: user.id,
+        userId: user.id,
       },
     });
 
@@ -1156,7 +1156,7 @@ test.describe("Cancellation reason requirements", () => {
         slug: "team-event-2",
         length: 30,
         teamId: team.id,
-        ownerId: user.id,
+        userId: user.id,
       },
     });
 
@@ -1214,7 +1214,7 @@ test.describe("Cancellation reason requirements", () => {
         slug: "team-event-3",
         length: 30,
         teamId: team.id,
-        ownerId: user.id,
+        userId: user.id,
       },
     });
 
@@ -1271,23 +1271,23 @@ test.describe("Cancellation reason requirements", () => {
         slug: "regular-team-event",
         length: 30,
         teamId: team.id,
-        ownerId: user.id,
+        userId: user.id,
       },
       {
         title: "Round Robin Event",
         slug: "round-robin-event",
         length: 60,
         teamId: team.id,
-        ownerId: user.id,
-        schedulingType: "ROUND_ROBIN",
+        userId: user.id,
+        schedulingType: "ROUND_ROBIN" as const,
       },
       {
         title: "Collective Event",
         slug: "collective-event",
         length: 45,
         teamId: team.id,
-        ownerId: user.id,
-        schedulingType: "COLLECTIVE",
+        userId: user.id,
+        schedulingType: "COLLECTIVE" as const,
       },
     ];
 
