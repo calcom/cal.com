@@ -95,6 +95,10 @@ jobs:
     name: Build dependencies image if needed
     needs: [changes, check-label]
     runs-on: buildjet-4vcpu-ubuntu-2204
+    outputs:
+      full-image: ${{ steps.check-build-needed.outputs.full-image }}
+      image-tag: ${{ steps.check-build-needed.outputs.image-tag }}
+      build-needed: ${{ steps.check-build-needed.outputs.build-needed }}
     permissions:
       contents: read
       packages: write
@@ -211,6 +215,8 @@ jobs:
     needs: [changes, check-label, deps]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/check-types.yml
+    permissions:
+      packages: read
     secrets: inherit
 
   lint:
