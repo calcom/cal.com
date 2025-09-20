@@ -11,6 +11,7 @@ on:
 permissions:
   actions: write
   contents: read
+  packages: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -215,8 +216,6 @@ jobs:
     needs: [changes, check-label, deps]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/check-types.yml
-    permissions:
-      packages: read
     secrets: inherit
 
   lint:
