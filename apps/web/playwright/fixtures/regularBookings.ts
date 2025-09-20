@@ -199,6 +199,7 @@ export function createBookingPageFixture(page: Page) {
       await expect(eventTypePage.getByTestId("time")).toHaveCount(count);
     },
     getAITranslationToggleDisabled: async () => {
+      await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
       await page.waitForSelector('[data-testid="ai_translation_toggle"]', {
         timeout: 5000,
         state: "attached",
@@ -207,6 +208,7 @@ export function createBookingPageFixture(page: Page) {
       return (await toggle.getAttribute("disabled")) !== null;
     },
     toggleAITranslation: async () => {
+      await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
       await page.getByTestId("ai_translation_toggle").click();
     },
     updateEventTypeDescription: async (description: string) => {

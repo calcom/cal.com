@@ -60,6 +60,7 @@ import {
   CheckboxField,
   Switch,
   SettingsToggle,
+  Select,
 } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
@@ -120,6 +121,7 @@ export type EventAdvancedBaseProps = Pick<EventTypeSetupProps, "eventType" | "te
   >;
   isUserLoading?: boolean;
   showToast: (message: string, variant: "success" | "warning" | "error") => void;
+  orgId: number | null;
   customClassNames?: EventAdvancedTabCustomClassNames;
 };
 
@@ -130,6 +132,7 @@ export type EventAdvancedTabProps = EventAdvancedBaseProps & {
     error: unknown;
   };
   showBookerLayoutSelector: boolean;
+  localeOptions?: { value: string; label: string }[];
   verifiedEmails?: string[];
 };
 
@@ -252,6 +255,11 @@ const destinationCalendarComponents = {
                 }}
               />
             </div>
+          )}
+          {!showConnectedCalendarSettings && (
+            <p className="text-emphasis mb-2 block text-sm font-medium leading-none">
+              {t("add_to_calendar")}
+            </p>
           )}
           {!useEventTypeDestinationCalendarEmail &&
             verifiedSecondaryEmails.length > 0 &&
@@ -411,6 +419,8 @@ export const EventAdvancedTab = ({
   showBookerLayoutSelector,
   customClassNames,
   verifiedEmails,
+  orgId,
+  localeOptions,
 }: EventAdvancedTabProps) => {
   const isPlatform = useIsPlatform();
   const platformContext = useAtomsContext();
@@ -422,6 +432,9 @@ export const EventAdvancedTab = ({
   const [multiplePrivateLinksVisible, setMultiplePrivateLinksVisible] = useState(
     !!formMethods.getValues("multiplePrivateLinks") &&
       formMethods.getValues("multiplePrivateLinks")?.length !== 0
+  );
+  const [interfaceLanguageVisible, setInterfaceLanguageVisible] = useState(
+    !!formMethods.getValues("interfaceLanguage")
   );
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
 
@@ -457,6 +470,10 @@ export const EventAdvancedTab = ({
     formMethods.getValues("metadata")?.apps?.stripe?.paymentOption === "HOLD";
 
   const isRecurringEvent = !!formMethods.getValues("recurringEvent");
+  const interfaceLanguageOptions =
+    localeOptions && localeOptions.length > 0
+      ? [{ label: t("visitors_browser_language"), value: "" }, ...localeOptions]
+      : [];
 
   const isRoundRobinEventType =
     eventType.schedulingType && eventType.schedulingType === SchedulingType.ROUND_ROBIN;
@@ -481,11 +498,12 @@ export const EventAdvancedTab = ({
     );
   };
 
-  const { isChildrenManagedEventType, isManagedEventType, shouldLockDisableProps } = useLockedFieldsManager({
-    eventType,
-    translate: t,
-    formMethods,
-  });
+  const { isChildrenManagedEventType, isManagedEventType, shouldLockDisableProps, shouldLockIndicator } =
+    useLockedFieldsManager({
+      eventType,
+      translate: t,
+      formMethods,
+    });
   const eventNamePlaceholder = getEventName({
     ...eventNameObject,
     eventName: formMethods.watch("eventName"),
@@ -726,6 +744,69 @@ export const EventAdvancedTab = ({
           />
         )}
       />
+      {!isPlatform && (
+        <Controller
+          name="autoTranslateDescriptionEnabled"
+          render={({ field: { value, onChange } }) => (
+            <SettingsToggle
+              labelClassName="text-sm"
+              title={t("translate_description_button")}
+              checked={value}
+              onCheckedChange={(e) => onChange(e)}
+              disabled={!orgId}
+              tooltip={!orgId ? t("orgs_upgrade_to_enable_feature") : undefined}
+              data-testid="ai_translation_toggle"
+              toggleSwitchAtTheEnd={true}
+              switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+              description={t("translate_description_button_description")}
+            />
+          )}
+        />
+      )}
+      {!isPlatform && (
+        <Controller
+          name="interfaceLanguage"
+          control={formMethods.control}
+          defaultValue={eventType.interfaceLanguage ?? ""}
+          render={({ field: { value, onChange } }) => (
+            <SettingsToggle
+              labelClassName="text-sm"
+              toggleSwitchAtTheEnd={true}
+              switchContainerClassName={classNames(
+                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                interfaceLanguageVisible && "rounded-b-none"
+              )}
+              childrenClassName="lg:ml-0"
+              data-testid="event-interface-language-toggle"
+              title={t("interface_language")}
+              description={t("interface_language_description")}
+              checked={interfaceLanguageVisible}
+              {...shouldLockIndicator("interfaceLanguage")}
+              onCheckedChange={(e) => {
+                setInterfaceLanguageVisible(e);
+                if (!e) {
+                  // disables the setting
+                  formMethods.setValue("interfaceLanguage", null, { shouldDirty: true });
+                } else {
+                  // "" is default value which means visitors browser language
+                  formMethods.setValue("interfaceLanguage", "", { shouldDirty: true });
+                }
+              }}>
+              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+                <Select<{ label: string; value: string }>
+                  data-testid="event-interface-language"
+                  className="capitalize"
+                  options={interfaceLanguageOptions}
+                  onChange={(option) => {
+                    onChange(option?.value);
+                  }}
+                  value={interfaceLanguageOptions.find((option) => option.value === value)}
+                />
+              </div>
+            </SettingsToggle>
+          )}
+        />
+      )}
       <Controller
         name="requiresBookerEmailVerification"
         render={({ field: { value, onChange } }) => (
