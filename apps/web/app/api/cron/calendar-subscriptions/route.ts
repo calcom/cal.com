@@ -51,7 +51,7 @@ async function getHandler(request: NextRequest) {
   ]);
 
   if (!isCacheEnabled && !isSyncEnabled) {
-    log.info("Calendar subscriptions are disabled");
+    log.info(`Calendar subscriptions are disabled (sync=${isSyncEnabled}, cache=${isCacheEnabled})`);
     return NextResponse.json({ ok: true });
   }
 
