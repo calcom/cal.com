@@ -13,6 +13,11 @@ import { ZAdminDeleteInput } from "./adminDelete.schema";
 import { ZAdminGet } from "./adminGet.schema";
 import { ZAdminUpdate } from "./adminUpdate.schema";
 import { ZAdminVerifyInput } from "./adminVerify.schema";
+import {
+  ZListBlockedBookersInputSchema,
+  ZCreateBlockedBookerInputSchema,
+  ZDeleteBlockedBookerInputSchema,
+} from "./blockedBookers.schema";
 import { ZBulkUsersDelete } from "./bulkDeleteUsers.schema.";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZCreateSelfHostedInputSchema } from "./createSelfHosted.schema";
@@ -163,4 +168,22 @@ export const viewerOrganizationsRouter = router({
     const { default: handler } = await import("./createSelfHosted.handler");
     return handler(opts);
   }),
+
+  // Spam Blocklist Management
+  listSpamBlocklist: authedOrgAdminProcedure.input(ZListBlockedBookersInputSchema).query(async (opts) => {
+    const { listBlockedBookersHandler } = await import("./blockedBookers.handler");
+    return listBlockedBookersHandler(opts);
+  }),
+  createSpamBlocklistEntry: authedOrgAdminProcedure
+    .input(ZCreateBlockedBookerInputSchema)
+    .mutation(async (opts) => {
+      const { createBlockedBookerHandler } = await import("./blockedBookers.handler");
+      return createBlockedBookerHandler(opts);
+    }),
+  deleteSpamBlocklistEntry: authedOrgAdminProcedure
+    .input(ZDeleteBlockedBookerInputSchema)
+    .mutation(async (opts) => {
+      const { deleteBlockedBookerHandler } = await import("./blockedBookers.handler");
+      return deleteBlockedBookerHandler(opts);
+    }),
 });

@@ -4,7 +4,11 @@ import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 
 import type { IBlockingService } from "../interfaces/IBlockingService";
-import type { IWatchlistRepository } from "../interfaces/IWatchlistRepositories";
+import type {
+  IWatchlistRepository,
+  IWatchlistReadRepository,
+  IWatchlistWriteRepository,
+} from "../interfaces/IWatchlistRepositories";
 import { auditServiceModule } from "../modules/audit";
 import { blockingServiceModule } from "../modules/blocking";
 import { watchlistRepositoryModule } from "../modules/watchlist";
@@ -26,4 +30,12 @@ export function getBlockingService(): IBlockingService {
 
 export function getWatchlistRepository(): IWatchlistRepository {
   return container.get<IWatchlistRepository>(WATCHLIST_DI_TOKENS.WATCHLIST_REPOSITORY);
+}
+
+export function getWatchlistReadRepository(): IWatchlistReadRepository {
+  return container.get<IWatchlistReadRepository>(WATCHLIST_DI_TOKENS.WATCHLIST_READ_REPOSITORY);
+}
+
+export function getWatchlistWriteRepository(): IWatchlistWriteRepository {
+  return container.get<IWatchlistWriteRepository>(WATCHLIST_DI_TOKENS.WATCHLIST_WRITE_REPOSITORY);
 }

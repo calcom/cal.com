@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 
-import { BlockingService as BaseBlockingService } from "@calcom/features/watchlist/services/BlockingService";
 import { EmailBlockingStrategy, DomainBlockingStrategy } from "@calcom/features/watchlist/strategies";
+import { BlockingService as BaseBlockingService } from "@calcom/lib/di/watchlist/services/BlockingService";
 
 import { WatchlistRepository } from "../repositories/WatchlistRepository";
 import { AuditService } from "./AuditService";

@@ -1,9 +1,9 @@
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 
-import { PrismaWatchlistReadRepository } from "@calcom/features/watchlist/repositories/PrismaWatchlistReadRepository";
-import { PrismaWatchlistRepository } from "@calcom/features/watchlist/repositories/PrismaWatchlistRepository";
-import { PrismaWatchlistWriteRepository } from "@calcom/features/watchlist/repositories/PrismaWatchlistWriteRepository";
+import { PrismaWatchlistReadRepository } from "@calcom/lib/di/watchlist/repositories/PrismaWatchlistReadRepository";
+import { PrismaWatchlistRepository } from "@calcom/lib/di/watchlist/repositories/PrismaWatchlistRepository";
+import { PrismaWatchlistWriteRepository } from "@calcom/lib/di/watchlist/repositories/PrismaWatchlistWriteRepository";
 import { PrismaClient } from "@calcom/prisma";
 
 @Injectable()
