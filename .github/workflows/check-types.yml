@@ -54,7 +54,7 @@ jobs:
     needs: get-image
     runs-on: buildjet-4vcpu-ubuntu-2204
     container:
-      image: ${{ needs.get-image.outputs.full-image }}
+      image: ${{ needs.get-image.outputs.image }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
