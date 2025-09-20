@@ -248,7 +248,7 @@ async function expectSelectedCalendarToNotHaveGoogleChannelProps(selectedCalenda
 beforeEach(() => {
   vi.clearAllMocks();
   setCredentialsMock.mockClear();
-  oAuthManagerMock.OAuthManager = defaultMockOAuthManager;
+  (oAuthManagerMock.OAuthManager as any) = defaultMockOAuthManager;
   calendarMock.calendar_v3.Calendar.mockClear();
   adminMock.admin_directory_v1.Admin.mockClear();
 
@@ -290,7 +290,7 @@ describe.skip("Calendar Cache", () => {
       ),
     });
 
-    oAuthManagerMock.OAuthManager = defaultMockOAuthManager;
+    (oAuthManagerMock.OAuthManager as any) = defaultMockOAuthManager;
     const calendarService = new CalendarService(credentialInDb1);
 
     // Test cache hit
