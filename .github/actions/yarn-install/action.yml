@@ -54,12 +54,16 @@ runs:
         path: .yarn/ci-cache/
         key: ${{ runner.os }}-yarn-install-state-cache-${{ hashFiles('yarn.lock', '.yarnrc.yml') }}
 
-    - name: Install dependencies only if cache miss
-      if: ${{ !(steps.yarn-nm-cache.outputs.cache-hit == 'true' && steps.yarn-install-state-cache.outputs.cache-hit == 'true') }}
+    - name: Install dependencies
       shell: bash
       run: |
-        echo "Cache miss detected, installing dependencies..."
-        yarn install --inline-builds
+        if [[ "${{ steps.yarn-nm-cache.outputs.cache-hit }}" == "true" && "${{ steps.yarn-install-state-cache.outputs.cache-hit }}" == "true" ]]; then
+          echo "Cache hit detected, running fast install with linking..."
+          yarn install --inline-builds --prefer-offline --check-cache
+        else
+          echo "Cache miss detected, running full install..."
+          yarn install --inline-builds
+        fi
         yarn prisma generate
       env:
         # CI optimizations. Overrides yarnrc.yml options (or their defaults) in the CI action.
@@ -69,8 +73,3 @@ runs:
         YARN_NM_MODE: "hardlinks-local" # Reduce node_modules size
         # Other environment variables
         HUSKY: "0" # By default do not run HUSKY install
-        
-    - name: Dependencies restored from cache successfully
-      if: ${{ steps.yarn-nm-cache.outputs.cache-hit == 'true' && steps.yarn-install-state-cache.outputs.cache-hit == 'true' }}
-      shell: bash
-      run: echo "Dependencies restored from cache successfully"

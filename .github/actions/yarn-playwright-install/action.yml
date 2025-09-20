@@ -20,14 +20,12 @@ runs:
         restore-keys: |
           ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-
           ${{ runner.os }}-playwright-
-    - name: Install playwright binaries only if cache miss
-      if: ${{ steps.playwright-cache.outputs.cache-hit != 'true' }}
+    - name: Install playwright binaries
       shell: bash
       run: |
-        echo "Playwright cache miss, installing binaries..."
+        if [[ "${{ steps.playwright-cache.outputs.cache-hit }}" == "true" ]]; then
+          echo "Playwright cache hit detected, running fast install..."
+        else
+          echo "Playwright cache miss detected, running full install..."
+        fi
         yarn playwright install --with-deps
-        
-    - name: Playwright binaries restored from cache successfully
-      if: ${{ steps.playwright-cache.outputs.cache-hit == 'true' }}
-      shell: bash
-      run: echo "Playwright binaries restored from cache successfully"
