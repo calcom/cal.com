@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import dayjs from "@calcom/dayjs";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
 
 import { getWhatsappTemplateFunction, isAttendeeAction } from "../lib/actionHelperFunctions";

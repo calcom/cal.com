@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { getDefaultScheduleId } from "@calcom/trpc/server/routers/viewer/availability/util";
 
 const travelScheduleSelect = {

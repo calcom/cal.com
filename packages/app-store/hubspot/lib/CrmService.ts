@@ -12,7 +12,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import getLabelValueMapFromResponses from "@calcom/lib/getLabelValueMapFromResponses";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { CRM, ContactCreateInput, Contact, CrmEvent } from "@calcom/types/CrmService";

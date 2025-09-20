@@ -1,5 +1,5 @@
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 /**
  * Checks if the restriction schedule feature is enabled for a team

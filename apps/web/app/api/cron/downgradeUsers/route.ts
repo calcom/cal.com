@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { TeamBilling } from "@calcom/ee/billing/teams";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 const querySchema = z.object({
   page: z.coerce.number().min(0).optional().default(0),

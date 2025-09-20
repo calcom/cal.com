@@ -1,4 +1,4 @@
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 /**
  * Will update all the selected calendars with the same userId, integration and externalId including user-level and event-type-level calendars with new credentialId

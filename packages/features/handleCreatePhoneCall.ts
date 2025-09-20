@@ -4,7 +4,7 @@ import type { TCreatePhoneCallSchema } from "@calcom/features/calAIPhone";
 import { validatePhoneNumber } from "@calcom/features/calAIPhone/retellAIService";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 

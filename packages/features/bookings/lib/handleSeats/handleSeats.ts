@@ -5,7 +5,7 @@ import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import { createLoggerWithEventDetails } from "../handleNewBooking/logger";

@@ -5,7 +5,7 @@ import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwI
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { HttpError } from "@calcom/lib/http-error";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { AppDeclarativeHandler, AppHandler } from "@calcom/types/AppHandler";
 
 const defaultIntegrationAddHandler = async ({

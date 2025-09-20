@@ -4,7 +4,7 @@ import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizatio
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { DATABASE_CHUNK_SIZE } from "@calcom/lib/constants";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { User as PrismaUser } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";

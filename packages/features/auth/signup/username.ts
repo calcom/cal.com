@@ -4,7 +4,7 @@ import { z } from "zod";
 import notEmpty from "@calcom/lib/notEmpty";
 import { isPremiumUserName, generateUsernameSuggestion } from "@calcom/lib/server/username";
 import slugify from "@calcom/lib/slugify";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 export type RequestWithUsernameStatus = NextApiRequest & {
   usernameStatus: {

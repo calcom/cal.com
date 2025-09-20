@@ -4,7 +4,7 @@ import { z } from "zod";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getClientSecretFromPayment } from "@calcom/features/ee/payments/pages/getClientSecretFromPayment";
 import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { paymentDataSelect } from "@calcom/prisma/selects/payment";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";

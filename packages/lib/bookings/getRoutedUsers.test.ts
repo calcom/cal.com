@@ -4,7 +4,7 @@ import { getRoutedUsersWithContactOwnerAndFixedUsers } from "./getRoutedUsers";
 
 vi.mock("@calcom/prisma", () => {
   return {
-    default: vi.fn(),
+    prisma: vi.fn(),
   };
 });
 

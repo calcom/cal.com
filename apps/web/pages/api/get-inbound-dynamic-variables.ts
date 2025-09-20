@@ -8,7 +8,7 @@ import type { TGetRetellLLMSchema } from "@calcom/features/calAIPhone/zod-utils"
 import { getAvailableSlotsService } from "@calcom/lib/di/containers/AvailableSlots";
 import { fetcher } from "@calcom/lib/retellAIFetcher";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 dayjs.extend(advancedFormat);
 

@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { emailSchema } from "@calcom/lib/emailSchema";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 
 async function handler(req: NextRequest) {

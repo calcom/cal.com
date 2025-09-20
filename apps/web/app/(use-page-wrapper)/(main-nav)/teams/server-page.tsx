@@ -6,7 +6,7 @@ import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { TeamsListing } from "@calcom/features/ee/teams/components/TeamsListing";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { TeamService } from "@calcom/lib/server/service/teamService";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 

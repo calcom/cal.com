@@ -8,7 +8,7 @@ import { TRPCError } from "@trpc/server";
 import { duplicateHandler } from "./duplicate.handler";
 
 vi.mock("@calcom/prisma", () => ({
-  default: prismaMock,
+  prisma: prismaMock,
 }));
 vi.mock("@calcom/lib/server/repository/eventTypeRepository");
 

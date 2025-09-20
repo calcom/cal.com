@@ -1,5 +1,5 @@
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
-import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+import { prisma, bookingMinimalSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 export async function getBookingToDelete(id: number | undefined, uid: string | undefined) {

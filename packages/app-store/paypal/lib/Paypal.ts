@@ -3,7 +3,7 @@ import z from "zod";
 
 import { IS_PRODUCTION, WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
 class Paypal {

@@ -1,5 +1,5 @@
 import { TeamRepository } from "@calcom/lib/server/repository/team";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TGetListSchema } from "./list.schema";

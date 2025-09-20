@@ -68,6 +68,7 @@ module.exports = {
           {
             patterns: [
               {
+                allowTypeImports: false,
                 group: [
                   // Catch all relative paths into trpc
                   "**/trpc",
@@ -105,6 +106,24 @@ module.exports = {
                   "@calcom/features/*",
                 ],
                 message: "Avoid importing @calcom/features from @calcom/prisma.",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      files: ["**/*.{ts,tsx,js,jsx}"],
+      rules: {
+        "no-restricted-imports": [
+          "error",
+          {
+            paths: [
+              {
+                name: "@calcom/prisma",
+                importNames: ["default"],
+                message:
+                  "Use named import '{ prisma }' instead of default import 'prisma' from @calcom/prisma",
               },
             ],
           },

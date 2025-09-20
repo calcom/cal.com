@@ -49,9 +49,11 @@ vi.mock("@calcom/lib/server/repository/team", () => ({
   })),
 }));
 
-vi.mock("@calcom/prisma", () => ({
-  default: {},
-}));
+vi.mock("@calcom/prisma", () => {
+  return {
+    prisma: vi.fn(),
+  };
+});
 
 describe("handleNoShowFee", () => {
   let mockPaymentService: { chargeCard: ReturnType<typeof vi.fn> };

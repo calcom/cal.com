@@ -11,7 +11,7 @@ import jackson from "@calcom/features/ee/sso/lib/jackson";
 import { DIRECTORY_IDS_TO_LOG } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 const log = logger.getSubLogger({ prefix: ["[scim]"] });
 

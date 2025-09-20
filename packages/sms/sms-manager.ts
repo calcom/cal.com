@@ -6,7 +6,7 @@ import { SENDER_ID } from "@calcom/lib/constants";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { TimeFormat } from "@calcom/lib/timeFormat";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 const handleSendingSMS = async ({

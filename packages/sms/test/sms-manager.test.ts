@@ -3,7 +3,7 @@ import { describe, expect, test, vi, beforeEach } from "vitest";
 
 import { sendSmsOrFallbackEmail } from "@calcom/features/ee/workflows/lib/reminders/messageDispatcher";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import SMSManager from "../sms-manager";
@@ -11,7 +11,7 @@ import SMSManager from "../sms-manager";
 vi.mock("@calcom/lib/checkRateLimitAndThrowError");
 vi.mock("@calcom/features/ee/workflows/lib/reminders/messageDispatcher");
 vi.mock("@calcom/prisma", () => ({
-  default: {
+  prisma: {
     team: {
       findUnique: vi.fn(),
     },

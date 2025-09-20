@@ -6,7 +6,7 @@ import {
 } from "@calcom/app-store/videoClient";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { PartialReference } from "@calcom/types/EventManager";
 
 import { getTranscriptFromRecordingId } from "~/lib/validations/shared/queryIdTransformParseInt";

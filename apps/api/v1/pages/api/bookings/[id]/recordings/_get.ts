@@ -6,7 +6,7 @@ import {
 } from "@calcom/app-store/videoClient";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { RecordingItemSchema } from "@calcom/prisma/zod-utils";
 import type { PartialReference } from "@calcom/types/EventManager";
 

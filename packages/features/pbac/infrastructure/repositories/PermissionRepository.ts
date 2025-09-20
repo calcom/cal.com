@@ -1,4 +1,4 @@
-import db from "@calcom/prisma";
+import { prisma as db } from "@calcom/prisma";
 import type { PrismaClient as PrismaClientWithExtensions } from "@calcom/prisma";
 
 import { PermissionMapper } from "../../domain/mappers/PermissionMapper";

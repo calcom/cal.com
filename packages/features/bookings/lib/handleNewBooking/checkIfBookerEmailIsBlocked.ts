@@ -1,6 +1,6 @@
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { HttpError } from "@calcom/lib/http-error";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 export const checkIfBookerEmailIsBlocked = async ({
   bookerEmail,

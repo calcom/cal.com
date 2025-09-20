@@ -3,7 +3,7 @@ import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 
 import { hashAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
 import { RedisService } from "@calcom/features/redis/RedisService";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import { handleAutoLock } from "../autoLock";
 
@@ -13,7 +13,7 @@ vi.mock("@calcom/features/ee/api-keys/lib/apiKeys", () => ({
   hashAPIKey: vi.fn((key) => `hashed_${key}`),
 }));
 vi.mock("@calcom/prisma", () => ({
-  default: {
+  prisma: {
     user: {
       update: vi.fn(),
     },

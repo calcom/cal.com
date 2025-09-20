@@ -20,7 +20,7 @@ vi.mock("@calcom/prisma", () => {
   };
   return {
     __esModule: true,
-    default: mockPrisma,
+    prisma: mockPrisma,
     PrismaClient: vi.fn(() => mockPrisma),
   };
 });

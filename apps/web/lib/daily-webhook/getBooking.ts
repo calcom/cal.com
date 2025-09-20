@@ -1,7 +1,7 @@
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+import { prisma, bookingMinimalSelect } from "@calcom/prisma";
 
 const log = logger.getSubLogger({ prefix: ["daily-video-webhook-handler"] });
 

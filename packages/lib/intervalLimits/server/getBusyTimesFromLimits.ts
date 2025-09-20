@@ -7,7 +7,7 @@ import { getPeriodStartDatesBetween } from "@calcom/lib/intervalLimits/utils/get
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { performance } from "@calcom/lib/server/perfObserver";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
 
 import { descendingLimitKeys, intervalLimitKeyToUnit } from "../intervalLimit";

@@ -2,7 +2,7 @@ import { uuid } from "short-uuid";
 
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { MembershipRole, RoleType } from "@calcom/prisma/enums";
 
 /**

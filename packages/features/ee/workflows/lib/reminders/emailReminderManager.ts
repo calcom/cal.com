@@ -8,7 +8,7 @@ import tasker from "@calcom/features/tasker";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import {
   WorkflowActions,

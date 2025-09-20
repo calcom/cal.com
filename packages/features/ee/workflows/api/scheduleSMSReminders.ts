@@ -10,7 +10,7 @@ import { scheduleSmsOrFallbackEmail } from "@calcom/features/ee/workflows/lib/re
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 

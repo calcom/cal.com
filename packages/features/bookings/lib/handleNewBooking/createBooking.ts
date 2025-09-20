@@ -5,7 +5,7 @@ import type { routingFormResponseInDbSchema } from "@calcom/app-store/routing-fo
 import dayjs from "@calcom/dayjs";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";

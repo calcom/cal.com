@@ -1,4 +1,4 @@
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TRemoveNotificationsSubscriptionInputSchema } from "./removeNotificationsSubscription.schema";

@@ -12,7 +12,7 @@ import { EventRepository } from "@calcom/lib/server/repository/event";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import slugify from "@calcom/lib/slugify";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
 
 import { getRedirectWithOriginAndSearchString } from "@lib/handleOrgRedirect";

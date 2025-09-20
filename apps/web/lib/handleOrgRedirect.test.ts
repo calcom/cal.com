@@ -15,7 +15,7 @@ const prismaMock = vi.hoisted(() => ({
 }));
 
 vi.mock("@calcom/prisma", () => ({
-  default: prismaMock,
+  prisma: prismaMock,
 }));
 
 const createTestContext = (overrides?: {

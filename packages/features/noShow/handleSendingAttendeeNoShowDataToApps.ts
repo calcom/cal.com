@@ -4,7 +4,7 @@ import type { eventTypeAppCardZod } from "@calcom/app-store/eventTypeAppCardZod"
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import CrmManager from "@calcom/lib/crmManager/crmManager";
 import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import type { NoShowAttendees } from "../handleMarkNoShow";

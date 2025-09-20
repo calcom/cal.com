@@ -4,7 +4,7 @@ import z from "zod";
 import { findPaymentCredentials } from "@calcom/app-store/paypal/api/webhook";
 import Paypal from "@calcom/app-store/paypal/lib/Paypal";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {

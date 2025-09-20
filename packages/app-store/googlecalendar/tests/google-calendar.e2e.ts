@@ -3,7 +3,7 @@ import type { Page } from "@playwright/test";
 
 import dayjs from "@calcom/dayjs";
 import { APP_CREDENTIAL_SHARING_ENABLED } from "@calcom/lib/constants";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 import { test } from "@calcom/web/playwright/lib/fixtures";
 import { selectSecondAvailableTimeSlotNextMonth } from "@calcom/web/playwright/lib/testUtils";

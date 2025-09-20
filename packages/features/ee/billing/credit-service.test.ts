@@ -16,7 +16,7 @@ const MOCK_TX = {};
 
 vi.mock("@calcom/prisma", () => {
   return {
-    default: {
+    prisma: {
       $transaction: vi.fn((fn) => fn(MOCK_TX)),
     },
   };

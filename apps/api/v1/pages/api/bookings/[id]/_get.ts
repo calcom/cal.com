@@ -3,7 +3,7 @@ import type { NextApiRequest } from "next";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import { schemaBookingReadPublic } from "~/lib/validations/booking";
 import { schemaQuerySingleOrMultipleExpand } from "~/lib/validations/shared/queryExpandRelations";

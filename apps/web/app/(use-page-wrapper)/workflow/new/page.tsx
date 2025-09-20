@@ -5,7 +5,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { Workflow } from "@calcom/prisma/client";
 import {
   MembershipRole,

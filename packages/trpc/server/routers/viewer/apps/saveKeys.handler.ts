@@ -4,7 +4,7 @@ import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { AppCategories } from "@calcom/prisma/enums";
 
-// import prisma from "@calcom/prisma";
+// import { prisma } from "@calcom/prisma";
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";

@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@calcom/prisma";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { getDefaultScheduleId } from "@calcom/trpc/server/routers/viewer/availability/util";
 
 import { hasReadPermissionsForUserId } from "../../hasEditPermissionForUser";
