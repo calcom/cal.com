@@ -121,7 +121,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         `}</style>
       </head>
       <body
-        className="dark:bg-default bg-subtle antialiased"
+        className="dark:bg-default bg-white antialiased"
         style={
           isEmbed
             ? {
@@ -152,9 +152,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
 
         <Providers isEmbed={isEmbed} nonce={nonce}>
-            <AppRouterI18nProvider translations={translations} locale={locale} ns={ns}>
-              {children}
-            </AppRouterI18nProvider>
+          <AppRouterI18nProvider translations={translations} locale={locale} ns={ns}>
+            {children}
+          </AppRouterI18nProvider>
         </Providers>
       </body>
     </html>

@@ -1730,6 +1730,7 @@
   "add_new_form": "Add new form",
   "add_new_team_form": "Add new form to your team",
   "create_your_first_route": "Create your first route",
+  "create_your_first_route_description": "Routes determine where your form responses will be sent based on the answers provided.",
   "route_to_the_right_person": "Route to the right person based on the answers to your form",
   "form": "Form",
   "form_name_lable": "Name",

@@ -1,5 +1,5 @@
+import getInsightTabs from "@calid/features/modules/insights/utils/getInsightTabs";
 import { HorizontalTabs } from "@calid/features/ui/components/navigation";
-import getInsightTabs from "@calid/features/utils/getInsightTabs";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useMemo } from "react";
 

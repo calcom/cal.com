@@ -63,7 +63,7 @@ class MyDocument extends Document<Props> {
     const nonceParsed = z.string().safeParse(this.props.nonce);
     const nonce = nonceParsed.success ? nonceParsed.data : "";
     const currentPath = this.props?.__NEXT_DATA__?.props?.pageProps?.currentPath ?? "";
-    
+
     //allowed analytics paths
     const allowedAnalyticsPaths = [
       "/apps",
@@ -91,9 +91,11 @@ class MyDocument extends Document<Props> {
     ];
 
     const allowScript =
-      currentPath !== "" && (currentPath === "/" || allowedAnalyticsPaths.some((path) => currentPath.startsWith(path)));
+      currentPath !== "" &&
+      (currentPath === "/" || allowedAnalyticsPaths.some((path) => currentPath.startsWith(path)));
 
-    const allowMetaPixel = currentPath !== "" && (allowedMetaPixelPaths.some((path) => currentPath.startsWith(path)));
+    const allowMetaPixel =
+      currentPath !== "" && allowedMetaPixelPaths.some((path) => currentPath.startsWith(path));
 
     return (
       <Html
@@ -328,7 +330,7 @@ class MyDocument extends Document<Props> {
         </Head>
 
         <body
-          className="dark:bg-default bg-subtle antialiased"
+          className="dark:bg-default bg-white antialiased"
           style={
             isEmbed
               ? {

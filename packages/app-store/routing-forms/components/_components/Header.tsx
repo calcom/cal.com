@@ -1,17 +1,16 @@
 "use client";
-import { useSearchParams } from "next/navigation";
-import { Icon } from "@calid/features/ui/components/icon";
+
+import { Profile } from "@calid/features/ui/Profile";
 import { Button } from "@calid/features/ui/components/button";
 import { HorizontalTabs } from "@calid/features/ui/components/navigation";
-import { Profile } from "@calid/features/ui/Profile";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import Link from "next/link";
 import type { RoutingFormWithResponseCount } from "@calcom/routing-forms/types/types";
-import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 
 import { FormAction, FormActionsDropdown } from "../FormActions";
 import { FormSettingsSlideover } from "./FormSettingsSlideover";
@@ -76,60 +75,22 @@ const Actions = ({
     <>
       <div className="flex items-center">
         <div className="flex items-center gap-2">
-          <FormAction
-            variant="ghost"
-            data-testid="toggle-form"
-            action="toggle"
-            routingForm={form}
-            extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] pr-4 transition"
-          />
-          <ButtonGroup combined className="border-r-subtle border-l-subtle">
-            <FormAction
-              action="_delete"
-              variant="fab"
-              routingForm={form}
-              size="xs"
-              type="button"
-              color="secondary">
-              {t("delete")}
-            </FormAction>
-            <Button
-              data-testid={isMobile ? "update-form-mobile" : "update-form"}
-              variant="fab"
-              size="xs"
-              className="w-[52px]"
-              loading={isSaving}
-              type="submit"
-              color="secondary">
-              {t("save")}
-            </Button>
-          </ButtonGroup>
           <FormActionsDropdown>
             <FormAction
               action="incompleteBooking"
-              variant="ghost"
-              className="w-full"
+              variant="icon"
               routingForm={form}
               color="minimal"
               type="button">
-              <Icon name="calendar" className="h-4 w-4" />
               {t("routing_incomplete_booking_tab")}
             </FormAction>
-            <FormAction
-              action="copyLink"
-              variant="ghost"
-              className="w-full"
-              routingForm={form}
-              color="minimal"
-              type="button">
-              <Icon name="link" className="h-4 w-4" />
+            <FormAction action="copyLink" variant="icon" routingForm={form} color="minimal" type="button">
               {t("copy_link_to_form")}
             </FormAction>
             <FormAction
               action="download"
-              variant="ghost"
+              variant="icon"
               routingForm={form}
-              className="w-full"
               color="minimal"
               type="button"
               data-testid="download-responses">
@@ -137,18 +98,33 @@ const Actions = ({
             </FormAction>
             {form?.id && (
               <FormAction
-                variant="ghost"
+                variant="icon"
                 action="viewResponses"
                 routingForm={form}
-                className="w-full"
                 color="minimal"
                 type="button"
                 data-testid="view-responses">
-                <Icon name="eye" className="h-4 w-4" />
                 {t("view_responses")}
               </FormAction>
             )}
           </FormActionsDropdown>
+          <FormAction variant="icon" data-testid="toggle-form" action="toggle" routingForm={form} />
+          <FormAction
+            action="_delete"
+            variant="icon"
+            routingForm={form}
+            type="button"
+            color="secondary"
+            className="hover:bg-error hover:text-destructive h-8 w-8"
+            StartIcon="trash-2"
+          />
+          <Button
+            data-testid={isMobile ? "update-form-mobile" : "update-form"}
+            variant="icon"
+            loading={isSaving}
+            type="submit">
+            {t("save")}
+          </Button>
           <Profile />
         </div>
       </div>
@@ -216,7 +192,7 @@ export function Header({
       {
         name: "Details",
         path: `${appUrl}/details/${routingForm.id}`,
-        "data-testid": "form-edit",
+        "data-testid": "form-details",
       },
       {
         name: "Form",
@@ -245,99 +221,30 @@ export function Header({
   const watchedName = form.watch("name");
 
   return (
-    <div className="bg-default flex w-full flex-col">
+    <div className="bg-default sticky top-0 z-10 flex w-full flex-col">
       <div className="bg-default flex w-full flex-col lg:grid lg:grid-cols-3 lg:items-center">
         {/* Left - Back button and title */}
-        <div className="border-muted flex items-center py-3">
+        <div className="border-muted flex items-center">
           <Link href={`${appUrl}`} data-testid="back-button">
-            <Button type="button" color="minimal" variant="icon" data-testid="back-button">
-              <Icon name="arrow-left" className="text-subtle h-4 w-4" />
-            </Button>
+            <Button
+              type="button"
+              color="minimal"
+              variant="icon"
+              data-testid="back-button"
+              StartIcon="arrow-left"
+            />
           </Link>
 
-          <div className="flex min-w-0 flex-col items-start gap-2">
-            <span className="text-default text-base font-bold leading-none">
-              {watchedName || "Loading..."}
-            </span>
+          <div className="flex min-w-0 flex-col items-start">
+            <span className="text-default text-xl font-bold leading-none">{watchedName || "Loading..."}</span>
             <span className="text-subtle min-w-[100px] truncate whitespace-nowrap text-sm font-semibold ">
               {routingForm.description}
             </span>
-            {/* {isEditing ? (
-              <input
-                {...form.register("name")}
-                onChange={handleTitleChange}
-                onKeyDown={handleKeyDown}
-                onBlur={handleTitleSubmit}
-                className="text-default h-auto w-full whitespace-nowrap border-none p-0 text-sm font-semibold leading-none focus:ring-0"
-                autoFocus
-              />
-            ) : (
-              <div className="group flex items-center">
-                <span
-                  className="text-subtle hover:bg-muted min-w-[100px] cursor-pointer truncate whitespace-nowrap rounded text-sm font-semibold leading-none"
-                  onClick={() => setIsEditing(true)}>
-                  {routingForm.description}
-                </span>
-                <Button
-                  variant="icon"
-                  color="minimal"
-                  onClick={() => setIsEditing(true)}
-                  CustomStartIcon={
-                    <Icon name="pencil" className="text-subtle group-hover:text-default h-3 w-3" />
-                  }>
-                  <span className="sr-only">Edit</span>
-                </Button>
-              </div>
-            )} */}
           </div>
         </div>
         <div className="flex" />
 
-        {/* Mobile/Tablet layout - Second row with toggle group and actions on the same row */}
-        {/* Navigation Tabs - Left aligned */}
-        {/* <div className="flex">
-          <ToggleGroup
-            defaultValue={getCurrentPage()}
-            value={getCurrentPage()}
-            onValueChange={handleNavigation}
-            options={[
-              {
-                value: "form-edit",
-                label: t("form"),
-                iconLeft: <Icon name="menu" className="h-3 w-3" />,
-                dataTestId: "toggle-group-item-form-edit",
-              },
-              {
-                value: "route-builder",
-                label: t("routing"),
-                iconLeft: <Icon name="waypoints" className="h-3 w-3" />,
-              },
-            ]}
-          />
-        </div> */}
-        {/* Actions - Right aligned */}
-        {/* Desktop layout - Toggle group in center column */}
-        {/* <div className="border-muted hidden justify-center border-b px-4 py-3 lg:flex">
-        <ToggleGroup
-          defaultValue={getCurrentPage()}
-          value={getCurrentPage()}
-          onValueChange={handleNavigation}
-          options={[
-            {
-              value: "form-edit",
-              label: t("form"),
-              iconLeft: <Icon name="menu" className="h-3 w-3" />,
-            },
-            {
-              value: "route-builder",
-              label: t("routing"),
-              iconLeft: <Icon name="waypoints" className="h-3 w-3" />,
-            },
-          ]}
-        />
-      </div> */}
-        {/* Desktop layout - Actions in right column */}
-        <div className="border-muted hidden justify-end px-4 lg:flex">
+        <div className="flex items-center justify-end space-x-4">
           <Actions
             form={routingForm}
             setIsTestPreviewOpen={setIsTestPreviewOpen}
@@ -348,7 +255,6 @@ export function Header({
         </div>
       </div>
       <HorizontalTabs
-        className="bg-default border-b"
         tabs={tabs.map((tab) => ({
           ...tab,
           name: t(tab.name),

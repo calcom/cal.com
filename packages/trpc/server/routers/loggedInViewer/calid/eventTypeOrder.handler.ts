@@ -12,7 +12,7 @@ type CalIdEventTypeOrderOptions = {
   input: TCalIdEventTypeOrderInputSchema;
 };
 
-export const calidEventTypeOrderHandler = async ({ ctx, input }: CalIdEventTypeOrderOptions) => {
+export const calIdEventTypeOrderHandler = async ({ ctx, input }: CalIdEventTypeOrderOptions) => {
   const { user } = ctx;
 
   const allEventTypes = await prisma.eventType.findMany({

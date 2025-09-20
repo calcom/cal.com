@@ -1,10 +1,9 @@
+import { Badge } from "@calid/features/ui/components/badge";
 import Link from "next/link";
 import { createElement } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-
-import { Badge } from "../badge";
 
 export type ListProps = {
   roundContainer?: boolean;
@@ -82,29 +81,29 @@ export function ListItemAdvanced(props: ListItemAdvancedProps) {
   return (
     <div
       className={classNames(
-        "group flex w-full items-center justify-between p-3 ",
+        "group flex w-full items-center justify-between px-3 py-5",
         className,
         disabled ? "hover:bg-muted" : ""
       )}>
       <div
         className={classNames(
-          "text-default flex-grow truncate text-sm",
+          "text-default flex-grow truncate",
           disabled ? "pointer-events-none cursor-not-allowed opacity-30" : ""
         )}>
         <div className="flex w-full flex-row items-center">
-          <h1 className="text-sm font-bold leading-none">{heading}</h1>
+          <h1 className="text-emphasis font-medium leading-none">{heading}</h1>
           {props.headingTrailingItem && (
-            <span className="ml-2 w-full px-2 pt-1 text-xs font-normal text-neutral-500">
+            <span className="text-default ml-2 w-full px-2 pt-1 text-xs font-normal">
               {props.headingTrailingItem}
             </span>
           )}
           {disabled && (
-            <Badge data-testid="badge" variant="gray" className="ml-2">
+            <Badge data-testid="badge" variant="secondary" className="ml-2">
               {t("readonly")}
             </Badge>
           )}
         </div>
-        <h2 className="text-subtle min-h-4 text-xs  font-semibold leading-none text-neutral-600">
+        <h2 className="text-subtle text-xs leading-none">
           {subHeading.substring(0, 100)}
           {subHeading.length > 100 && "..."}
         </h2>
@@ -112,24 +111,6 @@ export function ListItemAdvanced(props: ListItemAdvancedProps) {
         <div className="mt-2">{children}</div>
       </div>
     </div>
-
-    // <li
-    //   data-testid="list-link-item"
-    //   className={classNames(
-    //     "group flex w-full items-center justify-between p-5 pb-4",
-    //     className,
-    //     disabled ? "hover:bg-muted" : ""
-    //   )}>
-    //   <Link
-    //     passHref
-    //     href={href}
-    //     className={classNames(
-    //       "text-default flex-grow truncate text-sm",
-    //       disabled ? "pointer-events-none cursor-not-allowed opacity-30" : ""
-    //     )}>
-
-    //   </Link>
-    // </li>
   );
 }
 
@@ -170,7 +151,7 @@ export function ListLinkItem(props: ListLinkItemProps) {
             <span className="ml-2 text-xs font-normal text-neutral-500">{props.headingTrailingItem}</span>
           )}
           {disabled && (
-            <Badge data-testid="badge" variant="gray" className="ml-2">
+            <Badge data-testid="badge" variant="secondary" className="ml-2">
               {t("readonly")}
             </Badge>
           )}

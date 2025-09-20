@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@calid/features/ui/components/button";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
@@ -15,8 +17,6 @@ import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import classNames from "@calcom/ui/classNames";
-import { Button } from "@calcom/ui/components/button";
-import { showToast } from "@calcom/ui/components/toast";
 import { useCalcomTheme } from "@calcom/ui/styles";
 
 import FormInputFields from "../../components/FormInputFields";
@@ -150,17 +150,17 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
         navigateInTopWindow(`${decidedAction.value}?${allURLSearchParams}`);
       }
       // We don't want to show this message as it doesn't look good in Embed.
-      // showToast("Form submitted successfully! Redirecting now ...", "success");
+      // triggerToast("Form submitted successfully! Redirecting now ...", "success");
     },
     onError: (e) => {
       if (e?.message) {
-        return void showToast(e?.message, "error");
+        return void triggerToast(e?.message, "error");
       }
       if (e?.data?.code === "CONFLICT") {
-        return void showToast("Form already submitted", "error");
+        return void triggerToast("Form already submitted", "error");
       }
       // We don't want to show this error as it doesn't look good in Embed.
-      // showToast("Something went wrong", "error");
+      // triggerToast("Something went wrong", "error");
     },
   });
 
@@ -178,7 +178,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
           <>
             <div className={classNames("mx-auto my-0 max-w-3xl", isEmbed ? "" : "md:my-24")}>
               <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
-                <div className="main border-booker md:border-booker-width dark:bg-muted bg-default mx-0 rounded-md p-4 py-6 sm:-mx-4 sm:px-8 ">
+                <div className="main border-booker md:border-booker-width dark:bg-muted bg-default mx-0 rounded-md p-4 py-6 shadow-md sm:-mx-4 sm:px-8">
                   <Toaster position="bottom-right" />
 
                   <form onSubmit={handleOnSubmit}>
@@ -187,7 +187,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
                         {form.name}
                       </h1>
                       {form.description ? (
-                        <p className="min-h-10 text-subtle text-sm ltr:mr-4 rtl:ml-4">{form.description}</p>
+                        <p className="text-subtle min-h-10 text-sm ltr:mr-4 rtl:ml-4">{form.description}</p>
                       ) : null}
                     </div>
                     <FormInputFields form={form} response={response} setResponse={setResponse} />

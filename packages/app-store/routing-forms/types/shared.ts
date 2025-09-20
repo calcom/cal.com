@@ -3,7 +3,7 @@ import { UptoDateForm } from "routing-forms/components/_components/TestForm";
 
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
-import type { getServerSidePropsForSingleFormView } from "../components/getServerSidePropsSingleForm";
+import type { getServerSidePropsForSingleFormViewCalId } from "../components/getServerSidePropsSingleFormCalId";
 import type { RoutingFormWithResponseCount } from "../types/types";
 
 export type SingleFormComponentProps = {
@@ -16,6 +16,6 @@ export type SingleFormComponentProps = {
     hookForm: UseFormReturn<RoutingFormWithResponseCount>;
   }>;
   enrichedWithUserProfileForm: inferSSRProps<
-    typeof getServerSidePropsForSingleFormView
+    typeof getServerSidePropsForSingleFormViewCalId
   >["enrichedWithUserProfileForm"];
 };

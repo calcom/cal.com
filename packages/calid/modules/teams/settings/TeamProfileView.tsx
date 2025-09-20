@@ -10,12 +10,12 @@ import {
   DialogHeader,
   DialogDescription,
   DialogTitle,
+  DialogClose,
   DialogFooter,
 } from "@calid/features/ui/components/dialog";
 import { Form, FormField } from "@calid/features/ui/components/form";
 import { TextField } from "@calid/features/ui/components/input/input";
 import { triggerToast } from "@calid/features/ui/components/toast";
-import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
@@ -28,6 +28,7 @@ import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import { Editor } from "@calcom/ui/components/editor";
 import { Label } from "@calcom/ui/components/form";
+import { ImageUploader } from "@calcom/ui/components/image-uploader";
 
 import SkeletonLoader from "../components/SkeletonLoader";
 
@@ -188,14 +189,14 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
                       </div>
                       <div className="flex-1">
                         <div className="flex gap-2">
-                        <ImageUploader
-                          target="logo"
-                          id="avatar-upload"
-                          buttonMsg={t("upload_logo")}
-                          handleAvatarChange={onChange}
-                          triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
-                          imageSrc={getDefaultAvatar(value, form.getValues("name"))}
-                        />
+                          <ImageUploader
+                            target="logo"
+                            id="avatar-upload"
+                            buttonMsg={t("upload_logo")}
+                            handleAvatarChange={onChange}
+                            triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
+                            imageSrc={getDefaultAvatar(value, form.getValues("name"))}
+                          />
                           {showRemoveLogoButton && (
                             <Button color="destructive" onClick={() => onChange(null)}>
                               {t("remove")}
@@ -295,9 +296,7 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
               </DialogHeader>
 
               <DialogFooter>
-                <Button color="secondary" variant="button" onClick={() => setOpen(false)}>
-                  {t("cancel")}
-                </Button>
+                <DialogClose />
                 <Button
                   color="destructive"
                   variant="button"
@@ -324,9 +323,7 @@ export default function TeamProfileView({ teamId }: TeamProfileViewProps) {
               </DialogHeader>
 
               <DialogFooter>
-                <Button color="secondary" onClick={() => setOpen(false)}>
-                  {t("cancel")}
-                </Button>
+                <DialogClose />
                 <Button
                   color="destructive"
                   variant="button"

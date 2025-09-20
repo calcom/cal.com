@@ -57,7 +57,7 @@ export const BooleanToggleGroup = function BooleanToggleGroup({
 
   const commonClass = classNames(
     getVariantStyles(variant).commonClass,
-    "inline-flex items-center justify-center rounded-lg text-sm leading-none transition",
+    "inline-flex items-center justify-center rounded-md text-sm leading-none transition",
     disabled && "cursor-not-allowed"
   );
 
@@ -76,7 +76,7 @@ export const BooleanToggleGroup = function BooleanToggleGroup({
       type="single"
       disabled={disabled}
       className={classNames(
-        "bg-default border-default inline-flex gap-0.5 rounded-[10px] p-0.5 rtl:flex-row-reverse",
+        "bg-default border-default inline-flex gap-0.5 rounded-md p-0.5 rtl:flex-row-reverse",
         getVariantStyles(variant).toggleGroupPrimitiveClass
       )}
       onValueChange={(yesNoValue: "yes" | "no") => {

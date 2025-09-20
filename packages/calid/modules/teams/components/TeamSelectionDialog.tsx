@@ -11,22 +11,16 @@ interface TeamSelectionDialogProps {
   open: boolean;
   openChange: (open: boolean) => void;
   onTeamSelect: (teamId: string) => void;
-  isAdmin?: boolean;
-  includeOrg?: boolean;
 }
 
 export const TeamSelectionDialog: React.FC<TeamSelectionDialogProps> = ({
   open,
   openChange,
   onTeamSelect,
-  isAdmin = false,
-  includeOrg = false,
 }) => {
   const { t } = useLocale();
 
-  const query = trpc.viewer.loggedInViewerRouter.teamsAndUserProfilesQuery.useQuery({
-    includeOrg: includeOrg,
-  });
+  const query = trpc.viewer.loggedInViewerRouter.calid_teamsAndUserProfilesQuery.useQuery();
 
   if (!query.data) return null;
 
@@ -35,24 +29,18 @@ export const TeamSelectionDialog: React.FC<TeamSelectionDialogProps> = ({
     .filter((profile) => !profile.readOnly)
     .map((profile) => ({
       teamId: profile.teamId,
-      label: profile.name || profile.slug,
+      label: profile.name || profile.slug || "",
       image: profile.image,
       slug: profile.slug,
     }));
 
-  // Add platform option if user is admin
-  if (isAdmin) {
-    teamsAndUserProfiles.push({
-      platform: true,
-      label: "Platform",
-      image: null,
-      slug: null,
-      teamId: null,
-    });
-  }
-
-  const handleTeamSelect = (teamData: (typeof teamsAndUserProfiles)[0]) => {
-    onTeamSelect(teamData.teamId);
+  const handleTeamSelect = (teamData: {
+    teamId: string | null;
+    label: string;
+    image: string;
+    slug: string | null;
+  }) => {
+    onTeamSelect(teamData.teamId || "");
     openChange(false);
   };
 
@@ -60,26 +48,26 @@ export const TeamSelectionDialog: React.FC<TeamSelectionDialogProps> = ({
     openChange(false);
   };
 
+  if (!open) return null;
+
   return (
-    open && (
-      <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="w-full sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t("select_team_or_profile")}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-2 py-4">
-            {teamsAndUserProfiles.map((team, index) => (
-              <button
-                key={`${team.teamId}-${index}`}
-                onClick={() => handleTeamSelect(team)}
-                className="hover:bg-muted flex w-full items-center space-x-3 rounded-lg p-3 text-left transition-colors">
-                <Avatar alt={team.label || ""} imageSrc={team.image} size="sm" />
-                <span className="text-sm font-medium">{team.label}</span>
-              </button>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
-    )
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="w-full sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{t("select_team_or_profile")}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-2 py-4">
+          {teamsAndUserProfiles.map((team, index: number) => (
+            <button
+              key={`${team.teamId}-${index}`}
+              onClick={() => handleTeamSelect(team)}
+              className="hover:bg-muted flex w-full items-center space-x-3 rounded-lg p-3 text-left transition-colors">
+              <Avatar alt={team.label || ""} imageSrc={team.image} size="sm" />
+              <span className="text-sm font-medium">{team.label}</span>
+            </button>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };

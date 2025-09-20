@@ -161,6 +161,21 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
 
   const { eventType, locationOptions, team, teamMembers, destinationCalendar, currentUserMembership } = rest;
 
+  // Add defensive check for eventType structure
+  if (!eventType) {
+    return <div>Loading...</div>;
+  }
+
+  // Ensure users array exists and has at least one user
+  if (!eventType.users || eventType.users.length === 0) {
+    console.warn('EventType has no users, this may cause issues with URL generation');
+  }
+
+  // Helper function to safely get username
+  const getEventTypeUsername = () => {
+    return eventType.users?.[0]?.username || 'unknown';
+  };
+
   const eventTypesLockedByOrg = (eventType as any).team?.parent?.organizationSettings
     ?.lockEventTypeCreationForUsers;
 
@@ -274,7 +289,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
   const orgBranding = useOrgBranding();
   const bookerUrl = orgBranding ? orgBranding?.fullDomain : WEBSITE_URL;
 
-  const permalink = `${bookerUrl}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
+  const permalink = `${bookerUrl}/${team ? `team/${team.slug}` : getEventTypeUsername()}/${
     eventType.slug
   }`;
 
@@ -283,11 +298,11 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
     const formUsers = form?.getValues("users");
     const formSlug = form?.getValues("slug");
 
-    embedLink = `${team ? `team/${team.slug}` : formUsers?.[0]?.username || eventType.users[0].username}/${
+    embedLink = `${team ? `team/${team.slug}` : formUsers?.[0]?.username || getEventTypeUsername()}/${
       formSlug || eventType.slug
     }`;
   } catch (error) {
-    embedLink = `${team ? `team/${team.slug}` : eventType.users[0].username}/${eventType.slug}`;
+    embedLink = `${team ? `team/${team.slug}` : eventType.users?.[0]?.username || 'unknown'}/${eventType.slug}`;
   }
 
   // Permissions
