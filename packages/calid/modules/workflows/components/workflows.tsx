@@ -7,7 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
 
-import type { CalIdWorkflowsProps, CalIdTeamFiltersState } from "../config/types";
+import type { CalIdWorkflowsProps } from "../config/types";
 import { useWorkflowMutations } from "../hooks/useWorkflowsMutations";
 import { WorkflowDeleteDialog } from "./workflow_delete_dialog";
 import { WorkflowEmptyState } from "./workflow_empty_state";
@@ -20,7 +20,12 @@ export const Workflows: React.FC<CalIdWorkflowsProps> = ({ setHeaderMeta, filter
   const routerQuery = useRouterQuery();
   const utils = trpc.useUtils();
 
-  // Extract filters from query
+  // Local state for UI interactions only
+  const [copiedLink, setCopiedLink] = useState<number | null>(null);
+  const [workflowDeleteDialogOpen, setWorkflowDeleteDialogOpen] = useState(false);
+  const [workflowIdToDelete, setWorkflowIdToDelete] = useState(0);
+
+  // Single source of truth - extract filters from query
   const filters = useMemo(() => getTeamsFiltersFromQuery(routerQuery), [routerQuery]);
 
   // Fetch workflows data
@@ -32,22 +37,8 @@ export const Workflows: React.FC<CalIdWorkflowsProps> = ({ setHeaderMeta, filter
   const filteredWorkflows = filteredList ?? data;
   const isPending = filteredList ? false : _isPending;
 
-  // Local state
-  const [copiedLink, setCopiedLink] = useState<number | null>(null);
-  const [workflowDeleteDialogOpen, setWorkflowDeleteDialogOpen] = useState(false);
-  const [workflowIdToDelete, setWorkflowIdToDelete] = useState(0);
-  const [teamFilters, setTeamFilters] = useState<CalIdTeamFiltersState>({
-    userId: null,
-    calIdTeamIds: [],
-  });
-
   // Custom hook for mutations and handlers
   const { mutations, handlers } = useWorkflowMutations(filters);
-
-  // Get team profiles for filter
-  const teamProfiles = useMemo(() => {
-    return filteredWorkflows?.teams || [];
-  }, [filteredWorkflows]);
 
   // Enhanced handlers with local state management
   const handleCopyLinkWithState = useCallback(
@@ -65,9 +56,10 @@ export const Workflows: React.FC<CalIdWorkflowsProps> = ({ setHeaderMeta, filter
     setWorkflowDeleteDialogOpen(true);
   }, []);
 
-  // Memoized values
-  const workflows = useMemo(() => filteredWorkflows?.filtered || [], [filteredWorkflows]);
-  const hasWorkflows = useMemo(() => workflows.length > 0, [workflows.length]);
+  // Derived values
+  const workflows = filteredWorkflows?.filtered || [];
+  const teamProfiles = filteredWorkflows?.teams || [];
+  const hasWorkflows = workflows.length > 0;
 
   // Loading state
   if (isPending) {
@@ -82,7 +74,7 @@ export const Workflows: React.FC<CalIdWorkflowsProps> = ({ setHeaderMeta, filter
           {/* Teams Filter for empty state */}
           {teamProfiles.length > 0 && (
             <div className="mb-8">
-              <TeamsFilter profiles={teamProfiles} checked={teamFilters} setChecked={setTeamFilters} />
+              <TeamsFilter profiles={teamProfiles} />
             </div>
           )}
 
@@ -96,8 +88,6 @@ export const Workflows: React.FC<CalIdWorkflowsProps> = ({ setHeaderMeta, filter
         <WorkflowsList
           workflows={workflows}
           teamProfiles={teamProfiles}
-          teamFilters={teamFilters}
-          setTeamFilters={setTeamFilters}
           onCreateWorkflow={handlers.handleCreateWorkflow}
           onEdit={handlers.handleWorkflowEdit}
           onToggle={handlers.handleWorkflowToggle}

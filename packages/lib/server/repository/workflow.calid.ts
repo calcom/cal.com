@@ -1,4 +1,3 @@
-import type { CalIdWorkflowType } from "@calid/features/modules/workflows/config/types";
 import type { CalIdWorkflowStep } from "@calid/features/modules/workflows/config/types";
 import { deleteScheduledEmailReminder } from "@calid/features/modules/workflows/managers/emailManager";
 import { deleteScheduledSMSReminder } from "@calid/features/modules/workflows/managers/smsManager";
@@ -207,104 +206,91 @@ export class CalIdWorkflowRepository {
 
   static async getFilteredList({ userId, input }: { userId?: number; input: TCalIdFilteredListInputSchema }) {
     const filters = input?.filters;
-
     const filtered = filters && hasFilter(filters);
 
-    const allWorkflows = await prisma.calIdWorkflow.findMany({
-      where: {
-        OR: [
-          {
-            userId,
-          },
-          {
-            calIdTeam: {
-              members: {
-                some: {
-                  userId,
-                  acceptedInvitation: true,
-                },
-              },
-            },
-          },
-        ],
-      },
-      include: includedFields,
-      orderBy: [
+    // Build base WHERE clause for workflows accessible by the user
+    const baseWhere: Prisma.CalIdWorkflowWhereInput = {
+      OR: [
+        { userId },
         {
-          position: "desc",
-        },
-        {
-          id: "desc",
+          calIdTeam: {
+            members: { some: { userId, acceptedInvitation: true } },
+          },
         },
       ],
-    });
-
-    if (!filtered) {
-      const workflowsWithReadOnly: CalIdWorkflowType[] = allWorkflows.map((workflow) => {
-        const readOnly = !!workflow.calIdTeam?.members?.find(
-          (member) => member.userId === userId && member.role === CalIdMembershipRole.MEMBER
-        );
-
-        return { readOnly, ...workflow };
-      });
-
-      return {
-        filtered: workflowsWithReadOnly,
-        totalCount: allWorkflows.length,
-      };
-    }
-
-    const where = {
-      OR: [] as Prisma.CalIdWorkflowWhereInput[],
     };
 
-    if (filtered) {
-      if (!!filters.calIdTeamIds) {
-        where.OR.push({
-          calIdTeam: {
-            id: {
-              in: filters.calIdTeamIds ?? [],
-            },
-            members: {
-              some: {
-                userId,
-                acceptedInvitation: true,
-              },
-            },
-          },
-        });
-      }
+    // Fetch all workflows (needed for totalCount)
+    const allWorkflows = await prisma.calIdWorkflow.findMany({
+      where: baseWhere,
+      include: includedFields,
+      orderBy: [{ position: "desc" }, { id: "desc" }],
+    });
 
-      if (!!filters.userIds) {
-        where.OR.push({
-          userId: {
-            in: filters.userIds,
+    const memberships = await prisma.calIdMembership.findMany({
+      where: { userId, acceptedInvitation: true },
+      select: {
+        calIdTeam: {
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+            members: true,
+            logoUrl: true,
           },
-          calIdTeamId: null,
-        });
-      }
-
-      const filteredWorkflows = await prisma.calIdWorkflow.findMany({
-        where,
-        include: includedFields,
-        orderBy: {
-          id: "desc",
         },
-      });
+      },
+    });
 
-      const workflowsWithReadOnly: CalIdWorkflowType[] = filteredWorkflows.map((workflow) => {
-        const readOnly = !!workflow.calIdTeam?.members?.find(
+    // Helper function to mark readOnly and extract unique teams
+    const mapWorkflows = (workflows: typeof allWorkflows) => {
+      const mapped = workflows.map((workflow) => {
+        const readOnly = !!workflow.calIdTeam?.members?.some(
           (member) => member.userId === userId && member.role === CalIdMembershipRole.MEMBER
         );
-
         return { readOnly, ...workflow };
       });
+      return { workflows: mapped };
+    };
 
+    if (!filtered) {
       return {
-        filtered: workflowsWithReadOnly,
+        filtered: mapWorkflows(allWorkflows).workflows,
         totalCount: allWorkflows.length,
+        teams: memberships.map((m) => m.calIdTeam),
       };
     }
+
+    // Build filtered WHERE clause
+    const where: Prisma.CalIdWorkflowWhereInput = { OR: [] };
+    if (filters?.calIdTeamIds?.length) {
+      where.OR.push({
+        calIdTeam: {
+          id: { in: filters.calIdTeamIds },
+          members: { some: { userId, acceptedInvitation: true } },
+        },
+      });
+    }
+    if (filters?.userIds?.length) {
+      where.OR.push({
+        userId: { in: filters.userIds },
+        calIdTeamId: null,
+      });
+    }
+
+    const filteredWorkflows = await prisma.calIdWorkflow.findMany({
+      where,
+      include: includedFields,
+      orderBy: { id: "desc" },
+    });
+
+    const { workflows: filteredWorkflowsWithReadOnly } = mapWorkflows(filteredWorkflows);
+
+    return {
+      filtered: filteredWorkflowsWithReadOnly,
+      totalCount: allWorkflows.length,
+      teams: memberships.map((m) => m.calIdTeam),
+    };
   }
 
   static async getRemindersFromRemovedTeams(

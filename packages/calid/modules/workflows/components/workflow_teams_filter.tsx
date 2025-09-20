@@ -1,73 +1,76 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import React, { useCallback, useMemo, useState } from "react";
-import type { Dispatch, SetStateAction } from "react";
+import React, { useCallback, useMemo } from "react";
 
+import { filterQuerySchema } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { AnimatedPopover } from "@calcom/ui/components/popover";
 
-import type { CalIdTeamProfile, CalIdTeamFiltersState } from "../config/types";
+import type { CalIdTeamProfile } from "../config/types";
 
 interface TeamsFilterProps {
   profiles: CalIdTeamProfile[];
-  checked: CalIdTeamFiltersState;
-  setChecked: Dispatch<SetStateAction<CalIdTeamFiltersState>>;
 }
 
-export const TeamsFilter: React.FC<TeamsFilterProps> = ({ profiles, checked, setChecked }) => {
+export const TeamsFilter: React.FC<TeamsFilterProps> = ({ profiles }) => {
   const session = useSession();
   const { t } = useLocale();
+  const {
+    data: query,
+    pushItemToKey,
+    removeItemByKeyAndValue,
+    setQuery,
+    removeByKey,
+  } = useTypedQuery(filterQuerySchema);
 
   const userId = session.data?.user.id || 0;
   const user = session.data?.user.name || "";
   const userName = session.data?.user.username;
   const userAvatar = `${WEBAPP_URL}/${userName}/avatar.png`;
 
-  const teams = useMemo(() => profiles.filter((profile) => !!profile.calIdTeamId), [profiles]);
-  const [noFilter, setNoFilter] = useState(true);
+  // Filter out teams without IDs and memoize
+  const teams = useMemo(() => profiles.filter((profile) => !!profile.id), [profiles]);
+
+  // Determine if any filters are active
+  const hasActiveFilters = useMemo(() => {
+    return !!(query.userIds?.length || query.calIdTeamIds?.length);
+  }, [query.userIds?.length, query.calIdTeamIds?.length]);
+
+  // Check if user is selected (normalize to array for consistent checking)
+  const isUserSelected = useMemo(() => {
+    return query.userIds?.includes(userId) || false;
+  }, [query.userIds, userId]);
+
+  // Get selected team IDs (normalized to array)
+  const selectedTeamIds = useMemo(() => {
+    return query.calIdTeamIds || [];
+  }, [query.calIdTeamIds]);
 
   const handleUserToggle = useCallback(
     (isChecked: boolean) => {
       if (isChecked) {
-        setChecked({ userId: userId, calIdTeamIds: checked.calIdTeamIds });
-        if (checked.calIdTeamIds.length === teams.length) {
-          setNoFilter(true);
-        }
+        setQuery("userIds", [userId]);
       } else {
-        setChecked({ userId: null, calIdTeamIds: checked.calIdTeamIds });
-        setNoFilter(false);
+        removeByKey("userIds");
       }
     },
-    [userId, checked.calIdTeamIds, teams.length, setChecked]
+    [userId, setQuery, removeByKey]
   );
 
   const handleTeamToggle = useCallback(
     (teamId: number, isChecked: boolean) => {
       if (isChecked) {
-        const updatedTeamIds = [...checked.calIdTeamIds, teamId];
-        setChecked({ userId: checked.userId, calIdTeamIds: updatedTeamIds });
-
-        if (checked.userId && updatedTeamIds.length === teams.length) {
-          setNoFilter(true);
-        } else {
-          setNoFilter(false);
-        }
+        pushItemToKey("calIdTeamIds", teamId);
       } else {
-        const updatedTeamIds = checked.calIdTeamIds.filter((id) => id !== teamId);
-        setChecked({ userId: checked.userId, calIdTeamIds: updatedTeamIds });
-
-        if (checked.userId && updatedTeamIds.length === teams.length) {
-          setNoFilter(true);
-        } else {
-          setNoFilter(false);
-        }
+        removeItemByKeyAndValue("calIdTeamIds", teamId);
       }
     },
-    [checked, teams.length, setChecked]
+    [pushItemToKey, removeItemByKeyAndValue]
   );
 
   const UserFilterItem = ({ disabled = false }: { disabled?: boolean }) => (
@@ -82,13 +85,14 @@ export const TeamsFilter: React.FC<TeamsFilterProps> = ({ profiles, checked, set
         id="yourWorkflows"
         type="checkbox"
         className="text-emphasis focus:ring-emphasis dark:text-muted border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded transition"
-        checked={disabled ? true : !!checked.userId}
+        checked={disabled ? true : isUserSelected}
         onChange={disabled ? undefined : (e) => handleUserToggle(e.target.checked)}
         disabled={disabled}
       />
     </div>
   );
 
+  // If no profiles, show simplified filter with just user
   if (!profiles.length) {
     return (
       <AnimatedPopover text={t("all")}>
@@ -98,13 +102,13 @@ export const TeamsFilter: React.FC<TeamsFilterProps> = ({ profiles, checked, set
   }
 
   return (
-    <div className={classNames("-mb-2", noFilter ? "w-16" : "w-[100px]")}>
-      <AnimatedPopover text={noFilter ? t("all") : t("filtered")}>
+    <div className={classNames("-mb-2", hasActiveFilters ? "w-[100px]" : "w-16")}>
+      <AnimatedPopover text={hasActiveFilters ? t("filtered") : t("all")}>
         <UserFilterItem />
         {teams.map((profile) => (
           <div
             className="item-center focus-within:bg-subtle hover:bg-muted flex px-4 py-[6px] transition hover:cursor-pointer"
-            key={profile.calIdTeamId || 0}>
+            key={profile.id}>
             <Avatar
               imageSrc={profile.logoUrl || ""}
               size="sm"
@@ -113,16 +117,16 @@ export const TeamsFilter: React.FC<TeamsFilterProps> = ({ profiles, checked, set
               asChild
             />
             <label
-              htmlFor={profile.slug || ""}
+              htmlFor={`team-${profile.id}`}
               className="text-default ml-2 mr-auto select-none self-center truncate text-sm font-medium hover:cursor-pointer">
               {profile.name}
             </label>
             <input
-              id={profile.slug || ""}
-              name={profile.slug || ""}
+              id={`team-${profile.id}`}
+              name={`team-${profile.id}`}
               type="checkbox"
-              checked={checked.calIdTeamIds?.includes(profile.calIdTeamId || 0)}
-              onChange={(e) => handleTeamToggle(profile.calIdTeamId || 0, e.target.checked)}
+              checked={selectedTeamIds.includes(profile.id || 0)}
+              onChange={(e) => handleTeamToggle(profile.id || 0, e.target.checked)}
               className="text-emphasis focus:ring-emphasis dark:text-muted border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded transition"
             />
           </div>

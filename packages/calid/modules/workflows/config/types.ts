@@ -239,7 +239,7 @@ export interface CalIdTeamProfile {
   readOnly?: boolean;
   slug: string | null;
   name: string | null;
-  calIdTeamId: number | null;
+  id: number | null;
   logoUrl?: string | null;
 }
 
