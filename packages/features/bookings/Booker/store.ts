@@ -155,6 +155,13 @@ export type BookerStore = {
   formValues: Record<string, any>;
   setFormValues: (values: Record<string, any>) => void;
   /**
+   * UID of the reserved slot. Used to prevent double-bookings by
+   * validating reservation ownership before creating a booking.
+   * Set when a slot is reserved, cleared after successful booking.
+   */
+  slotReservationId: string | null;
+  setSlotReservationId: (slotReservationId: string | null) => void;
+  /**
    * Force event being a team event, so we only query for team events instead
    * of also include 'user' events and return the first event that matches with
    * both the slug and the event slug.
@@ -436,6 +443,10 @@ export const createBookerStore = () =>
     formValues: {},
     setFormValues: (formValues: Record<string, any>) => {
       set({ formValues });
+    },
+    slotReservationId: null,
+    setSlotReservationId: (slotReservationId: string | null) => {
+      set({ slotReservationId });
     },
     org: null,
     setOrg: (org: string | null | undefined) => {
