@@ -17,10 +17,39 @@ import { MembershipRole, SchedulingType, TimeUnit, WorkflowTriggerEvents } from 
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { Schedule } from "@calcom/types/schedule";
 
+import { createAllPermissionsArray, ENABLE_PBAC_GLOBALLY } from "../lib/test-helpers/pbac";
 import { createRoutingForm } from "../lib/test-helpers/routingFormHelpers";
 import { selectFirstAvailableTimeSlotNextMonth, teamEventSlug, teamEventTitle } from "../lib/testUtils";
 import type { createEmailsFixture } from "./emails";
 import { TimeZoneEnum } from "./types";
+
+// Helper function to create a custom role with all permissions for e2e testing
+const createFullAccessCustomRole = async (teamId: number, roleName = "E2E Full Access") => {
+  const allPermissions = createAllPermissionsArray();
+
+  return await prisma.role.create({
+    data: {
+      id: `e2e_full_access_${teamId}_${Date.now()}`,
+      name: roleName,
+      description: "Full access role for e2e testing - allows all permissions",
+      color: "#059669",
+      teamId: teamId,
+      type: "CUSTOM",
+      permissions: {
+        create: allPermissions,
+      },
+    },
+    include: {
+      permissions: {
+        select: {
+          id: true,
+          resource: true,
+          action: true,
+        },
+      },
+    },
+  });
+};
 
 // Don't import hashPassword from app as that ends up importing next-auth and initializing it before NEXTAUTH_URL can be updated during tests.
 export function hashPassword(password: string) {
@@ -161,7 +190,13 @@ const createTeamAndAddUser = async (
     schedulingType,
     assignAllTeamMembersForSubTeamEvents,
   }: {
-    user: { id: number; email: string; username: string | null; role?: MembershipRole };
+    user: {
+      id: number;
+      email: string;
+      username: string | null;
+      role?: MembershipRole;
+      customRoleId?: string;
+    };
     isUnpublished?: boolean;
     isOrg?: boolean;
     isOrgVerified?: boolean;
@@ -225,14 +260,43 @@ const createTeamAndAddUser = async (
     data,
   });
 
-  const { role = MembershipRole.OWNER, id: userId } = user;
+  if (ENABLE_PBAC_GLOBALLY) {
+    await prisma.teamFeatures.create({
+      data: {
+        featureId: "pbac",
+        teamId: team.id,
+        assignedBy: "e2e-fixture",
+        assignedAt: new Date(),
+      },
+    });
+  }
+
+  const { role = MembershipRole.OWNER, id: userId, customRoleId } = user;
+
+  let finalCustomRoleId = customRoleId;
+  if (!finalCustomRoleId && ENABLE_PBAC_GLOBALLY) {
+    const customRole = await createFullAccessCustomRole(team.id);
+    finalCustomRoleId = customRole.id;
+  }
+
   await prisma.membership.create({
     data: {
       createdAt: new Date(),
       teamId: team.id,
       userId,
       role: role,
+      customRoleId: finalCustomRoleId,
       accepted: true,
+    },
+  });
+
+  await prisma.team.update({
+    where: { id: team.id },
+    data: {
+      metadata: {
+        ...data.metadata,
+        e2eCustomRoleId: finalCustomRoleId,
+      },
     },
   });
 
@@ -357,6 +421,7 @@ export const createUsersFixture = (
                 email: user.email,
                 username: user.username,
                 role: scenario.teamRole || "OWNER",
+                customRoleId: opts?.customRoleId,
               },
               isUnpublished: scenario.isUnpublished,
               isOrg: scenario.isOrg,
@@ -380,6 +445,13 @@ export const createUsersFixture = (
                 data: createUser(workerInfo, teammateObj),
               });
 
+              const teamWithMetadata = await prisma.team.findUnique({
+                where: { id: team.id },
+                select: { metadata: true },
+              });
+              const customRoleId = (teamWithMetadata?.metadata as Record<string, unknown>)
+                ?.e2eCustomRoleId as string;
+
               // Add teammates to the team
               await prisma.membership.create({
                 data: {
@@ -387,6 +459,7 @@ export const createUsersFixture = (
                   teamId: team.id,
                   userId: teamUser.id,
                   role: MembershipRole.MEMBER,
+                  customRoleId: customRoleId,
                   accepted: true,
                 },
               });
@@ -651,7 +724,10 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     (await prisma.user.findUnique({
       where: { id: store.user.id },
-      include: { eventTypes: true },
+      include: {
+        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
+        eventTypes: true,
+      },
     }))!;
   return {
     id: user.id,
@@ -692,7 +768,12 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     getFirstTeamMembership: async () => {
       const memberships = await prisma.membership.findMany({
         where: { userId: user.id },
-        include: { team: true, user: true },
+        include: {
+          // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
+          team: true,
+          // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
+          user: true,
+        },
       });
 
       const membership = memberships
@@ -722,7 +803,9 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
         include: {
           team: {
             include: {
+              // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
               children: true,
+              // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
               organizationSettings: true,
             },
           },
@@ -816,6 +899,7 @@ type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
   password?: string | null;
   emailDomain?: string;
   profileUsername?: string;
+  customRoleId?: string;
 };
 
 // creates the actual user in the db.

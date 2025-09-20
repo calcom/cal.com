@@ -3,6 +3,7 @@ import { expect } from "@playwright/test";
 import prisma from "@calcom/prisma";
 
 import { test } from "../lib/fixtures";
+import { createAllPermissionsArray } from "../lib/test-helpers/pbac";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -12,9 +13,9 @@ test.afterEach(async ({ users, orgs }) => {
 });
 
 test.describe("Organization - Privacy", () => {
-  test(`Private Org \n 
+  test(`Private Org \n
         1) Org Member cannot see members of orgs\n
-        2) Org Owner/Admin can see members`, async ({ page, users, orgs }) => {
+        2) Org Owner/Admin can see members`, async ({ page, users, orgs, prisma }) => {
     const org = await orgs.create({
       name: "TestOrg",
       isPrivate: true,
@@ -38,32 +39,49 @@ test.describe("Organization - Privacy", () => {
         teammates: teamMatesObj,
       }
     );
+
+    const memberPermissions = createAllPermissionsArray().filter(
+      ({ resource, action }) => !(resource === "organization" && action === "listMembers")
+    );
+    const memberCustomRole = await prisma.role.create({
+      data: {
+        id: `organization_privacy_member_${Date.now()}`,
+        name: "full access except for organization:listMembers",
+        teamId: org.id,
+        type: "CUSTOM",
+        permissions: {
+          create: memberPermissions,
+        },
+      },
+    });
+
     const memberInOrg = await users.create({
       username: "org-member-user",
       name: "org-member-user",
       organizationId: org.id,
       roleInOrganization: "MEMBER",
+      customRoleId: memberCustomRole.id,
     });
 
     await owner.apiLogin();
     await page.goto(`/settings/organizations/${org.slug}/members`);
     await page.waitForLoadState("domcontentloaded");
 
-    const tableLocator = await page.getByTestId("user-list-data-table");
+    const tableLocator = page.getByTestId("user-list-data-table");
 
     await expect(tableLocator).toBeVisible();
 
     await memberInOrg.apiLogin();
     await page.goto(`/settings/organizations/${org.slug}/members`);
     await page.waitForLoadState("domcontentloaded");
-    const userDataTable = await page.getByTestId("user-list-data-table");
-    const membersPrivacyWarning = await page.getByTestId("members-privacy-warning");
+    const userDataTable = page.getByTestId("user-list-data-table");
+    const membersPrivacyWarning = page.getByTestId("members-privacy-warning");
     await expect(userDataTable).toBeHidden();
     await expect(membersPrivacyWarning).toBeVisible();
   });
-  test(`Private Org - Private Team\n 
+  test(`Private Org - Private Team\n
         1) Team Member cannot see members in team\n
-        2) Team Admin/Owner can see members in team`, async ({ page, users, orgs }) => {
+        2) Team Admin/Owner can see members in team`, async ({ page, users, orgs, prisma }) => {
     const org = await orgs.create({
       name: "TestOrg",
       isPrivate: true,
@@ -95,7 +113,7 @@ test.describe("Organization - Privacy", () => {
     // Update team to be private
     await page.goto(`/settings/teams/${teamId}/settings`);
     await page.waitForLoadState("domcontentloaded");
-    const togglePrivateSwitch = await page.getByTestId("make-team-private-check");
+    const togglePrivateSwitch = page.getByTestId("make-team-private-check");
     await togglePrivateSwitch.click();
 
     // As admin/owner we can see the privacy settings
@@ -118,6 +136,32 @@ test.describe("Organization - Privacy", () => {
     expect(memberUser?.user.email).toBeDefined();
     // @ts-expect-error expect doesnt assert on a type level
     const memberOfTeam = await users.set(memberUser?.user.email);
+
+    // const memberPermissions = createAllPermissionsArray().filter(
+    //   ({ resource, action }) => !(resource === "team" && action === "listMembers")
+    // );
+    // const memberCustomRole = await prisma.role.create({
+    //   data: {
+    //     id: `organization_privacy_member_${Date.now()}`,
+    //     name: "full access except for organization:listMembers",
+    //     teamId: teamId,
+    //     type: "CUSTOM",
+    //     permissions: {
+    //       create: memberPermissions,
+    //     },
+    //   },
+    // });
+    // await prisma.membership.update({
+    //   where: {
+    //     userId_teamId: {
+    //       userId: memberOfTeam.id,
+    //       teamId: teamId,
+    //     },
+    //   },
+    //   data: {
+    //     customRoleId: memberCustomRole.id,
+    //   },
+    // });
     await memberOfTeam.apiLogin();
 
     await page.goto(`/settings/teams/${teamId}/settings`);
@@ -128,13 +172,12 @@ test.describe("Organization - Privacy", () => {
 
     await page.goto(`/settings/teams/${teamId}/members`);
     await page.waitForLoadState("domcontentloaded");
-    await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
 
     // As a user we can not see the member list when a team is private
-    const hiddenTableLocator = await page.getByTestId("team-member-list-container");
+    const hiddenTableLocator = page.getByTestId("team-member-list-container");
     await expect(hiddenTableLocator).toBeHidden();
   });
-  test(`Private Org - Public Team\n 
+  test(`Private Org - Public Team\n
         1) All team members can see members in team \n
         2) Privacy settings are hidden to non-admin members \n
         3) Admin/Owner can see members in team \n
@@ -187,8 +230,7 @@ test.describe("Organization - Privacy", () => {
     // 1) All team members can see members in team
     await page.goto(`/settings/teams/${teamId}/members`);
     await page.waitForLoadState("domcontentloaded");
-    await page.waitForTimeout(500);
-    const memberTableLocator = await page.getByTestId("team-member-list-container");
+    const memberTableLocator = page.getByTestId("team-member-list-container");
     await expect(memberTableLocator).toBeVisible();
 
     // 2) Privacy settings are hidden to non-admin members
@@ -201,8 +243,8 @@ test.describe("Organization - Privacy", () => {
     // 3) Admin/Owner can see members in team
     await page.goto(`/settings/teams/${teamId}/members`);
     await page.waitForLoadState("domcontentloaded");
-    await page.waitForTimeout(500);
-    const adminTableLocator = await page.getByTestId("team-member-list-container");
+
+    const adminTableLocator = page.getByTestId("team-member-list-container");
     await expect(adminTableLocator).toBeVisible();
 
     // 4) Only Team Admin/Owner can see privacy settings
