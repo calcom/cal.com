@@ -42,7 +42,10 @@ async function handler(req: NextRequest) {
   try {
     const refreshToken = req.headers.get("authorization")?.split(" ")[1] || "";
     decodedRefreshToken = jwt.verify(refreshToken, secretKey) as OAuthTokenPayload;
-  } catch {
+  } catch (err: unknown) {
+    if (typeof err === "object" && err !== null && "name" in err && err.name === "TokenExpiredError") {
+      return NextResponse.json({ message: "Refresh token expired" }, { status: 401 });
+    }
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
@@ -62,7 +65,16 @@ async function handler(req: NextRequest) {
     expiresIn: 1800, // 30 min
   });
 
-  return NextResponse.json({ access_token }, { status: 200 });
+  const newRefreshTokenPayload: OAuthTokenPayload = {
+    userId: decodedRefreshToken.userId,
+    teamId: decodedRefreshToken.teamId,
+    scope: decodedRefreshToken.scope,
+    token_type: "Refresh Token",
+    clientId: client_id,
+  };
+  const refresh_token = jwt.sign(newRefreshTokenPayload, secretKey);
+
+  return NextResponse.json({ access_token, refresh_token }, { status: 200 });
 }
 
 export const POST = defaultResponderForAppDir(handler);
