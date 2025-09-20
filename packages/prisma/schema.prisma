@@ -61,6 +61,12 @@ enum CreationSource {
   WEBAPP @map("webapp")
 }
 
+enum Plans {
+  ENTERPRISE
+  ORGANIZATIONS
+  TEAMS
+}
+
 model Host {
   user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId           Int
@@ -586,6 +592,8 @@ model Team {
   managedOrganization  ManagedOrganization?  @relation("ManagedOrganization")
   managedOrganizations ManagedOrganization[] @relation("ManagerOrganization")
   filterSegments       FilterSegment[]
+
+  plan Plans?
 
   @@unique([slug, parentId])
   @@index([parentId])

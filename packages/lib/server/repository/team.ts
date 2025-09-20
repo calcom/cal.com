@@ -398,4 +398,19 @@ export class TeamRepository {
       },
     });
   }
+
+  async findFirstByMetadataPaymentId({ paymentId }: { paymentId: string }) {
+    return await this.prismaClient.team.findFirst({
+      where: { metadata: { path: ["paymentId"], equals: paymentId } },
+      select: teamSelect,
+    });
+  }
+
+  async updateById({ id, data }: { id: number; data: Prisma.TeamUpdateInput }) {
+    return await this.prismaClient.team.update({
+      where: { id },
+      data,
+      select: teamSelect,
+    });
+  }
 }
