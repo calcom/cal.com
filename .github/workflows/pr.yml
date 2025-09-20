@@ -24,6 +24,8 @@ jobs:
       pull-requests: read
     outputs:
       has-files-requiring-all-checks: ${{ steps.filter.outputs.has-files-requiring-all-checks }}
+      has-test-only-changes: ${{ steps.filter.outputs.has-test-only-changes }}
+      has-e2e-only-changes: ${{ steps.filter.outputs.has-e2e-only-changes }}
       commit-sha: ${{ steps.get_sha.outputs.commit-sha }}
     steps:
       - uses: actions/checkout@v4
@@ -34,6 +36,12 @@ jobs:
           filters: |
             has-files-requiring-all-checks:
               - "!(**.md|**.mdx|.github/CODEOWNERS|docs/**|help/**|apps/web/public/static/locales/**/common.json|i18n.lock)"
+            has-test-only-changes:
+              - "**.test.ts"
+              - "**.test.tsx"
+            has-e2e-only-changes:
+              - "**.e2e.ts"
+              - "**.e2e.tsx"
       - name: Get Latest Commit SHA
         id: get_sha
         run: |
@@ -94,7 +102,7 @@ jobs:
   deps:
     name: Install dependencies
     needs: [changes, check-label]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' || needs.changes.outputs.has-e2e-only-changes == 'true' }}
     uses: ./.github/workflows/yarn-install.yml
 
   type-check:
@@ -121,35 +129,35 @@ jobs:
   build-api-v1:
     name: Production builds
     needs: [changes, check-label, deps]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ (needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true') || needs.changes.outputs.has-e2e-only-changes == 'true' }}
     uses: ./.github/workflows/api-v1-production-build.yml
     secrets: inherit
 
   build-api-v2:
     name: Production builds
     needs: [changes, check-label, deps]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ (needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true') || needs.changes.outputs.has-e2e-only-changes == 'true' }}
     uses: ./.github/workflows/api-v2-production-build.yml
     secrets: inherit
 
   build-atoms:
     name: Production builds
     needs: [changes, check-label, deps]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ (needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true') || needs.changes.outputs.has-e2e-only-changes == 'true' }}
     uses: ./.github/workflows/atoms-production-build.yml
     secrets: inherit
 
   build-docs:
     name: Production builds
     needs: [changes, check-label, deps]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ (needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true') || needs.changes.outputs.has-e2e-only-changes == 'true' }}
     uses: ./.github/workflows/docs-build.yml
     secrets: inherit
 
   build:
     name: Production builds
     needs: [changes, check-label, deps]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ (needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true') || needs.changes.outputs.has-e2e-only-changes == 'true' }}
     uses: ./.github/workflows/production-build-without-database.yml
     secrets: inherit
 
@@ -163,42 +171,42 @@ jobs:
   e2e:
     name: Tests
     needs: [changes, check-label, build, build-api-v1, build-api-v2]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ (needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' && needs.changes.outputs.has-test-only-changes == 'false') || needs.changes.outputs.has-e2e-only-changes == 'true' }}
     uses: ./.github/workflows/e2e.yml
     secrets: inherit
 
   e2e-api-v2:
     name: Tests
     needs: [changes, check-label, build, build-api-v1, build-api-v2]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ (needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' && needs.changes.outputs.has-test-only-changes == 'false') || needs.changes.outputs.has-e2e-only-changes == 'true' }}
     uses: ./.github/workflows/e2e-api-v2.yml
     secrets: inherit
 
   e2e-app-store:
     name: Tests
     needs: [changes, check-label, build, build-api-v1, build-api-v2]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ (needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' && needs.changes.outputs.has-test-only-changes == 'false') || needs.changes.outputs.has-e2e-only-changes == 'true' }}
     uses: ./.github/workflows/e2e-app-store.yml
     secrets: inherit
 
   e2e-embed:
     name: Tests
     needs: [changes, check-label, build, build-api-v1, build-api-v2]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ (needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' && needs.changes.outputs.has-test-only-changes == 'false') || needs.changes.outputs.has-e2e-only-changes == 'true' }}
     uses: ./.github/workflows/e2e-embed.yml
     secrets: inherit
 
   e2e-embed-react:
     name: Tests
     needs: [changes, check-label, build, build-api-v1, build-api-v2]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ (needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' && needs.changes.outputs.has-test-only-changes == 'false') || needs.changes.outputs.has-e2e-only-changes == 'true' }}
     uses: ./.github/workflows/e2e-embed-react.yml
     secrets: inherit
 
   e2e-atoms:
     name: Tests
     needs: [changes, check-label, build, build-atoms, build-api-v2]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ (needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' && needs.changes.outputs.has-test-only-changes == 'false') || needs.changes.outputs.has-e2e-only-changes == 'true' }}
     uses: ./.github/workflows/e2e-atoms.yml
     secrets: inherit
 
@@ -210,14 +218,14 @@ jobs:
 
   merge-reports:
     name: Merge reports
-    if: ${{ !cancelled() && needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ !cancelled() && ((needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' && needs.changes.outputs.has-test-only-changes == 'false') || needs.changes.outputs.has-e2e-only-changes == 'true') }}
     needs: [changes, check-label, e2e, e2e-embed, e2e-embed-react, e2e-app-store, e2e-atoms]
     uses: ./.github/workflows/merge-reports.yml
     secrets: inherit
 
   publish-report:
     name: Publish HTML report
-    if: ${{ !cancelled() && needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ !cancelled() && ((needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' && needs.changes.outputs.has-test-only-changes == 'false') || needs.changes.outputs.has-e2e-only-changes == 'true') }}
     permissions:
       contents: write
       issues: write
@@ -262,5 +270,5 @@ jobs:
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
       - name: fail if conditional jobs failed
-        if: needs.changes.outputs.has-files-requiring-all-checks == 'true' && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled'))
+        if: (needs.changes.outputs.has-files-requiring-all-checks == 'true' || needs.changes.outputs.has-e2e-only-changes == 'true') && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled'))
         run: exit 1
