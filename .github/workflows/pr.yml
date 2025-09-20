@@ -1,11 +1,8 @@
 name: PR Update
 
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, synchronize, reopened, labeled]
-    branches:
-      - main
-      - gh-actions-test-branch
   workflow_dispatch:
 
 permissions:
@@ -156,7 +153,7 @@ jobs:
   integration-test:
     name: Tests
     needs: [changes, check-label, build, build-api-v1, build-api-v2]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/integration-tests.yml
     secrets: inherit
 
@@ -204,15 +201,14 @@ jobs:
 
   analyze:
     name: Analyze Build
-    needs: [build, changes, check-label]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [build]
     uses: ./.github/workflows/nextjs-bundle-analysis.yml
     secrets: inherit
 
   merge-reports:
     name: Merge reports
     if: ${{ !cancelled() && needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    needs: [changes, check-label, deps, e2e, e2e-embed, e2e-embed-react, e2e-app-store, e2e-atoms]
+    needs: [changes, check-label, e2e, e2e-embed, e2e-embed-react, e2e-app-store, e2e-atoms]
     uses: ./.github/workflows/merge-reports.yml
     secrets: inherit
 
@@ -263,5 +259,5 @@ jobs:
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
       - name: fail if conditional jobs failed
-        if: needs.changes.outputs.has-files-requiring-all-checks == 'true' && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled'))
+        if: needs.changes.outputs.has-files-requiring-all-checks == 'true' && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled'))
         run: exit 1
