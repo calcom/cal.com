@@ -1,9 +1,13 @@
+import { getAllWorkflows } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import type { ScheduleWorkflowRemindersArgs } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import type { Workflow } from "@calcom/ee/workflows/lib/types";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { prisma } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/lib/formSubmissionUtils";
 
+import { getHideBranding } from "../../hideBranding";
 import { WorkflowRepository } from "../repository/workflow";
 
 // TODO (Sean): Move most of the logic migrated in 16861 to this service
@@ -12,6 +16,56 @@ export class WorkflowService {
     WorkflowTriggerEvents.AFTER_EVENT,
     WorkflowTriggerEvents.BEFORE_EVENT,
   ];
+
+  static async getAllWorkflowsFromRoutingForm(routingForm: {
+    id: string;
+    userId: number | null;
+    teamId: number | null;
+  }) {
+    const routingFormWorkflows = await prisma.workflow.findMany({
+      where: {
+        activeOnRoutingForms: {
+          some: {
+            routingFormId: routingForm.id,
+          },
+        },
+        trigger: WorkflowTriggerEvents.FORM_SUBMITTED,
+      },
+      select: {
+        id: true,
+        name: true,
+        trigger: true,
+        time: true,
+        timeUnit: true,
+        userId: true,
+        teamId: true,
+        steps: true,
+        team: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+      },
+    });
+
+    const teamId = routingForm.teamId;
+    const userId = routingForm.userId;
+    const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
+
+    const allWorkflows = await getAllWorkflows({
+      entityWorkflows: routingFormWorkflows as any, // Temporary cast until Prisma client is regenerated
+      userId,
+      teamId,
+      orgId,
+      workflowsLockedForUser: false,
+      triggerType: "routingForm",
+    });
+
+    return allWorkflows;
+  }
+
   static async deleteWorkflowRemindersOfRemovedTeam(teamId: number) {
     const team = await prisma.team.findUnique({
       where: {
@@ -70,6 +124,62 @@ export class WorkflowService {
         await WorkflowRepository.deleteAllWorkflowReminders(remindersToDelete);
       }
     }
+  }
+
+  static async scheduleFormWorkflows({
+    workflows,
+    responses,
+    responseId,
+    form,
+  }: {
+    workflows: Workflow[];
+    responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
+    responseId: number;
+    form: {
+      id: string;
+      userId: number;
+      teamId?: number | null;
+      fields?: { type: string; identifier?: string }[];
+      user: {
+        email: string;
+        timeFormat: number | null;
+        locale: string | null;
+      };
+    };
+  }) {
+    if (workflows.length <= 0) return;
+
+    const workflowsToTrigger: Workflow[] = [];
+
+    workflowsToTrigger.push(
+      ...workflows.filter((workflow) => workflow.trigger === ("FORM_SUBMITTED" as any))
+    );
+
+    let smsReminderNumber: string | null = null;
+    if (form.fields) {
+      const phoneField = form.fields.find((field) => field.type === "phone");
+      if (phoneField && phoneField.identifier) {
+        const phoneResponse = responses[phoneField.identifier];
+        if (phoneResponse?.response && typeof phoneResponse.response === "string") {
+          smsReminderNumber = phoneResponse.response as string;
+        }
+      }
+    }
+
+    const hideBranding = await getHideBranding({
+      userId: form.userId,
+      teamId: form.teamId ?? undefined,
+    });
+
+    await scheduleWorkflowReminders({
+      smsReminderNumber,
+      formData: {
+        responses,
+        user: { email: form.user.email, timeFormat: form.user.timeFormat, locale: form.user.locale ?? "en" },
+      },
+      hideBranding,
+      workflows: workflowsToTrigger,
+    });
   }
 
   static async scheduleWorkflowsForNewBooking({
