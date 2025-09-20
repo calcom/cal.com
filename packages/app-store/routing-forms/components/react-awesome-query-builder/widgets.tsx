@@ -370,22 +370,16 @@ const FieldSelect = function FieldSelect(props: FieldProps) {
 };
 
 function DateWidget({ value, setValue, ...remainingProps }: TextLikeComponentPropsRAQB) {
-  // Use current date as default if no value is set
   const dateValue = value ? new Date(value) : new Date();
-  
+
   const handleDateChange = (date: Date) => {
-    // Format date as YYYY-MM-DD
-    const formattedDate = date.toISOString().split('T')[0];
+    const formattedDate = date.toISOString().split("T")[0];
     setValue(formattedDate);
   };
-  
+
   return (
-    <div className="w-full mb-2">
-      <DatePicker
-        date={dateValue}
-        onDatesChange={handleDateChange}
-        {...remainingProps}
-      />
+    <div className="mb-2 w-full">
+      <DatePicker date={dateValue} onDatesChange={handleDateChange} {...remainingProps} />
     </div>
   );
 }
