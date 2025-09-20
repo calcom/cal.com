@@ -215,7 +215,7 @@ function BookingsContent({ status }: BookingsProps) {
       columnHelper.accessor((row) => row.type === "data" && row.booking.user?.id, {
         id: "userId",
         header: t("member"),
-        enableColumnFilter: user?.isTeamAdminOrOwner ?? false,
+        enableColumnFilter: !!user?.teamsWhereUserIsAdminOrOwner && user.teamsWhereUserIsAdminOrOwner.length > 0,
         enableSorting: false,
         cell: () => null,
         meta: {
@@ -292,6 +292,8 @@ function BookingsContent({ status }: BookingsProps) {
                   userTimeZone: user?.timeZone,
                   userTimeFormat: user?.timeFormat,
                   userEmail: user?.email,
+                  teamsWhereUserIsAdminOrOwner: user?.teamsWhereUserIsAdminOrOwner,
+                  userIsOrgAdminOrOwner: user?.organization?.isOrgAdmin,
                 }}
                 listingStatus={status}
                 recurringInfo={recurringInfo}
