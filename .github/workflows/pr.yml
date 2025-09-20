@@ -3,9 +3,6 @@ name: PR Update
 on:
   pull_request:
     types: [opened, synchronize, reopened, labeled]
-    branches:
-      - main
-      - gh-actions-test-branch
   workflow_dispatch:
 
 permissions:
@@ -143,7 +140,7 @@ jobs:
           # Build the image
           cat > Dockerfile.deps << 'EOF'
           FROM ubuntu:22.04
-          
+
           # Install system dependencies
           RUN apt-get update && apt-get install -y \
               curl \
@@ -152,42 +149,42 @@ jobs:
               python3 \
               python3-pip \
               && rm -rf /var/lib/apt/lists/*
-          
+
           # Install Node.js 20
           RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
               apt-get install -y nodejs
-          
+
           # Install yarn
           RUN npm install -g yarn
-          
+
           # Set working directory
           WORKDIR /workspace
-          
+
           # Copy package files first for better caching
           COPY package.json yarn.lock .yarnrc.yml ./
-          
+
           # Copy all package.json files from packages and apps
           COPY packages/ ./packages/
           COPY apps/ ./apps/
-          
+
           # Install dependencies with same optimizations as yarn-install action
           ENV YARN_ENABLE_IMMUTABLE_INSTALLS=false
           ENV YARN_ENABLE_GLOBAL_CACHE=false
           ENV YARN_NM_MODE=hardlinks-local
           ENV HUSKY=0
           ENV YARN_INSTALL_STATE_PATH=.yarn/ci-cache/install-state.gz
-          
+
           RUN yarn install --inline-builds && \
               yarn prisma generate
-          
+
           # Get Playwright version and install with dependencies
           RUN PLAYWRIGHT_VERSION=$(node -e "console.log(require('./package.json').devDependencies['@playwright/test'])") && \
               yarn playwright install --with-deps
-          
+
           # Clean up
           RUN apt-get clean && rm -rf /var/lib/apt/lists/*
           EOF
-          
+
           docker build -f Dockerfile.deps -t ${FULL_IMAGE} .
           docker push ${FULL_IMAGE}
 
