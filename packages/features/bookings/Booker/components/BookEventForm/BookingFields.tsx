@@ -107,7 +107,7 @@ export const BookingFields = ({
             return null;
           }
           // rescheduleReason is a reschedule specific field and thus should be editable during reschedule
-          readOnly = false; // rescheduleReason is editable during reschedule
+          readOnly = false;
         }
 
         // 🚨 Skip duplicate/legacy phone fields (we only want attendeePhoneNumber now)
