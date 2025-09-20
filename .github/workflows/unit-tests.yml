@@ -5,15 +5,33 @@ env:
   LINGO_DOT_DEV_API_KEY: ${{ secrets.CI_LINGO_DOT_DEV_API_KEY }}
 permissions:
   contents: read
+  packages: read
 jobs:
-  test:
-    name: Unit
-    timeout-minutes: 20
-    runs-on: buildjet-4vcpu-ubuntu-2204
+  get-image:
+    name: Get Docker Image
+    runs-on: buildjet-2vcpu-ubuntu-2204
+    outputs:
+      image: ${{ steps.get-image.outputs.full-image }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
-      - uses: ./.github/actions/yarn-install
+      - name: Get image tag
+        id: get-image
+        uses: ./.github/actions/use-deps-image
+
+  test:
+    name: Unit
+    timeout-minutes: 20
+    needs: get-image
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    container:
+      image: ${{ needs.get-image.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/dangerous-git-checkout
       - run: yarn test -- --no-isolate
       # We could add different timezones here that we need to run our tests in
       - run: TZ=America/Los_Angeles yarn test -- --timeZoneDependentTestsOnly --no-isolate

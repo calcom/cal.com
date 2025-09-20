@@ -8,14 +8,33 @@ permissions:
   actions: read
   contents: read
   pull-requests: write
+  packages: read
 
 jobs:
-  annotate:
-    if: always()
+  get-image:
+    name: Get Docker Image
     runs-on: buildjet-2vcpu-ubuntu-2204
+    outputs:
+      image: ${{ steps.get-image.outputs.full-image }}
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/yarn-install
+      - uses: ./.github/actions/dangerous-git-checkout
+      - name: Get image tag
+        id: get-image
+        uses: ./.github/actions/use-deps-image
+
+  annotate:
+    if: always()
+    needs: get-image
+    runs-on: buildjet-2vcpu-ubuntu-2204
+    container:
+      image: ${{ needs.get-image.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/cache-build
       - name: Download base branch bundle stats
         uses: dawidd6/action-download-artifact@v2
