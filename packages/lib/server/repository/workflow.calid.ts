@@ -230,12 +230,13 @@ export class CalIdWorkflowRepository {
     const memberships = await prisma.calIdMembership.findMany({
       where: { userId, acceptedInvitation: true },
       select: {
+        role: true,
         calIdTeam: {
           select: {
             id: true,
             slug: true,
             name: true,
-            members: true,
+            // members: true,
             logoUrl: true,
           },
         },
@@ -257,14 +258,14 @@ export class CalIdWorkflowRepository {
       return {
         filtered: mapWorkflows(allWorkflows).workflows,
         totalCount: allWorkflows.length,
-        teams: memberships.map((m) => m.calIdTeam),
+        teams: memberships.map((m) => ({ ...m.calIdTeam, role: m.role })),
       };
     }
 
     // Build filtered WHERE clause
     const where: Prisma.CalIdWorkflowWhereInput = { OR: [] };
     if (filters?.calIdTeamIds?.length) {
-      where.OR.push({
+      where.OR?.push({
         calIdTeam: {
           id: { in: filters.calIdTeamIds },
           members: { some: { userId, acceptedInvitation: true } },
@@ -272,7 +273,7 @@ export class CalIdWorkflowRepository {
       });
     }
     if (filters?.userIds?.length) {
-      where.OR.push({
+      where.OR?.push({
         userId: { in: filters.userIds },
         calIdTeamId: null,
       });
@@ -289,7 +290,7 @@ export class CalIdWorkflowRepository {
     return {
       filtered: filteredWorkflowsWithReadOnly,
       totalCount: allWorkflows.length,
-      teams: memberships.map((m) => m.calIdTeam),
+      teams: memberships.map((m) => ({ ...m.calIdTeam, role: m.role })),
     };
   }
 

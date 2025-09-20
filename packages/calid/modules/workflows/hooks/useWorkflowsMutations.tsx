@@ -7,7 +7,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 
-export const useWorkflowMutations = (filters: any) => {
+export const useWorkflowMutations = (filters: any, onCreateSuccess?: () => void) => {
   const { t } = useLocale();
   const router = useRouter();
   const utils = trpc.useUtils();
@@ -15,6 +15,8 @@ export const useWorkflowMutations = (filters: any) => {
   // Create workflow mutation
   const createMutation = trpc.viewer.workflows.calid_create.useMutation({
     onSuccess: async ({ workflow }) => {
+      onCreateSuccess?.();
+
       await router.replace(`/workflows/${workflow.id}`);
     },
     onError: (err) => {
@@ -92,9 +94,12 @@ export const useWorkflowMutations = (filters: any) => {
   });
 
   // Handler functions
-  const handleCreateWorkflow = useCallback(() => {
-    createMutation.mutate({ calIdTeamId: undefined });
-  }, [createMutation]);
+  const handleCreateWorkflow = useCallback(
+    (teamId?: number) => {
+      createMutation.mutate({ calIdTeamId: teamId });
+    },
+    [createMutation]
+  );
 
   const handleWorkflowEdit = useCallback(
     (workflowId: number) => {

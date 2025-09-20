@@ -175,7 +175,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
   const teamId = workflowData?.calIdTeamId ?? undefined;
 
   const { data: eventTypeData, isPending: isPendingEventTypes } =
-    trpc.viewer.eventTypes.getTeamAndEventTypeOptions.useQuery(
+    trpc.viewer.eventTypes.getCalIdTeamAndEventTypeOptions.useQuery(
       { teamId, isOrg },
       { enabled: !isPendingWorkflow }
     );

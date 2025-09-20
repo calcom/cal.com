@@ -9,6 +9,7 @@ import { trpc } from "@calcom/trpc/react";
 
 import type { CalIdWorkflowsProps } from "../config/types";
 import { useWorkflowMutations } from "../hooks/useWorkflowsMutations";
+import { WorkflowCreateDialog } from "./workflow_create_dialog";
 import { WorkflowDeleteDialog } from "./workflow_delete_dialog";
 import { WorkflowEmptyState } from "./workflow_empty_state";
 import { WorkflowLoading } from "./workflow_loading_state";
@@ -24,6 +25,7 @@ export const Workflows: React.FC<CalIdWorkflowsProps> = ({ setHeaderMeta, filter
   const [copiedLink, setCopiedLink] = useState<number | null>(null);
   const [workflowDeleteDialogOpen, setWorkflowDeleteDialogOpen] = useState(false);
   const [workflowIdToDelete, setWorkflowIdToDelete] = useState(0);
+  const [workflowCreateDialogOpen, setWorkflowCreateDialogOpen] = useState(false);
 
   // Single source of truth - extract filters from query
   const filters = useMemo(() => getTeamsFiltersFromQuery(routerQuery), [routerQuery]);
@@ -37,8 +39,10 @@ export const Workflows: React.FC<CalIdWorkflowsProps> = ({ setHeaderMeta, filter
   const filteredWorkflows = filteredList ?? data;
   const isPending = filteredList ? false : _isPending;
 
-  // Custom hook for mutations and handlers
-  const { mutations, handlers } = useWorkflowMutations(filters);
+  // Custom hook for mutations and handlers with callback to close dialog on success
+  const { mutations, handlers } = useWorkflowMutations(filters, () => {
+    setWorkflowCreateDialogOpen(false);
+  });
 
   // Enhanced handlers with local state management
   const handleCopyLinkWithState = useCallback(
@@ -54,6 +58,11 @@ export const Workflows: React.FC<CalIdWorkflowsProps> = ({ setHeaderMeta, filter
   const handleWorkflowDelete = useCallback((workflowId: number) => {
     setWorkflowIdToDelete(workflowId);
     setWorkflowDeleteDialogOpen(true);
+  }, []);
+
+  // Handler to open the create workflow dialog
+  const handleOpenCreateDialog = useCallback(() => {
+    setWorkflowCreateDialogOpen(true);
   }, []);
 
   // Derived values
@@ -79,7 +88,7 @@ export const Workflows: React.FC<CalIdWorkflowsProps> = ({ setHeaderMeta, filter
           )}
 
           <WorkflowEmptyState
-            onCreateWorkflow={handlers.handleCreateWorkflow}
+            onCreateWorkflow={handleOpenCreateDialog}
             isCreating={mutations.create.isPending}
           />
         </div>
@@ -88,7 +97,7 @@ export const Workflows: React.FC<CalIdWorkflowsProps> = ({ setHeaderMeta, filter
         <WorkflowsList
           workflows={workflows}
           teamProfiles={teamProfiles}
-          onCreateWorkflow={handlers.handleCreateWorkflow}
+          onCreateWorkflow={handleOpenCreateDialog}
           onEdit={handlers.handleWorkflowEdit}
           onToggle={handlers.handleWorkflowToggle}
           onDuplicate={handlers.handleWorkflowDuplicate}
@@ -98,6 +107,15 @@ export const Workflows: React.FC<CalIdWorkflowsProps> = ({ setHeaderMeta, filter
           isCreating={mutations.create.isPending}
         />
       )}
+
+      {/* Create Dialog */}
+      <WorkflowCreateDialog
+        isOpenDialog={workflowCreateDialogOpen}
+        setIsOpenDialog={setWorkflowCreateDialogOpen}
+        teams={teamProfiles}
+        onCreateWorkflow={handlers.handleCreateWorkflow}
+        isCreating={mutations.create.isPending}
+      />
 
       {/* Delete Dialog */}
       <WorkflowDeleteDialog
