@@ -15,7 +15,7 @@ export class PrismaWatchlistReadRepository implements IWatchlistReadRepository {
         where: {
           type: WatchlistType.EMAIL,
           value: email.toLowerCase(),
-          action: "BLOCK_BOOKING", // TODO: Use enum when WatchlistAction is added to schema
+          action: "BLOCK", // Updated to use the new enum value
           organizationId: organizationId ?? null,
         },
       });
@@ -31,7 +31,7 @@ export class PrismaWatchlistReadRepository implements IWatchlistReadRepository {
         where: {
           type: WatchlistType.DOMAIN,
           value: domain.toLowerCase(),
-          action: "BLOCK_BOOKING", // TODO: Use enum when WatchlistAction is added to schema
+          action: "BLOCK", // Updated to use the new enum value
           organizationId: organizationId ?? null,
         },
       });
@@ -46,7 +46,7 @@ export class PrismaWatchlistReadRepository implements IWatchlistReadRepository {
       return await this.prisma.watchlist.findMany({
         where: {
           organizationId,
-          action: "BLOCK_BOOKING", // TODO: Use enum when WatchlistAction is added to schema
+          action: "BLOCK", // Updated to use the new enum value
         },
         orderBy: { createdAt: "desc" },
       });

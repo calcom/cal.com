@@ -587,6 +587,10 @@ model Team {
   managedOrganizations ManagedOrganization[] @relation("ManagerOrganization")
   filterSegments       FilterSegment[]
 
+  // Watchlist relations
+  watchlistEntries Watchlist[]
+  blockedBookings  BlockedBooking[]
+
   @@unique([slug, parentId])
   @@index([parentId])
 }
@@ -2247,22 +2251,51 @@ enum WatchlistSeverity {
   CRITICAL
 }
 
-model Watchlist {
-  id          String            @id @unique @default(cuid())
-  type        WatchlistType
-  // The identifier of the Watchlisted entity (email or domain)
-  value       String
-  description String?
-  createdAt   DateTime          @default(now())
-  createdBy   User              @relation("CreatedWatchlists", onDelete: Cascade, fields: [createdById], references: [id])
-  createdById Int
-  updatedAt   DateTime          @updatedAt
-  updatedBy   User?             @relation("UpdatedWatchlists", onDelete: SetNull, fields: [updatedById], references: [id])
-  updatedById Int?
-  severity    WatchlistSeverity @default(LOW)
+enum WatchlistAction {
+  REPORT // Only log/report suspicious activity
+  BLOCK // Prevent bookings (decoy flow)
+}
 
-  @@unique([type, value])
-  @@index([type, value])
+model Watchlist {
+  id             String            @id @unique @default(cuid())
+  type           WatchlistType
+  // The identifier of the Watchlisted entity (email or domain)
+  value          String
+  description    String?
+  // Organization scope - null means global, set means org-specific
+  organizationId Int?
+  organization   Team?             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  // Action type for this watchlist entry
+  action         WatchlistAction   @default(REPORT)
+  // Severity marker (useful for reporting/analytics)
+  severity       WatchlistSeverity @default(LOW)
+  createdAt      DateTime          @default(now())
+  createdBy      User              @relation("CreatedWatchlists", onDelete: Cascade, fields: [createdById], references: [id])
+  createdById    Int
+  updatedAt      DateTime          @updatedAt
+  updatedBy      User?             @relation("UpdatedWatchlists", onDelete: SetNull, fields: [updatedById], references: [id])
+  updatedById    Int?
+
+  @@unique([type, value, organizationId])
+  @@index([type, value, organizationId, action])
+}
+
+model BlockedBooking {
+  id               String   @id @unique @default(uuid())
+  uid              String   @unique @default(uuid())
+  email            String
+  eventTypeId      Int?
+  organizationId   Int
+  blockingReason   String // 'email' | 'domain'
+  watchlistEntryId String
+  // Store original booking attempt data for audit purposes
+  bookingData      Json?
+  createdAt        DateTime @default(now())
+
+  organization Team @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@index([email])
 }
 
 enum BillingPeriod {

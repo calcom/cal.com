@@ -10,6 +10,7 @@ export const WATCHLIST_DI_TOKENS = {
   BLOCKING_SERVICE_MODULE: Symbol("BlockingServiceModule"),
 
   // Audit service tokens
+  AUDIT_REPOSITORY: Symbol("AuditRepository"),
   AUDIT_SERVICE: Symbol("AuditService"),
   AUDIT_SERVICE_MODULE: Symbol("AuditServiceModule"),
 

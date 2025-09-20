@@ -21,7 +21,7 @@ export class PrismaWatchlistWriteRepository implements IWatchlistWriteRepository
           description: data.description,
           organizationId: data.organizationId ?? null,
           createdById: data.createdById,
-          action: "BLOCK_BOOKING", // TODO: Use enum when WatchlistAction is added to schema
+          action: data.action || "BLOCK", // Use provided action or default to BLOCK
         },
       });
     } catch (err) {
