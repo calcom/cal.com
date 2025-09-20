@@ -1,5 +1,11 @@
 ## 1.1.2
 
+## 1.8.1
+
+### Patch Changes
+
+- [#23891](https://github.com/calcom/cal.com/pull/23891) [`4f114ef`](https://github.com/calcom/cal.com/commit/4f114ef8d3b241394976ed930be70197eff6431d) Thanks [@supalarry](https://github.com/supalarry)! - fix: EventTypeSettings Checkbox booking field label
+
 ## 1.8.0
 
 ### Minor Changes
