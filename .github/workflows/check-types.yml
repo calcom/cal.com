@@ -13,6 +13,24 @@ jobs:
     outputs:
       image: ${{ steps.get-image.outputs.full-image }}
     steps:
+      - name: Debug container environment
+        run: |
+          echo "=== Container Environment Debug ==="
+          echo "Current working directory: $(pwd)"
+          echo "Home directory: $HOME"
+          echo "User: $(whoami)"
+          echo "Container hostname: $(hostname)"
+          echo "Available disk space:"
+          df -h
+          echo "Directory contents:"
+          ls -la /
+          echo "Workspace directory contents:"
+          ls -la /workspace || echo "No /workspace directory found"
+          echo "Node modules check:"
+          ls -la /workspace/node_modules || echo "No node_modules in /workspace"
+          echo "Yarn state file check:"
+          find /workspace -name ".pnp.*" -o -name "yarn.lock" -o -name ".yarn" 2>/dev/null || echo "No yarn files found"
+          echo "=== End Debug ==="
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
       - name: Check if yarn.lock changed and if image exists
