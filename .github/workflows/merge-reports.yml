@@ -7,14 +7,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
-      - name: Download dependencies artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: node-dependencies-${{ github.run_id }}
-          path: .
-        continue-on-error: true
-      - uses: ./.github/actions/yarn-install-from-cache
-      - uses: ./.github/actions/yarn-playwright-install-from-cache
+      - uses: ./.github/actions/yarn-install
+      - uses: ./.github/actions/yarn-playwright-install
       - name: Download blob reports from GitHub Actions Artifacts
         uses: actions/download-artifact@v4
         with:
