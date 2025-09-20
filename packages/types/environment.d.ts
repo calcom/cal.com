@@ -22,6 +22,7 @@ declare namespace NodeJS {
     readonly EMAIL_SERVER_PORT: string | undefined;
     readonly EMAIL_SERVER_USER: string | undefined;
     readonly EMAIL_SERVER_PASSWORD: string | undefined;
+    readonly MARKETING_EMAIL_SERVER_TOKEN: string | undefined;
     readonly CRON_API_KEY: string | undefined;
     readonly CRON_ENABLE_APP_SYNC: string | undefined;
     readonly NEXT_PUBLIC_STRIPE_PUBLIC_KEY: string | undefined;
