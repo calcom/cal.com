@@ -345,6 +345,7 @@ jobs:
     needs:
       [
         changes,
+        build-deps-image-if-needed,
         lint,
         type-check,
         unit-test,
