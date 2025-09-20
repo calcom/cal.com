@@ -2,9 +2,8 @@ import { createPrismock } from "prismock";
 import { beforeEach, vi } from "vitest";
 
 import logger from "@calcom/lib/logger";
-import * as selects from "@calcom/prisma/selects";
-
 import { Prisma as PrismaType } from "@calcom/prisma/client";
+import * as selects from "@calcom/prisma/selects";
 
 vi.stubEnv("DATABASE_URL", "postgresql://user:password@localhost:5432/testdb");
 
