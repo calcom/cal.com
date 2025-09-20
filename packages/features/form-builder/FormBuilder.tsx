@@ -4,9 +4,10 @@ import type { SubmitHandler, UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
 import type { z } from "zod";
 import { ZodError } from "zod";
+
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import { getCurrencySymbol } from "@calcom/app-store/_utils/payments/currencyConversions";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { getCurrencySymbol } from "@calcom/lib/currencyConversions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
