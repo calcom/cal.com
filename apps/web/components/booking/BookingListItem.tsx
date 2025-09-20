@@ -50,6 +50,7 @@ import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTit
 
 import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
+import DeleteBookingDialog from "@components/dialog/DeleteBookingDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { ReassignDialog } from "@components/dialog/ReassignDialog";
 import { RerouteDialog } from "@components/dialog/RerouteDialog";
@@ -58,6 +59,7 @@ import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 import {
   getPendingActions,
   getCancelEventAction,
+  getDeleteEventAction,
   getEditEventActions,
   getAfterEventActions,
   shouldShowPendingActions,
@@ -269,6 +271,7 @@ function BookingListItem(booking: BookingItemProps) {
   })) as ActionType[];
 
   const cancelEventAction = getCancelEventAction(actionContext);
+  const deleteEventAction = getDeleteEventAction(actionContext);
 
   const RequestSentMessage = () => {
     return (
@@ -290,6 +293,7 @@ function BookingListItem(booking: BookingItemProps) {
   const [isOpenReassignDialog, setIsOpenReassignDialog] = useState(false);
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
   const [isOpenAddGuestsDialog, setIsOpenAddGuestsDialog] = useState(false);
+  const [isOpenDeleteDialog, setIsOpenDeleteDialog] = useState(false);
   const [rerouteDialogIsOpen, setRerouteDialogIsOpen] = useState(false);
   const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
     onSuccess: () => {
@@ -453,6 +457,11 @@ function BookingListItem(booking: BookingItemProps) {
           timeFormat={userTimeFormat ?? null}
         />
       )}
+      <DeleteBookingDialog
+        isOpenDialog={isOpenDeleteDialog}
+        setIsOpenDialog={setIsOpenDeleteDialog}
+        bookingId={booking.id}
+      />
       {isNoShowDialogOpen && (
         <NoShowAttendeesDialog
           bookingUid={booking.uid}
@@ -701,6 +710,26 @@ function BookingListItem(booking: BookingItemProps) {
                         {cancelEventAction.label}
                       </DropdownItem>
                     </DropdownMenuItem>
+                    {isBookingInPast && (
+                      <DropdownMenuItem
+                        className="rounded-lg"
+                        key={deleteEventAction.id}
+                        disabled={deleteEventAction.disabled}>
+                        <DropdownItem
+                          type="button"
+                          color={deleteEventAction.color}
+                          StartIcon={deleteEventAction.icon}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setIsOpenDeleteDialog(true);
+                          }}
+                          disabled={deleteEventAction.disabled}
+                          data-testid={deleteEventAction.id}
+                          className={deleteEventAction.disabled ? "text-muted" : undefined}>
+                          {deleteEventAction.label}
+                        </DropdownItem>
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenuPortal>
               </Dropdown>
