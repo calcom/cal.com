@@ -144,6 +144,11 @@ export type BookerStore = {
   setBookingData: (bookingData: GetBookingType | null | undefined) => void;
 
   /**
+   * Method used to set ReferenceID
+   */
+  setRescheduleUid: (rescheduleUid: string | null) => void;
+
+  /**
    * Method called by booker component to set initial data.
    */
   initialize: (data: StoreInitializeType) => void;
@@ -414,6 +419,9 @@ export const createBookerStore = () =>
     },
     setBookingData: (bookingData: GetBookingType | null | undefined) => {
       set({ bookingData: bookingData ?? null });
+    },
+    setRescheduleUid: (rescheduleUid: string | null) => {
+      set({ rescheduleUid: rescheduleUid ?? null });
     },
     recurringEventCount: null,
     setRecurringEventCount: (recurringEventCount: number | null) => set({ recurringEventCount }),
