@@ -56,7 +56,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
-      - uses: ./.github/actions/use-deps-image
+      - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/cache-build
       - name: Analyze bundle
         run: |

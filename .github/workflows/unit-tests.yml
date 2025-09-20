@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
-      - uses: ./.github/actions/use-deps-image
+      - uses: ./.github/actions/yarn-install
       - run: yarn test -- --no-isolate
       # We could add different timezones here that we need to run our tests in
       - run: TZ=America/Los_Angeles yarn test -- --timeZoneDependentTestsOnly --no-isolate

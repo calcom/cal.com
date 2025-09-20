@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
-      - uses: ./.github/actions/use-deps-image
+      - uses: ./.github/actions/yarn-install
       - name: Show info
         run: node -e "console.log(require('v8').getHeapStatistics())"
       - name: Configure TSC problem matcher

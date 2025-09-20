@@ -80,7 +80,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
-      - uses: ./.github/actions/use-deps-image
+      - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/cache-db
       - name: Run Tests
         run: yarn test -- --integrationTestsOnly

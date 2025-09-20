@@ -35,7 +35,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
-      - uses: ./.github/actions/use-deps-image
+      - uses: ./.github/actions/yarn-install
       - name: Cache API v2 production build
         uses: buildjet/cache@v4
         id: cache-api-v2-build

@@ -1,18 +1,17 @@
-name: "Use Dependencies Docker Image"
-description: "Pull and use pre-built Docker image with yarn and playwright dependencies"
-inputs:
-  node_version:
-    required: false
-    default: v20.x
+name: "Get Dependencies Docker Image"
+description: "Get the tag for pre-built Docker image with yarn and playwright dependencies"
+
+outputs:
+  image-tag:
+    description: "The Docker image tag to use"
+    value: ${{ steps.generate-tag.outputs.image-tag }}
+  full-image:
+    description: "The full Docker image name with tag"
+    value: ${{ steps.generate-tag.outputs.full-image }}
 
 runs:
   using: "composite"
   steps:
-    - name: Use Node ${{ inputs.node_version }}
-      uses: buildjet/setup-node@v4
-      with:
-        node-version: ${{ inputs.node_version }}
-        
     - name: Generate image tag
       id: generate-tag
       shell: bash
@@ -22,31 +21,3 @@ runs:
         IMAGE_TAG="yarn-${YARN_LOCK_HASH}-playwright-${PLAYWRIGHT_VERSION}"
         echo "image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
         echo "full-image=ghcr.io/calcom/cal.com-deps:${IMAGE_TAG}" >> $GITHUB_OUTPUT
-    
-    - name: Log in to GitHub Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: Pull and extract dependencies from image
-      shell: bash
-      run: |
-        echo "Pulling image: ${{ steps.generate-tag.outputs.full-image }}"
-        docker pull ${{ steps.generate-tag.outputs.full-image }}
-        
-        echo "Extracting dependencies from image..."
-        docker create --name temp-deps ${{ steps.generate-tag.outputs.full-image }}
-        
-        # Copy node_modules and yarn cache
-        docker cp temp-deps:/workspace/node_modules ./node_modules || echo "node_modules not found in image"
-        docker cp temp-deps:/workspace/.yarn ./.yarn || echo ".yarn not found in image"
-        
-        # Copy Playwright binaries
-        mkdir -p ~/.cache/ms-playwright
-        docker cp temp-deps:/root/.cache/ms-playwright/. ~/.cache/ms-playwright/ || echo "Playwright cache not found"
-        
-        docker rm temp-deps
-        
-        echo "Dependencies extracted successfully"

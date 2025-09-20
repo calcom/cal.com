@@ -47,7 +47,7 @@ jobs:
           git config --local user.email "$USER_EMAIL"
           git config --local user.name "${{ github.actor }}"
 
-      - uses: ./.github/actions/use-deps-image
+      - uses: ./.github/actions/yarn-install
 
       - name: Bump version
         run: |

@@ -20,10 +20,28 @@ env:
   DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
 
 jobs:
+  get-image:
+    name: Get Docker Image
+    runs-on: buildjet-2vcpu-ubuntu-2204
+    outputs:
+      image: ${{ steps.get-image.outputs.full-image }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/dangerous-git-checkout
+      - name: Get image tag
+        id: get-image
+        uses: ./.github/actions/use-deps-image
+
   e2e-atoms:
     timeout-minutes: 15
     name: E2E Atoms
+    needs: get-image
     runs-on: buildjet-4vcpu-ubuntu-2204
+    container:
+      image: ${{ needs.get-image.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: docker/login-action@v3
         with:
@@ -31,7 +49,6 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
-      - uses: ./.github/actions/use-deps-image
       - name: Run E2E Atoms Tests
         working-directory: packages/platform/examples/base
         run: yarn test:e2e

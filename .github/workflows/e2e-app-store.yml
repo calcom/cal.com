@@ -43,10 +43,28 @@ env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 jobs:
+  get-image:
+    name: Get Docker Image
+    runs-on: buildjet-2vcpu-ubuntu-2204
+    outputs:
+      image: ${{ steps.get-image.outputs.full-image }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/dangerous-git-checkout
+      - name: Get image tag
+        id: get-image
+        uses: ./.github/actions/use-deps-image
+
   e2e-app-store:
     timeout-minutes: 20
     name: E2E App Store
+    needs: get-image
     runs-on: buildjet-4vcpu-ubuntu-2204
+    container:
+      image: ${{ needs.get-image.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     services:
       postgres:
         image: postgres:13
@@ -82,7 +100,6 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
-      - uses: ./.github/actions/use-deps-image
       - uses: ./.github/actions/cache-db
         env:
           DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
