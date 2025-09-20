@@ -6,6 +6,7 @@ export const AttendeeScheduledEmail = (
   props: {
     calEvent: CalendarEvent;
     attendee: Person;
+    isCancelledByHost?: boolean;
   } & Partial<React.ComponentProps<typeof BaseScheduledEmail>>
 ) => {
   return (

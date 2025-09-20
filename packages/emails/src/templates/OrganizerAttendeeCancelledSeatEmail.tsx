@@ -8,7 +8,7 @@ export const OrganizerAttendeeCancelledSeatEmail = (
     headerType="xCircle"
     subject="event_cancelled_subject"
     callToAction={null}
-    attendeeCancelled
+    attendeeCancelled={!props.isCancelledByHost}
     {...props}
   />
 );
