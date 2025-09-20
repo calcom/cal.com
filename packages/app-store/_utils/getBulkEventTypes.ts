@@ -1,6 +1,7 @@
-import { getAppFromLocationValue } from "@calcom/app-store/utils";
 import { prisma } from "@calcom/prisma";
 import { eventTypeLocations as eventTypeLocationsSchema } from "@calcom/prisma/zod-utils";
+
+import { getAppFromLocationValue } from "../utils";
 
 /**
  * Process event types to add logo information
