@@ -3731,5 +3731,6 @@
   "voice_id": "Voice ID",
   "use_voice": "Use Voice",
   "current_voice": "Current Voice",
+  "booking_limits_description": "These limits apply to all bookings for this member across personal and team event types",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
