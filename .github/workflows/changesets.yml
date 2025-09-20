@@ -35,11 +35,13 @@ jobs:
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
+      options: --workdir /workspace
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          path: /workspace
       - uses: ./.github/actions/dangerous-git-checkout
       - name: Create Release Pull Request or Publish to npm
         id: changesets

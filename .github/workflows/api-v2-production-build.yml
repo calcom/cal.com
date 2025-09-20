@@ -32,6 +32,7 @@ jobs:
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
+      options: --workdir /workspace
     timeout-minutes: 30
     services:
       postgres:
@@ -52,6 +53,8 @@ jobs:
           - 5432:5432
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: /workspace
       - uses: ./.github/actions/dangerous-git-checkout
       - name: Cache API v2 production build
         uses: buildjet/cache@v4

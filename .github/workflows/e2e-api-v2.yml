@@ -28,6 +28,12 @@ jobs:
     timeout-minutes: 20
     name: E2E API v2
     runs-on: buildjet-16vcpu-ubuntu-2204
+    container:
+      image: ${{ needs.build-deps-image-if-needed.outputs.full-image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+      options: --workdir /workspace
     services:
       postgres:
         image: postgres:13
@@ -65,6 +71,8 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - uses: actions/checkout@v4
+        with:
+          path: /workspace
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/cache-db
       - name: Run Tests

@@ -27,8 +27,11 @@ jobs:
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
+      options: --workdir /workspace
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: /workspace
       - uses: ./.github/actions/dangerous-git-checkout
       - name: Show info
         run: node -e "console.log(require('v8').getHeapStatistics())"

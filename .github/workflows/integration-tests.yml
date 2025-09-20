@@ -64,6 +64,7 @@ jobs:
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
+      options: --workdir /workspace
     services:
       postgres:
         image: postgres:13
@@ -97,6 +98,8 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - uses: actions/checkout@v4
+        with:
+          path: /workspace
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/cache-db
       - name: Run Tests

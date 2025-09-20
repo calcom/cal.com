@@ -34,6 +34,7 @@ jobs:
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
+      options: --workdir /workspace
     steps:
       
       - name: Checkout code
@@ -42,6 +43,7 @@ jobs:
           fetch-depth: 0
           ref: 'main'
           token: ${{ secrets.GH_ACCESS_TOKEN }}
+          path: /workspace
 
       - uses: ./.github/actions/dangerous-git-checkout
 

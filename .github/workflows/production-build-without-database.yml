@@ -60,8 +60,11 @@ jobs:
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
+      options: --workdir /workspace
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: /workspace
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/cache-build
