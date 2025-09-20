@@ -1,9 +1,9 @@
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
+import { isTeamAdmin } from "@calcom/features/ee/teams/lib/queries";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import { uploadLogo } from "@calcom/lib/server/avatar";
-import { isTeamAdmin } from "@calcom/features/ee/teams/lib/queries";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { RedirectType, RRTimestampBasis } from "@calcom/prisma/enums";
@@ -65,6 +65,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     theme: input.theme,
     bookingLimits: input.bookingLimits ?? undefined,
     includeManagedEventsInLimits: input.includeManagedEventsInLimits ?? undefined,
+    cancellationReasonRequired: input.cancellationReasonRequired ?? undefined,
     rrResetInterval: input.rrResetInterval,
     rrTimestampBasis: input.rrTimestampBasis,
   };
@@ -168,6 +169,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     darkBrandColor: updatedTeam.darkBrandColor,
     bookingLimits: updatedTeam.bookingLimits as IntervalLimit,
     includeManagedEventsInLimits: updatedTeam.includeManagedEventsInLimits,
+    cancellationReasonRequired: updatedTeam.cancellationReasonRequired,
     rrResetInterval: updatedTeam.rrResetInterval,
     rrTimestampBasis: updatedTeam.rrTimestampBasis,
   };

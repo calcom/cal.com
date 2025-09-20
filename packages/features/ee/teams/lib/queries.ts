@@ -323,6 +323,7 @@ export async function getTeamWithoutMembers(args: {
       rrResetInterval: true,
       rrTimestampBasis: true,
       includeManagedEventsInLimits: true,
+      cancellationReasonRequired: true,
       parent: {
         select: {
           id: true,
