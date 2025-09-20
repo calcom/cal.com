@@ -118,7 +118,9 @@ jobs:
         run: |
           YARN_LOCK_HASH=$(sha256sum yarn.lock | cut -d' ' -f1 | cut -c1-12)
           PLAYWRIGHT_VERSION=$(node -e "console.log(require('./package.json').devDependencies['@playwright/test'])")
-          IMAGE_TAG="yarn-${YARN_LOCK_HASH}-playwright-${PLAYWRIGHT_VERSION}"
+          # Sanitize version string for Docker tag (remove ^, ~, and other invalid characters)
+          PLAYWRIGHT_VERSION_CLEAN=$(echo "$PLAYWRIGHT_VERSION" | sed 's/[^a-zA-Z0-9.-]//g')
+          IMAGE_TAG="yarn-${YARN_LOCK_HASH}-playwright-${PLAYWRIGHT_VERSION_CLEAN}"
           FULL_IMAGE="ghcr.io/calcom/cal.com-deps:${IMAGE_TAG}"
           
           # Log in to GitHub Container Registry to check if image exists
