@@ -85,6 +85,18 @@ export default class Sendgrid {
     return search.result || [];
   }
 
+  public async addMarketingContact(contact: { email: string; first_name?: string; last_name?: string }) {
+    const response = await this.sendgridRequest<SendgridNewContact>({
+      url: `/v3/marketing/contacts`,
+      method: "PUT",
+      body: {
+        contacts: [contact],
+      },
+    });
+    this.log.debug("sync:sendgrid:addMarketingContact:response", response);
+    return response;
+  }
+
   public async getSendgridCustomFieldsIds(customFields: SendgridFieldOptions) {
     // Get Custom Activity Fields
     const allFields = await this.sendgridRequest<SendgridFieldDefinitions>({
