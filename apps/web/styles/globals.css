@@ -647,3 +647,9 @@ select:focus {
 [data-radix-popper-content-wrapper] {
   border: none;
 }
+
+/* Reposition the dropdown container (flag + arrow) to the right */
+html[dir="rtl"] .react-tel-input .flag-dropdown {
+  left: auto !important;
+  right: 0 !important;
+}
