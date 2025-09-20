@@ -459,6 +459,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           ...newStep,
           verifiedAt: oldStep.verifiedAt,
           agentId: newStep.agentId || null,
+          inboundAgentId: newStep.inboundAgentId || null,
         })
       ) {
         // check if step that require team plan already existed before

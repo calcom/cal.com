@@ -152,11 +152,16 @@ export class AIConfigurationService {
 
     try {
       const updateRequest = RetellAIServiceMapper.mapToUpdateLLMRequest(data);
+
       return await this.retellRepository.updateLLM(llmId, updateRequest);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new Error(`Failed to update LLM configuration for ${llmId}: ${errorMessage}`);
     }
+  }
+
+  async setupInboundAIConfiguration(): Promise<{ llmId: string; agentId: string }> {
+    return this.setupAIConfiguration({});
   }
 
   async getLLMDetails(llmId: string): Promise<AIPhoneServiceModel<AIPhoneServiceProviderType.RETELL_AI>> {

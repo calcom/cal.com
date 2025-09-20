@@ -552,6 +552,23 @@ export class PrismaAgentRepository {
     });
   }
 
+  static async linkInboundAgentToWorkflow({
+    workflowStepId,
+    agentId,
+  }: {
+    workflowStepId: number;
+    agentId: string;
+  }) {
+    return await prisma.workflowStep.update({
+      where: {
+        id: workflowStepId,
+      },
+      data: {
+        inboundAgentId: agentId,
+      },
+    });
+  }
+
   static async canManageTeamResources({
     userId,
     teamId,

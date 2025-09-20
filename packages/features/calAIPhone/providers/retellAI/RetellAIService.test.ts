@@ -566,7 +566,7 @@ describe("RetellAIService", () => {
       expect(mockRepository.updateLLM).toHaveBeenCalledWith("llm-123", {
         general_prompt: "Updated prompt",
         begin_message: "Updated message",
-        general_tools: null,
+        general_tools: undefined,
       });
     });
   });
