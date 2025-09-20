@@ -97,8 +97,11 @@ export class EventTypeRepository {
       ...rest
     } = eventTypeCreateData;
 
+    const now = new Date();
     return {
       ...rest,
+      createdAt: now,
+      updatedAt: now,
       ...(userId ? { owner: { connect: { id: userId } } } : null),
       ...(profileId
         ? {

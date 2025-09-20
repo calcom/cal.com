@@ -398,8 +398,13 @@ export async function addEventTypesToDb(
   })[]
 ) {
   log.silly("TestData: Add EventTypes to DB", JSON.stringify(eventTypes));
+  const now = new Date();
   await prismock.eventType.createMany({
-    data: eventTypes,
+    data: eventTypes.map(eventType => ({
+      ...eventType,
+      createdAt: now,
+      updatedAt: now,
+    })),
   });
   const allEventTypes = await prismock.eventType.findMany({
     include: {

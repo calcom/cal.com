@@ -488,11 +488,14 @@ async function createTeamWithCustomRoles(organizationId: number, users: any[], c
   }
 
   // Create some event types for the team
+  const now = new Date();
   await prisma.eventType.create({
     data: {
       title: "Sales Consultation",
       slug: "sales-consultation",
       length: 30,
+      createdAt: now,
+      updatedAt: now,
       teamId: team.id,
       userId: users[0].user.id, // Owner as the creator
       users: {
@@ -506,6 +509,8 @@ async function createTeamWithCustomRoles(organizationId: number, users: any[], c
       title: "Product Demo",
       slug: "product-demo",
       length: 45,
+      createdAt: now,
+      updatedAt: now,
       teamId: team.id,
       userId: users[0].user.id, // Owner as the creator
       users: {

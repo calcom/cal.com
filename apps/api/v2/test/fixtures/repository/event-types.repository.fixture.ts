@@ -33,9 +33,12 @@ export class EventTypesRepositoryFixture {
   }
 
   async create(data: Prisma.EventTypeCreateInput, userId: number) {
+    const now = new Date();
     return this.prismaWriteClient.eventType.create({
       data: {
         ...data,
+        createdAt: now,
+        updatedAt: now,
         users: {
           connect: {
             id: userId,
@@ -51,7 +54,14 @@ export class EventTypesRepositoryFixture {
   }
 
   async createTeamEventType(data: Prisma.EventTypeCreateInput) {
-    return this.prismaWriteClient.eventType.create({ data });
+    const now = new Date();
+    return this.prismaWriteClient.eventType.create({
+      data: {
+        ...data,
+        createdAt: now,
+        updatedAt: now,
+      },
+    });
   }
 
   async delete(eventTypeId: EventType["id"]) {
