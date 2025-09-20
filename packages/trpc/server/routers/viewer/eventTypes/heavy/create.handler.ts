@@ -60,7 +60,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   if (ctx.user.organizationId) {
     try {
-      const orgPermissions = await getResourcePermissions({
+      /* const orgPermissions = await getResourcePermissions({
         userId,
         teamId: ctx.user.organizationId,
         resource: Resource.EventType,
@@ -71,7 +71,8 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
           },
         },
       });
-      hasOrgEventTypeCreatePermission = orgPermissions.canCreate;
+      hasOrgEventTypeCreatePermission = orgPermissions.canCreate; */
+      hasOrgEventTypeCreatePermission = isOrgAdmin;
     } catch (error) {
       // If PBAC check fails, fall back to isOrgAdmin
       hasOrgEventTypeCreatePermission = isOrgAdmin;
