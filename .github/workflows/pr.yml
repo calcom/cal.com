@@ -1,11 +1,8 @@
 name: PR Update
 
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, synchronize, reopened, labeled]
-    branches:
-      - main
-      - gh-actions-test-branch
   workflow_dispatch:
 
 permissions:
