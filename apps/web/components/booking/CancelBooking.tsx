@@ -269,7 +269,7 @@ export default function CancelBooking(props: Props) {
                   const response = await fetch("/api/csrf", { cache: "no-store" });
                   const { csrfToken } = await response.json();
 
-                  const res = await fetch("/api/cancel", {
+                  const res = await fetch("/api/cancel?sameSite=none", {
                     body: JSON.stringify({
                       uid: booking?.uid,
                       cancellationReason: cancellationReason,
