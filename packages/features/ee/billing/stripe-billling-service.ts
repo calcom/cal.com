@@ -5,7 +5,7 @@ import type { BillingService } from "./billing-service";
 export class StripeBillingService implements BillingService {
   private stripe: Stripe;
   constructor() {
-    this.stripe = new Stripe(process.env.STRIPE_PRIVATE_KEY!, {
+    this.stripe = new Stripe(process.env.STRIPE_PRIVATE_KEY || "", {
       apiVersion: "2020-08-27",
     });
   }
@@ -46,8 +46,9 @@ export class StripeBillingService implements BillingService {
     successUrl: string;
     cancelUrl: string;
     metadata?: Record<string, string>;
+    allowPromotionCodes?: boolean;
   }) {
-    const { priceId, quantity, successUrl, cancelUrl, metadata } = args;
+    const { priceId, quantity, successUrl, cancelUrl, metadata, allowPromotionCodes = false } = args;
 
     const session = await this.stripe.checkout.sessions.create({
       line_items: [{ price: priceId, quantity }],
@@ -55,10 +56,11 @@ export class StripeBillingService implements BillingService {
       success_url: successUrl,
       cancel_url: cancelUrl,
       metadata: metadata,
+      allow_promotion_codes: allowPromotionCodes,
       invoice_creation: {
-        enabled: true,
+       enabled: true,
       },
-    } as any);
+    });
 
     return {
       checkoutUrl: session.url,
@@ -126,7 +128,7 @@ export class StripeBillingService implements BillingService {
     };
   }
 
-  async handleSubscriptionCreation(subscriptionId: string) {
+  async handleSubscriptionCreation(_subscriptionId: string) {
     throw new Error("Method not implemented.");
   }
 
