@@ -58,12 +58,11 @@ runs:
       shell: bash
       run: |
         if [[ "${{ steps.yarn-nm-cache.outputs.cache-hit }}" == "true" && "${{ steps.yarn-install-state-cache.outputs.cache-hit }}" == "true" ]]; then
-          echo "Cache hit detected, running fast install with linking..."
-          yarn install --inline-builds --prefer-offline --check-cache
+          echo "Cache hit detected, running install for proper linking..."
         else
           echo "Cache miss detected, running full install..."
-          yarn install --inline-builds
         fi
+        yarn install --inline-builds
         yarn prisma generate
       env:
         # CI optimizations. Overrides yarnrc.yml options (or their defaults) in the CI action.
