@@ -21,9 +21,10 @@ export async function getTeamIdFromEventType({
       },
       select: {
         teamId: true,
+        calIdTeamId: true,
       },
     });
 
-    return managedEvent?.teamId;
+    return managedEvent?.calIdTeamId || null;
   }
 }

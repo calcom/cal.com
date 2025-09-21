@@ -71,6 +71,7 @@ export const bookingDataSchema = z
     noShowHost: z.boolean().nullable(),
     isTeamBooking: z.boolean(),
     timeStatus: z.string().nullable(),
+    calIdTeamId: z.number().nullable(),
   })
   .strict();
 
@@ -292,7 +293,8 @@ export class InsightsBookingService {
     }
 
     if (scope === "user") {
-      return Prisma.sql`("userId" = ${this.options.userId}) AND ("teamId" IS NULL)`;
+      // return Prisma.sql`("userId" = ${this.options.userId}) AND ("teamId" IS NULL)`;
+      return Prisma.sql`("userId" = ${this.options.userId}) AND ("calIdTeamId" IS NULL)`;
     } else if (scope === "org") {
       return await this.buildOrgAuthorizationCondition(this.options);
     } else if (scope === "team") {
@@ -337,24 +339,18 @@ export class InsightsBookingService {
   private async buildTeamAuthorizationCondition(
     options: Extract<InsightsBookingServiceOptions, { scope: "team" }>
   ): Promise<Prisma.Sql> {
-    const teamRepo = new TeamRepository(this.prisma);
-    const childTeamOfOrg = await teamRepo.findByIdAndParentId({
-      id: options.teamId,
-      parentId: options.orgId,
-      select: { id: true },
-    });
-    if (options.orgId && !childTeamOfOrg) {
-      return NOTHING_CONDITION;
-    }
-
-    const usersFromTeam = await MembershipRepository.findAllByTeamIds({
-      teamIds: [options.teamId],
+    const usersFromTeam = await this.prisma.calIdMembership.findMany({
+      where: {
+        calIdTeamId: { in: [options.teamId] },
+        acceptedInvitation: true,
+      },
       select: { userId: true },
     });
+
     const userIdsFromTeam = usersFromTeam.map((u) => u.userId);
 
     const conditions: Prisma.Sql[] = [
-      Prisma.sql`("teamId" = ${options.teamId}) AND ("isTeamBooking" = true)`,
+      Prisma.sql`("calIdTeamId" = ${options.teamId}) AND ("isTeamBooking" = true)`,
     ];
 
     if (userIdsFromTeam.length > 0) {
@@ -365,6 +361,35 @@ export class InsightsBookingService {
       if (index === 0) return condition;
       return Prisma.sql`(${acc}) OR (${condition})`;
     });
+
+    // const teamRepo = new TeamRepository(this.prisma);
+    // const childTeamOfOrg = await teamRepo.findByIdAndParentId({
+    //   id: options.teamId,
+    //   parentId: options.orgId,
+    //   select: { id: true },
+    // });
+    // if (options.orgId && !childTeamOfOrg) {
+    //   return NOTHING_CONDITION;
+    // }
+
+    // const usersFromTeam = await MembershipRepository.findAllByTeamIds({
+    //   teamIds: [options.teamId],
+    //   select: { userId: true },
+    // });
+    // const userIdsFromTeam = usersFromTeam.map((u) => u.userId);
+
+    // const conditions: Prisma.Sql[] = [
+    //   Prisma.sql`("teamId" = ${options.teamId}) AND ("isTeamBooking" = true)`,
+    // ];
+
+    // if (userIdsFromTeam.length > 0) {
+    //   conditions.push(Prisma.sql`("userId" = ANY(${userIdsFromTeam})) AND ("isTeamBooking" = false)`);
+    // }
+
+    // return conditions.reduce((acc, condition, index) => {
+    //   if (index === 0) return condition;
+    //   return Prisma.sql`(${acc}) OR (${condition})`;
+    // });
   }
 
   async getCsvData({ limit = 100, offset = 0 }: { limit?: number; offset?: number }) {
@@ -714,6 +739,7 @@ export class InsightsBookingService {
         id: true,
         title: true,
         teamId: true,
+        calIdTeamId: true,
         userId: true,
         slug: true,
         users: {
@@ -1063,12 +1089,26 @@ export class InsightsBookingService {
 
   private async isOwnerOrAdmin(userId: number, targetId: number): Promise<boolean> {
     // Check if the user is an owner or admin of the organization or team
-    const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: targetId });
+    const membership = await this.prisma.calIdMembership.findUnique({
+      where: {
+        userId_calIdTeamId: {
+          userId,
+          calIdTeamId: targetId,
+        },
+      },
+    });
     return Boolean(
       membership &&
-        membership.accepted &&
+        membership.acceptedInvitation &&
         membership.role &&
         (membership.role === MembershipRole.OWNER || membership.role === MembershipRole.ADMIN)
     );
+    // const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: targetId });
+    // return Boolean(
+    //   membership &&
+    //     membership.accepted &&
+    //     membership.role &&
+    //     (membership.role === MembershipRole.OWNER || membership.role === MembershipRole.ADMIN)
+    // );
   }
 }

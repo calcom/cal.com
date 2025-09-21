@@ -8,11 +8,9 @@ import Link from "next/link";
 import { Controller } from "react-hook-form";
 import type { UseFormReturn } from "react-hook-form";
 import { Toaster } from "sonner";
-import { Switch } from "@calcom/ui/components/form";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBSITE_URL } from "@calcom/lib/constants";
-import { IS_CALCOM } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Badge } from "@calcom/ui/components/badge";
@@ -22,10 +20,10 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import SingleForm from "../../components/SingleForm";
-import { PreviewRenderer, type UptoDateForm } from "../../components/_components/TestForm";
 import { TeamMemberSelect } from "../../components/_components/TeamMemberSelect";
+import { PreviewRenderer, type UptoDateForm } from "../../components/_components/TestForm";
 import type { getServerSidePropsForSingleFormViewCalId as getServerSideProps } from "../../components/getServerSidePropsSingleFormCalId";
-import type { RoutingFormWithResponseCount, SerializableForm } from "../../types/types";
+import type { RoutingFormWithResponseCount } from "../../types/types";
 
 type HookForm = UseFormReturn<RoutingFormWithResponseCount>;
 
@@ -158,8 +156,6 @@ const FormSettings = ({
                 );
               }}
             />
-
-              
           </div>
 
           <div className="bg-default border-subtle w-full gap-3 rounded-md border p-6">
@@ -216,10 +212,12 @@ export default function Details({
   // Convert the form type to match SingleFormComponentProps expectations
   const adaptedForm: RoutingFormWithResponseCount = {
     ...props.form,
-    team: props.form.calIdTeam ? {
-      slug: props.form.calIdTeam.slug,
-      name: props.form.calIdTeam.name,
-    } : null,
+    team: props.form.calIdTeam
+      ? {
+          slug: props.form.calIdTeam.slug,
+          name: props.form.calIdTeam.name,
+        }
+      : null,
   };
 
   return (
