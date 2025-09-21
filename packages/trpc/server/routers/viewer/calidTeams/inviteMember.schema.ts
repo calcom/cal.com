@@ -5,6 +5,7 @@ import { emailSchema } from "@calcom/lib/emailSchema";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 export const ZInviteMemberSchema = z.object({
+  language: z.string(),
   teamId: z.number(),
   token: z.string().optional(),
   usernameOrEmail: z

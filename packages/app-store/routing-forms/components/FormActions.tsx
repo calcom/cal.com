@@ -610,12 +610,8 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
   if (!dropdown) {
     return (
       <Wrapper href={href} target={target}>
-        <Component
-          data-testid={`form-action-${actionName}`}
-          ref={forwardedRef}
-          {...actionProps}
-          color="minimal"
-          variant="icon">
+        <Component data-testid={`form-action-${actionName}`} ref={forwardedRef} {...actionProps}>
+          {props.icon && <Icon name={icon} className="h-4 w-4" />}
           {children}
         </Component>
       </Wrapper>

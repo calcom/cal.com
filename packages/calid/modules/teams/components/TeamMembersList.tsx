@@ -67,13 +67,14 @@ export function TeamMembersList({
   onInviteClick,
   enableBulkActions = true,
 }: TeamMembersListProps) {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const { data: session } = useSession();
   const utils = trpc.useUtils();
   const tableContainerRef = useRef<HTMLDivElement>(null);
 
   // Use the team member operations hook for member management
-  const { removeMember, isRemoving, updateMemberRole, isUpdating } = useTeamMemberOperations(team.id);
+  const { removeMember, isRemoving, updateMemberRole, isUpdating, resendInviteMutation } =
+    useTeamMemberOperations(team.id);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -319,8 +320,8 @@ export function TeamMembersList({
                       </DropdownMenuItem>
                     )}
                     {canEditMember && (
-                      <DropdownMenuItem 
-                        StartIcon="pencil-line" 
+                      <DropdownMenuItem
+                        StartIcon="pencil-line"
                         onClick={() => {
                           if (onMemberEdit) {
                             onMemberEdit(member);
@@ -328,8 +329,7 @@ export function TeamMembersList({
                             setMemberToEdit(member);
                             setShowEditRoleModal(true);
                           }
-                        }}
-                      >
+                        }}>
                         {t("edit_team_member")}
                       </DropdownMenuItem>
                     )}
@@ -337,9 +337,17 @@ export function TeamMembersList({
                       <DropdownMenuItem
                         StartIcon="mail"
                         onClick={() => {
-                          triggerToast("Invitation resent", "success");
-                        }}>
-                        {t("resend_invite_to_team_member")}
+                          resendInviteMutation.mutate({
+                            teamId: team.id,
+                            email: member.user.email as string,
+                            language: i18n.language,
+                          });
+                        }}
+                        disabled={resendInviteMutation.isPending}>
+                        {
+                          // resendInviteMutation.isPending ? t("sending") :
+                          t("resend_invite_to_team_member")
+                        }
                       </DropdownMenuItem>
                     )}
                     {canEditMember && (
@@ -594,7 +602,7 @@ export function TeamMembersList({
               color="destructive"
               onClick={() => {
                 if (memberToRemove) {
-                  removeMember(memberToRemove.id);
+                  removeMember(memberToRemove.user.id);
                   setShowRemoveDialog(false);
                   setMemberToRemove(null);
                 }
@@ -638,7 +646,7 @@ export function TeamMembersList({
                 color="destructive"
                 onClick={() => {
                   membersToRemove.forEach((member) => {
-                    removeMember(member.id);
+                    removeMember(member.user.id);
                   });
                   setSelectedMembers({});
                   setShowBulkRemoveDialog(false);
@@ -694,6 +702,16 @@ export function useTeamMemberOperations(teamId: number) {
     },
   });
 
+  const resendInviteMutation = trpc.viewer.calidTeams.resendInvitation.useMutation({
+    onSuccess: () => {
+      triggerToast(t("invitation_resent"), "success");
+      utils.viewer.calidTeams.listMembers.invalidate();
+    },
+    onError: (error) => {
+      triggerToast(error.message, "error");
+    },
+  });
+
   const removeMember = useCallback(
     (memberId: number) => {
       removeMemberMutation.mutate({
@@ -721,6 +739,7 @@ export function useTeamMemberOperations(teamId: number) {
     updateMemberRole,
     isRemoving: removeMemberMutation.isPending,
     isUpdating: changeMemberRoleMutation.isPending,
+    resendInviteMutation,
   };
 }
 

@@ -739,9 +739,6 @@ const RequiresConfirmationController = ({
                               />
                             )}
                           />
-                          <label className="text-foreground text-sm">
-                            {t("require_confirmation_for_free_email")}
-                          </label>
                         </div>
                       </>
                     )}

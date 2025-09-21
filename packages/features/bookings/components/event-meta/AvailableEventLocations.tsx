@@ -1,8 +1,5 @@
 import { Icon } from "@calid/features/ui/components/icon";
 
-
-
-
 import type {
   DefaultEventLocationType,
   EventLocationTypeFromApp,

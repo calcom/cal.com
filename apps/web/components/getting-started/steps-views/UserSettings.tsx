@@ -6,6 +6,7 @@ import {
   // PhoneNumberField,
   usePhoneNumberField, // isPhoneNumberComplete,
 } from "@calid/features/ui/components/input/phone-number-field";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@calid/features/ui/components/select";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useEffect, useState } from "react";
@@ -193,6 +194,29 @@ const UserSettings = (props: IUserSettingsProps) => {
             {errors.name.message}
           </p>
         )}
+      </div>
+
+      {/* Designation select field */}
+      <div className="w-full">
+        <label htmlFor="business_type" className="text-default block text-sm font-medium">
+          {t("business_type")}
+        </label>
+        <Select
+          onValueChange={(value) => {
+            setSelectedBusiness(value);
+          }}
+          defaultValue={user?.metadata?.designation || designationTypeOptions[0].value}>
+          <SelectTrigger className="mt-2 w-full text-sm capitalize">
+            <SelectValue placeholder={t("business_type")} />
+          </SelectTrigger>
+          <SelectContent>
+            {designationTypeOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Timezone select field */}

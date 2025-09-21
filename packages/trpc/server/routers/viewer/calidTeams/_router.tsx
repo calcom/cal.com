@@ -1,5 +1,5 @@
-import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
+import { ZAcceptOrLeaveInputSchema } from "./acceptOrLeave.schema";
 import { ZAddMembersToEventType } from "./addMemberstoEventType.schema";
 import { ZChangeCalidMemberRoleInputSchema } from "./changeMemberRole.schema";
 import { ZCreateCalidTeamSchema } from "./create.schema";
@@ -12,6 +12,7 @@ import { ZListMembersSchema } from "./listMembers.schema";
 import { ZRemoveMemberSchema } from "./removeMember.schema";
 import { ZUpdateCalidTeamSchema } from "./update.schema";
 import { ZUpdateMemberSchema } from "./updateMember.schema";
+import { ZResendCalidInvitationSchema } from "./resendInvitation.schema";
 
 export const calIdTeamsRouter = router({
   // Create a new calidTeam
@@ -82,6 +83,11 @@ export const calIdTeamsRouter = router({
       return changeCalidMemberRoleHandler({ ctx, input });
     }),
 
+  acceptOrLeave: authedProcedure.input(ZAcceptOrLeaveInputSchema).mutation(async ({ ctx, input }) => {
+    const { acceptOrLeaveHandler } = await import("./acceptOrLeave.handler");
+    return acceptOrLeaveHandler({ ctx, input });
+  }),
+
   // List members
   listMembers: authedProcedure.input(ZListMembersSchema).query(async ({ ctx, input }) => {
     const { listMembersHandler } = await import("./listMembers.handler");
@@ -98,5 +104,11 @@ export const calIdTeamsRouter = router({
   addMembersToEventType: authedProcedure.input(ZAddMembersToEventType).mutation(async ({ ctx, input }) => {
     const { addMembersToEventTypesHandler } = await import("./addMemberstoEventType.handler");
     return addMembersToEventTypesHandler({ ctx, input });
+  }),
+
+  // Resend invitation
+  resendInvitation: authedProcedure.input(ZResendCalidInvitationSchema).mutation(async ({ ctx, input }) => {
+    const { resendCalidInvitationHandler } = await import("./resendInvitation.handler");
+    return resendCalidInvitationHandler({ ctx, input });
   }),
 });

@@ -1,4 +1,5 @@
 "use client";
+import { revalidateCalIdTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 import { getDefaultAvatar } from "@calid/features/lib/defaultAvatar";
 import { Avatar } from "@calid/features/ui/components/avatar";
@@ -32,7 +33,6 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc/react";
-import { revalidateCalIdTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 import { getTeamUrl } from "../lib/getTeamUrl";
 
@@ -98,6 +98,24 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
     }
   }, [errorMsgFromInvitation, t, teamNameFromInvitation, token]);
 
+  const acceptOrLeaveMutation = trpc.viewer.calidTeams.acceptOrLeave.useMutation({
+    onSuccess: async () => {
+      showToast(t("success"), "success");
+      await utils.viewer.calidTeams.get.invalidate();
+      await utils.viewer.calidTeams.list.invalidate();
+      revalidateCalIdTeamsList();
+    },
+  });
+
+  function acceptOrLeave(accept: boolean, teamId: number) {
+    console.log("Hello world")
+    acceptOrLeaveMutation.mutate({
+      teamId: teamId,
+      accept,
+    });
+  }
+
+
   return (
     <>
       {(teams.length > 0 || teamInvitation.length > 0) && (
@@ -117,39 +135,48 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
             {teamInvitation.map((team) => (
               <li
                 key={team.id}
-                className="border-subtle bg-default group relative rounded-md border transition hover:shadow-md">
-                <div className="flex items-center justify-between p-4">
-                  <div className="flex items-center space-x-3">
-                    <Avatar
-                      size="md"
-                      shape="square"
-                      imageSrc={getDefaultAvatar(team?.logoUrl, team?.name as string)}
-                      alt="Team logo"
-                      className="h-10 w-10"
+                className="border-subtle flex items-center justify-between rounded-md border p-4">
+                <div className="flex items-center space-x-2">
+                  <Avatar
+                    size="md"
+                    shape="square"
+                    imageSrc={getDefaultAvatar(team?.logoUrl, team?.name as string)}
+                    alt="Team logo"
+                  />
+                  <span className="text-default text-md font-semibold">{team.name}</span>
+                  <Badge variant="secondary" isPublicUrl={true}>
+                    {teamUrl(team?.slug ?? null)}
+                  </Badge>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Badge variant="attention">{t("pending")}</Badge>
+                  <Button
+                    type="button"
+                    className="border-empthasis mr-3"
+                    variant="icon"
+                    color="secondary"
+                    onClick={() => acceptOrLeave(false, team.id)}
+                    StartIcon="ban"
+                  />
+                  <Button
+                    type="button"
+                    className="border-empthasis"
+                    variant="icon"
+                    color="secondary"
+                    onClick={() => acceptOrLeave(true, team.id)}
+                    StartIcon="check"
+                  />
+                  <Tooltip content={t("view_team")}>
+                    <Button
+                      color="minimal"
+                      variant="icon"
+                      size="sm"
+                      type="button"
+                      StartIcon="external-link"
+                      onClick={() => router.push(`${WEBAPP_URL}/settings/teams/${team.id}/profile`)}
+                      data-testid={`view-team-invite-${team.id}`}
                     />
-                    <div>
-                      <h3 className="text-default text-base font-semibold">{team.name}</h3>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary" isPublicUrl={true}>
-                          {teamUrl(team?.slug ?? null)}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="attention">{t("pending")}</Badge>
-                    <Tooltip content={t("view_team")}>
-                      <Button
-                        color="minimal"
-                        variant="icon"
-                        size="sm"
-                        type="button"
-                        StartIcon="external-link"
-                        onClick={() => router.push(`${WEBAPP_URL}/settings/teams/${team.id}/profile`)}
-                        data-testid={`view-team-invite-${team.id}`}
-                      />
-                    </Tooltip>
-                  </div>
+                  </Tooltip>
                 </div>
               </li>
             ))}

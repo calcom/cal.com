@@ -8,7 +8,7 @@ import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 // import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
 import { appKeysSchema as JitsiVideoKeysSchema } from "@calcom/app-store/jitsivideo/zod";
-import { getLocationFromApp, MeetLocationType } from "@calcom/app-store/locations";
+import { getLocationFromApp, JitsiLocationType, MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getUid } from "@calcom/lib/CalEventParser";

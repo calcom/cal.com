@@ -723,6 +723,7 @@ model VerificationToken {
   @@unique([identifier, token])
   @@index([token])
   @@index([teamId])
+  @@index([calIdTeamId])
   @@index([secondaryEmailId])
 }
 
