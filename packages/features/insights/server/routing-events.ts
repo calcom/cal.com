@@ -174,7 +174,6 @@ class RoutingEventsInsights {
       // So this metrics doesn't provide any value.
       return null;
     }
-    console.log("whereClause__", whereClause); // --- IGNORE ---
 
     const totalPromise = prisma.routingFormResponse.count({
       where: whereClause,

@@ -189,7 +189,7 @@ const getPerformanceBadge = (performance: RoutedToTableRow["performance"], t: TF
     case "below_average":
       return (
         <Tooltip content={t("below_average")}>
-          <Badge variant="red" className="w-fit gap-1">
+          <Badge variant="destructive" className="w-fit gap-1">
             {t("below_average")}
           </Badge>
         </Tooltip>
@@ -197,7 +197,7 @@ const getPerformanceBadge = (performance: RoutedToTableRow["performance"], t: TF
     case "median":
       return (
         <Tooltip content={t("median")}>
-          <Badge variant="orange" className="w-fit gap-1">
+          <Badge variant="attention" className="w-fit gap-1">
             {t("median")}
           </Badge>
         </Tooltip>
@@ -205,7 +205,7 @@ const getPerformanceBadge = (performance: RoutedToTableRow["performance"], t: TF
     case "at_average":
       return (
         <Tooltip content={t("at_average")}>
-          <Badge variant="blue" className="w-fit gap-1">
+          <Badge variant="success" className="w-fit gap-1">
             {t("at_average")}
           </Badge>
         </Tooltip>
@@ -213,7 +213,7 @@ const getPerformanceBadge = (performance: RoutedToTableRow["performance"], t: TF
     default:
       return (
         <Tooltip content={t("no_data")}>
-          <Badge variant="gray" className="w-fit gap-1">
+          <Badge variant="outline" className="w-fit gap-1">
             {t("no_data")}
           </Badge>
         </Tooltip>
