@@ -1,8 +1,8 @@
 // eslint-disable-next-line no-restricted-imports
+import { getDefaultAvatar } from "@calid/features/lib/defaultAvatar";
 import { orderBy } from "lodash";
 
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
-import { getDefaultAvatar } from "@calid/features/lib/defaultAvatar";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
@@ -103,7 +103,9 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
     ...membership,
     calIdTeam: {
       ...membership.calIdTeam,
-      metadata: membership.calIdTeam.metadata ? teamMetadataSchema.parse(membership.calIdTeam.metadata) : null,
+      metadata: membership.calIdTeam.metadata
+        ? teamMetadataSchema.parse(membership.calIdTeam.metadata)
+        : null,
     },
   }));
 
@@ -235,43 +237,42 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
     eventTypeGroups,
     // Process CalIdTeam memberships
     await Promise.all(
-      calIdMemberships
-        .map(async (membership) => {
-          const calIdTeam = {
-            ...membership.calIdTeam,
-            metadata: membership.calIdTeam.metadata ? teamMetadataSchema.parse(membership.calIdTeam.metadata) : null,
-          };
+      calIdMemberships.map(async (membership) => {
+        const calIdTeam = {
+          ...membership.calIdTeam,
+          metadata: membership.calIdTeam.metadata
+            ? teamMetadataSchema.parse(membership.calIdTeam.metadata)
+            : null,
+        };
 
-          const eventTypes = await Promise.all(calIdTeam.eventTypes.map(mapEventType));
-          
-          return {
-            teamId: calIdTeam.id,
-            parentId: null, // CalIdTeams don't have parent organizations
-            bookerUrl: getBookerBaseUrlSync(null), // Use default booker URL
-            membershipRole: membership.role,
-            profile: {
-              image: getDefaultAvatar(calIdTeam.logoUrl, calIdTeam.name),
-              name: calIdTeam.name,
-              slug: calIdTeam.slug ? `calid/${calIdTeam.slug}` : null,
-            },
-            metadata: {
-              membershipCount: calIdTeam.members.length,
-              readOnly: membership.role === "MEMBER",
-            },
-            eventTypes: eventTypes
-              .filter(filterByCalIdTeamIds)
-              .filter((evType) => {
-                const res = evType.userId === null || evType.userId === user.id;
-                return res;
-              })
-              .filter((evType) =>
-                membership.role === "MEMBER"
-                  ? evType.schedulingType !== SchedulingType.MANAGED
-                  : true
-              )
-              .filter(filterBySchedulingTypes),
-          };
-        })
+        const eventTypes = await Promise.all(calIdTeam.eventTypes.map(mapEventType));
+
+        return {
+          teamId: calIdTeam.id,
+          parentId: null, // CalIdTeams don't have parent organizations
+          bookerUrl: getBookerBaseUrlSync(null), // Use default booker URL
+          membershipRole: membership.role,
+          profile: {
+            image: getDefaultAvatar(calIdTeam.logoUrl, calIdTeam.name),
+            name: calIdTeam.name,
+            slug: calIdTeam.slug ? `team/${calIdTeam.slug}` : null,
+          },
+          metadata: {
+            membershipCount: calIdTeam.members.length,
+            readOnly: membership.role === "MEMBER",
+          },
+          eventTypes: eventTypes
+            .filter(filterByCalIdTeamIds)
+            .filter((evType) => {
+              const res = evType.userId === null || evType.userId === user.id;
+              return res;
+            })
+            .filter((evType) =>
+              membership.role === "MEMBER" ? evType.schedulingType !== SchedulingType.MANAGED : true
+            )
+            .filter(filterBySchedulingTypes),
+        };
+      })
     )
   );
 
@@ -290,7 +291,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
   log.debug("getEventTypesByViewer final payload:", {
     eventTypeGroupsCount: eventTypeGroups.length,
     profilesCount: denormalizedPayload.profiles.length,
-    eventTypeGroups: eventTypeGroups.map(group => ({
+    eventTypeGroups: eventTypeGroups.map((group) => ({
       teamId: group.teamId,
       eventTypesCount: group.eventTypes.length,
       profile: group.profile.name,
