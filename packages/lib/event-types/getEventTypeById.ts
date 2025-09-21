@@ -30,8 +30,18 @@ interface getEventTypeByIdProps {
   isUserOrganizationAdmin: boolean;
   currentOrganizationId: number | null;
 }
+interface getEventTypeByIdForCalIdProps {
+  eventTypeId: number;
+  userId: number;
+  prisma: PrismaClient;
+  isTrpcCall?: boolean;
+  isUserOrganizationAdmin: boolean;
+  currentOrganizationId: number | null;
+}
 
 export type EventType = Awaited<ReturnType<typeof getEventTypeById>>;
+// Type for the new function
+export type EventTypeForCalId = Awaited<ReturnType<typeof getEventTypeByIdForCalId>>;
 
 export const getEventTypeById = async ({
   currentOrganizationId,
@@ -287,38 +297,14 @@ export async function getRawEventType({
   });
 }
 
-export async function getRawEventTypeForCalIdTeam({
-  eventTypeId,
-  calIdTeamId,
-  prisma,
-}: {
-  eventTypeId: number;
-  calIdTeamId: number | null;
-  prisma: PrismaClient;
-}) {
-  const eventTypeRepo = new EventTypeRepository(prisma);
-
-  return await eventTypeRepo.findByIdForCalIdTeam({
-    id: eventTypeId,
-    calIdTeamId,
-  });
-}
-
-export const getEventTypeByIdForCalIdTeam = async ({
+export const getEventTypeByIdForCalId = async ({
   currentOrganizationId,
   eventTypeId,
   userId,
   prisma,
   isTrpcCall = false,
   isUserOrganizationAdmin,
-}: {
-  currentOrganizationId: number | null;
-  eventTypeId: number;
-  userId: number;
-  prisma: PrismaClient;
-  isTrpcCall?: boolean;
-  isUserOrganizationAdmin: boolean;
-}) => {
+}: getEventTypeByIdForCalIdProps) => {
   const userSelect = {
     name: true,
     avatarUrl: true,
@@ -331,23 +317,11 @@ export const getEventTypeByIdForCalIdTeam = async ({
     timeZone: true,
   } satisfies Prisma.UserSelect;
 
-  // First, get the eventType to determine the calIdTeamId
-  const eventTypeForCalIdTeam = await prisma.eventType.findUnique({
-    where: { id: eventTypeId },
-    select: { calIdTeamId: true, userId: true },
-  });
-
-  if (!eventTypeForCalIdTeam) {
-    if (isTrpcCall) {
-      throw new TRPCError({ code: "NOT_FOUND" });
-    } else {
-      throw new Error("Event type not found");
-    }
-  }
-
-  const rawEventType = await getRawEventTypeForCalIdTeam({
+  const rawEventType = await getRawEventTypeForCalId({
+    userId,
     eventTypeId,
-    calIdTeamId: eventTypeForCalIdTeam.calIdTeamId,
+    isUserOrganizationAdmin,
+    currentOrganizationId,
     prisma,
   });
 
@@ -365,7 +339,7 @@ export const getEventTypeByIdForCalIdTeam = async ({
   const eventTypeWithParsedMetadata = { ...rawEventType, metadata: newMetadata };
   const userRepo = new UserRepository(prisma);
   const eventTeamMembershipsWithUserProfile = [];
-  for (const eventTeamMembership of rawEventType.calIdTeam?.members || []) {
+  for (const eventTeamMembership of rawEventType.team?.members || []) {
     eventTeamMembershipsWithUserProfile.push({
       ...eventTeamMembership,
       user: await userRepo.enrichUserWithItsProfile({
@@ -397,28 +371,59 @@ export const getEventTypeByIdForCalIdTeam = async ({
 
   newMetadata.apps = {
     ...apps,
-    ...getEventTypeAppData(newMetadata, eventTypeWithParsedMetadata),
+    giphy: getEventTypeAppData(eventTypeWithParsedMetadata, "giphy", true),
   };
+
+  const parsedMetaData = newMetadata;
+
+  const parsedCustomInputs = (rawEventType.customInputs || []).map((input) => customInputSchema.parse(input));
 
   const eventType = {
     ...restEventType,
-    metadata: newMetadata,
-    locations: (locations as LocationObject[]) || [],
-    children: childrenWithUserProfile.map((ch) => ({
-      ...ch,
-      owner: ch.owner
+    schedule:
+      rawEventType.schedule?.id ||
+      (!rawEventType.team ? rawEventType.users[0]?.defaultScheduleId : null) ||
+      null,
+    restrictionScheduleId: rawEventType.restrictionScheduleId || null,
+    restrictionScheduleName: rawEventType.restrictionSchedule?.name || null,
+    useBookerTimezone: rawEventType.useBookerTimezone || false,
+    instantMeetingSchedule: rawEventType.instantMeetingSchedule?.id || null,
+    scheduleName: rawEventType.schedule?.name || null,
+    recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
+    bookingLimits: parseBookingLimit(restEventType.bookingLimits),
+    durationLimits: parseDurationLimit(restEventType.durationLimits),
+    eventTypeColor: parseEventTypeColor(restEventType.eventTypeColor),
+    locations: locations as unknown as LocationObject[],
+    metadata: parsedMetaData,
+    customInputs: parsedCustomInputs,
+    users: rawEventType.users,
+    bookerUrl: restEventType.team
+      ? await getBookerBaseUrl(restEventType.team.parentId)
+      : restEventType.owner
+      ? await getBookerBaseUrl(currentOrganizationId)
+      : WEBSITE_URL,
+    children: childrenWithUserProfile.flatMap((ch) =>
+      ch.owner !== null
         ? {
-            ...ch.owner,
-            avatar: getUserAvatarUrl(ch.owner),
+            ...ch,
+            owner: {
+              ...ch.owner,
+              avatar: getUserAvatarUrl(ch.owner),
+              email: ch.owner.email,
+              name: ch.owner.name ?? "",
+              username: ch.owner.username ?? "",
+              membership:
+                restEventType.team?.members.find((tm) => tm.user.id === ch.owner?.id)?.role ||
+                MembershipRole.MEMBER,
+            },
             created: true,
           }
-        : null,
-      created: true,
-    })),
+        : []
+    ),
   };
 
   // backwards compat
-  if (eventType.users.length === 0 && !eventType.calIdTeam) {
+  if (eventType.users.length === 0 && !eventType.team) {
     const fallbackUser = await prisma.user.findUnique({
       where: {
         id: userId,
@@ -448,7 +453,7 @@ export const getEventTypeByIdForCalIdTeam = async ({
 
   const t = await getTranslation(currentUser?.locale ?? "en", "common");
 
-  if (!currentUser?.id && !eventType.calIdTeamId) {
+  if (!currentUser?.id && !eventType.teamId) {
     throw new TRPCError({
       code: "NOT_FOUND",
       message: "Could not find user or team",
@@ -456,7 +461,7 @@ export const getEventTypeByIdForCalIdTeam = async ({
   }
 
   const locationOptions = await getLocationGroupedOptions(
-    eventType.calIdTeamId ? { teamId: eventType.calIdTeamId } : { userId: userId },
+    eventType.teamId ? { teamId: eventType.teamId } : { userId },
     t
   );
   if (eventType.schedulingType === SchedulingType.MANAGED) {
@@ -472,19 +477,18 @@ export const getEventTypeByIdForCalIdTeam = async ({
     });
   }
 
-  const isOrgTeamEvent = false; // calIdTeam has no parent
-  const eventTypeObject = {
-    ...eventType,
+  const isOrgTeamEvent = !!eventType?.teamId && !!eventType.team?.parentId;
+  const eventTypeObject = Object.assign({}, eventType, {
     users: eventTypeUsers,
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
-    isOrgTeamEvent,
-  };
+    bookingFields: getBookingFieldsWithSystemFields({ ...eventType, isOrgTeamEvent }),
+  });
 
-  const isOrgEventType = false; // calIdTeam has no parent
-  const teamMembers = eventTypeObject.calIdTeam
+  const isOrgEventType = !!eventTypeObject.team?.parentId;
+  const teamMembers = eventTypeObject.team
     ? eventTeamMembershipsWithUserProfile
-        .filter((member) => member.acceptedInvitation || isOrgEventType)
+        .filter((member) => member.accepted || isOrgEventType)
         .map((member) => {
           const user: typeof member.user & { avatar: string } = {
             ...member.user,
@@ -501,8 +505,7 @@ export const getEventTypeByIdForCalIdTeam = async ({
 
   // Find the current users membership so we can check role to enable/disable deletion.
   // Sets to null if no membership is found - this must mean we are in a none team event type
-  const currentUserMembership =
-    eventTypeObject.calIdTeam?.members.find((el) => el.user.id === userId) ?? null;
+  const currentUserMembership = eventTypeObject.team?.members.find((el) => el.user.id === userId) ?? null;
 
   let destinationCalendar = eventTypeObject.destinationCalendar;
   if (!destinationCalendar) {
@@ -525,7 +528,7 @@ export const getEventTypeByIdForCalIdTeam = async ({
     },
     locationOptions,
     destinationCalendar,
-    team: eventTypeObject.calIdTeam || null,
+    team: eventTypeObject.team || null,
     teamMembers,
     currentUserMembership,
     isUserOrganizationAdmin,
@@ -533,4 +536,27 @@ export const getEventTypeByIdForCalIdTeam = async ({
   return finalObj;
 };
 
+export async function getRawEventTypeForCalId({
+  userId,
+  eventTypeId,
+  isUserOrganizationAdmin,
+  currentOrganizationId,
+  prisma,
+}: Omit<getEventTypeByIdForCalIdProps, "isTrpcCall">) {
+  const eventTypeRepo = new EventTypeRepository(prisma);
+
+  if (isUserOrganizationAdmin && currentOrganizationId) {
+    return await eventTypeRepo.findByIdForOrgAdmin({
+      id: eventTypeId,
+      organizationId: currentOrganizationId,
+    });
+  }
+
+  return await eventTypeRepo.findByIdForCalId({
+    id: eventTypeId,
+    userId,
+  });
+}
+
 export default getEventTypeById;
+

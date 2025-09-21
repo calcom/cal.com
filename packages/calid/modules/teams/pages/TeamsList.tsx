@@ -1,5 +1,4 @@
 "use client";
-import { revalidateCalIdTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 import { getDefaultAvatar } from "@calid/features/lib/defaultAvatar";
 import { Avatar } from "@calid/features/ui/components/avatar";
@@ -13,6 +12,7 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogClose,
 } from "@calid/features/ui/components/dialog";
 import {
   DropdownMenu,
@@ -32,6 +32,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc/react";
+import { revalidateCalIdTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 import { getTeamUrl } from "../lib/getTeamUrl";
 
@@ -69,7 +70,7 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
     async onSuccess() {
       await utils.viewer.calidTeams.list.invalidate();
       revalidateCalIdTeamsList();
-      triggerToast("team_disbanded_successfully", "success");
+      triggerToast(t("team_disbanded_successfully"), "success");
     },
     async onError(err) {
       triggerToast(err.message, "error");
@@ -85,10 +86,6 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
     deleteTeamMutation.mutate({ teamId });
   }
 
-  function previewUrl(url: string) {
-    window.open(url, "_blank", "noopener,noreferrer");
-  }
-
   useEffect(() => {
     if (!token) {
       return;
@@ -99,25 +96,24 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
     if (errorMsgFromInvitation) {
       triggerToast(errorMsgFromInvitation, "error");
     }
-  }, []);
+  }, [errorMsgFromInvitation, t, teamNameFromInvitation, token]);
 
-  const acceptOrLeaveMutation = trpc.viewer.calidTeams.acceptOrLeave.useMutation({
-    onSuccess: async () => {
-      showToast(t("success"), "success");
-      await utils.viewer.calidTeams.get.invalidate();
-      await utils.viewer.calidTeams.list.invalidate();
-      revalidateCalIdTeamsList();
-    },
-  });
+  // const acceptOrLeaveMutation = trpc.viewer.calidTeams.acceptOrLeave.useMutation({
+  //   onSuccess: async () => {
+  //     showToast(t("success"), "success");
+  //     await utils.viewer.calidTeams.get.invalidate();
+  //     await utils.viewer.calidTeams.list.invalidate();
+  //     revalidateCalIdTeamsList();
+  //   },
+  // });
 
-  function acceptOrLeave(accept: boolean, teamId: number) {
-    console.log("Hello world")
-    acceptOrLeaveMutation.mutate({
-      teamId: teamId,
-      accept,
-    });
-  }
-
+  // function acceptOrLeave(accept: boolean, teamId: number) {
+  //   console.log("Hello world")
+  //   acceptOrLeaveMutation.mutate({
+  //     teamId: teamId,
+  //     accept,
+  //   });
+  // }
 
   return (
     <>
@@ -153,7 +149,6 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
                 </div>
                 <div className="flex items-center space-x-2">
                   <Badge variant="attention">{t("pending")}</Badge>
-
                   <Button
                     type="button"
                     className="border-empthasis mr-3"
@@ -170,7 +165,6 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
                     onClick={() => acceptOrLeave(true, team.id)}
                     StartIcon="check"
                   />
-
                   <Tooltip content={t("view_team")}>
                     <Button
                       color="minimal"
@@ -209,77 +203,87 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
             {teams.map((team) => (
               <li
                 key={team.id}
-                className="border-subtle flex items-center justify-between rounded-md border p-4">
-                <div className="flex items-center space-x-2">
-                  <Avatar
-                    size="md"
-                    shape="square"
-                    imageSrc={getDefaultAvatar(team?.logoUrl, team?.name as string)}
-                    alt="Team logo"
-                  />
-                  <span className="text-default text-md font-semibold">{team.name}</span>
-                  <Badge variant="secondary" isPublicUrl={true}>
-                    {teamUrl(team?.slug ?? null)}
-                  </Badge>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Badge variant="secondary">
-                    {team.role.charAt(0).toUpperCase() + team.role.slice(1).toLowerCase()}
-                  </Badge>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button StartIcon="ellipsis" variant="icon" size="sm" color="minimal" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {checkAdminOrOwner(team.role) && (
-                        <DropdownMenuItem href={`/settings/teams/${team.id}/profile`} StartIcon="pencil-line">
-                          {t("edit_team")}
-                        </DropdownMenuItem>
-                      )}
-                      {checkAdminOrOwner(team.role) && (
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setSelectedTeamId(team.id);
-                            setOpenInvitationDialog(true);
-                          }}
-                          StartIcon="user-plus">
-                          {t("invite_team_member")}
-                        </DropdownMenuItem>
-                      )}
-                      {team.role === MembershipRole.OWNER && (
-                        <>
+                className="border-subtle bg-default group relative rounded-md border transition hover:shadow-md">
+                <div className="flex items-center justify-between p-4">
+                  <div className="flex items-center space-x-3">
+                    <Avatar
+                      size="md"
+                      shape="square"
+                      imageSrc={getDefaultAvatar(team?.logoUrl, team?.name as string)}
+                      alt="Team logo"
+                      className="bg-muted h-10 w-10"
+                    />
+                    <div>
+                      <h3 className="text-default text-base font-semibold">{team.name}</h3>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" isPublicUrl={true}>
+                          {teamUrl(team?.slug ?? null)}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Badge variant="secondary">
+                      {team.role.charAt(0).toUpperCase() + team.role.slice(1).toLowerCase()}
+                    </Badge>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button StartIcon="ellipsis" variant="icon" size="sm" color="minimal" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {checkAdminOrOwner(team.role) && (
                           <DropdownMenuItem
-                            color="destructive"
-                            StartIcon="trash-2"
-                            onSelect={(e) => {
-                              e.preventDefault(); // optional — if you don't want dropdown to close
-                              setIsOpen(true);
-                            }}>
-                            {t("disband_team")}
+                            href={`/settings/teams/${team.id}/profile`}
+                            StartIcon="pencil-line">
+                            {t("edit_team")}
                           </DropdownMenuItem>
+                        )}
+                        {checkAdminOrOwner(team.role) && (
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedTeamId(team.id);
+                              setOpenInvitationDialog(true);
+                            }}
+                            StartIcon="user-plus">
+                            {t("invite_team_member")}
+                          </DropdownMenuItem>
+                        )}
+                        {team.role === MembershipRole.OWNER && (
+                          <>
+                            <DropdownMenuItem
+                              color="destructive"
+                              StartIcon="trash-2"
+                              onSelect={(e) => {
+                                e.preventDefault(); // optional — if you don't want dropdown to close
+                                setIsOpen(true);
+                              }}>
+                              {t("disband_team")}
+                            </DropdownMenuItem>
 
-                          <Dialog open={isOpen} onOpenChange={setIsOpen}>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>{t("disband_team")}</DialogTitle>
-                                <DialogDescription>
-                                  {t("disband_team_confirmation_message")}
-                                </DialogDescription>
-                              </DialogHeader>
-                              <DialogFooter>
-                                <Button type="button" color="primary" onClick={() => setIsOpen(false)}>
-                                  {t("cancel")}
-                                </Button>
-                                <Button type="button" color="destructive" onClick={() => deleteTeam(team.id)}>
-                                  {t("confirm_disband_team")}
-                                </Button>
-                              </DialogFooter>
-                            </DialogContent>
-                          </Dialog>
-                        </>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>{t("disband_team")}</DialogTitle>
+                                  <DialogDescription>
+                                    {t("disband_team_confirmation_message")}
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <DialogFooter>
+                                  <Button
+                                    type="button"
+                                    color="destructive"
+                                    onClick={() => deleteTeam(team.id)}>
+                                    {t("confirm_disband_team")}
+                                  </Button>
+                                  <DialogClose color="primary" />
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
               </li>
             ))}
@@ -293,9 +297,7 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
             <DialogDescription>{t("add_team_members_description")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button color="secondary" onClick={() => setOpenInvitationDialog(false)}>
-              {t("cancel")}
-            </Button>
+            <DialogClose />
             <Button
               color="primary"
               onClick={() => {

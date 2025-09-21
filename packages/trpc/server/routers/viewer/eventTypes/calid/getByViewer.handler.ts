@@ -1,19 +1,19 @@
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { getEventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
+import { getEventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByCalIdViewer";
 import type { PrismaClient } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../../types";
-import type { TEventTypeInputSchema } from "./getByViewer.schema";
+import type { TCalIdEventTypeInputSchema } from "./getByViewer.schema";
 
-type GetByViewerOptions = {
+type CalIdGetByViewerOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
     prisma: PrismaClient;
   };
-  input: TEventTypeInputSchema;
+  input: TCalIdEventTypeInputSchema;
 };
 
-export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => {
+export const getByViewerHandler = async ({ ctx, input }: CalIdGetByViewerOptions) => {
   await checkRateLimitAndThrowError({
     identifier: `eventTypes:getByViewer:${ctx.user.id}`,
     rateLimitingType: "common",

@@ -1305,6 +1305,7 @@ view RoutingFormResponse {
   formId                           String
   formName                         String
   formTeamId                       Int?
+  formCalTeamId                    Int?
   formUserId                       Int?
   bookingUid                       String?
   bookingStatus                    BookingStatus?
@@ -1358,9 +1359,11 @@ model RoutingFormResponseDenormalized {
   utm_content             String?
   response                App_RoutingForms_FormResponse @relation(fields: [id], references: [id], onDelete: Cascade)
   fields                  RoutingFormResponseField[]    @relation("DenormalizedResponseToFields")
+  formCalTeamId           Int?
 
   @@index([formId])
   @@index([formTeamId])
+  @@index([formCalTeamId])
   @@index([formUserId])
   @@index([formId, createdAt])
   @@index([bookingId])

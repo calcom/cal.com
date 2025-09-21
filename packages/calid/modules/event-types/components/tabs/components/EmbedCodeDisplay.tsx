@@ -214,9 +214,7 @@ export const EmbedCodeDisplay: React.FC<EmbedCodeDisplayProps> = ({
         </div>
 
         <DialogFooter className="border-t px-6 py-4">
-          <DialogClose asChild>
-            <Button variant="outline">{t("cancel")}</Button>
-          </DialogClose>
+          <DialogClose />
           <Button onClick={handleCopyCode} className="ml-2">
             <Copy className="mr-2 h-4 w-4" />
             {t("copy_code")}

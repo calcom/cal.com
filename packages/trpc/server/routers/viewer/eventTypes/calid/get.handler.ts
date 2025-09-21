@@ -1,4 +1,4 @@
-import { getEventTypeByIdForCalIdTeam } from "@calcom/lib/event-types/getEventTypeById";
+import { getEventTypeByIdForCalId } from "@calcom/lib/event-types/getEventTypeById";
 import type { PrismaClient } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../../types";
@@ -13,7 +13,7 @@ type GetOptions = {
 };
 
 export const getHandler = ({ ctx, input }: GetOptions) => {
-  return getEventTypeByIdForCalIdTeam({
+  return getEventTypeByIdForCalId({
     currentOrganizationId: ctx.user.profile?.organizationId ?? null,
     eventTypeId: input.id,
     userId: ctx.user.id,

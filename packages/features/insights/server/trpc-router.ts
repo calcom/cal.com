@@ -1,5 +1,5 @@
-import { CalIdWorkflowEventsInsights } from "@calid/features/insights/server/workflow-events";
-import type { Prisma } from "@prisma/client";
+import { CalIdWorkflowEventsInsights } from "@calid/features/modules/insights/server/workflow-events";
+import type { CalIdMembership, Prisma } from "@prisma/client";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
@@ -197,18 +197,8 @@ const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, getRa
     throw new TRPCError({ code: "BAD_REQUEST" });
   }
 
-  //early return for now,as we don't have the full implementation of orgs
-  return next({
-    ctx: {
-      user: {
-        ...ctx.user,
-        // isOwnerAdminOfParentTeam,
-      },
-    },
-  });
-
-  // If teamId is provided, check if user belongs to team
-  // If teamId is not provided, check if user belongs to any team
+  // // If teamId is provided, check if user belongs to team
+  // // If teamId is not provided, check if user belongs to any team
 
   const membershipWhereConditional: Prisma.CalIdMembershipWhereInput = {
     userId: ctx.user.id,
@@ -223,39 +213,44 @@ const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, getRa
     where: membershipWhereConditional,
   });
 
-  // let isOwnerAdminOfParentTeam = false;
+  if (!membership && !parse.data.teamId) {
+    // User doesn't belong to any team
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
 
-  // // Probably we couldn't find a membership because the user is not a direct member of the team
-  // // So that would mean ctx.user.organization is present
-  // if ((parse.data.isAll && ctx.user.organizationId) || (!membership && ctx.user.organizationId)) {
-  //   //Look for membership type in organizationId
-  //   if (!membership && ctx.user.organizationId && parse.data.teamId) {
-  //     const isChildTeamOfOrg = await ctx.insightsDb.calIdteam.findFirst({
-  //       where: {
-  //         id: parse.data.teamId,
-  //         parentId: ctx.user.organizationId,
-  //       },
-  //     });
-  //     if (!isChildTeamOfOrg) {
-  //       throw new TRPCError({ code: "UNAUTHORIZED" });
-  //     }
-  //   }
+  // // let isOwnerAdminOfParentTeam = false;
 
-  //   const membershipOrg = await ctx.insightsDb.membership.findFirst({
-  //     where: {
-  //       userId: ctx.user.id,
-  //       teamId: ctx.user.organizationId,
-  //       accepted: true,
-  //       role: {
-  //         in: ["OWNER", "ADMIN"],
-  //       },
-  //     },
-  //   });
-  //   if (!membershipOrg) {
-  //     throw new TRPCError({ code: "UNAUTHORIZED" });
-  //   }
-  //   isOwnerAdminOfParentTeam = true;
-  // }
+  // // // Probably we couldn't find a membership because the user is not a direct member of the team
+  // // // So that would mean ctx.user.organization is present
+  // // if ((parse.data.isAll && ctx.user.organizationId) || (!membership && ctx.user.organizationId)) {
+  // //   //Look for membership type in organizationId
+  // //   if (!membership && ctx.user.organizationId && parse.data.teamId) {
+  // //     const isChildTeamOfOrg = await ctx.insightsDb.calIdteam.findFirst({
+  // //       where: {
+  // //         id: parse.data.teamId,
+  // //         parentId: ctx.user.organizationId,
+  // //       },
+  // //     });
+  // //     if (!isChildTeamOfOrg) {
+  // //       throw new TRPCError({ code: "UNAUTHORIZED" });
+  // //     }
+  // //   }
+
+  // //   const membershipOrg = await ctx.insightsDb.membership.findFirst({
+  // //     where: {
+  // //       userId: ctx.user.id,
+  // //       teamId: ctx.user.organizationId,
+  // //       accepted: true,
+  // //       role: {
+  // //         in: ["OWNER", "ADMIN"],
+  // //       },
+  // //     },
+  // //   });
+  // //   if (!membershipOrg) {
+  // //     throw new TRPCError({ code: "UNAUTHORIZED" });
+  // //   }
+  // //   isOwnerAdminOfParentTeam = true;
+  // // }
 
   return next({
     ctx: {
@@ -467,14 +462,14 @@ export const insightsRouter = router({
         startDate,
         endDate,
         timeView,
-        timeZone,
+        timeZone: timeZone === "Asia/Calcutta" ? "Asia/Kolkata" : timeZone,
         weekStart: ctx.user.weekStart,
       });
 
       const insightsBookingService = createInsightsBookingService(ctx, input);
       try {
         return await insightsBookingService.getEventTrendsStats({
-          timeZone,
+          timeZone: timeZone === "Asia/Calcutta" ? "Asia/Kolkata" : timeZone,
           dateRanges,
         });
       } catch (e) {
@@ -1044,7 +1039,7 @@ export const insightsRouter = router({
 
       try {
         return await insightsBookingService.getBookingsByHourStats({
-          timeZone,
+          timeZone: timeZone === "Asia/Calcutta" ? "Asia/Kolkata" : timeZone,
         });
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
@@ -1261,23 +1256,24 @@ async function getEventTypeList({
   //   };
   // }
 
+  let membership: CalIdMembership | null = null;
   if (teamId && !isAll) {
     membershipWhereConditional["calIdTeamId"] = teamId;
     membershipWhereConditional["userId"] = user.id;
-  }
-  if (userId) {
-    membershipWhereConditional["userId"] = userId;
-  }
 
-  // I'm not using unique here since when userId comes from input we should look for every
-  // event type that user owns
-  const membership = await prisma.calIdMembership.findFirst({
-    where: membershipWhereConditional,
-  });
+    // I'm not using unique here since when userId comes from input we should look for every
+    // event type that user owns
+    membership = await prisma.calIdMembership.findFirst({
+      where: membershipWhereConditional,
+    });
 
-  if (!membership && !user.isOwnerAdminOfParentTeam) {
-    throw new Error("User is not part of a team/org");
+    if (!membership && !user.isOwnerAdminOfParentTeam) {
+      throw new Error("User is not part of a team/org");
+    }
   }
+  // if (userId) {
+  //   membershipWhereConditional["userId"] = userId;
+  // }
 
   const eventTypeWhereConditional: Prisma.EventTypeWhereInput = {};
   // if (isAll && childrenTeamIds.length > 0 && user.organizationId && user.isOwnerAdminOfParentTeam) {

@@ -58,8 +58,6 @@ const CreateNewTeamPage = () => {
     },
   });
 
-  console.log("Form methods: ", formMethods);
-
   return (
     <>
       <Form

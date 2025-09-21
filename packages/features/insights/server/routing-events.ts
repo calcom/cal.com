@@ -37,7 +37,10 @@ type RoutingFormResponsesFilter = RoutingFormResponsesInput & {
   organizationId: number | null;
 };
 
-type WhereForTeamOrAllTeams = Pick<Prisma.App_RoutingForms_FormWhereInput, "id" | "teamId" | "userId">;
+type WhereForTeamOrAllTeams = Pick<
+  Prisma.App_RoutingForms_FormWhereInput,
+  "id" | "teamId" | "userId" | "calIdTeamId"
+>;
 
 class RoutingEventsInsights {
   private static async getWhereForTeamOrAllTeams({
@@ -49,48 +52,38 @@ class RoutingEventsInsights {
   }: RoutingFormInsightsTeamFilter): Promise<WhereForTeamOrAllTeams> {
     // Get team IDs based on organization if applicable
     let teamIds: number[] = [];
-    if (isAll && organizationId) {
-      const teamsFromOrg = await prisma.team.findMany({
-        where: {
-          parentId: organizationId,
-        },
-        select: {
-          id: true,
-        },
-      });
-      teamIds = [organizationId, ...teamsFromOrg.map((t) => t.id)];
-    } else if (teamId) {
+    if (teamId) {
       teamIds = [teamId];
     }
 
     // Filter teamIds to only include teams the user has access to
     if (teamIds.length > 0) {
-      const accessibleTeams = await prisma.membership.findMany({
+      const accessibleTeams = await prisma.calIdMembership.findMany({
         where: {
           userId: userId ?? -1,
-          teamId: {
+          calIdTeamId: {
             in: teamIds,
           },
-          accepted: true,
+          acceptedInvitation: true,
         },
         select: {
-          teamId: true,
+          calIdTeamId: true,
         },
       });
-      teamIds = accessibleTeams.map((membership) => membership.teamId);
+      teamIds = accessibleTeams.map((membership) => membership.calIdTeamId);
     }
 
     // Base where condition for forms
     const formsWhereCondition: WhereForTeamOrAllTeams = {
       ...(teamIds.length > 0
         ? {
-            teamId: {
+            calIdTeamId: {
               in: teamIds,
             },
           }
         : {
             userId: userId ?? -1,
-            teamId: null,
+            calIdTeamId: null,
           }),
       ...(routingFormId && {
         id: routingFormId,
@@ -98,6 +91,57 @@ class RoutingEventsInsights {
     };
 
     return formsWhereCondition;
+    // // Get team IDs based on organization if applicable
+    // let teamIds: number[] = [];
+    // if (isAll && organizationId) {
+    //   const teamsFromOrg = await prisma.team.findMany({
+    //     where: {
+    //       parentId: organizationId,
+    //     },
+    //     select: {
+    //       id: true,
+    //     },
+    //   });
+    //   teamIds = [organizationId, ...teamsFromOrg.map((t) => t.id)];
+    // } else if (teamId) {
+    //   teamIds = [teamId];
+    // }
+
+    // // Filter teamIds to only include teams the user has access to
+    // if (teamIds.length > 0) {
+    //   const accessibleTeams = await prisma.calIdMembership.findMany({
+    //     where: {
+    //       userId: userId ?? -1,
+    //       calIdTeamId: {
+    //         in: teamIds,
+    //       },
+    //       acceptedInvitation: true,
+    //     },
+    //     select: {
+    //       calIdTeamId: true,
+    //     },
+    //   });
+    //   teamIds = accessibleTeams.map((membership) => membership.calIdTeamId);
+    // }
+
+    // // Base where condition for forms
+    // const formsWhereCondition: WhereForTeamOrAllTeams = {
+    //   ...(teamIds.length > 0
+    //     ? {
+    //         teamId: {
+    //           in: teamIds,
+    //         },
+    //       }
+    //     : {
+    //         userId: userId ?? -1,
+    //         teamId: null,
+    //       }),
+    //   ...(routingFormId && {
+    //     id: routingFormId,
+    //   }),
+    // };
+
+    // return formsWhereCondition;
   }
 
   static async getRoutingFormStats({
@@ -237,8 +281,10 @@ class RoutingEventsInsights {
       ...(formsTeamWhereCondition.id !== undefined && {
         formId: formsTeamWhereCondition.id as string | Prisma.StringFilter<"RoutingFormResponse">,
       }),
-      ...(formsTeamWhereCondition.teamId !== undefined && {
-        formTeamId: formsTeamWhereCondition.teamId as number | Prisma.IntFilter<"RoutingFormResponse">,
+      ...(formsTeamWhereCondition.calIdTeamId !== undefined && {
+        formCalTeamId: formsTeamWhereCondition.calIdTeamId as
+          | number
+          | Prisma.IntFilter<"RoutingFormResponse">,
       }),
       ...(formsTeamWhereCondition.userId !== undefined && {
         formUserId: formsTeamWhereCondition.userId as number | Prisma.IntFilter<"RoutingFormResponse">,
@@ -509,12 +555,12 @@ class RoutingEventsInsights {
     const teamConditions = [];
 
     // @ts-expect-error it doesn't exist but TS isn't smart enough when it's a number or int filter
-    if (formsWhereCondition.teamId?.in) {
+    if (formsWhereCondition.calIdTeamId?.in) {
       // @ts-expect-error it doesn't exist but TS isn't smart enough when it's a number or int filter
-      teamConditions.push(`f."teamId" IN (${formsWhereCondition.teamId.in.join(",")})`);
+      teamConditions.push(`f."calIdTeamId" IN (${formsWhereCondition.calIdTeamId.in.join(",")})`);
     }
     // @ts-expect-error it doesn't exist but TS isn't smart enough when it's a number or int filter
-    if (!formsWhereCondition.teamId?.in && userId) {
+    if (!formsWhereCondition.calIdTeamId?.in && userId) {
       teamConditions.push(`f."userId" = ${userId}`);
     }
     if (routingFormId) {
@@ -733,12 +779,12 @@ class RoutingEventsInsights {
     const teamConditions = [];
 
     // @ts-expect-error it does exist but TS isn't smart enough when it's a number or int filter
-    if (formsWhereCondition.teamId?.in) {
+    if (formsWhereCondition.calIdTeamId?.in) {
       // @ts-expect-error same as above
-      teamConditions.push(`f."teamId" IN (${formsWhereCondition.teamId.in.join(",")})`);
+      teamConditions.push(`f."calIdTeamId" IN (${formsWhereCondition.calIdTeamId.in.join(",")})`);
     }
     // @ts-expect-error it does exist but TS isn't smart enough when it's a number or int filter
-    if (!formsWhereCondition.teamId?.in && userId) {
+    if (!formsWhereCondition.calIdTeamId?.in && userId) {
       teamConditions.push(`f."userId" = ${userId}`);
     }
     if (routingFormId) {
@@ -988,12 +1034,12 @@ class RoutingEventsInsights {
     const teamConditions = [];
 
     // @ts-expect-error it does exist but TS isn't smart enough when it's a number or int filter
-    if (formsWhereCondition.teamId?.in) {
+    if (formsWhereCondition.calIdTeamId?.in) {
       // @ts-expect-error same as above
-      teamConditions.push(`f."teamId" IN (${formsWhereCondition.teamId.in.join(",")})`);
+      teamConditions.push(`f."calIdTeamId" IN (${formsWhereCondition.calIdTeamId.in.join(",")})`);
     }
     // @ts-expect-error it does exist but TS isn't smart enough when it's a number or int filter
-    if (!formsWhereCondition.teamId?.in && userId) {
+    if (!formsWhereCondition.calIdTeamId?.in && userId) {
       teamConditions.push(`f."userId" = ${userId}`);
     }
     if (routingFormId) {

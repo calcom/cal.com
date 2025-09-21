@@ -366,7 +366,13 @@ export async function getUsersAttributes({ userId, teamId }: { userId: number; t
   return await getAttributesAssignedToMembersOfTeam({ teamId, userId });
 }
 
-async function getAttributesAssignedToMembersOfCalIdTeam({ calIdTeamId, userId }: { calIdTeamId: number; userId?: number }) {
+async function getAttributesAssignedToMembersOfCalIdTeam({
+  calIdTeamId,
+  userId,
+}: {
+  calIdTeamId: number;
+  userId?: number;
+}) {
   const log = logger.getSubLogger({ prefix: ["getAttributeToUserWithMembershipAndAttributesForCalIdTeam"] });
 
   const whereClauseForAttributesAssignedToMembersOfCalIdTeam = {
@@ -415,7 +421,7 @@ async function getAttributesAssignedToMembersOfCalIdTeam({ calIdTeamId, userId }
   return assignedAttributeOptions;
 }
 
-export async function getAttributesForCalIdTeam({ calIdTeamId }: { calIdTeamId: number }) {
+export async function calid_getAttributesForTeam({ calIdTeamId }: { calIdTeamId: number }) {
   const attributes = await getAttributesAssignedToMembersOfCalIdTeam({ calIdTeamId });
   return attributes satisfies Attribute[];
 }

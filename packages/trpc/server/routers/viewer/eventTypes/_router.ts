@@ -105,6 +105,23 @@ export const eventTypesRouter = router({
       return result;
     }),
 
+  getCalIdTeamAndEventTypeOptions: authedProcedure
+    .input(ZGetTeamAndEventTypeOptionsSchema)
+    .query(async ({ ctx, input }) => {
+      const { getCalIdTeamAndEventTypeOptions } = await import("./getCalIdTeamAndEventTypeOptions.handler");
+
+      const timer = logP(`getCalIdTeamAndEventTypeOptions(${ctx.user.id})`);
+
+      const result = await getCalIdTeamAndEventTypeOptions({
+        ctx,
+        input,
+      });
+
+      timer();
+
+      return result;
+    }),
+
   list: authedProcedure.query(async ({ ctx }) => {
     const { listHandler } = await import("./list.handler");
 

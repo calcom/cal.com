@@ -1,7 +1,4 @@
 import { Icon } from "@calid/features/ui/components/icon";
-
-
-
 import Link from "next/link";
 import { useState } from "react";
 import { Toaster } from "sonner";
@@ -24,7 +21,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   const [newApiKeys, setNewApiKeys] = useState<Record<string, string>>({});
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const integrations = trpc.viewer.apps.integrations.useQuery({ variant: "automation" });
+  const integrations = trpc.viewer.apps.calid_integrations.useQuery({ variant: "automation" });
   const oldApiKey = trpc.viewer.apiKeys.findKeyOfType.useQuery({ appId: ZAPIER });
   const teamsList = trpc.viewer.teams.listOwnedTeams.useQuery(undefined, {
     refetchOnWindowFocus: false,
@@ -78,7 +75,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
             <div className="invisible md:visible">
               <img className="h-11" src="/api/app-store/zapier/icon.svg" alt="Zapier Logo" />
             </div>
-            <div className="ml-2 ltr:mr-2 rtl:ml-2 md:ml-5">
+            <div className="ml-2 md:ml-5 ltr:mr-2 rtl:ml-2">
               <div className="text-default">{t("setting_up_zapier")}</div>
 
               <>

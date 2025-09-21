@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { Session } from "next-auth";
 
-import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToTeam";
+import { throwIfNotHaveAdminAccessToCalIdTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToCalIdTeam";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { HttpError } from "@calcom/lib/http-error";
@@ -14,6 +14,7 @@ const defaultIntegrationAddHandler = async ({
   appType,
   user,
   teamId = undefined,
+  calIdTeamId = undefined,
   createCredential,
 }: {
   slug: string;
@@ -21,6 +22,7 @@ const defaultIntegrationAddHandler = async ({
   appType: string;
   user?: Session["user"];
   teamId?: number;
+  calIdTeamId?: number;
   createCredential: AppDeclarativeHandler["createCredential"];
 }) => {
   if (!user?.id) {
@@ -30,7 +32,11 @@ const defaultIntegrationAddHandler = async ({
     const alreadyInstalled = await prisma.credential.findFirst({
       where: {
         appId: slug,
-        ...(teamId ? { AND: [{ userId: user.id }, { teamId }] } : { userId: user.id }),
+        ...(calIdTeamId
+          ? { AND: [{ userId: user.id }, { calIdTeamId }] }
+          : teamId
+          ? { AND: [{ userId: user.id }, { teamId }] }
+          : { userId: user.id }),
       },
     });
     if (alreadyInstalled) {
@@ -38,16 +44,16 @@ const defaultIntegrationAddHandler = async ({
     }
   }
 
-  await throwIfNotHaveAdminAccessToTeam({ teamId: teamId ?? null, userId: user.id });
+  await throwIfNotHaveAdminAccessToCalIdTeam({ teamId: calIdTeamId ?? teamId ?? null, userId: user.id });
 
-  await createCredential({ user: user, appType, slug, teamId });
+  await createCredential({ user: user, appType, slug, teamId, calIdTeamId });
 };
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   // Check that user is authenticated
   req.session = await getServerSession({ req });
 
-  const { args, teamId } = req.query;
+  const { args, teamId, calIdTeamId } = req.query;
 
   if (!Array.isArray(args)) {
     return res.status(404).json({ message: `API route not found` });
@@ -67,7 +73,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     if (typeof handler === "function") {
       await handler(req, res);
     } else {
-      await defaultIntegrationAddHandler({ user: req.session?.user, teamId: Number(teamId), ...handler });
+      await defaultIntegrationAddHandler({
+        user: req.session?.user,
+        teamId: Number(teamId),
+        calIdTeamId: Number(calIdTeamId),
+        ...handler,
+      });
       const redirectUrl = handler.redirect?.url ?? undefined;
       res.json({ url: redirectUrl, newTab: handler.redirect?.newTab });
     }

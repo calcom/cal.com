@@ -12,8 +12,8 @@ const handler: AppDeclarativeHandler = {
   redirect: {
     url: "/apps/btcpayserver/setup",
   },
-  createCredential: ({ appType, user, slug, teamId }) =>
-    createDefaultInstallation({ appType, user: user, slug, key: {}, teamId }),
+  createCredential: ({ appType, user, slug, teamId, calIdTeamId }) =>
+    createDefaultInstallation({ appType, user: user, slug, key: {}, teamId, calIdTeamId }),
 };
 
 export default handler;

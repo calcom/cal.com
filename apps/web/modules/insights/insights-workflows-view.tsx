@@ -1,8 +1,8 @@
 "use client";
 
-import { useInsightsWorkflows } from "@calid/features/insights/hooks/useInsightsWorkflows";
-import { WorkflowKPICards } from "@calid/features/insights/workflows/WorkflowKPICards";
-import { WorkflowStatusLineChart } from "@calid/features/insights/workflows/WorkflowStatusLineChart";
+import { useInsightsWorkflows } from "@calid/features/modules/insights/hooks/useInsightsWorkflows";
+import { WorkflowKPICards } from "@calid/features/modules/insights/workflows/WorkflowKPICards";
+import { WorkflowStatusLineChart } from "@calid/features/modules/insights/workflows/WorkflowStatusLineChart";
 
 import type { FilterableColumn } from "@calcom/features/data-table";
 import { ColumnFilterType, DataTableFilters, DateRangeFilter } from "@calcom/features/data-table";

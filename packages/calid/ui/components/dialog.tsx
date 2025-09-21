@@ -6,6 +6,10 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
+import { Button } from "./button";
+
 const dialogClasses = cva(
   "fixed left-[50%] top-[50%] z-50 grid w-[95vw] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-md border bg-white shadow-lg duration-200",
   {
@@ -25,7 +29,33 @@ const dialogClasses = cva(
 );
 
 export type DialogProps = React.ComponentProps<(typeof DialogPrimitive)["Root"]>;
-export const DialogClose = DialogPrimitive.Close;
+
+export function DialogClose(props: {
+  "data-testid"?: string;
+  dialogCloseProps?: React.ComponentProps<(typeof DialogPrimitive)["Close"]>;
+  children?: React.ReactNode;
+  onClick?: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void;
+  disabled?: boolean;
+  color?: React.ComponentProps<typeof Button>["color"];
+  className?: string;
+}) {
+  const { t } = useLocale();
+  const { className, dialogCloseProps, children, color, disabled, onClick } = props;
+
+  return (
+    <DialogPrimitive.Close asChild {...dialogCloseProps}>
+      <Button
+        data-testid={props["data-testid"] || "dialog-close"}
+        color={color || "secondary"}
+        className={cn(className)}
+        disabled={disabled}
+        onClick={onClick}
+        type="button">
+        {children ? children : t("cancel")}
+      </Button>
+    </DialogPrimitive.Close>
+  );
+}
 
 export function Dialog(props: DialogProps) {
   const { children, ...dialogProps } = props;
@@ -109,7 +139,7 @@ export const DialogContent = React.forwardRef<
         {...props}>
         {type === "creation" && (
           <div>
-            <DialogHeader title={title} subtitle={description} />
+            <DialogHeader title={title} description={description} />
             <div data-testid="dialog-creation" className="flex flex-col">
               {children}
             </div>
@@ -124,7 +154,7 @@ export const DialogContent = React.forwardRef<
               </div>
             )}
             <div className={cn("flex-grow", icon && "ml-4")}>
-              <DialogHeader title={title} subtitle={description} />
+              <DialogHeader title={title} description={description} />
               <div data-testid="dialog-confirmation">{children}</div>
             </div>
           </div>

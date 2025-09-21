@@ -139,7 +139,7 @@ const useAppCategorization = (eventTypeApps: any) => {
   const installedApps = useMemo(() => {
     return (
       eventTypeApps?.items.filter(
-        (app: any) => (app.userCredentialIds?.length || 0) > 0 || (app.teams?.length || 0) > 0
+        (app: any) => (app.userCredentialIds?.length || 0) > 0 || (app.calIdTeams?.length || 0) > 0
       ) || []
     );
   }, [eventTypeApps]);
@@ -147,13 +147,13 @@ const useAppCategorization = (eventTypeApps: any) => {
   const notInstalledApps = useMemo(() => {
     return (
       eventTypeApps?.items.filter(
-        (app: any) => (app.userCredentialIds?.length || 0) === 0 && (app.teams?.length || 0) === 0
+        (app: any) => (app.userCredentialIds?.length || 0) === 0 && (app.calIdTeams?.length || 0) === 0
       ) || []
     );
   }, [eventTypeApps]);
 
   const appsWithTeamCredentials = useMemo(() => {
-    return eventTypeApps?.items.filter((app: any) => (app.teams?.length || 0) > 0) || [];
+    return eventTypeApps?.items.filter((app: any) => (app.calIdTeams?.length || 0) > 0) || [];
   }, [eventTypeApps]);
 
   return {
@@ -191,7 +191,7 @@ const useTeamAppCards = (
         );
       }
 
-      app.teams?.forEach((team: any) => {
+      app.calIdTeams?.forEach((team: any) => {
         if (team) {
           appCards.push(
             <EventTypeAppCard
@@ -203,7 +203,7 @@ const useTeamAppCards = (
                 credentialOwner: {
                   name: team.name,
                   avatar: team.logoUrl,
-                  teamId: team.teamId,
+                  teamId: team.calIdTeamId,
                   credentialId: team.credentialId,
                 },
               }}
@@ -271,7 +271,7 @@ export const EventApps = ({ eventType, customClassNames = {} }: EventAppsTabProp
 
   // Render user-only apps (apps without team credentials)
   const userOnlyApps = useMemo(() => {
-    return installedApps.filter((app: any) => (app.teams?.length || 0) === 0);
+    return installedApps.filter((app: any) => (app.calIdTeams?.length || 0) === 0);
   }, [installedApps]);
 
   return (
@@ -325,13 +325,11 @@ export const EventApps = ({ eventType, customClassNames = {} }: EventAppsTabProp
         {/* Installed Apps Section */}
         <div className={classNames("space-y-4", customClassNames.installedAppsContainer)}>
           {/* Team Apps - Apps with team credentials */}
-          {teamAppCards.map((appCards, index) =>
-            appCards.map((card, cardIndex) => (
-              <div key={`team-app-${index}-${cardIndex}`} className={customClassNames.appCard}>
-                {card}
-              </div>
-            ))
-          )}
+          {teamAppCards.flat().map((card, index) => (
+            <div key={`team-app-${index}`} className={customClassNames.appCard}>
+              {card}
+            </div>
+          ))}
 
           {/* User-Only Apps - Apps without team credentials */}
           {userOnlyApps.map((app: any) => (

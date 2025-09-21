@@ -1,9 +1,6 @@
 "use client";
 
 import { Icon } from "@calid/features/ui/components/icon";
-
-
-
 import { useState, useEffect } from "react";
 import type z from "zod";
 
@@ -27,7 +24,7 @@ import type { RoutingFormWithResponseCount } from "../../types/types";
 
 function Page({ form }: { form: RoutingFormWithResponseCount }) {
   const { t } = useLocale();
-  const { data, isLoading } = trpc.viewer.appRoutingForms.getIncompleteBookingSettings.useQuery({
+  const { data, isLoading } = trpc.viewer.appRoutingForms.calid_getIncompleteBookingSettings.useQuery({
     formId: form.id,
   });
 

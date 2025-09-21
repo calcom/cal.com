@@ -1,3 +1,4 @@
+import { getDefaultAvatar } from "@calid/features/lib/defaultAvatar";
 import { Avatar } from "@calid/features/ui/components/avatar";
 import { Divider } from "@calid/features/ui/components/divider";
 import { VerticalDivider } from "@calid/features/ui/components/divider";
@@ -7,7 +8,6 @@ import { useSession } from "next-auth/react";
 import type { InputHTMLAttributes, ReactNode } from "react";
 import { forwardRef, useState } from "react";
 
-import { getDefaultAvatar } from "@calid/features/lib/defaultAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { trpc } from "@calcom/trpc/react";

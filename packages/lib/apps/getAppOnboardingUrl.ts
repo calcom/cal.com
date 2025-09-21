@@ -6,10 +6,12 @@ export const getAppOnboardingUrl = async ({
   slug,
   step,
   teamId,
+  calIdTeamId,
 }: {
   slug: string;
   step: AppOnboardingSteps;
   teamId?: number;
+  calIdTeamId?: number;
 }): Promise<string> => {
   if (slug === "razorpay" && step === AppOnboardingSteps.ACCOUNTS_STEP) {
     const res = await fetch("/api/integrations/razorpay/add", {
@@ -25,7 +27,9 @@ export const getAppOnboardingUrl = async ({
     return url;
   }
   const params: { [key: string]: string | number | number[] } = { slug };
-  if (!!teamId) {
+  if (!!calIdTeamId) {
+    params.calIdTeamId = calIdTeamId;
+  } else if (!!teamId) {
     params.teamId = teamId;
   }
   const query = stringify(params);

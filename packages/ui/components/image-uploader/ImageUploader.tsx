@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, type ButtonProps } from "@calid/features/ui/components/button";
+import { Button, type ButtonProps, type ButtonColor } from "@calid/features/ui/components/button";
 import {
   Dialog,
   DialogClose,
@@ -15,7 +15,6 @@ import Cropper from "react-easy-crop";
 import checkIfItFallbackImage from "@calcom/lib/checkIfItFallbackImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import type { ButtonColor } from "../button";
 import { useFileReader, createImage, Slider } from "./Common";
 import type { FileEvent, Area } from "./Common";
 
@@ -89,6 +88,7 @@ export default function ImageUploader({
 }: ImageUploaderProps) {
   const { t } = useLocale();
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
 
   const [{ result }, setFile] = useFileReader({
     method: "readAsDataURL",
@@ -127,7 +127,9 @@ export default function ImageUploader({
 
   return (
     <Dialog
+      open={isOpen}
       onOpenChange={(opened) => {
+        setIsOpen(opened);
         // unset file on close
         if (!opened) {
           setFile(null);
@@ -179,14 +181,15 @@ export default function ImageUploader({
           </div>
         </div>
         <DialogFooter className="relative">
-          <DialogClose asChild>
-            <Button color="minimal">{t("cancel")}</Button>
-          </DialogClose>
-          <DialogClose asChild>
-            <Button color="primary" onClick={() => showCroppedImage(croppedAreaPixels)}>
-              {t("save")}
-            </Button>
-          </DialogClose>
+          <DialogClose />
+          <Button
+            color="primary"
+            onClick={() => {
+              showCroppedImage(croppedAreaPixels);
+              setIsOpen(false);
+            }}>
+            {t("save")}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

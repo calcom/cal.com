@@ -1,4 +1,4 @@
-import { checkIfMemberAdminorOwner } from "@calid/features/modules/teams/lib/checkIfMemberAdminorOwner";
+import { checkIfMemberAdminOrOwner } from "@calid/features/modules/teams/lib/checkIfMemberAdminOrOwner";
 import type { Prisma } from "@prisma/client";
 
 import { prisma } from "@calcom/prisma";
@@ -46,7 +46,7 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersOptions) => 
     });
   }
 
-  const isMemberAdminOrOwner = checkIfMemberAdminorOwner(calIdMembership?.role);
+  const isMemberAdminOrOwner = checkIfMemberAdminOrOwner(calIdMembership?.role);
   if (!isMemberAdminOrOwner) {
     throw new TRPCError({
       code: "UNAUTHORIZED",

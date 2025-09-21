@@ -12,9 +12,9 @@ import { Icon } from "@calid/features/ui/components/icon";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 
+import { SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 
 interface ProfileProps {
   small?: boolean;
@@ -37,7 +37,7 @@ export const Profile = ({ small }: ProfileProps) => {
         window.open("https://docs.cal.id", "_blank");
         break;
       case "contact":
-        window.location.href = SUPPORT_MAIL_ADDRESS
+        window.location.href = SUPPORT_MAIL_ADDRESS;
         break;
     }
   };
@@ -53,7 +53,7 @@ export const Profile = ({ small }: ProfileProps) => {
         }
       }}>
       <DropdownMenuTrigger asChild>
-        <button className="hover:bg-emphasis flex hidden w-auto items-center space-x-3 rounded-lg py-1 px-2 transition-colors md:flex">
+        <button className="hover:bg-emphasis flex hidden w-auto items-center space-x-3 rounded-lg px-2 py-1 transition-colors md:flex">
           <div className="bg-primary flex h-6 w-6 items-center justify-center rounded-full">
             <span className="text-primary-foreground text-xs font-medium">
               <Avatar

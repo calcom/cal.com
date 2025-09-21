@@ -4,7 +4,6 @@ import appStore from "@calcom/app-store";
 import type { TDependencyData } from "@calcom/app-store/_appRegistry";
 import type { CredentialOwner } from "@calcom/app-store/types";
 import { getAppFromSlug } from "@calcom/app-store/utils";
-import { checkIfMemberIsAdminOrOwner } from "@calid/features/modules/teams/lib/checkIfMemberAdminorOwner";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential/clientAndServer";
@@ -14,6 +13,8 @@ import type { User } from "@calcom/prisma/client";
 import type { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { PaymentApp } from "@calcom/types/PaymentService";
+
+import { checkIfMemberAdminOrOwner } from "../modules/teams/lib/checkIfMemberAdminOrOwner";
 
 export type CalIdConnectedApps = Awaited<ReturnType<typeof getCalIdConnectedApps>>;
 
@@ -144,7 +145,7 @@ export async function getCalIdConnectedApps({
               name: calIdTeam.name,
               logoUrl: calIdTeam.logoUrl,
               credentialId: c.id,
-              isAdmin: checkifMemberIsAdminOrOwner(calIdTeam.members[0].role),
+              isAdmin: checkIfMemberAdminOrOwner(calIdTeam.members[0].role),
             };
           })
       );

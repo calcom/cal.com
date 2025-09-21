@@ -1,15 +1,10 @@
-import { availabilityUserSelect, prisma, type PrismaTransaction, type PrismaClient } from "@calcom/prisma";
+import { prisma, type PrismaTransaction, type PrismaClient } from "@calcom/prisma";
 import { CalIdMembershipRole } from "@calcom/prisma/client";
 import type { Prisma, CalIdMembership } from "@calcom/prisma/client";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
-import logger from "../../logger";
-import { safeStringify } from "../../safeStringify";
 import { eventTypeSelect } from "../eventTypeSelect";
 import { LookupTarget, ProfileRepository } from "./profile";
-import { withSelectedCalendars } from "./user";
 
-const log = logger.getSubLogger({ prefix: ["repository/calIdMembership"] });
 type ICalIdMembership = {
   calIdTeamId: number;
   userId: number;
@@ -34,7 +29,9 @@ type CalIdMembershipPartialSelect = Partial<Record<CalIdMembershipSelectableKeys
 type CalIdMembershipDTO = Pick<CalIdMembership, CalIdMembershipSelectableKeys>;
 
 type CalIdMembershipDTOFromSelect<TSelect extends CalIdMembershipPartialSelect> = {
-  [K in keyof TSelect & keyof CalIdMembershipDTO as TSelect[K] extends true ? K : never]: CalIdMembershipDTO[K];
+  [K in keyof TSelect & keyof CalIdMembershipDTO as TSelect[K] extends true
+    ? K
+    : never]: CalIdMembershipDTO[K];
 };
 
 const calIdTeamParentSelect = {
@@ -172,7 +169,13 @@ export class CalIdMembershipRepository {
     return memberships.map((membership) => membership.calIdTeamId);
   }
 
-  static async findUniqueByUserIdAndCalIdTeamId({ userId, calIdTeamId }: { userId: number; calIdTeamId: number }) {
+  static async findUniqueByUserIdAndCalIdTeamId({
+    userId,
+    calIdTeamId,
+  }: {
+    userId: number;
+    calIdTeamId: number;
+  }) {
     return await prisma.calIdMembership.findUnique({
       where: {
         userId_calIdTeamId: {
@@ -229,5 +232,62 @@ export class CalIdMembershipRepository {
       // this is explicit, and typed in TSelect default typings
       select: select ?? { userId: true },
     })) as unknown as Promise<CalIdMembershipDTOFromSelect<TSelect>[]>;
+  }
+
+  static async findAllByUpIdIncludeMinimalEventTypes(
+    { upId }: { upId: string },
+    {
+      where,
+      skipEventTypes = false,
+    }: { where?: Prisma.CalIdMembershipWhereInput; skipEventTypes?: boolean } = {}
+  ) {
+    const prismaWhere = await getWhereForfindAllByUpId(upId, where);
+    if (Array.isArray(prismaWhere)) {
+      return prismaWhere;
+    }
+
+    const select = {
+      id: true,
+      calIdTeamId: true,
+      userId: true,
+      acceptedInvitation: true,
+      role: true,
+      impersonation: true,
+      calIdTeam: {
+        select: {
+          ...{
+            id: true,
+            name: true,
+            slug: true,
+            logoUrl: true,
+            metadata: true,
+          },
+          ...(!skipEventTypes
+            ? {
+                eventTypes: {
+                  select: {
+                    ...eventTypeSelect,
+                    hashedLink: true,
+                    children: { select: { id: true } },
+                  },
+                  orderBy: [
+                    {
+                      position: "desc",
+                    },
+                    {
+                      id: "asc",
+                    },
+                  ],
+                },
+              }
+            : {}),
+        },
+      },
+    } satisfies Prisma.CalIdMembershipSelect;
+
+    return await prisma.calIdMembership.findMany({
+      where: prismaWhere,
+      select,
+    });
   }
 }

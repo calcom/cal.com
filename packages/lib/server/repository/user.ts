@@ -8,7 +8,7 @@ import { availabilityUserSelect } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma, User as UserType } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { CalIdMembershipRole, MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
@@ -725,6 +725,48 @@ export class UserRepository {
                     id: true,
                   },
                 },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+  async getUserCalIdAdminTeams({ userId }: { userId: number }) {
+    return await this.prismaClient.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        id: true,
+        avatarUrl: true,
+        name: true,
+        username: true,
+        calIdTeams: {
+          where: {
+            acceptedInvitation: true,
+            OR: [
+              {
+                role: { in: [CalIdMembershipRole.ADMIN, CalIdMembershipRole.OWNER] },
+              },
+              {
+                calIdTeam: {
+                  members: {
+                    some: {
+                      userId: userId,
+                      role: { in: [CalIdMembershipRole.ADMIN, CalIdMembershipRole.OWNER] },
+                    },
+                  },
+                },
+              },
+            ],
+          },
+          select: {
+            calIdTeam: {
+              select: {
+                id: true,
+                name: true,
+                logoUrl: true,
               },
             },
           },

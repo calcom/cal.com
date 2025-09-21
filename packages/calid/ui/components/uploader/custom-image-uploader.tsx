@@ -187,17 +187,13 @@ export default function ImageUploader({
           </div>
         </div>
         <DialogFooter className="relative">
-          <DialogClose asChild>
-            <Button color="minimal">{t("cancel")}</Button>
-          </DialogClose>
-          <DialogClose asChild>
-            <Button
-              data-testid={testId ? `upload-${testId}` : "upload-avatar"}
-              color="primary"
-              onClick={() => showCroppedImage(croppedAreaPixels)}>
-              {t("save")}
-            </Button>
-          </DialogClose>
+          <DialogClose />
+          <Button
+            data-testid={testId ? `upload-${testId}` : "upload-avatar"}
+            color="primary"
+            onClick={() => showCroppedImage(croppedAreaPixels)}>
+            {t("save")}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

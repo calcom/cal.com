@@ -1,19 +1,17 @@
 "use client";
-import type { SelectTeamDialogState, SetSelectTeamDialogState } from "../../components/FormActions";
 
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import { ShellMain } from "@calcom/features/shell/Shell";
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Form } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/components/toast";
 
+import type { SelectTeamDialogState } from "../../components/FormActions";
 import type { SingleFormComponentProps } from "../types/shared";
 import type { RoutingFormWithResponseCount } from "../types/types";
 import type { NewFormDialogState } from "./FormActions";
@@ -147,19 +145,19 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form]);
-  const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
+  const mutation = trpc.viewer.appRoutingForms.calid_formMutation.useMutation({
     onSuccess() {
-      showToast(t("form_updated_successfully"), "success");
+      triggerToast(t("form_updated_successfully"), "success");
     },
     onError(e) {
       if (e.message) {
-        showToast(e.message, "error");
+        triggerToast(e.message, "error");
         return;
       }
-      showToast(`Something went wrong`, "error");
+      triggerToast(`Something went wrong`, "error");
     },
     onSettled() {
-      utils.viewer.appRoutingForms.formQuery.invalidate({ id: form.id });
+      utils.viewer.appRoutingForms.calid_formQuery.invalidate({ id: form.id });
     },
   });
   const uptoDateForm = {
@@ -209,10 +207,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                   !isDesktop && "flex flex-col"
                 )}>
                 {isDesktop ? (
-                  <motion.div
-                    layout
-                    className="w-full px-4"
-                    transition={{ duration: 0.3, ease: "easeInOut" }}>
+                  <motion.div layout className="w-full" transition={{ duration: 0.3, ease: "easeInOut" }}>
                     <Page uptoDateForm={uptoDateForm} hookForm={hookForm} form={form} appUrl={appUrl} />
                   </motion.div>
                 ) : (
@@ -267,7 +262,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
 }
 
 export default function SingleFormWrapper({ form: _form, ...props }: SingleFormComponentProps) {
-  const { data: form, isPending } = trpc.viewer.appRoutingForms.formQuery.useQuery(
+  const { data: form, isPending } = trpc.viewer.appRoutingForms.calid_formQuery.useQuery(
     { id: _form.id },
     {
       initialData: _form,
