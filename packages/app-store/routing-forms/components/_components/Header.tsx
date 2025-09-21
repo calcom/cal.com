@@ -76,10 +76,40 @@ const Actions = ({
     <>
       <div className="flex items-center">
         <div className="flex items-center gap-2">
+          <FormAction
+            variant="ghost"
+            data-testid="toggle-form"
+            action="toggle"
+            routingForm={form}
+            extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] pr-4 transition"
+          />
+          {/* <ButtonGroup combined className="border-r-subtle border-l-subtle"> */}
+          <FormAction
+            action="_delete"
+            variant="fab"
+            routingForm={form}
+            size="xs"
+            icon="trash"
+            type="button"
+            className="h-[34px] w-[40px]"
+            color="destructive"
+          />
+          <Button
+            data-testid={isMobile ? "update-form-mobile" : "update-form"}
+            variant="button"
+            size="xs"
+            className="h-[34px]"
+            loading={isSaving}
+            type="submit"
+            color="primary">
+            <span className="text-sm">{t("save")}</span>
+          </Button>
+          {/* </ButtonGroup> */}
           <FormActionsDropdown>
             <FormAction
               action="incompleteBooking"
-              variant="icon"
+              variant="button"
+              className="w-full"
               routingForm={form}
               color="primary"
               type="button">

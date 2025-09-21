@@ -121,7 +121,7 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
   const [pendingRoute, setPendingRoute] = useState("");
   const { eventType, locationOptions, team, teamMembers, destinationCalendar } = rest;
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
-  const { data: eventTypeApps } = trpc.viewer.apps.integrations.useQuery({
+  const { data: eventTypeApps } = trpc.viewer.apps.calid_integrations.useQuery({
     extendsFeature: "EventType",
     teamId: eventType.team?.id || eventType.parent?.teamId,
     onlyInstalled: true,

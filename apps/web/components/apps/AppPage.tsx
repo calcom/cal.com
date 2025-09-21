@@ -1,6 +1,7 @@
 import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { IframeHTMLAttributes } from "react";
@@ -27,7 +28,6 @@ import type { App as AppType } from "@calcom/types/App";
 import classNames from "@calcom/ui/classNames";
 import { Dropdown, DropdownMenuTrigger, DropdownMenuContent } from "@calcom/ui/components/dropdown";
 import { SkeletonButton, SkeletonText } from "@calcom/ui/components/skeleton";
-import { showToast } from "@calcom/ui/components/toast";
 
 import { InstallAppButtonChild } from "./InstallAppButtonChild";
 import { MultiDisconnectIntegration } from "./MultiDisconnectIntegration";
@@ -106,11 +106,11 @@ export const AppPage = ({
     onSuccess: async (data) => {
       if (data?.setupPending) return;
       setIsLoading(false);
-      showToast(data?.message || t("app_successfully_installed"), "success");
-      await utils.viewer.apps.appCredentialsByType.invalidate({ appType: type });
+      triggerToast(data?.message || t("app_successfully_installed"), "success");
+      await utils.viewer.apps.calid_appCredentialsByType.invalidate({ appType: type });
     },
     onError: (error) => {
-      if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
+      if (error instanceof Error) triggerToast(error.message || t("app_could_not_be_installed"), "error");
       setIsLoading(false);
     },
   });
@@ -170,7 +170,7 @@ export const AppPage = ({
   // OneHash Chat specific state
   const [ohChatAppCredentials, setOhChatAppCredentials] = useState<OHChatAppCredential[]>([]);
 
-  const appDbQuery = trpc.viewer.apps.appCredentialsByType.useQuery({ appType: type });
+  const appDbQuery = trpc.viewer.apps.calid_appCredentialsByType.useQuery({ appType: type });
 
   useEffect(
     function refactorMeWithoutEffect() {

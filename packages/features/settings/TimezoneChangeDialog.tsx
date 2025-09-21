@@ -1,5 +1,8 @@
 "use client";
 
+import { Button } from "@calid/features/ui/components/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calid/features/ui/components/dialog";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import type { ManipulateType as DayjsManipulateType } from "dayjs";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
@@ -8,9 +11,6 @@ import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { trpc } from "@calcom/trpc/react";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calid/features/ui/components/dialog";
-import { Button } from "@calid/features/ui/components/button";
-import { triggerToast } from "@calid/features/ui/components/toast";
 
 function hideDialogFor(hideFor: [number, DayjsManipulateType], toastContent: string) {
   document.cookie = `calcom-timezone-dialog=1;max-age=${
@@ -65,16 +65,12 @@ const TimezoneChangeDialogContent = () => {
         */}
       <div className="mb-8" />
       <DialogFooter className="border-t">
-        <DialogClose asChild>
-          <Button onClick={() => hideDialogFor([3, "months"], t("we_wont_show_again"))} color="secondary">
-            {t("dont_update")}
-          </Button>
-        </DialogClose>
-        <DialogClose asChild>
-          <Button onClick={() => updateTimezone()} color="primary">
-            {t("update_timezone")}
-          </Button>
-        </DialogClose>
+        <Button onClick={() => hideDialogFor([3, "months"], t("we_wont_show_again"))} color="secondary">
+          {t("dont_update")}
+        </Button>
+        <Button onClick={() => updateTimezone()} color="primary">
+          {t("update_timezone")}
+        </Button>
       </DialogFooter>
     </>
   );

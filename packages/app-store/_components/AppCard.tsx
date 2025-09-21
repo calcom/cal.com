@@ -27,7 +27,7 @@ export default function AppCard({
   hideSettingsIcon = false,
   hideAppCardOptions = false,
 }: {
-  app: RouterOutputs["viewer"]["apps"]["integrations"]["items"][number] & {
+  app: RouterOutputs["viewer"]["apps"]["calid_integrations"]["items"][number] & {
     credentialOwner?: CredentialOwner;
   };
   description?: React.ReactNode;

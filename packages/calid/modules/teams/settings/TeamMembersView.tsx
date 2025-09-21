@@ -1,7 +1,7 @@
 "use client";
 
 import TeamMembersList from "@calid/features/modules/teams/components/TeamMembersList";
-import { checkIfMemberAdminorOwner } from "@calid/features/modules/teams/lib/checkIfMemberAdminorOwner";
+import { checkIfMemberAdminOrOwner } from "@calid/features/modules/teams/lib/checkIfMemberAdminOrOwner";
 import { useRouter } from "next/navigation";
 
 import { trpc } from "@calcom/trpc";
@@ -21,7 +21,7 @@ export default function TeamMembersView({ teamId }: { teamId: number }) {
     }
   );
 
-  const isAdmin = checkIfMemberAdminorOwner(team?.membership.role);
+  const isAdmin = checkIfMemberAdminOrOwner(team?.membership.role);
 
   if (error) {
     router.push("/teams");

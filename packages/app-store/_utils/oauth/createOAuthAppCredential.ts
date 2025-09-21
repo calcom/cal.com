@@ -4,7 +4,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 
 import { decodeOAuthState } from "../oauth/decodeOAuthState";
-import { throwIfNotHaveAdminAccessToTeam } from "../throwIfNotHaveAdminAccessToTeam";
+import { throwIfNotHaveAdminAccessToCalIdTeam } from "../throwIfNotHaveAdminAccessToCalIdTeam";
 
 /**
  * This function is used to create app credentials for either a user or a team
@@ -24,12 +24,26 @@ const createOAuthAppCredential = async (
   if (!userId) {
     throw new HttpError({ statusCode: 401, message: "You must be logged in to do this" });
   }
-  // For OAuth flows, see if a teamId was passed through the state
+  // For OAuth flows, see if a teamId or calIdTeamId was passed through the state
   const state = decodeOAuthState(req);
+
+  if (state?.calIdTeamId) {
+    // Check that the user belongs to the calIdTeam
+    await throwIfNotHaveAdminAccessToCalIdTeam({ teamId: state?.calIdTeamId ?? null, userId });
+
+    return await prisma.credential.create({
+      data: {
+        type: appData.type,
+        key: key || {},
+        calIdTeamId: state.calIdTeamId,
+        appId: appData.appId,
+      },
+    });
+  }
 
   if (state?.teamId) {
     // Check that the user belongs to the team
-    await throwIfNotHaveAdminAccessToTeam({ teamId: state?.teamId ?? null, userId });
+    await throwIfNotHaveAdminAccessToCalIdTeam({ teamId: state?.teamId ?? null, userId });
 
     return await prisma.credential.create({
       data: {

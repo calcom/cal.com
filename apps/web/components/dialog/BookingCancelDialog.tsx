@@ -184,8 +184,7 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
               <span className="text-default">
                 {new Date(props.startTime).toLocaleDateString()}{" "}
                 {new Date(props.startTime).toLocaleTimeString()} -
-                {new Date(props.endTime).toLocaleDateString()}{" "}
-                {new Date(props.endTime).toLocaleTimeString()}
+                {new Date(props.endTime).toLocaleDateString()} {new Date(props.endTime).toLocaleTimeString()}
               </span>
             </div>
             <div className="flex gap-3">
@@ -249,11 +248,7 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
           </div>
         )}
         <DialogFooter>
-          <DialogClose asChild>
-            <Button color="secondary" disabled={loading}>
-              {t("nevermind")}
-            </Button>
-          </DialogClose>
+          <DialogClose />
           <Button
             data-testid="confirm_cancel"
             color="primary"

@@ -11,6 +11,7 @@ export type IntegrationOAuthCallbackState = {
   fromApp: boolean;
   installGoogleVideo?: boolean;
   teamId?: number;
+  calIdTeamId?: number;
   defaultInstall?: boolean;
 };
 
@@ -18,11 +19,12 @@ export type CredentialOwner = {
   name: string | null;
   avatar?: string | null;
   teamId?: number;
+  calIdTeamId?: number;
   credentialId?: number;
   readOnly?: boolean;
 };
 
-export type EventTypeAppCardApp = RouterOutputs["viewer"]["apps"]["integrations"]["items"][number] & {
+export type EventTypeAppCardApp = RouterOutputs["viewer"]["apps"]["calid_integrations"]["items"][number] & {
   credentialOwner?: CredentialOwner;
   credentialIds?: number[];
 };

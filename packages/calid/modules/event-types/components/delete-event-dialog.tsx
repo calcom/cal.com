@@ -12,6 +12,7 @@ import {
 } from "@calid/features/ui/components/dialog";
 import React from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 import type { DeleteDialogState } from "../types/event-types";
@@ -29,6 +30,7 @@ export const DeleteEventDialog: React.FC<DeleteEventDialogProps> = ({
   onConfirm,
   isDeleting,
 }) => {
+  const { t } = useLocale();
   const { open, schedulingType } = deleteDialog;
 
   return (
@@ -50,11 +52,9 @@ export const DeleteEventDialog: React.FC<DeleteEventDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <DialogClose asChild>
-            <Button color="secondary">Cancel</Button>
-          </DialogClose>
+          <DialogClose />
           <Button color="destructive" onClick={onConfirm} loading={isDeleting}>
-            Delete
+            {t("delete")}
           </Button>
         </DialogFooter>
       </DialogContent>

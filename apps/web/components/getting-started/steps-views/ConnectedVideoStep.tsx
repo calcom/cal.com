@@ -15,9 +15,7 @@ interface ConnectedAppStepProps {
   isPageLoading: boolean;
 }
 
-const ConnectedVideoStep = ({
-  ...props
-}: ConnectedAppStepProps) => {
+const ConnectedVideoStep = ({ ...props }: ConnectedAppStepProps) => {
   const { nextStep, isPageLoading } = props;
 
   const updateProfileMutation = trpc.viewer.me.updateProfile.useMutation({
@@ -37,7 +35,7 @@ const ConnectedVideoStep = ({
     });
   };
 
-  const { data: queryConnectedVideoApps, isPending } = trpc.viewer.apps.integrations.useQuery({
+  const { data: queryConnectedVideoApps, isPending } = trpc.viewer.apps.calid_integrations.useQuery({
     variant: "conferencing",
     onlyInstalled: false,
 

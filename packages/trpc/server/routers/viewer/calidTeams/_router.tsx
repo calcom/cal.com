@@ -1,6 +1,6 @@
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
-// import { ZAcceptOrLeaveInputSchema } from "./acceptOrLeave.schema";
+import { ZAcceptOrLeaveInputSchema } from "./acceptOrLeave.schema";
 import { ZAddMembersToEventType } from "./addMemberstoEventType.schema";
 import { ZChangeCalidMemberRoleInputSchema } from "./changeMemberRole.schema";
 import { ZCreateCalidTeamSchema } from "./create.schema";
@@ -14,8 +14,6 @@ import { ZRemoveMemberSchema } from "./removeMember.schema";
 import { ZResendCalidInvitationSchema } from "./resendInvitation.schema";
 import { ZUpdateCalidTeamSchema } from "./update.schema";
 import { ZUpdateMemberSchema } from "./updateMember.schema";
-
-// import { ZResendCalidInvitationSchema } from "./resendInvitation.schema";
 
 export const calIdTeamsRouter = router({
   // Create a new calidTeam
@@ -86,10 +84,10 @@ export const calIdTeamsRouter = router({
       return changeCalidMemberRoleHandler({ ctx, input });
     }),
 
-  // acceptOrLeave: authedProcedure.input(ZAcceptOrLeaveInputSchema).mutation(async ({ ctx, input }) => {
-  //   const { acceptOrLeaveHandler } = await import("./acceptOrLeave.handler");
-  //   return acceptOrLeaveHandler({ ctx, input });
-  // }),
+  acceptOrLeave: authedProcedure.input(ZAcceptOrLeaveInputSchema).mutation(async ({ ctx, input }) => {
+    const { acceptOrLeaveHandler } = await import("./acceptOrLeave.handler");
+    return acceptOrLeaveHandler({ ctx, input });
+  }),
 
   // List members
   listMembers: authedProcedure.input(ZListMembersSchema).query(async ({ ctx, input }) => {

@@ -18,7 +18,10 @@ interface AdditionalCalendarSelectorProps {
 
 const AdditionalCalendarSelector = ({ isPending }: AdditionalCalendarSelectorProps): JSX.Element | null => {
   const { t } = useLocale();
-  const [data] = trpc.viewer.apps.integrations.useSuspenseQuery({ variant: "calendar", onlyInstalled: true });
+  const [data] = trpc.viewer.apps.calid_integrations.useSuspenseQuery({
+    variant: "calendar",
+    onlyInstalled: true,
+  });
 
   const options = data.items.map((item) => ({
     label: item.name,
