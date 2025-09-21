@@ -1,7 +1,4 @@
 import { Icon } from "@calid/features/ui/components/icon";
-
-
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -97,7 +94,10 @@ function BTCPaySetupPage(props: IBTCPaySetupProps) {
     apiKey: z.string().trim(),
     webhookSecret: z.string().optional(),
   });
-  const integrations = trpc.viewer.apps.integrations.useQuery({ variant: "payment", appId: "btcpayserver" });
+  const integrations = trpc.viewer.apps.calid_integrations.useQuery({
+    variant: "payment",
+    appId: "btcpayserver",
+  });
   const [btcPayPaymentAppCredentials] = integrations.data?.items || [];
   const [credentialId] = btcPayPaymentAppCredentials?.userCredentialIds || [-1];
   const showContent = !!integrations.data && integrations.isSuccess && !!credentialId;
@@ -111,7 +111,7 @@ function BTCPaySetupPage(props: IBTCPaySetupProps) {
       showToast(error.message, "error");
     },
   });
-  const deleteMutation = trpc.viewer.credentials.delete.useMutation({
+  const deleteMutation = trpc.viewer.credentials.calid_delete.useMutation({
     onSuccess: () => {
       router.push("/apps/btcpayserver");
     },

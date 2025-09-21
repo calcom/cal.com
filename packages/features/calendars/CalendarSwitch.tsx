@@ -1,9 +1,6 @@
 "use client";
 
 import { Icon } from "@calid/features/ui/components/icon";
-
-
-
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 
@@ -85,7 +82,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
       }
     },
     async onSettled() {
-      await utils.viewer.apps.integrations.invalidate();
+      await utils.viewer.apps.calid_integrations.invalidate();
       await utils.viewer.calendars.connectedCalendars.invalidate();
     },
     onError() {

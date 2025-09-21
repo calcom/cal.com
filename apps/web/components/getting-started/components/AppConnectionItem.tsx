@@ -1,5 +1,6 @@
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -10,7 +11,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
 import { Badge } from "@calcom/ui/components/badge";
-import { showToast } from "@calcom/ui/components/toast";
 
 interface IAppConnectionItem {
   title: string;
@@ -33,7 +33,7 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
       await utils.viewer.me.invalidate();
     },
     onError: (error) => {
-      showToast(t("something_went_wrong"), "error");
+      triggerToast(t("something_went_wrong"), "error");
       console.error(error);
     },
   });
@@ -57,12 +57,12 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
                 setDefaultConferencingApp.mutate({ slug });
               }
               setInstalling(false);
-              utils.viewer.apps.integrations.invalidate();
-              showToast(t("app_successfully_installed"), "success");
+              utils.viewer.apps.calid_integrations.invalidate();
+              triggerToast(t("app_successfully_installed"), "success");
             },
             onError: (error) => {
               if (error instanceof Error)
-                showToast(error.message || t("app_could_not_be_installed"), "error");
+                triggerToast(error.message || t("app_could_not_be_installed"), "error");
             },
           }}
           render={(buttonProps) => (

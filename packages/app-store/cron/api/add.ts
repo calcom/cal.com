@@ -13,7 +13,7 @@ const handler: AppDeclarativeHandler = {
     newTab: true,
     url: "https://cron.com",
   },
-  createCredential: ({ appType, user, slug, teamId }) =>
+  createCredential: ({ appType, user, slug, teamId, calIdTeamId }) =>
     createDefaultInstallation({ appType, user, slug, key: {}, teamId }),
 };
 

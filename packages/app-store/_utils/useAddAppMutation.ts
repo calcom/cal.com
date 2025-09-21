@@ -37,6 +37,7 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
         variant?: string;
         slug?: string;
         teamId?: number;
+        calIdTeamId?: number;
         returnTo?: string;
         defaultInstall?: boolean;
       }
@@ -46,6 +47,7 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
     mutationFn: async (variables) => {
       let type: string | null | undefined;
       const teamId = variables && variables.teamId ? variables.teamId : undefined;
+      const calIdTeamId = variables && variables.calIdTeamId ? variables.calIdTeamId : undefined;
       const defaultInstall = variables && variables.defaultInstall ? variables.defaultInstall : undefined;
       const returnTo = options?.returnTo
         ? options.returnTo
@@ -68,6 +70,7 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
         onErrorReturnTo,
         fromApp: true,
         ...(teamId && { teamId }),
+        ...(calIdTeamId && { calIdTeamId }),
         ...(type === "google_calendar" && { installGoogleVideo: options?.installGoogleVideo }),
         ...(returnTo && { returnTo }),
         ...(defaultInstall && { defaultInstall }),
@@ -77,6 +80,7 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
       const searchParams = generateSearchParamString({
         stateStr,
         teamId,
+        calIdTeamId,
         returnTo,
       });
 
@@ -118,10 +122,12 @@ export default useAddAppMutation;
 const generateSearchParamString = ({
   stateStr,
   teamId,
+  calIdTeamId,
   returnTo,
 }: {
   stateStr: string;
   teamId?: number;
+  calIdTeamId?: number;
   returnTo?: string;
 }) => {
   const url = new URL("https://example.com"); // Base URL can be anything since we only care about the search params
@@ -129,6 +135,9 @@ const generateSearchParamString = ({
   url.searchParams.append("state", stateStr);
   if (teamId !== undefined) {
     url.searchParams.append("teamId", teamId.toString());
+  }
+  if (calIdTeamId !== undefined) {
+    url.searchParams.append("calIdTeamId", calIdTeamId.toString());
   }
   if (returnTo) {
     url.searchParams.append("returnTo", returnTo);

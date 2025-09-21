@@ -31,7 +31,7 @@ export default function OmniInstallAppButton({
     returnTo,
     onSuccess: (data) => {
       utils.viewer.apps.appById.invalidate({ appId });
-      utils.viewer.apps.integrations.invalidate({
+      utils.viewer.apps.calid_integrations.invalidate({
         extendsFeature: "EventType",
         ...(teamId && { teamId }),
       });

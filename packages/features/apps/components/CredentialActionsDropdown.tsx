@@ -9,21 +9,12 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@calid/features/ui/components/dialog";
-// import {
-//   DropdownMenu,
-//   DropdownMenuContent,
-//   DropdownMenuItem,
-//   DropdownMenuTrigger,
-//   DropdownMenuSeparator,
-//   ButtonOrLink,
-// } from "@calid/features/ui/components/dropdown-menu";
-import { Icon } from "@calid/features/ui/components/icon";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { GOOGLE_CALENDAR_TYPE } from "@calcom/platform-constants";
 import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui/components/toast";
 
 interface CredentialActionsDropdownProps {
   credentialId: number;
@@ -49,26 +40,26 @@ export default function CredentialActionsDropdown({
 
   const deleteCacheMutation = trpc.viewer.calendars.deleteCache.useMutation({
     onSuccess: () => {
-      showToast(t("cache_deleted_successfully"), "success");
+      triggerToast(t("cache_deleted_successfully"), "success");
       onSuccess?.();
     },
     onError: () => {
-      showToast(t("error_deleting_cache"), "error");
+      triggerToast(t("error_deleting_cache"), "error");
     },
   });
 
   const utils = trpc.useUtils();
-  const disconnectMutation = trpc.viewer.credentials.delete.useMutation({
+  const disconnectMutation = trpc.viewer.credentials.calid_delete.useMutation({
     onSuccess: () => {
-      showToast(t("app_removed_successfully"), "success");
+      triggerToast(t("app_removed_successfully"), "success");
       onSuccess?.();
     },
     onError: () => {
-      showToast(t("error_removing_app"), "error");
+      triggerToast(t("error_removing_app"), "error");
     },
     async onSettled() {
       await utils.viewer.calendars.connectedCalendars.invalidate();
-      await utils.viewer.apps.integrations.invalidate();
+      await utils.viewer.apps.calid_integrations.invalidate();
     },
   });
 
@@ -146,7 +137,8 @@ export default function CredentialActionsDropdown({
         onClick={() => {
           setDeleteModalOpen(true);
           setDropdownOpen(false);
-        }}></Button>
+        }}
+      />
 
       <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
         <DialogContent>

@@ -14,6 +14,7 @@ export type AppDeclarativeHandler = {
     appType: string;
     slug: string;
     teamId?: number;
+    calIdTeamId?: number;
   }) => Promise<Credential>;
   supportsMultipleInstalls: boolean;
   redirect?: {

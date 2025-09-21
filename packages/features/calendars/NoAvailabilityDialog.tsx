@@ -88,14 +88,7 @@ const NoAvailabilityDialog = ({
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <DialogClose asChild>
-            <Button
-              color={noFutureAvailability ? "primary" : "secondary"}
-              onClick={closeDialog}
-              data-testid="close_dialog_button">
-              {t("close")}
-            </Button>
-          </DialogClose>
+          <DialogClose />
           {!noFutureAvailability && (
             <Button
               color="primary"

@@ -32,7 +32,7 @@ type Props = {
 
 function CalendarList(props: Props) {
   const { t } = useLocale();
-  const query = trpc.viewer.apps.integrations.useQuery({ variant: "calendar", onlyInstalled: false });
+  const query = trpc.viewer.apps.calid_integrations.useQuery({ variant: "calendar", onlyInstalled: false });
 
   return (
     <QueryCell
@@ -119,7 +119,7 @@ export function CalendarListContainer({
   const utils = trpc.useUtils();
   const onChanged = () =>
     Promise.allSettled([
-      utils.viewer.apps.integrations.invalidate(
+      utils.viewer.apps.calid_integrations.invalidate(
         { variant: "calendar", onlyInstalled: true },
         {
           exact: true,

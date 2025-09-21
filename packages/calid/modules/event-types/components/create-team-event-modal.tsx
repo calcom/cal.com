@@ -191,11 +191,7 @@ export const CreateTeamEventModal: React.FC<CreateTeamEventModalProps> = ({
           </div>
 
           <DialogFooter className="flex justify-end space-x-2 pt-4">
-            <DialogClose asChild>
-              <Button type="button" color="secondary" size="sm" disabled={createMutation.isPending}>
-                Close
-              </Button>
-            </DialogClose>
+            <DialogClose />
             <Button type="submit" size="sm" disabled={createMutation.isPending}>
               {createMutation.isPending ? "Creating..." : "Create"}
             </Button>

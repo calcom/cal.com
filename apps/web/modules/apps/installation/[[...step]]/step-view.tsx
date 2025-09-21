@@ -1,5 +1,6 @@
 "use client";
 
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -22,7 +23,6 @@ import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { AppMeta } from "@calcom/types/App";
 import { Form, Steps } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/components/toast";
 
 import { HttpError } from "@lib/core/http/error";
 
@@ -91,6 +91,7 @@ export type OnboardingPageProps = {
   isConferencing: boolean;
   installableOnTeams: boolean;
   isOrg: boolean;
+  calIdTeamId?: number | null;
 };
 
 type TUpdateObject = {
@@ -111,6 +112,7 @@ const OnboardingPage = ({
   showEventTypesStep,
   isConferencing,
   installableOnTeams,
+  calIdTeamId,
 }: OnboardingPageProps) => {
   const { t } = useLocale();
   const pathname = usePathname();
@@ -165,10 +167,10 @@ const OnboardingPage = ({
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
       if (data?.setupPending) return;
-      showToast(t("app_successfully_installed"), "success");
+      triggerToast(t("app_successfully_installed"), "success");
     },
     onError: (error) => {
-      if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
+      if (error instanceof Error) triggerToast(error.message || t("app_could_not_be_installed"), "error");
     },
   });
 
@@ -177,18 +179,21 @@ const OnboardingPage = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventTypeGroups]);
 
-  const updateMutation = trpc.viewer.eventTypes.update.useMutation({
+  const updateMutation = trpc.viewer.eventTypes.calid_update.useMutation({
     onSuccess: async (data) => {
-      showToast(t("event_type_updated_successfully", { eventTypeTitle: data.eventType?.title }), "success");
+      triggerToast(
+        t("event_type_updated_successfully", { eventTypeTitle: data.eventType?.title }),
+        "success"
+      );
     },
     async onSettled() {
-      await utils.viewer.eventTypes.get.invalidate();
+      await utils.viewer.eventTypes.calid_get.invalidate();
     },
     onError: (err) => {
       let message = "";
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
+        triggerToast(message, "error");
       }
 
       if (err.data?.code === "UNAUTHORIZED") {
@@ -203,21 +208,21 @@ const OnboardingPage = ({
         message = t("unexpected_error_try_again");
       }
 
-      showToast(message ? t(message) : t(err.message), "error");
+      triggerToast(message ? t(message) : t(err.message), "error");
     },
   });
 
   const handleSelectAccount = async (teamId?: number) => {
     const returnTo = await getAppOnboardingUrl({
       slug: appMetadata.slug,
-      teamId,
+      calIdTeamId: teamId,
       step: AppOnboardingSteps.EVENT_TYPES_STEP,
     });
     mutation.mutate({
       type: appMetadata.type,
       variant: appMetadata.variant,
       slug: appMetadata.slug,
-      ...(teamId && { teamId }),
+      ...(teamId ? { calIdTeamId: teamId } : {}),
       // for oAuth apps
       ...(showEventTypesStep && {
         returnTo: WEBAPP_URL + returnTo,
