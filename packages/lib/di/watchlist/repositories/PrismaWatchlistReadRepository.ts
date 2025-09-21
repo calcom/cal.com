@@ -1,7 +1,7 @@
 import { captureException } from "@sentry/nextjs";
 
 import type { PrismaClient } from "@calcom/prisma";
-import { WatchlistType, WatchlistSeverity } from "@calcom/prisma/enums";
+import { WatchlistType, WatchlistSeverity, WatchlistAction } from "@calcom/prisma/enums";
 
 import type { IWatchlistReadRepository } from "../interfaces/IWatchlistRepositories";
 import type { Watchlist } from "../types";
@@ -15,7 +15,7 @@ export class PrismaWatchlistReadRepository implements IWatchlistReadRepository {
         where: {
           type: WatchlistType.EMAIL,
           value: email.toLowerCase(),
-          action: "BLOCK", // Updated to use the new enum value
+          action: WatchlistAction.BLOCK,
           organizationId: organizationId ?? null,
         },
       });
@@ -31,7 +31,7 @@ export class PrismaWatchlistReadRepository implements IWatchlistReadRepository {
         where: {
           type: WatchlistType.DOMAIN,
           value: domain.toLowerCase(),
-          action: "BLOCK", // Updated to use the new enum value
+          action: WatchlistAction.BLOCK,
           organizationId: organizationId ?? null,
         },
       });
@@ -46,7 +46,7 @@ export class PrismaWatchlistReadRepository implements IWatchlistReadRepository {
       return await this.prisma.watchlist.findMany({
         where: {
           organizationId,
-          action: "BLOCK", // Updated to use the new enum value
+          action: WatchlistAction.BLOCK,
         },
         orderBy: { createdAt: "desc" },
       });

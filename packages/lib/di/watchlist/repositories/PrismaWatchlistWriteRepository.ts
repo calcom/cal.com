@@ -1,6 +1,7 @@
 import { captureException } from "@sentry/nextjs";
 
 import type { PrismaClient } from "@calcom/prisma";
+import { WatchlistAction } from "@calcom/prisma/enums";
 
 import type {
   IWatchlistWriteRepository,
@@ -21,7 +22,7 @@ export class PrismaWatchlistWriteRepository implements IWatchlistWriteRepository
           description: data.description,
           organizationId: data.organizationId ?? null,
           createdById: data.createdById,
-          action: data.action || "BLOCK", // Use provided action or default to BLOCK
+          action: data.action || WatchlistAction.BLOCK,
         },
       });
     } catch (err) {
