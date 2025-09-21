@@ -25,7 +25,6 @@ export class BlockingService implements IBlockingService {
           organizationId,
           reason: result.reason as "email" | "domain",
           watchlistEntryId: (result.watchlistEntry as { id: string }).id,
-          timestamp: new Date(),
         });
 
         return result;

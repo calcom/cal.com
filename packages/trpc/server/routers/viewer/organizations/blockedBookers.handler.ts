@@ -1,6 +1,6 @@
 import { getWatchlistRepository } from "@calcom/lib/di/watchlist/containers/watchlist";
 import { WatchlistAction } from "@calcom/prisma/enums";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
@@ -90,8 +90,8 @@ export const createBlockedBookerHandler = async ({ ctx, input }: CreateHandlerOp
     value: input.value,
     description: input.description,
     organizationId: input.organizationId,
-    action: WatchlistAction.BLOCK,
     createdById: ctx.user.id,
+    action: WatchlistAction.BLOCK,
   });
 };
 

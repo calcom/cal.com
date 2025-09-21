@@ -1,7 +1,7 @@
 export interface BlockingResult {
   isBlocked: boolean;
   reason?: "email" | "domain";
-  watchlistEntry?: Record<string, unknown>; // TODO: properly type later, once we have WatchList model updated for Blocking
+  watchlistEntry?: Record<string, unknown> | null; // Allow null values
 }
 
 export interface DecoyBookingResponse {

@@ -1,6 +1,7 @@
 import { captureException } from "@sentry/nextjs";
 
 import type { PrismaClient } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 import type { IAuditRepository, CreateBlockedBookingInput } from "../interfaces/IAuditRepository";
 import type { BlockedBooking } from "../types";
@@ -17,7 +18,7 @@ export class PrismaAuditRepository implements IAuditRepository {
           blockingReason: data.blockingReason,
           watchlistEntryId: data.watchlistEntryId,
           eventTypeId: data.eventTypeId,
-          bookingData: data.bookingData || {},
+          bookingData: (data.bookingData as Prisma.InputJsonValue) || {},
         },
       });
     } catch (err) {

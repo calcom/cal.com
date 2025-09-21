@@ -6,6 +6,7 @@ export interface CreateWatchlistInput {
   description?: string;
   organizationId?: number;
   createdById: number;
+  action?: "REPORT" | "BLOCK";
 }
 
 export interface UpdateWatchlistInput {

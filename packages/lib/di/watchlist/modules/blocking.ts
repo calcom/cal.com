@@ -1,7 +1,10 @@
+import type { Container } from "@evyweb/ioctopus";
 import { createModule } from "@evyweb/ioctopus";
 
+import type { IAuditService } from "../interfaces/IAuditService";
 import { BlockingService } from "../services/BlockingService";
 import { EmailBlockingStrategy, DomainBlockingStrategy } from "../strategies";
+import type { IBlockingStrategy } from "../strategies/IBlockingStrategy";
 import { WATCHLIST_DI_TOKENS } from "../tokens";
 
 export const blockingServiceModule = createModule();
@@ -16,10 +19,10 @@ blockingServiceModule
   .toClass(DomainBlockingStrategy, [WATCHLIST_DI_TOKENS.WATCHLIST_READ_REPOSITORY]);
 
 // Bind service with strategy array factory
-blockingServiceModule.bind(WATCHLIST_DI_TOKENS.BLOCKING_SERVICE).toFactory((container) => {
-  const emailStrategy = container.get(WATCHLIST_DI_TOKENS.EMAIL_BLOCKING_STRATEGY);
-  const domainStrategy = container.get(WATCHLIST_DI_TOKENS.DOMAIN_BLOCKING_STRATEGY);
-  const auditService = container.get(WATCHLIST_DI_TOKENS.AUDIT_SERVICE);
+blockingServiceModule.bind(WATCHLIST_DI_TOKENS.BLOCKING_SERVICE).toFactory((container: Container) => {
+  const emailStrategy = container.get<IBlockingStrategy>(WATCHLIST_DI_TOKENS.EMAIL_BLOCKING_STRATEGY);
+  const domainStrategy = container.get<IBlockingStrategy>(WATCHLIST_DI_TOKENS.DOMAIN_BLOCKING_STRATEGY);
+  const auditService = container.get<IAuditService>(WATCHLIST_DI_TOKENS.AUDIT_SERVICE);
 
   return new BlockingService([emailStrategy, domainStrategy], auditService);
 });
