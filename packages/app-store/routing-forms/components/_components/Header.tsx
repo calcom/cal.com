@@ -11,6 +11,7 @@ import { useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RoutingFormWithResponseCount } from "@calcom/routing-forms/types/types";
+import type { HorizontalTabItemProps, VerticalTabItemProps } from "@calcom/ui/components/navigation";
 
 import { FormAction, FormActionsDropdown } from "../FormActions";
 import { FormSettingsSlideover } from "./FormSettingsSlideover";
@@ -80,7 +81,7 @@ const Actions = ({
               action="incompleteBooking"
               variant="icon"
               routingForm={form}
-              color="minimal"
+              color="primary"
               type="button">
               {t("routing_incomplete_booking_tab")}
             </FormAction>

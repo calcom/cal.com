@@ -70,10 +70,10 @@ export const EventTypes = () => {
   );
 
   const currentTeam = useMemo(() => {
-    if (selectedTeam === "personal") {
-      return eventTypeGroups.find((group) => !group.teamId);
-    }
-    return eventTypeGroups.find((group) => group.teamId?.toString() === selectedTeam);
+    // if (selectedTeam === "personal") {
+    return eventTypeGroups.find((group) => !group.teamId);
+    // }
+    // return eventTypeGroups.find((group) => group.teamId?.toString() === selectedTeam);
   }, [eventTypeGroups, selectedTeam]);
 
   const eventTypesQuery = trpc.viewer.eventTypes.calid_getEventTypesFromGroup.useQuery({

@@ -98,6 +98,23 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
     }
   }, [errorMsgFromInvitation, t, teamNameFromInvitation, token]);
 
+  // const acceptOrLeaveMutation = trpc.viewer.calidTeams.acceptOrLeave.useMutation({
+  //   onSuccess: async () => {
+  //     showToast(t("success"), "success");
+  //     await utils.viewer.calidTeams.get.invalidate();
+  //     await utils.viewer.calidTeams.list.invalidate();
+  //     revalidateCalIdTeamsList();
+  //   },
+  // });
+
+  // function acceptOrLeave(accept: boolean, teamId: number) {
+  //   console.log("Hello world")
+  //   acceptOrLeaveMutation.mutate({
+  //     teamId: teamId,
+  //     accept,
+  //   });
+  // }
+
   return (
     <>
       {(teams.length > 0 || teamInvitation.length > 0) && (

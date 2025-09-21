@@ -7,6 +7,7 @@ import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { ZInviteMemberInput } from "./inviteMember.schema";
+import { processCalIdTeamInvites } from "./utils";
 
 type InviteMemberOptions = {
   ctx: {
@@ -85,6 +86,8 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         where: { email },
       });
 
+      console.log("Existing user:", existingUser);
+
       if (existingUser) {
         const existingMembership = await prisma.calIdMembership.findFirst({
           where: {
@@ -101,6 +104,19 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
           });
           continue;
         }
+
+        await processCalIdTeamInvites(
+          [
+            {
+              email,
+              role: inviteRole,
+            },
+          ],
+          teamId,
+          ctx.user.name || "A team admin",
+          input.language
+        );
+
 
         await prisma.calIdMembership.create({
           data: {
