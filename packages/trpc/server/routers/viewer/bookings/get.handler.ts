@@ -11,9 +11,9 @@ import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getMembershipIdsWhereUserIsAdminOwner } from "@calcom/lib/server/queries/teams";
+import { getTeamDataForAdmin } from "@calcom/lib/server/queries/membership";
 import type { PrismaClient } from "@calcom/prisma";
-import type { Booking, Prisma, Prisma as PrismaClientType } from "@calcom/prisma/client";
+import type { Booking, Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -93,34 +93,26 @@ export async function getBookings({
   take: number;
   skip: number;
 }) {
-  const membershipIdsWhereUserIsAdminOwner = await getMembershipIdsWhereUserIsAdminOwner(user.id, user.orgId);
-
-  const membershipConditionWhereUserIsAdminOwner = {
-    some: {
-      id: { in: membershipIdsWhereUserIsAdminOwner },
-    },
-  };
-
   const [
+    {
+      eventTypeIds: eventTypeIdsWhereUserIsAdminOrOwner,
+      userIds: userIdsWhereUserIsAdminOrOwner,
+      userEmails: userEmailsWhereUserIsAdminOrOwner,
+    },
     eventTypeIdsFromTeamIdsFilter,
     attendeeEmailsFromUserIdsFilter,
     eventTypeIdsFromEventTypeIdsFilter,
-    eventTypeIdsWhereUserIsAdminOrOwner,
-    userIdsAndEmailsWhereUserIsAdminOrOwner,
   ] = await Promise.all([
+    getTeamDataForAdmin(user.id, user.orgId),
     getEventTypeIdsFromTeamIdsFilter(prisma, filters?.teamIds),
     getAttendeeEmailsFromUserIdsFilter(prisma, user.email, filters?.userIds),
     getEventTypeIdsFromEventTypeIdsFilter(prisma, filters?.eventTypeIds),
-    getEventTypeIdsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
-    getUserIdsAndEmailsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
   ]);
 
   const bookingQueries: { query: BookingsUnionQuery; tables: (keyof DB)[] }[] = [];
 
   // If user is organization owner/admin, contains organization members emails and ids (organization plan)
   // If user is only team owner/admin, contain team members emails and ids (teams plan)
-  const [userIdsWhereUserIsAdminOrOwner, userEmailsWhereUserIsAdminOrOwner] =
-    userIdsAndEmailsWhereUserIsAdminOrOwner;
 
   // If userIds filter is provided
   if (!!filters?.userIds && filters.userIds.length > 0) {
@@ -833,74 +825,6 @@ async function getEventTypeIdsFromEventTypeIdsFilter(prisma: PrismaClient, event
   }
 
   return eventTypeIdsFromDb;
-}
-
-async function getEventTypeIdsWhereUserIsAdminOrOwner(
-  prisma: PrismaClient,
-  membershipCondition: PrismaClientType.MembershipListRelationFilter
-) {
-  const [directTeamEventTypeIds, parentTeamEventTypeIds] = await Promise.all([
-    prisma.eventType
-      .findMany({
-        where: {
-          team: {
-            members: membershipCondition,
-          },
-        },
-        select: {
-          id: true,
-        },
-      })
-      .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
-
-    prisma.eventType
-      .findMany({
-        where: {
-          parent: {
-            team: {
-              members: membershipCondition,
-            },
-          },
-        },
-        select: {
-          id: true,
-        },
-      })
-      .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
-  ]);
-
-  return Array.from(new Set([...directTeamEventTypeIds, ...parentTeamEventTypeIds]));
-}
-
-/**
- * Gets [IDs, Emails] of members where the auth user is team/org admin/owner.
- * @param prisma The Prisma client.
- * @param membershipCondition Filter containing the team/org ids where user is ADMIN/OWNER
- * @returns {Promise<[number[], string[]]>} [UserIDs, UserEmails] for members in the determined scope.
- */
-async function getUserIdsAndEmailsWhereUserIsAdminOrOwner(
-  prisma: PrismaClient,
-  membershipCondition: PrismaClientType.MembershipListRelationFilter
-): Promise<[number[], string[]]> {
-  const users = await prisma.user.findMany({
-    where: {
-      teams: {
-        some: {
-          team: {
-            members: membershipCondition,
-          },
-        },
-      },
-    },
-    select: {
-      id: true,
-      email: true,
-    },
-  });
-  const userIds = Array.from(new Set(users.map((user) => user.id)));
-  const userEmails = Array.from(new Set(users.map((user) => user.email)));
-
-  return [userIds, userEmails];
 }
 
 function addStatusesQueryFilters(query: BookingsUnionQuery, statuses: InputByStatus[]) {

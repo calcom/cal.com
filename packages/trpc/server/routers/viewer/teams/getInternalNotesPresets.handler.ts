@@ -1,4 +1,4 @@
-import { isTeamMember } from "@calcom/features/ee/teams/lib/queries";
+import { isTeamMember } from "@calcom/lib/server/queries/membership";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 

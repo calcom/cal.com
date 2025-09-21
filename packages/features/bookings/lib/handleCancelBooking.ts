@@ -122,7 +122,6 @@ async function handler(input: CancelBookingInput) {
     !platformClientId &&
     !cancellationReason?.trim() &&
     isCancellationUserHost &&
-    bookingToDelete.userId == userId &&
     !fromReport
   ) {
     throw new HttpError({

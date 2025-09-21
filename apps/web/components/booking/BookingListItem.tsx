@@ -861,7 +861,9 @@ const BookingItemBadges = ({
           hasAnyReport && (
             <Badge variant="red" className="ltr:mr-2 rtl:ml-2">
               {t("reported")}:{" "}
-              {booking.reports?.[0]?.reason ? t(booking.reports?.[0]?.reason?.toLowerCase()) : "Unknown"}
+              {booking.reports?.[0]?.reason
+                ? t(booking.reports?.[0]?.reason?.toLowerCase())
+                : t("unavailable")}
             </Badge>
           )
         );

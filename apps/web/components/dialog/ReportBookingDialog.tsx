@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -41,7 +41,6 @@ export function ReportBookingDialog({
   onSuccess,
 }: ReportBookingDialogProps) {
   const { t } = useLocale();
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<ReportFormData>({
     defaultValues: {
@@ -65,13 +64,10 @@ export function ReportBookingDialog({
     onError: (error) => {
       showToast(error.message, "error");
     },
-    onSettled: () => {
-      setIsSubmitting(false);
-    },
+    onSettled: () => {},
   });
 
   const onSubmit = (data: ReportFormData) => {
-    setIsSubmitting(true);
     reportBookingMutation.mutate({
       bookingId,
       reason: data.reason,
@@ -81,7 +77,7 @@ export function ReportBookingDialog({
   };
 
   const handleClose = () => {
-    if (!isSubmitting) {
+    if (!reportBookingMutation.isPending) {
       onClose();
       form.reset({
         reason: ReportReason.SPAM,
@@ -149,10 +145,17 @@ export function ReportBookingDialog({
           </div>
 
           <DialogFooter>
-            <Button type="button" color="secondary" onClick={handleClose} disabled={isSubmitting}>
+            <Button
+              type="button"
+              color="secondary"
+              onClick={handleClose}
+              disabled={reportBookingMutation.isPending}>
               {t("cancel")}
             </Button>
-            <Button type="submit" loading={isSubmitting} disabled={isSubmitting}>
+            <Button
+              type="submit"
+              loading={reportBookingMutation.isPending}
+              disabled={reportBookingMutation.isPending}>
               {cancelBooking ? t("report_and_cancel") : t("report")}
             </Button>
           </DialogFooter>

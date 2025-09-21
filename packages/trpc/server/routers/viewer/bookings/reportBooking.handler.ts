@@ -1,9 +1,5 @@
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
-import {
-  isTeamAdmin,
-  isTeamOwner,
-  getMembershipIdsWhereUserIsAdminOwner,
-} from "@calcom/lib/server/queries/teams";
+import { isTeamAdmin, isTeamOwner, getTeamDataForAdmin } from "@calcom/lib/server/queries/membership";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -79,34 +75,12 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
   let canAccessThroughTeamMembership = false;
 
   // Get all memberships where user is ADMIN/OWNER (reusing shared utility)
-  const membershipIdsWhereUserIsAdminOwner = await getMembershipIdsWhereUserIsAdminOwner(
+  const { userEmails: teamMemberEmailList } = await getTeamDataForAdmin(
     user.id,
     user?.profile?.organizationId
   );
 
-  if (membershipIdsWhereUserIsAdminOwner.length > 0) {
-    // Get all team member emails where user is admin/owner
-    const teamMemberEmails = await prisma.user.findMany({
-      where: {
-        teams: {
-          some: {
-            team: {
-              members: {
-                some: {
-                  id: { in: membershipIdsWhereUserIsAdminOwner },
-                },
-              },
-            },
-          },
-        },
-      },
-      select: {
-        email: true,
-      },
-    });
-
-    const teamMemberEmailList = teamMemberEmails.map((user) => user.email);
-
+  if (teamMemberEmailList.length > 0) {
     // Check if any booking attendees are team members where user is admin/owner
     const hasTeamMemberAttendee = booking.attendees.some((attendee) =>
       teamMemberEmailList.includes(attendee.email)
@@ -122,7 +96,7 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
       isBookingOwnerTeamMember = !!(bookingOwner && teamMemberEmailList.includes(bookingOwner.email));
     }
 
-    canAccessThroughTeamMembership = hasTeamMemberAttendee || isBookingOwnerTeamMember || isTeamAdminOrOwner;
+    canAccessThroughTeamMembership = hasTeamMemberAttendee || isBookingOwnerTeamMember;
   }
 
   if (!isBookingOwner && !isAttendee && !isTeamAdminOrOwner && !canAccessThroughTeamMembership) {

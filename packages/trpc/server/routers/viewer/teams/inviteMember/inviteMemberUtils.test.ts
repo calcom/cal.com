@@ -1,6 +1,6 @@
 import { describe, it, vi, expect } from "vitest";
 
-import { isTeamAdmin } from "@calcom/features/ee/teams/lib/queries";
+import { isTeamAdmin } from "@calcom/lib/server/queries/membership";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -25,7 +25,7 @@ vi.mock("@calcom/prisma", () => {
   };
 });
 
-vi.mock("@calcom/features/ee/teams/lib/queries", () => {
+vi.mock("@calcom/lib/server/queries/membership", () => {
   return {
     isTeamAdmin: vi.fn(),
   };

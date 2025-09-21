@@ -12,7 +12,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
-import { isTeamAdmin } from "@calcom/features/ee/teams/lib/queries";
+import { isTeamAdmin } from "@calcom/lib/server/queries/membership";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import { UserRepository } from "@calcom/lib/server/repository/user";
