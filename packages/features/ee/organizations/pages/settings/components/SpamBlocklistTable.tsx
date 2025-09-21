@@ -1,30 +1,47 @@
 "use client";
 
+import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
+import { useMemo, useCallback } from "react";
+
+import { DataTableProvider, DataTableWrapper, useDataTable } from "@calcom/features/data-table";
 import type { Watchlist } from "@calcom/lib/di/watchlist/types";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 
 interface SpamBlocklistTableProps {
-  spamEntries: Watchlist[];
+  organizationId: number;
   onDelete: (entryId: string) => void;
   canEdit: boolean;
-  currentUserId: number;
 }
 
-export default function SpamBlocklistTable({
-  spamEntries,
-  onDelete,
-  canEdit,
-  currentUserId: _currentUserId,
-}: SpamBlocklistTableProps) {
+export default function SpamBlocklistTable(props: SpamBlocklistTableProps) {
+  return (
+    <DataTableProvider defaultPageSize={25}>
+      <SpamBlocklistTableContent {...props} />
+    </DataTableProvider>
+  );
+}
+
+function SpamBlocklistTableContent({ organizationId, onDelete, canEdit }: SpamBlocklistTableProps) {
   const { t } = useLocale();
+  const { limit, offset, searchTerm } = useDataTable();
+
+  // Fetch spam blocklist data with pagination
+  const { data, isPending } = trpc.viewer.organizations.listSpamBlocklist.useQuery({
+    organizationId,
+    limit,
+    offset,
+    searchTerm,
+  });
 
   // Get user details for created by info
   const { data: members } = trpc.viewer.organizations.getMembers.useQuery(
-    { organizationId: spamEntries[0]?.organizationId ?? 0 },
-    { enabled: spamEntries.length > 0 }
+    { organizationId },
+    { enabled: !!organizationId }
   );
 
   const formatDate = (date: Date) => {
@@ -37,82 +54,146 @@ export default function SpamBlocklistTable({
     }).format(new Date(date));
   };
 
-  const getUserName = (userId: number) => {
-    if (!members || !Array.isArray(members)) return t("unknown_user");
-    const member = members.find((m) => m.user.id === userId);
-    return member ? member.user.name || member.user.email : t("unknown_user");
-  };
+  const getMemberInfo = useCallback(
+    (userId: number) => {
+      if (!members || !Array.isArray(members)) {
+        return {
+          name: t("unknown_user"),
+          email: "",
+          avatarUrl: null,
+          username: null,
+        };
+      }
+      const member = members.find((m) => m.user.id === userId);
+      if (!member) {
+        return {
+          name: t("unknown_user"),
+          email: "",
+          avatarUrl: null,
+          username: null,
+        };
+      }
 
-  return (
-    <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-      <table className="min-w-full divide-y divide-gray-300">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              {t("type")}
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              {t("email")} / {t("domain")}
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              {t("description")}
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              {t("status")}
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              {t("blocked_by")}
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              {t("date_added")}
-            </th>
-            {canEdit && (
-              <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
-                {t("actions")}
-              </th>
-            )}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-200 bg-white">
-          {spamEntries.map((entry) => (
-            <tr key={entry.id} className="hover:bg-gray-50">
-              <td className="whitespace-nowrap px-6 py-4">
-                <Badge variant={entry.type === "EMAIL" ? "blue" : "green"}>
-                  {entry.type === "EMAIL" ? t("email") : t("domain")}
-                </Badge>
-              </td>
-              <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
-                <code className="rounded bg-gray-100 px-2 py-1 font-mono text-xs">{entry.value}</code>
-              </td>
-              <td className="max-w-xs px-6 py-4 text-sm text-gray-500">
-                <div className="truncate" title={entry.description || ""}>
-                  {entry.description || "-"}
-                </div>
-              </td>
-              <td className="whitespace-nowrap px-6 py-4">
-                <Badge variant="red">{t("blocked")}</Badge>
-              </td>
-              <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                {getUserName(entry.createdById)}
-              </td>
-              <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                {formatDate(entry.createdAt)}
-              </td>
-              {canEdit && (
-                <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+      const { user } = member;
+      const memberName =
+        user.name ||
+        (() => {
+          const emailName = user.email.split("@")[0];
+          return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+        })();
+
+      return {
+        name: memberName,
+        email: user.email,
+        avatarUrl: user.avatarUrl,
+        username: user.username,
+      };
+    },
+    [members, t]
+  );
+
+  const columns = useMemo<ColumnDef<Watchlist>[]>(
+    () => [
+      {
+        id: "value",
+        header: `${t("email")} / ${t("domain")}`,
+        accessorKey: "value",
+        cell: ({ row }) => (
+          <code className="bg-subtle rounded px-2 py-1 font-mono text-xs">{row.original.value}</code>
+        ),
+      },
+      {
+        id: "type",
+        header: t("type"),
+        accessorKey: "type",
+        cell: ({ row }) => (
+          <Badge variant={row.original.type === "EMAIL" ? "blue" : "green"}>
+            {row.original.type === "EMAIL" ? t("email") : t("domain")}
+          </Badge>
+        ),
+      },
+      {
+        id: "description",
+        header: t("description"),
+        accessorKey: "description",
+        cell: ({ row }) => (
+          <div className="max-w-xs truncate" title={row.original.description || ""}>
+            {row.original.description || "-"}
+          </div>
+        ),
+      },
+      {
+        id: "status",
+        header: t("status"),
+        cell: () => <Badge variant="red">{t("blocked")}</Badge>,
+      },
+      {
+        id: "createdBy",
+        header: t("blocked_by"),
+        accessorKey: "createdById",
+        cell: ({ row }) => {
+          const memberInfo = getMemberInfo(row.original.createdById);
+          return (
+            <div className="flex items-center gap-2">
+              <Avatar
+                size="sm"
+                alt={memberInfo.username || memberInfo.email}
+                imageSrc={getUserAvatarUrl({
+                  avatarUrl: memberInfo.avatarUrl,
+                })}
+              />
+              <div className="">
+                <div className="text-emphasis text-sm font-medium leading-none">{memberInfo.name}</div>
+                <div className="text-subtle mt-1 text-sm leading-none">{memberInfo.email}</div>
+              </div>
+            </div>
+          );
+        },
+      },
+      {
+        id: "createdAt",
+        header: t("date_added"),
+        accessorKey: "createdAt",
+        cell: ({ row }) => formatDate(row.original.createdAt),
+      },
+      ...(canEdit
+        ? [
+            {
+              id: "actions",
+              header: t("actions"),
+              cell: ({ row }: { row: { original: Watchlist } }) => (
+                <div className="flex justify-end">
                   <Button
                     variant="icon"
                     color="destructive"
                     StartIcon="trash-2"
-                    onClick={() => onDelete(entry.id)}
+                    onClick={() => onDelete(row.original.id)}
                     tooltip={t("delete_spam_entry")}
                   />
-                </td>
-              )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+                </div>
+              ),
+            },
+          ]
+        : []),
+    ],
+    [t, canEdit, onDelete, getMemberInfo]
+  );
+
+  const table = useReactTable({
+    data: data?.rows ?? [],
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    manualPagination: true,
+    pageCount: Math.ceil((data?.meta?.totalRowCount ?? 0) / limit),
+  });
+
+  return (
+    <DataTableWrapper
+      table={table}
+      isPending={isPending}
+      totalRowCount={data?.meta?.totalRowCount ?? 0}
+      paginationMode="standard"
+    />
   );
 }

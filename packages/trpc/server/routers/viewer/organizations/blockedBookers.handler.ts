@@ -33,7 +33,32 @@ type DeleteHandlerOptions = {
 
 export const listBlockedBookersHandler = async ({ input }: ListHandlerOptions) => {
   const watchlistRepository = getWatchlistRepository();
-  return await watchlistRepository.listByOrganization(input.organizationId);
+  const { organizationId, limit, offset, searchTerm } = input;
+
+  // Get all entries for the organization
+  const allEntries = await watchlistRepository.listByOrganization(organizationId);
+
+  // Apply search filter if provided
+  let filteredEntries = allEntries;
+  if (searchTerm) {
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    filteredEntries = allEntries.filter(
+      (entry) =>
+        entry.value.toLowerCase().includes(lowerSearchTerm) ||
+        entry.description?.toLowerCase().includes(lowerSearchTerm)
+    );
+  }
+
+  // Apply pagination
+  const totalRowCount = filteredEntries.length;
+  const paginatedEntries = filteredEntries.slice(offset, offset + limit);
+
+  return {
+    rows: paginatedEntries,
+    meta: {
+      totalRowCount,
+    },
+  };
 };
 
 export const createBlockedBookerHandler = async ({ ctx, input }: CreateHandlerOptions) => {

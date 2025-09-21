@@ -7,7 +7,6 @@ import MakeTeamPrivateSwitch from "@calcom/features/ee/teams/components/MakeTeam
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 import AddSpamBlocklistDialog from "./components/AddSpamBlocklistDialog";
 import SpamBlocklistTable from "./components/SpamBlocklistTable";
@@ -17,22 +16,7 @@ const PrivacyView = ({ permissions }: { permissions: { canRead: boolean; canEdit
   const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
-  const {
-    data: spamBlocklist,
-    isLoading: isLoadingBlocklist,
-    refetch: refetchBlocklist,
-  } = trpc.viewer.organizations.listSpamBlocklist.useQuery(
-    { organizationId: currentOrg?.id ?? 0 },
-    {
-      enabled: !!currentOrg?.id && permissions.canRead,
-    }
-  );
-
-  const deleteSpamEntryMutation = trpc.viewer.organizations.deleteSpamBlocklistEntry.useMutation({
-    onSuccess: () => {
-      refetchBlocklist();
-    },
-  });
+  const deleteSpamEntryMutation = trpc.viewer.organizations.deleteSpamBlocklistEntry.useMutation();
 
   const isInviteOpen = !currentOrg?.user.accepted;
   const isDisabled = !permissions.canEdit || isInviteOpen;
@@ -45,6 +29,7 @@ const PrivacyView = ({ permissions }: { permissions: { canRead: boolean; canEdit
         organizationId: currentOrg.id,
         entryId,
       });
+      // The table will automatically refetch its data
     }
   };
 
@@ -74,29 +59,11 @@ const PrivacyView = ({ permissions }: { permissions: { canRead: boolean; canEdit
             )}
           </div>
 
-          {isLoadingBlocklist ? (
-            <div className="animate-pulse">Loading spam blocklist...</div>
-          ) : !spamBlocklist || spamBlocklist.length === 0 ? (
-            <EmptyScreen
-              Icon="shield"
-              headline={t("no_spam_entries")}
-              description={t("no_spam_entries_description")}
-              buttonRaw={
-                permissions.canEdit ? (
-                  <Button color="primary" StartIcon="plus" onClick={() => setIsAddDialogOpen(true)}>
-                    {t("add_first_spam_entry")}
-                  </Button>
-                ) : null
-              }
-            />
-          ) : (
-            <SpamBlocklistTable
-              spamEntries={spamBlocklist}
-              onDelete={handleDelete}
-              canEdit={permissions.canEdit}
-              currentUserId={currentOrg.user.id}
-            />
-          )}
+          <SpamBlocklistTable
+            organizationId={currentOrg.id}
+            onDelete={handleDelete}
+            canEdit={permissions.canEdit}
+          />
 
           {isAddDialogOpen && (
             <AddSpamBlocklistDialog
@@ -104,8 +71,8 @@ const PrivacyView = ({ permissions }: { permissions: { canRead: boolean; canEdit
               isOpen={isAddDialogOpen}
               onClose={() => setIsAddDialogOpen(false)}
               onSuccess={() => {
-                refetchBlocklist();
                 setIsAddDialogOpen(false);
+                // The table will automatically refetch its data
               }}
             />
           )}

@@ -3721,5 +3721,18 @@
   "voice_id": "Voice ID",
   "use_voice": "Use Voice",
   "current_voice": "Current Voice",
+  "spam_blocklist": "Spam Blocklist",
+  "spam_blocklist_description": "Block spam bookers from booking your calendar.",
+  "add_spam_entry": "Add Spam Entry",
+  "confirm_delete_spam_entry": "Are you sure you want to delete this spam entry?",
+  "spam_entry_deleted_successfully": "Spam entry deleted successfully",
+  "no_spam_entries": "No spam entries",
+  "no_spam_entries_description": "No spam entries found",
+  "add_first_spam_entry": "Add First Spam Entry",
+  "no_permission_spam_blocklist": "You do not have permission to view the spam blocklist",
+  "blocked_by": "Blocked by",
+  "date_added": "Date Added",
+  "actions": "Actions",
+  "delete_spam_entry": "Delete Spam Entry",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
