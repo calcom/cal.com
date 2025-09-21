@@ -1,3 +1,4 @@
+import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZAcceptOrLeaveInputSchema } from "./acceptOrLeave.schema";
 import { ZAddMembersToEventType } from "./addMemberstoEventType.schema";
@@ -10,9 +11,9 @@ import { ZInviteMemberSchema } from "./inviteMember.schema";
 import { ZLeaveTeamSchema } from "./leaveTeam.schema";
 import { ZListMembersSchema } from "./listMembers.schema";
 import { ZRemoveMemberSchema } from "./removeMember.schema";
+import { ZResendCalidInvitationSchema } from "./resendInvitation.schema";
 import { ZUpdateCalidTeamSchema } from "./update.schema";
 import { ZUpdateMemberSchema } from "./updateMember.schema";
-import { ZResendCalidInvitationSchema } from "./resendInvitation.schema";
 
 export const calIdTeamsRouter = router({
   // Create a new calidTeam
