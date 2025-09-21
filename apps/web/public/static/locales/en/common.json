@@ -3734,5 +3734,8 @@
   "date_added": "Date Added",
   "actions": "Actions",
   "delete_spam_entry": "Delete Spam Entry",
+  "add_spam_entry_description": "Add a spam entry to block spam bookers from booking your organization's calendar",
+  "optional_reason_for_blocking": "Optional reason for blocking",
+  "spam_entry_added_successfully": "Spam entry added successfully",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

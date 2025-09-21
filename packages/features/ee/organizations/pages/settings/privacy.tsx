@@ -8,7 +8,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 
-import AddSpamBlocklistDialog from "./components/AddSpamBlocklistDialog";
+import AddSpamBlocklistSheet from "./components/AddSpamBlocklistSheet";
 import SpamBlocklistTable from "./components/SpamBlocklistTable";
 
 const PrivacyView = ({ permissions }: { permissions: { canRead: boolean; canEdit: boolean } }) => {
@@ -16,7 +16,14 @@ const PrivacyView = ({ permissions }: { permissions: { canRead: boolean; canEdit
   const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
-  const deleteSpamEntryMutation = trpc.viewer.organizations.deleteSpamBlocklistEntry.useMutation();
+  const utils = trpc.useUtils();
+
+  const deleteSpamEntryMutation = trpc.viewer.organizations.deleteSpamBlocklistEntry.useMutation({
+    onSuccess: () => {
+      // Invalidate the spam blocklist query to trigger a refetch in the table
+      utils.viewer.organizations.listSpamBlocklist.invalidate();
+    },
+  });
 
   const isInviteOpen = !currentOrg?.user.accepted;
   const isDisabled = !permissions.canEdit || isInviteOpen;
@@ -66,7 +73,7 @@ const PrivacyView = ({ permissions }: { permissions: { canRead: boolean; canEdit
           />
 
           {isAddDialogOpen && (
-            <AddSpamBlocklistDialog
+            <AddSpamBlocklistSheet
               organizationId={currentOrg.id}
               isOpen={isAddDialogOpen}
               onClose={() => setIsAddDialogOpen(false)}

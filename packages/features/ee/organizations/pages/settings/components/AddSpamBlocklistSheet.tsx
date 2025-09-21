@@ -47,10 +47,14 @@ export default function AddSpamBlocklistSheet({
     },
   });
 
+  const utils = trpc.useUtils();
+
   const createSpamEntryMutation = trpc.viewer.organizations.createSpamBlocklistEntry.useMutation({
     onSuccess: () => {
       showToast(t("spam_entry_added_successfully"), "success");
       form.reset();
+      // Invalidate the spam blocklist query to trigger a refetch in the table
+      utils.viewer.organizations.listSpamBlocklist.invalidate();
       onSuccess();
     },
     onError: (error) => {
