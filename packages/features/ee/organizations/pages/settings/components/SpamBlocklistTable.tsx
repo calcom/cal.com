@@ -64,7 +64,7 @@ function SpamBlocklistTableContent({ organizationId, onDelete, canEdit }: SpamBl
           username: null,
         };
       }
-      const member = members.members.find((m) => m.profile.id === userId);
+      const member = members.members.find((m) => m.id === userId);
       if (!member) {
         return {
           name: t("unknown_user"),
@@ -75,17 +75,17 @@ function SpamBlocklistTableContent({ organizationId, onDelete, canEdit }: SpamBl
       }
 
       const memberName =
-        member.profile.name ||
+        member.name ||
         (() => {
-          const emailName = member.profile.email.split("@")[0];
+          const emailName = member.email.split("@")[0];
           return emailName.charAt(0).toUpperCase() + emailName.slice(1);
         })();
 
       return {
         name: memberName,
-        email: member.profile.email,
-        avatarUrl: member.profile.avatarUrl,
-        username: member.profile.username,
+        email: member.email,
+        avatarUrl: member.avatarUrl,
+        username: member.username,
       };
     },
     [members, t]
