@@ -39,8 +39,8 @@ function SpamBlocklistTableContent({ organizationId, onDelete, canEdit }: SpamBl
   });
 
   // Get user details for created by info
-  const { data: members } = trpc.viewer.organizations.getMembers.useQuery(
-    { organizationId },
+  const { data: members } = trpc.viewer.teams.listMembers.useQuery(
+    { teamId: organizationId },
     { enabled: !!organizationId }
   );
 
@@ -56,7 +56,7 @@ function SpamBlocklistTableContent({ organizationId, onDelete, canEdit }: SpamBl
 
   const getMemberInfo = useCallback(
     (userId: number) => {
-      if (!members || !Array.isArray(members)) {
+      if (!members?.members || !Array.isArray(members.members)) {
         return {
           name: t("unknown_user"),
           email: "",
@@ -64,7 +64,7 @@ function SpamBlocklistTableContent({ organizationId, onDelete, canEdit }: SpamBl
           username: null,
         };
       }
-      const member = members.find((m) => m.user.id === userId);
+      const member = members.members.find((m) => m.profile.id === userId);
       if (!member) {
         return {
           name: t("unknown_user"),
@@ -74,19 +74,18 @@ function SpamBlocklistTableContent({ organizationId, onDelete, canEdit }: SpamBl
         };
       }
 
-      const { user } = member;
       const memberName =
-        user.name ||
+        member.profile.name ||
         (() => {
-          const emailName = user.email.split("@")[0];
+          const emailName = member.profile.email.split("@")[0];
           return emailName.charAt(0).toUpperCase() + emailName.slice(1);
         })();
 
       return {
         name: memberName,
-        email: user.email,
-        avatarUrl: user.avatarUrl,
-        username: user.username,
+        email: member.profile.email,
+        avatarUrl: member.profile.avatarUrl,
+        username: member.profile.username,
       };
     },
     [members, t]
