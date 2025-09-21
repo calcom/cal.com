@@ -97,9 +97,7 @@ export function EditForm({
       bio: selectedUser?.bio ?? "",
       role: selectedUser?.role ?? "",
       timeZone: selectedUser?.timeZone ?? "",
-      bookingLimits: validateBookingLimits(
-        selectedUser?.teams?.find((team) => !team.parentId)?.bookingLimits
-      ),
+      bookingLimits: validateBookingLimits(selectedUser?.organizationMembership?.bookingLimits),
     },
   });
 
@@ -177,7 +175,6 @@ export function EditForm({
     onSuccess: () => {
       utils.viewer.organizations.getUser.invalidate({ userId: selectedUser?.id });
       utils.viewer.organizations.listMembers.invalidate();
-      showToast(t("booking_limits_updated_successfully"), "success");
     },
     onError: (error) => {
       showToast(error.message, "error");
@@ -208,12 +205,10 @@ export function EditForm({
               : undefined,
           });
           if (isOrgAdminOrOwner && values.bookingLimits && Object.keys(values.bookingLimits).length > 0) {
-            // Find the organization team (parent team)
-            const orgTeam = selectedUser?.teams?.find((team) => !team.parentId);
-            if (orgTeam && selectedUser?.id) {
+            if (!!org && selectedUser?.id) {
               updateBookingLimitsMutation.mutate({
                 userId: selectedUser.id,
-                teamId: orgTeam.id,
+                teamId: org.id,
                 bookingLimits: values.bookingLimits,
               });
             }

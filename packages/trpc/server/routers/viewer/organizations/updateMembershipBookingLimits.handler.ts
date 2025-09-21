@@ -43,18 +43,6 @@ export const updateMembershipBookingLimitsHandler = async ({
     });
   }
 
-  // Verify the team is part of the user's organization
-  const team = await prisma.team.findFirst({
-    where: {
-      id: input.teamId,
-      parentId: organizationId,
-    },
-  });
-
-  if (!team) {
-    throw new TRPCError({ code: "NOT_FOUND", message: "Team not found in your organization" });
-  }
-
   // Verify the membership exists
   const membership = await prisma.membership.findFirst({
     where: {

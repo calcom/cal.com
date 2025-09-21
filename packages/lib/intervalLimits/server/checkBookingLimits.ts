@@ -3,6 +3,7 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { BookingRepository } from "@calcom/lib/server/repository/booking";
+import type { MembershipRepository } from "@calcom/lib/server/repository/membership";
 
 import { ascendingLimitKeys, intervalLimitKeyToUnit } from "../intervalLimit";
 import type { IntervalLimit, IntervalLimitKey } from "../intervalLimitSchema";
@@ -10,7 +11,7 @@ import { parseBookingLimit } from "../isBookingLimits";
 
 export interface ICheckBookingLimitsService {
   bookingRepo: BookingRepository;
-  membershipRepo: any; // Placeholder for now, will be replaced with actual type
+  membershipRepo: MembershipRepository;
 }
 
 export class CheckBookingLimitsService {
@@ -57,18 +58,29 @@ export class CheckBookingLimitsService {
     timeZone,
     includeManagedEvents = false,
   }: {
-    userId: number;
-    teamId: number;
+    userId: number | null;
+    teamId: number | null;
     eventStartDate: Date;
     rescheduleUid?: string;
     timeZone?: string | null;
     includeManagedEvents?: boolean;
   }) {
-    const membership = await this.dependencies.membershipRepo.getMembership({
-      userId,
-      teamId,
-    });
+    if (!userId) {
+      return;
+    }
 
+    // For personal event types, find any accepted membership with booking limits
+    // For team event types, use the provided teamId
+    let membership;
+    if (teamId) {
+      membership = await this.dependencies.membershipRepo.findUniqueByUserIdAndTeamIdInstance({
+        userId,
+        teamId,
+      });
+    } else {
+      // Find first accepted membership for personal events
+      membership = await this.dependencies.membershipRepo.findFirstAcceptedMembershipByUserIdInstance(userId);
+    }
     if (!membership?.bookingLimits || Object.keys(membership.bookingLimits).length === 0) {
       return;
     }
@@ -154,15 +166,15 @@ export class CheckBookingLimitsService {
     timeZone,
     teamId,
     userId,
-    includeManagedEvents = false,
+    includeManagedEvents: _includeManagedEvents = false,
   }: {
     eventStartDate: Date;
     key: IntervalLimitKey;
     limitingNumber: number;
     rescheduleUid?: string;
     timeZone?: string | null;
-    teamId: number;
-    userId: number;
+    teamId: number | null;
+    userId: number | null;
     includeManagedEvents?: boolean;
   }) {
     const eventDateInOrganizerTz = timeZone ? dayjs(eventStartDate).tz(timeZone) : dayjs(eventStartDate);
@@ -178,10 +190,9 @@ export class CheckBookingLimitsService {
       endDate,
       excludedUid: rescheduleUid,
     });
-
     if (totalBookingsInPeriod >= limitingNumber) {
       throw new HttpError({
-        message: `member_booking_limit_reached`,
+        message: `Member booking limit reached.`,
         statusCode: 403,
       });
     }

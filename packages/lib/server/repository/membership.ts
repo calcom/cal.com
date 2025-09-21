@@ -1,7 +1,6 @@
-
 import { availabilityUserSelect, prisma, type PrismaTransaction } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { Prisma, Membership, PrismaClient } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import logger from "../../logger";
@@ -132,6 +131,42 @@ export class MembershipRepository {
             not: null,
           },
         },
+      },
+      select: {
+        bookingLimits: true,
+        teamId: true,
+      },
+    });
+  }
+
+  async findFirstAcceptedMembershipByUserIdInstance(userId: number) {
+    return await this.prismaClient.membership.findFirst({
+      where: {
+        accepted: true,
+        userId,
+        team: {
+          slug: {
+            not: null,
+          },
+        },
+      },
+      select: {
+        bookingLimits: true,
+        teamId: true,
+      },
+    });
+  }
+
+  async findUniqueByUserIdAndTeamIdInstance({ userId, teamId }: { userId: number; teamId: number }) {
+    return await this.prismaClient.membership.findUnique({
+      where: {
+        userId_teamId: {
+          userId,
+          teamId,
+        },
+      },
+      select: {
+        bookingLimits: true,
       },
     });
   }
@@ -311,6 +346,9 @@ export class MembershipRepository {
           userId,
           teamId,
         },
+      },
+      select: {
+        bookingLimits: true,
       },
     });
   }

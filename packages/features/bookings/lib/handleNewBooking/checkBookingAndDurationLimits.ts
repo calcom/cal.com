@@ -53,15 +53,13 @@ export class CheckBookingAndDurationLimitsService {
         );
       }
     }
-    if (eventType.userId && eventType.teamId) {
-      await this.dependencies.checkBookingLimitsService.checkMemberBookingLimits({
-        userId: eventType.userId,
-        teamId: eventType.teamId,
-        eventStartDate: dayjs(reqBodyStart).toDate(),
-        rescheduleUid: reqBodyRescheduleUid,
-        timeZone: eventType.schedule?.timeZone,
-        includeManagedEvents: false,
-      });
-    }
+    await this.dependencies.checkBookingLimitsService.checkMemberBookingLimits({
+      userId: eventType.userId,
+      teamId: eventType.teamId,
+      eventStartDate: dayjs(reqBodyStart).toDate(),
+      rescheduleUid: reqBodyRescheduleUid,
+      timeZone: eventType.schedule?.timeZone,
+      includeManagedEvents: false,
+    });
   }
 }
