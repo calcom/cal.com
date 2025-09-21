@@ -5,6 +5,7 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getStripeCustomerIdFromUserId } from "../lib/customer";
@@ -24,6 +25,28 @@ const getBillingPortalUrl = async (customerId: string, return_url: string) => {
     log.error(`Failed to create billing portal session for ${customerId}: ${e}`);
     throw new Error("Failed to create billing portal session");
   }
+};
+
+const getValidatedTeamSubscriptionId = async (metadata: Prisma.JsonValue) => {
+  const teamMetadataParsed = teamMetadataSchema.safeParse(metadata);
+
+  if (!teamMetadataParsed.success) {
+    throw new Error("Invalid team metadata");
+  }
+
+  if (!teamMetadataParsed.data?.subscriptionId) {
+    throw new Error("Subscription Id not found for team");
+  }
+
+  return teamMetadataParsed.data.subscriptionId;
+};
+
+const getValidatedTeamSubscriptionIdForPlatform = async (subscriptionId?: string | null) => {
+  if (!subscriptionId) {
+    throw new Error("Subscription Id not found for team");
+  }
+
+  return subscriptionId;
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -57,17 +80,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (safeRedirectUrl) return_url = safeRedirectUrl;
   }
 
-  const teamMetadataParsed = teamMetadataSchema.safeParse(team.metadata);
+  let subscriptionId = "";
 
-  if (!teamMetadataParsed.success) {
-    return res.status(400).json({ message: "Invalid team metadata" });
+  if (team.isPlatform) {
+    subscriptionId = await getValidatedTeamSubscriptionIdForPlatform(team.platformBilling?.subscriptionId);
+  } else {
+    subscriptionId = await getValidatedTeamSubscriptionId(team.metadata);
   }
 
-  if (!teamMetadataParsed.data?.subscriptionId) {
-    return res.status(400).json({ message: "subscriptionId not found for team" });
-  }
-
-  const subscription = await getSubscriptionFromId(teamMetadataParsed.data.subscriptionId);
+  const subscription = await getSubscriptionFromId(subscriptionId);
 
   if (!subscription) {
     return res.status(400).json({ message: "Subscription not found" });
