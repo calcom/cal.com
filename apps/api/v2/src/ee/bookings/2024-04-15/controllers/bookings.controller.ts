@@ -7,6 +7,9 @@ import { MarkNoShowOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/ma
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { sha256Hash, isApiKey, stripApiKey } from "@/lib/api-key";
 import { VERSION_2024_04_15, VERSION_2024_06_11, VERSION_2024_06_14 } from "@/lib/api-versions";
+import { InstantBookingCreateService } from "@/lib/services/instant-booking-create.service";
+import { RecurringBookingService } from "@/lib/services/recurring-booking.service";
+import { RegularBookingService } from "@/lib/services/regular-booking.service";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
@@ -55,12 +58,7 @@ import {
   ErrorCode,
 } from "@calcom/platform-libraries";
 import { CreationSource } from "@calcom/platform-libraries";
-import {
-  getRecurringBookingService,
-  getRegularBookingService,
-  getInstantBookingCreateService,
-  type InstantBookingCreateResult,
-} from "@calcom/platform-libraries/bookings";
+import { type InstantBookingCreateResult } from "@calcom/platform-libraries/bookings";
 import {
   GetBookingsInput_2024_04_15,
   CancelBookingInput_2024_04_15,
@@ -112,7 +110,10 @@ export class BookingsController_2024_04_15 {
     private readonly apiKeyRepository: ApiKeysRepository,
     private readonly platformBookingsService: PlatformBookingsService,
     private readonly usersRepository: UsersRepository,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    private readonly regularBookingService: RegularBookingService,
+    private readonly recurringBookingService: RecurringBookingService,
+    private readonly instantBookingCreateService: InstantBookingCreateService
   ) {}
 
   @Get("/")
@@ -190,8 +191,7 @@ export class BookingsController_2024_04_15 {
     const { orgSlug, locationUrl } = body;
     try {
       const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl, isEmbed);
-      const regularBookingService = getRegularBookingService();
-      const booking = await regularBookingService.createBooking({
+      const booking = await this.regularBookingService.createBooking({
         bookingData: bookingRequest.body,
         bookingMeta: {
           userId: bookingRequest.userId,
@@ -321,8 +321,7 @@ export class BookingsController_2024_04_15 {
 
       const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed);
 
-      const recurringBookingService = getRecurringBookingService();
-      const createdBookings: BookingResponse[] = await recurringBookingService.createBooking({
+      const createdBookings: BookingResponse[] = await this.recurringBookingService.createBooking({
         bookingData: bookingRequest.body,
         bookingMeta: {
           userId: bookingRequest.userId,
@@ -365,9 +364,8 @@ export class BookingsController_2024_04_15 {
       clientId?.toString() || (await this.getOAuthClientIdFromEventType(body.eventTypeId));
     req.userId = (await this.getOwnerId(req)) ?? -1;
     try {
-      const instantBookingService = getInstantBookingCreateService();
       const bookingReq = await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed);
-      const instantMeeting = await instantBookingService.createBooking({
+      const instantMeeting = await this.instantBookingCreateService.createBooking({
         bookingData: bookingReq.body,
       });
 
