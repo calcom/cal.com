@@ -337,7 +337,7 @@ const RoundRobinHosts = ({
           {t("round_robin_helper")}
         </p>
       </div>
-      <div className="space-y-4 rounded-lg border border-gray-200 p-4">
+      <div className="space-y-4 rounded-md border border-gray-200 p-4">
         <Controller<FormValues>
           name="isRRWeightsEnabled"
           render={({ field: { value: isRRWeightsEnabled, onChange } }) => (
@@ -710,7 +710,7 @@ export const EventTeamAssignmentTab = ({
                   {t("rr_distribution_method_description")}
                 </p>
               </div>
-              <div className="space-y-4 rounded-lg border border-gray-200 p-4">
+              <div className="space-y-4 rounded-md border border-gray-200 p-4">
                 <Controller
                   name="maxLeadThreshold"
                   render={({ field: { value, onChange } }) => (

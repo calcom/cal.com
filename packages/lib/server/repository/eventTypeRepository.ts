@@ -1640,11 +1640,12 @@ export class EventTypeRepository {
           slug: true,
           members: {
             select: {
+              role: true,
+              acceptedInvitation: true,
               user: {
                 select: userSelect,
               },
             },
-            take: 1,
           },
         },
       },

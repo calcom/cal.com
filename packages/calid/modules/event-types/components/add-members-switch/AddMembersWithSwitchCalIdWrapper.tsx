@@ -11,7 +11,7 @@ export const AddMembersWithSwitchCalIdWrapper = ({ ...props }: AddMembersWithSwi
     // For now, we'll use the regular team attributes, but this could be enhanced
     // to detect calId teams and use the calId-specific endpoint
     utils.viewer.appRoutingForms.calid_getAttributesForTeam.prefetch({
-      calIdTeamId: props.calIdTeamId,
+      teamId: props.calIdTeamId,
     });
   }
   return <AddMembersWithSwitch {...props} />;

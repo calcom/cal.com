@@ -79,10 +79,10 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
   const userTimezone = useMemo(() => {
     return extractHostTimezone({
       userId: event.userId,
-      teamId: event.teamId,
+      teamId: event.calIdTeam?.id || event.teamId,
       hosts: event.hosts,
       owner: event.owner,
-      team: event.team,
+      team: event.calIdTeam || event.team,
     });
   }, [event]);
 
@@ -178,10 +178,12 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
                     </Badge>
                   )}
 
-                  {/* Team members for team events */}
-                  {event.teamId && !isManagedEventType && event.users && event.users.length > 0 && (
-                    <Badge variant="outline" size="sm" startIcon="users">
-                      {event.users.length} member{event.users.length !== 1 ? "s" : ""}
+                  {/* Scheduling type badge for team events */}
+                  {(event.calIdTeam || event.teamId) && event.schedulingType && (
+                    <Badge variant="secondary" size="sm" startIcon="users">
+                      {event.schedulingType === SchedulingType.ROUND_ROBIN && t("round_robin")}
+                      {event.schedulingType === SchedulingType.COLLECTIVE && t("collective")}
+                      {event.schedulingType === SchedulingType.MANAGED && t("managed")}
                     </Badge>
                   )}
                 </div>

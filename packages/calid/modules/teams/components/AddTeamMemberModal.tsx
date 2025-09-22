@@ -61,14 +61,25 @@ interface AddTeamMemberModalProps {
   teamId: number;
   teamName?: string;
   onSuccess?: () => void;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export const AddTeamMemberModal = ({ teamId, teamName, onSuccess }: AddTeamMemberModalProps) => {
+export const AddTeamMemberModal = ({
+  teamId,
+  teamName,
+  onSuccess,
+  isOpen: externalIsOpen,
+  onOpenChange,
+}: AddTeamMemberModalProps) => {
   const { t, i18n } = useLocale();
   const { data: session } = useSession();
   const utils = trpc.useUtils();
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
+  const setIsOpen = onOpenChange || setInternalIsOpen;
 
   const {
     register,
@@ -104,6 +115,7 @@ export const AddTeamMemberModal = ({ teamId, teamName, onSuccess }: AddTeamMembe
     currentUserRole === MembershipRole.OWNER || currentUserRole === MembershipRole.ADMIN;
 
   // Role options based on current user's permissions
+  // Since only admins/owners can access this modal, we can simplify the logic
   const roleOptions = [
     {
       value: MembershipRole.MEMBER,
@@ -178,11 +190,13 @@ export const AddTeamMemberModal = ({ teamId, teamName, onSuccess }: AddTeamMembe
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button StartIcon="plus" variant="button">
-          {t("add_team_member")}
-        </Button>
-      </DialogTrigger>
+      {externalIsOpen === undefined && (
+        <DialogTrigger asChild>
+          <Button StartIcon="plus" variant="button">
+            {t("add_team_member")}
+          </Button>
+        </DialogTrigger>
+      )}
 
       <DialogContent
         size="md"

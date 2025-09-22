@@ -440,7 +440,7 @@ export default function BookingListItem(booking: BookingItemProps) {
 
   const rescheduleBooking = (href: string) => {
     window.open(href, "_blank");
-  }
+  };
 
   return (
     <>
@@ -606,7 +606,7 @@ export default function BookingListItem(booking: BookingItemProps) {
                     <div
                       title={title}
                       className={classNames(
-                        "text-emphasis flex w-full items-center gap-2 align-top text-base font-semibold leading-6 lg:max-w-56 xl:max-w-full"
+                        "text-emphasis flex w-full items-center gap-2 align-top text-base font-semibold leading-6"
                       )}>
                       <span className={isCancelled ? "line-through" : ""}>{booking.eventType?.title}</span>
                       <span className="align-center text-subtle text-xs font-medium">with</span>
@@ -625,10 +625,10 @@ export default function BookingListItem(booking: BookingItemProps) {
                       )}
                     </div>
 
-                    <div className="text-subtle flex cursor-pointer flex-row py-2 text-xs font-medium">
+                    <div className="text-subtle flex w-full cursor-pointer flex-row items-center py-2 text-xs font-medium">
                       <div className="">{booking.isToday ? t("today_capitalized") : startTime}</div>
                       <span className="px-2">{" • "}</span>
-                      <div className="">
+                      <div className="flex items-center">
                         {formatTime(booking.startTime, userTimeFormat, userTimeZone)} -{" "}
                         {formatTime(booking.endTime, userTimeFormat, userTimeZone)}
                         <MeetingTimeInTimezones
