@@ -1,8 +1,10 @@
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { metadata as googleCalendarMetadata } from "@calcom/app-store/googlecalendar/_metadata";
-import { metadata as googleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
-import { metadata as office365CalendarMetaData } from "@calcom/app-store/office365calendar/_metadata";
-import { metadata as office365VideoMetaData } from "@calcom/app-store/office365video/_metadata";
+import {
+  getDelegationCredentialAppMetadata,
+  isConferencingCredential,
+  WORKSPACE_PLATFORM_SLUGS,
+  type WORKSPACE_PLATFORM_SLUGS_TYPE,
+} from "@calcom/app-store/delegationCredential";
 import type { ServiceAccountKey } from "@calcom/features/delegation-credentials/repository/DelegationCredentialRepository";
 import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repository/DelegationCredentialRepository";
 import {
@@ -16,11 +18,6 @@ import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
-
-const GOOGLE_WORKSPACE_SLUG = "google";
-const OFFICE365_WORKSPACE_SLUG = "office365";
-const WORKSPACE_PLATFORM_SLUGS = [GOOGLE_WORKSPACE_SLUG, OFFICE365_WORKSPACE_SLUG] as const;
-type WORKSPACE_PLATFORM_SLUGS_TYPE = (typeof WORKSPACE_PLATFORM_SLUGS)[number];
 
 const log = logger.getSubLogger({ prefix: ["features/delegation-credentials/lib/server"] });
 interface DelegationCredential {
@@ -42,34 +39,6 @@ interface User {
 
 const isValidWorkspaceSlug = (slug: string) => {
   return WORKSPACE_PLATFORM_SLUGS.includes(slug as unknown as WORKSPACE_PLATFORM_SLUGS_TYPE);
-};
-
-const getDelegationCredentialAppMetadata = (
-  slug: WORKSPACE_PLATFORM_SLUGS_TYPE,
-  isConferencing?: boolean
-) => {
-  switch (slug) {
-    case GOOGLE_WORKSPACE_SLUG:
-      return isConferencing
-        ? { type: googleMeetMetadata.type, appId: googleMeetMetadata.slug }
-        : { type: googleCalendarMetadata.type, appId: googleCalendarMetadata.slug };
-
-    case OFFICE365_WORKSPACE_SLUG:
-      return isConferencing
-        ? { type: office365VideoMetaData.type, appId: office365VideoMetaData.slug }
-        : { type: office365CalendarMetaData.type, appId: office365CalendarMetaData.slug };
-
-    default:
-      throw new Error("App metadata does not exist");
-  }
-};
-
-const _isConferencingCredential = (credential: CredentialPayload) => {
-  return (
-    credential.type.endsWith("_video") ||
-    credential.type.endsWith("_conferencing") ||
-    credential.type.endsWith("_messaging")
-  );
 };
 
 const _buildCommonUserCredential = ({
@@ -494,7 +463,7 @@ export const enrichUserWithDelegationCredentials = async <
   });
   return {
     ...restUser,
-    credentials: credentials.filter(_isConferencingCredential).map(({ delegatedTo: _1, ...rest }) => rest),
+    credentials: credentials.filter(isConferencingCredential).map(({ delegatedTo: _1, ...rest }) => rest),
   };
 };
 
@@ -506,7 +475,7 @@ export async function enrichUserWithDelegationConferencingCredentialsWithoutOrgI
   });
   return {
     ...restUser,
-    credentials: credentials.filter(_isConferencingCredential),
+    credentials: credentials.filter(isConferencingCredential),
   };
 }
 
@@ -564,22 +533,7 @@ export function getFirstDelegationConferencingCredential({
 }: {
   credentials: CredentialForCalendarService[];
 }) {
-  return credentials.find((credential) => _isConferencingCredential(credential));
-}
-
-export function getFirstDelegationConferencingCredentialAppLocation({
-  credentials,
-}: {
-  credentials: CredentialForCalendarService[];
-}) {
-  const delegatedConferencingCredential = getFirstDelegationConferencingCredential({ credentials });
-  if (delegatedConferencingCredential?.appId === googleMeetMetadata.slug) {
-    return googleMeetMetadata.appData?.location?.type ?? null;
-  }
-  if (delegatedConferencingCredential?.appId === office365VideoMetaData.slug) {
-    return office365VideoMetaData.appData?.location?.type ?? null;
-  }
-  return null;
+  return credentials.find((credential) => isConferencingCredential(credential));
 }
 
 export async function findUniqueDelegationCalendarCredential({
