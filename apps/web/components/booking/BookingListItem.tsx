@@ -184,6 +184,7 @@ function BookingListItem(booking: BookingItemProps) {
   const isTabRecurring = booking.listingStatus === "recurring";
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
   const isBookingFromRoutingForm = isBookingReroutable(parsedBooking);
+  const isAttendee = !!booking.attendees.find((attendee) => attendee.email === userEmail);
 
   const paymentAppData = getPaymentAppData(booking.eventType);
 
@@ -223,10 +224,11 @@ function BookingListItem(booking: BookingItemProps) {
   };
 
   const getSeatReferenceUid = () => {
-    if (!booking.seatsReferences[0]) {
-      return undefined;
-    }
-    return booking.seatsReferences[0].referenceUid;
+    const userSeat = booking.seatsReferences.find(
+      (seat) => !!userEmail && seat.attendee?.email === userEmail
+    );
+
+    return userSeat?.referenceUid || booking.seatsReferences[0];
   };
 
   const actionContext: BookingActionContext = {
@@ -250,6 +252,7 @@ function BookingListItem(booking: BookingItemProps) {
       booking.location === "integrations:daily" ||
       (typeof booking.location === "string" && booking.location.trim() === ""),
     showPendingPayment: paymentAppData.enabled && booking.payment.length && !booking.paid,
+    isAttendee,
     cardCharged,
     attendeeList,
     getSeatReferenceUid,
