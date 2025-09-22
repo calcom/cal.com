@@ -1,7 +1,7 @@
 import { createContainer } from "../../di";
 import {
   type RegularBookingService,
-  regularBookingServiceModule,
+  moduleLoader as regularBookingServiceModule,
 } from "../modules/RegularBookingService.module";
 
 const regularBookingServiceContainer = createContainer();

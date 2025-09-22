@@ -45,11 +45,8 @@ import { v4 as uuidv4 } from "uuid";
 import { X_CAL_CLIENT_ID, X_CAL_PLATFORM_EMBED } from "@calcom/platform-constants";
 import { BOOKING_READ, SUCCESS_STATUS, BOOKING_WRITE } from "@calcom/platform-constants";
 import {
-  handleNewRecurringBooking,
-  handleNewBooking,
   BookingResponse,
   HttpError,
-  handleInstantMeeting,
   handleMarkNoShow,
   getAllUserBookings,
   getBookingInfo,
@@ -58,6 +55,12 @@ import {
   ErrorCode,
 } from "@calcom/platform-libraries";
 import { CreationSource } from "@calcom/platform-libraries";
+import {
+  getRecurringBookingService,
+  getRegularBookingService,
+  getInstantBookingCreateService,
+  type InstantBookingCreateResult,
+} from "@calcom/platform-libraries/bookings";
 import {
   GetBookingsInput_2024_04_15,
   CancelBookingInput_2024_04_15,
@@ -187,17 +190,20 @@ export class BookingsController_2024_04_15 {
     const { orgSlug, locationUrl } = body;
     try {
       const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl, isEmbed);
-      const booking = await handleNewBooking({
+      const regularBookingService = getRegularBookingService();
+      const booking = await regularBookingService.createBooking({
         bookingData: bookingRequest.body,
-        userId: bookingRequest.userId,
-        hostname: bookingRequest.headers?.host || "",
-        forcedSlug: orgSlug,
-        platformClientId: bookingRequest.platformClientId,
-        platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
-        platformCancelUrl: bookingRequest.platformCancelUrl,
-        platformBookingUrl: bookingRequest.platformBookingUrl,
-        platformBookingLocation: bookingRequest.platformBookingLocation,
-        areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+        bookingMeta: {
+          userId: bookingRequest.userId,
+          hostname: bookingRequest.headers?.host || "",
+          forcedSlug: orgSlug,
+          platformClientId: bookingRequest.platformClientId,
+          platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+          platformCancelUrl: bookingRequest.platformCancelUrl,
+          platformBookingUrl: bookingRequest.platformBookingUrl,
+          platformBookingLocation: bookingRequest.platformBookingLocation,
+          areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+        },
       });
       if (booking.userId && booking.uid && booking.startTime) {
         void (await this.billingService.increaseUsageByUserId(booking.userId, {
@@ -315,15 +321,18 @@ export class BookingsController_2024_04_15 {
 
       const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed);
 
-      const createdBookings: BookingResponse[] = await handleNewRecurringBooking({
+      const recurringBookingService = getRecurringBookingService();
+      const createdBookings: BookingResponse[] = await recurringBookingService.createBooking({
         bookingData: bookingRequest.body,
-        userId: bookingRequest.userId,
-        hostname: bookingRequest.headers?.host || "",
-        platformClientId: bookingRequest.platformClientId,
-        platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
-        platformCancelUrl: bookingRequest.platformCancelUrl,
-        platformBookingUrl: bookingRequest.platformBookingUrl,
-        platformBookingLocation: bookingRequest.platformBookingLocation,
+        bookingMeta: {
+          userId: bookingRequest.userId,
+          hostname: bookingRequest.headers?.host || "",
+          platformClientId: bookingRequest.platformClientId,
+          platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+          platformCancelUrl: bookingRequest.platformCancelUrl,
+          platformBookingUrl: bookingRequest.platformBookingUrl,
+          platformBookingLocation: bookingRequest.platformBookingLocation,
+        },
       });
 
       createdBookings.forEach(async (booking) => {
@@ -351,14 +360,16 @@ export class BookingsController_2024_04_15 {
     @Body() body: CreateBookingInput_2024_04_15,
     @Headers(X_CAL_CLIENT_ID) clientId?: string,
     @Headers(X_CAL_PLATFORM_EMBED) isEmbed?: string
-  ): Promise<ApiResponse<Awaited<ReturnType<typeof handleInstantMeeting>>>> {
+  ): Promise<ApiResponse<InstantBookingCreateResult>> {
     const oAuthClientId =
       clientId?.toString() || (await this.getOAuthClientIdFromEventType(body.eventTypeId));
     req.userId = (await this.getOwnerId(req)) ?? -1;
     try {
-      const instantMeeting = await handleInstantMeeting(
-        await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed)
-      );
+      const instantBookingService = getInstantBookingCreateService();
+      const bookingReq = await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed);
+      const instantMeeting = await instantBookingService.createBooking({
+        bookingData: bookingReq.body,
+      });
 
       if (instantMeeting.userId && instantMeeting.bookingUid) {
         const now = new Date();

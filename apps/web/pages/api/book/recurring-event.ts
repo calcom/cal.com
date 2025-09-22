@@ -1,9 +1,9 @@
 import type { NextApiRequest } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
 import type { BookingResponse } from "@calcom/features/bookings/types";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { getRecurringBookingService } from "@calcom/lib/di/bookings/containers/RecurringBookingService.container";
 import getIP from "@calcom/lib/getIP";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
@@ -43,15 +43,18 @@ async function handler(req: NextApiRequest & RequestMeta) {
   const session = await getServerSession({ req });
   /* To mimic API behavior and comply with types */
 
-  const createdBookings: BookingResponse[] = await handleNewRecurringBooking({
+  const recurringBookingService = getRecurringBookingService();
+  const createdBookings: BookingResponse[] = await recurringBookingService.createBooking({
     bookingData: req.body,
-    userId: session?.user?.id || -1,
-    platformClientId: req.platformClientId,
-    platformCancelUrl: req.platformCancelUrl,
-    platformBookingUrl: req.platformBookingUrl,
-    platformRescheduleUrl: req.platformRescheduleUrl,
-    platformBookingLocation: req.platformBookingLocation,
-    noEmail: req.noEmail,
+    bookingMeta: {
+      userId: session?.user?.id || -1,
+      platformClientId: req.platformClientId,
+      platformCancelUrl: req.platformCancelUrl,
+      platformBookingUrl: req.platformBookingUrl,
+      platformRescheduleUrl: req.platformRescheduleUrl,
+      platformBookingLocation: req.platformBookingLocation,
+      noEmail: req.noEmail,
+    },
   });
 
   return createdBookings;
