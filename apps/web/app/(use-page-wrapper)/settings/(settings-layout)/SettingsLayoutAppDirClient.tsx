@@ -223,6 +223,8 @@ const useTabs = ({
 
         // Add pbac menu item only if feature flag is enabled AND user has permission to view roles
         // This prevents showing the menu item when user has no organization permissions
+        // We put this billing location at the end of the default "members" list of items
+        const BILLING_LOCATION = 5;
         if (isPbacEnabled) {
           if (permissions?.canViewRoles) {
             newArray.push({
@@ -232,14 +234,14 @@ const useTabs = ({
           }
 
           if (permissions?.canViewOrganizationBilling) {
-            newArray.splice(5, 0, {
+            newArray.splice(BILLING_LOCATION, 0, {
               name: "billing",
               href: "/settings/organizations/billing",
             });
           }
         } else {
           if (isOrgAdminOrOwner) {
-            newArray.splice(5, 0, {
+            newArray.splice(BILLING_LOCATION, 0, {
               name: "billing",
               href: "/settings/organizations/billing",
             });

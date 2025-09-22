@@ -2,6 +2,7 @@ import { _generateMetadata } from "app/_utils";
 import { getTranslate } from "app/_utils";
 
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import BillingView from "~/settings/billing/billing-view";
 
@@ -21,7 +22,7 @@ const Page = async () => {
 
   await validateUserHasOrgPerms({
     permission: "organization.manageBilling",
-    fallbackRoles: ["OWNER"],
+    fallbackRoles: [MembershipRole.OWNER],
   });
 
   return (
