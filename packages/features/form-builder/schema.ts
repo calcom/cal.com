@@ -8,7 +8,7 @@ import { getConfig as getVariantsConfig } from "./utils/variantsConfig";
 
 const nonEmptyString = () => z.string().refine((value: string) => value.trim().length > 0);
 
-const fieldTypeEnum = z.enum([
+export const fieldTypeEnum = z.enum([
   "name",
   "text",
   "textarea",
