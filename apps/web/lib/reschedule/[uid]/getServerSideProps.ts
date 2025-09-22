@@ -5,8 +5,8 @@ import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { determineReschedulePreventionRedirect } from "@calcom/features/bookings/lib/reschedule/determineReschedulePreventionRedirect";
-import { buildEventUrlFromBooking } from "@calcom/lib/bookings/buildEventUrlFromBooking";
 import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
+import { buildEventUrlFromBooking } from "@calcom/lib/bookings/buildEventUrlFromBooking";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
@@ -146,7 +146,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   }
 
   // if booking event type is for a seated event and no seat reference uid is provided, throw not found
-  if (booking?.eventType?.seatsPerTimeSlot && !maybeSeatReferenceUid) {
+  if (booking?.eventType?.seatsPerTimeSlot && !maybeSeatReferenceUid && !seatReferenceUid) {
     const userId = session?.user?.id;
 
     if (!userId && !seatReferenceUid) {
