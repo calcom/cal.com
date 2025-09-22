@@ -78,16 +78,30 @@ describe("Reservation System Fixes", () => {
 
     const eventType = eventTypes[0];
 
+    // Mock the reservation lookup for the first test
+    const validReservation = {
+      id: 1,
+      uid: "reserved-slot-123",
+      eventTypeId: 1,
+      userId: 101,
+      slotUtcStartDate: dayjs(`${getDate({ dateIncrement: 1 }).dateString}T10:00:00.000Z`).toDate(),
+      slotUtcEndDate: dayjs(`${getDate({ dateIncrement: 1 }).dateString}T10:15:00.000Z`).toDate(),
+      releaseAt: dayjs().add(15, "minutes").toDate(),
+      isSeat: false,
+    };
+
+    prismaMock.selectedSlots.findFirst.mockResolvedValue(validReservation);
+
     // Get the exact same date used for the reservation
     const bookingDate = getDate({ dateIncrement: 1 });
-    const bookingStartUtc = dayjs(bookingDate.dateString).utc();
-    const bookingEndUtc = bookingStartUtc.add(15, "minutes");
+    const bookingStartTime = `${bookingDate.dateString}T10:00:00.000Z`;
+    const bookingEndTime = `${bookingDate.dateString}T10:15:00.000Z`;
 
     const mockRequestData = getMockRequestDataForBooking({
       data: {
         eventTypeId: 1,
-        start: bookingStartUtc.toISOString(),
-        end: bookingEndUtc.toISOString(),
+        start: bookingStartTime,
+        end: bookingEndTime,
         responses: {
           email: booker.email,
           name: booker.name,
@@ -154,7 +168,7 @@ describe("Reservation System Fixes", () => {
     });
 
     // Mock that no reservation exists
-    prismaMock.selectedSlots.findUnique.mockResolvedValue(null);
+    prismaMock.selectedSlots.findFirst.mockResolvedValue(null);
 
     const mockRequestData = getMockRequestDataForBooking({
       data: {
@@ -223,7 +237,7 @@ describe("Reservation System Fixes", () => {
       isSeat: false,
     };
 
-    prismaMock.selectedSlots.findUnique.mockResolvedValue(expiredReservation);
+    prismaMock.selectedSlots.findFirst.mockResolvedValue(expiredReservation);
 
     const mockRequestData = getMockRequestDataForBooking({
       data: {
@@ -297,7 +311,7 @@ describe("Reservation System Fixes", () => {
       isSeat: false,
     };
 
-    prismaMock.selectedSlots.findUnique.mockResolvedValue(mismatchedReservation);
+    prismaMock.selectedSlots.findFirst.mockResolvedValue(mismatchedReservation);
 
     const mockRequestData = getMockRequestDataForBooking({
       data: {
@@ -362,6 +376,8 @@ describe("Reservation System Fixes", () => {
     const mockRequestData = getMockRequestDataForBooking({
       data: {
         eventTypeId: 1,
+        start: `${getDate({ dateIncrement: 1 }).dateString}T10:00:00.000Z`,
+        end: `${getDate({ dateIncrement: 1 }).dateString}T10:15:00.000Z`,
         responses: {
           email: booker.email,
           name: booker.name,
@@ -440,9 +456,25 @@ describe("Reservation System Fixes", () => {
 
     const eventType = eventTypes[0];
 
+    // Mock the reservation for the first occurrence
+    const recurringReservation = {
+      id: 1,
+      uid: "recurring-reservation-123",
+      eventTypeId: 1,
+      userId: 101,
+      slotUtcStartDate: dayjs(`${getDate({ dateIncrement: 1 }).dateString}T10:00:00.000Z`).toDate(),
+      slotUtcEndDate: dayjs(`${getDate({ dateIncrement: 1 }).dateString}T10:15:00.000Z`).toDate(),
+      releaseAt: dayjs().add(15, "minutes").toDate(),
+      isSeat: false,
+    };
+
+    prismaMock.selectedSlots.findFirst.mockResolvedValue(recurringReservation);
+
     const mockRequestData = getMockRequestDataForBooking({
       data: {
         eventTypeId: 1,
+        start: `${getDate({ dateIncrement: 1 }).dateString}T10:00:00.000Z`,
+        end: `${getDate({ dateIncrement: 1 }).dateString}T10:15:00.000Z`,
         recurringCount: 3,
         responses: {
           email: booker.email,
