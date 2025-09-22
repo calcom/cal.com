@@ -310,6 +310,7 @@ const scheduleSMSReminderForEvt = async (
   }
 };
 
+// sends all immediately, no scheduling needed
 const scheduleSMSReminderForForm = async (
   args: ScheduleTextReminderArgsWithRequiredFields & {
     formData: { responses: FORM_SUBMITTED_WEBHOOK_RESPONSES };
