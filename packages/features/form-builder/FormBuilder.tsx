@@ -85,7 +85,6 @@ export const FormBuilder = function FormBuilder({
   showPriceField,
   paymentCurrency = "USD",
   showPhoneAndEmailToggle = false,
-  seatsEnabled = false,
 }: {
   formProp: string;
   title: string;
@@ -94,7 +93,6 @@ export const FormBuilder = function FormBuilder({
   disabled: boolean;
   LockedIcon: false | JSX.Element;
   showPhoneAndEmailToggle?: boolean;
-  seatsEnabled?: boolean;
   /**
    * A readonly dataStore that is used to lookup the options for the fields. It works in conjunction with the field.getOptionAt property which acts as the key in options
    */
@@ -382,6 +380,12 @@ export const FormBuilder = function FormBuilder({
           handleSubmit={(data: Parameters<SubmitHandler<RhfFormField>>[0]) => {
             const type = data.type || "text";
             const isNewField = !fieldDialog.data;
+
+            if (data.name === "guests" && type !== "multiemail") {
+              showToast(t("guests_field_must_be_multiemail"), "error");
+              return;
+            }
+
             if (isNewField && fields.some((f) => f.name === data.name)) {
               showToast(t("form_builder_field_already_exists"), "error");
               return;
@@ -413,7 +417,6 @@ export const FormBuilder = function FormBuilder({
           shouldConsiderRequired={shouldConsiderRequired}
           showPriceField={showPriceField}
           paymentCurrency={paymentCurrency}
-          seatsEnabled={seatsEnabled}
         />
       )}
     </div>
@@ -567,7 +570,6 @@ function FieldEditDialog({
   shouldConsiderRequired,
   showPriceField,
   paymentCurrency,
-  seatsEnabled,
 }: {
   dialog: { isOpen: boolean; fieldIndex: number; data: RhfFormField | null };
   onOpenChange: (isOpen: boolean) => void;
@@ -575,7 +577,6 @@ function FieldEditDialog({
   shouldConsiderRequired?: (field: RhfFormField) => boolean | undefined;
   showPriceField?: boolean;
   paymentCurrency: string;
-  seatsEnabled?: boolean;
 }) {
   const { t } = useLocale();
   const isPlatform = useIsPlatform();
@@ -605,8 +606,7 @@ function FieldEditDialog({
   const variantsConfig = fieldForm.watch("variantsConfig");
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
-
-  const availableFieldTypes = fieldTypes.filter((f) => !f.systemOnly);
+  const fieldName = fieldForm.getValues("name");
 
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
@@ -620,8 +620,7 @@ function FieldEditDialog({
               id="test-field-type"
               isDisabled={
                 fieldForm.getValues("editable") === "system" ||
-                fieldForm.getValues("editable") === "system-but-optional" ||
-                (seatsEnabled && formFieldType === "multiemail" && fieldForm.getValues("name") === "guests")
+                fieldForm.getValues("editable") === "system-but-optional"
               }
               onChange={(e) => {
                 const value = e?.value;
@@ -631,7 +630,7 @@ function FieldEditDialog({
                 fieldForm.setValue("type", value, { shouldDirty: true });
               }}
               value={dialog.data ? getLocationFieldType(dialog.data) : fieldTypesConfigMap[formFieldType]}
-              options={availableFieldTypes}
+              options={fieldTypes.filter((f) => !f.systemOnly)}
               label={t("input_type")}
             />
             {(() => {
@@ -649,10 +648,7 @@ function FieldEditDialog({
                       }}
                       disabled={
                         fieldForm.getValues("editable") === "system" ||
-                        fieldForm.getValues("editable") === "system-but-optional" ||
-                        (seatsEnabled &&
-                          formFieldType === "multiemail" &&
-                          fieldForm.getValues("name") === "guests")
+                        fieldForm.getValues("editable") === "system-but-optional"
                       }
                       label={t("identifier")}
                     />
