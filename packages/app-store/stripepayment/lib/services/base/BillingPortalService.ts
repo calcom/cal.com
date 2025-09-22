@@ -24,6 +24,7 @@ export interface BillingPortalResult {
 export abstract class BillingPortalService {
   protected permissionService: PermissionCheckService;
   protected teamRepository: TeamRepository;
+  protected contextName = "Team"; // Can be overridden by subclasses
 
   constructor() {
     this.permissionService = new PermissionCheckService();
@@ -91,7 +92,7 @@ export abstract class BillingPortalService {
     const customerId = await this.getCustomerId(teamId);
     if (!customerId) {
       res.status(400).json({
-        message: "Team billing not properly configured. Please contact support.",
+        message: `${this.contextName} billing not properly configured. Please contact support.`,
       });
       return;
     }

@@ -1,3 +1,4 @@
+import logger from "@calcom/lib/logger";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -18,6 +19,8 @@ export class TeamBillingPortalService extends BillingPortalService {
   }
 
   async getCustomerId(teamId: number): Promise<string | null> {
+    const log = logger.getSubLogger({ prefix: ["TeamBillingPortalService", "getCustomerId"] });
+
     const team = await this.teamRepository.findById({ id: teamId });
     if (!team) return null;
 
@@ -27,12 +30,21 @@ export class TeamBillingPortalService extends BillingPortalService {
       return null;
     }
 
-    const subscription = await getSubscriptionFromId(teamMetadataParsed.data.subscriptionId);
+    try {
+      const subscription = await getSubscriptionFromId(teamMetadataParsed.data.subscriptionId);
 
-    if (!subscription?.customer) {
+      if (!subscription?.customer) {
+        log.warn("Subscription found but no customer ID", {
+          teamId,
+          subscriptionId: teamMetadataParsed.data.subscriptionId,
+        });
+        return null;
+      }
+
+      return subscription.customer as string;
+    } catch (error) {
+      log.error("Failed to retrieve subscription", { teamId, error });
       return null;
     }
-
-    return subscription.customer as string;
   }
 }
