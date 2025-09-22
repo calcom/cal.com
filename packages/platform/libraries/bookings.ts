@@ -2,6 +2,9 @@ export { LuckyUserService } from "@calcom/lib/server/getLuckyUser";
 
 export { CheckBookingLimitsService } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
 export { CheckBookingAndDurationLimitsService } from "@calcom/features/bookings/lib/handleNewBooking/checkBookingAndDurationLimits";
+export { RegularBookingService } from "@calcom/features/bookings/lib/handleNewBooking";
+export { RecurringBookingService } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
+export { InstantBookingCreateService } from "@calcom/features/instant-meeting/handleInstantMeeting";
 export type {
   InstantBookingCreateResult,
   RegularBookingCreateResult,
