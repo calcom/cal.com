@@ -87,10 +87,6 @@ export const EventTypeWebWrapper = ({
   data: serverFetchedData,
   calIdTeamId,
 }: EventTypeWebWrapperProps) => {
-  // Get calIdTeamId from URL parameters as well
-  const searchParams = new URLSearchParams(window.location.search);
-  const urlCalIdTeamId = searchParams.get("calIdTeamId");
-
   const resolvedCalIdTeamId =
     calIdTeamId || (serverFetchedData as CalIdEventTypeData)?.eventType?.calIdTeamId;
 
@@ -161,10 +157,10 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
 
   const { eventType, locationOptions, team, teamMembers, destinationCalendar, currentUserMembership } = rest;
 
-  // Add defensive check for eventType structure
-  if (!eventType) {
-    return <div>Loading...</div>;
-  }
+  // For CalId, use calIdTeam data if team is not available
+  const effectiveTeam = team || (eventType as any).calIdTeam;
+  const effectiveTeamMembers =
+    teamMembers?.length > 0 ? teamMembers : (eventType as any).calIdTeam?.members || [];
 
   // Ensure users array exists and has at least one user
   if (!eventType.users || eventType.users.length === 0) {
@@ -333,20 +329,22 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
     availability: (
       <EventAvailability
         eventType={eventType as any}
-        isTeamEvent={!!team}
+        isTeamEvent={!!effectiveTeam}
         user={user}
-        teamMembers={teamMembers}
+        teamMembers={effectiveTeamMembers}
       />
     ),
-    team: (
-      <EventTeamAssignmentTab
-        orgId={orgBranding?.id ?? null}
-        teamMembers={teamMembers}
-        team={team}
-        eventType={eventType}
-        isSegmentApplicable={!!orgBranding?.id}
-      />
-    ),
+    team: (() => {
+      return (
+        <EventTeamAssignmentTab
+          orgId={orgBranding?.id ?? null}
+          teamMembers={effectiveTeamMembers}
+          team={effectiveTeam}
+          eventType={eventType}
+          isSegmentApplicable={!!orgBranding?.id}
+        />
+      );
+    })(),
 
     limits: <EventLimits eventType={eventType as any} />,
     advanced: (
@@ -407,7 +405,10 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
   // Filter tabs based on event type
   const allTabs = getTabs(pathname);
   const availableTabs = allTabs.filter((tabItem) => {
-    if (tabItem.name === "Team" && !team) return false;
+    if (tabItem.name === "Team") {
+      const shouldShowTeamTab = !!effectiveTeam;
+      return shouldShowTeamTab;
+    }
     return true;
   });
 

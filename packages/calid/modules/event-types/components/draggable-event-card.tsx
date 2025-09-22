@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@calid/features/ui/components/dropdown-menu";
 import { Icon } from "@calid/features/ui/components/icon";
-import { Switch } from "@calid/features/ui/components/switch/switch";
+import { Switch } from "@calid/features/ui/components/switch";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";

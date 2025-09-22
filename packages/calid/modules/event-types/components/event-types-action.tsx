@@ -36,6 +36,7 @@ export const EventTypeActions = ({
   onDeleteClick,
 }: EventTypeActionsProps) => {
   const { t } = useLocale();
+  console.log(form.watch("hidden"));
 
   return (
     <div className="mr-2 flex items-center justify-end space-x-4">
@@ -49,35 +50,26 @@ export const EventTypeActions = ({
         }
       })() && (
         <div className="flex items-center space-x-2">
-          <Tooltip
-            content={(() => {
+          <Switch
+            id="hiddenSwitch"
+            disabled={eventTypesLockedByOrg}
+            tooltip={form.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")}
+            checked={(() => {
               try {
                 const hidden = form?.watch("hidden");
-                return hidden ? t("show_eventtype_on_profile") : t("hide_from_profile");
+                return !hidden;
               } catch (error) {
-                return t("hide_from_profile");
+                return true;
               }
-            })()}>
-            <Switch
-              id="hiddenSwitch"
-              disabled={eventTypesLockedByOrg}
-              checked={(() => {
-                try {
-                  const hidden = form?.watch("hidden");
-                  return !hidden;
-                } catch (error) {
-                  return true;
-                }
-              })()}
-              onCheckedChange={(e) => {
-                try {
-                  form?.setValue("hidden", !e, { shouldDirty: true });
-                } catch (error) {
-                  console.error("EventTypeActions - Error setting hidden value:", error);
-                }
-              }}
-            />
-          </Tooltip>
+            })()}
+            onCheckedChange={(e) => {
+              try {
+                form?.setValue("hidden", !e, { shouldDirty: true });
+              } catch (error) {
+                console.error("EventTypeActions - Error setting hidden value:", error);
+              }
+            }}
+          />
         </div>
       )}
 

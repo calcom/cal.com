@@ -1,2 +1,2 @@
-export * from "./switch"
-export * from "./settings-switch"
+export * from "./switch";
+export * from "./settings-switch";

@@ -600,7 +600,7 @@ export const EventTeamAssignmentTab = ({
   ];
 
   const pendingMembers = (member: (typeof teamMembers)[number]) =>
-    !!eventType.calIdTeam?.parentId || !!member.username;
+    !!eventType.team?.parentId || !!member.username;
 
   const teamMembersOptions = teamMembers
     .filter(pendingMembers)
