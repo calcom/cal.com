@@ -69,10 +69,6 @@ export default async function SettingsLayoutAppDir(props: SettingsLayoutProps) {
     }
   }
 
-  console.log("-------------------");
-  console.log({ canViewRoles, canViewOrganizationBilling });
-  console.log("-------------------");
-
   return (
     <>
       <SettingsLayoutAppDirClient

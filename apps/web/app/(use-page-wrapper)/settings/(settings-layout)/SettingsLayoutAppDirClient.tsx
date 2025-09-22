@@ -224,7 +224,6 @@ const useTabs = ({
         // Add pbac menu item only if feature flag is enabled AND user has permission to view roles
         // This prevents showing the menu item when user has no organization permissions
         if (isPbacEnabled) {
-          console.log({ permissions });
           if (permissions?.canViewRoles) {
             newArray.push({
               name: "roles_and_permissions",
