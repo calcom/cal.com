@@ -95,8 +95,8 @@ describe("Platform Billing Controller (e2e)", () => {
 
       .expect(200)
       .then(async (res) => {
-        const data = res.body as CheckPlatformBillingResponseDto;
-        expect(data?.plan).toEqual(undefined);
+        const data = res.body.data as CheckPlatformBillingResponseDto;
+        expect(data?.plan).toEqual("FREE");
       });
   });
 
@@ -138,7 +138,7 @@ describe("Platform Billing Controller (e2e)", () => {
       .get(`/v2/billing/${organization.id}/check`)
       .expect(200)
       .then(async (res) => {
-        const data = res.body as CheckPlatformBillingResponseDto;
+        const data = res.body.data as CheckPlatformBillingResponseDto;
         expect(data?.plan).toEqual("FREE");
       });
   });
