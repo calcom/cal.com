@@ -543,32 +543,33 @@ export class PrismaPhoneNumberRepository {
       }
 
       // Atomic update: only set if inboundAgentId is currently null
-      await prisma.calAiPhoneNumber.update({
+      const result = await prisma.calAiPhoneNumber.updateMany({
         where: {
           id,
           inboundAgentId: null, // Only update if currently null
         },
         data: {
-          inboundAgent: {
-            connect: { id: agent.id },
-          },
+          inboundAgentId: agent.id,
         },
       });
 
-      return { success: true };
-    } catch (error) {
-      // Handle Prisma "Record not found" error (P2025) when WHERE condition fails
-      if (error instanceof Error && "code" in error && error.code === "P2025") {
-        // Get the current agent to provide context
-        const current = await prisma.calAiPhoneNumber.findUnique({
-          where: { id },
-          select: { inboundAgentId: true },
-        });
-        return {
-          success: false,
-          conflictingAgentId: current?.inboundAgentId || undefined,
-        };
+      // Check if the update was successful (count === 1 means the record was found and updated)
+      if (result.count === 1) {
+        return { success: true };
       }
+
+      // If count === 0, it means the record either doesn't exist or inboundAgentId is not null
+      // Get the current agent to provide context
+      const current = await prisma.calAiPhoneNumber.findUnique({
+        where: { id },
+        select: { inboundAgentId: true },
+      });
+      return {
+        success: false,
+        conflictingAgentId: current?.inboundAgentId || undefined,
+      };
+    } catch (error) {
+      // Rethrow non-Prisma errors
       throw error;
     }
   }
