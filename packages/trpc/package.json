@@ -7,9 +7,9 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
+    "generate": "yarn trpc:generate || true",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
-    "build": "yarn trpc:generate || true",
     "trpc:generate": "yarn tsc --project tsconfig.json"
   },
   "dependencies": {

@@ -440,8 +440,11 @@
       "cache": false,
       "outputs": ["dist/**", "build/**"]
     },
+    "generate": {
+      "outputs": ["packages/trpc/generated/**"]
+    },
     "dev": {
-      "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
+      "dependsOn": ["@calcom/trpc#generate", "//#env-check:common", "//#env-check:app-store"],
       "cache": false
     },
     "dx": {
