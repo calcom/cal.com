@@ -549,7 +549,19 @@ export const Components: Record<FieldType, Component> = {
   date: {
     propsType: propsTypes.date,
     factory: (props) => {
-      return <Widgets.TextWidget type="date" noLabel={true} {...props} />;
+      if (!props) {
+        return <div />;
+      }
+
+      return (
+        <InputField
+          type="date"
+          id={props.name}
+          noLabel={true}
+          {...props}
+          onChange={(e) => props.setValue(e.target.value)}
+        />
+      );
     },
   },
 } as const;
