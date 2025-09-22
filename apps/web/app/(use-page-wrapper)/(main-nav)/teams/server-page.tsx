@@ -43,7 +43,7 @@ const getCachedCalIdTeams = unstable_cache(
   ["calid-teams"],
   {
     revalidate: 3600,
-    tags: ["calid-teams"],
+    tags: ["viewer.calidTeams.list"],
   }
 );
 

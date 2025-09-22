@@ -337,7 +337,7 @@ const RoundRobinHosts = ({
           {t("round_robin_helper")}
         </p>
       </div>
-      <div className="space-y-4 rounded-lg border border-gray-200 p-4">
+      <div className="space-y-4 rounded-md border border-gray-200 p-4">
         <Controller<FormValues>
           name="isRRWeightsEnabled"
           render={({ field: { value: isRRWeightsEnabled, onChange } }) => (
@@ -599,20 +599,32 @@ export const EventTeamAssignmentTab = ({
     },
   ];
 
-  const pendingMembers = (member: (typeof teamMembers)[number]) =>
-    !!eventType.calIdTeam?.parentId || !!member.username;
+  const pendingMembers = (member: (typeof teamMembers)[number]) => {
+    // Handle both flat and nested user data structures
+    const hasUsername = member.username || (member as any).user?.username;
+    return !!eventType.team?.parentId || !!hasUsername;
+  };
 
-  const teamMembersOptions = teamMembers
-    .filter(pendingMembers)
-    .map((member) => mapUserToValue(member, t("pending")));
+  const teamMembersOptions = teamMembers.filter(pendingMembers).map((member) => {
+    // Handle both flat and nested user data structures
+    const userData = (member as any).user ? (member as any).user : member;
+    return mapUserToValue(userData, t("pending"));
+  });
 
   const childrenEventTypeOptions = teamMembers.filter(pendingMembers).map((member) => {
+    // Handle both flat and nested user data structures
+    const userData = (member as any).user ? (member as any).user : member;
     return mapMemberToChildrenOption(
       {
-        ...member,
-        eventTypes: member.eventTypes.filter(
-          (et) => et !== eventType.slug || !eventType.children.some((c) => c.owner.id === member.id)
-        ),
+        ...userData,
+        eventTypes: (member as any).eventTypes || [],
+        id: userData.id,
+        name: userData.name,
+        email: userData.email,
+        username: userData.username,
+        avatar: userData.avatarUrl || userData.avatar,
+        membership: (member as any).role || "MEMBER",
+        profile: userData.profile || null,
       },
       eventType.slug,
       t("pending")
@@ -698,7 +710,7 @@ export const EventTeamAssignmentTab = ({
                   {t("rr_distribution_method_description")}
                 </p>
               </div>
-              <div className="space-y-4 rounded-lg border border-gray-200 p-4">
+              <div className="space-y-4 rounded-md border border-gray-200 p-4">
                 <Controller
                   name="maxLeadThreshold"
                   render={({ field: { value, onChange } }) => (

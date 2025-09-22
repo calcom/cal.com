@@ -653,9 +653,7 @@ export class EventTypeRepository {
           members: {
             select: {
               user: {
-                select: {
-                  timeZone: true,
-                },
+                select: userSelect,
               },
             },
             take: 1,
@@ -1642,13 +1640,12 @@ export class EventTypeRepository {
           slug: true,
           members: {
             select: {
+              role: true,
+              acceptedInvitation: true,
               user: {
-                select: {
-                  timeZone: true,
-                },
+                select: userSelect,
               },
             },
-            take: 1,
           },
         },
       },

@@ -24,54 +24,23 @@ export const acceptOrLeaveHandler = async ({ ctx, input }: AcceptOrLeaveOptions)
       },
     });
 
-    // const team = teamMembership.calIdTeam;
+    return teamMembership;
+  } else {
+    try {
+      const membership = await prisma.calIdMembership.delete({
+        where: {
+          userId_calIdTeamId: { userId: ctx.user.id, calIdTeamId: input.teamId },
+        },
+        include: {
+          calIdTeam: true,
+        },
+      });
 
-    // if (team.parentId) {
-    //   await prisma.calIdMembership.update({
-    //     where: {
-    //       userId_calIdTeamId: { userId: ctx.user.id, calIdTeamId: team.parentId },
-    //     },
-    //     data: {
-    //       accepted: true,
-    //     },
-    //   });
-    // }
-
-    // const isASubteam = team.parentId !== null;
-    // const idOfOrganizationInContext = team.isOrganization ? team.id : isASubteam ? team.parentId : null;
-    // if (idOfOrganizationInContext) {
-    //   await prisma.profile.upsert({
-    //     where: { userId_organizationId: { userId: ctx.user.id, organizationId: idOfOrganizationInContext } },
-    //     update: {},
-    //     create: {
-    //       userId: ctx.user.id,
-    //       organizationId: idOfOrganizationInContext,
-    //       email: ctx.user.email,
-    //       username: ctx.user.username,
-    //     },
-    //   });
-    // }
-    //   } else {
-    // try {
-    //   const membership = await prisma.calIdMembership.delete({
-    //     where: {
-    //       userId_calIdTeamId: { userId: ctx.user.id, calIdTeamId: input.teamId },
-    //     },
-    //     include: {
-    //       calIdTeam: true,
-    //     },
-    //   });
-
-    //   //   if (membership.calIdTeam.parentId) {
-    //   //     await prisma.calIdMembership.delete({
-    //   //       where: {
-    //   //         userId_calIdTeamId: { userId: ctx.user.id, calIdTeamId: membership.calIdTeam.parentId },
-    //   //       },
-    //   //     });
-    //   //   }
-    // } catch (e) {
-    //   console.error(e);
-    // }
+      return membership;
+    } catch (e) {
+      console.error("Error deleting team membership:", e);
+      throw new Error("Failed to leave team");
+    }
   }
 };
 

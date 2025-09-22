@@ -44,10 +44,7 @@ export const SettingsSwitch: React.FC<SettingsSwitchProps> = ({
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <p
-              className={cn(
-                "text-sm font-medium text-gray-900",
-                disabled && "cursor-not-allowed opacity-50"
-              )}>
+              className={cn("text-primary text-sm font-medium", disabled && "cursor-not-allowed opacity-50")}>
               {title}
             </p>
             <p className="mt-1 text-sm text-gray-500">{description}</p>

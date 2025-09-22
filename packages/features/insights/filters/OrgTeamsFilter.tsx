@@ -1,12 +1,12 @@
+import {
+  FilterCheckboxField,
+  FilterCheckboxFieldsContainer,
+} from "@calid/features/modules/teams/components/filter/TeamsFilter";
 import { Avatar } from "@calid/features/ui/components/avatar";
 import { Icon } from "@calid/features/ui/components/icon";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 
-import {
-  FilterCheckboxField,
-  FilterCheckboxFieldsContainer,
-} from "@calcom/features/filters/components/TeamsFilter";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";

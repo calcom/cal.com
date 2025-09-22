@@ -559,4 +559,3 @@ export async function getRawEventTypeForCalId({
 }
 
 export default getEventTypeById;
-

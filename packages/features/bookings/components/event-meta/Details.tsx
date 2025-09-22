@@ -161,7 +161,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
           case EventDetailBlocks.LOCATION:
             if (!event?.locations?.length || isInstantMeeting) return null;
             return (
-              <EventMetaBlock key={block} label={t("location")}>
+              <EventMetaBlock key={block}>
                 <AvailableEventLocations locations={event.locations} />
               </EventMetaBlock>
             );
