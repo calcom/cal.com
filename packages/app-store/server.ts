@@ -1,10 +1,8 @@
 import type { TFunction } from "i18next";
 
 import { defaultVideoAppCategories } from "@calcom/app-store/utils";
-import {
-  buildNonDelegationCredentials,
-  enrichUserWithDelegationConferencingCredentialsWithoutOrgId,
-} from "@calcom/features/delegation-credentials/lib/server";
+import { enrichUserWithDelegationConferencingCredentialsWithoutOrgId } from "@calcom/features/delegation-credentials/lib/server";
+import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { AppCategories } from "@calcom/prisma/enums";

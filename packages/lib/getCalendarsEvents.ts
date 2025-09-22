@@ -1,5 +1,5 @@
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { isDelegationCredential } from "@calcom/features/delegation-credentials/lib/clientAndServer";
+import { isDelegationCredential } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeSelectedCalendar, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";

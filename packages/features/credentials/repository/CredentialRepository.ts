@@ -1,4 +1,4 @@
-import { buildNonDelegationCredential } from "@calcom/features/delegation-credentials/lib/server";
+import { buildNonDelegationCredential } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";

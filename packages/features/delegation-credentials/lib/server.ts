@@ -6,19 +6,16 @@ import { metadata as office365VideoMetaData } from "@calcom/app-store/office365v
 import { CredentialRepository } from "@calcom/features/credentials/repository/CredentialRepository";
 import type { ServiceAccountKey } from "@calcom/features/delegation-credentials/repository/DelegationCredentialRepository";
 import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repository/DelegationCredentialRepository";
+import {
+  buildNonDelegationCredential,
+  buildNonDelegationCredentials,
+  isDelegationCredential,
+} from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
-
-import {
-  buildNonDelegationCredential,
-  buildNonDelegationCredentials,
-  isDelegationCredential,
-} from "./clientAndServer";
-
-export { buildNonDelegationCredentials, buildNonDelegationCredential } from "./clientAndServer";
 
 const GOOGLE_WORKSPACE_SLUG = "google";
 const OFFICE365_WORKSPACE_SLUG = "office365";
