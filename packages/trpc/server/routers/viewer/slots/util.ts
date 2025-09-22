@@ -10,8 +10,8 @@ import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEvent
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import type { QualifiedHostsService } from "@calcom/features/qualifiedHosts/services/findQualifiedHostsWithDelegationCredentials";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
-import type { QualifiedHostsService } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
