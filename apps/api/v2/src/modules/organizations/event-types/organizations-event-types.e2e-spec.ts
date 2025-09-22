@@ -6,7 +6,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
 import * as request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
@@ -25,7 +24,7 @@ import {
   NoticeThresholdUnitEnum,
 } from "@calcom/platform-enums";
 import { SchedulingType } from "@calcom/platform-libraries";
-import {
+import type {
   ApiSuccessResponse,
   CreateTeamEventTypeInput_2024_06_14,
   EventTypeOutput_2024_06_14,
@@ -33,7 +32,7 @@ import {
   TeamEventTypeOutput_2024_06_14,
   UpdateTeamEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
-import { Team } from "@calcom/prisma/client";
+import type { User, Team } from "@calcom/prisma/client";
 
 describe("Organizations Event Types Endpoints", () => {
   describe("User Authentication - User is Org Admin", () => {
@@ -176,6 +175,13 @@ describe("Organizations Event Types Endpoints", () => {
         role: "ADMIN",
         user: { connect: { id: userAdmin.id } },
         team: { connect: { id: org.id } },
+        accepted: true,
+      });
+
+      await membershipsRepositoryFixture.create({
+        role: "ADMIN",
+        user: { connect: { id: userAdmin.id } },
+        team: { connect: { id: team.id } },
         accepted: true,
       });
 
@@ -902,7 +908,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
 
           const data = responseBody.data;
-          expect(data.length).toEqual(3);
+          expect(data.length).toEqual(4);
 
           const teammate1EventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(teammate1.id);
           const teammate2EventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(teammate2.id);

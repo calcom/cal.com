@@ -1,4 +1,3 @@
-import type { Workflow } from "@prisma/client";
 import type { z } from "zod";
 
 import { isSMSOrWhatsappAction } from "@calcom/ee/workflows/lib/actionHelperFunctions";
@@ -31,6 +30,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
+import type { Workflow } from "@calcom/prisma/client";
 import type { Prisma, WorkflowStep } from "@calcom/prisma/client";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
@@ -456,57 +456,57 @@ async function getAllUserAndTeamEventTypes(teamIds: number[], notMemberOfTeamId:
 export async function isAuthorizedToAddActiveOnIds({
   newEventTypeIds,
   newRoutingFormIds,
-  isOrg,
+  newTeamIds,
   teamId,
   userId,
 }: {
   newEventTypeIds: number[];
   newRoutingFormIds: string[];
-  isOrg: boolean;
+  newTeamIds: number[];
   teamId?: number | null;
   userId?: number | null;
 }) {
+  for (const id of newTeamIds) {
+    const newTeam = await prisma.team.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        parent: true,
+      },
+    });
+    if (newTeam?.parent?.id !== teamId) {
+      return false;
+    }
+  }
+
   // Check authorization for event type IDs
   for (const id of newEventTypeIds) {
-    if (isOrg) {
-      const newTeam = await prisma.team.findUnique({
-        where: {
-          id,
+    const newEventType = await prisma.eventType.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        users: {
+          select: {
+            id: true,
+          },
         },
-        select: {
-          parent: true,
-        },
-      });
-      if (newTeam?.parent?.id !== teamId) {
+        children: true,
+      },
+    });
+
+    if (newEventType) {
+      if (teamId && teamId !== newEventType.teamId) {
         return false;
       }
-    } else {
-      const newEventType = await prisma.eventType.findUnique({
-        where: {
-          id,
-        },
-        include: {
-          users: {
-            select: {
-              id: true,
-            },
-          },
-          children: true,
-        },
-      });
-
-      if (newEventType) {
-        if (teamId && teamId !== newEventType.teamId) {
-          return false;
-        }
-        if (
-          !teamId &&
-          userId &&
-          newEventType.userId !== userId &&
-          !newEventType?.users.find((eventTypeUser) => eventTypeUser.id === userId)
-        ) {
-          return false;
-        }
+      if (
+        !teamId &&
+        userId &&
+        newEventType.userId !== userId &&
+        !newEventType?.users.find((eventTypeUser) => eventTypeUser.id === userId)
+      ) {
+        return false;
       }
     }
   }
@@ -521,37 +521,19 @@ export async function isAuthorizedToAddActiveOnIds({
       select: {
         userId: true,
         teamId: true,
-        team: {
-          select: {
-            members: {
-              select: {
-                userId: true,
-                accepted: true,
-              },
-            },
-          },
-        },
       },
     });
 
     if (!routingForm) return false;
 
-    // User owns the form directly
-    if (routingForm.userId === userId) {
-      return true;
+    if (teamId && teamId !== routingForm.teamId) {
+      return false;
     }
 
-    // Form belongs to a team that the user is a member of
-    if (routingForm.teamId && routingForm.team) {
-      const isTeamMember = routingForm.team.members.some(
-        (member) => member.userId === userId && member.accepted
-      );
-      if (isTeamMember) {
-        return true;
-      }
+    if (!teamId && userId && routingForm.userId !== userId) {
+      return false;
     }
   }
-
   return true;
 }
 
@@ -990,61 +972,14 @@ export async function getAllWorkflowsFromEventType(
     ? !eventTypeMetadata?.managedEventConfig?.unlockedFields?.workflows
     : false;
 
-  const allWorkflows = await getAllWorkflows(
-    eventTypeWorkflows,
+  const allWorkflows = await getAllWorkflows({
+    entityWorkflows: eventTypeWorkflows,
     userId,
     teamId,
     orgId,
-    workflowsLockedForUser
-  );
-
-  return allWorkflows;
-}
-
-export async function getAllWorkflowsFromRoutingForm(routingForm: {
-  id: string;
-  userId: number | null;
-  teamId: number | null;
-}) {
-  const routingFormWorkflows = await prisma.workflow.findMany({
-    where: {
-      activeOnRoutingForms: {
-        some: {
-          routingFormId: routingForm.id,
-        },
-      },
-    },
-    select: {
-      id: true,
-      name: true,
-      trigger: true,
-      time: true,
-      timeUnit: true,
-      userId: true,
-      teamId: true,
-      steps: true,
-      team: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-        },
-      },
-    },
+    workflowsLockedForUser,
+    triggerType: "eventType",
   });
-
-  const teamId = routingForm.teamId;
-  const userId = routingForm.userId;
-  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
-
-  const allWorkflows = await getAllWorkflows(
-    routingFormWorkflows,
-    userId,
-    teamId,
-    orgId,
-    false, // workflowsLockedForUser - routing forms are not managed
-    "routingForm"
-  );
 
   return allWorkflows;
 }

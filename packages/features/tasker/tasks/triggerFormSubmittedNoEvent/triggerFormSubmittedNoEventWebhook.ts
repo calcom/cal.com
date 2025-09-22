@@ -5,8 +5,6 @@ import incompleteBookingActionFunctions from "@calcom/app-store/routing-forms/li
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import prisma from "@calcom/prisma";
 
-import { getSubmitterEmail, shouldTriggerFormSubmittedNoEvent } from "./formSubmissionValidation";
-
 export type ResponseData = {
   responseId: number;
   responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
@@ -16,6 +14,13 @@ export type ResponseData = {
     value: string;
   };
 };
+
+export function getSubmitterEmail(responses: any) {
+  return Object.values(responses).find((response): response is { value: string; label: string } => {
+    const value = typeof response === "object" && response && "value" in response ? response.value : response;
+    return typeof value === "string" && value.includes("@");
+  })?.value;
+}
 
 export const ZTriggerFormSubmittedNoEventWebhookPayloadSchema = z.object({
   webhook: z.object({
@@ -42,14 +47,53 @@ export const ZTriggerFormSubmittedNoEventWebhookPayloadSchema = z.object({
 export async function triggerFormSubmittedNoEventWebhook(payload: string): Promise<void> {
   const { webhook, responseId, form, redirect, responses } =
     ZTriggerFormSubmittedNoEventWebhookPayloadSchema.parse(JSON.parse(payload));
-
-  const shouldTrigger = await shouldTriggerFormSubmittedNoEvent({
-    formId: form.id,
-    responses,
-    responseId,
+  const bookingFromResponse = await prisma.booking.findFirst({
+    where: {
+      routedFromRoutingFormReponse: {
+        id: responseId,
+      },
+    },
   });
 
-  if (!shouldTrigger) return;
+  if (bookingFromResponse) {
+    return;
+  }
+
+  const sixtyMinutesAgo = new Date(Date.now() - 60 * 60 * 1000);
+  const recentResponses =
+    (await prisma.app_RoutingForms_FormResponse.findMany({
+      where: {
+        formId: form.id,
+        createdAt: {
+          gte: sixtyMinutesAgo,
+          lt: new Date(),
+        },
+        routedToBookingUid: {
+          not: null,
+        },
+        NOT: {
+          id: responseId,
+        },
+      },
+    })) ?? [];
+
+  const emailValue = getSubmitterEmail(responses);
+  // Check for duplicate email in recent responses
+  const hasDuplicate =
+    emailValue &&
+    recentResponses.some((response) => {
+      return Object.values(response.response as Record<string, { value: string; label: string }>).some(
+        (field) => {
+          if (!response.response || typeof response.response !== "object") return false;
+
+          return typeof field.value === "string" && field.value.toLowerCase() === emailValue.toLowerCase();
+        }
+      );
+    });
+
+  if (hasDuplicate) {
+    return;
+  }
 
   await sendGenericWebhookPayload({
     secretKey: webhook.secret,
@@ -82,7 +126,6 @@ export async function triggerFormSubmittedNoEventWebhook(payload: string): Promi
       // Get action function
       const bookingActionFunction = incompleteBookingActionFunctions[actionType];
 
-      const emailValue = getSubmitterEmail(responses);
       if (emailValue) {
         await bookingActionFunction(incompleteBookingAction, emailValue);
       }

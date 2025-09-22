@@ -1,8 +1,8 @@
-import { Prisma } from "@prisma/client";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
-import { DailyLocationType } from "@calcom/app-store/locations";
+import { DailyLocationType } from "@calcom/app-store/constants";
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -19,22 +19,26 @@ import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
-import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
-import { SchedulingType, EventTypeAutoTranslatedField, RRTimestampBasis } from "@calcom/prisma/enums";
-import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
+import { Prisma } from "@calcom/prisma/client";
+import {
+  WorkflowTriggerEvents,
+  SchedulingType,
+  EventTypeAutoTranslatedField,
+  RRTimestampBasis,
+} from "@calcom/prisma/enums";
 import { eventTypeLocations } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../../types";
 import { setDestinationCalendarHandler } from "../../../viewer/calendars/setDestinationCalendar.handler";
-import type { TUpdateInputSchema } from "./update.schema";
 import {
   ensureUniqueBookingFields,
   ensureEmailOrPhoneNumberIsPresent,
   handleCustomInputs,
   handlePeriodType,
 } from "../util";
+import type { TUpdateInputSchema } from "./update.schema";
 
 type SessionUser = NonNullable<TrpcSessionUser>;
 

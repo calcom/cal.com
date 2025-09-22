@@ -1,7 +1,9 @@
 import type { WorkflowType } from "@calcom/features/ee/workflows/components/WorkflowListPage";
 // import dayjs from "@calcom/dayjs";
 // import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { addPermissionsToWorkflows } from "@calcom/lib/server/repository/workflow-permissions";
 import { prisma } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -10,6 +12,7 @@ import type { TListInputSchema } from "./list.schema";
 type ListOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
+    prisma: PrismaClient;
   };
   input: TListInputSchema;
 };
@@ -17,11 +20,11 @@ type ListOptions = {
 export const listHandler = async ({ ctx, input }: ListOptions) => {
   const workflows: WorkflowType[] = [];
 
-  const excludeFormTriggersWhereClause = input?.includeOnlyEventTypeWorkflows
+  const excludeFormTriggersWhereClause = input.includeOnlyEventTypeWorkflows
     ? {
         trigger: {
           not: {
-            in: [WorkflowTriggerEvents.FORM_SUBMITTED, WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT],
+            in: [WorkflowTriggerEvents.FORM_SUBMITTED],
           },
         },
       }
@@ -32,12 +35,12 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
       isOrganization: true,
       children: {
         some: {
-          id: input?.teamId,
+          id: input.teamId,
         },
       },
       members: {
         some: {
-          userId: input?.userId || ctx.user.id,
+          userId: input.userId || ctx.user.id,
           accepted: true,
         },
       },
@@ -69,7 +72,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
               some: {
                 team: {
                   OR: [
-                    { id: input?.teamId },
+                    { id: input.teamId },
                     {
                       members: {
                         some: {
@@ -168,7 +171,13 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
 
     workflows.push(...workflowsWithReadOnly);
 
-    return { workflows };
+    // Add permissions to each workflow
+    const workflowsWithPermissions = await addPermissionsToWorkflows(workflows, ctx.user.id);
+
+    // Filter workflows based on view permission
+    const filteredWorkflows = workflowsWithPermissions.filter((workflow) => workflow.permissions.canView);
+
+    return { workflows: filteredWorkflows };
   }
 
   if (input && input.userId) {
@@ -211,7 +220,13 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
 
     workflows.push(...userWorkflows);
 
-    return { workflows };
+    // Add permissions to each workflow
+    const workflowsWithPermissions = await addPermissionsToWorkflows(workflows, ctx.user.id);
+
+    // Filter workflows based on view permission
+    const filteredWorkflows = workflowsWithPermissions.filter((workflow) => workflow.permissions.canView);
+
+    return { workflows: filteredWorkflows };
   }
 
   const allWorkflows = await prisma.workflow.findMany({
@@ -273,5 +288,11 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
 
   workflows.push(...workflowsWithReadOnly);
 
-  return { workflows };
+  // Add permissions to each workflow
+  const workflowsWithPermissions = await addPermissionsToWorkflows(workflows, ctx.user.id);
+
+  // Filter workflows based on view permission
+  const filteredWorkflows = workflowsWithPermissions.filter((workflow) => workflow.permissions.canView);
+
+  return { workflows: filteredWorkflows };
 };

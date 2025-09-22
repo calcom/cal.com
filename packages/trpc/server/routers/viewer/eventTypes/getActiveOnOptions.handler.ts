@@ -1,4 +1,5 @@
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { PrismaRoutingFormRepository } from "@calcom/lib/server/repository/PrismaRoutingFormRepository";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
@@ -185,57 +186,13 @@ const fetchTeamOptions = async ({
 };
 
 const fetchRoutingFormOptions = async ({
-  ctx,
   userId,
   teamId,
 }: {
-  ctx: { prisma: PrismaClient };
   userId: number;
   teamId?: number;
 }): Promise<Option[]> => {
-  const routingFormQuery = {
-    select: {
-      id: true,
-      name: true,
-      disabled: true,
-    },
-    orderBy: [
-      {
-        name: "asc" as const,
-      },
-    ],
-  };
-
-  let routingForms;
-
-  if (teamId) {
-    // For team workflows: show forms from that specific team
-    routingForms = await ctx.prisma.app_RoutingForms_Form.findMany({
-      where: {
-        teamId: teamId,
-        disabled: false,
-        team: {
-          members: {
-            some: {
-              userId: userId,
-              accepted: true,
-            },
-          },
-        },
-      },
-      ...routingFormQuery,
-    });
-  } else {
-    // For user workflows: show only personal forms (not team forms)
-    routingForms = await ctx.prisma.app_RoutingForms_Form.findMany({
-      where: {
-        userId: userId,
-        teamId: null, // Only personal forms, not team forms
-        disabled: false,
-      },
-      ...routingFormQuery,
-    });
-  }
+  const routingForms = await PrismaRoutingFormRepository.findActiveFormsForUserOrTeam({ userId, teamId });
 
   return routingForms.map((form) => ({
     value: form.id,
@@ -306,7 +263,6 @@ export const getActiveOnOptions = async ({ ctx, input }: GetActiveOnOptions) => 
   }, [] as Option[]);
 
   const routingFormOptions = await fetchRoutingFormOptions({
-    ctx,
     userId: user.id,
     teamId,
   });
