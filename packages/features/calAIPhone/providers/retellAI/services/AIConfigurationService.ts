@@ -18,11 +18,7 @@ export class AIConfigurationService {
   private logger = logger.getSubLogger({ prefix: ["AIConfigurationService"] });
   private retellRepository: RetellAIRepository;
 
-  constructor({
-    retellRepository,
-  }: {
-    retellRepository: RetellAIRepository;
-  }) {
+  constructor({ retellRepository }: { retellRepository: RetellAIRepository }) {
     this.retellRepository = retellRepository;
   }
 
