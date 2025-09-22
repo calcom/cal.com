@@ -29,14 +29,11 @@ export type ApiAuthGuardRequest = Request & {
   user: ApiAuthGuardUser;
   allowedAuthMethods?: AllowedAuthMethod[];
 };
-export const NO_AUTH_PROVIDED_MESSAGE =
-  "No authentication method provided. Either pass an API key as 'Bearer' header or OAuth client credentials as 'x-cal-secret-key' and 'x-cal-client-id' headers";
+export const NO_AUTH_PROVIDED_MESSAGE = `No authentication method provided. Either pass an API key as 'Bearer' header or OAuth client credentials as '${X_CAL_SECRET_KEY}' and '${X_CAL_CLIENT_ID}' headers`;
 
-export const ONLY_CLIENT_ID_PROVIDED_MESSAGE =
-  "Only 'x-cal-client-id' header provided. Please also provide 'x-cal-secret-key' header or Auth bearer token as 'Authentication' header";
+export const ONLY_CLIENT_ID_PROVIDED_MESSAGE = `Only '${X_CAL_CLIENT_ID}' header provided. Please also provide '${X_CAL_SECRET_KEY}' header or Auth bearer token as 'Authentication' header`;
 
-export const ONLY_CLIENT_SECRET_PROVIDED_MESSAGE =
-  "Only 'x-cal-client-secret' header provided. Please also provide 'x-cal-client-id' header or Auth bearer token as 'Authentication' header";
+export const ONLY_CLIENT_SECRET_PROVIDED_MESSAGE = `Only '${X_CAL_SECRET_KEY}' header provided. Please also provide '${X_CAL_CLIENT_ID}' header or Auth bearer token as 'Authentication' header`;
 
 @Injectable()
 export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") {
