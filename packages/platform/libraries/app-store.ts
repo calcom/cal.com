@@ -43,7 +43,7 @@ export {
   CalendarAppDelegationCredentialNotSetupError,
 } from "@calcom/lib/CalendarAppError";
 
-export { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repository/DelegationCredentialRepository";
+export { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
 
 export { OAuth2UniversalSchema } from "@calcom/app-store/_utils/oauth/universalSchema";
 export { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";

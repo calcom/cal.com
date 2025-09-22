@@ -4,8 +4,8 @@ import { sendDelegationCredentialDisabledEmail } from "@calcom/emails/email-mana
 import { checkIfSuccessfullyConfiguredInWorkspace } from "@calcom/app-store/delegationCredentials";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repository/DelegationCredentialRepository";
-import type { ServiceAccountKey } from "@calcom/features/delegation-credentials/repository/DelegationCredentialRepository";
+import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
+import type { ServiceAccountKey } from "@calcom/lib/server/repository/delegationCredential";
 
 import { getAffectedMembersForDisable } from "./getAffectedMembersForDisable.handler";
 import type { DelegationCredentialToggleEnabledSchema } from "./schema";

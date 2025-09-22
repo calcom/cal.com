@@ -1,6 +1,6 @@
 import type z from "zod";
 
-import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repository/DelegationCredentialRepository";
+import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
 
 import { TRPCError } from "@trpc/server";
 
