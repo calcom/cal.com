@@ -12,6 +12,7 @@ import { AddressInput } from "@calcom/ui/components/address";
 import { InfoBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Label, CheckboxField, EmailField, InputField, Checkbox } from "@calcom/ui/components/form";
+import DatePicker from "@calcom/ui/components/form/datepicker/DatePicker";
 import { Icon } from "@calcom/ui/components/icon";
 import { RadioGroup, RadioField } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
@@ -553,13 +554,18 @@ export const Components: Record<FieldType, Component> = {
         return <div />;
       }
 
+      // Convert string value to Date object for DatePicker
+      const dateValue = props.value ? new Date(props.value) : new Date();
+      
       return (
-        <InputField
-          type="date"
-          id={props.name}
-          noLabel={true}
-          {...props}
-          onChange={(e) => props.setValue(e.target.value)}
+        <DatePicker
+          date={dateValue}
+          onDatesChange={(date) => {
+            // Convert Date object back to string in YYYY-MM-DD format for form storage
+            const isoString = date.toISOString().split('T')[0];
+            props.setValue(isoString);
+          }}
+          className="w-full"
         />
       );
     },
