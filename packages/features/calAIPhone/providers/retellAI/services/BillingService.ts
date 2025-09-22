@@ -148,7 +148,7 @@ export class BillingService {
       await this.phoneNumberRepository.updateSubscriptionStatus({
         id: phoneNumberId,
         subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
-        disconnectOutboundAgent: false,
+        disconnectAgents: false,
       });
 
       try {
@@ -174,7 +174,7 @@ export class BillingService {
       await this.phoneNumberRepository.updateSubscriptionStatus({
         id: phoneNumberId,
         subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
-        disconnectOutboundAgent: true,
+        disconnectAgents: true,
       });
 
       // Delete the phone number from Retell, DB

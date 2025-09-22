@@ -169,12 +169,12 @@ describe("BillingService", () => {
       expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenNthCalledWith(1, {
         id: 1,
         subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
-        disconnectOutboundAgent: false,
+        disconnectAgents: false,
       });
       expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenNthCalledWith(2, {
         id: 1,
         subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
-        disconnectOutboundAgent: true,
+        disconnectAgents: true,
       });
       expect(mocks.mockRetellRepository.deletePhoneNumber).toHaveBeenCalledWith("+1234567890");
     });
@@ -297,17 +297,17 @@ describe("BillingService", () => {
 
       // Should attempt to cancel
       expect(stripe.subscriptions.cancel).toHaveBeenCalledWith("sub_123");
-      // Should update database twice: first CANCELLED (disconnectOutboundAgent: false), then final CANCELLED (disconnectOutboundAgent: true)
+      // Should update database twice: first CANCELLED (disconnectAgents: false), then final CANCELLED (disconnectAgents: true)
       expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenCalledTimes(2);
       expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenNthCalledWith(1, {
         id: 1,
         subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
-        disconnectOutboundAgent: false,
+        disconnectAgents: false,
       });
       expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenNthCalledWith(2, {
         id: 1,
         subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
-        disconnectOutboundAgent: true,
+        disconnectAgents: true,
       });
     });
 
@@ -333,7 +333,7 @@ describe("BillingService", () => {
       expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenNthCalledWith(1, {
         id: 1,
         subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
-        disconnectOutboundAgent: false,
+        disconnectAgents: false,
       });
       expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenNthCalledWith(2, {
         id: 1,

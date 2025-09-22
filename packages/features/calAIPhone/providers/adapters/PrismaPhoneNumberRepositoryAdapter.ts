@@ -62,7 +62,7 @@ export class PrismaPhoneNumberRepositoryAdapter implements PhoneNumberRepository
   async updateSubscriptionStatus(params: {
     id: number;
     subscriptionStatus: PhoneNumberSubscriptionStatus;
-    disconnectOutboundAgent?: boolean;
+    disconnectAgents?: boolean;
   }): Promise<void> {
     await PrismaPhoneNumberRepository.updateSubscriptionStatus(params);
   }

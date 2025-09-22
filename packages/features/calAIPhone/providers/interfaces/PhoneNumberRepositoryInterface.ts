@@ -63,7 +63,7 @@ export interface PhoneNumberRepositoryInterface {
   updateSubscriptionStatus(params: {
     id: number;
     subscriptionStatus: PhoneNumberSubscriptionStatus;
-    disconnectOutboundAgent?: boolean;
+    disconnectAgents?: boolean;
   }): Promise<void>;
 
   /**

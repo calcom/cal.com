@@ -2,18 +2,34 @@ import { useMemo } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { useWatch } from "react-hook-form";
 
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 
 import type { FormValues } from "../pages/workflow";
 
+type AgentData = RouterOutputs["viewer"]["aiVoiceAgent"]["get"];
+
 interface AgentQuery {
-  data: any;
+  data: AgentData | undefined;
   isPending: boolean;
   isLoading: boolean;
-  error: any;
+  error: Error | null;
 }
 
-export function useAgentsData(form: UseFormReturn<FormValues>) {
+interface UseAgentsDataReturn {
+  outboundAgentQueries: AgentQuery[];
+  inboundAgentQueries: AgentQuery[];
+}
+
+const emptyQuery: AgentQuery = { data: undefined, isPending: false, isLoading: false, error: null };
+
+/**
+ * Custom hook to fetch and manage agent data for workflow steps.
+ *
+ * @param form - React Hook Form instance for workflow form values
+ * @returns Object containing outbound and inbound agent queries with proper typing
+ */
+export function useAgentsData(form: UseFormReturn<FormValues>): UseAgentsDataReturn {
   const watchedSteps = useWatch({
     control: form.control,
     name: "steps",
@@ -66,21 +82,21 @@ export function useAgentsData(form: UseFormReturn<FormValues>) {
     return map;
   }, [uniqueAgentIds, uniqueAgentQueries]);
 
-  const outboundAgentQueries = useMemo(() => {
+  const outboundAgentQueries = useMemo((): AgentQuery[] => {
     return allAgentIds.outboundAgentIds.map((agentId) => {
       if (!agentId) {
-        return { data: null, isPending: false, isLoading: false, error: null };
+        return emptyQuery;
       }
-      return agentDataMap.get(agentId) || { data: null, isPending: false, isLoading: false, error: null };
+      return agentDataMap.get(agentId) || emptyQuery;
     });
   }, [allAgentIds.outboundAgentIds, agentDataMap]);
 
-  const inboundAgentQueries = useMemo(() => {
+  const inboundAgentQueries = useMemo((): AgentQuery[] => {
     return allAgentIds.inboundAgentIds.map((agentId) => {
       if (!agentId) {
-        return { data: null, isPending: false, isLoading: false, error: null };
+        return emptyQuery;
       }
-      return agentDataMap.get(agentId) || { data: null, isPending: false, isLoading: false, error: null };
+      return agentDataMap.get(agentId) || emptyQuery;
     });
   }, [allAgentIds.inboundAgentIds, agentDataMap]);
 

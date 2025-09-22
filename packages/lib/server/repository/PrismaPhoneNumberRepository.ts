@@ -434,18 +434,21 @@ export class PrismaPhoneNumberRepository {
   static async updateSubscriptionStatus({
     id,
     subscriptionStatus,
-    disconnectOutboundAgent = false,
+    disconnectAgents = false,
   }: {
     id: number;
     subscriptionStatus: PhoneNumberSubscriptionStatus;
-    disconnectOutboundAgent?: boolean;
+    disconnectAgents?: boolean;
   }) {
     const updateData: Prisma.CalAiPhoneNumberUpdateInput = {
       subscriptionStatus,
     };
 
-    if (disconnectOutboundAgent) {
+    if (disconnectAgents) {
       updateData.outboundAgent = {
+        disconnect: true,
+      };
+      updateData.inboundAgent = {
         disconnect: true,
       };
     }

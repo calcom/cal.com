@@ -732,7 +732,7 @@ describe("RetellAIService", () => {
       expect(mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenCalledWith({
         id: 1,
         subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
-        disconnectOutboundAgent: true,
+        disconnectAgents: true,
       });
     });
   });
