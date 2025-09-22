@@ -795,10 +795,9 @@ export const excludeOrRequireEmailSchema = z.string().superRefine((val, ctx) => 
   Invalid patterns - Patterns involving capital letter [ Example, Example.anything, Anyone@example.anything ]
 */
 
-  const isValid = !allDomains.some((domain) => !regex.test(domain));
+  const invalidDomains = allDomains.filter((domain) => !regex.test(domain));
 
-  if (!isValid) {
-    const invalidDomains = allDomains.filter((domain) => !regex.test(domain));
+  if (invalidDomains.length > 0) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: `Invalid domain or email : ${invalidDomains}`,
