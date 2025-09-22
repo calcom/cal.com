@@ -25,6 +25,7 @@ type CreateBookingParams = {
   routingFormResponseId: number | undefined;
   reroutingFormResponses: z.infer<typeof routingFormResponseInDbSchema> | null;
   rescheduledBy: string | undefined;
+  reservedSlotUid?: string; // Optional reserved slot UID to consume
   reqBody: {
     user: ReqBodyWithEnd["user"];
     metadata: ReqBodyWithEnd["metadata"];
@@ -85,6 +86,7 @@ const _createBooking = async ({
   rescheduledBy,
   creationSource,
   tracking,
+  reservedSlotUid,
 }: CreateBookingParams & { rescheduledBy: string | undefined }) => {
   updateEventDetails(evt, originalRescheduledBooking);
   const associatedBookingForFormResponse = routingFormResponseId
@@ -109,7 +111,8 @@ const _createBooking = async ({
     bookingAndAssociatedData,
     originalRescheduledBooking,
     eventType.paymentAppData,
-    eventType.organizerUser
+    eventType.organizerUser,
+    reservedSlotUid
   );
 
   function shouldConnectBookingToFormResponse() {
@@ -136,7 +139,8 @@ async function saveBooking(
   bookingAndAssociatedData: ReturnType<typeof buildNewBookingData>,
   originalRescheduledBooking: OriginalRescheduledBooking,
   paymentAppData: PaymentAppData,
-  organizerUser: CreateBookingParams["eventType"]["organizerUser"]
+  organizerUser: CreateBookingParams["eventType"]["organizerUser"],
+  reservedSlotUid?: string
 ) {
   const { newBookingData, reroutingFormResponseUpdateData, originalBookingUpdateDataForCancellation } =
     bookingAndAssociatedData;
@@ -171,8 +175,44 @@ async function saveBooking(
 
   /**
    * Reschedule(Cancellation + Creation) with an update of reroutingFormResponse should be atomic
+   * Additionally, if a reservedSlotUid is provided, delete the reservation to prevent double-booking
    */
   return prisma.$transaction(async (tx) => {
+    // If we have a reservedSlotUid, validate that the reservation exists and delete it
+    if (reservedSlotUid) {
+      const reservation = await tx.selectedSlots.findUnique({
+        where: { uid: reservedSlotUid },
+      });
+      
+      if (!reservation) {
+        throw new Error("Reserved slot not found or already consumed");
+      }
+      
+      // Check if reservation is still valid (not expired)
+      if (reservation.releaseAt && dayjs().isAfter(reservation.releaseAt)) {
+        // Clean up expired reservation and throw error
+        await tx.selectedSlots.delete({
+          where: { uid: reservedSlotUid },
+        });
+        throw new Error("Reserved slot has expired");
+      }
+      
+      // Validate that the reservation matches the booking time slot
+      const bookingStart = dayjs(newBookingData.startTime);
+      const bookingEnd = dayjs(newBookingData.endTime);
+      const reservationStart = dayjs(reservation.slotUtcStartDate);
+      const reservationEnd = dayjs(reservation.slotUtcEndDate);
+      
+      if (!bookingStart.isSame(reservationStart) || !bookingEnd.isSame(reservationEnd)) {
+        throw new Error("Reserved slot time does not match booking time");
+      }
+      
+      // Delete the reservation to consume it
+      await tx.selectedSlots.delete({
+        where: { uid: reservedSlotUid },
+      });
+    }
+
     if (originalBookingUpdateDataForCancellation) {
       await tx.booking.update(originalBookingUpdateDataForCancellation);
     }

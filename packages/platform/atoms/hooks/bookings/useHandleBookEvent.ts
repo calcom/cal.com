@@ -4,6 +4,7 @@ import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
+import { useSlotReservationId } from "@calcom/features/bookings/Booker/useSlotReservationId";
 import { mapBookingToMutationInput, mapRecurringBookingToMutationInput } from "@calcom/features/bookings/lib";
 import type { BookingCreateBody } from "@calcom/features/bookings/lib/bookingCreateBodySchema";
 import type { BookerEvent } from "@calcom/features/bookings/types";
@@ -57,6 +58,7 @@ export const useHandleBookEvent = ({
   const recurringEventCount = useBookerStoreContext((state) => state.recurringEventCount);
   const bookingData = useBookerStoreContext((state) => state.bookingData);
   const seatedEventData = useBookerStoreContext((state) => state.seatedEventData);
+  const [reservedSlotUid] = useSlotReservationId();
   const isInstantMeeting = useBookerStoreContext((state) => state.isInstantMeeting);
   const orgSlug = useBookerStoreContext((state) => state.org);
   const teamMemberEmail = useBookerStoreContext((state) => state.teamMemberEmail);
@@ -115,6 +117,7 @@ export const useHandleBookEvent = ({
         routingFormSearchParams,
         isDryRunProp: isBookingDryRun,
         verificationCode: verificationCode || undefined,
+        reservedSlotUid: reservedSlotUid || undefined,
       };
 
       const tracking = getUtmTrackingParameters(searchParams);

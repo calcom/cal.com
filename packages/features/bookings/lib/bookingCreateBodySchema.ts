@@ -30,6 +30,10 @@ export const bookingCreateBodySchema = z.object({
   skipContactOwner: z.boolean().optional(),
   crmAppSlug: z.string().nullish().optional(),
   cfToken: z.string().nullish().optional(),
+  /**
+   * Reserved slot UID that should be consumed when creating this booking
+   */
+  reservedSlotUid: z.string().optional(),
 
   /**
    * Holds the corrected responses of the Form for a booking, provided during rerouting
