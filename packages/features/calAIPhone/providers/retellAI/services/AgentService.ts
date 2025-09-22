@@ -27,7 +27,8 @@ export class AgentService {
   ) {}
 
   private async createApiKey({ userId, teamId }: { userId: number; teamId?: number }) {
-    return await PrismaApiKeyRepository.createApiKey({
+    const apiKeyRepository = await PrismaApiKeyRepository.withGlobalPrisma();
+    return await apiKeyRepository.createApiKey({
       userId,
       teamId,
       expiresAt: null,
@@ -501,11 +502,12 @@ export class AgentService {
     id,
     userId,
     teamId,
-    name,
+    name: _name,
     generalPrompt,
     beginMessage,
     generalTools,
     voiceId,
+    language,
     updateLLMConfiguration,
   }: {
     id: string;
@@ -516,6 +518,7 @@ export class AgentService {
     beginMessage?: string | null;
     generalTools?: AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>;
     voiceId?: string;
+    language?: Language;
     updateLLMConfiguration: (
       llmId: string,
       data: AIPhoneServiceUpdateModelParams<AIPhoneServiceProviderType.RETELL_AI>
@@ -538,7 +541,8 @@ export class AgentService {
       generalPrompt !== undefined ||
       beginMessage !== undefined ||
       generalTools !== undefined ||
-      voiceId !== undefined;
+      voiceId !== undefined ||
+      language !== undefined;
 
     if (hasRetellUpdates) {
       try {
@@ -557,10 +561,11 @@ export class AgentService {
           await updateLLMConfiguration(llmId, llmUpdateData);
         }
 
-        if (voiceId) {
-          await this.updateAgent(agent.providerAgentId, {
-            voice_id: voiceId,
-          });
+        if (voiceId || language) {
+          const agentUpdateData: Parameters<typeof this.updateAgent>[1] = {};
+          if (voiceId) agentUpdateData.voice_id = voiceId;
+          if (language) agentUpdateData.language = language;
+          await this.updateAgent(agent.providerAgentId, agentUpdateData);
         }
       } catch (error) {
         this.logger.error("Failed to update agent configuration in external AI service", {

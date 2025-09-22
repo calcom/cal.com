@@ -5,7 +5,7 @@ import dayjs from "@calcom/dayjs";
 import generateIcsString from "@calcom/emails/lib/generateIcsString";
 import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
 import tasker from "@calcom/features/tasker";
-import { SENDER_NAME, WEBSITE_URL } from "@calcom/lib/constants";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
@@ -251,12 +251,11 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
     const attachments = includeCalendarEvent
       ? [
           {
-            content: Buffer.from(
+            content:
               generateIcsString({
                 event: emailEvent,
                 status,
-              }) || ""
-            ).toString("base64"),
+              }) || "",
             filename: "event.ics",
             type: "text/calendar; method=REQUEST",
             disposition: "attachment",
@@ -270,7 +269,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       html: emailContent.emailBody,
       ...(!evt.hideOrganizerEmail && { replyTo: evt?.eventType?.customReplyToEmail || evt.organizer.email }),
       attachments,
-      sender: evt.hideOrganizerEmail ? SENDER_NAME : sender,
+      sender,
     };
   }
 

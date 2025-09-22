@@ -12,5 +12,6 @@ import { Module } from "@nestjs/common";
   imports: [PrismaModule, RedisModule, OrganizationsModule, MembershipsModule, TeamsEventTypesModule],
   providers: [TeamsMembershipsRepository, TeamsMembershipsService],
   controllers: [TeamsMembershipsController],
+  exports: [TeamsMembershipsService],
 })
 export class TeamsMembershipsModule {}
