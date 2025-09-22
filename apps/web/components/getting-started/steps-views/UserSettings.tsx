@@ -3,10 +3,12 @@
 import { Button } from "@calid/features/ui/components/button";
 import { Input } from "@calid/features/ui/components/input/input";
 import {
-  // PhoneNumberField,
-  usePhoneNumberField, // isPhoneNumberComplete,
-} from "@calid/features/ui/components/input/phone-number-field";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@calid/features/ui/components/select";
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@calid/features/ui/components/select";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useEffect, useState } from "react";
@@ -169,12 +171,12 @@ const UserSettings = (props: IUserSettingsProps) => {
   };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-6">
+    <form onSubmit={onSubmit} className=" space-y-6">
       {/* Username textfield: when not coming from signup */}
       {!props.hideUsername && <UsernameAvailabilityField />}
 
       {/* Full name textfield */}
-      <div className="w-full">
+      <div className="w-full ">
         <label htmlFor="name" className="text-emphasis block text-sm font-medium">
           {t("full_name")}
         </label>

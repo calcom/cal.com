@@ -1,7 +1,4 @@
 import { Icon } from "@calid/features/ui/components/icon";
-
-
-
 import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { useSession } from "next-auth/react";
@@ -217,7 +214,7 @@ const ChooseEmbedTypesDialogContent = ({
             {/* <div className="bg-default order-none box-border flex-none rounded-md border border-solid transition dark:bg-transparent dark:invert">
               {embed.illustration}
             </div> */}
-            <div className="text-center text-emphasis font-semibold">{embed.title}</div>
+            <div className="text-emphasis text-center font-semibold">{embed.title}</div>
             {/* <p className="text-subtle mt-2 text-sm">{embed.subtitle}</p>  */}
           </button>
         ))}
@@ -471,7 +468,7 @@ const EmailEmbedPreview = ({
   }
   return (
     <div className="flex h-full items-center justify-center border p-5 last:font-medium">
-      <div className="border bg-white p-4">
+      <div className="bg-primary border p-4">
         <div
           style={{
             paddingBottom: "3px",
@@ -1382,18 +1379,18 @@ export const EmbedDialog = ({
             clearQueryParamsOnClose: queryParamsForDialog,
           })}>
       {!embedParams.embedType ? (
-      <ChooseEmbedTypesDialogContent types={types} noQueryParamMode={noQueryParamMode} />
+        <ChooseEmbedTypesDialogContent types={types} noQueryParamMode={noQueryParamMode} />
       ) : (
-      <EmbedTypeCodeAndPreviewDialogContent
-        embedType={embedParams.embedType as EmbedType}
-        embedUrl={embedParams.embedUrl}
-        namespace={embedParams.namespace}
-        tabs={tabs}
-        types={types}
-        eventTypeHideOptionDisabled={eventTypeHideOptionDisabled}
-        defaultBrandColor={defaultBrandColor}
-        noQueryParamMode={noQueryParamMode}
-      />
+        <EmbedTypeCodeAndPreviewDialogContent
+          embedType={embedParams.embedType as EmbedType}
+          embedUrl={embedParams.embedUrl}
+          namespace={embedParams.namespace}
+          tabs={tabs}
+          types={types}
+          eventTypeHideOptionDisabled={eventTypeHideOptionDisabled}
+          defaultBrandColor={defaultBrandColor}
+          noQueryParamMode={noQueryParamMode}
+        />
       )}
     </Dialog>
   );

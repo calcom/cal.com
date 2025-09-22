@@ -95,7 +95,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     <div>
                       <h4>
                         {booking.hosts[0]?.name}{" "}
-                        <span className="rounded-md bg-blue-800 px-2 text-sm text-white">Host</span>
+                        <span className="rounded-md bg-blue-800 px-2 text-sm text-default">Host</span>
                       </h4>
                     </div>
                   </div>

@@ -445,7 +445,7 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
                             <div
                               key={webhook.id}
                               className={`rounded-lg border p-4 transition-colors ${
-                                webhook.active ? "border-green-200 bg-green-50" : "border-gray-200 bg-white"
+                                webhook.active ? "border-green-200 bg-green-50" : "bg-primary border-gray-200"
                               }`}
                               style={
                                 webhook.active

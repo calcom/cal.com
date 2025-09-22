@@ -70,7 +70,7 @@ export function EmptyScreen({
           buttonText && (
             <button
               onClick={buttonOnClick}
-              className="bg-primary hover:bg-primary/90 rounded-lg px-4 py-2 font-medium text-white"
+              className="bg-primary hover:bg-primary/90 rounded-lg px-4 py-2 font-medium text-default"
               style={{ fontSize: "14px" }}>
               {buttonText}
             </button>

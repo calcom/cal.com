@@ -506,7 +506,7 @@ const EmbedPreview = ({
 
   if (embedType === "email") {
     return (
-      <div className="w-full rounded-lg border bg-white p-6">
+      <div className="bg-primary w-full rounded-lg border p-6">
         <div className="space-y-4">
           <h5 className="font-semibold">Meeting: 30min call</h5>
           <p className="text-sm text-gray-600">Duration: 30 mins</p>
@@ -649,7 +649,7 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
               key={type.key}
               color={selectedEmbedType === type.key ? "primary_dim" : "secondary"}
               onClick={() => setSelectedEmbedType(type.key as EmbedType)}
-              className={`flex-1 rounded-lg border-2 px-6 py-3 text-center transition-all`}>
+              className="flex-1 rounded-lg border-2 px-6 py-3 text-center transition-all">
               <span className="text-sm font-medium">{type.label}</span>
             </Button>
           ))}
@@ -916,7 +916,7 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
           <div className="w-1/2">
             <div className="space-y-4">
               {/* Preview */}
-              <div className="rounded-lg border bg-white p-4">
+              <div className="bg-primary rounded-lg border p-4">
                 <EmbedPreview
                   embedType={selectedEmbedType}
                   previewState={previewState}

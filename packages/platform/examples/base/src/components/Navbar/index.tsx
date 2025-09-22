@@ -5,7 +5,7 @@ const poppins = Poppins({ subsets: ["latin"], weight: ["400", "800"] });
 
 export function Navbar({ username }: { username?: string }) {
   return (
-    <nav className="flex h-[75px] w-[100%] items-center justify-between bg-black px-14 py-3 text-white">
+    <nav className="flex h-[75px] w-[100%] items-center justify-between bg-black px-14 py-3 text-default">
       <div className={`flex h-[100%] items-center text-lg ${poppins.className}`}>
         <Link href="/">
           <h1 className="bg-gradient-to-r from-[#8A2387] via-[#E94057] to-[#F27121] bg-clip-text text-2xl font-bold text-transparent">

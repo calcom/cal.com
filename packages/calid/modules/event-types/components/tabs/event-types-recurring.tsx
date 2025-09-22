@@ -1,7 +1,4 @@
 import { Icon } from "@calid/features/ui/components/icon";
-
-
-
 import React, { useState, useCallback, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 
@@ -74,7 +71,7 @@ const Switch: React.FC<SwitchProps> = ({ id, checked, onCheckedChange, disabled,
         )}>
         <span
           className={classNames(
-            "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+            "bg-primary inline-block h-4 w-4 transform rounded-full transition-transform",
             checked ? "translate-x-6" : "translate-x-1"
           )}
         />

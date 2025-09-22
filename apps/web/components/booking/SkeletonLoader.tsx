@@ -15,7 +15,7 @@ export default SkeletonLoader;
 
 function SkeletonCard() {
   return (
-    <div className="border-muted my-1.5 flex w-full animate-pulse flex-col items-start justify-between rounded-lg border bg-white shadow-sm dark:bg-slate-800">
+    <div className="border-muted bg-primary my-1.5 flex w-full animate-pulse flex-col items-start justify-between rounded-lg border shadow-sm dark:bg-slate-800">
       <div className="group w-full">
         <div className="cursor-pointer">
           <div className="flex flex-col pb-4">

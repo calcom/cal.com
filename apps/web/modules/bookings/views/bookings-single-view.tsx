@@ -496,7 +496,7 @@ export default function Success(props: PageProps) {
                           isCancelled ? "bg-error" : ""
                         )}>
                         {!giphyImage && !needsConfirmation && isReschedulable && (
-                          <Icon name="check" className="h-6 w-6 text-white dark:text-green-400" />
+                          <Icon name="check" className="h-6 w-6 text-default dark:text-green-400" />
                         )}
                         {needsConfirmation && isReschedulable && (
                           <Icon name="calendar" className="text-emphasis h-5 w-5" />

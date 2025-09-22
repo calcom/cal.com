@@ -93,7 +93,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
         return (
           <div
             key={index}
-            className="dark:bg-muted dark:hover:bg-emphasis hover:bg-muted border-subtle group relative rounded-md border bg-white shadow-md transition hover:scale-[1.02]"
+            className="dark:bg-muted dark:hover:bg-emphasis hover:bg-muted border-subtle bg-primary group relative rounded-md border shadow-md transition hover:scale-[1.02]"
             data-testid="event-type-link">
             <div className="block w-full px-2 py-4">
               <div className="mb-2 flex flex-row items-center gap-2">
@@ -236,7 +236,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
               ))}
             {!showMembers.isOn && team.eventTypes && team.eventTypes.length > 0 && (
               <div
-                className="flex flex-col gap-4 rounded-md bg-white pb-8 pt-2 lg:max-w-4xl mx-auto"
+                className="bg-primary mx-auto flex flex-col gap-4 rounded-md pb-8 pt-2 lg:max-w-4xl"
                 data-testid="event-types">
                 <EventTypes eventTypes={team.eventTypes} />
 

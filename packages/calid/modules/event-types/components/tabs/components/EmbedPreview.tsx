@@ -99,5 +99,5 @@ export const EmbedPreview: React.FC<EmbedPreviewProps> = ({
     }
   };
 
-  return <div className="rounded-lg border bg-white p-4">{renderPreview()}</div>;
+  return <div className="bg-primary rounded-lg border p-4">{renderPreview()}</div>;
 };

@@ -327,7 +327,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                   name="reasonId"
                   render={({ field: { onChange, value } }) => (
                     <Select<Option>
-                      className="mb-0 mt-1 text-white"
+                      className="mb-0 mt-1 text-default"
                       name="reason"
                       data-testid="reason_select"
                       value={reasonList.find((reason) => reason.value === value)}

@@ -72,7 +72,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     key={event.id}>
                     <h1 className="text-lg font-semibold">{formatEventSlug}</h1>
                     <p>{`/${event.slug}`}</p>
-                    <span className="border-none bg-gray-800 px-2 text-white">{event?.lengthInMinutes}</span>
+                    <span className="border-none bg-gray-800 px-2 text-default">{event?.lengthInMinutes}</span>
                   </div>
                 );
               }
@@ -100,7 +100,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     key={event.id}>
                     <h1 className="text-lg font-semibold">{formatEventSlug}</h1>
                     <p>{`/${event.slug}`}</p>
-                    <span className="border-none bg-gray-800 px-2 text-white">{event?.lengthInMinutes}</span>
+                    <span className="border-none bg-gray-800 px-2 text-default">{event?.lengthInMinutes}</span>
                   </div>
                 );
               }
@@ -263,13 +263,13 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                 },
                 eventAssignmentTab: {
                   assignmentType: {
-                    container: "border border-purple-200 bg-white rounded-lg p-6",
+                    container: "border border-purple-200 bg-primary rounded-lg p-6",
                     label: "text-purple-700 font-semibold",
                     description: "text-gray-600 text-sm",
                     schedulingTypeSelect: {
                       container: "mt-2",
                       label: "text-purple-700",
-                      select: "border border-purple-300 rounded-md bg-white",
+                      select: "border border-purple-300 rounded-md bg-primary",
                       innerClassNames: {
                         control: "border-purple-300",
                         input: "text-purple-900",
@@ -286,14 +286,14 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                       description: "text-purple-600 text-sm",
                       addMembers: {
                         assingAllTeamMembers: {
-                          container: "border border-purple-200 bg-white rounded-md",
+                          container: "border border-purple-200 bg-primary rounded-md",
                           label: "text-purple-700",
                           description: "text-gray-600",
                         },
                         teamMemberSelect: {
                           hostsSelect: {
                             container: "mt-2",
-                            select: "border border-purple-300 rounded-md bg-white",
+                            select: "border border-purple-300 rounded-md bg-primary",
                             label: "text-purple-700",
                             innerClassNames: {
                               input: "text-purple-900",
@@ -303,9 +303,9 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                             },
                           },
                           selectedHostList: {
-                            container: "mt-4 border border-purple-200 rounded-md bg-white",
+                            container: "mt-4 border border-purple-200 rounded-md bg-primary",
                             listItem: {
-                              container: "flex items-center gap-2 p-3 bg-white hover:bg-purple-50",
+                              container: "flex items-center gap-2 p-3 bg-primary hover:bg-purple-50",
                               avatar: "rounded-full border border-purple-300",
                               name: "text-purple-800 font-semibold",
                               changePriorityButton: "text-purple-700 hover:bg-purple-100",
@@ -314,18 +314,18 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                             },
                           },
                           priorityDialog: {
-                            confirmButton: "bg-purple-700 text-white rounded-md px-4 py-2",
+                            confirmButton: "bg-purple-700 text-default rounded-md px-4 py-2",
                             label: "text-purple-700",
-                            select: "border border-purple-300 rounded-md bg-white",
+                            select: "border border-purple-300 rounded-md bg-primary",
                           },
                           weightDialog: {
-                            container: "w-full bg-white p-4 rounded-md border border-purple-300",
+                            container: "w-full bg-primary p-4 rounded-md border border-purple-300",
                             label: "text-purple-700 font-semibold",
-                            confirmButton: "bg-purple-700 text-white rounded-md px-4 py-2",
+                            confirmButton: "bg-purple-700 text-default rounded-md px-4 py-2",
                             weightInput: {
                               container: "w-24",
                               label: "text-purple-700",
-                              input: "border border-purple-300 rounded-md bg-white text-purple-900",
+                              input: "border border-purple-300 rounded-md bg-primary text-purple-900",
                               addOn: "text-purple-500",
                             },
                           },
@@ -337,20 +337,20 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                       label: "text-purple-700 font-semibold",
                       description: "text-purple-600 text-sm",
                       enableWeights: {
-                        container: "border border-purple-200 bg-white rounded-md",
+                        container: "border border-purple-200 bg-primary rounded-md",
                         label: "text-purple-700",
                         description: "text-gray-600",
                       },
                       addMembers: {
                         assingAllTeamMembers: {
-                          container: "border border-purple-200 bg-white rounded-md",
+                          container: "border border-purple-200 bg-primary rounded-md",
                           label: "text-purple-700",
                           description: "text-gray-600",
                         },
                         teamMemberSelect: {
                           hostsSelect: {
                             container: "mt-2",
-                            select: "border border-purple-300 rounded-md bg-white",
+                            select: "border border-purple-300 rounded-md bg-primary",
                             label: "text-purple-700",
                             innerClassNames: {
                               input: "text-purple-900",
@@ -360,9 +360,9 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                             },
                           },
                           selectedHostList: {
-                            container: "mt-4 border border-purple-200 rounded-md bg-white",
+                            container: "mt-4 border border-purple-200 rounded-md bg-primary",
                             listItem: {
-                              container: "flex items-center gap-2 p-3 bg-white hover:bg-purple-50",
+                              container: "flex items-center gap-2 p-3 bg-primary hover:bg-purple-50",
                               avatar: "rounded-full border border-purple-300",
                               name: "text-purple-800 font-semibold",
                               changePriorityButton: "text-purple-700 hover:bg-purple-100",
@@ -377,14 +377,14 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                   childrenEventTypes: {
                     container: "mt-4 border border-purple-200 bg-purple-50 rounded-lg p-6",
                     assignAllTeamMembers: {
-                      container: "border border-purple-200 bg-white rounded-md",
+                      container: "border border-purple-200 bg-primary rounded-md",
                       label: "text-purple-700",
                       description: "text-gray-600",
                     },
                     childrenEventTypesList: {
                       assignToSelect: {
                         container: "mt-2",
-                        select: "border border-purple-300 rounded-md bg-white",
+                        select: "border border-purple-300 rounded-md bg-primary",
                         label: "text-purple-700",
                         innerClassNames: {
                           input: "text-purple-900",
@@ -394,9 +394,9 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                         },
                       },
                       selectedChildrenList: {
-                        container: "mt-4 border border-purple-200 rounded-md bg-white",
+                        container: "mt-4 border border-purple-200 rounded-md bg-primary",
                         listItem: {
-                          container: "flex items-center gap-2 p-3 bg-white hover:bg-purple-50",
+                          container: "flex items-center gap-2 p-3 bg-primary hover:bg-purple-50",
                           avatar: "rounded-full border border-purple-300",
                           name: "text-purple-800 font-semibold",
                           ownerBadge: "text-purple-600 bg-purple-100 rounded-md px-2",
@@ -419,7 +419,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     chooseHostSchedulesLabelContainer: "border border-purple-200 bg-purple-50 rounded-md p-4",
                     chooseHostSchedulesLabel: "text-purple-700 font-semibold",
                     chooseHostSchedulesLabelDescription: "text-gray-600",
-                    teamAvailibilityContainer: "mt-4 border border-purple-200 bg-white rounded-lg p-6",
+                    teamAvailibilityContainer: "mt-4 border border-purple-200 bg-primary rounded-lg p-6",
                     teamMemberSchedule: {
                       labelAvatar: "rounded-full border border-purple-300",
                       labelContainer: "flex items-center gap-2",
@@ -433,13 +433,13 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                         menu: "border border-purple-200 rounded-md",
                         menuList: "",
                       },
-                      select: "border border-purple-300 rounded-md bg-white",
+                      select: "border border-purple-300 rounded-md bg-primary",
                       label: "text-purple-700",
                       container: "",
                     },
                   },
                   userAvailability: {
-                    availabilitySectionContainer: "border border-purple-200 bg-white rounded-lg p-6",
+                    availabilitySectionContainer: "border border-purple-200 bg-primary rounded-lg p-6",
                     availabilitySelect: {
                       innerClassNames: {
                         input: "text-purple-900",
@@ -451,12 +451,12 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                         menu: "border border-purple-200 rounded-md",
                         menuList: "",
                       },
-                      select: "border border-purple-300 rounded-md bg-white",
+                      select: "border border-purple-300 rounded-md bg-primary",
                       label: "text-purple-700",
                       container: "",
                     },
                     availabilityTable: {
-                      tableContainer: "border border-purple-200 rounded-md bg-white mt-4",
+                      tableContainer: "border border-purple-200 rounded-md bg-primary mt-4",
                       table: "w-full table-auto",
                       tableRow: "hover:bg-purple-50",
                       day: "text-purple-800 font-semibold",
@@ -479,7 +479,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                   frequencyInput: {
                     container: "border border-purple-200 bg-purple-100 rounded-lg",
                     label: "text-purple-700",
-                    input: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                    input: "border border-purple-300 rounded-md text-purple-900 bg-primary",
                     addOn: "text-purple-500",
                   },
                   frequencyUnitSelect: {
@@ -498,7 +498,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     },
                   },
                   maxEventsInput: {
-                    countInput: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                    countInput: "border border-purple-300 rounded-md text-purple-900 bg-primary",
                     labelText: "text-purple-700",
                     suffixText: "text-purple-500",
                     container: "border border-purple-200 bg-purple-100 rounded-lg",
@@ -512,7 +512,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     beforeBufferSelect: {
                       container: "mb-4",
                       label: "text-purple-700",
-                      select: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                      select: "border border-purple-300 rounded-md text-purple-900 bg-primary",
                       innerClassNames: {
                         input: "text-purple-900",
                         option: "text-purple-700 hover:bg-purple-200",
@@ -520,13 +520,13 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                         singleValue: "text-purple-900",
                         valueContainer: "bg-purple-100",
                         menu: "border border-purple-200 rounded-md",
-                        menuList: "bg-white",
+                        menuList: "bg-primary",
                       },
                     },
                     afterBufferSelect: {
                       container: "mb-4",
                       label: "text-purple-700",
-                      select: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                      select: "border border-purple-300 rounded-md text-purple-900 bg-primary",
                       innerClassNames: {
                         input: "text-purple-900",
                         option: "text-purple-700 hover:bg-purple-200",
@@ -534,13 +534,13 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                         singleValue: "text-purple-900",
                         valueContainer: "bg-purple-100",
                         menu: "border border-purple-200 rounded-md",
-                        menuList: "bg-white",
+                        menuList: "bg-primary",
                       },
                     },
                     minimumNoticeInput: {
                       container: "mb-4",
                       label: "text-purple-700",
-                      input: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                      input: "border border-purple-300 rounded-md text-purple-900 bg-primary",
                       select: "border border-purple-300 rounded-md text-purple-900 bg-purple-50",
                       innerClassNames: {
                         input: "text-purple-900",
@@ -553,7 +553,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     timeSlotIntervalSelect: {
                       container: "mb-4",
                       label: "text-purple-700",
-                      select: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                      select: "border border-purple-300 rounded-md text-purple-900 bg-primary",
                       innerClassNames: {
                         input: "text-purple-900",
                         option: "text-purple-700 hover:bg-purple-200",
@@ -571,7 +571,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     intervalLimitContainer: "space-y-2",
                     intervalLimitItem: {
                       addLimitButton: "text-purple-500 hover:bg-purple-200 rounded-md",
-                      limitText: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                      limitText: "border border-purple-300 rounded-md text-purple-900 bg-primary",
                       limitSelect: {
                         select: "border border-purple-300 rounded-md text-purple-900 bg-purple-50",
                         innerClassNames: {
@@ -598,7 +598,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     children: "space-y-4",
                     intervalLimitItem: {
                       addLimitButton: "text-purple-500 hover:bg-purple-200 rounded-md",
-                      limitText: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                      limitText: "border border-purple-300 rounded-md text-purple-900 bg-primary",
                       limitSelect: {
                         select: "border border-purple-300 rounded-md text-purple-900 bg-purple-50",
                         innerClassNames: {
@@ -619,7 +619,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     children: "space-y-4",
                     rollingLimit: {
                       container: "flex items-center space-x-2",
-                      textField: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                      textField: "border border-purple-300 rounded-md text-purple-900 bg-primary",
                       periodTypeSelect: {
                         select: "border border-purple-300 rounded-md text-purple-900 bg-purple-50",
                         innerClassNames: {
@@ -633,8 +633,8 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     },
                     rangeLimit: {
                       wrapper: "flex items-center space-x-2",
-                      datePickerWraper: "border border-purple-300 rounded-md bg-white",
-                      datePicker: "text-purple-900 bg-white",
+                      datePickerWraper: "border border-purple-300 rounded-md bg-primary",
+                      datePicker: "text-purple-900 bg-primary",
                     },
                   },
                   offsetStartTimes: {
@@ -645,7 +645,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     offsetInput: {
                       container: "flex items-center space-x-2",
                       label: "text-purple-700",
-                      input: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                      input: "border border-purple-300 rounded-md text-purple-900 bg-primary",
                       addOn: "text-purple-500",
                     },
                   },
@@ -657,18 +657,18 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     titleInput: {
                       container: "mb-4",
                       label: "text-purple-700",
-                      input: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                      input: "border border-purple-300 rounded-md text-purple-900 bg-primary",
                       addOn: "text-purple-500",
                     },
                     urlInput: {
                       container: "mb-4",
                       label: "text-purple-700",
-                      input: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                      input: "border border-purple-300 rounded-md text-purple-900 bg-primary",
                       addOn: "text-purple-500",
                     },
                     descriptionInput: {
                       label: "text-purple-700",
-                      input: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                      input: "border border-purple-300 rounded-md text-purple-900 bg-primary",
                     },
                   },
                   durationSection: {
@@ -676,7 +676,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     singleDurationInput: {
                       container: "mb-4",
                       label: "text-purple-700",
-                      input: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                      input: "border border-purple-300 rounded-md text-purple-900 bg-primary",
                       addOn: "text-purple-500",
                     },
                     multipleDuration: {
@@ -725,8 +725,8 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     organizerContactInput: {
                       errorMessage: "text-purple-500",
                       locationInput: {
-                        addressInput: "border border-purple-300 rounded-md text-purple-900 bg-white",
-                        phoneInput: "border border-purple-300 rounded-md text-purple-900 bg-white",
+                        addressInput: "border border-purple-300 rounded-md text-purple-900 bg-primary",
+                        phoneInput: "border border-purple-300 rounded-md text-purple-900 bg-primary",
                       },
                       publicDisplayCheckbox: {
                         checkbox: "border border-purple-300 text-purple-500",
@@ -762,12 +762,12 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
             <div className="mt-4 flex justify-center gap-4">
               <button
                 onClick={handleValidate}
-                className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">
+                className="rounded bg-blue-500 px-4 py-2 text-default hover:bg-blue-600">
                 Validate Form
               </button>
               <button
                 onClick={handleSubmit}
-                className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600">
+                className="rounded bg-green-500 px-4 py-2 text-default hover:bg-green-600">
                 Submit Form
               </button>
             </div>

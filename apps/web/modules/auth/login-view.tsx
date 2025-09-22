@@ -11,9 +11,8 @@ import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import { HOSTED_CAL_FEATURES, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -29,7 +28,6 @@ import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import AddToHomescreen from "@components/AddToHomescreen";
 import BackupCode from "@components/auth/BackupCode";
 import TwoFactor from "@components/auth/TwoFactor";
-import AuthContainer from "@components/ui/AuthContainer";
 
 import type { getServerSideProps } from "@server/lib/auth/login/getServerSideProps";
 
@@ -177,7 +175,7 @@ export default function Login({
   );
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-white px-4 sm:px-6 lg:px-8">
+    <div className="bg-primary flex min-h-screen items-center justify-center px-4 sm:px-6 lg:px-8">
       <div className="border-subtle w-full max-w-lg rounded-2xl border p-8 shadow-xl">
         {/* Logo */}
         <div className="mb-8 text-center">
@@ -201,7 +199,7 @@ export default function Login({
                 {isGoogleLoginEnabled && (
                   <Button
                     color="secondary"
-                    className="text-subtle w-full justify-center rounded-md bg-white"
+                    className="text-subtle bg-primary w-full justify-center rounded-md"
                     disabled={formState.isSubmitting}
                     data-testid="google"
                     CustomStartIcon={<GoogleIcon />}
@@ -225,7 +223,7 @@ export default function Login({
                     <div className="w-full border-t border-gray-300" />
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="text-subtle bg-white px-2 font-medium">
+                    <span className="text-subtle bg-primary px-2 font-medium">
                       {t("or_continue_with_email")}
                     </span>
                   </div>
@@ -278,7 +276,7 @@ export default function Login({
                 disabled={formState.isSubmitting}
                 className="w-full justify-center py-3">
                 <span>{twoFactorRequired ? t("submit") : t("sign_in")}</span>
-                {lastUsed === "credentials" && !twoFactorRequired && <LastUsed className="text-white" />}
+                {lastUsed === "credentials" && !twoFactorRequired && <LastUsed className="text-default" />}
               </Button>
             </div>
           </form>

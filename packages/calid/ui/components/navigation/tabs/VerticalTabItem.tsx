@@ -61,7 +61,7 @@ const VerticalTabItem = ({
             target={props.isExternalLink ? "_blank" : "_self"}
             className={classNames(
               props.textClassNames || "text-default text-sm font-medium leading-none",
-              "hover:bg-emphasis [&[aria-current='page']]:bg-active group-hover:text-default group flex w-full flex-row items-center rounded-md transition [&[aria-current='page']]:text-white",
+              "hover:bg-emphasis [&[aria-current='page']]:bg-active group-hover:text-default group flex w-full flex-row items-center rounded-md transition [&[aria-current='page']]:text-default",
               props.disabled && "pointer-events-none !opacity-30",
               isChild || !props.icon,
               props.className

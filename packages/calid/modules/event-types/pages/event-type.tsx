@@ -161,10 +161,10 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
 
   const { eventType, locationOptions, team, teamMembers, destinationCalendar, currentUserMembership } = rest;
 
-  // Add defensive check for eventType structure
-  if (!eventType) {
-    return <div>Loading...</div>;
-  }
+  // // Add defensive check for eventType structure
+  // if (!eventType) {
+  //   return <div>Loading...</div>;
+  // }
 
   // Ensure users array exists and has at least one user
   if (!eventType.users || eventType.users.length === 0) {

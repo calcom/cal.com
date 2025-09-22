@@ -558,9 +558,9 @@ function OutOfOfficeEntriesListContent() {
                     <div className="dark:bg-darkgray-50 absolute -top-3 left-3 -z-10 h-[70px] w-[70px] rotate-[24deg] rounded-3xl border-2 border-[#e5e7eb] p-8 opacity-60 dark:opacity-90">
                       <div className="w-12" />
                     </div>
-                    <div className="dark:bg-darkgray-50 text-inverted relative z-0 flex h-[70px] w-[70px] items-center justify-center rounded-3xl border-2 border-[#e5e7eb] bg-white">
+                    <div className="dark:bg-darkgray-50 text-inverted bg-primary relative z-0 flex h-[70px] w-[70px] items-center justify-center rounded-3xl border-2 border-[#e5e7eb]">
                       <Icon name="clock" size={28} className="text-black" />
-                      <div className="dark:bg-darkgray-50 absolute right-4 top-5 h-[12px] w-[12px] rotate-[56deg] bg-white text-lg font-bold" />
+                      <div className="dark:bg-darkgray-50 bg-primary absolute right-4 top-5 h-[12px] w-[12px] rotate-[56deg] text-lg font-bold" />
                       <span className="absolute right-4 top-3 font-sans text-sm font-extrabold text-black">
                         z
                       </span>

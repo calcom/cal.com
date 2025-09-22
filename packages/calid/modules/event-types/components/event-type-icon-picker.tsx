@@ -304,9 +304,9 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
         }
       `}</style>
       <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-        <DialogContent className="flex max-h-[80vh] max-w-4xl flex-col">
+        <DialogContent className="bg-muted flex max-h-[80vh] max-w-4xl flex-col">
           <DialogHeader>
-            <DialogTitle>{t("choose_icon")}</DialogTitle>
+            <DialogTitle className="text-default">{t("choose_icon")}</DialogTitle>
             <TextField
               addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
               addOnClassname="!border-muted"
@@ -328,7 +328,7 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
                   disabled={isTransitioning}
                   className={`relative transform rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-200 ease-in-out ${
                     selectedCategory === category
-                      ? "bg-cal-active scale-105 text-white shadow-sm"
+                      ? "bg-cal-active scale-105 text-default shadow-sm"
                       : "bg-muted text-default hover:text-emphasis hover:bg-muted/80 hover:scale-102"
                   } ${isTransitioning ? "opacity-70" : ""}`}>
                   {category}
@@ -376,7 +376,7 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
                           />
                           {isSelected && (
                             <div className="bg-cal-active absolute right-0 top-0 -translate-y-1/2 translate-x-1/2 rounded-full p-0.5">
-                              <Icon name="check" className="h-2.5 w-2.5 text-white" />
+                              <Icon name="check" className="h-2.5 w-2.5 text-default" />
                             </div>
                           )}
                         </button>

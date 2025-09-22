@@ -330,7 +330,7 @@ class MyDocument extends Document<Props> {
         </Head>
 
         <body
-          className="dark:bg-default bg-white antialiased"
+          className="dark:bg-default bg-primary antialiased"
           style={
             isEmbed
               ? {

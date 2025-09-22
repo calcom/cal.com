@@ -133,7 +133,7 @@ const Day = ({
         <div
           className={classNames(
             "absolute top-0 z-10 mx-auto w-fit rounded-full font-semibold uppercase tracking-wide",
-            active ? "text-white" : "text-default",
+            active ? "text-default" : "text-default",
             disabled && "bg-emphasis"
           )}
           style={{

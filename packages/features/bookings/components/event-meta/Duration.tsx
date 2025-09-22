@@ -121,7 +121,7 @@ export const EventDuration = ({
               onClick={() => setSelectedDuration(duration)}
               ref={(el) => (itemRefs.current[duration] = el)}
               className={classNames(
-                selectedDuration === duration ? "bg-cal-active text-white" : "text-default border border-subtle hover:text-emphasis",
+                selectedDuration === duration ? "bg-cal-active text-default" : "text-default border border-subtle hover:text-emphasis",
                 "cursor-pointer rounded-2xl px-2 mr-2 py-1 text-xs leading-tight transition"
               )}>
               <div className="w-max">{getDurationFormatted(duration, t)}</div>

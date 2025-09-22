@@ -123,6 +123,12 @@ const OnboardingPage = (props: PageProps) => {
     }
     return INITIAL_STEP;
   };
+  const goToIndex = (index: number) => {
+    const newStep = steps[index];
+    router.push(`/getting-started/${stepTransform(newStep)}`);
+  };
+  const utils = trpc.useUtils();
+
   const currentStepIndex = steps.indexOf(currentStep);
 
   const onSuccess = async () => {
@@ -131,7 +137,7 @@ const OnboardingPage = (props: PageProps) => {
     goToIndex(currentStepIndex + 1);
   };
 
-  const userMutation = trpc.viewer.updateProfile.useMutation({
+  const userMutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: onSuccess,
   });
 
@@ -151,7 +157,7 @@ const OnboardingPage = (props: PageProps) => {
 
   return (
     <div
-      className="flex min-h-screen items-center justify-center bg-white"
+      className="bg-default flex min-h-screen items-center justify-center"
       data-testid="onboarding"
       key={pathname}>
       <div className="w-full max-w-[600px] px-4 py-8">
@@ -171,9 +177,13 @@ const OnboardingPage = (props: PageProps) => {
             <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} nextStep={goToNextStep} />
           </div>
           <StepCard>
-            <Suspense fallback={<Icon name="loader" />}>
+            <Suspense fallback={<Icon name="loader-circle" />}>
               {currentStep === "user-settings" && (
-                <UserSettings nextStep={goToNextStep} hideUsername={from === "signup"} />
+                <UserSettings
+                  nextStep={goToNextStep}
+                  hideUsername={from === "signup"}
+                  isPhoneFieldMandatory={country === "IN"}
+                />
               )}
               {currentStep === "connected-calendar" && (
                 <ConnectedCalendars nextStep={goToNextStep} isPageLoading={isNextStepLoading} />

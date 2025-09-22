@@ -209,7 +209,7 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
                       onClick={(e) => e.stopPropagation()}
                     />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-40">
+                  <DropdownMenuContent align="end" className="w-40 ">
                     {!currentTeam?.metadata?.readOnly && (
                       <DropdownMenuItem onClick={() => onEventEdit(event.id)} className="text-sm">
                         <Icon name="pencil-line" className="mr-2 h-3 w-3" />

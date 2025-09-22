@@ -3,15 +3,11 @@
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
 import { PasswordField, TextField } from "@calid/features/ui/components/input/input";
-import { Input } from "@calid/features/ui/components/input/input";
-import { triggerToast } from "@calid/features/ui/components/toast";
-import { Analytics as DubAnalytics } from "@dub/analytics/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Script from "next/script";
 import { useState, useEffect } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { useForm, useFormContext } from "react-hook-form";
@@ -20,19 +16,14 @@ import { z } from "zod";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
-import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
-import ServerTrans from "@calcom/lib/components/ServerTrans";
 import {
   APP_NAME,
   URL_PROTOCOL_REGEX,
-  IS_CALCOM,
   WEBAPP_URL,
   CLOUDFLARE_SITE_ID,
   WEBSITE_PRIVACY_POLICY_URL,
   WEBSITE_TERMS_URL,
-  WEBSITE_URL,
 } from "@calcom/lib/constants";
-import { isENVDev } from "@calcom/lib/env";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { pushGTMEvent } from "@calcom/lib/gtm";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -40,10 +31,8 @@ import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
-import { IS_EUROPE } from "@calcom/lib/timezoneConstants";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Form } from "@calcom/ui/components/form";
 
@@ -286,7 +275,7 @@ export default function Signup({
 
   return (
     <>
-      <div className="flex min-h-screen items-center justify-center bg-white p-4">
+      <div className="bg-primary flex min-h-screen items-center justify-center p-4">
         <div className="border-subtle w-full max-w-7xl overflow-hidden rounded-2xl border shadow-xl">
           <div className="grid min-h-[600px] grid-cols-1 lg:grid-cols-2">
             {/* Left Column - Signup Form */}
@@ -310,7 +299,7 @@ export default function Signup({
                     CustomStartIcon={
                       <img className="mr-3 h-5 w-5" src="/google-icon-colored.svg" alt="Google" />
                     }
-                    className="text-subtle w-full justify-center rounded-md bg-white"
+                    className="text-subtle bg-primary w-full justify-center rounded-md"
                     data-testid="continue-with-google-button"
                     onClick={async () => {
                       setIsSamlSignup(false);
@@ -341,7 +330,7 @@ export default function Signup({
                       <div className="w-full border-t border-gray-300" />
                     </div>
                     <div className="relative flex justify-center text-sm">
-                      <span className="text-subtle bg-white px-2">{t("or_continue_with_email")}</span>
+                      <span className="text-subtle bg-primary px-2">{t("or_continue_with_email")}</span>
                     </div>
                   </div>
                 )}
@@ -471,7 +460,7 @@ export default function Signup({
                 {/* Features List */}
                 <div className="space-y-2">
                   <div className="flex items-start space-x-2">
-                    <div className="bg-cal-active mt-2 h-2 w-2 flex-shrink-0 rounded-full"></div>
+                    <div className="bg-cal-active mt-2 h-2 w-2 flex-shrink-0 rounded-full" />
                     <div>
                       <h3 className="font-semibold text-gray-900">Smart scheduling algorithms</h3>
                       <span className="text-subtle text-sm">
@@ -481,7 +470,7 @@ export default function Signup({
                   </div>
 
                   <div className="flex items-start space-x-2">
-                    <div className="bg-cal-active mt-2 h-2 w-2 flex-shrink-0 rounded-full"></div>
+                    <div className="bg-cal-active mt-2 h-2 w-2 flex-shrink-0 rounded-full" />
                     <div>
                       <h3 className="font-semibold text-gray-900">Calendar integrations</h3>
                       <span className="text-subtle text-sm">
@@ -491,7 +480,7 @@ export default function Signup({
                   </div>
 
                   <div className="flex items-start space-x-2">
-                    <div className="bg-cal-active mt-2 h-2 w-2 flex-shrink-0 rounded-full"></div>
+                    <div className="bg-cal-active mt-2 h-2 w-2 flex-shrink-0 rounded-full" />
                     <div>
                       <h3 className="font-semibold text-gray-900">Team collaboration tools</h3>
                       <span className="text-subtle text-sm">

@@ -361,7 +361,7 @@ const BookerComponent = ({
                 color="secondary"
                 StartIcon="chevron-left"
                 size="lg"
-                className="dark:bg-subtle absolute -left-12 z-10 hidden h-10 w-10 rounded-full bg-white p-4 md:flex lg:flex"
+                className="dark:bg-subtle bg-primary absolute -left-12 z-10 hidden h-10 w-10 rounded-full p-4 md:flex lg:flex"
                 style={{
                   top: "calc(50% - 30px)", // Adjust for branding space at bottom
                 }}
