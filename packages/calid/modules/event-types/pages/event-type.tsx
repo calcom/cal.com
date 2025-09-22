@@ -285,20 +285,22 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
   const orgBranding = useOrgBranding();
   const bookerUrl = orgBranding ? orgBranding?.fullDomain : WEBSITE_URL;
 
-  const permalink = `${bookerUrl}/${team ? `team/${team.slug}` : getEventTypeUsername()}/${eventType.slug}`;
+  const permalink = `${bookerUrl}/${
+    effectiveTeam ? `team/${effectiveTeam.slug}` : getEventTypeUsername()
+  }/${slug}`;
 
   let embedLink;
   try {
     const formUsers = form?.getValues("users");
     const formSlug = form?.getValues("slug");
 
-    embedLink = `${team ? `team/${team.slug}` : formUsers?.[0]?.username || getEventTypeUsername()}/${
-      formSlug || eventType.slug
-    }`;
+    embedLink = `${
+      effectiveTeam ? `team/${effectiveTeam.slug}` : formUsers?.[0]?.username || getEventTypeUsername()
+    }/${formSlug || slug}`;
   } catch (error) {
-    embedLink = `${team ? `team/${team.slug}` : eventType.users?.[0]?.username || "unknown"}/${
-      eventType.slug
-    }`;
+    embedLink = `${
+      effectiveTeam ? `team/${effectiveTeam.slug}` : eventType.users?.[0]?.username || "unknown"
+    }/${slug}`;
   }
 
   // Permissions
@@ -321,8 +323,8 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
       <EventSetup
         eventType={eventType}
         locationOptions={locationOptions}
-        team={team}
-        teamMembers={teamMembers}
+        team={effectiveTeam}
+        teamMembers={effectiveTeamMembers}
         destinationCalendar={destinationCalendar}
       />
     ),

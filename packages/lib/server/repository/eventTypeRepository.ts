@@ -653,9 +653,7 @@ export class EventTypeRepository {
           members: {
             select: {
               user: {
-                select: {
-                  timeZone: true,
-                },
+                select: userSelect,
               },
             },
             take: 1,
@@ -1643,9 +1641,7 @@ export class EventTypeRepository {
           members: {
             select: {
               user: {
-                select: {
-                  timeZone: true,
-                },
+                select: userSelect,
               },
             },
             take: 1,

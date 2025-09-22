@@ -324,7 +324,6 @@ const UrlSection = ({
       id="event-slug"
       inputIsFullWidth={true}
       containerClassName="w-full"
-      defaultValue={eventType.slug}
       {...formMethods.register("slug", { setValueAs: (v) => slugify(v) })}
       disabled={isManagedEventType || isChildrenManagedEventType}
     />

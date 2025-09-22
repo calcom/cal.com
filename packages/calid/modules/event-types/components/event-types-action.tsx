@@ -8,13 +8,11 @@ import {
 } from "@calid/features/ui/components/dropdown-menu";
 import { Icon } from "@calid/features/ui/components/icon";
 import { Switch } from "@calid/features/ui/components/switch";
-import { Tooltip } from "@calid/features/ui/components/tooltip";
 import type { UseFormReturn } from "react-hook-form";
 
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-import { showToast } from "@calcom/ui/components/toast";
 
 interface EventTypeActionsProps {
   form: UseFormReturn<FormValues>;
@@ -36,7 +34,6 @@ export const EventTypeActions = ({
   onDeleteClick,
 }: EventTypeActionsProps) => {
   const { t } = useLocale();
-  console.log(form.watch("hidden"));
 
   return (
     <div className="mr-2 flex items-center justify-end space-x-4">
@@ -75,16 +72,15 @@ export const EventTypeActions = ({
 
       {/* Action buttons */}
       <ButtonGroup>
-        <Tooltip content={t("preview")} sideOffset={4}>
-          <Button
-            color="secondary"
-            variant="icon"
-            href={permalink}
-            target="_blank"
-            rel="noreferrer"
-            StartIcon="external-link"
-          />
-        </Tooltip>
+        <Button
+          color="secondary"
+          tooltip={t("preview")}
+          variant="icon"
+          href={permalink}
+          target="_blank"
+          rel="noreferrer"
+          StartIcon="external-link"
+        />
 
         <Button
           color="secondary"
@@ -93,7 +89,6 @@ export const EventTypeActions = ({
           tooltip={t("copy_link")}
           onClick={() => {
             navigator.clipboard.writeText(permalink);
-            showToast("Link copied!", "success");
           }}
         />
 
@@ -114,7 +109,12 @@ export const EventTypeActions = ({
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem>
-            <ButtonOrLink target="_blank" type="button" href={permalink} className="flex w-full items-center">
+            <ButtonOrLink
+              target="_blank"
+              rel="noreferrer"
+              type="button"
+              href={permalink}
+              className="flex w-full items-center">
               <Icon name="external-link" className="mr-2 h-4 w-4" />
               {t("preview")}
             </ButtonOrLink>
@@ -124,7 +124,6 @@ export const EventTypeActions = ({
               type="button"
               onClick={() => {
                 navigator.clipboard.writeText(permalink);
-                showToast("Link copied!", "success");
               }}
               className="flex w-full items-center">
               <Icon name="link" className="mr-2 h-4 w-4" />

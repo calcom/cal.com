@@ -346,7 +346,12 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
   );
 
   return props.href ? (
-    <Link data-testid="link-component" href={props.href} shallow={shallow && shallow}>
+    <Link
+      data-testid="link-component"
+      href={props.href}
+      shallow={shallow && shallow}
+      target={props.target}
+      rel={props.rel}>
       {element}
     </Link>
   ) : (
