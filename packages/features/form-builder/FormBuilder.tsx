@@ -382,12 +382,6 @@ export const FormBuilder = function FormBuilder({
           handleSubmit={(data: Parameters<SubmitHandler<RhfFormField>>[0]) => {
             const type = data.type || "text";
             const isNewField = !fieldDialog.data;
-
-            if (seatsEnabled && (type === "multiemail" || data.name === "guests")) {
-              showToast(t("guests_field_disabled_for_seated_events"), "error");
-              return;
-            }
-
             if (isNewField && fields.some((f) => f.name === data.name)) {
               showToast(t("form_builder_field_already_exists"), "error");
               return;
