@@ -15,6 +15,7 @@ import {
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
 import { useBookingForm } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useLocalSet } from "@calcom/features/bookings/Booker/components/hooks/useLocalSet";
+import { usePrefetch } from "@calcom/features/bookings/Booker/components/hooks/usePrefetch";
 import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
@@ -92,6 +93,7 @@ const BookerPlatformWrapperComponent = (
   );
   const prevStateRef = useRef<BookerStoreValues | null>(null);
   const bookerStoreContext = useContext(BookerStoreContext);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getStateValues = useCallback((state: any): BookerStoreValues => {
     return Object.fromEntries(
       Object.entries(state).filter(([_, value]) => typeof value !== "function")
@@ -147,10 +149,12 @@ const BookerPlatformWrapperComponent = (
 
   useEffect(() => {
     setSelectedDuration(props.duration ?? null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.duration]);
 
   useEffect(() => {
     setOrg(props.entity?.orgSlug ?? null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.entity?.orgSlug]);
 
   const isDynamic = useMemo(() => {
@@ -223,6 +227,7 @@ const BookerPlatformWrapperComponent = (
       name: prefillFormParamName,
       guests: defaultGuests ?? [],
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultName, defaultGuests]);
 
   const extraOptions = useMemo(() => {
@@ -230,23 +235,12 @@ const BookerPlatformWrapperComponent = (
   }, [restFormValues]);
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
 
-  const prefetchNextMonth =
-    (bookerLayout.layout === BookerLayouts.WEEK_VIEW &&
-      !!bookerLayout.extraDays &&
-      dayjs(date).month() !== dayjs(date).add(bookerLayout.extraDays, "day").month()) ||
-    (bookerLayout.layout === BookerLayouts.COLUMN_VIEW &&
-      dayjs(date).month() !== dayjs(date).add(bookerLayout.columnViewExtraDays.current, "day").month()) ||
-    ((bookerLayout.layout === BookerLayouts.MONTH_VIEW || bookerLayout.layout === "mobile") &&
-      (!dayjs(date).isValid() || dayjs().isSame(dayjs(month), "month")) &&
-      dayjs().isAfter(dayjs(month).startOf("month").add(2, "week")));
-
-  const monthCount =
-    ((bookerLayout.layout !== BookerLayouts.WEEK_VIEW && bookerState === "selecting_time") ||
-      bookerLayout.layout === BookerLayouts.COLUMN_VIEW) &&
-    dayjs(date).add(1, "month").month() !==
-      dayjs(date).add(bookerLayout.columnViewExtraDays.current, "day").month()
-      ? 2
-      : undefined;
+  const { prefetchNextMonth, monthCount } = usePrefetch({
+    date,
+    month,
+    bookerLayout,
+    bookerState,
+  });
   const { timezone } = useTimePreferences();
 
   const [calculatedStartTime, calculatedEndTime] = useTimesForSchedule({
@@ -470,6 +464,7 @@ const BookerPlatformWrapperComponent = (
   );
   useEffect(() => {
     setSelectedDate({ date: selectedDateProp, omitUpdatingParams: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDateProp]);
 
   useEffect(() => {
