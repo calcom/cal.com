@@ -800,7 +800,7 @@ export const excludeOrRequireEmailSchema = z.string().superRefine((val, ctx) => 
   if (invalidDomains.length > 0) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: `Invalid domain or email : ${invalidDomains}`,
+      message: `Invalid email : ${invalidDomains}`,
     });
   }
 });
