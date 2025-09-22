@@ -1,3 +1,4 @@
+import { isValidPhoneNumber } from "libphonenumber-js";
 import { v4 as uuidv4 } from "uuid";
 
 import { RETELL_AI_TEST_MODE, RETELL_AI_TEST_EVENT_TYPE_MAP } from "@calcom/lib/constants";
@@ -539,6 +540,14 @@ export class AgentService {
           message: "You don't have permission to create agents for this team.",
         });
       }
+    }
+
+    const isPhoneNumberValid = isValidPhoneNumber(phoneNumber);
+    if (!isPhoneNumberValid) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Invalid phone number",
+      });
     }
 
     let phoneNumberRecord;

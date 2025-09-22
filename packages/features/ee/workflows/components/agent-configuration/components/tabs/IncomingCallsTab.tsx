@@ -122,13 +122,20 @@ export function IncomingCallsTab({
                   !phone.subscriptionStatus
               )[0]?.phoneNumber;
 
-              if (phoneNumber && workflowStepId) {
-                setupInboundAgentMutation.mutate({
-                  phoneNumber,
-                  teamId,
-                  workflowStepId: workflowStepId,
-                });
+              if (!phoneNumber) {
+                showToast(t("no_active_phone_number_available"), "error");
+                return;
               }
+              if (!workflowStepId) {
+                showToast(t("workflow_step_not_configured"), "error");
+                return;
+              }
+
+              setupInboundAgentMutation.mutate({
+                phoneNumber,
+                teamId,
+                workflowStepId: workflowStepId,
+              });
             }}
             className="px-6"
             loading={setupInboundAgentMutation.isPending}

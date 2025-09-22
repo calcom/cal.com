@@ -309,6 +309,8 @@
   "register_now": "Register now",
   "register": "Register",
   "page_doesnt_exist": "This page does not exist.",
+  "no_active_phone_number_available": "No active phone number available",
+  "workflow_step_not_configured": "Workflow step not configured",
   "check_spelling_mistakes_or_go_back": "Check for spelling mistakes or go back to the previous page.",
   "404_page_not_found": "404: This page could not be found.",
   "booker_event_not_found": "We could not find the event you are trying to book.",

@@ -179,30 +179,33 @@ export function PhoneNumberTab({
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </Dropdown>
-                <Dropdown>
-                  <DropdownMenuTrigger asChild>
-                    <Button type="button" color="secondary" variant="icon" StartIcon="ellipsis" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem>
-                      <DropdownItem
-                        type="button"
-                        StartIcon="trash"
-                        color="destructive"
-                        onClick={() => {
-                          if (phoneNumber.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE) {
-                            phoneNumberActions.handleCancelSubscription(phoneNumber.id);
-                          } else {
-                            phoneNumberActions.handleDeletePhoneNumber(phoneNumber.phoneNumber);
-                          }
-                        }}>
-                        {phoneNumber.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE
-                          ? t("unsubscribe")
-                          : t("delete")}
-                      </DropdownItem>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </Dropdown>
+                {!readOnly && (
+                  <Dropdown>
+                    <DropdownMenuTrigger asChild>
+                      <Button type="button" color="secondary" variant="icon" StartIcon="ellipsis" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem>
+                        <DropdownItem
+                          type="button"
+                          StartIcon="trash"
+                          color="destructive"
+                          onClick={() => {
+                            if (readOnly) return;
+                            if (phoneNumber.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE) {
+                              phoneNumberActions.handleCancelSubscription(phoneNumber.id);
+                            } else {
+                              phoneNumberActions.handleDeletePhoneNumber(phoneNumber.phoneNumber);
+                            }
+                          }}>
+                          {phoneNumber.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE
+                            ? t("unsubscribe")
+                            : t("delete")}
+                        </DropdownItem>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </Dropdown>
+                )}
               </div>
             </div>
           </div>
@@ -272,17 +275,23 @@ export function PhoneNumberTab({
           </div>
           <div className="flex gap-3">
             <Button
-              onClick={() => setIsBuyDialogOpen(true)}
+              onClick={() => {
+                if (readOnly) return;
+                setIsBuyDialogOpen(true);
+              }}
               StartIcon="external-link"
               className="px-6"
-              disabled={buyNumberMutation.isPending}>
+              disabled={readOnly || buyNumberMutation.isPending}>
               {t("buy")}
             </Button>
             <Button
-              onClick={() => setIsImportDialogOpen(true)}
+              onClick={() => {
+                if (readOnly) return;
+                setIsImportDialogOpen(true);
+              }}
               color="secondary"
               className="px-6"
-              disabled={importNumberMutation.isPending}>
+              disabled={readOnly || importNumberMutation.isPending}>
               {t("import")}
             </Button>
           </div>

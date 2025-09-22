@@ -1492,8 +1492,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             inboundAgentData={inboundAgentData}
             onUpdate={(data) => {
               updateAgentMutation.mutate({
-                //eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                id: (stepAgentId || stepInboundAgentId)!,
+                id: data.id,
                 teamId: teamId,
                 generalPrompt: data.generalPrompt,
                 beginMessage: data.beginMessage,

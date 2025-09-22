@@ -440,16 +440,16 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             log.error(message);
           }
 
-          if (oldStep.inboundAgent) {
+          if (oldStep.inboundAgentId) {
             try {
               await aiPhoneService.deleteAgent({
-                id: oldStep.inboundAgent.id,
+                id: oldStep.inboundAgentId,
                 userId: user.id,
                 teamId: userWorkflow.teamId ?? undefined,
               });
             } catch (error) {
               const message = `Failed to delete inbound agent ${
-                oldStep.inboundAgent.id
+                oldStep.inboundAgentId
               } from external service: ${error instanceof Error ? error.message : "Unknown error"}`;
               externalErrors.push(message);
               log.error(message);
