@@ -15,6 +15,7 @@ import type { ServiceAccountKey } from "@calcom/lib/server/repository/delegation
 import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
 const GOOGLE_WORKSPACE_SLUG = "google";
@@ -646,4 +647,34 @@ export async function getCredentialForCalendarCache({ credentialId }: { credenti
     credentialForCalendarService = buildNonDelegationCredential(credential);
   }
   return credentialForCalendarService;
+}
+
+/**
+ * It includes in-memory DelegationCredential credentials as well.
+ */
+export async function getUsersCredentialsIncludeServiceAccountKey(user: User) {
+  const credentials = await prisma.credential.findMany({
+    where: {
+      userId: user.id,
+    },
+    select: credentialForCalendarServiceSelect,
+    orderBy: {
+      id: "asc",
+    },
+  });
+
+  const { credentials: allCredentials } = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
+    user: {
+      email: user.email,
+      id: user.id,
+      credentials,
+    },
+  });
+
+  return allCredentials;
+}
+
+export async function getUsersCredentials(user: User) {
+  const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
+  return credentials.map(({ delegatedTo: _1, ...rest }) => rest);
 }
