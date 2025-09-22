@@ -35,6 +35,9 @@ export const NO_AUTH_PROVIDED_MESSAGE =
 export const ONLY_CLIENT_ID_PROVIDED_MESSAGE =
   "Only 'x-cal-client-id' header provided. Please also provide 'x-cal-secret-key' header or Auth bearer token as 'Authentication' header";
 
+export const ONLY_CLIENT_SECRET_PROVIDED_MESSAGE =
+  "Only 'x-cal-client-secret' header provided. Please also provide 'x-cal-client-id' header or Auth bearer token as 'Authentication' header";
+
 @Injectable()
 export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") {
   private readonly logger = new Logger("ApiAuthStrategy");
@@ -121,12 +124,19 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
 
       const noAuthProvided = !oAuthClientId && !oAuthClientSecret && !bearerToken && !nextAuthToken;
       const onlyClientIdProvided = !!oAuthClientId && !oAuthClientSecret && !bearerToken && !nextAuthToken;
+      const onlyClientSecretProvided =
+        !oAuthClientId && !!oAuthClientSecret && !bearerToken && !nextAuthToken;
+
       if (noAuthProvided) {
         throw new UnauthorizedException(`ApiAuthStrategy - ${NO_AUTH_PROVIDED_MESSAGE}`);
       }
 
       if (onlyClientIdProvided) {
         throw new UnauthorizedException(`ApiAuthStrategy - ${ONLY_CLIENT_ID_PROVIDED_MESSAGE}`);
+      }
+
+      if (onlyClientSecretProvided) {
+        throw new UnauthorizedException(`ApiAuthStrategy - ${ONLY_CLIENT_SECRET_PROVIDED_MESSAGE}`);
       }
 
       throw new UnauthorizedException(
