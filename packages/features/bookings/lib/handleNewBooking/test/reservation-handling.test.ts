@@ -26,6 +26,11 @@ describe("Reservation System Fixes", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2025-01-15T12:00:00.000Z"));
     vi.clearAllMocks();
+    
+    // Set up selectedSlots mock methods as spies
+    prismaMock.selectedSlots.findFirst = vi.fn();
+    prismaMock.selectedSlots.deleteMany = vi.fn().mockResolvedValue({ count: 1 });
+    prismaMock.selectedSlots.delete = vi.fn();
   });
 
   afterAll(() => {
@@ -262,8 +267,8 @@ describe("Reservation System Fixes", () => {
       })
     );
 
-    // Verify expired reservation was cleaned up using delete (not deleteMany for cleanup)
-    expect(prismaMock.selectedSlots.delete).toHaveBeenCalledWith({
+    // Verify expired reservation was cleaned up using deleteMany
+    expect(prismaMock.selectedSlots.deleteMany).toHaveBeenCalledWith({
       where: { uid: "expired-reservation" },
     });
   });
