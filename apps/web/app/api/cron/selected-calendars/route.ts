@@ -12,7 +12,7 @@ import { findUniqueDelegationCalendarCredential } from "@calcom/features/delegat
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { CredentialRepository } from "@calcom/features/credentials/repository/CredentialRepository";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 import type { Ensure } from "@calcom/types/utils";

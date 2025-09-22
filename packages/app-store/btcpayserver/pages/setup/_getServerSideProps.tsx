@@ -2,7 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { CredentialRepository } from "@calcom/features/credentials/repository/CredentialRepository";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 
 import { btcpayCredentialKeysSchema } from "../../lib/btcpayCredentialKeysSchema";
 

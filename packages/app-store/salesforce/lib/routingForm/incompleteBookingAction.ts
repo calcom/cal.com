@@ -1,4 +1,4 @@
-import { CredentialRepository } from "@calcom/features/credentials/repository/CredentialRepository";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import logger from "@calcom/lib/logger";
 
 import { routingFormIncompleteBookingDataSchema } from "../../zod";
