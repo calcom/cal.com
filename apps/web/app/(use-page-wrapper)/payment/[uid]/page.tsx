@@ -1,4 +1,6 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
+import { redirect } from "next/navigation";
+import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
@@ -29,6 +31,14 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
   const props = await getData(
     buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
   );
+
+  // console.log("Payment app data:" , paymentAppData, await searchParams, await params);
+
+  // if(paymentAppData.appId === "razorpay") {
+  //   redirect(
+  //     `/booking/${(await params).uid}/razorpay`
+  //   );
+  // }
 
   return <PaymentPage {...props} />;
 };
