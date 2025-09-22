@@ -195,7 +195,6 @@ const createTeamAndAddUser = async (
       email: string;
       username: string | null;
       role?: MembershipRole;
-      customRoleId?: string;
     };
     isUnpublished?: boolean;
     isOrg?: boolean;
@@ -271,12 +270,12 @@ const createTeamAndAddUser = async (
     });
   }
 
-  const { role = MembershipRole.OWNER, id: userId, customRoleId } = user;
+  const { role = MembershipRole.OWNER, id: userId } = user;
 
-  let finalCustomRoleId = customRoleId;
-  if (!finalCustomRoleId && ENABLE_PBAC_GLOBALLY) {
+  let customRoleId: string | undefined;
+  if (ENABLE_PBAC_GLOBALLY) {
     const customRole = await createFullAccessCustomRole(team.id);
-    finalCustomRoleId = customRole.id;
+    customRoleId = customRole.id;
   }
 
   await prisma.membership.create({
@@ -285,20 +284,22 @@ const createTeamAndAddUser = async (
       teamId: team.id,
       userId,
       role: role,
-      customRoleId: finalCustomRoleId,
+      customRoleId: customRoleId,
       accepted: true,
     },
   });
 
-  await prisma.team.update({
-    where: { id: team.id },
-    data: {
-      metadata: {
-        ...data.metadata,
-        e2eCustomRoleId: finalCustomRoleId,
+  if (ENABLE_PBAC_GLOBALLY) {
+    await prisma.team.update({
+      where: { id: team.id },
+      data: {
+        metadata: {
+          ...data.metadata,
+          e2eCustomRoleId: customRoleId,
+        },
       },
-    },
-  });
+    });
+  }
 
   return team;
 };
@@ -421,7 +422,6 @@ export const createUsersFixture = (
                 email: user.email,
                 username: user.username,
                 role: scenario.teamRole || "OWNER",
-                customRoleId: opts?.customRoleId,
               },
               isUnpublished: scenario.isUnpublished,
               isOrg: scenario.isOrg,
@@ -449,7 +449,7 @@ export const createUsersFixture = (
                 where: { id: team.id },
                 select: { metadata: true },
               });
-              const customRoleId = (teamWithMetadata?.metadata as Record<string, unknown>)
+              const e2eCustomRoleId = (teamWithMetadata?.metadata as Record<string, unknown>)
                 ?.e2eCustomRoleId as string;
 
               // Add teammates to the team
@@ -459,7 +459,7 @@ export const createUsersFixture = (
                   teamId: team.id,
                   userId: teamUser.id,
                   role: MembershipRole.MEMBER,
-                  customRoleId: customRoleId,
+                  customRoleId: e2eCustomRoleId,
                   accepted: true,
                 },
               });
@@ -895,7 +895,6 @@ type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
   password?: string | null;
   emailDomain?: string;
   profileUsername?: string;
-  customRoleId?: string;
 };
 
 // creates the actual user in the db.
