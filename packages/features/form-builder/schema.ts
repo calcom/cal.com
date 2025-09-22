@@ -434,6 +434,33 @@ export const fieldTypesSchemaMap: Partial<
       });
     },
   },
+  date: {
+    preprocess: ({ response }) => {
+      return response.trim();
+    },
+    superRefine: ({ response, ctx, m }) => {
+      const value = response ?? "";
+      // Validate date format (YYYY-MM-DD for HTML5 date input)
+      const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+      
+      if (!dateSchema.safeParse(value).success) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: m("Invalid date format"),
+        });
+        return;
+      }
+      
+      // Validate that it's a valid date
+      const dateObj = new Date(value);
+      if (isNaN(dateObj.getTime())) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: m("Invalid date"),
+        });
+      }
+    },
+  },
 };
 
 /**
