@@ -14,7 +14,6 @@ import { useFormContext, Controller } from "react-hook-form";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
-import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { TeamMembers } from "@calcom/features/eventtypes/components/EventType";
 import type {
   EventTypeSetup,
@@ -31,6 +30,7 @@ import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 
 import { AvailabilityTabSkeleton } from "../../pages/tab-skeleton";
+import useFieldPermissions from "./hooks/useFieldPermissions";
 
 export type GetAllSchedulesByUserIdQueryType =
   | typeof trpc.viewer.availability.schedule.calid_getAllSchedulesByUserId.useQuery
@@ -260,10 +260,10 @@ const TeamMemberSchedule = memo(
     const { getValues } = useFormContext<FormValues>();
 
     const { data, isPending } = hostScheduleQuery({ userId: host.userId });
-    const member = useMemo(
-      () => teamMembers.find((mem) => mem.id === host.userId),
-      [teamMembers, host.userId]
-    );
+    const member = useMemo(() => {
+      const foundMember = teamMembers.find((mem) => mem.user?.id === host.userId);
+      return foundMember;
+    }, [teamMembers, host.userId]);
 
     // Transform schedule data to options format
     const options = useMemo(
@@ -295,12 +295,12 @@ const TeamMemberSchedule = memo(
       <div className="flex items-center justify-between space-x-4">
         {/* Member Info */}
         <div className="flex items-center space-x-3">
-          {!isPlatform && member?.avatar ? (
-            <img src={member.avatar} alt={member.name || ""} className="h-6 w-6 rounded-full" />
+          {!isPlatform && member?.user?.avatarUrl ? (
+            <img src={member.user.avatarUrl} alt={member.user.name || ""} className="h-6 w-6 rounded-full" />
           ) : (
             <Icon name="user" className="h-4 w-4" />
           )}
-          <span className="text-sm font-medium">{member?.name}</span>
+          <span className="text-sm font-medium">{member?.user?.name || `User ${host.userId}`}</span>
         </div>
 
         {/* Schedule Selector */}
@@ -476,14 +476,16 @@ const ScheduleSelector = memo(
   ({
     fieldName,
     options,
-    shouldLockDisableProps,
-    shouldLockIndicator,
-    isManagedEventType,
+    isFieldDisabled,
+    getFieldIndicator: _getFieldIndicator,
+    isManagedEventType: _isManagedEventType,
   }: {
     fieldName: string;
     options: AvailabilityOption[];
-    shouldLockDisableProps: (field: string) => { disabled: boolean };
-    shouldLockIndicator: (field: string) => React.ReactNode;
+    isFieldDisabled: (field: string) => boolean;
+    getFieldIndicator: (
+      field: string
+    ) => { text: string; className: string; tooltip: string; icon: string } | null;
     isManagedEventType: boolean;
   }) => {
     const { t } = useLocale();
@@ -521,7 +523,7 @@ const ScheduleSelector = memo(
                       : opt.label,
                   }))}
                   placeholder={t("select")}
-                  disabled={shouldLockDisableProps(fieldName).disabled}
+                  disabled={isFieldDisabled(fieldName)}
                   className="bg-default"
                 />
               </div>
@@ -540,7 +542,7 @@ ScheduleSelector.displayName = "ScheduleSelector";
  */
 const TeamEventSchedules = memo(
   ({
-    eventType,
+    eventType: _eventType,
     user,
     teamMembers,
     hosts,
@@ -550,9 +552,9 @@ const TeamEventSchedules = memo(
     scheduleId,
     useHostSchedulesForTeamEvent,
     toggleScheduleState,
-    shouldLockDisableProps,
-    shouldLockIndicator,
-    isManagedEventType,
+    isFieldDisabled,
+    getFieldIndicator: _getFieldIndicator,
+    isManagedEventType: _isManagedEventType,
     hostSchedulesQuery,
     t,
   }: {
@@ -566,8 +568,10 @@ const TeamEventSchedules = memo(
     scheduleId: number | null;
     useHostSchedulesForTeamEvent: boolean;
     toggleScheduleState: (checked: boolean) => void;
-    shouldLockDisableProps: (field: string) => { disabled: boolean };
-    shouldLockIndicator: (field: string) => React.ReactNode;
+    isFieldDisabled: (field: string) => boolean;
+    getFieldIndicator: (
+      field: string
+    ) => { text: string; className: string; tooltip: string; icon: string } | null;
     isManagedEventType: boolean;
     hostSchedulesQuery: GetAllSchedulesByUserIdQueryType;
     t: TFunction;
@@ -589,8 +593,8 @@ const TeamEventSchedules = memo(
             <ScheduleSelector
               fieldName="schedule"
               options={scheduleOptions}
-              shouldLockDisableProps={shouldLockDisableProps}
-              shouldLockIndicator={shouldLockIndicator}
+              isFieldDisabled={isFieldDisabled}
+              getFieldIndicator={getFieldIndicator}
               isManagedEventType={isManagedEventType}
             />
 
@@ -671,9 +675,9 @@ const RestrictionScheduleSection = memo(
     isRestrictionSchedulePending,
     user,
     eventType,
-    shouldLockDisableProps,
-    shouldLockIndicator,
-    isManagedEventType,
+    isFieldDisabled,
+    getFieldIndicator: _getFieldIndicator,
+    isManagedEventType: _isManagedEventType,
     t,
   }: {
     restrictScheduleForHosts: boolean;
@@ -684,8 +688,10 @@ const RestrictionScheduleSection = memo(
     isRestrictionSchedulePending: boolean;
     user?: RouterOutputs["viewer"]["me"]["calid_get"];
     eventType: EventTypeSetup;
-    shouldLockDisableProps: (field: string) => { disabled: boolean };
-    shouldLockIndicator: (field: string) => React.ReactNode;
+    isFieldDisabled: (field: string) => boolean;
+    getFieldIndicator: (
+      field: string
+    ) => { text: string; className: string; tooltip: string; icon: string } | null;
     isManagedEventType: boolean;
     t: TFunction;
   }) => (
@@ -702,8 +708,8 @@ const RestrictionScheduleSection = memo(
           <ScheduleSelector
             fieldName="restrictionScheduleId"
             options={restrictionScheduleOptions}
-            shouldLockDisableProps={shouldLockDisableProps}
-            shouldLockIndicator={shouldLockIndicator}
+            isFieldDisabled={isFieldDisabled}
+            getFieldIndicator={getFieldIndicator}
             isManagedEventType={isManagedEventType}
           />
 
@@ -748,9 +754,9 @@ export const EventAvailability = (props: EventAvailabilityProps) => {
   const scheduleId =
     typeof scheduleValue === "object" && scheduleValue !== null ? scheduleValue.id : scheduleValue;
 
-  // Get locked fields manager for form field permissions
-  const { isManagedEventType, isChildrenManagedEventType, shouldLockDisableProps, shouldLockIndicator } =
-    useLockedFieldsManager({
+  // Get field permissions manager for form field permissions
+  const { isManagedEventType, isChildrenManagedEventType, isFieldDisabled, getFieldIndicator } =
+    useFieldPermissions({
       eventType,
       translate: t,
       formMethods,
@@ -888,8 +894,8 @@ export const EventAvailability = (props: EventAvailabilityProps) => {
             scheduleId={scheduleId}
             useHostSchedulesForTeamEvent={useHostSchedulesForTeamEvent}
             toggleScheduleState={toggleScheduleState}
-            shouldLockDisableProps={shouldLockDisableProps}
-            shouldLockIndicator={shouldLockIndicator}
+            isFieldDisabled={isFieldDisabled}
+            getFieldIndicator={getFieldIndicator}
             isManagedEventType={isManagedEventType}
             hostSchedulesQuery={hostSchedulesQuery}
             t={t}
@@ -908,8 +914,8 @@ export const EventAvailability = (props: EventAvailabilityProps) => {
                 isRestrictionSchedulePending={isRestrictionSchedulePending}
                 user={user}
                 eventType={eventType}
-                shouldLockDisableProps={shouldLockDisableProps}
-                shouldLockIndicator={shouldLockIndicator}
+                isFieldDisabled={isFieldDisabled}
+                getFieldIndicator={getFieldIndicator}
                 isManagedEventType={isManagedEventType}
                 t={t}
               />
@@ -931,8 +937,8 @@ export const EventAvailability = (props: EventAvailabilityProps) => {
           <ScheduleSelector
             fieldName="schedule"
             options={scheduleOptions}
-            shouldLockDisableProps={shouldLockDisableProps}
-            shouldLockIndicator={shouldLockIndicator}
+            isFieldDisabled={isFieldDisabled}
+            getFieldIndicator={getFieldIndicator}
             isManagedEventType={isManagedEventType || isChildrenManagedEventType}
           />
 
@@ -964,8 +970,8 @@ export const EventAvailability = (props: EventAvailabilityProps) => {
               isRestrictionSchedulePending={isRestrictionSchedulePending}
               user={user}
               eventType={eventType}
-              shouldLockDisableProps={shouldLockDisableProps}
-              shouldLockIndicator={shouldLockIndicator}
+              isFieldDisabled={isFieldDisabled}
+              getFieldIndicator={getFieldIndicator}
               isManagedEventType={isManagedEventType}
               t={t}
             />

@@ -281,7 +281,10 @@ export function BookingExpandedCard(props: BookingItemProps) {
                 </Button>
               )}
               {attendeePhoneNo && (
-                <Button color="secondary" onClick={() => openWhatsAppChat(attendeePhoneNo)}>
+                <Button
+                  color="secondary"
+                  className="min-w-40 justify-center"
+                  onClick={() => openWhatsAppChat(attendeePhoneNo)}>
                   {t("whatsapp_chat")}
                 </Button>
               )}
@@ -296,7 +299,7 @@ export function BookingExpandedCard(props: BookingItemProps) {
         createPortal(
           <div
             ref={popupRef}
-            className="border-border bg-primary fixed z-[99999] min-w-48 space-y-2 rounded-md border p-2 shadow-xl"
+            className="border-border bg-default fixed z-[99999] min-w-48 space-y-2 rounded-md border p-2 shadow-xl"
             style={{
               top: `${dialogPosition.top}px`,
               left: `${dialogPosition.left}px`,
@@ -422,7 +425,7 @@ const NoShowAttendeesDialog = ({
               <div key={index} className="flex items-center justify-between rounded-lg p-2 hover:bg-gray-50">
                 <div className="flex items-center space-x-3">
                   <div className="bg-cal-active flex h-7 w-7 items-center justify-center rounded-full">
-                    <span className="text-sm font-medium text-default">
+                    <span className="text-default text-sm font-medium">
                       {(attendee.name || attendee?.email).charAt(0)}
                     </span>
                   </div>

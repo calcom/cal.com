@@ -190,7 +190,7 @@ DropdownMenuShortcut.displayName = "DropdownMenuShortcut";
 
 type ButtonOrLinkProps = ComponentProps<"button"> & ComponentProps<"a">;
 
-const ButtonOrLink = ({ href, ...props }: ButtonOrLinkProps) => {
+const ButtonOrLink = ({ href, target, rel, ...props }: ButtonOrLinkProps) => {
   const isLink = typeof href !== "undefined";
   const ButtonOrLink = isLink ? "a" : "button";
 
@@ -198,7 +198,7 @@ const ButtonOrLink = ({ href, ...props }: ButtonOrLinkProps) => {
 
   if (isLink) {
     return (
-      <Link href={href} legacyBehavior>
+      <Link href={href} target={target} rel={rel} legacyBehavior>
         {content}
       </Link>
     );

@@ -34,6 +34,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc/react";
 import { revalidateCalIdTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
+import { AddTeamMemberModal } from "../components/AddTeamMemberModal";
 import { getTeamUrl } from "../lib/getTeamUrl";
 
 type TeamsListProps = {
@@ -42,18 +43,29 @@ type TeamsListProps = {
   errorMsgFromInvitation: string | null;
 };
 
-export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInvitation }: TeamsListProps) {
+export function TeamsList({
+  teams: initialData,
+  teamNameFromInvitation,
+  errorMsgFromInvitation,
+}: TeamsListProps) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const searchParams = useSearchParams();
   const token = searchParams?.get("token");
   const router = useRouter();
-  const [openInvitationDialog, setOpenInvitationDialog] = useState(false);
+  const [isDisbandDialogOpen, setIsDisbandDialogOpen] = useState(false);
+  const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
+  const [openInviteModal, setOpenInviteModal] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
-  const [isOpen, setIsOpen] = useState(false);
+
+  const { data: teamsData, isLoading } = trpc.viewer.calidTeams.list.useQuery(undefined, {
+    initialData: initialData,
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
+  });
 
   const { teams, teamInvitation } = useMemo(() => {
-    return (Array.isArray(data) ? data : []).reduce(
+    return (Array.isArray(teamsData) ? teamsData : []).reduce(
       (acc, team) => {
         if (team.acceptedInvitation) {
           acc.teams.push(team);
@@ -62,9 +74,9 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
         }
         return acc;
       },
-      { teams: [] as typeof data, teamInvitation: [] as typeof data }
+      { teams: [] as typeof teamsData, teamInvitation: [] as typeof teamsData }
     );
-  }, [data]);
+  }, [teamsData]);
 
   const deleteTeamMutation = trpc.viewer.calidTeams.delete.useMutation({
     async onSuccess() {
@@ -98,22 +110,33 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
     }
   }, [errorMsgFromInvitation, t, teamNameFromInvitation, token]);
 
-  // const acceptOrLeaveMutation = trpc.viewer.calidTeams.acceptOrLeave.useMutation({
-  //   onSuccess: async () => {
-  //     showToast(t("success"), "success");
-  //     await utils.viewer.calidTeams.get.invalidate();
-  //     await utils.viewer.calidTeams.list.invalidate();
-  //     revalidateCalIdTeamsList();
-  //   },
-  // });
+  const acceptOrLeaveMutation = trpc.viewer.calidTeams.acceptOrLeave.useMutation({
+    onSuccess: async () => {
+      triggerToast(t("success"), "success");
+      await utils.viewer.calidTeams.get.invalidate();
+      await utils.viewer.calidTeams.list.invalidate();
+      await utils.viewer.calidTeams.listPendingInvitations.invalidate();
+      revalidateCalIdTeamsList();
+    },
+    onError: (error) => {
+      triggerToast(error.message, "error");
+    },
+  });
 
-  // function acceptOrLeave(accept: boolean, teamId: number) {
-  //   console.log("Hello world")
-  //   acceptOrLeaveMutation.mutate({
-  //     teamId: teamId,
-  //     accept,
-  //   });
-  // }
+  function acceptOrLeave(accept: boolean, teamId: number) {
+    acceptOrLeaveMutation.mutate({
+      teamId: teamId,
+      accept,
+    });
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-sm text-gray-500">{t("loading")}...</div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -156,6 +179,7 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
                     color="secondary"
                     onClick={() => acceptOrLeave(false, team.id)}
                     StartIcon="ban"
+                    disabled={acceptOrLeaveMutation.isPending}
                   />
                   <Button
                     type="button"
@@ -164,6 +188,7 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
                     color="secondary"
                     onClick={() => acceptOrLeave(true, team.id)}
                     StartIcon="check"
+                    disabled={acceptOrLeaveMutation.isPending}
                   />
                   <Tooltip content={t("view_team")}>
                     <Button
@@ -242,7 +267,7 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
                           <DropdownMenuItem
                             onClick={() => {
                               setSelectedTeamId(team.id);
-                              setOpenInvitationDialog(true);
+                              setOpenInviteModal(true);
                             }}
                             StartIcon="user-plus">
                             {t("invite_team_member")}
@@ -255,12 +280,12 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
                               StartIcon="trash-2"
                               onSelect={(e) => {
                                 e.preventDefault(); // optional — if you don't want dropdown to close
-                                setIsOpen(true);
+                                setIsDisbandDialogOpen(true);
                               }}>
                               {t("disband_team")}
                             </DropdownMenuItem>
 
-                            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                            <Dialog open={isDisbandDialogOpen} onOpenChange={setIsDisbandDialogOpen}>
                               <DialogContent>
                                 <DialogHeader>
                                   <DialogTitle>{t("disband_team")}</DialogTitle>
@@ -281,6 +306,38 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
                             </Dialog>
                           </>
                         )}
+                        {team.role !== MembershipRole.OWNER && (
+                          <>
+                            <DropdownMenuItem
+                              color="destructive"
+                              StartIcon="log-out"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setIsLeaveDialogOpen(true);
+                              }}>
+                              {t("leave_team")}
+                            </DropdownMenuItem>
+                            <Dialog open={isLeaveDialogOpen} onOpenChange={setIsLeaveDialogOpen}>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>{t("leave_team")}</DialogTitle>
+                                  <DialogDescription>
+                                    {t("leave_team_confirmation_message")}
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <DialogFooter>
+                                  <Button
+                                    type="button"
+                                    color="destructive"
+                                    onClick={() => acceptOrLeave(false, team.id)}>
+                                    {t("confirm_leave_team")}
+                                  </Button>
+                                  <DialogClose color="primary" />
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
+                          </>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -290,30 +347,24 @@ export function TeamsList({ teams: data, teamNameFromInvitation, errorMsgFromInv
           </ul>
         </div>
       )}
-      <Dialog open={openInvitationDialog} onOpenChange={setOpenInvitationDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("invite_team_member")}</DialogTitle>
-            <DialogDescription>{t("add_team_members_description")}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <DialogClose />
-            <Button
-              color="primary"
-              onClick={() => {
-                if (selectedTeamId) {
-                  router.push(`/settings/teams/${selectedTeamId}/onboard-members`);
-                }
-                setOpenInvitationDialog(false);
-              }}>
-              {t("continue")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
       <p className="text-subtle mb-4 mt-2 flex w-full items-center gap-2 text-[14px] md:justify-center md:text-center">
         <Icon className="hidden sm:block" name="info" /> {t("group_meeting_tip")}
       </p>
+
+      {selectedTeamId && (
+        <AddTeamMemberModal
+          teamId={selectedTeamId}
+          teamName={teams.find((team) => team.id === selectedTeamId)?.name}
+          onSuccess={() => {
+            utils.viewer.calidTeams.list.invalidate();
+            revalidateCalIdTeamsList();
+            setOpenInviteModal(false);
+            setSelectedTeamId(null);
+          }}
+          isOpen={openInviteModal}
+          onOpenChange={setOpenInviteModal}
+        />
+      )}
     </>
   );
 }
