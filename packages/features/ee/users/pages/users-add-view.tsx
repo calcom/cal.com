@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 
+import { getParserWithGeneric } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -33,7 +34,8 @@ const UsersAddView = () => {
         <UserForm
           submitLabel="Add user"
           onSubmit={async (values) => {
-            const parsedValues = userBodySchema.parse(values);
+            const parser = getParserWithGeneric(userBodySchema);
+            const parsedValues = parser(values);
             mutation.mutate(parsedValues);
           }}
         />
