@@ -16,13 +16,27 @@ import type { RetellAIRepository } from "../types";
 
 export class PhoneNumberService {
   private logger = logger.getSubLogger({ prefix: ["PhoneNumberService"] });
+  private retellRepository: RetellAIRepository;
+  private agentRepository: AgentRepositoryInterface;
+  private phoneNumberRepository: PhoneNumberRepositoryInterface;
+  private transactionManager: TransactionInterface;
 
-  constructor(
-    private retellRepository: RetellAIRepository,
-    private agentRepository: AgentRepositoryInterface,
-    private phoneNumberRepository: PhoneNumberRepositoryInterface,
-    private transactionManager: TransactionInterface
-  ) {}
+  constructor({
+    retellRepository,
+    agentRepository,
+    phoneNumberRepository,
+    transactionManager,
+  }: {
+    retellRepository: RetellAIRepository;
+    agentRepository: AgentRepositoryInterface;
+    phoneNumberRepository: PhoneNumberRepositoryInterface;
+    transactionManager: TransactionInterface;
+  }) {
+    this.retellRepository = retellRepository;
+    this.agentRepository = agentRepository;
+    this.phoneNumberRepository = phoneNumberRepository;
+    this.transactionManager = transactionManager;
+  }
 
   async importPhoneNumber(
     data: AIPhoneServiceImportPhoneNumberParamsExtended

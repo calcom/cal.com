@@ -19,11 +19,19 @@ interface RetellAIServiceInterface {
 export class CallService {
   private logger = logger.getSubLogger({ prefix: ["CallService"] });
   private retellAIService?: RetellAIServiceInterface;
+  private retellRepository: RetellAIRepository;
+  private agentRepository: AgentRepositoryInterface;
 
-  constructor(
-    private retellRepository: RetellAIRepository,
-    private agentRepository: AgentRepositoryInterface
-  ) {}
+  constructor({
+    retellRepository,
+    agentRepository,
+  }: {
+    retellRepository: RetellAIRepository;
+    agentRepository: AgentRepositoryInterface;
+  }) {
+    this.retellRepository = retellRepository;
+    this.agentRepository = agentRepository;
+  }
 
   setRetellAIService(service: RetellAIServiceInterface): void {
     this.retellAIService = service;

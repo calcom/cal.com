@@ -1,8 +1,7 @@
 import { useSearchParams } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import { useWatch } from "react-hook-form";
 
 import { SENDER_ID, SENDER_NAME, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -10,12 +9,12 @@ import type { WorkflowPermissions } from "@calcom/lib/server/repository/workflow
 import type { WorkflowActions } from "@calcom/prisma/enums";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { FormCard, FormCardBody } from "@calcom/ui/components/card";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
+import { useAgentsData } from "../hooks/useAgentsData";
 import { isCalAIAction, isSMSAction } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
@@ -101,78 +100,8 @@ export default function WorkflowDetailsPage(props: Props) {
     form.setValue("steps", steps);
   };
 
-  // Watch all agent IDs at once instead of individually per step
-  const watchedSteps = useWatch({
-    control: form.control,
-    name: "steps",
-  });
-
-  const allAgentIds = useMemo(() => {
-    const outboundAgentIds = (watchedSteps || []).map((step) => step?.agentId || null);
-    const inboundAgentIds = (watchedSteps || []).map((step) => step?.inboundAgentId || null);
-    return { outboundAgentIds, inboundAgentIds };
-  }, [watchedSteps]);
-
-  // Only create queries for unique, non-null agent IDs (combining both types)
-  const uniqueAgentIds = useMemo((): string[] => {
-    const allIds = [...allAgentIds.outboundAgentIds, ...allAgentIds.inboundAgentIds];
-    const validIds: string[] = [];
-
-    for (const id of allIds) {
-      if (id && typeof id === "string") {
-        validIds.push(id);
-      }
-    }
-
-    return Array.from(new Set(validIds));
-  }, [allAgentIds]);
-
-  const uniqueAgentQueries = trpc.useQueries((t) =>
-    uniqueAgentIds.map((agentId) => {
-      return t.viewer.aiVoiceAgent.get(
-        { id: agentId },
-        {
-          enabled: true,
-          // Add stale time to prevent unnecessary refetches
-          staleTime: 5 * 60 * 1000, // 5 minutes
-        }
-      );
-    })
-  );
-
-  const agentDataMap = useMemo(() => {
-    const map = new Map();
-    uniqueAgentIds.forEach((agentId, index) => {
-      const query = uniqueAgentQueries[index];
-      if (query) {
-        map.set(agentId, {
-          data: query.data,
-          isPending: query.isPending,
-          isLoading: query.isLoading,
-          error: query.error,
-        });
-      }
-    });
-    return map;
-  }, [uniqueAgentIds, uniqueAgentQueries]);
-
-  const agentQueriesTrpc = useMemo(() => {
-    return allAgentIds.outboundAgentIds.map((agentId) => {
-      if (!agentId) {
-        return { data: null, isPending: false, isLoading: false, error: null };
-      }
-      return agentDataMap.get(agentId) || { data: null, isPending: false, isLoading: false, error: null };
-    });
-  }, [allAgentIds.outboundAgentIds, agentDataMap]);
-
-  const inboundAgentQueriesTrpc = useMemo(() => {
-    return allAgentIds.inboundAgentIds.map((agentId) => {
-      if (!agentId) {
-        return { data: null, isPending: false, isLoading: false, error: null };
-      }
-      return agentDataMap.get(agentId) || { data: null, isPending: false, isLoading: false, error: null };
-    });
-  }, [allAgentIds.inboundAgentIds, agentDataMap]);
+  const { outboundAgentQueries: agentQueriesTrpc, inboundAgentQueries: inboundAgentQueriesTrpc } =
+    useAgentsData(form);
 
   return (
     <>

@@ -285,7 +285,7 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
   /**
    * Create a new agent
    */
-  createAgent(params: {
+  createOutboundAgent(params: {
     name?: string;
     userId: number;
     teamId?: number;

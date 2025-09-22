@@ -16,8 +16,15 @@ import type {
 
 export class AIConfigurationService {
   private logger = logger.getSubLogger({ prefix: ["AIConfigurationService"] });
+  private retellRepository: RetellAIRepository;
 
-  constructor(private retellRepository: RetellAIRepository) {}
+  constructor({
+    retellRepository,
+  }: {
+    retellRepository: RetellAIRepository;
+  }) {
+    this.retellRepository = retellRepository;
+  }
 
   async setupAIConfiguration(config: AIConfigurationSetup): Promise<{ llmId: string; agentId: string }> {
     let llmId: string | null = null;
@@ -40,7 +47,7 @@ export class AIConfigurationService {
 
       // Step 2: Create Agent
       const agentRequest = RetellAIServiceMapper.mapToCreateAgentRequest(llm.llm_id, config.eventTypeId);
-      const agent = await this.retellRepository.createAgent(agentRequest);
+      const agent = await this.retellRepository.createOutboundAgent(agentRequest);
 
       return { llmId: llm.llm_id, agentId: agent.agent_id };
     } catch (error) {

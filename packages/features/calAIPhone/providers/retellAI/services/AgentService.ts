@@ -21,12 +21,23 @@ import { getLlmId } from "../types";
 
 export class AgentService {
   private logger = logger.getSubLogger({ prefix: ["AgentService"] });
+  private retellRepository: RetellAIRepository;
+  private agentRepository: AgentRepositoryInterface;
+  private phoneNumberRepository: PhoneNumberRepositoryInterface;
 
-  constructor(
-    private retellRepository: RetellAIRepository,
-    private agentRepository: AgentRepositoryInterface,
-    private phoneNumberRepository: PhoneNumberRepositoryInterface
-  ) {}
+  constructor({
+    retellRepository,
+    agentRepository,
+    phoneNumberRepository,
+  }: {
+    retellRepository: RetellAIRepository;
+    agentRepository: AgentRepositoryInterface;
+    phoneNumberRepository: PhoneNumberRepositoryInterface;
+  }) {
+    this.retellRepository = retellRepository;
+    this.agentRepository = agentRepository;
+    this.phoneNumberRepository = phoneNumberRepository;
+  }
 
   private async createApiKey({ userId, teamId }: { userId: number; teamId?: number }) {
     const apiKeyRepository = await PrismaApiKeyRepository.withGlobalPrisma();
@@ -449,7 +460,7 @@ export class AgentService {
     }
   }
 
-  async createAgent({
+  async createOutboundAgent({
     name: _name,
     userId,
     teamId,
@@ -487,7 +498,7 @@ export class AgentService {
     });
 
     if (workflowStepId) {
-      await this.agentRepository.linkToWorkflowStep({
+      await this.agentRepository.linkOutboundAgentToWorkflow({
         workflowStepId,
         agentId: agent.id,
       });

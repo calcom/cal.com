@@ -29,7 +29,7 @@ vi.mock("@calcom/lib/server/repository/PrismaAgentRepository", () => ({
     findByIdWithUserAccessAndDetails: vi.fn(),
     canManageTeamResources: vi.fn(),
     create: vi.fn(),
-    linkToWorkflowStep: vi.fn(),
+    linkOutboundAgentToWorkflow: vi.fn(),
     findByIdWithAdminAccess: vi.fn(),
     delete: vi.fn(),
     findByIdWithCallAccess: vi.fn(),
@@ -104,7 +104,7 @@ describe("RetellAIService", () => {
       getLLM: vi.fn(),
       updateLLM: vi.fn(),
       deleteLLM: vi.fn(),
-      createAgent: vi.fn(),
+      createOutboundAgent: vi.fn(),
       getAgent: vi.fn(),
       updateAgent: vi.fn(),
       deleteAgent: vi.fn(),
@@ -128,7 +128,7 @@ describe("RetellAIService", () => {
       findByIdWithAdminAccess: vi.fn(),
       findByIdWithCallAccess: vi.fn(),
       delete: vi.fn(),
-      linkToWorkflowStep: vi.fn(),
+      linkOutboundAgentToWorkflow: vi.fn(),
     };
     mockAgentRepository = agentRepository as unknown as AgentRepositoryInterface;
 
@@ -192,7 +192,7 @@ describe("RetellAIService", () => {
       const mockLLM = { llm_id: "llm-123" };
       const mockAgent = { agent_id: "agent-123" };
       mockRepository.createLLM.mockResolvedValue(mockLLM);
-      mockRepository.createAgent.mockResolvedValue(mockAgent);
+      mockRepository.createOutboundAgent.mockResolvedValue(mockAgent);
 
       const result = await service.setupAIConfiguration({});
 
@@ -215,7 +215,7 @@ describe("RetellAIService", () => {
       const mockAgent = { agent_id: "agent-123" };
 
       mockRepository.createLLM.mockResolvedValue(mockLLM);
-      mockRepository.createAgent.mockResolvedValue(mockAgent);
+      mockRepository.createOutboundAgent.mockResolvedValue(mockAgent);
 
       await service.setupAIConfiguration({
         calApiKey: "cal-key",
@@ -813,10 +813,10 @@ describe("RetellAIService", () => {
     });
   });
 
-  describe("createAgent", () => {
+  describe("createOutboundAgent", () => {
     it("should create agent successfully", async () => {
       mockRepository.createLLM.mockResolvedValue({ llm_id: "llm-123" });
-      mockRepository.createAgent.mockResolvedValue({ agent_id: "agent-123" });
+      mockRepository.createOutboundAgent.mockResolvedValue({ agent_id: "agent-123" });
       mockAgentRepository.create.mockResolvedValue({
         id: "db-agent-123",
         name: "Test Agent",
@@ -828,7 +828,7 @@ describe("RetellAIService", () => {
         updatedAt: new Date(),
       });
 
-      const result = await service.createAgent({
+      const result = await service.createOutboundAgent({
         name: "Test Agent",
         userId: 1,
         userTimeZone: "America/New_York",

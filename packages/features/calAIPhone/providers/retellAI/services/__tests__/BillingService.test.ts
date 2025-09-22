@@ -48,7 +48,10 @@ describe("BillingService", () => {
     });
     stripe.subscriptions.cancel.mockResolvedValue({});
 
-    service = new BillingService(mocks.mockPhoneNumberRepository, mocks.mockRetellRepository);
+    service = new BillingService({
+      phoneNumberRepository: mocks.mockPhoneNumberRepository,
+      retellRepository: mocks.mockRetellRepository,
+    });
   });
 
   afterEach(() => {

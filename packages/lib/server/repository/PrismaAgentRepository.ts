@@ -548,7 +548,13 @@ export class PrismaAgentRepository {
     });
   }
 
-  static async linkToWorkflowStep({ workflowStepId, agentId }: { workflowStepId: number; agentId: string }) {
+  static async linkOutboundAgentToWorkflow({
+    workflowStepId,
+    agentId,
+  }: {
+    workflowStepId: number;
+    agentId: string;
+  }) {
     return await prisma.workflowStep.update({
       where: { id: workflowStepId },
       data: { agentId },
