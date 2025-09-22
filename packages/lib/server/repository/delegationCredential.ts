@@ -1,5 +1,4 @@
 import logger from "@calcom/lib/logger";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import {
   serviceAccountKeySchema,
   type ServiceAccountKey,
@@ -9,6 +8,8 @@ import {
 } from "@calcom/lib/server/serviceAccountKey";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+
+import { OrganizationRepository } from "./organization";
 
 export type { ServiceAccountKey };
 const repositoryLogger = logger.getSubLogger({ prefix: ["DelegationCredentialRepository"] });

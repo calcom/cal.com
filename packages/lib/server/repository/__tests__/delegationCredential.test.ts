@@ -1,13 +1,13 @@
-import prismock from "../../../../tests/libs/__mocks__/prisma";
+import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
 import { describe, expect, it, beforeEach, vi } from "vitest";
 
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { encryptServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
 
-import { DelegationCredentialRepository } from "./DelegationCredentialRepository";
+import { DelegationCredentialRepository } from "../delegationCredential";
+import { OrganizationRepository } from "../organization";
 
-vi.mock("@calcom/lib/server/repository/organization", () => ({
+vi.mock("../organization", () => ({
   OrganizationRepository: {
     findByMemberEmail: vi.fn(),
   },
