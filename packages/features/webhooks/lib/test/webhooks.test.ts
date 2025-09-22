@@ -1,6 +1,6 @@
 import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
-import { expectWebhookToHaveBeenCalledWith } from "@calcom/web/test/utils/bookingScenario/expects";
+import { expectWebhookToHaveBeenCalledWith } from "@calcom/lib/test/utils/bookingScenario/expects";
 
 import { describe, expect, beforeEach } from "vitest";
 

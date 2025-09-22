@@ -4,6 +4,17 @@
   "sideEffects": false,
   "version": "0.0.0",
   "license": "MIT",
+  "exports": {
+    "./test/utils/bookingScenario/setupAndTeardown": "./test/utils/bookingScenario/setupAndTeardown.ts",
+    "./test/utils/bookingScenario/bookingScenario": "./test/utils/bookingScenario/bookingScenario.ts",
+    "./test/utils/bookingScenario/expects": "./test/utils/bookingScenario/expects.ts",
+    "./test/utils/bookingScenario/getMockRequestDataForBooking": "./test/utils/bookingScenario/getMockRequestDataForBooking.ts",
+    "./test/utils/bookingScenario/getMockRequestDataForCancelBooking": "./test/utils/bookingScenario/getMockRequestDataForCancelBooking.ts",
+    "./test/utils/bookingScenario/createMockNextJsRequest": "./test/utils/bookingScenario/createMockNextJsRequest.ts",
+    "./test/utils/bookingScenario/getSampleUserInSession": "./test/utils/bookingScenario/getSampleUserInSession.ts",
+    "./test/utils/bookingScenario/MockPaymentService": "./test/utils/bookingScenario/MockPaymentService.ts",
+    "./test/utils/bookingScenario/test": "./test/utils/bookingScenario/test.ts"
+  },
   "scripts": {
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
