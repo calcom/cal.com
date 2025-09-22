@@ -311,10 +311,8 @@ export const useEventTypeForm = ({
   };
 
   const handleSubmit = async (values: FormValues) => {
-    console.log("Fields values: ", values);
     const { children } = values;
     const dirtyValues = getDirtyFields(values);
-    console.log("Dirty fields: ", dirtyValues);
     const dirtyFieldExists = Object.keys(dirtyValues).length !== 0;
     const {
       periodDates,
