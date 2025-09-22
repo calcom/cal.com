@@ -30,7 +30,7 @@ module.exports = {
         ],
       },
     },
-    // WARN: lib must not import app-store or features
+    // WARN: lib must not import features
     {
       files: ["packages/lib/**/*.{ts,tsx,js,jsx}"],
       rules: {
@@ -40,19 +40,37 @@ module.exports = {
             patterns: [
               {
                 group: [
-                  // Catch all relative paths into app-store
-                  "**/app-store",
-                  "**/app-store/*",
                   // Catch all relative paths into features
                   "**/features",
                   "**/features/*",
                   // Catch alias imports
-                  "@calcom/app-store",
-                  "@calcom/app-store/*",
                   "@calcom/features",
                   "@calcom/features/*",
                 ],
-                message: "@calcom/lib should not import @calcom/app-store or @calcom/features.",
+                message: "@calcom/lib should not import @calcom/features.",
+              },
+            ],
+          },
+        ],
+      },
+    }, // ERROR: lib must NOT import app-store
+    {
+      files: ["packages/lib/**/*.{ts,tsx,js,jsx}"],
+      rules: {
+        "no-restricted-imports": [
+          "error",
+          {
+            patterns: [
+              {
+                group: [
+                  // Catch all relative paths into app-store
+                  "**/app-store",
+                  "**/app-store/*",
+                  // Catch alias imports
+                  "@calcom/app-store",
+                  "@calcom/app-store/*",
+                ],
+                message: "@calcom/lib should not import @calcom/app-store.",
               },
             ],
           },
