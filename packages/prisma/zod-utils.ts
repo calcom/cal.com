@@ -798,9 +798,10 @@ export const excludeOrRequireEmailSchema = z.string().superRefine((val, ctx) => 
   const isValid = !allDomains.some((domain) => !regex.test(domain));
 
   if (!isValid) {
+    const invalidDomains = allDomains.filter((domain) => !regex.test(domain));
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: "Enter valid domain or email",
+      message: `Invalid domain or email : ${invalidDomains}`,
     });
   }
 });
