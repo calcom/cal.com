@@ -630,6 +630,7 @@ export const EventAdvancedTab = ({
             description={t("what_booker_should_provide")}
             addFieldLabel={t("add_a_booking_question")}
             formProp="bookingFields"
+            seatsEnabled={seatsEnabled}
             {...shouldLockDisableProps("bookingFields")}
             dataStore={{
               options: {

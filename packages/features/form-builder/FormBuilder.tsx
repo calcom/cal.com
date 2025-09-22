@@ -85,6 +85,7 @@ export const FormBuilder = function FormBuilder({
   showPriceField,
   paymentCurrency = "USD",
   showPhoneAndEmailToggle = false,
+  seatsEnabled = false,
 }: {
   formProp: string;
   title: string;
@@ -93,6 +94,7 @@ export const FormBuilder = function FormBuilder({
   disabled: boolean;
   LockedIcon: false | JSX.Element;
   showPhoneAndEmailToggle?: boolean;
+  seatsEnabled?: boolean;
   /**
    * A readonly dataStore that is used to lookup the options for the fields. It works in conjunction with the field.getOptionAt property which acts as the key in options
    */
@@ -380,6 +382,12 @@ export const FormBuilder = function FormBuilder({
           handleSubmit={(data: Parameters<SubmitHandler<RhfFormField>>[0]) => {
             const type = data.type || "text";
             const isNewField = !fieldDialog.data;
+
+            if (seatsEnabled && (type === "multiemail" || data.name === "guests")) {
+              showToast(t("guests_field_disabled_for_seated_events"), "error");
+              return;
+            }
+
             if (isNewField && fields.some((f) => f.name === data.name)) {
               showToast(t("form_builder_field_already_exists"), "error");
               return;
@@ -411,6 +419,7 @@ export const FormBuilder = function FormBuilder({
           shouldConsiderRequired={shouldConsiderRequired}
           showPriceField={showPriceField}
           paymentCurrency={paymentCurrency}
+          seatsEnabled={seatsEnabled}
         />
       )}
     </div>
@@ -564,6 +573,7 @@ function FieldEditDialog({
   shouldConsiderRequired,
   showPriceField,
   paymentCurrency,
+  seatsEnabled,
 }: {
   dialog: { isOpen: boolean; fieldIndex: number; data: RhfFormField | null };
   onOpenChange: (isOpen: boolean) => void;
@@ -571,6 +581,7 @@ function FieldEditDialog({
   shouldConsiderRequired?: (field: RhfFormField) => boolean | undefined;
   showPriceField?: boolean;
   paymentCurrency: string;
+  seatsEnabled?: boolean;
 }) {
   const { t } = useLocale();
   const isPlatform = useIsPlatform();
@@ -592,7 +603,7 @@ function FieldEditDialog({
 
     // We need to set the variantsConfig in the RHF instead of using a derived value because RHF won't have the variantConfig for the variant that's not rendered yet.
     fieldForm.setValue("variantsConfig", variantsConfig);
-  }, [fieldForm]);
+  }, [fieldForm, formFieldType]);
 
   const isFieldEditMode = !!dialog.data;
   const fieldType = getCurrentFieldType(fieldForm);
@@ -600,7 +611,8 @@ function FieldEditDialog({
   const variantsConfig = fieldForm.watch("variantsConfig");
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
-  const fieldName = fieldForm.getValues("name");
+
+  const availableFieldTypes = fieldTypes.filter((f) => !f.systemOnly);
 
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
@@ -614,7 +626,8 @@ function FieldEditDialog({
               id="test-field-type"
               isDisabled={
                 fieldForm.getValues("editable") === "system" ||
-                fieldForm.getValues("editable") === "system-but-optional"
+                fieldForm.getValues("editable") === "system-but-optional" ||
+                (seatsEnabled && formFieldType === "multiemail" && fieldForm.getValues("name") === "guests")
               }
               onChange={(e) => {
                 const value = e?.value;
@@ -624,7 +637,7 @@ function FieldEditDialog({
                 fieldForm.setValue("type", value, { shouldDirty: true });
               }}
               value={dialog.data ? getLocationFieldType(dialog.data) : fieldTypesConfigMap[formFieldType]}
-              options={fieldTypes.filter((f) => !f.systemOnly)}
+              options={availableFieldTypes}
               label={t("input_type")}
             />
             {(() => {
@@ -642,7 +655,10 @@ function FieldEditDialog({
                       }}
                       disabled={
                         fieldForm.getValues("editable") === "system" ||
-                        fieldForm.getValues("editable") === "system-but-optional"
+                        fieldForm.getValues("editable") === "system-but-optional" ||
+                        (seatsEnabled &&
+                          formFieldType === "multiemail" &&
+                          fieldForm.getValues("name") === "guests")
                       }
                       label={t("identifier")}
                     />
