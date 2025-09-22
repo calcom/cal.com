@@ -18,7 +18,7 @@ import { trpc } from "@calcom/trpc/react";
 import { revalidateCalIdTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 
 import SkeletonLoader from "../components/SkeletonLoader";
-import { checkIfMemberAdminOrOwner } from "../lib/checkIfMemberAdminOrOwner";
+import { checkIfMemberAdminOrOwner } from "../lib/checkIfMemberAdminorOwner";
 
 const themeFormSchema = z.object({
   theme: z.enum(["light", "dark", "system"]),
@@ -215,7 +215,7 @@ export default function TeamAppearanceView({ teamId }: TeamAppearanceViewProps) 
 
               <div className="mb-6 grid grid-cols-1 gap-6 sm:grid-cols-3">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">{t("team_brand_color_light")}</label>
+                  <label className="text-primary text-sm font-medium">{t("team_brand_color_light")}</label>
                   <div className="flex items-center space-x-2">
                     <Input
                       type="color"
@@ -248,7 +248,7 @@ export default function TeamAppearanceView({ teamId }: TeamAppearanceViewProps) 
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">{t("team_brand_color_dark")}</label>
+                  <label className="text-primary text-sm font-medium">{t("team_brand_color_dark")}</label>
                   <div className="flex items-center space-x-2">
                     <Input
                       type="color"

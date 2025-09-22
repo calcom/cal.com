@@ -461,7 +461,7 @@ export function TeamMembersList({
         className="border-subtle bg-primary overflow-auto rounded-lg border"
         style={{ height: "600px" }}>
         {/* Table header */}
-        <div className="border-subtle sticky top-0 z-10 border-b bg-gray-50">
+        <div className="border-subtle bg-muted sticky top-0 z-10 border-b">
           {table.getHeaderGroups().map((headerGroup) => (
             <div key={headerGroup.id} className="flex">
               {headerGroup.headers.map((header) => (

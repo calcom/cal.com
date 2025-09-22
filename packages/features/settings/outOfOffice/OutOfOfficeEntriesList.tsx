@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyScreen } from "@calid/features/ui/components/empty-screen";
 import { Icon } from "@calid/features/ui/components/icon";
 import { keepPreviousData } from "@tanstack/react-query";
 import {
@@ -30,7 +31,6 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
@@ -549,15 +549,9 @@ function OutOfOfficeEntriesListContent() {
               </div>
             }
             customIcon={
-              <div className="mt-4 h-[102px]">
+              <div className="my-4 h-[102px]">
                 <div className="flex h-full flex-col items-center justify-center p-2 md:mt-0 md:p-0">
                   <div className="relative">
-                    <div className="dark:bg-darkgray-50 absolute -left-3 -top-3 -z-20 h-[70px] w-[70px] -rotate-[24deg] rounded-3xl border-2 border-[#e5e7eb] p-8 opacity-40 dark:opacity-80">
-                      <div className="w-12" />
-                    </div>
-                    <div className="dark:bg-darkgray-50 absolute -top-3 left-3 -z-10 h-[70px] w-[70px] rotate-[24deg] rounded-3xl border-2 border-[#e5e7eb] p-8 opacity-60 dark:opacity-90">
-                      <div className="w-12" />
-                    </div>
                     <div className="dark:bg-darkgray-50 text-inverted bg-primary relative z-0 flex h-[70px] w-[70px] items-center justify-center rounded-3xl border-2 border-[#e5e7eb]">
                       <Icon name="clock" size={28} className="text-black" />
                       <div className="dark:bg-darkgray-50 bg-primary absolute right-4 top-5 h-[12px] w-[12px] rotate-[56deg] text-lg font-bold" />
