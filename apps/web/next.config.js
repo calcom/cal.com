@@ -2,6 +2,7 @@ require("dotenv").config({ path: "../../.env" });
 const englishTranslation = require("./public/static/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
 const { version } = require("./package.json");
+const { PrismaPlugin } = require("@prisma/nextjs-monorepo-workaround-plugin");
 const {
   i18n: { locales },
 } = require("./next-i18next.config");
@@ -11,6 +12,9 @@ const {
   orgUserTypeRoutePath,
   orgUserTypeEmbedRoutePath,
 } = require("./pagesAndRewritePaths");
+
+adjustEnvVariables();
+
 if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
 if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_ENCRYPTION_KEY");
 const isOrganizationsEnabled =
@@ -250,6 +254,8 @@ const nextConfig = (phase) => {
               /(^@google-cloud\/spanner|^@mongodb-js\/zstd|^@sap\/hana-client\/extension\/Stream$|^@sap\/hana-client|^@sap\/hana-client$|^aws-crt|^aws4$|^better-sqlite3$|^bson-ext$|^cardinal$|^cloudflare:sockets$|^hdb-pool$|^ioredis$|^kerberos$|^mongodb-client-encryption$|^mysql$|^oracledb$|^pg-native$|^pg-query-stream$|^react-native-sqlite-storage$|^snappy\/package\.json$|^snappy$|^sql.js$|^sqlite3$|^typeorm-aurora-data-api-driver$)/,
           })
         );
+
+        config.plugins = [...config.plugins, new PrismaPlugin()];
 
         config.externals.push("formidable");
       }
@@ -639,7 +645,7 @@ const nextConfig = (phase) => {
               value: nextJsOrgRewriteConfig.orgHostPath,
             },
           ],
-          destination: "/event-types?openPlain=true",
+          destination: "/event-types?openSupport=true",
           permanent: true,
         },
         {
@@ -714,5 +720,23 @@ const nextConfig = (phase) => {
     },
   };
 };
+
+function adjustEnvVariables() {
+  if (process.env.NEXT_PUBLIC_SINGLE_ORG_SLUG) {
+    if (process.env.RESERVED_SUBDOMAINS) {
+      // It is better to ignore it completely so that accidentally if the org slug is itself in Reserved Subdomain that doesn't cause the booking pages to start giving 404s
+      console.warn(
+        `⚠️  WARNING: RESERVED_SUBDOMAINS is ignored when SINGLE_ORG_SLUG is set. Single org mode doesn't need to use reserved subdomain validation.`
+      );
+      delete process.env.RESERVED_SUBDOMAINS;
+    }
+
+    if (!process.env.ORGANIZATIONS_ENABLED) {
+      // This is basically a consent to add rewrites related to organizations. So, if single org slug mode is there, we have the consent already.
+      console.log("Auto-enabling ORGANIZATIONS_ENABLED because SINGLE_ORG_SLUG is set");
+      process.env.ORGANIZATIONS_ENABLED = "1";
+    }
+  }
+}
 
 module.exports = (phase) => plugins.reduce((acc, next) => next(acc), nextConfig(phase));

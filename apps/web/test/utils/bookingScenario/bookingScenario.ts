@@ -1,10 +1,6 @@
-import appStoreMock from "../../../../../tests/libs/__mocks__/app-store";
 import i18nMock from "../../../../../tests/libs/__mocks__/libServerI18n";
 import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
-import type { BookingReference, Attendee, Booking, Membership } from "@prisma/client";
-import type { Prisma } from "@prisma/client";
-import type { WebhookTriggerEvents } from "@prisma/client";
 import type Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 import { vi } from "vitest";
@@ -19,6 +15,9 @@ import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSche
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import type { BookingReference, Attendee, Booking, Membership } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
+import type { WebhookTriggerEvents } from "@calcom/prisma/client";
 import type {
   WorkflowActions,
   WorkflowTemplates,
@@ -49,6 +48,22 @@ vi.mock("@calcom/app-store/calendar.services.generated", () => ({
     applecalendar: Promise.resolve({ default: vi.fn() }),
     caldavcalendar: Promise.resolve({ default: vi.fn() }),
   },
+}));
+
+const mockVideoAdapterRegistry: Record<string, any> = {};
+
+vi.mock("@calcom/app-store/video.adapters.generated", () => ({
+  VideoApiAdapterMap: new Proxy(
+    {},
+    {
+      get(target, prop) {
+        if (typeof prop === "string" && mockVideoAdapterRegistry[prop]) {
+          return mockVideoAdapterRegistry[prop];
+        }
+        return Promise.resolve({ default: vi.fn() });
+      },
+    }
+  ),
 }));
 
 // We don't need to test it. Also, it causes Formbricks error when imported
@@ -1995,67 +2010,61 @@ export function mockVideoApp({
   const updateMeetingCalls: any[] = [];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const deleteMeetingCalls: any[] = [];
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
-  appStoreMock.default[appStoreLookupKey as keyof typeof appStoreMock.default].mockImplementation(() => {
-    return new Promise((resolve) => {
-      resolve({
-        lib: {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          //@ts-ignore
-          VideoApiAdapter: (credential) => {
-            return {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              createMeeting: (...rest: any[]) => {
-                if (creationCrash) {
-                  throw new Error("MockVideoApiAdapter.createMeeting fake error");
-                }
-                createMeetingCalls.push({
-                  credential,
-                  args: rest,
-                });
 
-                return Promise.resolve({
-                  type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
-                  ...videoMeetingData,
-                });
-              },
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              updateMeeting: async (...rest: any[]) => {
-                if (updationCrash) {
-                  throw new Error("MockVideoApiAdapter.updateMeeting fake error");
-                }
-                const [bookingRef, calEvent] = rest;
-                updateMeetingCalls.push({
-                  credential,
-                  args: rest,
-                });
-                if (!bookingRef.type) {
-                  throw new Error("bookingRef.type is not defined");
-                }
-                if (!calEvent.organizer) {
-                  throw new Error("calEvent.organizer is not defined");
-                }
-                log.silly("MockVideoApiAdapter.updateMeeting", JSON.stringify({ bookingRef, calEvent }));
-                return Promise.resolve({
-                  type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
-                  ...videoMeetingData,
-                });
-              },
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              deleteMeeting: async (...rest: any[]) => {
-                log.silly("MockVideoApiAdapter.deleteMeeting", JSON.stringify(rest));
-                deleteMeetingCalls.push({
-                  credential,
-                  args: rest,
-                });
-              },
-            };
-          },
-        },
-      });
-    });
+  const mockVideoAdapter = (credential: any) => {
+    return {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      createMeeting: (...rest: any[]) => {
+        if (creationCrash) {
+          throw new Error("MockVideoApiAdapter.createMeeting fake error");
+        }
+        createMeetingCalls.push({
+          credential,
+          args: rest,
+        });
+
+        return Promise.resolve({
+          type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
+          ...videoMeetingData,
+        });
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      updateMeeting: async (...rest: any[]) => {
+        if (updationCrash) {
+          throw new Error("MockVideoApiAdapter.updateMeeting fake error");
+        }
+        const [bookingRef, calEvent] = rest;
+        updateMeetingCalls.push({
+          credential,
+          args: rest,
+        });
+        if (!bookingRef.type) {
+          throw new Error("bookingRef.type is not defined");
+        }
+        if (!calEvent.organizer) {
+          throw new Error("calEvent.organizer is not defined");
+        }
+        log.silly("MockVideoApiAdapter.updateMeeting", JSON.stringify({ bookingRef, calEvent }));
+        return Promise.resolve({
+          type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
+          ...videoMeetingData,
+        });
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      deleteMeeting: async (...rest: any[]) => {
+        log.silly("MockVideoApiAdapter.deleteMeeting", JSON.stringify(rest));
+        deleteMeetingCalls.push({
+          credential,
+          args: rest,
+        });
+      },
+    };
+  };
+
+  mockVideoAdapterRegistry[appStoreLookupKey] = Promise.resolve({
+    default: mockVideoAdapter,
   });
+
   return {
     createMeetingCalls,
     updateMeetingCalls,
@@ -2105,18 +2114,7 @@ export function mockPaymentApp({
   appStoreLookupKey?: string;
 }) {
   appStoreLookupKey = appStoreLookupKey || metadataLookupKey;
-  const { paymentUid, externalId, MockPaymentService } = getMockPaymentService();
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
-  appStoreMock.default[appStoreLookupKey as keyof typeof appStoreMock.default].mockImplementation(() => {
-    return new Promise((resolve) => {
-      resolve({
-        lib: {
-          PaymentService: MockPaymentService,
-        },
-      });
-    });
-  });
+  const { paymentUid, externalId } = getMockPaymentService();
 
   return {
     paymentUid,
@@ -2132,22 +2130,15 @@ export function mockErrorOnVideoMeetingCreation({
   appStoreLookupKey?: string;
 }) {
   appStoreLookupKey = appStoreLookupKey || metadataLookupKey;
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
-  appStoreMock.default[appStoreLookupKey].mockImplementation(() => {
-    return new Promise((resolve) => {
-      resolve({
-        lib: {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          //@ts-ignore
-          VideoApiAdapter: () => ({
-            createMeeting: () => {
-              throw new MockError("Error creating Video meeting");
-            },
-          }),
-        },
-      });
-    });
+
+  const mockErrorAdapter = () => ({
+    createMeeting: () => {
+      throw new MockError("Error creating Video meeting");
+    },
+  });
+
+  mockVideoAdapterRegistry[appStoreLookupKey] = Promise.resolve({
+    default: mockErrorAdapter,
   });
 }
 
@@ -2175,42 +2166,49 @@ export function mockCrmApp(
     ownerEmail: string;
   }[] = [];
   const eventsCreated: boolean[] = [];
-  const app = appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata];
-  const appMock = appStoreMock.default[metadataLookupKey as keyof typeof appStoreMock.default];
-  appMock &&
-    `mockResolvedValue` in appMock &&
-    appMock.mockResolvedValue({
-      lib: {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
-        CrmService: class {
-          constructor() {
-            log.debug("Create CrmSerive");
-          }
 
-          createContact() {
-            if (crmData?.createContacts) {
-              contactsCreated = crmData.createContacts;
-              return Promise.resolve(crmData?.createContacts);
-            }
-          }
+  // Mock the CrmServiceMap directly instead of using the old app-store index approach
+  vi.doMock("@calcom/app-store/crm.apps.generated", async (importOriginal) => {
+    const original = await importOriginal<typeof import("@calcom/app-store/crm.apps.generated")>();
 
-          getContacts(email: string) {
-            if (crmData?.getContacts) {
-              contactsQueried = crmData?.getContacts;
-              const contactsOfEmail = contactsQueried.filter((contact) => contact.email === email);
+    class MockCrmService {
+      constructor() {
+        log.debug("Create CrmService");
+      }
 
-              return Promise.resolve(contactsOfEmail);
-            }
-          }
+      createContact() {
+        if (crmData?.createContacts) {
+          contactsCreated = crmData.createContacts;
+          return Promise.resolve(crmData?.createContacts);
+        }
+        return Promise.resolve([]);
+      }
 
-          createEvent() {
-            eventsCreated.push(true);
-            return Promise.resolve({});
-          }
-        },
+      getContacts(email: string) {
+        if (crmData?.getContacts) {
+          contactsQueried = crmData?.getContacts;
+          const contactsOfEmail = contactsQueried.filter((contact) => contact.email === email);
+          return Promise.resolve(contactsOfEmail);
+        }
+        return Promise.resolve([]);
+      }
+
+      createEvent() {
+        eventsCreated.push(true);
+        return Promise.resolve({});
+      }
+    }
+
+    return {
+      ...original,
+      CrmServiceMap: {
+        ...original.CrmServiceMap,
+        [metadataLookupKey]: Promise.resolve({
+          default: MockCrmService,
+        }),
       },
-    });
+    };
+  });
 
   return {
     contactsCreated,
@@ -2489,7 +2487,6 @@ export const createDelegationCredential = async (orgId: number, type: "google" |
             id: orgId,
           },
         },
-        // @ts-expect-error - TODO: fix this
         serviceAccountKey: workspace.defaultServiceAccountKey,
       },
     });
@@ -2532,7 +2529,6 @@ export const createDelegationCredential = async (orgId: number, type: "google" |
             id: orgId,
           },
         },
-        // @ts-expect-error - TODO: fix this
         serviceAccountKey: workspace.defaultServiceAccountKey,
       },
     });

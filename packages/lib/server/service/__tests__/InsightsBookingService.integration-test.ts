@@ -1,12 +1,15 @@
-import type { Team, User, Membership } from "@prisma/client";
-import { Prisma } from "@prisma/client";
 import { describe, expect, it } from "vitest";
 
 import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import prisma from "@calcom/prisma";
+import type { Team, User, Membership } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
-import { InsightsBookingBaseService as InsightsBookingService } from "../InsightsBookingBaseService";
+import {
+  InsightsBookingBaseService as InsightsBookingService,
+  type InsightsBookingServicePublicOptions,
+} from "../InsightsBookingBaseService";
 
 const NOTHING_CONDITION = Prisma.sql`1=0`;
 
@@ -204,7 +207,7 @@ describe("InsightsBookingService Integration Tests", () => {
     it("should return NOTHING for invalid options", async () => {
       const service = new InsightsBookingService({
         prisma,
-        options: null as any,
+        options: null as unknown as InsightsBookingServicePublicOptions,
       });
 
       const conditions = await service.getAuthorizationConditions();
@@ -343,6 +346,170 @@ describe("InsightsBookingService Integration Tests", () => {
         ]})) AND ("isTeamBooking" = false))`
       );
 
+      await testData.cleanup();
+    });
+
+    it("should build user scope conditions with null orgId", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const service = new InsightsBookingService({
+        prisma,
+        options: {
+          scope: "user",
+          userId: testData.user.id,
+          orgId: null,
+        },
+      });
+
+      const conditions = await service.getAuthorizationConditions();
+      expect(conditions).toEqual(Prisma.sql`("userId" = ${testData.user.id}) AND ("teamId" IS NULL)`);
+
+      await testData.cleanup();
+    });
+
+    it("should build user scope conditions with undefined orgId", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const service = new InsightsBookingService({
+        prisma,
+        options: {
+          scope: "user",
+          userId: testData.user.id,
+          orgId: null,
+        },
+      });
+
+      const conditions = await service.getAuthorizationConditions();
+      expect(conditions).toEqual(Prisma.sql`("userId" = ${testData.user.id}) AND ("teamId" IS NULL)`);
+
+      await testData.cleanup();
+    });
+
+    it("should build team scope conditions with null orgId for standalone team", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const standaloneTeam = await prisma.team.create({
+        data: {
+          name: "Standalone Team",
+          slug: `standalone-team-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+          isOrganization: false,
+          parentId: null,
+        },
+      });
+
+      await prisma.membership.create({
+        data: {
+          userId: testData.user.id,
+          teamId: standaloneTeam.id,
+          role: MembershipRole.OWNER,
+          accepted: true,
+        },
+      });
+
+      const service = new InsightsBookingService({
+        prisma,
+        options: {
+          scope: "team",
+          userId: testData.user.id,
+          orgId: null,
+          teamId: standaloneTeam.id,
+        },
+      });
+
+      const conditions = await service.getAuthorizationConditions();
+      expect(conditions).toEqual(
+        Prisma.sql`(("teamId" = ${standaloneTeam.id}) AND ("isTeamBooking" = true)) OR (("userId" = ANY(${[
+          testData.user.id,
+        ]})) AND ("isTeamBooking" = false))`
+      );
+
+      await prisma.membership.deleteMany({
+        where: { teamId: standaloneTeam.id },
+      });
+      await prisma.team.delete({
+        where: { id: standaloneTeam.id },
+      });
+      await testData.cleanup();
+    });
+
+    it("should return NOTHING_CONDITION for team scope when team belongs to org but no orgId provided", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const service = new InsightsBookingService({
+        prisma,
+        options: {
+          scope: "team",
+          userId: testData.user.id,
+          orgId: null,
+          teamId: testData.team.id,
+        },
+      });
+
+      const conditions = await service.getAuthorizationConditions();
+      expect(conditions).toEqual(NOTHING_CONDITION);
+
+      await testData.cleanup();
+    });
+
+    it("should build team scope conditions with undefined orgId for standalone team", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const standaloneTeam = await prisma.team.create({
+        data: {
+          name: "Standalone Team 2",
+          slug: `standalone-team-2-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+          isOrganization: false,
+          parentId: null,
+        },
+      });
+
+      await prisma.membership.create({
+        data: {
+          userId: testData.user.id,
+          teamId: standaloneTeam.id,
+          role: MembershipRole.OWNER,
+          accepted: true,
+        },
+      });
+
+      const service = new InsightsBookingService({
+        prisma,
+        options: {
+          scope: "team",
+          userId: testData.user.id,
+          orgId: null,
+          teamId: standaloneTeam.id,
+        },
+      });
+
+      const conditions = await service.getAuthorizationConditions();
+      expect(conditions).toEqual(
+        Prisma.sql`(("teamId" = ${standaloneTeam.id}) AND ("isTeamBooking" = true)) OR (("userId" = ANY(${[
+          testData.user.id,
+        ]})) AND ("isTeamBooking" = false))`
+      );
+
+      await prisma.membership.deleteMany({
+        where: { teamId: standaloneTeam.id },
+      });
+      await prisma.team.delete({
+        where: { id: standaloneTeam.id },
+      });
       await testData.cleanup();
     });
   });

@@ -1,3 +1,5 @@
+import { prisma } from "@calcom/prisma/__mocks__/prisma";
+
 import { vi, type Mock, describe, it, expect, beforeEach } from "vitest";
 
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
@@ -14,6 +16,10 @@ vi.mock("../../infrastructure/repositories/PermissionRepository");
 vi.mock("@calcom/features/flags/features.repository");
 vi.mock("@calcom/lib/server/repository/membership");
 vi.mock("../permission.service");
+
+vi.mock("@calcom/prisma", () => ({
+  prisma,
+}));
 
 type MockRepository = {
   [K in keyof IPermissionRepository]: Mock;
@@ -258,7 +264,7 @@ describe("PermissionCheckService", () => {
         teamId: 1,
         userId: 1,
         accepted: true,
-        role: "ADMIN" as MembershipRole,
+        role: "MEMBER" as MembershipRole, // Change to MEMBER so fallback also fails
         customRoleId: "admin_role",
         disableImpersonation: false,
         createdAt: new Date(),
