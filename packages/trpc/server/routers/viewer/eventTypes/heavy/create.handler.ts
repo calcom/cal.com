@@ -1,16 +1,21 @@
-import { Prisma } from "@prisma/client";
+import type { z } from "zod";
 
+import { getDefaultLocations } from "@calcom/app-store/_utils/getDefaultLocations";
 import { DailyLocationType } from "@calcom/app-store/constants";
-import { getDefaultLocations } from "@calcom/lib/server/getDefaultLocations";
+import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
+import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import type { PrismaClient } from "@calcom/prisma";
-import { SchedulingType } from "@calcom/prisma/enums";
-import type { EventTypeLocation } from "@calcom/prisma/zod/custom/eventtype";
+import { Prisma } from "@calcom/prisma/client";
+import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
+import type { eventTypeLocations } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../../types";
 import type { TCreateInputSchema } from "./create.schema";
+
+type EventTypeLocation = z.infer<typeof eventTypeLocations>[number];
 
 type SessionUser = NonNullable<TrpcSessionUser>;
 type User = {
@@ -49,6 +54,29 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const userId = ctx.user.id;
   const isManagedEventType = schedulingType === SchedulingType.MANAGED;
   const isOrgAdmin = !!ctx.user?.organization?.isOrgAdmin;
+
+  // Check if user has organization-level eventType.create permission (equivalent to org admin for event types)
+  let hasOrgEventTypeCreatePermission = isOrgAdmin; // Default fallback
+
+  if (ctx.user.organizationId) {
+    try {
+      const orgPermissions = await getResourcePermissions({
+        userId,
+        teamId: ctx.user.organizationId,
+        resource: Resource.EventType,
+        userRole: isOrgAdmin ? MembershipRole.ADMIN : MembershipRole.MEMBER,
+        fallbackRoles: {
+          create: {
+            roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+          },
+        },
+      });
+      hasOrgEventTypeCreatePermission = orgPermissions.canCreate;
+    } catch (error) {
+      // If PBAC check fails, fall back to isOrgAdmin
+      hasOrgEventTypeCreatePermission = isOrgAdmin;
+    }
+  }
 
   const locations: EventTypeLocation[] =
     inputLocations && inputLocations.length !== 0 ? inputLocations : await getDefaultLocations(ctx.user);
@@ -90,12 +118,40 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
     const isSystemAdmin = ctx.user.role === "ADMIN";
 
-    if (
-      !isSystemAdmin &&
-      !isOrgAdmin &&
-      (!hasMembership?.role || !["ADMIN", "OWNER"].includes(hasMembership.role))
-    ) {
-      console.warn(`User ${userId} does not have permission to create this new event type`);
+    // Initialize team-level permission to false.
+    // We will only try to set this to true if the user is a member.
+    let hasCreatePermission = false;
+
+    // Only check for team-level permissions if the user is actually a member of the team.
+    if (hasMembership) {
+      try {
+        const permissions = await getResourcePermissions({
+          userId,
+          teamId,
+          resource: Resource.EventType,
+          userRole: hasMembership.role,
+          fallbackRoles: {
+            create: {
+              roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+            },
+          },
+        });
+        hasCreatePermission = permissions.canCreate;
+      } catch (error) {
+        console.warn(
+          `PBAC check failed for user ${userId} on team ${teamId}, falling back to role check:`,
+          error
+        );
+        hasCreatePermission = ["ADMIN", "OWNER"].includes(hasMembership.role);
+      }
+    }
+
+    if (!isSystemAdmin && !hasOrgEventTypeCreatePermission && !hasCreatePermission) {
+      // If none of the above conditions are met, the user is unauthorized.
+      // which means the user is not admin of the team nor the org.
+      console.warn(
+        `User ${userId} does not have eventType.create permission for team ${teamId}. Membership found: ${!!hasMembership}`
+      );
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
 
@@ -107,9 +163,9 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     data.schedulingType = schedulingType;
   }
 
-  // If we are in an organization & they are not admin & they are not creating an event on a teamID
+  // If we are in an organization & they don't have org-level eventType.create permission & they are not creating an event on a teamID
   // Check if evenTypes are locked.
-  if (ctx.user.organizationId && !ctx.user?.organization?.isOrgAdmin && !teamId) {
+  if (ctx.user.organizationId && !hasOrgEventTypeCreatePermission && !teamId) {
     const orgSettings = await ctx.prisma.organizationSettings.findUnique({
       where: {
         organizationId: ctx.user.organizationId,

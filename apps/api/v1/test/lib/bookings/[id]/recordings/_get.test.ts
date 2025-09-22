@@ -9,7 +9,7 @@ import { buildBooking } from "@calcom/lib/test/builder";
 import {
   getRecordingsOfCalVideoByRoomName,
   getDownloadLinkOfCalVideoByRecordingId,
-} from "@calcom/lib/videoClient";
+} from "@calcom/app-store/videoClient";
 
 import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
 
@@ -22,7 +22,7 @@ type CustomNextApiResponse = NextApiResponse & Response;
 const adminUserId = 1;
 const memberUserId = 10;
 
-vi.mock("@calcom/lib/videoClient", () => {
+vi.mock("@calcom/app-store/videoClient", () => {
   return {
     getRecordingsOfCalVideoByRoomName: vi.fn(),
     getDownloadLinkOfCalVideoByRecordingId: vi.fn(),

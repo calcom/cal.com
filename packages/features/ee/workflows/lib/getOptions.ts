@@ -25,6 +25,7 @@ export function getWorkflowActionOptions(t: TFunction, isOrgsPlan?: boolean) {
       label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
       value: action,
       needsCredits: (!isOrgsPlan && isSMSOrWhatsappAction(action)) || isCalAIAction(action),
+      isCalAi: isCalAIAction(action),
     };
   });
 }
