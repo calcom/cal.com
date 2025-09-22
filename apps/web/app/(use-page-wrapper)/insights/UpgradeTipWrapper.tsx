@@ -40,8 +40,8 @@ export default function UpgradeTipWrapper({ children }: { children: React.ReactN
       buttons={
         <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
           <ButtonGroup>
-            <Button color="primary" href={`${WEBAPP_URL}/settings/organizations/new`}>
-              {t("create_org")}
+            <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
+              {t("create_team")}
             </Button>
             <Button color="minimal" href="https://go.cal.com/insights" target="_blank">
               {t("learn_more")}
