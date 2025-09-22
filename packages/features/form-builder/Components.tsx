@@ -546,5 +546,11 @@ export const Components: Record<FieldType, Component> = {
       return <Widgets.TextWidget type="url" noLabel={true} {...props} />;
     },
   },
+  date: {
+    propsType: propsTypes.date,
+    factory: (props) => {
+      return <Widgets.TextWidget type="date" noLabel={true} {...props} />;
+    },
+  },
 } as const;
 // Should use `satisfies` to check if the `type` is from supported types. But satisfies doesn't work with Next.js config

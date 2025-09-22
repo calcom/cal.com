@@ -157,6 +157,11 @@ const configMap: Record<FieldType, Omit<z.infer<typeof fieldTypeConfigSchema>, "
     value: "url",
     isTextType: true,
   },
+  date: {
+    label: "Date",
+    value: "date",
+    isTextType: true,
+  },
 };
 
 export const fieldTypesConfigMap = configMap as Record<FieldType, z.infer<typeof fieldTypeConfigSchema>>;
