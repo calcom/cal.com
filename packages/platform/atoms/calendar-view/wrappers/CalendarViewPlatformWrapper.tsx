@@ -13,9 +13,9 @@ import { BookerSection } from "@calcom/features/bookings/Booker/components/Secti
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { LargeCalendar } from "@calcom/features/calendar-view/LargeCalendar";
+import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
-import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import { formatUsername } from "../../booker/BookerPlatformWrapper";
