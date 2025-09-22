@@ -5,4 +5,4 @@ import { Module } from "@nestjs/common";
   providers: [InstantBookingCreateService],
   exports: [InstantBookingCreateService],
 })
-export class InstantBookingCreateModule {}
+export class InstantBookingModule {}

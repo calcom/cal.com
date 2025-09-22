@@ -16,7 +16,7 @@ import { EventTypesModule_2024_04_15 } from "@/ee/event-types/event-types_2024_0
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
-import { InstantBookingCreateModule } from "@/lib/modules/instant-booking-create.module";
+import { InstantBookingModule } from "@/lib/modules/instant-booking.module";
 import { RecurringBookingModule } from "@/lib/modules/recurring-booking.module";
 import { RegularBookingModule } from "@/lib/modules/regular-booking.module";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
@@ -63,7 +63,7 @@ import { Module } from "@nestjs/common";
     ProfilesModule,
     RegularBookingModule,
     RecurringBookingModule,
-    InstantBookingCreateModule,
+    InstantBookingModule,
   ],
   providers: [
     TokensRepository,
