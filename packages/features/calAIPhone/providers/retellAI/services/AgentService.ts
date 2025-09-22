@@ -599,10 +599,17 @@ export class AgentService {
       inbound_agent_id: llmConfig.agentId,
     });
 
-    await this.phoneNumberRepository.updateAgents({
+    const updateResult = await this.phoneNumberRepository.setInboundProviderAgentIdIfUnset({
       id: phoneNumberRecord.id,
       inboundProviderAgentId: agent.providerAgentId,
     });
+
+    if (!updateResult.success) {
+      throw new HttpError({
+        statusCode: 409,
+        message: `Inbound agent was configured by another request. Conflicting agent: ${updateResult.conflictingAgentId}`,
+      });
+    }
 
     return {
       id: agent.id,

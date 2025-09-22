@@ -41,7 +41,7 @@ type AgentConfigurationSheetProps = {
   inboundAgentId?: string | null;
   agentData?: RouterOutputs["viewer"]["aiVoiceAgent"]["get"];
   inboundAgentData?: RouterOutputs["viewer"]["aiVoiceAgent"]["get"];
-  onUpdate: (data: AgentFormValues) => void;
+  onUpdate: (data: AgentFormValues & { id: string }) => void;
   readOnly?: boolean;
   teamId?: number;
   isOrganization?: boolean;
@@ -77,6 +77,8 @@ export function AgentConfigurationSheet({
   );
   const [isWebCallDialogOpen, setIsWebCallDialogOpen] = useState(false);
 
+  const activeAgentId = activeTab === "incomingCalls" ? inboundAgentId : agentId;
+
   const { outboundAgentForm, inboundAgentForm } = useAgentForms({ agentData, inboundAgentData });
 
   const updateAgentMutation = trpc.viewer.aiVoiceAgent.update.useMutation({
@@ -106,7 +108,7 @@ export function AgentConfigurationSheet({
       ...updatePayload,
     });
 
-    onUpdate(updatePayload);
+    onUpdate({ ...updatePayload, id: agentId });
   };
 
   const handleInboundAgentUpdate = async (data: AgentFormValues) => {
@@ -125,7 +127,7 @@ export function AgentConfigurationSheet({
       ...updatePayload,
     });
 
-    onUpdate(updatePayload);
+    onUpdate({ ...updatePayload, id: inboundAgentId });
   };
 
   return (
@@ -236,11 +238,11 @@ export function AgentConfigurationSheet({
         </SheetContent>
       </Sheet>
 
-      {agentId && (
+      {activeAgentId && (
         <WebCallDialog
           open={isWebCallDialogOpen}
           onOpenChange={setIsWebCallDialogOpen}
-          agentId={agentId}
+          agentId={activeAgentId}
           teamId={teamId}
           isOrganization={isOrganization}
           form={form}

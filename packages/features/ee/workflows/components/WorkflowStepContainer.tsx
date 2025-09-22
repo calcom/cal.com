@@ -1509,21 +1509,21 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           />
         )}
 
-        {(stepAgentId || stepInboundAgentId) && (
+        {stepAgentId && (
           <TestPhoneCallDialog
             open={isTestAgentDialogOpen}
             onOpenChange={setIsTestAgentDialogOpen}
-            agentId={stepAgentId || stepInboundAgentId || ""}
+            agentId={stepAgentId || ""}
             teamId={teamId}
             form={form}
           />
         )}
 
-        {(stepAgentId || stepInboundAgentId) && (
+        {stepAgentId && (
           <WebCallDialog
             open={isWebCallDialogOpen}
             onOpenChange={setIsWebCallDialogOpen}
-            agentId={stepAgentId || stepInboundAgentId || ""}
+            agentId={stepAgentId || ""}
             teamId={teamId}
             isOrganization={props.isOrganization}
             form={form}

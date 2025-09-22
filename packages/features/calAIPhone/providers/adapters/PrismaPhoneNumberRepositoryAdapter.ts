@@ -78,4 +78,11 @@ export class PrismaPhoneNumberRepositoryAdapter implements PhoneNumberRepository
       outboundProviderAgentId: params.outboundProviderAgentId,
     });
   }
+
+  async setInboundProviderAgentIdIfUnset(params: {
+    id: number;
+    inboundProviderAgentId: string;
+  }): Promise<{ success: boolean; conflictingAgentId?: string }> {
+    return await PrismaPhoneNumberRepository.setInboundProviderAgentIdIfUnset(params);
+  }
 }

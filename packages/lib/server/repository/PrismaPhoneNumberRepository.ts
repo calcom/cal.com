@@ -520,6 +520,59 @@ export class PrismaPhoneNumberRepository {
     });
   }
 
+  static async setInboundProviderAgentIdIfUnset({
+    id,
+    inboundProviderAgentId,
+  }: {
+    id: number;
+    inboundProviderAgentId: string;
+  }): Promise<{ success: boolean; conflictingAgentId?: string }> {
+    try {
+      // First find the agent to connect
+      const agent = await prisma.agent.findFirst({
+        where: {
+          providerAgentId: inboundProviderAgentId,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!agent) {
+        throw new Error(`Agent with providerAgentId ${inboundProviderAgentId} not found`);
+      }
+
+      // Atomic update: only set if inboundAgentId is currently null
+      await prisma.calAiPhoneNumber.update({
+        where: {
+          id,
+          inboundAgentId: null, // Only update if currently null
+        },
+        data: {
+          inboundAgent: {
+            connect: { id: agent.id },
+          },
+        },
+      });
+
+      return { success: true };
+    } catch (error) {
+      // Handle Prisma "Record not found" error (P2025) when WHERE condition fails
+      if (error instanceof Error && "code" in error && error.code === "P2025") {
+        // Get the current agent to provide context
+        const current = await prisma.calAiPhoneNumber.findUnique({
+          where: { id },
+          select: { inboundAgentId: true },
+        });
+        return {
+          success: false,
+          conflictingAgentId: current?.inboundAgentId || undefined,
+        };
+      }
+      throw error;
+    }
+  }
+
   static async findByPhoneNumber({ phoneNumber }: { phoneNumber: string }) {
     return await prisma.calAiPhoneNumber.findFirst({
       where: {

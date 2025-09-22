@@ -74,6 +74,14 @@ export interface PhoneNumberRepositoryInterface {
     inboundProviderAgentId?: string | null;
     outboundProviderAgentId?: string | null;
   }): Promise<void>;
+
+  /**
+   * Conditionally set inbound agent only if currently unset (atomic operation to prevent race conditions)
+   */
+  setInboundProviderAgentIdIfUnset(params: {
+    id: number;
+    inboundProviderAgentId: string;
+  }): Promise<{ success: boolean; conflictingAgentId?: string }>;
 }
 
 /**
