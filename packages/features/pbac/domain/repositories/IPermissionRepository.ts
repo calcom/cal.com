@@ -9,7 +9,9 @@ export interface IPermissionRepository {
     teamId: number;
     userId: number;
     customRoleId: string | null;
-    team_parentId?: number;
+    team: {
+      parentId: number | null;
+    };
   } | null>;
 
   getMembershipByUserAndTeam(
@@ -20,7 +22,9 @@ export interface IPermissionRepository {
     teamId: number;
     userId: number;
     customRoleId: string | null;
-    team_parentId?: number;
+    team: {
+      parentId: number | null;
+    };
   } | null>;
 
   getOrgMembership(
@@ -31,6 +35,11 @@ export interface IPermissionRepository {
     teamId: number;
     userId: number;
     customRoleId: string | null;
+  } | null>;
+
+  getTeamById(teamId: number): Promise<{
+    id: number;
+    parentId: number | null;
   } | null>;
 
   checkRolePermission(roleId: string, permission: PermissionString): Promise<boolean>;
@@ -44,6 +53,11 @@ export interface IPermissionRepository {
     teamId: number,
     resource: Resource
   ): Promise<(CrudAction | CustomAction)[]>;
+
+  /**
+   * Gets all permissions for a specific resource by role ID
+   */
+  getResourcePermissionsByRoleId(roleId: string, resource: Resource): Promise<(CrudAction | CustomAction)[]>;
 
   /**
    * Gets all team IDs where the user has a specific permission

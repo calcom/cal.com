@@ -13,8 +13,8 @@ import "@calcom/atoms/globals.min.css";
 const poppins = Poppins({ subsets: ["latin"], weight: ["400", "800"] });
 type TUser = Data["users"][0];
 
-function generateRandomEmail() {
-  const localPartLength = 10;
+function generateRandomEmail(name: string) {
+  const localPartLength = 5;
   const domain = ["example.com", "example.net", "example.org"];
 
   const randomLocalPart = Array.from({ length: localPartLength }, () =>
@@ -23,7 +23,7 @@ function generateRandomEmail() {
 
   const randomDomain = domain[Math.floor(Math.random() * domain.length)];
 
-  return `${randomLocalPart}@${randomDomain}`;
+  return `${name}-${randomLocalPart}@${randomDomain}`;
 }
 
 // note(Lauris): needed because useEffect kicks in twice creating 2 parallel requests
@@ -50,11 +50,11 @@ export default function App({ Component, pageProps }: AppProps) {
   }, []);
 
   useEffect(() => {
-    const randomEmailOne = generateRandomEmail();
-    const randomEmailTwo = generateRandomEmail();
-    const randomEmailThree = generateRandomEmail();
-    const randomEmailFour = generateRandomEmail();
-    const randomEmailFive = generateRandomEmail();
+    const randomEmailOne = generateRandomEmail("keith");
+    const randomEmailTwo = generateRandomEmail("somay");
+    const randomEmailThree = generateRandomEmail("rajiv");
+    const randomEmailFour = generateRandomEmail("morgan");
+    const randomEmailFive = generateRandomEmail("lauris");
 
     if (!seeding) {
       seeding = true;

@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 
 export const baseEventTypeSelect = {
   id: true,
@@ -12,9 +12,11 @@ export const baseEventTypeSelect = {
   price: true,
   currency: true,
   lockTimeZoneToggleOnBookingPage: true,
+  lockedTimeZone: true,
   requiresConfirmation: true,
   requiresBookerEmailVerification: true,
   canSendCalVideoTranscriptionEmails: true,
+  seatsPerTimeSlot: true,
 } satisfies Prisma.EventTypeSelect;
 
 export const bookEventTypeSelect = {
@@ -31,6 +33,7 @@ export const bookEventTypeSelect = {
   periodEndDate: true,
   recurringEvent: true,
   lockTimeZoneToggleOnBookingPage: true,
+  lockedTimeZone: true,
   requiresConfirmation: true,
   canSendCalVideoTranscriptionEmails: true,
   requiresBookerEmailVerification: true,

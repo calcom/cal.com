@@ -32,8 +32,6 @@ export default function Authorize() {
     permissions: 7,
   };
 
-  console.log("These are the search params:", queryString);
-
   const permissions = Object.values(PERMISSIONS_GROUPED_MAP).map((value) => {
     let permissionsMessage = "";
     const hasReadPermission = hasPermission(client.permissions, value.read);

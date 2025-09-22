@@ -5,7 +5,11 @@ import { PermissionMapper } from "../../domain/mappers/PermissionMapper";
 import type { TeamPermissions } from "../../domain/models/Permission";
 import type { IPermissionRepository } from "../../domain/repositories/IPermissionRepository";
 import type { CrudAction, CustomAction } from "../../domain/types/permission-registry";
-import { Resource, type PermissionString } from "../../domain/types/permission-registry";
+import {
+  Resource,
+  type PermissionString,
+  parsePermissionString,
+} from "../../domain/types/permission-registry";
 
 export class PermissionRepository implements IPermissionRepository {
   private client: PrismaClientWithExtensions;
@@ -90,8 +94,18 @@ export class PermissionRepository implements IPermissionRepository {
     });
   }
 
+  async getTeamById(teamId: number) {
+    return this.client.team.findUnique({
+      where: { id: teamId },
+      select: {
+        id: true,
+        parentId: true,
+      },
+    });
+  }
+
   async checkRolePermission(roleId: string, permission: PermissionString): Promise<boolean> {
-    const [resource, action] = permission.split(".");
+    const { resource, action } = parsePermissionString(permission);
     const hasPermission = await this.client.rolePermission.findFirst({
       where: {
         roleId,
@@ -113,7 +127,7 @@ export class PermissionRepository implements IPermissionRepository {
     }
 
     const permissionPairs = permissions.map((p) => {
-      const [resource, action] = p.split(".");
+      const { resource, action } = parsePermissionString(p);
       return { resource, action };
     });
     const resourceActions = permissionPairs.map((p) => [p.resource, p.action]);
@@ -179,6 +193,23 @@ export class PermissionRepository implements IPermissionRepository {
     return teamPermissions.map((p) => p.action as CrudAction | CustomAction);
   }
 
+  async getResourcePermissionsByRoleId(
+    roleId: string,
+    resource: Resource
+  ): Promise<(CrudAction | CustomAction)[]> {
+    const permissions = await this.client.rolePermission.findMany({
+      where: {
+        roleId,
+        OR: [{ resource }, { resource: Resource.All }],
+      },
+      select: {
+        action: true,
+        resource: true,
+      },
+    });
+    return permissions.map((p) => p.action as CrudAction | CustomAction);
+  }
+
   async getTeamIdsWithPermission(userId: number, permission: PermissionString): Promise<number[]> {
     return this.getTeamIdsWithPermissions(userId, [permission]);
   }
@@ -190,7 +221,7 @@ export class PermissionRepository implements IPermissionRepository {
     }
 
     const permissionPairs = permissions.map((p) => {
-      const [resource, action] = p.split(".");
+      const { resource, action } = parsePermissionString(p);
       return { resource, action };
     });
 

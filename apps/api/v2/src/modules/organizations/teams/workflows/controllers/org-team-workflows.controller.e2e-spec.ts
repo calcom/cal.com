@@ -12,13 +12,17 @@ import {
   EMAIL,
   WorkflowEmailAttendeeStepDto,
 } from "@/modules/workflows/inputs/workflow-step.input";
-import { BEFORE_EVENT, DAY } from "@/modules/workflows/inputs/workflow-trigger.input";
+import {
+  BEFORE_EVENT,
+  DAY,
+  OnAfterEventTriggerDto,
+  OnBeforeEventTriggerDto,
+} from "@/modules/workflows/inputs/workflow-trigger.input";
 // Adjust path if needed
 import { GetWorkflowOutput, GetWorkflowsOutput } from "@/modules/workflows/outputs/workflow.output";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User, Team } from "@prisma/client";
 import * as request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
@@ -31,6 +35,7 @@ import { WorkflowRepositoryFixture } from "test/fixtures/repository/workflow.rep
 import { randomString } from "test/utils/randomString";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { User, Team } from "@calcom/prisma/client";
 
 describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
   let app: INestApplication;
@@ -255,6 +260,10 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
             "+37255555555"
           );
           expect(responseBody.data.steps.find((step) => step.stepNumber === 3)?.email).toEqual(authEmail);
+          const trigger = sampleCreateWorkflowDto.trigger as OnBeforeEventTriggerDto;
+          expect(responseBody.data.trigger?.offset?.value).toEqual(trigger.offset.value);
+          expect(responseBody.data.trigger?.offset?.unit).toEqual(trigger.offset.unit);
+
           createdWorkflowId = responseBody.data.id;
           createdWorkflow = responseBody.data;
         });
@@ -330,6 +339,13 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
       expect(step1).toBeDefined();
       const partialUpdateDto: Partial<CreateWorkflowDto> = {
         name: updatedName,
+        trigger: {
+          type: "afterEvent",
+          offset: {
+            unit: "minute",
+            value: 10,
+          },
+        },
         steps: step1 ? [{ ...step1, sender: "updatedSender" } as WorkflowEmailAttendeeStepDto] : [],
       };
       expect(createdWorkflowId).toBeDefined();
@@ -348,6 +364,10 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
           step1 && expect(responseBody.data.steps[0].id).toEqual(step1.id);
           expect(responseBody.data.steps[0].sender).toEqual("updatedSender");
           expect(responseBody.data.steps[1]?.id).toBeUndefined();
+          const trigger = partialUpdateDto.trigger as OnAfterEventTriggerDto;
+          expect(responseBody.data.trigger?.type).toEqual(trigger.type);
+          expect(responseBody.data.trigger?.offset?.value).toEqual(trigger.offset.value);
+          expect(responseBody.data.trigger?.offset?.unit).toEqual(trigger.offset.unit);
         });
     });
 

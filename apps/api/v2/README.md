@@ -42,15 +42,17 @@ $ yarn prisma generate
 
 Copy `.env.example` to `.env` and fill values.
 
-## Add license Key to deployments table in DB
+## Add license Key to Deployment table in DB
 
-id, logo theme licenseKey agreedLicenseAt
-1, null, null, 'c4234812-12ab-42s6-a1e3-55bedd4a5bb7', '2023-05-15 21:39:47.611'
+id, logo, theme, licenseKey, agreedLicenseAt:-
+1, null, null, '00000000-0000-0000-0000-000000000000', '2023-05-15 21:39:47.611'
+
+Replace with your actual license key.
 
 your CALCOM_LICENSE_KEY env var need to contain the same value
 
 .env
-CALCOM_LICENSE_KEY=c4234812-12ab-42s6-a1e3-55bedd4a5bb
+CALCOM_LICENSE_KEY=00000000-0000-0000-0000-000000000000
 
 ## Running the app
 

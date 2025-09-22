@@ -16,7 +16,7 @@ type CustomNextApiResponse = NextApiResponse & Response;
 describe("GET /api/event-types/[id]", () => {
   describe("Errors", () => {
     test("Returns 403 if user not admin/team member/event owner", async () => {
-      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
         body: {},
         query: {
@@ -32,16 +32,40 @@ describe("GET /api/event-types/[id]", () => {
       );
 
       req.userId = 333333;
-      await handler(req, res);
 
-      expect(res.statusCode).toBe(403);
+      await expect(handler(req)).rejects.toThrowError(
+        expect.objectContaining({
+          statusCode: 403,
+        })
+      );
+    });
+    test("Returns 404 if event type not found", async () => {
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "GET",
+        body: {},
+        query: {
+          id: 123456,
+        },
+      });
+
+      req.isSystemWideAdmin = true;
+
+      prismaMock.eventType.findUnique.mockResolvedValue(null);
+
+      req.userId = 333333;
+
+      await expect(handler(req)).rejects.toThrowError(
+        expect.objectContaining({
+          statusCode: 404,
+        })
+      );
     });
   });
 
   describe("Success", async () => {
     test("Returns event type if user is admin", async () => {
       const eventTypeId = 123456;
-      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
         body: {},
         query: {
@@ -57,17 +81,17 @@ describe("GET /api/event-types/[id]", () => {
 
       req.isSystemWideAdmin = true;
       req.userId = 333333;
-      await handler(req, res);
 
-      expect(res.statusCode).toBe(200);
-      expect(JSON.parse(res._getData()).event_type.id).toEqual(eventTypeId);
+      const responseData = await handler(req);
+
+      expect(responseData.event_type.id).toEqual(eventTypeId);
     });
 
     test("Returns event type if user is in team associated with event type", async () => {
       const eventTypeId = 123456;
       const teamId = 9999;
       const userId = 333333;
-      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
         body: {},
         query: {
@@ -84,6 +108,7 @@ describe("GET /api/event-types/[id]", () => {
 
       prismaMock.team.findFirst.mockResolvedValue({
         id: teamId,
+        // @ts-expect-error requires mockDeep which will be introduced in the Prisma 6.7.0 upgrade, ignore for now.
         members: [
           {
             userId,
@@ -93,10 +118,10 @@ describe("GET /api/event-types/[id]", () => {
 
       req.isSystemWideAdmin = false;
       req.userId = userId;
-      await handler(req, res);
 
-      expect(res.statusCode).toBe(200);
-      expect(JSON.parse(res._getData()).event_type.id).toEqual(eventTypeId);
+      const responseData = await handler(req);
+
+      expect(responseData.event_type.id).toEqual(eventTypeId);
       expect(prismaMock.team.findFirst).toHaveBeenCalledWith({
         where: {
           id: teamId,
@@ -115,7 +140,7 @@ describe("GET /api/event-types/[id]", () => {
     test("Returns event type if user is the event type owner", async () => {
       const eventTypeId = 123456;
       const userId = 333333;
-      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
         body: {},
         query: {
@@ -133,10 +158,10 @@ describe("GET /api/event-types/[id]", () => {
 
       req.isSystemWideAdmin = false;
       req.userId = userId;
-      await handler(req, res);
 
-      expect(res.statusCode).toBe(200);
-      expect(JSON.parse(res._getData()).event_type.id).toEqual(eventTypeId);
+      const responseData = await handler(req);
+
+      expect(responseData.event_type.id).toEqual(eventTypeId);
       expect(prismaMock.team.findFirst).not.toHaveBeenCalled();
     });
   });

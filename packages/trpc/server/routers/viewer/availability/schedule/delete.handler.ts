@@ -1,9 +1,9 @@
+import { HostRepository } from "@calcom/lib/server/repository/host";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../../types";
-import { updateHostsWithNewDefaultSchedule } from "../util";
 import type { TDeleteInputSchema } from "./delete.schema";
 
 type DeleteOptions = {
@@ -15,6 +15,7 @@ type DeleteOptions = {
 
 export const deleteHandler = async ({ input, ctx }: DeleteOptions) => {
   const { user } = ctx;
+  const hostRepo = new HostRepository(prisma);
 
   const scheduleToDelete = await prisma.schedule.findUnique({
     where: {
@@ -46,7 +47,7 @@ export const deleteHandler = async ({ input, ctx }: DeleteOptions) => {
     // to throw the error if there arent any other schedules
     if (!scheduleToSetAsDefault) throw new TRPCError({ code: "BAD_REQUEST" });
 
-    await updateHostsWithNewDefaultSchedule(user.id, input.scheduleId, scheduleToSetAsDefault.id);
+    await hostRepo.updateHostsSchedule(user.id, input.scheduleId, scheduleToSetAsDefault.id);
 
     await prisma.user.update({
       where: {
@@ -57,7 +58,7 @@ export const deleteHandler = async ({ input, ctx }: DeleteOptions) => {
       },
     });
   } else if (user.defaultScheduleId) {
-    await updateHostsWithNewDefaultSchedule(user.id, input.scheduleId, user.defaultScheduleId);
+    await hostRepo.updateHostsSchedule(user.id, input.scheduleId, user.defaultScheduleId);
   }
 
   await prisma.schedule.delete({

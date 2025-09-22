@@ -79,11 +79,8 @@ test.describe("Managed Event Types", () => {
     const { adminUser, managedEvent } = await setupManagedEvent({ users });
     await adminUser.apiLogin();
     await page.goto(`/event-types/${managedEvent.id}?tabName=setup`);
-    await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
-      "aria-current",
-      "page"
-    ); // fix the race condition
-    await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toContainText("Event Setup"); //fix the race condition
+    await expect(page.getByTestId("vertical-tab-basics")).toHaveAttribute("aria-current", "page"); // fix the race condition
+    await expect(page.getByTestId("vertical-tab-basics")).toContainText("Basics"); //fix the race condition
     await page.locator("#location-select").click();
     const optionText = await getByKey(page, "organizer_default_conferencing_app");
     await expect(optionText).toBeVisible();
@@ -242,5 +239,5 @@ async function gotoBookingPage(page: Page) {
 }
 
 async function saveAndWaitForResponse(page: Page) {
-  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1");
+  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/heavy/update?batch=1");
 }

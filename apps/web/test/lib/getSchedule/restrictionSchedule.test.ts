@@ -10,7 +10,7 @@ import {
 import { describe, test, vi } from "vitest";
 import type { z } from "zod";
 
-import { getAvailableSlotsService } from "@calcom/lib/di/containers/available-slots";
+import { getAvailableSlotsService } from "@calcom/lib/di/containers/AvailableSlots";
 import type { getScheduleSchema } from "@calcom/trpc/server/routers/viewer/slots/types";
 
 import { expect } from "./expects";

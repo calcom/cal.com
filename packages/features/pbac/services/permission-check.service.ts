@@ -1,12 +1,18 @@
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import prisma from "@calcom/prisma";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
 import { PermissionMapper } from "../domain/mappers/PermissionMapper";
 import type { PermissionCheck, TeamPermissions } from "../domain/models/Permission";
 import type { IPermissionRepository } from "../domain/repositories/IPermissionRepository";
-import type { PermissionString, Resource } from "../domain/types/permission-registry";
+import type {
+  PermissionString,
+  Resource,
+  CrudAction,
+  CustomAction,
+} from "../domain/types/permission-registry";
 import { PermissionRepository } from "../infrastructure/repositories/PermissionRepository";
 import { PermissionService } from "./permission.service";
 
@@ -18,7 +24,7 @@ export class PermissionCheckService {
 
   constructor(
     private readonly repository: IPermissionRepository = new PermissionRepository(),
-    featuresRepository: FeaturesRepository = new FeaturesRepository(),
+    featuresRepository: FeaturesRepository = new FeaturesRepository(prisma),
     permissionService: PermissionService = new PermissionService()
   ) {
     this.featuresRepository = featuresRepository;
@@ -53,8 +59,28 @@ export class PermissionCheckService {
         return [];
       }
 
-      const actions = await this.repository.getResourcePermissions(userId, teamId, resource);
-      return actions.map((action) => PermissionMapper.toPermissionString({ resource, action }));
+      const { membership, orgMembership } = await this.getMembership({ userId, teamId });
+      const actions = new Set<CrudAction | CustomAction>();
+
+      // Get team-level permissions
+      if (membership?.customRoleId) {
+        const teamActions = await this.repository.getResourcePermissionsByRoleId(
+          membership.customRoleId,
+          resource
+        );
+        teamActions.forEach((action) => actions.add(action));
+      }
+
+      // Get org-level permissions (works even without team membership)
+      if (orgMembership?.customRoleId) {
+        const orgActions = await this.repository.getResourcePermissionsByRoleId(
+          orgMembership.customRoleId,
+          resource
+        );
+        orgActions.forEach((action) => actions.add(action));
+      }
+
+      return Array.from(actions).map((action) => PermissionMapper.toPermissionString({ resource, action }));
     } catch (error) {
       this.logger.error(error);
       return [];
@@ -82,27 +108,23 @@ export class PermissionCheckService {
         return false;
       }
 
-      const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
-        userId,
-        teamId,
-      });
-
-      if (!membership) return false;
-
       const isPBACEnabled = await this.featuresRepository.checkIfTeamHasFeature(
         teamId,
         this.PBAC_FEATURE_FLAG
       );
 
       if (isPBACEnabled) {
-        if (!membership.customRoleId) {
-          this.logger.info(`PBAC is enabled for ${teamId} but no custom role is set on membership relation`);
-          return false;
-        }
-
-        return this.hasPermission({ membershipId: membership.id }, permission);
+        // Check if user has permission through team or org membership
+        return this.hasPermission({ userId, teamId }, permission);
       }
 
+      // Fallback to role-based check only if user has team membership
+      const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+        userId,
+        teamId,
+      });
+
+      if (!membership) return false;
       return this.checkFallbackRoles(membership.role, fallbackRoles);
     } catch (error) {
       this.logger.error(error);
@@ -131,27 +153,23 @@ export class PermissionCheckService {
         return false;
       }
 
-      const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
-        userId,
-        teamId,
-      });
-
-      if (!membership) return false;
-
       const isPBACEnabled = await this.featuresRepository.checkIfTeamHasFeature(
         teamId,
         this.PBAC_FEATURE_FLAG
       );
 
       if (isPBACEnabled) {
-        if (!membership.customRoleId) {
-          this.logger.info(`PBAC is enabled for ${teamId} but no custom role is set on membership relation`);
-          return false;
-        }
-
-        return this.hasPermissions({ membershipId: membership.id }, permissions);
+        // Check if user has permissions through team or org membership
+        return this.hasPermissions({ userId, teamId }, permissions);
       }
 
+      // Fallback to role-based check only if user has team membership
+      const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+        userId,
+        teamId,
+      });
+
+      if (!membership) return false;
       return this.checkFallbackRoles(membership.role, fallbackRoles);
     } catch (error) {
       this.logger.error(error);
@@ -215,8 +233,16 @@ export class PermissionCheckService {
       membership = await this.repository.getMembershipByUserAndTeam(query.userId, query.teamId);
     }
 
-    if (membership?.team_parentId) {
-      orgMembership = await this.repository.getOrgMembership(membership.userId, membership.team_parentId);
+    // Get org membership either through the team membership or directly from teamId
+    if (membership?.team.parentId) {
+      // User has team membership, check org through that
+      orgMembership = await this.repository.getOrgMembership(membership.userId, membership.team.parentId);
+    } else if (query.userId && query.teamId) {
+      // No team membership, but check if team belongs to an org
+      const team = await this.repository.getTeamById(query.teamId);
+      if (team?.parentId) {
+        orgMembership = await this.repository.getOrgMembership(query.userId, team.parentId);
+      }
     }
 
     return { membership, orgMembership };

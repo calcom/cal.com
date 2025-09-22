@@ -12,12 +12,12 @@ import FormInputFields, {
 import { getAbsoluteEventTypeRedirectUrl } from "@calcom/app-store/routing-forms/getEventTypeRedirectUrl";
 import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
 import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
-import { getUrlSearchParamsToForwardForReroute } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
 import type { FormResponse, LocalRoute } from "@calcom/app-store/routing-forms/types/types";
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
 import { createBooking } from "@calcom/features/bookings/lib/create-booking";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { getUrlSearchParamsToForwardForReroute } from "@calcom/features/routing-forms/lib/getUrlSearchParamsToForward";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { EventType, User, Team, Attendee, Booking as PrismaBooking } from "@calcom/prisma/client";
@@ -539,18 +539,11 @@ const NewRoutingManager = ({
       url: chosenEventUrls.eventBookingAbsoluteUrl,
     });
 
-    console.log("SETTING NEW VALUE", {
-      type: "reschedule_to_different_event_new_tab",
-      reschedulerWindow,
-      newBooking: null,
-    });
     reroutingState.setValue({
       type: "reschedule_to_different_event_new_tab",
       reschedulerWindow,
       newBooking: null,
     });
-
-    console.log("VALUE NOW", JSON.stringify(reroutingState));
   }
 
   function reroutingPreview() {
@@ -910,7 +903,7 @@ export const RerouteDialog = ({ isOpenDialog, setIsOpenDialog, booking }: Rerout
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogContent enableOverflow preventCloseOnOutsideClick>
+      <DialogContent preventCloseOnOutsideClick>
         <DialogHeader title={t("reroute_booking")} subtitle={t("reroute_booking_description")} />
         <RerouteDialogContentAndFooter
           booking={teamEventTypeBooking}

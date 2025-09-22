@@ -5,11 +5,14 @@ import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-f
 import type { z } from "zod";
 import { ZodError } from "zod";
 
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { getCurrencySymbol } from "@calcom/lib/currencyConversions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import turndown from "@calcom/lib/turndownService";
+import { excludeOrRequireEmailSchema } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
@@ -24,14 +27,13 @@ import {
   Input,
   InputField,
   Label,
-  BooleanToggleGroupField,
 } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
-import { type fieldsSchema, excludeOrRequireEmailSchema } from "./schema";
+import type { fieldsSchema } from "./schema";
 import { getFieldIdentifier } from "./utils/getFieldIdentifier";
 import { getConfig as getVariantsConfig } from "./utils/variantsConfig";
 
@@ -43,9 +45,29 @@ type RhfFormFields = RhfForm["fields"];
 
 type RhfFormField = RhfFormFields[number];
 
+type DataStore = {
+  options: Record<
+    string,
+    {
+      source: { label: string };
+      value: { label: string; value: string; inputPlaceholder?: string }[];
+    }
+  >;
+};
+
 function getCurrentFieldType(fieldForm: UseFormReturn<RhfFormField>) {
   return fieldTypesConfigMap[fieldForm.watch("type") || "text"];
 }
+
+const getLocationFieldType = (field: RhfFormField) => {
+  const baseFieldType = fieldTypesConfigMap[field.type];
+
+  if (field.name === "location") {
+    return { ...baseFieldType, label: "Location" };
+  }
+
+  return baseFieldType;
+};
 
 /**
  * It works with a react-hook-form only.
@@ -60,6 +82,8 @@ export const FormBuilder = function FormBuilder({
   LockedIcon,
   dataStore,
   shouldConsiderRequired,
+  showPriceField,
+  paymentCurrency = "USD",
   showPhoneAndEmailToggle = false,
 }: {
   formProp: string;
@@ -72,20 +96,14 @@ export const FormBuilder = function FormBuilder({
   /**
    * A readonly dataStore that is used to lookup the options for the fields. It works in conjunction with the field.getOptionAt property which acts as the key in options
    */
-  dataStore: {
-    options: Record<
-      string,
-      {
-        source: { label: string };
-        value: { label: string; value: string; inputPlaceholder?: string }[];
-      }
-    >;
-  };
+  dataStore: DataStore;
   /**
    * This is kind of a hack to allow certain fields to be just shown as required when they might not be required in a strict sense
    * e.g. Location field has a default value at backend so API can send no location but formBuilder in UI doesn't allow it.
    */
   shouldConsiderRequired?: (field: RhfFormField) => boolean | undefined;
+  showPriceField?: boolean;
+  paymentCurrency?: string;
 }) {
   // I would have liked to give Form Builder it's own Form but nested Forms aren't something that browsers support.
   // So, this would reuse the same Form as the parent form.
@@ -227,7 +245,7 @@ export const FormBuilder = function FormBuilder({
               return null;
             }
 
-            const fieldType = fieldTypesConfigMap[field.type];
+            const fieldType = getLocationFieldType(field);
             const isFieldEditableSystemButOptional = field.editable === "system-but-optional";
             const isFieldEditableSystemButHidden = field.editable === "system-but-hidden";
             const isFieldEditableSystem = field.editable === "system";
@@ -391,6 +409,8 @@ export const FormBuilder = function FormBuilder({
             });
           }}
           shouldConsiderRequired={shouldConsiderRequired}
+          showPriceField={showPriceField}
+          paymentCurrency={paymentCurrency}
         />
       )}
     </div>
@@ -404,13 +424,19 @@ function Options({
   onChange = () => {},
   className = "",
   readOnly = false,
+  showPrice = false,
+  paymentCurrency,
 }: {
   label?: string;
-  value: { label: string; value: string }[];
-  onChange?: (value: { label: string; value: string }[]) => void;
+  value: { label: string; value: string; price?: number }[];
+  onChange?: (value: { label: string; value: string; price?: number }[]) => void;
   className?: string;
   readOnly?: boolean;
+  showPrice?: boolean;
+  paymentCurrency: string;
 }) {
+  const { t } = useLocale();
+
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
   if (!value) {
     onChange([
@@ -427,26 +453,52 @@ function Options({
   return (
     <div className={className}>
       <Label>{label}</Label>
-      <div className="bg-muted rounded-md p-4">
+      <div className="bg-muted rounded-md p-4" data-testid="options-container">
         <ul ref={animationRef} className="flex flex-col gap-1">
           {value?.map((option, index) => (
             <li key={index}>
-              <div className="flex items-center">
-                <Input
-                  required
-                  value={option.label}
-                  onChange={(e) => {
-                    // Right now we use label of the option as the value of the option. It allows us to not separately lookup the optionId to know the optionValue
-                    // It has the same drawback that if the label is changed, the value of the option will change. It is not a big deal for now.
-                    value.splice(index, 1, {
-                      label: e.target.value,
-                      value: e.target.value.trim(),
-                    });
-                    onChange(value);
-                  }}
-                  readOnly={readOnly}
-                  placeholder={`Enter Option ${index + 1}`}
-                />
+              <div className="flex items-center gap-2">
+                <div className="flex-grow">
+                  <Input
+                    required
+                    value={option.label}
+                    onChange={(e) => {
+                      // Right now we use label of the option as the value of the option. It allows use to not separately lookup the optionId to know the optionValue
+                      // It has the same drawback that if the label is changed, the value of the option will change. It is not a big deal for now.
+                      const newOptions = [...(value || [])];
+                      newOptions.splice(index, 1, {
+                        label: e.target.value,
+                        value: e.target.value.trim(),
+                      });
+                      onChange(newOptions);
+                    }}
+                    readOnly={readOnly}
+                    placeholder={t("enter_option", { index: index + 1 })}
+                  />
+                </div>
+                {showPrice && (
+                  <div className="w-24">
+                    <InputField
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={option.price}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const numValue = val === "" ? undefined : Number(val);
+                        const updatedOptions = [...(value || [])];
+                        updatedOptions[index] = {
+                          ...option,
+                          price: numValue,
+                        };
+                        onChange(updatedOptions);
+                      }}
+                      readOnly={readOnly}
+                      placeholder="0"
+                      addOnLeading={getCurrencySymbol(paymentCurrency)}
+                    />
+                  </div>
+                )}
                 {value.length > 2 && !readOnly && (
                   <Button
                     type="button"
@@ -455,10 +507,8 @@ function Options({
                     color="minimal"
                     StartIcon="x"
                     onClick={() => {
-                      if (!value) {
-                        return;
-                      }
-                      const newOptions = [...value];
+                      if (!value) return;
+                      const newOptions = [...(value || [])];
                       newOptions.splice(index, 1);
                       onChange(newOptions);
                     }}
@@ -471,9 +521,11 @@ function Options({
         {!readOnly && (
           <Button
             color="minimal"
+            data-testid="add-option"
             onClick={() => {
-              value.push({ label: "", value: "" });
-              onChange(value);
+              const newOptions = [...(value || [])];
+              newOptions.push({ label: "", value: "", price: 0 });
+              onChange(newOptions);
             }}
             StartIcon="plus">
             Add an Option
@@ -510,13 +562,18 @@ function FieldEditDialog({
   onOpenChange,
   handleSubmit,
   shouldConsiderRequired,
+  showPriceField,
+  paymentCurrency,
 }: {
   dialog: { isOpen: boolean; fieldIndex: number; data: RhfFormField | null };
   onOpenChange: (isOpen: boolean) => void;
   handleSubmit: SubmitHandler<RhfFormField>;
   shouldConsiderRequired?: (field: RhfFormField) => boolean | undefined;
+  showPriceField?: boolean;
+  paymentCurrency: string;
 }) {
   const { t } = useLocale();
+  const isPlatform = useIsPlatform();
   const fieldForm = useForm<RhfFormField>({
     defaultValues: dialog.data || {},
     //resolver: zodResolver(fieldSchema),
@@ -566,7 +623,7 @@ function FieldEditDialog({
                 }
                 fieldForm.setValue("type", value, { shouldDirty: true });
               }}
-              value={fieldTypesConfigMap[formFieldType]}
+              value={dialog.data ? getLocationFieldType(dialog.data) : fieldTypesConfigMap[formFieldType]}
               options={fieldTypes.filter((f) => !f.systemOnly)}
               label={t("input_type")}
             />
@@ -594,7 +651,7 @@ function FieldEditDialog({
                       {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
                     />
                     <div>
-                      {formFieldType === "boolean" ? (
+                      {formFieldType === "boolean" && !isPlatform ? (
                         <CheckboxFieldLabel fieldForm={fieldForm} />
                       ) : (
                         <InputField
@@ -622,7 +679,15 @@ function FieldEditDialog({
                       <Controller
                         name="options"
                         render={({ field: { value, onChange } }) => {
-                          return <Options onChange={onChange} value={value} className="mt-6" />;
+                          return (
+                            <Options
+                              onChange={onChange}
+                              value={value}
+                              className="mt-6"
+                              showPrice={showPriceField && fieldType.optionsSupportPricing}
+                              paymentCurrency={paymentCurrency}
+                            />
+                          );
                         }}
                       />
                     ) : null}
@@ -673,26 +738,46 @@ function FieldEditDialog({
                       />
                     )}
 
-                    <Controller
-                      name="required"
-                      control={fieldForm.control}
-                      render={({ field: { value, onChange } }) => {
-                        const isRequired = shouldConsiderRequired
-                          ? shouldConsiderRequired(fieldForm.getValues())
-                          : value;
-                        return (
-                          <BooleanToggleGroupField
-                            data-testid="field-required"
-                            disabled={fieldForm.getValues("editable") === "system"}
-                            value={isRequired}
-                            onValueChange={(val) => {
-                              onChange(val);
-                            }}
-                            label={t("required")}
-                          />
-                        );
-                      }}
-                    />
+                    {/* Add price field only for fields that support pricing */}
+                    {showPriceField && fieldType.supportsPricing && (
+                      <InputField
+                        {...fieldForm.register("price")}
+                        containerClassName="mt-6"
+                        label={t("price")}
+                        type="number"
+                        min={0}
+                        placeholder="0"
+                        addOnLeading={getCurrencySymbol(paymentCurrency)}
+                      />
+                    )}
+
+                    <div className="mt-6">
+                      <Controller
+                        name="required"
+                        control={fieldForm.control}
+                        render={({ field: { value, onChange } }) => {
+                          let isRequired = shouldConsiderRequired
+                            ? shouldConsiderRequired(fieldForm.getValues())
+                            : value;
+                          //by default question should be required
+                          if (isRequired === undefined) {
+                            isRequired = true;
+                            onChange(isRequired);
+                          }
+                          return (
+                            <CheckboxField
+                              data-testid="field-required"
+                              disabled={fieldForm.getValues("editable") === "system"}
+                              checked={isRequired}
+                              onChange={(e) => {
+                                onChange(e.target.checked);
+                              }}
+                              description={t("make_field_required")}
+                            />
+                          );
+                        }}
+                      />
+                    </div>
                   </>
                 );
               }
@@ -880,10 +965,12 @@ function VariantFields({
         label={t("identifier")}
       />
 
-      <CheckboxField
-        description={t("disable_input_if_prefilled")}
-        {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
-      />
+      <div className="mt-2">
+        <CheckboxField
+          description={t("disable_input_if_prefilled")}
+          {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
+        />
+      </div>
 
       <ul
         className={classNames(
@@ -921,23 +1008,25 @@ function VariantFields({
                 placeholder={t(appUiFieldConfig?.defaultPlaceholder || "")}
               />
 
-              <Controller
-                name={`${rhfVariantFieldPrefix}.required`}
-                control={fieldForm.control}
-                render={({ field: { onChange } }) => {
-                  return (
-                    <BooleanToggleGroupField
-                      data-testid="field-required"
-                      disabled={!appUiFieldConfig?.canChangeRequirability}
-                      value={f.required}
-                      onValueChange={(val) => {
-                        onChange(val);
-                      }}
-                      label={t("required")}
-                    />
-                  );
-                }}
-              />
+              <div className="mt-6">
+                <Controller
+                  name={`${rhfVariantFieldPrefix}.required`}
+                  control={fieldForm.control}
+                  render={({ field: { onChange } }) => {
+                    return (
+                      <CheckboxField
+                        data-testid="field-required"
+                        disabled={!appUiFieldConfig?.canChangeRequirability}
+                        checked={f.required}
+                        onChange={(e) => {
+                          onChange(e.target.checked);
+                        }}
+                        description={t("make_field_required")}
+                      />
+                    );
+                  }}
+                />
+              </div>
             </li>
           );
         })}

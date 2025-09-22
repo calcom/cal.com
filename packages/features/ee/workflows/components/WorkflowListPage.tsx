@@ -1,11 +1,12 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { Membership, Workflow } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { WorkflowPermissions } from "@calcom/lib/server/repository/workflow-permissions";
+import type { Membership, Workflow } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { ArrowButton } from "@calcom/ui/components/arrow-button";
@@ -52,7 +53,8 @@ export type WorkflowType = Workflow & {
       };
     };
   }[];
-  readOnly?: boolean;
+  readOnly?: boolean; // Keep for backward compatibility
+  permissions?: WorkflowPermissions;
   isOrg?: boolean;
 };
 interface Props {
@@ -136,7 +138,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                               : "Untitled"}
                           </div>
                           <div>
-                            {workflow.readOnly && (
+                            {(workflow.permissions?.readOnly ?? workflow.readOnly) && (
                               <Badge variant="gray" className="ml-2 ">
                                 {t("readonly")}
                               </Badge>
@@ -257,7 +259,9 @@ export default function WorkflowListPage({ workflows }: Props) {
                               color="secondary"
                               variant="icon"
                               StartIcon="pencil"
-                              disabled={workflow.readOnly}
+                              disabled={
+                                workflow.permissions ? !workflow.permissions?.canUpdate : workflow.readOnly
+                              }
                               onClick={async () => await router.replace(`/workflows/${workflow.id}`)}
                               data-testid="edit-button"
                             />
@@ -270,40 +274,52 @@ export default function WorkflowListPage({ workflows }: Props) {
                               }}
                               color="secondary"
                               variant="icon"
-                              disabled={workflow.readOnly}
+                              disabled={
+                                workflow.permissions ? !workflow.permissions?.canDelete : workflow.readOnly
+                              }
                               StartIcon="trash-2"
                               data-testid="delete-button"
                             />
                           </Tooltip>
                         </ButtonGroup>
                       </div>
-                      {!workflow.readOnly && (
+                      {(workflow.permissions?.canUpdate ||
+                        workflow.permissions?.canDelete ||
+                        (!workflow.permissions && !workflow.readOnly)) && (
                         <div className="block sm:hidden">
                           <Dropdown>
                             <DropdownMenuTrigger asChild>
                               <Button type="button" color="minimal" variant="icon" StartIcon="ellipsis" />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
-                              <DropdownMenuItem>
-                                <DropdownItem
-                                  type="button"
-                                  StartIcon="pencil"
-                                  onClick={async () => await router.replace(`/workflows/${workflow.id}`)}>
-                                  {t("edit")}
-                                </DropdownItem>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <DropdownItem
-                                  type="button"
-                                  color="destructive"
-                                  StartIcon="trash-2"
-                                  onClick={() => {
-                                    setDeleteDialogOpen(true);
-                                    setwWorkflowToDeleteId(workflow.id);
-                                  }}>
-                                  {t("delete")}
-                                </DropdownItem>
-                              </DropdownMenuItem>
+                              {(workflow.permissions
+                                ? workflow.permissions?.canUpdate
+                                : !workflow.readOnly) && (
+                                <DropdownMenuItem>
+                                  <DropdownItem
+                                    type="button"
+                                    StartIcon="pencil"
+                                    onClick={async () => await router.replace(`/workflows/${workflow.id}`)}>
+                                    {t("edit")}
+                                  </DropdownItem>
+                                </DropdownMenuItem>
+                              )}
+                              {(workflow.permissions
+                                ? workflow.permissions?.canDelete
+                                : !workflow.readOnly) && (
+                                <DropdownMenuItem>
+                                  <DropdownItem
+                                    type="button"
+                                    color="destructive"
+                                    StartIcon="trash-2"
+                                    onClick={() => {
+                                      setDeleteDialogOpen(true);
+                                      setwWorkflowToDeleteId(workflow.id);
+                                    }}>
+                                    {t("delete")}
+                                  </DropdownItem>
+                                </DropdownMenuItem>
+                              )}
                             </DropdownMenuContent>
                           </Dropdown>
                         </div>

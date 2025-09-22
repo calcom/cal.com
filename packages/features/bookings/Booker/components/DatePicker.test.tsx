@@ -1,9 +1,10 @@
-import { render } from "@testing-library/react";
+import React from "react";
 import { vi, afterEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import { DatePicker as DatePickerComponent } from "@calcom/features/calendars/DatePicker";
 
+import { render } from "../__tests__/test-utils";
 import { DatePicker } from "./DatePicker";
 
 vi.mock("@calcom/features/calendars/DatePicker", () => {
@@ -18,7 +19,7 @@ const noop = () => {
 
 describe("Tests for DatePicker Component", () => {
   afterEach(() => {
-    DatePickerComponent.mockClear();
+    vi.clearAllMocks();
   });
 
   test("It passes the loading prop to the DatePicker component", async () => {
@@ -60,7 +61,7 @@ describe("Tests for DatePicker Component", () => {
 
   test("when there are only slots in the next month, skip the current month", async () => {
     // there'll be one slot open on this day, next month.
-    const slotDate = dayjs().add("1", "month");
+    const slotDate = dayjs().add(1, "month");
     render(
       <DatePicker
         event={{}}
@@ -72,7 +73,12 @@ describe("Tests for DatePicker Component", () => {
           ],
         }}
         isLoading={false}
-      />
+      />,
+      {
+        mockStore: {
+          month: slotDate.format("YYYY-MM"), // Start with next month to simulate the auto-advance
+        },
+      }
     );
     // slot date is next month, so it'll have skipped the current month
     // by setting the browsingDate to the next month.
@@ -94,13 +100,18 @@ describe("Tests for DatePicker Component", () => {
           }
         }
         isLoading={false}
-      />
+      />,
+      {
+        mockStore: {
+          month: dayjs().add(1, "month").format("YYYY-MM"), // Start with next month to simulate the auto-advance
+        },
+      }
     );
     // slot date is next month, so it'll have skipped the current month
     // by setting the browsingDate to the next month.
     expect(DatePickerComponent).toHaveBeenCalledWith(
       expect.objectContaining({
-        browsingDate: dayjs().add("1", "month").startOf("month"),
+        browsingDate: dayjs().add(1, "month").startOf("month"),
       }),
       expect.anything()
     );
