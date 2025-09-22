@@ -3,6 +3,7 @@ import type { z } from "zod";
 
 import type { routingFormResponseInDbSchema } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
+import { HttpError } from "@calcom/lib/http-error";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import prisma from "@calcom/prisma";
@@ -180,21 +181,21 @@ async function saveBooking(
   return prisma.$transaction(async (tx) => {
     // If we have a reservedSlotUid, validate that the reservation exists and delete it
     if (reservedSlotUid) {
-      const reservation = await tx.selectedSlots.findUnique({
+      const reservation = await tx.selectedSlots.findFirst({
         where: { uid: reservedSlotUid },
       });
       
       if (!reservation) {
-        throw new Error("Reserved slot not found or already consumed");
+        throw new HttpError({ statusCode: 409, message: "reserved_slot_not_found" });
       }
       
       // Check if reservation is still valid (not expired)
       if (reservation.releaseAt && dayjs().isAfter(reservation.releaseAt)) {
         // Clean up expired reservation and throw error
-        await tx.selectedSlots.delete({
+        await tx.selectedSlots.deleteMany({
           where: { uid: reservedSlotUid },
         });
-        throw new Error("Reserved slot has expired");
+        throw new HttpError({ statusCode: 410, message: "reserved_slot_expired" });
       }
       
       // Validate that the reservation matches the booking time slot
@@ -203,14 +204,15 @@ async function saveBooking(
       const reservationStart = dayjs(reservation.slotUtcStartDate);
       const reservationEnd = dayjs(reservation.slotUtcEndDate);
       
-      if (!bookingStart.isSame(reservationStart) || !bookingEnd.isSame(reservationEnd)) {
-        throw new Error("Reserved slot time does not match booking time");
+      if (!bookingStart.isSame(reservationStart, "minute") || !bookingEnd.isSame(reservationEnd, "minute")) {
+        throw new HttpError({ statusCode: 400, message: "reserved_slot_time_mismatch" });
       }
       
-      // Delete the reservation to consume it
-      await tx.selectedSlots.delete({
-        where: { uid: reservedSlotUid },
-      });
+      // Delete the reservation to consume it (race-proof)
+      const { count } = await tx.selectedSlots.deleteMany({ where: { uid: reservedSlotUid } });
+      if (count !== 1) {
+        throw new HttpError({ statusCode: 409, message: "reserved_slot_not_found" });
+      }
     }
 
     if (originalBookingUpdateDataForCancellation) {

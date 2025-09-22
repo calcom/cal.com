@@ -58,7 +58,7 @@ export const useHandleBookEvent = ({
   const recurringEventCount = useBookerStoreContext((state) => state.recurringEventCount);
   const bookingData = useBookerStoreContext((state) => state.bookingData);
   const seatedEventData = useBookerStoreContext((state) => state.seatedEventData);
-  const [reservedSlotUid] = useSlotReservationId();
+  const [reservedSlotUid, setReservedSlotUid] = useSlotReservationId();
   const isInstantMeeting = useBookerStoreContext((state) => state.isInstantMeeting);
   const orgSlug = useBookerStoreContext((state) => state.org);
   const teamMemberEmail = useBookerStoreContext((state) => state.teamMemberEmail);
@@ -117,20 +117,46 @@ export const useHandleBookEvent = ({
         routingFormSearchParams,
         isDryRunProp: isBookingDryRun,
         verificationCode: verificationCode || undefined,
-        reservedSlotUid: reservedSlotUid || undefined,
+        // Only include reservedSlotUid for scheduling types that support reservations
+        ...(event.data.schedulingType !== "ROUND_ROBIN" && 
+            event.data.schedulingType !== "COLLECTIVE" && {
+          reservedSlotUid: reservedSlotUid || undefined,
+        }),
       };
 
       const tracking = getUtmTrackingParameters(searchParams);
 
+      // Clear reservation on successful booking
+      const clearReservationOnSuccess = () => {
+        if (reservedSlotUid && 
+            event.data.schedulingType !== "ROUND_ROBIN" && 
+            event.data.schedulingType !== "COLLECTIVE") {
+          setReservedSlotUid(null);
+        }
+      };
+
+      // Enhanced callbacks to clear reservation on success
+      const enhancedCallbacks: Callbacks = callbacks ? {
+        ...callbacks,
+        onSuccess: () => {
+          clearReservationOnSuccess();
+          if (callbacks.onSuccess) {
+            callbacks.onSuccess();
+          }
+        },
+      } : {
+        onSuccess: clearReservationOnSuccess,
+      };
+
       if (isInstantMeeting) {
-        handleInstantBooking(mapBookingToMutationInput(bookingInput), callbacks);
+        handleInstantBooking(mapBookingToMutationInput(bookingInput), enhancedCallbacks);
       } else if (event.data?.recurringEvent?.freq && recurringEventCount && !rescheduleUid) {
         handleRecBooking(
           mapRecurringBookingToMutationInput(bookingInput, recurringEventCount, tracking),
-          callbacks
+          enhancedCallbacks
         );
       } else {
-        handleBooking({ ...mapBookingToMutationInput(bookingInput), locationUrl, tracking }, callbacks);
+        handleBooking({ ...mapBookingToMutationInput(bookingInput), locationUrl, tracking }, enhancedCallbacks);
       }
       // Clears form values stored in store, so old values won't stick around.
       setFormValues({});

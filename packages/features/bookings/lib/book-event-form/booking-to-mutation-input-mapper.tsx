@@ -130,7 +130,7 @@ export const mapRecurringBookingToMutationInput = (
 
   const input = mapBookingToMutationInput({ ...booking, bookingUid: undefined });
 
-  return recurringDates.map((recurringDate) => ({
+  return recurringDates.map((recurringDate, index) => ({
     ...input,
     start: dayjs(recurringDate).format(),
     end: dayjs(recurringDate)
@@ -140,5 +140,7 @@ export const mapRecurringBookingToMutationInput = (
     schedulingType: booking.event.schedulingType || undefined,
     recurringCount: recurringDates.length,
     tracking,
+    // Only include reservedSlotUid for the first occurrence
+    reservedSlotUid: index === 0 ? input.reservedSlotUid : undefined,
   }));
 };
