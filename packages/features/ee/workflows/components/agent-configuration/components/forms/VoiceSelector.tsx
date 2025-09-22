@@ -23,7 +23,7 @@ export function VoiceSelector({ selectedVoiceId, onVoiceDialogOpen, disabled = f
         disabled={disabled}
         className="w-full justify-start">
         <Icon name="user" className="mr-2 h-4 w-4" />
-        {selectedVoiceId ? <span className="font-mono text-sm">{selectedVoiceId}</span> : t("select_voice")}
+        {selectedVoiceId ? <span className="text-sm">{selectedVoiceId}</span> : t("select_voice")}
       </Button>
     </div>
   );

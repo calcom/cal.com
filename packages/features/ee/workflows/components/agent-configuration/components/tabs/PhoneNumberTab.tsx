@@ -19,7 +19,7 @@ import {
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
-import type { FormValues } from "../../../../../pages/workflow";
+import type { FormValues } from "../../../../pages/workflow";
 import { TestPhoneCallDialog } from "../../../TestPhoneCallDialog";
 import { WebCallDialog } from "../../../WebCallDialog";
 import { usePhoneNumberActions } from "../../hooks/usePhoneNumberActions";

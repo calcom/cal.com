@@ -31,8 +31,6 @@ export const updateInboundAgentEventTypeHandler = async ({
       teamId,
     });
 
-    console.log("agentDetails", agentDetails);
-
     if (!agentDetails.retellData.generalPrompt) {
       throw new Error("Agent configuration not found");
     }
@@ -55,17 +53,11 @@ export const updateInboundAgentEventTypeHandler = async ({
     const result = await aiService.updateAgentConfiguration({
       id: agentId,
       userId,
+      teamId,
       generalPrompt: updatedPrompt,
     });
 
     await PrismaAgentRepository.updateEventTypeId({
-      agentId,
-      eventTypeId,
-    });
-
-    console.log("result", result);
-
-    log.info("Inbound agent prompt updated", {
       agentId,
       eventTypeId,
     });

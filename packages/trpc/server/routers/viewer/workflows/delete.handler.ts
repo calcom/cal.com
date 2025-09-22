@@ -52,6 +52,11 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
               },
             },
           },
+          inboundAgent: {
+            select: {
+              id: true,
+            },
+          },
         },
       },
       team: {
@@ -110,7 +115,18 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
           });
         } catch (error) {
           console.error(`Failed to delete agent ${step.agent.id}:`, error);
-          // Continue with deletion even if agent deletion fails
+        }
+      }
+
+      if (step.inboundAgent) {
+        try {
+          await aiPhoneService.deleteAgent({
+            id: step.inboundAgent.id,
+            userId: ctx.user.id,
+            teamId: workflowToDelete.teamId ?? undefined,
+          });
+        } catch (error) {
+          console.error(`Failed to delete inbound agent ${step.inboundAgent.id}:`, error);
         }
       }
     }
