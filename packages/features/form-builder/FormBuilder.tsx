@@ -597,7 +597,7 @@ function FieldEditDialog({
 
     // We need to set the variantsConfig in the RHF instead of using a derived value because RHF won't have the variantConfig for the variant that's not rendered yet.
     fieldForm.setValue("variantsConfig", variantsConfig);
-  }, [fieldForm, formFieldType]);
+  }, [fieldForm]);
 
   const isFieldEditMode = !!dialog.data;
   const fieldType = getCurrentFieldType(fieldForm);
