@@ -128,9 +128,11 @@ export const mapRecurringBookingToMutationInput = (
     booking.language
   );
 
-  const input = mapBookingToMutationInput({ ...booking, bookingUid: undefined });
+  // Include reservation only for the first occurrence to avoid double-consume attempts
+  const { reservedSlotUid, ...bookingWithoutReservation } = booking;
+  const input = mapBookingToMutationInput({ ...bookingWithoutReservation, bookingUid: undefined });
 
-  return recurringDates.map((recurringDate, index) => ({
+  return recurringDates.map((recurringDate, idx) => ({
     ...input,
     start: dayjs(recurringDate).format(),
     end: dayjs(recurringDate)
@@ -140,7 +142,7 @@ export const mapRecurringBookingToMutationInput = (
     schedulingType: booking.event.schedulingType || undefined,
     recurringCount: recurringDates.length,
     tracking,
-    // Only include reservedSlotUid for the first occurrence
-    reservedSlotUid: index === 0 ? input.reservedSlotUid : undefined,
+    // Only first occurrence should consume the reservation
+    reservedSlotUid: idx === 0 ? reservedSlotUid : undefined,
   }));
 };
