@@ -1,10 +1,16 @@
 import { Button } from "@calid/features/ui/components/button";
 import { Calendar } from "@calid/features/ui/components/calendar";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@calid/features/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@calid/features/ui/components/card";
 import { CustomSelect } from "@calid/features/ui/components/custom-select";
 import { Icon } from "@calid/features/ui/components/icon";
 import { CheckboxField } from "@calid/features/ui/components/input/checkbox-field";
-import { Input, NumberInput } from "@calid/features/ui/components/input/input";
+import { NumberInput } from "@calid/features/ui/components/input/input";
 import { Label } from "@calid/features/ui/components/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@calid/features/ui/components/popover";
 import { RadioGroup } from "@calid/features/ui/components/radio-group";
@@ -415,7 +421,7 @@ const RangeLimitRadioItem = memo(
                       {formatDateRange()}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto bg-white p-0" align="end">
+                  <PopoverContent className="bg-primary w-auto p-0" align="end">
                     <Calendar
                       mode="range"
                       selected={dateRange && dateRange.from ? dateRange : undefined}
@@ -776,7 +782,7 @@ const BeforeAfterEventSection = memo(() => {
           <div className="space-y-6">
             {/* Buffer Time Selector */}
             <div>
-              <Label >
+              <Label>
                 {t("before_event")}
                 {shouldLockIndicator("beforeBufferTime")}
               </Label>
@@ -796,7 +802,7 @@ const BeforeAfterEventSection = memo(() => {
 
             {/* Minimum Booking Notice */}
             <div>
-              <Label >
+              <Label>
                 {t("minimum_booking_notice")}
                 {shouldLockIndicator("minimumBookingNotice")}
               </Label>
@@ -815,7 +821,7 @@ const BeforeAfterEventSection = memo(() => {
           <div className="space-y-6">
             {/* After Event Buffer */}
             <div>
-              <Label >
+              <Label>
                 {t("after_event")}
                 {shouldLockIndicator("afterBufferTime")}
               </Label>
@@ -835,7 +841,7 @@ const BeforeAfterEventSection = memo(() => {
 
             {/* Slot Interval */}
             <div>
-              <Label >
+              <Label>
                 {t("slot_interval")}
                 {shouldLockIndicator("slotInterval")}
               </Label>

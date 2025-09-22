@@ -9222,7 +9222,7 @@ hr {}
   background-color: rgb(76 29 149 / var(--tw-bg-opacity));
 }
 
-.bg-white {
+.bg-primary {
   --tw-bg-opacity: 1;
   background-color: rgb(255 255 255 / var(--tw-bg-opacity));
 }
@@ -11424,7 +11424,7 @@ hr {}
   color: rgb(76 29 149 / var(--tw-text-opacity));
 }
 
-.text-white {
+.text-default {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity));
 }
@@ -17143,7 +17143,7 @@ html.todesktop .todesktop\:\[-webkit-app-region\:drag\] {
   font-family: var(--font-cal), ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
 }
 
-.prose-h3\:text-white :is(:where(h3):not(:where([class~="not-prose"] *))) {
+.prose-h3\:text-default :is(:where(h3):not(:where([class~="not-prose"] *))) {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity));
 }
@@ -17152,7 +17152,7 @@ html.todesktop .todesktop\:\[-webkit-app-region\:drag\] {
   color: var(--cal-text);
 }
 
-.prose-a\:text-white :is(:where(a):not(:where([class~="not-prose"] *))) {
+.prose-a\:text-default :is(:where(a):not(:where([class~="not-prose"] *))) {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity));
 }
@@ -19374,7 +19374,7 @@ html.todesktop .todesktop\:\[-webkit-app-region\:drag\] {
   background-color: rgb(76 29 149 / var(--tw-bg-opacity));
 }
 
-.hover\:bg-white:hover {
+.hover\:bg-primary:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(255 255 255 / var(--tw-bg-opacity));
 }
@@ -20515,7 +20515,7 @@ html.todesktop .todesktop\:\[-webkit-app-region\:drag\] {
   color: rgb(76 29 149 / var(--tw-text-opacity));
 }
 
-.hover\:text-white:hover {
+.hover\:text-default:hover {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity));
 }
@@ -22386,12 +22386,12 @@ html.todesktop .todesktop\:hover\:bg-transparent:hover {
   background-color: transparent;
 }
 
-:is(.dark .dark\:bg-white) {
+:is(.dark .dark\:bg-primary) {
   --tw-bg-opacity: 1;
   background-color: rgb(255 255 255 / var(--tw-bg-opacity));
 }
 
-:is(.dark .dark\:bg-white\/5) {
+:is(.dark .dark\:bg-primary\/5) {
   background-color: rgb(255 255 255 / 0.05);
 }
 
@@ -22510,7 +22510,7 @@ html.todesktop .todesktop\:hover\:bg-transparent:hover {
   color: var(--cal-text-subtle);
 }
 
-:is(.dark .dark\:text-white) {
+:is(.dark .dark\:text-default) {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity));
 }

@@ -11,7 +11,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "./button";
 
 const dialogClasses = cva(
-  "fixed left-[50%] top-[50%] z-50 grid w-[95vw] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-md border bg-white shadow-lg duration-200",
+  "fixed left-[50%] top-[50%] z-50 grid w-[95vw] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-md border bg-primary shadow-lg duration-200",
   {
     variants: {
       size: {
@@ -183,7 +183,7 @@ export const DialogTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
-    className={cn("text-lg font-semibold leading-none tracking-tight text-slate-900", className)}
+    className={cn("text-primary text-lg font-semibold leading-none tracking-tight", className)}
     {...props}
   />
 ));

@@ -237,7 +237,7 @@ const OnboardingPage = ({
   return (
     <div
       key={pathname}
-      className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen bg-white px-4"
+      className="dark:bg-brand dark:text-brand-contrast text-emphasis bg-primary min-h-screen px-4"
       data-testid="onboarding">
       <div className="mx-auto py-6 sm:px-4 md:py-24">
         <div className="relative">

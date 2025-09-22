@@ -74,7 +74,7 @@ export const TeamsFilter: React.FC<TeamsFilterProps> = ({ profiles }) => {
   );
 
   const UserFilterItem = ({ disabled = false }: { disabled?: boolean }) => (
-    <div className="item-center focus-within:bg-subtle hover:bg-muted flex px-4 py-[6px] transition hover:cursor-pointer">
+    <div className="item-center bg-muted  hover:bg-emphasis flex px-4 py-[6px] transition hover:cursor-pointer">
       <Avatar imageSrc={userAvatar || ""} size="sm" alt={`${user} Avatar`} className="self-center" asChild />
       <label
         htmlFor="yourWorkflows"
@@ -107,7 +107,7 @@ export const TeamsFilter: React.FC<TeamsFilterProps> = ({ profiles }) => {
         <UserFilterItem />
         {teams.map((profile) => (
           <div
-            className="item-center focus-within:bg-subtle hover:bg-muted flex px-4 py-[6px] transition hover:cursor-pointer"
+            className="item-center hover:bg-emphasis bg-muted flex px-4 py-[6px] transition hover:cursor-pointer"
             key={profile.id}>
             <Avatar
               imageSrc={profile.logoUrl || ""}

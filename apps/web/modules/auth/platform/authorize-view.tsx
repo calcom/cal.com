@@ -59,7 +59,7 @@ export default function Authorize() {
 
   return (
     <div className="flex min-h-screen items-center justify-center">
-      <div className="mt-2 max-w-xl rounded-md bg-white px-9 pb-3 pt-2">
+      <div className="bg-primary mt-2 max-w-xl rounded-md px-9 pb-3 pt-2">
         <div className="flex items-center justify-center">
           {/*
            below is where the client logo will be displayed 
@@ -85,7 +85,7 @@ export default function Authorize() {
           )}
           <div className="relative -ml-6 h-24 w-24">
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="flex h-[70px] w-[70px] items-center justify-center  rounded-full bg-white">
+              <div className="bg-primary flex h-[70px] w-[70px] items-center  justify-center rounded-full">
                 <img src="/cal-com-icon.svg" alt="Logo" className="h-16 w-16 rounded-full" />
               </div>
             </div>
@@ -118,7 +118,7 @@ export default function Authorize() {
             }}>
             {t("go_back")}
           </Button>
-          <Button data-testid="allow-button" className="bg-black text-white">
+          <Button data-testid="allow-button" className="bg-black text-default">
             {t("allow")}
           </Button>
         </div>

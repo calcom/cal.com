@@ -39,7 +39,7 @@ export function Logout(props: PageProps) {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-white px-4 sm:px-6 lg:px-8">
+    <div className="bg-primary flex min-h-screen items-center justify-center px-4 sm:px-6 lg:px-8">
       <div className="border-subtle w-full max-w-lg rounded-2xl border p-8 shadow-xl">
         <div className="mb-8 text-center">
           <div className="mb-8 flex items-center justify-center space-x-2">

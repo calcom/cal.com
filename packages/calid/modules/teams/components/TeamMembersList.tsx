@@ -458,7 +458,7 @@ export function TeamMembersList({
       {/* Table container */}
       <div
         ref={tableContainerRef}
-        className="border-subtle overflow-auto rounded-lg border bg-white"
+        className="border-subtle bg-primary overflow-auto rounded-lg border"
         style={{ height: "600px" }}>
         {/* Table header */}
         <div className="border-subtle sticky top-0 z-10 border-b bg-gray-50">
@@ -522,7 +522,7 @@ export function TeamMembersList({
 
       {/* Bulk actions bar */}
       {enableBulkActions && selectedCount > 0 && (
-        <div className="border-subtle fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-4 rounded-md border bg-white px-4 py-2 shadow-md">
+        <div className="border-subtle bg-primary fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-4 rounded-md border px-4 py-2 shadow-md">
           <span className="text-brand-subtle text-sm font-medium">
             {selectedCount} member{selectedCount > 1 ? "s" : ""} selected
           </span>

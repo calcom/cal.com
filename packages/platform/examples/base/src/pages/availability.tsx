@@ -32,12 +32,12 @@ export default function Availability(props: { calUsername: string; calEmail: str
         <div className="mx-10 mb-4 flex gap-4">
           <button
             onClick={handleValidate}
-            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+            className="bg-primary rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
             Validate Form
           </button>
           <button
             onClick={handleSubmit}
-            className="rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+            className="rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-default hover:bg-blue-700">
             Submit Form
           </button>
         </div>

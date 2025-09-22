@@ -134,7 +134,7 @@ const SettingsToggle = ({
             {tooltip && (
               <button className="group relative ml-2 rounded-full p-1 hover:bg-gray-100" title={tooltip}>
                 <Icon name="info" className="h-4 w-4 text-gray-400" />
-                <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 transform whitespace-nowrap rounded bg-gray-800 px-3 py-2 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
+                <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 transform whitespace-nowrap rounded bg-gray-800 px-3 py-2 text-xs text-default opacity-0 transition-opacity group-hover:opacity-100">
                   {tooltip}
                 </div>
               </button>

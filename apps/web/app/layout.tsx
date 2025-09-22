@@ -121,7 +121,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         `}</style>
       </head>
       <body
-        className="dark:bg-default bg-white antialiased"
+        className="dark:bg-default bg-primary antialiased"
         style={
           isEmbed
             ? {

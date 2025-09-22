@@ -82,8 +82,8 @@ export default function CredentialActionsDropdown({
             <>
               <DropdownMenuItem className="focus:ring-muted" disabled>
                 <div className="px-2 py-1">
-                  <div className="text-sm font-medium text-gray-900 dark:text-white">{t("cache_status")}</div>
-                  <div className="text-xs text-gray-500 dark:text-white">
+                  <div className="text-sm font-medium text-gray-900 dark:text-default">{t("cache_status")}</div>
+                  <div className="text-xs text-gray-500 dark:text-default">
                     {t("cache_last_updated", {
                       timestamp: new Intl.DateTimeFormat("en-US", {
                         dateStyle: "short",

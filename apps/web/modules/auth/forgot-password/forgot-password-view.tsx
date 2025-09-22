@@ -7,6 +7,7 @@ import { debounce } from "lodash";
 import Link from "next/link";
 import type { SyntheticEvent } from "react";
 import React from "react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 export type PageProps = {
@@ -89,7 +90,7 @@ export default function ForgotPassword(props: PageProps) {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-white px-4 sm:px-6 lg:px-8">
+    <div className="bg-primary flex min-h-screen items-center justify-center px-4 sm:px-6 lg:px-8">
       <div className="border-subtle max-w-lg rounded-2xl border p-8 shadow-xl">
         {success ? (
           <Success />

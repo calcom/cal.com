@@ -26,7 +26,7 @@ export function TeamMembersListSkeletonLoader({
       </div>
 
       {/* Table container skeleton */}
-      <div className="border-subtle overflow-auto rounded-lg border bg-white" style={{ height: "600px" }}>
+      <div className="border-subtle bg-primary overflow-auto rounded-lg border" style={{ height: "600px" }}>
         {/* Table header skeleton */}
         <div className="border-subtle sticky top-0 z-10 border-b bg-gray-50">
           <div className="flex">

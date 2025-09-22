@@ -3,6 +3,7 @@
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
 import { Checkbox } from "@calid/features/ui/components/input/checkbox-field";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 
@@ -12,7 +13,6 @@ import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { triggerToast } from "@calid/features/ui/components/toast";
 
 import { MeetingNotesDialog } from "@components/dialog/MeetingNotesDialog";
 
@@ -34,7 +34,8 @@ export function BookingExpandedCard(props: BookingItemProps) {
   const { description: additionalNotes, id, startTime, endTime, responses } = props;
   const isBookingInPast = new Date(props.endTime) < new Date();
   const parsedMetadata = bookingMetadataSchema.safeParse(props.metadata ?? null);
-  const meetingNote = parsedMetadata.success && parsedMetadata.data ? parsedMetadata.data.meetingNote : undefined;
+  const meetingNote =
+    parsedMetadata.success && parsedMetadata.data ? parsedMetadata.data.meetingNote : undefined;
   const [displayNotes, setDisplayNotes] = useState<string>(meetingNote || "");
   const [editingNotes, setEditingNotes] = useState<string>(meetingNote || "");
   const [showAttendeeDetails, setShowAttendeeDetails] = useState<string | null>(null);
@@ -160,9 +161,9 @@ export function BookingExpandedCard(props: BookingItemProps) {
       )}
 
       <div
-        className="animate-fade-in rounded-b-lg border-t border-muted bg-muted"
+        className="animate-fade-in border-muted bg-muted rounded-b-lg border-t"
         onClick={(e) => e.stopPropagation()}>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8 p-4">
+        <div className="grid grid-cols-1 gap-4 p-4 lg:grid-cols-2 lg:gap-8">
           <div className="space-y-4">
             <div>
               <div className="text-foreground text-sm font-medium">{t("duration")}</div>
@@ -176,7 +177,7 @@ export function BookingExpandedCard(props: BookingItemProps) {
             <div>
               <div className="text-foreground text-sm font-medium">{t("invitee_details")}</div>
               <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                <div className="min-w-0 flex gap-2 items-center overflow-auto">
+                <div className="flex min-w-0 items-center gap-2 overflow-auto">
                   <span>{firstAttendee?.name}</span>
                   <span>•</span>
                   <span>{firstAttendee?.timeZone}</span>
@@ -192,8 +193,8 @@ export function BookingExpandedCard(props: BookingItemProps) {
                     copyToClipboard(firstAttendee?.email || "");
                     triggerToast(t("email_copied"), "success");
                   }}
-                  aria-label="Copy email">
-                </Button>
+                  aria-label="Copy email"
+                />
               </div>
             </div>
 
@@ -205,22 +206,22 @@ export function BookingExpandedCard(props: BookingItemProps) {
                     const idKey = `${id}-${index}`;
                     return (
                       <div key={idKey} className="relative">
-                        <span 
+                        <span
                           ref={(el) => (spanRefs.current[idKey] = el)}
-                          className="text-default text-sm font-normal cursor-pointer hover:bg-muted rounded-md transition-colors"
+                          className="text-default hover:bg-muted cursor-pointer rounded-md text-sm font-normal transition-colors"
                           aria-expanded={showAttendeeDetails === idKey}
                           onMouseEnter={() => {
                             if (hoverTimeoutRef.current) {
                               clearTimeout(hoverTimeoutRef.current);
                               hoverTimeoutRef.current = null;
                             }
-                            
+
                             const span = spanRefs.current[idKey];
                             if (span) {
                               const rect = span.getBoundingClientRect();
                               setDialogPosition({
                                 top: rect.bottom + window.scrollY + 4,
-                                left: rect.left + window.scrollX
+                                left: rect.left + window.scrollX,
                               });
                             }
                             setShowAttendeeDetails(idKey);
@@ -250,8 +251,8 @@ export function BookingExpandedCard(props: BookingItemProps) {
             {displayNotes && (
               <div>
                 <div className="text-foreground text-sm font-medium">{t("meeting_notes")}</div>
-                <div 
-                  className="text-muted-foreground text-sm prose prose-sm max-w-none"
+                <div
+                  className="text-muted-foreground prose prose-sm max-w-none text-sm"
                   dangerouslySetInnerHTML={{ __html: displayNotes }}
                 />
               </div>
@@ -259,7 +260,7 @@ export function BookingExpandedCard(props: BookingItemProps) {
           </div>
 
           {props.showExpandedActions && (
-            <div className="flex flex-col items-start lg:items-end space-y-2">
+            <div className="flex flex-col items-start space-y-2 lg:items-end">
               <MeetingNotesDialog
                 notes={editingNotes}
                 setNotes={setEditingNotes}
@@ -289,11 +290,13 @@ export function BookingExpandedCard(props: BookingItemProps) {
         </div>
       </div>
 
-      {showAttendeeDetails && dialogPosition && typeof document !== 'undefined' && 
+      {showAttendeeDetails &&
+        dialogPosition &&
+        typeof document !== "undefined" &&
         createPortal(
           <div
             ref={popupRef}
-            className="fixed z-[99999] min-w-48 space-y-2 rounded-md border border-border bg-white p-2 shadow-xl"
+            className="border-border bg-primary fixed z-[99999] min-w-48 space-y-2 rounded-md border p-2 shadow-xl"
             style={{
               top: `${dialogPosition.top}px`,
               left: `${dialogPosition.left}px`,
@@ -309,11 +312,11 @@ export function BookingExpandedCard(props: BookingItemProps) {
               setDialogPosition(null);
             }}>
             {(() => {
-              const attendeeIndex = parseInt(showAttendeeDetails.split('-').pop() || '0') + 1;
+              const attendeeIndex = parseInt(showAttendeeDetails.split("-").pop() || "0") + 1;
               const attendee = attendeeList[attendeeIndex];
-              
+
               if (!attendee) return null;
-              
+
               return (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
@@ -327,8 +330,8 @@ export function BookingExpandedCard(props: BookingItemProps) {
                       color="minimal"
                       variant="icon"
                       size="xs"
-                      tooltip={t("copy")}>
-                    </Button>
+                      tooltip={t("copy")}
+                    />
                   </div>
                   <div className="flex items-center gap-2">
                     <Icon name="globe" className="h-4 w-4" />
@@ -406,12 +409,11 @@ const NoShowAttendeesDialog = ({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      onClick={() => setDialog()}
-    >
+      onClick={() => setDialog()}>
       <div
         className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
         onClick={(e) => e.stopPropagation()}>
-        <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+        <div className="bg-primary w-full max-w-md rounded-lg p-6 shadow-xl">
           <h2 className="mb-2 text-xl font-semibold">{t("mark_as_no_show_title")}</h2>
           <p className="mb-6 text-sm text-gray-600">{t("no_show_description")}</p>
 
@@ -420,7 +422,7 @@ const NoShowAttendeesDialog = ({
               <div key={index} className="flex items-center justify-between rounded-lg p-2 hover:bg-gray-50">
                 <div className="flex items-center space-x-3">
                   <div className="bg-cal-active flex h-7 w-7 items-center justify-center rounded-full">
-                    <span className="text-sm font-medium text-white">
+                    <span className="text-sm font-medium text-default">
                       {(attendee.name || attendee?.email).charAt(0)}
                     </span>
                   </div>

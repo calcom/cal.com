@@ -138,13 +138,13 @@ export function UserPage(props: PageProps) {
             {!isOrg && user.verified && (
               <Icon
                 name="badge-check"
-                className="mx-1 -mt-1 inline h-6 w-6 fill-blue-500 text-white dark:text-black"
+                className="text-default mx-1 -mt-1 inline h-6 w-6 fill-blue-500 dark:text-black"
               />
             )}
             {isOrg && (
               <Icon
                 name="badge-check"
-                className="mx-1 -mt-1 inline h-6 w-6 fill-yellow-500 text-white dark:text-black"
+                className="text-default mx-1 -mt-1 inline h-6 w-6 fill-yellow-500 dark:text-black"
               />
             )}
           </h1>
@@ -162,14 +162,14 @@ export function UserPage(props: PageProps) {
         <DividerWithText />
 
         <div
-          className={classNames("bg-default flex flex-col gap-4 rounded-md pb-8 pt-2 lg:max-w-4xl mx-auto")}
+          className={classNames("bg-default mx-auto flex flex-col gap-4 rounded-md pb-8 pt-2 lg:max-w-4xl")}
           data-testid="event-types">
           {eventTypes.map((type) => {
             const iconParams = getIconParamsFromMetadata(type.metadata);
             return (
               <div
                 key={type.id}
-                className="dark:bg-muted dark:hover:bg-emphasis hover:bg-muted border-subtle group relative rounded-md border bg-white shadow-md transition hover:scale-[1.02]"
+                className="dark:bg-muted dark:hover:bg-emphasis hover:bg-muted border-subtle bg-primary group relative rounded-md border shadow-md transition hover:scale-[1.02]"
                 data-testid="event-type-link">
                 {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
                 <div className="block w-full px-2 py-4">

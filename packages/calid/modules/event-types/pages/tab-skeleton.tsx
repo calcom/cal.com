@@ -26,7 +26,7 @@ export const SkeletonContainer = ({
 export const SetupTabSkeleton = () => (
   <div className="space-y-6">
     {/* Title and Description Section */}
-    <SkeletonContainer className="rounded-lg border border-gray-200 bg-white p-6">
+    <SkeletonContainer className="bg-primary rounded-lg border border-gray-200 p-6">
       <div className="space-y-4">
         <SkeletonText className="h-6 w-48" />
         <SkeletonText className="h-4 w-96" />
@@ -38,7 +38,7 @@ export const SetupTabSkeleton = () => (
     </SkeletonContainer>
 
     {/* Duration Section */}
-    <SkeletonContainer className="rounded-lg border border-gray-200 bg-white p-6">
+    <SkeletonContainer className="bg-primary rounded-lg border border-gray-200 p-6">
       <div className="space-y-4">
         <SkeletonText className="h-6 w-32" />
         <div className="flex space-x-4">
@@ -49,7 +49,7 @@ export const SetupTabSkeleton = () => (
     </SkeletonContainer>
 
     {/* Location Section */}
-    <SkeletonContainer className="rounded-lg border border-gray-200 bg-white p-6">
+    <SkeletonContainer className="bg-primary rounded-lg border border-gray-200 p-6">
       <div className="space-y-4">
         <SkeletonText className="h-6 w-24" />
         <div className="space-y-2">
@@ -64,7 +64,7 @@ export const SetupTabSkeleton = () => (
 export const AvailabilityTabSkeleton = () => (
   <div className="space-y-6">
     {/* Schedule Section */}
-    <SkeletonContainer className="rounded-lg border border-gray-200 bg-white p-6">
+    <SkeletonContainer className="bg-primary rounded-lg border border-gray-200 p-6">
       <div className="space-y-4">
         <SkeletonText className="h-6 w-40" />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -75,7 +75,7 @@ export const AvailabilityTabSkeleton = () => (
     </SkeletonContainer>
 
     {/* Time Zone Section */}
-    <SkeletonContainer className="rounded-lg border border-gray-200 bg-white p-6">
+    <SkeletonContainer className="bg-primary rounded-lg border border-gray-200 p-6">
       <div className="space-y-4">
         <SkeletonText className="h-6 w-32" />
         <SkeletonText className="h-10 w-full" />
@@ -88,7 +88,7 @@ export const LimitsTabSkeleton = () => (
   <div className="space-y-6">
     {/* Before/After Event Section */}
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-      <SkeletonContainer className="rounded-lg border border-gray-200 bg-white p-6">
+      <SkeletonContainer className="bg-primary rounded-lg border border-gray-200 p-6">
         <div className="space-y-4">
           <SkeletonText className="h-6 w-32" />
           <div className="space-y-2">
@@ -97,7 +97,7 @@ export const LimitsTabSkeleton = () => (
           </div>
         </div>
       </SkeletonContainer>
-      <SkeletonContainer className="rounded-lg border border-gray-200 bg-white p-6">
+      <SkeletonContainer className="bg-primary rounded-lg border border-gray-200 p-6">
         <div className="space-y-4">
           <SkeletonText className="h-6 w-32" />
           <div className="space-y-2">
@@ -109,7 +109,7 @@ export const LimitsTabSkeleton = () => (
     </div>
 
     {/* Booking Limits Section */}
-    <SkeletonContainer className="rounded-lg border border-gray-200 bg-white p-6">
+    <SkeletonContainer className="bg-primary rounded-lg border border-gray-200 p-6">
       <div className="space-y-4">
         <SkeletonText className="h-6 w-48" />
         <div className="space-y-2">
@@ -124,7 +124,7 @@ export const LimitsTabSkeleton = () => (
 export const AdvancedTabSkeleton = () => (
   <div className="space-y-6">
     {/* Calendar Settings */}
-    <SkeletonContainer className="rounded-lg border border-gray-200 bg-white p-6">
+    <SkeletonContainer className="bg-primary rounded-lg border border-gray-200 p-6">
       <div className="space-y-4">
         <SkeletonText className="h-6 w-48" />
         <div className="space-y-2">
@@ -135,7 +135,7 @@ export const AdvancedTabSkeleton = () => (
     </SkeletonContainer>
 
     {/* Booking Questions */}
-    <SkeletonContainer className="rounded-lg border border-gray-200 bg-white p-6">
+    <SkeletonContainer className="bg-primary rounded-lg border border-gray-200 p-6">
       <div className="space-y-4">
         <SkeletonText className="h-6 w-40" />
         <SkeletonText className="h-4 w-64" />
@@ -147,7 +147,7 @@ export const AdvancedTabSkeleton = () => (
     </SkeletonContainer>
 
     {/* Confirmation Settings */}
-    <SkeletonContainer className="rounded-lg border border-gray-200 bg-white p-6">
+    <SkeletonContainer className="bg-primary rounded-lg border border-gray-200 p-6">
       <div className="space-y-4">
         <SkeletonText className="h-6 w-48" />
         <div className="space-y-2">
@@ -162,7 +162,7 @@ export const AdvancedTabSkeleton = () => (
 export const AppsTabSkeleton = () => (
   <div className="space-y-6">
     {/* Installed Apps */}
-    <SkeletonContainer className="rounded-lg border border-gray-200 bg-white p-6">
+    <SkeletonContainer className="bg-primary rounded-lg border border-gray-200 p-6">
       <div className="space-y-4">
         <SkeletonText className="h-6 w-40" />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -181,7 +181,7 @@ export const AppsTabSkeleton = () => (
 export const WorkflowsTabSkeleton = () => (
   <div className="space-y-6">
     {/* Workflows Section */}
-    <SkeletonContainer className="rounded-lg border border-gray-200 bg-white p-6">
+    <SkeletonContainer className="bg-primary rounded-lg border border-gray-200 p-6">
       <div className="space-y-4">
         <SkeletonText className="h-6 w-32" />
         <div className="space-y-2">
@@ -196,7 +196,7 @@ export const WorkflowsTabSkeleton = () => (
 export const WebhooksTabSkeleton = () => (
   <div className="space-y-6">
     {/* Webhooks Section */}
-    <SkeletonContainer className="rounded-lg border border-gray-200 bg-white p-6">
+    <SkeletonContainer className="bg-primary rounded-lg border border-gray-200 p-6">
       <div className="space-y-4">
         <SkeletonText className="h-6 w-32" />
         <div className="space-y-2">
@@ -211,7 +211,7 @@ export const WebhooksTabSkeleton = () => (
 export const EmbedTabSkeleton = () => (
   <div className="space-y-6">
     {/* Embed Code Section */}
-    <SkeletonContainer className="rounded-lg border border-gray-200 bg-white p-6">
+    <SkeletonContainer className="bg-primary rounded-lg border border-gray-200 p-6">
       <div className="space-y-4">
         <SkeletonText className="h-6 w-32" />
         <SkeletonText className="h-20 w-full" />
@@ -224,7 +224,7 @@ export const EmbedTabSkeleton = () => (
 export const DefaultTabSkeleton = () => (
   <div className="space-y-6">
     {Array.from({ length: 3 }).map((_, index) => (
-      <SkeletonContainer key={index} className="rounded-lg border border-gray-200 bg-white p-6">
+      <SkeletonContainer key={index} className="bg-primary rounded-lg border border-gray-200 p-6">
         <div className="space-y-4">
           <SkeletonText className="h-6 w-48" />
           <div className="space-y-2">

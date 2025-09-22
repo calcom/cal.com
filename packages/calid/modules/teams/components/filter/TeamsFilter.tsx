@@ -36,7 +36,7 @@ export const FilterCheckboxFieldsContainer = ({
   return (
     <div
       className={classNames(
-        "flex flex-col gap-0.5 p-2 [&>*:first-child]:mt-1 [&>*:last-child]:mb-1",
+        "bg-muted flex flex-col gap-0.5 p-2 [&>*:first-child]:mt-1 [&>*:last-child]:mb-1",
         className
       )}>
       {children}
@@ -55,7 +55,7 @@ export const FilterCheckboxField = forwardRef<HTMLInputElement, Props>(
     return (
       <div
         data-testid={testId}
-        className="hover:bg-muted flex items-center rounded-md py-2 pl-3 pr-2.5 transition hover:cursor-pointer">
+        className="hover:bg-emphasis flex items-center rounded-md py-2 pl-3 pr-2.5 transition hover:cursor-pointer">
         <label className="flex w-full max-w-full items-center justify-between hover:cursor-pointer">
           <div className="flex items-center truncate">
             {icon && (

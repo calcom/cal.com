@@ -8,7 +8,6 @@ import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
 import type { RefObject, Dispatch, SetStateAction } from "react";
 import { createRef, useRef, useState } from "react";
 import type { ControlProps } from "react-select";
@@ -43,8 +42,7 @@ import type {
 import type { Slot } from "@calcom/features/schedules/lib/use-schedule/types";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
 import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
-import { WEBSITE_URL } from "@calcom/lib/constants";
-import { APP_NAME, DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
+import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { weekdayToWeekIndex } from "@calcom/lib/dayjs";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -485,7 +483,7 @@ const EmailEmbedPreview = ({
   }
   return (
     <div className="flex h-full items-center justify-center border p-5 last:font-medium">
-      <div className="border bg-white p-4">
+      <div className="bg-primary border p-4">
         <div
           style={{
             paddingBottom: "3px",
@@ -714,13 +712,13 @@ export const EmbedTypeCodeAndPreviewDialogContent = ({
   );
 
   embedType = embedType ?? "button"; // Default to inline if embedType is not provided
-  console.log("Given embed type: ", embedType)
+  console.log("Given embed type: ", embedType);
 
   const embedParams = useEmbedParams(noQueryParamMode);
   const eventId = embedParams.eventId;
   const parsedEventId = parseInt(eventId ?? "", 10);
   const calLink = decodeURIComponent(embedUrl);
-  console.log("Cal link is: ", calLink)
+  console.log("Cal link is: ", calLink);
   const { data: eventTypeData } = trpc.viewer.eventTypes.get.useQuery(
     { id: parsedEventId },
     { enabled: !Number.isNaN(parsedEventId) && embedType === "email", refetchOnWindowFocus: false }
@@ -1284,13 +1282,13 @@ export const EmbedTypeCodeAndPreviewDialogContent = ({
               title="Example Iframe"
               frameBorder="0"
               allowFullScreen> */}
-              <previewTab.Component
-                namespace={namespace}
-                embedType={embedType}
-                calLink={calLink}
-                previewState={previewState}
-                ref={iframeRef}
-              />
+            <previewTab.Component
+              namespace={namespace}
+              embedType={embedType}
+              calLink={calLink}
+              previewState={previewState}
+              ref={iframeRef}
+            />
             {/* </iframe> */}
           </div>
         )}
@@ -1462,20 +1460,18 @@ export const EmbedDialog = ({
         gotoState={(type) => setCurrentEmbedType(type)}
       />
       <div className="flex py-4">
-        {
-          <EmbedTypeCodeAndPreviewDialogContent
-            gotoState={setCurrentEmbedType}
-            embedType={currentEmbedType.embedType}
-            embedTabName={currentEmbedType.embedTabName}
-            embedUrl={embedLink}
-            namespace={embedParams.namespace}
-            tabs={tabs}
-            types={types}
-            eventTypeHideOptionDisabled={eventTypeHideOptionDisabled}
-            defaultBrandColor={defaultBrandColor}
-            noQueryParamMode={noQueryParamMode}
-          />
-        }
+        <EmbedTypeCodeAndPreviewDialogContent
+          gotoState={setCurrentEmbedType}
+          embedType={currentEmbedType.embedType}
+          embedTabName={currentEmbedType.embedTabName}
+          embedUrl={embedLink}
+          namespace={embedParams.namespace}
+          tabs={tabs}
+          types={types}
+          eventTypeHideOptionDisabled={eventTypeHideOptionDisabled}
+          defaultBrandColor={defaultBrandColor}
+          noQueryParamMode={noQueryParamMode}
+        />
       </div>
     </div>
   );

@@ -204,7 +204,7 @@ function CustomCell({
       }}>
       <div
         className={classNames(
-          "dark:border-emphasis bg-default dark:bg-muted cursor-pointer rounded-[4px] p-[6px] text-xs font-semibold dark:text-white"
+          "dark:border-emphasis bg-default dark:bg-muted cursor-pointer rounded-[4px] p-[6px] text-xs font-semibold dark:text-default"
         )}
         style={{
           height: `calc(${startEndTimeDuration}*var(--one-minute-height) - 2px)`,

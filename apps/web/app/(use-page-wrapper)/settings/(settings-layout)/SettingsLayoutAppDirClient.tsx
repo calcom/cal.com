@@ -308,7 +308,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
 
           return (
             <Link
-              className="hover:bg-emphasis flow-row [&[aria-current='page']]:bg-active text-default flex w-full items-center rounded-md px-2 py-1.5 text-sm font-medium transition [&[aria-current='page']]:text-white"
+              className="hover:bg-emphasis flow-row [&[aria-current='page']]:bg-active text-default flex w-full items-center rounded-md px-2 py-1.5 text-sm font-medium transition [&[aria-current='page']]:text-default"
               key={team.id}
               aria-current={isActive ? "page" : undefined}
               href={href}>
@@ -449,7 +449,7 @@ const SettingsSidebarContainer = ({
               {tab.name === "teams" && (
                 <React.Fragment key={tab.href}>
                   <div data-testid="tab-teams" className={`${!tab.children?.length ? "mb-3" : ""}`}>
-                    <div className="text-default group flex h-7 w-full flex-row items-center px-2 py-[10px] text-sm font-medium leading-none transition group-hover:text-white">
+                    <div className="text-default group flex h-7 w-full flex-row items-center px-2 py-[10px] text-sm font-medium leading-none transition group-hover:text-default">
                       <Skeleton
                         title={tab.name}
                         as="p"
