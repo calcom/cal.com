@@ -97,20 +97,9 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   }
 
   if (teamId && schedulingType) {
-    const hasMembership = await ctx.prisma.membership.findFirst({
-      where: {
-        userId,
-        teamId: teamId,
-        accepted: true,
-      },
-    });
-
     const isSystemAdmin = ctx.user.role === "ADMIN";
 
-    // Initialize team-level permission to false.
-    // We will only try to set this to true if the user is a member.
-
-    // Only check for team-level permissions if the user is actually a member of the team.
+    // Only check for team-level permissions - this will also check for membership
     const hasCreatePermission = await permissionService.checkPermission({
       userId,
       teamId,
@@ -121,9 +110,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     if (!isSystemAdmin && !hasOrgEventTypeCreatePermission && !hasCreatePermission) {
       // If none of the above conditions are met, the user is unauthorized.
       // which means the user is not admin of the team nor the org.
-      console.warn(
-        `User ${userId} does not have eventType.create permission for team ${teamId}. Membership found: ${!!hasMembership}`
-      );
+      console.warn(`User ${userId} does not have eventType.create permission for team ${teamId}`);
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
 
