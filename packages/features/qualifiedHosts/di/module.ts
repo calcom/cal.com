@@ -1,7 +1,7 @@
-import type { IQualifiedHostsService } from "../../bookings/findQualifiedHostsWithDelegationCredentials";
-import { QualifiedHostsService } from "../../bookings/findQualifiedHostsWithDelegationCredentials";
-import { createModule } from "../di";
-import { DI_TOKENS } from "../tokens";
+import { createModule } from "@calcom/lib/di/di";
+import { DI_TOKENS } from "@calcom/lib/di/tokens";
+
+import type { IQualifiedHostsService } from "../services/findQualifiedHostsWithDelegationCredentials";
 
 export const qualifiedHostsModule = createModule();
 qualifiedHostsModule.bind(DI_TOKENS.QUALIFIED_HOSTS_SERVICE).toClass(QualifiedHostsService, {

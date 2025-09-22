@@ -3,7 +3,7 @@ import {
   getRoutedUsersWithContactOwnerAndFixedUsers,
   findMatchingHostsWithEventSegment,
   getNormalizedHosts,
-} from "@calcom/lib/bookings/getRoutedUsers";
+} from "@calcom/features/users/lib/getRoutedUsers";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
