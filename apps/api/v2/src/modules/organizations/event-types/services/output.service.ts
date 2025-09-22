@@ -2,6 +2,9 @@ import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
+
+import { SchedulingType } from "@calcom/platform-libraries";
+import type { HostPriority, TeamEventTypeResponseHost } from "@calcom/platform-types";
 import type {
   Team,
   EventType,
@@ -10,10 +13,7 @@ import type {
   Host,
   DestinationCalendar,
   CalVideoSettings,
-} from "@prisma/client";
-
-import { SchedulingType } from "@calcom/platform-libraries";
-import { HostPriority, TeamEventTypeResponseHost } from "@calcom/platform-types";
+} from "@calcom/prisma/client";
 
 type EventTypeRelations = {
   users: User[];

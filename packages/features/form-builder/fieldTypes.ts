@@ -1,7 +1,9 @@
-import type z from "zod";
+import type { z } from "zod";
+import { fieldTypeEnum } from "@calcom/prisma/zod-utils";
+import type { FieldType } from "@calcom/prisma/zod-utils";
 
 import { propsTypes } from "./propsTypes";
-import type { FieldType, fieldTypeConfigSchema, fieldTypeEnum } from "./schema";
+import type { fieldTypeConfigSchema } from "./schema";
 
 const configMap: Record<z.infer<typeof fieldTypeEnum>, Omit<z.infer<typeof fieldTypeConfigSchema>, "propsType">> = {
   // This won't be stored in DB. It allows UI to be configured from the codebase for all existing booking fields stored in DB as well
@@ -99,6 +101,7 @@ const configMap: Record<z.infer<typeof fieldTypeEnum>, Omit<z.infer<typeof field
     label: "Number",
     value: "number",
     isTextType: true,
+    supportsPricing: true,
   },
   textarea: {
     label: "Long Text",
@@ -114,12 +117,14 @@ const configMap: Record<z.infer<typeof fieldTypeEnum>, Omit<z.infer<typeof field
     value: "select",
     needsOptions: true,
     isTextType: true,
+    optionsSupportPricing: true,
   },
   multiselect: {
     label: "MultiSelect",
     value: "multiselect",
     needsOptions: true,
     isTextType: false,
+    optionsSupportPricing: true,
   },
   multiemail: {
     label: "Multiple Emails",
@@ -140,17 +145,20 @@ const configMap: Record<z.infer<typeof fieldTypeEnum>, Omit<z.infer<typeof field
     value: "checkbox",
     needsOptions: true,
     isTextType: false,
+    optionsSupportPricing: true,
   },
   radio: {
     label: "Radio Group",
     value: "radio",
     needsOptions: true,
     isTextType: false,
+    optionsSupportPricing: true,
   },
   boolean: {
     label: "Checkbox",
     value: "boolean",
     isTextType: false,
+    supportsPricing: true,
   },
   url: {
     label: "URL",
