@@ -70,10 +70,10 @@ export const EventTypes = () => {
   );
 
   const currentTeam = useMemo(() => {
-    // if (selectedTeam === "personal") {
-    return eventTypeGroups.find((group) => !group.teamId);
-    // }
-    // return eventTypeGroups.find((group) => group.teamId?.toString() === selectedTeam);
+    if (selectedTeam === "personal") {
+      return eventTypeGroups.find((group) => !group.teamId);
+    }
+    return eventTypeGroups.find((group) => group.teamId?.toString() === selectedTeam);
   }, [eventTypeGroups, selectedTeam]);
 
   const eventTypesQuery = trpc.viewer.eventTypes.calid_getEventTypesFromGroup.useQuery({
@@ -305,7 +305,10 @@ export const EventTypes = () => {
         teamName={
           eventTypeGroups.find((g) => g.teamId?.toString() === selectedTeamForCreation)?.profile.name || ""
         }
-        teamSlug={currentTeam?.profile.slug ?? undefined}
+        teamSlug={
+          eventTypeGroups.find((g) => g.teamId?.toString() === selectedTeamForCreation)?.profile.slug ??
+          undefined
+        }
         isTeamAdminOrOwner={true}
       />
 
