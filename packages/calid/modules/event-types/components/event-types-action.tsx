@@ -11,7 +11,7 @@ import { Switch } from "@calid/features/ui/components/switch";
 import { Tooltip } from "@calid/features/ui/components/tooltip";
 import type { UseFormReturn } from "react-hook-form";
 
-import { FormValues } from "@calcom/features/eventtypes/lib/types";
+import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { showToast } from "@calcom/ui/components/toast";

@@ -31,6 +31,9 @@ export const EventTypesHeader: React.FC<EventTypesHeaderProps> = ({
   const cleanPublicUrl = publicUrl.replace(/^https?:\/\//, "");
   const { t } = useLocale();
 
+  // Find the personal profile (team without teamId)
+  const personalProfile = eventTypeGroups.find((group) => !group.teamId);
+
   return (
     <div className="mb-4 w-full max-w-full">
       <div className="flex items-center justify-between">
@@ -61,17 +64,21 @@ export const EventTypesHeader: React.FC<EventTypesHeaderProps> = ({
           {showNewDropdown && (
             <div className="bg-default border-border animate-scale-in absolute right-0 top-full z-10 mt-1 w-44 rounded-md border shadow-lg">
               <div className="py-1">
-                <button
-                  onClick={() => onNewSelection("personal")}
-                  className="hover:bg-muted flex w-full items-center px-3 py-1.5 text-sm transition-colors">
-                  <Avatar
-                    imageSrc={currentTeam?.profile.image}
-                    size="xs"
-                    alt={currentTeam?.profile.name}
-                    className="mr-2"
-                  />
-                  {currentTeam?.profile.name}
-                </button>
+                {/* Personal option - always show if personal profile exists */}
+                {personalProfile && (
+                  <button
+                    onClick={() => onNewSelection("personal")}
+                    className="hover:bg-muted flex w-full items-center px-3 py-1.5 text-sm transition-colors">
+                    <Avatar
+                      imageSrc={personalProfile.profile.image}
+                      size="xs"
+                      alt={personalProfile.profile.name}
+                      className="mr-2"
+                    />
+                    {personalProfile.profile.name}
+                  </button>
+                )}
+                {/* Team options - show all teams that are not read-only */}
                 {eventTypeGroups
                   .filter((group) => group.teamId && !group.metadata?.readOnly)
                   .map((group) => (
