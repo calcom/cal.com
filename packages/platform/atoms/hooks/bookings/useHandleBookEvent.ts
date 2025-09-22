@@ -75,7 +75,7 @@ export const useHandleBookEvent = ({
   const handleBookEvent = (inputTimeSlot?: string) => {
     const values = bookingForm.getValues();
     const timeslot = inputTimeSlot ?? storeTimeSlot;
-    const callbacks = inputTimeSlot && !isPlatform ? { onError: handleError } : undefined;
+        const callbacks: Callbacks | undefined = inputTimeSlot && !isPlatform ? { onError: handleError } : undefined;
     if (timeslot) {
       // Clears form values stored in store, so old values won't stick around.
       setFormValues({});
@@ -129,9 +129,9 @@ export const useHandleBookEvent = ({
       // Clear reservation on successful booking
       const clearReservationOnSuccess = () => {
         if (reservedSlotUid && 
-            event.data.schedulingType !== "ROUND_ROBIN" && 
-            event.data.schedulingType !== "COLLECTIVE") {
-          setReservedSlotUid(null);
+            event?.data?.schedulingType !== "ROUND_ROBIN" && 
+            event?.data?.schedulingType !== "COLLECTIVE") {
+          setReservedSlotUid("");
         }
       };
 
@@ -146,6 +146,7 @@ export const useHandleBookEvent = ({
         },
       } : {
         onSuccess: clearReservationOnSuccess,
+        onError: handleError,
       };
 
       if (isInstantMeeting) {
