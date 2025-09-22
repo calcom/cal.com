@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import prisma from "@calcom/prisma";
@@ -31,11 +32,11 @@ const getValidatedTeamSubscriptionId = async (metadata: Prisma.JsonValue) => {
   const teamMetadataParsed = teamMetadataSchema.safeParse(metadata);
 
   if (!teamMetadataParsed.success) {
-    throw new Error("Invalid team metadata");
+    throw new HttpError({ statusCode: 400, message: "Invalid team metadata" });
   }
 
   if (!teamMetadataParsed.data?.subscriptionId) {
-    throw new Error("Subscription Id not found for team");
+    throw new HttpError({ statusCode: 400, message: "Subscription Id not found for team" });
   }
 
   return teamMetadataParsed.data.subscriptionId;
@@ -43,7 +44,7 @@ const getValidatedTeamSubscriptionId = async (metadata: Prisma.JsonValue) => {
 
 const getValidatedTeamSubscriptionIdForPlatform = async (subscriptionId?: string | null) => {
   if (!subscriptionId) {
-    throw new Error("Subscription Id not found for team");
+    throw new HttpError({ statusCode: 400, message: "Subscription Id not found for team" });
   }
 
   return subscriptionId;
