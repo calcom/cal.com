@@ -395,7 +395,7 @@ describe("Reservation System Fixes", () => {
     expect(createdBooking.status).toBe(BookingStatus.ACCEPTED);
 
     // Verify no reservation operations were attempted
-    expect(prismaMock.selectedSlots.findUnique).not.toHaveBeenCalled();
+    expect(prismaMock.selectedSlots.findFirst).not.toHaveBeenCalled();
     expect(prismaMock.selectedSlots.deleteMany).not.toHaveBeenCalled();
 
     await expectBookingToBeInDatabase({
