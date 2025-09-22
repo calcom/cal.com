@@ -38,11 +38,10 @@ function SpamBlocklistTableContent({ organizationId, onDelete, canEdit }: SpamBl
     searchTerm,
   });
 
-  // Get user details for created by info
-  const { data: members } = trpc.viewer.teams.listMembers.useQuery(
-    { teamId: organizationId },
-    { enabled: !!organizationId }
-  );
+  // Get all organization members efficiently (no pagination, basic info only)
+  const { data: simpleMembers } = trpc.viewer.teams.listSimpleMembers.useQuery(undefined, {
+    enabled: !!organizationId,
+  });
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat("en-US", {
@@ -56,16 +55,7 @@ function SpamBlocklistTableContent({ organizationId, onDelete, canEdit }: SpamBl
 
   const getMemberInfo = useCallback(
     (userId: number) => {
-      if (!members?.members || !Array.isArray(members.members)) {
-        return {
-          name: t("unknown_user"),
-          email: "",
-          avatarUrl: null,
-          username: null,
-        };
-      }
-      const member = members.members.find((m) => m.id === userId);
-      if (!member) {
+      if (!simpleMembers || !Array.isArray(simpleMembers)) {
         return {
           name: t("unknown_user"),
           email: "",
@@ -74,21 +64,31 @@ function SpamBlocklistTableContent({ organizationId, onDelete, canEdit }: SpamBl
         };
       }
 
-      const memberName =
-        member.name ||
+      const user = simpleMembers.find((u) => u.id === userId);
+      if (!user) {
+        return {
+          name: t("unknown_user"),
+          email: "",
+          avatarUrl: null,
+          username: null,
+        };
+      }
+
+      const userName =
+        user.name ||
         (() => {
-          const emailName = member.email.split("@")[0];
+          const emailName = user.email.split("@")[0];
           return emailName.charAt(0).toUpperCase() + emailName.slice(1);
         })();
 
       return {
-        name: memberName,
-        email: member.email,
-        avatarUrl: member.avatarUrl,
-        username: member.username,
+        name: userName,
+        email: user.email,
+        avatarUrl: user.avatarUrl,
+        username: user.username,
       };
     },
-    [members, t]
+    [simpleMembers, t]
   );
 
   const columns = useMemo<ColumnDef<Watchlist>[]>(

@@ -11,7 +11,7 @@ import { validateUserHasOrgAdmin } from "../../actions/validateUserHasOrgAdmin";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
-    (t) => t("privacy"),
+    (t) => t("privacy_security"),
     (t) => t("privacy_organization_description"),
     undefined,
     undefined,
@@ -47,7 +47,7 @@ const Page = async () => {
   }
 
   return (
-    <SettingsHeader title={t("privacy")} description={t("privacy_organization_description")}>
+    <SettingsHeader title={t("privacy_security")} description={t("privacy_organization_description")}>
       <PrivacyView permissions={{ canRead, canEdit }} />
     </SettingsHeader>
   );

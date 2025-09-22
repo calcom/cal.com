@@ -98,7 +98,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
             ]
           : []),
         {
-          name: "privacy",
+          name: "privacy_security",
           href: "/settings/organizations/privacy",
           children: [{ name: "spam_blocklist", href: "/settings/organizations/privacy/spam-blocklist" }],
         },
@@ -175,7 +175,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
 const adminRequiredKeys = ["admin"];
 const organizationRequiredKeys = ["organization"];
 const organizationAdminKeys = [
-  "privacy",
+  "privacy_security",
   "billing",
   "OAuth Clients",
   "SSO",
