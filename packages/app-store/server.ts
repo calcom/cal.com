@@ -4,7 +4,7 @@ import { defaultVideoAppCategories } from "@calcom/app-store/utils";
 import {
   buildNonDelegationCredentials,
   enrichUserWithDelegationConferencingCredentialsWithoutOrgId,
-} from "@calcom/lib/delegationCredential/server";
+} from "@calcom/features/delegation-credentials/lib/server";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { AppCategories } from "@calcom/prisma/enums";

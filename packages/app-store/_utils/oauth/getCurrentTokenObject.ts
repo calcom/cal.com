@@ -1,6 +1,6 @@
-import { isInMemoryDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
+import { isInMemoryDelegationCredential } from "@calcom/features/delegation-credentials/lib/clientAndServer";
 import logger from "@calcom/lib/logger";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { CredentialRepository } from "@calcom/features/credentials/repository/CredentialRepository";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { getTokenObjectFromCredential } from "./getTokenObjectFromCredential";

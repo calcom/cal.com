@@ -1,4 +1,4 @@
-import { getFirstDelegationConferencingCredentialAppLocation } from "@calcom/lib/delegationCredential/server";
+import { getFirstDelegationConferencingCredentialAppLocation } from "@calcom/features/delegation-credentials/lib/server";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { Prisma } from "@calcom/prisma/client";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";

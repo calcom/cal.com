@@ -20,7 +20,7 @@ import {
   getPiiFreeCalendarEvent,
 } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { CredentialRepository } from "@calcom/features/credentials/repository/CredentialRepository";
 import { prisma } from "@calcom/prisma";
 import type { DestinationCalendar, BookingReference } from "@calcom/prisma/client";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
@@ -36,7 +36,7 @@ import type {
 
 import { createEvent, updateEvent, deleteEvent } from "@calcom/features/calendars/lib/CalendarManager";
 import CrmManager from "@calcom/lib/crmManager/crmManager";
-import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
+import { isDelegationCredential } from "@calcom/features/delegation-credentials/lib/clientAndServer";
 import { createMeeting, updateMeeting, deleteMeeting } from "@calcom/app-store/videoClient";
 
 const log = logger.getSubLogger({ prefix: ["EventManager"] });

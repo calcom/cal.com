@@ -1,6 +1,6 @@
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/features/calendars/lib/CalendarManager";
-import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
-import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
+import { isDelegationCredential } from "@calcom/features/delegation-credentials/lib/clientAndServer";
+import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/features/delegation-credentials/lib/server";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";

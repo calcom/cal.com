@@ -3,15 +3,15 @@ import { metadata as googleCalendarMetadata } from "@calcom/app-store/googlecale
 import { metadata as googleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import { metadata as office365CalendarMetaData } from "@calcom/app-store/office365calendar/_metadata";
 import { metadata as office365VideoMetaData } from "@calcom/app-store/office365video/_metadata";
+import { CredentialRepository } from "@calcom/features/credentials/repository/CredentialRepository";
+import type { ServiceAccountKey } from "@calcom/features/delegation-credentials/repository/DelegationCredentialRepository";
+import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repository/DelegationCredentialRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
-import type { ServiceAccountKey } from "@calcom/lib/server/repository/delegationCredential";
-import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
-import { UserRepository } from "../server/repository/user";
 import {
   buildNonDelegationCredential,
   buildNonDelegationCredentials,
@@ -25,7 +25,7 @@ const OFFICE365_WORKSPACE_SLUG = "office365";
 const WORKSPACE_PLATFORM_SLUGS = [GOOGLE_WORKSPACE_SLUG, OFFICE365_WORKSPACE_SLUG] as const;
 type WORKSPACE_PLATFORM_SLUGS_TYPE = (typeof WORKSPACE_PLATFORM_SLUGS)[number];
 
-const log = logger.getSubLogger({ prefix: ["lib/delegationCredential/server"] });
+const log = logger.getSubLogger({ prefix: ["features/delegation-credentials/lib/server"] });
 interface DelegationCredential {
   id: string;
   workspacePlatform: {

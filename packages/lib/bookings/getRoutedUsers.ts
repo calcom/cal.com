@@ -1,3 +1,4 @@
+import { enrichHostsWithDelegationCredentials } from "@calcom/features/delegation-credentials/lib/server";
 import logger from "@calcom/lib/logger";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
@@ -7,7 +8,6 @@ import type { RRTimestampBasis } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import { enrichHostsWithDelegationCredentials } from "../delegationCredential/server";
 import getOrgIdFromMemberOrTeamId from "../getOrgIdFromMemberOrTeamId";
 
 const log = logger.getSubLogger({ prefix: ["[getRoutedUsers]"] });
