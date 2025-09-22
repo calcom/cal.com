@@ -1,7 +1,7 @@
 import async from "async";
 
 import { isDelegationCredential } from "@calcom/lib/delegationCredential";
-import { buildAllCredentials } from "@calcom/app-store/delegationCredentials";
+import { buildAllCredentials } from "@calcom/app-store/delegationCredential";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 

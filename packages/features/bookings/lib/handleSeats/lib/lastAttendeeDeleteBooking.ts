@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { getAllDelegationCredentialsForUserIncludeServiceAccountKey } from "@calcom/app-store/delegationCredentials";
-import { getDelegationCredentialOrFindRegularCredential } from "@calcom/app-store/delegationCredentials";
+import { getAllDelegationCredentialsForUserIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
+import { getDelegationCredentialOrFindRegularCredential } from "@calcom/app-store/delegationCredential";
 import { deleteMeeting } from "@calcom/app-store/videoClient";
 import prisma from "@calcom/prisma";
 import type { Attendee } from "@calcom/prisma/client";

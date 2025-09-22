@@ -1,4 +1,4 @@
-import { enrichHostsWithDelegationCredentials } from "@calcom/app-store/delegationCredentials";
+import { enrichHostsWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
 import logger from "@calcom/lib/logger";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
