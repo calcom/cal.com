@@ -3666,6 +3666,8 @@
   "stats": "Stats",
   "booking_status": "Booking status",
   "form_submitted_trigger": "When routing form is submitted",
+  "form_submitted_no_event_trigger": "When routing form is submitted and no booking is created",
+  "how_long_after_form_submitted_no_event": "How long after the form was submitted?",
   "visit": "Visit",
   "location_custom_label_input_label": "Custom label on booking page",
   "meeting_link": "Meeting link",

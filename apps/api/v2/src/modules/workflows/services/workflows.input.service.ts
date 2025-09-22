@@ -29,6 +29,7 @@ import {
 import {
   OnAfterEventTriggerDto,
   OnBeforeEventTriggerDto,
+  OnFormSubmittedNoEventTriggerDto,
   TIME_UNIT_TO_ENUM,
   WORKFLOW_TRIGGER_TO_ENUM,
 } from "../inputs/workflow-trigger.input";
@@ -136,7 +137,8 @@ export class WorkflowsInputService {
       : currentData.trigger;
     const timeUnitForZod =
       updateDto.trigger instanceof OnBeforeEventTriggerDto ||
-      updateDto.trigger instanceof OnAfterEventTriggerDto
+      updateDto.trigger instanceof OnAfterEventTriggerDto ||
+      updateDto.trigger instanceof OnFormSubmittedNoEventTriggerDto
         ? updateDto?.trigger?.offset?.unit ?? currentData.timeUnit ?? null
         : undefined;
 
@@ -152,7 +154,8 @@ export class WorkflowsInputService {
       trigger: triggerForZod,
       time:
         updateDto.trigger instanceof OnBeforeEventTriggerDto ||
-        updateDto.trigger instanceof OnAfterEventTriggerDto
+        updateDto.trigger instanceof OnAfterEventTriggerDto ||
+        updateDto.trigger instanceof OnFormSubmittedNoEventTriggerDto
           ? updateDto?.trigger?.offset?.value ?? currentData?.time ?? null
           : null,
       timeUnit: timeUnitForZod ? TIME_UNIT_TO_ENUM[timeUnitForZod] : null,

@@ -143,7 +143,10 @@ export function getTemplateBodyForAction({
 }
 
 export function isFormTrigger(trigger: WorkflowTriggerEvents) {
-  return trigger === WorkflowTriggerEvents.FORM_SUBMITTED;
+  return (
+    trigger === WorkflowTriggerEvents.FORM_SUBMITTED ||
+    trigger === WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT
+  );
 }
 
 export function hasCalAIAction(steps: WorkflowStep[]) {

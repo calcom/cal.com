@@ -14,6 +14,9 @@ type TaskPayloads = {
   triggerFormSubmittedNoEventWebhook: z.infer<
     typeof import("./tasks/triggerFormSubmittedNoEvent/triggerFormSubmittedNoEventWebhook").ZTriggerFormSubmittedNoEventWebhookPayloadSchema
   >;
+  triggerFormSubmittedNoEventWorkflow: z.infer<
+    typeof import("./tasks/triggerFormSubmittedNoEvent/triggerFormSubmittedNoEventWorkflow").ZTriggerFormSubmittedNoEventWorkflowPayloadSchema
+  >;
   translateEventTypeData: z.infer<
     typeof import("./tasks/translateEventTypeData").ZTranslateEventDataPayloadSchema
   >;
