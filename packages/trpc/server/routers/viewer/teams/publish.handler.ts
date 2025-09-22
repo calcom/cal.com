@@ -2,7 +2,7 @@ import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/pay
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { Redirect } from "@calcom/lib/redirect";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
+import { isTeamAdmin } from "@calcom/features/ee/teams/lib/queries";
 import { TeamService } from "@calcom/lib/server/service/teamService";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
