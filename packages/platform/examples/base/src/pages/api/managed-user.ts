@@ -111,10 +111,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     throw new Error("Failed to create team. Probably your platform team does not have required plan.");
   }
 
-  await createOrgTeamMembershipMember(+organizationId, team.id, managedUserResponseOne.user.id);
-  await createOrgTeamMembershipMember(+organizationId, team.id, managedUserResponseTwo.user.id);
-  await createOrgTeamMembershipMember(+organizationId, team.id, managedUserResponseThree.user.id);
-  await createOrgTeamMembershipMember(+organizationId, team.id, managedUserResponseFour.user.id);
+  await createOrgTeamMembershipMember(+organizationId, team.id, managedUserResponseOne.user.id, "MEMBER");
+  await createOrgTeamMembershipMember(+organizationId, team.id, managedUserResponseTwo.user.id, "MEMBER");
+  await createOrgTeamMembershipMember(+organizationId, team.id, managedUserResponseThree.user.id, "MEMBER");
+  await createOrgTeamMembershipMember(+organizationId, team.id, managedUserResponseFour.user.id, "MEMBER");
 
   await createCollectiveEventType(+organizationId, team.id, [
     managedUserResponseOne.user.id,
@@ -133,10 +133,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   await createOrgMembershipAdmin(+organizationId, managedUserResponseFive.user.id);
 
   return res.status(200).json({
-    id: managedUserResponseOne?.user?.id,
-    email: (managedUserResponseOne.user.email as string) ?? "",
-    username: (managedUserResponseOne.user.username as string) ?? "",
-    accessToken: (managedUserResponseOne.accessToken as string) ?? "",
+    id: managedUserResponseFive?.user?.id,
+    email: (managedUserResponseFive.user.email as string) ?? "",
+    username: (managedUserResponseFive.user.username as string) ?? "",
+    accessToken: (managedUserResponseFive.accessToken as string) ?? "",
   });
 }
 
@@ -165,7 +165,12 @@ async function createTeam(orgId: number, name: string) {
   return body.data;
 }
 
-async function createOrgTeamMembershipMember(orgId: number, teamId: number, userId: number) {
+async function createOrgTeamMembershipMember(
+  orgId: number,
+  teamId: number,
+  userId: number,
+  role: "MEMBER" | "ADMIN" = "MEMBER"
+) {
   await fetch(
     // eslint-disable-next-line turbo/no-undeclared-env-vars
     `${process.env.NEXT_PUBLIC_CALCOM_API_URL ?? ""}/organizations/${orgId}/teams/${teamId}/memberships`,
@@ -182,7 +187,7 @@ async function createOrgTeamMembershipMember(orgId: number, teamId: number, user
       body: JSON.stringify({
         userId,
         accepted: true,
-        role: "MEMBER",
+        role,
       }),
     }
   );
