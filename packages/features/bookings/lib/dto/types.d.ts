@@ -48,3 +48,8 @@ export type BookingHandlerInput = {
 export type RegularBookingCreateResult = Awaited<ReturnType<RegularBookingService["createBooking"]>>;
 
 export type InstantBookingCreateResult = Awaited<ReturnType<InstantBookingCreateService["create"]>>;
+
+// More properties to be added to this config in followup PRs
+export type BookingFlowConfig = {
+  isDryRun: boolean;
+};

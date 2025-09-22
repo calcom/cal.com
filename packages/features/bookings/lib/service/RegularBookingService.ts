@@ -30,6 +30,8 @@ import type { CheckBookingAndDurationLimitsService } from "@calcom/features/book
 import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
+// TODO: Must be injected from DI
+import { BOOKING_MESSAGES } from "@calcom/features/bookings/lib/messageBus/BookingMessageBus";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
@@ -67,13 +69,8 @@ import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFre
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { LuckyUserService } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import type { PrismaAttributeRepository as AttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
 import type { BookingRepository } from "@calcom/lib/server/repository/booking";
-import type { HostRepository } from "@calcom/lib/server/repository/host";
-import type { PrismaOOORepository as OooRepository } from "@calcom/lib/server/repository/ooo";
-import type { UserRepository } from "@calcom/lib/server/repository/user";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
-import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
@@ -126,6 +123,7 @@ import { validateBookingTimeIsNotOutOfBounds } from "../handleNewBooking/validat
 import { validateEventLength } from "../handleNewBooking/validateEventLength";
 import handleSeats from "../handleSeats/handleSeats";
 import type { IBookingService } from "../interfaces/IBookingService";
+import { registerBookingMessageHandlers } from "../messageBus/registry";
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
@@ -419,10 +417,7 @@ export interface IBookingServiceDependencies {
   featuresRepository: FeaturesRepository;
   checkBookingLimitsService: CheckBookingLimitsService;
   luckyUserService: LuckyUserService;
-  hostRepository: HostRepository;
-  oooRepository: OooRepository;
-  userRepository: UserRepository;
-  attributeRepository: AttributeRepository;
+  bookingMessageBus: BookingMessageBus;
 }
 
 async function handler(
@@ -449,6 +444,7 @@ async function handler(
     cacheService,
     checkBookingAndDurationLimitsService,
     luckyUserService,
+    bookingMessageBus,
   } = deps;
 
   const isPlatformBooking = !!platformClientId;
@@ -2045,6 +2041,36 @@ async function handler(
       }
     : undefined;
 
+  const bookingFlowConfig = {
+    isDryRun,
+  };
+
+  const bookingCreationPayload = {
+    booking,
+    eventType,
+    config: bookingFlowConfig,
+  };
+
+  if (originalRescheduledBooking) {
+    await bookingMessageBus.emit(BOOKING_MESSAGES.BOOKING_RESCHEDULED, {
+      ...bookingCreationPayload,
+      reschedule: {
+        originalBooking: {
+          uid: originalRescheduledBooking.uid,
+        },
+        rescheduleReason,
+        rescheduledBy: reqBody.rescheduledBy,
+      },
+    });
+  } else {
+    console.log("RegularBookingService emit BOOKING_CREATED", {
+      bookingCreationPayload,
+    });
+    await bookingMessageBus.emit(BOOKING_MESSAGES.BOOKING_CREATED, {
+      ...bookingCreationPayload,
+    });
+  }
+
   const webhookData: EventPayloadType = {
     ...evt,
     ...eventTypeInfo,
@@ -2282,23 +2308,6 @@ async function handler(
     });
   }
 
-  try {
-    const hashedLinkService = new HashedLinkService();
-    if (hasHashedBookingLink && reqBody.hashedLink && !isDryRun) {
-      await hashedLinkService.validateAndIncrementUsage(reqBody.hashedLink as string);
-    }
-  } catch (error) {
-    loggerWithEventDetails.error("Error while updating hashed link", JSON.stringify({ error }));
-
-    // Handle repository errors and convert to HttpErrors
-    if (error instanceof Error) {
-      throw new HttpError({ statusCode: 410, message: error.message });
-    }
-
-    // For unexpected errors, provide a generic message
-    throw new HttpError({ statusCode: 500, message: "Failed to process booking link" });
-  }
-
   if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
 
   try {
@@ -2420,7 +2429,9 @@ async function handler(
  * We are open to renaming it to something more descriptive.
  */
 export class RegularBookingService implements IBookingService {
-  constructor(private readonly deps: IBookingServiceDependencies) {}
+  constructor(private readonly deps: IBookingServiceDependencies) {
+    registerBookingMessageHandlers(this.deps.bookingMessageBus);
+  }
 
   async createBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
     return handler({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);
