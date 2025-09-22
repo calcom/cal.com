@@ -159,7 +159,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     agentData,
     isAgentLoading,
     inboundAgentData,
-    isInboundAgentLoading,
+    isInboundAgentLoading: _isInboundAgentLoading,
     isDeleteStepDialogOpen,
     setIsDeleteStepDialogOpen,
     onSaveWorkflow,

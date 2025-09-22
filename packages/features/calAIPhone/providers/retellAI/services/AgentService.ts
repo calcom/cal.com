@@ -1,6 +1,7 @@
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { v4 as uuidv4 } from "uuid";
 
+import { replaceEventTypePlaceholders } from "@calcom/features/ee/workflows/components/agent-configuration/utils/promptUtils";
 import { RETELL_AI_TEST_MODE, RETELL_AI_TEST_EVENT_TYPE_MAP } from "@calcom/lib/constants";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { HttpError } from "@calcom/lib/http-error";
@@ -657,8 +658,12 @@ export class AgentService {
       });
     }
 
+    const updatedPrompt = agent.eventTypeId
+      ? replaceEventTypePlaceholders(generalPrompt, agent.eventTypeId)
+      : generalPrompt;
+
     const hasRetellUpdates =
-      generalPrompt !== undefined ||
+      updatedPrompt !== undefined ||
       beginMessage !== undefined ||
       generalTools !== undefined ||
       voiceId !== undefined ||
@@ -671,10 +676,10 @@ export class AgentService {
 
         if (
           llmId &&
-          (generalPrompt !== undefined || beginMessage !== undefined || generalTools !== undefined)
+          (updatedPrompt !== undefined || beginMessage !== undefined || generalTools !== undefined)
         ) {
           const llmUpdateData = RetellAIServiceMapper.extractLLMUpdateData(
-            generalPrompt,
+            updatedPrompt,
             beginMessage,
             generalTools
           );

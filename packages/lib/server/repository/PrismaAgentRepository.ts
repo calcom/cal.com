@@ -484,7 +484,8 @@ export class PrismaAgentRepository {
         "userId",
         "teamId",
         "createdAt",
-        "updatedAt"
+        "updatedAt",
+        "eventTypeId"
       FROM "Agent"
       WHERE ${whereCondition}
       LIMIT 1

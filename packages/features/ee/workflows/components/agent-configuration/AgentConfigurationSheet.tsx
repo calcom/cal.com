@@ -60,7 +60,6 @@ export function AgentConfigurationSheet({
   inboundAgentId,
   agentData,
   inboundAgentData,
-  onUpdate,
   readOnly = false,
   teamId,
   isOrganization = false,
@@ -83,8 +82,8 @@ export function AgentConfigurationSheet({
 
   const updateAgentMutation = trpc.viewer.aiVoiceAgent.update.useMutation({
     onSuccess: async () => {
-      if (agentId) {
-        await utils.viewer.aiVoiceAgent.get.invalidate({ id: agentId });
+      if (activeAgentId) {
+        await utils.viewer.aiVoiceAgent.get.invalidate({ id: activeAgentId });
       }
     },
     onError: (error: { message: string }) => {
@@ -107,8 +106,6 @@ export function AgentConfigurationSheet({
       teamId: teamId,
       ...updatePayload,
     });
-
-    onUpdate({ ...updatePayload, id: agentId });
   };
 
   const handleInboundAgentUpdate = async (data: AgentFormValues) => {
@@ -126,8 +123,6 @@ export function AgentConfigurationSheet({
       teamId: teamId,
       ...updatePayload,
     });
-
-    onUpdate({ ...updatePayload, id: inboundAgentId });
   };
 
   return (

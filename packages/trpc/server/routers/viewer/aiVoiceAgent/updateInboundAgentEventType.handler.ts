@@ -1,4 +1,5 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
+import { replaceEventTypePlaceholders } from "@calcom/features/ee/workflows/components/agent-configuration/utils/promptUtils";
 import logger from "@calcom/lib/logger";
 import { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
 
@@ -36,11 +37,7 @@ export const updateInboundAgentEventTypeHandler = async ({
     }
 
     // Replace placeholders in the prompt with the specific event type ID
-    const updatedPrompt = agentDetails.retellData.generalPrompt
-      .replace(/check_availability_\d+/g, `check_availability_${eventTypeId}`)
-      .replace(/book_appointment_\d+/g, `book_appointment_${eventTypeId}`)
-      .replace(/check_availability_\{\{eventTypeId\}\}/g, `check_availability_${eventTypeId}`)
-      .replace(/book_appointment_\{\{eventTypeId\}\}/g, `book_appointment_${eventTypeId}`);
+    const updatedPrompt = replaceEventTypePlaceholders(agentDetails.retellData.generalPrompt, eventTypeId);
 
     // Update tools and prompt using existing updateAgentConfiguration method
     await aiService.updateToolsFromAgentId(agentDetails.retellData.agentId, {
