@@ -23,7 +23,7 @@ import EventManager from "@calcom/features/bookings/lib/EventManager";
 import {
   enrichHostsWithDelegationCredentials,
   enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
-} from "@calcom/features/delegation-credentials/lib/server";
+} from "@calcom/app-store/delegationCredentials";
 import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";

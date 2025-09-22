@@ -1,4 +1,4 @@
-import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/features/delegation-credentials/lib/server";
+import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredentials";
 import { availabilityUserSelect } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";

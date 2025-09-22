@@ -8,7 +8,7 @@ import type { NextApiResponse } from "next";
 
 import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
 import { getUrlSearchParamsToForwardForTestPreview } from "@calcom/features/routing-forms/lib/getUrlSearchParamsToForward";
-import { enrichHostsWithDelegationCredentials } from "@calcom/features/delegation-credentials/lib/server";
+import { enrichHostsWithDelegationCredentials } from "@calcom/app-store/delegationCredentials";
 import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils.server";
 import { fromEntriesWithDuplicateKeys } from "@calcom/lib/fromEntriesWithDuplicateKeys";

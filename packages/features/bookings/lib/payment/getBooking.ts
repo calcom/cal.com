@@ -1,6 +1,6 @@
 import { workflowSelect } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { enrichUserWithDelegationCredentials } from "@calcom/features/delegation-credentials/lib/server";
+import { enrichUserWithDelegationCredentials } from "@calcom/app-store/delegationCredentials";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
