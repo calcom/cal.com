@@ -3,6 +3,7 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import React from "react";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { TeamFeatures } from "@calcom/features/flags/config";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
@@ -50,6 +51,7 @@ export default async function SettingsLayoutAppDir(props: SettingsLayoutProps) {
 
   // For now we only grab organization features but it would be nice to fetch these on the server side for specific team feature flags
   if (orgId) {
+    const isOrgAdminOrOwner = checkAdminOrOwner(session.user.org?.role);
     const [features, rolePermissions, organizationPermissions] = await Promise.all([
       getTeamFeatures(orgId),
       getCachedResourcePermissions(userId, orgId, Resource.Role),
@@ -65,7 +67,7 @@ export default async function SettingsLayoutAppDir(props: SettingsLayoutProps) {
       const roleActions = PermissionMapper.toActionMap(rolePermissions, Resource.Role);
       canViewRoles = roleActions[CrudAction.Read] ?? false;
       const orgActions = PermissionMapper.toActionMap(organizationPermissions, Resource.Organization);
-      canViewOrganizationBilling = orgActions[CustomAction.ManageBilling] ?? false;
+      canViewOrganizationBilling = orgActions[CustomAction.ManageBilling] ?? isOrgAdminOrOwner;
     }
   }
 

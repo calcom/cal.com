@@ -22,7 +22,7 @@ const Page = async () => {
 
   await validateUserHasOrgPerms({
     permission: "organization.manageBilling",
-    fallbackRoles: [MembershipRole.OWNER],
+    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
   });
 
   return (
