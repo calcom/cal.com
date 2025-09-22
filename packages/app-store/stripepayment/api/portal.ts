@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import type { Session } from "next-auth";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
@@ -10,11 +11,7 @@ interface AuthenticatedUser {
 }
 
 interface RequestWithSession extends NextApiRequest {
-  session?: {
-    user?: {
-      id?: number;
-    };
-  };
+  session?: Session | null;
 }
 
 export const validateAuthentication = (req: NextApiRequest): AuthenticatedUser | null => {
