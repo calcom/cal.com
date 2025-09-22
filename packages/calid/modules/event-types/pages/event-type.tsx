@@ -161,19 +161,19 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
 
   const { eventType, locationOptions, team, teamMembers, destinationCalendar, currentUserMembership } = rest;
 
-  // Add defensive check for eventType structure
-  if (!eventType) {
-    return <div>Loading...</div>;
-  }
+  // // Add defensive check for eventType structure
+  // if (!eventType) {
+  //   return <div>Loading...</div>;
+  // }
 
   // Ensure users array exists and has at least one user
   if (!eventType.users || eventType.users.length === 0) {
-    console.warn('EventType has no users, this may cause issues with URL generation');
+    console.warn("EventType has no users, this may cause issues with URL generation");
   }
 
   // Helper function to safely get username
   const getEventTypeUsername = () => {
-    return eventType.users?.[0]?.username || 'unknown';
+    return eventType.users?.[0]?.username || "unknown";
   };
 
   const eventTypesLockedByOrg = (eventType as any).team?.parent?.organizationSettings
@@ -221,7 +221,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
       await utils.viewer.eventTypes.getByViewer.invalidate();
     },
     onError: (err) => {
-      console.log('Error occured during event type update:', err);
+      console.log("Error occured during event type update:", err);
       let message = "";
       if (err instanceof HttpError) {
         message = `${err.statusCode}: ${err.message}`;
@@ -270,7 +270,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
     eventType,
     onSubmit: (data) => {
       try {
-        console.log('Submitting event type form with data:', data);
+        console.log("Submitting event type form with data:", data);
         updateMutation.mutate(data);
       } catch (error) {
         throw error;
@@ -289,9 +289,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
   const orgBranding = useOrgBranding();
   const bookerUrl = orgBranding ? orgBranding?.fullDomain : WEBSITE_URL;
 
-  const permalink = `${bookerUrl}/${team ? `team/${team.slug}` : getEventTypeUsername()}/${
-    eventType.slug
-  }`;
+  const permalink = `${bookerUrl}/${team ? `team/${team.slug}` : getEventTypeUsername()}/${eventType.slug}`;
 
   let embedLink;
   try {
@@ -302,7 +300,9 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
       formSlug || eventType.slug
     }`;
   } catch (error) {
-    embedLink = `${team ? `team/${team.slug}` : eventType.users?.[0]?.username || 'unknown'}/${eventType.slug}`;
+    embedLink = `${team ? `team/${team.slug}` : eventType.users?.[0]?.username || "unknown"}/${
+      eventType.slug
+    }`;
   }
 
   // Permissions

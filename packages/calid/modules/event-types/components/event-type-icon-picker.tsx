@@ -304,9 +304,9 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
         }
       `}</style>
       <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-        <DialogContent className="flex max-h-[80vh] max-w-4xl flex-col">
+        <DialogContent className="bg-muted flex max-h-[80vh] max-w-4xl flex-col">
           <DialogHeader>
-            <DialogTitle>{t("choose_icon")}</DialogTitle>
+            <DialogTitle className="text-default">{t("choose_icon")}</DialogTitle>
             <TextField
               addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
               addOnClassname="!border-muted"

@@ -128,15 +128,15 @@ const UserProfile = () => {
         />
         <div className="flex items-center gap-2 px-4">
           <CustomImageUploader
-            targetId="avatar-upload"
-            buttonText={t("upload_avatar")}
-            onImageChange={(newAvatar) => {
+            id="avatar-upload"
+            buttonMsg={t("upload_avatar")}
+            handleAvatarChange={(newAvatar) => {
               updateProfileHandler(newAvatar);
             }}
-            currentImageSrc={imageSrc}
-            targetType="avatar"
-            buttonColor="minimal"
-            testIdentifier="avatar"
+            imageSrc={imageSrc}
+            target="avatar"
+            triggerButtonColor="minimal"
+            testId="avatar"
           />
         </div>
       </div>

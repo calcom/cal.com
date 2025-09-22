@@ -268,3 +268,4 @@ export const RAZORPAY_UPI_ENABLED = process.env.RAZORPAY_UPI_ENABLED === "true";
 export const PHONE_NUMBER_VERIFICATION_ENABLED =
   process.env.NEXT_PUBLIC_PHONE_NUMBER_VERIFICATION_ENABLED === "1";
 export const INNGEST_ID = process.env.INNGEST_ID ?? "onehash-cal";
+export const DEMO_URL = "https://app.cal.id/manas/demo";

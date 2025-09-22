@@ -91,7 +91,7 @@ export function ScheduleListItem({
               <Icon name="ellipsis" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="min-w-40 bg-white" align="end">
+          <DropdownMenuContent className="min-w-40" align="end">
             {!schedule.isDefault && (
               <DropdownMenuItem
                 onClick={() =>

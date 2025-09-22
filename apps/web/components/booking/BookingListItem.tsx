@@ -1,4 +1,13 @@
 import { Button } from "@calid/features/ui/components/button";
+import {
+  DropdownMenu, // DropdownItem,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@calid/features/ui/components/dropdown-menu";
 import { Icon } from "@calid/features/ui/components/icon";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import type { AssignmentReason } from "@prisma/client";
@@ -31,17 +40,6 @@ import type { Ensure } from "@calcom/types/utils";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
-import {
-  Dropdown,
-  DropdownItem,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuPortal,
-} from "@calcom/ui/components/dropdown";
 import { TextAreaField } from "@calcom/ui/components/form";
 import { MeetingTimeInTimezones } from "@calcom/ui/components/popover";
 import { TableActions } from "@calcom/ui/components/table";
@@ -440,7 +438,7 @@ export default function BookingListItem(booking: BookingItemProps) {
 
   const rescheduleBooking = (href: string) => {
     window.open(href, "_blank");
-  }
+  };
 
   return (
     <>
@@ -544,7 +542,7 @@ export default function BookingListItem(booking: BookingItemProps) {
         </DialogContent>
       </Dialog>
 
-      <div className="border-muted my-1.5 flex w-full flex-col items-start justify-between rounded-lg border bg-white shadow-sm hover:shadow-md dark:bg-slate-800">
+      <div className="bg-default my-1.5 flex w-full flex-col items-start justify-between rounded-lg border  border-dashed shadow-sm hover:shadow-md">
         <div data-testid="booking-item" data-today={String(booking.isToday)} className="group w-full">
           <div className="cursor-pointer">
             <div className="flex flex-col pb-4">
@@ -695,70 +693,27 @@ export default function BookingListItem(booking: BookingItemProps) {
                     )}
 
                     {!isCancelled && (
-                      <Dropdown>
+                      <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button StartIcon="ellipsis" color="secondary" variant="icon" />
                         </DropdownMenuTrigger>
-                        <DropdownMenuPortal>
-                          <DropdownMenuContent>
-                            {editEventActions.map((action) => (
-                              <DropdownMenuItem
-                                className="rounded-lg"
-                                key={action.id}
-                                disabled={action.disabled}>
-                                <DropdownItem
-                                  type="button"
-                                  color={action.color}
-                                  StartIcon={action.icon}
-                                  href={action.href}
-                                  disabled={action.disabled}
-                                  onClick={action.onClick}
-                                  data-bookingid={action.bookingId}
-                                  data-testid={action.id}
-                                  className={action.disabled ? "text-muted" : undefined}>
-                                  {action.label}
-                                </DropdownItem>
-                              </DropdownMenuItem>
-                            ))}
-                            {/* <DropdownMenuSeparator /> */}
-                            {/* <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("after_event")}</DropdownMenuLabel>
-                      {afterEventActions.map((action) => (
-                        <DropdownMenuItem className="rounded-lg" key={action.id} disabled={action.disabled}>
-                          <DropdownItem
-                            type="button"
-                            color={action.color}
-                            StartIcon={action.icon}
-                            href={action.href}
-                            onClick={action.onClick}
-                            disabled={action.disabled}
-                            data-bookingid={action.bookingId}
-                            data-testid={action.id}
-                            className={action.disabled ? "text-muted" : undefined}>
-                            {action.label}
-                          </DropdownItem>
-                        </DropdownMenuItem>
-                      ))} */}
-                            {/* <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="rounded-lg"
-                        key={cancelEventAction.id}
-                        disabled={cancelEventAction.disabled}>
-                        <DropdownItem
-                          type="button"
-                          color={cancelEventAction.color}
-                          StartIcon={cancelEventAction.icon}
-                          href={cancelEventAction.href}
-                          onClick={cancelEventAction.onClick}
-                          disabled={cancelEventAction.disabled}
-                          data-bookingid={cancelEventAction.bookingId}
-                          data-testid={cancelEventAction.id}
-                          className={cancelEventAction.disabled ? "text-muted" : undefined}>
-                          {cancelEventAction.label}
-                        </DropdownItem>
-                      </DropdownMenuItem> */}
-                          </DropdownMenuContent>
-                        </DropdownMenuPortal>
-                      </Dropdown>
+                        <DropdownMenuContent>
+                          {editEventActions.map((action) => (
+                            <DropdownMenuItem
+                              key={action.id}
+                              className="rounded-lg"
+                              disabled={action.disabled}
+                              color={action.color}
+                              StartIcon={action.icon}
+                              href={action.href}
+                              onClick={action.onClick}
+                              data-bookingid={action.bookingId}
+                              data-testid={action.id}>
+                              {action.label}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     )}
 
                     {/* {shouldShowRecurringCancelAction(actionContext) && (
@@ -1019,7 +974,7 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
   });
 
   return (
-    <Dropdown open={openDropdown} onOpenChange={setOpenDropdown}>
+    <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
       <DropdownMenuTrigger asChild>
         <button
           data-testid="guest"
@@ -1034,53 +989,52 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
           )}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuPortal>
-        <DropdownMenuContent>
-          {!isSmsCalEmail(email) && (
-            <DropdownMenuItem className="focus:outline-none">
-              <DropdownItem
-                StartIcon="mail"
-                href={`mailto:${email}`}
-                onClick={(e) => {
-                  setOpenDropdown(false);
-                  e.stopPropagation();
-                }}>
-                <a href={`mailto:${email}`}>{t("email")}</a>
-              </DropdownItem>
-            </DropdownMenuItem>
-          )}
 
-          <DropdownMenuItem className="focus:outline-none">
-            <DropdownItem
-              StartIcon={isCopied ? "clipboard-check" : "clipboard"}
-              onClick={(e) => {
-                e.preventDefault();
-                const isEmailCopied = isSmsCalEmail(email);
-                copyToClipboard(isEmailCopied ? email : phoneNumber ?? "");
-                setOpenDropdown(false);
-                triggerToast(isEmailCopied ? t("email_copied") : t("phone_number_copied"), "success");
-              }}>
-              {!isCopied ? t("copy") : t("copied")}
-            </DropdownItem>
+      <DropdownMenuContent>
+        {!isSmsCalEmail(email) && (
+          <DropdownMenuItem
+            className="focus:outline-none"
+            StartIcon="mail"
+            href={`mailto:${email}`}
+            onClick={(e) => {
+              setOpenDropdown(false);
+              e.stopPropagation();
+            }}>
+            {t("email")}
           </DropdownMenuItem>
+        )}
 
-          {isBookingInPast && (
-            <DropdownMenuItem className="focus:outline-none">
-              <DropdownItem
-                data-testid={noShow ? "unmark-no-show" : "mark-no-show"}
-                onClick={(e) => {
-                  e.preventDefault();
-                  setOpenDropdown(false);
-                  noShowMutation.mutate({ bookingUid, attendees: [{ noShow: !noShow, email }] });
-                }}
-                StartIcon={noShow ? "eye" : "eye-off"}>
-                {noShow ? t("unmark_as_no_show") : t("mark_as_no_show")}
-              </DropdownItem>
-            </DropdownMenuItem>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenuPortal>
-    </Dropdown>
+        <DropdownMenuItem
+          className="focus:outline-none"
+          StartIcon={isCopied ? "clipboard-check" : "clipboard"}
+          onClick={(e) => {
+            e.preventDefault();
+            const isEmailCopied = isSmsCalEmail(email);
+            copyToClipboard(isEmailCopied ? email : phoneNumber ?? "");
+            setOpenDropdown(false);
+            triggerToast(isEmailCopied ? t("email_copied") : t("phone_number_copied"), "success");
+          }}>
+          {!isCopied ? t("copy") : t("copied")}
+        </DropdownMenuItem>
+
+        {isBookingInPast && (
+          <DropdownMenuItem
+            className="focus:outline-none"
+            data-testid={noShow ? "unmark-no-show" : "mark-no-show"}
+            onClick={(e) => {
+              e.preventDefault();
+              setOpenDropdown(false);
+              noShowMutation.mutate({
+                bookingUid,
+                attendees: [{ noShow: !noShow, email }],
+              });
+            }}
+            StartIcon={noShow ? "eye" : "eye-off"}>
+            {noShow ? t("unmark_as_no_show") : t("mark_as_no_show")}
+          </DropdownMenuItem>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 
@@ -1133,7 +1087,7 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
   const [openDropdown, setOpenDropdown] = useState(false);
 
   return (
-    <Dropdown open={openDropdown} onOpenChange={setOpenDropdown}>
+    <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
       <DropdownMenuTrigger asChild>
         <button
           data-testid="more-guests"
@@ -1142,10 +1096,12 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
           {t("plus_more", { count: attendees.length - 1 })}
         </button>
       </DropdownMenuTrigger>
+
       <DropdownMenuContent>
         <DropdownMenuLabel className="text-xs font-medium uppercase">
           {t("mark_as_no_show_title")}
         </DropdownMenuLabel>
+
         <form onSubmit={handleSubmit(onSubmit)}>
           {fields.slice(1).map((field, index) => (
             <Controller
@@ -1166,8 +1122,10 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
               )}
             />
           ))}
+
           <DropdownMenuSeparator />
-          <div className="flex justify-end p-2 ">
+
+          <div className="flex justify-end p-2">
             <Button
               data-testid="update-no-show"
               color="secondary"
@@ -1180,7 +1138,7 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
           </div>
         </form>
       </DropdownMenuContent>
-    </Dropdown>
+    </DropdownMenu>
   );
 };
 
@@ -1261,7 +1219,7 @@ const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
   const [selectedEmail, setSelectedEmail] = useState("");
 
   return (
-    <Dropdown
+    <DropdownMenu
       open={openDropdown}
       onOpenChange={(value) => {
         setOpenDropdown(value);
@@ -1274,23 +1232,26 @@ const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
           {t("plus_more", { count: guests.length - 1 })}
         </button>
       </DropdownMenuTrigger>
+
       <DropdownMenuContent>
         <DropdownMenuLabel className="text-xs font-medium uppercase">{t("guests")}</DropdownMenuLabel>
+
         {guests.slice(1).map((guest) => (
-          <DropdownMenuItem key={guest.id}>
-            <DropdownItem
-              className="pr-6 focus:outline-none"
-              StartIcon={selectedEmail === guest.email ? "circle-check" : undefined}
-              onClick={(e) => {
-                e.preventDefault();
-                setSelectedEmail(guest.email);
-              }}>
-              <span className={`${selectedEmail !== guest.email ? "pl-6" : ""}`}>{guest.email}</span>
-            </DropdownItem>
+          <DropdownMenuItem
+            key={guest.id}
+            className="pr-6 focus:outline-none"
+            StartIcon={selectedEmail === guest.email ? "circle-check" : undefined}
+            onClick={(e) => {
+              e.preventDefault();
+              setSelectedEmail(guest.email);
+            }}>
+            <span className={selectedEmail !== guest.email ? "pl-6" : ""}>{guest.email}</span>
           </DropdownMenuItem>
         ))}
+
         <DropdownMenuSeparator />
-        <div className="flex justify-end space-x-2 p-2 ">
+
+        <div className="flex justify-end space-x-2 p-2">
           <Link href={`mailto:${selectedEmail}`}>
             <Button
               color="secondary"
@@ -1302,6 +1263,7 @@ const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
               {t("email")}
             </Button>
           </Link>
+
           <Button
             color="secondary"
             disabled={selectedEmail.length === 0}
@@ -1314,7 +1276,7 @@ const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
           </Button>
         </div>
       </DropdownMenuContent>
-    </Dropdown>
+    </DropdownMenu>
   );
 };
 

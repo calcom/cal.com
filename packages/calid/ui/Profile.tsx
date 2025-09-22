@@ -98,7 +98,7 @@ export const Profile = ({ small }: ProfileProps) => {
             e.stopPropagation(); // <-- Prevent menu from closing
             setShowHelpOptions((prev) => !prev);
           }}
-          className="hover:bg-subtle flex w-full cursor-pointer items-center rounded-sm px-2 py-1.5 text-sm">
+          className="hover:bg-emphasis flex w-full cursor-pointer items-center rounded-sm px-2 py-1.5 text-sm">
           <Icon name="circle-help" className="mr-2 h-4 w-4" />
           {t("help")}
           <Icon

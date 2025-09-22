@@ -1,6 +1,6 @@
 const StepCard: React.FC<{ children: React.ReactNode }> = (props) => {
   return (
-    <div className="border-subtle shadow-md mt-10 border bg-white p-4 rounded-md">{props.children}</div>
+    <div className="border-subtle bg-default mt-10 rounded-md border p-4 shadow-md">{props.children}</div>
   );
 };
 
