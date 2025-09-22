@@ -1,5 +1,4 @@
-import { PrismaClient, type Prisma } from "@calcom/prisma/client";
-
+import { PrismaClient, type Prisma } from "./client/index";
 import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency-key";
 import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallow-undefined-delete-update-many";
 import { excludeLockedUsersExtension } from "./extensions/exclude-locked-users";

@@ -1,0 +1,11 @@
+{
+  "extends": "@calcom/tsconfig/base.json",
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "noEmitOnError": false,
+    "target": "ESNext",
+    "moduleResolution": "bundler",
+    "module": "ESNext",
+    "paths": {}
+  }
+}
