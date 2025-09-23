@@ -54,7 +54,7 @@ export const buttonClasses = cva(
         primary: [
           // Base colors
           "bg-cal-active",
-          "text-default",
+          "text-white",
           // Hover state
           // Focus state
           "focus-visible:bg-subtle",

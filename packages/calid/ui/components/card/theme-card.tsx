@@ -32,7 +32,7 @@ export default function ThemeCard({
     switch (variant) {
       case "light":
         return (
-          <div className="flex h-8 w-8 items-center justify-center rounded-full border bg-yellow-100">
+          <div className="bg-default text-default flex h-8 w-8 items-center justify-center rounded-full border">
             <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
@@ -44,7 +44,7 @@ export default function ThemeCard({
         );
       case "dark":
         return (
-          <div className="flex h-8 w-8 items-center justify-center rounded-full border bg-black text-default">
+          <div className="text-default bg-default flex h-8 w-8 items-center justify-center rounded-full border">
             <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
               <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
             </svg>
@@ -70,8 +70,8 @@ export default function ThemeCard({
   return (
     <label
       className={cn(
-        "relative flex cursor-pointer flex-col rounded-lg border p-4 transition-all hover:shadow-md",
-        isSelected ? "bg-blue-50 shadow-lg ring-1 ring-blue-200" : "border-gray-200 hover:border-gray-300",
+        " bg-default relative flex cursor-pointer flex-col rounded-lg border p-4 transition-all hover:shadow-md",
+        isSelected ? " ring-active shadow-lg ring-1 " : " border-border hover:border-border-hover",
         className
       )}
       htmlFor={`${fieldName}-${variant}`}
@@ -88,8 +88,8 @@ export default function ThemeCard({
         <div className="flex items-center space-x-3">
           {getThemeIcon()}
           <div>
-            <h3 className="text-sm font-medium text-gray-900">{label}</h3>
-            {description && <p className="text-xs text-gray-500">{description}</p>}
+            <h3 className="text-emphasis text-sm font-medium">{label}</h3>
+            {description && <p className="text-default text-xs">{description}</p>}
           </div>
         </div>
 

@@ -224,7 +224,7 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
   return (
     <Link
       href="/event-types"
-      className="hover:bg-emphasis todesktop:mt-10 [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group flex h-6 max-h-6 w-full flex-row items-center rounded-md px-2 py-4 text-sm font-medium leading-4 transition"
+      className="hover:bg-emphasis todesktop:mt-10 [&[aria-current='page']]:bg-emphasis group-hover:text-default text-emphasis group flex h-6 max-h-6 w-full flex-row items-center rounded-md px-2 py-4 text-sm font-medium leading-4 transition [&[aria-current='page']]:text-white"
       data-testid={`vertical-tab-${name}`}>
       <Icon
         name="arrow-left"
@@ -308,7 +308,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
 
           return (
             <Link
-              className="hover:bg-emphasis flow-row [&[aria-current='page']]:bg-active text-default flex w-full items-center rounded-md px-2 py-1.5 text-sm font-medium transition [&[aria-current='page']]:text-default"
+              className="hover:bg-emphasis flow-row [&[aria-current='page']]:bg-active text-default flex w-full items-center rounded-md px-2 py-1.5 text-sm font-medium transition [&[aria-current='page']]:text-white"
               key={team.id}
               aria-current={isActive ? "page" : undefined}
               href={href}>
@@ -417,7 +417,7 @@ const SettingsSidebarContainer = ({
               {!["teams", "other_teams"].includes(tab.name) && (
                 <React.Fragment key={tab.href}>
                   <div className={`${!tab.children?.length ? "!mb-3" : ""}`}>
-                    <div className="[&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default group flex h-7 w-full flex-row items-end rounded-md px-2 text-sm font-medium leading-none">
+                    <div className="[&[aria-current='page']]:bg-emphasis text-default group flex h-7 w-full flex-row items-end rounded-md px-2 text-sm font-medium leading-none [&[aria-current='page']]:text-white">
                       <Skeleton
                         title={tab.name}
                         as="p"
@@ -449,7 +449,7 @@ const SettingsSidebarContainer = ({
               {tab.name === "teams" && (
                 <React.Fragment key={tab.href}>
                   <div data-testid="tab-teams" className={`${!tab.children?.length ? "mb-3" : ""}`}>
-                    <div className="text-default group flex h-7 w-full flex-row items-center px-2 py-[10px] text-sm font-medium leading-none transition group-hover:text-default">
+                    <div className="text-default group-hover:text-default group flex h-7 w-full flex-row items-center px-2 py-[10px] text-sm font-medium leading-none transition">
                       <Skeleton
                         title={tab.name}
                         as="p"
@@ -476,7 +476,7 @@ const SettingsSidebarContainer = ({
                 <React.Fragment key={tab.href}>
                   <div className={`${!tab.children?.length ? "mb-3" : ""}`}>
                     <Link href={tab.href}>
-                      <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-sm font-medium leading-none transition">
+                      <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-sm font-medium leading-none transition [&[aria-current='page']]:text-white">
                         {tab && tab.icon && (
                           <Icon
                             name={tab.icon}
@@ -514,7 +514,7 @@ const SettingsSidebarContainer = ({
                               }}>
                               <CollapsibleTrigger asChild>
                                 <button
-                                  className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition"
+                                  className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition [&[aria-current='page']]:text-white"
                                   aria-controls={`other-team-content-${otherTeam.id}`}
                                   aria-expanded={otherTeamMenuState[index].teamMenuOpen}
                                   onClick={() => {

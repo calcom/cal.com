@@ -77,14 +77,14 @@ const NavigationItemComponent = ({
           <Icon
             name={item.isLoading ? "rotate-cw" : item.icon}
             className={classNames(
-              "text-subtle mr-2 h-4 w-4 flex-shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2",
+              "text-subtle mr-2 h-4 w-4 flex-shrink-0 md:ltr:mx-auto lg:ltr:mr-2 rtl:ml-2",
               item.isLoading && "animate-spin"
             )}
             aria-hidden="true"
             aria-current={item.isCurrent ? "page" : undefined}
           />
         )}
-        <span className="hidden w-full justify-between truncate text-ellipsis text-default lg:flex">
+        <span className="hidden w-full justify-between truncate text-ellipsis text-white lg:flex">
           {item.name}
           {item.badge && item.badge}
         </span>

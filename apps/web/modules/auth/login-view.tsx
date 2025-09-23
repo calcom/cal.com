@@ -180,7 +180,7 @@ export default function Login({
         {/* Logo */}
         <div className="mb-8 text-center">
           <div className="mb-8 flex items-center justify-center space-x-2">
-            <span className="text-2xl font-bold text-gray-900">Cal ID</span>
+            <span className="text-primary text-2xl font-bold">Cal ID</span>
           </div>
         </div>
 
@@ -219,10 +219,10 @@ export default function Login({
               {/* Divider */}
               {isGoogleLoginEnabled && (
                 <div className="relative mb-8">
-                  <div className="absolute inset-0 flex items-center">
+                  <div className=" inset-0 flex items-center">
                     <div className="w-full border-t border-gray-300" />
                   </div>
-                  <div className="relative flex justify-center text-sm">
+                  <div className="mt-3 flex justify-center text-sm">
                     <span className="text-subtle bg-primary px-2 font-medium">
                       {t("or_continue_with_email")}
                     </span>
