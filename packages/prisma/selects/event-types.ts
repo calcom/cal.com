@@ -17,8 +17,6 @@ export const baseEventTypeSelect = {
   requiresBookerEmailVerification: true,
   canSendCalVideoTranscriptionEmails: true,
   seatsPerTimeSlot: true,
-  createdAt: true,
-  updatedAt: true,
 } satisfies Prisma.EventTypeSelect;
 
 export const bookEventTypeSelect = {
@@ -79,8 +77,6 @@ export const bookEventTypeSelect = {
       },
     },
   },
-  createdAt: true,
-  updatedAt: true,
 } satisfies Prisma.EventTypeSelect;
 
 export const availiblityPageEventTypeSelect = {
@@ -138,6 +134,4 @@ export const availiblityPageEventTypeSelect = {
       },
     },
   },
-  createdAt: true,
-  updatedAt: true,
 } satisfies Prisma.EventTypeSelect;

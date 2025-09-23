@@ -105,6 +105,4 @@ export const eventTypeScheduleSelect = {
       name: true,
     },
   },
-  createdAt: true,
-  updatedAt: true,
 } satisfies Prisma.EventTypeSelect;

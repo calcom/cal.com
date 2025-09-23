@@ -51,11 +51,7 @@ export class EventTypesRepositoryFixture {
   }
 
   async createTeamEventType(data: Prisma.EventTypeCreateInput) {
-    return this.prismaWriteClient.eventType.create({
-      data: {
-        ...data,
-      },
-    });
+    return this.prismaWriteClient.eventType.create({ data });
   }
 
   async delete(eventTypeId: EventType["id"]) {

@@ -26,9 +26,7 @@ type BaseEventType = Prisma.EventTypeGetPayload<{
 }>;
 
 type RawEventType = BaseEventType & {
-  metadata: Record<string, unknown> | null;
-  createdAt: Date | null;
-  updatedAt: Date | null;
+  metadata: Record<string, any> | null;
 };
 
 const getEventTypesWithHiddenFromDB = async (userId: number) => {
@@ -36,7 +34,7 @@ const getEventTypesWithHiddenFromDB = async (userId: number) => {
     SELECT data."id", data."title", data."description", data."length", data."schedulingType"::text,
       data."recurringEvent", data."slug", data."hidden", data."price", data."currency",
       data."lockTimeZoneToggleOnBookingPage", data."lockedTimeZone", data."requiresConfirmation", data."requiresBookerEmailVerification",
-      data."metadata", data."canSendCalVideoTranscriptionEmails", data."createdAt", data."updatedAt"
+      data."metadata", data."canSendCalVideoTranscriptionEmails"
       FROM (
         SELECT "EventType"."id", "EventType"."title", "EventType"."description",
           "EventType"."position", "EventType"."length", "EventType"."schedulingType"::text,
@@ -44,7 +42,7 @@ const getEventTypesWithHiddenFromDB = async (userId: number) => {
           "EventType"."price", "EventType"."currency",
           "EventType"."lockTimeZoneToggleOnBookingPage", "EventType"."lockedTimeZone", "EventType"."requiresConfirmation",
           "EventType"."requiresBookerEmailVerification", "EventType"."metadata",
-          "EventType"."canSendCalVideoTranscriptionEmails", "EventType"."seatsPerTimeSlot", "EventType"."createdAt", "EventType"."updatedAt"
+          "EventType"."canSendCalVideoTranscriptionEmails", "EventType"."seatsPerTimeSlot"
         FROM "EventType"
         WHERE "EventType"."teamId" IS NULL AND "EventType"."userId" = ${userId}
         UNION
@@ -54,7 +52,7 @@ const getEventTypesWithHiddenFromDB = async (userId: number) => {
         "EventType"."price", "EventType"."currency",
         "EventType"."lockTimeZoneToggleOnBookingPage", "EventType"."lockedTimeZone", "EventType"."requiresConfirmation",
         "EventType"."requiresBookerEmailVerification", "EventType"."metadata",
-        "EventType"."canSendCalVideoTranscriptionEmails", "EventType"."seatsPerTimeSlot", "EventType"."createdAt", "EventType"."updatedAt"
+        "EventType"."canSendCalVideoTranscriptionEmails", "EventType"."seatsPerTimeSlot"
         FROM "EventType"
         WHERE "EventType"."teamId" IS NULL
         AND "EventType"."userId" IS NOT NULL

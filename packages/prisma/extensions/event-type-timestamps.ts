@@ -9,26 +9,17 @@ export function eventTypeTimestampsExtension() {
           if (!args.data.createdAt) {
             args.data.createdAt = now;
           }
-          if (!args.data.updatedAt) {
-            args.data.updatedAt = now;
-          }
           return query(args);
         },
         async createMany({ args, query }) {
           const now = new Date();
           if (Array.isArray(args.data)) {
-            args.data = args.data.map(item => ({
+            args.data = args.data.map((item) => ({
               ...item,
               createdAt: item.createdAt || now,
-              updatedAt: item.updatedAt || now,
             }));
-          } else {
-            if (!args.data.createdAt) {
-              args.data.createdAt = now;
-            }
-            if (!args.data.updatedAt) {
-              args.data.updatedAt = now;
-            }
+          } else if (!args.data.createdAt) {
+            args.data.createdAt = now;
           }
           return query(args);
         },
