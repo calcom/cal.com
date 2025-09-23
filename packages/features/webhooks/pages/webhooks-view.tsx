@@ -68,7 +68,7 @@ const WebhooksList = ({
               </div>
 
               <div className="flex flex-col" key={group.profile.slug}>
-                <div className={classNames("border-subtle mb-8 mt-3 rounded-lg border border-t")}>
+                <div className={classNames("border-default mb-8 mt-3 rounded-lg border border-t")}>
                   {group.webhooks.map((webhook, index) => (
                     <WebhookListItem
                       key={webhook.id}

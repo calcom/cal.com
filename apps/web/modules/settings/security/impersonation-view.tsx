@@ -52,7 +52,7 @@ const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"
 
   return (
     <>
-      <div className="border-subtle rounded-md border px-4 py-6 sm:px-6">
+      <div className="border-default rounded-md border px-4 py-6 sm:px-6">
         <SettingsToggle
           toggleSwitchAtTheEnd={true}
           title={t("user_impersonation_heading")}

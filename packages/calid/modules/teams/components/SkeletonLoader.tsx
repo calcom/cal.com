@@ -7,7 +7,7 @@ export default function SkeletonLoader() {
   return (
     <SkeletonContainer className="flex w-full flex-col space-y-6">
       {/* Settings Switch Section 1 */}
-      <div className="border-subtle space-y-6 rounded-md border p-4">
+      <div className="border-default space-y-6 rounded-md border p-4">
         <div className="flex items-center justify-between">
           <div className="space-y-2">
             <SkeletonText className="h-5 w-48" />
@@ -18,7 +18,7 @@ export default function SkeletonLoader() {
       </div>
 
       {/* Settings Switch Section 2 */}
-      <div className="border-subtle space-y-6 rounded-md border p-4">
+      <div className="border-default space-y-6 rounded-md border p-4">
         <div className="flex items-center justify-between">
           <div className="space-y-2">
             <SkeletonText className="h-5 w-40" />
@@ -29,7 +29,7 @@ export default function SkeletonLoader() {
       </div>
 
       {/* Form Section with Input Fields */}
-      <div className="border-subtle space-y-6 rounded-md border p-4">
+      <div className="border-default bg-primary overflow-auto rounded-lg border space-y-6 rounded-md border p-4">
         <div className="space-y-4">
           <div className="space-y-2">
             <SkeletonText className="h-4 w-24" />

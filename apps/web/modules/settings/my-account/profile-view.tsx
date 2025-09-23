@@ -673,7 +673,7 @@ const ProfileForm = ({
 
   return (
     <Form form={formMethods} onSubmit={handleFormSubmit}>
-      <div className="border-subtle rounded-md border px-4 py-6 sm:px-6">
+      <div className="border-default rounded-md border px-4 py-6 sm:px-6">
         <h2 className="mb-2 text-sm font-medium">{t("profile_picture")}</h2>
         <div className="flex items-center">
           <FormField
