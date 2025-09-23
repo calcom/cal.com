@@ -1,8 +1,8 @@
+import { isTeamOwner } from "@calcom/features/ee/teams/lib/queries";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { isTeamOwner } from "@calcom/features/ee/teams/lib/queries";
 import { TeamService } from "@calcom/lib/server/service/teamService";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -41,14 +41,20 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
         },
       });
 
-      if (!membership) return false;
+      // Check if user is an admin or owner of the organization
+      const isOrgAdmin = ctx.user.organization.isOrgAdmin;
+
+      if (!membership && !isOrgAdmin) {
+        return false;
+      }
 
       // Check PBAC permissions for removing team members
       const permissions = await getSpecificPermissions({
         userId: ctx.user.id,
         teamId: teamId,
         resource: isOrg ? Resource.Organization : Resource.Team,
-        userRole: membership.role,
+        // Fallback to org admin if user is not a part of the team
+        userRole: membership?.role || MembershipRole.ADMIN,
         actions: [CustomAction.Remove],
         fallbackRoles: {
           [CustomAction.Remove]: {
