@@ -2285,8 +2285,8 @@ model BlockedBooking {
   email       String
   eventTypeId Int?
 
-  organizationId Int
-  organization   Team @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId Int?
+  organization   Team? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   watchlistEntryId String?
   watchlistEntry   Watchlist? @relation(fields: [watchlistEntryId], references: [id], onDelete: SetNull)

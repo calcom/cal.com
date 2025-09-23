@@ -23,7 +23,7 @@ CREATE TABLE "BlockedBooking" (
     "uid" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "eventTypeId" INTEGER,
-    "organizationId" INTEGER NOT NULL,
+    "organizationId" INTEGER,
     "watchlistEntryId" TEXT,
     "bookingData" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
