@@ -1,14 +1,14 @@
-import { useMemo, useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/components/hooks/useAvailableTimeSlots";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
-import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
 import { localStorage } from "@calcom/lib/webstorage";
+import type { BookingStatus } from "@calcom/prisma/enums";
 
-import { useOverlayCalendarStore } from "../bookings/Booker/components/OverlayCalendar/store";
+import { useBookings } from "../../platform/atoms/hooks/bookings/useBookings";
 import type { useScheduleForEventReturnType } from "../bookings/Booker/utils/event";
 import { getQueryParam } from "../bookings/Booker/utils/query-param";
 
@@ -22,15 +22,20 @@ export const LargeCalendar = ({
   schedule?: useScheduleForEventReturnType["data"];
   isLoading: boolean;
   event: {
-    data?: Pick<BookerEvent, "length"> | null;
+    data?: Pick<BookerEvent, "length" | "id"> | null;
   };
 }) => {
   const selectedDate = useBookerStoreContext((state) => state.selectedDate);
   const selectedEventDuration = useBookerStoreContext((state) => state.selectedDuration);
-  const overlayEvents = useOverlayCalendarStore((state) => state.overlayBusyDates);
   const displayOverlay =
     getQueryParam("overlayCalendar") === "true" || localStorage?.getItem("overlayCalendarSwitchDefault");
 
+  const { data: upcomingBookings } = useBookings({
+    take: 50,
+    skip: 0,
+    status: ["upcoming", "past", "recurring"],
+    eventTypeId: event?.data?.id,
+  });
   const eventDuration = selectedEventDuration || event?.data?.length || 30;
 
   const availableSlots = useAvailableTimeSlots({ schedule, eventDuration });
@@ -46,19 +51,21 @@ export const LargeCalendar = ({
   useEffect(() => {}, [displayOverlay]);
 
   const overlayEventsForDate = useMemo(() => {
-    if (!overlayEvents || !displayOverlay) return [];
-    return overlayEvents.map((event, id) => {
+    return upcomingBookings?.map((event, idx) => {
       return {
-        id,
-        start: dayjs(event.start).toDate(),
-        end: dayjs(event.end).toDate(),
-        title: "Busy",
+        id: idx,
+        title: event.title ?? `Busy`,
+        start: new Date(event.start),
+        end: new Date(event.end),
         options: {
-          status: "ACCEPTED",
+          borderColor: "black",
+          status: event.status.toUpperCase() as BookingStatus,
+          "data-test-id": "troubleshooter-busy-event",
+          className: "border-[1.5px]",
         },
-      } as CalendarEvent;
+      };
     });
-  }, [overlayEvents, displayOverlay]);
+  }, [upcomingBookings]);
 
   return (
     <div className="h-full [--calendar-dates-sticky-offset:66px]">
@@ -67,7 +74,7 @@ export const LargeCalendar = ({
         availableTimeslots={availableSlots}
         startHour={0}
         endHour={23}
-        events={overlayEventsForDate}
+        events={overlayEventsForDate ?? []}
         startDate={startDate}
         endDate={endDate}
         gridCellsPerHour={60 / eventDuration}
