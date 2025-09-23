@@ -98,8 +98,9 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
             ]
           : []),
         {
-          name: "privacy",
+          name: "privacy_security",
           href: "/settings/organizations/privacy",
+          children: [{ name: "spam_blocklist", href: "/settings/organizations/privacy/spam-blocklist" }],
         },
         {
           name: "billing",
@@ -174,7 +175,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
 const adminRequiredKeys = ["admin"];
 const organizationRequiredKeys = ["organization"];
 const organizationAdminKeys = [
-  "privacy",
+  "privacy_security",
   "billing",
   "OAuth Clients",
   "SSO",
@@ -272,7 +273,15 @@ const useTabs = ({
       if (isAdmin) return true;
       return !adminRequiredKeys.includes(tab.name);
     });
-  }, [isAdmin, orgBranding, isOrgAdminOrOwner, user, isDelegationCredentialEnabled]);
+  }, [
+    isAdmin,
+    orgBranding,
+    isOrgAdminOrOwner,
+    user,
+    isDelegationCredentialEnabled,
+    isPbacEnabled,
+    permissions?.canViewRoles,
+  ]);
 
   return processTabsMemod;
 };
@@ -352,7 +361,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
         tabMembers?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }
-  }, [searchParams?.get("id"), teams]);
+  }, [searchParams, teams]);
 
   return (
     <>
@@ -546,7 +555,7 @@ const SettingsSidebarContainer = ({
         tabMembers?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }
-  }, [searchParams?.get("id"), otherTeams]);
+  }, [searchParams, otherTeams]);
 
   const isOrgAdminOrOwner = checkAdminOrOwner(orgBranding?.role);
 
@@ -821,13 +830,13 @@ export default function SettingsLayoutAppDirClient({
     return () => {
       window.removeEventListener("resize", closeSideContainer);
     };
-  }, []);
+  }, [setSideContainerOpen]);
 
   useEffect(() => {
     if (sideContainerOpen) {
       setSideContainerOpen(!sideContainerOpen);
     }
-  }, [pathname]);
+  }, [pathname, sideContainerOpen, setSideContainerOpen]);
 
   return (
     <Shell

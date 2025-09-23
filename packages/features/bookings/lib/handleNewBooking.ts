@@ -96,6 +96,7 @@ import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCr
 import getBookingDataSchema from "./getBookingDataSchema";
 import { addVideoCallDataToEvent } from "./handleNewBooking/addVideoCallDataToEvent";
 import { checkActiveBookingsLimitForBooker } from "./handleNewBooking/checkActiveBookingsLimitForBooker";
+// import { checkBookingBlocking } from "./handleNewBooking/checkBookingBlocking";
 import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
 import type { Booking } from "./handleNewBooking/createBooking";
 import { createBooking } from "./handleNewBooking/createBooking";
@@ -489,6 +490,24 @@ async function handler(
   const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
   const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger: loggerWithEventDetails });
 
+  // // Check if booker is blocked by organization-level blocking rules
+  // const blockingResult = await checkBookingBlocking({
+  //   bookerEmail,
+  //   eventType,
+  //   bookingData: bookingData,
+  // });
+
+  // if (blockingResult.isBlocked && blockingResult.decoyResponse) {
+  //   // Return decoy response for shadow ban - user thinks booking was successful
+  //   return {
+  //     uid: blockingResult.decoyResponse.uid,
+  //     success: true,
+  //     message: blockingResult.decoyResponse.message,
+  //     // Don't include any real booking data
+  //   };
+  // }
+
+  // // Keep existing email blocking check for backward compatibility
   await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
 
   if (!rawBookingData.rescheduleUid) {
