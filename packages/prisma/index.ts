@@ -1,13 +1,13 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
-import { PrismaClient, type Prisma } from "./client/client";
 import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency-key";
+import { bookingReferenceExtension } from "./extensions/bookingReference";
 import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallow-undefined-delete-update-many";
 import { excludeLockedUsersExtension } from "./extensions/exclude-locked-users";
 import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-payment-teams";
 import { usageTrackingExtention } from "./extensions/usage-tracking";
-import { bookingReferenceMiddleware } from "./middleware";
+import { PrismaClient, type Prisma } from "./generated/prisma/client";
 
 const connectionString = process.env.DATABASE_URL || "";
 const pool = new Pool({ connectionString });
@@ -50,11 +50,8 @@ export const customPrisma = (options?: Prisma.PrismaClientOptions) =>
     .$extends(excludeLockedUsersExtension())
     .$extends(excludePendingPaymentsExtension())
     .$extends(bookingIdempotencyKeyExtension())
+    .$extends(bookingReferenceExtension())
     .$extends(disallowUndefinedDeleteUpdateManyExtension()) as unknown as PrismaClient;
-
-// If any changed on middleware server restart is required
-// TODO: Migrate it to $extends
-bookingReferenceMiddleware(baseClient);
 
 // FIXME: Due to some reason, there are types failing in certain places due to the $extends. Fix it and then enable it
 // Specifically we get errors like `Type 'string | Date | null | undefined' is not assignable to type 'Exact<string | Date | null | undefined, string | Date | null | undefined>'`
@@ -66,6 +63,7 @@ export const prisma: PrismaClient = baseClient
   .$extends(excludeLockedUsersExtension())
   .$extends(excludePendingPaymentsExtension())
   .$extends(bookingIdempotencyKeyExtension())
+  .$extends(bookingReferenceExtension())
   .$extends(disallowUndefinedDeleteUpdateManyExtension()) as unknown as PrismaClient;
 
 // This prisma instance is meant to be used only for READ operations.

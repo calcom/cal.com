@@ -4,7 +4,6 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { makeSqlCondition } from "@calcom/features/data-table/lib/server";
 import { ZColumnFilter } from "@calcom/features/data-table/lib/types";
-import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { type ColumnFilter } from "@calcom/features/data-table/lib/types";
 import {
   isSingleSelectFilterValue,
@@ -13,10 +12,7 @@ import {
   isNumberFilterValue,
   isDateRangeFilterValue,
 } from "@calcom/features/data-table/lib/utils";
-import {
-  extractDateRangeFromColumnFilters,
-  replaceDateRangeColumnFilter,
-} from "@calcom/features/insights/lib/bookingUtils";
+import { extractDateRangeFromColumnFilters } from "@calcom/features/insights/lib/bookingUtils";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { PrismaClient } from "@calcom/prisma";

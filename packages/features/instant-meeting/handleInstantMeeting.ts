@@ -3,6 +3,7 @@ import type { NextApiRequest } from "next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import { createInstantMeetingWithCalVideo } from "@calcom/app-store/videoClient";
 import dayjs from "@calcom/dayjs";
 import type {
   CreateInstantBookingData,
@@ -22,7 +23,6 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { createInstantMeetingWithCalVideo } from "@calcom/app-store/videoClient";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
