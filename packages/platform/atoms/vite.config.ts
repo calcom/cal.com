@@ -29,7 +29,7 @@ export default defineConfig(({ mode }) => {
             // Replace the broken path with the correct import
             return {
               filePath,
-              content: content.replace(`kysely/types.ts').$Enums`, `kysely/types.ts')`),
+              content: content.replaceAll(`kysely/types.ts').$Enums`, `kysely/types.ts')`),
             };
           }
           return { filePath, content };
@@ -81,6 +81,7 @@ export default defineConfig(({ mode }) => {
         "@radix-ui/react-dialog": path.resolve(__dirname, "./src/components/ui/dialog.tsx"),
         "@calcom/prisma/client/runtime/library": resolve("./prisma-types/index.ts"),
         "@calcom/prisma/client": path.resolve(__dirname, "../../kysely/types.ts"),
+        kysely: path.resolve(__dirname, "./kysely-types/index.ts"),
         "@calcom/dayjs": path.resolve(__dirname, "../../dayjs"),
         "@calcom/platform-constants": path.resolve(__dirname, "../constants/index.ts"),
         "@calcom/platform-types": path.resolve(__dirname, "../types/index.ts"),

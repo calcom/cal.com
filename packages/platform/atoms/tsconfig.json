@@ -59,6 +59,7 @@
     "../../features/data-table",
     "../../kysely/types.ts",
     "./prisma-types/index.ts",
+    "./kysely-types/index.ts",
     "../../lib/intervalLimits/intervalLimitSchema.ts"
   ],
   "exclude": [
