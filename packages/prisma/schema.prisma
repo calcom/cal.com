@@ -29,6 +29,7 @@ generator zod {
   addIncludeType           = false
   addSelectType            = false
   validateWhereUniqueInput = false
+  prismaClientPath         = "../../generated/prisma/client"
   /// createRelationValuesTypes = true
 }
 
