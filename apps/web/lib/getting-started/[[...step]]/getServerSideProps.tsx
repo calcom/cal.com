@@ -9,14 +9,11 @@ async function getRequestCountryOrigin(
   req: import("http").IncomingMessage & { cookies: Partial<{ [key: string]: string }> }
 ) {
   try {
-    console.log("Fetching geo")
     const forwarded = req.headers["x-forwarded-for"];
     const ip = typeof forwarded === "string" ? forwarded.split(",")[0] : req.socket?.remoteAddress;
 
     const geoRes = await fetch(`https://ipapi.co/${ip}/json/`);
     const geoData = await geoRes.json();
-
-    console.log("Geo data: ", geoData)
     const country = geoData.country || "IN";
 
     return country;
