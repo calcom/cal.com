@@ -721,7 +721,7 @@ export default function BookingListItem(booking: BookingItemProps) {
                 )} */}
                     {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
                     {isCancelled && booking.rescheduled && (
-                      <div className="hidden h-full items-center md:flex">
+                      <div className="hidden h-full w-full items-center md:flex">
                         <RequestSentMessage />
                       </div>
                     )}

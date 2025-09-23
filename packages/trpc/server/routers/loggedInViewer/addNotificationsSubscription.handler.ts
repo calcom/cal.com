@@ -57,7 +57,7 @@ export const addNotificationsSubscriptionHandler = async ({ ctx, input }: AddSec
     },
     title: "Test Notification",
     body: "Push Notifications activated successfully",
-    url: "https://app.cal.com/",
+    url: "https://app.cal.id/",
     requireInteraction: false,
     type: "TEST_NOTIFICATION",
   });

@@ -454,25 +454,6 @@ const AppearanceView = ({
                           <img className="h-full w-full" src={value} />
                         )}
                       </div>
-                      <div className="bg-muted flex h-60 w-full items-center justify-start rounded-sm">
-                        {!value ? (
-                          <p className="text-emphasis w-full text-center text-sm sm:text-xs">
-                            {t("no_target", { target: "Header" })}
-                          </p>
-                        ) : (
-                          <img className="h-full w-full" src={value} />
-                        )}
-                      </div>
-
-                      {/* <Avatar
-                        data-testid="profile-upload-logo"
-                        alt={headerUrlFormMethods.getValues("name")}
-                        imageSrc={getPlaceholderAvatar(
-                          value,
-                          headerUrlFormMethods.getValues("metadata.headerUrl")
-                        )}
-                        size="lg"
-                      /> */}
                       <div className="flex gap-2">
                         <CustomBannerUploader
                           target="metadata.headerUrl"
