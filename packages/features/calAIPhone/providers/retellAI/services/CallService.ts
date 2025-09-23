@@ -195,7 +195,7 @@ export class CallService {
       identifier: `web-call:${userId}`,
     });
 
-    const agent = await this.agentRepository.findByIdWithCallAccess({
+    const agent = await this.deps.agentRepository.findByIdWithCallAccess({
       id: agentId,
       userId,
     });
