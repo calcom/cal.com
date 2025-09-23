@@ -1,8 +1,7 @@
-import { createPrismock } from "prismock";
+import { PrismockClient } from "prismock";
 import { beforeEach, vi } from "vitest";
 
 import logger from "@calcom/lib/logger";
-import { Prisma as PrismaType } from "@calcom/prisma/client";
 import * as selects from "@calcom/prisma/selects";
 
 vi.stubEnv("DATABASE_URL", "postgresql://user:password@localhost:5432/testdb");
@@ -30,8 +29,7 @@ const handlePrismockBugs = () => {
   };
 };
 
-const PrismockClientConstructor = createPrismock(PrismaType);
-const prismock = new PrismockClientConstructor();
+const prismock = new PrismockClient();
 
 const prismaMock = prismock;
 

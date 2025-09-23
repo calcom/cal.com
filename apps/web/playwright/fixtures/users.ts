@@ -10,9 +10,8 @@ import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/avail
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
-import type Prisma from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
-import type { Prisma as PrismaType } from "@calcom/prisma/client";
+import type { Prisma, User, EventType } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType, TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { Schedule } from "@calcom/types/schedule";
@@ -37,7 +36,7 @@ const userIncludes = {
   workflows: true,
   credentials: true,
   routingForms: true,
-} satisfies PrismaType.UserInclude;
+} satisfies Prisma.UserInclude;
 
 type InstallStripeParamsSkipTrue = {
   eventTypeIds?: number[];
@@ -65,14 +64,14 @@ type InstallStripeParams = InstallStripeParamsUnion & {
 
 const userWithEventTypes = {
   include: userIncludes,
-} satisfies PrismaType.UserDefaultArgs;
+} satisfies Prisma.UserDefaultArgs;
 
 const seededForm = {
   id: "948ae412-d995-4865-875a-48302588de03",
   name: "Seeded Form - Pro",
 };
 
-type UserWithIncludes = PrismaType.UserGetPayload<typeof userWithEventTypes>;
+type UserWithIncludes = Prisma.UserGetPayload<typeof userWithEventTypes>;
 
 const createTeamWorkflow = async (user: { id: number }, team: { id: number }) => {
   return await prisma.workflow.create({
@@ -178,7 +177,7 @@ const createTeamAndAddUser = async (
   const slugIndex = index ? `-count-${index}` : "";
   const slug =
     orgRequestedSlug ?? `${isOrg ? "org" : "team"}-${workerInfo.workerIndex}-${Date.now()}${slugIndex}`;
-  const data: PrismaType.TeamCreateInput = {
+  const data: Prisma.TeamCreateInput = {
     name: `user-id-${user.id}'s ${isOrg ? "Org" : "Team"}`,
     isOrganization: isOrg,
   };
@@ -760,9 +759,9 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
         },
       });
     },
-    setupEventWithPrice: async (eventType: Pick<Prisma.EventType, "id">, slug: string) =>
+    setupEventWithPrice: async (eventType: Pick<EventType, "id">, slug: string) =>
       setupEventWithPrice(eventType, slug, store.page),
-    bookAndPayEvent: async (eventType: Pick<Prisma.EventType, "slug">) =>
+    bookAndPayEvent: async (eventType: Pick<EventType, "slug">) =>
       bookAndPayEvent(user, eventType, store.page),
     makePaymentUsingStripe: async () => makePaymentUsingStripe(store.page),
     installStripePersonal: async (params: InstallStripeParamsUnion) =>
@@ -788,11 +787,11 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
   };
 };
 
-type SupportedTestEventTypes = PrismaType.EventTypeCreateInput & {
-  _bookings?: PrismaType.BookingCreateInput[];
+type SupportedTestEventTypes = Prisma.EventTypeCreateInput & {
+  _bookings?: Prisma.BookingCreateInput[];
 };
 
-type SupportedTestWorkflows = PrismaType.WorkflowCreateInput;
+type SupportedTestWorkflows = Prisma.WorkflowCreateInput;
 
 type CustomUserOptsKeys =
   | "username"
@@ -805,7 +804,7 @@ type CustomUserOptsKeys =
   | "disableImpersonation"
   | "role"
   | "identityProvider";
-type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
+type CustomUserOpts = Partial<Pick<User, CustomUserOptsKeys>> & {
   timeZone?: TimeZoneEnum;
   eventTypes?: SupportedTestEventTypes[];
   workflows?: SupportedTestWorkflows[];
@@ -826,7 +825,7 @@ const createUser = (
         organizationId?: number | null;
       })
     | null
-): PrismaType.UserUncheckedCreateInput => {
+): Prisma.UserUncheckedCreateInput => {
   const suffixToMakeUsernameUnique = `-${workerInfo.workerIndex}-${Date.now()}`;
   // build a unique name for our user
   const uname =
@@ -952,7 +951,7 @@ async function confirmPendingPayment(page: Page) {
 
 // login using a replay of an E2E routine.
 export async function login(
-  user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "email">> & { password?: string | null },
+  user: Pick<User, "username"> & Partial<Pick<User, "email">> & { password?: string | null },
   page: Page
 ) {
   // get locators
@@ -976,7 +975,7 @@ export async function login(
 }
 
 export async function apiLogin(
-  user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "email">> & { password: string | null },
+  user: Pick<User, "username"> & Partial<Pick<User, "email">> & { password: string | null },
   page: Page,
   navigateToUrl?: string
 ) {
@@ -1023,7 +1022,7 @@ export async function apiLogin(
   return response;
 }
 
-export async function setupEventWithPrice(eventType: Pick<Prisma.EventType, "id">, slug: string, page: Page) {
+export async function setupEventWithPrice(eventType: Pick<EventType, "id">, slug: string, page: Page) {
   await page.goto(`/event-types/${eventType?.id}?tabName=apps`);
   await page.locator(`[data-testid='${slug}-app-switch']`).first().click();
   await page.getByPlaceholder("Price").fill("100");
@@ -1031,8 +1030,8 @@ export async function setupEventWithPrice(eventType: Pick<Prisma.EventType, "id"
 }
 
 export async function bookAndPayEvent(
-  user: Pick<Prisma.User, "username">,
-  eventType: Pick<Prisma.EventType, "slug">,
+  user: Pick<User, "username">,
+  eventType: Pick<EventType, "slug">,
   page: Page
 ) {
   // booking process with stripe integration
