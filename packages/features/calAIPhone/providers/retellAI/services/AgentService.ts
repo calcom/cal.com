@@ -658,9 +658,10 @@ export class AgentService {
       });
     }
 
-    const updatedPrompt = agent.eventTypeId
-      ? replaceEventTypePlaceholders(generalPrompt, agent.eventTypeId)
-      : generalPrompt;
+    const updatedPrompt =
+      agent.eventTypeId && generalPrompt
+        ? replaceEventTypePlaceholders(generalPrompt, agent.eventTypeId)
+        : generalPrompt;
 
     const hasRetellUpdates =
       updatedPrompt !== undefined ||

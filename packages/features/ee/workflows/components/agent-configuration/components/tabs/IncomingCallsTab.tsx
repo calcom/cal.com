@@ -93,11 +93,8 @@ export function IncomingCallsTab({
           </div>
           <div className="space-y-2">
             <h3 className="text-emphasis text-lg font-semibold">{t("setup_incoming_agent")}</h3>
-            <p className="text-subtle text-sm">{t("setup_incoming_agent_description")}</p>
+            <p className="text-subtle text-sm">{t("connect_a_phone_number_first")}</p>
           </div>
-          <Button color="secondary" className="px-6">
-            {t("setup_incoming_agent_action")}
-          </Button>
         </div>
       </div>
     );

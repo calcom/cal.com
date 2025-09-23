@@ -25,7 +25,7 @@ export const restorePromptComplexity = (prompt: string): string => {
  * Replaces event type placeholders in a prompt with the actual event type ID
  * Handles both numeric placeholders (check_availability_123) and template placeholders (check_availability_{{eventTypeId}})
  */
-export const replaceEventTypePlaceholders = (prompt: string, eventTypeId: string): string => {
+export const replaceEventTypePlaceholders = (prompt: string, eventTypeId: number): string => {
   let eventTypeIdToUse = eventTypeId;
   if (RETELL_AI_TEST_MODE && RETELL_AI_TEST_EVENT_TYPE_MAP) {
     const mappedId = RETELL_AI_TEST_EVENT_TYPE_MAP[String(eventTypeId)];

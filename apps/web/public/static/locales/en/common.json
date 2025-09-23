@@ -3717,7 +3717,7 @@
   "current_voice": "Current Voice",
   "setup_incoming_agent": "Setup incoming agent",
   "setup_incoming_agent_description": "Configure an AI agent to handle incoming calls on your phone number",
-  "setup_incoming_agent_action": "Connect a Phone Number first",
+  "connect_a_phone_number_first": "Connect a Phone Number first",
   "setup_agent_for_incoming_calls": "Setup Agent for incoming calls",
   "configure_agent_to_handle_incoming_calls": "Configure agent to handle incoming calls",
   "incoming_calls": "Incoming Calls",
