@@ -1,4 +1,4 @@
-import { checkIfMemberAdminOrOwner } from "@calid/features/modules/teams/lib/checkIfMemberAdminOrOwner";
+import { checkIfMemberAdminOrOwner } from "@calid/features/modules/teams/lib/checkIfMemberAdminorOwner";
 import type { Prisma } from "@prisma/client";
 
 import { prisma } from "@calcom/prisma";
