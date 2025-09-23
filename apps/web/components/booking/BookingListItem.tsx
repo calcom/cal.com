@@ -404,35 +404,25 @@ function BookingListItem(booking: BookingItemProps) {
 
   const hasBeenReported = booking.reports && booking.reports.length > 0;
 
-  const createReportAction = (hasBeenReported: boolean, onClick: () => void): ActionType => {
-    return hasBeenReported
-      ? {
-          id: "report",
-          label: t("already_reported"),
-          icon: "flag",
-          disabled: true,
-        }
-      : {
-          id: "report",
-          label: t("report"),
-          icon: "flag",
-          disabled: false,
-          onClick,
-        };
-  };
+  const reportAction: ActionType = hasBeenReported
+    ? {
+        id: "report",
+        label: t("already_reported"),
+        icon: "flag",
+        disabled: true,
+      }
+    : {
+        id: "report",
+        label: t("report"),
+        icon: "flag",
+        disabled: false,
+        onClick: () => setIsReportDialogOpen(true),
+      };
 
   const shouldShowIndividualReportButton = isTabRecurring || isPending || isCancelled;
 
   const shouldShowReportInThreeDotsMenu =
     shouldShowEditActions(actionContext) && !shouldShowIndividualReportButton;
-
-  const individualReportAction: ActionType | null = shouldShowIndividualReportButton
-    ? createReportAction(hasBeenReported, () => setIsReportDialogOpen(true))
-    : null;
-
-  const reportActionForMenu: ActionType | null = shouldShowReportInThreeDotsMenu
-    ? createReportAction(hasBeenReported, () => setIsReportDialogOpen(true))
-    : null;
 
   return (
     <>
@@ -735,19 +725,19 @@ function BookingListItem(booking: BookingItemProps) {
                         {cancelEventAction.label}
                       </DropdownItem>
                     </DropdownMenuItem>
-                    {reportActionForMenu && (
+                    {shouldShowReportInThreeDotsMenu && (
                       <DropdownMenuItem
                         className="rounded-lg"
-                        key={reportActionForMenu.id}
-                        disabled={reportActionForMenu.disabled}>
+                        key={reportAction.id}
+                        disabled={reportAction.disabled}>
                         <DropdownItem
                           type="button"
-                          StartIcon={reportActionForMenu.icon}
-                          onClick={reportActionForMenu.onClick}
-                          disabled={reportActionForMenu.disabled}
-                          data-testid={reportActionForMenu.id}
-                          className={reportActionForMenu.disabled ? "text-muted" : undefined}>
-                          {reportActionForMenu.label}
+                          StartIcon={reportAction.icon}
+                          onClick={reportAction.onClick}
+                          disabled={reportAction.disabled}
+                          data-testid={reportAction.id}
+                          className={reportAction.disabled ? "text-muted" : undefined}>
+                          {reportAction.label}
                         </DropdownItem>
                       </DropdownMenuItem>
                     )}
@@ -756,18 +746,18 @@ function BookingListItem(booking: BookingItemProps) {
               </Dropdown>
             )}
             {shouldShowRecurringCancelAction(actionContext) && <TableActions actions={[cancelEventAction]} />}
-            {individualReportAction && (
+            {shouldShowIndividualReportButton && (
               <div className="flex items-center space-x-2">
                 <Button
                   type="button"
                   variant="icon"
                   color="secondary"
-                  StartIcon={individualReportAction.icon}
-                  onClick={individualReportAction.onClick}
-                  disabled={individualReportAction.disabled}
-                  data-testid={individualReportAction.id}
+                  StartIcon={reportAction.icon}
+                  onClick={reportAction.onClick}
+                  disabled={reportAction.disabled}
+                  data-testid={reportAction.id}
                   className="h-8 w-8"
-                  tooltip={individualReportAction.label}
+                  tooltip={reportAction.label}
                 />
               </div>
             )}
@@ -831,6 +821,7 @@ const BookingItemBadges = ({
   isRescheduled: boolean;
 }) => {
   const { t } = useLocale();
+  const hasBeenReported = booking.reports && booking.reports.length > 0;
 
   return (
     <div className="hidden h-9 flex-row items-center pb-4 pl-6 sm:flex">
@@ -846,21 +837,12 @@ const BookingItemBadges = ({
           </Badge>
         </Tooltip>
       )}
-      {(() => {
-        // Check if this booking or any booking in the recurring series has been reported
-        const hasAnyReport = booking.reports && booking.reports.length > 0;
-
-        return (
-          hasAnyReport && (
-            <Badge variant="red" className="ltr:mr-2 rtl:ml-2">
-              {t("reported")}:{" "}
-              {booking.reports?.[0]?.reason
-                ? t(booking.reports?.[0]?.reason?.toLowerCase())
-                : t("unavailable")}
-            </Badge>
-          )
-        );
-      })()}
+      {hasBeenReported && (
+        <Badge variant="red" className="ltr:mr-2 rtl:ml-2">
+          {t("reported")}:{" "}
+          {booking.reports?.[0]?.reason ? t(booking.reports?.[0]?.reason?.toLowerCase()) : t("unavailable")}
+        </Badge>
+      )}
       {booking.eventType?.team && (
         <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
           {booking.eventType.team.name}
