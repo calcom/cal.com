@@ -64,7 +64,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
           label="Price"
           labelSrOnly
           addOnLeading={currencySymbol}
-          addOnSuffix={currency}
+          addOnSuffix={selectedCurrency?.value ?? "INR"}
           step="0.01"
           min="0.5"
           type="number"

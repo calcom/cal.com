@@ -85,7 +85,11 @@ const BookerComponent = ({
   timeZones,
   eventMetaChildren,
   eventTypes = [],
-}: BookerProps & WrappedBookerProps) => {
+  billingAddressRequired,
+}: BookerProps &
+  WrappedBookerProps & {
+    billingAddressRequired: false;
+  }) => {
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
@@ -225,6 +229,7 @@ const BookerComponent = ({
       <BookEventForm
         key={key}
         shouldRenderCaptcha={shouldRenderCaptcha}
+        billingAddressRequired={billingAddressRequired}
         brandColor={brandColor}
         onCancel={() => {
           setSelectedTimeslot(null);

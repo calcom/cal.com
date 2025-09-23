@@ -1,5 +1,6 @@
 export const currencyOptions = [
   { label: "United States dollar", value: "USD" },
+  { label: "Indian rupee", value: "INR" },
   { label: "Australian dollar", value: "AUD" },
   { label: "Brazilian real 2", value: "BRL" },
   { label: "Canadian dollar", value: "CAD" },
@@ -54,6 +55,7 @@ export const currencySymbols: Record<CurrencyCode, string> = {
   SEK: "kr",
   CHF: "Fr",
   THB: "฿",
+  INR: "₹",
 };
 
 export function isAcceptedCurrencyCode(currencyCode: string): currencyCode is CurrencyCode {
