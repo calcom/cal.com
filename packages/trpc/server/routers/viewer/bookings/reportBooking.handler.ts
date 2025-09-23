@@ -1,5 +1,5 @@
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
-import { isTeamAdmin, isTeamOwner, getTeamDataForAdmin } from "@calcom/lib/server/queries/membership";
+import { isTeamAdmin, isTeamOwner, getTeamDataForAdmin } from "@calcom/features/ee/teams/lib/queries";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";

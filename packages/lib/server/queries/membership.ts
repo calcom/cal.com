@@ -1,47 +1,4 @@
-import prisma from "@calcom/prisma";
-
-export async function isTeamAdmin(userId: number, teamId: number) {
-  const team = await prisma.membership.findFirst({
-    where: {
-      userId,
-      teamId,
-      accepted: true,
-      OR: [{ role: "ADMIN" }, { role: "OWNER" }],
-    },
-    include: {
-      team: {
-        select: {
-          metadata: true,
-          parentId: true,
-          isOrganization: true,
-        },
-      },
-    },
-  });
-  if (!team) return false;
-  return team;
-}
-
-export async function isTeamOwner(userId: number, teamId: number) {
-  return !!(await prisma.membership.findFirst({
-    where: {
-      userId,
-      teamId,
-      accepted: true,
-      role: "OWNER",
-    },
-  }));
-}
-
-export async function isTeamMember(userId: number, teamId: number) {
-  return !!(await prisma.membership.findFirst({
-    where: {
-      userId,
-      teamId,
-      accepted: true,
-    },
-  }));
-}
+import { prisma } from "@calcom/prisma";
 
 export async function getTeamDataForAdmin(userId: number, organizationId?: number | null) {
   const memberships = await prisma.membership.findMany({

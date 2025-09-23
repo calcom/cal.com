@@ -4,6 +4,7 @@ import { jsonObjectFrom, jsonArrayFrom } from "kysely/helpers/postgres";
 
 import dayjs from "@calcom/dayjs";
 import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
+import { getTeamDataForAdmin } from "@calcom/features/ee/teams/lib/queries";
 import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
@@ -11,7 +12,6 @@ import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTeamDataForAdmin } from "@calcom/lib/server/queries/membership";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Booking, Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";

@@ -8,7 +8,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTeam, getOrg } from "@calcom/lib/server/repository/team";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -383,6 +383,50 @@ export async function getTeamWithoutMembers(args: {
     metadata: restTeamMetadata,
     bookingLimits: parseBookingLimit(teamOrOrg.bookingLimits),
   };
+}
+
+// also returns team
+export async function isTeamAdmin(userId: number, teamId: number) {
+  const team = await prisma.membership.findFirst({
+    where: {
+      userId,
+      teamId,
+      accepted: true,
+      OR: [{ role: "ADMIN" }, { role: "OWNER" }],
+    },
+    include: {
+      team: {
+        select: {
+          metadata: true,
+          parentId: true,
+          isOrganization: true,
+        },
+      },
+    },
+  });
+  if (!team) return false;
+  return team;
+}
+
+export async function isTeamOwner(userId: number, teamId: number) {
+  return !!(await prisma.membership.findFirst({
+    where: {
+      userId,
+      teamId,
+      accepted: true,
+      role: "OWNER",
+    },
+  }));
+}
+
+export async function isTeamMember(userId: number, teamId: number) {
+  return !!(await prisma.membership.findFirst({
+    where: {
+      userId,
+      teamId,
+      accepted: true,
+    },
+  }));
 }
 
 export function generateNewChildEventTypeDataForDB({
