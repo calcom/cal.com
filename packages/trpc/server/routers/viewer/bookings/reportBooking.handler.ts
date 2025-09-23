@@ -1,6 +1,7 @@
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
-import { isTeamAdmin, isTeamOwner, getTeamDataForAdmin } from "@calcom/features/ee/teams/lib/queries";
-import prisma from "@calcom/prisma";
+import { isTeamAdmin, isTeamOwner } from "@calcom/features/ee/teams/lib/queries";
+import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -74,11 +75,8 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
   // This reuses the same logic as get.handler.ts
   let canAccessThroughTeamMembership = false;
 
-  // Get all memberships where user is ADMIN/OWNER (reusing shared utility)
-  const { userEmails: teamMemberEmailList } = await getTeamDataForAdmin(
-    user.id,
-    user?.profile?.organizationId
-  );
+  // Get all memberships where user is ADMIN/OWNER
+  const teamMemberEmailList = await getUserEmails(user.id, user?.profile?.organizationId);
 
   if (teamMemberEmailList.length > 0) {
     // Check if any booking attendees are team members where user is admin/owner
@@ -195,3 +193,52 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
     cancellationError: cancellationError ? String(cancellationError) : undefined,
   };
 };
+
+async function getUserEmails(userId: number, organizationId?: number | null) {
+  const memberships = await prisma.membership.findMany({
+    where: {
+      userId,
+      accepted: true,
+      role: {
+        in: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      },
+      ...((organizationId ?? null) !== null
+        ? {
+            OR: [{ teamId: organizationId as number }, { team: { parentId: organizationId as number } }],
+          }
+        : {}),
+    },
+    select: {
+      team: {
+        select: {
+          members: {
+            where: {
+              accepted: true,
+            },
+            select: {
+              user: {
+                select: {
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const userEmails = new Set<string>();
+
+  for (const membership of memberships) {
+    if (membership.team) {
+      for (const member of membership.team.members) {
+        if (member.user) {
+          userEmails.add(member.user.email);
+        }
+      }
+    }
+  }
+
+  return Array.from(userEmails);
+}
