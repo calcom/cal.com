@@ -197,124 +197,125 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
 
                   return (
                     <div
-                      className="border-subtle group my-2 flex w-full max-w-full cursor-pointer items-center justify-between gap-4 overflow-hidden rounded border hover:shadow-md"
+                      className="border-default group my-2 flex w-full max-w-full cursor-pointer items-center gap-2 overflow-hidden rounded border hover:shadow-md"
                       key={form.id}
                       onClick={() => handleFormClick(form.id)}>
-                      {!(firstItem && firstItem.id === form.id) && (
-                        <div onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                      <div
+                        className="flex flex-col gap-1"
+                        onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                        {!(firstItem && firstItem.id === form.id) && (
                           <ArrowButton onClick={() => moveRoutingForm(index, -1)} arrowDirection="up" />
-                        </div>
-                      )}
-
-                      {!(lastItem && lastItem.id === form.id) && (
-                        <div onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                        )}
+                        {!(lastItem && lastItem.id === form.id) && (
                           <ArrowButton onClick={() => moveRoutingForm(index, 1)} arrowDirection="down" />
-                        </div>
-                      )}
-                      <ListItemAdvanced
-                        heading={form.name}
-                        headingTrailingItem={
-                          <div className="flex w-full flex-row items-center justify-between">
-                            <div className="bg-muted py-.5 flex h-6 flex-row items-center space-x-1 rounded px-2 rtl:space-x-reverse">
-                              <FormLinkDisplay routingFormId={form.id} />
-                              <Tooltip content={t("copy_link_to_form")}>
-                                <div onClick={(e) => e.stopPropagation()}>
-                                  <FormAction
-                                    routingForm={form}
-                                    action="copyLink"
-                                    color="secondary"
-                                    variant="icon"
-                                    size="xs">
-                                    <Icon name="link" className="h-3 w-3" />
-                                  </FormAction>
-                                </div>
-                              </Tooltip>
-                              <Tooltip content={t("preview")}>
-                                <div onClick={(e) => e.stopPropagation()}>
-                                  <FormAction
-                                    action="preview"
-                                    routingForm={form}
-                                    target="_blank"
-                                    color="secondary"
-                                    variant="icon"
-                                    size="xs">
-                                    <Icon name="external-link" className="h-3 w-3" />
-                                  </FormAction>
-                                </div>
-                              </Tooltip>
-                              <Tooltip content={t("embed")}>
-                                <div onClick={(e) => e.stopPropagation()}>
-                                  <FormAction
-                                    routingForm={form}
-                                    action="embed"
-                                    color="secondary"
-                                    variant="icon"
-                                    size="xs">
-                                    <Icon name="code" className="h-3 w-3" />
-                                  </FormAction>
-                                </div>
-                              </Tooltip>
-                            </div>
-
-                            <div className="flex-1" />
-                            {form.calIdTeam?.name && (
-                              <div className="border-subtle mr-2 border-r-2">
-                                <Badge className="ltr:mr-2 rtl:ml-2" variant="secondary">
-                                  {form.calIdTeam.name}
-                                </Badge>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <ListItemAdvanced
+                          heading={form.name}
+                          headingTrailingItem={
+                            <div className="flex w-full flex-row items-center justify-between">
+                              <div className="bg-muted dark:bg-default py-.5 flex h-6 flex-row items-center space-x-1 rounded px-2 rtl:space-x-reverse">
+                                <FormLinkDisplay routingFormId={form.id} />
+                                <Tooltip content={t("copy_link_to_form")}>
+                                  <div onClick={(e) => e.stopPropagation()}>
+                                    <FormAction
+                                      routingForm={form}
+                                      action="copyLink"
+                                      color="secondary"
+                                      variant="icon"
+                                      size="xs">
+                                      <Icon name="link" className="h-3 w-3" />
+                                    </FormAction>
+                                  </div>
+                                </Tooltip>
+                                <Tooltip content={t("preview")}>
+                                  <div onClick={(e) => e.stopPropagation()}>
+                                    <FormAction
+                                      action="preview"
+                                      routingForm={form}
+                                      target="_blank"
+                                      color="secondary"
+                                      variant="icon"
+                                      size="xs">
+                                      <Icon name="external-link" className="h-3 w-3" />
+                                    </FormAction>
+                                  </div>
+                                </Tooltip>
+                                <Tooltip content={t("embed")}>
+                                  <div onClick={(e) => e.stopPropagation()}>
+                                    <FormAction
+                                      routingForm={form}
+                                      action="embed"
+                                      color="secondary"
+                                      variant="icon"
+                                      size="xs">
+                                      <Icon name="code" className="h-3 w-3" />
+                                    </FormAction>
+                                  </div>
+                                </Tooltip>
                               </div>
-                            )}
 
-                            <div onClick={(e) => e.stopPropagation()}>
-                              <FormAction
-                                disabled={readOnly}
-                                className="mr-2"
-                                action="toggle"
-                                routingForm={form}
-                              />
-                            </div>
+                              <div className="flex-1" />
+                              {form.calIdTeam?.name && (
+                                <div className="border-subtle mr-2 border-r-2">
+                                  <Badge className="ltr:mr-2 rtl:ml-2" variant="secondary">
+                                    {form.calIdTeam.name}
+                                  </Badge>
+                                </div>
+                              )}
 
-                            <div onClick={(e) => e.stopPropagation()}>
-                              <FormActionsDropdown disabled={readOnly}>
+                              <div onClick={(e) => e.stopPropagation()}>
                                 <FormAction
-                                  action="edit"
-                                  color="minimal"
+                                  disabled={readOnly}
+                                  className="mr-2"
+                                  action="toggle"
                                   routingForm={form}
-                                  extraClassNames="!flex p-0">
-                                  {t("edit")}
-                                </FormAction>
-                                <FormAction action="download" routingForm={form}>
-                                  {t("download_responses")}
-                                </FormAction>
-                                <FormAction action="duplicate" routingForm={form} className="w-full">
-                                  {t("duplicate")}
-                                </FormAction>
-                                <FormAction
-                                  action="_delete"
-                                  routingForm={form}
-                                  className="text-cal-destructive w-full ">
-                                  {t("delete")}
-                                </FormAction>
-                              </FormActionsDropdown>
+                                />
+                              </div>
+
+                              <div onClick={(e) => e.stopPropagation()}>
+                                <FormActionsDropdown disabled={readOnly}>
+                                  <FormAction
+                                    action="edit"
+                                    color="minimal"
+                                    routingForm={form}
+                                    extraClassNames="!flex p-0">
+                                    {t("edit")}
+                                  </FormAction>
+                                  <FormAction action="download" routingForm={form}>
+                                    {t("download_responses")}
+                                  </FormAction>
+                                  <FormAction action="duplicate" routingForm={form} className="w-full">
+                                    {t("duplicate")}
+                                  </FormAction>
+                                  <FormAction
+                                    action="_delete"
+                                    routingForm={form}
+                                    className="text-cal-destructive w-full ">
+                                    {t("delete")}
+                                  </FormAction>
+                                </FormActionsDropdown>
+                              </div>
                             </div>
+                          }
+                          disabled={readOnly}
+                          subHeading={description}
+                          className="space-x-2 rtl:space-x-reverse"
+                          actions={<></>}>
+                          <div className="flex flex-wrap gap-1">
+                            <Badge variant="secondary" startIcon="menu">
+                              {fields.length} {fields.length === 1 ? "field" : "fields"}
+                            </Badge>
+                            <Badge variant="secondary" startIcon="git-merge">
+                              {userRoutes.length} {userRoutes.length === 1 ? "route" : "routes"}
+                            </Badge>
+                            <Badge variant="secondary" startIcon="message-circle">
+                              {form._count.responses} {form._count.responses === 1 ? "response" : "responses"}
+                            </Badge>
                           </div>
-                        }
-                        disabled={readOnly}
-                        subHeading={description}
-                        className="space-x-2 rtl:space-x-reverse"
-                        actions={<></>}>
-                        <div className="flex flex-wrap gap-1">
-                          <Badge variant="secondary" startIcon="menu">
-                            {fields.length} {fields.length === 1 ? "field" : "fields"}
-                          </Badge>
-                          <Badge variant="secondary" startIcon="git-merge">
-                            {userRoutes.length} {userRoutes.length === 1 ? "route" : "routes"}
-                          </Badge>
-                          <Badge variant="secondary" startIcon="message-circle">
-                            {form._count.responses} {form._count.responses === 1 ? "response" : "responses"}
-                          </Badge>
-                        </div>
-                      </ListItemAdvanced>
+                        </ListItemAdvanced>
+                      </div>
                     </div>
                   );
                 })}

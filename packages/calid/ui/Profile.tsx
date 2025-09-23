@@ -53,7 +53,7 @@ export const Profile = ({ small }: ProfileProps) => {
         }
       }}>
       <DropdownMenuTrigger asChild>
-        <button className="hover:bg-emphasis flex hidden w-auto items-center space-x-3 rounded-lg px-2 py-1 transition-colors md:flex">
+        <button className="hover:bg-emphasis flex hidden w-auto items-center space-x-3 rounded-lg px-2 py-1.5 transition-colors md:flex">
           <div className="bg-primary flex h-6 w-6 items-center justify-center rounded-full">
             <span className="text-primary-foreground text-xs font-medium">
               <Avatar

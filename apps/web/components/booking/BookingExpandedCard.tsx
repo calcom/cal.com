@@ -424,7 +424,7 @@ const NoShowAttendeesDialog = ({
             {noShowAttendees.map((attendee, index) => (
               <div key={index} className="flex items-center justify-between rounded-lg p-2 hover:bg-gray-50">
                 <div className="flex items-center space-x-3">
-                  <div className="bg-cal-active flex h-7 w-7 items-center justify-center rounded-full">
+                  <div className="bg-default flex h-7 w-7 items-center justify-center rounded-full">
                     <span className="text-default text-sm font-medium">
                       {(attendee.name || attendee?.email).charAt(0)}
                     </span>

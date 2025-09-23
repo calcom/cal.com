@@ -222,7 +222,7 @@ const ChooseEmbedTypesDialogContent = ({
             type="button"
             className="flex w-full justify-center py-2 text-xs"
             variant="button"
-            color={currentType === embed.type ? "primary_dim" : "secondary"}
+            color={currentType === embed.type ? "primary" : "secondary"}
             key={index}
             data-testid={embed.type}
             onClick={() => {

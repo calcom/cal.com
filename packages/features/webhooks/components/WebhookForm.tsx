@@ -6,7 +6,6 @@ import { Form, FormField } from "@calid/features/ui/components/form";
 import { TextField } from "@calid/features/ui/components/input/input";
 import { TextArea } from "@calid/features/ui/components/input/text-area";
 import { Label } from "@calid/features/ui/components/label";
-import { Select } from "@calcom/ui/form/select";
 import { Switch } from "@calid/features/ui/components/switch";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -17,6 +16,7 @@ import { TimeUnit } from "@calcom/prisma/enums";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { ToggleGroup } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/form/select";
 
 import customTemplate, { hasTemplateIntegration } from "../lib/integrationTemplate";
 import WebhookTestDisclosure from "./WebhookTestDisclosure";
@@ -352,7 +352,7 @@ const WebhookForm = (props: {
             </>
           )}
         />
-        <div className="mt-4 flex flex-row gap-2">
+        <div className="mt-4 flex flex-row justify-end gap-2">
           <Button
             type="button"
             color="secondary"

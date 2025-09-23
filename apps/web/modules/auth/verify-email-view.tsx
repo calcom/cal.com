@@ -1,5 +1,7 @@
 "use client";
 
+import { BlankCard } from "@calid/features/ui/components/card";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -9,8 +11,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import useEmailVerifyCheck from "@calcom/trpc/react/hooks/useEmailVerifyCheck";
 import { Button } from "@calcom/ui/components/button";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { showToast } from "@calcom/ui/components/toast";
 
 function VerifyEmailPage() {
   const { data } = useEmailVerifyCheck();
@@ -32,9 +32,7 @@ function VerifyEmailPage() {
     <div className="h-[100vh] w-full ">
       <div className="flex h-full w-full flex-col items-center justify-center">
         <div className="max-w-3xl">
-          <EmptyScreen
-            border
-            dashedBorder={false}
+          <BlankCard
             Icon="mail-open"
             headline={t("check_your_email")}
             description={t("verify_email_page_body", { email: session?.user?.email, appName: APP_NAME })}
@@ -45,7 +43,7 @@ function VerifyEmailPage() {
                 className="underline"
                 loading={mutation.isPending}
                 onClick={() => {
-                  showToast(t("send_email"), "success");
+                  triggerToast(t("send_email"), "success");
                   mutation.mutate();
                 }}>
                 {t("resend_email")}

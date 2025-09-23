@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@calid/features/ui/components/button";
+import { BlankCard } from "@calid/features/ui/components/card";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { useReducer } from "react";
 
@@ -15,7 +16,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppCategories } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import type { Icon } from "@calcom/ui/components/icon";
 import { ShellSubHeading } from "@calcom/ui/components/layout";
 
@@ -120,7 +120,7 @@ const IntegrationsContainer = ({
           const emptyHeaderCategory = getAppCategoryTitle(variant || "other", true);
 
           return (
-            <EmptyScreen
+            <BlankCard
               Icon={emptyIcon[variant || "other"]}
               headline={t("no_category_apps", {
                 category: emptyHeaderCategory,

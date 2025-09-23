@@ -10,7 +10,7 @@ import classNames from "@calcom/ui/classNames";
 import { Alert } from "../../alert";
 import { Icon } from "../../icon";
 import { Tooltip } from "../../tooltip";
-import { Input, TextField, inputStyles } from "../inputs/TextField";
+import { Input, TextField } from "../inputs/TextField";
 import { Label } from "./Label";
 
 export function InputLeading(props: JSX.IntrinsicElements["div"]) {
@@ -26,10 +26,7 @@ type PasswordFieldTranslations = {
   hidePasswordText?: string;
 };
 
-export const PasswordField = forwardRef<HTMLInputElement, TextFieldProps>(function PasswordField(
-  props,
-  ref
-) {
+export const PasswordField = forwardRef<HTMLInputElement, TextFieldProps>(function PasswordField(props, ref) {
   const { t } = useLocale();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const toggleIsPasswordVisible = useCallback(
@@ -45,12 +42,13 @@ export const PasswordField = forwardRef<HTMLInputElement, TextFieldProps>(functi
       ref={ref}
       {...props}
       className={classNames(
-        "w-full addon-wrapper rounded-r-none mb-0 ltr:border-r-0 rtl:border-l-0 focus-visible:ring-none focus-visible:ring-0" ,
+        "addon-wrapper focus-visible:ring-none mb-0 w-full rounded-r-none focus-visible:ring-0 ltr:border-r-0 rtl:border-l-0",
         props.className
       )}
       addOnSuffix={
         <Tooltip content={textLabel}>
-          <button className="border-subtle rounded-r-md border-y border-r text-emphasis"
+          <button
+            className="border-subtle text-emphasis rounded-r-md border-y border-r"
             tabIndex={-1}
             type="button"
             onClick={() => toggleIsPasswordVisible()}>
@@ -99,12 +97,8 @@ type TextAreaProps = JSX.IntrinsicElements["textarea"];
 
 export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function TextAreaInput(props, ref) {
   return (
-// inputStyles(), 
-    <textarea
-      {...props}
-      ref={ref}
-      className={classNames("min-h-[80px] w-full", props.className)}
-    />
+    // inputStyles(),
+    <textarea {...props} ref={ref} className={classNames("min-h-[80px] w-full", props.className)} />
   );
 });
 

@@ -15,13 +15,6 @@ import { Checkbox } from "@calid/features/ui/components/input/checkbox-field";
 import { Input } from "@calid/features/ui/components/input/input";
 import { TextArea } from "@calid/features/ui/components/input/text-area";
 import { Label } from "@calid/features/ui/components/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@calid/features/ui/components/select";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -42,6 +35,7 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/components/alert";
 import { Editor } from "@calcom/ui/components/editor";
 import { AddVariablesDropdown } from "@calcom/ui/components/editor";
+import { Select } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { DYNAMIC_TEXT_VARIABLES } from "../config/constants";
@@ -1056,20 +1050,13 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
                       <CardContent className="space-y-4">
                         <div>
                           <Select
-                            value={trigger}
-                            onValueChange={(val: WorkflowTriggerEvents) => setTrigger(val)}
-                            disabled={readOnly}>
-                            <SelectTrigger className="mt-2">
-                              <SelectValue placeholder="Select an occurrence" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-default">
-                              {triggerOptions.map((option) => (
-                                <SelectItem key={option.value} value={option.value}>
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                            value={triggerOptions.find((option) => option.value === trigger) || null}
+                            onChange={(option) => setTrigger((option?.value as WorkflowTriggerEvents) || "")}
+                            options={triggerOptions}
+                            placeholder="Select an occurrence"
+                            isDisabled={readOnly}
+                            className="mt-2"
+                          />
                         </div>
 
                         {trigger && (
@@ -1130,17 +1117,22 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
                                       disabled={readOnly}
                                     />
                                     <Select
-                                      value={timeUnit}
-                                      onValueChange={(val: TimeUnit) => setTimeUnit(val)}
-                                      disabled={readOnly}>
-                                      <SelectTrigger className="w-24">
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                      <SelectContent className="bg-default">
-                                        <SelectItem value="MINUTE">minutes</SelectItem>
-                                        <SelectItem value="HOUR">hours</SelectItem>
-                                      </SelectContent>
-                                    </Select>
+                                      value={
+                                        [
+                                          { value: "MINUTE", label: "minutes" },
+                                          { value: "HOUR", label: "hours" },
+                                        ].find((option) => option.value === timeUnit) || null
+                                      }
+                                      onChange={(option) =>
+                                        setTimeUnit((option?.value as TimeUnit) || "HOUR")
+                                      }
+                                      options={[
+                                        { value: "MINUTE", label: "minutes" },
+                                        { value: "HOUR", label: "hours" },
+                                      ]}
+                                      isDisabled={readOnly}
+                                      className="w-24"
+                                    />
                                     <span className="text-muted-foreground text-sm">
                                       {trigger === "BEFORE_EVENT" ? "before" : "after"}{" "}
                                       {triggerOptions
@@ -1193,22 +1185,17 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
                                         </span>
                                       </div>
                                       <Select
-                                        value={step.action}
-                                        onValueChange={(value: WorkflowActions) =>
-                                          updateAction(step.id, "action", value)
+                                        value={
+                                          actionOptions?.find((option) => option.value === step.action) ||
+                                          null
                                         }
-                                        disabled={readOnly}>
-                                        <SelectTrigger className="w-fit">
-                                          <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent className="bg-default">
-                                          {actionOptions?.map((option) => (
-                                            <SelectItem key={option.value} value={option.value}>
-                                              {option.label}
-                                            </SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
+                                        onChange={(option) =>
+                                          updateAction(step.id, "action", option?.value as WorkflowActions)
+                                        }
+                                        options={actionOptions || []}
+                                        isDisabled={readOnly}
+                                        className="w-fit"
+                                      />
                                     </div>
                                     <div className="flex items-center space-x-2">
                                       {actions.length > 1 && !readOnly && (
@@ -1477,22 +1464,22 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
                                       <div className="mt-5">
                                         <Label>Message template</Label>
                                         <Select
-                                          value={step.template}
-                                          onValueChange={(value: WorkflowTemplates) =>
-                                            updateAction(step.id, "template", value)
+                                          value={
+                                            templateOptions.find(
+                                              (option) => option.value === step.template
+                                            ) || null
                                           }
-                                          disabled={readOnly}>
-                                          <SelectTrigger className="mt-1">
-                                            <SelectValue />
-                                          </SelectTrigger>
-                                          <SelectContent className="bg-default">
-                                            {templateOptions.map((option) => (
-                                              <SelectItem key={option.value} value={option.value}>
-                                                {option.label}
-                                              </SelectItem>
-                                            ))}
-                                          </SelectContent>
-                                        </Select>
+                                          onChange={(option) =>
+                                            updateAction(
+                                              step.id,
+                                              "template",
+                                              option?.value as WorkflowTemplates
+                                            )
+                                          }
+                                          options={templateOptions}
+                                          isDisabled={readOnly}
+                                          className="mt-1"
+                                        />
                                       </div>
 
                                       {/* Message Content */}

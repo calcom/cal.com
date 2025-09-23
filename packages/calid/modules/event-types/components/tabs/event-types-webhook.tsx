@@ -3,6 +3,7 @@
 import { Alert } from "@calid/features/ui/components/alert";
 import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
+import { BlankCard } from "@calid/features/ui/components/card";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +20,7 @@ import {
 } from "@calid/features/ui/components/dropdown-menu";
 import { Icon } from "@calid/features/ui/components/icon";
 import { Switch } from "@calid/features/ui/components/switch/switch";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { Tooltip } from "@calid/features/ui/components/tooltip";
 import type { Webhook } from "@prisma/client";
 import type { TFunction } from "i18next";
@@ -42,8 +44,6 @@ import type { _EventTypeModel } from "@calcom/prisma/zod/eventtype";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { showToast } from "@calcom/ui/components/toast";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 
 // Types from old components
@@ -222,12 +222,12 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
     async onSuccess() {
       setCreateModalOpen(false);
       revalidateEventTypeEditPage(eventType.id);
-      showToast(t("webhook_created_successfully"), "success");
+      triggerToast(t("webhook_created_successfully"), "success");
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
     },
     onError(error) {
-      showToast(`${error.message}`, "error");
+      triggerToast(`${error.message}`, "error");
     },
   });
 
@@ -235,38 +235,38 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
     async onSuccess() {
       setEditModalOpen(false);
       revalidateEventTypeEditPage(eventType.id);
-      showToast(t("webhook_updated_successfully"), "success");
+      triggerToast(t("webhook_updated_successfully"), "success");
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
     },
     onError(error) {
-      showToast(`${error.message}`, "error");
+      triggerToast(`${error.message}`, "error");
     },
   });
 
   const deleteWebhookMutation = trpc.viewer.webhook.calid_delete.useMutation({
     async onSuccess() {
       revalidateEventTypeEditPage(eventType.id);
-      showToast(t("webhook_removed_successfully"), "success");
+      triggerToast(t("webhook_removed_successfully"), "success");
       await utils.viewer.webhook.getByViewer.invalidate();
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
     },
     onError(error) {
-      showToast(`${error.message}`, "error");
+      triggerToast(`${error.message}`, "error");
     },
   });
 
   const toggleWebhookMutation = trpc.viewer.webhook.calid_edit.useMutation({
     async onSuccess(data) {
       revalidateEventTypeEditPage(eventType.id);
-      showToast(t(data?.active ? "enabled" : "disabled"), "success");
+      triggerToast(t(data?.active ? "enabled" : "disabled"), "success");
       await utils.viewer.webhook.getByViewer.invalidate();
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
     },
     onError(error) {
-      showToast(`${error.message}`, "error");
+      triggerToast(`${error.message}`, "error");
     },
   });
 
@@ -281,7 +281,7 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
           eventTypeId: eventType.id,
         })
       ) {
-        showToast(t("webhook_subscriber_url_reserved"), "error");
+        triggerToast(t("webhook_subscriber_url_reserved"), "error");
         return;
       }
 
@@ -313,7 +313,7 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
           eventTypeId: eventType.id,
         })
       ) {
-        showToast(t("webhook_subscriber_url_reserved"), "error");
+        triggerToast(t("webhook_subscriber_url_reserved"), "error");
         return;
       }
 
@@ -597,7 +597,7 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
                     </div>
                   </>
                 ) : (
-                  <EmptyScreen
+                  <BlankCard
                     Icon="webhook"
                     headline={t("create_your_first_webhook")}
                     description={t("first_event_type_webhook_description")}
@@ -618,7 +618,7 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
           </div>
           {/* New webhook dialog */}
           <Dialog open={createModalOpen} onOpenChange={(isOpen) => !isOpen && setCreateModalOpen(false)}>
-            <DialogContent>
+            <DialogContent enableOverflow>
               <DialogHeader>
                 <DialogTitle>{t("create_webhook")}</DialogTitle>
                 <DialogDescription>{t("create_webhook_team_event_type")}</DialogDescription>
@@ -633,7 +633,7 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
           </Dialog>
           {/* Edit webhook dialog */}
           <Dialog open={editModalOpen} onOpenChange={(isOpen) => !isOpen && setEditModalOpen(false)}>
-            <DialogContent size="sm" type="creation" title={t("edit_webhook")} enableOverflow>
+            <DialogContent size="md" type="creation" title={t("edit_webhook")} enableOverflow>
               <WebhookForm
                 noRoutingFormTriggers={true}
                 webhook={webhookToEdit}
