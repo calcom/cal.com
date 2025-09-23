@@ -24,6 +24,7 @@ CREATE TABLE "BlockedBookingLog" (
     "eventTypeId" INTEGER,
     "organizationId" INTEGER,
     "bookingData" JSONB,
+    "watchlistId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "BlockedBookingLog_pkey" PRIMARY KEY ("id")
