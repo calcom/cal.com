@@ -175,7 +175,7 @@ export class TeamRepository {
       where: {
         id,
       },
-      select: teamSelect,
+      select: { ...teamSelect, platformBilling: true },
     });
     if (!team) {
       return null;
