@@ -30,6 +30,8 @@ export const LargeCalendar = ({
   const displayOverlay =
     getQueryParam("overlayCalendar") === "true" || localStorage?.getItem("overlayCalendarSwitchDefault");
 
+  // maybe only fetch bookings for this particular week
+  // might need to pass in start and end dates
   const { data: upcomingBookings } = useBookings({
     take: 50,
     skip: 0,
