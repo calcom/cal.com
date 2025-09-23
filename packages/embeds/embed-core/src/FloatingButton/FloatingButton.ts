@@ -24,6 +24,8 @@ const dataAttributes = [
   "data-button-color",
   "data-button-text-color",
   "data-toggle-off",
+  "data-auto-open-delay",
+  "data-chatbox-title",
 ] as const;
 
 type DataAttributes = (typeof dataAttributes)[number];
@@ -112,5 +114,173 @@ export class FloatingButton extends HTMLElement {
     this.attachShadow({ mode: "open" });
     this.assertHasShadowRoot();
     this.shadowRoot.innerHTML = buttonHtml;
+
+    this.initializeChatbox();
+  }
+
+  private initializeChatbox() {
+    this.assertHasShadowRoot();
+
+    console.log("Initializing chatbox, shadow root:", this.shadowRoot);
+    console.log("Shadow root HTML:", this.shadowRoot.innerHTML);
+
+    const chatboxContainer = this.shadowRoot.querySelector("#chatbox-container") as HTMLElement;
+    const fabButton = this.shadowRoot.querySelector("#fab-button") as HTMLElement;
+    const closeBtn = this.shadowRoot.querySelector("#close-btn") as HTMLElement;
+    const fullscreenBtn = this.shadowRoot.querySelector("#fullscreen-btn") as HTMLElement;
+    const chatbox = this.shadowRoot.querySelector("#chatbox") as HTMLElement;
+
+    console.log("Found elements:", { chatboxContainer, fabButton, closeBtn, fullscreenBtn, chatbox });
+
+    let isOpen = false;
+    let hasAutoOpened = false;
+    let isFullscreen = false;
+
+    const autoOpenDelay = parseInt(this.dataset.autoOpenDelay || "4000");
+
+    setTimeout(() => {
+      if (!hasAutoOpened) {
+        this.openChatbox();
+        hasAutoOpened = true;
+        isOpen = true;
+      }
+    }, autoOpenDelay);
+
+    fabButton?.addEventListener("click", () => {
+      if (isOpen) {
+        this.closeChatbox();
+        isOpen = false;
+      } else {
+        this.openChatbox();
+        isOpen = true;
+        if (!hasAutoOpened) {
+          hasAutoOpened = true;
+        }
+      }
+    });
+
+    closeBtn?.addEventListener("click", () => {
+      this.closeChatbox();
+      isOpen = false;
+    });
+
+    fullscreenBtn?.addEventListener("click", () => {
+      this.toggleFullscreen();
+      isFullscreen = !isFullscreen;
+    });
+  }
+
+  private openChatbox() {
+    this.assertHasShadowRoot();
+    const chatboxContainer = this.shadowRoot.querySelector("#chatbox-container") as HTMLElement;
+    const fabButton = this.shadowRoot.querySelector("#fab-button") as HTMLElement;
+
+    if (chatboxContainer) {
+      chatboxContainer.style.visibility = "visible";
+      chatboxContainer.style.opacity = "1";
+      chatboxContainer.style.transform = "translateY(0)";
+    }
+
+    const fabIcon = this.shadowRoot.querySelector("#fab-icon") as HTMLElement;
+    if (fabIcon) {
+      fabIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>`;
+    }
+
+    if (fabButton && window.innerWidth < 768) {
+      fabButton.style.opacity = "0";
+      fabButton.style.pointerEvents = "none";
+    }
+
+    this.loadBookingIframe();
+  }
+
+  private closeChatbox() {
+    this.assertHasShadowRoot();
+    const chatboxContainer = this.shadowRoot.querySelector("#chatbox-container") as HTMLElement;
+    const fabButton = this.shadowRoot.querySelector("#fab-button") as HTMLElement;
+
+    if (chatboxContainer) {
+      chatboxContainer.style.visibility = "hidden";
+      chatboxContainer.style.opacity = "0";
+      chatboxContainer.style.transform = "translateY(8px)";
+    }
+
+    const fabIcon = this.shadowRoot.querySelector("#fab-icon") as HTMLElement;
+    if (fabIcon) {
+      fabIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>`;
+    }
+
+    if (fabButton) {
+      fabButton.style.opacity = "1";
+      fabButton.style.pointerEvents = "auto";
+    }
+  }
+
+  private toggleFullscreen() {
+    this.assertHasShadowRoot();
+    const chatbox = this.shadowRoot.querySelector("#chatbox") as HTMLElement;
+    const fullscreenIcon = this.shadowRoot.querySelector("#fullscreen-icon") as HTMLElement;
+
+    if (chatbox) {
+      const isCurrentlyFullscreen = chatbox.classList.contains("md:w-[1050px]");
+
+      if (isCurrentlyFullscreen) {
+        chatbox.classList.remove("md:w-[1050px]");
+        chatbox.classList.add("md:w-96");
+        if (fullscreenIcon) {
+          fullscreenIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>`;
+        }
+      } else {
+        chatbox.classList.remove("md:w-96");
+        chatbox.classList.add("md:w-[1050px]");
+        if (fullscreenIcon) {
+          fullscreenIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9h6v6m-6-6l6 6m6-6h-6V3m6 6L9 3"></path>`;
+        }
+      }
+    }
+  }
+
+  private loadBookingIframe() {
+    this.assertHasShadowRoot();
+    const iframeContainer = this.shadowRoot.querySelector("#iframe-container") as HTMLElement;
+
+    if (iframeContainer && !iframeContainer.querySelector("iframe")) {
+      const iframe = document.createElement("iframe");
+      iframe.src = this.buildBookingUrl();
+      iframe.style.width = "100%";
+      iframe.style.height = "100%";
+      iframe.style.border = "none";
+      iframe.style.borderRadius = "0 0 8px 8px";
+
+      iframeContainer.appendChild(iframe);
+    }
+  }
+
+  private buildBookingUrl(): string {
+    const calLink = this.dataset.calLink;
+    const calOrigin = this.dataset.calOrigin || window.location.origin;
+    const calConfig = this.dataset.calConfig;
+
+    const url = `${calOrigin}/${calLink}`;
+
+    const params = new URLSearchParams({
+      embedType: "floating-popup",
+      embed: "true",
+    });
+
+    if (calConfig) {
+      try {
+        const config = JSON.parse(calConfig);
+        Object.entries(config).forEach(([key, value]) => {
+          if (typeof value === "string") {
+            params.append(key, value);
+          }
+        });
+      } catch (e) {
+        console.warn("Failed to parse cal config:", e);
+      }
+    }
+
+    return `${url}?${params.toString()}`;
   }
 }
