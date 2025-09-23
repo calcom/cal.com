@@ -29,8 +29,9 @@ test.describe("Booking Filters", () => {
         name: "member-user",
       },
       {
-        teamId: teamId,
+        hasTeam: true,
         teamRole: MembershipRole.MEMBER,
+        teammates: [{ name: "pro-user", email: proUser.email, role: MembershipRole.ADMIN }],
       }
     );
 
