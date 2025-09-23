@@ -6,6 +6,9 @@
   "authors": "Cal.com, Inc.",
   "version": "1.0.0",
   "main": "index.ts",
+  "scripts": {
+    "lint": "eslint ."
+  },
   "dependencies": {
     "@calcom/atoms": "*",
     "@calcom/dayjs": "*",

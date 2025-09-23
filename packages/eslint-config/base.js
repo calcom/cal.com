@@ -9,7 +9,7 @@ import tseslint from "typescript-eslint";
  * A shared ESLint configuration for the repository.
  *
  * @type {import("eslint").Linter.Config}
- * */
+ */
 export const config = [
   js.configs.recommended,
   eslintConfigPrettier,
@@ -18,20 +18,42 @@ export const config = [
     plugins: {
       turbo: turboPlugin,
       import: importPlugin,
+      onlyWarn,
     },
     rules: {
       "turbo/no-undeclared-env-vars": "warn",
     },
+    languageOptions: {
+      ecmaVersion: 2021,
+      sourceType: "module",
+    },
     settings: {
-      "import/resolver": { typescript: { project: true } },
+      "import/resolver": {
+        typescript: true,
+        node: true,
+      },
     },
   },
   {
-    plugins: {
-      onlyWarn,
-    },
-  },
-  {
-    ignores: ["dist/**", "**node_modules**", "**.next**"],
+    ignores: ["dist/**", "**/node_modules/**", "**/.next/**"],
   },
 ];
+
+export function forbid({ from, target, message }) {
+  return {
+    rules: {
+      "import/no-restricted-paths": [
+        "error",
+        {
+          zones: [
+            {
+              from: [from],
+              target: [target],
+              message: message ?? `Import denied from ${target} to ${from}`,
+            },
+          ],
+        },
+      ],
+    },
+  };
+}

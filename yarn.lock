@@ -3257,7 +3257,7 @@ __metadata:
     eslint-plugin-turbo: ^2.5.5
     globals: ^15.15.0
     typescript: ^5.9.2
-    typescript-eslint: ^8.39.0
+    typescript-eslint: ^8.40.0
   languageName: unknown
   linkType: soft
 
@@ -46833,7 +46833,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript-eslint@npm:^8.39.0":
+"typescript-eslint@npm:^8.40.0":
   version: 8.44.1
   resolution: "typescript-eslint@npm:8.44.1"
   dependencies:
