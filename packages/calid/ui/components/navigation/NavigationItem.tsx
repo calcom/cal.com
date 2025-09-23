@@ -84,7 +84,7 @@ const NavigationItemComponent = ({
             aria-current={item.isCurrent ? "page" : undefined}
           />
         )}
-        <span className="hidden w-full justify-between truncate text-ellipsis text-default lg:flex">
+        <span className="hidden w-full justify-between truncate text-ellipsis text-white lg:flex">
           {item.name}
           {item.badge && item.badge}
         </span>

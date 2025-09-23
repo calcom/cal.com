@@ -1,5 +1,8 @@
 "use client";
 
+import { Alert } from "@calid/features/ui/components/alert";
+import { Badge } from "@calid/features/ui/components/badge";
+import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
 import { Tooltip } from "@calid/features/ui/components/tooltip";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
@@ -48,10 +51,7 @@ import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { bookingMetadataSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import { Alert } from "@calid/features/ui/components/alert";
 import { Avatar } from "@calcom/ui/components/avatar";
-import { Badge } from "@calid/features/ui/components/badge";
-import { Button } from "@calid/features/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { EmailInput, TextArea } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
@@ -496,7 +496,7 @@ export default function Success(props: PageProps) {
                           isCancelled ? "bg-error" : ""
                         )}>
                         {!giphyImage && !needsConfirmation && isReschedulable && (
-                          <Icon name="check" className="h-6 w-6 text-default dark:text-green-400" />
+                          <Icon name="check" className="h-6 w-6 text-white dark:text-green-400" />
                         )}
                         {needsConfirmation && isReschedulable && (
                           <Icon name="calendar" className="text-emphasis h-5 w-5" />
@@ -559,7 +559,7 @@ export default function Success(props: PageProps) {
                           </h4>
                         )}
 
-                      <div className="border-subtle border text-default mt-8 grid grid-cols-3 gap-x-4 py-8 px-4 rounded-lg shadow-lg text-left sm:gap-x-0 rtl:text-right">
+                      <div className="border-subtle text-default mt-8 grid grid-cols-3 gap-x-4 rounded-lg border px-4 py-8 text-left shadow-lg sm:gap-x-0 rtl:text-right">
                         {(isCancelled || reschedule) && cancellationReason && (
                           <>
                             <div className="font-medium">
@@ -912,81 +912,101 @@ export default function Success(props: PageProps) {
                           </span>
                           <div className="justify-left mt-1 flex text-left sm:mt-0">
                             {googleCalendarLink && (
-                              <Tooltip content={t("google_calendar")}> 
-                              <Link
-                                href={googleCalendarLink}
-                                className="text-default h-10 w-10 rounded-md px-3 py-2 ltr:mr-2 rtl:ml-2 hover:bg-subtle"
-                                target="_blank">
-                                <svg
-                                  className="-mt-1.5 inline-block h-4 w-4"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  viewBox="0 0 48 48"
-                                >
-                                  <title>Google</title>
-                                  <path fill="#4285F4" d="M24 9.5c3.54 0 6.73 1.22 9.23 3.6l6.85-6.85C35.9 2.7 30.47 0 24 0 14.64 0 6.4 5.48 2.54 13.45l7.98 6.2C12.35 13.6 17.74 9.5 24 9.5z"/>
-                                  <path fill="#34A853" d="M46.1 24.5c0-1.57-.14-3.08-.39-4.5H24v9.01h12.45c-.54 2.89-2.18 5.34-4.65 7.01l7.47 5.8C43.59 37.17 46.1 31.34 46.1 24.5z"/>
-                                  <path fill="#FBBC05" d="M10.52 28.65c-.48-1.4-.75-2.9-.75-4.45s.27-3.05.75-4.45l-7.98-6.2C.9 16.85 0 20.3 0 24.2s.9 7.35 2.54 10.65l7.98-6.2z"/>
-                                  <path fill="#EA4335" d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.47-5.8c-2.13 1.43-4.87 2.25-8.44 2.25-6.26 0-11.65-4.1-13.48-9.95l-7.98 6.2C6.4 42.52 14.64 48 24 48z"/>
-                                </svg>
-                              </Link>
+                              <Tooltip content={t("google_calendar")}>
+                                <Link
+                                  href={googleCalendarLink}
+                                  className="text-default hover:bg-subtle h-10 w-10 rounded-md px-3 py-2 ltr:mr-2 rtl:ml-2"
+                                  target="_blank">
+                                  <svg
+                                    className="-mt-1.5 inline-block h-4 w-4"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 48 48">
+                                    <title>Google</title>
+                                    <path
+                                      fill="#4285F4"
+                                      d="M24 9.5c3.54 0 6.73 1.22 9.23 3.6l6.85-6.85C35.9 2.7 30.47 0 24 0 14.64 0 6.4 5.48 2.54 13.45l7.98 6.2C12.35 13.6 17.74 9.5 24 9.5z"
+                                    />
+                                    <path
+                                      fill="#34A853"
+                                      d="M46.1 24.5c0-1.57-.14-3.08-.39-4.5H24v9.01h12.45c-.54 2.89-2.18 5.34-4.65 7.01l7.47 5.8C43.59 37.17 46.1 31.34 46.1 24.5z"
+                                    />
+                                    <path
+                                      fill="#FBBC05"
+                                      d="M10.52 28.65c-.48-1.4-.75-2.9-.75-4.45s.27-3.05.75-4.45l-7.98-6.2C.9 16.85 0 20.3 0 24.2s.9 7.35 2.54 10.65l7.98-6.2z"
+                                    />
+                                    <path
+                                      fill="#EA4335"
+                                      d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.47-5.8c-2.13 1.43-4.87 2.25-8.44 2.25-6.26 0-11.65-4.1-13.48-9.95l-7.98 6.2C6.4 42.52 14.64 48 24 48z"
+                                    />
+                                  </svg>
+                                </Link>
                               </Tooltip>
                             )}
                             {microsoftOutlookLink && (
-                              <Tooltip content={t("microsoft_outlook")}> 
-                              <Link
-                                href={microsoftOutlookLink}
-                                className="text-default h-10 w-10 rounded-md px-3 py-2 ltr:mr-2 rtl:ml-2 hover:bg-subtle"
-                                target="_blank">
-                                <svg
-                                  className="-mt-1.5 mr-1 inline-block h-4 w-4"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  viewBox="0 0 48 48"
-                                >
-                                  <title>Microsoft Outlook</title>
-                                  <path fill="#0078D4" d="M41.5 6H14a2 2 0 0 0-2 2v5H8.5A2.5 2.5 0 0 0 6 15.5v17A2.5 2.5 0 0 0 8.5 35H12v5a2 2 0 0 0 2 2h27.5a2.5 2.5 0 0 0 2.5-2.5v-31A2.5 2.5 0 0 0 41.5 6z"/>
-                                  <path fill="#fff" d="M20 28c-2.2 0-4-2.2-4-4.9s1.8-4.9 4-4.9 4 2.2 4 4.9S22.2 28 20 28z"/>
-                                  <path fill="#fff" d="M20 16c-3.3 0-6 3.1-6 7s2.7 7 6 7 6-3.1 6-7-2.7-7-6-7z"/>
-                                </svg>
-                              </Link>
+                              <Tooltip content={t("microsoft_outlook")}>
+                                <Link
+                                  href={microsoftOutlookLink}
+                                  className="text-default hover:bg-subtle h-10 w-10 rounded-md px-3 py-2 ltr:mr-2 rtl:ml-2"
+                                  target="_blank">
+                                  <svg
+                                    className="-mt-1.5 mr-1 inline-block h-4 w-4"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 48 48">
+                                    <title>Microsoft Outlook</title>
+                                    <path
+                                      fill="#0078D4"
+                                      d="M41.5 6H14a2 2 0 0 0-2 2v5H8.5A2.5 2.5 0 0 0 6 15.5v17A2.5 2.5 0 0 0 8.5 35H12v5a2 2 0 0 0 2 2h27.5a2.5 2.5 0 0 0 2.5-2.5v-31A2.5 2.5 0 0 0 41.5 6z"
+                                    />
+                                    <path
+                                      fill="#fff"
+                                      d="M20 28c-2.2 0-4-2.2-4-4.9s1.8-4.9 4-4.9 4 2.2 4 4.9S22.2 28 20 28z"
+                                    />
+                                    <path
+                                      fill="#fff"
+                                      d="M20 16c-3.3 0-6 3.1-6 7s2.7 7 6 7 6-3.1 6-7-2.7-7-6-7z"
+                                    />
+                                  </svg>
+                                </Link>
                               </Tooltip>
                             )}
                             {microsoftOfficeLink && (
-                              <Tooltip content={t("microsoft_office")}> 
-                              <Link
-                                href={microsoftOfficeLink}
-                                className="text-default h-10 w-10 rounded-md px-3 py-2 ltr:mr-2 rtl:ml-2 hover:bg-subtle"
-                                target="_blank">
-                               <svg
-                                  className="-mt-1.5 mr-1 inline-block h-4 w-4"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  viewBox="0 0 48 48"
-                                >
-                                  <title>Microsoft Office</title>
-                                  <path fill="#EA3E23" d="M8 8l14-4 18 6v28l-18 6-14-4z"/>
-                                  <path fill="#FF6A00" d="M22 10v28l14-4V14z"/>
-                                  <path fill="#F35426" d="M22 10L8 8v32l14-2z"/>
-                                </svg>
-                              </Link>
+                              <Tooltip content={t("microsoft_office")}>
+                                <Link
+                                  href={microsoftOfficeLink}
+                                  className="text-default hover:bg-subtle h-10 w-10 rounded-md px-3 py-2 ltr:mr-2 rtl:ml-2"
+                                  target="_blank">
+                                  <svg
+                                    className="-mt-1.5 mr-1 inline-block h-4 w-4"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 48 48">
+                                    <title>Microsoft Office</title>
+                                    <path fill="#EA3E23" d="M8 8l14-4 18 6v28l-18 6-14-4z" />
+                                    <path fill="#FF6A00" d="M22 10v28l14-4V14z" />
+                                    <path fill="#F35426" d="M22 10L8 8v32l14-2z" />
+                                  </svg>
+                                </Link>
                               </Tooltip>
                             )}
                             {icsLink && (
-                              <Tooltip content={t("ics")}> 
-                              <Link
-                                href={icsLink}
-                                className="text-default h-10 w-10 rounded-md px-3 py-2 ltr:mr-2 rtl:ml-2 hover:bg-subtle"
-                                download={`${eventType.title}.ics`}>
-                                <svg
-                                  version="1.1"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  viewBox="0 0 1000 1000"
-                                  className="-mt-1.5 mr-1 inline-block h-4 w-4"
-                                >
-                                  <title>ICS</title>
-                                  <path fill="#2563EB" d="M200 100h600c55 0 100 45 100 100v600c0 55-45 100-100 100H200c-55 0-100-45-100-100V200c0-55 45-100 100-100z"/>
-                                  <rect fill="#fff" x="250" y="300" width="500" height="400" rx="30"/>
-                                  <rect fill="#1E40AF" x="250" y="250" width="500" height="80"/>
-                                </svg>
-                              </Link>
+                              <Tooltip content={t("ics")}>
+                                <Link
+                                  href={icsLink}
+                                  className="text-default hover:bg-subtle h-10 w-10 rounded-md px-3 py-2 ltr:mr-2 rtl:ml-2"
+                                  download={`${eventType.title}.ics`}>
+                                  <svg
+                                    version="1.1"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 1000 1000"
+                                    className="-mt-1.5 mr-1 inline-block h-4 w-4">
+                                    <title>ICS</title>
+                                    <path
+                                      fill="#2563EB"
+                                      d="M200 100h600c55 0 100 45 100 100v600c0 55-45 100-100 100H200c-55 0-100-45-100-100V200c0-55 45-100 100-100z"
+                                    />
+                                    <rect fill="#fff" x="250" y="300" width="500" height="400" rx="30" />
+                                    <rect fill="#1E40AF" x="250" y="250" width="500" height="80" />
+                                  </svg>
+                                </Link>
                               </Tooltip>
                             )}
                           </div>
