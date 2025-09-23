@@ -2279,11 +2279,6 @@ model Watchlist {
   @@index([type, value, organizationId, action])
 }
 
-enum BlockingReason {
-  EMAIL
-  DOMAIN
-}
-
 model BlockedBooking {
   id          String @id @unique @default(uuid())
   uid         String @unique @default(uuid())
@@ -2296,8 +2291,7 @@ model BlockedBooking {
   watchlistEntryId String?
   watchlistEntry   Watchlist? @relation(fields: [watchlistEntryId], references: [id], onDelete: SetNull)
 
-  blockingReason BlockingReason
-  bookingData    Json?
+  bookingData Json?
 
   createdAt DateTime @default(now())
 
