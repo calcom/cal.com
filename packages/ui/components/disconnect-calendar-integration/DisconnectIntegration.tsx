@@ -48,7 +48,7 @@ export const DisconnectIntegrationComponent = ({
           </Button>
         </DialogTrigger>
 
-        <DialogContent>
+        <DialogContent size="default" className="bg-muted">
           <DialogHeader>
             <DialogTitle>{t("remove_app")}</DialogTitle>
             <DialogDescription>{t("are_you_sure_you_want_to_remove_this_app")}</DialogDescription>
