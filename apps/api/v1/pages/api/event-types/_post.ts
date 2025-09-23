@@ -307,10 +307,6 @@ async function postHandler(req: NextApiRequest) {
     data.hosts = { createMany: { data: hosts } };
   }
 
-  const now = new Date();
-  data.createdAt = now;
-  data.updatedAt = now;
-
   const eventType = await prisma.eventType.create({ data, select: eventTypeSelect });
 
   return {

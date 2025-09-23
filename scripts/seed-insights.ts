@@ -223,7 +223,6 @@ async function main() {
   });
 
   if (teamEvents?.length === 0) {
-    const now = new Date();
     await prisma.eventType.createMany({
       data: [
         {
@@ -234,8 +233,6 @@ async function main() {
           teamId: insightsTeam.id,
           schedulingType: "ROUND_ROBIN",
           assignAllTeamMembers: true,
-          createdAt: now,
-          updatedAt: now,
         },
         {
           title: "Team Lunch",
@@ -245,8 +242,6 @@ async function main() {
           teamId: insightsTeam.id,
           schedulingType: "ROUND_ROBIN",
           assignAllTeamMembers: true,
-          createdAt: now,
-          updatedAt: now,
         },
         {
           title: "Team javascript",
@@ -256,8 +251,6 @@ async function main() {
           teamId: insightsTeam.id,
           schedulingType: "ROUND_ROBIN",
           assignAllTeamMembers: true,
-          createdAt: now,
-          updatedAt: now,
         },
       ],
     });
@@ -496,16 +489,11 @@ async function createPerformanceData() {
         },
       },
     }));
-    const createEventPromises = createEvents.map((data) => {
-      const now = new Date();
-      return prisma.eventType.create({
-        data: {
-          ...data,
-          createdAt: now,
-          updatedAt: now,
-        },
-      });
-    });
+    const createEventPromises = createEvents.map((data) =>
+      prisma.eventType.create({
+        data,
+      })
+    );
     await Promise.all(createEventPromises);
 
     // load the events we just created

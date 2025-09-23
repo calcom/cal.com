@@ -14,14 +14,11 @@ export class EventTypesRepository_2024_06_14 {
     body: Omit<InputEventTransformed_2024_06_14, "destinationCalendar">
   ) {
     const { calVideoSettings, ...restBody } = body;
-    const now = new Date();
 
     return this.dbWrite.prisma.eventType.create({
       data: {
         ...restBody,
         userId,
-        createdAt: now,
-        updatedAt: now,
         locations: body.locations,
         bookingFields: body.bookingFields,
         users: { connect: { id: userId } },

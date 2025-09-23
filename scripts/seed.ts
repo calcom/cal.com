@@ -470,14 +470,11 @@ async function createOrganizationAndAddMembersAndTeams({
 
   // For each member create one event
   for (const member of orgMembersInDBWithProfileId) {
-    const now = new Date();
     await prisma.eventType.create({
       data: {
         title: `${member.name} Event`,
         slug: `${member.username}-event`,
         length: 15,
-        createdAt: now,
-        updatedAt: now,
         owner: {
           connect: {
             id: member.id,
@@ -560,15 +557,12 @@ async function createOrganizationAndAddMembersAndTeams({
 
     const ownerForEvent = orgMembersInDBWithProfileId[0];
     // Create event for each team
-    const now = new Date();
     await prisma.eventType.create({
       data: {
         title: `${team.teamData.name} Event 1`,
         slug: `${team.teamData.slug}-event-1`,
         schedulingType: SchedulingType.ROUND_ROBIN,
         length: 15,
-        createdAt: now,
-        updatedAt: now,
         team: {
           connect: {
             id: organizationTeams[teamIndex].id,
