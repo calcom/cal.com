@@ -2283,17 +2283,15 @@ model BlockedBooking {
 
   organizationId Int?
 
-  watchlistEntryId String?
-
   bookingData Json?
 
   createdAt   DateTime   @default(now())
-  Watchlist   Watchlist? @relation(fields: [watchlistId], references: [id])
   watchlistId String?
+  Watchlist   Watchlist? @relation(fields: [watchlistId], references: [id])
 
   @@index([organizationId, createdAt])
   @@index([email])
-  @@index([watchlistEntryId])
+  @@index([watchlistId])
 }
 
 enum BillingPeriod {

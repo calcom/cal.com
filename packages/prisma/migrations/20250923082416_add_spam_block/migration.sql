@@ -23,7 +23,6 @@ CREATE TABLE "BlockedBooking" (
     "email" TEXT NOT NULL,
     "eventTypeId" INTEGER,
     "organizationId" INTEGER,
-    "watchlistEntryId" TEXT,
     "bookingData" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -40,7 +39,7 @@ CREATE INDEX "BlockedBooking_organizationId_createdAt_idx" ON "BlockedBooking"("
 CREATE INDEX "BlockedBooking_email_idx" ON "BlockedBooking"("email");
 
 -- CreateIndex
-CREATE INDEX "BlockedBooking_watchlistEntryId_idx" ON "BlockedBooking"("watchlistEntryId");
+CREATE INDEX "BlockedBooking_watchlistId_idx" ON "BlockedBooking"("watchlistId");
 
 -- CreateIndex
 CREATE INDEX "Watchlist_type_value_organizationId_action_idx" ON "Watchlist"("type", "value", "organizationId", "action");
