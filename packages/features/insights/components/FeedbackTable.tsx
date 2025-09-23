@@ -2,12 +2,12 @@
 
 import { Avatar } from "@calid/features/ui/components/avatar";
 import { Button } from "@calid/features/ui/components/button";
+import { BlankCard } from "@calid/features/ui/components/card";
 import { Tooltip } from "@calid/features/ui/components/tooltip";
 
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { User } from "@calcom/prisma/client";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 export const FeedbackTable = ({
   data,
@@ -52,7 +52,7 @@ export const FeedbackTable = ({
           </div>
         ))
       ) : (
-        <EmptyScreen
+        <BlankCard
           Icon="zap"
           headline={t("no_ratings")}
           description={t("no_ratings_description")}

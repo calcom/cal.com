@@ -93,7 +93,9 @@ const UserSettings = (props: IUserSettingsProps) => {
     telemetry.event(telemetryEventTypes.onboardingStarted);
   }, [telemetry]);
 
-  const [selectedBusiness, setSelectedBusiness] = useState<string | null>(null);
+  const [selectedBusiness, setSelectedBusiness] = useState<string | null>(
+    (isPrismaObjOrUndefined(user.metadata) as { designation?: string })?.designation || null
+  );
 
   const designationTypeOptions: { value: string; label: string }[] = Object.keys(designationTypes).map(
     (key) => ({
@@ -215,10 +217,10 @@ const UserSettings = (props: IUserSettingsProps) => {
         <Select
           value={
             designationTypeOptions.find(
-              (option) => option.value === (user?.metadata?.designation || designationTypeOptions[0].value)
+              (option) => option.value === (selectedBusiness || designationTypeOptions[0].value)
             ) || null
           }
-          onChange={(option) => {
+          onChange={(option: { value: string; label: string } | null) => {
             setSelectedBusiness(option?.value || "");
           }}
           options={designationTypeOptions}

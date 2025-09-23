@@ -158,7 +158,7 @@ const CalendlyImportComponent = ({ userId, code }: { userId: number; code?: stri
         title={t("import")}
         description={t("import_configuration", { appName: APP_NAME })}
         borderInShellHeader={false}>
-        <div className="border-subtle flex flex-row items-center justify-between rounded-md border px-4 py-6 sm:px-6">
+        <div className="border-default flex flex-row items-center justify-between rounded-md border px-4 py-6 sm:px-6">
           <div>
             <div className="text-base font-medium">{t("calendly_import")}</div>
 

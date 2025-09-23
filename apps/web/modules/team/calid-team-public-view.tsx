@@ -93,7 +93,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
         return (
           <div
             key={index}
-            className="dark:bg-muted dark:hover:bg-emphasis hover:bg-muted border-subtle bg-primary group relative rounded-md border shadow-md transition hover:scale-[1.02]"
+            className="dark:hover:bg-emphasis hover:bg-muted border-default bg-default group relative rounded-md border shadow-md transition hover:scale-[1.02]"
             data-testid="event-type-link">
             <div className="block w-full px-2 py-4">
               <div className="mb-2 flex flex-row items-center gap-2">

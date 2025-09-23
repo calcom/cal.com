@@ -169,7 +169,7 @@ export function UserPage(props: PageProps) {
             return (
               <div
                 key={type.id}
-                className="dark:bg-muted dark:hover:bg-emphasis hover:bg-muted border-subtle bg-primary group relative rounded-md border shadow-md transition hover:scale-[1.02]"
+                className="dark:hover:bg-emphasis hover:bg-muted border-default bg-default group relative rounded-md border shadow-md transition hover:scale-[1.02]"
                 data-testid="event-type-link">
                 {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
                 <div className="block w-full px-2 py-4">

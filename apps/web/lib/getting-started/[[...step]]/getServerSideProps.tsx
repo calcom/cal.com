@@ -43,15 +43,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   let currentOnboardingStep: string | undefined = undefined;
 
-  console.log(
-    "Can redirect: ",
-    user,
-    " and ",
-    context.params?.step == undefined && user.metadata
-    // isPrismaObj(user.metadata) &&
-    // user.metadata.hasOwnProperty("currentOnboardingStep")
-  );
-
   //to handle the case where the user has already reached a step in the onboarding process
   if (
     context.params?.step == undefined &&

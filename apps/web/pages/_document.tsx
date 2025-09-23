@@ -233,7 +233,7 @@ class MyDocument extends Document<Props> {
                   "@type": "ContactPoint",
                   telephone: "+91 8827 000 000",
                   contactType: "Customer Support",
-                  email: "support@onehash.ai",
+                  email: "support@cal.id",
                   areaServed: "Worldwide",
                   availableLanguage: [
                     "en",
