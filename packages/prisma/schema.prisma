@@ -2262,21 +2262,20 @@ model Watchlist {
 
   organizationId Int?
 
-  action          WatchlistAction   @default(REPORT)
-  severity        WatchlistSeverity @default(LOW)
-  createdAt       DateTime          @default(now())
-  createdBy       User              @relation("CreatedWatchlists", onDelete: SetNull, fields: [createdById], references: [id])
-  createdById     Int
-  updatedAt       DateTime          @updatedAt
-  updatedBy       User?             @relation("UpdatedWatchlists", onDelete: SetNull, fields: [updatedById], references: [id])
-  updatedById     Int?
-  blockedBookings BlockedBooking[]
+  action      WatchlistAction   @default(REPORT)
+  severity    WatchlistSeverity @default(LOW)
+  createdAt   DateTime          @default(now())
+  createdBy   User              @relation("CreatedWatchlists", onDelete: SetNull, fields: [createdById], references: [id])
+  createdById Int
+  updatedAt   DateTime          @updatedAt
+  updatedBy   User?             @relation("UpdatedWatchlists", onDelete: SetNull, fields: [updatedById], references: [id])
+  updatedById Int?
 
   @@unique([type, value, organizationId])
   @@index([type, value, organizationId, action])
 }
 
-model BlockedBooking {
+model BlockedBookingLog {
   id          String @id @default(uuid())
   email       String
   eventTypeId Int?
@@ -2284,10 +2283,8 @@ model BlockedBooking {
   organizationId Int?
 
   bookingData Json?
-
-  createdAt   DateTime   @default(now())
+  createdAt   DateTime @default(now())
   watchlistId String?
-  Watchlist   Watchlist? @relation(fields: [watchlistId], references: [id])
 
   @@index([organizationId, createdAt])
   @@index([email])

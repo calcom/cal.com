@@ -18,7 +18,7 @@ ALTER TABLE "Watchlist" ADD COLUMN     "action" "WatchlistAction" NOT NULL DEFAU
 ADD COLUMN     "organizationId" INTEGER;
 
 -- CreateTable
-CREATE TABLE "BlockedBooking" (
+CREATE TABLE "BlockedBookingLog" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "eventTypeId" INTEGER,
@@ -26,20 +26,20 @@ CREATE TABLE "BlockedBooking" (
     "bookingData" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "BlockedBooking_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "BlockedBookingLog_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "BlockedBooking_id_key" ON "BlockedBooking"("id");
+CREATE UNIQUE INDEX "BlockedBookingLog_id_key" ON "BlockedBookingLog"("id");
 
 -- CreateIndex
-CREATE INDEX "BlockedBooking_organizationId_createdAt_idx" ON "BlockedBooking"("organizationId", "createdAt");
+CREATE INDEX "BlockedBookingLog_organizationId_createdAt_idx" ON "BlockedBookingLog"("organizationId", "createdAt");
 
 -- CreateIndex
-CREATE INDEX "BlockedBooking_email_idx" ON "BlockedBooking"("email");
+CREATE INDEX "BlockedBookingLog_email_idx" ON "BlockedBookingLog"("email");
 
 -- CreateIndex
-CREATE INDEX "BlockedBooking_watchlistId_idx" ON "BlockedBooking"("watchlistId");
+CREATE INDEX "BlockedBookingLog_watchlistId_idx" ON "BlockedBookingLog"("watchlistId");
 
 -- CreateIndex
 CREATE INDEX "Watchlist_type_value_organizationId_action_idx" ON "Watchlist"("type", "value", "organizationId", "action");
