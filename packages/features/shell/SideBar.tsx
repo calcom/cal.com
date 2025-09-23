@@ -3,6 +3,7 @@ import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 import { IS_VISUAL_REGRESSION_TESTING, ENABLE_PROFILE_SWITCHER } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -19,6 +20,7 @@ import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { KBarTrigger } from "../kbar/Kbar";
+import { SkipTrialConfirmationModal } from "./SkipTrialConfirmationModal";
 import { Navigation } from "./navigation/Navigation";
 import { useBottomNavItems } from "./useBottomNavItems";
 import { ProfileDropdown } from "./user-dropdown/ProfileDropdown";
@@ -56,6 +58,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
   const pathname = usePathname();
   const isPlatformPages = pathname?.startsWith("/settings/platform");
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
+  const [isSkipTrialModalOpen, setIsSkipTrialModalOpen] = useState(false);
 
   const publicPageUrl = `${getBookerBaseUrlSync(user?.org?.slug ?? null)}/${user?.orgAwareUsername}`;
 
@@ -160,7 +163,14 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
                     isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : "",
                     index === 0 && "mt-3"
                   )}
-                  onClick={item.onClick}>
+                  onClick={(e) => {
+                    if (item.name === "skip_trial") {
+                      e.preventDefault();
+                      setIsSkipTrialModalOpen(true);
+                    } else if (item.onClick) {
+                      item.onClick(e);
+                    }
+                  }}>
                   {!!item.icon && (
                     <Icon
                       name={item.isLoading ? "rotate-cw" : item.icon}
@@ -185,6 +195,10 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
             {!IS_VISUAL_REGRESSION_TESTING && <Credits />}
           </div>
         )}
+        <SkipTrialConfirmationModal
+          isOpen={isSkipTrialModalOpen}
+          onClose={() => setIsSkipTrialModalOpen(false)}
+        />
       </aside>
     </div>
   );

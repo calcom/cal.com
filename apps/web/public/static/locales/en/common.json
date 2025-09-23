@@ -3410,6 +3410,8 @@
   "custom_reply_to_email_description": "Use a different email address as the replyTo for confirmation emails instead of the organizer's email",
   "email_survey_triggered_by_workflow": "This survey was triggered by a Workflow in Cal.",
   "skip_trial": "Skip trial period",
+  "skip_trial_confirmation_title": "Skip trial period?",
+  "skip_trial_confirmation_message": "This will automatically put you onto a paid plan. You will be charged according to your current usage and plan settings.",
   "team_trials_skipped_successfully": "Team trials skipped successfully",
   "sms_workflow_consent": "By entering your phone number you consent to receive SMS messages for this event. SMS rates may apply.",
   "routing_preview_more_info_found_insights": "More info can be found in <0>Routing Insights</0>",
