@@ -50,6 +50,9 @@ CREATE INDEX "BlockedBooking_watchlistEntryId_idx" ON "BlockedBooking"("watchlis
 CREATE INDEX "Watchlist_type_value_organizationId_action_idx" ON "Watchlist"("type", "value", "organizationId", "action");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Watchlist_type_value_organizationId_key" ON "Watchlist"("type","value","organizationId");
+
+-- CreateIndex
 -- Enforce uniqueness for global entries (organizationId IS NULL)
 CREATE UNIQUE INDEX "Watchlist_type_value_global_key"
   ON "Watchlist"("type","value")
@@ -63,8 +66,3 @@ ALTER TABLE "BlockedBooking" ADD CONSTRAINT "BlockedBooking_organizationId_fkey"
 
 -- AddForeignKey
 ALTER TABLE "BlockedBooking" ADD CONSTRAINT "BlockedBooking_watchlistEntryId_fkey" FOREIGN KEY ("watchlistEntryId") REFERENCES "Watchlist"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- Enforce uniqueness for global entries (organizationId IS NULL)
-CREATE UNIQUE INDEX "Watchlist_type_value_global_key"
-  ON "Watchlist"("type","value")
-  WHERE "organizationId" IS NULL;
