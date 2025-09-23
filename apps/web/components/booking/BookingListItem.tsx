@@ -184,7 +184,9 @@ function BookingListItem(booking: BookingItemProps) {
   const isTabRecurring = booking.listingStatus === "recurring";
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
   const isBookingFromRoutingForm = isBookingReroutable(parsedBooking);
-  const isAttendee = !!booking.attendees.find((attendee) => attendee.email === userEmail);
+  const isAttendee = !!booking.seatsReferences.find(
+    (seat) => !!userEmail && seat.attendee?.email === userEmail
+  );
 
   const paymentAppData = getPaymentAppData(booking.eventType);
 
