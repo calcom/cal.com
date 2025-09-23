@@ -15,20 +15,20 @@
     "lint:report": "eslint . --format json --output-file ../../lint-results/app-store.json"
   },
   "dependencies": {
-    "@calcom/dailyvideo": "*",
-    "@calcom/dayjs": "*",
-    "@calcom/features": "*",
-    "@calcom/lib": "*",
-    "@calcom/office365video": "*",
-    "@calcom/ui": "*",
-    "@calcom/zoomvideo": "*",
+    "@calcom/dailyvideo": "workspace:*",
+    "@calcom/dayjs": "workspace:*",
+    "@calcom/features": "workspace:*",
+    "@calcom/lib": "workspace:*",
+    "@calcom/office365video": "workspace:*",
+    "@calcom/ui": "workspace:*",
+    "@calcom/zoomvideo": "workspace:*",
     "lodash": "^4.17.21",
     "qs-stringify": "^1.2.1",
     "react-i18next": "^12.2.0",
     "stripe": "^9.16.0"
   },
   "devDependencies": {
-    "@calcom/eslint-config": "*",
-    "@calcom/types": "*"
+    "@calcom/eslint-config": "workspace:*",
+    "@calcom/types": "workspace:*"
   }
 }

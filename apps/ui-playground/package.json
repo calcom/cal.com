@@ -9,9 +9,9 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@calcom/config": "*",
-    "@calcom/lib": "*",
-    "@calcom/ui": "*",
+    "@calcom/config": "workspace:*",
+    "@calcom/lib": "workspace:*",
+    "@calcom/ui": "workspace:*",
     "@radix-ui/react-tooltip": "^1.1.8",
     "airtable": "^0.12.2",
     "fumadocs-core": "^14.5.4",
@@ -25,7 +25,7 @@
   },
   "devDependencies": {
     "@calcom/eslint-config": "workspace:*",
-    "@calcom/tsconfig": "*",
+    "@calcom/tsconfig": "workspace:*",
     "@types/mdx": "^2.0.13",
     "@types/node": "^20",
     "@types/react": "^18",

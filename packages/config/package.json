@@ -10,7 +10,7 @@
     "prettier-preset.js"
   ],
   "dependencies": {
-    "@calcom/eslint-plugin-eslint": "*",
+    "@calcom/eslint-plugin-eslint": "workspace:*",
     "@todesktop/tailwind-variants": "^1.0.0",
     "eslint-config-next": "^13.2.1",
     "eslint-config-prettier": "^8.6.0",

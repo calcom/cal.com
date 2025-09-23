@@ -10,11 +10,11 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@calcom/atoms": "*",
-    "@calcom/dayjs": "*",
-    "@calcom/lib": "*",
-    "@calcom/trpc": "*",
-    "@calcom/ui": "*",
+    "@calcom/atoms": "workspace:*",
+    "@calcom/dayjs": "workspace:*",
+    "@calcom/lib": "workspace:*",
+    "@calcom/trpc": "workspace:*",
+    "@calcom/ui": "workspace:*",
     "@lexical/react": "^0.9.0",
     "@tanstack/react-table": "^8.20.6",
     "@tanstack/react-virtual": "^3.10.9",
