@@ -43,6 +43,9 @@ const Page = async ({ params }: PageProps) => {
       userId,
       "team.listMembers"
     );
+    // We check teamIdsWithPermission.length > 0 which seems not super correct, but it's okay
+    // because we check accurately on the server side for the actual filter values.
+    // This variable is just for the UI aspect.
     canListMembers = teamIdsWithPermission.length > 0;
   }
 
