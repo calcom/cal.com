@@ -2,10 +2,10 @@ import { useMemo, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/components/hooks/useAvailableTimeSlots";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
-import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/weeklyview/types/state";
 import { localStorage } from "@calcom/lib/webstorage";
 
 import type { useScheduleForEventReturnType } from "../utils/event";
@@ -34,24 +34,7 @@ export const LargeCalendar = ({
 
   const eventDuration = selectedEventDuration || event?.data?.length || 30;
 
-  const availableSlots = useMemo(() => {
-    const availableTimeslots: CalendarAvailableTimeslots = {};
-    if (!schedule) return availableTimeslots;
-    if (!schedule.slots) return availableTimeslots;
-
-    for (const day in schedule.slots) {
-      availableTimeslots[day] = schedule.slots[day].map((slot) => {
-        const { time, ...rest } = slot;
-        return {
-          start: dayjs(time).toDate(),
-          end: dayjs(time).add(eventDuration, "minutes").toDate(),
-          ...rest,
-        };
-      });
-    }
-
-    return availableTimeslots;
-  }, [schedule, eventDuration]);
+  const availableSlots = useAvailableTimeSlots({ schedule, eventDuration });
 
   const startDate = selectedDate ? dayjs(selectedDate).toDate() : dayjs().toDate();
   const endDate = dayjs(startDate)
