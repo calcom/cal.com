@@ -25,6 +25,7 @@ export enum CustomAction {
   Remove = "remove",
   ChangeMemberRole = "changeMemberRole",
   ListMembers = "listMembers",
+  ListMembersPrivate = "listMembersPrivate",
   ManageBilling = "manageBilling",
   ReadTeamBookings = "readTeamBookings",
   ReadOrgBookings = "readOrgBookings",
@@ -280,6 +281,13 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       i18nKey: "pbac_action_list_members",
       descriptionI18nKey: "pbac_desc_list_team_members",
     },
+    [CustomAction.ListMembersPrivate]: {
+      description: "List private team members",
+      category: "team",
+      i18nKey: "pbac_action_list_members_private",
+      descriptionI18nKey: "pbac_desc_list_private_team_members",
+      dependsOn: ["team.read", "team.listMembers"],
+    },
     [CustomAction.ChangeMemberRole]: {
       description: "Change role of team members",
       category: "team",
@@ -320,6 +328,14 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       descriptionI18nKey: "pbac_desc_list_organization_members",
       scope: [Scope.Organization],
       dependsOn: ["organization.read"],
+    },
+    [CustomAction.ListMembersPrivate]: {
+      description: "List private organization members",
+      category: "org",
+      i18nKey: "pbac_action_list_members_private",
+      descriptionI18nKey: "pbac_desc_list_private_organization_members",
+      scope: [Scope.Organization],
+      dependsOn: ["organization.read", "organization.listMembers"],
     },
     [CustomAction.Invite]: {
       description: "Invite organization members",
