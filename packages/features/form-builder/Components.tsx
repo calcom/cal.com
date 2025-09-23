@@ -8,7 +8,7 @@ import type {
 import Widgets from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import PhoneInput from "@calcom/features/components/phone-input";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { fieldSchema, variantsConfigSchema, FieldType } from "@calcom/prisma/zod-utils";
+import type { fieldSchema, variantsConfigSchema, FieldType, fieldTypeEnum } from "@calcom/prisma/zod-utils";
 import { AddressInput } from "@calcom/ui/components/address";
 import { InfoBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
@@ -567,7 +567,7 @@ export const Components: Record<z.infer<typeof fieldTypeEnum>, Component> = {
       
       return (
         <DatePicker
-          date={dateValue}
+          date={dateValue || new Date()}
           onDatesChange={(date) => {
             // Handle null/clears
             if (!date) {
