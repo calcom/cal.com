@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
@@ -83,12 +83,6 @@ export type BookingItemProps = BookingItem & {
   isToday: boolean;
 };
 
-// Utility function to check if a booking has been reported
-const checkIfBookingReported = (booking: BookingItemProps): boolean => {
-  // Check if this booking has been reported by anyone
-  return booking.reports && booking.reports.length > 0;
-};
-
 type ParsedBooking = ReturnType<typeof buildParsedBooking>;
 type TeamEvent = Ensure<NonNullable<ParsedBooking["eventType"]>, "team">;
 type TeamEventBooking = Omit<ParsedBooking, "eventType"> & {
@@ -97,6 +91,7 @@ type TeamEventBooking = Omit<ParsedBooking, "eventType"> & {
 type ReroutableBooking = Ensure<TeamEventBooking, "routedFromRoutingFormReponse">;
 
 function buildParsedBooking(booking: BookingItemProps) {
+  // The way we fetch bookings there could be eventType object even without an eventType, but id confirms its existence
   const bookingEventType = booking.eventType.id
     ? (booking.eventType as Ensure<
         typeof booking.eventType,
@@ -407,9 +402,7 @@ function BookingListItem(booking: BookingItemProps) {
       (action.id === "view_recordings" && !booking.isRecorded),
   })) as ActionType[];
 
-  const hasBeenReported = useMemo(() => {
-    return checkIfBookingReported(booking);
-  }, [booking]);
+  const hasBeenReported = booking.reports && booking.reports.length > 0;
 
   const createReportAction = (hasBeenReported: boolean, onClick: () => void): ActionType => {
     return hasBeenReported
@@ -855,7 +848,7 @@ const BookingItemBadges = ({
       )}
       {(() => {
         // Check if this booking or any booking in the recurring series has been reported
-        const hasAnyReport = checkIfBookingReported(booking);
+        const hasAnyReport = booking.reports && booking.reports.length > 0;
 
         return (
           hasAnyReport && (
