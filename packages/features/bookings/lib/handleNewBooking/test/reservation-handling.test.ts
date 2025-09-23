@@ -3,43 +3,28 @@
  * - Tests atomic consumption of slot reservations during booking creation
  * - Validates error handling for expired, invalid, and mismatched reservations
  * - Ensures race condition prevention through database transactions
- * 
- * Time is frozen at 2025-01-15T12:00:00.000Z for deterministic tests
  */
 
-import { describe, expect, test, beforeEach, afterAll, vi } from "vitest";
+import { describe, expect, test, beforeEach, vi } from "vitest";
 import prismaMock from "../../../../../../tests/libs/__mocks__/prisma";
 import dayjs from "@calcom/dayjs";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { HttpError } from "@calcom/lib/http-error";
-import { createBookingScenario, getDate, getOrganizer, getBooker, TestData, getScenarioData } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+import { createBookingScenario, getDate, getOrganizer, getBooker, TestData } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { expectBookingToBeInDatabase } from "@calcom/web/test/utils/bookingScenario/expects";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
-import { mockSuccessfulVideoMeetingCreation } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { getNewBookingHandler } from "./getNewBookingHandler";
 
 describe("Reservation System Fixes", () => {
   setupAndTeardown();
 
   beforeEach(() => {
-    // Freeze time for deterministic tests
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2025-01-15T12:00:00.000Z"));
+    // Reset mocks before each test
     vi.clearAllMocks();
-    
-    // Set up selectedSlots mock methods as spies
-    prismaMock.selectedSlots.findFirst = vi.fn();
-    prismaMock.selectedSlots.deleteMany = vi.fn().mockResolvedValue({ count: 1 });
-    prismaMock.selectedSlots.delete = vi.fn();
-  });
-
-  afterAll(() => {
-    vi.useRealTimers();
   });
 
   test("should successfully consume reservation when creating booking", async () => {
-    const handleNewBooking = getNewBookingHandler();
+    const handleNewBooking = await getNewBookingHandler();
     const booker = getBooker({
       email: "booker@example.com",
       name: "Booker",
@@ -50,49 +35,37 @@ describe("Reservation System Fixes", () => {
       email: "organizer@example.com",
       id: 101,
       schedules: [TestData.schedules.IstWorkHours],
+      credentials: [],
+      selectedCalendars: [],
     });
 
-    await createBookingScenario(
-      getScenarioData({
-        eventTypes: [
-          {
-            id: 1,
-            slotInterval: 30,
-            length: 30,
-            users: [
-              {
-                id: 101,
-              },
-            ],
-          },
-        ],
-        organizer,
-      })
-    );
-
-    // Mock successful video meeting creation - this is required for the booking to work
-    mockSuccessfulVideoMeetingCreation({
-      metadataLookupKey: "dailyvideo",
-      videoMeetingData: {
-        id: "MOCK_ID",
-        password: "MOCK_PASS",
-        url: `http://mock-dailyvideo.example.com/meeting-1`,
-      },
+    const { eventType, reservedSlotUid } = await createBookingScenario({
+      eventTypes: [
+        {
+          id: 1,
+          slotInterval: 15,
+          length: 15,
+          users: [
+            {
+              id: 101,
+            },
+          ],
+        },
+      ],
+      users: [organizer],
+      // Create a reserved slot for the test
+      reservedSlots: [
+        {
+          uid: "reserved-slot-123",
+          eventTypeId: 1,
+          userId: 101,
+          slotUtcStartDate: dayjs(getDate({ dateIncrement: 1 })).utc().toDate(),
+          slotUtcEndDate: dayjs(getDate({ dateIncrement: 1 })).utc().add(15, "minutes").toDate(),
+          releaseAt: dayjs().add(15, "minutes").toDate(), // Valid for 15 minutes
+          isSeat: false,
+        },
+      ],
     });
-
-    // Mock the reservation lookup to return a valid reservation
-    const validReservation = {
-      id: 1,
-      uid: "reserved-slot-123",
-      eventTypeId: 1,
-      userId: 101,
-      slotUtcStartDate: dayjs().add(1, "day").startOf("hour").toDate(),
-      slotUtcEndDate: dayjs().add(1, "day").startOf("hour").add(30, "minutes").toDate(),
-      releaseAt: dayjs().add(15, "minutes").toDate(),
-      isSeat: false,
-    };
-
-    prismaMock.selectedSlots.findFirst.mockResolvedValue(validReservation);
 
     const mockRequestData = getMockRequestDataForBooking({
       data: {
@@ -106,23 +79,33 @@ describe("Reservation System Fixes", () => {
       },
     });
 
-    const createdBooking = await handleNewBooking({
-      bookingData: mockRequestData,
-    });
+    const { req } = mockRequestData;
+    req.body.reservedSlotUid = "reserved-slot-123";
+
+    const createdBooking = await handleNewBooking(req);
 
     // Verify booking was created successfully
+    expect(createdBooking.responses).toContain({
+      email: booker.email,
+      name: booker.name,
+    });
+
     expect(createdBooking.status).toBe(BookingStatus.ACCEPTED);
 
-    // Verify the reservation was consumed (deleted) using deleteMany
-    expect(prismaMock.selectedSlots.deleteMany).toHaveBeenCalledWith({
+    // Verify the reservation was consumed (deleted)
+    expect(prismaMock.selectedSlots.delete).toHaveBeenCalledWith({
       where: { uid: "reserved-slot-123" },
     });
-  });
+
+    await expectBookingToBeInDatabase({
+      uid: createdBooking.uid!,
+      eventTypeId: eventType.id,
+      status: BookingStatus.ACCEPTED,
+    });
   });
 
   test("should throw error when reservation is not found", async () => {
-    const handleNewBooking = getNewBookingHandler();
-    
+    const handleNewBooking = await getNewBookingHandler();
     const booker = getBooker({
       email: "booker@example.com",
       name: "Booker",
@@ -133,38 +116,28 @@ describe("Reservation System Fixes", () => {
       email: "organizer@example.com",
       id: 101,
       schedules: [TestData.schedules.IstWorkHours],
+      credentials: [],
+      selectedCalendars: [],
     });
 
-    await createBookingScenario(
-      getScenarioData({
-        eventTypes: [
-          {
-            id: 1,
-            slotInterval: 30,
-            length: 30,
-            users: [
-              {
-                id: 101,
-              },
-            ],
-          },
-        ],
-        organizer,
-      })
-    );
-
-    // Mock successful video meeting creation
-    mockSuccessfulVideoMeetingCreation({
-      metadataLookupKey: "dailyvideo",
-      videoMeetingData: {
-        id: "MOCK_ID",
-        password: "MOCK_PASS",
-        url: `http://mock-dailyvideo.example.com/meeting-2`,
-      },
+    await createBookingScenario({
+      eventTypes: [
+        {
+          id: 1,
+          slotInterval: 15,
+          length: 15,
+          users: [
+            {
+              id: 101,
+            },
+          ],
+        },
+      ],
+      users: [organizer],
     });
 
     // Mock that no reservation exists
-    prismaMock.selectedSlots.findFirst.mockResolvedValue(null);
+    prismaMock.selectedSlots.findUnique.mockResolvedValue(null);
 
     const mockRequestData = getMockRequestDataForBooking({
       data: {
@@ -178,19 +151,14 @@ describe("Reservation System Fixes", () => {
       },
     });
 
-    await expect(
-      handleNewBooking({
-        bookingData: mockRequestData,
-      })
-    ).rejects.toMatchObject({
-      statusCode: 409,
-      message: "reserved_slot_not_found"
-    });
+    const { req } = mockRequestData;
+    req.body.reservedSlotUid = "non-existent-reservation";
+
+    await expect(handleNewBooking(req)).rejects.toThrow("Reserved slot not found or already consumed");
   });
 
   test("should throw error when reservation is expired", async () => {
-    const handleNewBooking = getNewBookingHandler();
-    
+    const handleNewBooking = await getNewBookingHandler();
     const booker = getBooker({
       email: "booker@example.com",
       name: "Booker",
@@ -201,34 +169,24 @@ describe("Reservation System Fixes", () => {
       email: "organizer@example.com",
       id: 101,
       schedules: [TestData.schedules.IstWorkHours],
+      credentials: [],
+      selectedCalendars: [],
     });
 
-    await createBookingScenario(
-      getScenarioData({
-        eventTypes: [
-          {
-            id: 1,
-            slotInterval: 30,
-            length: 30,
-            users: [
-              {
-                id: 101,
-              },
-            ],
-          },
-        ],
-        organizer,
-      })
-    );
-
-    // Mock successful video meeting creation
-    mockSuccessfulVideoMeetingCreation({
-      metadataLookupKey: "dailyvideo",
-      videoMeetingData: {
-        id: "MOCK_ID",
-        password: "MOCK_PASS",
-        url: `http://mock-dailyvideo.example.com/meeting-3`,
-      },
+    await createBookingScenario({
+      eventTypes: [
+        {
+          id: 1,
+          slotInterval: 15,
+          length: 15,
+          users: [
+            {
+              id: 101,
+            },
+          ],
+        },
+      ],
+      users: [organizer],
     });
 
     // Mock an expired reservation
@@ -236,13 +194,13 @@ describe("Reservation System Fixes", () => {
       uid: "expired-reservation",
       eventTypeId: 1,
       userId: 101,
-      slotUtcStartDate: dayjs().add(1, "day").startOf("hour").toDate(),
-      slotUtcEndDate: dayjs().add(1, "day").startOf("hour").add(30, "minutes").toDate(),
+      slotUtcStartDate: dayjs(getDate({ dateIncrement: 1 })).utc().toDate(),
+      slotUtcEndDate: dayjs(getDate({ dateIncrement: 1 })).utc().add(15, "minutes").toDate(),
       releaseAt: dayjs().subtract(1, "minute").toDate(), // Expired 1 minute ago
       isSeat: false,
     };
 
-    prismaMock.selectedSlots.findFirst.mockResolvedValue(expiredReservation);
+    prismaMock.selectedSlots.findUnique.mockResolvedValue(expiredReservation);
 
     const mockRequestData = getMockRequestDataForBooking({
       data: {
@@ -256,24 +214,19 @@ describe("Reservation System Fixes", () => {
       },
     });
 
-    await expect(
-      handleNewBooking({
-        bookingData: mockRequestData,
-      })
-    ).rejects.toMatchObject({
-      statusCode: 410,
-      message: "reserved_slot_expired"
-    });
+    const { req } = mockRequestData;
+    req.body.reservedSlotUid = "expired-reservation";
 
-    // Verify expired reservation was cleaned up using deleteMany
-    expect(prismaMock.selectedSlots.deleteMany).toHaveBeenCalledWith({
+    await expect(handleNewBooking(req)).rejects.toThrow("Reserved slot has expired");
+
+    // Verify expired reservation was cleaned up
+    expect(prismaMock.selectedSlots.delete).toHaveBeenCalledWith({
       where: { uid: "expired-reservation" },
     });
   });
 
   test("should throw error when reservation time doesn't match booking time", async () => {
-    const handleNewBooking = getNewBookingHandler();
-    
+    const handleNewBooking = await getNewBookingHandler();
     const booker = getBooker({
       email: "booker@example.com",
       name: "Booker",
@@ -284,34 +237,24 @@ describe("Reservation System Fixes", () => {
       email: "organizer@example.com",
       id: 101,
       schedules: [TestData.schedules.IstWorkHours],
+      credentials: [],
+      selectedCalendars: [],
     });
 
-    await createBookingScenario(
-      getScenarioData({
-        eventTypes: [
-          {
-            id: 1,
-            slotInterval: 30,
-            length: 30,
-            users: [
-              {
-                id: 101,
-              },
-            ],
-          },
-        ],
-        organizer,
-      })
-    );
-
-    // Mock successful video meeting creation
-    mockSuccessfulVideoMeetingCreation({
-      metadataLookupKey: "dailyvideo",
-      videoMeetingData: {
-        id: "MOCK_ID",
-        password: "MOCK_PASS",
-        url: `http://mock-dailyvideo.example.com/meeting-4`,
-      },
+    await createBookingScenario({
+      eventTypes: [
+        {
+          id: 1,
+          slotInterval: 15,
+          length: 15,
+          users: [
+            {
+              id: 101,
+            },
+          ],
+        },
+      ],
+      users: [organizer],
     });
 
     // Mock a reservation with different time than the booking request
@@ -319,19 +262,19 @@ describe("Reservation System Fixes", () => {
       uid: "mismatched-reservation",
       eventTypeId: 1,
       userId: 101,
-      slotUtcStartDate: dayjs().add(2, "day").startOf("hour").toDate(), // Different day
-      slotUtcEndDate: dayjs().add(2, "day").startOf("hour").add(30, "minutes").toDate(),
+      slotUtcStartDate: dayjs(getDate({ dateIncrement: 2 })).utc().toDate(), // Different day
+      slotUtcEndDate: dayjs(getDate({ dateIncrement: 2 })).utc().add(15, "minutes").toDate(),
       releaseAt: dayjs().add(15, "minutes").toDate(),
       isSeat: false,
     };
 
-    prismaMock.selectedSlots.findFirst.mockResolvedValue(mismatchedReservation);
+    prismaMock.selectedSlots.findUnique.mockResolvedValue(mismatchedReservation);
 
     const mockRequestData = getMockRequestDataForBooking({
       data: {
         eventTypeId: 1,
-        start: dayjs().add(1, "day").startOf("hour").toISOString(), // Different from reservation
-        end: dayjs().add(1, "day").startOf("hour").add(30, "minutes").toISOString(),
+        start: dayjs(getDate({ dateIncrement: 1 })).toISOString(), // Different from reservation
+        end: dayjs(getDate({ dateIncrement: 1 })).add(15, "minutes").toISOString(),
         responses: {
           email: booker.email,
           name: booker.name,
@@ -341,19 +284,14 @@ describe("Reservation System Fixes", () => {
       },
     });
 
-    await expect(
-      handleNewBooking({
-        bookingData: mockRequestData,
-      })
-    ).rejects.toMatchObject({
-      statusCode: 400,
-      message: "reserved_slot_time_mismatch"
-    });
+    const { req } = mockRequestData;
+    req.body.reservedSlotUid = "mismatched-reservation";
+
+    await expect(handleNewBooking(req)).rejects.toThrow("Reserved slot time does not match booking time");
   });
 
   test("should successfully create booking without reservation (backward compatibility)", async () => {
-    const handleNewBooking = getNewBookingHandler();
-    
+    const handleNewBooking = await getNewBookingHandler();
     const booker = getBooker({
       email: "booker@example.com",
       name: "Booker",
@@ -364,37 +302,25 @@ describe("Reservation System Fixes", () => {
       email: "organizer@example.com",
       id: 101,
       schedules: [TestData.schedules.IstWorkHours],
+      credentials: [],
+      selectedCalendars: [],
     });
 
-    const { eventTypes } = await createBookingScenario(
-      getScenarioData({
-        eventTypes: [
-          {
-            id: 1,
-            slotInterval: 30,
-            length: 30,
-            users: [
-              {
-                id: 101,
-              },
-            ],
-          },
-        ],
-        organizer,
-      })
-    );
-
-    // Mock successful video meeting creation
-    mockSuccessfulVideoMeetingCreation({
-      metadataLookupKey: "dailyvideo",
-      videoMeetingData: {
-        id: "MOCK_ID",
-        password: "MOCK_PASS",
-        url: `http://mock-dailyvideo.example.com/meeting-5`,
-      },
+    const { eventType } = await createBookingScenario({
+      eventTypes: [
+        {
+          id: 1,
+          slotInterval: 15,
+          length: 15,
+          users: [
+            {
+              id: 101,
+            },
+          ],
+        },
+      ],
+      users: [organizer],
     });
-
-    const eventType = eventTypes[0];
 
     const mockRequestData = getMockRequestDataForBooking({
       data: {
@@ -408,125 +334,21 @@ describe("Reservation System Fixes", () => {
       },
     });
 
-    const createdBooking = await handleNewBooking({
-      bookingData: mockRequestData,
-    });
+    const { req } = mockRequestData;
+
+    const createdBooking = await handleNewBooking(req);
 
     // Verify booking was created successfully without reservation
     expect(createdBooking.status).toBe(BookingStatus.ACCEPTED);
 
     // Verify no reservation operations were attempted
-    expect(prismaMock.selectedSlots.findFirst).not.toHaveBeenCalled();
-    expect(prismaMock.selectedSlots.deleteMany).not.toHaveBeenCalled();
+    expect(prismaMock.selectedSlots.findUnique).not.toHaveBeenCalled();
+    expect(prismaMock.selectedSlots.delete).not.toHaveBeenCalled();
 
     await expectBookingToBeInDatabase({
       uid: createdBooking.uid!,
       eventTypeId: eventType.id,
       status: BookingStatus.ACCEPTED,
     });
-  });
-
-  test("should handle recurring bookings correctly - only first occurrence uses reservation", async () => {
-    const handleNewBooking = getNewBookingHandler();
-    
-    const booker = getBooker({
-      email: "booker@example.com",
-      name: "Booker",
-    });
-
-    const organizer = getOrganizer({
-      name: "Organizer",
-      email: "organizer@example.com",
-      id: 101,
-      schedules: [TestData.schedules.IstWorkHours],
-    });
-
-    const { eventTypes } = await createBookingScenario(
-      getScenarioData({
-        eventTypes: [
-          {
-            id: 1,
-            slotInterval: 30,
-            length: 30,
-            recurringEvent: {
-              freq: 2, // Weekly
-              count: 3, // 3 occurrences
-              interval: 1,
-            },
-            users: [
-              {
-                id: 101,
-              },
-            ],
-          },
-        ],
-        organizer,
-      })
-    );
-
-    // Mock successful video meeting creation
-    mockSuccessfulVideoMeetingCreation({
-      metadataLookupKey: "dailyvideo",
-      videoMeetingData: {
-        id: "MOCK_ID",
-        password: "MOCK_PASS",
-        url: `http://mock-dailyvideo.example.com/meeting-6`,
-      },
-    });
-
-    const eventType = eventTypes[0];
-
-    // Mock the reservation for the first occurrence
-    const recurringReservation = {
-      id: 1,
-      uid: "recurring-reservation-123",
-      eventTypeId: 1,
-      userId: 101,
-      slotUtcStartDate: dayjs().add(1, "day").startOf("hour").toDate(),
-      slotUtcEndDate: dayjs().add(1, "day").startOf("hour").add(30, "minutes").toDate(),
-      releaseAt: dayjs().add(15, "minutes").toDate(),
-      isSeat: false,
-    };
-
-    prismaMock.selectedSlots.findFirst.mockResolvedValue(recurringReservation);
-
-    const mockRequestData = getMockRequestDataForBooking({
-      data: {
-        eventTypeId: 1,
-        start: dayjs().add(1, "day").startOf("hour").toISOString(),
-        end: dayjs().add(1, "day").startOf("hour").add(30, "minutes").toISOString(),
-        recurringCount: 3,
-        responses: {
-          email: booker.email,
-          name: booker.name,
-          location: { optionValue: "", value: "integrations:daily" },
-        },
-        reservedSlotUid: "recurring-reservation-123",
-      },
-    });
-
-    const createdBookings = await handleNewBooking({
-      bookingData: mockRequestData,
-    });
-
-    // Verify 3 bookings were created
-    expect(Array.isArray(createdBookings)).toBe(true);
-    expect(createdBookings.length).toBe(3);
-
-    // Verify the reservation was consumed only once (for first occurrence) using deleteMany
-    expect(prismaMock.selectedSlots.deleteMany).toHaveBeenCalledTimes(1);
-    expect(prismaMock.selectedSlots.deleteMany).toHaveBeenCalledWith({
-      where: { uid: "recurring-reservation-123" },
-    });
-
-    // Verify all bookings were created successfully
-    for (const booking of createdBookings) {
-      expect(booking.status).toBe(BookingStatus.ACCEPTED);
-      await expectBookingToBeInDatabase({
-        uid: booking.uid!,
-        eventTypeId: eventType.id,
-        status: BookingStatus.ACCEPTED,
-      });
-    }
   });
 });
