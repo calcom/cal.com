@@ -1,9 +1,11 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { render } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import * as React from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { vi } from "vitest";
+
+import { showToast } from "@calcom/ui/components/toast";
 
 import { FormBuilder } from "./FormBuilder";
 import {
@@ -31,6 +33,10 @@ vi.mock("next/navigation", async (importOriginal) => {
     })),
   };
 });
+
+vi.mock("@calcom/ui/components/toast", () => ({
+  showToast: vi.fn(),
+}));
 
 const renderComponent = ({
   formBuilderProps: formBuilderProps,
@@ -219,7 +225,6 @@ describe("FormBuilder", () => {
         ],
       });
 
-      
       verifier.verifyOptionPrices({ identifier, prices: [20, 25] });
     });
 
@@ -269,6 +274,42 @@ describe("FormBuilder", () => {
       });
 
       verifier.verifyOptionPrices({ identifier, prices: [50, 75, 100] });
+    });
+  });
+
+  describe("Guests Field Validation Tests", () => {
+    beforeEach(() => {
+      renderComponent({ formBuilderProps: mockProps, formDefaultValues: {} });
+    });
+
+    it("Should prevent saving guests field with non-multiemail type", async () => {
+      const dialog = pageObject.openAddFieldDialog();
+
+      pageObject.dialog.selectFieldType({ dialog, fieldType: "text" });
+      pageObject.dialog.fillInFieldIdentifier({ dialog, identifier: "guests" });
+      pageObject.dialog.fillInFieldLabel({ dialog, label: "Guests", fieldType: "text" });
+
+      pageObject.dialog.saveField({ dialog });
+
+      await waitFor(() => {
+        expect(showToast).toHaveBeenCalledWith("guests_field_must_be_multiemail", "error");
+      });
+
+      expect(screen.queryByTestId("field-guests")).not.toBeInTheDocument();
+    });
+
+    it("Should allow saving guests field with multiemail type", async () => {
+      const dialog = pageObject.openAddFieldDialog();
+
+      pageObject.dialog.selectFieldType({ dialog, fieldType: "multiemail" });
+      pageObject.dialog.fillInFieldIdentifier({ dialog, identifier: "guests" });
+      pageObject.dialog.fillInFieldLabel({ dialog, label: "Guests", fieldType: "multiemail" });
+
+      pageObject.dialog.saveField({ dialog });
+
+      await waitFor(() => {
+        expect(screen.getByTestId("field-guests")).toBeInTheDocument();
+      });
     });
   });
 });

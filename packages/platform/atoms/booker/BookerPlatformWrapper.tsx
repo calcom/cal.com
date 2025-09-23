@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useQueryClient } from "@tanstack/react-query";
 // eslint-disable-next-line no-restricted-imports
 import debounce from "lodash/debounce";
@@ -594,7 +595,7 @@ export const BookerPlatformWrapper = (
   );
 };
 
-function formatUsername(username: string | string[]): string {
+export function formatUsername(username: string | string[]): string {
   if (typeof username === "string") {
     return username;
   }
