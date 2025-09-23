@@ -586,8 +586,6 @@ model Team {
   managedOrganization  ManagedOrganization?  @relation("ManagedOrganization")
   managedOrganizations ManagedOrganization[] @relation("ManagerOrganization")
   filterSegments       FilterSegment[]
-  watchlist            Watchlist[]
-  blockedBookings      BlockedBooking[]
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -2263,7 +2261,6 @@ model Watchlist {
   description String?
 
   organizationId Int?
-  organization   Team? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   action          WatchlistAction   @default(REPORT)
   severity        WatchlistSeverity @default(LOW)
@@ -2285,14 +2282,14 @@ model BlockedBooking {
   eventTypeId Int?
 
   organizationId Int?
-  organization   Team? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   watchlistEntryId String?
-  watchlistEntry   Watchlist? @relation(fields: [watchlistEntryId], references: [id], onDelete: SetNull)
 
   bookingData Json?
 
-  createdAt DateTime @default(now())
+  createdAt   DateTime   @default(now())
+  Watchlist   Watchlist? @relation(fields: [watchlistId], references: [id])
+  watchlistId String?
 
   @@index([organizationId, createdAt])
   @@index([email])

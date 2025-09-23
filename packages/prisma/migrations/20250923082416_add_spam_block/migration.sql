@@ -53,12 +53,3 @@ CREATE UNIQUE INDEX "Watchlist_type_value_organizationId_key" ON "Watchlist"("ty
 CREATE UNIQUE INDEX "Watchlist_type_value_global_key"
   ON "Watchlist"("type","value")
   WHERE "organizationId" IS NULL;
-
--- AddForeignKey
-ALTER TABLE "Watchlist" ADD CONSTRAINT "Watchlist_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "BlockedBooking" ADD CONSTRAINT "BlockedBooking_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "BlockedBooking" ADD CONSTRAINT "BlockedBooking_watchlistEntryId_fkey" FOREIGN KEY ("watchlistEntryId") REFERENCES "Watchlist"("id") ON DELETE SET NULL ON UPDATE CASCADE;
