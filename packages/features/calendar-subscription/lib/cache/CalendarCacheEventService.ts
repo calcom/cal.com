@@ -88,11 +88,12 @@ export class CalendarCacheEventService {
   /**
    * Checks if the app is supported
    *
-   * @param appId
+   * @param type
    * @returns
    */
-  static isCalendarTypeSupported(appId: string | null): boolean {
-    if (!appId) return false;
-    return ["google_calendar", "office365_calendar"].includes(appId);
+  static isCalendarTypeSupported(type: string | null): boolean {
+    if (!type) return false;
+    // return ["google_calendar", "office365_calendar"].includes(type);
+    return ["google_calendar"].includes(type);
   }
 }
