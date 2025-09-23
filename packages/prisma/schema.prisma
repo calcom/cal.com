@@ -17,7 +17,7 @@ generator client {
 generator client_for_api_v2 {
   provider        = "prisma-client"
   previewFeatures = ["views"]
-  output          = "../../apps/api/v2/client"
+  output          = "../../apps/api/v2/generated/prisma"
   engineType      = "client"
 }
 

@@ -4,7 +4,7 @@ export function bookingReferenceExtension() {
   return Prisma.defineExtension({
     name: "softDelete",
     query: {
-      BookingReference: {
+      bookingReference: {
         async delete({ args, query }) {
           return query({ ...args, action: "update", data: { deleted: true } });
         },
@@ -13,22 +13,22 @@ export function bookingReferenceExtension() {
           return query({
             ...args,
             action: "updateMany",
-            data: { ...args.data, deleted: true },
+            data: { ...(args.data || {}), deleted: true },
           });
         },
 
         async findUnique({ args, query }) {
-          args.where = { ...args.where, deleted: null };
+          args.where = { ...(args.where || {}), deleted: null };
           return query(args);
         },
 
         async findFirst({ args, query }) {
-          args.where = { ...args.where, deleted: null };
+          args.where = { ...(args.where || {}), deleted: null };
           return query(args);
         },
 
         async findMany({ args, query }) {
-          args.where = { ...args.where, deleted: null };
+          args.where = { ...(args.where || {}), deleted: null };
           return query(args);
         },
       },

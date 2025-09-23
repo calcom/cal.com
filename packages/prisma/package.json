@@ -39,7 +39,7 @@
   "main": "index.ts",
   "types": "index.d.ts",
   "files": [
-    "client",
+    "generated/prisma",
     "zod",
     "zod-utils.ts"
   ],
