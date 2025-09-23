@@ -181,6 +181,10 @@ describe("Reservation System Core Logic", () => {
 
   test("should work without reservation (backward compatibility)", async () => {
     const mockTx = {
+      selectedSlots: {
+        findFirst: vi.fn(),
+        deleteMany: vi.fn(),
+      },
       booking: {
         create: vi.fn().mockResolvedValue({
           id: 1,
@@ -216,7 +220,7 @@ describe("Reservation System Core Logic", () => {
     });
 
     // Should not interact with selectedSlots at all when no reservation is provided
-    expect(mockTx.selectedSlots?.findFirst).not.toHaveBeenCalled();
+    expect(mockTx.selectedSlots.findFirst).not.toHaveBeenCalled();
     
     // Should still create booking successfully
     expect(mockTx.booking.create).toHaveBeenCalled();

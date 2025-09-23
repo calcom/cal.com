@@ -21,6 +21,16 @@ describe("Reservation System Fixes", () => {
   beforeEach(() => {
     // Reset mocks before each test
     vi.clearAllMocks();
+    
+    // Setup basic prisma mocks
+    prismaMock.selectedSlots = {
+      findUnique: vi.fn(),
+      findFirst: vi.fn(), 
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
+    };
+    
+    prismaMock.$transaction = vi.fn();
   });
 
   test("should successfully consume reservation when creating booking", async () => {

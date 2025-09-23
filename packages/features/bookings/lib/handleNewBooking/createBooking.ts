@@ -135,7 +135,7 @@ const _createBooking = async ({
 
 export const createBooking = withReporting(_createBooking, "createBooking");
 
-async function saveBooking(
+export async function saveBooking(
   bookingAndAssociatedData: ReturnType<typeof buildNewBookingData>,
   originalRescheduledBooking: OriginalRescheduledBooking,
   paymentAppData: PaymentAppData,
@@ -180,7 +180,7 @@ async function saveBooking(
   return prisma.$transaction(async (tx) => {
     // If we have a reservedSlotUid, validate that the reservation exists and delete it
     if (reservedSlotUid) {
-      const reservation = await tx.selectedSlots.findUnique({
+      const reservation = await tx.selectedSlots.findFirst({
         where: { uid: reservedSlotUid },
       });
 
@@ -192,7 +192,7 @@ async function saveBooking(
       if (reservation.releaseAt && dayjs().isAfter(reservation.releaseAt)) {
         // Clean up expired reservation and throw error
         await tx.selectedSlots.delete({
-          where: { uid: reservedSlotUid },
+          where: { id: reservation.id },
         });
         throw new Error("Reserved slot has expired");
       }
@@ -209,7 +209,7 @@ async function saveBooking(
 
       // Delete the reservation to consume it
       await tx.selectedSlots.delete({
-        where: { uid: reservedSlotUid },
+        where: { id: reservation.id },
       });
     }
 
