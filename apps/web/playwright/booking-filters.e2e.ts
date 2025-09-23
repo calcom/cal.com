@@ -1,39 +1,25 @@
 import { expect } from "@playwright/test";
 
-import { MembershipRole } from "@calcom/prisma/enums";
-
 import { test } from "./lib/fixtures";
 
 test.afterEach(({ users }) => users.deleteAll());
 
 test.describe("Booking Filters", () => {
-  test("Member role should not see the member filter", async ({ page, users }) => {
-    const proUser = await users.create(
-      {
-        username: "pro",
-        password: "pro",
-        name: "pro-user",
-      },
-      {
-        hasTeam: true,
-        teamRole: MembershipRole.ADMIN,
-      }
-    );
+  test("Member role should not see the member filter", async ({ page, users, prisma }) => {
+    const teamMateName = "team mate 1";
+    const owner = await users.create(undefined, {
+      hasTeam: true,
+      isOrg: true,
+      teammates: [{ name: teamMateName }],
+    });
 
-    const teamId = (await proUser.getFirstTeamMembership()).teamId;
+    const allUsers = await users.get();
+    const memberUser = allUsers.find((user) => user.name === teamMateName);
 
-    const memberUser = await users.create(
-      {
-        username: "member",
-        password: "member",
-        name: "member-user",
-      },
-      {
-        hasTeam: true,
-        teamRole: MembershipRole.MEMBER,
-        teammates: [{ name: "pro-user", email: proUser.email, role: MembershipRole.ADMIN }],
-      }
-    );
+    // eslint-disable-next-line playwright/no-conditional-in-test
+    if (!memberUser) {
+      throw new Error("user should exist");
+    }
 
     await memberUser.apiLogin();
     const bookingsGetResponse = page.waitForResponse((response) =>
