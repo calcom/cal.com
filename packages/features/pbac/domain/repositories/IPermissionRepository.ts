@@ -37,6 +37,11 @@ export interface IPermissionRepository {
     customRoleId: string | null;
   } | null>;
 
+  getTeamById(teamId: number): Promise<{
+    id: number;
+    parentId: number | null;
+  } | null>;
+
   checkRolePermission(roleId: string, permission: PermissionString): Promise<boolean>;
   checkRolePermissions(roleId: string, permissions: PermissionString[]): Promise<boolean>;
 
