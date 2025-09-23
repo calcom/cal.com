@@ -92,6 +92,8 @@ type Input = Pick<
   | "calVideoSettings"
   | "hidden"
   | "bookingRequiresAuthentication"
+  | "createdAt"
+  | "updatedAt"
 >;
 
 @Injectable()
