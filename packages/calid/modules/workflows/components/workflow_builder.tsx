@@ -1545,9 +1545,9 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
                                             variables={DYNAMIC_TEXT_VARIABLES}
                                             addVariableButtonTop={isSMSAction(step.action)}
                                             height="200px"
-                                            updateTemplate={!!stepTemplateUpdate}
-                                            firstRender={firstRender}
-                                            setFirstRender={setFirstRender}
+                                            // updateTemplate={!!stepTemplateUpdate}
+                                            // firstRender={firstRender}
+                                            // setFirstRender={setFirstRender}
                                             editable={
                                               !readOnly &&
                                               !isWhatsappAction(step.action) &&
