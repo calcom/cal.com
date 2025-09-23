@@ -283,8 +283,14 @@
     "NEXT_PUBLIC_X_CAL_ID",
     "X_CAL_SECRET_KEY",
     "NEXT_PUBLIC_CALCOM_API_URL"
+    "_CAL_INTERNAL_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS"
   ],
   "tasks": {
+    "@calcom/web#copy-app-store-static": {
+      "inputs": ["../../packages/app-store/**/static/**/*"],
+      "outputLogs": "new-only",
+      "outputs": ["public/app-store/**"]
+    },
     "@calcom/prisma#build": {
       "cache": false,
       "dependsOn": ["post-install"]
