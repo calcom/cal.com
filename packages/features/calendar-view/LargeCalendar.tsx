@@ -53,15 +53,15 @@ export const LargeCalendar = ({
   useEffect(() => {}, [displayOverlay]);
 
   const overlayEventsForDate = useMemo(() => {
-    return upcomingBookings?.map((event, idx) => {
+    return upcomingBookings?.map((booking, idx) => {
       return {
         id: idx,
-        title: event.title ?? `Busy`,
-        start: new Date(event.start),
-        end: new Date(event.end),
+        title: booking.title ?? `Busy`,
+        start: new Date(booking.start),
+        end: new Date(booking.end),
         options: {
           borderColor: "black",
-          status: event.status.toUpperCase() as BookingStatus,
+          status: booking.status.toUpperCase() as BookingStatus,
           "data-test-id": "troubleshooter-busy-event",
           className: "border-[1.5px]",
         },
