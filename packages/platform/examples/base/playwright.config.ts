@@ -45,7 +45,7 @@ export default defineConfig({
   ],
   webServer: {
     command: process.env.CI
-      ? `yarn workspace @calcom/atoms dev-on && yarn workspace @calcom/atoms build && rm -f prisma/dev.db && yarn prisma db push && NEXT_PUBLIC_IS_E2E=1 NODE_ENV=test NEXT_PUBLIC_X_CAL_ID="${process.env.ATOMS_E2E_OAUTH_CLIENT_ID}" X_CAL_SECRET_KEY="${process.env.ATOMS_E2E_OAUTH_CLIENT_SECRET}" NEXT_PUBLIC_CALCOM_API_URL="${process.env.ATOMS_E2E_API_URL}" VITE_BOOKER_EMBED_OAUTH_CLIENT_ID="${process.env.ATOMS_E2E_OAUTH_CLIENT_ID_BOOKER_EMBED}" VITE_BOOKER_EMBED_API_URL="${process.env.ATOMS_E2E_API_URL}" ORGANIZATION_ID=${process.env.ATOMS_E2E_ORG_ID} yarn dev:e2e`
+      ? `yarn workspace @calcom/atoms dev-on && yarn workspace @calcom/atoms build && rm -f prisma/test.db && yarn db:generate:test && yarn db:reset:test && NEXT_PUBLIC_IS_E2E=1 NODE_ENV=test NEXT_PUBLIC_X_CAL_ID="${process.env.ATOMS_E2E_OAUTH_CLIENT_ID}" X_CAL_SECRET_KEY="${process.env.ATOMS_E2E_OAUTH_CLIENT_SECRET}" NEXT_PUBLIC_CALCOM_API_URL="${process.env.ATOMS_E2E_API_URL}" VITE_BOOKER_EMBED_OAUTH_CLIENT_ID="${process.env.ATOMS_E2E_OAUTH_CLIENT_ID_BOOKER_EMBED}" VITE_BOOKER_EMBED_API_URL="${process.env.ATOMS_E2E_API_URL}" ORGANIZATION_ID=${process.env.ATOMS_E2E_ORG_ID} yarn dev:e2e`
       : `yarn db:generate:test && yarn db:reset:test && yarn dev:e2e`,
     url: "http://localhost:4322",
     timeout: 600_000,

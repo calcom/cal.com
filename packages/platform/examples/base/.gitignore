@@ -37,6 +37,7 @@ yarn-error.log*
 next-env.d.ts
 .yarn
 dev.db
+test.db
 
 # playwright
 test-results
