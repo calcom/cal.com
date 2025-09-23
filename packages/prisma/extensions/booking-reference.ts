@@ -1,34 +1,57 @@
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 
 export function bookingReferenceExtension() {
   return Prisma.defineExtension({
-    name: "softDelete",
+    name: "bookingReferenceSoftDelete",
     query: {
       bookingReference: {
         async delete({ args, query }) {
-          return query({ ...args, action: "update", data: { deleted: true } });
+          const updateArgs: Prisma.BookingReferenceUpdateArgs = {
+            where: args.where,
+            data: { deleted: true },
+          };
+          return query(updateArgs);
         },
-
         async deleteMany({ args, query }) {
-          return query({
-            ...args,
-            action: "updateMany",
-            data: { ...(args.data || {}), deleted: true },
-          });
+          const updateArgs: Prisma.BookingReferenceUpdateManyArgs = {
+            where: args.where,
+            data: { deleted: true },
+          };
+          return query(updateArgs);
         },
-
         async findUnique({ args, query }) {
-          args.where = { ...(args.where || {}), deleted: null };
+          if (args.where) {
+            args.where = {
+              ...args.where,
+              deleted: null,
+            };
+          }
           return query(args);
         },
-
-        async findFirst({ args, query }) {
-          args.where = { ...(args.where || {}), deleted: null };
-          return query(args);
-        },
-
         async findMany({ args, query }) {
-          args.where = { ...(args.where || {}), deleted: null };
+          if (args.where) {
+            if (args.where.deleted === undefined) {
+              args.where = {
+                ...args.where,
+                deleted: null,
+              };
+            }
+          } else {
+            args.where = { deleted: null };
+          }
+          return query(args);
+        },
+        async findFirst({ args, query }) {
+          if (args.where) {
+            if (args.where.deleted === undefined) {
+              args.where = {
+                ...args.where,
+                deleted: null,
+              };
+            }
+          } else {
+            args.where = { deleted: null };
+          }
           return query(args);
         },
       },
