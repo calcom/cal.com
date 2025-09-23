@@ -1,7 +1,10 @@
 "use client";
 
-import { EmptyScreen } from "@calid/features/ui/components/empty-screen";
+import { Avatar } from "@calid/features/ui/components/avatar";
+import { BlankCard } from "@calid/features/ui/components/card";
 import { Icon } from "@calid/features/ui/components/icon";
+import { Button } from "@calid/features/ui/components/button";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { keepPreviousData } from "@tanstack/react-query";
 import {
   createColumnHelper,
@@ -30,9 +33,7 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Avatar } from "@calcom/ui/components/avatar";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
-import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
@@ -68,13 +69,7 @@ export default function OutOfOfficeEntriesList() {
     <SettingsHeader
       title={t("out_of_office")}
       description={t("out_of_office_description")}
-      borderInShellHeader={false}
-      // CTA={
-      //   <div className="flex gap-2">
-      //     <OutOfOfficeToggleGroup />
-      //   </div>
-      // }
-    >
+      borderInShellHeader={false}>
       <DataTableProvider useSegments={useSegments}>
         <OutOfOfficeEntriesListContent />
       </DataTableProvider>
@@ -497,12 +492,12 @@ function OutOfOfficeEntriesListContent() {
 
   const deleteOutOfOfficeEntryMutation = trpc.viewer.ooo.outOfOfficeEntryDelete.useMutation({
     onSuccess: () => {
-      showToast(t("success_deleted_entry_out_of_office"), "success");
+      triggerToast(t("success_deleted_entry_out_of_office"), "success");
       setDeletedEntry((previousValue) => previousValue + 1);
       useFormState;
     },
     onError: () => {
-      showToast(`An error occurred`, "error");
+      triggerToast(`An error occurred`, "error");
     },
   });
 
@@ -535,7 +530,7 @@ function OutOfOfficeEntriesListContent() {
           </>
         }
         EmptyView={
-          <EmptyScreen
+          <BlankCard
             className="mt-6"
             headline={selectedTab === OutOfOfficeTab.TEAM ? t("ooo_team_empty_title") : t("ooo_empty_title")}
             description={
@@ -552,7 +547,7 @@ function OutOfOfficeEntriesListContent() {
               <div className="my-4 h-[102px]">
                 <div className="flex h-full flex-col items-center justify-center p-2 md:mt-0 md:p-0">
                   <div className="relative">
-                    <div className="dark:bg-darkgray-50 text-inverted bg-primary relative z-0 flex h-[70px] w-[70px] items-center justify-center rounded-3xl border-2 border-[#e5e7eb]">
+                    <div className="dark:bg-darkgray-50 text-inverted bg-primary relative z-0 flex h-[70px] w-[70px] items-center justify-center rounded-full border-2 border-[#e5e7eb]">
                       <Icon name="clock" size={28} className="text-black" />
                       <div className="dark:bg-darkgray-50 bg-primary absolute right-4 top-5 h-[12px] w-[12px] rotate-[56deg] text-lg font-bold" />
                       <span className="absolute right-4 top-3 font-sans text-sm font-extrabold text-black">

@@ -14,7 +14,7 @@ import type { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { PaymentApp } from "@calcom/types/PaymentService";
 
-import { checkIfMemberAdminOrOwner } from "../modules/teams/lib/checkIfMemberAdminorOwner";
+import { checkIfMemberAdminOrOwner } from "../modules/teams/lib/checkIfMemberAdminOrOwner";
 
 export type CalIdConnectedApps = Awaited<ReturnType<typeof getCalIdConnectedApps>>;
 
