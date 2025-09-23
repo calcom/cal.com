@@ -673,7 +673,7 @@ const ProfileForm = ({
 
   return (
     <Form form={formMethods} onSubmit={handleFormSubmit}>
-      <div className="border-subtle rounded-md border px-4 pb-10 pt-8 sm:px-6">
+      <div className="border-subtle rounded-md border px-4 py-6 sm:px-6">
         <h2 className="mb-2 text-sm font-medium">{t("profile_picture")}</h2>
         <div className="flex items-center">
           <FormField
@@ -683,7 +683,12 @@ const ProfileForm = ({
               const showRemoveAvatarButton = value !== null;
               return (
                 <>
-                  <Avatar data-testid="profile-upload-avatar" imageSrc={getUserAvatarUrl({ avatarUrl: value })} size="lg" alt={user.name || "Nameless User"} />
+                  <Avatar
+                    data-testid="profile-upload-avatar"
+                    imageSrc={getUserAvatarUrl({ avatarUrl: value })}
+                    size="lg"
+                    alt={user.name || "Nameless User"}
+                  />
                   <div className="ms-4">
                     <div className="flex gap-2">
                       <ImageUploader
