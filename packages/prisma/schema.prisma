@@ -2280,8 +2280,7 @@ model Watchlist {
 }
 
 model BlockedBooking {
-  id          String @id @unique @default(uuid())
-  uid         String @unique @default(uuid())
+  id          String @id @default(uuid())
   email       String
   eventTypeId Int?
 

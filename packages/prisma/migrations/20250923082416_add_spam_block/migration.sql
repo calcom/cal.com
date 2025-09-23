@@ -20,7 +20,6 @@ ADD COLUMN     "organizationId" INTEGER;
 -- CreateTable
 CREATE TABLE "BlockedBooking" (
     "id" TEXT NOT NULL,
-    "uid" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "eventTypeId" INTEGER,
     "organizationId" INTEGER,
@@ -33,9 +32,6 @@ CREATE TABLE "BlockedBooking" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "BlockedBooking_id_key" ON "BlockedBooking"("id");
-
--- CreateIndex
-CREATE UNIQUE INDEX "BlockedBooking_uid_key" ON "BlockedBooking"("uid");
 
 -- CreateIndex
 CREATE INDEX "BlockedBooking_organizationId_createdAt_idx" ON "BlockedBooking"("organizationId", "createdAt");
