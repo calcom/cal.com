@@ -18,7 +18,7 @@ import { trpc } from "@calcom/trpc/react";
 import { revalidateCalIdTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 
 import SkeletonLoader from "../components/SkeletonLoader";
-import { checkIfMemberAdminOrOwner } from "../lib/checkIfMemberAdminorOwner";
+import { checkIfMemberAdminOrOwner } from "../lib/checkIfMemberAdminOrOwner";
 
 const themeFormSchema = z.object({
   theme: z.enum(["light", "dark", "system"]),
