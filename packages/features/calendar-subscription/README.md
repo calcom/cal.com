@@ -20,25 +20,16 @@ By subscribing to calendars via webhooks and implementing intelligent caching, y
 
 ## Environment Variables
 
-No additional environment variables are required for this feature. It uses the existing Cal.com infrastructure including:
-- `DATABASE_URL` - For storing cache data and sync state
-- `CALENDSO_ENCRYPTION_KEY` - For secure credential storage
-- Existing calendar integration credentials (Google, Office365, etc.)
+- **GOOGLE_WEBHOOK_URL**: Optional, only used for local tests. Default points to application url.
+- **GOOGLE_WEBHOOK_TOKEN**: Required, token to validate Google Webhook incoming.
+- **MICROSOFT_WEBHOOK_URL**: Optional, only used for local tests. Default points to application url.
+- **MICROSOFT_WEBHOOK_TOKEN**: Required, token to validate Microsoft Webhook incoming.
 
 ## Feature Flags
 
 This feature is controlled by three feature flags that can be enabled independently:
 
-### 1. calendar-cache-serve
-Controls whether to serve calendar cache data on a team/user basis.
-
-```sql
-INSERT INTO "Feature" ("slug", "enabled", "description", "type", "stale", "lastUsedAt", "createdAt", "updatedAt", "updatedBy") 
-VALUES ('calendar-cache-serve', false, 'Whether to serve calendar cache by default or not on a team/user basis.', 'OPERATIONAL', false, NULL, NOW(), NOW(), NULL) 
-ON CONFLICT (slug) DO NOTHING;
-```
-
-### 2. calendar-subscription-cache  
+### 1. calendar-subscription-cache  
 Enables calendar cache recording and usage through calendars. This flag should be managed individually by teams.
 
 ```sql
@@ -47,7 +38,7 @@ VALUES ('calendar-subscription-cache', false, 'Allow calendar cache to be record
 ON CONFLICT (slug) DO NOTHING;
 ```
 
-### 3. calendar-subscription-sync
+### 2. calendar-subscription-sync
 Enables calendar sync globally for all users regardless of team or organization.
 
 ```sql
@@ -61,11 +52,6 @@ ON CONFLICT (slug) DO NOTHING;
 To enable calendar cache features for specific users, add entries to the `UserFeatures` table:
 
 ```sql
--- Enable calendar-cache-serve for user ID 123
-INSERT INTO "UserFeatures" ("userId", "featureId", "assignedAt", "assignedBy", "updatedAt") 
-VALUES (123, 'calendar-cache-serve', NOW(), 'admin', NOW()) 
-ON CONFLICT ("userId", "featureId") DO NOTHING;
-
 -- Enable calendar-subscription-cache for user ID 123  
 INSERT INTO "UserFeatures" ("userId", "featureId", "assignedAt", "assignedBy", "updatedAt") 
 VALUES (123, 'calendar-subscription-cache', NOW(), 'admin', NOW()) 
@@ -82,11 +68,6 @@ ON CONFLICT ("userId", "featureId") DO NOTHING;
 To enable calendar cache features for specific teams, add entries to the `TeamFeatures` table:
 
 ```sql
--- Enable calendar-cache-serve for team ID 456
-INSERT INTO "TeamFeatures" ("teamId", "featureId", "assignedAt", "assignedBy", "updatedAt") 
-VALUES (456, 'calendar-cache-serve', NOW(), 'admin', NOW()) 
-ON CONFLICT ("teamId", "featureId") DO NOTHING;
-
 -- Enable calendar-subscription-cache for team ID 456
 INSERT INTO "TeamFeatures" ("teamId", "featureId", "assignedAt", "assignedBy", "updatedAt") 
 VALUES (456, 'calendar-subscription-cache', NOW(), 'admin', NOW()) 
@@ -131,6 +112,4 @@ The calendar cache and sync system consists of several key components:
 - **Cache Layer**: Optimized storage for frequently accessed calendar data
 
 For detailed technical implementation, see:
-- [Calendar Cache Documentation](../calendar-cache/CalendarCache.md)
-- Database migrations in `packages/prisma/migrations/`   
-
+- Database migrations in `packages/prisma/migrations/`
