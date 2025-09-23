@@ -387,8 +387,6 @@ export class TeamRepository {
       select: {
         id: true,
         metadata: true,
-        isPlatform: true,
-        platformBilling: true,
         members: {
           where: {
             userId,
