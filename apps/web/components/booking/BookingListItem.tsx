@@ -184,9 +184,10 @@ function BookingListItem(booking: BookingItemProps) {
   const isTabRecurring = booking.listingStatus === "recurring";
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
   const isBookingFromRoutingForm = isBookingReroutable(parsedBooking);
-  const isAttendee = !!booking.seatsReferences.find(
-    (seat) => !!userEmail && seat.attendee?.email === userEmail
-  );
+
+  const userSeat = booking.seatsReferences.find((seat) => !!userEmail && seat.attendee?.email === userEmail);
+
+  const isAttendee = !!userSeat;
 
   const paymentAppData = getPaymentAppData(booking.eventType);
 
@@ -226,10 +227,6 @@ function BookingListItem(booking: BookingItemProps) {
   };
 
   const getSeatReferenceUid = () => {
-    const userSeat = booking.seatsReferences.find(
-      (seat) => !!userEmail && seat.attendee?.email === userEmail
-    );
-
     return userSeat?.referenceUid || booking.seatsReferences[0];
   };
 
