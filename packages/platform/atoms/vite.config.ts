@@ -25,9 +25,6 @@ export default defineConfig(({ mode }) => {
         insertTypesEntry: true,
         beforeWriteFile: (filePath, content) => {
           // Check if the content includes the broken path from kysely
-          if (filePath.includes("useCreateEventType")) {
-            console.log("CONTENT USECRE", content.includes(`kysely/types.ts').$Enums`));
-          }
           if (content.includes(`kysely/types.ts').$Enums`)) {
             // Replace the broken path with the correct import
             return {
