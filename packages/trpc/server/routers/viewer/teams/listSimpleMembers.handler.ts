@@ -2,11 +2,8 @@
  * Simplified version of legacyListMembers.handler.ts that returns basic member info.
  * Used for filtering people on /bookings.
  */
-import { PermissionMapper } from "@calcom/features/pbac/domain/mappers/PermissionMapper";
-import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { PrismaClient } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 type ListSimpleMembersOptions = {
@@ -26,32 +23,7 @@ export const listSimpleMembers = async ({ ctx }: ListSimpleMembersOptions) => {
   }
 
   const permissionCheckService = new PermissionCheckService();
-  const permissionString = PermissionMapper.toPermissionString({
-    resource: Resource.Team,
-    action: CustomAction.ListMembers,
-  });
-
-  let teamsToQuery = await permissionCheckService.getTeamIdsWithPermission(ctx.user.id, permissionString);
-
-  if (teamsToQuery.length === 0) {
-    teamsToQuery = (
-      await prisma.membership.findMany({
-        where: {
-          userId: ctx.user.id,
-          accepted: true,
-          NOT: [
-            {
-              role: MembershipRole.MEMBER,
-              team: {
-                isPrivate: true,
-              },
-            },
-          ],
-        },
-        select: { teamId: true },
-      })
-    ).map((membership) => membership.teamId);
-  }
+  const teamsToQuery = await permissionCheckService.getTeamIdsWithPermission(ctx.user.id, "team.listMembers");
 
   if (!teamsToQuery.length) {
     return [];
