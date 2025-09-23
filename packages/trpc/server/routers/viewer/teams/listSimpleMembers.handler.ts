@@ -26,16 +26,14 @@ export const listSimpleMembers = async ({ ctx }: ListSimpleMembersOptions) => {
   }
 
   const permissionCheckService = new PermissionCheckService();
-  let teamsToQuery: number[] = [];
+  const permissionString = PermissionMapper.toPermissionString({
+    resource: Resource.Team,
+    action: CustomAction.ListMembers,
+  });
 
-  try {
-    const permissionString = PermissionMapper.toPermissionString({
-      resource: Resource.Team,
-      action: CustomAction.ListMembers,
-    });
+  let teamsToQuery = await permissionCheckService.getTeamIdsWithPermission(ctx.user.id, permissionString);
 
-    teamsToQuery = await permissionCheckService.getTeamIdsWithPermission(ctx.user.id, permissionString);
-  } catch (error) {
+  if (teamsToQuery.length === 0) {
     teamsToQuery = (
       await prisma.membership.findMany({
         where: {
