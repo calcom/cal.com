@@ -5,10 +5,9 @@ import React from "react";
 import CacheProvider from "react-inlinesvg/provider";
 
 import { WebPushProvider } from "@calcom/features/notifications/WebPushContext";
+import { trpc } from "@calcom/trpc/react";
 
 import type { AppProps } from "@lib/app-providers";
-
-import { trpc } from "@calcom/trpc/react";
 
 import "../styles/globals.css";
 
