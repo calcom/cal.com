@@ -1,7 +1,0 @@
-{
-  "name": "@calcom/feature-private-link",
-  "private": true,
-  "description": "Cal.com's private link feature",
-  "authors": "Cal.com, Inc.",
-  "version": "1.0.0"
-}
