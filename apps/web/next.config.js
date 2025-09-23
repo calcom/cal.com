@@ -196,6 +196,8 @@ const nextConfig = (phase) => {
       "formidable", // Dependencies of akismet
       "@boxyhq/saml-jackson",
       "jose", // Dependency of @boxyhq/saml-jackson
+      "react-awesome-query-builder", // Fix: Externalize client-side query builder
+      "clone", // Fix: Externalize clone dependency used by react-awesome-query-builder
     ],
     experimental: {
       // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
