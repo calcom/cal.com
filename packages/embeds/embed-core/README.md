@@ -131,3 +131,4 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 
 - app.cal.com
   - Get Embed code for each event-type
+# Trigger workflow with ready-for-e2e label
