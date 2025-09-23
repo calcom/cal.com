@@ -57,7 +57,9 @@ const descriptionByStatus: Record<BookingListingStatus, string> = {
 type BookingsProps = {
   status: (typeof validStatuses)[number];
   userId?: number;
-  canListMembers: boolean;
+  permissions: {
+    canListMembers: boolean;
+  };
 };
 
 function useSystemSegments(userId?: number) {
@@ -112,7 +114,7 @@ type RowData =
       type: "today" | "next";
     };
 
-function BookingsContent({ status, canListMembers }: BookingsProps) {
+function BookingsContent({ status, permissions }: BookingsProps) {
   const { t } = useLocale();
   const user = useMeQuery().data;
   const tableContainerRef = useRef<HTMLDivElement>(null);
@@ -216,7 +218,7 @@ function BookingsContent({ status, canListMembers }: BookingsProps) {
       columnHelper.accessor((row) => row.type === "data" && row.booking.user?.id, {
         id: "userId",
         header: t("member"),
-        enableColumnFilter: canListMembers,
+        enableColumnFilter: permissions.canListMembers,
         enableSorting: false,
         cell: () => null,
         meta: {
@@ -315,7 +317,7 @@ function BookingsContent({ status, canListMembers }: BookingsProps) {
         },
       }),
     ];
-  }, [user, status, t, canListMembers]);
+  }, [user, status, t, permissions.canListMembers]);
 
   const isEmpty = useMemo(() => !query.data?.bookings.length, [query.data]);
 

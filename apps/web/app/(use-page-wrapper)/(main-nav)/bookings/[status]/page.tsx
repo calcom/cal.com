@@ -7,8 +7,6 @@ import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -41,46 +39,16 @@ const Page = async ({ params }: PageProps) => {
     const permissionService = new PermissionCheckService();
     const userId = session.user.id;
 
-    const userMemberships = await prisma.membership.findMany({
-      where: { userId },
-      include: {
-        team: {
-          select: {
-            id: true,
-            parentId: true,
-            isOrganization: true,
-          },
-        },
-      },
-    });
-
-    const orgMemberships = userMemberships.filter((m) => m.team.parentId === null && m.team.isOrganization);
-
-    if (orgMemberships.length > 0) {
-      for (const membership of orgMemberships) {
-        const hasOrgPermission = await permissionService.checkPermission({
-          userId,
-          teamId: membership.teamId,
-          permission: "team.listMembers",
-          fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-        });
-        if (hasOrgPermission) {
-          canListMembers = true;
-          break;
-        }
-      }
-    } else {
-      const teamIdsWithPermission = await permissionService.getTeamIdsWithPermission(
-        userId,
-        "team.listMembers"
-      );
-      canListMembers = teamIdsWithPermission.length > 0;
-    }
+    const teamIdsWithPermission = await permissionService.getTeamIdsWithPermission(
+      userId,
+      "team.listMembers"
+    );
+    canListMembers = teamIdsWithPermission.length > 0;
   }
 
   return (
     <ShellMainAppDir heading={t("bookings")} subtitle={t("bookings_description")}>
-      <BookingsList status={parsed.data.status} userId={session?.user?.id} canListMembers={canListMembers} />
+      <BookingsList status={parsed.data.status} userId={session?.user?.id} permissions={{ canListMembers }} />
     </ShellMainAppDir>
   );
 };
