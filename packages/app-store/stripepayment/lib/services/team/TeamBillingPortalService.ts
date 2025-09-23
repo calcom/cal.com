@@ -1,59 +1,50 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import type { Session } from "next-auth";
+import logger from "@calcom/lib/logger";
+import { MembershipRole } from "@calcom/prisma/enums";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
+import { getSubscriptionFromId } from "../../subscriptions";
+import { BillingPortalService } from "../base/BillingPortalService";
 
-import { BillingPortalServiceFactory } from "../lib/BillingPortalService";
-
-interface AuthenticatedUser {
-  id: number;
-}
-
-interface RequestWithSession extends NextApiRequest {
-  session?: Session | null;
-}
-
-export const validateAuthentication = (req: NextApiRequest): AuthenticatedUser | null => {
-  const userId = (req as RequestWithSession).session?.user?.id;
-  if (!userId) return null;
-  return { id: userId };
-};
-
-export const buildReturnUrl = (returnTo?: string): string => {
-  const defaultUrl = `${WEBAPP_URL}/settings/billing`;
-
-  if (typeof returnTo !== "string") return defaultUrl;
-
-  const safeRedirectUrl = getSafeRedirectUrl(returnTo);
-  return safeRedirectUrl || defaultUrl;
-};
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST" && req.method !== "GET") {
-    return res.status(405).json({ message: "Method not allowed" });
+/**
+ * Billing portal service for regular teams
+ */
+export class TeamBillingPortalService extends BillingPortalService {
+  async checkPermissions(userId: number, teamId: number): Promise<boolean> {
+    return await this.permissionService.checkPermission({
+      userId,
+      teamId,
+      permission: "team.manageBilling",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
   }
 
-  const user = validateAuthentication(req);
-  if (!user) {
-    return res.status(401).json({ message: "Not authenticated" });
-  }
+  async getCustomerId(teamId: number): Promise<string | null> {
+    const log = logger.getSubLogger({ prefix: ["TeamBillingPortalService", "getCustomerId"] });
 
-  const teamId = req.query.teamId ? parseInt(req.query.teamId as string) : null;
-  const returnUrl = buildReturnUrl(req.query.returnTo as string);
+    const team = await this.teamRepository.findById({ id: teamId });
+    if (!team) return null;
 
-  try {
-    if (!teamId) {
-      const userService = BillingPortalServiceFactory.createUserService();
-      return await userService.processBillingPortal(user.id, returnUrl, res);
+    const teamMetadataParsed = teamMetadataSchema.safeParse(team.metadata);
+
+    if (!teamMetadataParsed.success || !teamMetadataParsed.data?.subscriptionId) {
+      return null;
     }
 
-    const billingService = await BillingPortalServiceFactory.createService(teamId);
-    return await billingService.processBillingPortal(user.id, teamId, returnUrl, res);
-  } catch (error) {
-    if (error instanceof Error && error.message === "Team not found") {
-      return res.status(404).json({ message: "Team not found" });
+    try {
+      const subscription = await getSubscriptionFromId(teamMetadataParsed.data.subscriptionId);
+
+      if (!subscription?.customer) {
+        log.warn("Subscription found but no customer ID", {
+          teamId,
+          subscriptionId: teamMetadataParsed.data.subscriptionId,
+        });
+        return null;
+      }
+
+      return subscription.customer as string;
+    } catch (error) {
+      log.error("Failed to retrieve subscription", { teamId, error });
+      return null;
     }
-    throw error;
   }
 }
