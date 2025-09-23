@@ -13,9 +13,10 @@
   },
   "scripts": {
     "lint": "eslint .",
-    "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix"
+    "lint:fix": "eslint ."
   },
   "devDependencies": {
+    "@calcom/eslint-config": "workspace:*",
     "@calcom/types": "*",
     "@types/json-logic-js": "^1.2.1"
   }

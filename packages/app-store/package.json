@@ -10,8 +10,8 @@
   "scripts": {
     "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit",
-    "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
-    "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint .",
     "lint:report": "eslint . --format json --output-file ../../lint-results/app-store.json"
   },
   "dependencies": {
@@ -28,6 +28,7 @@
     "stripe": "^9.16.0"
   },
   "devDependencies": {
+    "@calcom/eslint-config": "*",
     "@calcom/types": "*"
   }
 }

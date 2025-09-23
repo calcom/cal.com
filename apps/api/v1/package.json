@@ -10,7 +10,7 @@
     "build": "next build",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
     "dev": "PORT=3003 next dev",
-    "lint": "eslint . --ignore-path .gitignore",
+    "lint": "eslint .",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
     "start": "PORT=3003 next start",
     "docker-start-api": "PORT=80 next start",
@@ -18,6 +18,7 @@
     "type-check:ci": "tsc-absolute --pretty --noEmit"
   },
   "devDependencies": {
+    "@calcom/eslint-config": "workspace:*",
     "@calcom/tsconfig": "*",
     "@calcom/types": "*",
     "node-mocks-http": "^1.11.0"
