@@ -98,10 +98,13 @@ export class FloatingButton extends HTMLElement {
   constructor() {
     super();
     const dataset = this.dataset as FloatingButtonDataset;
-    const buttonText = dataset["buttonText"];
-    const buttonPosition = dataset["buttonPosition"];
-    const buttonColor = dataset["buttonColor"];
-    const buttonTextColor = dataset["buttonTextColor"];
+    const buttonText = dataset["buttonText"] || "Book a Meeting";
+    const buttonPosition = dataset["buttonPosition"] || "bottom-right";
+    const buttonColor = dataset["buttonColor"] || "rgb(0, 0, 0)";
+    const buttonTextColor = dataset["buttonTextColor"] || "rgb(255, 255, 255)";
+
+    console.log("FloatingButton constructor - dataset:", dataset);
+    console.log("FloatingButton constructor - colors:", { buttonColor, buttonTextColor });
 
     //TODO: Logic is duplicated over HTML generation and attribute change, keep it at one place
     const buttonHtml = `<style>${window.Cal.__css}</style> ${getFloatingButtonHtml({
