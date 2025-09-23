@@ -3,11 +3,13 @@ const getHtml = ({
   buttonClasses,
   buttonColor,
   buttonTextColor,
+  chatboxTitle,
 }: {
   buttonText: string;
   buttonClasses: string[];
   buttonColor: string;
   buttonTextColor: string;
+  chatboxTitle: string;
 }) => {
   // IT IS A REQUIREMENT THAT ALL POSSIBLE CLASSES ARE HERE OTHERWISE TAILWIND WONT GENERATE THE CSS FOR CONDITIONAL CLASSES
   return `<div id="chatbox-container" class="fixed inset-0 md:inset-auto md:bottom-6 md:right-6 z-[999999999999] transform-gpu will-change-transform" style="visibility: hidden; opacity: 0; transform: translateY(8px); transition: all 300ms;">
@@ -15,7 +17,7 @@ const getHtml = ({
 <div class="flex rounded-t-lg items-center justify-between p-4 bg-gray-900 text-white">
 <div class="flex items-center gap-2">
 <div class="w-2 h-2 bg-green-400 rounded-full"></div>
-<span class="font-medium">Book a Meeting</span>
+<span class="font-medium">${chatboxTitle}</span>
 </div>
 <div class="flex items-center gap-1">
 <button id="fullscreen-btn" class="text-white hover:bg-white/20 h-8 w-8 p-0 rounded flex items-center justify-center transition-colors">

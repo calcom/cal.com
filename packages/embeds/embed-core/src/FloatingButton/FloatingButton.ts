@@ -102,9 +102,7 @@ export class FloatingButton extends HTMLElement {
     const buttonPosition = dataset["buttonPosition"] || "bottom-right";
     const buttonColor = dataset["buttonColor"] || "rgb(0, 0, 0)";
     const buttonTextColor = dataset["buttonTextColor"] || "rgb(255, 255, 255)";
-
-    console.log("FloatingButton constructor - dataset:", dataset);
-    console.log("FloatingButton constructor - colors:", { buttonColor, buttonTextColor });
+    const chatboxTitle = dataset["chatboxTitle"] || "Book a Meeting";
 
     //TODO: Logic is duplicated over HTML generation and attribute change, keep it at one place
     const buttonHtml = `<style>${window.Cal.__css}</style> ${getFloatingButtonHtml({
@@ -112,6 +110,7 @@ export class FloatingButton extends HTMLElement {
       buttonClasses: [FloatingButton.updatedClassString(buttonPosition, "")],
       buttonColor: buttonColor,
       buttonTextColor: buttonTextColor,
+      chatboxTitle: chatboxTitle,
     })}`;
 
     this.attachShadow({ mode: "open" });
@@ -124,16 +123,11 @@ export class FloatingButton extends HTMLElement {
   private initializeChatbox() {
     this.assertHasShadowRoot();
 
-    console.log("Initializing chatbox, shadow root:", this.shadowRoot);
-    console.log("Shadow root HTML:", this.shadowRoot.innerHTML);
-
-    const chatboxContainer = this.shadowRoot.querySelector("#chatbox-container") as HTMLElement;
+    const _chatboxContainer = this.shadowRoot.querySelector("#chatbox-container") as HTMLElement;
     const fabButton = this.shadowRoot.querySelector("#fab-button") as HTMLElement;
     const closeBtn = this.shadowRoot.querySelector("#close-btn") as HTMLElement;
     const fullscreenBtn = this.shadowRoot.querySelector("#fullscreen-btn") as HTMLElement;
-    const chatbox = this.shadowRoot.querySelector("#chatbox") as HTMLElement;
-
-    console.log("Found elements:", { chatboxContainer, fabButton, closeBtn, fullscreenBtn, chatbox });
+    const _chatbox = this.shadowRoot.querySelector("#chatbox") as HTMLElement;
 
     let isOpen = false;
     let hasAutoOpened = false;
@@ -162,12 +156,14 @@ export class FloatingButton extends HTMLElement {
       }
     });
 
-    closeBtn?.addEventListener("click", () => {
+    closeBtn?.addEventListener("click", (event) => {
+      event.stopPropagation();
       this.closeChatbox();
       isOpen = false;
     });
 
-    fullscreenBtn?.addEventListener("click", () => {
+    fullscreenBtn?.addEventListener("click", (event) => {
+      event.stopPropagation();
       this.toggleFullscreen();
       isFullscreen = !isFullscreen;
     });
