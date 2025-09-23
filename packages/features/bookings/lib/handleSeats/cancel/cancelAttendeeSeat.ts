@@ -21,7 +21,7 @@ import type { BookingToDelete } from "../../handleCancelBooking";
 
 async function cancelAttendeeSeat(
   data: {
-    seatReferenceUid?: string;
+    seatReferenceUid?: string | string[];
     bookingToDelete: BookingToDelete;
   },
   dataForWebhooks: {
@@ -44,32 +44,47 @@ async function cancelAttendeeSeat(
   if (!input.success) return;
   const { seatReferenceUid } = input.data;
   const bookingToDelete = data.bookingToDelete;
-  if (!bookingToDelete?.attendees.length || bookingToDelete.attendees.length < 2) return;
+
+  const seatsToCancel = Array.from(new Set(seatReferenceUid ? [seatReferenceUid].flat() : []));
+
+  const shouldCancelAllSeats =
+    seatsToCancel.length === 0 || seatsToCancel.length >= bookingToDelete.attendees.length;
+
+  // Return if user is trying to delete all attendees
+  if (shouldCancelAllSeats) {
+    return;
+  }
 
   if (!bookingToDelete.userId) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
 
-  const seatReference = bookingToDelete.seatsReferences.find(
-    (reference) => reference.referenceUid === seatReferenceUid
+  const seatReferences = bookingToDelete.seatsReferences.filter((reference) =>
+    seatsToCancel.includes(reference.referenceUid)
   );
 
-  if (!seatReference) throw new HttpError({ statusCode: 400, message: "User not a part of this booking" });
+  if (seatReferences.length !== seatsToCancel.length) {
+    throw new HttpError({ statusCode: 400, message: "One or more seats are not part of this booking" });
+  }
 
   await Promise.all([
-    prisma.bookingSeat.delete({
+    prisma.bookingSeat.deleteMany({
       where: {
-        referenceUid: seatReferenceUid,
+        referenceUid: { in: seatsToCancel },
       },
     }),
-    prisma.attendee.delete({
+    prisma.attendee.deleteMany({
       where: {
-        id: seatReference.attendeeId,
+        id: {
+          in: seatReferences.map((reference) => reference?.attendeeId),
+        },
       },
     }),
   ]);
 
-  const attendee = bookingToDelete?.attendees.find((attendee) => attendee.id === seatReference.attendeeId);
+  const attendees = bookingToDelete?.attendees.filter((attendee) =>
+    seatReferences.some((reference) => reference?.attendeeId === attendee.id)
+  );
   const bookingToDeleteUser = bookingToDelete.user ?? null;
   const delegationCredentials = bookingToDeleteUser
     ? // We fetch delegation credentials with ServiceAccount key as CalendarService instance created later in the flow needs it
@@ -78,7 +93,7 @@ async function cancelAttendeeSeat(
       })
     : [];
 
-  if (attendee) {
+  if (attendees.length > 0) {
     /* If there are references then we should update them as well */
 
     const integrationsToUpdate = [];
@@ -94,9 +109,12 @@ async function cancelAttendeeSeat(
         });
 
         if (credential) {
+          const remainingAttendees = evt.attendees.filter(
+            (evtAttendee) => !attendees.some((attendee) => attendee.email === evtAttendee.email)
+          );
           const updatedEvt = {
             ...evt,
-            attendees: evt.attendees.filter((evtAttendee) => attendee.email !== evtAttendee.email),
+            attendees: remainingAttendees,
             calendarDescription: getRichDescription(evt),
           };
           if (reference.type.includes("_video")) {
@@ -121,29 +139,30 @@ async function cancelAttendeeSeat(
       // as integrations was already updated
     }
 
-    const tAttendees = await getTranslation(attendee.locale ?? "en", "common");
+    const tAttendees = await getTranslation(attendees[0].locale ?? "en", "common");
 
-    await sendCancelledSeatEmailsAndSMS(
-      evt,
-      {
-        ...attendee,
-        language: { translate: tAttendees, locale: attendee.locale ?? "en" },
-      },
-      eventTypeMetadata
-    );
-  }
-
-  evt.attendees = attendee
-    ? [
+    for (const attendee of attendees) {
+      await sendCancelledSeatEmailsAndSMS(
+        evt,
         {
           ...attendee,
-          language: {
-            translate: await getTranslation(attendee.locale ?? "en", "common"),
-            locale: attendee.locale ?? "en",
-          },
+          language: { translate: tAttendees, locale: attendee.locale ?? "en" },
         },
-      ]
-    : [];
+        eventTypeMetadata,
+        true
+      );
+    }
+
+    evt.attendees = await Promise.all(
+      attendees.map(async (attendee) => ({
+        ...attendee,
+        language: {
+          translate: await getTranslation(attendee.locale ?? "en", "common"),
+          locale: attendee.locale ?? "en",
+        },
+      }))
+    );
+  }
 
   const payload: EventPayloadType = {
     ...evt,

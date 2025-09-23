@@ -106,6 +106,21 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
       },
     })) !== null;
 
+  const teamsWhereUserIsAdminOrOwner = await prisma.membership.findMany({
+    where: {
+      userId: user.id,
+      accepted: true,
+      role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+      team: {
+        isOrganization: false,
+      },
+    },
+    select: {
+      id: true,
+      teamId: true,
+    },
+  });
+
   return {
     id: user.id,
     name: user.name,
@@ -145,5 +160,6 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     isPremium: userMetadataPrased?.isPremium,
     ...(passwordAdded ? { passwordAdded } : {}),
     isTeamAdminOrOwner,
+    teamsWhereUserIsAdminOrOwner,
   };
 };
