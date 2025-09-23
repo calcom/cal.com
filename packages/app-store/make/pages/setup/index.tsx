@@ -35,6 +35,8 @@ export default function MakeSetup({ inviteLink }: InferGetServerSidePropsType<ty
   const makeCredentials: { userCredentialIds: number[] } | undefined = integrations.data?.items.find(
     (item: { type: string }) => item.type === "make_automation"
   );
+
+  console.log("Make creds: ", makeCredentials);
   const [credentialId] = makeCredentials?.userCredentialIds || [false];
   const showContent = integrations.data && integrations.isSuccess && credentialId;
 

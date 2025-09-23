@@ -86,7 +86,8 @@ export const generateMeetingMetadata = async (
   getDescription: (t: TFunction<string, undefined>) => string,
   hideBranding?: boolean,
   origin?: string,
-  pathname?: string
+  pathname?: string,
+  billingAddressRequired?: string
 ) => {
   const metadata = await _generateMetadataWithoutImage(
     getTitle,

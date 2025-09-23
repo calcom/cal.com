@@ -56,6 +56,11 @@ export const paymentDataSelect = {
               theme: true,
             },
           },
+          calIdTeam: {
+            select: {
+              name: true,
+            },
+          },
           team: {
             select: {
               name: true,

@@ -65,6 +65,7 @@ const _getBookingData = async <T extends z.ZodType>({
       bookingFields: eventType.bookingFields,
       responses,
     });
+
   return {
     ...parsedBody,
     name: responses.name,

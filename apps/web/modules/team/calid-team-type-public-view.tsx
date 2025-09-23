@@ -50,6 +50,7 @@ function Type({
           eventData={eventData}
           bookingData={booking}
           isInstantMeeting={isInstantMeeting}
+          billingAddressRequired={eventData.metadata?.billingAddressRequired}
           hideBranding={isBrandingHidden}
           isTeamEvent
           entity={{ ...eventData.entity, eventTypeId: eventData?.eventTypeId }}

@@ -18,7 +18,7 @@ async function getRequestCountryOrigin(
 
     return country;
   } catch {
-    return null;
+    return "IN";
   }
 }
 

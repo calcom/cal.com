@@ -198,7 +198,7 @@ export const useBookings = ({
         router.push("/booking/dry-run-successful");
         return;
       }
-      const { uid, paymentUid } = booking;
+      const { uid, paymentUid, paymentLink } = booking;
       const fullName = getFullName(bookingForm.getValues("responses.name"));
 
       const users = !!event.data?.subsetOfHosts?.length
@@ -252,6 +252,11 @@ export const useBookings = ({
             isRecurring: false,
           })
         );
+      }
+
+      if (paymentLink) {
+        router.push(paymentLink);
+        return;
       }
 
       if (paymentUid) {
