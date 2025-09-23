@@ -227,7 +227,7 @@ function BookingListItem(booking: BookingItemProps) {
   };
 
   const getSeatReferenceUid = () => {
-    return userSeat?.referenceUid || booking.seatsReferences[0];
+    return userSeat?.referenceUid;
   };
 
   const actionContext: BookingActionContext = {
