@@ -1,3 +1,5 @@
+"use client";
+
 import { cn } from "@calid/features/lib/cn";
 import React from "react";
 

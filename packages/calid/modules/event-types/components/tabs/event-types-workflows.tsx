@@ -7,6 +7,7 @@ import { Button } from "@calid/features/ui/components/button";
 import { BlankCard } from "@calid/features/ui/components/card/blank-card";
 import { Icon } from "@calid/features/ui/components/icon";
 import { Switch } from "@calid/features/ui/components/switch/switch";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { Tooltip } from "@calid/features/ui/components/tooltip";
 import type { TFunction } from "i18next";
 import { default as get } from "lodash/get";
@@ -23,7 +24,6 @@ import { HttpError } from "@calcom/lib/http-error";
 import { WorkflowActions, SchedulingType } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
-import { showToast } from "@calcom/ui/components/toast";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 
 // Type definitions for better type safety
@@ -253,7 +253,7 @@ const WorkflowListItem = React.memo(
         revalidateEventTypeEditPage(eventType.id);
         await utils.viewer.workflows.calid_getAllActiveWorkflows.invalidate();
         await utils.viewer.eventTypes.get.invalidate({ id: eventType.id });
-        showToast(
+        triggerToast(
           t("workflow_turned_on_successfully", {
             workflowName: workflow.name,
             offOn,
@@ -264,10 +264,10 @@ const WorkflowListItem = React.memo(
       onError: (err) => {
         if (err instanceof HttpError) {
           const message = `${err.statusCode}: ${err.message}`;
-          showToast(message, "error");
+          triggerToast(message, "error");
         }
         if (err.data?.code === "UNAUTHORIZED") {
-          showToast(
+          triggerToast(
             t("unauthorized_workflow_error_message", {
               errorCode: err.data.code,
             }),
@@ -483,12 +483,12 @@ export const EventWorkflows = ({ eventType, workflows }: EventWorkflowsProps) =>
     onError: (err) => {
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
+        triggerToast(message, "error");
       }
 
       if (err.data?.code === "UNAUTHORIZED") {
         const message = `${err.data.code}: ${t("error_workflow_unauthorized_create")}`;
-        showToast(message, "error");
+        triggerToast(message, "error");
       }
     },
   });
@@ -531,17 +531,14 @@ export const EventWorkflows = ({ eventType, workflows }: EventWorkflowsProps) =>
           <div className="space-y-4">
             {/* Header with stats and quick actions */}
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <span className="text-grey-700 text-sm font-medium">{activeWorkflowsCount} Active</span>
-                <div className="flex items-center space-x-1">
-                  <span>•</span>
-                  <a
-                    href="/workflows"
-                    className="flex items-center space-x-1 text-sm font-medium text-blue-600 hover:text-blue-500">
-                    <span>Create New Workflow</span>
-                    <Icon name="external-link" className="h-3 w-3" />
-                  </a>
-                </div>
+              <span className="text-grey-700 text-sm font-medium">{activeWorkflowsCount} Active</span>
+              <div className="flex items-center space-x-1">
+                <a
+                  href="/workflows"
+                  className="flex items-center space-x-1 text-sm font-medium text-blue-600 hover:text-blue-500">
+                  <span>Create New Workflow</span>
+                  <Icon name="external-link" className="h-3 w-3" />
+                </a>
               </div>
             </div>
 

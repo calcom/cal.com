@@ -542,7 +542,7 @@ export default function BookingListItem(booking: BookingItemProps) {
         </DialogContent>
       </Dialog>
 
-      <div className="bg-default my-1.5 flex w-full flex-col items-start justify-between rounded-lg border  border-dashed shadow-sm hover:shadow-md">
+      <div className="bg-default border-default my-1.5 flex w-full flex-col items-start justify-between rounded-md border shadow-sm hover:shadow-md">
         <div data-testid="booking-item" data-today={String(booking.isToday)} className="group w-full">
           <div className="cursor-pointer">
             <div className="flex flex-col pb-4">

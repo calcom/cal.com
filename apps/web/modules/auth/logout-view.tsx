@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Logo } from "@calid/features/ui/components/logo";
 
 export type PageProps = {
   query: ParsedUrlQuery;
@@ -39,12 +40,10 @@ export function Logout(props: PageProps) {
   };
 
   return (
-    <div className="bg-primary flex min-h-screen items-center justify-center px-4 sm:px-6 lg:px-8">
-      <div className="border-subtle w-full max-w-lg rounded-2xl border p-8 shadow-xl">
-        <div className="mb-8 text-center">
-          <div className="mb-8 flex items-center justify-center space-x-2">
-            <span className="text-2xl font-bold text-gray-900">Cal ID</span>
-          </div>
+    <div className="bg-default flex min-h-screen items-center justify-center px-4 sm:px-6 lg:px-8">
+      <div className="border-default w-full max-w-lg rounded-2xl border p-8 shadow-xl">
+        <div className="mb-8 flex justify-center">
+          <Logo small icon />
         </div>
 
         <div className="text-center">

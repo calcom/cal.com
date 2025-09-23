@@ -1,5 +1,6 @@
 "use client";
 
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -7,7 +8,6 @@ import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
-import { triggerToast } from "@calid/features/ui/components/toast";
 
 const SkeletonLoader = () => {
   return (
@@ -52,7 +52,7 @@ const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"
 
   return (
     <>
-      <div className="border-subtle my-5 rounded-md border p-6">
+      <div className="border-subtle rounded-md border px-4 py-6 sm:px-6">
         <SettingsToggle
           toggleSwitchAtTheEnd={true}
           title={t("user_impersonation_heading")}

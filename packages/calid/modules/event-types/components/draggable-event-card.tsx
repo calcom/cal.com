@@ -147,7 +147,7 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
 
         {/* Card content */}
         <div
-          className="border-subtle bg-default flex-1 cursor-pointer rounded-md border p-4 transition-all hover:shadow-md"
+          className="border-default bg-default flex-1 cursor-pointer rounded-md border p-4 transition-all hover:shadow-md"
           onClick={() => onEventEdit(event.id)}>
           <div className="flex items-start justify-between">
             <div className="flex flex-1 items-start space-x-3">

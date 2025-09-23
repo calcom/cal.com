@@ -4,13 +4,6 @@ import { PHONE_NUMBER_VERIFICATION_ENABLED } from "@calcom/lib/constants";
 
 import { Button } from "@calid/features/ui/components/button";
 import { Input } from "@calid/features/ui/components/input/input";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@calid/features/ui/components/select";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useEffect, useState } from "react";
@@ -27,6 +20,7 @@ import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
+import { Select } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/toast";
 
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
@@ -219,21 +213,18 @@ const UserSettings = (props: IUserSettingsProps) => {
           {t("business_type")}
         </label>
         <Select
-          onValueChange={(value) => {
-            setSelectedBusiness(value);
+          value={
+            designationTypeOptions.find(
+              (option) => option.value === (user?.metadata?.designation || designationTypeOptions[0].value)
+            ) || null
+          }
+          onChange={(option) => {
+            setSelectedBusiness(option?.value || "");
           }}
-          defaultValue={user?.metadata?.designation || designationTypeOptions[0].value}>
-          <SelectTrigger className="mt-2 w-full text-sm capitalize">
-            <SelectValue placeholder={t("business_type")} />
-          </SelectTrigger>
-          <SelectContent className="bg-default max-h-60 overflow-y-auto">
-            {designationTypeOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          options={designationTypeOptions}
+          placeholder={t("business_type")}
+          className="mt-2 w-full text-sm capitalize"
+        />
       </div>
 
       {/* Timezone select field */}
