@@ -1,5 +1,5 @@
-import { execSync } from "child_process";
 import dotenv from "dotenv";
+import fs from "fs";
 import path from "path";
 
 dotenv.config({ path: path.resolve(__dirname, ".env.e2e") });
@@ -101,11 +101,13 @@ async function globalTeardown() {
     } else {
       console.error("Failed to fetch OAuth client:", await getOAuthClientResponse.text());
     }
-    console.log("Cleaning up test database...");
-    execSync("rm -f prisma/test.db", { stdio: "inherit" });
-    console.log("Test database cleaned up successfully");
   } catch (error) {
     console.error("Failed to clean up:", error);
+  } finally {
+    console.log("Cleaning up test database...");
+    const testDbPath = path.resolve(__dirname, "prisma", "test.db");
+    fs.rmSync(testDbPath, { force: true });
+    console.log("Test database cleaned up successfully");
   }
 }
 export default globalTeardown;
