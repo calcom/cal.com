@@ -177,7 +177,6 @@ export class InputBookingsService_2024_08_13 {
       hasHashedBookingLink: false,
       guests,
       verificationCode: inputBooking.emailVerificationCode,
-      platformClientId,
       // note(Lauris): responses with name and email are required by the handleNewBooking
       responses: {
         ...(inputBooking.bookingFieldsResponses || {}),
