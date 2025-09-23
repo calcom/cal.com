@@ -6,6 +6,7 @@ export const withAppDirSsr =
   async (context: GetServerSidePropsContext) => {
     const ssrResponse = await getServerSideProps(context);
 
+    console.log("SSR response: ", ssrResponse)
     if ("redirect" in ssrResponse) {
       redirect(ssrResponse.redirect.destination);
     }

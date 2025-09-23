@@ -10,6 +10,7 @@ import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEv
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { getEventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
 import { shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { EventRepository } from "@calcom/lib/server/repository/event";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
@@ -317,6 +318,21 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     }
   }
 
+  console.log("Event metadata: ", eventData?.metadata);
+  if (eventData?.metadata?.apps?.stripe?.enabled) {
+    const credential = await prisma.credential.findUnique({
+      where: {
+        id: eventData.metadata?.apps?.stripe?.credentialId,
+      },
+    });
+    const isIndianStripeAccount = isPrismaObjOrUndefined(credential?.key)?.default_currency === "inr";
+
+    if (isIndianStripeAccount) {
+      props.eventData.metadata = Object.assign({}, props.eventData?.metadata, {
+        billingAddressRequired: true,
+      });
+    }
+  }
   return {
     props,
   };

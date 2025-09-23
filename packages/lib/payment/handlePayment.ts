@@ -94,7 +94,8 @@ const handlePayment = async ({
       booking.uid,
       bookerPhoneNumber,
       selectedEventType.title,
-      evt.title
+      evt.title,
+      booking.responses
     );
   }
 

@@ -7,6 +7,7 @@ import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { ErrorWithCode } from "@calcom/lib/errors";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -65,9 +66,11 @@ export class PaymentService implements IAbstractPaymentService {
     bookerName: string,
     paymentOption: PaymentOption,
     bookerEmail: string,
+    bookingUid: string,
     bookerPhoneNumber?: string | null,
     eventTitle?: string,
-    bookingTitle?: string
+    bookingTitle?: string,
+    responses?: Prisma.JsonValue
   ) {
     try {
       // Ensure that the payment service can support the passed payment option
@@ -78,17 +81,43 @@ export class PaymentService implements IAbstractPaymentService {
       if (!this.credentials) {
         throw new Error("Stripe credentials not found");
       }
+      const responsesObj =
+        isPrismaObjOrUndefined(responses) &&
+        (responses as {
+          [key: string]: unknown;
+        });
+
+      log.error(
+        "Payment customer",
+        safeStringify({
+          user: this.credentials.stripe_user_id,
+          bookerEmail,
+          bookerPhoneNumber,
+          responsesObj,
+        })
+      );
 
       const customer = await retrieveOrCreateStripeCustomerByEmail(
         this.credentials.stripe_user_id,
         bookerEmail,
-        bookerPhoneNumber
+        bookerPhoneNumber,
+        bookerName ?? bookerEmail,
+        {
+          line1: responsesObj["_line1"],
+          postal_code: responsesObj["postal_code"],
+          city: responsesObj["city"],
+          state: responsesObj["state"],
+          country: responsesObj["country"],
+        }
       );
+
+      log.error("Customer is", safeStringify(customer));
 
       const params: Stripe.PaymentIntentCreateParams = {
         amount: payment.amount,
         currency: payment.currency,
         customer: customer.id,
+        description: bookingTitle,
         automatic_payment_methods: {
           enabled: true,
         },
@@ -104,6 +133,8 @@ export class PaymentService implements IAbstractPaymentService {
           bookingTitle: bookingTitle || "",
         },
       };
+
+      log.error("Payment Intent Params:", safeStringify(params));
 
       const paymentIntent = await this.stripe.paymentIntents.create(params, {
         stripeAccount: this.credentials.stripe_user_id,
@@ -135,6 +166,9 @@ export class PaymentService implements IAbstractPaymentService {
           paymentOption: paymentOption || "ON_BOOKING",
         },
       });
+
+      log.error("Created Payment Data:", safeStringify(paymentData));
+
       if (!paymentData) {
         throw new Error();
       }

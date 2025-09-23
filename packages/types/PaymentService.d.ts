@@ -25,7 +25,8 @@ export interface IAbstractPaymentService {
     bookingUid: string,
     bookerPhoneNumber?: string | null,
     eventTitle?: string,
-    bookingTitle?: string
+    bookingTitle?: string,
+    responses?: Prisma.JsonValue
   ): Promise<Payment>;
   /* This method is to collect card details to charge at a later date ex. no-show fees */
   collectCard(
