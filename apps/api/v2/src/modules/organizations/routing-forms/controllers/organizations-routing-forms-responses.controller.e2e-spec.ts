@@ -137,7 +137,6 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
     nonOrgAdminData.apiKey = `${_nonOrgAdminUserApiKey}`;
 
     // Create an event type for routing form to route to
-    const eventTypeNow = new Date();
     orgAdminData.eventType = await prismaWriteService.prisma.eventType.create({
       data: {
         title: "Test Event Type",
@@ -145,8 +144,6 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
         length: 30,
         userId: orgAdminData.user.id,
         teamId: null,
-        createdAt: eventTypeNow,
-        updatedAt: eventTypeNow,
       },
     });
 
@@ -157,8 +154,6 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
         length: 30,
         userId: nonOrgAdminData.user.id,
         teamId: null,
-        createdAt: eventTypeNow,
-        updatedAt: eventTypeNow,
       },
     });
 
