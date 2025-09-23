@@ -114,15 +114,17 @@ export function PhoneNumberField<T extends Record<string, any>>({
           <PhoneInput value={getValue()} onChange={handlePhoneNumberChange} />
         </div>
 
-        <Button
-          color="secondary"
-          className="-ml-[2px] h-[38px] min-w-fit py-0 sm:block"
-          disabled={!isNumberValid || numberVerified || !isNumberVerificationRequired}
-          loading={isSendingCode}
-          onClick={handleSendCode}
-          style={{ display: isNumberVerificationRequired ? "block" : "none" }}>
-          {t("send_code")}
-        </Button>
+        {isNumberVerificationRequired && (
+          <Button
+            color="secondary"
+            className="-ml-[2px] h-[38px] min-w-fit py-0 sm:block"
+            disabled={!isNumberValid || numberVerified || !isNumberVerificationRequired}
+            loading={isSendingCode}
+            onClick={handleSendCode}
+            style={{ display: isNumberVerificationRequired ? "block" : "none" }}>
+            {t("send_code")}
+          </Button>
+        )}
 
         {allowDelete && isNumberValid && hasExistingNumber && (
           <Button

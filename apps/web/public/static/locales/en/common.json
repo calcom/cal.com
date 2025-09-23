@@ -1431,6 +1431,7 @@
   "remove_app": "Remove App",
   "yes_remove_app": "Yes, remove app",
   "are_you_sure_you_want_to_remove_this_app": "Are you sure you want to remove this app?",
+  "invalid_phone_number": "Phone number is invalid",
   "app_removed_successfully": "App removed successfully",
   "error_removing_app": "Error removing app",
   "web_conference": "Web conference",
