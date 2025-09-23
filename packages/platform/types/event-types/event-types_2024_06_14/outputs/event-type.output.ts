@@ -452,14 +452,6 @@ class BaseEventTypeOutput_2024_06_14 {
       "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type.",
   })
   bookingRequiresAuthentication?: boolean;
-
-  @IsOptional()
-  @DocsProperty({ type: Date, nullable: true })
-  createdAt?: Date | null;
-
-  @IsOptional()
-  @DocsProperty({ type: Date, nullable: true })
-  updatedAt?: Date | null;
 }
 
 export class TeamEventTypeResponseHost extends TeamEventTypeHostInput {
