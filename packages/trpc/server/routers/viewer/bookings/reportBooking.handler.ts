@@ -1,5 +1,5 @@
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
-import { isTeamAdmin, isTeamOwner } from "@calcom/features/ee/teams/lib/queries";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -66,9 +66,9 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
   // Check if user is team admin/owner for the event type's team
   let isTeamAdminOrOwner = false;
   if (booking.eventType?.teamId) {
-    isTeamAdminOrOwner =
-      !!(await isTeamAdmin(user.id, booking.eventType.teamId)) ||
-      (await isTeamOwner(user.id, booking.eventType.teamId));
+    isTeamAdminOrOwner = Boolean(
+      await MembershipRepository.getAdminOrOwnerMembership(user.id, booking.eventType.teamId)
+    );
   }
 
   // Check if user can access this booking through team membership
