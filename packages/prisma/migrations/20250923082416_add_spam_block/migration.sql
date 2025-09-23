@@ -30,9 +30,6 @@ CREATE TABLE "BlockedBookingLog" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "BlockedBookingLog_id_key" ON "BlockedBookingLog"("id");
-
--- CreateIndex
 CREATE INDEX "BlockedBookingLog_organizationId_createdAt_idx" ON "BlockedBookingLog"("organizationId", "createdAt");
 
 -- CreateIndex
