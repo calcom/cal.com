@@ -63,9 +63,14 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
 
   const processedDescription = useMemo(() => {
     const cleaned = stripMarkdown(description);
-    const words = cleaned.split(/\s+/).filter((word) => word.length > 0);
-    if (words.length <= 16) return words.join(" ");
-    return words.slice(0, 16).join(" ") + "...";
+    // Simple approach: if description is longer than what fits, truncate and add ...
+    const maxLength = 120; // List cards can fit a bit more text
+    if (cleaned.length <= maxLength) return cleaned;
+    
+    // Find last complete word within limit and add ...
+    const truncated = cleaned.substring(0, maxLength);
+    const lastSpace = truncated.lastIndexOf(' ');
+    return truncated.substring(0, lastSpace) + "...";
   }, [description]);
 
   return (

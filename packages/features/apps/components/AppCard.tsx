@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
 import { isRedirectApp } from "@calcom/app-store/_utils/redirectApps";
@@ -40,13 +40,51 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   });
 
   const appInstalled = enabledOnTeams && userAdminTeams ? userAdminTeams.length < appAdded : appAdded > 0;
+  
+  const descriptionRef = useRef<HTMLParagraphElement>(null);
+  const [displayDescription, setDisplayDescription] = useState("");
 
+  // Dynamic truncation with bulletproof approach
   const processedDescription = useMemo(() => {
     const cleaned = stripMarkdown(app.description);
-    const words = cleaned.split(/\s+/).filter((word) => word.length > 0);
-    if (words.length <= 16) return words.join(" ");
-    return words.slice(0, 16).join(" ") + "...";
-  }, [app.description]);
+    if (!cleaned) return "";
+
+    // Calculate approximate character limit based on container constraints
+    // 4 lines max * ~25-30 chars per line (accounting for variable app titles)
+    const baseLimit = app.name.length > 15 ? 80 : 100; // Less space if long app name like MS Teams
+    
+    if (cleaned.length <= baseLimit) {
+      return cleaned;
+    }
+    
+    // Truncate at word boundary
+    const truncated = cleaned.substring(0, baseLimit);
+    const lastSpace = truncated.lastIndexOf(' ');
+    return (lastSpace > 0 ? truncated.substring(0, lastSpace) : truncated) + "...";
+  }, [app.description, app.name]);
+
+  // Secondary check: DOM-based overflow detection for fine-tuning
+  useEffect(() => {
+    const element = descriptionRef.current;
+    if (!element) return;
+
+    // Set initial description
+    setDisplayDescription(processedDescription);
+    
+    // Check if it still overflows after render
+    const checkOverflow = () => {
+      if (element.scrollHeight > element.clientHeight) {
+        // If still overflowing, reduce by 20% and try again
+        const reduced = processedDescription.replace("...", "");
+        const newLength = Math.floor(reduced.length * 0.8);
+        const lastSpace = reduced.lastIndexOf(' ', newLength);
+        const finalText = (lastSpace > 0 ? reduced.substring(0, lastSpace) : reduced.substring(0, newLength)) + "...";
+        setDisplayDescription(finalText);
+      }
+    };
+
+    requestAnimationFrame(checkOverflow);
+  }, [processedDescription]);
 
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
@@ -126,13 +164,14 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
             <span className="pl-1 text-subtle">{props.reviews} reviews</span>
           </div> */}
       <p
+        ref={descriptionRef}
         className="text-default mt-2 flex-grow text-sm"
         style={{
           lineHeight: "1.4em",
           maxHeight: "5.6em",
           overflow: "hidden",
         }}>
-        {processedDescription}
+        {displayDescription || processedDescription}
       </p>
 
       <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
