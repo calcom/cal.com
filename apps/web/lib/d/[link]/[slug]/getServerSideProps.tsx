@@ -13,7 +13,7 @@ import {
   shouldHideBrandingForUserEvent,
 } from "@calcom/features/profile/lib/hideBranding";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
+import { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
