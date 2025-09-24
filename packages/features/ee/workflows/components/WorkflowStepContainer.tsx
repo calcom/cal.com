@@ -103,7 +103,7 @@ const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
     [WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW]: "how_long_after_guests_no_show",
   };
   if (!triggerMap[trigger]) return null;
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+   
   return t(triggerMap[trigger]!);
 };
 
@@ -411,10 +411,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [numberVerified, setNumberVerified] = useState(getNumberVerificationStatus());
   const [emailVerified, setEmailVerified] = useState(getEmailVerificationStatus());
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => setNumberVerified(getNumberVerificationStatus()), [verifiedNumbers.length]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => setEmailVerified(getEmailVerificationStatus()), [verifiedEmails.length]);
+  useEffect(() => setNumberVerified(getNumberVerificationStatus()), [getNumberVerificationStatus]);
+  useEffect(() => setEmailVerified(getEmailVerificationStatus()), [getEmailVerificationStatus]);
 
   const addVariableEmailSubject = (variable: string) => {
     if (step) {
@@ -1569,7 +1567,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             agentData={agentData}
             onUpdate={(data) => {
               updateAgentMutation.mutate({
-                //eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                 
                 id: stepAgentId!,
                 teamId: teamId,
                 generalPrompt: data.generalPrompt,
