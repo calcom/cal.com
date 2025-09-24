@@ -1,3 +1,5 @@
+import type { MembershipRole } from "@calcom/prisma/enums";
+
 import type { TeamPermissions } from "../models/Permission";
 import type { PermissionString, Resource, CrudAction, CustomAction } from "../types/permission-registry";
 
@@ -67,5 +69,9 @@ export interface IPermissionRepository {
   /**
    * Gets all team IDs where the user has all of the specified permissions
    */
-  getTeamIdsWithPermissions(userId: number, permissions: PermissionString[]): Promise<number[]>;
+  getTeamIdsWithPermissions(
+    userId: number,
+    permissions: PermissionString[],
+    fallbackRoles?: MembershipRole[]
+  ): Promise<number[]>;
 }

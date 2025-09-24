@@ -1,5 +1,6 @@
 import db from "@calcom/prisma";
 import type { PrismaClient as PrismaClientWithExtensions } from "@calcom/prisma";
+import type { MembershipRole } from "@calcom/prisma/enums";
 
 import { PermissionMapper } from "../../domain/mappers/PermissionMapper";
 import type { TeamPermissions } from "../../domain/models/Permission";
@@ -21,10 +22,19 @@ export class PermissionRepository implements IPermissionRepository {
   async getUserMemberships(userId: number): Promise<TeamPermissions[]> {
     const memberships = await this.client.membership.findMany({
       where: { userId },
-      include: {
+      select: {
+        teamId: true,
         customRole: {
-          include: {
-            permissions: true,
+          select: {
+            id: true,
+            permissions: {
+              select: {
+                id: true,
+                resource: true,
+                action: true,
+                roleId: true,
+              },
+            },
           },
         },
       },
@@ -214,7 +224,11 @@ export class PermissionRepository implements IPermissionRepository {
     return this.getTeamIdsWithPermissions(userId, [permission]);
   }
 
-  async getTeamIdsWithPermissions(userId: number, permissions: PermissionString[]): Promise<number[]> {
+  async getTeamIdsWithPermissions(
+    userId: number,
+    permissions: PermissionString[],
+    fallbackRoles?: MembershipRole[]
+  ): Promise<number[]> {
     // Validate that permissions array is not empty to prevent privilege escalation
     if (permissions.length === 0) {
       return [];
@@ -249,6 +263,26 @@ export class PermissionRepository implements IPermissionRepository {
         ) = ${permissions.length}
     `;
 
-    return teamsWithPermission.map((team) => team.teamId);
+    const pbacTeamIds = teamsWithPermission.map((team) => team.teamId);
+
+    if (fallbackRoles && fallbackRoles.length > 0) {
+      const teamsWithFallbackRoles = await this.client.$queryRaw<{ teamId: number }[]>`
+        SELECT DISTINCT m."teamId"
+        FROM "Membership" m
+        INNER JOIN "Team" t ON m."teamId" = t.id
+        LEFT JOIN "Feature" f ON t.id = f."teamId" AND f."slug" = 'pbac'
+        WHERE m."userId" = ${userId}
+          AND m."accepted" = true
+          AND m."role" = ANY(${fallbackRoles})
+          AND (f.id IS NULL OR f."enabled" = false)
+      `;
+
+      const fallbackTeamIds = teamsWithFallbackRoles.map((team) => team.teamId);
+
+      const allTeamIds = Array.from(new Set([...pbacTeamIds, ...fallbackTeamIds]));
+      return allTeamIds;
+    }
+
+    return pbacTeamIds;
   }
 }
