@@ -175,6 +175,19 @@ export class TeamRepository {
       where: {
         id,
       },
+      select: teamSelect,
+    });
+    if (!team) {
+      return null;
+    }
+    return getParsedTeam(team);
+  }
+
+  async findByIdIncludePlatformBilling({ id }: { id: number }) {
+    const team = await this.prismaClient.team.findUnique({
+      where: {
+        id,
+      },
       select: { ...teamSelect, platformBilling: true },
     });
     if (!team) {
