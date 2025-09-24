@@ -4,6 +4,7 @@ export interface CountryOption {
   label: string;
   value: string;
   dialCode: string;
+  flag?: string;
 }
 
 const generateCountryData = (): Record<string, { name: string; dialCode: string }> => {
@@ -17,7 +18,9 @@ const generateCountryData = (): Record<string, { name: string; dialCode: string 
       const dialCode = getCountryCallingCode(code);
       const name = intl.of(code) || code;
       countryData[code.toLowerCase()] = { name, dialCode };
-    } catch (e) {}
+    } catch (e) {
+      console.error(`Failed to generate country data for ${code}: ${e}`);
+    }
   });
 
   return countryData;

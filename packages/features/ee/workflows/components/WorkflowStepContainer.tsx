@@ -10,6 +10,7 @@ import type { RetellAgentWithDetails } from "@calcom/features/calAIPhone/provide
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import PhoneInput from "@calcom/features/components/phone-input";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
+import { getCountryOptions, getCountryLabel } from "@calcom/lib/countryCodeUtils";
 import { formatPhoneNumber } from "@calcom/lib/formatPhoneNumber";
 import { useHasActiveTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -62,7 +63,6 @@ import {
   isCalAIAction,
 } from "../lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
-import { getCountryOptions, getCountryLabel } from "../lib/countryCodeUtils";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
 import emailRatingTemplate from "../lib/reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
@@ -103,7 +103,7 @@ const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
     [WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW]: "how_long_after_guests_no_show",
   };
   if (!triggerMap[trigger]) return null;
-   
+
   return t(triggerMap[trigger]!);
 };
 
@@ -1567,7 +1567,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             agentData={agentData}
             onUpdate={(data) => {
               updateAgentMutation.mutate({
-                 
                 id: stepAgentId!,
                 teamId: teamId,
                 generalPrompt: data.generalPrompt,
