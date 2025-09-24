@@ -1,4 +1,3 @@
-import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -9,15 +8,15 @@ import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
-interface IRescheduleDialog {
+interface IChargeCardDialog {
   isOpenDialog: boolean;
-  setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
+  setIsOpenDialog: (isOpen: boolean) => void;
   bookingId: number;
   paymentAmount: number;
   paymentCurrency: string;
 }
 
-export const ChargeCardDialog = (props: IRescheduleDialog) => {
+export const ChargeCardDialog = (props: IChargeCardDialog) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const { isOpenDialog, setIsOpenDialog, bookingId } = props;
