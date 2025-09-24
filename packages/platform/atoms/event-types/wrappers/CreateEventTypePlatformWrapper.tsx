@@ -78,7 +78,9 @@ export const CreateEventTypePlatformWrapper = ({
   const { t } = useLocale();
 
   const permissions = {
-    canCreateEventType: team?.role === "ADMIN" || team?.role === "OWNER",
+    canCreateEventType: teamId
+      ? team?.canCreateEventTypes ?? (team?.role === "ADMIN" || team?.role === "OWNER")
+      : true,
   };
 
   return teamId && team ? (

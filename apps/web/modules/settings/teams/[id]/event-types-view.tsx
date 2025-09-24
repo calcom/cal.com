@@ -47,7 +47,7 @@ export const CreateTeamEventType = () => {
   const { form, createMutation, isManagedEventType } = useCreateEventType(onSuccessMutation, onErrorMutation);
 
   const permissions = {
-    canCreateEventType: true,
+    canCreateEventType: team?.canCreateEventTypes ?? true,
   };
 
   const orgBranding = useOrgBranding();
