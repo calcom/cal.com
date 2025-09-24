@@ -942,4 +942,132 @@ describe("Cancel Booking", () => {
 
     expect(result.success).toBe(true);
   });
+
+  test("Should allow host to cancel booking even when cancellation is disabled", async () => {
+    const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
+
+    const booker = getBooker({
+      email: "booker@example.com",
+      name: "Booker",
+    });
+
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      schedules: [TestData.schedules.IstWorkHours],
+      credentials: [getGoogleCalendarCredential()],
+      selectedCalendars: [TestData.selectedCalendars.google],
+    });
+
+    const uidOfBookingToBeCancelled = "host-cancel-disabled-test";
+    const idOfBookingToBeCancelled = 5000;
+    const { dateString: plus1DateString } = getDate({ dateIncrement: 2 });
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 30,
+            length: 30,
+            users: [{ id: 101 }],
+            disableCancelling: true,
+          },
+        ],
+        bookings: [
+          {
+            id: idOfBookingToBeCancelled,
+            uid: uidOfBookingToBeCancelled,
+            eventTypeId: 1,
+            userId: 101,
+            responses: {
+              name: booker.name,
+              email: booker.email,
+            },
+            status: BookingStatus.ACCEPTED,
+            startTime: `${plus1DateString}T04:00:00.000Z`,
+            endTime: `${plus1DateString}T04:30:00.000Z`,
+          },
+        ],
+        users: [organizer],
+      })
+    );
+
+    const result = await handleCancelBooking({
+      bookingData: {
+        id: idOfBookingToBeCancelled,
+        uid: uidOfBookingToBeCancelled,
+        cancelledBy: organizer.email,
+        cancellationReason: "Host cancellation",
+      },
+      userId: organizer.id,
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  test("Should prevent non-host from canceling when cancellation is disabled", async () => {
+    const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
+
+    const booker = getBooker({
+      email: "booker@example.com",
+      name: "Booker",
+    });
+
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      schedules: [TestData.schedules.IstWorkHours],
+      credentials: [getGoogleCalendarCredential()],
+      selectedCalendars: [TestData.selectedCalendars.google],
+    });
+
+    const uidOfBookingToBeCancelled = "non-host-cancel-disabled-test";
+    const idOfBookingToBeCancelled = 5001;
+    const { dateString: plus1DateString } = getDate({ dateIncrement: 2 });
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 30,
+            length: 30,
+            users: [{ id: 101 }],
+            disableCancelling: true,
+          },
+        ],
+        bookings: [
+          {
+            id: idOfBookingToBeCancelled,
+            uid: uidOfBookingToBeCancelled,
+            eventTypeId: 1,
+            userId: 101,
+            responses: {
+              name: booker.name,
+              email: booker.email,
+            },
+            status: BookingStatus.ACCEPTED,
+            startTime: `${plus1DateString}T04:00:00.000Z`,
+            endTime: `${plus1DateString}T04:30:00.000Z`,
+          },
+        ],
+        users: [organizer],
+      })
+    );
+
+    await expect(
+      handleCancelBooking({
+        bookingData: {
+          id: idOfBookingToBeCancelled,
+          uid: uidOfBookingToBeCancelled,
+          cancelledBy: booker.email,
+          cancellationReason: "Attendee cancellation",
+        },
+        userId: 999,
+      })
+    ).rejects.toThrow("This event type does not allow cancellations");
+  });
 });
