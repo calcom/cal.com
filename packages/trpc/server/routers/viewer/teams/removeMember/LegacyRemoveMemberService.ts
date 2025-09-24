@@ -45,7 +45,7 @@ export class LegacyRemoveMemberService extends BaseRemoveMemberService {
     });
 
     // Check if user has admin or owner role in all teams
-    const allowedRoles = [MembershipRole.ADMIN, MembershipRole.OWNER];
+    const allowedRoles: MembershipRole[] = [MembershipRole.ADMIN, MembershipRole.OWNER];
     let hasPermission = true;
 
     for (const teamId of teamIds) {
