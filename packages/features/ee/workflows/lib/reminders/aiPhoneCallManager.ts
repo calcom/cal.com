@@ -107,27 +107,17 @@ type ScheduleAIPhoneCallArgs = {
 );
 
 export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
-  if (!args.verifiedAt) {
-    logger.warn(`Workflow step ${args.workflowStepId} not yet verified`);
-    return;
-  }
-
-  if (!args.workflowStepId) {
+  const { workflowStepId, verifiedAt } = args;
+  if (!workflowStepId) {
     logger.warn(`Workflow step ID is required for AI phone call scheduling`);
     return;
   }
 
-  if (args.evt) {
-    await scheduleAIPhoneCallForEvt(args);
-  } else {
-    await scheduleAIPhoneCallForForm(args);
+  if (!verifiedAt) {
+    logger.warn(`Workflow step ${workflowStepId} not yet verified`);
+    return;
   }
-};
 
-const scheduleAIPhoneCallForEvt = async (args: ScheduleAIPhoneCallArgs & { evt: BookingInfo }) => {
-  const { evt, triggerEvent, timeSpan, workflowStepId, userId, teamId, seatReferenceUid } = args;
-
-  // Get the workflow step to check if it has an agent configured
   const workflowStep = await prisma.workflowStep.findUnique({
     where: { id: workflowStepId },
     select: {
@@ -169,6 +159,16 @@ const scheduleAIPhoneCallForEvt = async (args: ScheduleAIPhoneCallArgs & { evt: 
     logger.warn("Cal AI voice agents are disabled - skipping AI phone call scheduling");
     return;
   }
+
+  if (args.evt) {
+    await scheduleAIPhoneCallForEvt(args);
+  } else {
+    await scheduleAIPhoneCallForForm(args);
+  }
+};
+
+const scheduleAIPhoneCallForEvt = async (args: ScheduleAIPhoneCallArgs & { evt: BookingInfo }) => {
+  const { evt, triggerEvent, timeSpan, workflowStepId, userId, teamId, seatReferenceUid } = args;
 
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
@@ -267,7 +267,82 @@ const scheduleAIPhoneCallForForm = async (
     };
   }
 ) => {
-  logger.error("Form triggers are not yet supported for AI phone call sending");
+  // const { evt, triggerEvent, timeSpan, workflowStepId, userId, teamId, seatReferenceUid } = args;
+  // const { startTime, endTime } = evt;
+  // const uid = evt.uid as string;
+  // const currentDate = dayjs();
+  // const timeUnit: timeUnitLowerCase | undefined = timeSpan.timeUnit?.toLocaleLowerCase() as timeUnitLowerCase;
+  // let scheduledDate = null;
+  // // Calculate when the AI phone call should be made
+  // if (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT) {
+  //   scheduledDate = timeSpan.time && timeUnit ? dayjs(startTime).subtract(timeSpan.time, timeUnit) : null;
+  // } else if (triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) {
+  //   scheduledDate = timeSpan.time && timeUnit ? dayjs(endTime).add(timeSpan.time, timeUnit) : null;
+  // }
+  // // For immediate triggers (like NEW_EVENT, EVENT_CANCELLED, etc.), schedule immediately
+  // if (!scheduledDate) {
+  //   scheduledDate = currentDate;
+  // }
+  // // Determine if we should execute immediately or schedule for later
+  // const shouldExecuteImmediately =
+  //   // Immediate triggers (NEW_EVENT, EVENT_CANCELLED, etc.)
+  //   !timeSpan.time ||
+  //   !timeSpan.timeUnit ||
+  //   // Or if the scheduled time has already passed
+  //   (scheduledDate && currentDate.isAfter(scheduledDate));
+  // if (!shouldExecuteImmediately) {
+  //   try {
+  //     const { workflowReminder, attendeePhoneNumber } = await createWorkflowReminderAndExtractPhone({
+  //       evt,
+  //       workflowStepId,
+  //       scheduledDate,
+  //       seatReferenceUid,
+  //     });
+  //     // Schedule the actual AI phone call
+  //     await scheduleAIPhoneCallTask({
+  //       workflowReminderId: workflowReminder.id,
+  //       scheduledDate: scheduledDate.toDate(),
+  //       agentId: workflowStep.agent.id,
+  //       phoneNumber: activePhoneNumbers[0].phoneNumber,
+  //       attendeePhoneNumber,
+  //       bookingUid: uid,
+  //       userId,
+  //       teamId,
+  //       providerAgentId: workflowStep.agent.providerAgentId,
+  //       referenceUid: workflowReminder.uuid || uuidv4(),
+  //     });
+  //     logger.info(`AI phone call scheduled for workflow step ${workflowStepId} at ${scheduledDate}`);
+  //   } catch (error) {
+  //     logger.error(`Error scheduling AI phone call with error ${error}`);
+  //   }
+  // } else {
+  //   // Execute immediately
+  //   try {
+  //     const { workflowReminder, attendeePhoneNumber } = await createWorkflowReminderAndExtractPhone({
+  //       evt,
+  //       workflowStepId,
+  //       scheduledDate: currentDate,
+  //       seatReferenceUid,
+  //     });
+  //     // Schedule the actual AI phone call immediately
+  //     // Should i execute the task immediately or schedule it for later?
+  //     await scheduleAIPhoneCallTask({
+  //       workflowReminderId: workflowReminder.id,
+  //       scheduledDate: currentDate.toDate(),
+  //       agentId: workflowStep.agent.id,
+  //       phoneNumber: activePhoneNumbers[0].phoneNumber,
+  //       attendeePhoneNumber,
+  //       bookingUid: uid,
+  //       userId,
+  //       teamId,
+  //       providerAgentId: workflowStep.agent.providerAgentId,
+  //       referenceUid: workflowReminder.uuid || uuidv4(),
+  //     });
+  //     logger.info(`AI phone call scheduled for immediate execution for workflow step ${workflowStepId}`);
+  //   } catch (error) {
+  //     logger.error(`Error scheduling immediate AI phone call with error ${error}`);
+  //   }
+  // }
 };
 
 interface ScheduleAIPhoneCallTaskArgs {
