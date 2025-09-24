@@ -137,10 +137,4 @@ export class TeamOutputDto {
   @Expose()
   @ApiPropertyOptional({ type: String, default: "Sunday" })
   readonly weekStart?: string = "Sunday";
-
-  @Expose()
-  @IsOptional()
-  @IsBoolean()
-  @ApiPropertyOptional()
-  readonly canCreateEventTypes?: boolean;
 }
