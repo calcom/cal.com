@@ -41,8 +41,7 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
         },
       });
 
-      // Check if user is an admin or owner of the organization
-      const isOrgAdmin = ctx.user.organization.isOrgAdmin;
+      const isOrgAdmin = ctx.user.organization?.isOrgAdmin ?? false;
 
       if (!membership && !isOrgAdmin) {
         return false;
@@ -54,7 +53,7 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
         teamId: teamId,
         resource: isOrg ? Resource.Organization : Resource.Team,
         // Fallback to org admin if user is not a part of the team
-        userRole: membership?.role || MembershipRole.ADMIN,
+        userRole: isOrgAdmin ? MembershipRole.ADMIN : membership?.role ?? MembershipRole.MEMBER,
         actions: [CustomAction.Remove],
         fallbackRoles: {
           [CustomAction.Remove]: {
