@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@calcom/prisma";
 
-import type { CacheConfig } from "../redis/BaseCacheProxy";
+import { CacheService } from "../redis/CacheService";
+import type { CacheConfig } from "../redis/ICacheService";
 import type { IRedisService } from "../redis/IRedisService.d";
 import { FeaturesRepository } from "./features.repository";
 import { FeaturesService } from "./features.service";
@@ -26,7 +27,8 @@ export class FeaturesServiceFactory {
       return featuresService;
     }
 
-    // Return the service wrapped with caching proxy
-    return new FeaturesServiceCachingProxy(featuresService, redisService, config.cache || {});
+    // Create cache service and return the service wrapped with caching proxy
+    const cacheService = new CacheService(redisService, config.cache || {});
+    return new FeaturesServiceCachingProxy(featuresService, cacheService);
   }
 }

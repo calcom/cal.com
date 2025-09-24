@@ -1,10 +1,8 @@
-import { BaseCacheProxy } from "../redis/BaseCacheProxy";
-import type { CacheConfig } from "../redis/BaseCacheProxy";
-import type { IRedisService } from "../redis/IRedisService.d";
+import type { ICacheService } from "../redis/ICacheService";
 import type { AppFlags } from "./config";
 import type { IFeaturesService } from "./features.service.interface";
 
-export class FeaturesServiceCachingProxy extends BaseCacheProxy implements IFeaturesService {
+export class FeaturesServiceCachingProxy implements IFeaturesService {
   private static readonly CACHE_KEYS = {
     GLOBAL_FEATURE: (slug: string) => `feature:global:${slug}`,
     USER_FEATURE: (userId: number, slug: string) => `feature:user:${userId}:${slug}`,
@@ -13,28 +11,35 @@ export class FeaturesServiceCachingProxy extends BaseCacheProxy implements IFeat
 
   constructor(
     private readonly targetService: IFeaturesService,
-    redisService: IRedisService,
-    cacheConfig: CacheConfig = {}
-  ) {
-    super(redisService, cacheConfig);
-  }
+    private readonly cacheService: ICacheService
+  ) {}
 
   async checkIfFeatureIsEnabledGlobally(slug: keyof AppFlags): Promise<boolean> {
-    const cacheKey = this.buildCacheKey(FeaturesServiceCachingProxy.CACHE_KEYS.GLOBAL_FEATURE(slug));
+    const cacheKey = this.cacheService.buildKey(FeaturesServiceCachingProxy.CACHE_KEYS.GLOBAL_FEATURE(slug));
 
-    return this.withCache(cacheKey, () => this.targetService.checkIfFeatureIsEnabledGlobally(slug));
+    return this.cacheService.withCache(cacheKey, () =>
+      this.targetService.checkIfFeatureIsEnabledGlobally(slug)
+    );
   }
 
   async checkIfUserHasFeature(userId: number, slug: string): Promise<boolean> {
-    const cacheKey = this.buildCacheKey(FeaturesServiceCachingProxy.CACHE_KEYS.USER_FEATURE(userId, slug));
+    const cacheKey = this.cacheService.buildKey(
+      FeaturesServiceCachingProxy.CACHE_KEYS.USER_FEATURE(userId, slug)
+    );
 
-    return this.withCache(cacheKey, () => this.targetService.checkIfUserHasFeature(userId, slug));
+    return this.cacheService.withCache(cacheKey, () =>
+      this.targetService.checkIfUserHasFeature(userId, slug)
+    );
   }
 
   async checkIfTeamHasFeature(teamId: number, slug: keyof AppFlags): Promise<boolean> {
-    const cacheKey = this.buildCacheKey(FeaturesServiceCachingProxy.CACHE_KEYS.TEAM_FEATURE(teamId, slug));
+    const cacheKey = this.cacheService.buildKey(
+      FeaturesServiceCachingProxy.CACHE_KEYS.TEAM_FEATURE(teamId, slug)
+    );
 
-    return this.withCache(cacheKey, () => this.targetService.checkIfTeamHasFeature(teamId, slug));
+    return this.cacheService.withCache(cacheKey, () =>
+      this.targetService.checkIfTeamHasFeature(teamId, slug)
+    );
   }
 
   /**
@@ -60,6 +65,6 @@ export class FeaturesServiceCachingProxy extends BaseCacheProxy implements IFeat
         throw new Error(`Unknown invalidation pattern: ${pattern}`);
     }
 
-    await this.invalidateCachePattern(keyPattern);
+    await this.cacheService.invalidatePattern(keyPattern);
   }
 }
