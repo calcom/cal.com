@@ -128,13 +128,9 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
       <p
         className="text-default mt-2 flex-grow text-sm"
         style={{
-          overflow: "hidden",
-          display: "-webkit-box",
-          WebkitBoxOrient: "vertical",
-          WebkitLineClamp: "3",
           lineHeight: "1.4em",
-          maxHeight: "4.2em",
-          textOverflow: "ellipsis",
+          maxHeight: "5.6em",
+          overflow: "hidden",
         }}>
         {processedDescription}
       </p>
