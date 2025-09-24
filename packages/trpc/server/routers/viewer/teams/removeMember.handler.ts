@@ -30,30 +30,30 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
   // Check PBAC permissions for each team
   const hasRemovePermission = await Promise.all(
     teamIds.map(async (teamId) => {
-      // Get user's membership role in this team
-      const membership = await prisma.membership.findFirst({
-        where: {
-          userId: ctx.user.id,
-          teamId: teamId,
-        },
-        select: {
-          role: true,
-        },
-      });
-
       const isOrgAdmin = ctx.user.organization?.isOrgAdmin ?? false;
-
-      if (!membership && !isOrgAdmin) {
+      // if isOrgAdmin, we return early with a role; disabling the db lookup.
+      const membership: { role: MembershipRole } | null = isOrgAdmin
+        ? { role: MembershipRole.ADMIN }
+        : await prisma.membership.findUnique({
+            where: {
+              userId_teamId: {
+                userId: ctx.user.id,
+                teamId: teamId,
+              },
+            },
+            select: {
+              role: true,
+            },
+          });
+      if (!membership?.role) {
         return false;
       }
-
       // Check PBAC permissions for removing team members
       const permissions = await getSpecificPermissions({
         userId: ctx.user.id,
         teamId: teamId,
         resource: isOrg ? Resource.Organization : Resource.Team,
-        // Fallback to org admin if user is not a part of the team
-        userRole: isOrgAdmin ? MembershipRole.ADMIN : membership?.role ?? MembershipRole.MEMBER,
+        userRole: membership.role,
         actions: [CustomAction.Remove],
         fallbackRoles: {
           [CustomAction.Remove]: {
