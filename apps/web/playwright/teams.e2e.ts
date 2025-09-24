@@ -341,7 +341,7 @@ test.describe("Team Slug Validation", () => {
     await owner1.apiLogin();
     await page.goto(`/settings/teams/${team1.id}/profile`);
     await page.locator('input[name="slug"]').fill("calCom");
-    await submitAndWaitForResponse(page, "/api/trpc/teams/update", {
+    await submitAndWaitForResponse(page, "/api/trpc/teams/update?batch=1", {
       action: () => page.locator("[data-testid=update-team-profile]").click(),
     });
   });
@@ -366,7 +366,7 @@ test.describe("Team Slug Validation", () => {
     await page.goto(`/settings/teams/${teams[0].team.id}/profile`);
     if (!teams[1].team.slug) throw new Error("Slug not found for team 2");
     await page.locator('input[name="slug"]').fill(teams[1].team.slug);
-    await submitAndWaitForResponse(page, "/api/trpc/teams/update", {
+    await submitAndWaitForResponse(page, "/api/trpc/teams/update?batch=1", {
       action: () => page.locator("[data-testid=update-team-profile]").click(),
       expectedStatusCode: 409,
     });
@@ -402,7 +402,7 @@ test.describe("Team Slug Validation", () => {
     await teamOwner.apiLogin();
     await page.goto(`/settings/teams/${team.id}/profile`);
     await page.locator('input[name="slug"]').fill("calCom");
-    await submitAndWaitForResponse(page, "/api/trpc/teams/update", {
+    await submitAndWaitForResponse(page, "/api/trpc/teams/update?batch=1", {
       action: () => page.locator("[data-testid=update-team-profile]").click(),
     });
   });
