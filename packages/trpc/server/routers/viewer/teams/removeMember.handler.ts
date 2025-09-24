@@ -44,9 +44,7 @@ export const removeMemberHandler = async ({
       },
       ...(isOrgAdmin
         ? {
-            role: {
-              not: MembershipRole.ADMIN,
-            },
+            role: MembershipRole.OWNER,
           }
         : {}),
     },
