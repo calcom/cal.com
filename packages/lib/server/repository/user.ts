@@ -163,6 +163,38 @@ export class UserRepository {
   }
 
   /**
+   * Finds a verified user by email, checking both primary and secondary emails
+   */
+  async findVerifiedUserByEmail({ email }: { email: string }) {
+    return await this.prismaClient.user.findFirst({
+      where: {
+        OR: [
+          {
+            email,
+            emailVerified: {
+              not: null,
+            },
+          },
+          {
+            secondaryEmails: {
+              some: {
+                email,
+                emailVerified: {
+                  not: null,
+                },
+              },
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        email: true,
+      },
+    });
+  }
+
+  /**
    * It is aware of the fact that a user can be part of multiple organizations.
    */
   async findUsersByUsername({ orgSlug, usernameList }: { orgSlug: string | null; usernameList: string[] }) {

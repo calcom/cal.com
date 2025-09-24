@@ -1,7 +1,11 @@
 // eslint-disable-next-line no-restricted-imports
 import type { BookingHandlerInput } from "@calcom/features/bookings/lib/dto/types";
 
-async function handler(input: BookingHandlerInput) {
+async function handler(
+  input: {
+    bookingData: BookingHandlerInput["bookingData"];
+  } & BookingHandlerInput["bookingMeta"]
+) {
   const { getRegularBookingService } = await import(
     "@calcom/lib/di/bookings/containers/RegularBookingService.container"
   );
