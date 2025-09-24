@@ -1,0 +1,8 @@
+{
+  "extends": "@calcom/tsconfig/base.json",
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "noEmitOnError": false
+  },
+  "exclude": ["node_modules", "dist"]
+}
