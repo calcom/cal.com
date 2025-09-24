@@ -60,13 +60,6 @@ export class OAuthClientRepository {
         id: clientId,
         secret: clientSecret,
       },
-      include: {
-        refreshToken: {
-          where: {
-            secret: refreshToken,
-          },
-        },
-      },
     });
   }
 

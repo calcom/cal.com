@@ -11,6 +11,17 @@ import prisma from "@calcom/prisma";
 import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
 import type { OAuthTokenPayload } from "@calcom/types/oauth";
 
+// Helper function to ensure scope is a space-delimited string per RFC 6749 §5.1
+function normalizeScope(scope: string[] | string | undefined): string {
+  if (Array.isArray(scope)) {
+    return scope.join(" ");
+  }
+  if (typeof scope === "string") {
+    return scope;
+  }
+  return "";
+}
+
 async function handler(req: NextRequest) {
   const { code, client_id, client_secret, grant_type, redirect_uri, refresh_token: inputRefreshToken } = await parseUrlFormData(req);
   
@@ -104,7 +115,7 @@ async function handler(req: NextRequest) {
       refresh_token,
       token_type: "Bearer",
       expires_in: 1800, // 30 minutes in seconds
-      scope: decodedRefreshToken.scope || ""
+      scope: normalizeScope(decodedRefreshToken.scope)
     }, { status: 200, headers: NO_STORE_HEADERS });
   }
 
@@ -179,7 +190,7 @@ async function handler(req: NextRequest) {
     refresh_token,
     token_type: "Bearer",
     expires_in: 1800, // 30 minutes in seconds
-    scope: accessCode.scopes || ""
+    scope: normalizeScope(accessCode.scopes)
   }, { status: 200, headers: NO_STORE_HEADERS });
 }
 
