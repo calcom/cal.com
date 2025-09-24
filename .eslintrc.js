@@ -6,6 +6,8 @@ module.exports = {
     "import/no-cycle": ["warn", { maxDepth: Infinity }],
   },
   overrides: [
+    /* Rules to prevent circular dependencies starts here */
+
     // WARN: features must not be imported by app-store or lib
     {
       files: ["packages/app-store/**/*.{ts,tsx,js,jsx}", "packages/lib/**/*.{ts,tsx,js,jsx}"],
@@ -59,6 +61,7 @@ module.exports = {
         ],
       },
     },
+
     // ERROR: app-store must not import trpc
     {
       files: ["packages/app-store/**/*.{ts,tsx,js,jsx}"],
@@ -105,6 +108,26 @@ module.exports = {
                   "@calcom/features/*",
                 ],
                 message: "Avoid importing @calcom/features from @calcom/prisma.",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    /* Rules to prevent circular dependencies ends here */
+
+    {
+      files: ["**/*.{ts,tsx,js,jsx}"],
+      rules: {
+        "no-restricted-imports": [
+          "error",
+          {
+            paths: [
+              {
+                name: "@calcom/prisma",
+                importNames: ["default"],
+                message:
+                  "Use named import '{ prisma }' instead of default import 'prisma' from @calcom/prisma",
               },
             ],
           },
