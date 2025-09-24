@@ -1,5 +1,3 @@
-import { useFormContext } from "react-hook-form";
-
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getOrganizerInputLocationTypes } from "@calcom/app-store/locations";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
@@ -33,8 +31,6 @@ export const BookingFields = ({
   paymentCurrency?: string;
 }) => {
   const { t, i18n } = useLocale();
-  const { watch, setValue } = useFormContext();
-  const locationResponse = watch("responses.location");
   const currentView = rescheduleUid ? "reschedule" : "";
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
 
@@ -99,10 +95,9 @@ export const BookingFields = ({
         const bookingReadOnly = field.editable === "user-readonly";
 
         let readOnly = bookingReadOnly || rescheduleReadOnly;
-
         let hidden = !!field.hidden;
-        const fieldViews = field.views;
 
+        const fieldViews = field.views;
         if (fieldViews && !fieldViews.find((view) => view.id === currentView)) {
           return null;
         }
@@ -115,16 +110,14 @@ export const BookingFields = ({
           readOnly = false;
         }
 
-        if (field.name === SystemField.Enum.smsReminderNumber) {
+        // 🚨 Skip duplicate/legacy phone fields (we only want attendeePhoneNumber now)
+        if (
+          field.name === SystemField.Enum.smsReminderNumber ||
+          field.name === SystemField.Enum.aiAgentCallPhoneNumber
+        ) {
           // `smsReminderNumber` and location.optionValue when location.value===phone are the same data point. We should solve it in a better way in the Form Builder itself.
           // I think we should have a way to connect 2 fields together and have them share the same value in Form Builder
-          if (locationResponse?.value === "phone") {
-            setValue(`responses.${SystemField.Enum.smsReminderNumber}`, locationResponse?.optionValue);
-            // Just don't render the field now, as the value is already connected to attendee phone location
-            return null;
-          }
-          // `smsReminderNumber` can be edited during reschedule even though it's a system field
-          readOnly = false;
+          return null;
         }
 
         if (field.name === SystemField.Enum.guests) {
