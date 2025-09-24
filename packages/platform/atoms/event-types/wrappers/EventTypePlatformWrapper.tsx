@@ -3,6 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useRef, useState, useEffect, forwardRef, useImperativeHandle, useCallback } from "react";
 
+import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
 import ManagedEventTypeDialog from "@calcom/features/eventtypes/components/dialogs/ManagedEventDialog";
@@ -417,20 +418,22 @@ export const EventTypePlatformWrapper = forwardRef<
   if (!eventTypeQueryData) return null;
 
   return (
-    <EventType
-      {...eventTypeQueryData}
-      id={id}
-      tabs={tabs}
-      onSuccess={onSuccess}
-      onError={onError}
-      onDeleteSuccess={onDeleteSuccess}
-      onDeleteError={onDeleteError}
-      allowDelete={allowDelete}
-      customClassNames={customClassNames}
-      isDryRun={isDryRun}
-      onFormStateChange={onFormStateChange}
-      ref={ref}
-      disableToasts={disableToasts}
-    />
+    <BookerStoreProvider>
+      <EventType
+        {...eventTypeQueryData}
+        id={id}
+        tabs={tabs}
+        onSuccess={onSuccess}
+        onError={onError}
+        onDeleteSuccess={onDeleteSuccess}
+        onDeleteError={onDeleteError}
+        allowDelete={allowDelete}
+        customClassNames={customClassNames}
+        isDryRun={isDryRun}
+        onFormStateChange={onFormStateChange}
+        ref={ref}
+        disableToasts={disableToasts}
+      />
+    </BookerStoreProvider>
   );
 });

@@ -1534,6 +1534,7 @@ export function getOrganizer({
   completedOnboarding,
   username,
   locked,
+  emailVerified,
 }: {
   name: string;
   email: string;
@@ -1551,6 +1552,7 @@ export function getOrganizer({
   completedOnboarding?: boolean;
   username?: string;
   locked?: boolean;
+  emailVerified?: Date | null;
 }) {
   username = username ?? TestData.users.example.username;
   return {
@@ -1572,7 +1574,8 @@ export function getOrganizer({
     smsLockState,
     completedOnboarding,
     locked,
-  };
+    emailVerified,
+    };
 }
 
 export function getScenarioData(
