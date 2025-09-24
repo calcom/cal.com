@@ -133,19 +133,19 @@ if (resource.teamId) {
 
 1. **Add import**:
 
-   ```typescript
+```typescript
    import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-   ```
+```
 
 2. **Replace membership query**:
 
-   ```typescript
+```typescript
    const permissionCheckService = new PermissionCheckService();
    const teamsToQuery = await permissionCheckService.getTeamIdsWithPermission(
      ctx.user.id,
      "team.listMembers"
    );
-   ```
+```
 
 3. **Keep existing privacy checks** - PBAC doesn't replace organization-level privacy logic
 
@@ -153,7 +153,7 @@ if (resource.teamId) {
 
 1. **Move permission check to server** (page/layout component):
 
-   ```typescript
+```typescript
    import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 
    // In your page component
@@ -162,38 +162,36 @@ if (resource.teamId) {
      session.user.id,
      "team.listMembers"
    );
-   ```
 
-const permissions = {
-canListMembers: teamIdsWithPermission.length > 0 // Permission-specific name
-};
-
-````
+   const permissions = {
+     canListMembers: teamIdsWithPermission.length > 0 // Permission-specific name
+   };
+```
 
 2. **Pass permissions as props**:
 
 ```typescript
 <BookingsContent permissions={permissions} />
-````
+```
 
 3. **Update component interface**:
 
-   ```typescript
+```typescript
    interface BookingsProps {
      permissions: {
        canListMembers: boolean;
      };
    }
-   ```
+```
 
 4. **Replace role checks in component**:
 
-   ```typescript
+```typescript
    // Replace: const isTeamAdminOrOwner = user?.isTeamAdminOrOwner ?? false
    // With: const canListMembers = permissions.canListMembers
 
    // Use permission-specific variable names throughout your component
-   ```
+```
 
 ## Examples
 
