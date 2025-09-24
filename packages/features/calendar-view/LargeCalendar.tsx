@@ -30,14 +30,6 @@ export const LargeCalendar = ({
   const displayOverlay =
     getQueryParam("overlayCalendar") === "true" || localStorage?.getItem("overlayCalendarSwitchDefault");
 
-  // maybe only fetch bookings for this particular week
-  // might need to pass in start and end dates
-  const { data: upcomingBookings } = useBookings({
-    take: 50,
-    skip: 0,
-    status: ["upcoming", "past", "recurring"],
-    eventTypeId: event?.data?.id,
-  });
   const eventDuration = selectedEventDuration || event?.data?.length || 30;
 
   const availableSlots = useAvailableTimeSlots({ schedule, eventDuration });
@@ -46,6 +38,15 @@ export const LargeCalendar = ({
   const endDate = dayjs(startDate)
     .add(extraDays - 1, "day")
     .toDate();
+
+  const { data: upcomingBookings } = useBookings({
+    take: 50,
+    skip: 0,
+    status: ["upcoming", "past", "recurring"],
+    eventTypeId: event?.data?.id,
+    afterStart: startDate.toISOString(),
+    beforeEnd: endDate.toISOString(),
+  });
 
   // HACK: force rerender when overlay events change
   // Sine we dont use react router here we need to force rerender (ATOM SUPPORT)
