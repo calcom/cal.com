@@ -369,7 +369,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
     webhooks: <EventWebhooks eventType={eventType as any} />,
     ai: <div />,
     // <EventAITab eventType={eventType} isTeamEvent={!!team} />
-    embed: <EventEmbed calLink={embedLink} />,
+    embed: <EventEmbed eventId={eventType.id} calLink={embedLink} />,
   } as const;
 
   // Route change handling
