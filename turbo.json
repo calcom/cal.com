@@ -1,6 +1,7 @@
 {
   "$schema": "https://turborepo.org/schema.json",
   "globalDependencies": ["yarn.lock"],
+  "ui": "tui",
   "globalEnv": [
     "ALLOWED_HOSTNAMES",
     "ANALYZE",
@@ -449,13 +450,12 @@
       "cache": false
     },
     "lint": {
-      "cache": false
+      "dependsOn": ["^lint"]
     },
     "lint:fix": {
       "cache": false
     },
     "lint:report": {
-      "cache": false,
       "outputs": ["lint-results"]
     },
     "post-install": {
