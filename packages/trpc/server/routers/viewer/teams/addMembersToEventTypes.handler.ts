@@ -1,4 +1,4 @@
-import { isTeamAdmin, isTeamOwner } from "@calcom/features/ee/teams/lib/queries";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
@@ -17,11 +17,16 @@ type AddBulkToEventTypeHandler = {
 export async function addMembersToEventTypesHandler({ ctx, input }: AddBulkToEventTypeHandler) {
   const { eventTypeIds, userIds, teamId } = input;
 
-  const isTeamAdminOrOwner =
-    (await isTeamAdmin(ctx.user.id, teamId)) || (await isTeamOwner(ctx.user.id, teamId));
+  const permissionCheckService = new PermissionCheckService();
+  const hasPermission = await permissionCheckService.checkPermission({
+    userId: ctx.user.id,
+    teamId,
+    permission: "eventType.update",
+    fallbackRoles: ["ADMIN", "OWNER"],
+  });
 
-  // check if user is admin or owner of team
-  if (!isTeamAdminOrOwner) throw new TRPCError({ code: "UNAUTHORIZED" });
+  // check if user has eventType.update permission
+  if (!hasPermission) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   const data: Prisma.HostCreateManyInput[] = eventTypeIds.flatMap((eventId) =>
     userIds.map((userId) => ({
