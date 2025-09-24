@@ -35,6 +35,13 @@ export type FormSubmissionData = {
   };
 };
 
+export type WorkflowContextData =
+  | { evt: BookingInfo; formData?: never }
+  | {
+      evt?: never;
+      formData: FormSubmissionData;
+    };
+
 export type ExtendedCalendarEvent = Omit<CalendarEvent, "bookerUrl"> & {
   metadata?: { videoCallUrl: string | undefined };
   eventType: {
@@ -47,13 +54,7 @@ export type ExtendedCalendarEvent = Omit<CalendarEvent, "bookerUrl"> & {
   bookerUrl: string;
 };
 
-type ProcessWorkflowStepParams = (
-  | { calendarEvent: ExtendedCalendarEvent; formData?: never }
-  | {
-      calendarEvent?: never;
-      formData: FormSubmissionData;
-    }
-) & {
+type ProcessWorkflowStepParams = WorkflowContextData & {
   smsReminderNumber: string | null;
   emailAttendeeSendToOverride?: string;
   hideBranding?: boolean;
@@ -83,12 +84,7 @@ const processWorkflowStep = async (
 
   if (!evt && !formData) return;
 
-  const contextData:
-    | { evt: BookingInfo; formData?: never }
-    | {
-        evt?: never;
-        formData: FormSubmissionData;
-      } = evt ? { evt } : { formData: formData as FormSubmissionData };
+  const contextData: WorkflowContextData = evt ? { evt } : { formData: formData as FormSubmissionData };
 
   if (isSMSOrWhatsappAction(step.action)) {
     await checkSMSRateLimit({
