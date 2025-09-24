@@ -10,7 +10,6 @@ import { z } from "zod";
 
 import { useEventTypeForm } from "@calcom/atoms/event-types/hooks/useEventTypeForm";
 import { useHandleRouteChange } from "@calcom/atoms/event-types/hooks/useHandleRouteChange";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import Shell from "@calcom/features/shell/Shell";
 import { WEBSITE_URL } from "@calcom/lib/constants";
@@ -87,14 +86,9 @@ export const EventTypeWebWrapper = ({
   data: serverFetchedData,
   calIdTeamId,
 }: EventTypeWebWrapperProps) => {
-  const resolvedCalIdTeamId =
-    calIdTeamId || (serverFetchedData as CalIdEventTypeData)?.eventType?.calIdTeamId;
+  const resolvedCalIdTeamId = calIdTeamId || (serverFetchedData as any)?.eventType?.calIdTeamId;
 
-  const {
-    data: eventTypeQueryData,
-    error: eventTypeQueryError,
-    isPending,
-  } = trpc.viewer.eventTypes.calid_get.useQuery(
+  const { data: eventTypeQueryData } = trpc.viewer.eventTypes.calid_get.useQuery(
     { id },
     { enabled: !serverFetchedData && !!resolvedCalIdTeamId }
   );
@@ -282,8 +276,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
   }
 
   // URL and branding
-  const orgBranding = useOrgBranding();
-  const bookerUrl = orgBranding ? orgBranding?.fullDomain : WEBSITE_URL;
+  const bookerUrl = WEBSITE_URL;
 
   const permalink = `${bookerUrl}/${
     effectiveTeam ? `team/${effectiveTeam.slug}` : getEventTypeUsername()
@@ -339,11 +332,11 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
     team: (() => {
       return (
         <EventTeamAssignmentTab
-          orgId={orgBranding?.id ?? null}
+          orgId={null}
           teamMembers={effectiveTeamMembers}
           team={effectiveTeam}
           eventType={eventType}
-          isSegmentApplicable={!!orgBranding?.id}
+          isSegmentApplicable={false}
         />
       );
     })(),

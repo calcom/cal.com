@@ -2,16 +2,12 @@ import { Button } from "@calid/features/ui/components/button";
 import { InputField, TextField } from "@calid/features/ui/components/input/input";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import type { TFunction } from "i18next";
-import { useSession } from "next-auth/react";
 import type { Dispatch, SetStateAction } from "react";
 import { useState, useCallback, useMemo } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
 import type { MultiValue } from "react-select";
 
-import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { LocationCustomClassNames } from "@calcom/features/eventtypes/components/Locations";
 import Locations from "@calcom/features/eventtypes/components/Locations";
 import type {
@@ -201,28 +197,16 @@ const useDurationManagement = (
 
 const TitleDescriptionSection = ({
   customClassNames,
-  isPlatform,
   formMethods,
   eventType,
   t,
-  isManagedEventType,
-  isChildrenManagedEventType,
-  titleLockedProps,
-  descriptionLockedProps,
-  shouldLockIndicator,
   firstRender,
   setFirstRender,
 }: {
   customClassNames?: EventSetupTabCustomClassNames["titleSection"];
-  isPlatform: boolean;
   formMethods: ReturnType<typeof useFormContext<FormValues>>;
   eventType: EventSetupTabProps["eventType"];
   t: TFunction;
-  isManagedEventType: boolean;
-  isChildrenManagedEventType: boolean;
-  titleLockedProps: any;
-  descriptionLockedProps: any;
-  shouldLockIndicator: (field: string) => React.ReactNode;
   firstRender: boolean;
   setFirstRender: Dispatch<SetStateAction<boolean>>;
 }) => (
@@ -233,7 +217,6 @@ const TitleDescriptionSection = ({
       labelClassName={classNames(customClassNames?.titleInput?.label)}
       className={classNames(customClassNames?.titleInput?.input)}
       label={t("title")}
-      {...(isManagedEventType || isChildrenManagedEventType ? titleLockedProps : {})}
       defaultValue={eventType.title}
       data-testid="event-title"
       {...formMethods.register("title")}
@@ -241,10 +224,7 @@ const TitleDescriptionSection = ({
 
     <div>
       <>
-        <Label htmlFor="editor">
-          {t("description")}
-          {(isManagedEventType || isChildrenManagedEventType) && shouldLockIndicator("description")}
-        </Label>
+        <Label htmlFor="editor">{t("description")}</Label>
         <Editor
           getText={() => md.render(formMethods.getValues("description") || "")}
           setText={(value: string) =>
@@ -252,7 +232,6 @@ const TitleDescriptionSection = ({
           }
           excludedToolbarItems={["blockType"]}
           placeholder={t("quick_video_meeting")}
-          editable={!descriptionLockedProps.disabled}
           firstRender={firstRender}
           setFirstRender={setFirstRender}
         />
@@ -269,11 +248,7 @@ const UrlSection = ({
   team,
   hasOrgBranding,
   formMethods,
-  eventType,
-  isManagedEventType,
-  isChildrenManagedEventType,
   t,
-  copiedUrl,
   handleCopyUrl,
   handlePreviewUrl,
 }: {
@@ -281,11 +256,7 @@ const UrlSection = ({
   team: EventSetupTabProps["team"];
   hasOrgBranding: boolean;
   formMethods: ReturnType<typeof useFormContext<FormValues>>;
-  eventType: EventSetupTabProps["eventType"];
-  isManagedEventType: boolean;
-  isChildrenManagedEventType: boolean;
   t: TFunction;
-  copiedUrl: boolean;
   handleCopyUrl: () => void;
   handlePreviewUrl: () => void;
 }) => (
@@ -295,12 +266,7 @@ const UrlSection = ({
       addOnLeading={
         <>
           {urlPrefix}/
-          {!isManagedEventType
-            ? team
-              ? (hasOrgBranding ? "" : "team/") + team.slug
-              : formMethods.getValues("users")[0]?.username
-            : t("username_placeholder")}
-          /
+          {team ? (hasOrgBranding ? "" : "team/") + team.slug : formMethods.getValues("users")[0]?.username}/
         </>
       }
       addOnSuffix={
@@ -325,7 +291,6 @@ const UrlSection = ({
       inputIsFullWidth={true}
       containerClassName="w-full"
       {...formMethods.register("slug", { setValueAs: (v) => slugify(v) })}
-      disabled={isManagedEventType || isChildrenManagedEventType}
     />
   </div>
 );
@@ -340,9 +305,6 @@ const DurationSection = ({
   defaultDuration,
   customClassNames,
   formMethods,
-  eventType,
-  lengthLockedProps,
-  shouldLockIndicator,
   seatsEnabled,
   t,
   handleDurationSelectionChange,
@@ -355,9 +317,6 @@ const DurationSection = ({
   defaultDuration: DurationOption | null;
   customClassNames?: EventSetupTabCustomClassNames["durationSection"];
   formMethods: ReturnType<typeof useFormContext<FormValues>>;
-  eventType: EventSetupTabProps["eventType"];
-  lengthLockedProps: any;
-  shouldLockIndicator: (field: string) => React.ReactNode;
   seatsEnabled: boolean;
   t: TFunction;
   handleDurationSelectionChange: (options: MultiValue<DurationOption>) => void;
@@ -381,7 +340,6 @@ const DurationSection = ({
             defaultValue={selectedMultipleDuration}
             name="metadata.multipleDuration"
             isSearchable={false}
-            isDisabled={lengthLockedProps.disabled}
             className={classNames(
               " text-sm",
               customClassNames?.multipleDuration?.availableDurationsSelect?.select
@@ -400,7 +358,6 @@ const DurationSection = ({
             loadingClassName="w-16"
             className={customClassNames?.multipleDuration?.defaultDurationSelect?.label}>
             {t("default_duration")}
-            {shouldLockIndicator("length")}
           </Skeleton>
           <Select
             value={defaultDuration}
@@ -411,7 +368,6 @@ const DurationSection = ({
               customClassNames?.multipleDuration?.defaultDurationSelect?.select
             )}
             innerClassNames={customClassNames?.multipleDuration?.defaultDurationSelect?.innerClassNames}
-            isDisabled={lengthLockedProps.disabled}
             noOptionsMessage={() => t("default_duration_no_options")}
             options={selectedMultipleDuration}
             onChange={handleDefaultDurationChange}
@@ -427,7 +383,6 @@ const DurationSection = ({
         labelClassName={classNames(customClassNames?.singleDurationInput?.label)}
         className={classNames(customClassNames?.singleDurationInput?.input)}
         data-testid="duration"
-        {...lengthLockedProps}
         label={t("duration")}
         defaultValue={formMethods.getValues("length") ?? 15}
         {...formMethods.register("length", {
@@ -448,21 +403,19 @@ const DurationSection = ({
     )}
 
     {/* Multiple Duration Toggle */}
-    {!lengthLockedProps.disabled && (
-      <div className="[&_label]:my-1 [&_label]:font-normal">
-        <SettingsToggle
-          title={t("allow_booker_to_select_duration")}
-          checked={multipleDuration !== undefined}
-          disabled={seatsEnabled}
-          tooltip={seatsEnabled ? t("seat_options_doesnt_multiple_durations") : undefined}
-          labelClassName={customClassNames?.selectDurationToggle?.label}
-          descriptionClassName={customClassNames?.selectDurationToggle?.description}
-          switchContainerClassName={customClassNames?.selectDurationToggle?.container}
-          childrenClassName={customClassNames?.selectDurationToggle?.children}
-          onCheckedChange={toggleMultipleDuration}
-        />
-      </div>
-    )}
+    <div className="[&_label]:my-1 [&_label]:font-normal">
+      <SettingsToggle
+        title={t("allow_booker_to_select_duration")}
+        checked={multipleDuration !== undefined}
+        disabled={seatsEnabled}
+        tooltip={seatsEnabled ? t("seat_options_doesnt_multiple_durations") : undefined}
+        labelClassName={customClassNames?.selectDurationToggle?.label}
+        descriptionClassName={customClassNames?.selectDurationToggle?.description}
+        switchContainerClassName={customClassNames?.selectDurationToggle?.container}
+        childrenClassName={customClassNames?.selectDurationToggle?.children}
+        onCheckedChange={toggleMultipleDuration}
+      />
+    </div>
   </>
 );
 
@@ -483,12 +436,9 @@ const DurationSection = ({
  */
 export const EventSetup = (props: EventSetupTabProps) => {
   const { t } = useLocale();
-  const isPlatform = useIsPlatform();
   const formMethods = useFormContext<FormValues>();
-  const session = useSession();
-  const orgBranding = useOrgBranding();
 
-  const { eventType, team, customClassNames, onChange } = props;
+  const { eventType, team, customClassNames } = props;
 
   // ============================================================================
   // COMPUTED VALUES
@@ -496,17 +446,11 @@ export const EventSetup = (props: EventSetupTabProps) => {
 
   // URL and branding setup - use props first, fallback to calculated values
   const urlPrefix = useMemo(
-    () =>
-      props.urlPrefix ||
-      (orgBranding
-        ? orgBranding?.fullDomain.replace(/^(https?:|)\/\//, "")
-        : `${WEBSITE_URL?.replace(/^(https?:|)\/\//, "")}`),
-    [props.urlPrefix, orgBranding]
+    () => props.urlPrefix || `${WEBSITE_URL?.replace(/^(https?:|)\/\//, "")}`,
+    [props.urlPrefix]
   );
 
-  const hasOrgBranding = props.hasOrgBranding ?? !!orgBranding;
-  const orgId = props.orgId ?? session.data?.user.org?.id;
-
+  const hasOrgBranding = props.hasOrgBranding ?? false;
   // Interface language options - use props first, fallback to imported localeOptions
   const interfaceLanguageOptions = useMemo(() => {
     const options = (props.localeOptions ?? []) as { label: string; value: string }[];
@@ -526,12 +470,7 @@ export const EventSetup = (props: EventSetupTabProps) => {
   // CUSTOM HOOKS
   // ============================================================================
 
-  const { copiedUrl, handleCopyUrl, handlePreviewUrl } = useUrlManagement(
-    team,
-    formMethods,
-    urlPrefix,
-    slugValue
-  );
+  const { handleCopyUrl, handlePreviewUrl } = useUrlManagement(team, formMethods, urlPrefix, slugValue);
 
   const {
     multipleDuration,
@@ -543,36 +482,14 @@ export const EventSetup = (props: EventSetupTabProps) => {
     toggleMultipleDuration,
   } = useDurationManagement(formMethods, eventType, t);
 
-  // Locked fields management
-  const { isChildrenManagedEventType, isManagedEventType, shouldLockIndicator, shouldLockDisableProps } =
-    useLockedFieldsManager({ eventType, translate: t, formMethods });
-
-  const lengthLockedProps = shouldLockDisableProps("length");
-  const descriptionLockedProps = shouldLockDisableProps("description");
-  const titleLockedProps = shouldLockDisableProps("title");
-
-  const handleFormChange = useCallback(
-    (field: string, value: any) => {
-      formMethods.setValue(field as any, value, { shouldDirty: true });
-      onChange?.();
-    },
-    [formMethods, onChange]
-  );
-
   return (
     <div className={classNames("space-y-6", customClassNames?.wrapper)}>
       {/* Title and Description Section */}
       <TitleDescriptionSection
         customClassNames={customClassNames?.titleSection}
-        isPlatform={isPlatform}
         formMethods={formMethods}
         eventType={eventType}
         t={t}
-        isManagedEventType={isManagedEventType}
-        isChildrenManagedEventType={isChildrenManagedEventType}
-        titleLockedProps={titleLockedProps}
-        descriptionLockedProps={descriptionLockedProps}
-        shouldLockIndicator={shouldLockIndicator}
         firstRender={firstRender}
         setFirstRender={setFirstRender}
       />
@@ -586,7 +503,6 @@ export const EventSetup = (props: EventSetupTabProps) => {
             htmlFor="interfaceLanguage"
             className={customClassNames?.locationSection?.label}>
             {t("interface_language")}
-            {shouldLockIndicator("interfaceLanguage")}
           </Skeleton>
           <Controller
             name="interfaceLanguage"
@@ -597,7 +513,7 @@ export const EventSetup = (props: EventSetupTabProps) => {
                 data-testid="event-interface-language"
                 className="capitalize"
                 options={interfaceLanguageOptions}
-                onChange={(option) => onChange(option?.value)}
+                onChange={(option: { label: string; value: string } | null) => onChange(option?.value || "")}
                 value={interfaceLanguageOptions.find((option) => option.value === value)}
               />
             )}
@@ -611,11 +527,7 @@ export const EventSetup = (props: EventSetupTabProps) => {
         team={team}
         hasOrgBranding={hasOrgBranding}
         formMethods={formMethods}
-        eventType={eventType}
-        isManagedEventType={isManagedEventType}
-        isChildrenManagedEventType={isChildrenManagedEventType}
         t={t}
-        copiedUrl={copiedUrl}
         handleCopyUrl={handleCopyUrl}
         handlePreviewUrl={handlePreviewUrl}
       />
@@ -628,9 +540,6 @@ export const EventSetup = (props: EventSetupTabProps) => {
         defaultDuration={defaultDuration}
         customClassNames={customClassNames?.durationSection}
         formMethods={formMethods}
-        eventType={eventType}
-        lengthLockedProps={lengthLockedProps}
-        shouldLockIndicator={shouldLockIndicator}
         seatsEnabled={seatsEnabled}
         t={t}
         handleDurationSelectionChange={handleDurationSelectionChange}
@@ -646,7 +555,6 @@ export const EventSetup = (props: EventSetupTabProps) => {
           htmlFor="locations"
           className={customClassNames?.locationSection?.label}>
           {t("location")}
-          {shouldLockIndicator("locations")}
         </Skeleton>
         <Controller
           name="locations"
@@ -655,9 +563,6 @@ export const EventSetup = (props: EventSetupTabProps) => {
           render={() => (
             <Locations
               showAppStoreLink={true}
-              isChildrenManagedEventType={isChildrenManagedEventType}
-              isManagedEventType={isManagedEventType}
-              disableLocationProp={shouldLockDisableProps("locations").disabled}
               getValues={formMethods.getValues as unknown as UseFormGetValues<LocationFormValues>}
               setValue={formMethods.setValue as unknown as UseFormSetValue<LocationFormValues>}
               control={formMethods.control as unknown as Control<LocationFormValues>}
