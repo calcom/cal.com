@@ -1,4 +1,5 @@
 import authedProcedure from "../../../procedures/authedProcedure";
+import { ZAllTeamsListMembersInput } from "./allTeamsListMembers.schema";
 import { router } from "../../../trpc";
 import { ZAcceptOrLeaveInputSchema } from "./acceptOrLeave.schema";
 import { ZAddMembersToEventType } from "./addMemberstoEventType.schema";
@@ -94,6 +95,12 @@ export const calIdTeamsRouter = router({
     const { listMembersHandler } = await import("./listMembers.handler");
     return listMembersHandler({ ctx, input });
   }),
+
+  allTeamsListMembers: authedProcedure.input(ZAllTeamsListMembersInput).query(async ({ ctx, input }) => {
+    const { listMembersHandler } = await import("./allTeamsListMembers.handler");
+    return listMembersHandler({ ctx, input });
+  }),
+
 
   // Check if user has pending invitations
   listPendingInvitations: authedProcedure.query(async ({ ctx }) => {

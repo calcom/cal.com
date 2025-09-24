@@ -31,6 +31,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     profile: { name: `${profile.name}`, image: profile.image },
     users: [{ username: `${profile.username}`, name: `${profile.name}` }],
   };
+
   const metadata = await generateMeetingMetadata(
     {
       ...meeting,
