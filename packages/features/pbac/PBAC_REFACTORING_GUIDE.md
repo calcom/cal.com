@@ -95,8 +95,32 @@ const permissions = {
 - Makes code more readable and aligns with the actual permission being checked
 - Easier to understand what specific action is being permitted
 
-### 6. Common Team Permissions
+### 6. Team vs Personal Resources
 
+**Rule**: Use `teamId` to determine if permission checks are needed:
+
+- `teamId` present → Team resource → Check permissions
+- `teamId` null/undefined → Personal resource → Check ownership only
+
+**Example**: `booking.read` permission
+
+- ✅ Has permission: Can read **all team members' bookings**
+- ❌ No permission: Can **still read own bookings**, just not others'
+
+```typescript
+if (resource.teamId) {
+  // Team resource - check permissions
+  const hasPermission = await permissionService.hasPermission(userId, "resource.read", resource.teamId);
+  if (!hasPermission) throw new ForbiddenError();
+} else {
+  // Personal resource - check ownership only
+  if (resource.userId !== currentUserId) throw new ForbiddenError();
+}
+```
+
+### 7. Common Team Permissions
+
+- `"booking.read"` - Read all team members' bookings (not just own)
 - `"team.listMembers"` - List team members
 - `"team.read"` - View team details
 - `"team.update"` - Edit team settings
