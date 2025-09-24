@@ -341,6 +341,7 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
   });
 };
 
+// sends all immediately, no scheduling needed
 const scheduleEmailReminderForForm = async (
   args: scheduleEmailReminderArgs & {
     formData: FormSubmissionData;

@@ -367,12 +367,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     name: "steps",
   });
 
-  const hasEmailToHostAction = steps.some((s) => s.action === WorkflowActions.EMAIL_HOST);
-
-  const filteredTriggerOptions = triggerOptions.filter(
-    (option) => !(isFormTrigger(option.value) && hasEmailToHostAction)
-  );
-
   if (step && !form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
     const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
 
