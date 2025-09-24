@@ -421,7 +421,9 @@ const BookerComponent = ({
                   )}
                 </BookerSection>
               )}
-              <StickyOnDesktop key="meta" className={classNames("relative z-10 flex [grid-area:meta]")}>
+              <StickyOnDesktop
+                key="meta"
+                className={classNames("relative z-10 flex h-full [grid-area:meta]")}>
                 <BookerSection
                   area="meta"
                   className="bg-default max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
