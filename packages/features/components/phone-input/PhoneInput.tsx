@@ -72,13 +72,18 @@ function BasePhoneInput({
   const onlyCountries = allowedCountryCodes?.map((code) => code.toLowerCase());
   const disableCountryCode = preventCountryCodeDeletion && allowedCountryCodes?.length === 1;
 
+  // If country codes are restricted, use the first one as the default
+  const effectiveDefaultCountry = allowedCountryCodes?.length
+    ? allowedCountryCodes[0].toLowerCase()
+    : defaultCountry;
+
   return (
     <PhoneInput
       {...rest}
       value={value ? value.trim().replace(/^\+?/, "+") : undefined}
       enableSearch
       disableSearchIcon
-      country={defaultCountry}
+      country={effectiveDefaultCountry}
       onlyCountries={onlyCountries}
       disableCountryCode={disableCountryCode}
       inputProps={{
@@ -128,11 +133,16 @@ function BasePhoneInputWeb({
   const onlyCountries = allowedCountryCodes?.map((code) => code.toLowerCase());
   const disableCountryCode = preventCountryCodeDeletion && allowedCountryCodes?.length === 1;
 
+  // If country codes are restricted, use the first one as the default
+  const effectiveDefaultCountry = allowedCountryCodes?.length
+    ? allowedCountryCodes[0].toLowerCase()
+    : defaultCountry;
+
   return (
     <PhoneInput
       {...rest}
       value={value ? value.trim().replace(/^\+?/, "+") : undefined}
-      country={value ? undefined : defaultCountry}
+      country={value ? undefined : effectiveDefaultCountry}
       enableSearch
       disableSearchIcon
       onlyCountries={onlyCountries}
