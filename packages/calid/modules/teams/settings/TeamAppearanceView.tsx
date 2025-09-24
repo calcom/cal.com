@@ -18,7 +18,8 @@ import { trpc } from "@calcom/trpc/react";
 import { revalidateCalIdTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 
 import SkeletonLoader from "../components/SkeletonLoader";
-import { checkIfMemberAdminOrOwner } from "../lib/checkIfMemberAdminOrOwner";
+
+import { checkIfMemberAdminorOwner } from "../lib/checkIfMemberAdminorOwner";
 
 const themeFormSchema = z.object({
   theme: z.enum(["light", "dark", "system"]),
@@ -152,7 +153,7 @@ export default function TeamAppearanceView({ teamId }: TeamAppearanceViewProps) 
 
   const brandColor = brandColorsForm.watch("brandColor");
   const darkBrandColor = brandColorsForm.watch("darkBrandColor");
-  const isAdminOrOwner = team && checkIfMemberAdminOrOwner(team.membership.role);
+  const isAdminOrOwner = team && checkIfMemberAdminorOwner(team.membership.role);
 
   return (
     <>

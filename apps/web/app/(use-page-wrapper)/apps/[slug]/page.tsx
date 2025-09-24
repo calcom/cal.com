@@ -41,7 +41,6 @@ async function Page({ params }: _PageProps) {
   if (!p.success) {
     return notFound();
   }
-
   const props = await getStaticProps(p.data.slug);
 
   if (!props) {

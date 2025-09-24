@@ -14,7 +14,7 @@ import type { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { PaymentApp } from "@calcom/types/PaymentService";
 
-import { checkIfMemberAdminOrOwner } from "../modules/teams/lib/checkIfMemberAdminOrOwner";
+import { checkIfMemberAdminorOwner } from "../modules/teams/lib/checkIfMemberAdminorOwner";
 
 export type CalIdConnectedApps = Awaited<ReturnType<typeof getCalIdConnectedApps>>;
 
@@ -145,7 +145,7 @@ export async function getCalIdConnectedApps({
               name: calIdTeam.name,
               logoUrl: calIdTeam.logoUrl,
               credentialId: c.id,
-              isAdmin: checkIfMemberAdminOrOwner(calIdTeam.members[0].role),
+              isAdmin: checkIfMemberAdminorOwner(calIdTeam.members[0].role),
             };
           })
       );

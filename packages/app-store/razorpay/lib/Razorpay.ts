@@ -266,11 +266,14 @@ class RazorpayWrapper {
       throw new Error("Webhook secret is required");
     }
     const payload = {
+      // local env will give 404 for a webhook api registration
       url: `${WEBAPP_URL}/api/integrations/razorpay/webhook`,
+      // url: `https://onehash.serveo.net/api/integrations/razorpay/webhook`,
       alert_email: "engineering@onehash.ai",
       secret: RAZORPAY_WEBHOOK_SECRET,
       events: ["payment_link.paid", "account.app.authorization_revoked"],
     };
+    console.log("Payload for webhook creation: ", payload);
     const response = await this.handleRequest(() =>
       this.axiosInstance.post(`/v2/accounts/${accountId}/webhooks`, payload)
     );

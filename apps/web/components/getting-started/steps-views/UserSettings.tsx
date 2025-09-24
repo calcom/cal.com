@@ -1,4 +1,6 @@
 "use client";
+import { usePhoneNumberField, PhoneNumberField } from "@calid/features/ui/components/input/phone-number-field";
+import { PHONE_NUMBER_VERIFICATION_ENABLED } from "@calcom/lib/constants";
 
 import { Button } from "@calid/features/ui/components/button";
 import { Input } from "@calid/features/ui/components/input/input";
@@ -30,7 +32,7 @@ interface IUserSettingsProps {
 }
 
 const UserSettings = (props: IUserSettingsProps) => {
-  const { nextStep, isPhoneFieldMandatory = false } = props;
+  const { nextStep, isPhoneFieldMandatory } = props;
   const [user] = trpc.viewer.me.get.useSuspenseQuery();
   const { t } = useLocale();
   const { setTimezone: setSelectedTimeZone, timezone: selectedTimeZone } = useTimePreferences();
@@ -129,18 +131,19 @@ const UserSettings = (props: IUserSettingsProps) => {
   const mutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: onSuccess,
   });
-  // const { getValue: getPhoneValue, setValue: setPhoneValue } = usePhoneNumberField(
-  //   { getValues, setValue },
-  //   defaultValues,
-  //   "metadata.phoneNumber"
-  // );
+  const { getValue: getPhoneValue, setValue: setPhoneValue } = usePhoneNumberField(
+    { getValues, setValue },
+    defaultValues,
+    "metadata.phoneNumber"
+  );
+
+  console.log("isPhoneFieldMandatory: ", isPhoneFieldMandatory);
 
   const onSubmit = handleSubmit((data) => {
     if (
       isPhoneFieldMandatory &&
-      data.metadata.phoneNumber
-      //  &&
-      // (PHONE_NUMBER_VERIFICATION_ENABLED ? !numberVerified : false)
+      data.metadata.phoneNumber &&
+      (PHONE_NUMBER_VERIFICATION_ENABLED ? !numberVerified : false)
     ) {
       showToast(t("phone_verification_required"), "error");
       return;
@@ -193,6 +196,18 @@ const UserSettings = (props: IUserSettingsProps) => {
           </p>
         )}
       </div>
+      <PhoneNumberField
+        getValue={getPhoneValue}
+        setValue={setPhoneValue}
+        getValues={getValues}
+        defaultValues={defaultValues}
+        isRequired={isPhoneFieldMandatory}
+        allowDelete={!isPhoneFieldMandatory && defaultValues?.metadata?.phoneNumber !== ""}
+        hasExistingNumber={defaultValues?.metadata?.phoneNumber !== ""}
+        errorMessage={errors.metadata?.phoneNumber?.message}
+        onDeleteNumber={handlePhoneDelete}
+        isNumberVerificationRequired={PHONE_NUMBER_VERIFICATION_ENABLED} // Only require OTP when phone is mandatory
+      />
 
       {/* Designation select field */}
       <div className="w-full">

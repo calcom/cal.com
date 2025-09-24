@@ -89,6 +89,7 @@ const handleRazorpayPaymentRedirect = async (params: PaymentParams): Promise<str
     return "success";
   } catch (e) {
     log.error(`Error handling payment success redirect:${JSON.stringify(e)}`);
+    if (e.statusCode === 200) return "success" ;
     return "error";
   }
 };

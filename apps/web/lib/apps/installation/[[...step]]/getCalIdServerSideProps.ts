@@ -81,9 +81,9 @@ const getEventTypes = async (userId: number, calIdTeamIds?: number[]) => {
     recurringEvent: true,
     requiresConfirmation: true,
     canSendCalVideoTranscriptionEmails: true,
-    team: { select: { slug: true } },
+    calIdTeam: { select: { slug: true } },
     schedulingType: true,
-    teamId: true,
+    calIdTeamId: true,
     users: { select: { username: true } },
     seatsPerTimeSlot: true,
     slug: true,
@@ -95,6 +95,8 @@ const getEventTypes = async (userId: number, calIdTeamIds?: number[]) => {
   } satisfies Prisma.EventTypeSelect;
 
   let eventTypeGroups: TEventTypeGroup[] | null = [];
+
+  console.log("Cal Id Teams: ", calIdTeamIds);
 
   if (calIdTeamIds && calIdTeamIds.length > 0) {
     const calIdTeams = await prisma.calIdTeam.findMany({

@@ -2,7 +2,7 @@ import { Button } from "@calid/features/ui/components/button";
 import { BlankCard } from "@calid/features/ui/components/card";
 import type { TFunction } from "i18next";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { FieldError } from "react-hook-form";
 
 import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
@@ -62,12 +62,14 @@ export const BookEventForm = ({
   shouldRenderCaptcha,
   confirmButtonDisabled,
   classNames,
+  billingAddressRequired = false,
 }: Omit<BookEventFormProps, "event"> & {
   eventQuery: {
     isError: boolean;
     isPending: boolean;
     data?: Pick<BookerEvent, "price" | "currency" | "metadata" | "bookingFields" | "locations"> | null;
   };
+  billingAddressRequired: boolean;
 }) => {
   const eventType = eventQuery.data;
   const setFormValues = useBookerStore((state) => state.setFormValues);
@@ -81,6 +83,47 @@ export const BookEventForm = ({
 
   const [responseVercelIdHeader] = useState<string | null>(null);
   const { t, i18n } = useLocale();
+
+  console.log("Billing address required: ", billingAddressRequired);
+
+  useEffect(() => {
+    if (eventType && billingAddressRequired) {
+      const appended = eventType.bookingFields.some((field) => field.name === "_line1");
+      if (!appended)
+        eventType.bookingFields.push(
+          {
+            name: "_line1",
+            type: "address",
+            defaultLabel: "Address Line 1",
+            required: true,
+          },
+          {
+            name: "city",
+            type: "address",
+            defaultLabel: "City",
+            required: true,
+          },
+          {
+            name: "state",
+            type: "address",
+            defaultLabel: "State",
+            required: true,
+          },
+          {
+            name: "country",
+            type: "address",
+            defaultLabel: "Country",
+            required: true,
+          },
+          {
+            name: "postal_code",
+            type: "address",
+            defaultLabel: "Postal Code",
+            required: true,
+          }
+        );
+    }
+  }, [eventType]);
 
   const isPaidEvent = useMemo(() => {
     if (!eventType?.price) return false;

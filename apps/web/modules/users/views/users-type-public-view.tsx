@@ -54,6 +54,7 @@ function Type({
           /* TODO: Currently unused, evaluate it is needed-
            *       Possible alternative approach is to have onDurationChange.
            */
+          billingAddressRequired={eventData.metadata?.billingAddressRequired}
           duration={getMultipleDurationValue(
             eventData.metadata?.multipleDuration,
             searchParams?.get("duration"),

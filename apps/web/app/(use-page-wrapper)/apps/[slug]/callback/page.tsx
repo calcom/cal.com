@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { handleRazorpayOAuthRedirect } from "@calcom/app-store/razorpay/lib";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -11,7 +12,7 @@ import ErrorPage from "./ErrorPage";
 
 // ✅ zod schema for query params
 const querySchema = z.object({
-  slug: z.string(),
+  slug: z.string().optional(),
 });
 
 type PageProps = {
@@ -19,29 +20,33 @@ type PageProps = {
   searchParams: Record<string, string | string[] | undefined>;
 };
 
-export default async function CallbackPage({ params, searchParams }: PageProps) {
+export default async function Page({ params, searchParams }: PageProps) {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   if (!session?.user?.id) {
     throw new Error("User is not logged in");
   }
 
-  const parsedQuery = querySchema.safeParse(params);
+  const parsedQuery = querySchema.safeParse(await params);
   if (!parsedQuery.success) {
     notFound();
   }
 
   const { slug } = parsedQuery.data;
 
+  console.log("Handling OAuth callback for slug:", parsedQuery);
+
   try {
     switch (slug) {
       case "razorpay":
-        await handleRazorpayOAuthRedirect(searchParams, session.user.id);
-        redirect("/apps/installed/payment");
+        await handleRazorpayOAuthRedirect(await searchParams, session.user.id);
       default:
-        notFound();
+        if (slug !== "razorpay") {
+          notFound();
+        }
     }
   } catch (error) {
     // Render error UI (client component)
     return <ErrorPage error={error instanceof Error ? error.message : "App oauth redirection failed"} />;
   }
+  redirect(`${WEBAPP_URL}/apps/installed/payment`);
 }
