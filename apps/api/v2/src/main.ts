@@ -9,7 +9,6 @@ import {
   PathItemObject,
   PathsObject,
   OperationObject,
-  TagObject,
 } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import "dotenv/config";
 import * as fs from "fs";
@@ -108,7 +107,7 @@ async function generateSwagger(app: NestExpressApplication<Server>) {
   const document = SwaggerModule.createDocument(app, config);
   document.paths = groupAndSortPathsByFirstTag(document.paths);
 
-  const swaggerOutputFile = "./swagger/documentation.json";
+  const swaggerOutputFile = "./src/swagger/documentation.json";
   const docsOutputFile = "../../../docs/api-reference/v2/openapi.json";
   const stringifiedContents = JSON.stringify(document, null, 2);
 

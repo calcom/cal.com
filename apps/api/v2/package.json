@@ -30,7 +30,7 @@
     "test:e2e:watch": "yarn dev:build && jest --runInBand --detectOpenHandles --forceExit --config ./jest-e2e.ts --watch",
     "prisma": "yarn workspace @calcom/prisma prisma",
     "generate-schemas": "yarn prisma generate && yarn prisma format",
-    "copy-swagger-module": "ts-node -r tsconfig-paths/register swagger/copy-swagger-module.ts",
+    "copy-swagger-module": "ts-node -r tsconfig-paths/register src/swagger/copy-swagger-module.ts",
     "prepare": "yarn run snyk-protect",
     "snyk-protect": "snyk-protect"
   },
