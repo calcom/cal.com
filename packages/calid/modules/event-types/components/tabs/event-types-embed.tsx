@@ -8,6 +8,7 @@ import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
 import { useSession } from "next-auth/react";
 import React, { useState, useRef, forwardRef, useEffect, useCallback } from "react";
 
+import { buildCssVarsPerTheme } from "@calcom/features/embed/lib/buildCssVarsPerTheme";
 import {
   DEFAULT_LIGHT_BRAND_COLOR,
   DEFAULT_DARK_BRAND_COLOR,
@@ -76,22 +77,6 @@ const getDimension = (dimension: string) => {
 
 const doWeNeedCalOriginProp = (embedCalOrigin: string) => {
   return IS_SELF_HOSTED || (embedCalOrigin !== WEBAPP_URL && embedCalOrigin !== WEBSITE_URL);
-};
-
-const buildCssVarsPerTheme = ({
-  brandColor,
-  darkBrandColor,
-}: {
-  brandColor: string | null;
-  darkBrandColor: string | null;
-}) => {
-  const lightModeVars = brandColor ? { "--cal-brand-color": brandColor } : {};
-  const darkModeVars = darkBrandColor ? { "--cal-brand-color": darkBrandColor } : {};
-
-  return {
-    ...(Object.keys(lightModeVars).length ? { light: lightModeVars } : {}),
-    ...(Object.keys(darkModeVars).length ? { dark: darkModeVars } : {}),
-  };
 };
 
 // Code generation functions (unchanged)
@@ -575,7 +560,7 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
   const [previewState, setPreviewState] = useState<PreviewState>({
     inline: {
       width: "100%",
-      height: "600px",
+      height: "100%",
       config: {
         layout: "month_view",
       },
@@ -663,131 +648,133 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
               {selectedEmbedType !== "email" && (
                 <>
                   {/* Embed Customization */}
-                  <Collapsible open={isEmbedCustomizationOpen} onOpenChange={setIsEmbedCustomizationOpen}>
-                    <div
-                      className="flex cursor-pointer items-center space-x-2"
-                      onClick={() => setIsEmbedCustomizationOpen(!isEmbedCustomizationOpen)}>
-                      <Icon
-                        name={isEmbedCustomizationOpen ? "chevron-down" : "chevron-right"}
-                        className="h-4 w-4"
-                      />
-                      <Label className="text-sm font-medium">Embed Customization</Label>
-                    </div>
-                    <CollapsibleContent className="mt-4 space-y-4">
-                      {/* Window Sizing for Inline */}
-                      {selectedEmbedType === "inline" && (
-                        <div>
-                          <Label className="mb-2 block text-sm font-medium">Window sizing</Label>
-                          <div className="flex gap-2">
-                            <TextField
-                              value={previewState.inline.width}
-                              onChange={(e) =>
-                                updatePreviewState({
-                                  inline: { ...previewState.inline, width: e.target.value },
-                                })
-                              }
-                              placeholder="100%"
-                              addOnLeading="W"
-                              className="flex-1"
-                            />
-                            <TextField
-                              value={previewState.inline.height}
-                              onChange={(e) =>
-                                updatePreviewState({
-                                  inline: { ...previewState.inline, height: e.target.value },
-                                })
-                              }
-                              placeholder="100%"
-                              addOnLeading="H"
-                              className="flex-1"
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Floating Popup Settings */}
-                      {selectedEmbedType === "floating-popup" && (
-                        <div className="space-y-4">
+                  {selectedEmbedType !== "element-click" && (
+                    <Collapsible open={isEmbedCustomizationOpen} onOpenChange={setIsEmbedCustomizationOpen}>
+                      <div
+                        className="flex cursor-pointer items-center space-x-2"
+                        onClick={() => setIsEmbedCustomizationOpen(!isEmbedCustomizationOpen)}>
+                        <Icon
+                          name={isEmbedCustomizationOpen ? "chevron-down" : "chevron-right"}
+                          className="h-4 w-4"
+                        />
+                        <Label className="text-sm font-medium">Embed Customization</Label>
+                      </div>
+                      <CollapsibleContent className="mt-4 space-y-4">
+                        {/* Window Sizing for Inline */}
+                        {selectedEmbedType === "inline" && (
                           <div>
-                            <Label className="mb-2 block text-sm font-medium">Button text</Label>
-                            <TextField
-                              value={previewState.floatingPopup.buttonText || "Book my Cal"}
-                              onChange={(e) =>
-                                updatePreviewState({
-                                  floatingPopup: {
-                                    ...previewState.floatingPopup,
-                                    buttonText: e.target.value,
-                                  },
-                                })
-                              }
-                            />
+                            <Label className="mb-2 block text-sm font-medium">Window sizing</Label>
+                            <div className="flex gap-2">
+                              <TextField
+                                value={previewState.inline.width}
+                                onChange={(e) =>
+                                  updatePreviewState({
+                                    inline: { ...previewState.inline, width: e.target.value },
+                                  })
+                                }
+                                placeholder="100%"
+                                addOnLeading="W"
+                                className="flex-1"
+                              />
+                              <TextField
+                                value={previewState.inline.height}
+                                onChange={(e) =>
+                                  updatePreviewState({
+                                    inline: { ...previewState.inline, height: e.target.value },
+                                  })
+                                }
+                                placeholder="100%"
+                                addOnLeading="H"
+                                className="flex-1"
+                              />
+                            </div>
                           </div>
+                        )}
 
-                          <div className="flex items-center space-x-2">
-                            <Switch
-                              checked={!previewState.floatingPopup.hideButtonIcon}
-                              onCheckedChange={(checked) =>
-                                updatePreviewState({
-                                  floatingPopup: {
-                                    ...previewState.floatingPopup,
-                                    hideButtonIcon: !checked,
-                                  },
-                                })
-                              }
-                            />
-                            <Label className="text-sm">Display calendar icon</Label>
-                          </div>
-
-                          <div>
-                            <Label className="mb-2 block text-sm font-medium">Position of button</Label>
-                            <CustomSelect
-                              value={previewState.floatingPopup.buttonPosition || "bottom-right"}
-                              onValueChange={(value) =>
-                                updatePreviewState({
-                                  floatingPopup: {
-                                    ...previewState.floatingPopup,
-                                    buttonPosition: value as "bottom-right" | "bottom-left",
-                                  },
-                                })
-                              }
-                              options={positionOptions}
-                            />
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4">
+                        {/* Floating Popup Settings */}
+                        {selectedEmbedType === "floating-popup" && (
+                          <div className="space-y-4">
                             <div>
-                              <Label className="mb-2 block text-sm font-medium">Button color</Label>
-                              <ColorPicker
-                                defaultValue={previewState.floatingPopup.buttonColor || "#000000"}
-                                onChange={(color) =>
+                              <Label className="mb-2 block text-sm font-medium">Button text</Label>
+                              <TextField
+                                value={previewState.floatingPopup.buttonText || "Book my Cal"}
+                                onChange={(e) =>
                                   updatePreviewState({
                                     floatingPopup: {
                                       ...previewState.floatingPopup,
-                                      buttonColor: color,
+                                      buttonText: e.target.value,
                                     },
                                   })
                                 }
                               />
                             </div>
-                            <div>
-                              <Label className="mb-2 block text-sm font-medium">Text color</Label>
-                              <ColorPicker
-                                defaultValue={previewState.floatingPopup.buttonTextColor || "#ffffff"}
-                                onChange={(color) =>
+
+                            <div className="flex items-center space-x-2">
+                              <Switch
+                                checked={!previewState.floatingPopup.hideButtonIcon}
+                                onCheckedChange={(checked) =>
                                   updatePreviewState({
                                     floatingPopup: {
                                       ...previewState.floatingPopup,
-                                      buttonTextColor: color,
+                                      hideButtonIcon: !checked,
                                     },
                                   })
                                 }
                               />
+                              <Label className="text-sm">Display calendar icon</Label>
+                            </div>
+
+                            <div>
+                              <Label className="mb-2 block text-sm font-medium">Position of button</Label>
+                              <CustomSelect
+                                value={previewState.floatingPopup.buttonPosition || "bottom-right"}
+                                onValueChange={(value) =>
+                                  updatePreviewState({
+                                    floatingPopup: {
+                                      ...previewState.floatingPopup,
+                                      buttonPosition: value as "bottom-right" | "bottom-left",
+                                    },
+                                  })
+                                }
+                                options={positionOptions}
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label className="mb-2 block text-sm font-medium">Button color</Label>
+                                <ColorPicker
+                                  defaultValue={previewState.floatingPopup.buttonColor || "#000000"}
+                                  onChange={(color) =>
+                                    updatePreviewState({
+                                      floatingPopup: {
+                                        ...previewState.floatingPopup,
+                                        buttonColor: color,
+                                      },
+                                    })
+                                  }
+                                />
+                              </div>
+                              <div>
+                                <Label className="mb-2 block text-sm font-medium">Text color</Label>
+                                <ColorPicker
+                                  defaultValue={previewState.floatingPopup.buttonTextColor || "#ffffff"}
+                                  onChange={(color) =>
+                                    updatePreviewState({
+                                      floatingPopup: {
+                                        ...previewState.floatingPopup,
+                                        buttonTextColor: color,
+                                      },
+                                    })
+                                  }
+                                />
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      )}
-                    </CollapsibleContent>
-                  </Collapsible>
+                        )}
+                      </CollapsibleContent>
+                    </Collapsible>
+                  )}
 
                   {/* Booking Customization */}
                   <Collapsible open={isBookingCustomizationOpen} onOpenChange={setIsBookingCustomizationOpen}>
