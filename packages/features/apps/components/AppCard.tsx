@@ -46,9 +46,8 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
     const cleaned = stripMarkdown(app.description);
     if (!cleaned) return "";
 
-    // MS Teams overflows in MID of 2nd line - need to truncate at ~1.5 lines worth  
-    // Line 1: ~20 chars, Line 2 (quarter): ~5 chars = 25 total chars max
-    const maxChars = 25; // EXTREMELY aggressive - fits in 1.25 lines
+    // FORCE TRUNCATION TEST - Always truncate to see if our code is running
+    const maxChars = 10; // EXTREME test - should always truncate
     
     if (cleaned.length <= maxChars) {
       return cleaned;
