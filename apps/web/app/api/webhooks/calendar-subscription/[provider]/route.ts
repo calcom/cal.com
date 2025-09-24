@@ -11,6 +11,7 @@ import { CalendarSyncService } from "@calcom/features/calendar-subscription/lib/
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { prisma } from "@calcom/prisma";
 import { defaultResponderForAppDir } from "@calcom/web/app/api/defaultResponderForAppDir";
 
@@ -42,7 +43,10 @@ async function postHandler(request: NextRequest, context: { params: Promise<Para
 
   try {
     // instantiate dependencies
-    const calendarSyncService = new CalendarSyncService();
+    const bookingRepository = new BookingRepository(prisma);
+    const calendarSyncService = new CalendarSyncService({
+      bookingRepository,
+    });
     const calendarCacheEventRepository = new CalendarCacheEventRepository(prisma);
     const calendarCacheEventService = new CalendarCacheEventService({
       calendarCacheEventRepository,

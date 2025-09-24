@@ -145,7 +145,7 @@ export class CalendarSubscriptionService {
     ]);
 
     if (!cacheEnabled && !syncEnabled) {
-      log.debug("Cache and sync are globally disabled", { channelId: selectedCalendar.channelId });
+      log.info("Cache and sync are globally disabled", { channelId: selectedCalendar.channelId });
       return;
     }
 
@@ -164,6 +164,8 @@ export class CalendarSubscriptionService {
       });
       throw err;
     }
+
+    console.log(JSON.stringify(events));
 
     if (!events?.items?.length) {
       log.debug("No events fetched", { channelId: selectedCalendar.channelId });

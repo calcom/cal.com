@@ -1,5 +1,6 @@
 import type { CalendarSubscriptionEventItem } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionPort.interface";
 import logger from "@calcom/lib/logger";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 
 const log = logger.getSubLogger({ prefix: ["CalendarSyncService"] });
@@ -8,6 +9,12 @@ const log = logger.getSubLogger({ prefix: ["CalendarSyncService"] });
  * Service to handle synchronization of calendar events.
  */
 export class CalendarSyncService {
+  constructor(
+    private deps: {
+      bookingRepository: BookingRepository;
+    }
+  ) {}
+
   /**
    * Handles synchronization of calendar events
    *
@@ -34,6 +41,7 @@ export class CalendarSyncService {
     }
 
     log.debug("handleEvents: processing calendar events", { count: calEvents.length });
+
     await Promise.all(
       calEvents.map((e) => {
         if (e.status === "cancelled") {
@@ -52,7 +60,20 @@ export class CalendarSyncService {
    */
   async cancelBooking(event: CalendarSubscriptionEventItem) {
     log.debug("cancelBooking", { event });
-    // TODO implement (reference needed)
+    log.debug("rescheduleBooking", { event });
+    const [bookingUid] = event.iCalUID?.split("@") ?? [undefined];
+    if (!bookingUid) {
+      log.debug("Unable to sync, booking not found");
+      return;
+    }
+
+    const booking = await this.deps.bookingRepository.findBookingByUidWithEventType({ bookingUid });
+    if (!booking) {
+      log.debug("Unable to sync, booking not found");
+      return;
+    }
+
+    // todo handle cancel booking
   }
 
   /**
@@ -61,5 +82,18 @@ export class CalendarSyncService {
    */
   async rescheduleBooking(event: CalendarSubscriptionEventItem) {
     log.debug("rescheduleBooking", { event });
+    const [bookingUid] = event.iCalUID?.split("@") ?? [undefined];
+    if (!bookingUid) {
+      log.debug("Unable to sync, booking not found");
+      return;
+    }
+
+    const booking = await this.deps.bookingRepository.findBookingByUidWithEventType({ bookingUid });
+    if (!booking) {
+      log.debug("Unable to sync, booking not found");
+      return;
+    }
+
+    // todo handle update booking
   }
 }
