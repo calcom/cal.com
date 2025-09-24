@@ -71,7 +71,11 @@ export async function patchHandler(req: NextApiRequest) {
 
   if (data.slug) {
     const teamRepository = new TeamRepository(prisma);
-    const isSlugAvailable = await teamRepository.isSlugAvailableForUpdate({ id, slug: input.slug });
+    const isSlugAvailable = await teamRepository.isSlugAvailableForUpdate({
+      slug: data.slug,
+      teamId: _team.id,
+      parentId: _team.parentId,
+    });
     if (!isSlugAvailable) {
       throw new HttpError({ statusCode: 409, message: "Team slug already exists" });
     }

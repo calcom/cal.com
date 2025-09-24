@@ -399,16 +399,19 @@ export class TeamRepository {
     });
   }
 
-  async isSlugAvailableForUpdate({ id, slug }: { id: number; slug: string }) {
+  async isSlugAvailableForUpdate({
+    slug,
+    teamId,
+    parentId,
+  }: {
+    slug: string;
+    teamId: number;
+    parentId?: number | null;
+  }) {
     const whereClause: Prisma.TeamWhereInput = { slug, parentId: null };
 
-    const currentTeam = await this.prismaClient.team.findUnique({
-      where: { id },
-      select: { parentId: true },
-    });
-
-    if (currentTeam?.parentId) {
-      whereClause.parentId = currentTeam.parentId;
+    if (parentId) {
+      whereClause.parentId = parentId;
     }
 
     const conflictingTeams = await this.prismaClient.team.findMany({
@@ -416,6 +419,6 @@ export class TeamRepository {
       select: { id: true },
     });
 
-    return !conflictingTeams.some((team) => team.id !== id);
+    return !conflictingTeams.some((team) => team.id !== teamId);
   }
 }

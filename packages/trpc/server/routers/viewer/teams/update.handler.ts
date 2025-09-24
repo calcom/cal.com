@@ -32,8 +32,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   if (input.slug) {
+    const orgId = ctx.user.organizationId;
     const teamRepository = new TeamRepository(prisma);
-    const isSlugAvailable = await teamRepository.isSlugAvailableForUpdate({ id, slug: input.slug });
+    const isSlugAvailable = await teamRepository.isSlugAvailableForUpdate({
+      slug: input.slug,
+      teamId: input.id,
+      parentId: orgId,
+    });
     if (!isSlugAvailable) {
       throw new TRPCError({ code: "CONFLICT", message: "Slug already in use." });
     }
