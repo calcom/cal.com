@@ -29,7 +29,7 @@ export const isSAMLAdmin = (email: string) => {
   return false;
 };
 
-export const canAccess = async (user: { id: number; email: string }, teamId: number | null) => {
+export const canAccessOrganization = async (user: { id: number; email: string }, teamId: number | null) => {
   const { id: userId, email } = user;
 
   if (!isSAMLLoginEnabled) {
@@ -52,7 +52,7 @@ export const canAccess = async (user: { id: number; email: string }, teamId: num
     const hasPermission = await permissionCheckService.checkPermission({
       userId,
       teamId,
-      permission: "team.read",
+      permission: "organization.read",
       fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
     });
 
