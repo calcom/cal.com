@@ -15,7 +15,6 @@ import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
-import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/trpc/utils";
 import type { CalEventResponses, RecurringEvent } from "@calcom/types/Calendar";
 
 import { isAttendeeAction } from "../actionHelperFunctions";
@@ -26,6 +25,7 @@ import { WorkflowOptOutService } from "../service/workflowOptOutService";
 import type { ScheduleReminderArgs } from "./emailReminderManager";
 import { scheduleSmsOrFallbackEmail, sendSmsOrFallbackEmail } from "./messageDispatcher";
 import * as twilio from "./providers/twilioProvider";
+import type { FormSubmissionData } from "./reminderScheduler";
 import smsReminderTemplate from "./templates/smsReminderTemplate";
 
 export enum timeUnitLowerCase {
@@ -147,9 +147,9 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
       params as ScheduleTextReminderArgsWithRequiredFields & { evt: BookingInfo }
     );
   } else {
-    scheduleSMSReminderForForm(
+    await scheduleSMSReminderForForm(
       params as ScheduleTextReminderArgsWithRequiredFields & {
-        formData: { responses: FORM_SUBMITTED_WEBHOOK_RESPONSES };
+        formData: FormSubmissionData;
       }
     );
   }
@@ -213,7 +213,7 @@ const scheduleSMSReminderForEvt = async (
         ) || message;
     }
 
-    if (smsMessage.length > 0) {
+    if (smsMessage.trim().length > 0) {
       const smsMessageWithoutOptOut = await WorkflowOptOutService.addOptOutMessage(
         smsMessage,
         evt.organizer.language.locale
@@ -313,14 +313,14 @@ const scheduleSMSReminderForEvt = async (
 // sends all immediately, no scheduling needed
 const scheduleSMSReminderForForm = async (
   args: ScheduleTextReminderArgsWithRequiredFields & {
-    formData: { responses: FORM_SUBMITTED_WEBHOOK_RESPONSES };
+    formData: FormSubmissionData;
   }
 ) => {
   const { message, triggerEvent, reminderPhone, sender, userId, teamId, action, formData } = args;
 
   const smsMessage = message;
 
-  if (smsMessage.length > 0) {
+  if (smsMessage.trim().length > 0) {
     const smsMessageWithoutOptOut = await WorkflowOptOutService.addOptOutMessage(
       smsMessage,
       formData.user.locale
