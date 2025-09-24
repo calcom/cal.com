@@ -334,7 +334,11 @@ describe("PermissionCheckService", () => {
       });
 
       expect(result).toEqual(expectedTeamIds);
-      expect(mockRepository.getTeamIdsWithPermission).toHaveBeenCalledWith(1, "eventType.read");
+      expect(mockRepository.getTeamIdsWithPermission).toHaveBeenCalledWith({
+        userId: 1,
+        permission: "eventType.read",
+        fallbackRoles: [],
+      });
     });
 
     it("should return empty array when permission validation fails", async () => {
@@ -363,7 +367,11 @@ describe("PermissionCheckService", () => {
       });
 
       expect(result).toEqual([]);
-      expect(mockRepository.getTeamIdsWithPermission).toHaveBeenCalledWith(1, "eventType.read");
+      expect(mockRepository.getTeamIdsWithPermission).toHaveBeenCalledWith({
+        userId: 1,
+        permission: "eventType.read",
+        fallbackRoles: [],
+      });
     });
   });
 
