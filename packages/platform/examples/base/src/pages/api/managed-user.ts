@@ -56,88 +56,93 @@ async function createUserWithDefaultSchedule(email: string, name: string, avatar
 }
 
 // example endpoint to create a managed cal.com user
-export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
-  const { emails } = JSON.parse(req.body);
-  const emailOne = emails[0];
-  const emailTwo = emails[1];
-  const emailThree = emails[2];
-  const emailFour = emails[3];
-  const emailFive = emails[4];
+export default async function handler(req: NextApiRequest, res: NextApiResponse<Data | { message: string }>) {
+  try {
+    const { emails } = JSON.parse(req.body);
+    const emailOne = emails[0];
+    const emailTwo = emails[1];
+    const emailThree = emails[2];
+    const emailFour = emails[3];
+    const emailFive = emails[4];
 
-  const existingUser = await prisma.user.findFirst({ orderBy: { createdAt: "desc" } });
-  if (existingUser && existingUser.calcomUserId) {
+    const existingUser = await prisma.user.findFirst({ orderBy: { createdAt: "desc" } });
+    if (existingUser && existingUser.calcomUserId) {
+      return res.status(200).json({
+        id: existingUser.calcomUserId,
+        email: existingUser.email,
+        username: existingUser.calcomUsername ?? "",
+        accessToken: existingUser.accessToken ?? "",
+      });
+    }
+
+    const managedUserResponseOne = await createUserWithDefaultSchedule(
+      emailOne,
+      "Keith",
+      "https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=3023&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    );
+    const managedUserResponseTwo = await createUserWithDefaultSchedule(
+      emailTwo,
+      "Somay",
+      "https://plus.unsplash.com/premium_photo-1668319915476-5cc7717e00f1?q=80&w=3164&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    );
+    const managedUserResponseThree = await createUserWithDefaultSchedule(
+      emailThree,
+      "Rajiv",
+      "https://plus.unsplash.com/premium_photo-1668319915476-5cc7717e00f1?q=80&w=3164&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    );
+    const managedUserResponseFour = await createUserWithDefaultSchedule(
+      emailFour,
+      "Morgan",
+      "https://plus.unsplash.com/premium_photo-1668319915476-5cc7717e00f1?q=80&w=3164&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    );
+    const managedUserResponseFive = await createUserWithDefaultSchedule(
+      emailFive,
+      "Lauris",
+      "https://plus.unsplash.com/premium_photo-1668319915476-5cc7717e00f1?q=80&w=3164&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    );
+
+    // eslint-disable-next-line turbo/no-undeclared-env-vars
+    const organizationId = process.env.ORGANIZATION_ID;
+    if (!organizationId) {
+      throw new Error("Organization ID is not set");
+    }
+
+    const team = await createTeam(+organizationId, `Platform devs - ${Date.now()}`);
+    if (!team) {
+      throw new Error("Failed to create team. Probably your platform team does not have required plan.");
+    }
+
+    await createOrgTeamMembershipMember(+organizationId, team.id, managedUserResponseOne.user.id);
+    await createOrgTeamMembershipMember(+organizationId, team.id, managedUserResponseTwo.user.id);
+    await createOrgTeamMembershipMember(+organizationId, team.id, managedUserResponseThree.user.id);
+    await createOrgTeamMembershipMember(+organizationId, team.id, managedUserResponseFour.user.id);
+
+    await createCollectiveEventType(+organizationId, team.id, [
+      managedUserResponseOne.user.id,
+      managedUserResponseTwo.user.id,
+      managedUserResponseThree.user.id,
+      managedUserResponseFour.user.id,
+    ]);
+
+    await createRoundRobinEventType(+organizationId, team.id, [
+      managedUserResponseOne.user.id,
+      managedUserResponseTwo.user.id,
+      managedUserResponseThree.user.id,
+      managedUserResponseFour.user.id,
+    ]);
+
+    await createOrgMembershipAdmin(+organizationId, managedUserResponseFive.user.id);
+
     return res.status(200).json({
-      id: existingUser.calcomUserId,
-      email: existingUser.email,
-      username: existingUser.calcomUsername ?? "",
-      accessToken: existingUser.accessToken ?? "",
+      id: managedUserResponseOne?.user?.id,
+      email: (managedUserResponseOne.user.email as string) ?? "",
+      username: (managedUserResponseOne.user.username as string) ?? "",
+      accessToken: (managedUserResponseOne.accessToken as string) ?? "",
     });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "An unexpected error occurred";
+    return res.status(400).json({ message });
   }
-
-  const managedUserResponseOne = await createUserWithDefaultSchedule(
-    emailOne,
-    "Keith",
-    "https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=3023&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-  );
-  const managedUserResponseTwo = await createUserWithDefaultSchedule(
-    emailTwo,
-    "Somay",
-    "https://plus.unsplash.com/premium_photo-1668319915476-5cc7717e00f1?q=80&w=3164&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-  );
-  const managedUserResponseThree = await createUserWithDefaultSchedule(
-    emailThree,
-    "Rajiv",
-    "https://plus.unsplash.com/premium_photo-1668319915476-5cc7717e00f1?q=80&w=3164&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-  );
-  const managedUserResponseFour = await createUserWithDefaultSchedule(
-    emailFour,
-    "Morgan",
-    "https://plus.unsplash.com/premium_photo-1668319915476-5cc7717e00f1?q=80&w=3164&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-  );
-  const managedUserResponseFive = await createUserWithDefaultSchedule(
-    emailFive,
-    "Lauris",
-    "https://plus.unsplash.com/premium_photo-1668319915476-5cc7717e00f1?q=80&w=3164&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-  );
-
-  // eslint-disable-next-line turbo/no-undeclared-env-vars
-  const organizationId = process.env.ORGANIZATION_ID;
-  if (!organizationId) {
-    throw new Error("Organization ID is not set");
-  }
-
-  const team = await createTeam(+organizationId, `Platform devs - ${Date.now()}`);
-  if (!team) {
-    throw new Error("Failed to create team. Probably your platform team does not have required plan.");
-  }
-
-  await createOrgTeamMembershipMember(+organizationId, team.id, managedUserResponseOne.user.id);
-  await createOrgTeamMembershipMember(+organizationId, team.id, managedUserResponseTwo.user.id);
-  await createOrgTeamMembershipMember(+organizationId, team.id, managedUserResponseThree.user.id);
-  await createOrgTeamMembershipMember(+organizationId, team.id, managedUserResponseFour.user.id);
-
-  await createCollectiveEventType(+organizationId, team.id, [
-    managedUserResponseOne.user.id,
-    managedUserResponseTwo.user.id,
-    managedUserResponseThree.user.id,
-    managedUserResponseFour.user.id,
-  ]);
-
-  await createRoundRobinEventType(+organizationId, team.id, [
-    managedUserResponseOne.user.id,
-    managedUserResponseTwo.user.id,
-    managedUserResponseThree.user.id,
-    managedUserResponseFour.user.id,
-  ]);
-
-  await createOrgMembershipAdmin(+organizationId, managedUserResponseFive.user.id);
-
-  return res.status(200).json({
-    id: managedUserResponseOne?.user?.id,
-    email: (managedUserResponseOne.user.email as string) ?? "",
-    username: (managedUserResponseOne.user.username as string) ?? "",
-    accessToken: (managedUserResponseOne.accessToken as string) ?? "",
-  });
 }
 
 async function createTeam(orgId: number, name: string) {
@@ -160,8 +165,18 @@ async function createTeam(orgId: number, name: string) {
       }),
     }
   );
-
-  const body = await response.json();
+  const responseText = await response.text();
+  if (!response.ok) {
+    let detail = response.statusText;
+    try {
+      const parsed = JSON.parse(responseText);
+      detail = (parsed && (parsed.message || parsed.error || JSON.stringify(parsed))) || detail;
+    } catch {
+      detail = responseText || detail;
+    }
+    throw new Error(`Failed to create team: ${response.status} ${response.statusText} - ${detail}`);
+  }
+  const body = JSON.parse(responseText);
   return body.data;
 }
 
