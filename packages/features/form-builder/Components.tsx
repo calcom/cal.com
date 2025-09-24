@@ -21,10 +21,6 @@ import { ComponentForField } from "./FormBuilderField";
 import { propsTypes } from "./propsTypes";
 import { preprocessNameFieldDataWithVariant } from "./utils";
 
-type PhoneComponentProps = TextLikeComponentProps & {
-  allowedCountryCodes?: string[];
-};
-
 export const isValidValueProp: Record<Component["propsType"], (val: unknown) => boolean> = {
   boolean: (val) => typeof val === "boolean",
   multiselect: (val) => val instanceof Array && val.every((v) => typeof v === "string"),
@@ -192,16 +188,12 @@ export const Components: Record<FieldType, Component> = {
         return <div />;
       }
 
-      const allowedCountryCodes = (props as any).allowedCountryCodes;
-
       return (
         <PhoneInput
           disabled={readOnly}
           onChange={(val: string) => {
             setValue(val);
           }}
-          allowedCountryCodes={allowedCountryCodes}
-          preventCountryCodeDeletion={allowedCountryCodes && allowedCountryCodes.length === 1}
           {...props}
         />
       );
@@ -431,7 +423,7 @@ export const Components: Record<FieldType, Component> = {
         }
 
         return label.search(/^https?:\/\//) !== -1 ? (
-          <a href={label} target="_blank">
+          <a href={label} target="_blank" rel="noreferrer">
             <span className="underline">{label}</span>
           </a>
         ) : (

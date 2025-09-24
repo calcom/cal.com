@@ -21,7 +21,6 @@ export type PhoneInputProps = {
   onChange: (value: string) => void;
   defaultCountry?: string;
   allowedCountryCodes?: string[];
-  preventCountryCodeDeletion?: boolean;
   inputStyle?: CSSProperties;
   flagButtonStyle?: CSSProperties;
 };
@@ -33,7 +32,6 @@ function BasePhoneInput({
   value,
   defaultCountry = "us",
   allowedCountryCodes,
-  preventCountryCodeDeletion,
   ...rest
 }: PhoneInputProps) {
   const isPlatform = useIsPlatform();
@@ -63,14 +61,13 @@ function BasePhoneInput({
         onChange={onChange}
         value={value}
         allowedCountryCodes={allowedCountryCodes}
-        preventCountryCodeDeletion={preventCountryCodeDeletion}
         {...rest}
       />
     );
   }
 
+  const singleCountry = allowedCountryCodes?.length === 1;
   const onlyCountries = allowedCountryCodes?.map((code) => code.toLowerCase());
-  const disableCountryCode = preventCountryCodeDeletion && allowedCountryCodes?.length === 1;
 
   // If country codes are restricted, use the first one as the default
   const effectiveDefaultCountry = allowedCountryCodes?.length
@@ -85,7 +82,7 @@ function BasePhoneInput({
       disableSearchIcon
       country={effectiveDefaultCountry}
       onlyCountries={onlyCountries}
-      disableCountryCode={disableCountryCode}
+      disableCountryCode={singleCountry}
       inputProps={{
         name,
         required: rest.required,
@@ -124,14 +121,13 @@ function BasePhoneInputWeb({
   onChange,
   value,
   allowedCountryCodes,
-  preventCountryCodeDeletion,
   inputStyle,
   flagButtonStyle,
   ...rest
 }: Omit<PhoneInputProps, "defaultCountry">) {
   const defaultCountry = useDefaultCountry();
   const onlyCountries = allowedCountryCodes?.map((code) => code.toLowerCase());
-  const disableCountryCode = preventCountryCodeDeletion && allowedCountryCodes?.length === 1;
+  const singleCountry = allowedCountryCodes?.length === 1;
 
   // If country codes are restricted, use the first one as the default
   const effectiveDefaultCountry = allowedCountryCodes?.length
@@ -146,7 +142,7 @@ function BasePhoneInputWeb({
       enableSearch
       disableSearchIcon
       onlyCountries={onlyCountries}
-      disableCountryCode={disableCountryCode}
+      disableCountryCode={singleCountry}
       inputProps={{
         name,
         required: rest.required,
