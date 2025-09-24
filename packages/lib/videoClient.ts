@@ -1,8 +1,8 @@
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import { DailyLocationType } from "@calcom/app-store/constants";
 import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
-import { DailyLocationType } from "@calcom/app-store/locations";
 import { VideoApiAdapterMap } from "@calcom/app-store/video.adapters.generated";
 import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
@@ -28,7 +28,15 @@ const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<V
     const appName = cred.type.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
     log.silly("Getting video adapter for", safeStringify({ appName, cred: getPiiFreeCredential(cred) }));
 
-    const videoAdapterImport = VideoApiAdapterMap[appName as keyof typeof VideoApiAdapterMap];
+    let videoAdapterImport = VideoApiAdapterMap[appName as keyof typeof VideoApiAdapterMap];
+
+    // fallback: transforms zoom_video to zoom
+    if (!videoAdapterImport) {
+      const appTypeVariant = cred.type.substring(0, cred.type.lastIndexOf("_"));
+      log.silly(`Adapter not found for ${appName}, trying fallback ${appTypeVariant}`);
+
+      videoAdapterImport = VideoApiAdapterMap[appTypeVariant as keyof typeof VideoApiAdapterMap];
+    }
 
     if (!videoAdapterImport) {
       log.error(`Couldn't get adapter for ${appName}`);

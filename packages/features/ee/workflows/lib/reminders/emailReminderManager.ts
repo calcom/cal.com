@@ -5,7 +5,7 @@ import dayjs from "@calcom/dayjs";
 import generateIcsString from "@calcom/emails/lib/generateIcsString";
 import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
 import tasker from "@calcom/features/tasker";
-import { SENDER_NAME, WEBSITE_URL } from "@calcom/lib/constants";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -18,10 +18,10 @@ import {
   WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
-import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/trpc/utils";
 
 import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
 import { sendOrScheduleWorkflowEmails } from "./providers/emailProvider";
+import type { FormSubmissionData } from "./reminderScheduler";
 import type { AttendeeInBookingInfo, BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
 import type { VariablesType } from "./templates/customTemplate";
 import customTemplate from "./templates/customTemplate";
@@ -49,14 +49,7 @@ export type ScheduleReminderArgs = {
   | { evt: BookingInfo; formData?: never }
   | {
       evt?: never;
-      formData: {
-        responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
-        user: {
-          email: string;
-          timeFormat: number | null;
-          locale: string;
-        };
-      };
+      formData: FormSubmissionData;
     }
 );
 
@@ -84,9 +77,6 @@ type SendEmailReminderParams = {
   uid?: string;
   workflowStepId?: number;
   seatReferenceUid?: string;
-  isMandatoryReminder?: boolean;
-  userId?: number | null;
-  teamId?: number | null;
 };
 
 const sendOrScheduleWorkflowEmailWithReminder = async (params: SendEmailReminderParams) => {
@@ -143,7 +133,6 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
     hideBranding,
     includeCalendarEvent,
     action,
-    verifiedAt,
   } = args;
 
   const { startTime, endTime } = evt;
@@ -317,12 +306,11 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
     const attachments = includeCalendarEvent
       ? [
           {
-            content: Buffer.from(
+            content:
               generateIcsString({
                 event: emailEvent,
                 status,
-              }) || ""
-            ).toString("base64"),
+              }) || "",
             filename: "event.ics",
             type: "text/calendar; method=REQUEST",
             disposition: "attachment",
@@ -336,7 +324,7 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
       html: emailContent.emailBody,
       ...(!evt.hideOrganizerEmail && { replyTo: evt?.eventType?.customReplyToEmail || evt.organizer.email }),
       attachments,
-      sender: evt.hideOrganizerEmail ? SENDER_NAME : sender,
+      sender,
     };
   }
 
@@ -350,22 +338,12 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
     uid,
     workflowStepId,
     seatReferenceUid,
-    isMandatoryReminder,
-    userId,
-    teamId,
   });
 };
 
 const scheduleEmailReminderForForm = async (
   args: scheduleEmailReminderArgs & {
-    formData: {
-      responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
-      user: {
-        email: string;
-        timeFormat: number | null;
-        locale: string;
-      };
-    };
+    formData: FormSubmissionData;
   }
 ) => {
   const {
@@ -377,8 +355,6 @@ const scheduleEmailReminderForForm = async (
     emailSubject = "",
     emailBody = "",
     hideBranding,
-    userId,
-    teamId,
   } = args;
 
   const emailContent = {
@@ -414,8 +390,7 @@ const scheduleEmailReminderForForm = async (
     sendTo,
     triggerEvent,
     workflowStepId,
-    userId,
-    teamId,
+    scheduledDate: null,
   });
 };
 

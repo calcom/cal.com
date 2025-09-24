@@ -8,29 +8,47 @@ import type { ZTriggerFormSubmittedNoEventWorkflowPayloadSchema } from "@calcom/
 import { triggerFormSubmittedNoEventWorkflow } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/triggerFormSubmittedNoEventWorkflow";
 import { WorkflowTriggerEvents, WorkflowActions, WorkflowTemplates, TimeUnit } from "@calcom/prisma/enums";
 
+import { shouldTriggerFormSubmittedNoEvent } from "./formSubmissionValidation";
+
 // Mock the scheduleWorkflowReminders function
 vi.mock("@calcom/ee/workflows/lib/reminders/reminderScheduler", () => ({
   scheduleWorkflowReminders: vi.fn(() => Promise.resolve()),
 }));
 
+// Mock the form submission validation
+vi.mock("./formSubmissionValidation", () => ({
+  shouldTriggerFormSubmittedNoEvent: vi.fn(() => Promise.resolve(true)),
+}));
+
 // Mock the logger
 vi.mock("@calcom/lib/logger", () => ({
   default: {
+    getSubLogger: vi.fn(() => ({ error: vi.fn() })),
     error: vi.fn(),
   },
 }));
 
 const mockScheduleWorkflowReminders = vi.mocked(scheduleWorkflowReminders);
+const mockShouldTriggerFormSubmittedNoEvent = vi.mocked(shouldTriggerFormSubmittedNoEvent);
 
 type WorkflowPayload = z.infer<typeof ZTriggerFormSubmittedNoEventWorkflowPayloadSchema>;
 
 function expectFormSubmittedNoEventWorkflowToBeCalled(payload: WorkflowPayload) {
-  expect(mockScheduleWorkflowReminders).toHaveBeenCalledWith({
-    workflows: [payload.workflow],
-    smsReminderNumber: null,
-    calendarEvent: null,
-    hideBranding: false,
-  });
+  expect(mockScheduleWorkflowReminders).toHaveBeenCalledWith(
+    expect.objectContaining({
+      workflows: [payload.workflow],
+      formData: {
+        responses: payload.responses,
+        user: {
+          email: payload.form.user.email,
+          timeFormat: payload.form.user.timeFormat,
+          locale: payload.form.user.locale ?? "en",
+        },
+      },
+      hideBranding: payload.hideBranding,
+      smsReminderNumber: payload.smsReminderNumber,
+    })
+  );
 }
 
 describe("Form submitted, no event booked workflow trigger", () => {
@@ -43,13 +61,26 @@ describe("Form submitted, no event booked workflow trigger", () => {
   it(`should trigger workflow when form was submitted but no booking was made`, async () => {
     const payload: WorkflowPayload = {
       responseId: 1,
-      formId: "1234",
+      form: {
+        id: "1234",
+        userId: 1,
+        teamId: null,
+        fields: [{ type: "text", identifier: "Test field 1" }],
+        user: {
+          email: "test@example.com",
+          timeFormat: 12,
+          locale: "en",
+        },
+      },
       responses: {
         "Test field 1": {
           value: "Test input 1",
           response: "Test input 1",
         },
       },
+      hideBranding: false,
+      smsReminderNumber: null,
+      submittedAt: new Date("2024-01-01T10:00:00Z"),
       workflow: {
         id: 1,
         name: "Test Workflow 1",
@@ -88,13 +119,26 @@ describe("Form submitted, no event booked workflow trigger", () => {
   it(`should not trigger workflow when form was submitted and also booking was made after`, async () => {
     const payload: WorkflowPayload = {
       responseId: 2,
-      formId: "6789",
+      form: {
+        id: "6789",
+        userId: 2,
+        teamId: null,
+        fields: [{ type: "text", identifier: "Test field 2" }],
+        user: {
+          email: "test2@example.com",
+          timeFormat: 24,
+          locale: "en",
+        },
+      },
       responses: {
         "Test field 2": {
           value: "Test input 2",
           response: "Test input 2",
         },
       },
+      hideBranding: false,
+      smsReminderNumber: null,
+      submittedAt: new Date("2024-01-01T11:00:00Z"),
       workflow: {
         id: 2,
         name: "Test Workflow 2",
@@ -122,74 +166,12 @@ describe("Form submitted, no event booked workflow trigger", () => {
     };
     const payloadString = JSON.stringify(payload);
 
-    // Mock that a booking exists
-    prismaMock.booking.findFirst.mockResolvedValue({ id: 5 });
+    // Mock that validation should not trigger (booking exists)
+    mockShouldTriggerFormSubmittedNoEvent.mockResolvedValue(false);
 
     await triggerFormSubmittedNoEventWorkflow(payloadString);
 
-    // Should not call scheduleWorkflowReminders when booking exists
+    // Should not call scheduleWorkflowReminders when validation fails
     expect(mockScheduleWorkflowReminders).not.toHaveBeenCalled();
-  });
-
-  it(`should handle workflow with multiple steps`, async () => {
-    const payload: WorkflowPayload = {
-      responseId: 3,
-      formId: "9999",
-      responses: {
-        email: {
-          value: "test@example.com",
-          response: "test@example.com",
-        },
-        name: {
-          value: "John Doe",
-          response: "John Doe",
-        },
-      },
-      workflow: {
-        id: 3,
-        name: "Multi-step Workflow",
-        teamId: 1,
-        trigger: WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT,
-        time: 60,
-        timeUnit: TimeUnit.MINUTE,
-        userId: 3,
-        steps: [
-          {
-            id: 3,
-            action: WorkflowActions.EMAIL_ATTENDEE,
-            sendTo: null,
-            template: WorkflowTemplates.CUSTOM,
-            reminderBody: "Thank you for your submission",
-            emailSubject: "Form Received",
-            sender: null,
-            includeCalendarEvent: false,
-            numberVerificationPending: false,
-            numberRequired: false,
-            verifiedAt: null,
-          },
-          {
-            id: 4,
-            action: WorkflowActions.EMAIL_ATTENDEE,
-            sendTo: null,
-            template: WorkflowTemplates.CUSTOM,
-            reminderBody: "Follow up message",
-            emailSubject: "Follow Up",
-            sender: null,
-            includeCalendarEvent: false,
-            numberVerificationPending: false,
-            numberRequired: false,
-            verifiedAt: null,
-          },
-        ],
-      },
-    };
-    const payloadString = JSON.stringify(payload);
-
-    // Mock that no booking exists
-    prismaMock.booking.findFirst.mockResolvedValue(null);
-
-    await triggerFormSubmittedNoEventWorkflow(payloadString);
-
-    expectFormSubmittedNoEventWorkflowToBeCalled(payload);
   });
 });

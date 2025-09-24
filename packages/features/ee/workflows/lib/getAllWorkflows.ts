@@ -1,6 +1,6 @@
+import { FORM_TRIGGER_WORKFLOW_EVENTS } from "@calcom/ee/workflows/lib/constants";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 
 import type { Workflow } from "./types";
 
@@ -29,22 +29,29 @@ export const workflowSelect = {
   },
 };
 
-export const getAllWorkflows = async (
-  eventTypeWorkflows: Workflow[],
-  userId?: number | null,
-  teamId?: number | null,
-  orgId?: number | null,
+export const getAllWorkflows = async ({
+  entityWorkflows,
+  userId,
+  teamId,
+  orgId,
   workflowsLockedForUser = true,
-  triggerType: "eventType" | "routingForm" = "eventType"
-) => {
-  const allWorkflows = eventTypeWorkflows;
+  triggerType,
+}: {
+  entityWorkflows: Workflow[];
+  userId?: number | null;
+  teamId?: number | null;
+  orgId?: number | null;
+  workflowsLockedForUser?: boolean;
+  triggerType: "eventType" | "routingForm";
+}) => {
+  const allWorkflows = entityWorkflows;
 
   let triggerTypeWhereClause: Prisma.WorkflowWhereInput = {};
 
   if (triggerType === "routingForm") {
     triggerTypeWhereClause = {
       trigger: {
-        in: [WorkflowTriggerEvents.FORM_SUBMITTED, WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT], //make this a predefined array variable
+        in: FORM_TRIGGER_WORKFLOW_EVENTS,
       },
     };
   }
@@ -53,7 +60,7 @@ export const getAllWorkflows = async (
     triggerTypeWhereClause = {
       trigger: {
         not: {
-          in: [WorkflowTriggerEvents.FORM_SUBMITTED, WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT], //make this a predefined array variable and not use the not operator
+          in: FORM_TRIGGER_WORKFLOW_EVENTS,
         },
       },
     };

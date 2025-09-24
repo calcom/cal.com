@@ -1,3 +1,4 @@
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import {
   isAttendeeAction,
   isSMSAction,
@@ -11,18 +12,28 @@ import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/t
 import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";
+import { formatCalEventExtended } from "@calcom/lib/formatCalendarEvent";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
-import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/trpc/utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { scheduleAIPhoneCall } from "./aiPhoneCallManager";
 import { scheduleEmailReminder } from "./emailReminderManager";
+import type { BookingInfo } from "./smsReminderManager";
 import { scheduleSMSReminder, type ScheduleTextReminderAction } from "./smsReminderManager";
 import { scheduleWhatsappReminder } from "./whatsappReminderManager";
+
+export type FormSubmissionData = {
+  responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
+  user: {
+    email: string;
+    timeFormat: number | null;
+    locale: string;
+  };
+};
 
 export type ExtendedCalendarEvent = Omit<CalendarEvent, "bookerUrl"> & {
   metadata?: { videoCallUrl: string | undefined };
@@ -40,14 +51,7 @@ type ProcessWorkflowStepParams = (
   | { calendarEvent: ExtendedCalendarEvent; formData?: never }
   | {
       calendarEvent?: never;
-      formData: {
-        responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
-        user: {
-          email: string;
-          timeFormat: number | null;
-          locale: string;
-        };
-      };
+      formData: FormSubmissionData;
     }
 ) & {
   smsReminderNumber: string | null;
@@ -66,7 +70,7 @@ const processWorkflowStep = async (
   step: WorkflowStep,
   {
     smsReminderNumber,
-    calendarEvent: evt,
+    calendarEvent,
     emailAttendeeSendToOverride,
     hideBranding,
     seatReferenceUid,
@@ -74,6 +78,17 @@ const processWorkflowStep = async (
   }: ProcessWorkflowStepParams
 ) => {
   if (!step?.verifiedAt) return;
+
+  const evt = calendarEvent ? formatCalEventExtended(calendarEvent) : undefined;
+
+  if (!evt && !formData) return;
+
+  const contextData:
+    | { evt: BookingInfo; formData?: never }
+    | {
+        evt?: never;
+        formData: FormSubmissionData;
+      } = evt ? { evt } : { formData: formData as FormSubmissionData };
 
   if (isSMSOrWhatsappAction(step.action)) {
     await checkSMSRateLimit({
@@ -95,22 +110,24 @@ const processWorkflowStep = async (
     teamId: workflow.teamId,
     seatReferenceUid,
     verifiedAt: step.verifiedAt,
-  } as const;
+  };
 
   if (isSMSAction(step.action)) {
+    if (!evt) {
+      // SMS action not not yet supported for form triggers
+      return;
+    }
     const sendTo = step.action === WorkflowActions.SMS_ATTENDEE ? smsReminderNumber : step.sendTo;
 
-    const smsParams = {
+    await scheduleSMSReminder({
       ...scheduleFunctionParams,
       reminderPhone: sendTo,
       action: step.action as ScheduleTextReminderAction,
       message: step.reminderBody || "",
       sender: step.sender,
       isVerificationPending: step.numberVerificationPending,
-      ...(evt ? { evt } : { formData }),
-    } as const;
-
-    await scheduleSMSReminder(smsParams);
+      evt,
+    });
   } else if (
     step.action === WorkflowActions.EMAIL_ATTENDEE ||
     step.action === WorkflowActions.EMAIL_HOST ||
@@ -132,7 +149,7 @@ const processWorkflowStep = async (
 
         const schedulingType = evt.eventType.schedulingType;
         const isTeamEvent =
-          schedulingType == SchedulingType.ROUND_ROBIN || schedulingType === SchedulingType.COLLECTIVE;
+          schedulingType === SchedulingType.ROUND_ROBIN || schedulingType === SchedulingType.COLLECTIVE;
         if (isTeamEvent && evt.team?.members) {
           sendTo = sendTo.concat(evt.team.members.map((member) => member.email));
         }
@@ -181,7 +198,7 @@ const processWorkflowStep = async (
       sender: step.sender || SENDER_NAME,
       hideBranding,
       includeCalendarEvent: step.includeCalendarEvent,
-      ...(evt ? { evt } : { formData }),
+      ...contextData,
       verifiedAt: step.verifiedAt,
     } as const;
 
@@ -214,7 +231,7 @@ const processWorkflowStep = async (
       teamId: workflow.teamId,
       seatReferenceUid,
       verifiedAt: step.verifiedAt,
-      ...(evt ? { evt } : { formData }),
+      ...contextData,
     });
   }
 };
@@ -236,15 +253,13 @@ const _scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersArgs) =
     if (workflow.steps.length === 0) continue;
 
     for (const step of workflow.steps) {
-      const params = {
+      await processWorkflowStep(workflow, step, {
         emailAttendeeSendToOverride,
         smsReminderNumber,
         hideBranding,
         seatReferenceUid,
         ...(evt ? { calendarEvent: evt } : { formData }),
-      } as const;
-
-      await processWorkflowStep(workflow, step, params);
+      });
     }
   }
 };

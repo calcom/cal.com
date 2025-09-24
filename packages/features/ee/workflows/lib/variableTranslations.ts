@@ -41,6 +41,7 @@ export function getTranslatedText(text: string, language: { locale: string; t: T
       translatedText = translatedText.replace(regex, `{${translatedVariable}}`);
     });
   }
+
   return translatedText;
 }
 

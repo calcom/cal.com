@@ -4,6 +4,7 @@ export interface ValidationOptions {
   responseId: number;
   formId: string;
   responses: any;
+  submittedAt?: Date;
 }
 
 export interface ValidationResult {
@@ -15,7 +16,7 @@ export interface ValidationResult {
  * Check if trigger should be skipped due to booking creation or duplicate submission
  */
 export async function shouldTriggerFormSubmittedNoEvent(options: ValidationOptions) {
-  const { formId, responseId, responses } = options;
+  const { formId, responseId, responses, submittedAt } = options;
 
   // Check if a booking was created from this form response
   const bookingExists = await hasBooking(responseId);
@@ -23,7 +24,7 @@ export async function shouldTriggerFormSubmittedNoEvent(options: ValidationOptio
   if (bookingExists) return false;
 
   // Check for duplicate form submissions
-  const hasDuplicate = await hasDuplicateSubmission(formId, responseId, responses);
+  const hasDuplicate = await hasDuplicateSubmission({ formId, responseId, responses, submittedAt });
   if (hasDuplicate) {
     return false;
   }
@@ -40,6 +41,9 @@ async function hasBooking(responseId: number): Promise<boolean> {
       routedFromRoutingFormReponse: {
         id: responseId,
       },
+    },
+    select: {
+      id: true,
     },
   });
 
@@ -60,12 +64,24 @@ export function getSubmitterEmail(responses: any) {
 /**
  * Check for duplicate form submissions within the last 60 minutes
  */
-async function hasDuplicateSubmission(formId: string, responses: any, responseId?: number): Promise<boolean> {
+async function hasDuplicateSubmission({
+  formId,
+  responses,
+  responseId,
+  submittedAt,
+}: {
+  formId: string;
+  responses: any;
+  responseId: number;
+  submittedAt?: Date;
+}): Promise<boolean> {
   const submitterEmail = getSubmitterEmail(responses);
 
   if (!submitterEmail) return false;
 
-  const sixtyMinutesAgo = new Date(Date.now() - 60 * 60 * 1000); //todo: this should actually check from the time of the form submission not just 60 munutes from now
+  const date = submittedAt ?? new Date();
+
+  const sixtyMinutesAgo = new Date(date.getTime() - 60 * 60 * 1000);
 
   const recentResponses = await prisma.app_RoutingForms_FormResponse.findMany({
     where: {
@@ -77,7 +93,13 @@ async function hasDuplicateSubmission(formId: string, responses: any, responseId
       routedToBookingUid: {
         not: null,
       },
-      ...(responseId && { NOT: { id: responseId } }),
+      NOT: {
+        id: responseId,
+      },
+    },
+    select: {
+      id: true,
+      response: true,
     },
   });
 

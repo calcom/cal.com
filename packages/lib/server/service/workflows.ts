@@ -1,12 +1,15 @@
 import dayjs from "@calcom/dayjs";
+import { FORM_TRIGGER_WORKFLOW_EVENTS } from "@calcom/ee/workflows/lib/constants";
+import { getAllWorkflows } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import type { ScheduleWorkflowRemindersArgs } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import type { timeUnitLowerCase } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import type { Workflow } from "@calcom/ee/workflows/lib/types";
 import { tasker } from "@calcom/features/tasker";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { prisma } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
-import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/trpc/utils";
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/lib/formSubmissionUtils";
 
 import { getHideBranding } from "../../hideBranding";
 import { WorkflowRepository } from "../repository/workflow";
@@ -17,6 +20,58 @@ export class WorkflowService {
     WorkflowTriggerEvents.AFTER_EVENT,
     WorkflowTriggerEvents.BEFORE_EVENT,
   ];
+
+  static async getAllWorkflowsFromRoutingForm(routingForm: {
+    id: string;
+    userId: number | null;
+    teamId: number | null;
+  }) {
+    const routingFormWorkflows = await prisma.workflow.findMany({
+      where: {
+        activeOnRoutingForms: {
+          some: {
+            routingFormId: routingForm.id,
+          },
+        },
+        trigger: {
+          in: FORM_TRIGGER_WORKFLOW_EVENTS,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        trigger: true,
+        time: true,
+        timeUnit: true,
+        userId: true,
+        teamId: true,
+        steps: true,
+        team: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+      },
+    });
+
+    const teamId = routingForm.teamId;
+    const userId = routingForm.userId;
+    const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
+
+    const allWorkflows = await getAllWorkflows({
+      entityWorkflows: routingFormWorkflows as any, // Temporary cast until Prisma client is regenerated
+      userId,
+      teamId,
+      orgId,
+      workflowsLockedForUser: false,
+      triggerType: "routingForm",
+    });
+
+    return allWorkflows;
+  }
+
   static async deleteWorkflowRemindersOfRemovedTeam(teamId: number) {
     const team = await prisma.team.findUnique({
       where: {
@@ -103,7 +158,7 @@ export class WorkflowService {
     const workflowsToTrigger: Workflow[] = [];
 
     workflowsToTrigger.push(
-      ...workflows.filter((workflow) => workflow.trigger === WorkflowTriggerEvents.FORM_SUBMITTED)
+      ...workflows.filter((workflow) => workflow.trigger === ("FORM_SUBMITTED" as any))
     );
 
     let smsReminderNumber: string | null = null;
@@ -117,7 +172,6 @@ export class WorkflowService {
       }
     }
 
-    // Get hideBranding using the new function
     const hideBranding = await getHideBranding({
       userId: form.userId,
       teamId: form.teamId ?? undefined,
@@ -139,11 +193,10 @@ export class WorkflowService {
       ...workflows.filter((workflow) => workflow.trigger === WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT)
     );
 
-    //create tasker here
     const promisesFormSubmittedNoEvent = workflowsToSchedule.map((workflow) => {
       const timeUnit: timeUnitLowerCase = (workflow.timeUnit?.toLowerCase() as timeUnitLowerCase) ?? "minute";
 
-      const scheduledAt = dayjs() //todo: remove dayjs
+      const scheduledAt = dayjs()
         .add(workflow.time ?? 15, timeUnit)
         .toDate();
 
@@ -152,6 +205,8 @@ export class WorkflowService {
         {
           responseId,
           responses,
+          smsReminderNumber,
+          hideBranding,
           form: {
             id: form.id,
             userId: form.userId,
@@ -163,6 +218,7 @@ export class WorkflowService {
             },
           },
           workflow,
+          submittedAt: new Date(),
         },
         { scheduledAt }
       );

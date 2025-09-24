@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsIn, IsNumber, IsString, ValidateNested } from "class-validator";
 
-import { TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { TimeUnit, WorkflowTriggerEvents } from "@calcom/platform-libraries";
 
 export const BEFORE_EVENT = "beforeEvent";
 export const EVENT_CANCELLED = "eventCancelled";
@@ -141,6 +141,8 @@ export class OnRejectedTriggerDto {
   @ApiProperty({
     description: "Trigger type for the workflow",
   })
+  @IsString()
+  @IsIn([BOOKING_REJECTED])
   type: typeof BOOKING_REJECTED = BOOKING_REJECTED;
 }
 
@@ -148,6 +150,8 @@ export class OnRequestedTriggerDto {
   @ApiProperty({
     description: "Trigger type for the workflow",
   })
+  @IsString()
+  @IsIn([BOOKING_REQUESTED])
   type: typeof BOOKING_REQUESTED = BOOKING_REQUESTED;
 }
 
@@ -155,6 +159,8 @@ export class OnPaymentInitiatedTriggerDto {
   @ApiProperty({
     description: "Trigger type for the workflow",
   })
+  @IsString()
+  @IsIn([BOOKING_PAYMENT_INITIATED])
   type: typeof BOOKING_PAYMENT_INITIATED = BOOKING_PAYMENT_INITIATED;
 }
 
@@ -162,6 +168,8 @@ export class OnPaidTriggerDto {
   @ApiProperty({
     description: "Trigger type for the workflow",
   })
+  @IsString()
+  @IsIn([BOOKING_PAID])
   type: typeof BOOKING_PAID = BOOKING_PAID;
 }
 
@@ -169,6 +177,8 @@ export class OnNoShowUpdateTriggerDto {
   @ApiProperty({
     description: "Trigger type for the workflow",
   })
+  @IsString()
+  @IsIn([BOOKING_NO_SHOW_UPDATED])
   type: typeof BOOKING_NO_SHOW_UPDATED = BOOKING_NO_SHOW_UPDATED;
 }
 
@@ -231,7 +241,7 @@ export class OnFormSubmittedTriggerDto {
   type: typeof FORM_SUBMITTED = FORM_SUBMITTED;
 }
 
-export class OnFormSubmittedNoEventTriggerDto {
+export class OnFormSubmittedNoEventTriggerDto extends TriggerOffsetDTO {
   @ApiProperty({
     description: "Trigger type for the workflow",
     example: FORM_SUBMITTED_NO_EVENT,

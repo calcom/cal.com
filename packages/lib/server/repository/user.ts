@@ -4,9 +4,10 @@ import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizatio
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { availabilityUserSelect } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
-import type { Prisma, User as UserType } from "@calcom/prisma/client";
+import { availabilityUserSelect } from "@calcom/prisma";
+import type { User as UserType } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole, BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -1063,6 +1064,24 @@ export class UserRepository {
             createdAt: "desc",
           },
           take: 1,
+        },
+      },
+    });
+  }
+
+  async findUserWithHideBranding({ userId }: { userId: number }) {
+    return this.prismaClient.user.findUnique({
+      where: { id: userId },
+      select: {
+        hideBranding: true,
+        profiles: {
+          select: {
+            organization: {
+              select: {
+                hideBranding: true,
+              },
+            },
+          },
         },
       },
     });

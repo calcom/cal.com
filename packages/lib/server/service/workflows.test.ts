@@ -1,7 +1,7 @@
 import { describe, expect, vi, beforeEach } from "vitest";
 
 import { tasker } from "@calcom/features/tasker";
-import { WorkflowTriggerEvents, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
+import { WorkflowTriggerEvents, WorkflowActions, WorkflowTemplates, TimeUnit } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
 import { scheduleWorkflowReminders } from "../../../features/ee/workflows/lib/reminders/reminderScheduler";
@@ -12,6 +12,11 @@ vi.mock("@calcom/features/tasker");
 
 const mockScheduleWorkflowReminders = vi.mocked(scheduleWorkflowReminders);
 const mockTasker = vi.mocked(tasker);
+
+// Mock the getHideBranding function to return false
+vi.mock("../../hideBranding", () => ({
+  getHideBranding: vi.fn().mockResolvedValue(false),
+}));
 
 describe("WorkflowService.scheduleFormWorkflows", () => {
   beforeEach(() => {
@@ -89,7 +94,7 @@ describe("WorkflowService.scheduleFormWorkflows", () => {
     });
   });
 
-  test("should create tasker for FORM_SUBMITTED_NO_EVENT triggers", async () => {
+  test("should create task for FORM_SUBMITTED_NO_EVENT triggers", async () => {
     const workflows = [
       {
         id: 2,
@@ -98,7 +103,7 @@ describe("WorkflowService.scheduleFormWorkflows", () => {
         teamId: null,
         trigger: WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT,
         time: 30,
-        timeUnit: "MINUTE",
+        timeUnit: TimeUnit.MINUTE,
         steps: [
           {
             id: 2,
@@ -111,6 +116,7 @@ describe("WorkflowService.scheduleFormWorkflows", () => {
             includeCalendarEvent: false,
             numberVerificationPending: false,
             numberRequired: false,
+            sender: null,
           },
         ],
       },
@@ -130,7 +136,19 @@ describe("WorkflowService.scheduleFormWorkflows", () => {
       {
         responseId: 123,
         responses: mockResponses,
-        formId: "form-123",
+        smsReminderNumber: "+1234567890",
+        hideBranding: false,
+        submittedAt: expect.any(Date),
+        form: {
+          id: "form-123",
+          userId: 101,
+          teamId: undefined,
+          user: {
+            email: "formowner@example.com",
+            timeFormat: 12,
+            locale: "en",
+          },
+        },
         workflow: workflows[0],
       },
       { scheduledAt: expect.any(Date) }
@@ -167,6 +185,7 @@ describe("WorkflowService.scheduleFormWorkflows", () => {
             includeCalendarEvent: false,
             numberVerificationPending: false,
             numberRequired: false,
+            sender: null,
           },
         ],
       },
