@@ -46,9 +46,9 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
     const cleaned = stripMarkdown(app.description);
     if (!cleaned) return "";
 
-    // MS Teams overflows in MID of 2nd line - need to truncate at ~1.5 lines worth
-    // Line 1: ~25 chars, Line 2 (half): ~10 chars = 35 total chars max
-    const maxChars = 35; // VERY aggressive - fits in 1.5 lines
+    // MS Teams overflows in MID of 2nd line - need to truncate at ~1.5 lines worth  
+    // Line 1: ~20 chars, Line 2 (quarter): ~5 chars = 25 total chars max
+    const maxChars = 25; // EXTREMELY aggressive - fits in 1.25 lines
     
     if (cleaned.length <= maxChars) {
       return cleaned;
@@ -57,7 +57,9 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
     // Find last word boundary within the tight limit
     const truncated = cleaned.substring(0, maxChars);
     const lastSpace = truncated.lastIndexOf(' ');
-    const finalLength = lastSpace > 10 ? lastSpace : 35; // Ensure we don't go too short
+    
+    // Use word boundary if found, otherwise use the max limit (ensuring truncation at end)
+    const finalLength = lastSpace > 10 ? lastSpace : maxChars - 3; // Reserve 3 chars for "..."
     
     return cleaned.substring(0, finalLength) + "...";
   }, [app.description]);
