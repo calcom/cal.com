@@ -431,26 +431,23 @@ async function expectValidHtmlEmbedSnippet(
 }
 
 function assertThatCodeIsValidVanillaJsCode(code: string) {
-  const lintResult = linter.verify(
-    code,
-    [
-      {
-        languageOptions: {
-          ecmaVersion: 2021,
-          sourceType: "module",
-          globals: {
-            window: "readonly",
-            document: "readonly",
-            navigator: "readonly",
-            Cal: "readonly",
-            console: "readonly",
-          },
+  const lintResult = linter.verify(code, [
+    {
+      languageOptions: {
+        ecmaVersion: 2021,
+        sourceType: "module",
+        parserOptions: { ecmaFeatures: { jsx: true } },
+        globals: {
+          window: "readonly",
+          document: "readonly",
+          navigator: "readonly",
+          Cal: "readonly",
+          console: "readonly",
         },
-        rules: eslintRules,
       },
-    ],
-    { filename: "test.js" }
-  );
+      rules: eslintRules,
+    },
+  ]);
 
   if (lintResult.length) {
     console.log(
@@ -465,33 +462,29 @@ function assertThatCodeIsValidVanillaJsCode(code: string) {
 }
 
 function assertThatCodeIsValidReactCode(code: string) {
-  const lintResult = linter.verify(
-    code,
-    [
-      {
-        languageOptions: {
-          ecmaVersion: 2021,
-          sourceType: "module",
-          parserOptions: {
-            ecmaFeatures: { jsx: true },
-          },
-          globals: {
-            window: "readonly",
-            document: "readonly",
-            navigator: "readonly",
-            console: "readonly",
-          },
+  const lintResult = linter.verify(code, [
+    {
+      languageOptions: {
+        ecmaVersion: 2021,
+        sourceType: "module",
+        parserOptions: {
+          ecmaFeatures: { jsx: true },
         },
-        rules: {
-          ...eslintRules,
-          "@typescript-eslint/no-unused-vars": "off",
-          "no-undef": "off",
-          semi: "off",
+        globals: {
+          window: "readonly",
+          document: "readonly",
+          navigator: "readonly",
+          console: "readonly",
         },
       },
-    ],
-    { filename: "test.jsx" }
-  );
+      rules: {
+        ...eslintRules,
+        "@typescript-eslint/no-unused-vars": "off",
+        "no-undef": "off",
+        semi: "off",
+      },
+    },
+  ]);
 
   if (lintResult.length) {
     console.log(
