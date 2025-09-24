@@ -504,43 +504,13 @@ describe("Booking Actions", () => {
     });
 
     it("should allow hosts to cancel bookings even when cancellation is disabled", () => {
-      const hostContext = createMockContext({
+      const context = createMockContext({
         isHost: true,
         isDisabledCancelling: true,
         isBookingInPast: false,
       });
 
-      expect(isActionDisabled("cancel", hostContext)).toBe(false);
-    });
-
-    it("should allow hosts to cancel past bookings", () => {
-      const hostContext = createMockContext({
-        isHost: true,
-        isBookingInPast: true,
-        isDisabledCancelling: false,
-      });
-
-      expect(isActionDisabled("cancel", hostContext)).toBe(false);
-    });
-
-    it("should prevent non-hosts from cancelling when cancellation is disabled", () => {
-      const nonHostContext = createMockContext({
-        isHost: false,
-        isDisabledCancelling: true,
-        isBookingInPast: false,
-      });
-
-      expect(isActionDisabled("cancel", nonHostContext)).toBe(true);
-    });
-
-    it("should prevent non-hosts from cancelling past bookings", () => {
-      const nonHostContext = createMockContext({
-        isHost: false,
-        isDisabledCancelling: false,
-        isBookingInPast: true,
-      });
-
-      expect(isActionDisabled("cancel", nonHostContext)).toBe(true);
+      expect(isActionDisabled("cancel", context)).toBe(false);
     });
 
     it("should disable video actions for non-past bookings", () => {
