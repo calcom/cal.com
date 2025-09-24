@@ -241,53 +241,56 @@ export const EventTypes = () => {
 
   return (
     <div className="bg-background min-h-screen">
-      {/* Team Tabs */}
-      <TeamTabs
-        eventTypeGroups={eventTypeGroups}
-        profiles={profiles}
-        selectedTeam={selectedTeam}
-        onTeamChange={handleTeamChange}
-      />
+      {/* Responsive Container */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* Team Tabs */}
+        <TeamTabs
+          eventTypeGroups={eventTypeGroups}
+          profiles={profiles}
+          selectedTeam={selectedTeam}
+          onTeamChange={handleTeamChange}
+        />
 
-      {/* Header with Search and New Button */}
-      <EventTypesHeader
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        currentTeam={currentTeam}
-        bookerUrl={bookerUrl}
-        copiedPublicLink={copiedPublicLink}
-        onCopyPublicLink={handleCopyPublicLink}
-        showNewDropdown={showNewDropdown}
-        onToggleNewDropdown={() => setShowNewDropdown(!showNewDropdown)}
-        onNewSelection={handleNewSelection}
-        eventTypeGroups={eventTypeGroups}
-        newDropdownRef={newDropdownRef}
-      />
+        {/* Header with Search and New Button */}
+        <EventTypesHeader
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          currentTeam={currentTeam}
+          bookerUrl={bookerUrl}
+          copiedPublicLink={copiedPublicLink}
+          onCopyPublicLink={handleCopyPublicLink}
+          showNewDropdown={showNewDropdown}
+          onToggleNewDropdown={() => setShowNewDropdown(!showNewDropdown)}
+          onNewSelection={handleNewSelection}
+          eventTypeGroups={eventTypeGroups}
+          newDropdownRef={newDropdownRef}
+        />
 
-      {/* Main Content */}
-      <EventTypesContent
-        isLoading={eventTypesQuery.isLoading && !eventTypesQuery.data}
-        filteredEvents={filteredEvents}
-        selectedTeam={selectedTeam}
-        currentTeam={currentTeam}
-        eventStates={eventStates}
-        copiedLink={copiedLink}
-        bookerUrl={bookerUrl}
-        debouncedSearchTerm={debouncedSearchTerm}
-        hasNextPage={false}
-        isFetchingNextPage={false}
-        onEventEdit={handlers.handleEventEdit}
-        onCopyLink={handleCopyLink}
-        onToggleEvent={handleToggleEvent}
-        onDuplicateEvent={handleDuplicateEvent}
-        onDeleteEvent={handleDeleteEvent}
-        onReorderEvents={handleReorderEvents}
-        onLoadMore={() => {
-          // No pagination needed for regular query
-        }}
-        onCreatePersonal={() => setIsCreateModalOpen(true)}
-        onCreateTeam={() => setIsCreateTeamModalOpen(true)}
-      />
+        {/* Main Content */}
+        <EventTypesContent
+          isLoading={eventTypesQuery.isLoading && !eventTypesQuery.data}
+          filteredEvents={filteredEvents}
+          selectedTeam={selectedTeam}
+          currentTeam={currentTeam}
+          eventStates={eventStates}
+          copiedLink={copiedLink}
+          bookerUrl={bookerUrl}
+          debouncedSearchTerm={debouncedSearchTerm}
+          hasNextPage={false}
+          isFetchingNextPage={false}
+          onEventEdit={handlers.handleEventEdit}
+          onCopyLink={handleCopyLink}
+          onToggleEvent={handleToggleEvent}
+          onDuplicateEvent={handleDuplicateEvent}
+          onDeleteEvent={handleDeleteEvent}
+          onReorderEvents={handleReorderEvents}
+          onLoadMore={() => {
+            // No pagination needed for regular query
+          }}
+          onCreatePersonal={() => setIsCreateModalOpen(true)}
+          onCreateTeam={() => setIsCreateTeamModalOpen(true)}
+        />
+      </div>
 
       {/* Modals */}
       <CreateEventModal

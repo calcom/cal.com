@@ -409,180 +409,182 @@ const SettingsSidebarContainer = ({
       )}
       aria-label={t("settings_navigation")}>
       <>
-        <Logo className="my-4 px-2" small icon />
-        <BackButtonInSidebar name={t("back")} />
-        {tabsWithPermissions.map((tab) => {
-          return (
-            <React.Fragment key={tab.href}>
-              {!["teams", "other_teams"].includes(tab.name) && (
-                <React.Fragment key={tab.href}>
-                  <div className={`${!tab.children?.length ? "!mb-3" : ""}`}>
-                    <div className="[&[aria-current='page']]:bg-emphasis text-default group flex h-7 w-full flex-row items-end rounded-md px-2 text-sm font-medium leading-none [&[aria-current='page']]:text-white">
-                      <Skeleton
-                        title={tab.name}
-                        as="p"
-                        className="text-emphasis truncate text-sm font-medium leading-5"
-                        loadingClassName="ms-3">
-                        {t(tab.name)}
-                      </Skeleton>
-                    </div>
-                  </div>
-                  <div className="my-3 space-y-1">
-                    {tab.children?.map((child, index) => (
-                      <VerticalTabItem
-                        icon={child.icon}
-                        key={child.href}
-                        name={t(child.name)}
-                        isExternalLink={child.isExternalLink}
-                        href={child.href || "/"}
-                        textClassNames="text-default font-medium text-sm"
-                        className={` h-7 w-auto px-2 py-4 ${
-                          tab.children && index === tab.children?.length - 1 && "!mb-3"
-                        }`}
-                        disableChevron
-                      />
-                    ))}
-                  </div>
-                </React.Fragment>
-              )}
-
-              {tab.name === "teams" && (
-                <React.Fragment key={tab.href}>
-                  <div data-testid="tab-teams" className={`${!tab.children?.length ? "mb-3" : ""}`}>
-                    <div className="text-default group-hover:text-default group flex h-7 w-full flex-row items-center px-2 py-[10px] text-sm font-medium leading-none transition">
-                      <Skeleton
-                        title={tab.name}
-                        as="p"
-                        className="text-emphasis truncate text-sm font-medium leading-5"
-                        loadingClassName="ms-3">
-                        {t(isOrgAdminOrOwner ? "my_teams" : tab.name)}
-                      </Skeleton>
-                    </div>
-                    <TeamListCollapsible teamFeatures={teamFeatures} />
-                    {(!orgBranding?.id || isOrgAdminOrOwner) && (
-                      <VerticalTabItem
-                        name={t("add_a_team")}
-                        href={`${WEBAPP_URL}/settings/teams/new`}
-                        textClassNames="px-2 py-1.5 items-center text-default font-medium text-sm mb-3"
-                        icon="plus"
-                        disableChevron
-                      />
-                    )}
-                  </div>
-                </React.Fragment>
-              )}
-
-              {tab.name === "other_teams" && (
-                <React.Fragment key={tab.href}>
-                  <div className={`${!tab.children?.length ? "mb-3" : ""}`}>
-                    <Link href={tab.href}>
-                      <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-sm font-medium leading-none transition [&[aria-current='page']]:text-white">
-                        {tab && tab.icon && (
-                          <Icon
-                            name={tab.icon}
-                            className="text-subtle h-[16px] w-[16px] stroke-[2px] md:mt-0 ltr:mr-3 rtl:ml-3"
-                          />
-                        )}
+        <Logo className="mb-4 mt-6 px-2" small icon />
+        <div style={{ marginTop: "32px" }}>
+          <BackButtonInSidebar name={t("back")} />
+          {tabsWithPermissions.map((tab) => {
+            return (
+              <React.Fragment key={tab.href}>
+                {!["teams", "other_teams"].includes(tab.name) && (
+                  <React.Fragment key={tab.href}>
+                    <div className={`${!tab.children?.length ? "!mb-3" : ""}`}>
+                      <div className="[&[aria-current='page']]:bg-emphasis text-default group flex h-7 w-full flex-row items-end rounded-md px-2 text-sm font-medium leading-none [&[aria-current='page']]:text-white">
                         <Skeleton
-                          title={t("org_admin_other_teams")}
+                          title={tab.name}
                           as="p"
-                          className="text-subtle truncate text-sm font-medium leading-5"
+                          className="text-emphasis truncate text-sm font-medium leading-5"
                           loadingClassName="ms-3">
-                          {t("org_admin_other_teams")}
+                          {t(tab.name)}
                         </Skeleton>
                       </div>
-                    </Link>
-                    {otherTeams &&
-                      otherTeamMenuState &&
-                      otherTeams.map((otherTeam, index: number) => {
-                        if (!otherTeamMenuState[index]) {
-                          return null;
-                        }
-                        if (otherTeamMenuState.some((teamState) => teamState.teamId === otherTeam.id))
-                          return (
-                            <Collapsible
-                              className="cursor-pointer"
-                              key={otherTeam.id}
-                              open={otherTeamMenuState[index].teamMenuOpen}
-                              onOpenChange={(open) => {
-                                const newOtherTeamMenuState = [...otherTeamMenuState];
-                                newOtherTeamMenuState[index] = {
-                                  ...newOtherTeamMenuState[index],
-                                  teamMenuOpen: open,
-                                };
-                                setOtherTeamMenuState(newOtherTeamMenuState);
-                              }}>
-                              <CollapsibleTrigger asChild>
-                                <button
-                                  className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition [&[aria-current='page']]:text-white"
-                                  aria-controls={`other-team-content-${otherTeam.id}`}
-                                  aria-expanded={otherTeamMenuState[index].teamMenuOpen}
-                                  onClick={() => {
-                                    const newOtherTeamMenuState = [...otherTeamMenuState];
-                                    newOtherTeamMenuState[index] = {
-                                      ...newOtherTeamMenuState[index],
-                                      teamMenuOpen: !otherTeamMenuState[index].teamMenuOpen,
-                                    };
-                                    setOtherTeamMenuState(newOtherTeamMenuState);
-                                  }}
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter" || e.key === " ") {
-                                      e.preventDefault();
+                    </div>
+                    <div className="my-3 space-y-1">
+                      {tab.children?.map((child, index) => (
+                        <VerticalTabItem
+                          icon={child.icon}
+                          key={child.href}
+                          name={t(child.name)}
+                          isExternalLink={child.isExternalLink}
+                          href={child.href || "/"}
+                          textClassNames="text-default font-medium text-sm"
+                          className={` h-7 w-auto px-2 py-4 ${
+                            tab.children && index === tab.children?.length - 1 && "!mb-3"
+                          }`}
+                          disableChevron
+                        />
+                      ))}
+                    </div>
+                  </React.Fragment>
+                )}
+
+                {tab.name === "teams" && (
+                  <React.Fragment key={tab.href}>
+                    <div data-testid="tab-teams" className={`${!tab.children?.length ? "mb-3" : ""}`}>
+                      <div className="text-default group-hover:text-default group flex h-7 w-full flex-row items-center px-2 py-[10px] text-sm font-medium leading-none transition">
+                        <Skeleton
+                          title={tab.name}
+                          as="p"
+                          className="text-emphasis truncate text-sm font-medium leading-5"
+                          loadingClassName="ms-3">
+                          {t(isOrgAdminOrOwner ? "my_teams" : tab.name)}
+                        </Skeleton>
+                      </div>
+                      <TeamListCollapsible teamFeatures={teamFeatures} />
+                      {(!orgBranding?.id || isOrgAdminOrOwner) && (
+                        <VerticalTabItem
+                          name={t("add_a_team")}
+                          href={`${WEBAPP_URL}/settings/teams/new`}
+                          textClassNames="px-2 py-1.5 items-center text-default font-medium text-sm mb-3"
+                          icon="plus"
+                          disableChevron
+                        />
+                      )}
+                    </div>
+                  </React.Fragment>
+                )}
+
+                {tab.name === "other_teams" && (
+                  <React.Fragment key={tab.href}>
+                    <div className={`${!tab.children?.length ? "mb-3" : ""}`}>
+                      <Link href={tab.href}>
+                        <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-sm font-medium leading-none transition [&[aria-current='page']]:text-white">
+                          {tab && tab.icon && (
+                            <Icon
+                              name={tab.icon}
+                              className="text-subtle h-[16px] w-[16px] stroke-[2px] md:mt-0 ltr:mr-3 rtl:ml-3"
+                            />
+                          )}
+                          <Skeleton
+                            title={t("org_admin_other_teams")}
+                            as="p"
+                            className="text-subtle truncate text-sm font-medium leading-5"
+                            loadingClassName="ms-3">
+                            {t("org_admin_other_teams")}
+                          </Skeleton>
+                        </div>
+                      </Link>
+                      {otherTeams &&
+                        otherTeamMenuState &&
+                        otherTeams.map((otherTeam, index: number) => {
+                          if (!otherTeamMenuState[index]) {
+                            return null;
+                          }
+                          if (otherTeamMenuState.some((teamState) => teamState.teamId === otherTeam.id))
+                            return (
+                              <Collapsible
+                                className="cursor-pointer"
+                                key={otherTeam.id}
+                                open={otherTeamMenuState[index].teamMenuOpen}
+                                onOpenChange={(open) => {
+                                  const newOtherTeamMenuState = [...otherTeamMenuState];
+                                  newOtherTeamMenuState[index] = {
+                                    ...newOtherTeamMenuState[index],
+                                    teamMenuOpen: open,
+                                  };
+                                  setOtherTeamMenuState(newOtherTeamMenuState);
+                                }}>
+                                <CollapsibleTrigger asChild>
+                                  <button
+                                    className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition [&[aria-current='page']]:text-white"
+                                    aria-controls={`other-team-content-${otherTeam.id}`}
+                                    aria-expanded={otherTeamMenuState[index].teamMenuOpen}
+                                    onClick={() => {
                                       const newOtherTeamMenuState = [...otherTeamMenuState];
                                       newOtherTeamMenuState[index] = {
                                         ...newOtherTeamMenuState[index],
                                         teamMenuOpen: !otherTeamMenuState[index].teamMenuOpen,
                                       };
                                       setOtherTeamMenuState(newOtherTeamMenuState);
-                                    }
-                                  }}
-                                  aria-label={`${otherTeam.name} ${
-                                    otherTeamMenuState[index].teamMenuOpen
-                                      ? t("collapse_menu")
-                                      : t("expand_menu")
-                                  }`}>
-                                  <div className="me-3">
-                                    {otherTeamMenuState[index].teamMenuOpen ? (
-                                      <Icon name="chevron-down" className="h-4 w-4" />
-                                    ) : (
-                                      <Icon name="chevron-right" className="h-4 w-4" />
+                                    }}
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter" || e.key === " ") {
+                                        e.preventDefault();
+                                        const newOtherTeamMenuState = [...otherTeamMenuState];
+                                        newOtherTeamMenuState[index] = {
+                                          ...newOtherTeamMenuState[index],
+                                          teamMenuOpen: !otherTeamMenuState[index].teamMenuOpen,
+                                        };
+                                        setOtherTeamMenuState(newOtherTeamMenuState);
+                                      }
+                                    }}
+                                    aria-label={`${otherTeam.name} ${
+                                      otherTeamMenuState[index].teamMenuOpen
+                                        ? t("collapse_menu")
+                                        : t("expand_menu")
+                                    }`}>
+                                    <div className="me-3">
+                                      {otherTeamMenuState[index].teamMenuOpen ? (
+                                        <Icon name="chevron-down" className="h-4 w-4" />
+                                      ) : (
+                                        <Icon name="chevron-right" className="h-4 w-4" />
+                                      )}
+                                    </div>
+                                    {!otherTeam.parentId && (
+                                      <img
+                                        src={getDefaultAvatar(otherTeam.logoUrl, otherTeam.name)}
+                                        className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] md:mt-0 ltr:mr-2 rtl:ml-2"
+                                        alt={otherTeam.name || "Team logo"}
+                                      />
                                     )}
-                                  </div>
-                                  {!otherTeam.parentId && (
-                                    <img
-                                      src={getDefaultAvatar(otherTeam.logoUrl, otherTeam.name)}
-                                      className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] md:mt-0 ltr:mr-2 rtl:ml-2"
-                                      alt={otherTeam.name || "Team logo"}
-                                    />
-                                  )}
-                                  <p className="w-1/2 truncate leading-normal">{otherTeam.name}</p>
-                                </button>
-                              </CollapsibleTrigger>
-                              <CollapsibleContent
-                                className="space-y-0.5"
-                                id={`other-team-content-${otherTeam.id}`}>
-                                <VerticalTabItem
-                                  name={t("profile")}
-                                  href={`/settings/organizations/teams/other/${otherTeam.id}/profile`}
-                                  textClassNames="px-3 text-emphasis font-medium text-sm"
-                                  disableChevron
-                                />
-                                <VerticalTabItem
-                                  name={t("members")}
-                                  href={`/settings/organizations/teams/other/${otherTeam.id}/members`}
-                                  textClassNames="px-3 text-emphasis font-medium text-sm"
-                                  disableChevron
-                                />
-                              </CollapsibleContent>
-                            </Collapsible>
-                          );
-                      })}
-                  </div>
-                </React.Fragment>
-              )}
-            </React.Fragment>
-          );
-        })}
+                                    <p className="w-1/2 truncate leading-normal">{otherTeam.name}</p>
+                                  </button>
+                                </CollapsibleTrigger>
+                                <CollapsibleContent
+                                  className="space-y-0.5"
+                                  id={`other-team-content-${otherTeam.id}`}>
+                                  <VerticalTabItem
+                                    name={t("profile")}
+                                    href={`/settings/organizations/teams/other/${otherTeam.id}/profile`}
+                                    textClassNames="px-3 text-emphasis font-medium text-sm"
+                                    disableChevron
+                                  />
+                                  <VerticalTabItem
+                                    name={t("members")}
+                                    href={`/settings/organizations/teams/other/${otherTeam.id}/members`}
+                                    textClassNames="px-3 text-emphasis font-medium text-sm"
+                                    disableChevron
+                                  />
+                                </CollapsibleContent>
+                              </Collapsible>
+                            );
+                        })}
+                    </div>
+                  </React.Fragment>
+                )}
+              </React.Fragment>
+            );
+          })}
+        </div>
       </>
     </nav>
   );
