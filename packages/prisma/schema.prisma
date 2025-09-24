@@ -423,9 +423,9 @@ model User {
   verifiedEmails       VerifiedEmail[]
   hosts                Host[]
   // organizationId is deprecated. Instead, rely on the Profile to search profiles by organizationId and then get user from the profile.
-  organizationId       Int?
-  organization         Team?                   @relation("scope", fields: [organizationId], references: [id], onDelete: SetNull)
-  accessCodes          AccessCode[]
+  organizationId         Int?
+  organization           Team?                   @relation("scope", fields: [organizationId], references: [id], onDelete: SetNull)
+  accessCodes            AccessCode[]
   bookingRedirects     OutOfOfficeEntry[]
   bookingRedirectsTo   OutOfOfficeEntry[]      @relation(name: "toUser")
 
@@ -433,7 +433,7 @@ model User {
   locked                         Boolean                       @default(false)
   platformOAuthClients           PlatformOAuthClient[]
   AccessToken                    AccessToken[]
-  RefreshToken                   RefreshToken[]
+
   PlatformAuthorizationToken     PlatformAuthorizationToken[]
   profiles                       Profile[]
   movedToProfileId               Int?
@@ -1882,7 +1882,7 @@ model PlatformOAuthClient {
   teams          Team[]   @relation("CreatedByOAuthClient")
 
   accessTokens        AccessToken[]
-  refreshToken        RefreshToken[]
+
   authorizationTokens PlatformAuthorizationToken[]
   webhook             Webhook[]
 
@@ -1924,19 +1924,7 @@ model AccessToken {
   userId                Int
 }
 
-model RefreshToken {
-  id Int @id @default(autoincrement())
 
-  secret    String   @unique
-  createdAt DateTime @default(now())
-  expiresAt DateTime
-
-  owner  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  client PlatformOAuthClient @relation(fields: [platformOAuthClientId], references: [id], onDelete: Cascade)
-
-  platformOAuthClientId String
-  userId                Int
-}
 
 model DSyncData {
   id               Int                     @id @default(autoincrement())
