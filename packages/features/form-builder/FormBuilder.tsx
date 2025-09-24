@@ -756,6 +756,12 @@ function FieldEditDialog({
                             isMulti
                             isSearchable
                             options={getCountryOptions()}
+                            menuPortalTarget={document.body}
+                            menuPosition="fixed"
+                            menuPlacement="auto"
+                            styles={{
+                              menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                            }}
                             value={
                               field.value?.map((code: string) => ({
                                 label: getCountryLabel(code),
