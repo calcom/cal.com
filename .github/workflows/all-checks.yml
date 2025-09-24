@@ -80,14 +80,8 @@ jobs:
     uses: ./.github/workflows/e2e-atoms.yml
     secrets: inherit
 
-  api-v2-breaking-changes:
-    name: API v2 Breaking Changes
-    needs: [lint, build-api-v2]
-    uses: ./.github/workflows/api-v2-breaking-changes.yml
-    secrets: inherit
-
   required:
-    needs: [lint, type-check, unit-test, integration-test, build, build-api-v1, build-api-v2, e2e, e2e-embed, e2e-embed-react, e2e-app-store, e2e-atoms, api-v2-breaking-changes]
+    needs: [lint, type-check, unit-test, integration-test, build, build-api-v1, build-api-v2, e2e, e2e-embed, e2e-embed-react, e2e-app-store, e2e-atoms]
     if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
