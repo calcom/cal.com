@@ -189,6 +189,8 @@ function BookingListItem(booking: BookingItemProps) {
 
   const isAttendee = !!userSeat;
 
+  const isHost = booking.loggedInUser.userId === booking.user?.id;
+
   const paymentAppData = getPaymentAppData(booking.eventType);
 
   const location = booking.location as ReturnType<typeof getEventLocationValue>;
@@ -253,6 +255,7 @@ function BookingListItem(booking: BookingItemProps) {
     showPendingPayment: paymentAppData.enabled && booking.payment.length && !booking.paid,
     isAttendee,
     cardCharged,
+    isHost,
     attendeeList,
     getSeatReferenceUid,
     t,

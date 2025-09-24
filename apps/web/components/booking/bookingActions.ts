@@ -23,6 +23,7 @@ export interface BookingActionContext {
   showPendingPayment: boolean;
   isAttendee: boolean;
   cardCharged: boolean;
+  isHost?: boolean;
   attendeeList: Array<{
     name: string;
     email: string;
@@ -204,14 +205,22 @@ export function shouldShowRecurringCancelAction(context: BookingActionContext): 
 }
 
 export function isActionDisabled(actionId: string, context: BookingActionContext): boolean {
-  const { booking, isBookingInPast, isDisabledRescheduling, isDisabledCancelling, isPending, isConfirmed } =
-    context;
+  const {
+    booking,
+    isBookingInPast,
+    isDisabledRescheduling,
+    isDisabledCancelling,
+    isPending: _isPending,
+    isConfirmed: _isConfirmed,
+    isHost,
+  } = context;
 
   switch (actionId) {
     case "reschedule":
     case "reschedule_request":
       return (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling;
     case "cancel":
+      if (isHost) return false;
       return isDisabledCancelling || isBookingInPast;
     case "view_recordings":
       return !(isBookingInPast && booking.status === BookingStatus.ACCEPTED && context.isCalVideoLocation);
@@ -225,7 +234,7 @@ export function isActionDisabled(actionId: string, context: BookingActionContext
 }
 
 export function getActionLabel(actionId: string, context: BookingActionContext): string {
-  const { booking, isTabRecurring, isRecurring, attendeeList, cardCharged, t } = context;
+  const { booking: _booking, isTabRecurring, isRecurring, attendeeList, cardCharged, t } = context;
 
   switch (actionId) {
     case "reject":
