@@ -221,11 +221,11 @@ describe("_onFormSubmission", () => {
         },
       ];
 
-      vi.mocked(getAllWorkflowsFromRoutingForm).mockResolvedValueOnce(mockWorkflows as any);
+      vi.mocked(WorkflowService.getAllWorkflowsFromRoutingForm).mockResolvedValueOnce(mockWorkflows as any);
 
       await _onFormSubmission(mockForm as any, mockResponse, responseId);
 
-      expect(getAllWorkflowsFromRoutingForm).toHaveBeenCalledWith(mockForm);
+      expect(WorkflowService.getAllWorkflowsFromRoutingForm).toHaveBeenCalledWith(mockForm);
       expect(WorkflowService.scheduleFormWorkflows).toHaveBeenCalledWith({
         workflows: mockWorkflows,
         responses: {
