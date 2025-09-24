@@ -335,7 +335,7 @@ async function clickEmbedButton(page: Page) {
   const embedButton = page.locator("[data-testid=embed]");
   const embedUrl = await embedButton.getAttribute("data-test-embed-url");
   embedButton.click();
-   
+
   return embedUrl!;
 }
 
@@ -455,16 +455,28 @@ function assertThatCodeIsValidVanillaJsCode(code: string) {
 }
 
 function assertThatCodeIsValidReactCode(code: string) {
-  const lintResult = linter.verify(code, {
-    languageOptions: {
-      ecmaVersion: 2021,
-      parser: parser,
-      globals: {
-        browser: true,
+  const lintResult = linter.verify(
+    code,
+    [
+      {
+        languageOptions: {
+          ecmaVersion: 2021,
+          sourceType: "module",
+          parserOptions: {
+            ecmaFeatures: { jsx: true },
+          },
+          globals: {
+            window: "readonly",
+            document: "readonly",
+            navigator: "readonly",
+          },
+        },
+        rules: eslintRules,
       },
-    },
-    rules: eslintRules,
-  });
+    ],
+    { filename: "test.jsx" } // ajuda o parser a saber que é JSX
+  );
+
   if (lintResult.length) {
     console.log(
       JSON.stringify({
@@ -473,6 +485,7 @@ function assertThatCodeIsValidReactCode(code: string) {
       })
     );
   }
+
   expect(lintResult.length).toBe(0);
 }
 
