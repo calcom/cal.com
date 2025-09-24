@@ -79,12 +79,16 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
   const userTimezone = useMemo(() => {
     return extractHostTimezone({
       userId: event.userId,
-      teamId: event.calIdTeam?.id || event.teamId,
+      teamId: event.calIdTeam?.id || null,
       hosts: event.hosts,
       owner: event.owner,
-      team: event.calIdTeam || event.team,
+      team: event.calIdTeam,
     });
   }, [event]);
+
+  if (event.slug === "collaborative-evaluation") {
+    console.log("here", currentIconParams);
+  }
 
   // Handle private links
   const activeHashedLinks = useMemo(() => {
