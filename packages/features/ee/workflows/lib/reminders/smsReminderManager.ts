@@ -213,7 +213,7 @@ const scheduleSMSReminderForEvt = async (
         ) || message;
     }
 
-    if (smsMessage.length > 0) {
+    if (smsMessage.trim().length > 0) {
       const smsMessageWithoutOptOut = await WorkflowOptOutService.addOptOutMessage(
         smsMessage,
         evt.organizer.language.locale
@@ -320,7 +320,7 @@ const scheduleSMSReminderForForm = async (
 
   const smsMessage = message;
 
-  if (smsMessage.length > 0) {
+  if (smsMessage.trim().length > 0) {
     const smsMessageWithoutOptOut = await WorkflowOptOutService.addOptOutMessage(
       smsMessage,
       formData.user.locale
