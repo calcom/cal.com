@@ -290,7 +290,7 @@ export const fieldTypesSchemaMap: Partial<
 
       // Validate that it's a valid date
       const date = new Date(value);
-      if (isNaN(date.getTime()) || date.toISOString().split("T")[0] !== value) {
+      if (isNaN(date.getTime()) || date.toISOString().split('T')[0] !== value) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: m("invalid_date"),
