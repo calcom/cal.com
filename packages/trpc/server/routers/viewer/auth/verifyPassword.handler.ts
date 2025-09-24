@@ -1,4 +1,4 @@
-import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
+import { verifyCalPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -20,11 +20,15 @@ export const verifyPasswordHandler = async ({ input, ctx }: VerifyPasswordOption
     },
   });
 
-  if (!userPassword?.hash) {
+  if (!userPassword?.hash || !userPassword.salt) {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
-
-  const passwordsMatch = await verifyPassword(input.passwordInput, userPassword.hash);
+  const passwordsMatch = verifyCalPassword({
+    inputPassword: input.passwordInput,
+    storedHashBase64: userPassword.hash,
+    saltBase64: userPassword.salt,
+    iterations: 27500,
+  });
 
   if (!passwordsMatch) {
     throw new TRPCError({ code: "UNAUTHORIZED" });

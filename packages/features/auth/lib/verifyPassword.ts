@@ -7,7 +7,7 @@ export async function verifyPassword(password: string, hashedPassword: string) {
 }
 
 //password checking algo for users migrated from keycloak
-export function verifyKeycloakPassword({
+export function verifyCalPassword({
   inputPassword,
   storedHashBase64,
   saltBase64,
