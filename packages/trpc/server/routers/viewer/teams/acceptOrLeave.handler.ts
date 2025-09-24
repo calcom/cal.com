@@ -1,5 +1,5 @@
 import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
-import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries/teams";
+import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 

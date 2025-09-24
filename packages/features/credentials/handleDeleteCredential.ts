@@ -14,7 +14,7 @@ import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/sc
 import { buildNonDelegationCredential } from "@calcom/lib/delegationCredential/server";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-import { DailyLocationType } from "@calcom/lib/location";
+import { DailyLocationType } from "@calcom/app-store/locations";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { bookingMinimalSelect, prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";

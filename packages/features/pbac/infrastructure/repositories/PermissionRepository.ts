@@ -94,6 +94,16 @@ export class PermissionRepository implements IPermissionRepository {
     });
   }
 
+  async getTeamById(teamId: number) {
+    return this.client.team.findUnique({
+      where: { id: teamId },
+      select: {
+        id: true,
+        parentId: true,
+      },
+    });
+  }
+
   async checkRolePermission(roleId: string, permission: PermissionString): Promise<boolean> {
     const { resource, action } = parsePermissionString(permission);
     const hasPermission = await this.client.rolePermission.findFirst({
