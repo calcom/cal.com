@@ -221,4 +221,89 @@ describe("FeaturesServiceCachingProxy", () => {
       expect(mockRedisService.get).toHaveBeenCalledWith("feature:global:emails");
     });
   });
+
+  describe("invalidateCache", () => {
+    beforeEach(() => {
+      mockRedisService.scan = vi.fn();
+      mockRedisService.deleteMany = vi.fn();
+    });
+
+    it("should invalidate global cache pattern", async () => {
+      mockRedisService.scan = vi
+        .fn()
+        .mockResolvedValueOnce(["100", ["test:feature:global:emails", "test:feature:global:teams"]])
+        .mockResolvedValueOnce(["0", ["test:feature:global:webhooks"]]);
+      mockRedisService.deleteMany = vi.fn().mockResolvedValue(3);
+
+      await cachingProxy.invalidateCache("global");
+
+      expect(mockRedisService.scan).toHaveBeenCalledTimes(2);
+      expect(mockRedisService.scan).toHaveBeenNthCalledWith(1, "0", {
+        match: "test:feature:global:*",
+        count: 10,
+      });
+      expect(mockRedisService.scan).toHaveBeenNthCalledWith(2, "100", {
+        match: "test:feature:global:*",
+        count: 10,
+      });
+      expect(mockRedisService.deleteMany).toHaveBeenCalledWith([
+        "test:feature:global:emails",
+        "test:feature:global:teams",
+        "test:feature:global:webhooks",
+      ]);
+    });
+
+    it("should invalidate user cache pattern", async () => {
+      mockRedisService.scan = vi
+        .fn()
+        .mockResolvedValue(["0", ["test:feature:user:123:emails", "test:feature:user:123:teams"]]);
+      mockRedisService.deleteMany = vi.fn().mockResolvedValue(2);
+
+      await cachingProxy.invalidateCache("user", 123);
+
+      expect(mockRedisService.scan).toHaveBeenCalledWith("0", {
+        match: "test:feature:user:123:*",
+        count: 10,
+      });
+      expect(mockRedisService.deleteMany).toHaveBeenCalledWith([
+        "test:feature:user:123:emails",
+        "test:feature:user:123:teams",
+      ]);
+    });
+
+    it("should invalidate team cache pattern", async () => {
+      mockRedisService.scan = vi.fn().mockResolvedValue(["0", ["test:feature:team:456:webhooks"]]);
+      mockRedisService.deleteMany = vi.fn().mockResolvedValue(1);
+
+      await cachingProxy.invalidateCache("team", 456);
+
+      expect(mockRedisService.scan).toHaveBeenCalledWith("0", {
+        match: "test:feature:team:456:*",
+        count: 10,
+      });
+      expect(mockRedisService.deleteMany).toHaveBeenCalledWith(["test:feature:team:456:webhooks"]);
+    });
+
+    it("should throw error when user ID is missing", async () => {
+      await expect(cachingProxy.invalidateCache("user")).rejects.toThrow(
+        "User ID required for user cache invalidation"
+      );
+    });
+
+    it("should throw error when team ID is missing", async () => {
+      await expect(cachingProxy.invalidateCache("team")).rejects.toThrow(
+        "Team ID required for team cache invalidation"
+      );
+    });
+
+    it("should handle empty scan results", async () => {
+      mockRedisService.scan = vi.fn().mockResolvedValue(["0", []]);
+      mockRedisService.deleteMany = vi.fn();
+
+      await cachingProxy.invalidateCache("global");
+
+      expect(mockRedisService.scan).toHaveBeenCalled();
+      expect(mockRedisService.deleteMany).not.toHaveBeenCalled();
+    });
+  });
 });
