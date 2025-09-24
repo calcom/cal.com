@@ -1872,9 +1872,9 @@ model Avatar {
   isBanner  Boolean @default(false)
   isFavicon Boolean @default(false)
 
-  // @@unique([teamId, userId, isHeader])
-  // @@unique([teamId, userId, isFavicon])
-  @@unique([teamId, userId, isBanner, isFavicon, isHeader])
+  @@unique([teamId, userId, isHeader])
+  @@unique([teamId, userId, isFavicon])
+  @@unique([teamId, userId, isBanner])
   @@map(name: "avatars")
 }
 
@@ -2652,7 +2652,6 @@ model CalIdWorkflowStep {
   numberVerificationPending Boolean                 @default(true)
   includeCalendarEvent      Boolean                 @default(false)
   verifiedAt                DateTime?
-
   @@index([workflowId])
 }
 
