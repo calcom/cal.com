@@ -175,7 +175,11 @@ export function UserPage(props: PageProps) {
                 <div className="block w-full px-2 py-4">
                   <div className="mb-2 flex flex-row items-center gap-2">
                     <div className="self-start p-2">
-                      <Icon name={iconParams.icon} className="h-6 w-6" style={{ color: iconParams.color }} />
+                      <Icon
+                        name={iconParams?.icon?.toLowerCase() as IconName}
+                        className="h-6 w-6"
+                        style={{ color: iconParams.color }}
+                      />
                     </div>
                     <div className="mr-20">
                       <h3 className="text-default text-base font-semibold">{type.title}</h3>
