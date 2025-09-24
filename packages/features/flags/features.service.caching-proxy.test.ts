@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import type { IRedisService } from "../redis/IRedisService.d";
+import type { AppFlags } from "./config";
 import { FeaturesServiceCachingProxy } from "./features.service.caching-proxy";
 import type { IFeaturesService } from "./features.service.interface";
 
@@ -19,6 +20,8 @@ const mockRedisService: IRedisService = {
   lrange: vi.fn(),
   lpush: vi.fn(),
   del: vi.fn(),
+  scan: vi.fn(),
+  deleteMany: vi.fn(),
 };
 
 describe("FeaturesServiceCachingProxy", () => {
@@ -35,7 +38,7 @@ describe("FeaturesServiceCachingProxy", () => {
 
   describe("checkIfFeatureIsEnabledGlobally", () => {
     it("should return cached result when cache hit", async () => {
-      const slug = "test-feature" as any;
+      const slug = "emails" as keyof AppFlags;
       const cachedResult = true;
 
       mockRedisService.get = vi.fn().mockResolvedValue(cachedResult);
@@ -43,12 +46,12 @@ describe("FeaturesServiceCachingProxy", () => {
       const result = await cachingProxy.checkIfFeatureIsEnabledGlobally(slug);
 
       expect(result).toBe(cachedResult);
-      expect(mockRedisService.get).toHaveBeenCalledWith("test:feature:global:test-feature");
+      expect(mockRedisService.get).toHaveBeenCalledWith("test:feature:global:emails");
       expect(mockTargetService.checkIfFeatureIsEnabledGlobally).not.toHaveBeenCalled();
     });
 
     it("should call target service and cache result on cache miss", async () => {
-      const slug = "test-feature" as any;
+      const slug = "emails" as keyof AppFlags;
       const serviceResult = false;
 
       mockRedisService.get = vi.fn().mockResolvedValue(null);
@@ -58,15 +61,15 @@ describe("FeaturesServiceCachingProxy", () => {
       const result = await cachingProxy.checkIfFeatureIsEnabledGlobally(slug);
 
       expect(result).toBe(serviceResult);
-      expect(mockRedisService.get).toHaveBeenCalledWith("test:feature:global:test-feature");
+      expect(mockRedisService.get).toHaveBeenCalledWith("test:feature:global:emails");
       expect(mockTargetService.checkIfFeatureIsEnabledGlobally).toHaveBeenCalledWith(slug);
-      expect(mockRedisService.set).toHaveBeenCalledWith("test:feature:global:test-feature", serviceResult, {
+      expect(mockRedisService.set).toHaveBeenCalledWith("test:feature:global:emails", serviceResult, {
         ttl: 5 * 60 * 1000,
       });
     });
 
     it("should handle cache read errors gracefully", async () => {
-      const slug = "test-feature" as any;
+      const slug = "emails" as keyof AppFlags;
       const serviceResult = true;
 
       mockRedisService.get = vi.fn().mockRejectedValue(new Error("Redis connection failed"));
@@ -80,7 +83,7 @@ describe("FeaturesServiceCachingProxy", () => {
     });
 
     it("should handle cache write errors gracefully", async () => {
-      const slug = "test-feature" as any;
+      const slug = "emails" as keyof AppFlags;
       const serviceResult = true;
 
       mockRedisService.get = vi.fn().mockResolvedValue(null);
@@ -131,7 +134,7 @@ describe("FeaturesServiceCachingProxy", () => {
   describe("checkIfTeamHasFeature", () => {
     it("should return cached result when cache hit", async () => {
       const teamId = 456;
-      const slug = "team-feature" as any;
+      const slug = "webhooks" as keyof AppFlags;
       const cachedResult = true;
 
       mockRedisService.get = vi.fn().mockResolvedValue(cachedResult);
@@ -139,13 +142,13 @@ describe("FeaturesServiceCachingProxy", () => {
       const result = await cachingProxy.checkIfTeamHasFeature(teamId, slug);
 
       expect(result).toBe(cachedResult);
-      expect(mockRedisService.get).toHaveBeenCalledWith("test:feature:team:456:team-feature");
+      expect(mockRedisService.get).toHaveBeenCalledWith("test:feature:team:456:webhooks");
       expect(mockTargetService.checkIfTeamHasFeature).not.toHaveBeenCalled();
     });
 
     it("should call target service and cache result on cache miss", async () => {
       const teamId = 456;
-      const slug = "team-feature" as any;
+      const slug = "webhooks" as keyof AppFlags;
       const serviceResult = true;
 
       mockRedisService.get = vi.fn().mockResolvedValue(null);
@@ -156,7 +159,7 @@ describe("FeaturesServiceCachingProxy", () => {
 
       expect(result).toBe(serviceResult);
       expect(mockTargetService.checkIfTeamHasFeature).toHaveBeenCalledWith(teamId, slug);
-      expect(mockRedisService.set).toHaveBeenCalledWith("test:feature:team:456:team-feature", serviceResult, {
+      expect(mockRedisService.set).toHaveBeenCalledWith("test:feature:team:456:webhooks", serviceResult, {
         ttl: 5 * 60 * 1000,
       });
     });
@@ -164,7 +167,7 @@ describe("FeaturesServiceCachingProxy", () => {
 
   describe("error caching", () => {
     it("should cache error states when enabled", async () => {
-      const slug = "test-feature" as any;
+      const slug = "emails" as keyof AppFlags;
       const error = new Error("Service unavailable");
 
       mockRedisService.get = vi.fn().mockResolvedValue(null);
@@ -175,7 +178,7 @@ describe("FeaturesServiceCachingProxy", () => {
 
       expect(mockRedisService.set).toHaveBeenCalledTimes(1);
       expect(mockRedisService.set).toHaveBeenCalledWith(
-        "test:feature:global:test-feature:error",
+        "test:feature:global:emails:error",
         expect.objectContaining({
           error: "Service unavailable",
           timestamp: expect.any(Number),
@@ -191,7 +194,7 @@ describe("FeaturesServiceCachingProxy", () => {
         defaultTtl: 10 * 60 * 1000, // 10 minutes
       });
 
-      const slug = "test-feature" as any;
+      const slug = "emails" as keyof AppFlags;
       const serviceResult = true;
 
       mockRedisService.get = vi.fn().mockResolvedValue(null);
@@ -200,7 +203,7 @@ describe("FeaturesServiceCachingProxy", () => {
 
       await customCachingProxy.checkIfFeatureIsEnabledGlobally(slug);
 
-      expect(mockRedisService.set).toHaveBeenCalledWith("feature:global:test-feature", serviceResult, {
+      expect(mockRedisService.set).toHaveBeenCalledWith("feature:global:emails", serviceResult, {
         ttl: 10 * 60 * 1000,
       });
     });
@@ -208,14 +211,14 @@ describe("FeaturesServiceCachingProxy", () => {
     it("should work without key prefix", async () => {
       const noPrefixProxy = new FeaturesServiceCachingProxy(mockTargetService, mockRedisService, {});
 
-      const slug = "test-feature" as any;
+      const slug = "emails" as keyof AppFlags;
       const cachedResult = true;
 
       mockRedisService.get = vi.fn().mockResolvedValue(cachedResult);
 
       await noPrefixProxy.checkIfFeatureIsEnabledGlobally(slug);
 
-      expect(mockRedisService.get).toHaveBeenCalledWith("feature:global:test-feature");
+      expect(mockRedisService.get).toHaveBeenCalledWith("feature:global:emails");
     });
   });
 });

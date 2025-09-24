@@ -1,17 +1,11 @@
 import type { PrismaClient } from "@calcom/prisma";
 
+import type { CacheConfig } from "../redis/BaseCacheProxy";
 import type { IRedisService } from "../redis/IRedisService.d";
 import { FeaturesRepository } from "./features.repository";
 import { FeaturesService } from "./features.service";
 import { FeaturesServiceCachingProxy } from "./features.service.caching-proxy";
 import type { IFeaturesService } from "./features.service.interface";
-
-export interface CacheConfig {
-  defaultTtl?: number;
-  errorTtl?: number;
-  enableErrorCaching?: boolean;
-  keyPrefix?: string;
-}
 
 export interface ServiceConfig {
   cache?: CacheConfig;
