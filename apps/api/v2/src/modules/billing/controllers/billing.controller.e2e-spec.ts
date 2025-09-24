@@ -1,5 +1,6 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
+import { CheckPlatformBillingResponseDto } from "@/modules/billing/controllers/outputs/CheckPlatformBillingResponse.dto";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { StripeService } from "@/modules/stripe/stripe.service";
 import { TokensModule } from "@/modules/tokens/tokens.module";
@@ -16,7 +17,7 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
-import { withApiAuth } from "test/utils/withApiAuth";
+import { withNextAuth } from "test/utils/withNextAuth";
 
 import type { Team, PlatformBilling } from "@calcom/prisma/client";
 
@@ -31,9 +32,8 @@ describe("Platform Billing Controller (e2e)", () => {
   let membershipsRepositoryFixture: MembershipRepositoryFixture;
   let platformBillingRepositoryFixture: PlatformBillingRepositoryFixture;
   let organization: Team;
-
   beforeAll(async () => {
-    const moduleRef = await withApiAuth(
+    const moduleRef = await withNextAuth(
       userEmail,
       Test.createTestingModule({
         imports: [AppModule, PrismaModule, UsersModule, TokensModule],
@@ -44,8 +44,10 @@ describe("Platform Billing Controller (e2e)", () => {
     profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
     membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
     platformBillingRepositoryFixture = new PlatformBillingRepositoryFixture(moduleRef);
+
     organization = await organizationsRepositoryFixture.create({
       name: `billing-organization-${randomString()}`,
+      isPlatform: true,
     });
 
     user = await userRepositoryFixture.create({
@@ -87,6 +89,17 @@ describe("Platform Billing Controller (e2e)", () => {
     await app.close();
   });
 
+  it("/billing/webhook (GET) should not get billing plan for org since it's not set yet", () => {
+    return request(app.getHttpServer())
+      .get(`/v2/billing/${organization.id}/check`)
+
+      .expect(200)
+      .then(async (res) => {
+        const data = res.body.data as CheckPlatformBillingResponseDto;
+        expect(data?.plan).toEqual("FREE");
+      });
+  });
+
   it("/billing/webhook (POST) should set billing free plan for org", () => {
     jest.spyOn(StripeService.prototype, "getStripe").mockImplementation(
       () =>
@@ -119,6 +132,17 @@ describe("Platform Billing Controller (e2e)", () => {
         expect(billing?.plan).toEqual("FREE");
       });
   });
+
+  it("/billing/webhook (GET) should  get billing plan for org", () => {
+    return request(app.getHttpServer())
+      .get(`/v2/billing/${organization.id}/check`)
+      .expect(200)
+      .then(async (res) => {
+        const data = res.body.data as CheckPlatformBillingResponseDto;
+        expect(data?.plan).toEqual("FREE");
+      });
+  });
+
   it("/billing/webhook (POST) failed payment should set billing free plan to overdue", () => {
     jest.spyOn(StripeService.prototype, "getStripe").mockImplementation(
       () =>

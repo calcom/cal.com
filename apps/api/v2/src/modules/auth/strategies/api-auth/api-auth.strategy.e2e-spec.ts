@@ -32,7 +32,11 @@ import { randomString } from "test/utils/randomString";
 import { X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 import type { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 
-import { ApiAuthGuardRequest, ONLY_CLIENT_ID_PROVIDED_MESSAGE } from "./api-auth.strategy";
+import {
+  ApiAuthGuardRequest,
+  ONLY_CLIENT_ID_PROVIDED_MESSAGE,
+  ONLY_CLIENT_SECRET_PROVIDED_MESSAGE,
+} from "./api-auth.strategy";
 import { ApiAuthStrategy } from "./api-auth.strategy";
 
 describe("ApiAuthStrategy", () => {
@@ -263,6 +267,29 @@ describe("ApiAuthStrategy", () => {
         if (error instanceof HttpException) {
           expect(error.getStatus()).toEqual(401);
           expect(error.message).toContain(ONLY_CLIENT_ID_PROVIDED_MESSAGE);
+        }
+      }
+    });
+
+    it("should throw 401 if only OAuth Client Secret is provided", async () => {
+      const context: ExecutionContext = {
+        switchToHttp: () => ({
+          getRequest: () => ({
+            headers: {
+              [X_CAL_SECRET_KEY]: `${oAuthClient.secret}gibberish`,
+            },
+            get: (key: string) => ({ origin: "http://localhost:3000" }[key]),
+          }),
+        }),
+      } as ExecutionContext;
+      const request = context.switchToHttp().getRequest();
+
+      try {
+        await strategy.authenticate(request);
+      } catch (error) {
+        if (error instanceof HttpException) {
+          expect(error.getStatus()).toEqual(401);
+          expect(error.message).toContain(ONLY_CLIENT_SECRET_PROVIDED_MESSAGE);
         }
       }
     });

@@ -2,6 +2,7 @@ import { PrismaClient, type Prisma } from "@calcom/prisma/client";
 
 import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency-key";
 import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallow-undefined-delete-update-many";
+import { eventTypeTimestampsExtension } from "./extensions/event-type-timestamps";
 import { excludeLockedUsersExtension } from "./extensions/exclude-locked-users";
 import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-payment-teams";
 import { usageTrackingExtention } from "./extensions/usage-tracking";
@@ -42,6 +43,7 @@ export const customPrisma = (options?: Prisma.PrismaClientOptions) =>
     .$extends(excludeLockedUsersExtension())
     .$extends(excludePendingPaymentsExtension())
     .$extends(bookingIdempotencyKeyExtension())
+    .$extends(eventTypeTimestampsExtension())
     .$extends(disallowUndefinedDeleteUpdateManyExtension()) as unknown as PrismaClient;
 
 // If any changed on middleware server restart is required
@@ -58,6 +60,7 @@ export const prisma: PrismaClient = baseClient
   .$extends(excludeLockedUsersExtension())
   .$extends(excludePendingPaymentsExtension())
   .$extends(bookingIdempotencyKeyExtension())
+  .$extends(eventTypeTimestampsExtension())
   .$extends(disallowUndefinedDeleteUpdateManyExtension()) as unknown as PrismaClient;
 
 // This prisma instance is meant to be used only for READ operations.

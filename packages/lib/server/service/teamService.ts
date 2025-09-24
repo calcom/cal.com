@@ -218,7 +218,7 @@ export class TeamService {
   }
 
   // TODO: Needs to be moved to repository
-  private static async fetchTeamOrThrow(teamId: number): Promise<TeamWithSettings> {
+  static async fetchTeamOrThrow(teamId: number): Promise<TeamWithSettings> {
     const team = await prisma.team.findUnique({
       where: { id: teamId },
       select: {

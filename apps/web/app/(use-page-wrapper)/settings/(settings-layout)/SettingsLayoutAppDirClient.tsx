@@ -101,10 +101,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           name: "privacy",
           href: "/settings/organizations/privacy",
         },
-        {
-          name: "billing",
-          href: "/settings/organizations/billing",
-        },
+
         { name: "OAuth Clients", href: "/settings/organizations/platform/oauth-clients" },
         {
           name: "SSO",
@@ -173,17 +170,11 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
 // The following keys are assigned to admin only
 const adminRequiredKeys = ["admin"];
 const organizationRequiredKeys = ["organization"];
-const organizationAdminKeys = [
-  "privacy",
-  "billing",
-  "OAuth Clients",
-  "SSO",
-  "directory_sync",
-  "delegation_credential",
-];
+const organizationAdminKeys = ["privacy", "OAuth Clients", "SSO", "directory_sync", "delegation_credential"];
 
 export interface SettingsPermissions {
   canViewRoles?: boolean;
+  canViewOrganizationBilling?: boolean;
 }
 
 const useTabs = ({
@@ -232,11 +223,27 @@ const useTabs = ({
 
         // Add pbac menu item only if feature flag is enabled AND user has permission to view roles
         // This prevents showing the menu item when user has no organization permissions
-        if (isPbacEnabled && permissions?.canViewRoles) {
-          newArray.push({
-            name: "roles_and_permissions",
-            href: "/settings/organizations/roles",
-          });
+        if (isPbacEnabled) {
+          if (permissions?.canViewRoles) {
+            newArray.push({
+              name: "roles_and_permissions",
+              href: "/settings/organizations/roles",
+            });
+          }
+
+          if (permissions?.canViewOrganizationBilling) {
+            newArray.push({
+              name: "billing",
+              href: "/settings/organizations/billing",
+            });
+          }
+        } else {
+          if (isOrgAdminOrOwner) {
+            newArray.push({
+              name: "billing",
+              href: "/settings/organizations/billing",
+            });
+          }
         }
 
         return {
@@ -272,7 +279,7 @@ const useTabs = ({
       if (isAdmin) return true;
       return !adminRequiredKeys.includes(tab.name);
     });
-  }, [isAdmin, orgBranding, isOrgAdminOrOwner, user, isDelegationCredentialEnabled]);
+  }, [isAdmin, orgBranding, isOrgAdminOrOwner, user, isDelegationCredentialEnabled, isPbacEnabled, permissions]);
 
   return processTabsMemod;
 };
