@@ -1,4 +1,11 @@
-import { BillingPlan, ENTERPRISE_SLUGS, PLATFORM_ENTERPRISE_SLUGS } from "@calcom/ee/billing/constants";
+import {
+  BillingPlan,
+  ENTERPRISE_SLUGS,
+  PLATFORM_ENTERPRISE_SLUGS,
+  PLATFORM_PLANS_MAP,
+} from "@calcom/features/ee/billing/constants";
+import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
+import type { JsonValue } from "@calcom/types/Json";
 
 export class BillingPlanService {
   async getUserPlanByMemberships(
@@ -7,10 +14,12 @@ export class BillingPlanService {
         isOrganization: boolean;
         isPlatform: boolean;
         slug: string | null;
+        metadata: JsonValue;
         parent: {
           isOrganization: boolean;
           slug: string | null;
           isPlatform: boolean;
+          metadata: JsonValue;
         } | null;
         platformBilling: {
           plan: string;
@@ -28,26 +37,34 @@ export class BillingPlanService {
         if (PLATFORM_ENTERPRISE_SLUGS.includes(team.slug ?? "")) return BillingPlan.PLATFORM_ENTERPRISE;
         if (!team.platformBilling) continue;
 
-        switch (team.platformBilling.plan) {
-          case "FREE":
-          case "STARTER":
-            return BillingPlan.PLATFORM_STARTER;
-          case "ESSENTIALS":
-            return BillingPlan.PLATFORM_ESSENTIALS;
-          case "SCALE":
-            return BillingPlan.PLATFORM_SCALE;
-          case "ENTERPRISE":
-            return BillingPlan.PLATFORM_ENTERPRISE;
-          default:
-            return team.platformBilling.plan;
-        }
+        return PLATFORM_PLANS_MAP[team.platformBilling.plan] ?? team.platformBilling.plan;
       } else {
-        if (team.parent && team.parent.isOrganization && !team.parent.isPlatform) {
+        let teamMetadata;
+        try {
+          teamMetadata = teamMetadataStrictSchema.parse(team.metadata ?? {});
+        } catch {
+          teamMetadata = null;
+        }
+
+        let parentTeamMetadata;
+        try {
+          parentTeamMetadata = teamMetadataStrictSchema.parse(team.parent?.metadata ?? {});
+        } catch {
+          parentTeamMetadata = null;
+        }
+
+        if (
+          team.parent &&
+          team.parent.isOrganization &&
+          parentTeamMetadata?.subscriptionId &&
+          !team.parent.isPlatform
+        ) {
           return ENTERPRISE_SLUGS.includes(team.parent.slug ?? "")
             ? BillingPlan.ENTERPRISE
             : BillingPlan.ORGANIZATIONS;
         }
 
+        if (!teamMetadata?.subscriptionId) continue;
         if (team.isOrganization) {
           return ENTERPRISE_SLUGS.includes(team.slug ?? "")
             ? BillingPlan.ENTERPRISE

@@ -329,6 +329,7 @@ export class MembershipRepository {
             slug: true,
             isOrganization: true,
             isPlatform: true,
+            metadata: true,
             platformBilling: {
               select: {
                 plan: true,
@@ -338,6 +339,7 @@ export class MembershipRepository {
               select: {
                 isOrganization: true,
                 slug: true,
+                metadata: true,
                 isPlatform: true,
               },
             },

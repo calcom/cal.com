@@ -20,5 +20,13 @@ export enum BillingPlan {
   UNKNOWN = "Unknown",
 }
 
+export const PLATFORM_PLANS_MAP: Record<string, BillingPlan> = {
+  FREE: BillingPlan.PLATFORM_STARTER,
+  STARTER: BillingPlan.PLATFORM_STARTER,
+  ESSENTIALS: BillingPlan.PLATFORM_ESSENTIALS,
+  SCALE: BillingPlan.PLATFORM_SCALE,
+  ENTERPRISE: BillingPlan.PLATFORM_ENTERPRISE,
+};
+
 export const PLATFORM_ENTERPRISE_SLUGS = process.env.PLATFORM_ENTERPRISE_SLUGS?.split(",") ?? [];
 export const ENTERPRISE_SLUGS = process.env.ENTERPRISE_SLUGS?.split(",") ?? [];
