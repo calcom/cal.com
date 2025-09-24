@@ -10,6 +10,7 @@ import {
 import "dotenv/config";
 import * as fs from "fs";
 import { Server } from "http";
+import { spawnSync } from "node:child_process";
 
 const HttpMethods: (keyof PathItemObject)[] = ["get", "post", "put", "delete", "patch", "options", "head"];
 
@@ -27,6 +28,7 @@ export async function generateSwaggerForApp(app: NestExpressApplication<Server>)
   if (fs.existsSync(docsOutputFile) && getEnv("NODE_ENV") === "development") {
     fs.unlinkSync(docsOutputFile);
     fs.writeFileSync(docsOutputFile, stringifiedContents, { encoding: "utf8" });
+    spawnSync("npx", ["prettier", docsOutputFile, "--write"], { stdio: "inherit" });
   }
 
   if (!process.env.DOCS_URL) {
