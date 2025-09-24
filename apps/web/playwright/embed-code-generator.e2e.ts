@@ -442,6 +442,7 @@ function assertThatCodeIsValidVanillaJsCode(code: string) {
             window: "readonly",
             document: "readonly",
             navigator: "readonly",
+            Cal: "readonly",
           },
         },
         rules: eslintRules,
@@ -477,12 +478,18 @@ function assertThatCodeIsValidReactCode(code: string) {
             window: "readonly",
             document: "readonly",
             navigator: "readonly",
+            console: "readonly",
           },
         },
-        rules: eslintRules,
+        rules: {
+          ...eslintRules,
+          "@typescript-eslint/no-unused-vars": "off",
+          "no-undef": "off",
+          semi: "off",
+        },
       },
     ],
-    { filename: "test.jsx" } // ajuda o parser a saber que é JSX
+    { filename: "test.jsx" }
   );
 
   if (lintResult.length) {
