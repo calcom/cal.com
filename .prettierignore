@@ -16,5 +16,4 @@ public
 packages/prisma/zod
 packages/prisma/enums
 apps/web/public/embed
-docs/api-reference/v2/openapi.json
 packages/ui/components/icon/dynamicIconImports.tsx
