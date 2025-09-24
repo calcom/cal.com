@@ -36,12 +36,12 @@
   },
   "dependencies": {
     "@axiomhq/winston": "^1.2.0",
-    "@calcom/platform-constants": "*",
-    "@calcom/platform-enums": "*",
-    "@calcom/platform-libraries": "*",
-    "@calcom/platform-types": "*",
-    "@calcom/platform-utils": "*",
-    "@calcom/prisma": "*",
+    "@calcom/platform-constants": "workspace:*",
+    "@calcom/platform-enums": "workspace:*",
+    "@calcom/platform-libraries": "workspace:*",
+    "@calcom/platform-types": "workspace:*",
+    "@calcom/platform-utils": "workspace:*",
+    "@calcom/prisma": "workspace:*",
     "@golevelup/ts-jest": "^0.4.0",
     "@microsoft/microsoft-graph-types-beta": "^0.42.0-preview",
     "@nest-lab/throttler-storage-redis": "1.0.0",
@@ -88,6 +88,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@calcom/eslint-config": "workspace:*",
     "@nestjs/cli": "^10.0.0",
     "@nestjs/schematics": "^10.0.0",
     "@nestjs/testing": "^10.0.0",

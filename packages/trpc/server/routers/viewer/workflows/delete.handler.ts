@@ -7,7 +7,11 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { TRPCError } from "@trpc/server";
 
 import type { TDeleteInputSchema } from "./delete.schema";
-import { isAuthorized, removeSmsReminderFieldForEventTypes } from "./util";
+import {
+  isAuthorized,
+  removeSmsReminderFieldForEventTypes,
+  removeAIAgentCallPhoneNumberFieldForEventTypes,
+} from "./util";
 
 type DeleteOptions = {
   ctx: {
@@ -154,6 +158,11 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
     : workflowToDelete.activeOn.map((activeOn) => activeOn.eventTypeId);
 
   await removeSmsReminderFieldForEventTypes({ activeOnToRemove, workflowId: workflowToDelete.id, isOrg });
+  await removeAIAgentCallPhoneNumberFieldForEventTypes({
+    activeOnToRemove,
+    workflowId: workflowToDelete.id,
+    isOrg,
+  });
 
   // automatically deletes all steps and reminders connected to this workflow
   await prisma.workflow.deleteMany({
