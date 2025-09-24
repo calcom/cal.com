@@ -58,7 +58,7 @@ type BookingsProps = {
   status: (typeof validStatuses)[number];
   userId?: number;
   permissions: {
-    canListMembers: boolean;
+    canReadOthersBookings: boolean;
   };
 };
 
@@ -218,7 +218,7 @@ function BookingsContent({ status, permissions }: BookingsProps) {
       columnHelper.accessor((row) => row.type === "data" && row.booking.user?.id, {
         id: "userId",
         header: t("member"),
-        enableColumnFilter: permissions.canListMembers,
+        enableColumnFilter: permissions.canReadOthersBookings,
         enableSorting: false,
         cell: () => null,
         meta: {
@@ -317,7 +317,7 @@ function BookingsContent({ status, permissions }: BookingsProps) {
         },
       }),
     ];
-  }, [user, status, t, permissions.canListMembers]);
+  }, [user, status, t, permissions.canReadOthersBookings]);
 
   const isEmpty = useMemo(() => !query.data?.bookings.length, [query.data]);
 

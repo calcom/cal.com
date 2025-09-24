@@ -34,25 +34,26 @@ const Page = async ({ params }: PageProps) => {
   const t = await getTranslate();
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
-  let canListMembers = false;
+  let canReadOthersBookings = false;
   if (session?.user?.id) {
     const permissionService = new PermissionCheckService();
     const userId = session.user.id;
 
-    const teamIdsWithPermission = await permissionService.getTeamIdsWithPermission(
-      userId,
-      "team.listMembers"
-    );
+    const teamIdsWithPermission = await permissionService.getTeamIdsWithPermission(userId, "booking.read");
     // We check if teamIdsWithPermission.length > 0.
     // While this may not be entirely accurate, it's acceptable
     // because we perform a thorough validation on the server side for the actual filter values.
     // This variable is primarily for UI purposes.
-    canListMembers = teamIdsWithPermission.length > 0;
+    canReadOthersBookings = teamIdsWithPermission.length > 0;
   }
 
   return (
     <ShellMainAppDir heading={t("bookings")} subtitle={t("bookings_description")}>
-      <BookingsList status={parsed.data.status} userId={session?.user?.id} permissions={{ canListMembers }} />
+      <BookingsList
+        status={parsed.data.status}
+        userId={session?.user?.id}
+        permissions={{ canReadOthersBookings }}
+      />
     </ShellMainAppDir>
   );
 };

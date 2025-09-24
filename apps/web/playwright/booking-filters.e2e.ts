@@ -2,12 +2,14 @@ import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
 
+test.describe.configure({ mode: "parallel" });
+
 test.afterEach(({ users }) => users.deleteAll());
 
 test.describe("Booking Filters", () => {
-  test("Member role should not see the member filter", async ({ page, users, prisma }) => {
+  test("Member role should not see the member filter", async ({ page, users }) => {
     const teamMateName = "team mate 1";
-    const owner = await users.create(undefined, {
+    await users.create(undefined, {
       hasTeam: true,
       isOrg: true,
       teammates: [{ name: teamMateName }],
@@ -29,5 +31,21 @@ test.describe("Booking Filters", () => {
     await bookingsGetResponse;
     await page.locator('[data-testid="add-filter-button"]').click();
     await expect(page.locator('[data-testid="add-filter-item-userId"]')).toBeHidden();
+  });
+
+  test("Admin role should see the member filter", async ({ page, users }) => {
+    const owner = await users.create(undefined, {
+      hasTeam: true,
+      isOrg: true,
+    });
+
+    await owner.apiLogin();
+    const bookingsGetResponse = page.waitForResponse((response) =>
+      /\/api\/trpc\/bookings\/get.*/.test(response.url())
+    );
+    await page.goto(`/bookings/upcoming`, { waitUntil: "domcontentloaded" });
+    await bookingsGetResponse;
+    await page.locator('[data-testid="add-filter-button"]').click();
+    await expect(page.locator('[data-testid="add-filter-item-userId"]')).toBeVisible();
   });
 });
