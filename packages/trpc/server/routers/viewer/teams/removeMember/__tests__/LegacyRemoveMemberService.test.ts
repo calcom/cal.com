@@ -1,12 +1,9 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-import * as teamQueries from "@calcom/features/ee/teams/lib/queries";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { TeamService } from "@calcom/lib/server/service/teamService";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
-import { TRPCError } from "@trpc/server";
 
 import { LegacyRemoveMemberService } from "../LegacyRemoveMemberService";
 
@@ -30,13 +27,13 @@ describe("LegacyRemoveMemberService", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     mockPermissionCheckService = {
       checkPermission: vi.fn(),
     };
 
     vi.mocked(PermissionCheckService).mockImplementation(() => mockPermissionCheckService as any);
-    
+
     service = new LegacyRemoveMemberService();
   });
 
@@ -261,9 +258,7 @@ describe("LegacyRemoveMemberService", () => {
         const teamIds = [1];
         const _userRoles = new Map([[1, MembershipRole.ADMIN]]);
 
-        mockPermissionCheckService.checkPermission
-          .mockResolvedValueOnce(true)
-          .mockResolvedValueOnce(false);
+        mockPermissionCheckService.checkPermission.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
 
         await expect(
           service.validateRemoval(

@@ -1,4 +1,3 @@
-import * as teamQueries from "@calcom/features/ee/teams/lib/queries";
 import { PermissionMapper } from "@calcom/features/pbac/domain/mappers/PermissionMapper";
 import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
@@ -47,13 +46,14 @@ export class PBACRemoveMemberService extends BaseRemoveMemberService {
      */
     if (isRemovingSelf && hasPermission) {
       const isOwnerOfAnyTeam = await Promise.all(
-        teamIds.map(async (teamId) => 
-          await this.permissionService.checkPermission({
-            userId,
-            teamId,
-            permission: "team.changeMemberRole",
-            fallbackRoles: [MembershipRole.OWNER],
-          })
+        teamIds.map(
+          async (teamId) =>
+            await this.permissionService.checkPermission({
+              userId,
+              teamId,
+              permission: "team.changeMemberRole",
+              fallbackRoles: [MembershipRole.OWNER],
+            })
         )
       ).then((results) => results.some((result) => result));
 

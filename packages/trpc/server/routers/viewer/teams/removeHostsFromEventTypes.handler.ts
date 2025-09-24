@@ -16,7 +16,7 @@ type RemoveHostsFromEventTypes = {
 
 export async function removeHostsFromEventTypesHandler({ ctx, input }: RemoveHostsFromEventTypes) {
   const { userIds, eventTypeIds, teamId } = input;
-  
+
   const permissionCheckService = new PermissionCheckService();
   const hasEventTypeUpdatePermission = await permissionCheckService.checkPermission({
     userId: ctx.user.id,

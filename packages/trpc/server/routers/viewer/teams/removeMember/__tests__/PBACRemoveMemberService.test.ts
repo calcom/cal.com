@@ -1,6 +1,5 @@
 import { describe, expect, it, vi, beforeEach, type Mock } from "vitest";
 
-import * as teamQueries from "@calcom/features/ee/teams/lib/queries";
 import { PermissionMapper } from "@calcom/features/pbac/domain/mappers/PermissionMapper";
 import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";

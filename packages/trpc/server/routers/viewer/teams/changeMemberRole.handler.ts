@@ -1,5 +1,5 @@
-import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -54,7 +54,7 @@ export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOp
         permission: "team.changeMemberRole",
         fallbackRoles: [MembershipRole.OWNER],
       });
-      
+
       if (!hasOwnerPermission) throw new TRPCError({ code: "UNAUTHORIZED" });
     }
   }

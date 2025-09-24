@@ -1,4 +1,3 @@
-import * as teamQueries from "@calcom/features/ee/teams/lib/queries";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -106,13 +105,14 @@ export class LegacyRemoveMemberService extends BaseRemoveMemberService {
     // Check if user is trying to remove themselves from a team they own (prevent this)
     if (isRemovingSelf && hasPermission) {
       const isOwnerOfAnyTeam = await Promise.all(
-        teamIds.map(async (teamId) => 
-          await this.permissionService.checkPermission({
-            userId,
-            teamId,
-            permission: "team.changeMemberRole",
-            fallbackRoles: [MembershipRole.OWNER],
-          })
+        teamIds.map(
+          async (teamId) =>
+            await this.permissionService.checkPermission({
+              userId,
+              teamId,
+              permission: "team.changeMemberRole",
+              fallbackRoles: [MembershipRole.OWNER],
+            })
         )
       ).then((results) => results.some((result) => result));
 
