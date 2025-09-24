@@ -408,16 +408,6 @@ export async function isTeamAdmin(userId: number, teamId: number) {
   return team;
 }
 
-export async function isTeamOwner(userId: number, teamId: number) {
-  return !!(await prisma.membership.findFirst({
-    where: {
-      userId,
-      teamId,
-      accepted: true,
-      role: "OWNER",
-    },
-  }));
-}
 
 export async function isTeamMember(userId: number, teamId: number) {
   return !!(await prisma.membership.findFirst({

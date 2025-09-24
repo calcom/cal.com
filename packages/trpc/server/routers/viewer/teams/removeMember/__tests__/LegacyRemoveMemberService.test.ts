@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import * as teamQueries from "@calcom/features/ee/teams/lib/queries";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { TeamService } from "@calcom/lib/server/service/teamService";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -19,12 +20,23 @@ vi.mock("@calcom/prisma", () => ({
 
 vi.mock("@calcom/lib/server/service/teamService");
 vi.mock("@calcom/features/ee/teams/lib/queries");
+vi.mock("@calcom/features/pbac/services/permission-check.service");
 
 describe("LegacyRemoveMemberService", () => {
   let service: LegacyRemoveMemberService;
+  let mockPermissionCheckService: {
+    checkPermission: any;
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
+    
+    mockPermissionCheckService = {
+      checkPermission: vi.fn(),
+    };
+
+    vi.mocked(PermissionCheckService).mockImplementation(() => mockPermissionCheckService as any);
+    
     service = new LegacyRemoveMemberService();
   });
 
@@ -36,7 +48,7 @@ describe("LegacyRemoveMemberService", () => {
         const teamIds = [100, 200]; // Teams the org admin is not part of
         const memberIds = [2, 3];
 
-        const result = await service.checkRemovePermissions({
+        const _result = await service.checkRemovePermissions({
           userId,
           isOrgAdmin,
           memberIds,
@@ -55,7 +67,7 @@ describe("LegacyRemoveMemberService", () => {
         const teamIds = [1, 2, 3];
         const memberIds = [4, 5, 6];
 
-        const result = await service.checkRemovePermissions({
+        const _result = await service.checkRemovePermissions({
           userId,
           isOrgAdmin,
           memberIds,
@@ -81,7 +93,7 @@ describe("LegacyRemoveMemberService", () => {
         const teamIds = [1, 2, 3, 4, 5];
         const memberIds = [10, 20];
 
-        const result = await service.checkRemovePermissions({
+        const _result = await service.checkRemovePermissions({
           userId,
           isOrgAdmin,
           memberIds,
@@ -99,7 +111,7 @@ describe("LegacyRemoveMemberService", () => {
         const teamIds = [1];
         const memberIds = [2];
 
-        const result = await service.checkRemovePermissions({
+        const _result = await service.checkRemovePermissions({
           userId,
           isOrgAdmin,
           memberIds,
@@ -123,7 +135,7 @@ describe("LegacyRemoveMemberService", () => {
           { id: 2, userId, teamId: 2, role: MembershipRole.ADMIN } as any,
         ]);
 
-        const result = await service.checkRemovePermissions({
+        const _result = await service.checkRemovePermissions({
           userId,
           isOrgAdmin: false,
           memberIds,
@@ -145,7 +157,7 @@ describe("LegacyRemoveMemberService", () => {
           { id: 1, userId, teamId: 1, role: MembershipRole.OWNER } as any,
         ]);
 
-        const result = await service.checkRemovePermissions({
+        const _result = await service.checkRemovePermissions({
           userId,
           isOrgAdmin: false,
           memberIds,
@@ -166,7 +178,7 @@ describe("LegacyRemoveMemberService", () => {
           { id: 1, userId, teamId: 1, role: MembershipRole.MEMBER } as any,
         ]);
 
-        const result = await service.checkRemovePermissions({
+        const _result = await service.checkRemovePermissions({
           userId,
           isOrgAdmin: false,
           memberIds,
@@ -184,7 +196,7 @@ describe("LegacyRemoveMemberService", () => {
 
         vi.mocked(prisma.membership.findMany).mockResolvedValue([]);
 
-        const result = await service.checkRemovePermissions({
+        const _result = await service.checkRemovePermissions({
           userId,
           isOrgAdmin: false,
           memberIds,
@@ -206,7 +218,7 @@ describe("LegacyRemoveMemberService", () => {
           { id: 3, userId, teamId: 3, role: MembershipRole.OWNER } as any,
         ]);
 
-        const result = await service.checkRemovePermissions({
+        const _result = await service.checkRemovePermissions({
           userId,
           isOrgAdmin: false,
           memberIds,
@@ -228,7 +240,7 @@ describe("LegacyRemoveMemberService", () => {
           { id: 3, userId, teamId: 3, role: MembershipRole.ADMIN } as any,
         ]);
 
-        const result = await service.checkRemovePermissions({
+        const _result = await service.checkRemovePermissions({
           userId,
           isOrgAdmin: false,
           memberIds,
@@ -247,12 +259,11 @@ describe("LegacyRemoveMemberService", () => {
         const userId = 1;
         const memberIds = [2];
         const teamIds = [1];
-        const userRoles = new Map([[1, MembershipRole.ADMIN]]);
+        const _userRoles = new Map([[1, MembershipRole.ADMIN]]);
 
-        // Member 2 is owner, but userId 1 is not owner
-        vi.mocked(teamQueries.isTeamOwner)
-          .mockResolvedValueOnce(true) // isTeamOwner(2, 1) - member is owner
-          .mockResolvedValueOnce(false); // isTeamOwner(1, 1) - current user is not owner
+        mockPermissionCheckService.checkPermission
+          .mockResolvedValueOnce(true)
+          .mockResolvedValueOnce(false);
 
         await expect(
           service.validateRemoval(
@@ -277,9 +288,9 @@ describe("LegacyRemoveMemberService", () => {
         const userId = 1;
         const memberIds = [2];
         const teamIds = [1];
-        const userRoles = new Map([[1, MembershipRole.OWNER]]);
+        const _userRoles = new Map([[1, MembershipRole.OWNER]]);
 
-        vi.mocked(teamQueries.isTeamOwner).mockResolvedValue(true);
+        mockPermissionCheckService.checkPermission.mockResolvedValue(true);
 
         await expect(
           service.validateRemoval(
@@ -299,9 +310,9 @@ describe("LegacyRemoveMemberService", () => {
         const userId = 1;
         const memberIds = [2];
         const teamIds = [1];
-        const userRoles = new Map([[1, MembershipRole.ADMIN]]);
+        const _userRoles = new Map([[1, MembershipRole.ADMIN]]);
 
-        vi.mocked(teamQueries.isTeamOwner).mockResolvedValue(true);
+        mockPermissionCheckService.checkPermission.mockResolvedValue(true);
 
         // Org admin can remove owner
         await expect(
@@ -317,8 +328,7 @@ describe("LegacyRemoveMemberService", () => {
           )
         ).resolves.not.toThrow();
 
-        // isTeamOwner should not be called for org admins
-        expect(teamQueries.isTeamOwner).not.toHaveBeenCalled();
+        expect(mockPermissionCheckService.checkPermission).not.toHaveBeenCalled();
       });
     });
 
@@ -327,9 +337,9 @@ describe("LegacyRemoveMemberService", () => {
         const userId = 1;
         const memberIds = [1]; // Same as userId
         const teamIds = [1];
-        const userRoles = new Map([[1, MembershipRole.OWNER]]);
+        const _userRoles = new Map([[1, MembershipRole.OWNER]]);
 
-        vi.mocked(teamQueries.isTeamOwner).mockResolvedValue(true); // User is owner
+        mockPermissionCheckService.checkPermission.mockResolvedValue(true);
 
         await expect(
           service.validateRemoval(
@@ -354,9 +364,9 @@ describe("LegacyRemoveMemberService", () => {
         const userId = 1;
         const memberIds = [1]; // Same as userId
         const teamIds = [1];
-        const userRoles = new Map([[1, MembershipRole.ADMIN]]);
+        const _userRoles = new Map([[1, MembershipRole.ADMIN]]);
 
-        vi.mocked(teamQueries.isTeamOwner).mockResolvedValue(false);
+        mockPermissionCheckService.checkPermission.mockResolvedValue(false);
 
         await expect(
           service.validateRemoval(
@@ -378,7 +388,7 @@ describe("LegacyRemoveMemberService", () => {
         const teamIds = [1];
         const userRoles = new Map([[1, MembershipRole.MEMBER]]);
 
-        vi.mocked(teamQueries.isTeamOwner).mockResolvedValue(false);
+        mockPermissionCheckService.checkPermission.mockResolvedValue(false);
 
         await expect(
           service.validateRemoval(
@@ -400,15 +410,13 @@ describe("LegacyRemoveMemberService", () => {
         const userId = 1;
         const memberIds = [2, 3, 4];
         const teamIds = [1];
-        const userRoles = new Map([[1, MembershipRole.ADMIN]]);
+        const _userRoles = new Map([[1, MembershipRole.ADMIN]]);
 
-        // Member 2 is not owner, member 3 is owner, member 4 is not owner
-        // Current user (1) is not owner
-        vi.mocked(teamQueries.isTeamOwner)
-          .mockResolvedValueOnce(false) // isTeamOwner(2, 1) - member 2 is not owner
-          .mockResolvedValueOnce(true) // isTeamOwner(3, 1) - member 3 is owner
-          .mockResolvedValueOnce(false) // isTeamOwner(1, 1) - current user is not owner
-          .mockResolvedValueOnce(false); // isTeamOwner(4, 1) - member 4 is not owner (if reached)
+        mockPermissionCheckService.checkPermission
+          .mockResolvedValueOnce(false)
+          .mockResolvedValueOnce(false)
+          .mockResolvedValueOnce(true)
+          .mockResolvedValueOnce(false);
 
         await expect(
           service.validateRemoval(
@@ -428,7 +436,7 @@ describe("LegacyRemoveMemberService", () => {
           })
         );
 
-        expect(teamQueries.isTeamOwner).toHaveBeenCalledTimes(4); // Checks member 2, user 1, member 3 (owner), user 1
+        expect(mockPermissionCheckService.checkPermission).toHaveBeenCalledTimes(6);
       });
     });
   });
@@ -468,7 +476,7 @@ describe("LegacyRemoveMemberService", () => {
       const memberIds: number[] = [];
       const teamIds = [1];
 
-      const result = await service.checkRemovePermissions({
+      const _result = await service.checkRemovePermissions({
         userId,
         isOrgAdmin: false,
         memberIds,
@@ -487,7 +495,7 @@ describe("LegacyRemoveMemberService", () => {
 
       vi.mocked(prisma.membership.findMany).mockResolvedValue([]);
 
-      const result = await service.checkRemovePermissions({
+      const _result = await service.checkRemovePermissions({
         userId,
         isOrgAdmin: false,
         memberIds,

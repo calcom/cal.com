@@ -27,6 +27,7 @@ describe("PBACRemoveMemberService", () => {
   let service: PBACRemoveMemberService;
   let mockPermissionCheckService: {
     getTeamIdsWithPermission: Mock;
+    checkPermission: Mock;
   };
 
   beforeEach(() => {
@@ -34,6 +35,7 @@ describe("PBACRemoveMemberService", () => {
 
     mockPermissionCheckService = {
       getTeamIdsWithPermission: vi.fn(),
+      checkPermission: vi.fn(),
     };
 
     vi.mocked(PermissionCheckService).mockImplementation(() => mockPermissionCheckService as any);
@@ -218,7 +220,7 @@ describe("PBACRemoveMemberService", () => {
         const memberIds = [2];
         const teamIds = [1];
 
-        vi.mocked(teamQueries.isTeamOwner).mockResolvedValue(true); // Member 2 is owner
+        mockPermissionCheckService.checkPermission.mockResolvedValue(false);
 
         // Get user's role
         vi.mocked(prisma.membership.findMany).mockResolvedValue([
@@ -246,7 +248,7 @@ describe("PBACRemoveMemberService", () => {
         const memberIds = [2];
         const teamIds = [1];
 
-        vi.mocked(teamQueries.isTeamOwner).mockResolvedValue(true); // Member 2 is owner
+        mockPermissionCheckService.checkPermission.mockResolvedValue(false);
 
         // User is owner
         vi.mocked(prisma.membership.findMany).mockResolvedValue([
@@ -274,7 +276,7 @@ describe("PBACRemoveMemberService", () => {
         const memberIds = [1]; // Same as userId
         const teamIds = [1];
 
-        vi.mocked(teamQueries.isTeamOwner).mockResolvedValue(true); // User is owner of the team
+        mockPermissionCheckService.checkPermission.mockResolvedValue(true); // User is owner
 
         vi.mocked(prisma.membership.findMany).mockResolvedValue([
           { id: 1, userId, teamId: 1, role: MembershipRole.OWNER } as any,
@@ -304,7 +306,7 @@ describe("PBACRemoveMemberService", () => {
         const memberIds = [1];
         const teamIds = [1];
 
-        vi.mocked(teamQueries.isTeamOwner).mockResolvedValue(false);
+        mockPermissionCheckService.checkPermission.mockResolvedValue(false); // User is not owner
 
         vi.mocked(prisma.membership.findMany).mockResolvedValue([
           { id: 1, userId, teamId: 1, role: MembershipRole.ADMIN } as any,
@@ -336,11 +338,7 @@ describe("PBACRemoveMemberService", () => {
           { id: 1, userId, teamId: 1, role: MembershipRole.ADMIN } as any,
         ]);
 
-        // Member 3 is owner
-        vi.mocked(teamQueries.isTeamOwner)
-          .mockResolvedValueOnce(false) // member 2
-          .mockResolvedValueOnce(true) // member 3 is owner
-          .mockResolvedValueOnce(false); // member 4
+        mockPermissionCheckService.checkPermission.mockResolvedValue(false); // User is not owner
 
         // PBAC service doesn't validate owner-to-owner removal
         // It only prevents self-removal by owners
@@ -380,7 +378,7 @@ describe("PBACRemoveMemberService", () => {
         ).resolves.not.toThrow();
 
         // Should not check ownership or roles
-        expect(teamQueries.isTeamOwner).not.toHaveBeenCalled();
+        expect(mockPermissionCheckService.checkPermission).not.toHaveBeenCalled();
         expect(prisma.membership.findMany).not.toHaveBeenCalled();
       });
     });
@@ -419,7 +417,7 @@ describe("PBACRemoveMemberService", () => {
 
   describe("Service Initialization", () => {
     it("should create PermissionCheckService on instantiation", () => {
-      const newService = new PBACRemoveMemberService();
+      const _newService = new PBACRemoveMemberService();
 
       expect(PermissionCheckService).toHaveBeenCalled();
     });

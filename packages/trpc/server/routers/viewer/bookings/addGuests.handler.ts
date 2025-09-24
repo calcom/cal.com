@@ -4,8 +4,9 @@ import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { isTeamAdmin, isTeamOwner } from "@calcom/features/ee/teams/lib/queries";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { BookingResponses } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -44,9 +45,16 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
 
   if (!booking) throw new TRPCError({ code: "NOT_FOUND", message: "booking_not_found" });
 
-  const isTeamAdminOrOwner =
-    (await isTeamAdmin(user.id, booking.eventType?.teamId ?? 0)) ||
-    (await isTeamOwner(user.id, booking.eventType?.teamId ?? 0));
+  let isTeamAdminOrOwner = false;
+  if (booking.eventType?.teamId) {
+    const permissionCheckService = new PermissionCheckService();
+    isTeamAdminOrOwner = await permissionCheckService.checkPermission({
+      userId: user.id,
+      teamId: booking.eventType.teamId,
+      permission: "booking.readTeamBookings",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+    });
+  }
 
   const isOrganizer = booking.userId === user.id;
 
