@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
 import { isRedirectApp } from "@calcom/app-store/_utils/redirectApps";
@@ -41,58 +41,26 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
 
   const appInstalled = enabledOnTeams && userAdminTeams ? userAdminTeams.length < appAdded : appAdded > 0;
 
-  const descriptionRef = useRef<HTMLParagraphElement>(null);
-  const [truncatedDescription, setTruncatedDescription] = useState("");
-  
-  // Clean description without markdown
-  const cleanDescription = useMemo(() => stripMarkdown(app.description), [app.description]);
+  // SIMPLE BUT BULLETPROOF: Force truncation for MS Teams and long descriptions  
+  const displayDescription = useMemo(() => {
+    const cleaned = stripMarkdown(app.description);
+    if (!cleaned) return "";
 
-  // TRULY DYNAMIC: Measure actual DOM overflow and truncate accordingly
-  useEffect(() => {
-    const element = descriptionRef.current;
-    if (!element || !cleanDescription) return;
-
-    // First, set the full description to measure if it overflows
-    element.textContent = cleanDescription;
+    // Calculate max lines that fit in 5.6em with 1.4em line height = 4 lines
+    // Each line fits roughly 25-30 characters depending on font
+    const maxChars = 85; // Conservative estimate for 4 lines
     
-    // Check if it actually overflows the container
-    const isOverflowing = element.scrollHeight > element.clientHeight;
-    
-    if (!isOverflowing) {
-      // No overflow - use full description
-      setTruncatedDescription(cleanDescription);
-      return;
-    }
-
-    // DYNAMIC TRUNCATION: Binary search to find max text that fits
-    let low = 0;
-    let high = cleanDescription.length;
-    let bestFit = "";
-    
-    while (low <= high) {
-      const mid = Math.floor((low + high) / 2);
-      const testText = cleanDescription.substring(0, mid);
-      
-      // Test if this length fits (with room for "...")
-      element.textContent = testText + "...";
-      
-      if (element.scrollHeight <= element.clientHeight) {
-        bestFit = testText;
-        low = mid + 1;
-      } else {
-        high = mid - 1;
-      }
+    if (cleaned.length <= maxChars) {
+      return cleaned;
     }
     
-    // Find last complete word for clean break
-    const lastSpace = bestFit.lastIndexOf(' ');
-    const finalText = (lastSpace > 0 ? bestFit.substring(0, lastSpace) : bestFit) + "...";
+    // Aggressive truncation - find last word boundary
+    const truncated = cleaned.substring(0, maxChars);
+    const lastSpace = truncated.lastIndexOf(' ');
+    const finalLength = lastSpace > 0 ? lastSpace : maxChars - 10; // Safety margin
     
-    setTruncatedDescription(finalText);
-  }, [cleanDescription]);
-
-  // Return the dynamically calculated description or fallback to clean version
-  const displayDescription = truncatedDescription || cleanDescription;
+    return cleaned.substring(0, finalLength) + "...";
+  }, [app.description]);
 
 
 
@@ -174,7 +142,6 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
             <span className="pl-1 text-subtle">{props.reviews} reviews</span>
           </div> */}
       <p
-        ref={descriptionRef}
         className="text-default mt-2 flex-grow text-sm"
         style={{
           lineHeight: "1.4em",
