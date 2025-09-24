@@ -7,10 +7,10 @@
   "main": "./index.ts",
   "description": "HitPay helps over 15,000 businesses across Southeast Asia and around the globe process payments efficiently and securely. We unify online, point of sale, and B2B payments into a single, integrated payment processing system.",
   "dependencies": {
-    "@calcom/lib": "*",
-    "@calcom/prisma": "*"
+    "@calcom/lib": "workspace:*",
+    "@calcom/prisma": "workspace:*"
   },
   "devDependencies": {
-    "@calcom/types": "*"
+    "@calcom/types": "workspace:*"
   }
 }

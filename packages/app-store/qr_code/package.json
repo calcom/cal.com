@@ -6,9 +6,9 @@
   "main": "./index.ts",
   "description": "Easily generate a QR code of your links",
   "dependencies": {
-    "@calcom/lib": "*"
+    "@calcom/lib": "workspace:*"
   },
   "devDependencies": {
-    "@calcom/types": "*"
+    "@calcom/types": "workspace:*"
   }
 }

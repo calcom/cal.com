@@ -5,13 +5,13 @@
   "main": "./index.ts",
   "description": "For calendars hosted on on-premises Microsoft Exchange 2016 servers",
   "dependencies": {
-    "@calcom/lib": "*",
-    "@calcom/prisma": "*",
-    "@calcom/ui": "*",
+    "@calcom/lib": "workspace:*",
+    "@calcom/prisma": "workspace:*",
+    "@calcom/ui": "workspace:*",
     "ews-javascript-api": "^0.11.0",
     "react-hook-form": "^7.43.3"
   },
   "devDependencies": {
-    "@calcom/types": "*"
+    "@calcom/types": "workspace:*"
   }
 }

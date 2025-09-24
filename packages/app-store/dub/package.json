@@ -5,11 +5,11 @@
   "version": "0.0.0",
   "main": "./index.ts",
   "dependencies": {
-    "@calcom/lib": "*",
+    "@calcom/lib": "workspace:*",
     "dub-package": "npm:dub@^0.61.12"
   },
   "devDependencies": {
-    "@calcom/types": "*"
+    "@calcom/types": "workspace:*"
   },
   "description": "Dub is the modern link attribution platform for you to create short links, track conversion analytics, and run affiliate programs."
 }

@@ -5,9 +5,9 @@
   "main": "./index.ts",
   "description": "Jitsi is a free open-source video conferencing software for web and mobile. Make a call, launch on your own servers, integrate into your app, and more.",
   "dependencies": {
-    "@calcom/lib": "*"
+    "@calcom/lib": "workspace:*"
   },
   "devDependencies": {
-    "@calcom/types": "*"
+    "@calcom/types": "workspace:*"
   }
 }

@@ -6,9 +6,9 @@
   "main": "./index.ts",
   "description": "The joyful productivity app\r\r",
   "dependencies": {
-    "@calcom/lib": "*"
+    "@calcom/lib": "workspace:*"
   },
   "devDependencies": {
-    "@calcom/types": "*"
+    "@calcom/types": "workspace:*"
   }
 }
