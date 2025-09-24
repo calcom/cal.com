@@ -19,6 +19,7 @@ import {
   getConfigProp,
   isSameBookingLink,
   buildConfigWithPrerenderRelatedFields,
+  submitResponseAndGetRoutingResult,
 } from "./lib/utils";
 import { SdkActionManager } from "./sdk-action-manager";
 import type { EventData, EventDataMap } from "./sdk-action-manager";
@@ -36,6 +37,16 @@ export type Message = {
   method: keyof InterfaceWithParent;
   arg: InterfaceWithParent[keyof InterfaceWithParent];
 };
+
+type IframeContent =
+  | {
+      type: "src";
+      src: string;
+    }
+  | {
+      type: "html";
+      html: string;
+    };
 // HACK: Redefine and don't import WEBAPP_URL as it causes import statement to be present in built file.
 // This is happening because we are not able to generate an App and a lib using single Vite Config.
 const WEBAPP_URL = process.env.EMBED_PUBLIC_WEBAPP_URL || `https://${process.env.EMBED_PUBLIC_VERCEL_URL}`;
@@ -87,8 +98,7 @@ initializeGlobalCalProps();
 
 document.head.appendChild(document.createElement("style")).innerHTML = css;
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-type ValidationSchemaPropType = string | Function;
+type ValidationSchemaPropType = string | (new (...args: unknown[]) => unknown);
 
 type ValidationSchema = {
   required?: boolean;
@@ -100,6 +110,7 @@ type ValidationSchema = {
   >;
 };
 /**
+ * @deprecated This hasn't been much helpful since the day it was introduced. We could remove it and instead rely on users using proper types while calling the various APIs.
  * //TODO: Warn about extra properties not part of schema. Helps in fixing wrong expectations
  * A very simple data validator written with intention of keeping payload size low.
  * Extend the functionality of it as required by the embed.
@@ -189,7 +200,7 @@ type SingleInstruction = SingleInstructionMap[keyof SingleInstructionMap];
 export type Instruction = SingleInstruction | SingleInstruction[];
 export type InstructionQueue = Instruction[];
 
-const excludeParam = (key: string, _value: unknown) => {
+const excludeParam = (key: string) => {
   const paramsReservedByBookingForm = [
     "month",
     "date",
@@ -297,11 +308,11 @@ export class Cal {
    * Iframe is added invisible and shown only after color-scheme is set by the embedded calLink to avoid flash of non-transparent(white/black) background
    */
   createIframe({
-    calLink,
+    iframeContent,
     config = {},
     calOrigin,
   }: {
-    calLink: string;
+    iframeContent: IframeContent;
     config?: PrefillAndIframeAttrsConfigWithGuestAndColorScheme;
     calOrigin: string | null;
   }) {
@@ -310,23 +321,32 @@ export class Cal {
     iframe.name = `cal-embed=${this.namespace}`;
     iframe.title = `Book a call`;
 
-    this.loadInIframe({ calLink, config, calOrigin, iframe });
+    this.loadInIframe({ iframeContent, config, calOrigin, iframe });
     return iframe;
   }
 
   loadInIframe({
-    calLink,
+    iframeContent,
     config = {},
     calOrigin,
     iframe,
   }: {
     iframe: HTMLIFrameElement;
-    calLink: string;
+    iframeContent: IframeContent;
     config?: PrefillAndIframeAttrsConfig;
     calOrigin: string | null;
   }) {
-    log("Loading in iframe", calLink, "with config", JSON.stringify(config));
-    iframe.dataset.calLink = calLink;
+    log("Loading in iframe", iframeContent, "with config", JSON.stringify(config));
+    let calLink;
+    if (iframeContent.type === "src") {
+      calLink = iframeContent.src;
+      iframe.dataset.calLink = calLink;
+    } else {
+      calLink = `data:text/html,${iframeContent.html}`;
+      // This could be huge data
+      // iframe.dataset.calLink = iframeContent.html;
+    }
+
     const calConfig = this.getCalConfig();
     const { iframeAttrs, ...queryParamsFromConfig } = config;
 
@@ -344,7 +364,7 @@ export class Cal {
       "https://app.cal.com"
     );
 
-    const urlInstance = new URL(`${originToUse}/${calLink}`);
+    const urlInstance = new URL(`${originToUse}/${this.calLink}`);
     if (!urlInstance.pathname.endsWith("embed")) {
       // TODO: Make a list of patterns that are embeddable. All except that should be allowed with a warning that "The page isn't optimized for embedding"
       urlInstance.pathname = `${urlInstance.pathname}/embed`;
@@ -521,7 +541,7 @@ export class Cal {
   }
 
   private filterParams(params: Record<string, unknown>): Record<string, unknown> {
-    return Object.fromEntries(Object.entries(params).filter(([key, value]) => !excludeParam(key, value)));
+    return Object.fromEntries(Object.entries(params).filter(([key]) => !excludeParam(key)));
   }
 
   private getQueryParamsFromPage() {
@@ -828,6 +848,47 @@ export class Cal {
       },
     });
   }
+
+  async fetchIframeContent({
+    calLink,
+    calOrigin,
+  }: {
+    calLink: string;
+    calOrigin: string;
+  }): Promise<IframeContent> {
+    const calLinkUrlObject = new URL(calLink, calOrigin);
+    const isHeadlessRouterPath = calLinkUrlObject ? isRouterPath(calLinkUrlObject.toString()) : false;
+
+    if (!isHeadlessRouterPath) {
+      return {
+        type: "src",
+        src: calLink,
+      };
+    }
+
+    const result = await submitResponseAndGetRoutingResult({
+      headlessRouterPageUrl: calLinkUrlObject.toString(),
+    });
+
+    if ("redirect" in result) {
+      return {
+        type: "src",
+        src: result.redirect,
+      };
+    }
+
+    if ("message" in result) {
+      return {
+        type: "html",
+        html: result.message,
+      };
+    }
+
+    return {
+      type: "html",
+      html: result.error,
+    };
+  }
 }
 
 class CalApi {
@@ -879,7 +940,7 @@ class CalApi {
   /**
    * It is an instruction that adds embed iframe inline as last child of the element
    */
-  inline({
+  async inline({
     calLink,
     elementOrSelector,
     config,
@@ -888,26 +949,6 @@ class CalApi {
     elementOrSelector: string | HTMLElement;
     config?: PrefillAndIframeAttrsConfig;
   }) {
-    // eslint-disable-next-line prefer-rest-params
-    validate(arguments[0], {
-      required: true,
-      props: {
-        calLink: {
-          // TODO: Add a special type calLink for it and validate that it doesn't start with / or https?://
-          required: true,
-          type: "string",
-        },
-        elementOrSelector: {
-          required: true,
-          type: ["string", HTMLElement],
-        },
-        config: {
-          required: false,
-          type: Object,
-        },
-      },
-    });
-
     // If someone re-executes inline embed instruction, we want to ensure that duplicate inlineEl isn't added to the page per namespace
     if (this.cal.inlineEl && document.body.contains(this.cal.inlineEl)) {
       console.warn("Inline embed already exists. Ignoring this call");
@@ -929,11 +970,16 @@ class CalApi {
 
     config.embedType = "inline";
     const calConfig = this.cal.getCalConfig();
+    const calOrigin = calConfig.calOrigin;
+    const iframeContent = await this.cal.fetchIframeContent({
+      calLink,
+      calOrigin,
+    });
 
     const iframe = this.cal.createIframe({
-      calLink,
+      iframeContent,
       config: withColorScheme(Cal.ensureGuestKey(config), containerEl),
-      calOrigin: calConfig.calOrigin,
+      calOrigin,
     });
 
     iframe.style.height = "100%";
@@ -1177,9 +1223,13 @@ class CalApi {
         existingModalEl.setAttribute("state", "loading");
 
         if (actionToTake === "fullReload") {
-          log("Initiating full page load");
+          const iframeContent = await this.cal.fetchIframeContent({
+            calLink: calLinkUrlObject.toString(),
+            calOrigin,
+          });
+
           this.cal.loadInIframe({
-            calLink,
+            iframeContent,
             calOrigin,
             iframe: this.cal.iframe,
             config: enrichedConfig,
@@ -1214,15 +1264,16 @@ class CalApi {
       // this.modalUid = uid;
     }
 
-    let iframe = null;
+    const iframeContent = await this.cal.fetchIframeContent({
+      calLink: calLinkUrlObject.toString(),
+      calOrigin,
+    });
 
-    if (!iframe) {
-      iframe = this.cal.createIframe({
-        calLink,
-        config: enrichedConfig,
-        calOrigin,
-      });
-    }
+    const iframe = this.cal.createIframe({
+      iframeContent,
+      config: enrichedConfig,
+      calOrigin,
+    });
 
     iframe.style.borderRadius = "8px";
     iframe.style.height = "100%";
@@ -1276,10 +1327,6 @@ class CalApi {
         action: {
           required: true,
           type: "string",
-        },
-        callback: {
-          required: true,
-          type: Function,
         },
       },
     });
@@ -1537,6 +1584,7 @@ document.addEventListener("click", (e) => {
   try {
     config = JSON.parse(configString);
   } catch (e) {
+    console.warn('Error parsing calConfig', e);
     config = {};
   }
 
