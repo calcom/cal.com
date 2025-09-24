@@ -266,6 +266,7 @@ class BaseEventTypeOutput_2024_06_14 {
       { $ref: getSchemaPath(RadioGroupFieldOutput_2024_06_14) },
       { $ref: getSchemaPath(BooleanFieldOutput_2024_06_14) },
       { $ref: getSchemaPath(UrlFieldOutput_2024_06_14) },
+      { $ref: getSchemaPath(DateFieldOutput_2024_06_14) },
     ],
     type: "array",
   })
