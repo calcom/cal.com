@@ -443,6 +443,7 @@ function assertThatCodeIsValidVanillaJsCode(code: string) {
             document: "readonly",
             navigator: "readonly",
             Cal: "readonly",
+            console: "readonly",
           },
         },
         rules: eslintRules,
