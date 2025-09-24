@@ -5,7 +5,7 @@ import * as React from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { vi } from "vitest";
 
-import { FormBuilder } from "./FormBuilder";
+import FormBuilder from "./FormBuilder";
 import {
   mockProps,
   verifier,
@@ -219,7 +219,6 @@ describe("FormBuilder", () => {
         ],
       });
 
-      
       verifier.verifyOptionPrices({ identifier, prices: [20, 25] });
     });
 

@@ -4,7 +4,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import type { UseFormReturn } from "react-hook-form";
 import { vi } from "vitest";
 
-import { FormBuilderField } from "./FormBuilderField";
+import FormBuilderField from "./FormBuilderField";
 
 vi.mock("@formkit/auto-animate/react", () => ({
   useAutoAnimate: () => [null],

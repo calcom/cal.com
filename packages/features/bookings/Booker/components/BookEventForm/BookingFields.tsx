@@ -5,7 +5,7 @@ import { getOrganizerInputLocationTypes } from "@calcom/app-store/locations";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
-import { FormBuilderField } from "@calcom/features/form-builder/FormBuilderField";
+import FormBuilderField from "@calcom/features/form-builder/FormBuilderField";
 import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
