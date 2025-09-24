@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
-import { IsBoolean, IsEnum, IsOptional, IsString, ValidateNested } from "class-validator";
+import { IsEnum, IsString, ValidateNested } from "class-validator";
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { MembershipRole } from "@calcom/platform-libraries";
@@ -18,11 +18,6 @@ export class OrgMeTeamOutputDto extends OrgTeamOutputDto {
   @IsEnum([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
   @Expose()
   readonly role!: MembershipRole;
-
-  @IsBoolean()
-  @IsOptional()
-  @Expose()
-  readonly canCreateEventTypes?: boolean;
 }
 
 export class OrgTeamsOutputResponseDto {

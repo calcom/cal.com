@@ -1,7 +1,9 @@
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import type { PrismaClient } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -59,9 +61,29 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
   const profileProcessor = new ProfilePermissionProcessor();
   const profiles = profileProcessor.processProfiles(eventTypeGroups, teamPermissionsMap);
 
+  const permissionCheckService = new PermissionCheckService();
+
+  const teamPermissionsArray = await Promise.all(
+    filteredEventTypeGroups
+      .map((group) => group.teamId)
+      .filter((teamId): teamId is number => teamId !== null && teamId !== undefined)
+      .map(async (teamId) => {
+        const canCreateEventType = await permissionCheckService.checkPermission({
+          userId: user.id,
+          teamId: teamId,
+          permission: "eventType.create",
+          fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+        });
+        return [teamId, { canCreateEventType }] as const;
+      })
+  );
+
+  const teamPermissions = Object.fromEntries(teamPermissionsArray);
+
   return {
     eventTypeGroups: filteredEventTypeGroups,
     profiles,
+    teamPermissions,
   };
 };
 

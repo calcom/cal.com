@@ -1,4 +1,14 @@
+import type { PageProps as ServerPageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
+import { cookies, headers } from "next/headers";
+import { notFound } from "next/navigation";
+import { z } from "zod";
+
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { MembershipRole } from "@calcom/prisma/enums";
+
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import CreateTeamEventType, { LayoutWrapper } from "~/settings/teams/[id]/event-types-view";
 
@@ -11,10 +21,37 @@ export const generateMetadata = async ({ params }: { params: Promise<{ id: strin
     `/settings/teams/${(await params).id}/event-type`
   );
 
-const ServerPage = async () => {
+const querySchema = z.object({
+  id: z
+    .number()
+    .refine((val) => !isNaN(Number(val)), {
+      message: "id must be a string that can be cast to a number",
+    })
+    .transform((val) => Number(val)),
+});
+
+const ServerPage = async ({ params }: ServerPageProps) => {
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  if (!session?.user?.id) {
+    return redirect("/auth/login");
+  }
+
+  const parsed = querySchema.safeParse(await params);
+  if (!parsed.success) {
+    notFound();
+  }
+
+  const permissionService = new PermissionCheckService();
+  const canCreateEventType = await permissionService.checkPermission({
+    userId: session.user.id,
+    teamId: parsed.data.id,
+    permission: "eventType.create",
+    fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+  });
+
   return (
     <LayoutWrapper>
-      <CreateTeamEventType />
+      <CreateTeamEventType permissions={{ canCreateEventType }} />
     </LayoutWrapper>
   );
 };

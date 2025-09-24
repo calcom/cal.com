@@ -12,7 +12,10 @@ import { useOrgBranding } from "@calcom/features/ee/organizations/context/provid
 import { CreateButton } from "@calcom/features/ee/teams/components/createButton/CreateButton";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
 import { EventTypeDescription } from "@calcom/features/eventtypes/components";
-import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
+import {
+  CreateEventTypeDialog,
+  type ProfileOption,
+} from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import { InfiniteSkeletonLoader } from "@calcom/features/eventtypes/components/SkeletonLoader";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
@@ -846,17 +849,7 @@ const CreateFirstEventTypeView = ({ slug, searchTerm }: { slug: string; searchTe
   );
 };
 
-const CTA = ({
-  profileOptions,
-}: {
-  profileOptions: {
-    teamId: number | null | undefined;
-    label: string | null;
-    image: string;
-    membershipRole: MembershipRole | null | undefined;
-    slug: string | null;
-  }[];
-}) => {
+const CTA = ({ profileOptions }: { profileOptions: ProfileOption[] }) => {
   const { t } = useLocale();
 
   if (!profileOptions.length) return null;
@@ -951,7 +944,7 @@ type Props = {
 
 export const EventTypesCTA = ({ userEventGroupsData }: Omit<Props, "user">) => {
   const profileOptions =
-    userEventGroupsData?.profiles
+    userEventGroupsData.profiles
       ?.filter((profile) => !profile.readOnly)
       ?.filter((profile) => !profile.eventTypesLockedByOrg)
       ?.filter((profile) => {
@@ -979,6 +972,11 @@ export const EventTypesCTA = ({ userEventGroupsData }: Omit<Props, "user">) => {
           image: profile.image,
           membershipRole: profile.membershipRole,
           slug: profile.slug,
+          permissions: {
+            canCreateEventType: profile.teamId
+              ? userEventGroupsData.teamPermissions[profile.teamId].canCreateEventType
+              : true,
+          },
         };
       }) ?? [];
 

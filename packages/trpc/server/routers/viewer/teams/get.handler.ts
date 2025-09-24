@@ -1,5 +1,4 @@
 import { getTeamWithoutMembers } from "@calcom/features/ee/teams/lib/queries";
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 
 import { TRPCError } from "@trpc/server";
@@ -44,15 +43,7 @@ export const get = async ({ ctx, input }: GetDataOptions) => {
     role: teamMembership.role,
     accepted: teamMembership.accepted,
   };
-
-  const permissionCheckService = new PermissionCheckService();
-  const teamIdsWithPermission = await permissionCheckService.getTeamIdsWithPermission(
-    ctx.user.id,
-    "eventType.create"
-  );
-  const canCreateEventTypes = teamIdsWithPermission.includes(input.teamId);
-
-  return { ...team, membership, canCreateEventTypes };
+  return { ...team, membership };
 };
 
 export default get;

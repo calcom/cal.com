@@ -12,7 +12,11 @@ import { Button } from "@calcom/ui/components/button";
 import { WizardLayout } from "@calcom/ui/components/layout";
 import { showToast } from "@calcom/ui/components/toast";
 
-export const CreateTeamEventType = () => {
+type CreateTeamEventTypeProps = {
+  permissions: { canCreateEventType: boolean };
+};
+
+export const CreateTeamEventType = ({ permissions }: CreateTeamEventTypeProps) => {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const router = useRouter();
@@ -45,10 +49,6 @@ export const CreateTeamEventType = () => {
   );
 
   const { form, createMutation, isManagedEventType } = useCreateEventType(onSuccessMutation, onErrorMutation);
-
-  const permissions = {
-    canCreateEventType: team?.canCreateEventTypes ?? true,
-  };
 
   const orgBranding = useOrgBranding();
   const urlPrefix = orgBranding?.fullDomain ?? process.env.NEXT_PUBLIC_WEBSITE_URL;
