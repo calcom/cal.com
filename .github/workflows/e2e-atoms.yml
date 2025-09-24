@@ -8,7 +8,7 @@ on:
       - 'packages/platform/atoms/**'
       - 'packages/platform/examples/base/**'
       - 'apps/api/v2/**'
-      - '.github/workflows/atoms-e2e.yml'
+      - '.github/workflows/e2e-atoms.yml'
 
 permissions:
   actions: write
