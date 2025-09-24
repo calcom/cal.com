@@ -1,6 +1,6 @@
 "use client";
 
-import { isSupportedCountry } from "libphonenumber-js";
+import { getCountryCallingCode, isSupportedCountry, type CountryCode } from "libphonenumber-js";
 import type { CSSProperties } from "react";
 import { useState, useEffect } from "react";
 import PhoneInput from "react-phone-input-2";
@@ -52,8 +52,7 @@ function BasePhoneInput({
     if (value !== sanitized) {
       onChange(sanitized);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [value, onChange]);
 
   if (!isPlatform) {
     return (
@@ -92,7 +91,13 @@ function BasePhoneInput({
         placeholder: rest.placeholder,
       }}
       onChange={(val: string) => {
-        onChange(`+${val}`);
+        if (disableCountryCode && allowedCountryCodes?.length === 1) {
+          const countryCode = allowedCountryCodes[0].toUpperCase();
+          const dialCode = getCountryCallingCode(countryCode as CountryCode);
+          onChange(`+${dialCode}${val}`);
+        } else {
+          onChange(`+${val}`);
+        }
       }}
       containerClass={classNames(
         "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-default disabled:cursor-not-allowed",
@@ -153,7 +158,13 @@ function BasePhoneInputWeb({
         placeholder: rest.placeholder,
       }}
       onChange={(val: string) => {
-        onChange(`+${val}`);
+        if (disableCountryCode && allowedCountryCodes?.length === 1) {
+          const countryCode = allowedCountryCodes[0].toUpperCase();
+          const dialCode = getCountryCallingCode(countryCode as CountryCode);
+          onChange(`+${dialCode}${val}`);
+        } else {
+          onChange(`+${val}`);
+        }
       }}
       containerClass={classNames(
         "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-default disabled:cursor-not-allowed",

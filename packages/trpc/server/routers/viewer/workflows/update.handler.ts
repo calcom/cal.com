@@ -302,6 +302,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       let newStep;
 
       if (foundStep) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { senderName, ...rest } = {
           ...foundStep,
           numberVerificationPending: false,
@@ -363,7 +364,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           const aiPhoneService = createDefaultAIPhoneServiceProvider();
           const externalErrors: string[] = [];
 
-          const phoneNumberOperations: Promise<any>[] = [];
+          const phoneNumberOperations: Promise<void>[] = [];
 
           if (agent.outboundPhoneNumbers) {
             for (const phoneNumber of agent.outboundPhoneNumbers) {
@@ -459,7 +460,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           ...newStep,
           verifiedAt: oldStep.verifiedAt,
           agentId: newStep.agentId || null,
-          allowedCountryCodes: newStep.allowedCountryCodes || [],
         })
       ) {
         // check if step that require team plan already existed before
@@ -522,7 +522,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             includeCalendarEvent: newStep.includeCalendarEvent,
             agentId: newStep.agentId || null,
             verifiedAt: !SCANNING_WORKFLOW_STEPS ? new Date() : didBodyChange ? null : oldStep.verifiedAt,
-            allowedCountryCodes: newStep.allowedCountryCodes || [],
           },
         });
 
@@ -575,11 +574,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           await verifyEmailSender(newStep.sendTo || "", user.id, userWorkflow.teamId);
         }
 
-        const {
-          id: _stepId,
-          senderName,
-          ...stepToAdd
-        } = {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id, senderName, ...stepToAdd } = {
           ...newStep,
           sender: getSender({
             action: newStep.action,
