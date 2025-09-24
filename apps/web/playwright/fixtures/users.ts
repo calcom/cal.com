@@ -160,6 +160,7 @@ const createTeamAndAddUser = async (
     orgRequestedSlug,
     schedulingType,
     assignAllTeamMembersForSubTeamEvents,
+    teamSlug,
   }: {
     user: { id: number; email: string; username: string | null; role?: MembershipRole };
     isUnpublished?: boolean;
@@ -172,12 +173,15 @@ const createTeamAndAddUser = async (
     orgRequestedSlug?: string;
     schedulingType?: SchedulingType;
     assignAllTeamMembersForSubTeamEvents?: boolean;
+    teamSlug?: string;
   },
   workerInfo: WorkerInfo
 ) => {
   const slugIndex = index ? `-count-${index}` : "";
   const slug =
-    orgRequestedSlug ?? `${isOrg ? "org" : "team"}-${workerInfo.workerIndex}-${Date.now()}${slugIndex}`;
+    teamSlug ??
+    orgRequestedSlug ??
+    `${isOrg ? "org" : "team"}-${workerInfo.workerIndex}-${Date.now()}${slugIndex}`;
   const data: PrismaType.TeamCreateInput = {
     name: `user-id-${user.id}'s ${isOrg ? "Org" : "Team"}`,
     isOrganization: isOrg,
@@ -283,6 +287,7 @@ export const createUsersFixture = (
         schedulingType?: SchedulingType;
         teamEventTitle?: string;
         teamEventSlug?: string;
+        teamSlug?: string;
         teamEventLength?: number;
         isOrg?: boolean;
         isOrgVerified?: boolean;
@@ -367,6 +372,7 @@ export const createUsersFixture = (
               orgRequestedSlug: scenario.orgRequestedSlug,
               schedulingType: scenario.schedulingType,
               assignAllTeamMembersForSubTeamEvents: scenario.assignAllTeamMembersForSubTeamEvents,
+              teamSlug: scenario?.teamSlug,
             },
             workerInfo
           );
@@ -710,6 +716,28 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
         throw new Error("No team found for user");
       }
       return membership;
+    },
+    getAllTeamMembership: async () => {
+      const memberships = await prisma.membership.findMany({
+        where: { userId: user.id },
+        include: { team: true, user: true },
+      });
+
+      const filteredMemberships = memberships
+        .filter((membership) => !membership.team.isOrganization)
+        .map((membership) => ({
+          ...membership,
+          team: {
+            ...membership.team,
+            metadata: teamMetadataSchema.parse(membership.team.metadata),
+          },
+        }));
+
+      if (filteredMemberships.length === 0) {
+        throw new Error("No team memberships found for user");
+      }
+
+      return filteredMemberships;
     },
     getOrgMembership: async () => {
       const membership = await prisma.membership.findFirstOrThrow({

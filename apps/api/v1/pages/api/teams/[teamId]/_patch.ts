@@ -68,13 +68,20 @@ export async function patchHandler(req: NextApiRequest) {
   });
   if (!_team) throw new HttpError({ statusCode: 401, message: "Unauthorized: OWNER or ADMIN required" });
 
-  const slugAlreadyExists = await prisma.team.findFirst({
-    where: {
-      slug: {
-        mode: "insensitive",
-        equals: data.slug,
-      },
+  const whereClause: Prisma.TeamWhereInput = {
+    slug: {
+      mode: "insensitive",
+      equals: data.slug,
     },
+    parentId: null,
+  };
+
+  if (_team.parentId) {
+    whereClause.parentId = _team.parentId;
+  }
+
+  const slugAlreadyExists = await prisma.team.findFirst({
+    where: whereClause,
   });
 
   if (slugAlreadyExists && data.slug !== _team.slug)
