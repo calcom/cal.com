@@ -11,7 +11,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
 
   const { user } = session;
 
-  const membershipRepository = new MembershipRepository();
+  const membershipRepository = new MembershipRepository(prisma);
   const memberships = await membershipRepository.findAllMembershipsByUserIdForBilling({ userId: user.id });
   const billingPlanService = new BillingPlanService();
   const plan = await billingPlanService.getUserPlanByMemberships(memberships);

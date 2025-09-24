@@ -315,7 +315,7 @@ export class MembershipRepository {
   }
 
   async findAllMembershipsByUserIdForBilling({ userId }: { userId: number }) {
-    return await prisma.membership.findMany({
+    return this.prismaClient.membership.findMany({
       where: { userId },
       select: {
         accepted: true,
