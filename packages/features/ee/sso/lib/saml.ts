@@ -1,7 +1,7 @@
 import type { SAMLSSORecord, OIDCSSORecord } from "@boxyhq/saml-jackson";
 
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
-import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
+import { isTeamAdmin } from "@calcom/features/ee/teams/lib/queries";
 
 export const samlDatabaseUrl = process.env.SAML_DATABASE_URL || "";
 export const isSAMLLoginEnabled = samlDatabaseUrl.length > 0;

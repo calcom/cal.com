@@ -783,7 +783,7 @@ describe("Round Robin handleNewBooking", () => {
   describe("Seated Round Robin Event", () => {
     test("For second seat booking, organizer remains the same with no team members included", async () => {
       const handleNewBooking = getNewBookingHandler();
-      const EventManager = (await import("@calcom/lib/EventManager")).default;
+      const EventManager = (await import("@calcom/features/bookings/lib/EventManager")).default;
 
       const eventManagerSpy = vi.spyOn(EventManager.prototype, "updateCalendarAttendees");
 
