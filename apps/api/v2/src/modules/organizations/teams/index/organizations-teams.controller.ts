@@ -42,6 +42,7 @@ import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 import { Request } from "express";
 
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { SUCCESS_STATUS, X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import { OrgTeamOutputDto, type SkipTakePagination } from "@calcom/platform-types";
 import type { Team } from "@calcom/prisma/client";
@@ -92,13 +93,22 @@ export class OrganizationsTeamsController {
       ? await this.organizationsTeamsService.getPaginatedOrgTeamsWithMembers(orgId, skip ?? 0, take ?? 250)
       : await this.organizationsTeamsService.getPaginatedOrgUserTeams(orgId, user.id, skip ?? 0, take ?? 250);
 
+    const permissionCheckService = new PermissionCheckService();
+    const teamIdsWithPermission = await permissionCheckService.getTeamIdsWithPermission(
+      user.id,
+      "eventType.create"
+    );
+
     return {
       status: SUCCESS_STATUS,
       data: teams.map((team) => {
         const me = team.members.find((member) => member.userId === user.id);
+        const canCreateEventTypes = teamIdsWithPermission.includes(team.id);
         return plainToClass(
           OrgMeTeamOutputDto,
-          me ? { ...team, role: me.role, accepted: me.accepted } : team,
+          me
+            ? { ...team, role: me.role, accepted: me.accepted, canCreateEventTypes }
+            : { ...team, canCreateEventTypes },
           { strategy: "excludeAll" }
         );
       }),
