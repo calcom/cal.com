@@ -180,6 +180,13 @@ const getEventTypesFromDBSelect = {
       name: true,
     },
   },
+  optionalGuestTeamMembers: {
+    select: {
+      name: true,
+      email: true,
+      id: true,
+    },
+  },
 } satisfies Prisma.EventTypeSelect;
 
 export const getEventTypesFromDB = async (eventTypeId: number) => {

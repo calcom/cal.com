@@ -178,6 +178,7 @@ export type FormValues = {
   restrictionScheduleName: string | null;
   calVideoSettings?: CalVideoSettings;
   maxActiveBookingPerBookerOfferReschedule: boolean;
+  optionalGuestTeamMembers: { id: number }[];
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;

@@ -70,14 +70,29 @@ export default class ExchangeCalendarService implements Calendar {
       appointment.End = DateTime.Parse(event.endTime); // moment string
       appointment.Location = event.location || "Location not defined!";
       appointment.Body = new MessageBody(event.description || ""); // you can not use any special character or escape the content
+      // Create a set of optional guest emails for easy lookup.
+      const optionalGuestEmails = new Set(
+        event.optionalGuestTeamMembers?.map((guest) => guest.email.toLowerCase()) ?? []
+      );
 
+      // Add the main booker as required
       for (let i = 0; i < event.attendees.length; i++) {
         appointment.RequiredAttendees.Add(new Attendee(event.attendees[i].email));
       }
 
+      // Add team members as required, ONLY if they aren't optional
       if (event.team?.members) {
-        event.team.members.forEach((member) => {
-          appointment.RequiredAttendees.Add(new Attendee(member.email));
+        event.team.members
+          .filter((member) => member.email && !optionalGuestEmails.has(member.email.toLowerCase()))
+          .forEach((member) => {
+            appointment.RequiredAttendees.Add(new Attendee(member.email));
+          });
+      }
+
+      // Add optional members to the optional list
+      if (event.optionalGuestTeamMembers) {
+        event.optionalGuestTeamMembers.forEach((member) => {
+          appointment.OptionalAttendees.Add(new Attendee(member.email));
         });
       }
 
@@ -87,7 +102,7 @@ export default class ExchangeCalendarService implements Calendar {
         uid: appointment.Id.UniqueId,
         id: appointment.Id.UniqueId,
         password: "",
-        type: "",
+        type: "exchange2016_calendar", // Added type for clarity
         url: "",
         additionalInfo: {},
       };
@@ -110,12 +125,33 @@ export default class ExchangeCalendarService implements Calendar {
       appointment.End = DateTime.Parse(event.endTime); // moment string
       appointment.Location = event.location || "Location not defined!";
       appointment.Body = new MessageBody(event.description || ""); // you can not use any special character or escape the content
+
+      // Clear old attendees before adding new ones
+      appointment.RequiredAttendees.Clear();
+      appointment.OptionalAttendees.Clear();
+
+      const optionalGuestEmails = new Set(
+        event.optionalGuestTeamMembers?.map((guest) => guest.email.toLowerCase()) ?? []
+      );
+
+      // Add the main booker as required
       for (let i = 0; i < event.attendees.length; i++) {
         appointment.RequiredAttendees.Add(new Attendee(event.attendees[i].email));
       }
+
+      // Add team members as required, ONLY if they aren't optional
       if (event.team?.members) {
-        event.team.members.forEach((member) => {
-          appointment.RequiredAttendees.Add(new Attendee(member.email));
+        event.team.members
+          .filter((member) => member.email && !optionalGuestEmails.has(member.email.toLowerCase()))
+          .forEach((member) => {
+            appointment.RequiredAttendees.Add(new Attendee(member.email));
+          });
+      }
+
+      // Add optional members to the optional list
+      if (event.optionalGuestTeamMembers) {
+        event.optionalGuestTeamMembers.forEach((member) => {
+          appointment.OptionalAttendees.Add(new Attendee(member.email));
         });
       }
       appointment.Update(
