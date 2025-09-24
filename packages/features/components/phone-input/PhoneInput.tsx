@@ -185,9 +185,11 @@ const useDefaultCountry = () => {
         return;
       }
 
-      isSupportedCountry(data?.countryCode)
-        ? setDefaultCountry(data.countryCode.toLowerCase())
-        : setDefaultCountry(navigator.language.split("-")[1]?.toLowerCase() || "us");
+      if (isSupportedCountry(data?.countryCode)) {
+        setDefaultCountry(data.countryCode.toLowerCase());
+      } else {
+        setDefaultCountry(navigator.language.split("-")[1]?.toLowerCase() || "us");
+      }
     },
     [query.data]
   );
