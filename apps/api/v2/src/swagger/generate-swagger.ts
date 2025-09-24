@@ -21,15 +21,8 @@ export async function generateSwaggerForApp(app: NestExpressApplication<Server>)
   const document = SwaggerModule.createDocument(app, config);
   document.paths = groupAndSortPathsByFirstTag(document.paths);
 
-  const swaggerOutputFile = "./src/swagger/documentation.json";
   const docsOutputFile = "../../../docs/api-reference/v2/openapi.json";
   const stringifiedContents = JSON.stringify(document, null, 2);
-
-  if (fs.existsSync(swaggerOutputFile)) {
-    fs.unlinkSync(swaggerOutputFile);
-  }
-
-  fs.writeFileSync(swaggerOutputFile, stringifiedContents, { encoding: "utf8" });
 
   if (fs.existsSync(docsOutputFile) && getEnv("NODE_ENV") === "development") {
     fs.unlinkSync(docsOutputFile);
