@@ -66,6 +66,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
     publicPageUrl,
     isAdmin,
     user,
+    onSkipTrial: () => setIsSkipTrialModalOpen(true),
   });
 
   const sidebarStylingAttributes = {
@@ -163,14 +164,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
                     isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : "",
                     index === 0 && "mt-3"
                   )}
-                  onClick={(e) => {
-                    if (item.name === "skip_trial") {
-                      e.preventDefault();
-                      setIsSkipTrialModalOpen(true);
-                    } else if (item.onClick) {
-                      item.onClick(e);
-                    }
-                  }}>
+                  onClick={item.onClick}>
                   {!!item.icon && (
                     <Icon
                       name={item.isLoading ? "rotate-cw" : item.icon}

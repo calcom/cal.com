@@ -9,12 +9,14 @@ type BottomNavItemsProps = {
   publicPageUrl: string;
   isAdmin: boolean;
   user: UserAuth | null | undefined;
+  onSkipTrial?: () => void;
 };
 
 export function useBottomNavItems({
   publicPageUrl,
   isAdmin,
   user,
+  onSkipTrial,
 }: BottomNavItemsProps): NavigationItemType[] {
   const { isTrial } = useHasActiveTeamPlanAsOwner();
 
@@ -27,6 +29,7 @@ export function useBottomNavItems({
           icon: "clock",
           onClick: (e: { preventDefault: () => void }) => {
             e.preventDefault();
+            onSkipTrial?.();
           },
         }
       : null,
