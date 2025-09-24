@@ -222,7 +222,7 @@ const SettingsToggle = memo(
         </div>
         <Switch checked={checked} onCheckedChange={onCheckedChange} disabled={disabled} />
       </CardHeader>
-      {checked && children && <CardContent className="border-t border-gray-100 p-6">{children}</CardContent>}
+      {checked && children && <CardContent className="border-default border-t p-6">{children}</CardContent>}
     </Card>
   )
 );

@@ -1,9 +1,11 @@
 "use client";
-import { usePhoneNumberField, PhoneNumberField } from "@calid/features/ui/components/input/phone-number-field";
-import { PHONE_NUMBER_VERIFICATION_ENABLED } from "@calcom/lib/constants";
 
 import { Button } from "@calid/features/ui/components/button";
 import { Input } from "@calid/features/ui/components/input/input";
+import {
+  usePhoneNumberField,
+  PhoneNumberField,
+} from "@calid/features/ui/components/input/phone-number-field";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useEffect, useState } from "react";
@@ -13,6 +15,7 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
+import { PHONE_NUMBER_VERIFICATION_ENABLED } from "@calcom/lib/constants";
 import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { designationTypes, professionTypeAndEventTypes, customEvents } from "@calcom/lib/customEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -94,7 +97,7 @@ const UserSettings = (props: IUserSettingsProps) => {
   }, [telemetry]);
 
   const [selectedBusiness, setSelectedBusiness] = useState<string | null>(
-    (isPrismaObjOrUndefined(user.metadata) as { designation?: string })?.designation || null
+    (isPrismaObjOrUndefined(user.metadata) as { designation?: string })?.designation || "recruiter"
   );
 
   const designationTypeOptions: { value: string; label: string }[] = Object.keys(designationTypes).map(
@@ -215,11 +218,7 @@ const UserSettings = (props: IUserSettingsProps) => {
           {t("business_type")}
         </label>
         <Select
-          value={
-            designationTypeOptions.find(
-              (option) => option.value === (selectedBusiness || designationTypeOptions[0].value)
-            ) || null
-          }
+          value={designationTypeOptions.find((option) => option.value === selectedBusiness) || null}
           onChange={(option: { value: string; label: string } | null) => {
             setSelectedBusiness(option?.value || "");
           }}

@@ -1,8 +1,7 @@
+import { Button, type ButtonBaseProps } from "@calid/features/ui/components/button";
 import type { FC } from "react";
 import React from "react";
 
-import type { ButtonBaseProps } from "../button";
-import { Button } from "../button";
 import {
   Dropdown,
   DropdownItem,

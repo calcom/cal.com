@@ -22,7 +22,6 @@ import {
 } from "@calid/features/ui/components/dropdown-menu";
 import { Icon } from "@calid/features/ui/components/icon";
 import { triggerToast } from "@calid/features/ui/components/toast";
-import { Tooltip } from "@calid/features/ui/components/tooltip";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import React from "react";
@@ -190,17 +189,6 @@ export function TeamsList({
                     StartIcon="check"
                     disabled={acceptOrLeaveMutation.isPending}
                   />
-                  <Tooltip content={t("view_team")}>
-                    <Button
-                      color="minimal"
-                      variant="icon"
-                      size="sm"
-                      type="button"
-                      StartIcon="external-link"
-                      onClick={() => router.push(`${WEBAPP_URL}/settings/teams/${team.id}/profile`)}
-                      data-testid={`view-team-invite-${team.id}`}
-                    />
-                  </Tooltip>
                 </div>
               </li>
             ))}
