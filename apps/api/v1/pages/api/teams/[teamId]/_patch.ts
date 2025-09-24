@@ -4,6 +4,7 @@ import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/pay
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
@@ -68,24 +69,13 @@ export async function patchHandler(req: NextApiRequest) {
   });
   if (!_team) throw new HttpError({ statusCode: 401, message: "Unauthorized: OWNER or ADMIN required" });
 
-  const whereClause: Prisma.TeamWhereInput = {
-    slug: {
-      mode: "insensitive",
-      equals: data.slug,
-    },
-    parentId: null,
-  };
-
-  if (_team.parentId) {
-    whereClause.parentId = _team.parentId;
+  if (data.slug) {
+    const teamRepository = new TeamRepository(prisma);
+    const isSlugAvailable = await teamRepository.isSlugAvailableForUpdate({ id, slug: input.slug });
+    if (!isSlugAvailable) {
+      throw new HttpError({ statusCode: 409, message: "Team slug already exists" });
+    }
   }
-
-  const slugAlreadyExists = await prisma.team.findFirst({
-    where: whereClause,
-  });
-
-  if (slugAlreadyExists && data.slug !== _team.slug)
-    throw new HttpError({ statusCode: 409, message: "Team slug already exists" });
 
   // Check if parentId is related to this user
   if (data.parentId && data.parentId === teamId) {

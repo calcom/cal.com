@@ -11,6 +11,7 @@ import {
   fillStripeTestCheckout,
   selectFirstAvailableTimeSlotNextMonth,
   submitAndWaitForResponse,
+  testName,
 } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
@@ -367,7 +368,7 @@ test.describe("Team Slug Validation", () => {
     await page.locator('input[name="slug"]').fill(teams[1].team.slug);
     await submitAndWaitForResponse(page, "/api/trpc/teams/update", {
       action: () => page.locator("[data-testid=update-team-profile]").click(),
-      expectedStatusCode: 400,
+      expectedStatusCode: 409,
     });
   });
 
