@@ -22,19 +22,10 @@ export class PermissionRepository implements IPermissionRepository {
   async getUserMemberships(userId: number): Promise<TeamPermissions[]> {
     const memberships = await this.client.membership.findMany({
       where: { userId },
-      select: {
-        teamId: true,
+      include: {
         customRole: {
-          select: {
-            id: true,
-            permissions: {
-              select: {
-                id: true,
-                resource: true,
-                action: true,
-                roleId: true,
-              },
-            },
+          include: {
+            permissions: true,
           },
         },
       },
