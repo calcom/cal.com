@@ -86,5 +86,3 @@ export const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
     </WizardLayout>
   );
 };
-
-export default CreateTeamEventType;

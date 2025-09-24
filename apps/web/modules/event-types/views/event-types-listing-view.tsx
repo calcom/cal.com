@@ -966,17 +966,20 @@ export const EventTypesCTA = ({ userEventGroupsData }: Omit<Props, "user">) => {
         );
       })
       ?.map((profile) => {
+        const permissions = profile.teamId
+          ? userEventGroupsData.teamPermissions[profile.teamId]
+          : {
+              // always can create eventType on personal level
+              canCreateEventType: true,
+            };
+
         return {
           teamId: profile.teamId,
           label: profile.name || profile.slug,
           image: profile.image,
           membershipRole: profile.membershipRole,
           slug: profile.slug,
-          permissions: {
-            canCreateEventType: profile.teamId
-              ? userEventGroupsData.teamPermissions[profile.teamId].canCreateEventType
-              : true,
-          },
+          permissions,
         };
       }) ?? [];
 

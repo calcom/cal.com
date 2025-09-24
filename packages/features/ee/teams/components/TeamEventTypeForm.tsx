@@ -42,6 +42,7 @@ export const TeamEventTypeForm = ({
   const { t } = useLocale();
 
   const { register, setValue, formState } = form;
+  const { canCreateEventType } = permissions;
 
   return (
     <Form form={form} handleSubmit={handleSubmit}>
@@ -126,29 +127,29 @@ export const TeamEventTypeForm = ({
             onValueChange={(val: SchedulingType) => {
               setValue("schedulingType", val);
             }}
-            className={classNames("mt-1 flex gap-4", permissions.canCreateEventType && "flex-col")}>
+            className={classNames("mt-1 flex gap-4", canCreateEventType && "flex-col")}>
             <RadioArea.Item
               {...register("schedulingType")}
               value={SchedulingType.COLLECTIVE}
-              className={classNames("w-full text-sm", !permissions.canCreateEventType && "w-1/2")}
-              classNames={{ container: classNames(permissions.canCreateEventType && "w-full") }}>
+              className={classNames("w-full text-sm", !canCreateEventType && "w-1/2")}
+              classNames={{ container: classNames(canCreateEventType && "w-full") }}>
               <strong className="mb-1 block">{t("collective")}</strong>
               <p>{t("collective_description")}</p>
             </RadioArea.Item>
             <RadioArea.Item
               {...register("schedulingType")}
               value={SchedulingType.ROUND_ROBIN}
-              className={classNames("text-sm", !permissions.canCreateEventType && "w-1/2")}
-              classNames={{ container: classNames(permissions.canCreateEventType && "w-full") }}>
+              className={classNames("text-sm", !canCreateEventType && "w-1/2")}
+              classNames={{ container: classNames(canCreateEventType && "w-full") }}>
               <strong className="mb-1 block">{t("round_robin")}</strong>
               <p>{t("round_robin_description")}</p>
             </RadioArea.Item>
-            {permissions.canCreateEventType && (
+            {canCreateEventType && (
               <RadioArea.Item
                 {...register("schedulingType")}
                 value={SchedulingType.MANAGED}
-                className={classNames("text-sm", !permissions.canCreateEventType && "w-1/2")}
-                classNames={{ container: classNames(permissions.canCreateEventType && "w-full") }}
+                className={classNames("text-sm", !canCreateEventType && "w-1/2")}
+                classNames={{ container: classNames(canCreateEventType && "w-full") }}
                 data-testid="managed-event-type">
                 <strong className="mb-1 block">{t("managed_event")}</strong>
                 <p>{t("managed_event_description")}</p>
