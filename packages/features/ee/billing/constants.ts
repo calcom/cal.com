@@ -8,7 +8,7 @@ export const CHECKOUT_SESSION_TYPES = {
 
 export type CheckoutSessionType = (typeof CHECKOUT_SESSION_TYPES)[keyof typeof CHECKOUT_SESSION_TYPES];
 
-export enum BillingPlans {
+export enum BillingPlan {
   INDIVIDUALS = "INDIVIDUALS",
   TEAMS = "TEAMS",
   ORGANIZATIONS = "ORGANIZATIONS",
@@ -19,3 +19,6 @@ export enum BillingPlans {
   PLATFORM_ENTERPRISE = "PLATFORM_ENTERPRISE",
   UNKNOWN = "Unknown",
 }
+
+export const PLATFORM_ENTERPRISE_SLUGS = process.env.PLATFORM_ENTERPRISE_SLUGS?.split(",") ?? [];
+export const ENTERPRISE_SLUGS = process.env.ENTERPRISE_SLUGS?.split(",") ?? [];

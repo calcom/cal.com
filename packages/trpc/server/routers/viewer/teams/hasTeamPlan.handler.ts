@@ -10,11 +10,13 @@ type HasTeamPlanOptions = {
 export const hasTeamPlanHandler = async ({ ctx }: HasTeamPlanOptions) => {
   const userId = ctx.user.id;
 
-  const memberships = await MembershipRepository.findAllMembershipsByUserIdForBilling({ userId });
+  const membershipRepository = new MembershipRepository();
+  const memberships = await membershipRepository.findAllMembershipsByUserIdForBilling({ userId });
   const hasTeamPlan = memberships.some(
     (membership) => membership.accepted === true && membership.team.slug !== null
   );
-  const plan = await BillingPlanService.getUserPlanByMemberships(memberships);
+  const billingPlanService = new BillingPlanService();
+  const plan = await billingPlanService.getUserPlanByMemberships(memberships);
 
   return { hasTeamPlan: !!hasTeamPlan, plan };
 };

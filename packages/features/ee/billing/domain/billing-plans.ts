@@ -1,17 +1,16 @@
-import { BillingPlans } from "@calcom/ee/billing/constants";
-import type { Plans } from "@calcom/prisma/enums";
+import { BillingPlan, ENTERPRISE_SLUGS, PLATFORM_ENTERPRISE_SLUGS } from "@calcom/ee/billing/constants";
 
 export class BillingPlanService {
-  static async getUserPlanByMemberships(
+  async getUserPlanByMemberships(
     memberships: {
       team: {
-        plan: Plans | null;
         isOrganization: boolean;
         isPlatform: boolean;
+        slug: string | null;
         parent: {
           isOrganization: boolean;
+          slug: string | null;
           isPlatform: boolean;
-          plan: Plans | null;
         } | null;
         platformBilling: {
           plan: string;
@@ -22,30 +21,42 @@ export class BillingPlanService {
       };
     }[]
   ) {
-    if (memberships.length === 0) return BillingPlans.INDIVIDUALS;
+    if (memberships.length === 0) return BillingPlan.INDIVIDUALS;
 
     for (const { team, user } of memberships) {
       if (team.isPlatform || user.isPlatformManaged) {
+        if (PLATFORM_ENTERPRISE_SLUGS.includes(team.slug ?? "")) return BillingPlan.PLATFORM_ENTERPRISE;
         if (!team.platformBilling) continue;
 
         switch (team.platformBilling.plan) {
           case "FREE":
           case "STARTER":
-            return BillingPlans.PLATFORM_STARTER;
+            return BillingPlan.PLATFORM_STARTER;
           case "ESSENTIALS":
-            return BillingPlans.PLATFORM_ESSENTIALS;
+            return BillingPlan.PLATFORM_ESSENTIALS;
           case "SCALE":
-            return BillingPlans.PLATFORM_SCALE;
+            return BillingPlan.PLATFORM_SCALE;
           case "ENTERPRISE":
-            return BillingPlans.PLATFORM_ENTERPRISE;
+            return BillingPlan.PLATFORM_ENTERPRISE;
           default:
             return team.platformBilling.plan;
         }
       } else {
-        if (team.parent?.plan) return team.parent.plan;
-        if (team.plan) return team.plan;
+        if (team.parent && team.parent.isOrganization && !team.parent.isPlatform) {
+          return ENTERPRISE_SLUGS.includes(team.parent.slug ?? "")
+            ? BillingPlan.ENTERPRISE
+            : BillingPlan.ORGANIZATIONS;
+        }
+
+        if (team.isOrganization) {
+          return ENTERPRISE_SLUGS.includes(team.slug ?? "")
+            ? BillingPlan.ENTERPRISE
+            : BillingPlan.ORGANIZATIONS;
+        } else {
+          return BillingPlan.TEAMS;
+        }
       }
     }
-    return BillingPlans.UNKNOWN;
+    return BillingPlan.UNKNOWN;
   }
 }

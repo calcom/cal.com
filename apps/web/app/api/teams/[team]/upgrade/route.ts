@@ -12,7 +12,6 @@ import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
-import { Plans } from "@calcom/prisma/enums";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -44,20 +43,12 @@ async function getHandler(req: NextRequest, { params }: { params: Promise<Params
 
     let team = await prisma.team.findFirst({
       where: { metadata: { path: ["paymentId"], equals: checkoutSession.id } },
-      select: {
-        metadata: true,
-        id: true,
-        isOrganization: true,
-      },
     });
 
     let metadata;
 
     if (!team) {
-      const prevTeam = await prisma.team.findFirstOrThrow({
-        where: { id },
-        select: { metadata: true, slug: true },
-      });
+      const prevTeam = await prisma.team.findFirstOrThrow({ where: { id } });
 
       metadata = teamMetadataStrictSchema.safeParse(prevTeam.metadata);
       if (!metadata.success) {
@@ -82,12 +73,6 @@ async function getHandler(req: NextRequest, { params }: { params: Promise<Params
         try {
           team = await prisma.team.update({ where: { id }, data: { slug } });
         } catch (error) {
-          await prisma.team.update({
-            where: { id },
-            data: {
-              plan: team.isOrganization ? Plans.ORGANIZATIONS : Plans.TEAMS,
-            },
-          });
           const { message, statusCode } = getRequestedSlugError(error, slug);
           return NextResponse.json({ message }, { status: statusCode });
         }
@@ -100,13 +85,6 @@ async function getHandler(req: NextRequest, { params }: { params: Promise<Params
         throw new HttpError({ statusCode: 400, message: "Invalid team metadata" });
       }
     }
-
-    await prisma.team.update({
-      where: { id },
-      data: {
-        plan: team.isOrganization ? Plans.ORGANIZATIONS : Plans.TEAMS,
-      },
-    });
 
     const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 

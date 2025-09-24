@@ -4,7 +4,7 @@ import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getO
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole, Plans } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
 import type { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -141,7 +141,6 @@ export class OrganizationRepository {
         name: orgData.name,
         isOrganization: true,
         slug: orgData.slug,
-        plan: !orgData.isPlatform ? Plans.ORGANIZATIONS : null,
         // This is huge and causes issues, we need to have the logic to convert logo to logoUrl and then use that url ehre.
         // logoUrl: orgData.logoUrl,
         bio: orgData.bio,

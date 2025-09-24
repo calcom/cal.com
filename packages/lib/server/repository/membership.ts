@@ -314,7 +314,7 @@ export class MembershipRepository {
     });
   }
 
-  static async findAllMembershipsByUserIdForBilling({ userId }: { userId: number }) {
+  async findAllMembershipsByUserIdForBilling({ userId }: { userId: number }) {
     return await prisma.membership.findMany({
       where: { userId },
       select: {
@@ -327,7 +327,6 @@ export class MembershipRepository {
         team: {
           select: {
             slug: true,
-            plan: true,
             isOrganization: true,
             isPlatform: true,
             platformBilling: {
@@ -337,8 +336,8 @@ export class MembershipRepository {
             },
             parent: {
               select: {
-                plan: true,
                 isOrganization: true,
+                slug: true,
                 isPlatform: true,
               },
             },

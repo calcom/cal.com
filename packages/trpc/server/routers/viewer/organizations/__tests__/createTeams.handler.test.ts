@@ -3,7 +3,7 @@ import prismock from "../../../../../../../tests/libs/__mocks__/prisma";
 import { describe, expect, it, beforeEach } from "vitest";
 
 import slugify from "@calcom/lib/slugify";
-import { MembershipRole, UserPermissionRole, CreationSource, Plans } from "@calcom/prisma/enums";
+import { MembershipRole, UserPermissionRole, CreationSource } from "@calcom/prisma/enums";
 
 import { createTeamsHandler } from "../createTeams.handler";
 
@@ -160,8 +160,6 @@ describe("createTeams handler", () => {
     expect(createdTeams[0].slug).toBe("team-1");
     expect(createdTeams[1].name).toBe("Team 2");
     expect(createdTeams[1].slug).toBe("team-2");
-    expect(createdTeams[0].plan).toBe(Plans.ORGANIZATIONS);
-    expect(createdTeams[1].plan).toBe(Plans.ORGANIZATIONS);
   });
 
   it("should handle creation of team in Organization that has same slug as a team already in the same org", async () => {

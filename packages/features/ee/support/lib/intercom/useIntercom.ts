@@ -51,6 +51,7 @@ export const useIntercom = () => {
     if (res?.hash) {
       userHash = res.hash;
     }
+    console.log("plan in boot: ", plan);
 
     hookData.boot({
       ...(data && data?.name && { name: data.name }),
@@ -97,6 +98,7 @@ export const useIntercom = () => {
       userHash = res.hash;
     }
 
+    console.log("plan in open: ", plan);
     hookData.boot({
       ...(data && data?.name && { name: data.name }),
       ...(data && data?.email && { email: data.email }),

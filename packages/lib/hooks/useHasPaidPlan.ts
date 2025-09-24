@@ -4,9 +4,10 @@ import { IS_SELF_HOSTED } from "../constants";
 import hasKeyInMetadata from "../hasKeyInMetadata";
 
 export function useHasPaidPlan() {
-  if (IS_SELF_HOSTED) return { isPending: false, hasPaidPlan: true };
+  // if (IS_SELF_HOSTED) return { isPending: false, hasPaidPlan: true };
 
   const { data, isPending: isPendingTeamQuery } = trpc.viewer.teams.hasTeamPlan.useQuery();
+  console.log("data: ", data);
 
   const { data: user, isPending: isPendingUserQuery } = trpc.viewer.me.get.useQuery();
 

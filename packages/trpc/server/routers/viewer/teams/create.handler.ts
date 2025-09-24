@@ -4,7 +4,7 @@ import { uploadLogo } from "@calcom/lib/server/avatar";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole, Plans } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -102,9 +102,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
           accepted: true,
         },
       },
-      ...(isOrgChildTeam
-        ? { parentId: user.profile?.organizationId, plan: Plans.ORGANIZATIONS }
-        : { plan: Plans.TEAMS }),
+      ...(isOrgChildTeam && { parentId: user.profile?.organizationId }),
     },
   });
   // Upload logo, create doesn't allow logo removal

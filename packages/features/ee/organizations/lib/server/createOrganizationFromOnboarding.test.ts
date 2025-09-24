@@ -10,7 +10,7 @@ import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService"
 import * as constants from "@calcom/lib/constants";
 import { createDomain } from "@calcom/lib/domainManager/organization";
 import type { OrganizationOnboarding } from "@calcom/prisma/client";
-import { MembershipRole, Plans } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
@@ -66,8 +66,8 @@ const mockOrganizationOnboarding = {
   createdById: 1,
   invitedMembers: [{ email: "member1@example.com" }, { email: "member2@example.com" }],
   teams: [
-    { id: 1, name: "Team To Move", isBeingMigrated: true, slug: "new-team-slug", plan: Plans.TEAMS },
-    { id: 2, name: "New Team", isBeingMigrated: false, slug: null, plan: Plans.TEAMS },
+    { id: 1, name: "Team To Move", isBeingMigrated: true, slug: "new-team-slug" },
+    { id: 2, name: "New Team", isBeingMigrated: false, slug: null },
   ],
   logo: null,
   bio: null,
@@ -81,7 +81,6 @@ async function createTestUser(data: {
   email: string;
   name?: string;
   username?: string;
-  //eslint-disable-next-line @typescript-eslint/no-explicit-any
   metadata?: any;
   onboardingCompleted?: boolean;
   emailVerified?: Date | null;
@@ -102,7 +101,6 @@ async function createTestOrganization(data: {
   name: string;
   slug: string;
   isOrganization?: boolean;
-  //eslint-disable-next-line @typescript-eslint/no-explicit-any
   metadata?: any;
 }) {
   return prismock.team.create({
@@ -245,19 +243,6 @@ describe("createOrganizationFromOnboarding", () => {
       expect(organization).toBeDefined();
       expect(organization.name).toBe(organizationOnboarding.name);
       expect(organization.slug).toBe(organizationOnboarding.slug);
-
-      //parent team plan and sub teams plan should be updated to organizations
-      expect(organization.plan).toBe(Plans.ORGANIZATIONS);
-
-      const teams = await prismock.team.findMany({
-        where: {
-          id: {
-            in: organizationOnboarding.teams?.map((t) => t.id),
-          },
-        },
-      });
-
-      expect(teams.every((t) => t.plan === Plans.ORGANIZATIONS)).toBe(true);
 
       // Verify owner is the existing user
       expect(owner.id).toBe(existingUser.id);
