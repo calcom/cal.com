@@ -7,6 +7,7 @@ import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import logger from "@calcom/lib/logger";
 import { Redirect } from "@calcom/lib/redirect";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
@@ -112,7 +113,7 @@ export class InternalTeamBilling implements TeamBilling {
         subscriptionId: undefined,
         subscriptionItemId: undefined,
       });
-      await prisma.team.update({ where: { id: this.team.id }, data: { metadata, plan: null } });
+      await prisma.team.update({ where: { id: this.team.id }, data: { metadata } });
       log.info(`Downgraded team ${this.team.id}`);
     } catch (error) {
       this.logErrorFromUnknown(error);
@@ -124,6 +125,9 @@ export class InternalTeamBilling implements TeamBilling {
       const { id: teamId, metadata, isOrganization } = this.team;
 
       const { url } = await this.checkIfTeamPaymentRequired();
+      const organizationOnboarding = await OrganizationOnboardingRepository.findByOrganizationId(
+        this.team.id
+      );
       log.debug("updateQuantity", safeStringify({ url, team: this.team }));
 
       /**

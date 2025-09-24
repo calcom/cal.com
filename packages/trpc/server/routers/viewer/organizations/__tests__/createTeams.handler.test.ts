@@ -72,7 +72,6 @@ type CreateScenarioOptions = {
     slug?: string;
     metadata?: Record<string, unknown>;
     addToParentId: "createdOrganization" | number | null;
-    plan?: Plans;
   }>;
 };
 

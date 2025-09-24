@@ -257,7 +257,6 @@ export class OrganizationRepository {
         },
       },
       include: {
-        //eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         team: true,
       },
     });
