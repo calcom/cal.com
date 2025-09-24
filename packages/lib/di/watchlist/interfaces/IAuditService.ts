@@ -1,7 +1,9 @@
+import type { Watchlist } from "../types";
+
 export interface BlockedBookingAttempt {
   email: string;
   organizationId?: number;
-  reason: "email" | "domain";
+  reason: Watchlist.WatchlistAction;
   watchlistEntryId: string;
   eventTypeId?: number;
   bookingData?: Record<string, unknown>; // Original booking attempt data

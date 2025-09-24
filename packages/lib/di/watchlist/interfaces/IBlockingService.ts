@@ -1,4 +1,4 @@
-import type { Watchlist } from "@calcom/prisma/zod/modelSchema/WatchlistSchema";
+import type { Watchlist } from "../types";
 
 export interface BlockingResult {
   isBlocked: boolean;

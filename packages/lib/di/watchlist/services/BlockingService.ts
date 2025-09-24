@@ -5,29 +5,51 @@ import type {
   DecoyBookingResponse,
   BookingData,
 } from "../interfaces/IBlockingService";
-import type { IBlockingStrategy } from "../strategies/IBlockingStrategy";
+import type { IWatchlistReadRepository } from "../interfaces/IWatchlistRepositories";
 
 export class BlockingService implements IBlockingService {
   constructor(
-    private readonly strategies: IBlockingStrategy[],
+    private readonly watchlistRepository: IWatchlistReadRepository,
     private readonly auditService: IAuditService
   ) {}
 
   async isBlocked(email: string, organizationId?: number): Promise<BlockingResult> {
-    // Check all strategies in order
-    for (const strategy of this.strategies) {
-      const result = await strategy.isBlocked(email, organizationId);
+    // Check for exact email match first
+    const emailEntry = await this.watchlistRepository.findBlockedEntry(email, organizationId);
+    if (emailEntry) {
+      // Log the blocking attempt
+      await this.auditService.logBlockedBookingAttempt({
+        email,
+        organizationId,
+        reason: "email",
+        watchlistEntryId: emailEntry.id,
+      });
 
-      if (result.isBlocked) {
+      return {
+        isBlocked: true,
+        reason: "email",
+        watchlistEntry: emailEntry,
+      };
+    }
+
+    // Check for domain match
+    const domain = email.split("@")[1];
+    if (domain) {
+      const domainEntry = await this.watchlistRepository.findBlockedDomain(`@${domain}`, organizationId);
+      if (domainEntry) {
         // Log the blocking attempt
         await this.auditService.logBlockedBookingAttempt({
           email,
           organizationId,
-          reason: result.reason as "email" | "domain",
-          watchlistEntryId: (result.watchlistEntry as { id: string }).id,
+          reason: "domain",
+          watchlistEntryId: domainEntry.id,
         });
 
-        return result;
+        return {
+          isBlocked: true,
+          reason: "domain",
+          watchlistEntry: domainEntry,
+        };
       }
     }
 
