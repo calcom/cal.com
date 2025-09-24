@@ -174,4 +174,14 @@ export class OrganizationsRepository {
       },
     });
   }
+
+  async findTeamByPlatformBillingId(billingId: number) {
+    return this.dbRead.prisma.team.findFirst({
+      where: {
+        platformBilling: {
+          id: billingId,
+        },
+      },
+    });
+  }
 }
