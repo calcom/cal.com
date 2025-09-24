@@ -431,18 +431,25 @@ async function expectValidHtmlEmbedSnippet(
 }
 
 function assertThatCodeIsValidVanillaJsCode(code: string) {
-  const lintResult = linter.verify(code, [
-    {
-      languageOptions: {
-        ecmaVersion: 2021,
-        globals: {
-          browser: true,
-          Cal: "readonly",
+  const lintResult = linter.verify(
+    code,
+    [
+      {
+        languageOptions: {
+          ecmaVersion: 2021,
+          sourceType: "module",
+          globals: {
+            window: "readonly",
+            document: "readonly",
+            navigator: "readonly",
+          },
         },
+        rules: eslintRules,
       },
-      rules: eslintRules,
-    },
-  ]);
+    ],
+    { filename: "test.js" }
+  );
+
   if (lintResult.length) {
     console.log(
       JSON.stringify({
@@ -451,6 +458,7 @@ function assertThatCodeIsValidVanillaJsCode(code: string) {
       })
     );
   }
+
   expect(lintResult.length).toBe(0);
 }
 
