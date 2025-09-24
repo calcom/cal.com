@@ -99,6 +99,7 @@ function BookingsContent({ status }: BookingsProps) {
     },
   });
   const handleOnClickExportBookings = async () => {
+    console.log("The hell")
     await fetchAllBookingsMutation({
       filters: {
         ...filterQueryWithoutStatus,

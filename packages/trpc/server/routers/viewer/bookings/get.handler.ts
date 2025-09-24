@@ -580,7 +580,6 @@ export async function getBookings({
         .execute()
     : [];
 
-  console.log("Plain bookings: ", plainBookings);
 
   const [
     recurringInfoBasic,

@@ -223,7 +223,7 @@ export function UserPage(props: PageProps) {
         {isEventListEmpty && <EmptyPage name={profile.name || "User"} />}
 
         <div key="logo" className={classNames("mb-8 flex w-full justify-center [&_img]:h-[32px]")}>
-          <Branding faviconUrl={user?.faviconUrl} />
+          <Branding faviconUrl={user?.bannerUrl} />
         </div>
       </main>
     </div>

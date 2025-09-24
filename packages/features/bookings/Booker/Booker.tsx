@@ -94,6 +94,8 @@ const BookerComponent = ({
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
 
+  console.log("Is branding hidden: ", hideBranding);
+
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const {
     shouldShowFormInDialog,
@@ -427,17 +429,6 @@ const BookerComponent = ({
                 <BookerSection
                   area="meta"
                   className="bg-default max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
-                  {!hideEventTypeDetails && orgBannerUrl && (
-                    <div
-                      className="-mb-4 flex h-10 p-2 ltr:rounded-tl-md rtl:rounded-tr-md"
-                      style={{
-                        backgroundImage: `url("${orgBannerUrl}")`,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                        backgroundRepeat: "no-repeat",
-                      }}
-                    />
-                  )}
                   <EventMeta
                     classNames={{
                       eventMetaContainer: customClassNames?.eventMetaCustomClassNames?.eventMetaContainer,
@@ -582,7 +573,7 @@ const BookerComponent = ({
             </div>
           )}
 
-          {!hideBranding && (!isPlatform || isPlatformBookerEmbed) && !shouldRenderCaptcha && (
+          {(!hideBranding || orgBannerUrl) && (!isPlatform || isPlatformBookerEmbed) && !shouldRenderCaptcha && (
             <m.span
               key="logo"
               className={classNames(
@@ -590,7 +581,7 @@ const BookerComponent = ({
                 hasDarkBackground ? "dark" : "",
                 layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
               )}>
-              <Branding faviconUrl={faviconUrl} />
+              <Branding faviconUrl={orgBannerUrl} />
             </m.span>
           )}
         </div>

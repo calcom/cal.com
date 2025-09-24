@@ -416,7 +416,7 @@ const NoShowAttendeesDialog = ({
       <div
         className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
         onClick={(e) => e.stopPropagation()}>
-        <div className="bg-primary w-full max-w-md rounded-lg p-6 shadow-xl">
+        <div className="bg-default w-full max-w-md rounded-lg p-6 shadow-xl">
           <h2 className="mb-2 text-xl font-semibold">{t("mark_as_no_show_title")}</h2>
           <p className="mb-6 text-sm text-gray-600">{t("no_show_description")}</p>
 

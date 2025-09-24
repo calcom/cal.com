@@ -27,9 +27,9 @@ export const getMultipleDurationValue = (
 function Type({
   slug,
   user,
+  userBannerUrl,
   isEmbed,
   booking,
-  userBannerUrl,
   isBrandingHidden,
   eventData,
   orgBannerUrl,
@@ -49,7 +49,7 @@ function Type({
           eventData={eventData}
           entity={{ ...eventData.entity, eventTypeId: eventData?.id }}
           durationConfig={eventData.metadata?.multipleDuration}
-          orgBannerUrl={orgBannerUrl || null}
+          orgBannerUrl={orgBannerUrl || userBannerUrl}
           eventTypes={eventTypes}
           /* TODO: Currently unused, evaluate it is needed-
            *       Possible alternative approach is to have onDurationChange.
