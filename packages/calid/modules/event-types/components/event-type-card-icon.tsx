@@ -16,7 +16,6 @@ interface EventTypeCardIconProps {
 export const EventTypeCardIcon: React.FC<EventTypeCardIconProps> = ({ iconParams, onClick }) => {
   const iconName = iconParams?.icon || "calendar";
   const iconColor = iconParams?.color || "#6b7280";
-
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onClick?.();
@@ -29,7 +28,7 @@ export const EventTypeCardIcon: React.FC<EventTypeCardIconProps> = ({ iconParams
         StartIcon={iconName}
         color="secondary"
         className="bg-muted h-10 w-10"
-        style={{ color: iconColor }}
+        iconColor={iconColor}
         onClick={handleClick}
       />
     </div>
