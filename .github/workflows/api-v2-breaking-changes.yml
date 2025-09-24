@@ -1,15 +1,7 @@
 name: API v2 Breaking Changes
 
 on:
-  pull_request:
-    branches: [ main ]
-    paths:
-      - "apps/api/v2/**"
-      - "packages/platform/types/**"
-      - "packages/platform/enums/**"
-      - "packages/platform/constants/**"
-      - "packages/platform/utils/**"
-      - "packages/platform/libraries/**"
+  workflow_call:
 
 permissions:
   contents: read
