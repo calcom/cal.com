@@ -1,8 +1,8 @@
-import type { Watchlist } from "../types";
+import type { WatchlistType } from "../types";
 
 export interface BlockingResult {
   isBlocked: boolean;
-  reason?: Watchlist.WatchlistAction;
+  reason?: WatchlistType;
   watchlistEntry?: Record<string, unknown> | null;
 }
 

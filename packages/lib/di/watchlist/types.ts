@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import { BlockedBookingSchema } from "@calcom/prisma/zod/modelSchema/BlockedBookingSchema";
+import { BlockedBookingLogSchema } from "@calcom/prisma/zod/modelSchema/BlockedBookingLogSchema";
 import { WatchlistSchema } from "@calcom/prisma/zod/modelSchema/WatchlistSchema";
 
 export const WatchlistModelSchema = WatchlistSchema.pick({
@@ -28,14 +28,12 @@ export const insertWatchlistSchema = WatchlistModelSchema.pick({
 });
 
 // BlockedBooking types for audit logging
-export const BlockedBookingModelSchema = BlockedBookingSchema.pick({
+export const BlockedBookingModelSchema = BlockedBookingLogSchema.pick({
   id: true,
-  uid: true,
   email: true,
   eventTypeId: true,
   organizationId: true,
-  blockingReason: true,
-  watchlistEntryId: true,
+  watchlistId: true,
   bookingData: true,
   createdAt: true,
 });
@@ -46,8 +44,7 @@ export const insertBlockedBookingSchema = BlockedBookingModelSchema.pick({
   email: true,
   eventTypeId: true,
   organizationId: true,
-  blockingReason: true,
-  watchlistEntryId: true,
+  watchlistId: true,
   bookingData: true,
 });
 

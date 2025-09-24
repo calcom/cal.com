@@ -10,7 +10,7 @@ import type {
   IWatchlistWriteRepository,
 } from "../interfaces/IWatchlistRepositories";
 import { auditServiceModule } from "../modules/audit";
-import { blockingServiceModule } from "../modules/blocking";
+import { blockingServiceModule } from "../modules/booking";
 import { watchlistRepositoryModule } from "../modules/watchlist";
 import { WATCHLIST_DI_TOKENS } from "../tokens";
 

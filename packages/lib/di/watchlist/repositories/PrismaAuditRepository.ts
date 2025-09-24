@@ -11,12 +11,11 @@ export class PrismaAuditRepository implements IAuditRepository {
 
   async createBlockedBookingEntry(data: CreateBlockedBookingInput): Promise<BlockedBooking> {
     try {
-      return await this.prisma.blockedBooking.create({
+      return await this.prisma.blockedBookingLog.create({
         data: {
           email: data.email,
           organizationId: data.organizationId,
-          blockingReason: data.blockingReason,
-          watchlistEntryId: data.watchlistEntryId,
+          watchlistId: data.watchlistId,
           eventTypeId: data.eventTypeId,
           bookingData: (data.bookingData as Prisma.InputJsonValue) || {},
         },
@@ -33,22 +32,32 @@ export class PrismaAuditRepository implements IAuditRepository {
     blockedByDomain: number;
   }> {
     try {
-      const [total, emailBlocked, domainBlocked] = await Promise.all([
-        this.prisma.blockedBooking.count({
-          where: { organizationId },
-        }),
-        this.prisma.blockedBooking.count({
-          where: { organizationId, blockingReason: "email" },
-        }),
-        this.prisma.blockedBooking.count({
-          where: { organizationId, blockingReason: "domain" },
-        }),
-      ]);
+      // Get total count
+      const total = await this.prisma.blockedBookingLog.count({
+        where: { organizationId },
+      });
+
+      // Get counts by joining with Watchlist table using raw query
+      const emailBlocked = await this.prisma.$queryRaw<Array<{ count: bigint }>>`
+        SELECT COUNT(*) as count
+        FROM "BlockedBookingLog" bbl
+        JOIN "Watchlist" w ON bbl."watchlistId" = w."id"
+        WHERE bbl."organizationId" = ${organizationId}
+        AND w."type" = 'EMAIL'
+      `;
+
+      const domainBlocked = await this.prisma.$queryRaw<Array<{ count: bigint }>>`
+        SELECT COUNT(*) as count
+        FROM "BlockedBookingLog" bbl
+        JOIN "Watchlist" w ON bbl."watchlistId" = w."id"
+        WHERE bbl."organizationId" = ${organizationId}
+        AND w."type" = 'DOMAIN'
+      `;
 
       return {
         totalBlocked: total,
-        blockedByEmail: emailBlocked,
-        blockedByDomain: domainBlocked,
+        blockedByEmail: Number(emailBlocked[0]?.count || 0),
+        blockedByDomain: Number(domainBlocked[0]?.count || 0),
       };
     } catch (err) {
       captureException(err);
@@ -58,7 +67,7 @@ export class PrismaAuditRepository implements IAuditRepository {
 
   async getBlockedBookingsByOrganization(organizationId: number): Promise<BlockedBooking[]> {
     try {
-      return await this.prisma.blockedBooking.findMany({
+      return await this.prisma.blockedBookingLog.findMany({
         where: { organizationId },
         orderBy: { createdAt: "desc" },
         take: 100, // Limit to recent 100 entries

@@ -3,8 +3,7 @@ import type { BlockedBooking } from "../types";
 export interface CreateBlockedBookingInput {
   email: string;
   organizationId: number;
-  blockingReason: "email" | "domain";
-  watchlistEntryId: string;
+  watchlistId: string;
   eventTypeId?: number;
   bookingData?: Record<string, unknown>;
 }

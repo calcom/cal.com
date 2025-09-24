@@ -1,12 +1,12 @@
-import type { Watchlist } from "../types";
+import type { WatchlistType, WatchlistAction, Watchlist } from "../types";
 
 export interface CreateWatchlistInput {
-  type: Watchlist.WatchlistType;
+  type: WatchlistType;
   value: string;
   description?: string;
   organizationId?: number;
   createdById: number;
-  action?: Watchlist.WatchlistAction;
+  action?: WatchlistAction;
 }
 
 export interface UpdateWatchlistInput {

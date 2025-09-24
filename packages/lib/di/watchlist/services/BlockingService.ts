@@ -6,6 +6,7 @@ import type {
   BookingData,
 } from "../interfaces/IBlockingService";
 import type { IWatchlistReadRepository } from "../interfaces/IWatchlistRepositories";
+import { WatchlistType } from "../types";
 
 export class BlockingService implements IBlockingService {
   constructor(
@@ -21,13 +22,12 @@ export class BlockingService implements IBlockingService {
       await this.auditService.logBlockedBookingAttempt({
         email,
         organizationId,
-        reason: "email",
-        watchlistEntryId: emailEntry.id,
+        watchlistId: emailEntry.id,
       });
 
       return {
         isBlocked: true,
-        reason: "email",
+        reason: WatchlistType.EMAIL,
         watchlistEntry: emailEntry,
       };
     }
@@ -41,13 +41,12 @@ export class BlockingService implements IBlockingService {
         await this.auditService.logBlockedBookingAttempt({
           email,
           organizationId,
-          reason: "domain",
-          watchlistEntryId: domainEntry.id,
+          watchlistId: domainEntry.id,
         });
 
         return {
           isBlocked: true,
-          reason: "domain",
+          reason: WatchlistType.DOMAIN,
           watchlistEntry: domainEntry,
         };
       }

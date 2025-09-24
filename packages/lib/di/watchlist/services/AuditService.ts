@@ -7,8 +7,7 @@ export class AuditService implements IAuditService {
   async logBlockedBookingAttempt(data: {
     email: string;
     organizationId?: number;
-    reason: "email" | "domain";
-    watchlistEntryId: string;
+    watchlistId: string;
     eventTypeId?: number;
     bookingData?: Record<string, unknown>;
   }): Promise<void> {
@@ -21,8 +20,7 @@ export class AuditService implements IAuditService {
       await this.auditRepository.createBlockedBookingEntry({
         email: data.email,
         organizationId: data.organizationId,
-        blockingReason: data.reason,
-        watchlistEntryId: data.watchlistEntryId,
+        watchlistId: data.watchlistId,
         eventTypeId: data.eventTypeId,
         bookingData: data.bookingData,
       });
