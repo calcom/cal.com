@@ -13,6 +13,7 @@ import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import type { getEventLocationValue } from "@calcom/app-store/locations";
 import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import {
@@ -26,12 +27,12 @@ import {
   SystemField,
   TITLE_FIELD,
 } from "@calcom/features/bookings/lib/SystemField";
+import { getCalendarLinks, CalendarLinkType } from "@calcom/features/bookings/lib/getCalendarLinks";
 import { RATING_OPTIONS, validateRating } from "@calcom/features/bookings/lib/rating";
-import { getCalendarLinks, CalendarLinkType } from "@calcom/lib/bookings/getCalendarLinks";
+import type { nameObjectSchema } from "@calcom/features/eventtypes/lib/eventNaming";
+import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import { APP_NAME } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime, formatToLocalizedTimezone } from "@calcom/lib/dayjs";
-import type { nameObjectSchema } from "@calcom/lib/event";
-import { getEventName } from "@calcom/lib/event";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -45,7 +46,7 @@ import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/t
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
-import { bookingMetadataSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -839,13 +840,13 @@ export default function Success(props: PageProps) {
                                         {t("reschedule")}
                                       </Link>
                                     </span>
-                                    {canCancelAndReschedule && (
+                                    {!isBookingInPast && canCancel && (
                                       <span className="mx-2">{t("or_lowercase")}</span>
                                     )}
                                   </span>
                                 )}
 
-                              {canCancel && (
+                              {!isBookingInPast && canCancel && (
                                 <button
                                   data-testid="cancel"
                                   className={classNames(
@@ -867,7 +868,10 @@ export default function Success(props: PageProps) {
                               uid: bookingInfo?.uid,
                               title: bookingInfo?.title,
                               id: bookingInfo?.id,
+                              startTime: bookingInfo?.startTime,
+                              payment: props.paymentStatus,
                             }}
+                            eventTypeMetadata={eventType.metadata}
                             profile={{ name: props.profile.name, slug: props.profile.slug }}
                             recurringEvent={eventType.recurringEvent}
                             team={eventType?.team?.name}

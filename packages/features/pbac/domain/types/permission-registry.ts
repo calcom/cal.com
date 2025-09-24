@@ -9,6 +9,7 @@ export enum Resource {
   Role = "role",
   RoutingForm = "routingForm",
   Workflow = "workflow",
+  Webhook = "webhook",
 }
 
 export enum CrudAction {
@@ -28,6 +29,7 @@ export enum CustomAction {
   ReadTeamBookings = "readTeamBookings",
   ReadOrgBookings = "readOrgBookings",
   ReadRecordings = "readRecordings",
+  Impersonate = "impersonate",
 }
 
 export enum Scope {
@@ -263,21 +265,41 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "team",
       i18nKey: "pbac_action_invite",
       descriptionI18nKey: "pbac_desc_invite_team_members",
-      dependsOn: ["team.read"],
+      dependsOn: ["team.read", "team.listMembers", "role.read"],
     },
     [CustomAction.Remove]: {
       description: "Remove team members",
       category: "team",
       i18nKey: "pbac_action_remove",
       descriptionI18nKey: "pbac_desc_remove_team_members",
-      dependsOn: ["team.read"],
+      dependsOn: ["team.read", "team.listMembers"],
+    },
+    [CustomAction.ListMembers]: {
+      description: "List team members",
+      category: "team",
+      i18nKey: "pbac_action_list_members",
+      descriptionI18nKey: "pbac_desc_list_team_members",
     },
     [CustomAction.ChangeMemberRole]: {
       description: "Change role of team members",
       category: "team",
       i18nKey: "pbac_action_change_member_role",
       descriptionI18nKey: "pbac_desc_change_team_member_role",
-      dependsOn: ["team.read"],
+      dependsOn: ["team.read", "team.listMembers", "role.read"],
+    },
+    [CustomAction.Impersonate]: {
+      description: "Impersonate team members",
+      category: "team",
+      i18nKey: "pbac_action_impersonate",
+      descriptionI18nKey: "pbac_desc_impersonate_team_members",
+      dependsOn: ["team.read", "team.listMembers"],
+    },
+    [CustomAction.ManageBilling]: {
+      description: "Manage billing",
+      category: "team",
+      i18nKey: "pbac_action_manage_billing",
+      descriptionI18nKey: "pbac_desc_manage_billing",
+      scope: [], // Empty scope because this permission is only used for TEAM billing outside of an org. (We dont want to show this in the UI)
     },
   },
   [Resource.Organization]: {
@@ -337,6 +359,13 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       descriptionI18nKey: "pbac_desc_change_organization_member_role",
       scope: [Scope.Organization],
       dependsOn: ["organization.listMembers", "role.read"],
+    },
+    [CustomAction.Impersonate]: {
+      description: "Impersonate organization members",
+      category: "org",
+      i18nKey: "pbac_action_impersonate",
+      descriptionI18nKey: "pbac_desc_impersonate_organization_members",
+      scope: [Scope.Organization],
     },
     [CrudAction.Update]: {
       description: "Edit organization settings",
@@ -493,6 +522,38 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       i18nKey: "pbac_action_delete",
       descriptionI18nKey: "pbac_desc_delete_routing_forms",
       dependsOn: ["routingForm.read"],
+    },
+  },
+  [Resource.Webhook]: {
+    _resource: {
+      i18nKey: "pbac_resource_webhook",
+    },
+    [CrudAction.Create]: {
+      description: "Create webhooks",
+      category: "webhook",
+      i18nKey: "pbac_action_create",
+      descriptionI18nKey: "pbac_desc_create_webhooks",
+      dependsOn: ["webhook.read"],
+    },
+    [CrudAction.Read]: {
+      description: "View webhooks",
+      category: "webhook",
+      i18nKey: "pbac_action_read",
+      descriptionI18nKey: "pbac_desc_view_webhooks",
+    },
+    [CrudAction.Update]: {
+      description: "Update webhooks",
+      category: "webhook",
+      i18nKey: "pbac_action_update",
+      descriptionI18nKey: "pbac_desc_update_webhooks",
+      dependsOn: ["webhook.read"],
+    },
+    [CrudAction.Delete]: {
+      description: "Delete webhooks",
+      category: "webhook",
+      i18nKey: "pbac_action_delete",
+      descriptionI18nKey: "pbac_desc_delete_webhooks",
+      dependsOn: ["webhook.read"],
     },
   },
 };

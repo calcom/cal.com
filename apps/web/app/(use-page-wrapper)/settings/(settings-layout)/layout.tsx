@@ -3,11 +3,12 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import React from "react";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { TeamFeatures } from "@calcom/features/flags/config";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { PermissionMapper } from "@calcom/features/pbac/domain/mappers/PermissionMapper";
-import { Resource, CrudAction } from "@calcom/features/pbac/domain/types/permission-registry";
+import { Resource, CrudAction, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { prisma } from "@calcom/prisma";
 
@@ -45,13 +46,16 @@ export default async function SettingsLayoutAppDir(props: SettingsLayoutProps) {
 
   let teamFeatures: Record<number, TeamFeatures> | null = null;
   let canViewRoles = false;
+  let canViewOrganizationBilling = false;
   const orgId = session?.user?.profile?.organizationId ?? session?.user.org?.id;
 
   // For now we only grab organization features but it would be nice to fetch these on the server side for specific team feature flags
   if (orgId) {
-    const [features, rolePermissions] = await Promise.all([
+    const isOrgAdminOrOwner = checkAdminOrOwner(session.user.org?.role);
+    const [features, rolePermissions, organizationPermissions] = await Promise.all([
       getTeamFeatures(orgId),
       getCachedResourcePermissions(userId, orgId, Resource.Role),
+      getCachedResourcePermissions(userId, orgId, Resource.Organization),
     ]);
 
     if (features) {
@@ -62,12 +66,18 @@ export default async function SettingsLayoutAppDir(props: SettingsLayoutProps) {
       // Check if user has permission to read roles
       const roleActions = PermissionMapper.toActionMap(rolePermissions, Resource.Role);
       canViewRoles = roleActions[CrudAction.Read] ?? false;
+      const orgActions = PermissionMapper.toActionMap(organizationPermissions, Resource.Organization);
+      canViewOrganizationBilling = orgActions[CustomAction.ManageBilling] ?? isOrgAdminOrOwner;
     }
   }
 
   return (
     <>
-      <SettingsLayoutAppDirClient {...props} teamFeatures={teamFeatures ?? {}} canViewRoles={canViewRoles} />
+      <SettingsLayoutAppDirClient
+        {...props}
+        teamFeatures={teamFeatures ?? {}}
+        permissions={{ canViewRoles, canViewOrganizationBilling }}
+      />
     </>
   );
 }

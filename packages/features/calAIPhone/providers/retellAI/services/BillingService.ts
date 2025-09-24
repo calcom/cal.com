@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import { getPhoneNumberMonthlyPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { CHECKOUT_SESSION_TYPES } from "@calcom/features/ee/billing/constants";
@@ -9,6 +11,12 @@ import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
 import type { PhoneNumberRepositoryInterface } from "../../interfaces/PhoneNumberRepositoryInterface";
 import type { RetellAIRepository } from "../types";
+
+const stripeErrorSchema = z.object({
+  raw: z.object({
+    code: z.string(),
+  }),
+});
 
 export class BillingService {
   private logger = logger.getSubLogger({ prefix: ["BillingService"] });
@@ -129,8 +137,32 @@ export class BillingService {
     }
 
     try {
-      await stripe.subscriptions.cancel(phoneNumber.stripeSubscriptionId);
+      await this.phoneNumberRepository.updateSubscriptionStatus({
+        id: phoneNumberId,
+        subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
+        disconnectOutboundAgent: false,
+      });
 
+      try {
+        await stripe.subscriptions.cancel(phoneNumber.stripeSubscriptionId);
+      } catch (error) {
+        const parsedError = stripeErrorSchema.safeParse(error);
+        if (parsedError.success && parsedError.data.raw.code === "resource_missing") {
+          this.logger.info("Subscription not found in Stripe (already cancelled or deleted):", {
+            subscriptionId: phoneNumber.stripeSubscriptionId,
+            phoneNumberId,
+            stripeMessage: "Subscription resource not found",
+          });
+        } else {
+          await this.phoneNumberRepository.updateSubscriptionStatus({
+            id: phoneNumberId,
+            subscriptionStatus: PhoneNumberSubscriptionStatus.ACTIVE,
+          });
+          throw error;
+        }
+      }
+
+      // Disconnnect agent after cancelling from stripe
       await this.phoneNumberRepository.updateSubscriptionStatus({
         id: phoneNumberId,
         subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,

@@ -1,4 +1,3 @@
-import type { Workflow } from "@prisma/client";
 import type { z } from "zod";
 
 import { isSMSOrWhatsappAction } from "@calcom/ee/workflows/lib/actionHelperFunctions";
@@ -32,6 +31,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
+import type { Workflow } from "@calcom/prisma/client";
 import type { Prisma, WorkflowStep } from "@calcom/prisma/client";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
@@ -794,8 +794,6 @@ export async function scheduleBookingReminders(
           sender: step.sender,
           workflowStepId: step.id,
           verifiedAt: step?.verifiedAt ?? null,
-          userId,
-          teamId,
         });
       } else if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
         await scheduleSMSReminder({

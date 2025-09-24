@@ -1,7 +1,7 @@
 import type { getEventTypeResponse } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import { scheduleEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
-import type { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import type { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import logger from "@calcom/lib/logger";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { WorkflowTriggerEvents, TimeUnit, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
@@ -63,10 +63,8 @@ async function _scheduleMandatoryReminder({
           hideBranding,
           seatReferenceUid,
           includeCalendarEvent: false,
-          isMandatoryReminder: true,
           // Template is fixed so we don't have to verify
           verifiedAt: new Date(),
-          userId: evt.organizer.id,
         });
       } catch (error) {
         log.error("Error while scheduling mandatory reminders", JSON.stringify({ error }));

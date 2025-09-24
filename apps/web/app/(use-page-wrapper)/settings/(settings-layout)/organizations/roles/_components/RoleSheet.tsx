@@ -107,9 +107,9 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
 
   const { isAdvancedMode, permissions, color } = form.watch();
 
-  const filteredResources = useMemo(() => {
+  const { filteredResources, scopedRegistry } = useMemo(() => {
     const scopedRegistry = getPermissionsForScope(scope);
-    return Object.keys(scopedRegistry).filter((resource) =>
+    const filteredResources = Object.keys(scopedRegistry).filter((resource) =>
       t(
         scopedRegistry[resource as Resource][CrudAction.All as keyof (typeof scopedRegistry)[Resource]]
           ?.i18nKey || ""
@@ -117,6 +117,7 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
         .toLowerCase()
         .includes(searchQuery.toLowerCase())
     );
+    return { filteredResources, scopedRegistry };
   }, [searchQuery, t, scope]);
 
   const createMutation = trpc.viewer.pbac.createRole.useMutation({
@@ -145,10 +146,6 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
   });
 
   const onSubmit = (values: FormValues) => {
-    // Store the color in localStorage
-    const roleKey = isEditing && role ? role.id : `new_role_${values.name}`;
-    localStorage.setItem(`role_color_${roleKey}`, values.color);
-
     if (isEditing && role) {
       updateMutation.mutate({
         teamId,
@@ -216,7 +213,6 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
                       disabled={isSystemRole}
                     />
                   </div>
-
                   {filteredResources.map((resource) => (
                     <AdvancedPermissionGroup
                       key={resource}
@@ -224,8 +220,9 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
                       selectedPermissions={permissions}
                       onChange={(newPermissions) => form.setValue("permissions", newPermissions)}
                       disabled={isSystemRole}
+                      scope={scope}
                     />
-                  ))}
+                  ))}{" "}
                 </div>
               ) : (
                 <div className="bg-muted rounded-xl p-1">
@@ -240,16 +237,17 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
                     </div>
                   </div>
                   <div className="bg-default border-subtle divide-subtle divide-y rounded-[10px] border">
-                    {Object.keys(getPermissionsForScope(scope)).map((resource) => (
+                    {Object.keys(scopedRegistry).map((resource) => (
                       <SimplePermissionItem
                         key={resource}
                         resource={resource}
                         permissions={permissions}
                         onChange={(newPermissions) => form.setValue("permissions", newPermissions)}
                         disabled={isSystemRole}
+                        scope={scope}
                       />
                     ))}
-                  </div>
+                  </div>{" "}
                 </div>
               )}
             </div>
