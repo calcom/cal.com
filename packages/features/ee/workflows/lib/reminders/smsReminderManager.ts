@@ -147,7 +147,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
       params as ScheduleTextReminderArgsWithRequiredFields & { evt: BookingInfo }
     );
   } else {
-    scheduleSMSReminderForForm(
+    await scheduleSMSReminderForForm(
       params as ScheduleTextReminderArgsWithRequiredFields & {
         formData: { responses: FORM_SUBMITTED_WEBHOOK_RESPONSES };
       }
