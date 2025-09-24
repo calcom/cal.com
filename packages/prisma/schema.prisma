@@ -283,6 +283,8 @@ model Credential {
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   oooReasons             OutOfOfficeReason[]
 
+  metadata Json?
+
   @@index([appId])
   @@index([subscriptionId])
   @@index([invalid])
