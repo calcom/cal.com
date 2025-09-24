@@ -1,5 +1,6 @@
-import { isTeamAdmin } from "@calcom/features/ee/teams/lib/queries";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -27,8 +28,17 @@ export const deleteInviteHandler = async ({ ctx, input }: DeleteInviteOptions) =
   });
 
   if (!verificationToken) throw new TRPCError({ code: "NOT_FOUND" });
-  if (!verificationToken.teamId || !(await isTeamAdmin(ctx.user.id, verificationToken.teamId)))
-    throw new TRPCError({ code: "UNAUTHORIZED" });
+  if (!verificationToken.teamId) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+  const permissionCheckService = new PermissionCheckService();
+  const hasTeamInvitePermission = await permissionCheckService.checkPermission({
+    userId: ctx.user.id,
+    teamId: verificationToken.teamId,
+    permission: "team.invite",
+    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+  });
+
+  if (!hasTeamInvitePermission) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   await prisma.verificationToken.delete({ where: { id: verificationToken.id } });
 };
