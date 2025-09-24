@@ -27,7 +27,7 @@ export function Tooltip({
           sideOffset={sideOffset}
           side={side}
           className={cn(
-            "z-50 overflow-hidden rounded-md bg-black px-2 py-1 text-xs font-medium text-default",
+            "z-50 overflow-hidden rounded-md bg-black px-2 py-1 text-xs font-medium text-white",
             "shadow-[0_20px_25px_-5px_rgb(0_0_0_/_0.1),_0_10px_10px_-5px_rgb(0_0_0_/_0.04)]",
             "transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]",
             "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",

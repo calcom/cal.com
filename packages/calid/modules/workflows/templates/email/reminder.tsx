@@ -104,7 +104,7 @@ const generateVenueBlock = (locationInfo: string): string => {
 const createFooterSection = (brandingHidden?: boolean, previewMode?: boolean): string => {
   const brandingText = !brandingHidden && !previewMode ? `<br><br>_<br><br>Scheduling by ${APP_NAME}` : "";
 
-  return `This reminder was triggered by a Workflow in OneHash Cal.${brandingText}</body>`;
+  return `This reminder was triggered by a Workflow in Cal ID.${brandingText}</body>`;
 };
 
 const assembleNotificationContent = (

@@ -1,14 +1,9 @@
 "use client";
+import { usePhoneNumberField, PhoneNumberField } from "@calid/features/ui/components/input/phone-number-field";
+import { PHONE_NUMBER_VERIFICATION_ENABLED } from "@calcom/lib/constants";
 
 import { Button } from "@calid/features/ui/components/button";
 import { Input } from "@calid/features/ui/components/input/input";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@calid/features/ui/components/select";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useEffect, useState } from "react";
@@ -25,6 +20,7 @@ import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
+import { Select } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/toast";
 
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
@@ -36,7 +32,7 @@ interface IUserSettingsProps {
 }
 
 const UserSettings = (props: IUserSettingsProps) => {
-  const { nextStep, isPhoneFieldMandatory = false } = props;
+  const { nextStep, isPhoneFieldMandatory } = props;
   const [user] = trpc.viewer.me.get.useSuspenseQuery();
   const { t } = useLocale();
   const { setTimezone: setSelectedTimeZone, timezone: selectedTimeZone } = useTimePreferences();
@@ -97,7 +93,9 @@ const UserSettings = (props: IUserSettingsProps) => {
     telemetry.event(telemetryEventTypes.onboardingStarted);
   }, [telemetry]);
 
-  const [selectedBusiness, setSelectedBusiness] = useState<string | null>(null);
+  const [selectedBusiness, setSelectedBusiness] = useState<string | null>(
+    (isPrismaObjOrUndefined(user.metadata) as { designation?: string })?.designation || null
+  );
 
   const designationTypeOptions: { value: string; label: string }[] = Object.keys(designationTypes).map(
     (key) => ({
@@ -133,18 +131,19 @@ const UserSettings = (props: IUserSettingsProps) => {
   const mutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: onSuccess,
   });
-  // const { getValue: getPhoneValue, setValue: setPhoneValue } = usePhoneNumberField(
-  //   { getValues, setValue },
-  //   defaultValues,
-  //   "metadata.phoneNumber"
-  // );
+  const { getValue: getPhoneValue, setValue: setPhoneValue } = usePhoneNumberField(
+    { getValues, setValue },
+    defaultValues,
+    "metadata.phoneNumber"
+  );
+
+  console.log("isPhoneFieldMandatory: ", isPhoneFieldMandatory);
 
   const onSubmit = handleSubmit((data) => {
     if (
       isPhoneFieldMandatory &&
-      data.metadata.phoneNumber
-      //  &&
-      // (PHONE_NUMBER_VERIFICATION_ENABLED ? !numberVerified : false)
+      data.metadata.phoneNumber &&
+      (PHONE_NUMBER_VERIFICATION_ENABLED ? !numberVerified : false)
     ) {
       showToast(t("phone_verification_required"), "error");
       return;
@@ -197,6 +196,18 @@ const UserSettings = (props: IUserSettingsProps) => {
           </p>
         )}
       </div>
+      <PhoneNumberField
+        getValue={getPhoneValue}
+        setValue={setPhoneValue}
+        getValues={getValues}
+        defaultValues={defaultValues}
+        isRequired={isPhoneFieldMandatory}
+        allowDelete={!isPhoneFieldMandatory && defaultValues?.metadata?.phoneNumber !== ""}
+        hasExistingNumber={defaultValues?.metadata?.phoneNumber !== ""}
+        errorMessage={errors.metadata?.phoneNumber?.message}
+        onDeleteNumber={handlePhoneDelete}
+        isNumberVerificationRequired={PHONE_NUMBER_VERIFICATION_ENABLED} // Only require OTP when phone is mandatory
+      />
 
       {/* Designation select field */}
       <div className="w-full">
@@ -204,21 +215,18 @@ const UserSettings = (props: IUserSettingsProps) => {
           {t("business_type")}
         </label>
         <Select
-          onValueChange={(value) => {
-            setSelectedBusiness(value);
+          value={
+            designationTypeOptions.find(
+              (option) => option.value === (selectedBusiness || designationTypeOptions[0].value)
+            ) || null
+          }
+          onChange={(option: { value: string; label: string } | null) => {
+            setSelectedBusiness(option?.value || "");
           }}
-          defaultValue={user?.metadata?.designation || designationTypeOptions[0].value}>
-          <SelectTrigger className="mt-2 w-full text-sm capitalize">
-            <SelectValue placeholder={t("business_type")} />
-          </SelectTrigger>
-          <SelectContent>
-            {designationTypeOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          options={designationTypeOptions}
+          placeholder={t("business_type")}
+          className="mt-2 w-full text-sm capitalize"
+        />
       </div>
 
       {/* Timezone select field */}

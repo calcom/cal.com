@@ -137,7 +137,7 @@ export const NavigationItem: React.FC<{
               "todesktop:py-[7px] text-default group flex items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
               item.child
                 ? `[&[aria-current='page']]:bg-emphasis`
-                : `[&[aria-current='page']]:bg-active [&[aria-current='page']]:text-white`,
+                : `[&[aria-current='page']]:bg-active dark:[&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-white`,
               isChild
                 ? `[&[aria-current='page']]:text-emphasis [&[aria-current='page']]:bg-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 ${
                     props.index === 0 ? "mt-0" : "mt-px"

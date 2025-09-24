@@ -647,7 +647,7 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
           {embedTypeOptions.map((type) => (
             <Button
               key={type.key}
-              color={selectedEmbedType === type.key ? "primary_dim" : "secondary"}
+              color={selectedEmbedType === type.key ? "primary" : "secondary"}
               onClick={() => setSelectedEmbedType(type.key as EmbedType)}
               className="flex-1 rounded-lg border-2 px-6 py-3 text-center transition-all">
               <span className="text-sm font-medium">{type.label}</span>
@@ -852,7 +852,7 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
 
               {/* Email-specific settings */}
               {selectedEmbedType === "email" && (
-                <div className="space-y-4 rounded-lg bg-gray-50 p-4">
+                <div className="bg-default space-y-4 rounded-md">
                   <div>
                     <Label className="mb-2 block text-sm font-medium">Button text</Label>
                     <TextField
@@ -929,8 +929,12 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
               <div className="text-center">
                 <h4 className="mb-1 text-sm font-medium">Ready to embed?</h4>
                 <p className="mb-3 text-xs text-gray-600">Get the code to add to your website</p>
-                <Button onClick={() => setShowCodeModal(true)} className="w-full" color="primary" size="lg">
-                  <Icon name="copy" className="mr-2 h-4 w-4" />
+                <Button
+                  StartIcon="copy"
+                  onClick={() => setShowCodeModal(true)}
+                  className="flex w-full justify-center"
+                  color="primary"
+                  size="lg">
                   Get Code
                 </Button>
               </div>

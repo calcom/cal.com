@@ -76,35 +76,6 @@ const Actions = ({
     <>
       <div className="flex items-center">
         <div className="flex items-center gap-2">
-          <FormAction
-            variant="ghost"
-            data-testid="toggle-form"
-            action="toggle"
-            routingForm={form}
-            extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] pr-4 transition"
-          />
-          {/* <ButtonGroup combined className="border-r-subtle border-l-subtle"> */}
-          <FormAction
-            action="_delete"
-            variant="fab"
-            routingForm={form}
-            size="xs"
-            icon="trash"
-            type="button"
-            className="h-[34px] w-[40px]"
-            color="destructive"
-          />
-          <Button
-            data-testid={isMobile ? "update-form-mobile" : "update-form"}
-            variant="button"
-            size="xs"
-            className="h-[34px]"
-            loading={isSaving}
-            type="submit"
-            color="primary">
-            <span className="text-sm">{t("save")}</span>
-          </Button>
-          {/* </ButtonGroup> */}
           <FormActionsDropdown>
             <FormAction
               action="incompleteBooking"
@@ -139,22 +110,32 @@ const Actions = ({
               </FormAction>
             )}
           </FormActionsDropdown>
-          <FormAction variant="icon" data-testid="toggle-form" action="toggle" routingForm={form} />
+          <FormAction
+            variant="ghost"
+            data-testid="toggle-form"
+            action="toggle"
+            routingForm={form}
+            extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] transition"
+          />
           <FormAction
             action="_delete"
-            variant="icon"
+            variant="fab"
             routingForm={form}
+            size="xs"
+            icon="trash"
             type="button"
-            color="secondary"
-            className="hover:bg-error hover:text-destructive h-8 w-8"
-            StartIcon="trash-2"
+            className="h-[34px] w-[40px]"
+            color="destructive"
           />
           <Button
             data-testid={isMobile ? "update-form-mobile" : "update-form"}
-            variant="icon"
+            variant="button"
+            size="xs"
+            className="h-[34px]"
             loading={isSaving}
-            type="submit">
-            {t("save")}
+            type="submit"
+            color="primary">
+            <span className="text-sm">{t("save")}</span>
           </Button>
           <Profile />
         </div>

@@ -50,7 +50,7 @@ const HorizontalTabItem = function ({
       aria-disabled={props.disabled ? "true" : undefined}
       className={cn(
         isCurrent
-          ? "text-active border-active border-b-2"
+          ? "text-active dark:text-subtle border-active dark:border-emphasis border-b-2"
           : "text-subtle hover:border-emphasis hover:text-subtle border-b-2 border-transparent",
         "inline-flex h-fit items-center justify-center whitespace-nowrap p-4 text-sm font-medium leading-none transition md:mb-0",
         props.disabled && "pointer-events-none !opacity-30",

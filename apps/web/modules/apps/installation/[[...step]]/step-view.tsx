@@ -218,6 +218,9 @@ const OnboardingPage = ({
       calIdTeamId: teamId,
       step: AppOnboardingSteps.EVENT_TYPES_STEP,
     });
+
+    console.log("Return url: ", { returnTo });
+    
     mutation.mutate({
       type: appMetadata.type,
       variant: appMetadata.variant,
@@ -303,6 +306,7 @@ const OnboardingPage = ({
                   loading={mutation.isPending}
                   installableOnTeams={installableOnTeams}
                 />
+                // <div>hello</div>
               )}
               {currentStep === AppOnboardingSteps.EVENT_TYPES_STEP &&
                 eventTypeGroups &&

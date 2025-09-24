@@ -18,7 +18,8 @@ import { trpc } from "@calcom/trpc/react";
 import { revalidateCalIdTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 
 import SkeletonLoader from "../components/SkeletonLoader";
-import { checkIfMemberAdminOrOwner } from "../lib/checkIfMemberAdminorOwner";
+
+import { checkIfMemberAdminorOwner } from "../lib/checkIfMemberAdminorOwner";
 
 const themeFormSchema = z.object({
   theme: z.enum(["light", "dark", "system"]),
@@ -152,14 +153,14 @@ export default function TeamAppearanceView({ teamId }: TeamAppearanceViewProps) 
 
   const brandColor = brandColorsForm.watch("brandColor");
   const darkBrandColor = brandColorsForm.watch("darkBrandColor");
-  const isAdminOrOwner = team && checkIfMemberAdminOrOwner(team.membership.role);
+  const isAdminOrOwner = team && checkIfMemberAdminorOwner(team.membership.role);
 
   return (
     <>
       {isAdminOrOwner ? (
         <div className="flex w-full flex-col space-y-6">
           {/* Theme Form */}
-          <div className="border-subtle space-y-6 rounded-md border p-4">
+          <div className="border-default space-y-6 rounded-md border p-4">
             <Form form={themeForm} onSubmit={onThemeFormSubmit}>
               <div className="mb-6 flex items-center rounded-md text-sm">
                 <div>
@@ -204,7 +205,7 @@ export default function TeamAppearanceView({ teamId }: TeamAppearanceViewProps) 
           </div>
 
           {/* Brand Colors Form */}
-          <div className="border-subtle space-y-6 rounded-md border p-4">
+          <div className="border-default space-y-6 rounded-md border p-4">
             <Form form={brandColorsForm} onSubmit={onBrandColorsFormSubmit}>
               <div className="mb-6 flex items-center rounded-md text-sm">
                 <div>
@@ -293,7 +294,7 @@ export default function TeamAppearanceView({ teamId }: TeamAppearanceViewProps) 
           </div>
 
           {/* Toggle switches */}
-          <div className="border-subtle flex flex-col space-y-6 rounded-md border p-4">
+          <div className="border-default flex flex-col space-y-6 rounded-md border p-4">
             <SettingsSwitch
               toggleSwitchAtTheEnd={true}
               title={t("disable_cal_id_branding", { appName: APP_NAME })}
@@ -307,7 +308,7 @@ export default function TeamAppearanceView({ teamId }: TeamAppearanceViewProps) 
             />
           </div>
 
-          <div className="border-subtle flex flex-col space-y-6 rounded-md border p-4">
+          <div className="border-default flex flex-col space-y-6 rounded-md border p-4">
             <SettingsSwitch
               toggleSwitchAtTheEnd={true}
               title={t("hide_book_a_team_member")}
@@ -321,7 +322,7 @@ export default function TeamAppearanceView({ teamId }: TeamAppearanceViewProps) 
             />
           </div>
 
-          <div className="border-subtle flex flex-col space-y-6 rounded-md border p-4">
+          <div className="border-default flex flex-col space-y-6 rounded-md border p-4">
             <SettingsSwitch
               toggleSwitchAtTheEnd={true}
               title={t("hide_team_profile_link")}

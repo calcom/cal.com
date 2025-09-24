@@ -193,8 +193,8 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
 
 export const SelectedCalendarsSettingsWebWrapperSkeleton = () => {
   return (
-    <div className="border-subtle mt-6 rounded-lg border">
-      <div className="border-subtle border-b p-6">
+    <div className="border-default mt-6 rounded-md border">
+      <div className="border-default border-b p-6">
         <div className="flex items-center justify-between">
           <div>
             <div className="bg-emphasis h-4 w-32 animate-pulse rounded-md" />

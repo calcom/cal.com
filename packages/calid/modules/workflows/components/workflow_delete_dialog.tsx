@@ -1,5 +1,13 @@
 import { Button } from "@calid/features/ui/components/button";
-import { Dialog, DialogContent, DialogFooter } from "@calid/features/ui/components/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from "@calid/features/ui/components/dialog";
 import { Icon } from "@calid/features/ui/components/icon";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import type { Dispatch, SetStateAction } from "react";
@@ -55,12 +63,6 @@ export const WorkflowDeleteDialog = ({
     deleteMutation.mutate({ id: workflowId });
   };
 
-  const handleCancel = () => {
-    if (!deleteMutation.isPending) {
-      setIsOpenDialog(false);
-    }
-  };
-
   const handleOpenChange = (open: boolean) => {
     if (!deleteMutation.isPending) {
       setIsOpenDialog(open);
@@ -69,17 +71,12 @@ export const WorkflowDeleteDialog = ({
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={handleOpenChange}>
-      <DialogContent
-        type="confirmation"
-        title={t("delete_workflow")}
-        description={t("delete_workflow_description")}
-        Icon="triangle-alert"
-        size="sm"
-        preventCloseOnOutsideClick>
+      <DialogContent preventCloseOnOutsideClick>
+        <DialogHeader>
+          <DialogTitle>{t("delete_workflow")}</DialogTitle>
+          <DialogDescription>{t("delete_workflow_description")}</DialogDescription>
+        </DialogHeader>
         <DialogFooter className="mt-4 gap-2">
-          <Button color="secondary" onClick={handleCancel} disabled={deleteMutation.isPending}>
-            {t("cancel")}
-          </Button>
           <Button
             color="destructive"
             onClick={handleConfirm}
@@ -88,6 +85,7 @@ export const WorkflowDeleteDialog = ({
             {deleteMutation.isPending && <Icon name="loader-circle" className="h-4 w-4 animate-spin" />}
             {t("confirm_delete_workflow")}
           </Button>
+          <DialogClose />
         </DialogFooter>
       </DialogContent>
     </Dialog>

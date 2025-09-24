@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@calid/features/ui/components/button";
-import { Icon } from "@calid/features/ui/components/icon";
 import React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -43,8 +42,7 @@ export const WorkflowsList: React.FC<WorkflowsListProps> = ({
       <div className="mb-4 flex items-center justify-between">
         <TeamsFilter profiles={teamProfiles} />
 
-        <Button onClick={onCreateWorkflow} loading={isCreating} disabled={isCreating}>
-          <Icon name="plus" className="h-4 w-4" />
+        <Button StartIcon="plus" onClick={onCreateWorkflow} loading={isCreating} disabled={isCreating}>
           {t("create_workflow")}
         </Button>
       </div>
@@ -59,8 +57,6 @@ export const WorkflowsList: React.FC<WorkflowsListProps> = ({
             onToggle={onToggle}
             onDuplicate={onDuplicate}
             onDelete={onDelete}
-            onCopyLink={onCopyLink}
-            copiedLink={copiedLink}
           />
         ))}
       </div>

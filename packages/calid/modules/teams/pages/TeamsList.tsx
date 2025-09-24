@@ -228,7 +228,7 @@ export function TeamsList({
             {teams.map((team) => (
               <li
                 key={team.id}
-                className="border-subtle bg-default group relative rounded-md border transition hover:shadow-md">
+                className="border-default bg-default group relative rounded-md border transition hover:shadow-md">
                 <div className="flex items-center justify-between p-4">
                   <div className="flex items-center space-x-3">
                     <Avatar
@@ -236,7 +236,7 @@ export function TeamsList({
                       shape="square"
                       imageSrc={getDefaultAvatar(team?.logoUrl, team?.name as string)}
                       alt="Team logo"
-                      className="bg-muted h-10 w-10"
+                      className="bg-default h-10 w-10"
                     />
                     <div>
                       <h3 className="text-default text-base font-semibold">{team.name}</h3>

@@ -2,6 +2,7 @@
 
 import { Button } from "@calid/features/ui/components/button";
 import { EmailField, PasswordField } from "@calid/features/ui/components/input/input";
+import { Logo } from "@calid/features/ui/components/logo";
 import { zodResolver } from "@hookform/resolvers/zod";
 import classNames from "classnames";
 import { signIn } from "next-auth/react";
@@ -95,12 +96,6 @@ export default function Login({
 
   callbackUrl = safeCallbackUrl || "";
 
-  const LoginFooter = (
-    <Link href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
-      {t("dont_have_an_account")}
-    </Link>
-  );
-
   const TwoFactorFooter = (
     <>
       <Button
@@ -175,13 +170,11 @@ export default function Login({
   );
 
   return (
-    <div className="bg-primary flex min-h-screen items-center justify-center px-4 sm:px-6 lg:px-8">
-      <div className="border-subtle w-full max-w-lg rounded-2xl border p-8 shadow-xl">
+    <div className="bg-default flex min-h-screen items-center justify-center px-4 sm:px-6 lg:px-8">
+      <div className="border-default w-full max-w-lg rounded-2xl border p-8 shadow-xl">
         {/* Logo */}
-        <div className="mb-8 text-center">
-          <div className="mb-8 flex items-center justify-center space-x-2">
-            <span className="text-primary text-2xl font-bold">Cal ID</span>
-          </div>
+        <div className="mb-8 flex justify-center">
+          <Logo small icon />
         </div>
 
         {/* Welcome Text */}
@@ -218,14 +211,13 @@ export default function Login({
 
               {/* Divider */}
               {isGoogleLoginEnabled && (
-                <div className="relative mb-8">
-                  <div className=" inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-300" />
-                  </div>
-                  <div className="mt-3 flex justify-center text-sm">
-                    <span className="text-subtle bg-primary px-2 font-medium">
+                <div className="mb-8">
+                  <div className="relative flex items-center">
+                    <div className="flex-grow border-t border-gray-300" />
+                    <span className="text-subtle mx-4 text-sm font-medium uppercase">
                       {t("or_continue_with_email")}
                     </span>
+                    <div className="flex-grow border-t border-gray-300" />
                   </div>
                 </div>
               )}
@@ -254,11 +246,7 @@ export default function Login({
                   required={!totpEmail}
                   {...register("password")}
                 />
-                <Link
-                  className="mt-4"
-                  href="/auth/forgot-password"
-                  tabIndex={-1}
-                  className="text-active text-sm hover:underline">
+                <Link href="/auth/forgot-password" tabIndex={-1} className="text-sm">
                   {t("forgot_password")}
                 </Link>
               </div>
@@ -270,13 +258,9 @@ export default function Login({
               {errorMessage && <Alert severity="error" title={errorMessage} />}
 
               {/* Sign In Button */}
-              <Button
-                type="submit"
-                color="primary"
-                disabled={formState.isSubmitting}
-                className="w-full justify-center py-3">
+              <Button type="submit" disabled={formState.isSubmitting} className="w-full justify-center py-3">
                 <span>{twoFactorRequired ? t("submit") : t("sign_in")}</span>
-                {lastUsed === "credentials" && !twoFactorRequired && <LastUsed className="text-default" />}
+                {lastUsed === "credentials" && !twoFactorRequired && <LastUsed />}
               </Button>
             </div>
           </form>

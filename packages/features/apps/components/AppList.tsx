@@ -106,7 +106,7 @@ export const AppList = ({
                     <Icon name="ellipsis" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent>
+                <DropdownMenuContent align="end">
                   {!appIsDefault && variant === "conferencing" && (
                     <DropdownMenuItem
                       onClick={() => {
@@ -128,21 +128,19 @@ export const AppList = ({
                     </DropdownMenuItem>
                   )}
 
-                  <DropdownMenuItem>
-                    <ConnectOrDisconnectIntegrationMenuItem
-                      credentialId={item.credentialOwner?.credentialId || item.userCredentialIds[0]}
-                      type={item.type}
-                      app={item.slug}
-                      isGlobal={item.isGlobal}
-                      installed
-                      invalidCredentialIds={item.invalidCredentialIds}
-                      handleDisconnect={handleDisconnect}
-                      teamId={item.credentialOwner ? item.credentialOwner?.teamId : undefined}
-                      handleConnectDisconnectIntegrationMenuToggle={
-                        handleConnectDisconnectIntegrationMenuToggle
-                      }
-                    />
-                  </DropdownMenuItem>
+                  <ConnectOrDisconnectIntegrationMenuItem
+                    credentialId={item.credentialOwner?.credentialId || item.userCredentialIds[0]}
+                    type={item.type}
+                    app={item.slug}
+                    isGlobal={item.isGlobal}
+                    installed
+                    invalidCredentialIds={item.invalidCredentialIds}
+                    handleDisconnect={handleDisconnect}
+                    teamId={item.credentialOwner ? item.credentialOwner?.teamId : undefined}
+                    handleConnectDisconnectIntegrationMenuToggle={
+                      handleConnectDisconnectIntegrationMenuToggle
+                    }
+                  />
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>

@@ -86,6 +86,7 @@ export class PaymentService implements IAbstractPaymentService {
     bookerName: string,
     paymentOption: PaymentOption,
     bookerEmail: string,
+    bookingUid: string,
     bookerPhoneNumber?: string | null,
     eventTitle?: string,
     bookingTitle?: string

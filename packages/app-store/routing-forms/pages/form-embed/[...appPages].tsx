@@ -222,7 +222,7 @@ const ChooseEmbedTypesDialogContent = ({
             type="button"
             className="flex w-full justify-center py-2 text-xs"
             variant="button"
-            color={currentType === embed.type ? "primary_dim" : "secondary"}
+            color={currentType === embed.type ? "primary" : "secondary"}
             key={index}
             data-testid={embed.type}
             onClick={() => {
@@ -936,7 +936,7 @@ export const EmbedTypeCodeAndPreviewDialogContent = ({
     //   className="rounded-lg p-0.5 sm:max-w-[80rem]"
     //   type="creation">
     <div className="flex grid w-full grid-cols-1 justify-between gap-12 sm:grid-cols-2 md:grid-cols-2">
-      <div className="bg-muted flex h-[65vh] w-full flex-col overflow-y-auto rounded-md  p-8">
+      <div className="bg-muted dark:bg-default flex h-[65vh] w-full flex-col overflow-y-auto rounded-md  p-8">
         {/* <h3
           className="text-emphasis mb-2.5 flex items-center text-xl font-semibold leading-5"
           id="modal-title"> */}

@@ -86,7 +86,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   };
 
   return (
-    <div className="border-subtle relative flex h-64 flex-col rounded-md border p-5">
+    <div className="border-default relative flex h-64 flex-col rounded-md border p-5">
       <div className="flex">
         <img
           src={app.logo}

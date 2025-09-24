@@ -167,7 +167,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
               weekStart: values.weekStart.value,
             });
           }}>
-          <div className="bg-default border-subtle rounded-md border px-4 py-8 sm:px-6">
+          <div className="bg-default border-default rounded-md border px-4 py-8 sm:px-6">
             <Controller
               name="locale"
               render={({ field: { value, onChange } }) => (

@@ -188,7 +188,7 @@ const AppearanceView = ({
       title={t("appearance")}
       description={t("appearance_description")}
       borderInShellHeader={false}>
-      <div className="border-subtle mt-6 flex items-center rounded-b-none rounded-t-lg border-x border-t px-6 pt-6 text-sm">
+      <div className="border-default mt-6 flex items-center rounded-b-none rounded-t-lg border-x border-t px-6 pt-6 text-sm">
         <div>
           <p className="text-default text-sm font-semibold">{t("app_theme")}</p>
           <p className="text-subtle tex-sm">{t("app_theme_applies_note")}</p>
@@ -205,7 +205,7 @@ const AppearanceView = ({
             appTheme,
           });
         }}>
-        <div className="border-subtle rounded-b-lg border-x border-b">
+        <div className="border-default rounded-b-lg border-x border-b">
           <div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-3">
             <ThemeCard
               variant="system"
@@ -250,7 +250,7 @@ const AppearanceView = ({
 
       {isApartOfOrganization ? null : (
         <>
-          <div className="border-subtle mt-6 flex items-center rounded-b-none rounded-t-lg border-x border-t px-6 pt-6 text-sm">
+          <div className="border-default mt-6 flex items-center rounded-b-none rounded-t-lg border-x border-t px-6 pt-6 text-sm">
             <div>
               <p className="text-default text-sm font-semibold">{t("theme")}</p>
               <p className="text-subtle text-sm">{t("theme_applies_note")}</p>
@@ -269,7 +269,7 @@ const AppearanceView = ({
                 theme: null,
               });
             }}>
-            <div className="border-subtle rounded-b-lg border-x border-b">
+            <div className="border-default rounded-b-lg border-x border-b">
               <div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-3">
                 <ThemeCard
                   variant="system"

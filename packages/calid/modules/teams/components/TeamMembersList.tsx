@@ -458,7 +458,7 @@ export function TeamMembersList({
       {/* Table container */}
       <div
         ref={tableContainerRef}
-        className="border-subtle bg-primary overflow-auto rounded-lg border"
+        className="border-default bg-primary overflow-auto rounded-lg border"
         style={{ height: "600px" }}>
         {/* Table header */}
         <div className="border-subtle bg-muted sticky top-0 z-10 border-b">

@@ -15,10 +15,9 @@ export const deleteCredentialHandler = async ({ ctx, input }: CalIdDeleteCredent
   const { user } = ctx;
   const { id, teamId } = input;
 
+  console.log("Deleting credential with id:", id, "for user:", user.id, "and teamId:", teamId);
   await handleDeleteCredential({
-    userId: user.id,
     userMetadata: user.metadata,
-    credentialId: id,
-    calIdTeamId: teamId,
+    credentialId: id
   });
 };

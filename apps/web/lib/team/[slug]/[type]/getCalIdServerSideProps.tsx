@@ -1,4 +1,5 @@
 import type { GetServerSidePropsContext } from "next";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -342,6 +343,23 @@ const getCalIdTeamWithEventsData = async (teamSlug: string, meetingSlug: string)
         },
       },
     });
+
+    if (result?.eventTypes[0].metadata?.apps?.stripe?.enabled) {
+      const credential = await prisma.credential.findUnique({
+        where: {
+          id: result?.eventTypes[0].metadata.apps?.stripe?.credentialId,
+        },
+      });
+      const isIndianStripeAccount = isPrismaObjOrUndefined(credential?.key)?.default_currency === "inr";
+
+      if (isIndianStripeAccount) {
+        result.eventTypes[0].metadata = Object.assign({}, result?.eventTypes[0].metadata, {
+          billingAddressRequired: true,
+        });
+      }
+    }
+
+    console.log("Event Data:", result?.eventTypes);
 
     return result;
   } catch (error) {
