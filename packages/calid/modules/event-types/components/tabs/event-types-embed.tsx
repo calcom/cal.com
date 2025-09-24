@@ -506,7 +506,7 @@ const EmbedPreview = ({
 
   if (embedType === "email") {
     return (
-      <div className="bg-primary w-full rounded-lg border p-6">
+      <div className="bg-primary w-full rounded-md border p-6">
         <div className="space-y-4">
           <h5 className="font-semibold">Meeting: 30min call</h5>
           <p className="text-sm text-gray-600">Duration: 30 mins</p>
@@ -640,7 +640,7 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
   ];
 
   return (
-    <div className="mx-auto max-w-none p-6">
+    <div className="mx-auto max-w-none">
       <div className="space-y-8">
         {/* Embed Type Selection - Horizontal Tabs */}
         <div className="flex w-full gap-2">
@@ -658,7 +658,7 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
         {/* Main Content Area - Split Layout */}
         <div className="flex gap-8">
           {/* Left Side - Configuration */}
-          <div className="w-1/2">
+          <div className="w-1/4">
             <div className="space-y-6">
               {selectedEmbedType !== "email" && (
                 <>
@@ -687,6 +687,7 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
                                 })
                               }
                               placeholder="100%"
+                              addOnLeading="W"
                               className="flex-1"
                             />
                             <TextField
@@ -696,7 +697,8 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
                                   inline: { ...previewState.inline, height: e.target.value },
                                 })
                               }
-                              placeholder="600px"
+                              placeholder="100%"
+                              addOnLeading="H"
                               className="flex-1"
                             />
                           </div>
@@ -913,17 +915,15 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
           </div>
 
           {/* Right Side - Preview and Get Code Button */}
-          <div className="w-1/2">
-            <div className="space-y-4">
+          <div className="w-3/4">
+            <div className="space-y-4 p-2">
               {/* Preview */}
-              <div className="bg-primary rounded-lg border p-4">
-                <EmbedPreview
-                  embedType={selectedEmbedType}
-                  previewState={previewState}
-                  calLink={calLink}
-                  bookerUrl={bookerUrl}
-                />
-              </div>
+              <EmbedPreview
+                embedType={selectedEmbedType}
+                previewState={previewState}
+                calLink={calLink}
+                bookerUrl={bookerUrl}
+              />
 
               {/* Get Code Button */}
               <div className="text-center">

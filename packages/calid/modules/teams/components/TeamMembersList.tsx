@@ -10,6 +10,7 @@ import {
   DialogTitle,
   DialogHeader,
   DialogDescription,
+  DialogClose,
 } from "@calid/features/ui/components/dialog";
 import {
   DropdownMenu,
@@ -32,6 +33,7 @@ import {
 } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { useCallback, useMemo, useRef, useState, useEffect } from "react";
 import React from "react";
 
@@ -91,6 +93,10 @@ export function TeamMembersList({
   // State for edit role modal
   const [memberToEdit, setMemberToEdit] = useState<TeamMemberData | null>(null);
   const [showEditRoleModal, setShowEditRoleModal] = useState(false);
+
+  // State for impersonation modal
+  const [memberToImpersonate, setMemberToImpersonate] = useState<TeamMemberData | null>(null);
+  const [showImpersonationDialog, setShowImpersonationDialog] = useState(false);
 
   const { data: membersData, isLoading } = trpc.viewer.calidTeams.listMembers.useQuery(
     { teamId: team.id, limit: 25, searchQuery, paging: currentPage },
@@ -173,6 +179,17 @@ export function TeamMembersList({
     if (!team?.membership) return false;
     return team.membership.role === "OWNER" || team.membership.role === "ADMIN";
   }, [team]);
+
+  const canImpersonateMember = useCallback(
+    (member: TeamMemberData) => {
+      if (!canManageMembers) return false;
+      if (member.user.id === session?.user?.id) return false; // Can't impersonate self
+      if (member.user.disableImpersonation) return false; // User has disabled impersonation
+      if (!member.acceptedInvitation) return false; // User hasn't accepted invitation
+      return true;
+    },
+    [canManageMembers, session?.user?.id]
+  );
 
   const formatLastActive = useCallback((lastActiveAt: string | null) => {
     if (!lastActiveAt) return "Never";
@@ -333,6 +350,16 @@ export function TeamMembersList({
                         {t("edit_team_member")}
                       </DropdownMenuItem>
                     )}
+                    {canEditMember && canImpersonateMember(member) && (
+                      <DropdownMenuItem
+                        StartIcon="shield"
+                        onClick={() => {
+                          setMemberToImpersonate(member);
+                          setShowImpersonationDialog(true);
+                        }}>
+                        {t("impersonate")}
+                      </DropdownMenuItem>
+                    )}
                     {!member.acceptedInvitation && canEditMember && (
                       <DropdownMenuItem
                         StartIcon="mail"
@@ -379,6 +406,7 @@ export function TeamMembersList({
   }, [
     enableBulkActions,
     canManageMembers,
+    canImpersonateMember,
     session?.user?.id,
     team,
     onMemberSelect,
@@ -386,6 +414,9 @@ export function TeamMembersList({
     onMemberRemove,
     formatLastActive,
     t,
+    i18n.language,
+    isRemoving,
+    resendInviteMutation,
   ]);
 
   const table = useReactTable({
@@ -501,7 +532,7 @@ export function TeamMembersList({
             return (
               <div
                 key={row.id}
-                className="absolute flex w-full items-center border-b border-gray-100 transition-colors"
+                className="border-default absolute flex w-full items-center border-b transition-colors"
                 style={{
                   height: `${virtualRow.size}px`,
                   transform: `translateY(${virtualRow.start}px)`,
@@ -672,6 +703,33 @@ export function TeamMembersList({
         onRoleUpdate={handleRoleUpdate}
         isUpdating={isUpdating}
       />
+
+      {/* Impersonation Confirmation Dialog */}
+      <Dialog open={showImpersonationDialog} onOpenChange={setShowImpersonationDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("impersonate")}</DialogTitle>
+            <DialogDescription>{t("impersonation_user_tip")}</DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center justify-end space-x-3">
+            <DialogClose />
+            <Button
+              variant="button"
+              onClick={async () => {
+                if (memberToImpersonate) {
+                  await signIn("impersonation-auth", {
+                    username: memberToImpersonate.user.email,
+                    teamId: team.id.toString(),
+                  });
+                  setShowImpersonationDialog(false);
+                  setMemberToImpersonate(null);
+                }
+              }}>
+              {t("impersonate")}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -717,7 +775,6 @@ export function useTeamMemberOperations(teamId: number) {
       removeMemberMutation.mutate({
         teamIds: [teamId],
         memberIds: [memberId], // assumes `member.id` is the membership id
-        isOrg: false,
       });
     },
     [teamId, removeMemberMutation]

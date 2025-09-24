@@ -492,7 +492,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
         />
 
         {/* Content */}
-        <div className="bg-background py-4">
+        <div className="bg-background pb-4">
           <div className="mx-auto max-w-none">
             <Form
               form={form}

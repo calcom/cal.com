@@ -1,5 +1,4 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { SessionProvider } from "next-auth/react";
 import { dir } from "i18next";
 import type { Session } from "next-auth";
 import { useSession } from "next-auth/react";
@@ -275,7 +274,6 @@ const AppProviders = (props: AppPropsWithChildren) => {
 
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-
       <CustomI18nextProvider {...props}>
         <TooltipProvider>
           <CalcomThemeProvider

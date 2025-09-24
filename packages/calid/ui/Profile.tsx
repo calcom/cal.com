@@ -34,10 +34,10 @@ export const Profile = ({ small }: ProfileProps) => {
   const handleHelpClick = (action: string) => {
     switch (action) {
       case "docs":
-        window.open("https://docs.cal.id", "_blank");
+        window.open("https://chat.onehash.ai/hc/onehash-help-center/en/categories/onehash-cal", "_blank");
         break;
       case "contact":
-        window.location.href = SUPPORT_MAIL_ADDRESS;
+        window.location.href = `mailto:${SUPPORT_MAIL_ADDRESS}`;
         break;
     }
   };

@@ -666,7 +666,6 @@ const ProfileForm = ({
 
   const bioValue = formMethods.watch("bio") || "";
   const renderedBio = useMemo(() => {
-    console.log("Rendered bio: ", bioValue);
     md.render(bioValue), [bioValue];
   });
   const getText = React.useCallback(() => bioValue, [bioValue]);

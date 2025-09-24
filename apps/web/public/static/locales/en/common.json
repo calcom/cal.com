@@ -108,6 +108,7 @@
   "rejection_confirmation": "Reject the booking",
   "manage_this_event": "Manage this event",
   "invite_team_member": "Invite team member",
+  "invite_team_member_description": "Invite a new member to join your team",
   "invite_team_individual_segment": "Invite individual",
   "invite_team_bulk_segment": "Bulk import",
   "invite_team_notifcation_badge": "Inv.",
