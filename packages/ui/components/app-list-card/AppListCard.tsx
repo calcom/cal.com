@@ -63,8 +63,8 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
 
   const processedDescription = useMemo(() => {
     const cleaned = stripMarkdown(description);
-    const words = cleaned.split(" ").filter((word) => word.length > 0);
-    if (words.length <= 16) return cleaned;
+    const words = cleaned.split(/\s+/).filter((word) => word.length > 0);
+    if (words.length <= 16) return words.join(" ");
     return words.slice(0, 16).join(" ") + "...";
   }, [description]);
 
