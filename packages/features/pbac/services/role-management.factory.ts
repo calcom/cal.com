@@ -1,4 +1,4 @@
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { createFeaturesService } from "@calcom/features/flags/features.service.factory";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { isTeamAdmin } from "@calcom/features/ee/teams/lib/queries";
 import { prisma } from "@calcom/prisma";
@@ -148,12 +148,11 @@ class LegacyRoleManager implements IRoleManager {
 
 export class RoleManagementFactory {
   private static instance: RoleManagementFactory;
-  private featuresRepository: FeaturesRepository;
   private roleService: RoleService;
   private permissionCheckService: PermissionCheckService;
 
   private constructor() {
-    (this.featuresRepository = new FeaturesRepository(prisma)), (this.roleService = new RoleService());
+    this.roleService = new RoleService();
     this.permissionCheckService = new PermissionCheckService();
   }
 
@@ -165,7 +164,8 @@ export class RoleManagementFactory {
   }
 
   async createRoleManager(organizationId: number): Promise<IRoleManager> {
-    const isPBACEnabled = await this.featuresRepository.checkIfTeamHasFeature(organizationId, "pbac");
+    const featuresService = createFeaturesService();
+    const isPBACEnabled = await featuresService.checkIfTeamHasFeature(organizationId, "pbac");
 
     return isPBACEnabled
       ? new PBACRoleManager(this.roleService, this.permissionCheckService)
