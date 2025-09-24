@@ -1,6 +1,4 @@
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { isTeamAdmin } from "@calcom/features/ee/teams/lib/queries";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -96,13 +94,20 @@ class PBACRoleManager implements IRoleManager {
 
 class LegacyRoleManager implements IRoleManager {
   public isPBACEnabled = false;
+
+  constructor(private readonly permissionCheckService: PermissionCheckService) {}
+
   async checkPermissionToChangeRole(userId: number, targetId: number, scope: "org" | "team"): Promise<void> {
-    const membership =
-      scope === "team"
-        ? !!(await isTeamAdmin(userId, targetId))
-        : !!(await isOrganisationAdmin(userId, targetId));
+    const permission = scope === "team" ? "team.changeMemberRole" : "organization.changeMemberRole";
+    const hasPermission = await this.permissionCheckService.checkPermission({
+      userId,
+      teamId: targetId,
+      permission,
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+    });
+
     // Only OWNER/ADMIN can update role
-    if (!membership) {
+    if (!hasPermission) {
       throw new RoleManagementError(
         "Only owners or admin can update roles",
         RoleManagementErrorCode.UNAUTHORIZED
@@ -169,6 +174,6 @@ export class RoleManagementFactory {
 
     return isPBACEnabled
       ? new PBACRoleManager(this.roleService, this.permissionCheckService)
-      : new LegacyRoleManager();
+      : new LegacyRoleManager(this.permissionCheckService);
   }
 }

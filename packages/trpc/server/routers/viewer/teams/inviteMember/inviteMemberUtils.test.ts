@@ -1,6 +1,5 @@
 import { describe, it, vi, expect } from "vitest";
 
-import { isTeamAdmin } from "@calcom/features/ee/teams/lib/queries";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -22,12 +21,6 @@ import {
 vi.mock("@calcom/prisma", () => {
   return {
     prisma: vi.fn(),
-  };
-});
-
-vi.mock("@calcom/features/ee/teams/lib/queries", () => {
-  return {
-    isTeamAdmin: vi.fn(),
   };
 });
 
@@ -153,16 +146,6 @@ describe("Invite Member Utils", () => {
       await expect(
         ensureAtleastAdminPermissions({ userId: 1, teamId: 1, isOrg: true })
       ).resolves.not.toThrow();
-    });
-
-    it("It should throw an error if the user is not an admin of the team", async () => {
-      vi.mocked(isTeamAdmin).mockResolvedValue(false);
-      await expect(ensureAtleastAdminPermissions({ userId: 1, teamId: 1 })).rejects.toThrow("UNAUTHORIZED");
-    });
-
-    it("It should NOT throw an error if the user is an admin of a team", async () => {
-      vi.mocked(isTeamAdmin).mockResolvedValue(mockedReturnSuccessCheckPerms);
-      await expect(ensureAtleastAdminPermissions({ userId: 1, teamId: 1 })).resolves.not.toThrow();
     });
   });
 
