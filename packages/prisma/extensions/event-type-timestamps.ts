@@ -6,9 +6,7 @@ export function eventTypeTimestampsExtension() {
       eventType: {
         async create({ args, query }) {
           const now = new Date();
-          if (!args.data.createdAt) {
-            args.data.createdAt = now;
-          }
+          args.data.createdAt = now;
           return query(args);
         },
         async createMany({ args, query }) {
@@ -16,9 +14,9 @@ export function eventTypeTimestampsExtension() {
           if (Array.isArray(args.data)) {
             args.data = args.data.map((item) => ({
               ...item,
-              createdAt: item.createdAt || now,
+              createdAt: now,
             }));
-          } else if (!args.data.createdAt) {
+          } else {
             args.data.createdAt = now;
           }
           return query(args);
