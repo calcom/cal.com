@@ -87,8 +87,7 @@ export default function WorkflowDetailsPage(props: Props) {
     baseActionOptions
       ?.filter((option) => {
         if (
-          (isFormTrigger(form.getValues("trigger")) &&
-            (option.value === WorkflowActions.EMAIL_HOST || isCalAIAction(option.value))) ||
+          (isFormTrigger(form.getValues("trigger")) && option.value === WorkflowActions.EMAIL_HOST) ||
           isWhatsappAction(option.value) ||
           (isCalAIAction(option.value) && form.watch("selectAll")) ||
           (isCalAIAction(option.value) && isOrg)
@@ -170,8 +169,8 @@ export default function WorkflowDetailsPage(props: Props) {
 
   return (
     <>
-      <div className="z-1 my-8 sm:my-0 md:flex">
-        <div className="pl-2 pr-3 md:sticky md:top-6 md:h-0 md:pl-0">
+      <div className="my-8 z-1 sm:my-0 md:flex">
+        <div className="pr-3 pl-2 md:sticky md:top-6 md:h-0 md:pl-0">
           <div className="mb-5">
             <TextField
               data-testid="workflow-name"
@@ -247,7 +246,7 @@ export default function WorkflowDetailsPage(props: Props) {
               />
             </div>
           )}
-          <div className="md:border-subtle my-7 border-transparent md:border-t" />
+          <div className="my-7 border-transparent md:border-subtle md:border-t" />
           {permissions.canDelete && (
             <Button
               type="button"
@@ -258,11 +257,11 @@ export default function WorkflowDetailsPage(props: Props) {
               {t("delete_workflow")}
             </Button>
           )}
-          <div className="border-subtle my-7 border-t md:border-none" />
+          <div className="my-7 border-t border-subtle md:border-none" />
         </div>
 
         {/* Workflow Trigger Event & Steps */}
-        <div className="bg-muted border-subtle w-full rounded-md border p-3 py-5 md:ml-3 md:p-8">
+        <div className="p-3 py-5 w-full rounded-md border bg-muted border-subtle md:ml-3 md:p-8">
           {form.getValues("trigger") && (
             <div>
               <WorkflowStepContainer
@@ -299,7 +298,7 @@ export default function WorkflowDetailsPage(props: Props) {
           )}
           {!props.readOnly && (
             <>
-              <div className="my-3 flex justify-center">
+              <div className="flex justify-center my-3">
                 <Icon name="arrow-down" className="text-subtle stroke-[1.5px] text-3xl" />
               </div>
               <div className="flex justify-center">

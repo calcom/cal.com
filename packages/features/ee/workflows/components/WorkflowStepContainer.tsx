@@ -1,4 +1,3 @@
-import type { WorkflowStep } from "@prisma/client";
 import { type TFunction } from "i18next";
 import { useParams } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
@@ -15,6 +14,7 @@ import { useHasActiveTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
+import type { WorkflowStep } from "@calcom/prisma/client";
 import {
   MembershipRole,
   PhoneNumberSubscriptionStatus,
@@ -58,7 +58,6 @@ import {
   isSMSOrWhatsappAction,
   isFormTrigger,
   isCalAIAction,
-  hasCalAIAction,
 } from "../lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
@@ -255,14 +254,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const triggerOptions = getWorkflowTriggerOptions(t);
   const templateOptions = getWorkflowTemplateOptions(t, step?.action, hasActiveTeamPlan, trigger);
-
-  // Filter trigger options to hide isFormTrigger actions when cal.ai is part of any workflow step
-  const filteredTriggerOptions = triggerOptions.filter((option) => {
-    if (hasCalAIAction(form.getValues("steps")) && isFormTrigger(option.value)) {
-      return false;
-    }
-    return true;
-  });
 
   if (step && !form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
     const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
@@ -469,7 +460,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       }
                     }}
                     defaultValue={selectedTrigger}
-                    options={filteredTriggerOptions}
+                    options={triggerOptions}
                   />
                 );
               }}
