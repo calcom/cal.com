@@ -8,6 +8,7 @@ import type {
 import Widgets from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import PhoneInput from "@calcom/features/components/phone-input";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { fieldSchema, variantsConfigSchema, FieldType } from "@calcom/prisma/zod-utils";
 import { AddressInput } from "@calcom/ui/components/address";
 import { InfoBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
@@ -18,7 +19,6 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { ComponentForField } from "./FormBuilderField";
 import { propsTypes } from "./propsTypes";
-import type { fieldSchema, FieldType, variantsConfigSchema } from "./schema";
 import { preprocessNameFieldDataWithVariant } from "./utils";
 
 type PhoneComponentProps = TextLikeComponentProps & {

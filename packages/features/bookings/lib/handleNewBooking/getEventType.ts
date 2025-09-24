@@ -1,4 +1,4 @@
-import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 
 import { getBookingFieldsWithSystemFields } from "../getBookingFields";
