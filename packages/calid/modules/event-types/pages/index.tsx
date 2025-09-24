@@ -5,11 +5,9 @@ import { useRouter } from "next/navigation";
 import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { z } from "zod";
 
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { trpc } from "@calcom/trpc/react";
 
@@ -32,9 +30,7 @@ const querySchema = z.object({
 
 export const EventTypes = () => {
   const router = useRouter();
-  const { t } = useLocale();
   const { copyToClipboard } = useCopy();
-  const orgBranding = useOrgBranding();
   const { data: sessionData } = useSession();
 
   // URL state management
@@ -124,11 +120,8 @@ export const EventTypes = () => {
 
   // Booker URL logic
   const bookerUrl = useMemo(() => {
-    if (orgBranding) {
-      return orgBranding.fullDomain;
-    }
     return process.env.NEXT_PUBLIC_WEBSITE_URL || "https://cal.id";
-  }, [orgBranding]);
+  }, []);
 
   // Event handlers
   const handleCreateEvent = useCallback((_eventData: unknown) => {

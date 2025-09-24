@@ -32,7 +32,7 @@ export const CreateTeamEventModal: React.FC<CreateTeamEventModalProps> = ({
   teamId,
   teamName,
   teamSlug,
-  isTeamAdminOrOwner
+  isTeamAdminOrOwner,
 }) => {
   const onSuccessMutation = () => {
     onClose();
@@ -174,7 +174,7 @@ export const CreateTeamEventModal: React.FC<CreateTeamEventModalProps> = ({
                 </div>
               </div>
 
-              {isTeamAdminOrOwner && (
+              {/* {isTeamAdminOrOwner && (
                 <div className="flex items-start space-x-3 rounded-md border p-3 transition-colors hover:bg-gray-50">
                   <RadioGroupItem value={SchedulingType.MANAGED} id="managed" className="mt-0.5" />
                   <div className="flex-1">
@@ -186,7 +186,7 @@ export const CreateTeamEventModal: React.FC<CreateTeamEventModalProps> = ({
                     </p>
                   </div>
                 </div>
-              )}
+              )} */}
             </RadioGroup>
           </div>
 

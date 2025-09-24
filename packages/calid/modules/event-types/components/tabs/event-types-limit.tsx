@@ -21,7 +21,6 @@ import type { TFunction } from "i18next";
 import React, { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { useFormContext, Controller } from "react-hook-form";
 
-import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { getDefinedBufferTimes } from "@calcom/features/eventtypes/lib/getDefinedBufferTimes";
 import type { FormValues, EventTypeSetup } from "@calcom/features/eventtypes/lib/types";
 import { ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK } from "@calcom/lib/constants";
@@ -33,19 +32,8 @@ import { ascendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/interval
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { PeriodType } from "@calcom/prisma/enums";
 
-// ============================================================================
-// TYPES
-// ============================================================================
-
 type IPeriodType = (typeof PeriodType)[keyof typeof PeriodType];
 type IntervalLimitsKey = keyof IntervalLimit;
-
-interface DateRange {
-  from?: Date;
-  to?: Date;
-  startDate?: Date;
-  endDate?: Date;
-}
 
 export interface EventLimitsProps {
   eventType: EventTypeSetup;
@@ -222,7 +210,7 @@ const SettingsToggle = memo(
         </div>
         <Switch checked={checked} onCheckedChange={onCheckedChange} disabled={disabled} />
       </CardHeader>
-      {checked && children && <CardContent className="border-t border-gray-100 p-6">{children}</CardContent>}
+      {checked && children && <CardContent className="border-default border-t p-6">{children}</CardContent>}
     </Card>
   )
 );
@@ -660,101 +648,89 @@ IntervalLimitsManager.displayName = "IntervalLimitsManager";
 /**
  * Maximum active bookings per booker control section
  */
-const MaxActiveBookingsPerBookerController = memo(
-  ({
-    maxActiveBookingsPerBookerLocked,
-  }: {
-    maxActiveBookingsPerBookerLocked: {
-      disabled: boolean;
-      LockedIcon: false | JSX.Element;
-      isLocked: boolean;
-    };
-  }) => {
-    const { t } = useLocale();
-    const formMethods = useFormContext<FormValues>();
+const MaxActiveBookingsPerBookerController = memo(() => {
+  const { t } = useLocale();
+  const formMethods = useFormContext<FormValues>();
 
-    const [maxActiveBookingsPerBookerToggle, setMaxActiveBookingsPerBookerToggle] = useState(
-      (formMethods.getValues("maxActiveBookingsPerBooker") ?? 0) > 0
-    );
+  const [maxActiveBookingsPerBookerToggle, setMaxActiveBookingsPerBookerToggle] = useState(
+    (formMethods.getValues("maxActiveBookingsPerBooker") ?? 0) > 0
+  );
 
-    const isRecurringEvent = !!formMethods.getValues("recurringEvent");
-    const maxActiveBookingPerBookerOfferReschedule = formMethods.watch(
-      "maxActiveBookingPerBookerOfferReschedule"
-    );
+  const isRecurringEvent = !!formMethods.getValues("recurringEvent");
+  const maxActiveBookingPerBookerOfferReschedule = formMethods.watch(
+    "maxActiveBookingPerBookerOfferReschedule"
+  );
 
-    const handleToggleChange = useCallback(
-      (active: boolean, onChange: (value: any) => void) => {
-        if (active) {
-          onChange(1);
-        } else {
-          onChange(null);
-        }
-        setMaxActiveBookingsPerBookerToggle(!maxActiveBookingsPerBookerToggle);
-      },
-      [maxActiveBookingsPerBookerToggle]
-    );
+  const handleToggleChange = useCallback(
+    (active: boolean, onChange: (value: any) => void) => {
+      if (active) {
+        onChange(1);
+      } else {
+        onChange(null);
+      }
+      setMaxActiveBookingsPerBookerToggle(!maxActiveBookingsPerBookerToggle);
+    },
+    [maxActiveBookingsPerBookerToggle]
+  );
 
-    const handleInputChange = useCallback(
-      (e: React.ChangeEvent<HTMLInputElement>, onChange: (value: any) => void) => {
-        onChange(e.target.value === "" ? null : parseInt(e.target.value, 10));
-      },
-      []
-    );
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>, onChange: (value: any) => void) => {
+      onChange(e.target.value === "" ? null : parseInt(e.target.value, 10));
+    },
+    []
+  );
 
-    const handleOfferRescheduleChange = useCallback(
-      (isChecked: boolean) => {
-        formMethods.setValue("maxActiveBookingPerBookerOfferReschedule", isChecked, {
-          shouldDirty: true,
-        });
-      },
-      [formMethods]
-    );
+  const handleOfferRescheduleChange = useCallback(
+    (isChecked: boolean) => {
+      formMethods.setValue("maxActiveBookingPerBookerOfferReschedule", isChecked, {
+        shouldDirty: true,
+      });
+    },
+    [formMethods]
+  );
 
-    return (
-      <Controller
-        name="maxActiveBookingsPerBooker"
-        render={({ field: { onChange, value } }) => (
-          <SettingsToggle
-            title={t("booker_booking_limit")}
-            description={t("booker_booking_limit_description")}
-            checked={maxActiveBookingsPerBookerToggle}
-            disabled={isRecurringEvent || maxActiveBookingsPerBookerLocked.disabled}
-            tooltip={isRecurringEvent ? t("recurring_event_doesnt_support_booker_booking_limit") : ""}
-            onCheckedChange={(active) => handleToggleChange(active, onChange)}>
-            <div className="space-y-4">
-              <div>
-                <Label>Maximum bookings</Label>
-                <div className="flex items-center space-x-2">
-                  <NumberInput
-                    value={value ?? ""}
-                    disabled={maxActiveBookingsPerBookerLocked.disabled}
-                    onChange={(e) => handleInputChange(e, onChange)}
-                    min={1}
-                    step={1}
-                    className="w-20"
-                    data-testid="booker-booking-limit-input"
-                    placeholder="1"
-                  />
-                  <span className="text-sm text-gray-600">bookings</span>
-                </div>
-              </div>
-              <div>
-                <div className="flex items-center space-x-2">
-                  <CheckboxField
-                    checked={!!maxActiveBookingPerBookerOfferReschedule}
-                    disabled={maxActiveBookingsPerBookerLocked.disabled}
-                    onCheckedChange={handleOfferRescheduleChange}
-                  />
-                  <span className="text-sm text-gray-600">{t("offer_to_reschedule_last_booking")}</span>
-                </div>
+  return (
+    <Controller
+      name="maxActiveBookingsPerBooker"
+      render={({ field: { onChange, value } }) => (
+        <SettingsToggle
+          title={t("booker_booking_limit")}
+          description={t("booker_booking_limit_description")}
+          checked={maxActiveBookingsPerBookerToggle}
+          disabled={isRecurringEvent}
+          tooltip={isRecurringEvent ? t("recurring_event_doesnt_support_booker_booking_limit") : ""}
+          onCheckedChange={(active) => handleToggleChange(active, onChange)}>
+          <div className="space-y-4">
+            <div>
+              <Label>Maximum bookings</Label>
+              <div className="flex items-center space-x-2">
+                <NumberInput
+                  value={value ?? ""}
+                  onChange={(e) => handleInputChange(e, onChange)}
+                  min={1}
+                  step={1}
+                  className="w-20"
+                  data-testid="booker-booking-limit-input"
+                  placeholder="1"
+                />
+                <span className="text-sm text-gray-600">bookings</span>
               </div>
             </div>
-          </SettingsToggle>
-        )}
-      />
-    );
-  }
-);
+            <div>
+              <div className="flex items-center space-x-2">
+                <CheckboxField
+                  checked={!!maxActiveBookingPerBookerOfferReschedule}
+                  onCheckedChange={handleOfferRescheduleChange}
+                />
+                <span className="text-sm text-gray-600">{t("offer_to_reschedule_last_booking")}</span>
+              </div>
+            </div>
+          </div>
+        </SettingsToggle>
+      )}
+    />
+  );
+});
 
 MaxActiveBookingsPerBookerController.displayName = "MaxActiveBookingsPerBookerController";
 
@@ -764,11 +740,6 @@ MaxActiveBookingsPerBookerController.displayName = "MaxActiveBookingsPerBookerCo
 const BeforeAfterEventSection = memo(() => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
-  const { shouldLockIndicator, shouldLockDisableProps } = useLockedFieldsManager({
-    eventType: {} as EventTypeSetup, // This should be passed from parent
-    translate: t,
-    formMethods,
-  });
 
   const beforeBufferOptions = useMemo(() => createBufferTimeOptions(t, true), [t]);
   const afterBufferOptions = useMemo(() => createBufferTimeOptions(t), [t]);
@@ -782,10 +753,7 @@ const BeforeAfterEventSection = memo(() => {
           <div className="space-y-6">
             {/* Buffer Time Selector */}
             <div>
-              <Label>
-                {t("before_event")}
-                {shouldLockIndicator("beforeBufferTime")}
-              </Label>
+              <Label>{t("before_event")}</Label>
               <Controller
                 name="beforeEventBuffer"
                 render={({ field: { onChange, value } }) => (
@@ -793,7 +761,6 @@ const BeforeAfterEventSection = memo(() => {
                     value={value?.toString() || "0"}
                     onValueChange={(val) => onChange(parseInt(val))}
                     options={beforeBufferOptions}
-                    disabled={shouldLockDisableProps("beforeBufferTime").disabled}
                     className="w-full"
                   />
                 )}
@@ -802,14 +769,8 @@ const BeforeAfterEventSection = memo(() => {
 
             {/* Minimum Booking Notice */}
             <div>
-              <Label>
-                {t("minimum_booking_notice")}
-                {shouldLockIndicator("minimumBookingNotice")}
-              </Label>
-              <MinimumBookingNoticeInput
-                disabled={shouldLockDisableProps("minimumBookingNotice").disabled}
-                name="minimumBookingNotice"
-              />
+              <Label>{t("minimum_booking_notice")}</Label>
+              <MinimumBookingNoticeInput name="minimumBookingNotice" />
             </div>
           </div>
         </CardContent>
@@ -821,10 +782,7 @@ const BeforeAfterEventSection = memo(() => {
           <div className="space-y-6">
             {/* After Event Buffer */}
             <div>
-              <Label>
-                {t("after_event")}
-                {shouldLockIndicator("afterBufferTime")}
-              </Label>
+              <Label>{t("after_event")}</Label>
               <Controller
                 name="afterEventBuffer"
                 render={({ field: { onChange, value } }) => (
@@ -832,7 +790,6 @@ const BeforeAfterEventSection = memo(() => {
                     value={value?.toString() || "0"}
                     onValueChange={(val) => onChange(parseInt(val))}
                     options={afterBufferOptions}
-                    disabled={shouldLockDisableProps("afterBufferTime").disabled}
                     className="w-full"
                   />
                 )}
@@ -841,10 +798,7 @@ const BeforeAfterEventSection = memo(() => {
 
             {/* Slot Interval */}
             <div>
-              <Label>
-                {t("slot_interval")}
-                {shouldLockIndicator("slotInterval")}
-              </Label>
+              <Label>{t("slot_interval")}</Label>
               <Controller
                 name="slotInterval"
                 render={({ field: { value } }) => (
@@ -857,7 +811,6 @@ const BeforeAfterEventSection = memo(() => {
                       });
                     }}
                     options={slotIntervalOptions}
-                    disabled={shouldLockDisableProps("slotInterval").disabled}
                     className="w-full"
                   />
                 )}
@@ -879,11 +832,9 @@ const OffsetStartSection = memo(
   ({
     offsetToggle,
     setOffsetToggle,
-    offsetStartLockedProps,
   }: {
     offsetToggle: boolean;
     setOffsetToggle: (value: boolean) => void;
-    offsetStartLockedProps: { disabled: boolean };
   }) => {
     const { t, i18n } = useLocale();
     const formMethods = useFormContext<FormValues>();
@@ -908,7 +859,6 @@ const OffsetStartSection = memo(
         title={t("offset_toggle")}
         description={t("offset_toggle_description")}
         checked={offsetToggle}
-        disabled={offsetStartLockedProps.disabled}
         onCheckedChange={handleToggleChange}>
         <div className="space-y-3">
           <div>
@@ -917,7 +867,6 @@ const OffsetStartSection = memo(
               <NumberInput
                 className="w-20"
                 {...formMethods.register("offsetStart", { setValueAs: (value) => Number(value) })}
-                disabled={offsetStartLockedProps.disabled}
               />
               <span className="text-sm text-gray-600">{t("minutes")}</span>
             </div>
@@ -945,30 +894,9 @@ OffsetStartSection.displayName = "OffsetStartSection";
  * Main EventLimits component that manages all booking and event limitations
  * Handles buffer times, booking limits, duration limits, future booking restrictions, etc.
  */
-export const EventLimits = ({ eventType }: EventLimitsProps) => {
+export const EventLimits = ({}: EventLimitsProps) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
-
-  // ============================================================================
-  // LOCKED FIELDS MANAGEMENT
-  // ============================================================================
-  const { shouldLockIndicator, shouldLockDisableProps } = useLockedFieldsManager({
-    eventType,
-    translate: t,
-    formMethods,
-  });
-
-  const lockStates = useMemo(
-    () => ({
-      bookingLimits: shouldLockDisableProps("bookingLimits"),
-      durationLimits: shouldLockDisableProps("durationLimits"),
-      onlyFirstAvailableSlot: shouldLockDisableProps("onlyShowFirstAvailableSlot"),
-      periodType: shouldLockDisableProps("periodType"),
-      offsetStart: shouldLockDisableProps("offsetStart"),
-      maxActiveBookingsPerBooker: shouldLockDisableProps("maxActiveBookingsPerBooker"),
-    }),
-    [shouldLockDisableProps]
-  );
 
   // ============================================================================
   // STATE MANAGEMENT
@@ -1063,14 +991,8 @@ export const EventLimits = ({ eventType }: EventLimitsProps) => {
               title={t("limit_booking_frequency")}
               description={t("limit_booking_frequency_description")}
               checked={isChecked}
-              disabled={lockStates.bookingLimits.disabled}
               onCheckedChange={handleBookingLimitsToggle}>
-              <IntervalLimitsManager
-                disabled={lockStates.bookingLimits.disabled}
-                propertyName="bookingLimits"
-                defaultLimit={1}
-                step={1}
-              />
+              <IntervalLimitsManager propertyName="bookingLimits" defaultLimit={1} step={1} />
             </SettingsToggle>
           );
         }}
@@ -1084,7 +1006,6 @@ export const EventLimits = ({ eventType }: EventLimitsProps) => {
             title={t("only_show_first_available_slot")}
             description={t("only_show_first_available_slot_description")}
             checked={!!value}
-            disabled={lockStates.onlyFirstAvailableSlot.disabled}
             onCheckedChange={(active) => handleOnlyFirstSlotToggle(active, onChange)}
           />
         )}
@@ -1100,12 +1021,10 @@ export const EventLimits = ({ eventType }: EventLimitsProps) => {
               title={t("limit_total_booking_duration")}
               description={t("limit_total_booking_duration_description")}
               checked={isChecked}
-              disabled={lockStates.durationLimits.disabled}
               onCheckedChange={(active) => handleDurationLimitsToggle(active, onChange)}>
               <IntervalLimitsManager
                 propertyName="durationLimits"
                 defaultLimit={60}
-                disabled={lockStates.durationLimits.disabled}
                 step={15}
                 textFieldSuffix={t("minutes")}
               />
@@ -1115,9 +1034,7 @@ export const EventLimits = ({ eventType }: EventLimitsProps) => {
       />
 
       {/* Max Active Bookings Per Booker */}
-      <MaxActiveBookingsPerBookerController
-        maxActiveBookingsPerBookerLocked={lockStates.maxActiveBookingsPerBooker}
-      />
+      <MaxActiveBookingsPerBookerController />
 
       {/* Future Booking Limits */}
       <Controller
@@ -1130,27 +1047,22 @@ export const EventLimits = ({ eventType }: EventLimitsProps) => {
               title={t("limit_future_bookings")}
               description={t("limit_future_bookings_description")}
               checked={!!isChecked}
-              disabled={lockStates.periodType.disabled}
               onCheckedChange={(isEnabled) => handleFutureBookingsToggle(isEnabled, onChange)}>
               <RadioGroup value={watchPeriodTypeUiValue} onValueChange={handlePeriodTypeChange}>
                 {/* Rolling Limit Option */}
-                {(lockStates.periodType.disabled ? watchPeriodTypeUiValue === PeriodType.ROLLING : true) && (
-                  <RollingLimitRadioItem
-                    rollingExcludeUnavailableDays={!!rollingExcludeUnavailableDays}
-                    radioValue={PeriodType.ROLLING}
-                    isDisabled={lockStates.periodType.disabled}
-                    onChange={handleRollingDayTypeChange}
-                  />
-                )}
+                <RollingLimitRadioItem
+                  rollingExcludeUnavailableDays={!!rollingExcludeUnavailableDays}
+                  radioValue={PeriodType.ROLLING}
+                  isDisabled={false}
+                  onChange={handleRollingDayTypeChange}
+                />
 
                 {/* Range Limit Option */}
-                {(lockStates.periodType.disabled ? watchPeriodTypeUiValue === PeriodType.RANGE : true) && (
-                  <RangeLimitRadioItem
-                    radioValue={PeriodType.RANGE}
-                    isDisabled={lockStates.periodType.disabled}
-                    watchPeriodTypeUiValue={watchPeriodTypeUiValue}
-                  />
-                )}
+                <RangeLimitRadioItem
+                  radioValue={PeriodType.RANGE}
+                  isDisabled={false}
+                  watchPeriodTypeUiValue={watchPeriodTypeUiValue}
+                />
               </RadioGroup>
             </SettingsToggle>
           );
@@ -1158,11 +1070,7 @@ export const EventLimits = ({ eventType }: EventLimitsProps) => {
       />
 
       {/* Offset Start Times */}
-      <OffsetStartSection
-        offsetToggle={offsetToggle}
-        setOffsetToggle={setOffsetToggle}
-        offsetStartLockedProps={lockStates.offsetStart}
-      />
+      <OffsetStartSection offsetToggle={offsetToggle} setOffsetToggle={setOffsetToggle} />
     </div>
   );
 };
