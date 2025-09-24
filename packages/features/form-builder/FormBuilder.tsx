@@ -744,6 +744,33 @@ function FieldEditDialog({
                       />
                     )}
 
+                    {formFieldType === "phone" && (
+                      <Controller
+                        name="allowedCountryCodes"
+                        control={fieldForm.control}
+                        render={({ field }) => (
+                          <SelectField
+                            id="allowedCountryCodes"
+                            containerClassName="mt-6"
+                            label={t("allowed_country_codes")}
+                            isMulti
+                            isSearchable
+                            options={getCountryOptions()}
+                            value={
+                              field.value?.map((code: string) => ({
+                                label: getCountryLabel(code),
+                                value: code,
+                              })) || []
+                            }
+                            onChange={(selectedOptions) => {
+                              field.onChange(selectedOptions?.map((option) => option.value) || []);
+                            }}
+                            placeholder={t("select_country_codes")}
+                          />
+                        )}
+                      />
+                    )}
+
                     {/* Add price field only for fields that support pricing */}
                     {showPriceField && fieldType.supportsPricing && (
                       <InputField
