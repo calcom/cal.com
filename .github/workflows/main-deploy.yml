@@ -264,13 +264,13 @@ jobs:
           build-args: |
             CALENDSO_ENCRYPTION_KEY=${{ secrets.CALENDSO_ENCRYPTION_KEY }}
             # NEXT_PUBLIC_WEBAPP_URL=${{ format('https://app.{0}', steps.key_values.outputs.DOMAIN_NAME) }}
-            NEXT_PUBLIC_WEBAPP_URL=${{ steps.key_values.outputs.DOMAIN_NAME}}
+            NEXT_PUBLIC_WEBAPP_URL=${{ format('https://{0}', steps.key_values.outputs.DOMAIN_NAME) }}
             NEXT_PUBLIC_WEBSITE_URL=${{ format('https://{0}', steps.key_values.outputs.DOMAIN_NAME) }}
             NEXT_PUBLIC_API_V2_URL=${{ secrets.NEXT_PUBLIC_API_V2_URL }}
             NEXT_PUBLIC_EMBED_LIB_URL=${{ format('https://{0}/embed/embed.js', steps.key_values.outputs.DOMAIN_NAME) }}
             NEXT_PUBLIC_ONEHASH_URL=${{ secrets.NEXT_PUBLIC_ONEHASH_URL }}
             # NEXTAUTH_URL=${{ format('https://{0}', steps.key_values.outputs.DOMAIN_NAME) }}
-            NEXTAUTH_URL=${{ steps.key_values.outputs.DOMAIN_NAME }}
+            NEXTAUTH_URL=${{ format('https://{0}', steps.key_values.outputs.DOMAIN_NAME) }}
             NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
             NEXT_PUBLIC_SENDGRID_SENDER_NAME=${{ secrets.BRAND_NAME }}
             NEXT_PUBLIC_SENTRY_DSN=${{ steps.key_values.outputs.NEXT_PUBLIC_SENTRY_DSN }}
