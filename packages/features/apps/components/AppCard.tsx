@@ -41,23 +41,23 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
 
   const appInstalled = enabledOnTeams && userAdminTeams ? userAdminTeams.length < appAdded : appAdded > 0;
 
-  // SIMPLE BUT BULLETPROOF: Force truncation for MS Teams and long descriptions  
+  // AGGRESSIVE TRUNCATION: MS Teams overflows in middle of 2nd line, so truncate much earlier
   const displayDescription = useMemo(() => {
     const cleaned = stripMarkdown(app.description);
     if (!cleaned) return "";
 
-    // Calculate max lines that fit in 5.6em with 1.4em line height = 4 lines
-    // Each line fits roughly 25-30 characters depending on font
-    const maxChars = 85; // Conservative estimate for 4 lines
+    // MS Teams overflows in MID of 2nd line - need to truncate at ~1.5 lines worth
+    // Line 1: ~25 chars, Line 2 (half): ~10 chars = 35 total chars max
+    const maxChars = 35; // VERY aggressive - fits in 1.5 lines
     
     if (cleaned.length <= maxChars) {
       return cleaned;
     }
     
-    // Aggressive truncation - find last word boundary
+    // Find last word boundary within the tight limit
     const truncated = cleaned.substring(0, maxChars);
     const lastSpace = truncated.lastIndexOf(' ');
-    const finalLength = lastSpace > 0 ? lastSpace : maxChars - 10; // Safety margin
+    const finalLength = lastSpace > 10 ? lastSpace : 35; // Ensure we don't go too short
     
     return cleaned.substring(0, finalLength) + "...";
   }, [app.description]);
