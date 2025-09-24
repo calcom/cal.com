@@ -244,6 +244,9 @@ model EventType {
 
   bookingRequiresAuthentication Boolean @default(false)
 
+  createdAt DateTime?
+  updatedAt DateTime? @updatedAt
+
   @@unique([userId, slug])
   @@unique([teamId, slug])
   @@unique([userId, parentId])
@@ -1747,7 +1750,7 @@ model BookingDenormalized {
 }
 
 view BookingTimeStatusDenormalized {
-  id             Int           @id @unique
+  id             Int           @unique
   uid            String
   eventTypeId    Int?
   title          String
