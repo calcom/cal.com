@@ -122,7 +122,7 @@ const processWorkflowStep = async (
       message: step.reminderBody || "",
       sender: step.sender,
       isVerificationPending: step.numberVerificationPending,
-      ...(evt ? { evt } : { formData }),
+      ...contextData,
     });
   } else if (
     step.action === WorkflowActions.EMAIL_ATTENDEE ||
