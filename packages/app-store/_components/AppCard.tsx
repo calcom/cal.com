@@ -3,10 +3,10 @@ import { Icon } from "@calid/features/ui/components/icon";
 import { Switch } from "@calid/features/ui/components/switch/switch";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
-import { useTranslation } from "react-i18next";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Section } from "@calcom/ui/components/section";
@@ -42,7 +42,7 @@ export default function AppCard({
   hideSettingsIcon?: boolean;
   hideAppCardOptions?: boolean;
 }) {
-  const { t } = useTranslation();
+  const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
   const { setAppData, LockedIcon, disabled: managedDisabled } = useAppContextWithSchema();
   const isPlatform = useIsPlatform();

@@ -1,9 +1,7 @@
-import { Alert } from "@calid/features/ui/components/alert";
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
 import Link from "next/link";
 import React, { useMemo } from "react";
-import { useFormContext } from "react-hook-form";
 import type z from "zod";
 
 import type { GetAppData, SetAppData } from "@calcom/app-store/EventTypeAppContext";
@@ -11,8 +9,7 @@ import EventTypeAppContext from "@calcom/app-store/EventTypeAppContext";
 import { EventTypeAddonMap } from "@calcom/app-store/apps.browser.generated";
 import type { EventTypeAppCardComponentProps, CredentialOwner } from "@calcom/app-store/types";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
-import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import type { EventTypeSetupProps, FormValues } from "@calcom/features/eventtypes/lib/types";
+import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import useAppsData from "@calcom/lib/hooks/useAppsData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -168,8 +165,7 @@ const useTeamAppCards = (
   getAppDataGetter: any,
   getAppDataSetter: any,
   eventType: EventType,
-  eventTypeFormMetadata: any,
-  shouldLockDisableProps: any
+  eventTypeFormMetadata: any
 ) => {
   return useMemo(() => {
     return appsWithTeamCredentials.map((app) => {
@@ -209,7 +205,6 @@ const useTeamAppCards = (
               }}
               eventType={eventType}
               eventTypeFormMetadata={eventTypeFormMetadata}
-              disabled={shouldLockDisableProps("apps").disabled}
             />
           );
         }
@@ -217,14 +212,7 @@ const useTeamAppCards = (
 
       return appCards;
     });
-  }, [
-    appsWithTeamCredentials,
-    getAppDataGetter,
-    getAppDataSetter,
-    eventType,
-    eventTypeFormMetadata,
-    shouldLockDisableProps,
-  ]);
+  }, [appsWithTeamCredentials, getAppDataGetter, getAppDataSetter, eventType, eventTypeFormMetadata]);
 };
 
 /**
@@ -235,12 +223,11 @@ const useTeamAppCards = (
  */
 export const EventApps = ({ eventType, customClassNames = {} }: EventAppsTabProps) => {
   const { t } = useLocale();
-  const formMethods = useFormContext<FormValues>();
 
   // Fetch app integrations data for the current team/user
   const { data: eventTypeApps, isPending } = trpc.viewer.apps.calid_integrations.useQuery({
     extendsFeature: "EventType",
-    calIdTeamId: eventType.calIdTeamId || undefined,
+    calIdTeamId: (eventType as any).calIdTeamId || undefined,
   });
 
   // Categorize apps based on installation status
@@ -249,24 +236,13 @@ export const EventApps = ({ eventType, customClassNames = {} }: EventAppsTabProp
   // Initialize app data management hooks
   const { getAppDataGetter, getAppDataSetter, eventTypeFormMetadata } = useAppsData();
 
-  // Handle locked field management for managed event types
-  const { shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager({
-    eventType,
-    translate: t,
-    formMethods,
-  });
-
-  const appsDisableProps = shouldLockDisableProps("apps", { simple: true });
-  const lockedText = appsDisableProps.isLocked ? "locked" : "unlocked";
-
   // Generate app cards for team credentials
   const teamAppCards = useTeamAppCards(
     appsWithTeamCredentials,
     getAppDataGetter,
     getAppDataSetter,
     eventType,
-    eventTypeFormMetadata,
-    shouldLockDisableProps
+    eventTypeFormMetadata
   );
 
   // Render user-only apps (apps without team credentials)
@@ -277,31 +253,6 @@ export const EventApps = ({ eventType, customClassNames = {} }: EventAppsTabProp
   return (
     <div className={classNames("block items-start", customClassNames.container)}>
       <div className="flex flex-col gap-4 before:border-0">
-        {/* Managed Event Type Permission Alert */}
-        {(isManagedEventType || isChildrenManagedEventType) && (
-          <Alert
-            severity={appsDisableProps.isLocked ? "neutral" : "info"}
-            className={classNames("mb-2", customClassNames.alertContainer)}
-            title={
-              <ServerTrans
-                t={t}
-                i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}
-              />
-            }
-            message={
-              <div className="flex items-center">
-                <ServerTrans
-                  t={t}
-                  i18nKey={`apps_${lockedText}_${
-                    isManagedEventType ? "for_members" : "by_team_admins"
-                  }_description`}
-                />
-                <div className="ml-2 flex h-full items-center">{appsDisableProps.LockedIcon}</div>
-              </div>
-            }
-          />
-        )}
-
         {/* Empty State - No Installed Apps */}
         {!isPending && !installedApps.length && (
           <EmptyScreen
@@ -309,15 +260,9 @@ export const EventApps = ({ eventType, customClassNames = {} }: EventAppsTabProp
             description={t("empty_installed_apps_description")}
             className={customClassNames.emptyScreen}
             buttonRaw={
-              appsDisableProps.disabled ? (
-                <Button StartIcon="lock" color="primary" disabled>
-                  {t("locked_by_team_admin")}
-                </Button>
-              ) : (
-                <Button target="_blank" color="primary" href="/apps">
-                  {t("empty_installed_apps_button")}
-                </Button>
-              )
+              <Button target="_blank" color="primary" href="/apps">
+                {t("empty_installed_apps_button")}
+              </Button>
             }
           />
         )}
@@ -351,42 +296,40 @@ export const EventApps = ({ eventType, customClassNames = {} }: EventAppsTabProp
       </div>
 
       {/* Available Apps Section - Apps from store not yet installed */}
-      {!appsDisableProps.disabled && (
-        <div className={classNames("mt-4 rounded-2xl", customClassNames.availableAppsContainer)}>
-          {!isPending && notInstalledApps.length > 0 && (
-            <>
-              <div className="mb-4 flex flex-col">
-                <Section.Title>{t("available_apps_lower_case")}</Section.Title>
-                <Section.Description>
-                  <ServerTrans
-                    t={t}
-                    i18nKey="available_apps_desc"
-                    components={[
-                      <Link key="app-store-link" className="cursor-pointer underline" href="/apps">
-                        App Store
-                      </Link>,
-                    ]}
-                  />
-                </Section.Description>
-              </div>
+      <div className={classNames("mt-4 rounded-2xl", customClassNames.availableAppsContainer)}>
+        {!isPending && notInstalledApps.length > 0 && (
+          <>
+            <div className="mb-4 flex flex-col">
+              <Section.Title>{t("available_apps_lower_case")}</Section.Title>
+              <Section.Description>
+                <ServerTrans
+                  t={t}
+                  i18nKey="available_apps_desc"
+                  components={[
+                    <Link key="app-store-link" className="cursor-pointer underline" href="/apps">
+                      App Store
+                    </Link>,
+                  ]}
+                />
+              </Section.Description>
+            </div>
 
-              <div className="flex flex-col gap-4">
-                {notInstalledApps.map((app: any) => (
-                  <div key={`available-app-${app.slug}`} className={customClassNames.appCard}>
-                    <EventTypeAppCard
-                      getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
-                      setAppData={getAppDataSetter(app.slug as EventTypeAppsList, app.categories)}
-                      app={app}
-                      eventType={eventType}
-                      eventTypeFormMetadata={eventTypeFormMetadata}
-                    />
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      )}
+            <div className="flex flex-col gap-4">
+              {notInstalledApps.map((app: any) => (
+                <div key={`available-app-${app.slug}`} className={customClassNames.appCard}>
+                  <EventTypeAppCard
+                    getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
+                    setAppData={getAppDataSetter(app.slug as EventTypeAppsList, app.categories)}
+                    app={app}
+                    eventType={eventType}
+                    eventTypeFormMetadata={eventTypeFormMetadata}
+                  />
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 };
