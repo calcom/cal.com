@@ -1,5 +1,5 @@
 import dayjs from "@calcom/dayjs";
-import { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
+import { getBusyCalendarTimes } from "@calcom/features/calendars/lib/CalendarManager";
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
 import { prisma } from "@calcom/prisma";
 import type { EventBusyDate } from "@calcom/types/Calendar";
