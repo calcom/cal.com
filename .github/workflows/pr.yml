@@ -204,8 +204,8 @@ jobs:
 
   api-v2-breaking-changes:
     name: API v2 Breaking Changes
-    needs: [changes, build-api-v2]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [changes]
+    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/api-v2-breaking-changes.yml
     secrets: inherit
 
