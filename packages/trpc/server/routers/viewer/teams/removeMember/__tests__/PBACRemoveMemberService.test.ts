@@ -55,7 +55,7 @@ describe("PBACRemoveMemberService", () => {
         vi.mocked(PermissionMapper.toPermissionString).mockReturnValue(removePermission);
         mockPermissionCheckService.getTeamIdsWithPermission.mockResolvedValue([1, 2]);
 
-        const result = await service.checkRemovePermissions({
+        const _result = await service.checkRemovePermissions({
           userId,
           isOrgAdmin: false,
           memberIds,
@@ -63,7 +63,7 @@ describe("PBACRemoveMemberService", () => {
           isOrg,
         });
 
-        expect(result.hasPermission).toBe(true);
+        expect(_result.hasPermission).toBe(true);
 
         expect(PermissionMapper.toPermissionString).toHaveBeenCalledWith({
           resource: Resource.Team,
@@ -86,7 +86,7 @@ describe("PBACRemoveMemberService", () => {
         vi.mocked(PermissionMapper.toPermissionString).mockReturnValue(removePermission);
         mockPermissionCheckService.getTeamIdsWithPermission.mockResolvedValue([1, 2]);
 
-        const result = await service.checkRemovePermissions({
+        const _result = await service.checkRemovePermissions({
           userId,
           isOrgAdmin: false,
           memberIds,
@@ -94,7 +94,7 @@ describe("PBACRemoveMemberService", () => {
           isOrg,
         });
 
-        expect(result.hasPermission).toBe(true);
+        expect(_result.hasPermission).toBe(true);
 
         expect(PermissionMapper.toPermissionString).toHaveBeenCalledWith({
           resource: Resource.Organization,
@@ -113,7 +113,7 @@ describe("PBACRemoveMemberService", () => {
         // User only has permission for teams 1 and 2, not 3
         mockPermissionCheckService.getTeamIdsWithPermission.mockResolvedValue([1, 2]);
 
-        const result = await service.checkRemovePermissions({
+        const _result = await service.checkRemovePermissions({
           userId,
           isOrgAdmin: false,
           memberIds,
@@ -121,7 +121,7 @@ describe("PBACRemoveMemberService", () => {
           isOrg,
         });
 
-        expect(result.hasPermission).toBe(false);
+        expect(_result.hasPermission).toBe(false);
       });
 
       it("should allow when user has permission for all teams", async () => {
@@ -134,7 +134,7 @@ describe("PBACRemoveMemberService", () => {
         vi.mocked(PermissionMapper.toPermissionString).mockReturnValue(removePermission);
         mockPermissionCheckService.getTeamIdsWithPermission.mockResolvedValue([1, 2, 3, 4]); // Has more permissions
 
-        const result = await service.checkRemovePermissions({
+        const _result = await service.checkRemovePermissions({
           userId,
           isOrgAdmin: false,
           memberIds,
@@ -142,7 +142,7 @@ describe("PBACRemoveMemberService", () => {
           isOrg,
         });
 
-        expect(result.hasPermission).toBe(true);
+        expect(_result.hasPermission).toBe(true);
       });
 
       it("should deny when user has no permissions", async () => {
@@ -155,7 +155,7 @@ describe("PBACRemoveMemberService", () => {
         vi.mocked(PermissionMapper.toPermissionString).mockReturnValue(removePermission);
         mockPermissionCheckService.getTeamIdsWithPermission.mockResolvedValue([]);
 
-        const result = await service.checkRemovePermissions({
+        const _result = await service.checkRemovePermissions({
           userId,
           isOrgAdmin: false,
           memberIds,
@@ -163,7 +163,7 @@ describe("PBACRemoveMemberService", () => {
           isOrg,
         });
 
-        expect(result.hasPermission).toBe(false);
+        expect(_result.hasPermission).toBe(false);
       });
     });
 
@@ -179,7 +179,7 @@ describe("PBACRemoveMemberService", () => {
         // Missing permission for team 30
         mockPermissionCheckService.getTeamIdsWithPermission.mockResolvedValue([10, 20, 40]);
 
-        const result = await service.checkRemovePermissions({
+        const _result = await service.checkRemovePermissions({
           userId,
           isOrgAdmin: false,
           memberIds,
@@ -187,7 +187,7 @@ describe("PBACRemoveMemberService", () => {
           isOrg,
         });
 
-        expect(result.hasPermission).toBe(false);
+        expect(_result.hasPermission).toBe(false);
       });
 
       it("should handle large team lists efficiently", async () => {
@@ -200,7 +200,7 @@ describe("PBACRemoveMemberService", () => {
         vi.mocked(PermissionMapper.toPermissionString).mockReturnValue(removePermission);
         mockPermissionCheckService.getTeamIdsWithPermission.mockResolvedValue(teamIds);
 
-        const result = await service.checkRemovePermissions({
+        const _result = await service.checkRemovePermissions({
           userId,
           isOrgAdmin: false,
           memberIds,
@@ -208,7 +208,7 @@ describe("PBACRemoveMemberService", () => {
           isOrg,
         });
 
-        expect(result.hasPermission).toBe(true);
+        expect(_result.hasPermission).toBe(true);
       });
     });
   });
@@ -458,7 +458,7 @@ describe("PBACRemoveMemberService", () => {
       vi.mocked(PermissionMapper.toPermissionString).mockReturnValue(removePermission);
       mockPermissionCheckService.getTeamIdsWithPermission.mockResolvedValue(null as any);
 
-      const result = await service.checkRemovePermissions({
+      const _result = await service.checkRemovePermissions({
         userId,
         isOrgAdmin: false,
         memberIds,
@@ -466,7 +466,7 @@ describe("PBACRemoveMemberService", () => {
         isOrg,
       });
 
-      expect(result.hasPermission).toBe(false);
+      expect(_result.hasPermission).toBe(false);
     });
   });
 });

@@ -56,7 +56,7 @@ describe("LegacyRemoveMemberService", () => {
           isOrg: true,
         });
 
-        expect(result.hasPermission).toBe(true);
+        expect(_result.hasPermission).toBe(true);
         // Should not query database for org admin
         expect(prisma.membership.findMany).not.toHaveBeenCalled();
       });
@@ -75,12 +75,12 @@ describe("LegacyRemoveMemberService", () => {
           isOrg: true,
         });
 
-        expect(result.hasPermission).toBe(true);
-        expect(result.userRoles).toBeInstanceOf(Map);
+        expect(_result.hasPermission).toBe(true);
+        expect(_result.userRoles).toBeInstanceOf(Map);
 
         // Org admin should have ADMIN role for all teams
         teamIds.forEach((teamId) => {
-          expect(result.userRoles?.get(teamId)).toBe(MembershipRole.ADMIN);
+          expect(_result.userRoles?.get(teamId)).toBe(MembershipRole.ADMIN);
         });
 
         // Should not query database
@@ -101,7 +101,7 @@ describe("LegacyRemoveMemberService", () => {
           isOrg: true,
         });
 
-        expect(result.hasPermission).toBe(true);
+        expect(_result.hasPermission).toBe(true);
         expect(prisma.membership.findMany).not.toHaveBeenCalled();
       });
 
@@ -119,7 +119,7 @@ describe("LegacyRemoveMemberService", () => {
           isOrg: false, // Note: isOrg is false
         });
 
-        expect(result.hasPermission).toBe(true);
+        expect(_result.hasPermission).toBe(true);
         expect(prisma.membership.findMany).not.toHaveBeenCalled();
       });
     });
@@ -143,9 +143,9 @@ describe("LegacyRemoveMemberService", () => {
           isOrg: false,
         });
 
-        expect(result.hasPermission).toBe(true);
-        expect(result.userRoles?.get(1)).toBe(MembershipRole.ADMIN);
-        expect(result.userRoles?.get(2)).toBe(MembershipRole.ADMIN);
+        expect(_result.hasPermission).toBe(true);
+        expect(_result.userRoles?.get(1)).toBe(MembershipRole.ADMIN);
+        expect(_result.userRoles?.get(2)).toBe(MembershipRole.ADMIN);
       });
 
       it("should allow OWNER to remove members", async () => {
@@ -165,8 +165,8 @@ describe("LegacyRemoveMemberService", () => {
           isOrg: false,
         });
 
-        expect(result.hasPermission).toBe(true);
-        expect(result.userRoles?.get(1)).toBe(MembershipRole.OWNER);
+        expect(_result.hasPermission).toBe(true);
+        expect(_result.userRoles?.get(1)).toBe(MembershipRole.OWNER);
       });
 
       it("should deny MEMBER from removing members", async () => {
@@ -186,7 +186,7 @@ describe("LegacyRemoveMemberService", () => {
           isOrg: false,
         });
 
-        expect(result.hasPermission).toBe(false);
+        expect(_result.hasPermission).toBe(false);
       });
 
       it("should deny non-member from removing members", async () => {
@@ -204,7 +204,7 @@ describe("LegacyRemoveMemberService", () => {
           isOrg: false,
         });
 
-        expect(result.hasPermission).toBe(false);
+        expect(_result.hasPermission).toBe(false);
       });
 
       it("should require ADMIN/OWNER role in ALL teams for multi-team removal", async () => {
@@ -226,7 +226,7 @@ describe("LegacyRemoveMemberService", () => {
           isOrg: false,
         });
 
-        expect(result.hasPermission).toBe(false);
+        expect(_result.hasPermission).toBe(false);
       });
 
       it("should allow when user has ADMIN/OWNER in all teams", async () => {
@@ -248,7 +248,7 @@ describe("LegacyRemoveMemberService", () => {
           isOrg: false,
         });
 
-        expect(result.hasPermission).toBe(true);
+        expect(_result.hasPermission).toBe(true);
       });
     });
   });
@@ -324,7 +324,7 @@ describe("LegacyRemoveMemberService", () => {
               teamIds,
               isOrg: true,
             },
-            { hasPermission: true, userRoles }
+            { hasPermission: true, userRoles: _userRoles }
           )
         ).resolves.not.toThrow();
 
@@ -377,7 +377,7 @@ describe("LegacyRemoveMemberService", () => {
               teamIds,
               isOrg: false,
             },
-            { hasPermission: true, userRoles }
+            { hasPermission: true, userRoles: _userRoles }
           )
         ).resolves.not.toThrow();
       });
@@ -386,7 +386,7 @@ describe("LegacyRemoveMemberService", () => {
         const userId = 1;
         const memberIds = [1]; // Same as userId
         const teamIds = [1];
-        const userRoles = new Map([[1, MembershipRole.MEMBER]]);
+        const _userRoles = new Map([[1, MembershipRole.MEMBER]]);
 
         mockPermissionCheckService.checkPermission.mockResolvedValue(false);
 
@@ -399,7 +399,7 @@ describe("LegacyRemoveMemberService", () => {
               teamIds,
               isOrg: false,
             },
-            { hasPermission: true, userRoles }
+            { hasPermission: true, userRoles: _userRoles }
           )
         ).resolves.not.toThrow();
       });
@@ -427,7 +427,7 @@ describe("LegacyRemoveMemberService", () => {
               teamIds,
               isOrg: false,
             },
-            { hasPermission: true, userRoles }
+            { hasPermission: true, userRoles: _userRoles }
           )
         ).rejects.toThrow(
           expect.objectContaining({
@@ -503,7 +503,7 @@ describe("LegacyRemoveMemberService", () => {
         isOrg: false,
       });
 
-      expect(result.hasPermission).toBe(false);
+      expect(_result.hasPermission).toBe(false);
     });
   });
 });
