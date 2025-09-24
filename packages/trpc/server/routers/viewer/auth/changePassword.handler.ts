@@ -1,6 +1,6 @@
 import { hashPasswordWithSalt } from "@calcom/features/auth/lib/hashPassword";
 import { validPassword } from "@calcom/features/auth/lib/validPassword";
-import { verifyKeycloakPassword } from "@calcom/features/auth/lib/verifyPassword";
+import { verifyCalPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { prisma } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 
@@ -46,9 +46,7 @@ export const changePasswordHandler = async ({ input, ctx }: ChangePasswordOption
     throw new TRPCError({ code: "NOT_FOUND", message: "MISSING_PASSWORD" });
   }
 
-  // const passwordsMatch = await verifyPassword(oldPassword, currentPassword);
-
-  const passwordsMatch = verifyKeycloakPassword({
+  const passwordsMatch = verifyCalPassword({
     inputPassword: oldPassword,
     storedHashBase64: currentPassword,
     saltBase64: currentHash,

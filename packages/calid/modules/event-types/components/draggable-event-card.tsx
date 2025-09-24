@@ -79,12 +79,16 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
   const userTimezone = useMemo(() => {
     return extractHostTimezone({
       userId: event.userId,
-      teamId: event.calIdTeam?.id || event.teamId,
+      teamId: event.calIdTeam?.id || null,
       hosts: event.hosts,
       owner: event.owner,
-      team: event.calIdTeam || event.team,
+      team: event.calIdTeam,
     });
   }, [event]);
+
+  if (event.slug === "collaborative-evaluation") {
+    console.log("here", currentIconParams);
+  }
 
   // Handle private links
   const activeHashedLinks = useMemo(() => {
@@ -130,14 +134,14 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
           ...style,
           ...(isDragging && { height: 0, overflow: "hidden" }),
         }}
-        className={`group relative flex items-center ${
+        className={`group relative w-full ${
           !isDragging ? "animate-fade-in" : "pointer-events-none opacity-0"
         }`}>
-        {/* Drag handle */}
+        {/* Drag handle - Hidden on mobile for better touch experience */}
         <div
           {...attributes}
           {...listeners}
-          className="absolute flex w-4 flex-shrink-0 items-center justify-center opacity-0 transition-opacity group-hover:opacity-100"
+          className="absolute hidden w-4 flex-shrink-0 items-center justify-center opacity-0 transition-opacity group-hover:opacity-100 sm:flex"
           style={{ cursor: "grab", left: "-20px" }}
           onMouseDown={(e) => (e.currentTarget.style.cursor = "grabbing")}
           onMouseUp={(e) => (e.currentTarget.style.cursor = "grab")}
@@ -147,25 +151,40 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
 
         {/* Card content */}
         <div
-          className="border-default bg-default flex-1 cursor-pointer rounded-md border p-4 transition-all hover:shadow-md"
+          className="border-default bg-default w-full cursor-pointer rounded-md border p-3 transition-all hover:shadow-md sm:p-4"
           onClick={() => onEventEdit(event.id)}>
-          <div className="flex items-start justify-between">
-            <div className="flex flex-1 items-start space-x-3">
-              {/* Event Type Icon - Updated with icon picker functionality */}
-              <EventTypeCardIcon iconParams={currentIconParams} onClick={handleIconClick} />
+          {/* Mobile-first responsive layout */}
+          <div className="flex flex-col space-y-3 sm:flex-row sm:items-start sm:justify-between sm:space-y-0">
+            {/* Main content area */}
+            <div className="flex min-w-0 flex-1 items-start space-x-3">
+              {/* Event Type Icon */}
+              <div className="flex-shrink-0">
+                <EventTypeCardIcon iconParams={currentIconParams} onClick={handleIconClick} />
+              </div>
+
+              {/* Event details */}
               <div className="min-w-0 flex-1">
-                <div className="mb-2 flex items-center gap-2">
-                  <h3 className="text-emphasis text-medium font-semibold">{event.title}</h3>
-                  <Badge variant="secondary" isPublicUrl={true}>
-                    {cleanPublicUrl}
-                  </Badge>
+                {/* Title and URL - Stack on mobile, inline on larger screens */}
+                <div className="mb-2 flex flex-col space-y-2 sm:flex-row sm:items-center sm:gap-2 sm:space-y-0">
+                  <h3 className="text-emphasis text-medium truncate font-semibold">{event.title}</h3>
+                  <div className="flex-shrink-0">
+                    <Badge variant="secondary" isPublicUrl={true} className="text-xs">
+                      <span className="max-w-[200px] truncate sm:max-w-[300px] lg:max-w-none">
+                        {cleanPublicUrl}
+                      </span>
+                    </Badge>
+                  </div>
                 </div>
 
-                {/* Event Description */}
-                <p className="text-subtle mb-3 text-sm">{event.description}</p>
+                {/* Event Description - Show only on larger screens or truncate on mobile */}
+                {event.description && (
+                  <p className="text-subtle mb-3 line-clamp-2 text-sm sm:line-clamp-none">
+                    {event.description}
+                  </p>
+                )}
 
-                {/* Duration and scheduling info */}
-                <div className="flex items-center space-x-3">
+                {/* Duration and scheduling info - Responsive badges */}
+                <div className="flex flex-wrap items-center gap-2">
                   {event.metadata?.multipleDuration ? (
                     event.metadata.multipleDuration.map((duration, idx) => (
                       <Badge key={idx} variant="secondary" size="sm" startIcon="clock">
@@ -181,96 +200,110 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
                   {/* Scheduling type badge for team events */}
                   {(event.calIdTeam || event.teamId) && event.schedulingType && (
                     <Badge variant="secondary" size="sm" startIcon="users">
-                      {event.schedulingType === SchedulingType.ROUND_ROBIN && t("round_robin")}
-                      {event.schedulingType === SchedulingType.COLLECTIVE && t("collective")}
-                      {event.schedulingType === SchedulingType.MANAGED && t("managed")}
+                      <span className="hidden sm:inline">
+                        {event.schedulingType === SchedulingType.ROUND_ROBIN && t("round_robin")}
+                        {event.schedulingType === SchedulingType.COLLECTIVE && t("collective")}
+                        {event.schedulingType === SchedulingType.MANAGED && t("managed")}
+                      </span>
+                      <span className="sm:hidden">
+                        {event.schedulingType === SchedulingType.ROUND_ROBIN && "RR"}
+                        {event.schedulingType === SchedulingType.COLLECTIVE && "Col"}
+                        {event.schedulingType === SchedulingType.MANAGED && "Mgd"}
+                      </span>
                     </Badge>
                   )}
                 </div>
               </div>
             </div>
 
-            <div className="ml-4 flex items-center space-x-2">
-              {/* Enable toggle - only for non-managed events */}
-              {!isManagedEventType && (
-                <Switch
-                  checked={isEventActive}
-                  onCheckedChange={(checked) => onToggleEvent(event.id, checked)}
-                  onClick={(e) => e.stopPropagation()}
-                />
-              )}
-
-              {/* Options dropdown */}
-              <div onClick={(e) => e.stopPropagation()}>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      color="secondary"
-                      variant="icon"
-                      StartIcon="ellipsis"
+            {/* Controls area - Stack below on mobile, inline on desktop */}
+            <div className="flex items-center justify-between sm:ml-4 sm:flex-shrink-0 sm:justify-end">
+              <div className="flex items-center space-x-3">
+                {/* Enable toggle - only for non-managed events */}
+                {!isManagedEventType && (
+                  <div className="flex items-center space-x-2">
+                    <span className="text-subtle text-sm sm:hidden">{isEventActive ? "On" : "Off"}</span>
+                    <Switch
+                      checked={isEventActive}
+                      onCheckedChange={(checked) => onToggleEvent(event.id, checked)}
                       onClick={(e) => e.stopPropagation()}
                     />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-40 ">
-                    {!currentTeam?.metadata?.readOnly && (
-                      <DropdownMenuItem onClick={() => onEventEdit(event.id)} className="text-sm">
-                        <Icon name="pencil-line" className="mr-2 h-3 w-3" />
-                        Edit
-                      </DropdownMenuItem>
-                    )}
+                  </div>
+                )}
 
-                    {/* Change Icon option */}
-                    <DropdownMenuItem
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setIsIconPickerOpen(true);
-                      }}
-                      className="text-sm">
-                      <Icon name="palette" className="mr-2 h-3 w-3" />
-                      Change Icon
-                    </DropdownMenuItem>
-
-                    {!isManagedEventType && (
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.preventDefault();
-                          window.open(`${publicUrl}`, "_blank");
-                        }}
-                        className="text-sm">
-                        <Icon name="external-link" className="mr-2 h-3 w-3" />
-                        Preview
-                      </DropdownMenuItem>
-                    )}
-
-                    {!currentTeam?.metadata?.readOnly &&
-                      !isManagedEventType &&
-                      !isChildrenManagedEventType && (
-                        <DropdownMenuItem
-                          onClick={() => onDuplicateEvent(event, currentTeam)}
-                          className="text-sm">
-                          <Icon name="copy" className="mr-2 h-3 w-3" />
-                          Duplicate
+                {/* Options dropdown */}
+                <div onClick={(e) => e.stopPropagation()}>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        color="secondary"
+                        variant="icon"
+                        StartIcon="ellipsis"
+                        onClick={(e) => e.stopPropagation()}
+                        className="h-8 w-8 sm:h-auto sm:w-auto"
+                      />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-44 sm:w-40">
+                      {!currentTeam?.metadata?.readOnly && (
+                        <DropdownMenuItem onClick={() => onEventEdit(event.id)} className="text-sm">
+                          <Icon name="pencil-line" className="mr-2 h-3 w-3" />
+                          Edit
                         </DropdownMenuItem>
                       )}
 
-                    {/* Private link option */}
-                    {activeHashedLinks.length > 0 && !isManagedEventType && (
-                      <DropdownMenuItem onClick={handleCopyPrivateLink} className="text-sm">
-                        <Icon name="venetian-mask" className="mr-2 h-3 w-3" />
-                        Copy private link
-                      </DropdownMenuItem>
-                    )}
-
-                    {!currentTeam?.metadata?.readOnly && !isChildrenManagedEventType && (
+                      {/* Change Icon option */}
                       <DropdownMenuItem
-                        onClick={() => onDeleteEvent(event.id)}
-                        className="text-destructive focus:text-destructive text-sm">
-                        <Icon name="trash-2" className="mr-2 h-3 w-3" />
-                        Delete
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setIsIconPickerOpen(true);
+                        }}
+                        className="text-sm">
+                        <Icon name="palette" className="mr-2 h-3 w-3" />
+                        Change Icon
                       </DropdownMenuItem>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+
+                      {!isManagedEventType && (
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.preventDefault();
+                            window.open(`${publicUrl}`, "_blank");
+                          }}
+                          className="text-sm">
+                          <Icon name="external-link" className="mr-2 h-3 w-3" />
+                          Preview
+                        </DropdownMenuItem>
+                      )}
+
+                      {!currentTeam?.metadata?.readOnly &&
+                        !isManagedEventType &&
+                        !isChildrenManagedEventType && (
+                          <DropdownMenuItem
+                            onClick={() => onDuplicateEvent(event, currentTeam)}
+                            className="text-sm">
+                            <Icon name="copy" className="mr-2 h-3 w-3" />
+                            Duplicate
+                          </DropdownMenuItem>
+                        )}
+
+                      {/* Private link option */}
+                      {activeHashedLinks.length > 0 && !isManagedEventType && (
+                        <DropdownMenuItem onClick={handleCopyPrivateLink} className="text-sm">
+                          <Icon name="venetian-mask" className="mr-2 h-3 w-3" />
+                          Copy private link
+                        </DropdownMenuItem>
+                      )}
+
+                      {!currentTeam?.metadata?.readOnly && !isChildrenManagedEventType && (
+                        <DropdownMenuItem
+                          onClick={() => onDeleteEvent(event.id)}
+                          className="text-destructive focus:text-destructive text-sm">
+                          <Icon name="trash-2" className="mr-2 h-3 w-3" />
+                          Delete
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
             </div>
           </div>

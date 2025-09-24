@@ -81,22 +81,46 @@ export const DraggableEventTypes: React.FC<DraggableEventTypesProps> = ({
   const activeEvent = activeId ? localEvents.find((event) => event.id === activeId) : null;
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}>
-      <SortableContext items={localEvents.map((event) => event.id)} strategy={verticalListSortingStrategy}>
-        <div className="space-y-2">
-          {localEvents.map((event) => {
-            const isEventActive = eventStates[event.id] ?? !event.hidden;
-            return (
+    <div className="w-full">
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}>
+        <SortableContext items={localEvents.map((event) => event.id)} strategy={verticalListSortingStrategy}>
+          {/* Responsive container with proper spacing */}
+          <div className="space-y-3 sm:space-y-4">
+            {localEvents.map((event) => {
+              const isEventActive = eventStates[event.id] ?? !event.hidden;
+              return (
+                <div key={event.id} className="w-full">
+                  <DraggableEventCard
+                    event={event}
+                    selectedTeam={selectedTeam}
+                    currentTeam={currentTeam}
+                    isEventActive={isEventActive}
+                    copiedLink={copiedLink}
+                    bookerUrl={bookerUrl}
+                    onEventEdit={onEventEdit}
+                    onCopyLink={onCopyLink}
+                    onToggleEvent={onToggleEvent}
+                    onDuplicateEvent={onDuplicateEvent}
+                    onDeleteEvent={onDeleteEvent}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </SortableContext>
+
+        <DragOverlay>
+          {activeEvent ? (
+            <div className="max-w-full scale-105 shadow-2xl">
               <DraggableEventCard
-                key={event.id}
-                event={event}
+                event={activeEvent}
                 selectedTeam={selectedTeam}
                 currentTeam={currentTeam}
-                isEventActive={isEventActive}
+                isEventActive={eventStates[activeEvent.id] ?? !activeEvent.hidden}
                 copiedLink={copiedLink}
                 bookerUrl={bookerUrl}
                 onEventEdit={onEventEdit}
@@ -105,30 +129,10 @@ export const DraggableEventTypes: React.FC<DraggableEventTypesProps> = ({
                 onDuplicateEvent={onDuplicateEvent}
                 onDeleteEvent={onDeleteEvent}
               />
-            );
-          })}
-        </div>
-      </SortableContext>
-
-      <DragOverlay>
-        {activeEvent ? (
-          <div className="scale-105 shadow-2xl">
-            <DraggableEventCard
-              event={activeEvent}
-              selectedTeam={selectedTeam}
-              currentTeam={currentTeam}
-              isEventActive={eventStates[activeEvent.id] ?? !activeEvent.hidden}
-              copiedLink={copiedLink}
-              bookerUrl={bookerUrl}
-              onEventEdit={onEventEdit}
-              onCopyLink={onCopyLink}
-              onToggleEvent={onToggleEvent}
-              onDuplicateEvent={onDuplicateEvent}
-              onDeleteEvent={onDeleteEvent}
-            />
-          </div>
-        ) : null}
-      </DragOverlay>
-    </DndContext>
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
+    </div>
   );
 };

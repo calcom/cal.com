@@ -52,22 +52,24 @@ const UserProfile = () => {
   // Original mutation remains for onboarding completion
   const mutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async () => {
-      try {
-        if (eventTypes?.length === 0) {
-          await Promise.all(
-            DEFAULT_EVENT_TYPES.map(async (event) => {
-              return createEventType.mutate(event);
-            })
-          );
-        }
-      } catch (error) {
-        console.error(error);
-      }
+      utils.viewer.me.calid_get.invalidate();
+
+      // try {
+      //   if (eventTypes?.length === 0) {
+      //     // await Promise.all(
+      //     //   DEFAULT_EVENT_TYPES.map(async (event) => {
+      //     //     return createEventType.mutate(event);
+      //     //   })
+      //     // );
+      //   }
+      // } catch (error) {
+      //   console.error(error);
+      // }
 
       await utils.viewer.me.get.refetch();
       const redirectUrl = localStorage.getItem("onBoardingRedirect");
       localStorage.removeItem("onBoardingRedirect");
-      redirectUrl ? router.push(redirectUrl) : router.push("/");
+      redirectUrl ? router.push(redirectUrl) : router.push("/event-types");
     },
     onError: () => {
       triggerToast(t("problem_saving_user_profile"), "error");
@@ -94,24 +96,24 @@ const UserProfile = () => {
     });
   }
 
-  const DEFAULT_EVENT_TYPES = [
-    {
-      title: t("15min_meeting"),
-      slug: "15min",
-      length: 15,
-    },
-    {
-      title: t("30min_meeting"),
-      slug: "30min",
-      length: 30,
-    },
-    {
-      title: t("secret_meeting"),
-      slug: "secret",
-      length: 15,
-      hidden: true,
-    },
-  ];
+  // const DEFAULT_EVENT_TYPES = [
+  //   {
+  //     title: t("15min_meeting"),
+  //     slug: "15min",
+  //     length: 15,
+  //   },
+  //   {
+  //     title: t("30min_meeting"),
+  //     slug: "30min",
+  //     length: 30,
+  //   },
+  //   {
+  //     title: t("secret_meeting"),
+  //     slug: "secret",
+  //     length: 15,
+  //     hidden: true,
+  //   },
+  // ];
 
   return (
     <form onSubmit={onSubmit}>

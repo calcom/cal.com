@@ -28,6 +28,7 @@ export type ButtonBaseProps = {
   tooltipClassName?: string;
   disabled?: boolean;
   flex?: boolean;
+  iconColor?: string;
 } & Omit<InferredVariantProps, "color"> & {
     // If a string (e.g. hex/rgb/css var) is provided, it will be used as a custom
     // color for primary-style buttons (background, border, and readable text color)
@@ -227,6 +228,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     EndIcon,
     shallow,
     brandColor,
+    iconColor,
     // attributes propagated from `HTMLAnchorProps` or `HTMLButtonProps`
     ...passThroughProps
   } = props;
@@ -264,8 +266,17 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           <>
             {variant === "fab" ? (
               <>
-                <Icon name={StartIcon} className="hidden h-4 w-4 stroke-[1.5px]  md:inline-flex" />
-                <Icon name="plus" data-testid="plus" className="inline h-6 w-6 md:hidden" />
+                <Icon
+                  name={StartIcon}
+                  className="hidden h-4 w-4 stroke-[1.5px] md:inline-flex"
+                  style={{ color: iconColor }}
+                />
+                <Icon
+                  name="plus"
+                  data-testid="plus"
+                  className="inline h-6 w-6 md:hidden"
+                  style={{ color: iconColor }}
+                />
               </>
             ) : (
               <Icon
@@ -275,12 +286,14 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
                   loading ? "invisible" : "visible",
                   "button-icon group-active:translate-y-[0.5px]",
                   variant === "icon" && "h-4 w-4",
-                  variant === "button" && "h-4 w-4 stroke-[1.5px] "
+                  variant === "button" && "h-4 w-4 stroke-[1.5px]"
                 )}
+                style={{ color: iconColor }}
               />
             )}
           </>
         ))}
+
       <div
         className={classNames(
           "contents", // This makes the div behave like it doesn't exist in the layout

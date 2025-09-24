@@ -183,7 +183,7 @@ export class EventTypeRepository {
           user: { select: userSelect },
         },
       },
-      team: {
+      calIdTeam: {
         select: {
           id: true,
           members: {
