@@ -1,4 +1,4 @@
-import { isTeamOwner } from "@calcom/features/ee/teams/lib/queries";
+import * as teamQueries from "@calcom/features/ee/teams/lib/queries";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -63,33 +63,38 @@ export class LegacyRemoveMemberService extends BaseRemoveMemberService {
   }
 
   async validateRemoval(context: RemoveMemberContext, hasPermission: boolean): Promise<void> {
-    const { userId, memberIds, teamIds } = context;
+    const { userId, memberIds, teamIds, isOrgAdmin } = context;
     const isRemovingSelf = memberIds.length === 1 && memberIds[0] === userId;
 
-    // Only a team owner can remove another team owner
-    const isAnyMemberOwnerAndCurrentUserNotOwner = await Promise.all(
-      memberIds.map(async (memberId) => {
-        const isAnyTeamOwnerAndCurrentUserNotOwner = await Promise.all(
-          teamIds.map(async (teamId) => {
-            return (await isTeamOwner(memberId, teamId)) && !(await isTeamOwner(userId, teamId));
-          })
-        ).then((results) => results.some((result) => result));
+    // Only a team owner can remove another team owner (org admins are exempt)
+    if (!isOrgAdmin) {
+      const isAnyMemberOwnerAndCurrentUserNotOwner = await Promise.all(
+        memberIds.map(async (memberId) => {
+          const isAnyTeamOwnerAndCurrentUserNotOwner = await Promise.all(
+            teamIds.map(async (teamId) => {
+              return (
+                (await teamQueries.isTeamOwner(memberId, teamId)) &&
+                !(await teamQueries.isTeamOwner(userId, teamId))
+              );
+            })
+          ).then((results) => results.some((result) => result));
 
-        return isAnyTeamOwnerAndCurrentUserNotOwner;
-      })
-    ).then((results) => results.some((result) => result));
+          return isAnyTeamOwnerAndCurrentUserNotOwner;
+        })
+      ).then((results) => results.some((result) => result));
 
-    if (isAnyMemberOwnerAndCurrentUserNotOwner) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "Only a team owner can remove another team owner.",
-      });
+      if (isAnyMemberOwnerAndCurrentUserNotOwner) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Only a team owner can remove another team owner.",
+        });
+      }
     }
 
     // Check if user is trying to remove themselves from a team they own (prevent this)
     if (isRemovingSelf && hasPermission) {
       const isOwnerOfAnyTeam = await Promise.all(
-        teamIds.map(async (teamId) => await isTeamOwner(userId, teamId))
+        teamIds.map(async (teamId) => await teamQueries.isTeamOwner(userId, teamId))
       ).then((results) => results.some((result) => result));
 
       if (isOwnerOfAnyTeam) {
