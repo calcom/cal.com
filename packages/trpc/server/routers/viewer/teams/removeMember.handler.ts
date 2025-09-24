@@ -6,7 +6,6 @@ import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowE
 import { TeamService } from "@calcom/lib/server/service/teamService";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
@@ -14,63 +13,91 @@ import type { TRemoveMemberInputSchema } from "./removeMember.schema";
 
 type RemoveMemberOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
-    sourceIp?: string;
+    user: {
+      id: number;
+      organization?: {
+        isOrgAdmin: boolean;
+      };
+    };
   };
   input: TRemoveMemberInputSchema;
 };
 
-export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) => {
+export const removeMemberHandler = async ({
+  ctx: {
+    user: { id: userId, organization },
+  },
+  input,
+}: RemoveMemberOptions) => {
   await checkRateLimitAndThrowError({
-    identifier: `removeMember.${ctx.user.id}`,
+    identifier: `removeMember.${userId}`,
   });
 
   const { memberIds, teamIds, isOrg } = input;
+  const isOrgAdmin = organization?.isOrgAdmin ?? false;
 
-  // Check PBAC permissions for each team
-  const hasRemovePermission = await Promise.all(
-    teamIds.map(async (teamId) => {
-      const isOrgAdmin = ctx.user.organization?.isOrgAdmin ?? false;
-      // if isOrgAdmin, we return early with a role; disabling the db lookup.
-      const membership: { role: MembershipRole } | null = isOrgAdmin
-        ? { role: MembershipRole.ADMIN }
-        : await prisma.membership.findUnique({
-            where: {
-              userId_teamId: {
-                userId: ctx.user.id,
-                teamId: teamId,
-              },
+  const membershipRoles = await prisma.membership.findMany({
+    where: {
+      userId,
+      teamId: {
+        in: teamIds,
+      },
+      ...(isOrgAdmin
+        ? {
+            role: {
+              not: MembershipRole.ADMIN,
             },
-            select: {
-              role: true,
-            },
-          });
-      if (!membership?.role) {
-        return false;
-      }
-      // Check PBAC permissions for removing team members
-      const permissions = await getSpecificPermissions({
-        userId: ctx.user.id,
-        teamId: teamId,
-        resource: isOrg ? Resource.Organization : Resource.Team,
-        userRole: membership.role,
-        actions: [CustomAction.Remove],
-        fallbackRoles: {
-          [CustomAction.Remove]: {
-            roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-          },
+          }
+        : {}),
+    },
+    select: {
+      role: true,
+      teamId: true,
+    },
+  });
+
+  const userRoles = new Map<number, MembershipRole | null>(
+    teamIds.map((teamId) => [teamId, isOrgAdmin ? MembershipRole.ADMIN : null])
+  );
+
+  membershipRoles.forEach((m) => {
+    userRoles.set(m.teamId, m.role);
+  });
+
+  let hasRemovePermissionForAll = true;
+
+  const resource = isOrg ? Resource.Organization : Resource.Team;
+  const entries = Array.from(userRoles.entries());
+
+  for (let i = 0; i < entries.length; i++) {
+    const [teamId, userRole] = entries[i];
+    if (!userRole) {
+      hasRemovePermissionForAll = false;
+      break;
+    }
+    const permissions = await getSpecificPermissions({
+      userId,
+      teamId,
+      resource,
+      userRole,
+      actions: [CustomAction.Remove],
+      fallbackRoles: {
+        [CustomAction.Remove]: {
+          roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
         },
-      });
-
-      return permissions[CustomAction.Remove];
-    })
-  ).then((results) => results.every((result) => result));
+      },
+    });
+    if (!permissions[CustomAction.Remove]) {
+      hasRemovePermissionForAll = false;
+      break;
+    }
+  }
 
   // Check if user is trying to remove themselves (allowed for non-owners)
-  const isRemovingSelf = memberIds.length === 1 && memberIds[0] === ctx.user.id;
+  const isRemovingSelf = memberIds.length === 1 && memberIds[0] === userId;
 
   // Allow if user has remove permission OR if they're removing themselves
-  if (!hasRemovePermission && !isRemovingSelf) {
+  if (!hasRemovePermissionForAll && !isRemovingSelf) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
@@ -89,7 +116,7 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
       memberIds.map(async (memberId) => {
         const isAnyTeamOwnerAndCurrentUserNotOwner = await Promise.all(
           teamIds.map(async (teamId) => {
-            return (await isTeamOwner(memberId, teamId)) && !(await isTeamOwner(ctx.user.id, teamId));
+            return (await isTeamOwner(memberId, teamId)) && !(await isTeamOwner(userId, teamId));
           })
         ).then((results) => results.some((result) => result));
 
@@ -105,10 +132,10 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
     }
 
     // Check if user is trying to remove themselves from a team they own (prevent this)
-    if (isRemovingSelf && hasRemovePermission) {
+    if (isRemovingSelf && hasRemovePermissionForAll) {
       // Additional check: ensure they're not an owner trying to remove themselves
       const isOwnerOfAnyTeam = await Promise.all(
-        teamIds.map(async (teamId) => await isTeamOwner(ctx.user.id, teamId))
+        teamIds.map(async (teamId) => await isTeamOwner(userId, teamId))
       ).then((results) => results.some((result) => result));
 
       if (isOwnerOfAnyTeam) {
