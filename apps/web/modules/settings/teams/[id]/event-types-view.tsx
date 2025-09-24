@@ -8,9 +8,9 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useCreateEventType } from "@calcom/lib/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import { Button } from "@calcom/ui/components/button";
 import { WizardLayout } from "@calcom/ui/components/layout";
 import { showToast } from "@calcom/ui/components/toast";
-import { Button } from "@calcom/ui/components/button";
 
 export const CreateTeamEventType = () => {
   const searchParams = useCompatSearchParams();
@@ -46,6 +46,10 @@ export const CreateTeamEventType = () => {
 
   const { form, createMutation, isManagedEventType } = useCreateEventType(onSuccessMutation, onErrorMutation);
 
+  const permissions = {
+    canCreateEventType: true,
+  };
+
   const orgBranding = useOrgBranding();
   const urlPrefix = orgBranding?.fullDomain ?? process.env.NEXT_PUBLIC_WEBSITE_URL;
 
@@ -53,7 +57,7 @@ export const CreateTeamEventType = () => {
     <TeamEventTypeForm
       teamSlug={team?.slug}
       teamId={teamId}
-      isTeamAdminOrOwner={true}
+      permissions={permissions}
       urlPrefix={urlPrefix}
       isPending={createMutation.isPending}
       form={form}

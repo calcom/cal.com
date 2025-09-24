@@ -77,6 +77,10 @@ export default function CreateEventTypeDialog({
 
   const isTeamAdminOrOwner = teamId !== undefined && checkAdminOrOwner(teamProfile?.membershipRole);
 
+  const permissions = {
+    canCreateEventType: teamId ? isTeamAdminOrOwner : true,
+  };
+
   const onSuccessMutation = (eventType: EventType) => {
     router.replace(`/event-types/${eventType.id}${teamId ? "?tabName=team" : ""}`);
     showToast(
@@ -124,7 +128,7 @@ export default function CreateEventTypeDialog({
           <TeamEventTypeForm
             teamSlug={team?.slug}
             teamId={teamId}
-            isTeamAdminOrOwner={isTeamAdminOrOwner}
+            permissions={permissions}
             urlPrefix={urlPrefix}
             isPending={createMutation.isPending}
             form={form}
