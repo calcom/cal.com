@@ -102,7 +102,7 @@ jobs:
           
           # Wait for API to be ready
           echo "Waiting for API v2 to be ready on port ${{ vars.CI_API_V2_PORT }}..."
-          timeout 60 bash -c 'until curl -f http://localhost:${{ vars.CI_API_V2_PORT }}/health > /dev/null 2>&1; do sleep 2; done'
+          timeout 300 bash -c 'until curl -f http://localhost:${{ vars.CI_API_V2_PORT }}/health > /dev/null 2>&1; do sleep 2; done'
           echo "API v2 is ready!"
       - name: Run E2E Atoms Tests
         working-directory: packages/platform/examples/base
