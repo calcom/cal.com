@@ -23,6 +23,8 @@ env:
   STRIPE_CLIENT_ID: ${{ secrets.CI_STRIPE_CLIENT_ID }}
   STRIPE_WEBHOOK_SECRET: ${{ secrets.CI_STRIPE_WEBHOOK_SECRET }}
   SLOTS_CACHE_TTL: ${{ secrets.CI_SLOTS_CACHE_TTL }}
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
+  VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
 jobs:
   e2e:
     timeout-minutes: 20
