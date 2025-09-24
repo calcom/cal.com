@@ -305,6 +305,7 @@ const CustomFieldTypeEnum = z.enum([
   "radio",
   "radioInput",
   "url",
+  "date",
 ]);
 
 const CustomFieldsSchema = z.object({
