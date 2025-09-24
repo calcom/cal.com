@@ -674,6 +674,7 @@ export class CreditService {
         totalMonthlyCredits: 0,
         totalRemainingMonthlyCredits: 0,
         additionalCredits: creditBalance?.additionalCredits ?? 0,
+        totalCreditsUsedThisMonth: 0,
       };
     }
 
@@ -681,6 +682,7 @@ export class CreditService {
       totalMonthlyCredits: 0,
       totalRemainingMonthlyCredits: 0,
       additionalCredits: 0,
+      totalCreditsUsedThisMonth: 0,
     };
   }
 
@@ -704,6 +706,9 @@ export class CreditService {
         )
       : 0;
 
+    const additionalCredits = creditBalance?.additionalCredits ?? 0;
+    const totalCreditsUsedThisMonth = totalMonthlyCreditsUsed;
+
     return {
       totalMonthlyCredits,
       totalRemainingMonthlyCredits: Math.max(
@@ -711,6 +716,9 @@ export class CreditService {
         0
       ),
       additionalCredits: creditBalance?.additionalCredits ?? 0,
+      totalRemainingMonthlyCredits: Math.max(totalMonthlyCredits - totalMonthlyCreditsUsed, 0),
+      additionalCredits,
+      totalCreditsUsedThisMonth,
     };
   }
 
