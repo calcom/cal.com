@@ -1,8 +1,11 @@
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { validateHashedLinkData } from "@calcom/lib/hashedLinksUtils";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
+import { MembershipService } from "@calcom/lib/server/service/membershipService";
 
-import { HashedLinkRepository, type HashedLinkInputType } from "../repository/hashedLinkRepository";
-import { MembershipService } from "./membershipService";
+import { HashedLinkRepository } from "../repository/HashedLinkRepository";
+import { type HashedLinkInputType } from "../repository/HashedLinkRepository";
 
 type NormalizedLink = {
   link: string;
@@ -10,11 +13,19 @@ type NormalizedLink = {
   maxUsageCount?: number | null;
 };
 
+interface HashedLinkServiceDeps {
+  hashedLinkRepository: HashedLinkRepository;
+  membershipService: MembershipService;
+}
+
 export class HashedLinkService {
-  constructor(
-    private readonly hashedLinkRepository: HashedLinkRepository = HashedLinkRepository.create(),
-    private readonly membershipService: MembershipService = new MembershipService()
-  ) {}
+  private readonly hashedLinkRepository: HashedLinkRepository;
+  private readonly membershipService: MembershipService;
+
+  constructor(deps?: HashedLinkServiceDeps) {
+    this.hashedLinkRepository = deps?.hashedLinkRepository ?? HashedLinkRepository.create();
+    this.membershipService = deps?.membershipService ?? new MembershipService();
+  }
 
   /**
    * Normalizes link input to a consistent format
@@ -112,7 +123,8 @@ export class HashedLinkService {
     if (hashedLink.maxUsageCount && hashedLink.maxUsageCount > 0) {
       try {
         await this.hashedLinkRepository.incrementUsage(hashedLink.id, hashedLink.maxUsageCount);
-      } catch (updateError) {
+      } catch (e) {
+        logger.error("Error incrementing usage for hashed link", safeStringify(e));
         throw new Error(ErrorCode.PrivateLinkExpired);
       }
     }
