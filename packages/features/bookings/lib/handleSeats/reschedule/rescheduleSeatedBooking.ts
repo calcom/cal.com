@@ -1,8 +1,10 @@
 // eslint-disable-next-line no-restricted-imports
 import dayjs from "@calcom/dayjs";
-import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/refreshCredentials";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
+import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/refreshCredentials";
 import { HttpError } from "@calcom/lib/http-error";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { Person } from "@calcom/types/Calendar";
@@ -22,7 +24,7 @@ const rescheduleSeatedBooking = async (
   rescheduleSeatedBookingObject: RescheduleSeatedBookingObject,
   seatedBooking: SeatedBooking,
   resultBooking: HandleSeatsResultBooking | null,
-  loggerWithEventDetails: ReturnType<typeof createLoggerWithEventDetails>
+  traceContext: TraceContext
 ) => {
   const { evt, eventType, allCredentials, organizerUser, bookerEmail, tAttendees, bookingSeat, reqUserId } =
     rescheduleSeatedBookingObject;
@@ -122,7 +124,7 @@ const rescheduleSeatedBooking = async (
       seatedBooking,
       resultBooking,
       eventManager,
-      loggerWithEventDetails
+      traceContext
     );
   }
 
@@ -134,7 +136,8 @@ const rescheduleSeatedBooking = async (
       seatAttendee,
       newTimeSlotBooking,
       originalBookingEvt,
-      eventManager
+      eventManager,
+      traceContext
     );
   }
 

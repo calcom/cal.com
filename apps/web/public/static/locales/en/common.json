@@ -862,6 +862,7 @@
   "initial_message_description": "The first message the agent will say when starting a call",
   "having_trouble_importing": "Having trouble importing?",
   "learn": "Learn",
+  "trace_reference_id": "Trace reference ID",
   "learn_how_to_get_your_terminator": "Learn how to get your Termination URI and SIP trunk credentials",
   "phone_number_subscription_cancelled_successfully": "Phone number subscription canceled successfully",
   "updating": "Updating",

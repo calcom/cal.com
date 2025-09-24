@@ -5,6 +5,8 @@ import type { serverSideTranslations } from "next-i18next/serverSideTranslations
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import getIP from "@calcom/lib/getIP";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import prisma, { readonlyPrisma } from "@calcom/prisma";
 import type { SelectedCalendar, User as PrismaUser } from "@calcom/prisma/client";
 
@@ -50,6 +52,7 @@ export type GetSessionFn =
 export type InnerContext = CreateInnerContextOptions & {
   prisma: typeof prisma;
   insightsDb: typeof readonlyPrisma;
+  traceContext: TraceContext;
 };
 
 /**
@@ -62,10 +65,17 @@ export type InnerContext = CreateInnerContextOptions & {
  * @see https://trpc.io/docs/context#inner-and-outer-context
  */
 export async function createContextInner(opts: CreateInnerContextOptions): Promise<InnerContext> {
+  const traceContext = distributedTracing.createTrace("trpc_request", {
+    meta: {
+      userId: opts.session?.user?.id?.toString() || "anonymous",
+    },
+  });
+
   return {
     prisma,
     insightsDb: readonlyPrisma,
     ...opts,
+    traceContext,
   };
 }
 

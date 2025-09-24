@@ -7,6 +7,7 @@ import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { type TraceContext } from "@calcom/lib/tracing";
 import type { Prisma } from "@calcom/prisma/client";
 import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
@@ -54,6 +55,7 @@ export async function handleBookingRequested(args: {
     userId: number | null;
     id: number;
   };
+  traceContext?: TraceContext;
 }) {
   const { evt, booking } = args;
 

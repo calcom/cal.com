@@ -11,6 +11,7 @@ import { getHTTPStatusCodeFromError } from "@trpc/server/http";
 import { HttpError } from "../http-error";
 import { redactError } from "../redactError";
 import { stripeInvalidRequestErrorSchema } from "../stripe-error";
+import { TracedError } from "../tracing/error";
 
 function hasName(cause: unknown): cause is { name: string } {
   return !!cause && typeof cause === "object" && "name" in cause;
@@ -37,41 +38,72 @@ function parseZodErrorIssues(issues: ZodIssue[]): string {
 }
 
 export function getServerErrorFromUnknown(cause: unknown): HttpError {
+  let traceId: string | undefined;
+  let tracedData: Record<string, unknown> | undefined;
+
+  if (cause instanceof TracedError) {
+    traceId = cause.traceId;
+    tracedData = cause.data;
+    cause = cause.originalError;
+  }
+
   if (cause instanceof TRPCError) {
     const statusCode = getHTTPStatusCodeFromError(cause);
-    return new HttpError({ statusCode, message: cause.message });
+    return new HttpError({
+      statusCode,
+      message: cause.message,
+      data: traceId ? { ...tracedData, traceId } : undefined,
+    });
   }
   if (isZodError(cause)) {
     return new HttpError({
       statusCode: 400,
       message: parseZodErrorIssues(cause.issues),
       cause,
+      data: traceId ? { ...tracedData, traceId } : undefined,
     });
   }
   if (cause instanceof SyntaxError) {
     return new HttpError({
       statusCode: 500,
       message: "Unexpected error, please reach out for our customer support.",
+      data: traceId ? { ...tracedData, traceId } : undefined,
     });
   }
   if (isPrismaError(cause)) {
+    const prismaError = getServerErrorFromPrismaError(cause);
+    return new HttpError({
+      statusCode: prismaError.statusCode,
+      message: prismaError.message,
+      cause: prismaError.cause,
+      data: traceId ? { ...tracedData, traceId } : prismaError.data,
+    });
     return getServerErrorFromPrismaError(cause);
   }
   const parsedStripeError = stripeInvalidRequestErrorSchema.safeParse(cause);
   if (parsedStripeError.success) {
-    return getHttpError({ statusCode: 400, cause: parsedStripeError.data });
+    const stripeErrorObj = new Error(parsedStripeError.data.message || "Stripe error");
+    stripeErrorObj.name = parsedStripeError.data.type || "StripeInvalidRequestError";
+    const stripeError = getHttpError({ statusCode: 400, cause: stripeErrorObj });
+    return new HttpError({
+      statusCode: stripeError.statusCode,
+      message: stripeError.message,
+      cause: stripeError.cause,
+      data: traceId ? { ...tracedData, traceId } : stripeError.data,
+    });
   }
   if (cause instanceof ErrorWithCode) {
     const statusCode = getStatusCode(cause);
     return new HttpError({
       statusCode,
       message: cause.message ?? "",
-      data: cause.data,
+      data: traceId ? { ...cause.data, ...tracedData, traceId } : cause.data,
       cause,
     });
   }
   if (cause instanceof HttpError) {
     const redactedCause = redactError(cause);
+    const originalData = cause.data;
     return {
       ...redactedCause,
       name: cause.name,
@@ -80,11 +112,18 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
       url: cause.url,
       statusCode: cause.statusCode,
       method: cause.method,
+      data: traceId ? { ...originalData, ...tracedData, traceId } : originalData,
     };
   }
   if (cause instanceof Error) {
     const statusCode = getStatusCode(cause);
-    return getHttpError({ statusCode, cause });
+    const error = getHttpError({ statusCode, cause });
+    return new HttpError({
+      statusCode: error.statusCode,
+      message: error.message,
+      cause: error.cause,
+      data: traceId ? { ...tracedData, traceId } : error.data,
+    });
   }
   if (typeof cause === "string") {
     // @ts-expect-error https://github.com/tc39/proposal-error-cause
@@ -94,6 +133,7 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
   return new HttpError({
     statusCode: 500,
     message: `Unhandled error of type '${typeof cause}'. Please reach out for our customer support.`,
+    data: traceId ? { ...tracedData, traceId } : undefined,
   });
 }
 
