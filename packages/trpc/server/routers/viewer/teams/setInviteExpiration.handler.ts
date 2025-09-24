@@ -23,22 +23,26 @@ export const setInviteExpirationHandler = async ({ ctx, input }: SetInviteExpira
     },
     select: {
       teamId: true,
+      team: {
+        select: { isOrganization: true, parentId: true },
+      },
     },
   });
 
   if (!verificationToken) throw new TRPCError({ code: "NOT_FOUND" });
-
   if (!verificationToken.teamId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   const permissionCheckService = new PermissionCheckService();
-  const hasTeamInvitePermission = await permissionCheckService.checkPermission({
+  const isOrgContext = !!(verificationToken.team?.parentId || verificationToken.team?.isOrganization);
+  const permission = isOrgContext ? "organization.invite" : "team.invite";
+  const hasInvitePermission = await permissionCheckService.checkPermission({
     userId: ctx.user.id,
     teamId: verificationToken.teamId,
-    permission: "team.invite",
+    permission,
     fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
   });
 
-  if (!hasTeamInvitePermission) throw new TRPCError({ code: "UNAUTHORIZED" });
+  if (!hasInvitePermission) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   const oneDay = 24 * 60 * 60 * 1000;
   const expires = expiresInDays

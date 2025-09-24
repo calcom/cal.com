@@ -24,6 +24,9 @@ export const deleteInviteHandler = async ({ ctx, input }: DeleteInviteOptions) =
     select: {
       teamId: true,
       id: true,
+      team: {
+        select: { isOrganization: true, parentId: true },
+      },
     },
   });
 
@@ -31,14 +34,16 @@ export const deleteInviteHandler = async ({ ctx, input }: DeleteInviteOptions) =
   if (!verificationToken.teamId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   const permissionCheckService = new PermissionCheckService();
-  const hasTeamInvitePermission = await permissionCheckService.checkPermission({
+  const isOrgContext = !!(verificationToken.team?.parentId || verificationToken.team?.isOrganization);
+  const permission = isOrgContext ? "organization.invite" : "team.invite";
+  const hasInvitePermission = await permissionCheckService.checkPermission({
     userId: ctx.user.id,
     teamId: verificationToken.teamId,
-    permission: "team.invite",
+    permission,
     fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
   });
 
-  if (!hasTeamInvitePermission) throw new TRPCError({ code: "UNAUTHORIZED" });
+  if (!hasInvitePermission) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   await prisma.verificationToken.delete({ where: { id: verificationToken.id } });
 };

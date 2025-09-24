@@ -20,22 +20,24 @@ type CreateInviteOptions = {
 export const createInviteHandler = async ({ ctx, input }: CreateInviteOptions) => {
   const { teamId } = input;
 
-  const permissionCheckService = new PermissionCheckService();
-  const hasTeamInvitePermission = await permissionCheckService.checkPermission({
-    userId: ctx.user.id,
-    teamId,
-    permission: "team.invite",
-    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
-  });
-
-  if (!hasTeamInvitePermission) throw new TRPCError({ code: "UNAUTHORIZED" });
-
   const team = await prisma.team.findUnique({
     where: { id: teamId },
     select: { parentId: true, isOrganization: true },
   });
 
   if (!team) throw new TRPCError({ code: "NOT_FOUND" });
+
+  const permissionCheckService = new PermissionCheckService();
+  const permission = team.isOrganization ? "organization.invite" : "team.invite";
+  const hasInvitePermission = await permissionCheckService.checkPermission({
+    userId: ctx.user.id,
+    teamId,
+    permission,
+    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+  });
+
+  if (!hasInvitePermission) throw new TRPCError({ code: "UNAUTHORIZED" });
+
   const isOrganizationOrATeamInOrganization = !!(team.parentId || team.isOrganization);
 
   if (input.token) {
