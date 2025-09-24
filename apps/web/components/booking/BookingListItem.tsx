@@ -189,7 +189,11 @@ function BookingListItem(booking: BookingItemProps) {
 
   const isAttendee = !!userSeat;
 
-  const isHost = booking.loggedInUser.userId === booking.user?.id;
+  // Checks if the logged in user is the host of the booking
+  const isHost =
+    booking.user?.id != null &&
+    booking.loggedInUser.userId != null &&
+    booking.loggedInUser.userId === booking.user.id;
 
   const paymentAppData = getPaymentAppData(booking.eventType);
 
