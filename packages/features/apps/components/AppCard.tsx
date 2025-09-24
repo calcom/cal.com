@@ -11,6 +11,7 @@ import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
@@ -39,6 +40,13 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   });
 
   const appInstalled = enabledOnTeams && userAdminTeams ? userAdminTeams.length < appAdded : appAdded > 0;
+
+  const processedDescription = useMemo(() => {
+    const cleaned = stripMarkdown(app.description);
+    const words = cleaned.split(" ").filter((word) => word.length > 0);
+    if (words.length <= 16) return cleaned;
+    return words.slice(0, 16).join(" ") + "...";
+  }, [app.description]);
 
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
@@ -124,8 +132,11 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
           display: "-webkit-box",
           WebkitBoxOrient: "vertical",
           WebkitLineClamp: "3",
+          lineHeight: "1.4em",
+          maxHeight: "4.2em",
+          textOverflow: "ellipsis",
         }}>
-        {app.description}
+        {processedDescription}
       </p>
 
       <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
