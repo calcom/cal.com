@@ -102,9 +102,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   if (isFormTrigger(trigger)) {
     const hasEmailHostStep = steps.some((step) => step.action === WorkflowActions.EMAIL_HOST);
     const hasCalAIStep = steps.some((step) => isCalAIAction(step.action));
-    const hasSMSStep = steps.some((step) => isSMSAction(step.action));
 
-    if (hasEmailHostStep || hasSMSStep || hasCalAIStep) {
+    if (hasEmailHostStep || hasCalAIStep) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "This action is not allowed for form triggers",
