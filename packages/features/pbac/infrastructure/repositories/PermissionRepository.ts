@@ -220,15 +220,27 @@ export class PermissionRepository implements IPermissionRepository {
     return permissions.map((p) => p.action as CrudAction | CustomAction);
   }
 
-  async getTeamIdsWithPermission(userId: number, permission: PermissionString): Promise<number[]> {
-    return this.getTeamIdsWithPermissions(userId, [permission]);
+  async getTeamIdsWithPermission({
+    userId,
+    permission,
+    fallbackRoles,
+  }: {
+    userId: number;
+    permission: PermissionString;
+    fallbackRoles: MembershipRole[];
+  }): Promise<number[]> {
+    return this.getTeamIdsWithPermissions({ userId, permissions: [permission], fallbackRoles });
   }
 
-  async getTeamIdsWithPermissions(
-    userId: number,
-    permissions: PermissionString[],
-    fallbackRoles?: MembershipRole[]
-  ): Promise<number[]> {
+  async getTeamIdsWithPermissions({
+    userId,
+    permissions,
+    fallbackRoles,
+  }: {
+    userId: number;
+    permissions: PermissionString[];
+    fallbackRoles: MembershipRole[];
+  }): Promise<number[]> {
     // Validate that permissions array is not empty to prevent privilege escalation
     if (permissions.length === 0) {
       return [];
@@ -239,7 +251,7 @@ export class PermissionRepository implements IPermissionRepository {
       return { resource, action };
     });
 
-    const teamsWithPermission = await this.client.$queryRaw<{ teamId: number }[]>`
+    const teamsWithPermissionPromise = this.client.$queryRaw<{ teamId: number }[]>`
       SELECT DISTINCT m."teamId"
       FROM "Membership" m
       INNER JOIN "Role" r ON m."customRoleId" = r.id
@@ -263,26 +275,26 @@ export class PermissionRepository implements IPermissionRepository {
         ) = ${permissions.length}
     `;
 
+    const teamsWithFallbackRolesPromise = this.client.$queryRaw<{ teamId: number }[]>`
+      SELECT DISTINCT m."teamId"
+      FROM "Membership" m
+      INNER JOIN "Team" t ON m."teamId" = t.id
+      LEFT JOIN "Feature" f ON t.id = f."teamId" AND f."slug" = 'pbac'
+      WHERE m."userId" = ${userId}
+        AND m."accepted" = true
+        AND m."role" = ANY(${fallbackRoles})
+        AND (f.id IS NULL OR f."enabled" = false)
+    `;
+
+    const [teamsWithPermission, teamsWithFallbackRoles] = await Promise.all([
+      teamsWithPermissionPromise,
+      teamsWithFallbackRolesPromise,
+    ]);
+
     const pbacTeamIds = teamsWithPermission.map((team) => team.teamId);
+    const fallbackTeamIds = teamsWithFallbackRoles.map((team) => team.teamId);
 
-    if (fallbackRoles && fallbackRoles.length > 0) {
-      const teamsWithFallbackRoles = await this.client.$queryRaw<{ teamId: number }[]>`
-        SELECT DISTINCT m."teamId"
-        FROM "Membership" m
-        INNER JOIN "Team" t ON m."teamId" = t.id
-        LEFT JOIN "Feature" f ON t.id = f."teamId" AND f."slug" = 'pbac'
-        WHERE m."userId" = ${userId}
-          AND m."accepted" = true
-          AND m."role" = ANY(${fallbackRoles})
-          AND (f.id IS NULL OR f."enabled" = false)
-      `;
-
-      const fallbackTeamIds = teamsWithFallbackRoles.map((team) => team.teamId);
-
-      const allTeamIds = Array.from(new Set([...pbacTeamIds, ...fallbackTeamIds]));
-      return allTeamIds;
-    }
-
-    return pbacTeamIds;
+    const allTeamIds = Array.from(new Set([...pbacTeamIds, ...fallbackTeamIds]));
+    return allTeamIds;
   }
 }

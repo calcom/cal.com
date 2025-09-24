@@ -64,14 +64,18 @@ export interface IPermissionRepository {
   /**
    * Gets all team IDs where the user has a specific permission
    */
-  getTeamIdsWithPermission(userId: number, permission: PermissionString): Promise<number[]>;
+  getTeamIdsWithPermission(params: {
+    userId: number;
+    permission: PermissionString;
+    fallbackRoles: MembershipRole[];
+  }): Promise<number[]>;
 
   /**
    * Gets all team IDs where the user has all of the specified permissions
    */
-  getTeamIdsWithPermissions(
-    userId: number,
-    permissions: PermissionString[],
-    fallbackRoles?: MembershipRole[]
-  ): Promise<number[]>;
+  getTeamIdsWithPermissions(params: {
+    userId: number;
+    permissions: PermissionString[];
+    fallbackRoles: MembershipRole[];
+  }): Promise<number[]>;
 }
