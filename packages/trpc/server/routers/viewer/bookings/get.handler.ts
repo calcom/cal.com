@@ -12,7 +12,7 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
-import type { Booking, Prisma, Prisma as PrismaClientType } from "@calcom/prisma/client";
+import type { Booking, Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -590,6 +590,19 @@ export async function getBookings({
               .orderBy("AssignmentReason.createdAt", "desc")
               .limit(1)
           ).as("assignmentReason"),
+          jsonArrayFrom(
+            eb
+              .selectFrom("BookingReportLog")
+              .select([
+                "BookingReportLog.id",
+                "BookingReportLog.reason",
+                "BookingReportLog.cancelled",
+                "BookingReportLog.createdAt",
+                "BookingReportLog.reportedById",
+              ])
+              .whereRef("BookingReportLog.bookingId", "=", "Booking.id")
+              .orderBy("BookingReportLog.createdAt", "desc")
+          ).as("reportLogs"),
         ])
         .orderBy(orderBy.key, orderBy.order)
         .execute()
@@ -845,7 +858,7 @@ async function getEventTypeIdsFromEventTypeIdsFilter(prisma: PrismaClient, event
 
 async function getEventTypeIdsWhereUserIsAdminOrOwner(
   prisma: PrismaClient,
-  membershipCondition: PrismaClientType.MembershipListRelationFilter
+  membershipCondition: Prisma.MembershipListRelationFilter
 ) {
   const [directTeamEventTypeIds, parentTeamEventTypeIds] = await Promise.all([
     prisma.eventType
@@ -888,7 +901,7 @@ async function getEventTypeIdsWhereUserIsAdminOrOwner(
  */
 async function getUserIdsAndEmailsWhereUserIsAdminOrOwner(
   prisma: PrismaClient,
-  membershipCondition: PrismaClientType.MembershipListRelationFilter
+  membershipCondition: Prisma.MembershipListRelationFilter
 ): Promise<[number[], string[]]> {
   const users = await prisma.user.findMany({
     where: {

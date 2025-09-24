@@ -1,7 +1,8 @@
 import { captureException } from "@sentry/nextjs";
 
 import db from "@calcom/prisma";
-import { WatchlistType, WatchlistSeverity } from "@calcom/prisma/enums";
+import type { ReportReason } from "@calcom/prisma/enums";
+import { WatchlistType, WatchlistSeverity, WatchlistAction } from "@calcom/prisma/enums";
 
 import type { IWatchlistRepository } from "./watchlist.repository.interface";
 
@@ -89,6 +90,96 @@ export class WatchlistRepository implements IWatchlistRepository {
         },
       });
       return blockedRecords;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  async createBookingReport({
+    bookingId,
+    reportedById,
+    reason,
+    description,
+    cancelled,
+    organizationId,
+  }: {
+    bookingId: number;
+    reportedById: number;
+    reason: ReportReason;
+    description?: string;
+    cancelled: boolean;
+    organizationId?: number;
+  }) {
+    try {
+      return await db.$transaction(async (tx) => {
+        const watchlistEntry = await tx.watchlist.create({
+          data: {
+            type: WatchlistType.BOOKING_REPORT,
+            value: bookingId.toString(),
+            description: `${reason}: ${description || ""}`,
+            action: WatchlistAction.REPORT,
+            severity: WatchlistSeverity.LOW,
+            createdById: reportedById,
+            organizationId,
+          },
+        });
+
+        const reportLog = await tx.bookingReportLog.create({
+          data: {
+            bookingId,
+            reportedById,
+            reason,
+            cancelled,
+            watchlistId: watchlistEntry.id,
+          },
+        });
+
+        return { watchlistEntry, reportLog };
+      });
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  async isBookingReported(bookingId: number): Promise<boolean> {
+    try {
+      const existingReport = await db.bookingReportLog.findUnique({
+        where: { bookingId },
+      });
+      return !!existingReport;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  async getBookingReport(bookingId: number) {
+    try {
+      return await db.bookingReportLog.findUnique({
+        where: { bookingId },
+        select: {
+          id: true,
+          bookingId: true,
+          reportedById: true,
+          reason: true,
+          cancelled: true,
+          watchlistId: true,
+          createdAt: true,
+          watchlist: {
+            select: {
+              id: true,
+              type: true,
+              value: true,
+              description: true,
+              action: true,
+              severity: true,
+              createdAt: true,
+            },
+          },
+        },
+      });
     } catch (err) {
       captureException(err);
       throw err;

@@ -188,6 +188,21 @@ export function getAfterEventActions(context: BookingActionContext): ActionType[
   return actions.filter(Boolean) as ActionType[];
 }
 
+export function getReportActions(context: BookingActionContext): ActionType[] {
+  const { booking: _booking, t } = context;
+
+  const actions: ActionType[] = [
+    {
+      id: "report",
+      label: t("report"),
+      icon: "flag",
+      disabled: false,
+    },
+  ];
+
+  return actions;
+}
+
 export function shouldShowPendingActions(context: BookingActionContext): boolean {
   const { isPending, isUpcoming, isCancelled } = context;
   return isPending && isUpcoming && !isCancelled;
@@ -204,8 +219,14 @@ export function shouldShowRecurringCancelAction(context: BookingActionContext): 
 }
 
 export function isActionDisabled(actionId: string, context: BookingActionContext): boolean {
-  const { booking, isBookingInPast, isDisabledRescheduling, isDisabledCancelling, isPending, isConfirmed } =
-    context;
+  const {
+    booking,
+    isBookingInPast,
+    isDisabledRescheduling,
+    isDisabledCancelling,
+    isPending: _isPending,
+    isConfirmed: _isConfirmed,
+  } = context;
 
   switch (actionId) {
     case "reschedule":
@@ -225,7 +246,7 @@ export function isActionDisabled(actionId: string, context: BookingActionContext
 }
 
 export function getActionLabel(actionId: string, context: BookingActionContext): string {
-  const { booking, isTabRecurring, isRecurring, attendeeList, cardCharged, t } = context;
+  const { booking: _booking, isTabRecurring, isRecurring, attendeeList, cardCharged, t } = context;
 
   switch (actionId) {
     case "reject":
@@ -240,6 +261,8 @@ export function getActionLabel(actionId: string, context: BookingActionContext):
         : t("mark_as_no_show");
     case "charge_card":
       return cardCharged ? t("no_show_fee_charged") : t("collect_no_show_fee");
+    case "report":
+      return t("report");
     default:
       return t(actionId);
   }

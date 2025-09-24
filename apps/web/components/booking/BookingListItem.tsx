@@ -52,6 +52,7 @@ import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { ReassignDialog } from "@components/dialog/ReassignDialog";
+import { ReportBookingDialog } from "@components/dialog/ReportBookingDialog";
 import { RerouteDialog } from "@components/dialog/RerouteDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
@@ -132,6 +133,7 @@ function BookingListItem(booking: BookingItemProps) {
   const [viewRecordingsDialogIsOpen, setViewRecordingsDialogIsOpen] = useState<boolean>(false);
   const [meetingSessionDetailsDialogIsOpen, setMeetingSessionDetailsDialogIsOpen] = useState<boolean>(false);
   const [isNoShowDialogOpen, setIsNoShowDialogOpen] = useState<boolean>(false);
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState<boolean>(false);
   const cardCharged = booking?.payment[0]?.success;
 
   const attendeeList = booking.attendees.map((attendee) => {
@@ -401,6 +403,28 @@ function BookingListItem(booking: BookingItemProps) {
       (action.id === "no_show" && !(isBookingInPast || isOngoing)) ||
       (action.id === "view_recordings" && !booking.isRecorded),
   })) as ActionType[];
+
+  const hasBeenReported = booking.reportLogs && booking.reportLogs.length > 0;
+
+  const reportAction: ActionType = hasBeenReported
+    ? {
+        id: "report",
+        label: t("already_reported"),
+        icon: "flag",
+        disabled: true,
+      }
+    : {
+        id: "report",
+        label: t("report"),
+        icon: "flag",
+        disabled: false,
+        onClick: () => setIsReportDialogOpen(true),
+      };
+
+  const shouldShowIndividualReportButton = isTabRecurring || isPending || isCancelled;
+
+  const shouldShowReportInThreeDotsMenu =
+    shouldShowEditActions(actionContext) && !shouldShowIndividualReportButton;
 
   return (
     <>
@@ -703,11 +727,42 @@ function BookingListItem(booking: BookingItemProps) {
                         {cancelEventAction.label}
                       </DropdownItem>
                     </DropdownMenuItem>
+                    {shouldShowReportInThreeDotsMenu && (
+                      <DropdownMenuItem
+                        className="rounded-lg"
+                        key={reportAction.id}
+                        disabled={reportAction.disabled}>
+                        <DropdownItem
+                          type="button"
+                          StartIcon={reportAction.icon}
+                          onClick={reportAction.onClick}
+                          disabled={reportAction.disabled}
+                          data-testid={reportAction.id}
+                          className={reportAction.disabled ? "text-muted" : undefined}>
+                          {reportAction.label}
+                        </DropdownItem>
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenuPortal>
               </Dropdown>
             )}
             {shouldShowRecurringCancelAction(actionContext) && <TableActions actions={[cancelEventAction]} />}
+            {shouldShowIndividualReportButton && (
+              <div className="flex items-center space-x-2">
+                <Button
+                  type="button"
+                  variant="icon"
+                  color="secondary"
+                  StartIcon={reportAction.icon}
+                  onClick={reportAction.onClick}
+                  disabled={reportAction.disabled}
+                  data-testid={reportAction.id}
+                  className="h-8 w-8"
+                  tooltip={reportAction.label}
+                />
+              </div>
+            )}
             {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
             {isCancelled && booking.rescheduled && (
               <div className="hidden h-full items-center md:flex">
@@ -725,6 +780,21 @@ function BookingListItem(booking: BookingItemProps) {
           isRescheduled={isRescheduled}
         />
       </div>
+
+      <ReportBookingDialog
+        isOpen={isReportDialogOpen}
+        onClose={() => setIsReportDialogOpen(false)}
+        bookingId={booking.id}
+        bookingTitle={booking.title}
+        isUpcoming={isUpcoming}
+        isCancelled={isCancelled}
+        onSuccess={async () => {
+          // Invalidate all booking queries to ensure UI reflects the changes
+          await utils.viewer.bookings.invalidate();
+          // Also invalidate any cached booking data
+          await utils.invalidate();
+        }}
+      />
 
       {isBookingFromRoutingForm && (
         <RerouteDialog
@@ -753,6 +823,7 @@ const BookingItemBadges = ({
   isRescheduled: boolean;
 }) => {
   const { t } = useLocale();
+  const hasBeenReported = booking.reportLogs && booking.reportLogs.length > 0;
 
   return (
     <div className="hidden h-9 flex-row items-center pb-4 pl-6 sm:flex">
@@ -767,6 +838,14 @@ const BookingItemBadges = ({
             {t("rescheduled")}
           </Badge>
         </Tooltip>
+      )}
+      {hasBeenReported && (
+        <Badge variant="red" className="ltr:mr-2 rtl:ml-2">
+          {t("reported")}:{" "}
+          {booking.reportLogs?.[0]?.reason
+            ? t(booking.reportLogs?.[0]?.reason?.toLowerCase())
+            : t("unavailable")}
+        </Badge>
       )}
       {booking.eventType?.team && (
         <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">

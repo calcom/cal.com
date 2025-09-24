@@ -462,6 +462,7 @@ model User {
   whitelistWorkflows             Boolean                       @default(false)
   calAiPhoneNumbers              CalAiPhoneNumber[]
   agents                         Agent[]
+  bookingReportLogs              BookingReportLog[]
 
   @@unique([email])
   @@unique([email, username])
@@ -781,6 +782,29 @@ enum BookingStatus {
   AWAITING_HOST @map("awaiting_host")
 }
 
+enum ReportReason {
+  SPAM
+  DONT_KNOW_PERSON @map("dont_know_person")
+  OTHER
+}
+
+model BookingReportLog {
+  id           String       @id @default(uuid())
+  booking      Booking      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId    Int          @unique
+  reportedBy   User         @relation(fields: [reportedById], references: [id], onDelete: Cascade)
+  reportedById Int
+  reason       ReportReason
+  cancelled    Boolean      @default(false)
+  watchlistId  String
+  watchlist    Watchlist    @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
+  createdAt    DateTime     @default(now())
+
+  @@index([bookingId])
+  @@index([reportedById])
+  @@index([watchlistId])
+}
+
 model Booking {
   id                           Int                               @id @default(autoincrement())
   uid                          String                            @unique
@@ -847,6 +871,7 @@ model Booking {
   tracking                     Tracking?
   routingFormResponses         RoutingFormResponseDenormalized[]
   expenseLogs                  CreditExpenseLog[]
+  reportLogs                   BookingReportLog[]
 
   @@index([eventTypeId])
   @@index([userId])
@@ -2242,6 +2267,7 @@ enum WatchlistType {
   EMAIL
   DOMAIN
   USERNAME
+  BOOKING_REPORT
 }
 
 enum WatchlistSeverity {
@@ -2273,6 +2299,8 @@ model Watchlist {
   updatedAt   DateTime          @updatedAt
   updatedBy   User?             @relation("UpdatedWatchlists", onDelete: SetNull, fields: [updatedById], references: [id])
   updatedById Int?
+
+  bookingReportLogs BookingReportLog[]
 
   @@unique([type, value, organizationId])
   @@index([type, value, organizationId, action])
