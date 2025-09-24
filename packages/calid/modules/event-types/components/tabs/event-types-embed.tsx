@@ -7,22 +7,53 @@ import { Switch } from "@calid/features/ui/components/switch/switch";
 import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
 import { useSession } from "next-auth/react";
 import React, { useState, useRef, forwardRef, useEffect, useCallback } from "react";
+import { shallow } from "zustand/shallow";
 
+import type { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
+import { AvailableTimes, AvailableTimesHeader } from "@calcom/features/bookings";
+import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
+import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
+import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
+import DatePicker from "@calcom/features/calendars/DatePicker";
+import { TimezoneSelect } from "@calcom/features/components/timezone-select";
+import { buildCssVarsPerTheme } from "@calcom/features/embed/lib/buildCssVarsPerTheme";
+import type { Slot } from "@calcom/features/schedules/lib/use-schedule/types";
+import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
+import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import {
   DEFAULT_LIGHT_BRAND_COLOR,
   DEFAULT_DARK_BRAND_COLOR,
   WEBAPP_URL,
   WEBSITE_URL,
   IS_SELF_HOSTED,
+  APP_NAME,
 } from "@calcom/lib/constants";
+import { weekdayToWeekIndex } from "@calcom/lib/dayjs";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { ColorPicker, TextField } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
-// Types (unchanged)
+// Types
 type EmbedType = "inline" | "floating-popup" | "element-click" | "email";
 type EmbedTheme = "auto" | "light" | "dark";
 type BookerLayout = "month_view" | "week_view" | "column_view";
+
+type EventType = {
+  id: number;
+  slug: string;
+  length: number;
+  title: string;
+  teamId: number | null;
+  bookerUrl: string;
+  seatsShowAvailabilityCount?: boolean;
+  metadata?: {
+    multipleDuration?: number[];
+  };
+};
 
 interface EmbedConfig {
   theme?: EmbedTheme;
@@ -58,7 +89,7 @@ interface PreviewState {
   };
 }
 
-// Constants and utility functions (unchanged)
+// Constants and utility functions
 const embedLibUrl = `${WEBAPP_URL}/embed-link/embed.js`;
 const EMBED_PREVIEW_HTML_URL = `${WEBAPP_URL}/embed-link/preview.html`;
 
@@ -78,23 +109,19 @@ const doWeNeedCalOriginProp = (embedCalOrigin: string) => {
   return IS_SELF_HOSTED || (embedCalOrigin !== WEBAPP_URL && embedCalOrigin !== WEBSITE_URL);
 };
 
-const buildCssVarsPerTheme = ({
-  brandColor,
-  darkBrandColor,
+function chooseTimezone({
+  timezoneFromBookerStore,
+  timezoneFromTimePreferences,
+  userSettingsTimezone,
 }: {
-  brandColor: string | null;
-  darkBrandColor: string | null;
-}) => {
-  const lightModeVars = brandColor ? { "--cal-brand-color": brandColor } : {};
-  const darkModeVars = darkBrandColor ? { "--cal-brand-color": darkBrandColor } : {};
+  timezoneFromBookerStore: string | null;
+  timezoneFromTimePreferences: string;
+  userSettingsTimezone: string | undefined;
+}) {
+  return timezoneFromBookerStore ?? userSettingsTimezone ?? timezoneFromTimePreferences;
+}
 
-  return {
-    ...(Object.keys(lightModeVars).length ? { light: lightModeVars } : {}),
-    ...(Object.keys(darkModeVars).length ? { dark: darkModeVars } : {}),
-  };
-};
-
-// Code generation functions (unchanged)
+// Code generation functions
 const getEmbedSnippetString = (namespace: string | null, bookerUrl: string) => {
   return `(function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; if(typeof namespace === "string"){cal.ns[namespace] = cal.ns[namespace] || api;p(cal.ns[namespace], ar);p(cal, ["initNamespace", namespace]);} else p(cal, ar); return;} p(cal, ar); }; })(window, "${embedLibUrl}", "init");
 Cal("init", ${namespace ? `"${namespace}",` : ""} {origin:"${bookerUrl}"});
@@ -326,6 +353,300 @@ export default function MyApp() {
   }
 };
 
+// EmailEmbed Component
+const EmailEmbed = ({
+  eventType,
+  username,
+  orgSlug,
+  isTeamEvent,
+  selectedDuration,
+  setSelectedDuration,
+  userSettingsTimezone,
+}: {
+  eventType?: EventType;
+  username: string;
+  orgSlug?: string;
+  isTeamEvent: boolean;
+  selectedDuration: number | undefined;
+  setSelectedDuration: (duration: number | undefined) => void;
+  userSettingsTimezone?: string;
+}) => {
+  const { t, i18n } = useLocale();
+  const { timezoneFromBookerStore, timezoneFromTimePreferences } = useBookerTime();
+  const timezone = chooseTimezone({
+    timezoneFromBookerStore,
+    timezoneFromTimePreferences,
+    userSettingsTimezone,
+  });
+
+  useInitializeBookerStore({
+    username,
+    eventSlug: eventType?.slug ?? "",
+    eventId: eventType?.id,
+    layout: BookerLayouts.MONTH_VIEW,
+    org: orgSlug,
+    isTeamEvent,
+  });
+
+  const [month, selectedDate, selectedDatesAndTimes] = useBookerStore(
+    (state) => [state.month, state.selectedDate, state.selectedDatesAndTimes],
+    shallow
+  );
+  const [setSelectedDate, setMonth, setSelectedDatesAndTimes, setSelectedTimeslot, setTimezone] =
+    useBookerStore(
+      (state) => [
+        state.setSelectedDate,
+        state.setMonth,
+        state.setSelectedDatesAndTimes,
+        state.setSelectedTimeslot,
+        state.setTimezone,
+      ],
+      shallow
+    );
+
+  const event = useEvent();
+  const schedule = useScheduleForEvent({
+    orgSlug,
+    eventId: eventType?.id,
+    isTeamEvent,
+    duration: selectedDuration,
+    useApiV2: false,
+  });
+  const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
+
+  const handleSlotClick = (slot: Slot) => {
+    const { time } = slot;
+    if (!eventType) {
+      return null;
+    }
+    if (selectedDatesAndTimes && selectedDatesAndTimes[eventType.slug]) {
+      const selectedDatesAndTimesForEvent = selectedDatesAndTimes[eventType.slug];
+      const selectedSlots = selectedDatesAndTimesForEvent[selectedDate as string] ?? [];
+      if (selectedSlots?.includes(time)) {
+        if (selectedSlots?.length > 1) {
+          const updatedDatesAndTimes = {
+            ...selectedDatesAndTimes,
+            [eventType.slug]: {
+              ...selectedDatesAndTimesForEvent,
+              [selectedDate as string]: selectedSlots?.filter((slot: string) => slot !== time),
+            },
+          };
+          setSelectedDatesAndTimes(updatedDatesAndTimes);
+        } else {
+          const updatedDatesAndTimesForEvent = { ...selectedDatesAndTimesForEvent };
+          delete updatedDatesAndTimesForEvent[selectedDate as string];
+          setSelectedTimeslot(null);
+          setSelectedDatesAndTimes({
+            ...selectedDatesAndTimes,
+            [eventType.slug]: updatedDatesAndTimesForEvent,
+          });
+        }
+        return;
+      }
+
+      const updatedDatesAndTimes = {
+        ...selectedDatesAndTimes,
+        [eventType.slug]: {
+          ...selectedDatesAndTimesForEvent,
+          [selectedDate as string]: [...selectedSlots, time],
+        },
+      };
+      setSelectedDatesAndTimes(updatedDatesAndTimes);
+    } else if (!selectedDatesAndTimes) {
+      setSelectedDatesAndTimes({ [eventType.slug]: { [selectedDate as string]: [time] } });
+    } else {
+      setSelectedDatesAndTimes({
+        ...selectedDatesAndTimes,
+        [eventType.slug]: { [selectedDate as string]: [time] },
+      });
+    }
+
+    setSelectedTimeslot(time);
+  };
+
+  const slots = useSlotsForDate(selectedDate, schedule?.data?.slots);
+
+  if (!eventType) {
+    return null;
+  }
+  if (!selectedDuration) {
+    setSelectedDuration(eventType.length);
+  }
+
+  const multipleDurations = eventType?.metadata?.multipleDuration ?? [];
+  const durationsOptions = multipleDurations.map((duration) => ({
+    value: duration.toString(),
+    label: `${duration} ${t("minutes")}`,
+  }));
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label className="mb-2 block text-sm font-medium">{t("select_date")}</Label>
+        <DatePicker
+          isLoading={schedule.isPending}
+          onChange={(date: Dayjs | null) => {
+            setSelectedDate({ date: date === null ? date : date.format("YYYY-MM-DD") });
+          }}
+          onMonthChange={(date: Dayjs) => {
+            setMonth(date.format("YYYY-MM"));
+            setSelectedDate({ date: date.format("YYYY-MM-DD") });
+          }}
+          includedDates={nonEmptyScheduleDays}
+          locale={i18n.language}
+          browsingDate={month ? dayjs(month) : undefined}
+          selected={dayjs(selectedDate)}
+          weekStart={weekdayToWeekIndex(event?.data?.subsetOfUsers?.[0]?.weekStart)}
+          eventSlug={eventType?.slug}
+        />
+      </div>
+
+      {selectedDate && (
+        <div>
+          <AvailableTimesHeader date={dayjs(selectedDate)} />
+          <AvailableTimes
+            className="w-full"
+            selectedSlots={
+              eventType.slug &&
+              selectedDatesAndTimes &&
+              selectedDatesAndTimes[eventType.slug] &&
+              selectedDatesAndTimes[eventType.slug][selectedDate as string]
+                ? selectedDatesAndTimes[eventType.slug][selectedDate as string]
+                : undefined
+            }
+            handleSlotClick={handleSlotClick}
+            slots={slots}
+            showAvailableSeatsCount={eventType.seatsShowAvailabilityCount}
+            event={event}
+          />
+        </div>
+      )}
+
+      <div>
+        <Label className="mb-2 block text-sm font-medium">{t("duration")}</Label>
+        {durationsOptions.length > 0 && selectedDuration ? (
+          <CustomSelect
+            value={selectedDuration?.toString()}
+            onValueChange={(value) => {
+              setSelectedDuration(parseInt(value));
+              setSelectedDatesAndTimes({});
+            }}
+            options={durationsOptions}
+          />
+        ) : (
+          <TextField disabled defaultValue={eventType?.length ?? 15} addOnSuffix={<>{t("minutes")}</>} />
+        )}
+      </div>
+
+      <div>
+        <Label className="mb-2 block text-sm font-medium">{t("timezone")}</Label>
+        <TimezoneSelect id="timezone" value={timezone} onChange={({ value }) => setTimezone(value)} />
+      </div>
+    </div>
+  );
+};
+
+// EmailEmbedPreview Component
+const EmailEmbedPreview = ({
+  eventType,
+  emailContentRef,
+  username,
+  month,
+  selectedDateAndTime,
+  calLink,
+  selectedDuration,
+  userSettingsTimezone,
+}: {
+  eventType: EventType;
+  emailContentRef: React.RefObject<HTMLDivElement>;
+  username?: string;
+  month?: string;
+  selectedDateAndTime: { [key: string]: string[] };
+  calLink: string;
+  selectedDuration: number | undefined;
+  userSettingsTimezone?: string;
+}) => {
+  const { t } = useLocale();
+  const { timeFormat, timezoneFromBookerStore, timezoneFromTimePreferences } = useBookerTime();
+  const timezone = chooseTimezone({
+    timezoneFromBookerStore,
+    timezoneFromTimePreferences,
+    userSettingsTimezone,
+  });
+
+  if (!eventType) {
+    return null;
+  }
+
+  return (
+    <div className="flex h-full items-center justify-center border p-5">
+      <div
+        ref={emailContentRef}
+        className="max-h-[50vh] min-w-[30vw] overflow-y-auto bg-white p-4"
+        style={{
+          fontSize: "13px",
+          color: "black",
+          lineHeight: "1.4",
+        }}>
+        <div className="mb-4 text-xl font-bold">{eventType.title}</div>
+
+        <div className="mb-2 text-sm text-gray-600">
+          {t("duration")}: <span className="font-bold text-black">{selectedDuration} mins</span>
+        </div>
+
+        <div className="mb-4 text-sm text-gray-600">
+          {t("timezone")}: <span className="font-bold text-black">{timezone}</span>
+        </div>
+
+        {selectedDateAndTime &&
+          Object.keys(selectedDateAndTime)
+            .sort()
+            .map((key) => {
+              const firstSlotOfSelectedDay = selectedDateAndTime[key][0];
+              const selectedDate = dayjs(firstSlotOfSelectedDay).tz(timezone).format("dddd, MMMM D, YYYY");
+
+              return (
+                <div key={key} className="mb-4">
+                  <div className="mb-2 font-bold text-black">{selectedDate}</div>
+                  <div className="flex flex-wrap gap-1">
+                    {selectedDateAndTime[key]?.map((time) => {
+                      const bookingURL = `${eventType.bookerUrl}/${
+                        eventType.teamId !== null ? "team/" : ""
+                      }${username}/${
+                        eventType.slug
+                      }?duration=${selectedDuration}&date=${key}&month=${month}&slot=${time}&cal.tz=${timezone}`;
+
+                      return (
+                        <a
+                          key={time}
+                          href={bookingURL}
+                          className="inline-block rounded border border-gray-800 px-2 py-1 text-xs font-normal text-gray-800 no-underline">
+                          {dayjs.utc(time).tz(timezone).format(timeFormat)}
+                        </a>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+
+        <div className="mt-4">
+          <a
+            href={`${eventType.bookerUrl}/${calLink}?cal.tz=${timezone}`}
+            className="cursor-pointer text-black no-underline">
+            {t("see_all_available_times")}
+          </a>
+        </div>
+
+        <div className="mt-4 border-t border-gray-300 pt-4 text-center text-xs text-gray-500">
+          <span>{t("powered_by")} </span>
+          <span className="font-bold text-black">{APP_NAME}</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Code display component for the dialog
 const CodeDisplay = forwardRef<HTMLTextAreaElement, { code: string; language: string; label: string }>(
   ({ code, language, label }, ref) => (
@@ -414,7 +735,7 @@ const CodeModalContent = ({
   );
 };
 
-// Enhanced Preview Component (unchanged)
+// Enhanced Preview Component
 const EmbedPreview = ({
   embedType,
   previewState,
@@ -504,39 +825,6 @@ const EmbedPreview = ({
     }
   }, [embedType, previewState, iframeLoaded, previewInstruction, inlineEmbedDimensionUpdate]);
 
-  if (embedType === "email") {
-    return (
-      <div className="bg-primary w-full rounded-md border p-6">
-        <div className="space-y-4">
-          <h5 className="font-semibold">Meeting: 30min call</h5>
-          <p className="text-sm text-gray-600">Duration: 30 mins</p>
-          <p className="text-sm text-gray-600">Timezone: Your local timezone</p>
-          <div className="space-y-2">
-            <p className="text-sm font-medium">Friday, January 24, 2025</p>
-            <div className="flex gap-2">
-              {["9:00 AM", "10:00 AM", "11:00 AM"].map((time) => (
-                <a
-                  key={time}
-                  href="#"
-                  className="rounded px-4 py-2 text-sm font-medium"
-                  style={{
-                    backgroundColor: previewState.floatingPopup.buttonColor || "#007ee5",
-                    color: previewState.floatingPopup.buttonTextColor || "#ffffff",
-                    textDecoration: "none",
-                  }}>
-                  {time}
-                </a>
-              ))}
-            </div>
-          </div>
-          <div className="border-t pt-4">
-            <p className="text-xs text-gray-500">Powered by Cal ID</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   const iframeSrc = `${EMBED_PREVIEW_HTML_URL}?embedType=${embedType}&calLink=${calLink}&embedLibUrl=${embedLibUrl}&bookerUrl=${bookerUrl}`;
 
   return (
@@ -572,10 +860,26 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
     darkBrandColor: user?.darkBrandColor || DEFAULT_DARK_BRAND_COLOR,
   };
 
+  // Email-specific state and data
+  const [selectedDuration, setSelectedDuration] = useState<number | undefined>(undefined);
+  const emailContentRef = useRef<HTMLDivElement>(null);
+  const [month, selectedDatesAndTimes] = useBookerStore(
+    (state) => [state.month, state.selectedDatesAndTimes],
+    shallow
+  );
+
+  // Get event type data for email embed
+  const { data: eventTypeData } = trpc.viewer.eventTypes.get.useQuery(
+    { id: eventId || -1 },
+    { enabled: !!eventId && selectedEmbedType === "email", refetchOnWindowFocus: false }
+  );
+
+  const { data: userSettings } = trpc.viewer.me.get.useQuery();
+
   const [previewState, setPreviewState] = useState<PreviewState>({
     inline: {
       width: "100%",
-      height: "600px",
+      height: "100%",
       config: {
         layout: "month_view",
       },
@@ -613,6 +917,23 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
       ...prev,
       palette: { ...prev.palette, ...updates },
     }));
+  };
+
+  // Copy email text function
+  const handleCopyEmailText = () => {
+    const contentElement = emailContentRef.current;
+    if (contentElement !== null) {
+      const range = document.createRange();
+      range.selectNode(contentElement);
+      const selection = window.getSelection();
+      if (selection) {
+        selection.removeAllRanges();
+        selection.addRange(range);
+        document.execCommand("copy");
+        selection.removeAllRanges();
+      }
+      showToast("Content copied", "success");
+    }
   };
 
   const themeOptions = [
@@ -660,134 +981,149 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
           {/* Left Side - Configuration */}
           <div className="w-1/4">
             <div className="space-y-6">
-              {selectedEmbedType !== "email" && (
+              {selectedEmbedType === "email" && eventTypeData?.eventType ? (
+                <EmailEmbed
+                  eventType={{
+                    ...eventTypeData.eventType,
+                    seatsShowAvailabilityCount: eventTypeData.eventType.seatsShowAvailabilityCount ?? false,
+                  }}
+                  username={data?.user?.username || ""}
+                  userSettingsTimezone={userSettings?.timeZone}
+                  orgSlug={data?.user?.org?.slug}
+                  isTeamEvent={!!eventTypeData.eventType.teamId}
+                  selectedDuration={selectedDuration}
+                  setSelectedDuration={setSelectedDuration}
+                />
+              ) : selectedEmbedType !== "email" ? (
                 <>
                   {/* Embed Customization */}
-                  <Collapsible open={isEmbedCustomizationOpen} onOpenChange={setIsEmbedCustomizationOpen}>
-                    <div
-                      className="flex cursor-pointer items-center space-x-2"
-                      onClick={() => setIsEmbedCustomizationOpen(!isEmbedCustomizationOpen)}>
-                      <Icon
-                        name={isEmbedCustomizationOpen ? "chevron-down" : "chevron-right"}
-                        className="h-4 w-4"
-                      />
-                      <Label className="text-sm font-medium">Embed Customization</Label>
-                    </div>
-                    <CollapsibleContent className="mt-4 space-y-4">
-                      {/* Window Sizing for Inline */}
-                      {selectedEmbedType === "inline" && (
-                        <div>
-                          <Label className="mb-2 block text-sm font-medium">Window sizing</Label>
-                          <div className="flex gap-2">
-                            <TextField
-                              value={previewState.inline.width}
-                              onChange={(e) =>
-                                updatePreviewState({
-                                  inline: { ...previewState.inline, width: e.target.value },
-                                })
-                              }
-                              placeholder="100%"
-                              addOnLeading="W"
-                              className="flex-1"
-                            />
-                            <TextField
-                              value={previewState.inline.height}
-                              onChange={(e) =>
-                                updatePreviewState({
-                                  inline: { ...previewState.inline, height: e.target.value },
-                                })
-                              }
-                              placeholder="100%"
-                              addOnLeading="H"
-                              className="flex-1"
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Floating Popup Settings */}
-                      {selectedEmbedType === "floating-popup" && (
-                        <div className="space-y-4">
+                  {selectedEmbedType !== "element-click" && (
+                    <Collapsible open={isEmbedCustomizationOpen} onOpenChange={setIsEmbedCustomizationOpen}>
+                      <div
+                        className="flex cursor-pointer items-center space-x-2"
+                        onClick={() => setIsEmbedCustomizationOpen(!isEmbedCustomizationOpen)}>
+                        <Icon
+                          name={isEmbedCustomizationOpen ? "chevron-down" : "chevron-right"}
+                          className="h-4 w-4"
+                        />
+                        <Label className="text-sm font-medium">Embed Customization</Label>
+                      </div>
+                      <CollapsibleContent className="mt-4 space-y-4">
+                        {/* Window Sizing for Inline */}
+                        {selectedEmbedType === "inline" && (
                           <div>
-                            <Label className="mb-2 block text-sm font-medium">Button text</Label>
-                            <TextField
-                              value={previewState.floatingPopup.buttonText || "Book my Cal"}
-                              onChange={(e) =>
-                                updatePreviewState({
-                                  floatingPopup: {
-                                    ...previewState.floatingPopup,
-                                    buttonText: e.target.value,
-                                  },
-                                })
-                              }
-                            />
+                            <Label className="mb-2 block text-sm font-medium">Window sizing</Label>
+                            <div className="flex gap-2">
+                              <TextField
+                                value={previewState.inline.width}
+                                onChange={(e) =>
+                                  updatePreviewState({
+                                    inline: { ...previewState.inline, width: e.target.value },
+                                  })
+                                }
+                                placeholder="100%"
+                                addOnLeading="W"
+                                className="flex-1"
+                              />
+                              <TextField
+                                value={previewState.inline.height}
+                                onChange={(e) =>
+                                  updatePreviewState({
+                                    inline: { ...previewState.inline, height: e.target.value },
+                                  })
+                                }
+                                placeholder="100%"
+                                addOnLeading="H"
+                                className="flex-1"
+                              />
+                            </div>
                           </div>
+                        )}
 
-                          <div className="flex items-center space-x-2">
-                            <Switch
-                              checked={!previewState.floatingPopup.hideButtonIcon}
-                              onCheckedChange={(checked) =>
-                                updatePreviewState({
-                                  floatingPopup: {
-                                    ...previewState.floatingPopup,
-                                    hideButtonIcon: !checked,
-                                  },
-                                })
-                              }
-                            />
-                            <Label className="text-sm">Display calendar icon</Label>
-                          </div>
-
-                          <div>
-                            <Label className="mb-2 block text-sm font-medium">Position of button</Label>
-                            <CustomSelect
-                              value={previewState.floatingPopup.buttonPosition || "bottom-right"}
-                              onValueChange={(value) =>
-                                updatePreviewState({
-                                  floatingPopup: {
-                                    ...previewState.floatingPopup,
-                                    buttonPosition: value as "bottom-right" | "bottom-left",
-                                  },
-                                })
-                              }
-                              options={positionOptions}
-                            />
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4">
+                        {/* Floating Popup Settings */}
+                        {selectedEmbedType === "floating-popup" && (
+                          <div className="space-y-4">
                             <div>
-                              <Label className="mb-2 block text-sm font-medium">Button color</Label>
-                              <ColorPicker
-                                defaultValue={previewState.floatingPopup.buttonColor || "#000000"}
-                                onChange={(color) =>
+                              <Label className="mb-2 block text-sm font-medium">Button text</Label>
+                              <TextField
+                                value={previewState.floatingPopup.buttonText || "Book my Cal"}
+                                onChange={(e) =>
                                   updatePreviewState({
                                     floatingPopup: {
                                       ...previewState.floatingPopup,
-                                      buttonColor: color,
+                                      buttonText: e.target.value,
                                     },
                                   })
                                 }
                               />
                             </div>
-                            <div>
-                              <Label className="mb-2 block text-sm font-medium">Text color</Label>
-                              <ColorPicker
-                                defaultValue={previewState.floatingPopup.buttonTextColor || "#ffffff"}
-                                onChange={(color) =>
+
+                            <div className="flex items-center space-x-2">
+                              <Switch
+                                checked={!previewState.floatingPopup.hideButtonIcon}
+                                onCheckedChange={(checked) =>
                                   updatePreviewState({
                                     floatingPopup: {
                                       ...previewState.floatingPopup,
-                                      buttonTextColor: color,
+                                      hideButtonIcon: !checked,
                                     },
                                   })
                                 }
                               />
+                              <Label className="text-sm">Display calendar icon</Label>
+                            </div>
+
+                            <div>
+                              <Label className="mb-2 block text-sm font-medium">Position of button</Label>
+                              <CustomSelect
+                                value={previewState.floatingPopup.buttonPosition || "bottom-right"}
+                                onValueChange={(value) =>
+                                  updatePreviewState({
+                                    floatingPopup: {
+                                      ...previewState.floatingPopup,
+                                      buttonPosition: value as "bottom-right" | "bottom-left",
+                                    },
+                                  })
+                                }
+                                options={positionOptions}
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label className="mb-2 block text-sm font-medium">Button color</Label>
+                                <ColorPicker
+                                  defaultValue={previewState.floatingPopup.buttonColor || "#000000"}
+                                  onChange={(color) =>
+                                    updatePreviewState({
+                                      floatingPopup: {
+                                        ...previewState.floatingPopup,
+                                        buttonColor: color,
+                                      },
+                                    })
+                                  }
+                                />
+                              </div>
+                              <div>
+                                <Label className="mb-2 block text-sm font-medium">Text color</Label>
+                                <ColorPicker
+                                  defaultValue={previewState.floatingPopup.buttonTextColor || "#ffffff"}
+                                  onChange={(color) =>
+                                    updatePreviewState({
+                                      floatingPopup: {
+                                        ...previewState.floatingPopup,
+                                        buttonTextColor: color,
+                                      },
+                                    })
+                                  }
+                                />
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      )}
-                    </CollapsibleContent>
-                  </Collapsible>
+                        )}
+                      </CollapsibleContent>
+                    </Collapsible>
+                  )}
 
                   {/* Booking Customization */}
                   <Collapsible open={isBookingCustomizationOpen} onOpenChange={setIsBookingCustomizationOpen}>
@@ -850,67 +1186,7 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
                     </CollapsibleContent>
                   </Collapsible>
                 </>
-              )}
-
-              {/* Email-specific settings */}
-              {selectedEmbedType === "email" && (
-                <div className="bg-default space-y-4 rounded-md">
-                  <div>
-                    <Label className="mb-2 block text-sm font-medium">Button text</Label>
-                    <TextField
-                      value={previewState.floatingPopup.buttonText || "Book my Cal"}
-                      onChange={(e) =>
-                        updatePreviewState({
-                          floatingPopup: {
-                            ...previewState.floatingPopup,
-                            buttonText: e.target.value,
-                          },
-                        })
-                      }
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="mb-2 block text-sm font-medium">Button color</Label>
-                      <ColorPicker
-                        defaultValue={previewState.floatingPopup.buttonColor || "#000000"}
-                        onChange={(color) =>
-                          updatePreviewState({
-                            floatingPopup: {
-                              ...previewState.floatingPopup,
-                              buttonColor: color,
-                            },
-                          })
-                        }
-                      />
-                    </div>
-                    <div>
-                      <Label className="mb-2 block text-sm font-medium">Text color</Label>
-                      <ColorPicker
-                        defaultValue={previewState.floatingPopup.buttonTextColor || "#ffffff"}
-                        onChange={(color) =>
-                          updatePreviewState({
-                            floatingPopup: {
-                              ...previewState.floatingPopup,
-                              buttonTextColor: color,
-                            },
-                          })
-                        }
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label className="mb-2 block text-sm font-medium">Theme</Label>
-                    <CustomSelect
-                      value={previewState.theme}
-                      onValueChange={(value) => updatePreviewState({ theme: value as EmbedTheme })}
-                      options={themeOptions}
-                    />
-                  </div>
-                </div>
-              )}
+              ) : null}
             </div>
           </div>
 
@@ -918,24 +1194,54 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
           <div className="w-3/4">
             <div className="space-y-4 p-2">
               {/* Preview */}
-              <EmbedPreview
-                embedType={selectedEmbedType}
-                previewState={previewState}
-                calLink={calLink}
-                bookerUrl={bookerUrl}
-              />
+              {selectedEmbedType === "email" && eventTypeData?.eventType ? (
+                <EmailEmbedPreview
+                  eventType={{
+                    ...eventTypeData.eventType,
+                    seatsShowAvailabilityCount: eventTypeData.eventType.seatsShowAvailabilityCount ?? false,
+                  }}
+                  emailContentRef={emailContentRef}
+                  username={data?.user?.username ?? undefined}
+                  userSettingsTimezone={userSettings?.timeZone}
+                  month={month as string}
+                  selectedDateAndTime={
+                    selectedDatesAndTimes
+                      ? selectedDatesAndTimes[eventTypeData.eventType.slug as string] || {}
+                      : {}
+                  }
+                  calLink={calLink}
+                  selectedDuration={selectedDuration}
+                />
+              ) : (
+                <EmbedPreview
+                  embedType={selectedEmbedType}
+                  previewState={previewState}
+                  calLink={calLink}
+                  bookerUrl={bookerUrl}
+                />
+              )}
 
               {/* Get Code Button */}
               <div className="text-center">
-                <h4 className="mb-1 text-sm font-medium">Ready to embed?</h4>
-                <p className="mb-3 text-xs text-gray-600">Get the code to add to your website</p>
+                {selectedEmbedType !== "email" && (
+                  <>
+                    <h4 className="mb-1 text-sm font-medium">Ready to embed?</h4>
+                    <p className="mb-3 text-xs text-gray-600">Get the code to add to your website</p>
+                  </>
+                )}
                 <Button
                   StartIcon="copy"
-                  onClick={() => setShowCodeModal(true)}
+                  onClick={() => {
+                    if (selectedEmbedType === "email") {
+                      handleCopyEmailText();
+                    } else {
+                      setShowCodeModal(true);
+                    }
+                  }}
                   className="flex w-full justify-center"
                   color="primary"
                   size="lg">
-                  Get Code
+                  {selectedEmbedType === "email" ? "Copy Email Content" : "Get Code"}
                 </Button>
               </div>
             </div>
