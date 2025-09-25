@@ -13,6 +13,7 @@ import {
 } from "../../domain/types/permission-registry";
 
 export class PermissionRepository implements IPermissionRepository {
+  private readonly PBAC_FEATURE_FLAG = "pbac" as const;
   private client: PrismaClientWithExtensions;
 
   constructor(client: PrismaClientWithExtensions = db) {
@@ -270,11 +271,11 @@ export class PermissionRepository implements IPermissionRepository {
       SELECT DISTINCT m."teamId"
       FROM "Membership" m
       INNER JOIN "Team" t ON m."teamId" = t.id
-      LEFT JOIN "Feature" f ON t.id = f."teamId" AND f."slug" = 'pbac'
+      LEFT JOIN "TeamFeatures" f ON t.id = f."teamId" AND f."featureId" = ${this.PBAC_FEATURE_FLAG}
       WHERE m."userId" = ${userId}
         AND m."accepted" = true
-        AND m."role" = ANY(${fallbackRoles})
-        AND (f.id IS NULL OR f."enabled" = false)
+        AND m."role"::text = ANY(${fallbackRoles})
+        AND f."teamId" IS NULL
     `;
 
     const [teamsWithPermission, teamsWithFallbackRoles] = await Promise.all([
