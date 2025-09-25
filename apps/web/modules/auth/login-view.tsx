@@ -170,13 +170,8 @@ export default function Login({
   );
 
   return (
-    <div className="bg-default flex min-h-screen items-center justify-center px-4 sm:px-6 lg:px-8">
+    <div className="bg-default flex flex-col min-h-screen items-center justify-center px-4 sm:px-6 lg:px-8">
       <div className="border-default w-full max-w-lg rounded-2xl border p-8 shadow-xl">
-        {/* Logo */}
-        <div className="mb-8 flex justify-center">
-          <Logo small icon />
-        </div>
-
         {/* Welcome Text */}
         <div className="mb-8 text-center">
           <h1 className="text-emphasis text-3xl font-bold">
@@ -258,7 +253,7 @@ export default function Login({
               {errorMessage && <Alert severity="error" title={errorMessage} />}
 
               {/* Sign In Button */}
-              <Button type="submit" disabled={formState.isSubmitting} className="w-full justify-center py-3">
+              <Button type="submit" disabled={formState.isSubmitting} className="w-full justify-center py-3 bg-active dark:bg-gray-200 border-active dark:border-default" data-testid="submit">
                 <span>{twoFactorRequired ? t("submit") : t("sign_in")}</span>
                 {lastUsed === "credentials" && !twoFactorRequired && <LastUsed />}
               </Button>
@@ -270,7 +265,7 @@ export default function Login({
             <div className="mt-2 text-center">
               <p className="text-subtle text-sm">
                 {t("dont_have_an_account")}{" "}
-                <Link href={`${WEBSITE_URL}/signup`} className="text-active font-medium hover:underline">
+                <Link href={`${WEBSITE_URL}/signup`} className="text-active dark:text-default font-medium hover:underline">
                   {t("sign_up")}
                 </Link>
               </p>
@@ -282,6 +277,11 @@ export default function Login({
             <div className="flex flex-col space-y-3">{!totpEmail ? TwoFactorFooter : ExternalTotpFooter}</div>
           )}
         </FormProvider>
+      </div>
+      <div className="mt-8">
+        <div className="mb-8 flex justify-center">
+          <Logo small icon />
+        </div>
       </div>
       <AddToHomescreen />
     </div>
