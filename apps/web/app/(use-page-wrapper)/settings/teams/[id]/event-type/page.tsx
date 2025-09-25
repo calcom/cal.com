@@ -1,7 +1,7 @@
 import type { PageProps as ServerPageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -22,12 +22,9 @@ export const generateMetadata = async ({ params }: { params: Promise<{ id: strin
   );
 
 const querySchema = z.object({
-  id: z
-    .number()
-    .refine((val) => !isNaN(Number(val)), {
-      message: "id must be a string that can be cast to a number",
-    })
-    .transform((val) => Number(val)),
+  id: z.coerce.number().refine((val) => !Number.isNaN(val), {
+    message: "id must be a string that can be cast to a number",
+  }),
 });
 
 const ServerPage = async ({ params }: ServerPageProps) => {
