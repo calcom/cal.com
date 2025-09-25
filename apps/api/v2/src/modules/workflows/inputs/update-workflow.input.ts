@@ -178,11 +178,12 @@ export class UpdateWorkflowDto {
       ],
     },
   })
+  @IsOptional()
   @WorkflowActivationPreValidation({
     message:
       "Workflow validation type does not work with the specified trigger type, when using FORM_SUBMITTED trigger you must provide form activation.",
   })
-  activation!: WorkflowFormActivationDto | WorkflowActivationDto;
+  activation?: WorkflowFormActivationDto | WorkflowActivationDto;
 
   @ApiPropertyOptional({
     description: "Trigger configuration for the workflow",

@@ -8,11 +8,8 @@ import {
   registerDecorator,
 } from "class-validator";
 
-import {
-  CreateWorkflowDto,
-  WORKFLOW_EVENT_TYPE_ACTIVATION,
-  WORKFLOW_FORM_ACTIVATION,
-} from "./create-workflow.input";
+import { WORKFLOW_EVENT_TYPE_ACTIVATION, WORKFLOW_FORM_ACTIVATION } from "./create-workflow.input";
+import type { CreateWorkflowDto } from "./create-workflow.input";
 
 export function WorkflowActivationPreValidation(options?: ValidationOptions) {
   return function (object: object, propertyName: string) {

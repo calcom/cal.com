@@ -182,6 +182,7 @@ export class WorkflowOutput {
       { $ref: getSchemaPath(WorkflowFormActivationDto) },
     ],
   })
+  @Expose()
   @ValidateNested()
   @Type(() => BaseWorkflowActivationDto, {
     discriminator: {
