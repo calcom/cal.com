@@ -361,13 +361,11 @@ export const Components: Record<FieldType, Component> = {
                       href={/^https?:\/\//.test(option.label || "") ? option.label : `https://${option.label}`} 
                       target="_blank" 
                       rel="noopener noreferrer" 
-                      style={{ color: '#3b82f6 !important', textDecoration: 'underline !important' }}
+                      className="text-blue-500 underline hover:text-blue-600"
                     >
                       {option.label}
                     </a>
-                  ) : (
-                    option.label || ""
-                  )}
+                  ) : option.label || ""}
                 </span>
               </label>
             );
