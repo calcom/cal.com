@@ -52,7 +52,6 @@ const ConnectedVideoStep = ({ ...props }: ConnectedAppStepProps) => {
   const { data } = useMeQuery();
   const { t } = useLocale();
 
-  console.log("Data is: ", data);
   const metadata = userMetadata.parse(data?.metadata);
 
   const hasAnyInstalledVideoApps = queryConnectedVideoApps?.items.some(

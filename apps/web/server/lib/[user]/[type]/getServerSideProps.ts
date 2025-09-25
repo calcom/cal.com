@@ -319,7 +319,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     }
   }
 
-  console.log("Event metadata: ", eventData?.metadata);
   if (eventData?.metadata?.apps?.stripe?.enabled) {
     const credential = await prisma.credential.findUnique({
       where: {
