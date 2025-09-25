@@ -396,6 +396,16 @@ export async function isTeamOwner(userId: number, teamId: number) {
   }));
 }
 
+export async function isTeamMember(userId: number, teamId: number) {
+  return !!(await prisma.membership.findFirst({
+    where: {
+      userId,
+      teamId,
+      accepted: true,
+    },
+  }));
+}
+
 export function generateNewChildEventTypeDataForDB({
   eventType,
   userId,
