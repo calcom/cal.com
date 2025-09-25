@@ -7,6 +7,7 @@ import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -39,7 +40,11 @@ const Page = async ({ params }: PageProps) => {
     const permissionService = new PermissionCheckService();
     const userId = session.user.id;
 
-    const teamIdsWithPermission = await permissionService.getTeamIdsWithPermission(userId, "booking.read");
+    const teamIdsWithPermission = await permissionService.getTeamIdsWithPermission({
+      userId,
+      permission: "booking.read",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+    });
     // We check if teamIdsWithPermission.length > 0.
     // While this may not be entirely accurate, it's acceptable
     // because we perform a thorough validation on the server side for the actual filter values.
