@@ -712,13 +712,11 @@ export const EmbedTypeCodeAndPreviewDialogContent = ({
   );
 
   embedType = embedType ?? "button"; // Default to inline if embedType is not provided
-  console.log("Given embed type: ", embedType);
 
   const embedParams = useEmbedParams(noQueryParamMode);
   const eventId = embedParams.eventId;
   const parsedEventId = parseInt(eventId ?? "", 10);
   const calLink = decodeURIComponent(embedUrl);
-  console.log("Cal link is: ", calLink);
   const { data: eventTypeData } = trpc.viewer.eventTypes.get.useQuery(
     { id: parsedEventId },
     { enabled: !Number.isNaN(parsedEventId) && embedType === "email", refetchOnWindowFocus: false }

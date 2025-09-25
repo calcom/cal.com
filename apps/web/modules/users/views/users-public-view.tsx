@@ -6,7 +6,6 @@ import { Button } from "@calid/features/ui/components/button";
 import { Icon, type IconName } from "@calid/features/ui/components/icon";
 import classNames from "classnames";
 import type { InferGetServerSidePropsType } from "next";
-import Head from "next/head";
 import Link from "next/link";
 import { useEffect } from "react";
 import type { z } from "zod";
@@ -97,21 +96,8 @@ export function UserPage(props: PageProps) {
 
   const headerUrl = (user?.metadata as z.infer<typeof userMetadataSchema> | null)?.headerUrl ?? undefined;
 
-  if (entity?.considerUnpublished) {
-    return (
-      <div className="flex h-full min-h-[calc(100dvh)] items-center justify-center">
-        <UnpublishedEntity {...entity} />
-      </div>
-    );
-  }
-
-  if (props.userNotFound) {
-    return <UserNotFound slug={props.slug ?? "User"} />;
-  }
-
   useEffect(() => {
     const defaultFavicons = document.querySelectorAll('link[rel="icon"]');
-    console.log("Removing default favicons: ", defaultFavicons);
     defaultFavicons.forEach((link) => {
       link.rel = "icon";
       // }
@@ -125,8 +111,6 @@ export function UserPage(props: PageProps) {
       link.type = "image/png";
       document.head.appendChild(link);
     }
-
-    console.log("Links are: ", defaultFavicons);
   }, [user?.faviconUrl]);
 
   // useEffect(() => {
@@ -139,9 +123,16 @@ export function UserPage(props: PageProps) {
   //     console.log("Removed default favicons");
   //   }
   // }, [user.faviconUrl]);
-
-  console.log("Fav: ", user.faviconUrl);
-
+  if (entity?.considerUnpublished) {
+    return (
+      <div className="flex h-full min-h-[calc(100dvh)] items-center justify-center">
+        <UnpublishedEntity {...entity} />
+      </div>
+    );
+  }
+  if (props.userNotFound) {
+    return <UserNotFound slug={props.slug ?? "User"} />;
+  }
   return (
     <>
       <div
@@ -249,7 +240,12 @@ export function UserPage(props: PageProps) {
                             eventType: type,
                           });
                         }}>
-                        <Button variant="button" brandColor={profile?.brandColor} darkBrandColor={profile?.darkBrandColor} type="button" size="base">
+                        <Button
+                          variant="button"
+                          brandColor={profile?.brandColor}
+                          darkBrandColor={profile?.darkBrandColor}
+                          type="button"
+                          size="base">
                           {t("schedule")}
                         </Button>
                       </Link>

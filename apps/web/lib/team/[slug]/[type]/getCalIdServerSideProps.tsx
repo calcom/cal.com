@@ -359,8 +359,6 @@ const getCalIdTeamWithEventsData = async (teamSlug: string, meetingSlug: string)
       }
     }
 
-    console.log("Event Data:", result?.eventTypes);
-
     return result;
   } catch (error) {
     throw error;
@@ -398,7 +396,7 @@ const getUsersData = async (
             theme: true,
             metadata: true,
             organization: true,
-            defaultScheduleId: true
+            defaultScheduleId: true,
           },
         },
       },

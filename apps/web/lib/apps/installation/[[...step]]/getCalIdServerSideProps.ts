@@ -96,8 +96,6 @@ const getEventTypes = async (userId: number, calIdTeamIds?: number[]) => {
 
   let eventTypeGroups: TEventTypeGroup[] | null = [];
 
-  console.log("Cal Id Teams: ", calIdTeamIds);
-
   if (calIdTeamIds && calIdTeamIds.length > 0) {
     const calIdTeams = await prisma.calIdTeam.findMany({
       where: {
