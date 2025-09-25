@@ -1,5 +1,6 @@
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { TeamService } from "@calcom/lib/server/service/teamService";
+import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -15,11 +16,22 @@ type DeleteOptions = {
 };
 
 export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
+  const team = await prisma.team.findUnique({
+    where: {
+      id: input.teamId,
+    },
+    select: {
+      isOrganization: true,
+    },
+  });
+
+  if (!team) throw new TRPCError({ code: "NOT_FOUND" });
+
   const permissionCheckService = new PermissionCheckService();
   const hasPermission = await permissionCheckService.checkPermission({
     userId: ctx.user.id,
     teamId: input.teamId,
-    permission: "team.delete",
+    permission: team.isOrganization ? "organization.delete" : "team.delete",
     fallbackRoles: [MembershipRole.OWNER],
   });
 
