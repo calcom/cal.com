@@ -362,7 +362,7 @@ export async function handleConfirmation(args: {
       }
 
       await WorkflowService.scheduleWorkflowsForNewBooking({
-        workflows: workflows,
+        workflows,
         smsReminderNumber: updatedBookings[index].smsReminderNumber,
         calendarEvent: evtOfBooking,
         hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
@@ -567,7 +567,8 @@ export async function handleConfirmation(args: {
                 },
               })) || [],
           },
-          bookerUrl: evt.bookerUrl || "",
+          bookerUrl: bookerUrl,
+          metadata: { videoCallUrl: meetingUrl },
         };
 
         await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({

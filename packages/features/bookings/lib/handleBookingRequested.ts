@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 
 import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails";
 import { getWebhookPayloadForBooking } from "@calcom/features/bookings/lib/getWebhookPayloadForBooking";
+import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -23,6 +24,9 @@ export async function handleBookingRequested(args: {
   booking: {
     smsReminderNumber: string | null;
     eventType: {
+      workflows: {
+        workflow: Workflow;
+      }[];
       owner: {
         hideBranding: boolean;
       } | null;

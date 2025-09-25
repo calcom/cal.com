@@ -382,7 +382,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     };
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
 
-    const workflows = await getAllWorkflowsFromEventType(booking.eventType);
+    const workflows = await getAllWorkflowsFromEventType(booking.eventType, user.id);
     try {
       await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
         workflows,
@@ -399,7 +399,6 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         triggers: [WorkflowTriggerEvents.BOOKING_REJECTED],
       });
     } catch (error) {
-      // Silently fail
       // Silently fail
       console.error(
         "Error while scheduling workflow reminders for BOOKING_REJECTED:",

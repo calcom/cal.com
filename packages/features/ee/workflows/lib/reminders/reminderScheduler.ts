@@ -3,6 +3,7 @@ import {
   isSMSAction,
   isSMSOrWhatsappAction,
   isWhatsappAction,
+  isCalAIAction,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { sendOrScheduleWorkflowEmails } from "@calcom/features/ee/workflows/lib/reminders/providers/emailProvider";
 import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
@@ -18,6 +19,7 @@ import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/trpc/utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import { scheduleAIPhoneCall } from "./aiPhoneCallManager";
 import { scheduleEmailReminder } from "./emailReminderManager";
 import { scheduleSMSReminder, type ScheduleTextReminderAction } from "./smsReminderManager";
 import { scheduleWhatsappReminder } from "./whatsappReminderManager";
@@ -198,6 +200,20 @@ const processWorkflowStep = async (
 
     // todo: scheduleWhatsappReminder work same as scheduleSMSReminder
     await scheduleWhatsappReminder(whatsappParams);
+  } else if (isCalAIAction(step.action)) {
+    await scheduleAIPhoneCall({
+      evt,  //todo: support formData
+      triggerEvent: workflow.trigger,
+      timeSpan: {
+        time: workflow.time,
+        timeUnit: workflow.timeUnit,
+      },
+      workflowStepId: step.id,
+      userId: workflow.userId,
+      teamId: workflow.teamId,
+      seatReferenceUid,
+      verifiedAt: step.verifiedAt,
+    });
   }
 };
 

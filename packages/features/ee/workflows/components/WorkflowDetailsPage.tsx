@@ -15,7 +15,7 @@ import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/compo
 import { Label, MultiSelectCheckbox, TextField, CheckboxField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
-import { isFormTrigger, isSMSAction } from "../lib/actionHelperFunctions";
+import { isSMSAction, isCalAIAction, isFormTrigger } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
 import { DeleteDialog } from "./DeleteDialog";
@@ -41,6 +41,7 @@ interface Props {
   isOrg: boolean;
   allOptions: Option[];
   permissions?: WorkflowPermissions;
+  onSaveWorkflow?: () => Promise<void>;
 }
 
 export default function WorkflowDetailsPage(props: Props) {
@@ -56,6 +57,11 @@ export default function WorkflowDetailsPage(props: Props) {
   } = props;
   const { t } = useLocale();
   const router = useRouter();
+
+  const hasCalAIAction = () => {
+    const steps = form.getValues("steps") || [];
+    return steps.some((step) => isCalAIAction(step.action));
+  };
 
   const permissions = _permissions || {
     canView: !teamId ? true : !props.readOnly,
@@ -125,8 +131,8 @@ export default function WorkflowDetailsPage(props: Props) {
 
   return (
     <>
-      <div className="z-1 my-8 sm:my-0 md:flex">
-        <div className="pl-2 pr-3 md:sticky md:top-6 md:h-0 md:pl-0">
+      <div className="my-8 z-1 sm:my-0 md:flex">
+        <div className="pr-3 pl-2 md:sticky md:top-6 md:h-0 md:pl-0">
           <div className="mb-5">
             <TextField
               data-testid="workflow-name"
@@ -175,32 +181,34 @@ export default function WorkflowDetailsPage(props: Props) {
               );
             }}
           />
-          <div className="mt-3">
-            <Controller
-              name="selectAll"
-              render={({ field: { value, onChange } }) => (
-                <CheckboxField
+          {!hasCalAIAction() && (
+            <div className="mt-3">
+              <Controller
+                name="selectAll"
+                render={({ field: { value, onChange } }) => (
+                  <CheckboxField
                   description={
                     isOrg
                       ? t("apply_to_all_teams")
                       : isFormTrigger(form.getValues("trigger"))
                       ? t("apply_to_all_routing_forms")
                       : t("apply_to_all_event_types")
-                  }
-                  disabled={props.readOnly}
-                  onChange={(e) => {
-                    onChange(e);
-                    if (e.target.value) {
-                      setSelectedOptions(allOptions);
-                      form.setValue("activeOn", allOptions);
-                    }
-                  }}
-                  checked={value}
-                />
-              )}
-            />
-          </div>
-          <div className="md:border-subtle my-7 border-transparent md:border-t" />
+                    }                    
+                    disabled={props.readOnly}
+                    onChange={(e) => {
+                      onChange(e);
+                      if (e.target.value) {
+                        setSelectedOptions(allOptions);
+                        form.setValue("activeOn", allOptions);
+                      }
+                    }}
+                    checked={value}
+                  />
+                )}
+              />
+            </div>
+          )}
+          <div className="my-7 border-transparent md:border-subtle md:border-t" />
           {permissions.canDelete && (
             <Button
               type="button"
@@ -211,11 +219,11 @@ export default function WorkflowDetailsPage(props: Props) {
               {t("delete_workflow")}
             </Button>
           )}
-          <div className="border-subtle my-7 border-t md:border-none" />
+          <div className="my-7 border-t border-subtle md:border-none" />
         </div>
 
         {/* Workflow Trigger Event & Steps */}
-        <div className="bg-muted border-subtle w-full rounded-md border p-3 py-5 md:ml-3 md:p-8">
+        <div className="p-3 py-5 w-full rounded-md border bg-muted border-subtle md:ml-3 md:p-8">
           {form.getValues("trigger") && (
             <div>
               <WorkflowStepContainer
@@ -223,6 +231,8 @@ export default function WorkflowDetailsPage(props: Props) {
                 user={props.user}
                 teamId={teamId}
                 readOnly={props.readOnly}
+                isOrganization={isOrg}
+                onSaveWorkflow={props.onSaveWorkflow}
               />
             </div>
           )}
@@ -239,6 +249,8 @@ export default function WorkflowDetailsPage(props: Props) {
                     setReload={setReload}
                     teamId={teamId}
                     readOnly={props.readOnly}
+                    isOrganization={isOrg}
+                    onSaveWorkflow={props.onSaveWorkflow}
                   />
                 );
               })}
@@ -246,7 +258,7 @@ export default function WorkflowDetailsPage(props: Props) {
           )}
           {!props.readOnly && (
             <>
-              <div className="my-3 flex justify-center">
+              <div className="flex justify-center my-3">
                 <Icon name="arrow-down" className="text-subtle stroke-[1.5px] text-3xl" />
               </div>
               <div className="flex justify-center">

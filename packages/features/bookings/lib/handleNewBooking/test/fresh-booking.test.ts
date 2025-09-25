@@ -2225,6 +2225,7 @@ describe("handleNewBooking", () => {
           });
 
           expectWorkflowToBeNotTriggered({ emailsToReceive: [organizer.email], emails });
+          expectWorkflowToBeTriggered({ emailsToReceive: [booker.email], emails });
 
           expectBookingRequestedEmails({
             booker,
