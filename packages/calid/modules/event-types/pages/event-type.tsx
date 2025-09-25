@@ -5,7 +5,7 @@ import { triggerToast } from "@calid/features/ui/components/toast";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter as useAppRouter } from "next/navigation";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 
 import { useEventTypeForm } from "@calcom/atoms/event-types/hooks/useEventTypeForm";
@@ -153,8 +153,34 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
 
   // For CalId, use calIdTeam data if team is not available
   const effectiveTeam = team || (eventType as any).calIdTeam;
-  const effectiveTeamMembers =
-    teamMembers?.length > 0 ? teamMembers : (eventType as any).calIdTeam?.members || [];
+  const effectiveTeamMembers = useMemo(() => {
+    const members = teamMembers?.length > 0 ? teamMembers : (eventType as any).calIdTeam?.members || [];
+    return members.map((member: any) => {
+      if (member.user) {
+        return member;
+      }
+
+      return {
+        user: {
+          id: member.id,
+          name: member.name,
+          email: member.email,
+          avatar: member.avatar,
+          avatarUrl: member.avatarUrl,
+          username: member.username,
+          locale: member.locale,
+          defaultScheduleId: member.defaultScheduleId,
+          isPlatformManaged: member.isPlatformManaged,
+          timeZone: member.timeZone,
+          nonProfileUsername: member.nonProfileUsername,
+          profile: member.profile,
+          profileId: member.profileId,
+          eventTypes: member.eventTypes,
+        },
+        membership: member.membership,
+      };
+    });
+  }, [teamMembers, eventType]);
 
   // Ensure users array exists and has at least one user
   if (!eventType.users || eventType.users.length === 0) {

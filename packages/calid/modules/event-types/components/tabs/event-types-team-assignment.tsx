@@ -583,6 +583,7 @@ export const EventTeamAssignmentTab = ({
   orgId,
   isSegmentApplicable,
 }: EventTeamAssignmentTabBaseProps) => {
+  // console.log("teamMembers", teamMembers);
   const { t } = useLocale();
 
   const schedulingTypeOptions: {

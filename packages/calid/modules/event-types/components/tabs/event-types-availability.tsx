@@ -477,15 +477,11 @@ const ScheduleSelector = memo(
     fieldName,
     options,
     isFieldDisabled,
-    getFieldIndicator: _getFieldIndicator,
-    isManagedEventType: _isManagedEventType,
+    isManagedEventType,
   }: {
     fieldName: string;
     options: AvailabilityOption[];
     isFieldDisabled: (field: string) => boolean;
-    getFieldIndicator: (
-      field: string
-    ) => { text: string; className: string; tooltip: string; icon: string } | null;
     isManagedEventType: boolean;
   }) => {
     const { t } = useLocale();
@@ -510,6 +506,11 @@ const ScheduleSelector = memo(
                     onChange(selectedValue ? parseInt(selectedValue) : null);
                     if (fieldName === "restrictionScheduleId" && selectedValue) {
                       formMethods.setValue("restrictionScheduleId", parseInt(selectedValue), {
+                        shouldDirty: true,
+                      });
+                    } else if (fieldName === "schedule") {
+                      // Ensure main schedule changes mark form as dirty
+                      formMethods.setValue("schedule", selectedValue ? parseInt(selectedValue) : null, {
                         shouldDirty: true,
                       });
                     }
@@ -553,8 +554,7 @@ const TeamEventSchedules = memo(
     useHostSchedulesForTeamEvent,
     toggleScheduleState,
     isFieldDisabled,
-    getFieldIndicator: _getFieldIndicator,
-    isManagedEventType: _isManagedEventType,
+    isManagedEventType,
     hostSchedulesQuery,
     t,
   }: {
@@ -569,9 +569,6 @@ const TeamEventSchedules = memo(
     useHostSchedulesForTeamEvent: boolean;
     toggleScheduleState: (checked: boolean) => void;
     isFieldDisabled: (field: string) => boolean;
-    getFieldIndicator: (
-      field: string
-    ) => { text: string; className: string; tooltip: string; icon: string } | null;
     isManagedEventType: boolean;
     hostSchedulesQuery: GetAllSchedulesByUserIdQueryType;
     t: TFunction;
@@ -594,7 +591,6 @@ const TeamEventSchedules = memo(
               fieldName="schedule"
               options={scheduleOptions}
               isFieldDisabled={isFieldDisabled}
-              getFieldIndicator={getFieldIndicator}
               isManagedEventType={isManagedEventType}
             />
 
@@ -676,8 +672,7 @@ const RestrictionScheduleSection = memo(
     user,
     eventType,
     isFieldDisabled,
-    getFieldIndicator: _getFieldIndicator,
-    isManagedEventType: _isManagedEventType,
+    isManagedEventType,
     t,
   }: {
     restrictScheduleForHosts: boolean;
@@ -689,9 +684,6 @@ const RestrictionScheduleSection = memo(
     user?: RouterOutputs["viewer"]["me"]["calid_get"];
     eventType: EventTypeSetup;
     isFieldDisabled: (field: string) => boolean;
-    getFieldIndicator: (
-      field: string
-    ) => { text: string; className: string; tooltip: string; icon: string } | null;
     isManagedEventType: boolean;
     t: TFunction;
   }) => (
@@ -709,7 +701,6 @@ const RestrictionScheduleSection = memo(
             fieldName="restrictionScheduleId"
             options={restrictionScheduleOptions}
             isFieldDisabled={isFieldDisabled}
-            getFieldIndicator={getFieldIndicator}
             isManagedEventType={isManagedEventType}
           />
 
@@ -755,12 +746,11 @@ export const EventAvailability = (props: EventAvailabilityProps) => {
     typeof scheduleValue === "object" && scheduleValue !== null ? scheduleValue.id : scheduleValue;
 
   // Get field permissions manager for form field permissions
-  const { isManagedEventType, isChildrenManagedEventType, isFieldDisabled, getFieldIndicator } =
-    useFieldPermissions({
-      eventType,
-      translate: t,
-      formMethods,
-    });
+  const { isManagedEventType, isChildrenManagedEventType, isFieldDisabled } = useFieldPermissions({
+    eventType,
+    translate: t,
+    formMethods,
+  });
 
   // Initialize custom hooks for state management
   const { useHostSchedulesForTeamEvent, toggleScheduleState } = useCommonScheduleState(eventType.schedule);
@@ -895,7 +885,6 @@ export const EventAvailability = (props: EventAvailabilityProps) => {
             useHostSchedulesForTeamEvent={useHostSchedulesForTeamEvent}
             toggleScheduleState={toggleScheduleState}
             isFieldDisabled={isFieldDisabled}
-            getFieldIndicator={getFieldIndicator}
             isManagedEventType={isManagedEventType}
             hostSchedulesQuery={hostSchedulesQuery}
             t={t}
@@ -915,7 +904,6 @@ export const EventAvailability = (props: EventAvailabilityProps) => {
                 user={user}
                 eventType={eventType}
                 isFieldDisabled={isFieldDisabled}
-                getFieldIndicator={getFieldIndicator}
                 isManagedEventType={isManagedEventType}
                 t={t}
               />
@@ -938,7 +926,6 @@ export const EventAvailability = (props: EventAvailabilityProps) => {
             fieldName="schedule"
             options={scheduleOptions}
             isFieldDisabled={isFieldDisabled}
-            getFieldIndicator={getFieldIndicator}
             isManagedEventType={isManagedEventType || isChildrenManagedEventType}
           />
 
@@ -951,7 +938,7 @@ export const EventAvailability = (props: EventAvailabilityProps) => {
               editAvailabilityRedirectUrl={`/availability/${scheduleQueryData?.id}`}
             />
           ) : (
-            isManagedEventType && (
+            (isManagedEventType || isChildrenManagedEventType) && (
               <p className="!mt-2 ml-1 text-sm text-gray-600">{t("members_default_schedule_description")}</p>
             )
           )}
@@ -971,7 +958,6 @@ export const EventAvailability = (props: EventAvailabilityProps) => {
               user={user}
               eventType={eventType}
               isFieldDisabled={isFieldDisabled}
-              getFieldIndicator={getFieldIndicator}
               isManagedEventType={isManagedEventType}
               t={t}
             />
