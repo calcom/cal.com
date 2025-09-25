@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { CALID_VERSION, COMPANY_NAME } from "@calcom/lib/constants";
+import {
+  CALID_VERSION,
+  COMPANY_NAME,
+  WEBSITE_PRIVACY_POLICY_URL,
+  WEBSITE_TERMS_URL,
+} from "@calcom/lib/constants";
 
 const CalIDVersion = `v.${CALID_VERSION}`;
 
@@ -15,11 +20,11 @@ export default function BottomNav() {
   return (
     <div className="text-default flex hidden pb-4 text-xs lg:block">
       <div className="flex justify-between">
-        <Link href="https://cal.id/privacy-policy" target="_blank" className="hover:underline">
+        <Link href={WEBSITE_PRIVACY_POLICY_URL} target="_blank" className="hover:underline">
           Privacy Policy
         </Link>
         •
-        <Link href="https://cal.id/terms-of-service" target="_blank" className="hover:underline">
+        <Link href={WEBSITE_TERMS_URL} target="_blank" className="hover:underline">
           Terms of service
         </Link>
       </div>
