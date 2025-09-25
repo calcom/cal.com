@@ -355,18 +355,7 @@ export const Components: Record<FieldType, Component> = {
                   value={option.value}
                   checked={value.includes(option.value)}
                 />
-                <span className="text-emphasis me-2 ms-2 text-sm">
-                  {/^https?:\/\//.test(option.label || "") || /^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.[a-zA-Z]{2,}/.test(option.label || "") ? (
-                    <a 
-                      href={/^https?:\/\//.test(option.label || "") ? option.label : `https://${option.label}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      style={{ color: '#3b82f6 !important', textDecoration: 'underline !important' }}
-                    >
-                      {option.label}
-                    </a>
-                  ) : option.label || ""}
-                </span>
+                <span className="text-emphasis me-2 ms-2 text-sm">{option.label ?? ""}</span>
               </label>
             );
           })}
