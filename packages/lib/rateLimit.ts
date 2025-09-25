@@ -5,6 +5,8 @@ import logger from "./logger";
 
 const log = logger.getSubLogger({ prefix: ["RateLimit"] });
 
+export { type RatelimitResponse };
+
 export type RateLimitHelper = {
   rateLimitingType?: "core" | "forcedSlowMode" | "common" | "api" | "ai" | "sms" | "smsMonth";
   identifier: string;

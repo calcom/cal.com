@@ -1,9 +1,6 @@
 import i18nMock from "../../../../../tests/libs/__mocks__/libServerI18n";
 import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
-import type { BookingReference, Attendee, Booking, Membership } from "@prisma/client";
-import type { Prisma } from "@prisma/client";
-import type { WebhookTriggerEvents } from "@prisma/client";
 import type Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 import { vi } from "vitest";
@@ -18,6 +15,9 @@ import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSche
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import type { BookingReference, Attendee, Booking, Membership } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
+import type { WebhookTriggerEvents } from "@calcom/prisma/client";
 import type {
   WorkflowActions,
   WorkflowTemplates,
@@ -1534,6 +1534,7 @@ export function getOrganizer({
   completedOnboarding,
   username,
   locked,
+  emailVerified,
 }: {
   name: string;
   email: string;
@@ -1551,6 +1552,7 @@ export function getOrganizer({
   completedOnboarding?: boolean;
   username?: string;
   locked?: boolean;
+  emailVerified?: Date | null;
 }) {
   username = username ?? TestData.users.example.username;
   return {
@@ -1572,7 +1574,8 @@ export function getOrganizer({
     smsLockState,
     completedOnboarding,
     locked,
-  };
+    emailVerified,
+    };
 }
 
 export function getScenarioData(
@@ -2487,7 +2490,6 @@ export const createDelegationCredential = async (orgId: number, type: "google" |
             id: orgId,
           },
         },
-        // @ts-expect-error - TODO: fix this
         serviceAccountKey: workspace.defaultServiceAccountKey,
       },
     });
@@ -2530,7 +2532,6 @@ export const createDelegationCredential = async (orgId: number, type: "google" |
             id: orgId,
           },
         },
-        // @ts-expect-error - TODO: fix this
         serviceAccountKey: workspace.defaultServiceAccountKey,
       },
     });

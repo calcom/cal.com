@@ -10,7 +10,7 @@ import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
 import slugify from "@calcom/lib/slugify";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
 import { BookingStatus, RedirectType, SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -108,7 +108,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   if (!teamMemberEmail || !crmOwnerRecordType || !crmAppSlug) {
     const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
-      "@calcom/lib/server/getTeamMemberEmailFromCrm"
+      "@calcom/features/ee/teams/lib/getTeamMemberEmailFromCrm"
     );
     const {
       email,

@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
@@ -12,18 +11,19 @@ import {
   isSingleSelectFilterValue,
 } from "@calcom/features/data-table/lib/utils";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { PrismaClient } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { MembershipRepository } from "../repository/membership";
 import { TeamRepository } from "../repository/team";
 
 export const insightsRoutingServiceOptionsSchema = z.discriminatedUnion("scope", [
   z.object({
     scope: z.literal("user"),
     userId: z.number(),
-    orgId: z.number(),
+    orgId: z.number().nullish().optional(),
   }),
   z.object({
     scope: z.literal("org"),
@@ -33,7 +33,7 @@ export const insightsRoutingServiceOptionsSchema = z.discriminatedUnion("scope",
   z.object({
     scope: z.literal("team"),
     userId: z.number(),
-    orgId: z.number(),
+    orgId: z.number().nullish().optional(),
     teamId: z.number(),
   }),
 ]);
@@ -41,8 +41,8 @@ export const insightsRoutingServiceOptionsSchema = z.discriminatedUnion("scope",
 export type InsightsRoutingServicePublicOptions = {
   scope: "user" | "org" | "team";
   userId: number;
-  orgId: number | null;
-  teamId: number | undefined;
+  orgId: number | null | undefined;
+  teamId?: number;
 };
 
 export type InsightsRoutingServiceOptions = z.infer<typeof insightsRoutingServiceOptionsSchema>;
@@ -183,14 +183,7 @@ export class InsightsRoutingBaseService {
       .reduce((acc, curr) => Prisma.sql`${acc} ${curr}`);
 
     // Single query to get all data grouped by date ranges using CTE
-    const results = await this.prisma.$queryRaw<
-      Array<{
-        dateRange: string | null;
-        totalSubmissions: bigint;
-        successfulRoutings: bigint;
-        acceptedBookings: bigint;
-      }>
-    >`
+    const query = Prisma.sql`
       WITH date_ranged_data AS (
         SELECT
           CASE ${caseStatements}
@@ -211,6 +204,15 @@ export class InsightsRoutingBaseService {
       GROUP BY "dateRange"
       ORDER BY "dateRange"
     `;
+
+    const results = await this.prisma.$queryRaw<
+      Array<{
+        dateRange: string | null;
+        totalSubmissions: bigint;
+        successfulRoutings: bigint;
+        acceptedBookings: bigint;
+      }>
+    >(query);
 
     // Create a map of results by dateRange for easy lookup
     const resultsMap = new Map(
@@ -265,16 +267,18 @@ export class InsightsRoutingBaseService {
     const orderByClause = this.buildOrderByClause(sorting);
 
     // Get total count
-    const totalCountResult = await this.prisma.$queryRaw<Array<{ count: bigint }>>`
+    const totalCountQuery = Prisma.sql`
       SELECT COUNT(*) as count
       FROM "RoutingFormResponseDenormalized" rfrd
       WHERE ${baseConditions}
     `;
 
+    const totalCountResult = await this.prisma.$queryRaw<Array<{ count: bigint }>>(totalCountQuery);
+
     const totalCount = Number(totalCountResult[0]?.count || 0);
 
     // Get paginated data with JSON aggregation for attendees and fields
-    const data = await this.prisma.$queryRaw<Array<InsightsRoutingTableItem>>`
+    const dataQuery = Prisma.sql`
       SELECT
         rfrd."id",
         rfrd."uuid",
@@ -341,6 +345,8 @@ export class InsightsRoutingBaseService {
       OFFSET ${offset}
     `;
 
+    const data = await this.prisma.$queryRaw<Array<InsightsRoutingTableItem>>(dataQuery);
+
     return {
       total: totalCount,
       data,
@@ -359,18 +365,24 @@ export class InsightsRoutingBaseService {
     }
 
     // Get total count
-    const totalResult = await this.prisma.$queryRaw<Array<{ count: bigint }>>`
+    const totalQuery = Prisma.sql`
       SELECT COUNT(*) as count
       FROM "RoutingFormResponseDenormalized" rfrd
       WHERE ${baseConditions}
     `;
 
+    const totalResult = await this.prisma.$queryRaw<Array<{ count: bigint }>>(totalQuery);
+
     // Get total without booking count
-    const totalWithoutBookingResult = await this.prisma.$queryRaw<Array<{ count: bigint }>>`
+    const totalWithoutBookingQuery = Prisma.sql`
       SELECT COUNT(*) as count
       FROM "RoutingFormResponseDenormalized" rfrd
       WHERE (${baseConditions}) AND ("bookingUid" IS NULL)
     `;
+
+    const totalWithoutBookingResult = await this.prisma.$queryRaw<Array<{ count: bigint }>>(
+      totalWithoutBookingQuery
+    );
 
     const total = Number(totalResult[0]?.count || 0);
     const totalWithoutBooking = Number(totalWithoutBookingResult[0]?.count || 0);
@@ -437,14 +449,7 @@ export class InsightsRoutingBaseService {
       : Prisma.sql`1 = 1`;
 
     // Get users who have been routed to during the period
-    const usersQuery = await this.prisma.$queryRaw<
-      Array<{
-        id: number;
-        name: string | null;
-        email: string | null;
-        avatarUrl: string | null;
-      }>
-    >`
+    const usersQuerySql = Prisma.sql`
       SELECT DISTINCT ON ("bookingUserId")
         "bookingUserId" as id,
         "bookingUserName" as name,
@@ -460,6 +465,15 @@ export class InsightsRoutingBaseService {
       ORDER BY "bookingUserId", "createdAt" DESC
       ${limit ? Prisma.sql`LIMIT ${limit}` : Prisma.empty}
     `;
+
+    const usersQuery = await this.prisma.$queryRaw<
+      Array<{
+        id: number;
+        name: string | null;
+        email: string | null;
+        avatarUrl: string | null;
+      }>
+    >(usersQuerySql);
 
     const users = usersQuery;
 
@@ -478,13 +492,7 @@ export class InsightsRoutingBaseService {
     }
 
     // Get periods with pagination
-    const periodStats = await this.prisma.$queryRaw<
-      Array<{
-        userId: number;
-        period_start: Date;
-        total: number;
-      }>
-    >`
+    const periodStatsQuery = Prisma.sql`
       WITH RECURSIVE date_range AS (
         SELECT date_trunc(${dayjsPeriod}, ${startDate}::timestamp) as date
         UNION ALL
@@ -545,13 +553,16 @@ export class InsightsRoutingBaseService {
       ORDER BY c.period_start ASC, c."userId" ASC
     `;
 
-    // Get statistics for the entire period for comparison
-    const statsQuery = await this.prisma.$queryRaw<
+    const periodStats = await this.prisma.$queryRaw<
       Array<{
         userId: number;
-        total_bookings: number;
+        period_start: Date;
+        total: number;
       }>
-    >`
+    >(periodStatsQuery);
+
+    // Get statistics for the entire period for comparison
+    const statsQuerySql = Prisma.sql`
       SELECT
         "bookingUserId" as "userId",
         COUNT(DISTINCT "bookingId")::integer as total_bookings
@@ -563,6 +574,13 @@ export class InsightsRoutingBaseService {
       GROUP BY "bookingUserId"
       ORDER BY total_bookings ASC
     `;
+
+    const statsQuery = await this.prisma.$queryRaw<
+      Array<{
+        userId: number;
+        total_bookings: number;
+      }>
+    >(statsQuerySql);
 
     // Calculate average and median
     const average =
@@ -625,7 +643,10 @@ export class InsightsRoutingBaseService {
       if (!userStatsMap.has(userId)) {
         userStatsMap.set(userId, {});
       }
-      userStatsMap.get(userId)![stat.period_start.toISOString()] = stat.total;
+      const userStat = userStatsMap.get(userId);
+      if (userStat) {
+        userStat[stat.period_start.toISOString()] = stat.total;
+      }
     });
 
     return data.users.data.map((user) => {
@@ -831,27 +852,40 @@ export class InsightsRoutingBaseService {
     options: Extract<InsightsRoutingServiceOptions, { scope: "team" }>
   ): Promise<Prisma.Sql> {
     const teamRepo = new TeamRepository(this.prisma);
-    const childTeamOfOrg = await teamRepo.findByIdAndParentId({
-      id: options.teamId,
-      parentId: options.orgId,
-      select: { id: true },
-    });
-    if (options.orgId && !childTeamOfOrg) {
-      return NOTHING_CONDITION;
+
+    if (options.orgId) {
+      // team under org
+      const childTeamOfOrg = await teamRepo.findByIdAndParentId({
+        id: options.teamId,
+        parentId: options.orgId,
+        select: { id: true },
+      });
+      if (!childTeamOfOrg) {
+        // teamId and its orgId does not match
+        return NOTHING_CONDITION;
+      }
+    } else {
+      // standalone team
+      const team = await teamRepo.findById({
+        id: options.teamId,
+      });
+      if (team?.parentId) {
+        // a team without orgId is not supposed to have parentId
+        return NOTHING_CONDITION;
+      }
     }
 
     return Prisma.sql`rfrd."formTeamId" = ${options.teamId}`;
   }
 
   private async isOwnerOrAdmin(userId: number, targetId: number): Promise<boolean> {
-    // Check if the user is an owner or admin of the organization or team
-    const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: targetId });
-    return Boolean(
-      membership &&
-        membership.accepted &&
-        membership.role &&
-        (membership.role === MembershipRole.OWNER || membership.role === MembershipRole.ADMIN)
-    );
+    const permissionCheckService = new PermissionCheckService();
+    return await permissionCheckService.checkPermission({
+      userId,
+      teamId: targetId,
+      permission: "insights.read",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+    });
   }
 
   private buildFormFieldSqlCondition(fieldId: string, filterValue: FilterValue): Prisma.Sql | null {
@@ -940,17 +974,7 @@ export class InsightsRoutingBaseService {
     const baseConditions = await this.getBaseConditions();
 
     // Get failed bookings (responses without a successful booking) grouped by form, field, and option
-    const result = await this.prisma.$queryRaw<
-      {
-        formId: string;
-        formName: string;
-        fieldId: string;
-        fieldLabel: string;
-        optionId: string;
-        optionLabel: string;
-        count: number;
-      }[]
-    >`
+    const query = Prisma.sql`
     WITH form_fields AS (
       SELECT DISTINCT
           rfrd."formId" as form_id,
@@ -996,6 +1020,18 @@ export class InsightsRoutingBaseService {
     WHERE ff.option_id IS NOT NULL
     ORDER BY count DESC
     `;
+
+    const result = await this.prisma.$queryRaw<
+      {
+        formId: string;
+        formName: string;
+        fieldId: string;
+        fieldLabel: string;
+        optionId: string;
+        optionLabel: string;
+        count: number;
+      }[]
+    >(query);
 
     // First group by form and field
     const groupedByFormAndField = result.reduce((acc, curr) => {
