@@ -90,7 +90,7 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
   }
 
   if (fieldIsCustomSystemName(field)) {
-    const systemName = { ...systemBeforeFieldName };
+    const systemName = structuredClone(systemBeforeFieldName);
     if (systemName.variantsConfig?.variants?.fullName?.fields?.[0]) {
       systemName.variantsConfig.variants.fullName.fields[0].label = field.label;
     }
@@ -110,7 +110,7 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
   }
 
   if (fieldIsCustomSystemNameSplit(field)) {
-    const systemNameSplit = { ...systemBeforeFieldNameSplit };
+    const systemNameSplit = structuredClone(systemBeforeFieldNameSplit);
 
     const firstNameField = systemNameSplit.variantsConfig?.variants?.firstAndLastName?.fields?.find(
       (field) => field.name === "firstName"

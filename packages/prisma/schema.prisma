@@ -10,13 +10,26 @@ datasource db {
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["views"]
+  output          = "./client"
+  binaryTargets   = ["native", "debian-openssl-1.1.x"]
+}
+
+generator client_for_api_v2 {
+  provider        = "prisma-client-js"
+  previewFeatures = ["views"]
+  output          = "../../apps/api/v2/client"
+  binaryTargets   = ["native", "debian-openssl-1.1.x"]
 }
 
 generator zod {
-  provider      = "zod-prisma"
-  output        = "./zod"
-  imports       = "./zod-utils"
-  relationModel = "default"
+  provider                 = "zod-prisma-types"
+  output                   = "./zod"
+  useMultipleFiles         = true
+  createInputTypes         = false
+  addIncludeType           = false
+  addSelectType            = false
+  validateWhereUniqueInput = false
+  /// createRelationValuesTypes = true
 }
 
 generator kysely {
@@ -103,16 +116,16 @@ model CalVideoSettings {
 
 model EventType {
   id                Int     @id @default(autoincrement())
-  /// @zod.min(1)
+  /// @zod.string.min(1)
   title             String
-  /// @zod.custom(imports.eventTypeSlug)
+  /// @zod.import(["import { eventTypeSlug } from '../../zod-utils'"]).custom.use(eventTypeSlug)
   slug              String
   description       String?
   interfaceLanguage String?
   position          Int     @default(0)
-  /// @zod.custom(imports.eventTypeLocations)
+  /// @zod.import(["import { eventTypeLocations } from '../../zod-utils'"]).custom.use(eventTypeLocations)
   locations         Json?
-  /// @zod.min(1)
+  /// @zod.number.min(1)
   length            Int
   offsetStart       Int     @default(0)
   hidden            Boolean @default(false)
@@ -138,13 +151,13 @@ model EventType {
   parentId                           Int?
   parent                             EventType?             @relation("managed_eventtype", fields: [parentId], references: [id], onDelete: Cascade)
   children                           EventType[]            @relation("managed_eventtype")
-  /// @zod.custom(imports.eventTypeBookingFields)
+  /// @zod.import(["import { eventTypeBookingFields } from '../../zod-utils'"]).custom.use(eventTypeBookingFields)
   bookingFields                      Json?
   timeZone                           String?
   periodType                         PeriodType             @default(UNLIMITED)
-  /// @zod.custom(imports.coerceToDate)
+  /// @zod.import(["import { coerceToDate } from '../../zod-utils'"]).custom.use(coerceToDate)
   periodStartDate                    DateTime?
-  /// @zod.custom(imports.coerceToDate)
+  /// @zod.import(["import { coerceToDate } from '../../zod-utils'"]).custom.use(coerceToDate)
   periodEndDate                      DateTime?
   periodDays                         Int?
   periodCountCalendarDays            Boolean?
@@ -157,12 +170,12 @@ model EventType {
   canSendCalVideoTranscriptionEmails Boolean                @default(true)
 
   autoTranslateDescriptionEnabled          Boolean                   @default(false)
-  /// @zod.custom(imports.recurringEventType)
+  /// @zod.import(["import { recurringEventType } from '../../zod-utils'"]).custom.use(recurringEventType)
   recurringEvent                           Json?
   disableGuests                            Boolean                   @default(false)
   hideCalendarNotes                        Boolean                   @default(false)
   hideCalendarEventDetails                 Boolean                   @default(false)
-  /// @zod.min(0)
+  /// @zod.number.min(0)
   minimumBookingNotice                     Int                       @default(120)
   beforeEventBuffer                        Int                       @default(0)
   afterEventBuffer                         Int                       @default(0)
@@ -182,15 +195,15 @@ model EventType {
   // currency is deprecated. It has now moved to metadata.apps.stripe.currency. Plan to drop this column.
   currency                                 String                    @default("usd")
   slotInterval                             Int?
-  /// @zod.custom(imports.EventTypeMetaDataSchema)
+  /// @zod.import(["import { EventTypeMetaDataSchema } from '../../zod-utils'"]).custom.use(EventTypeMetaDataSchema)
   metadata                                 Json?
-  /// @zod.custom(imports.successRedirectUrl)
+  /// @zod.import(["import { successRedirectUrl } from '../../zod-utils'"]).custom.use(successRedirectUrl)
   successRedirectUrl                       String?
   forwardParamsSuccessRedirect             Boolean?                  @default(true)
   workflows                                WorkflowsOnEventTypes[]
-  /// @zod.custom(imports.intervalLimitsType)
+  /// @zod.import(["import { intervalLimitsType } from '../../zod-utils'"]).custom.use(intervalLimitsType)
   bookingLimits                            Json?
-  /// @zod.custom(imports.intervalLimitsType)
+  /// @zod.import(["import { intervalLimitsType } from '../../zod-utils'"]).custom.use(intervalLimitsType)
   durationLimits                           Json?
   isInstantEvent                           Boolean                   @default(false)
   instantMeetingExpiryTimeOffsetInSeconds  Int                       @default(90)
@@ -200,7 +213,7 @@ model EventType {
   assignAllTeamMembers                     Boolean                   @default(false)
   // It is applicable only when assignAllTeamMembers is true and it filters out all the team members using rrSegmentQueryValue
   assignRRMembersUsingSegment              Boolean                   @default(false)
-  /// @zod.custom(imports.rrSegmentQueryValueSchema)
+  /// @zod.import(["import { rrSegmentQueryValueSchema } from '../../zod-utils'"]).custom.use(rrSegmentQueryValueSchema)
   rrSegmentQueryValue                      Json?
   useEventTypeDestinationCalendarEmail     Boolean                   @default(false)
   aiPhoneCallConfig                        AIPhoneCallConfiguration?
@@ -213,11 +226,11 @@ model EventType {
   hideOrganizerEmail                       Boolean                   @default(false)
   maxActiveBookingsPerBooker               Int?
   maxActiveBookingPerBookerOfferReschedule Boolean                   @default(false)
-  /// @zod.custom(imports.emailSchema)
+  /// @zod.import(["import { emailSchema } from '@calcom/lib/emailSchema'"]).custom.use(emailSchema)
   customReplyToEmail                       String?
   calVideoSettings                         CalVideoSettings?
 
-  /// @zod.custom(imports.eventTypeColor)
+  /// @zod.import(["import { eventTypeColor } from '../../zod-utils'"]).custom.use(eventTypeColor)
   eventTypeColor                   Json?
   rescheduleWithSameRoundRobinHost Boolean @default(false)
 
@@ -230,6 +243,9 @@ model EventType {
   hostGroups            HostGroup[]
 
   bookingRequiresAuthentication Boolean @default(false)
+
+  createdAt DateTime?
+  updatedAt DateTime? @updatedAt
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -285,7 +301,7 @@ model DestinationCalendar {
   id                               Int                   @id @default(autoincrement())
   integration                      String
   externalId                       String
-  /// @zod.custom(imports.emailSchema)
+  /// @zod.import(["import { emailSchema } from '@calcom/lib/emailSchema'"]).custom.use(emailSchema)
   primaryEmail                     String?
   user                             User?                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                           Int?                  @unique
@@ -336,7 +352,7 @@ model User {
   id                  Int                  @id @default(autoincrement())
   username            String?
   name                String?
-  /// @zod.custom(imports.emailSchema)
+  /// @zod.import(["import { emailSchema } from '@calcom/lib/emailSchema'"]).custom.use(emailSchema)
   email               String
   emailVerified       DateTime?
   password            UserPassword?
@@ -388,7 +404,7 @@ model User {
   // receive monthly digest email for teams or not
   receiveMonthlyDigestEmail Boolean? @default(true)
 
-  /// @zod.custom(imports.userMetadata)
+  /// @zod.import(["import { userMetadata } from '../../zod-utils'"]).custom.use(userMetadata)
   metadata             Json?
   verified             Boolean?                @default(false)
   role                 UserPermissionRole      @default(USER)
@@ -493,11 +509,11 @@ model Profile {
 
 model Team {
   id                     Int                     @id @default(autoincrement())
-  /// @zod.min(1)
+  /// @zod.string.min(1)
   name                   String
   // It is unique across teams and organizations. We don't have a strong reason for organization and team slug to be conflicting, could be fixed.
   // Sub-teams could have same slug across different organizations but not within the same organization.
-  /// @zod.min(1)
+  /// @zod.string.min(1)
   slug                   String?
   logoUrl                String?
   calVideoLogo           String?
@@ -512,7 +528,7 @@ model Team {
   eventTypes             EventType[]
   workflows              Workflow[]
   createdAt              DateTime                @default(now())
-  /// @zod.custom(imports.teamMetadataSchema)
+  /// @zod.import(["import { teamMetadataSchema } from '../../zod-utils'"]).custom.use(teamMetadataSchema)
   metadata               Json?
   theme                  String?
   rrResetInterval        RRResetInterval?        @default(MONTH)
@@ -561,7 +577,7 @@ model Team {
 
   features TeamFeatures[]
 
-  /// @zod.custom(imports.intervalLimitsType)
+  /// @zod.import(["import { intervalLimitsType } from '../../zod-utils'"]).custom.use(intervalLimitsType)
   bookingLimits                Json?
   includeManagedEventsInLimits Boolean                 @default(false)
   internalNotePresets          InternalNotePreset[]
@@ -616,6 +632,8 @@ model CreditExpenseLog {
   date            DateTime
   smsSid          String?
   smsSegments     Int?
+  phoneNumber     String?
+  email           String?
   callDuration    Int?
   creditFor       CreditUsageType?
   externalRef     String?          @unique
@@ -703,7 +721,7 @@ model InstantMeetingToken {
   token     String   @unique
   expires   DateTime
   teamId    Int
-  team      Team     @relation(fields: [teamId], references: [id])
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
   bookingId Int?     @unique
   booking   Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
@@ -715,9 +733,9 @@ model InstantMeetingToken {
 
 model BookingReference {
   id                         Int      @id @default(autoincrement())
-  /// @zod.min(1)
+  /// @zod.string.min(1)
   type                       String
-  /// @zod.min(1)
+  /// @zod.string.min(1)
   uid                        String
   meetingId                  String?
   thirdPartyRecurringEventId String?
@@ -772,7 +790,7 @@ model Booking {
   user                         User?                             @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                       Int?
   // User's email at the time of booking
-  /// @zod.custom(imports.emailSchema)
+  /// @zod.import(["import { emailSchema } from '@calcom/lib/emailSchema'"]).custom.use(emailSchema)
   userPrimaryEmail             String?
   references                   BookingReference[]
   eventType                    EventType?                        @relation(fields: [eventTypeId], references: [id])
@@ -780,7 +798,7 @@ model Booking {
   title                        String
   description                  String?
   customInputs                 Json?
-  /// @zod.custom(imports.bookingResponses)
+  /// @zod.import(["import { bookingResponses } from '../../zod-utils'"]).custom.use(bookingResponses)
   responses                    Json?
   startTime                    DateTime
   endTime                      DateTime
@@ -807,7 +825,7 @@ model Booking {
   workflowReminders            WorkflowReminder[]
   scheduledJobs                String[] // scheduledJobs is deprecated, please use scheduledTriggers instead
   seatsReferences              BookingSeat[]
-  /// @zod.custom(imports.bookingMetadataSchema)
+  /// @zod.import(["import { bookingMetadataSchema } from '../../zod-utils'"]).custom.use(bookingMetadataSchema)
   metadata                     Json?
   isRecorded                   Boolean                           @default(false)
   iCalUID                      String?                           @default("")
@@ -818,9 +836,9 @@ model Booking {
   noShowHost                   Boolean?                          @default(false)
   scheduledTriggers            WebhookScheduledTriggers[]
   oneTimePassword              String?                           @unique @default(uuid())
-  /// @zod.email()
+  /// @zod.import(["import { emailSchema } from '@calcom/lib/emailSchema'"]).custom.use(emailSchema)
   cancelledBy                  String?
-  /// @zod.email()
+  /// @zod.import(["import { emailSchema } from '@calcom/lib/emailSchema'"]).custom.use(emailSchema)
   rescheduledBy                String?
   // Ah, made a typo here. Should have been routedFromRoutingFormRe"s"ponse. Live with it :(
   routedFromRoutingFormReponse App_RoutingForms_FormResponse?
@@ -947,7 +965,7 @@ model EventTypeCustomInput {
   eventType   EventType                @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   label       String
   type        EventTypeCustomInputType
-  /// @zod.custom(imports.customInputOptionSchema)
+  /// @zod.import(["import { customInputOptionSchema } from '../../zod-utils'"]).custom.use(customInputOptionSchema)
   options     Json?
   required    Boolean
   placeholder String                   @default("")
@@ -1030,7 +1048,7 @@ model Webhook {
   teamId                Int?
   eventTypeId           Int?
   platformOAuthClientId String?
-  /// @zod.url()
+  /// @zod.string.url()
   subscriberUrl         String
   payloadTemplate       String?
   createdAt             DateTime                   @default(now())
@@ -1196,7 +1214,7 @@ model App_RoutingForms_Form {
   responses                App_RoutingForms_FormResponse[]
   queuedResponses          App_RoutingForms_QueuedFormResponse[]
   disabled                 Boolean                                     @default(false)
-  /// @zod.custom(imports.RoutingFormSettings)
+  /// @zod.import(["import { RoutingFormSettings } from '../../zod-utils'"]).custom.use(RoutingFormSettings)
   settings                 Json?
   incompleteBookingActions App_RoutingForms_IncompleteBookingActions[]
 
@@ -1346,6 +1364,11 @@ enum WorkflowTriggerEvents {
   RESCHEDULE_EVENT
   AFTER_HOSTS_CAL_VIDEO_NO_SHOW
   AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+  BOOKING_REJECTED
+  BOOKING_REQUESTED
+  BOOKING_PAYMENT_INITIATED
+  BOOKING_PAID
+  BOOKING_NO_SHOW_UPDATED
 }
 
 enum WorkflowActions {
@@ -1449,7 +1472,7 @@ model Deployment {
   /// This is a single row table, so we use a fixed id
   id                      Int       @id @default(1)
   logo                    String?
-  /// @zod.custom(imports.DeploymentTheme)
+  /// @zod.import(["import { DeploymentTheme } from '../../zod-utils'"]).custom.use(DeploymentTheme)
   theme                   Json?
   licenseKey              String?
   // We encrypt the signature token in the deployment table with the current calendso encryption key
@@ -1524,7 +1547,7 @@ model BookingSeat {
   booking      Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   attendeeId   Int      @unique
   attendee     Attendee @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
-  /// @zod.custom(imports.bookingSeatDataSchema)
+  /// @zod.import(["import { bookingSeatDataSchema } from '../../zod-utils'"]).custom.use(bookingSeatDataSchema)
   data         Json?
   metadata     Json?
 
@@ -1724,10 +1747,11 @@ model BookingDenormalized {
   @@index([status])
   @@index([teamId, isTeamBooking])
   @@index([userId, isTeamBooking])
+  @@index([startTime, endTime])
 }
 
 view BookingTimeStatusDenormalized {
-  id             Int           @id @unique
+  id             Int           @unique
   uid            String
   eventTypeId    Int?
   title          String
@@ -2131,7 +2155,7 @@ model DelegationCredential {
   workspacePlatform   WorkspacePlatform     @relation(fields: [workspacePlatformId], references: [id], onDelete: Cascade)
   workspacePlatformId Int
   // Provides possibility to have different service accounts for different organizations if the need arises, but normally they should be the same
-  /// @zod.custom(imports.serviceAccountKeySchema)
+  /// @zod.import(["import { serviceAccountKeySchema } from '../../zod-utils'"]).custom.use(serviceAccountKeySchema)
   serviceAccountKey   Json
   enabled             Boolean               @default(false)
   // lastEnabledAt is set when the delegation credential is enabled
@@ -2160,7 +2184,7 @@ model DomainWideDelegation {
   workspacePlatform   WorkspacePlatform     @relation(fields: [workspacePlatformId], references: [id], onDelete: Cascade)
   workspacePlatformId Int
   // Provides possibility to have different service accounts for different organizations if the need arises, but normally they should be the same
-  /// @zod.custom(imports.serviceAccountKeySchema)
+  /// @zod.import(["import { serviceAccountKeySchema } from '../../zod-utils'"]).custom.use(serviceAccountKeySchema)
   serviceAccountKey   Json
   enabled             Boolean               @default(false)
   organizationId      Int
@@ -2180,12 +2204,12 @@ model DomainWideDelegation {
 // It is for delegation credential
 model WorkspacePlatform {
   id                       Int                    @id @default(autoincrement())
-  /// @zod.min(1)
+  /// @zod.string.min(1)
   slug                     String
-  /// @zod.min(1)
+  /// @zod.string.min(1)
   name                     String
   description              String
-  /// @zod.custom(imports.serviceAccountKeySchema)
+  /// @zod.import(["import { serviceAccountKeySchema } from '../../zod-utils'"]).custom.use(serviceAccountKeySchema)
   defaultServiceAccountKey Json
   createdAt                DateTime               @default(now())
   updatedAt                DateTime               @updatedAt
@@ -2228,22 +2252,47 @@ enum WatchlistSeverity {
   CRITICAL
 }
 
+enum WatchlistAction {
+  REPORT
+  BLOCK
+}
+
 model Watchlist {
-  id          String            @id @unique @default(cuid())
-  type        WatchlistType
-  // The identifier of the Watchlisted entity (email or domain)
+  id   String        @id @unique @default(cuid())
+  type WatchlistType
+
   value       String
   description String?
+
+  organizationId Int?
+
+  action      WatchlistAction   @default(REPORT)
+  severity    WatchlistSeverity @default(LOW)
   createdAt   DateTime          @default(now())
-  createdBy   User              @relation("CreatedWatchlists", onDelete: Cascade, fields: [createdById], references: [id])
-  createdById Int
+  createdBy   User?             @relation("CreatedWatchlists", onDelete: SetNull, fields: [createdById], references: [id])
+  createdById Int?
   updatedAt   DateTime          @updatedAt
   updatedBy   User?             @relation("UpdatedWatchlists", onDelete: SetNull, fields: [updatedById], references: [id])
   updatedById Int?
-  severity    WatchlistSeverity @default(LOW)
 
-  @@unique([type, value])
-  @@index([type, value])
+  @@unique([type, value, organizationId])
+  @@index([type, value, organizationId, action])
+}
+
+model BlockedBookingLog {
+  id          String @id @default(uuid())
+  email       String
+  eventTypeId Int?
+
+  organizationId Int?
+
+  bookingData Json?
+  createdAt   DateTime @default(now())
+  watchlistId String?
+
+  @@index([organizationId, createdAt])
+  @@index([email])
+  @@index([watchlistId])
 }
 
 enum BillingPeriod {
@@ -2292,10 +2341,10 @@ model OrganizationOnboarding {
   stripeSubscriptionId     String?
   stripeSubscriptionItemId String?
 
-  /// @zod.custom(imports.orgOnboardingInvitedMembersSchema)
+  /// @zod.import(["import { orgOnboardingInvitedMembersSchema } from '../../zod-utils'"]).custom.use(orgOnboardingInvitedMembersSchema)
   invitedMembers Json @default("[]")
 
-  /// @zod.custom(imports.orgOnboardingTeamsSchema)
+  /// @zod.import(["import { orgOnboardingTeamsSchema } from '../../zod-utils'"]).custom.use(orgOnboardingTeamsSchema)
   teams Json @default("[]")
 
   // Completion status
@@ -2323,7 +2372,7 @@ model InternalNotePreset {
   id                 Int     @id @default(autoincrement())
   name               String
   cancellationReason String?
-  team               Team    @relation(fields: [teamId], references: [id])
+  team               Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId             Int
 
   createdAt           DateTime              @default(now())
