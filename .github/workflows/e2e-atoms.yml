@@ -36,6 +36,8 @@ env:
   SLOTS_CACHE_TTL: ${{ secrets.CI_SLOTS_CACHE_TTL }}
   NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
   VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+  JWT_SECRET: ${{ secrets.CI_JWT_SECRET }}
+  NODE_ENV: ${{ vars.CI_NODE_ENV }}
 
   ## atoms e2e examples app env
   ATOMS_E2E_OAUTH_CLIENT_ID: ${{ secrets.ATOMS_E2E_OAUTH_CLIENT_ID }}
