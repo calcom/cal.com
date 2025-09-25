@@ -82,7 +82,7 @@ export class TeamService {
       data: {
         identifier: `invite-link-for-teamId-${teamId}`,
         token,
-        expires: new Date(new Date().setHours(168)), // +1 week
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // +1 week
         expiresInDays: 7,
         teamId,
       },

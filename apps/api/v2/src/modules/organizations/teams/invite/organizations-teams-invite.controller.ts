@@ -9,12 +9,15 @@ import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { Controller, UseGuards, Post, Param, ParseIntPipe, Body, HttpCode, HttpStatus } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { IsOptional, IsString } from "class-validator";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
 import { TeamService } from "@calcom/platform-libraries";
 
 class CreateInviteBodyDto {
+  @IsOptional()
+  @IsString()
   token?: string;
 }
 
