@@ -1,8 +1,8 @@
-import type { AssignmentReason } from "@prisma/client";
 import Link from "next/link";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 
+import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import type { getEventLocationValue } from "@calcom/app-store/locations";
 import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
@@ -12,12 +12,12 @@ import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { MeetingSessionDetailsDialog } from "@calcom/features/ee/video/MeetingSessionDetailsDialog";
 import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
 import { formatTime } from "@calcom/lib/dayjs";
-import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
+import type { AssignmentReason } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
@@ -164,6 +164,7 @@ function BookingListItem(booking: BookingItemProps) {
         showToast(t("booking_confirmation_success"), "success");
       }
       utils.viewer.bookings.invalidate();
+      utils.viewer.me.bookingUnconfirmedCount.invalidate();
     },
     onError: () => {
       showToast(t("booking_confirmation_failed"), "error");
@@ -183,6 +184,10 @@ function BookingListItem(booking: BookingItemProps) {
   const isTabRecurring = booking.listingStatus === "recurring";
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
   const isBookingFromRoutingForm = isBookingReroutable(parsedBooking);
+
+  const userSeat = booking.seatsReferences.find((seat) => !!userEmail && seat.attendee?.email === userEmail);
+
+  const isAttendee = !!userSeat;
 
   const paymentAppData = getPaymentAppData(booking.eventType);
 
@@ -222,10 +227,7 @@ function BookingListItem(booking: BookingItemProps) {
   };
 
   const getSeatReferenceUid = () => {
-    if (!booking.seatsReferences[0]) {
-      return undefined;
-    }
-    return booking.seatsReferences[0].referenceUid;
+    return userSeat?.referenceUid;
   };
 
   const actionContext: BookingActionContext = {
@@ -249,6 +251,7 @@ function BookingListItem(booking: BookingItemProps) {
       booking.location === "integrations:daily" ||
       (typeof booking.location === "string" && booking.location.trim() === ""),
     showPendingPayment: paymentAppData.enabled && booking.payment.length && !booking.paid,
+    isAttendee,
     cardCharged,
     attendeeList,
     getSeatReferenceUid,

@@ -33,7 +33,9 @@ export type WebhooksByViewer = {
 };
 
 export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
-  return await WebhookRepository.getAllWebhooksByUserId({
+  // Use the new PBAC-aware method for fetching webhooks
+
+  return await WebhookRepository.getFilteredWebhooksForUser({
     userId: ctx.user.id,
     userRole: ctx.user.role,
   });

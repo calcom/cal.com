@@ -16,8 +16,6 @@ import type {
 import { PermissionRepository } from "../infrastructure/repositories/PermissionRepository";
 import { PermissionService } from "./permission.service";
 
-const DOGFOOD_PBAC_INTERNALLY = true;
-
 export class PermissionCheckService {
   private readonly PBAC_FEATURE_FLAG = "pbac" as const;
   private readonly logger = logger.getSubLogger({ prefix: ["PermissionCheckService"] });
@@ -73,8 +71,8 @@ export class PermissionCheckService {
         teamActions.forEach((action) => actions.add(action));
       }
 
-      // Get org-level permissions as fallback
-      if (membership?.team?.parentId && orgMembership?.customRoleId) {
+      // Get org-level permissions (works even without team membership)
+      if (orgMembership?.customRoleId) {
         const orgActions = await this.repository.getResourcePermissionsByRoleId(
           orgMembership.customRoleId,
           resource
@@ -110,41 +108,23 @@ export class PermissionCheckService {
         return false;
       }
 
-      const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
-        userId,
-        teamId,
-      });
-
-      if (!membership) return false;
-
       const isPBACEnabled = await this.featuresRepository.checkIfTeamHasFeature(
         teamId,
         this.PBAC_FEATURE_FLAG
       );
 
       if (isPBACEnabled) {
-        if (!membership.customRoleId) {
-          this.logger.info(`PBAC is enabled for ${teamId} but no custom role is set on membership relation`);
-          return false;
-        }
-
-        const hasPbacPermission = await this.hasPermission({ membershipId: membership.id }, permission);
-
-        if (DOGFOOD_PBAC_INTERNALLY && !hasPbacPermission) {
-          return this.dogfoodFallback({
-            userId,
-            teamId,
-            membershipId: membership.id,
-            permissions: [permission],
-            hasPbacPermission,
-            fallbackRoles,
-            membershipRole: membership.role,
-          });
-        }
-
-        return hasPbacPermission;
+        // Check if user has permission through team or org membership
+        return this.hasPermission({ userId, teamId }, permission);
       }
 
+      // Fallback to role-based check only if user has team membership
+      const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+        userId,
+        teamId,
+      });
+
+      if (!membership) return false;
       return this.checkFallbackRoles(membership.role, fallbackRoles);
     } catch (error) {
       this.logger.error(error);
@@ -173,41 +153,23 @@ export class PermissionCheckService {
         return false;
       }
 
-      const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
-        userId,
-        teamId,
-      });
-
-      if (!membership) return false;
-
       const isPBACEnabled = await this.featuresRepository.checkIfTeamHasFeature(
         teamId,
         this.PBAC_FEATURE_FLAG
       );
 
       if (isPBACEnabled) {
-        if (!membership.customRoleId) {
-          this.logger.info(`PBAC is enabled for ${teamId} but no custom role is set on membership relation`);
-          return false;
-        }
-
-        const hasPbacPermission = await this.hasPermissions({ membershipId: membership.id }, permissions);
-
-        if (DOGFOOD_PBAC_INTERNALLY && !hasPbacPermission) {
-          return this.dogfoodFallback({
-            userId,
-            teamId,
-            membershipId: membership.id,
-            permissions,
-            hasPbacPermission,
-            fallbackRoles,
-            membershipRole: membership.role,
-          });
-        }
-
-        return hasPbacPermission;
+        // Check if user has permissions through team or org membership
+        return this.hasPermissions({ userId, teamId }, permissions);
       }
 
+      // Fallback to role-based check only if user has team membership
+      const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+        userId,
+        teamId,
+      });
+
+      if (!membership) return false;
       return this.checkFallbackRoles(membership.role, fallbackRoles);
     } catch (error) {
       this.logger.error(error);
@@ -271,8 +233,16 @@ export class PermissionCheckService {
       membership = await this.repository.getMembershipByUserAndTeam(query.userId, query.teamId);
     }
 
+    // Get org membership either through the team membership or directly from teamId
     if (membership?.team.parentId) {
+      // User has team membership, check org through that
       orgMembership = await this.repository.getOrgMembership(membership.userId, membership.team.parentId);
+    } else if (query.userId && query.teamId) {
+      // No team membership, but check if team belongs to an org
+      const team = await this.repository.getTeamById(query.teamId);
+      if (team?.parentId) {
+        orgMembership = await this.repository.getOrgMembership(query.userId, team.parentId);
+      }
     }
 
     return { membership, orgMembership };
@@ -280,52 +250,6 @@ export class PermissionCheckService {
 
   private checkFallbackRoles(userRole: MembershipRole, allowedRoles: MembershipRole[]): boolean {
     return allowedRoles.includes(userRole);
-  }
-
-  /**
-   * Internal dogfooding fallback for PBAC permissions
-   *
-   * This method is used internally at Cal.com to help us transition to PBAC.
-   * When PBAC is enabled but a user doesn't have the necessary permission strings,
-   * we fall back to checking their legacy fallback roles to avoid breaking existing workflows.
-   *
-   * An alert is logged to Axiom when this fallback occurs so we can identify and fix
-   * missing permissions in our PBAC configuration.
-   *
-   * @private
-   * @param params - Object containing userId, teamId, membershipId, permissions, hasPbacPermission, fallbackRoles, and membershipRole
-   * @returns boolean - Whether the user has permission via fallback roles
-   */
-  private dogfoodFallback(params: {
-    userId: number;
-    teamId: number;
-    membershipId: number;
-    permissions: PermissionString[];
-    hasPbacPermission: boolean;
-    fallbackRoles: MembershipRole[];
-    membershipRole: MembershipRole;
-  }): boolean {
-    const { userId, teamId, membershipId, permissions, hasPbacPermission, fallbackRoles, membershipRole } =
-      params;
-
-    const debugInfo = {
-      userId,
-      teamId,
-      membershipId,
-      permissions,
-      hasPbacPermission,
-      fallbackRoles,
-    };
-
-    this.logger.warn(
-      `PBAC INTERNAL - Failed but user doesnt have permission string to carry out this action. Falling back to fallback roles. \n JSON${JSON.stringify(
-        debugInfo,
-        null,
-        2
-      )}`
-    );
-
-    return this.checkFallbackRoles(membershipRole, fallbackRoles);
   }
 
   /**

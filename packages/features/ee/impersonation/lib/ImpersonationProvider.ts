@@ -1,13 +1,14 @@
-import type { User } from "@prisma/client";
 import type { Session } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { z } from "zod";
 
 import { ensureOrganizationIsReviewed } from "@calcom/ee/organizations/lib/ensureOrganizationIsReviewed";
+import { getOrgFullOrigin, subdomainSuffix } from "@calcom/ee/organizations/lib/orgDomains";
 import { getSession } from "@calcom/features/auth/lib/getSession";
 import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
+import type { User } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import type { Membership } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -53,6 +54,8 @@ const auditAndReturnNextUser = async (
     },
   });
 
+  const profileOrg = impersonatedUser.profile?.organization;
+
   const obj = {
     id: impersonatedUser.id,
     username: impersonatedUser.username,
@@ -63,6 +66,18 @@ const auditAndReturnNextUser = async (
     organizationId: impersonatedUser.organizationId,
     locale: impersonatedUser.locale,
     profile: impersonatedUser.profile,
+    // Add org object if the user belongs to an organization
+    ...(profileOrg && {
+      org: {
+        id: profileOrg.id,
+        name: profileOrg.name,
+        slug: profileOrg.slug || "",
+        logoUrl: profileOrg.logoUrl,
+        fullDomain: getOrgFullOrigin(profileOrg.slug || ""),
+        domainSuffix: subdomainSuffix(),
+        role: profileOrg.members?.[0]?.role || MembershipRole.MEMBER,
+      },
+    }),
   };
 
   if (!isReturningToSelf) {

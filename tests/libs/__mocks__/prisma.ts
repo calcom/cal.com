@@ -1,13 +1,16 @@
-import { PrismockClient } from "prismock";
+import { createPrismock } from "prismock";
 import { beforeEach, vi } from "vitest";
 
 import logger from "@calcom/lib/logger";
+import { Prisma as PrismaType } from "@calcom/prisma/client";
 import * as selects from "@calcom/prisma/selects";
 
+vi.stubEnv("DATABASE_URL", "postgresql://user:password@localhost:5432/testdb");
+
 vi.mock("@calcom/prisma", () => ({
-  default: prisma,
-  prisma,
-  readonlyPrisma: prisma,
+  default: prismaMock,
+  prisma: prismaMock,
+  readonlyPrisma: prismaMock,
   ...selects,
 }));
 
@@ -27,6 +30,11 @@ const handlePrismockBugs = () => {
   };
 };
 
+const PrismockClientConstructor = createPrismock(PrismaType);
+const prismock = new PrismockClientConstructor();
+
+const prismaMock = prismock;
+
 beforeEach(() => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -34,7 +42,4 @@ beforeEach(() => {
   handlePrismockBugs();
 });
 
-const prismock = new PrismockClient();
-
-const prisma = prismock;
-export default prisma;
+export default prismaMock;

@@ -57,14 +57,14 @@ import {
   getBookingForReschedule,
   ErrorCode,
 } from "@calcom/platform-libraries";
+import { CreationSource } from "@calcom/platform-libraries";
 import {
   GetBookingsInput_2024_04_15,
   CancelBookingInput_2024_04_15,
   Status_2024_04_15,
 } from "@calcom/platform-types";
-import { ApiResponse } from "@calcom/platform-types";
-import { PrismaClient } from "@calcom/prisma";
-import { CreationSource } from "@calcom/prisma/enums";
+import type { ApiResponse } from "@calcom/platform-types";
+import type { PrismaClient } from "@calcom/prisma";
 
 type BookingRequest = Request & {
   userId?: number;
