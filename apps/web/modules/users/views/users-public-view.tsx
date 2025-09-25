@@ -110,25 +110,40 @@ export function UserPage(props: PageProps) {
   }
 
   useEffect(() => {
-    if (user.faviconUrl) {
-      const defaultFavicons = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
-
-      console.log("Removing default favicons: ", defaultFavicons);
-      defaultFavicons.forEach((link) => link.parentNode?.removeChild(link));
-
-      console.log("Removed default favicons");
+    const defaultFavicons = document.querySelectorAll('link[rel="icon"]');
+    console.log("Removing default favicons: ", defaultFavicons);
+    defaultFavicons.forEach((link) => {
+      link.rel = "icon";
+      // }
+      link.href = user?.faviconUrl;
+      link.type = "image/png";
+    });
+    if (defaultFavicons.length === 0) {
+      const link: HTMLLinkElement = document.createElement("link");
+      link.rel = "icon";
+      link.href = user?.faviconUrl ?? "/favicon.ico";
+      link.type = "image/png";
+      document.head.appendChild(link);
     }
-  }, [user.faviconUrl]);
+
+    console.log("Links are: ", defaultFavicons);
+  }, [user?.faviconUrl]);
+
+  // useEffect(() => {
+  //   if (user.faviconUrl) {
+  //     const defaultFavicons = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
+
+  //     console.log("Removing default favicons: ", defaultFavicons);
+  //     defaultFavicons.forEach((link) => link.parentNode?.removeChild(link));
+
+  //     console.log("Removed default favicons");
+  //   }
+  // }, [user.faviconUrl]);
 
   console.log("Fav: ", user.faviconUrl);
 
   return (
     <>
-      {user.faviconUrl && (
-        <Head>
-          <link rel="icon" href={user.faviconUrl} type="image/x-icon" />
-        </Head>
-      )}
       <div
         className={classNames(
           shouldAlignCentrally ? "mx-auto" : "",
