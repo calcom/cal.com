@@ -95,7 +95,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                 {descriptionAsSafeHtml ? (
                   <span
                     className={classNames(
-                      "text-default ml-2 text-sm",
+                      "text-default ml-2 text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600",
                       !label && "font-medium",
                       rest.descriptionClassName
                     )}
@@ -107,35 +107,11 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                 ) : (
                   <span
                     className={classNames(
-                      "ml-2 text-sm",
+                      "text-default ml-2 text-sm",
                       !label && "font-medium",
                       rest.descriptionClassName
-                    )}
-                    style={{ color: 'var(--cal-text)' }}>
-                    {typeof description === 'string' && (description.indexOf('http') !== -1 || /[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.[a-zA-Z]{2,}/.test(description)) ? (
-                      description.split(/(\s+)/).map((part, index) => {
-                        const urlMatch = part.match(/^https?:\/\/.+/);
-                        const domainMatch = !urlMatch && part.match(/^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.[a-zA-Z]{2,}$/);
-                        
-                        if (urlMatch || domainMatch) {
-                          return (
-                            <a
-                              key={index}
-                              href={urlMatch ? part : `https://${part}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{ 
-                                color: '#3b82f6 !important', 
-                                textDecoration: 'underline !important'
-                              }}
-                            >
-                              {part}
-                            </a>
-                          );
-                        }
-                        return part;
-                      })
-                    ) : description}}
+                    )}>
+                    {description}
                   </span>
                 )}
               </>
