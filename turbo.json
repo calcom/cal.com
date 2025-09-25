@@ -1,6 +1,7 @@
 {
   "$schema": "https://turborepo.org/schema.json",
   "globalDependencies": ["yarn.lock"],
+  "ui": "tui",
   "globalEnv": [
     "ALLOWED_HOSTNAMES",
     "ANALYZE",
@@ -284,6 +285,9 @@
     "X_CAL_SECRET_KEY",
     "NEXT_PUBLIC_CALCOM_API_URL",
     "_CAL_INTERNAL_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS"
+    "_CAL_INTERNAL_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS",
+    "ENTERPRISE_SLUGS",
+    "PLATFORM_ENTERPRISE_SLUGS"
   ],
   "tasks": {
     "@calcom/web#copy-app-store-static": {
@@ -452,13 +456,12 @@
       "cache": false
     },
     "lint": {
-      "cache": false
+      "dependsOn": ["^lint"]
     },
     "lint:fix": {
       "cache": false
     },
     "lint:report": {
-      "cache": false,
       "outputs": ["lint-results"]
     },
     "post-install": {
