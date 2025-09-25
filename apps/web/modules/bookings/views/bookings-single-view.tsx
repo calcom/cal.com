@@ -556,9 +556,7 @@ export default function Success(props: PageProps) {
                             <div className="font-medium">
                               {isCancelled ? t("reason") : t("reschedule_reason")}
                             </div>
-                            <div className="col-span-2 mb-6 last:mb-0">
-                              <p className="break-words">{cancellationReason}</p>
-                            </div>
+                            <div className="col-span-2 mb-6 last:mb-0">{cancellationReason}</div>
                           </>
                         )}
                         {isCancelled && bookingInfo?.cancelledBy && (
