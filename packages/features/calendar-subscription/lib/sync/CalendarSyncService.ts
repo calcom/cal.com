@@ -1,4 +1,5 @@
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
+import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import type { CalendarSubscriptionEventItem } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionPort.interface";
 import logger from "@calcom/lib/logger";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
@@ -102,6 +103,23 @@ export class CalendarSyncService {
       log.debug("Unable to sync, booking not found");
       return;
     }
+
+    /**
+     *   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     bookingData: Record<string, any>;
+     userId?: number;
+     // These used to come from headers but now we're passing them as params
+     hostname?: string;
+     forcedSlug?: string;
+   } & PlatformParams;
+     */
+    await handleNewBooking({
+      bookingData: {
+        ...booking,
+        startTime: event.start?.toISOString() ?? booking.startTime,
+        endTime: event.end?.toISOString() ?? booking.endTime,
+      },
+    });
 
     // todo handle update booking
   }
