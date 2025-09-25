@@ -15219,9 +15219,8 @@
         "properties": {
           "disabled": {
             "type": "boolean",
-            "description": "Indicates if the option is disabled",
-            "example": true,
-            "default": false
+            "description": "Only acceptable value for the `disabled` property is `true`. It is used to reset the value of the property for which previously an object containing specific settings was passed.",
+            "example": true
           }
         },
         "required": ["disabled"]
@@ -15838,7 +15837,7 @@
           "bookingRequiresAuthentication": {
             "type": "boolean",
             "default": false,
-            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
           "locations": {
             "type": "array",
@@ -17324,7 +17323,7 @@
           },
           "bookingRequiresAuthentication": {
             "type": "boolean",
-            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
           "ownerId": {
             "type": "number",
@@ -17661,7 +17660,7 @@
           "bookingRequiresAuthentication": {
             "type": "boolean",
             "default": false,
-            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
           "locations": {
             "type": "array",
@@ -19232,7 +19231,7 @@
           "bookingRequiresAuthentication": {
             "type": "boolean",
             "default": false,
-            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
           "schedulingType": {
             "type": "string",
@@ -19642,7 +19641,7 @@
           },
           "bookingRequiresAuthentication": {
             "type": "boolean",
-            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
           "teamId": {
             "type": "number"
@@ -20059,7 +20058,7 @@
           "bookingRequiresAuthentication": {
             "type": "boolean",
             "default": false,
-            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
           "hosts": {
             "type": "array",
