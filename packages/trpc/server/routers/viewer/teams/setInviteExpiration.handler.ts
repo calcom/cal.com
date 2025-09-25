@@ -24,7 +24,7 @@ export const setInviteExpirationHandler = async ({ ctx, input }: SetInviteExpira
     select: {
       teamId: true,
       team: {
-        select: { isOrganization: true, parentId: true },
+        select: { isOrganization: true },
       },
     },
   });
@@ -33,7 +33,7 @@ export const setInviteExpirationHandler = async ({ ctx, input }: SetInviteExpira
   if (!verificationToken.teamId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   const permissionCheckService = new PermissionCheckService();
-  const isOrgContext = !!(verificationToken.team?.parentId || verificationToken.team?.isOrganization);
+  const isOrgContext = !!verificationToken.team?.isOrganization;
   const permission = isOrgContext ? "organization.invite" : "team.invite";
   const hasInvitePermission = await permissionCheckService.checkPermission({
     userId: ctx.user.id,
