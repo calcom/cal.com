@@ -61,6 +61,10 @@ function getCorrectedSlotStartTime({
     return correctedSlotStartTime;
   }
 
+  if (slotStartTime.minute() % interval === 0) {
+    return slotStartTime;
+  }
+
   return slotStartTime.startOf("hour").add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute");
 }
 
