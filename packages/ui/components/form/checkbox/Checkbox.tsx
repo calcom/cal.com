@@ -107,31 +107,50 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                 ) : (
                   <span
                     className={classNames(
-                      "text-default ml-2 text-sm",
+                      "ml-2 text-sm",
                       !label && "font-medium",
                       rest.descriptionClassName
-                    )}>
-                    {typeof description === 'string' && (description.includes('http') || /[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.[a-zA-Z]{2,}/.test(description)) ? (
-                      description.split(/(\s+)/).map((part, index) => {
-                        const urlMatch = part.match(/^https?:\/\/.+/);
-                        const domainMatch = !urlMatch && part.match(/^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.[a-zA-Z]{2,}$/);
-                        
-                        if (urlMatch || domainMatch) {
-                          return (
-                            <a
-                              key={index}
-                              href={urlMatch ? part : `https://${part}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{ color: '#3b82f6 !important', textDecoration: 'underline !important' }}
-                            >
-                              {part}
-                            </a>
-                          );
-                        }
-                        return part;
-                      })
-                    ) : description}
+                    )}
+                    style={{ color: 'var(--cal-text)' }}>
+{(() => {
+                      console.log('🔍 Checkbox description:', description);
+                      const hasUrl = typeof description === 'string' && (description.indexOf('http') !== -1 || /[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.[a-zA-Z]{2,}/.test(description));
+                      console.log('🔍 Has URL detected:', hasUrl);
+                      
+                      if (hasUrl) {
+                        return description.split(/(\s+)/).map((part, index) => {
+                          const urlMatch = part.match(/^https?:\/\/.+/);
+                          const domainMatch = !urlMatch && part.match(/^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.[a-zA-Z]{2,}$/);
+                          
+                          console.log('🔍 Part:', part, 'URL match:', !!urlMatch, 'Domain match:', !!domainMatch);
+                          
+                          if (urlMatch || domainMatch) {
+                            return (
+                              <span key={index} style={{ display: 'inline-block' }}>
+                                <a
+                                  href={urlMatch ? part : `https://${part}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-500 underline bg-yellow-200 p-1 font-bold"
+                                  style={{ 
+                                    color: '#3b82f6 !important', 
+                                    textDecoration: 'underline !important',
+                                    backgroundColor: 'yellow !important',
+                                    padding: '4px !important',
+                                    fontWeight: 'bold !important',
+                                    display: 'inline-block !important'
+                                  }}
+                                >
+                                  🔗 {part}
+                                </a>
+                              </span>
+                            );
+                          }
+                          return part;
+                        });
+                      }
+                      return description;
+                    })()}
                   </span>
                 )}
               </>
