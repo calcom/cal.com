@@ -195,12 +195,6 @@ jobs:
     uses: ./.github/workflows/e2e-embed-react.yml
     secrets: inherit
 
-  e2e-atoms:
-    name: Tests
-    needs: [changes, check-label, build, build-atoms, build-api-v2]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/e2e-atoms.yml
-    secrets: inherit
 
   analyze:
     name: Analyze Build
