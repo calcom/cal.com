@@ -71,7 +71,8 @@ export const useEventTypesMutations = (
 
   // Delete mutation
   const deleteMutation = trpc.viewer.eventTypes.calid_delete.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
+      await utils.viewer.eventTypes.invalidate();
       triggerToast(t("event_type_deleted_successfully"), "success");
     },
     onMutate: async ({ id }) => {
