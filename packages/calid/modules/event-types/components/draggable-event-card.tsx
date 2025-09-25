@@ -168,7 +168,7 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
                 <div className="mb-2 flex flex-col space-y-2 sm:flex-row sm:items-center sm:gap-2 sm:space-y-0">
                   <h3 className="text-emphasis text-medium truncate font-semibold">{event.title}</h3>
                   <div className="flex-shrink-0">
-                    <Badge variant="secondary" isPublicUrl={true} className="text-xs">
+                    <Badge variant="secondary" publicUrl={cleanPublicUrl} className="text-xs">
                       <span className="max-w-[200px] truncate sm:max-w-[300px] lg:max-w-none">
                         {cleanPublicUrl}
                       </span>

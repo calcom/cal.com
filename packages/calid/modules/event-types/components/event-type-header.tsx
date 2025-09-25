@@ -54,7 +54,7 @@ export const EventTypesHeader: React.FC<EventTypesHeaderProps> = ({
 
           {/* Public URL Display - Hidden on small mobile, shown on larger screens */}
           <div className="hidden sm:block">
-            <Badge variant="secondary" isPublicUrl={true} className="rounded-md">
+            <Badge variant="secondary" publicUrl={cleanPublicUrl} className="rounded-md">
               <span className="max-w-[200px] truncate lg:max-w-none">{cleanPublicUrl}</span>
             </Badge>
           </div>
@@ -81,7 +81,7 @@ export const EventTypesHeader: React.FC<EventTypesHeaderProps> = ({
                     <Avatar
                       imageSrc={personalProfile.profile.image}
                       size="xs"
-                      alt={personalProfile.profile.name}
+                      alt={personalProfile.profile.name ?? ""}
                       className="mr-3 flex-shrink-0"
                     />
                     <span className="truncate">{personalProfile.profile.name}</span>
@@ -96,7 +96,7 @@ export const EventTypesHeader: React.FC<EventTypesHeaderProps> = ({
                       onClick={() => onNewSelection(group.teamId?.toString() || "")}
                       className="hover:bg-muted flex w-full items-center px-3 py-2 text-sm transition-colors">
                       <div className="bg-primary text-primary-foreground mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-medium">
-                        <Avatar imageSrc={group.profile.image} size="xs" alt={group.profile.name} />
+                        <Avatar imageSrc={group.profile.image} size="xs" alt={group.profile.name ?? ""} />
                       </div>
                       <span className="truncate">{group.profile.name}</span>
                     </button>
@@ -109,7 +109,7 @@ export const EventTypesHeader: React.FC<EventTypesHeaderProps> = ({
 
       {/* Public URL Display for Mobile - Shows below on small screens */}
       <div className="mt-3 sm:hidden">
-        <Badge variant="secondary" isPublicUrl={true} className="rounded-md">
+        <Badge variant="secondary" publicUrl={cleanPublicUrl} className="rounded-md">
           <span className="truncate">{cleanPublicUrl}</span>
         </Badge>
       </div>
