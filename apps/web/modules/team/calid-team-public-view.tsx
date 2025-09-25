@@ -129,7 +129,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
                       eventType: type,
                     });
                   }}>
-                  <Button variant="button" type="button" size="base">
+                  <Button variant="button" brandColor={team.brandColor} type="button" size="base">
                     {t("schedule")}
                   </Button>
                 </Link>
