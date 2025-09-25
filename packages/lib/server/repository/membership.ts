@@ -303,22 +303,13 @@ export class MembershipRepository {
     });
   }
 
-  static async findUniqueByUserIdAndTeamId({
-    userId,
-    teamId,
-    accepted,
-  }: {
-    userId: number;
-    teamId: number;
-    accepted?: boolean;
-  }) {
+  static async findUniqueByUserIdAndTeamId({ userId, teamId }: { userId: number; teamId: number }) {
     return await prisma.membership.findUnique({
       where: {
         userId_teamId: {
           userId,
           teamId,
         },
-        accepted,
       },
     });
   }
