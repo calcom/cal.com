@@ -16780,7 +16780,7 @@
           "bookingRequiresAuthentication": {
             "type": "boolean",
             "default": false,
-            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
           "locations": {
             "type": "array",
@@ -16823,22 +16823,11 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "address",
-              "link",
-              "integration",
-              "phone",
-              "attendeeAddress",
-              "attendeePhone",
-              "attendeeDefined",
-              "organizersDefaultApp"
-            ],
             "example": "address",
             "description": "only allowed value for type is `address`"
           },
           "address": {
             "type": "string",
-            "minLength": 1,
             "example": "123 Example St, City, Country"
           },
           "public": {
@@ -16856,16 +16845,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "address",
-              "link",
-              "integration",
-              "phone",
-              "attendeeAddress",
-              "attendeePhone",
-              "attendeeDefined",
-              "organizersDefaultApp"
-            ],
             "example": "link",
             "description": "only allowed value for type is `link`"
           },
@@ -16888,23 +16867,12 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "address",
-              "link",
-              "integration",
-              "phone",
-              "attendeeAddress",
-              "attendeePhone",
-              "attendeeDefined",
-              "organizersDefaultApp",
-              "conferencing",
-              "unknown"
-            ],
             "example": "integration",
             "description": "Only allowed value for type is `integration`"
           },
           "integration": {
             "type": "string",
+            "example": "cal-video",
             "enum": [
               "cal-video",
               "google-meet",
@@ -16935,8 +16903,7 @@
               "discord-video",
               "demodesk-video",
               "campfire-video"
-            ],
-            "example": "cal-video"
+            ]
           },
           "link": {
             "type": "string",
@@ -16957,16 +16924,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "address",
-              "link",
-              "integration",
-              "phone",
-              "attendeeAddress",
-              "attendeePhone",
-              "attendeeDefined",
-              "organizersDefaultApp"
-            ],
             "example": "phone",
             "description": "only allowed value for type is `phone`"
           },
@@ -16989,18 +16946,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "address",
-              "link",
-              "integration",
-              "phone",
-              "attendeeAddress",
-              "attendeePhone",
-              "attendeeDefined",
-              "organizersDefaultApp",
-              "conferencing",
-              "unknown"
-            ],
             "example": "organizersDefaultApp",
             "description": "only allowed value for type is `organizersDefaultApp`"
           }
@@ -17014,18 +16959,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "address",
-              "link",
-              "integration",
-              "phone",
-              "attendeeAddress",
-              "attendeePhone",
-              "attendeeDefined",
-              "organizersDefaultApp",
-              "conferencing",
-              "unknown"
-            ],
             "example": "unknown",
             "description": "only allowed value for type is `unknown`"
           },
@@ -17043,22 +16976,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "phone",
-              "address",
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "multiselect",
-              "multiemail",
-              "checkbox",
-              "radio",
-              "boolean",
-              "url"
-            ],
             "example": "email",
             "description": "only allowed value for type is `email`",
             "default": "email"
@@ -17068,7 +16985,6 @@
           },
           "required": {
             "type": "object",
-            "default": true,
             "description": "Can be set to false only for organization team event types and if you also pass booking field {type: \"phone\", slug: \"attendeePhoneNumber\", required: true, hidden: false, label: \"whatever label\"} of booking field type PhoneFieldInput_2024_06_14 - this is done\n      to enable phone only bookings where during the booking attendee can provide only their phone number and not provide email, so you must pass to the email booking field {hidden: true, required: false}.\n      If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           },
           "hidden": {
@@ -17084,9 +17000,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": true,
             "description": "This property is always true because it's a default field",
-            "example": true
+            "example": true,
+            "default": true
           },
           "slug": {
             "type": "string",
@@ -17095,6 +17011,8 @@
         },
         "required": [
           "type",
+          "label",
+          "placeholder",
           "isDefault",
           "slug"
         ]
@@ -17104,22 +17022,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "phone",
-              "address",
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "multiselect",
-              "multiemail",
-              "checkbox",
-              "radio",
-              "boolean",
-              "url"
-            ],
             "example": "name",
             "description": "only allowed value for type is `name`. Used for having 1 booking field for both first name and last name.",
             "default": "name"
@@ -17136,9 +17038,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": true,
             "description": "This property is always true because it's a default field",
-            "example": true
+            "example": true,
+            "default": true
           },
           "slug": {
             "type": "string",
@@ -17150,6 +17052,8 @@
         },
         "required": [
           "type",
+          "label",
+          "placeholder",
           "isDefault",
           "slug",
           "required"
@@ -17160,9 +17064,9 @@
         "properties": {
           "isDefault": {
             "type": "object",
-            "default": true,
             "description": "This property is always true because it's a default field",
-            "example": true
+            "example": true,
+            "default": true
           },
           "slug": {
             "type": "string",
@@ -17189,7 +17093,8 @@
           "slug",
           "type",
           "required",
-          "hidden"
+          "hidden",
+          "label"
         ]
       },
       "RescheduleReasonDefaultFieldOutput_2024_06_14": {
@@ -17197,13 +17102,6 @@
         "properties": {
           "slug": {
             "type": "string",
-            "enum": [
-              "title",
-              "location",
-              "notes",
-              "guests",
-              "rescheduleReason"
-            ],
             "example": "rescheduleReason",
             "description": "only allowed value for type is `rescheduleReason`",
             "default": "rescheduleReason"
@@ -17227,9 +17125,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": true,
             "description": "This property is always true because it's a default field",
-            "example": true
+            "example": true,
+            "default": true
           },
           "type": {
             "type": "string",
@@ -17247,13 +17145,6 @@
         "properties": {
           "slug": {
             "type": "string",
-            "enum": [
-              "title",
-              "location",
-              "notes",
-              "guests",
-              "rescheduleReason"
-            ],
             "example": "title",
             "description": "only allowed value for type is `title`",
             "default": "title"
@@ -17277,9 +17168,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": true,
             "description": "This property is always true because it's a default field",
-            "example": true
+            "example": true,
+            "default": true
           },
           "type": {
             "type": "string",
@@ -17297,13 +17188,6 @@
         "properties": {
           "slug": {
             "type": "string",
-            "enum": [
-              "title",
-              "location",
-              "notes",
-              "guests",
-              "rescheduleReason"
-            ],
             "example": "notes",
             "description": "only allowed value for type is `notes`",
             "default": "notes"
@@ -17327,9 +17211,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": true,
             "description": "This property is always true because it's a default field",
-            "example": true
+            "example": true,
+            "default": true
           },
           "type": {
             "type": "string",
@@ -17347,13 +17231,6 @@
         "properties": {
           "slug": {
             "type": "string",
-            "enum": [
-              "title",
-              "location",
-              "notes",
-              "guests",
-              "rescheduleReason"
-            ],
             "example": "guests",
             "description": "only allowed value for type is `guests`",
             "default": "guests"
@@ -17377,9 +17254,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": true,
             "description": "This property is always true because it's a default field",
-            "example": true
+            "example": true,
+            "default": true
           },
           "type": {
             "type": "string",
@@ -17397,22 +17274,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "phone",
-              "address",
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "multiselect",
-              "multiemail",
-              "checkbox",
-              "radio",
-              "boolean",
-              "url"
-            ],
             "example": "address",
             "description": "only allowed value for type is `address`"
           },
@@ -17442,9 +17303,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false,
             "description": "This property is always false because it's not default field but custom field",
-            "example": false
+            "example": false,
+            "default": false
           }
         },
         "required": [
@@ -17452,6 +17313,7 @@
           "slug",
           "label",
           "required",
+          "placeholder",
           "hidden",
           "isDefault"
         ]
@@ -17461,22 +17323,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "phone",
-              "address",
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "multiselect",
-              "multiemail",
-              "checkbox",
-              "radio",
-              "boolean",
-              "url"
-            ],
             "example": "boolean",
             "description": "only allowed value for type is `boolean`"
           },
@@ -17502,9 +17348,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false,
             "description": "This property is always false because it's not default field but custom field",
-            "example": false
+            "example": false,
+            "default": false
           }
         },
         "required": [
@@ -17521,22 +17367,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "phone",
-              "address",
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "multiselect",
-              "multiemail",
-              "checkbox",
-              "radio",
-              "boolean",
-              "url"
-            ],
             "example": "checkbox",
             "description": "only allowed value for type is `checkbox`"
           },
@@ -17572,9 +17402,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false,
             "description": "This property is always false because it's not default field but custom field",
-            "example": false
+            "example": false,
+            "default": false
           }
         },
         "required": [
@@ -17592,22 +17422,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "phone",
-              "address",
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "multiselect",
-              "multiemail",
-              "checkbox",
-              "radio",
-              "boolean",
-              "url"
-            ],
             "example": "multiemail",
             "description": "only allowed value for type is `multiemail`"
           },
@@ -17637,9 +17451,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false,
             "description": "This property is always false because it's not default field but custom field",
-            "example": false
+            "example": false,
+            "default": false
           }
         },
         "required": [
@@ -17647,6 +17461,7 @@
           "slug",
           "label",
           "required",
+          "placeholder",
           "hidden",
           "isDefault"
         ]
@@ -17656,22 +17471,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "phone",
-              "address",
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "multiselect",
-              "multiemail",
-              "checkbox",
-              "radio",
-              "boolean",
-              "url"
-            ],
             "example": "multiselect",
             "description": "only allowed value for type is `multiselect`"
           },
@@ -17707,9 +17506,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false,
             "description": "This property is always false because it's not default field but custom field",
-            "example": false
+            "example": false,
+            "default": false
           }
         },
         "required": [
@@ -17727,22 +17526,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "phone",
-              "address",
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "multiselect",
-              "multiemail",
-              "checkbox",
-              "radio",
-              "boolean",
-              "url"
-            ],
             "example": "url",
             "description": "only allowed value for type is `url`"
           },
@@ -17772,9 +17555,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false,
             "description": "This property is always false because it's not default field but custom field",
-            "example": false
+            "example": false,
+            "default": false
           }
         },
         "required": [
@@ -17782,6 +17565,7 @@
           "slug",
           "label",
           "required",
+          "placeholder",
           "hidden",
           "isDefault"
         ]
@@ -17791,22 +17575,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "phone",
-              "address",
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "multiselect",
-              "multiemail",
-              "checkbox",
-              "radio",
-              "boolean",
-              "url"
-            ],
             "example": "number",
             "description": "only allowed value for type is `number`"
           },
@@ -17836,9 +17604,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false,
             "description": "This property is always false because it's not default field but custom field",
-            "example": false
+            "example": false,
+            "default": false
           }
         },
         "required": [
@@ -17846,6 +17614,7 @@
           "slug",
           "label",
           "required",
+          "placeholder",
           "hidden",
           "isDefault"
         ]
@@ -17855,22 +17624,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "phone",
-              "address",
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "multiselect",
-              "multiemail",
-              "checkbox",
-              "radio",
-              "boolean",
-              "url"
-            ],
             "example": "phone",
             "description": "only allowed value for type is `phone`"
           },
@@ -17898,9 +17651,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false,
             "description": "This property is always false because it's not default field but custom field",
-            "example": false
+            "example": false,
+            "default": false
           }
         },
         "required": [
@@ -17908,6 +17661,7 @@
           "slug",
           "label",
           "required",
+          "placeholder",
           "hidden",
           "isDefault"
         ]
@@ -17917,22 +17671,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "phone",
-              "address",
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "multiselect",
-              "multiemail",
-              "checkbox",
-              "radio",
-              "boolean",
-              "url"
-            ],
             "example": "radio",
             "description": "only allowed value for type is `radio`"
           },
@@ -17968,9 +17706,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false,
             "description": "This property is always false because it's not default field but custom field",
-            "example": false
+            "example": false,
+            "default": false
           }
         },
         "required": [
@@ -17988,22 +17726,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "phone",
-              "address",
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "multiselect",
-              "multiemail",
-              "checkbox",
-              "radio",
-              "boolean",
-              "url"
-            ],
             "example": "select",
             "description": "only allowed value for type is `select`"
           },
@@ -18043,9 +17765,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false,
             "description": "This property is always false because it's not default field but custom field",
-            "example": false
+            "example": false,
+            "default": false
           }
         },
         "required": [
@@ -18053,6 +17775,7 @@
           "slug",
           "label",
           "required",
+          "placeholder",
           "options",
           "hidden",
           "isDefault"
@@ -18063,22 +17786,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "phone",
-              "address",
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "multiselect",
-              "multiemail",
-              "checkbox",
-              "radio",
-              "boolean",
-              "url"
-            ],
             "example": "textarea",
             "description": "only allowed value for type is `textarea`"
           },
@@ -18108,9 +17815,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false,
             "description": "This property is always false because it's not default field but custom field",
-            "example": false
+            "example": false,
+            "default": false
           }
         },
         "required": [
@@ -18118,6 +17825,7 @@
           "slug",
           "label",
           "required",
+          "placeholder",
           "hidden",
           "isDefault"
         ]
@@ -18127,22 +17835,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "phone",
-              "address",
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "multiselect",
-              "multiemail",
-              "checkbox",
-              "radio",
-              "boolean",
-              "url"
-            ],
             "example": "text",
             "description": "only allowed value for type is `text`"
           },
@@ -18172,9 +17864,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false,
             "description": "This property is always false because it's not default field but custom field",
-            "example": false
+            "example": false,
+            "default": false
           }
         },
         "required": [
@@ -18182,6 +17874,7 @@
           "slug",
           "label",
           "required",
+          "placeholder",
           "hidden",
           "isDefault"
         ]
@@ -18449,7 +18142,7 @@
           },
           "bookingRequiresAuthentication": {
             "type": "boolean",
-            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
           "ownerId": {
             "type": "number",
@@ -18808,7 +18501,7 @@
           "bookingRequiresAuthentication": {
             "type": "boolean",
             "default": false,
-            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
           "locations": {
             "type": "array",
@@ -20644,7 +20337,7 @@
           "bookingRequiresAuthentication": {
             "type": "boolean",
             "default": false,
-            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
           "schedulingType": {
             "type": "string",
@@ -20707,79 +20400,6 @@
           "schedulingType"
         ]
       },
-      "CreateTeamEventTypeOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/TeamEventTypeOutput_2024_06_14"
-              },
-              {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/TeamEventTypeOutput_2024_06_14"
-                }
-              }
-            ]
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "TeamEventTypeResponseHost": {
-        "type": "object",
-        "properties": {
-          "userId": {
-            "type": "number",
-            "description": "Which user is the host of this event"
-          },
-          "mandatory": {
-            "type": "boolean",
-            "default": false,
-            "description": "Only relevant for round robin event types. If true then the user must attend round robin event always."
-          },
-          "priority": {
-            "type": "string",
-            "default": "medium",
-            "enum": [
-              "lowest",
-              "low",
-              "medium",
-              "high",
-              "highest"
-            ]
-          },
-          "name": {
-            "type": "string",
-            "example": "John Doe"
-          },
-          "username": {
-            "type": "string",
-            "example": "john-doe"
-          },
-          "avatarUrl": {
-            "type": "string",
-            "nullable": true,
-            "example": "https://cal.com/api/avatar/d95949bc-ccb1-400f-acf6-045c51a16856.png"
-          }
-        },
-        "required": [
-          "userId",
-          "name",
-          "username"
-        ]
-      },
       "EventTypeTeam": {
         "type": "object",
         "properties": {
@@ -20812,7 +20432,15 @@
           }
         },
         "required": [
-          "id"
+          "id",
+          "slug",
+          "bannerUrl",
+          "name",
+          "logoUrl",
+          "weekStart",
+          "brandColor",
+          "darkBrandColor",
+          "theme"
         ]
       },
       "TeamEventTypeOutput_2024_06_14": {
@@ -20824,7 +20452,6 @@
           },
           "lengthInMinutes": {
             "type": "number",
-            "minimum": 1,
             "example": 60
           },
           "lengthInMinutesOptions": {
@@ -20836,8 +20463,7 @@
             "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
             "type": "array",
             "items": {
-              "type": "number",
-              "minimum": 1
+              "type": "number"
             }
           },
           "title": {
@@ -20945,23 +20571,20 @@
             "type": "boolean"
           },
           "slotInterval": {
-            "type": "number",
-            "nullable": true,
-            "example": 60
+            "type": "object",
+            "example": 60,
+            "nullable": true
           },
           "minimumBookingNotice": {
             "type": "number",
-            "minimum": 0,
             "example": 0
           },
           "beforeEventBuffer": {
             "type": "number",
-            "minimum": 0,
             "example": 0
           },
           "afterEventBuffer": {
             "type": "number",
-            "minimum": 0,
             "example": 0
           },
           "recurrence": {
@@ -20985,15 +20608,15 @@
             "type": "boolean"
           },
           "seatsPerTimeSlot": {
-            "type": "number",
+            "type": "object",
             "nullable": true
           },
           "forwardParamsSuccessRedirect": {
-            "type": "boolean",
+            "type": "object",
             "nullable": true
           },
           "successRedirectUrl": {
-            "type": "string",
+            "type": "object",
             "nullable": true
           },
           "isInstantEvent": {
@@ -21052,8 +20675,7 @@
             "$ref": "#/components/schemas/Seats_2024_06_14"
           },
           "offsetStart": {
-            "type": "number",
-            "minimum": 1
+            "type": "number"
           },
           "customName": {
             "type": "string"
@@ -21072,7 +20694,6 @@
             "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
           },
           "calVideoSettings": {
-            "nullable": true,
             "description": "Cal video settings for the event type",
             "allOf": [
               {
@@ -21085,24 +20706,24 @@
           },
           "bookingRequiresAuthentication": {
             "type": "boolean",
-            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
           "teamId": {
             "type": "number"
           },
           "ownerId": {
-            "type": "number",
+            "type": "object",
             "nullable": true
           },
           "parentEventTypeId": {
-            "type": "number",
-            "nullable": true,
-            "description": "For managed event types, parent event type is the event type that this event type is based on"
+            "type": "object",
+            "description": "For managed event types, parent event type is the event type that this event type is based on",
+            "nullable": true
           },
           "hosts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/TeamEventTypeResponseHost"
+              "type": "string"
             }
           },
           "assignAllTeamMembers": {
@@ -21138,10 +20759,42 @@
           "successRedirectUrl",
           "isInstantEvent",
           "scheduleId",
+          "hidden",
+          "bookingRequiresAuthentication",
           "teamId",
           "hosts",
           "schedulingType",
           "team"
+        ]
+      },
+      "CreateTeamEventTypeOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TeamEventTypeOutput_2024_06_14"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TeamEventTypeOutput_2024_06_14"
+                }
+              }
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "data"
         ]
       },
       "GetTeamEventTypeOutput": {
@@ -21539,7 +21192,7 @@
           "bookingRequiresAuthentication": {
             "type": "boolean",
             "default": false,
-            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
           "hosts": {
             "type": "array",
@@ -24902,34 +24555,6 @@
           "name"
         ]
       },
-      "CreateTeamOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/Output"
-              },
-              {
-                "$ref": "#/components/schemas/TeamOutputDto"
-              }
-            ],
-            "description": "Either an Output object or a TeamOutputDto."
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
       "TeamOutputDto": {
         "type": "object",
         "properties": {
@@ -24940,8 +24565,7 @@
             "type": "number"
           },
           "name": {
-            "type": "string",
-            "minLength": 1
+            "type": "string"
           },
           "slug": {
             "type": "string"
@@ -24971,8 +24595,7 @@
             "type": "boolean"
           },
           "hideBookATeamMember": {
-            "type": "boolean",
-            "default": false
+            "type": "boolean"
           },
           "metadata": {
             "type": "object",
@@ -25008,6 +24631,53 @@
           "id",
           "name",
           "isOrganization"
+        ]
+      },
+      "CreateTeamOutputData": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "paymentLink": {
+            "type": "string"
+          },
+          "pendingTeam": {
+            "$ref": "#/components/schemas/TeamOutputDto"
+          }
+        },
+        "required": [
+          "message",
+          "paymentLink",
+          "pendingTeam"
+        ]
+      },
+      "CreateTeamOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CreateTeamOutputData"
+              },
+              {
+                "$ref": "#/components/schemas/TeamOutputDto"
+              }
+            ],
+            "description": "Either an Output object or a TeamOutputDto."
+          }
+        },
+        "required": [
+          "status",
+          "data"
         ]
       },
       "GetTeamOutput": {
@@ -25237,6 +24907,25 @@
         "required": [
           "private_key",
           "client_email",
+          "client_id"
+        ]
+      },
+      "MicrosoftServiceAccountKeyInput": {
+        "type": "object",
+        "properties": {
+          "private_key": {
+            "type": "string"
+          },
+          "tenant_id": {
+            "type": "string"
+          },
+          "client_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "private_key",
+          "tenant_id",
           "client_id"
         ]
       },
@@ -26177,6 +25866,14 @@
           "data"
         ]
       },
+      "SlotsOutput_2024_09_04": {
+        "type": "object",
+        "properties": {}
+      },
+      "RangeSlotsOutput_2024_09_04": {
+        "type": "object",
+        "properties": {}
+      },
       "Routing": {
         "type": "object",
         "properties": {
@@ -26416,14 +26113,6 @@
           "status",
           "data"
         ]
-      },
-      "SlotsOutput_2024_09_04": {
-        "type": "object",
-        "properties": {}
-      },
-      "RangeSlotsOutput_2024_09_04": {
-        "type": "object",
-        "properties": {}
       },
       "ResponseSlotsOutputData": {
         "type": "object",
@@ -29612,6 +29301,155 @@
         "required": [
           "status",
           "data"
+        ]
+      },
+      "CalendarEventVideoLocation": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "video",
+            "enum": [
+              "video"
+            ],
+            "description": "Indicates this is a video conference location"
+          },
+          "url": {
+            "type": "string",
+            "description": "URL for joining the video conference"
+          },
+          "label": {
+            "type": "string",
+            "nullable": true,
+            "description": "Display name for the video conference"
+          },
+          "password": {
+            "type": "string",
+            "nullable": true,
+            "description": "Password required to join the video conference"
+          },
+          "meetingCode": {
+            "type": "string",
+            "nullable": true,
+            "description": "Meeting code or ID required to join the conference"
+          },
+          "accessCode": {
+            "type": "string",
+            "nullable": true,
+            "description": "Access code required to join the conference"
+          }
+        },
+        "required": [
+          "type",
+          "url"
+        ]
+      },
+      "CalendarEventPhoneLocation": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "phone",
+            "enum": [
+              "phone"
+            ],
+            "description": "Indicates this is a phone conference location"
+          },
+          "url": {
+            "type": "string",
+            "description": "Phone number or URL for dialing into the conference"
+          },
+          "label": {
+            "type": "string",
+            "nullable": true,
+            "description": "Display name for the phone conference"
+          },
+          "pin": {
+            "type": "string",
+            "nullable": true,
+            "description": "PIN number required for the phone conference"
+          },
+          "password": {
+            "type": "string",
+            "nullable": true,
+            "description": "Password required for the phone conference"
+          },
+          "accessCode": {
+            "type": "string",
+            "nullable": true,
+            "description": "Access code required for the phone conference"
+          },
+          "regionCode": {
+            "type": "string",
+            "nullable": true,
+            "description": "Country/region code for the phone number"
+          }
+        },
+        "required": [
+          "type",
+          "url"
+        ]
+      },
+      "CalendarEventSipLocation": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "sip",
+            "enum": [
+              "sip"
+            ],
+            "description": "Indicates this is a SIP (Session Initiation Protocol) conference location"
+          },
+          "url": {
+            "type": "string",
+            "description": "SIP URL for joining the conference"
+          },
+          "label": {
+            "type": "string",
+            "nullable": true,
+            "description": "Display name for the SIP conference"
+          },
+          "pin": {
+            "type": "string",
+            "nullable": true,
+            "description": "PIN number required for the SIP conference"
+          },
+          "password": {
+            "type": "string",
+            "nullable": true,
+            "description": "Password required for the SIP conference"
+          }
+        },
+        "required": [
+          "type",
+          "url"
+        ]
+      },
+      "CalendarEventMoreLocation": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "more",
+            "enum": [
+              "more"
+            ],
+            "description": "Indicates this is an additional conference location type"
+          },
+          "url": {
+            "type": "string",
+            "description": "URL for accessing this location"
+          },
+          "label": {
+            "type": "string",
+            "nullable": true,
+            "description": "Display name for this location"
+          }
+        },
+        "required": [
+          "type",
+          "url"
         ]
       },
       "CalendarEventResponseStatus": {

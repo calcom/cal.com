@@ -2204,6 +2204,7 @@
   "booking_confirmation_failed": "Booking confirmation failed",
   "not_enough_seats": "Not enough seats",
   "form_builder_field_already_exists": "A field with this name already exists",
+  "guests_field_must_be_multiemail": "Guests field must be of type 'Multiple emails'",
   "show_on_booking_page": "Show on booking page",
   "visit_cancelled_booking": "You can visit the canceled booking page",
   "get_started_zapier_templates": "Get started with Zapier templates",
