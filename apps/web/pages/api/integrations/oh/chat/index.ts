@@ -143,7 +143,6 @@ const getHandler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     return res.json({ cal_events, bookings, user_id: user.id });
   } catch (err) {
-    console.log("in_here_err", err);
     throw err;
   }
 };

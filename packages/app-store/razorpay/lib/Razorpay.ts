@@ -101,7 +101,6 @@ class RazorpayWrapper {
           refresh_token: this.refresh_token,
         });
 
-      console.log("refreshAccessToken response", response.data);
       await this.handleUpdateToken(response.data);
     } catch (error) {
       console.error("Failed to refresh token:", error);
@@ -273,7 +272,6 @@ class RazorpayWrapper {
       secret: RAZORPAY_WEBHOOK_SECRET,
       events: ["payment_link.paid", "account.app.authorization_revoked"],
     };
-    console.log("Payload for webhook creation: ", payload);
     const response = await this.handleRequest(() =>
       this.axiosInstance.post(`/v2/accounts/${accountId}/webhooks`, payload)
     );

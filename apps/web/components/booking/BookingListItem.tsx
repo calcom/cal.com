@@ -209,11 +209,6 @@ export default function BookingListItem(booking: BookingItemProps) {
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
   const isBookingFromRoutingForm = isBookingReroutable(parsedBooking);
 
-  console.log("attendees", booking.attendees);
-  console.log("startTime", booking.startTime);
-  console.log("endTime", booking.endTime);
-  console.log("timezone", userTimeZone);
-
   const paymentAppData = getPaymentAppData(booking.eventType);
 
   const location = booking.location as ReturnType<typeof getEventLocationValue>;

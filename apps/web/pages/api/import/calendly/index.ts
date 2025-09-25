@@ -1003,7 +1003,6 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const userIntID = parseInt(userId);
   try {
     //Checking if the user has authorized Calendly
-    console.log("Hello world");
     const userCalendlyIntegrationProvider = await prisma.integrationAccounts.findFirst({
       where: {
         userId: userIntID,
@@ -1020,7 +1019,6 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
         },
       },
     });
-    console.log("User calendly provider", userCalendlyIntegrationProvider);
 
     if (!userCalendlyIntegrationProvider) {
       return res.status(401).json({ message: "Unauthorized" });

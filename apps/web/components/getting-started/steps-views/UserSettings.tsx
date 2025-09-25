@@ -140,8 +140,6 @@ const UserSettings = (props: IUserSettingsProps) => {
     "metadata.phoneNumber"
   );
 
-  console.log("isPhoneFieldMandatory: ", isPhoneFieldMandatory);
-
   const onSubmit = handleSubmit((data) => {
     if (
       isPhoneFieldMandatory &&

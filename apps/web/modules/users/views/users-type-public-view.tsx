@@ -40,11 +40,9 @@ function Type({
   faviconUrl,
 }: PageProps) {
   const searchParams = useSearchParams();
-  console.log("faviconUrl", faviconUrl);
 
   useEffect(() => {
     const defaultFavicons = document.querySelectorAll('link[rel="icon"]');
-    console.log("Removing default favicons: ", defaultFavicons);
     defaultFavicons.forEach((link) => {
       link.rel = "icon";
       // }
@@ -58,8 +56,6 @@ function Type({
       link.type = "image/png";
       document.head.appendChild(link);
     }
-
-    console.log("Links are: ", defaultFavicons);
   }, [faviconUrl]);
 
   return (
