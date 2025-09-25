@@ -9,6 +9,7 @@ export const WORKFLOW_TRIGGER_EVENTS = [
   WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
   WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
   WorkflowTriggerEvents.FORM_SUBMITTED,
+  WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT,
   WorkflowTriggerEvents.BOOKING_REJECTED,
   WorkflowTriggerEvents.BOOKING_REQUESTED,
   WorkflowTriggerEvents.BOOKING_PAYMENT_INITIATED,
@@ -96,8 +97,10 @@ export const IMMEDIATE_WORKFLOW_TRIGGER_EVENTS: WorkflowTriggerEvents[] = [
   WorkflowTriggerEvents.BOOKING_REJECTED,
   WorkflowTriggerEvents.BOOKING_REQUESTED,
   WorkflowTriggerEvents.FORM_SUBMITTED,
+  WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT, // no real immediate workflow but it's scheduled with tasker
 ];
 
 export const FORM_TRIGGER_WORKFLOW_EVENTS: WorkflowTriggerEvents[] = [
   WorkflowTriggerEvents.FORM_SUBMITTED,
+  WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT,
 ];
