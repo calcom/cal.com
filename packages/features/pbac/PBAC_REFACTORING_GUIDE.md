@@ -30,9 +30,14 @@ const teamsToQuery = (
 
 ```typescript
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 const permissionCheckService = new PermissionCheckService();
-const teamsToQuery = await permissionCheckService.getTeamIdsWithPermission(ctx.user.id, "team.listMembers");
+const teamsToQuery = await permissionCheckService.getTeamIdsWithPermission({
+  userId: ctx.user.id,
+  permission: "team.listMembers",
+  fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+});
 ```
 
 ### 2. UI Permission Checks (React components)
@@ -49,11 +54,14 @@ const canSeeMembers = isTeamAdminOrOwner;
 
 ```typescript
 // Server-side permission check in page/layout
+import { MembershipRole } from "@calcom/prisma/enums";
+
 const permissionCheckService = new PermissionCheckService();
-const teamIdsWithPermission = await permissionCheckService.getTeamIdsWithPermission(
-  session.user.id,
-  "team.listMembers"
-);
+const teamIdsWithPermission = await permissionCheckService.getTeamIdsWithPermission({
+  userId: session.user.id,
+  permission: "team.listMembers",
+  fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+});
 
 const permissions = {
   canListMembers: teamIdsWithPermission.length > 0,
@@ -131,20 +139,22 @@ if (resource.teamId) {
 
 ### For API/tRPC Handlers
 
-1. **Add import**:
+1. **Add imports**:
 
 ```typescript
-   import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { MembershipRole } from "@calcom/prisma/enums";
 ```
 
 2. **Replace membership query**:
 
 ```typescript
-   const permissionCheckService = new PermissionCheckService();
-   const teamsToQuery = await permissionCheckService.getTeamIdsWithPermission(
-     ctx.user.id,
-     "team.listMembers"
-   );
+const permissionCheckService = new PermissionCheckService();
+const teamsToQuery = await permissionCheckService.getTeamIdsWithPermission({
+  userId: ctx.user.id,
+  permission: "team.listMembers",
+  fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+});
 ```
 
 3. **Keep existing privacy checks** - PBAC doesn't replace organization-level privacy logic
@@ -154,18 +164,20 @@ if (resource.teamId) {
 1. **Move permission check to server** (page/layout component):
 
 ```typescript
-   import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { MembershipRole } from "@calcom/prisma/enums";
 
-   // In your page component
-   const permissionCheckService = new PermissionCheckService();
-   const teamIdsWithPermission = await permissionCheckService.getTeamIdsWithPermission(
-     session.user.id,
-     "team.listMembers"
-   );
+// In your page component
+const permissionCheckService = new PermissionCheckService();
+const teamIdsWithPermission = await permissionCheckService.getTeamIdsWithPermission({
+  userId: session.user.id,
+  permission: "team.listMembers",
+  fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+});
 
-   const permissions = {
-     canListMembers: teamIdsWithPermission.length > 0 // Permission-specific name
-   };
+const permissions = {
+  canListMembers: teamIdsWithPermission.length > 0, // Permission-specific name
+};
 ```
 
 2. **Pass permissions as props**:
@@ -177,20 +189,20 @@ if (resource.teamId) {
 3. **Update component interface**:
 
 ```typescript
-   interface BookingsProps {
-     permissions: {
-       canListMembers: boolean;
-     };
-   }
+interface BookingsProps {
+  permissions: {
+    canListMembers: boolean;
+  };
+}
 ```
 
 4. **Replace role checks in component**:
 
 ```typescript
-   // Replace: const isTeamAdminOrOwner = user?.isTeamAdminOrOwner ?? false
-   // With: const canListMembers = permissions.canListMembers
+// Replace: const isTeamAdminOrOwner = user?.isTeamAdminOrOwner ?? false
+// With: const canListMembers = permissions.canListMembers
 
-   // Use permission-specific variable names throughout your component
+// Use permission-specific variable names throughout your component
 ```
 
 ## Examples
