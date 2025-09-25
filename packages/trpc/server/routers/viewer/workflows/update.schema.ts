@@ -25,7 +25,6 @@ export const ZUpdateInputSchema = z.object({
       sender: z.string().nullable(),
       senderName: z.string().nullable(),
       includeCalendarEvent: z.boolean(),
-      allowedCountryCodes: z.string().array().optional(),
       agentId: z.string().nullish(),
     })
     .array(),

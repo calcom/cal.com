@@ -28,5 +28,4 @@ export type WorkflowStep = {
   numberVerificationPending: boolean;
   numberRequired: boolean | null;
   verifiedAt?: Date | null;
-  allowedCountryCodes?: string[];
 };
