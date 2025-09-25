@@ -45,22 +45,21 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
 
   if (!booking) throw new TRPCError({ code: "NOT_FOUND", message: "booking_not_found" });
 
-  let isTeamAdminOrOwner = false;
+  const isOrganizer = booking.userId === user.id;
+  const isAttendee = !!booking.attendees.find((attendee) => attendee.email === user.email);
+
+  let hasBookingUpdatePermission = false;
   if (booking.eventType?.teamId) {
     const permissionCheckService = new PermissionCheckService();
-    isTeamAdminOrOwner = await permissionCheckService.checkPermission({
+    hasBookingUpdatePermission = await permissionCheckService.checkPermission({
       userId: user.id,
       teamId: booking.eventType.teamId,
-      permission: "booking.readTeamBookings",
+      permission: "booking.update",
       fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
     });
   }
 
-  const isOrganizer = booking.userId === user.id;
-
-  const isAttendee = !!booking.attendees.find((attendee) => attendee.email === user.email);
-
-  if (!isTeamAdminOrOwner && !isOrganizer && !isAttendee) {
+  if (!hasBookingUpdatePermission && !isOrganizer && !isAttendee) {
     throw new TRPCError({ code: "FORBIDDEN", message: "you_do_not_have_permission" });
   }
 

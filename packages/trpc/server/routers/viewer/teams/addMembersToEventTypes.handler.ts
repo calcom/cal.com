@@ -1,5 +1,5 @@
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -19,15 +19,15 @@ export async function addMembersToEventTypesHandler({ ctx, input }: AddBulkToEve
   const { eventTypeIds, userIds, teamId } = input;
 
   const permissionCheckService = new PermissionCheckService();
-  const hasEventTypeUpdatePermission = await permissionCheckService.checkPermission({
+  const hasPermission = await permissionCheckService.checkPermission({
     userId: ctx.user.id,
     teamId,
     permission: "eventType.update",
-    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+    fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
   });
 
-  // check if user has permission to update event types
-  if (!hasEventTypeUpdatePermission) throw new TRPCError({ code: "UNAUTHORIZED" });
+  // check if user has eventType.update permission
+  if (!hasPermission) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   const data: Prisma.HostCreateManyInput[] = eventTypeIds.flatMap((eventId) =>
     userIds.map((userId) => ({
