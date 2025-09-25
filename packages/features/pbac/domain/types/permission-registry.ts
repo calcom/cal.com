@@ -294,6 +294,13 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       descriptionI18nKey: "pbac_desc_impersonate_team_members",
       dependsOn: ["team.read", "team.listMembers"],
     },
+    [CustomAction.ManageBilling]: {
+      description: "Manage billing",
+      category: "team",
+      i18nKey: "pbac_action_manage_billing",
+      descriptionI18nKey: "pbac_desc_manage_billing",
+      scope: [], // Empty scope because this permission is only used for TEAM billing outside of an org. (We dont want to show this in the UI)
+    },
   },
   [Resource.Organization]: {
     _resource: {
