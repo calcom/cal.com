@@ -1,4 +1,4 @@
-import { isTeamMember } from "@calcom/features/ee/teams/lib/queries";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -14,8 +14,14 @@ type UpdateMembershipOptions = {
 };
 
 export const getInternalNotesPresetsHandler = async ({ ctx, input }: UpdateMembershipOptions) => {
-  if (!(await isTeamMember(ctx.user?.id, input.teamId))) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
+  const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+    userId: ctx.user.id,
+    teamId: input.teamId,
+    accepted: true,
+  });
+
+  if (!membership) {
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "User is not a member of this team" });
   }
 
   return await prisma.internalNotePreset.findMany({
