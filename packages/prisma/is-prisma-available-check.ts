@@ -1,9 +1,6 @@
-import { Prisma } from "./client";
-
 export async function isPrismaAvailableCheck(): Promise<boolean> {
   try {
-    const { PrismaClient } = await import("./client");
-    const prisma = new PrismaClient();
+    const { prisma } = await import("./index");
 
     await prisma.$queryRawUnsafe("SELECT 1");
     await prisma.$disconnect();

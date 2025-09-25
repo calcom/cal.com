@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import dayjs from "@calcom/dayjs";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import type { Prisma } from "@calcom/prisma/client";
-import { PrismaClient } from "@calcom/prisma/client";
+import { prisma } from "@calcom/prisma/client";
 import { BookingStatus, AssignmentReasonEnum } from "@calcom/prisma/enums";
 
 import { seedAttributes, seedRoutingFormResponses, seedRoutingForms } from "./seed-utils";
@@ -132,7 +132,6 @@ async function seedBookingAssignments() {
   });
 }
 
-const prisma = new PrismaClient();
 async function main() {
   // First find the organization we want to add insights to
   const organization = await prisma.team.findFirst({
