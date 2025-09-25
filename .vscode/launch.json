@@ -4,18 +4,27 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Next.js Node Debug",
-      "runtimeExecutable": "${workspaceFolder}/node_modules/next/dist/bin/next",
+      "name": "Debug Next.js (TurboRepo)",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["--inspect-brk", "${workspaceFolder}//node_modules/.bin/next", "dev"],
       "env": {
-        "NODE_OPTIONS": "--inspect"
+        "NODE_OPTIONS": "--inspect",
+        "PORT": "3001"
       },
       "cwd": "${workspaceFolder}/apps/web",
       "console": "integratedTerminal",
-      "sourceMapPathOverrides": {
-        "meteor://💻app/*": "${workspaceFolder}/*",
-        "webpack:///./~/*": "${workspaceFolder}/node_modules/*",
-        "webpack://?:*/*": "${workspaceFolder}/*"
-      }
+      "outputCapture": "std",
+      "sourceMaps": true,
+      "restart": true
+    },
+    {
+      "name": "Attach to Next.js",
+      "type": "node",
+      "request": "attach",
+      "processId": "${command:PickProcess}",
+      "restart": true,
+      "sourceMaps": true,
+      "timeout": 30000
     }
   ]
 }

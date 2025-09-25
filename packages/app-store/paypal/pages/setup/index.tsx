@@ -1,3 +1,4 @@
+import { Icon } from "@calid/features/ui/components/icon";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Toaster } from "sonner";
@@ -7,7 +8,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 export default function PayPalSetup() {
@@ -15,7 +15,7 @@ export default function PayPalSetup() {
   const [newSecretKey, setNewSecretKey] = useState("");
   const router = useRouter();
   const { t } = useLocale();
-  const integrations = trpc.viewer.apps.integrations.useQuery({ variant: "payment", appId: "paypal" });
+  const integrations = trpc.viewer.apps.calid_integrations.useQuery({ variant: "payment", appId: "paypal" });
   const [paypalPaymentAppCredentials] = integrations.data?.items || [];
   const [credentialId] = paypalPaymentAppCredentials?.userCredentialIds || [-1];
   const showContent = !!integrations.data && integrations.isSuccess && !!credentialId;
@@ -37,7 +37,7 @@ export default function PayPalSetup() {
     <div className="bg-default flex h-screen">
       {showContent ? (
         <div className="bg-default border-subtle m-auto max-w-[43em] overflow-auto rounded border pb-10 md:p-10">
-          <div className="ml-2 ltr:mr-2 rtl:ml-2 md:ml-5">
+          <div className="ml-2 md:ml-5 ltr:mr-2 rtl:ml-2">
             <div className="invisible md:visible">
               <img className="h-11" src="/api/app-store/paypal/icon.svg" alt="Paypal Payment Logo" />
               <p className="text-default mt-5 text-lg">Paypal</p>

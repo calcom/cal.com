@@ -1,7 +1,5 @@
-import type { Prisma } from "@prisma/client";
-import type z from "zod";
+import type { CalIdWorkflow } from "@calid/features/modules/workflows/config/types";
 
-import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import type { AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 
 import type { Booking } from "../handleNewBooking/createBooking";
@@ -44,7 +42,7 @@ export type NewSeatedBookingObject = {
   eventTrigger: WebhookTriggerEvents;
   responses: z.infer<ReturnType<typeof getBookingDataSchema>>["responses"] | null;
   rescheduledBy?: string;
-  workflows: Workflow[];
+  workflows: CalIdWorkflow[];
   isDryRun?: boolean;
 };
 

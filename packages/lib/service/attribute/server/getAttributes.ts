@@ -365,3 +365,63 @@ export async function getAttributesForTeam({ teamId }: { teamId: number }) {
 export async function getUsersAttributes({ userId, teamId }: { userId: number; teamId: number }) {
   return await getAttributesAssignedToMembersOfTeam({ teamId, userId });
 }
+
+async function getAttributesAssignedToMembersOfCalIdTeam({
+  calIdTeamId,
+  userId,
+}: {
+  calIdTeamId: number;
+  userId?: number;
+}) {
+  const log = logger.getSubLogger({ prefix: ["getAttributeToUserWithMembershipAndAttributesForCalIdTeam"] });
+
+  const whereClauseForAttributesAssignedToMembersOfCalIdTeam = {
+    calIdTeamId,
+    options: {
+      some: {
+        assignedUsers: {
+          some: {
+            calIdMember: {
+              userId,
+              calIdTeamId,
+            },
+          },
+        },
+      },
+    },
+  };
+
+  log.debug(
+    safeStringify({
+      calIdTeamId,
+      whereClauseForAttributesAssignedToMembersOfCalIdTeam,
+    })
+  );
+
+  const assignedAttributeOptions = await prisma.attribute.findMany({
+    where: whereClauseForAttributesAssignedToMembersOfCalIdTeam,
+    select: {
+      id: true,
+      name: true,
+      type: true,
+      isWeightsEnabled: true,
+      options: {
+        select: {
+          id: true,
+          value: true,
+          slug: true,
+          contains: true,
+          isGroup: true,
+        },
+      },
+      slug: true,
+    },
+  });
+
+  return assignedAttributeOptions;
+}
+
+export async function calid_getAttributesForTeam({ calIdTeamId }: { calIdTeamId: number }) {
+  const attributes = await getAttributesAssignedToMembersOfCalIdTeam({ calIdTeamId });
+  return attributes satisfies Attribute[];
+}

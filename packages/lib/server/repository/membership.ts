@@ -221,6 +221,89 @@ export class MembershipRepository {
     });
   }
 
+  static async findAllByUpIdIncludeCalIdTeamWithMembersAndEventTypes(
+    { upId }: { upId: string },
+    { where }: { where?: Prisma.CalIdMembershipWhereInput } = {}
+  ) {
+    const prismaWhere = await getWhereForfindAllByUpId(upId, where);
+    if (Array.isArray(prismaWhere)) {
+      return prismaWhere;
+    }
+
+    log.debug(
+      "findAllByUpIdIncludeCalIdTeamWithMembersAndEventTypes",
+      safeStringify({
+        prismaWhere,
+      })
+    );
+
+    return await prisma.calIdMembership.findMany({
+      where: {
+        ...prismaWhere,
+        ...where,
+      },
+      include: {
+        calIdTeam: {
+          include: {
+            members: {
+              select: {
+                id: true,
+                calIdTeamId: true,
+                userId: true,
+                acceptedInvitation: true,
+                role: true,
+                impersonation: true,
+              },
+            },
+            eventTypes: {
+              select: {
+                ...eventTypeSelect,
+                hashedLink: true,
+                users: { select: userSelect },
+                children: {
+                  include: {
+                    users: { select: userSelect },
+                  },
+                },
+                hosts: {
+                  include: {
+                    user: { select: userSelect },
+                  },
+                },
+                calIdTeam: {
+                  select: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                    members: {
+                      select: {
+                        user: {
+                          select: {
+                            timeZone: true,
+                          },
+                        },
+                      },
+                      take: 1,
+                    },
+                  },
+                },
+              },
+              // As required by getByViewHandler - Make it configurable
+              orderBy: [
+                {
+                  position: "desc",
+                },
+                {
+                  id: "asc",
+                },
+              ],
+            },
+          },
+        },
+      },
+    });
+  }
+
   static async findAllByUpIdIncludeMinimalEventTypes(
     { upId }: { upId: string },
     { where, skipEventTypes = false }: { where?: Prisma.MembershipWhereInput; skipEventTypes?: boolean } = {}
@@ -414,6 +497,23 @@ export class MembershipRepository {
     });
 
     return memberships.map((membership) => membership.teamId);
+  }
+
+  /**
+   * Get all calIdTeam IDs that a user is a member of
+   */
+  static async findUserCalIdTeamIds({ userId }: { userId: number }) {
+    const memberships = await prisma.calIdMembership.findMany({
+      where: {
+        userId,
+        acceptedInvitation: true,
+      },
+      select: {
+        calIdTeamId: true,
+      },
+    });
+
+    return memberships.map((membership) => membership.calIdTeamId);
   }
 
   /**

@@ -76,6 +76,28 @@ export function getCancelEventAction(context: BookingActionContext): ActionType 
   };
 }
 
+export function getRescheduleEventAction(context: BookingActionContext): ActionType {
+  const { booking, isBookingInPast, isDisabledRescheduling, getSeatReferenceUid, t } = context;
+
+  return {
+    id: "reschedule",
+    icon: "clock",
+    label: t("reschedule_booking"),
+    href: `/reschedule/${booking.uid}${
+      booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
+    }`,
+    disabled: (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
+  };
+}
+
+export function getRescheduleEventLink(context: BookingActionContext): string {
+  const { booking, isBookingInPast, isDisabledRescheduling, getSeatReferenceUid, t } = context;
+
+  return `/reschedule/${booking.uid}${
+    booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
+  }`;
+}
+
 export function getVideoOptionsActions(context: BookingActionContext): ActionType[] {
   const { booking, isBookingInPast, isConfirmed, isCalVideoLocation, t } = context;
 
@@ -106,16 +128,16 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
   } = context;
 
   const actions: (ActionType | null)[] = [
-    {
-      id: "reschedule",
-      icon: "clock",
-      label: t("reschedule_booking"),
-      href: `/reschedule/${booking.uid}${
-        booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
-      }`,
-      disabled:
-        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
-    },
+    // {
+    //   id: "reschedule",
+    //   icon: "clock",
+    //   label: t("reschedule_booking"),
+    //   href: `/reschedule/${booking.uid}${
+    //     booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
+    //   }`,
+    //   disabled:
+    //     (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
+    // },
     {
       id: "reschedule_request",
       icon: "send",

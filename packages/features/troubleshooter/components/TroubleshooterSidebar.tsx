@@ -1,7 +1,10 @@
+import { Icon } from "@calid/features/ui/components/icon";
+
+
+
 import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/components/icon";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 
 import { CalendarToggleContainer } from "./CalendarToggleContainer";

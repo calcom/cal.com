@@ -1,7 +1,7 @@
 import { createHash } from "crypto";
 
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
-import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
+import { hashPasswordWithSalt } from "@calcom/features/auth/lib/hashPassword";
+import { verifyCalPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -30,13 +30,18 @@ export const setPasswordHandler = async ({ ctx, input }: UpdateOptions) => {
   });
 
   if (!user) throw new TRPCError({ code: "BAD_REQUEST", message: "User not found" });
-  if (!user.password?.hash)
+  if (!user.password?.hash || !user.password?.salt)
     throw new TRPCError({ code: "BAD_REQUEST", message: "Password not set by default" });
 
   const generatedPassword = createHash("md5")
     .update(`${user?.email ?? ""}${process.env.CALENDSO_ENCRYPTION_KEY}`)
     .digest("hex");
-  const isCorrectPassword = await verifyPassword(generatedPassword, user.password.hash);
+  const isCorrectPassword = verifyCalPassword({
+    inputPassword: generatedPassword,
+    storedHashBase64: user.password.hash,
+    saltBase64: user.password.salt,
+    iterations: 27500,
+  });
 
   if (!isCorrectPassword)
     throw new TRPCError({
@@ -44,17 +49,19 @@ export const setPasswordHandler = async ({ ctx, input }: UpdateOptions) => {
       message: "The password set by default doesn't match your existing one. Contact an app admin.",
     });
 
-  const hashedPassword = await hashPassword(newPassword);
+  const { hash, salt } = await hashPasswordWithSalt(newPassword);
   await prisma.userPassword.upsert({
     where: {
       userId: ctx.user.id,
     },
     create: {
-      hash: hashedPassword,
+      hash,
+      salt,
       userId: ctx.user.id,
     },
     update: {
-      hash: hashedPassword,
+      hash,
+      salt,
     },
   });
 

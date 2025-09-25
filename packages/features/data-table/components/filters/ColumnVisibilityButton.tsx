@@ -1,12 +1,13 @@
 "use client";
 
+import { Button, buttonClasses, type ButtonProps } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon";
 import { type Table } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import { forwardRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import { type ButtonProps, Button, buttonClasses } from "@calcom/ui/components/button";
 import {
   Command,
   CommandInput,
@@ -16,7 +17,6 @@ import {
   CommandItem,
   CommandSeparator,
 } from "@calcom/ui/components/command";
-import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverTrigger, PopoverContent } from "@calcom/ui/components/popover";
 
 export interface ColumnVisiblityProps<TData> {
@@ -41,7 +41,7 @@ function ColumnVisibilityButtonComponent<TData>(
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button ref={ref} color={color} StartIcon={StartIcon} {...rest}>
-          {children ? children : t("display")}
+          {children ? children : t("view")}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0" align="start">

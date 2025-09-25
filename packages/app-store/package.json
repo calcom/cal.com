@@ -24,6 +24,7 @@
     "@calcom/ui": "*",
     "@calcom/zoomvideo": "*",
     "lodash": "^4.17.21",
+    "next": "14.0.4",
     "qs-stringify": "^1.2.1",
     "react-i18next": "^12.2.0",
     "stripe": "^9.16.0"

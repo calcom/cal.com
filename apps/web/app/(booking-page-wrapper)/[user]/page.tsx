@@ -17,18 +17,26 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
   );
 
-  const { profile, markdownStrippedBio, isOrgSEOIndexable, entity } = props;
+  if (props.userNotFound) return {};
+
+  const { users, profile, markdownStrippedBio, isOrgSEOIndexable, entity } = props;
   const isOrg = !!profile?.organization;
   const allowSEOIndexing =
     (!isOrg && profile.allowSEOIndexing) || (isOrg && isOrgSEOIndexable && profile.allowSEOIndexing);
+
+  const user = users[0];
 
   const meeting = {
     title: markdownStrippedBio,
     profile: { name: `${profile.name}`, image: profile.image },
     users: [{ username: `${profile.username}`, name: `${profile.name}` }],
   };
+
   const metadata = await generateMeetingMetadata(
-    meeting,
+    {
+      ...meeting,
+      bannerUrl: user.bannerUrl,
+    },
     () => profile.name,
     () => markdownStrippedBio,
     false,
@@ -46,12 +54,19 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 };
 
 const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);
-const ServerPage = async ({ params, searchParams }: PageProps) => {
-  const props = await getData(
-    buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
+const ServerPage = async (props: PageProps) => {
+  const { params, searchParams } = props;
+
+  const awaitParams = await params;
+  const awaitSearchParams = await searchParams;
+
+  const nextProps = await getData(
+    buildLegacyCtx(await headers(), await cookies(), awaitParams, awaitSearchParams)
   );
 
-  return <LegacyPage {...props} />;
+  console.log("next props: ", nextProps)
+
+  return <LegacyPage {...nextProps} />;
 };
 
 export default ServerPage;

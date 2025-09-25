@@ -1,33 +1,19 @@
 import { CustomI18nProvider } from "app/CustomI18nProvider";
 import { withAppDirSsr } from "app/WithAppDirSsr";
-import type { PageProps, SearchParams } from "app/_types";
+import type { PageProps as ServerPageProps } from "app/_types";
 import { generateMeetingMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { loadTranslations } from "@calcom/lib/server/i18n";
 
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
-import { getServerSideProps } from "@lib/team/[slug]/[type]/getServerSideProps";
+import { getCalIdServerSideProps } from "@lib/team/[slug]/[type]/getCalIdServerSideProps";
 
-import LegacyPage from "~/team/type-view";
-import type { PageProps as LegacyPageProps } from "~/team/type-view";
+import LegacyPage from "~/team/calid-team-type-public-view";
+import type { PageProps as LegacyPageProps } from "~/team/calid-team-type-public-view";
 
-import CachedTeamBooker, { generateMetadata as generateCachedMetadata } from "./pageWithCachedData";
-
-async function isCachedTeamBookingEnabled(searchParams: SearchParams): Promise<boolean> {
-  const featuresRepository = new FeaturesRepository();
-  const isGloballyEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally(
-    "team-booking-page-cache"
-  );
-  return isGloballyEnabled && searchParams.experimentalTeamBookingPageCache === "true";
-}
-
-export const generateMetadata = async ({ params, searchParams }: PageProps) => {
-  if (await isCachedTeamBookingEnabled(await searchParams)) {
-    return await generateCachedMetadata({ params, searchParams });
-  }
+export const generateMetadata = async ({ params, searchParams }: ServerPageProps) => {
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const props = await getData(legacyCtx);
   const { booking, isSEOIndexable, eventData, isBrandingHidden } = props;
@@ -46,6 +32,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     ],
   };
   const decodedParams = decodeParams(await params);
+
   const metadata = await generateMeetingMetadata(
     meeting,
     (t) => `${booking?.uid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
@@ -53,6 +40,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     isBrandingHidden,
     getOrgFullOrigin(eventData.entity.orgSlug ?? null),
     `/team/${decodedParams.slug}/${decodedParams.type}`
+    // eventData?.metadata?.billingAddressRequired
   );
 
   return {
@@ -64,18 +52,17 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   };
 };
 
-const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);
+const getData = withAppDirSsr<LegacyPageProps>((context) => {
+  return getCalIdServerSideProps(context);
+});
 
-const ServerPage = async ({ params, searchParams }: PageProps) => {
-  if (await isCachedTeamBookingEnabled(await searchParams)) {
-    return await CachedTeamBooker({ params, searchParams });
-  }
-
+const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
   const props = await getData(
     buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
   );
 
   const eventLocale = props.eventData?.interfaceLanguage;
+  console.log("Props: ", props);
   if (eventLocale) {
     const ns = "common";
     const translations = await loadTranslations(eventLocale, ns);

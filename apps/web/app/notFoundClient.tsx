@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@calid/features/ui/components/icon";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -9,7 +10,6 @@ import {
 } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { DOCS_URL, IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/components/icon";
 
 enum PageType {
   ORG = "ORG",
@@ -53,7 +53,7 @@ export function NotFound({ host }: { host: string }) {
   const { username, pageType, url } = getPageInfo(pathname, host);
   const isBookingSuccessPage = pathname?.startsWith("/booking");
   const isSubpage = pathname?.includes("/", 2) || isBookingSuccessPage;
-  const isInsights = pathname?.startsWith("/insights");
+  const isInsights = pathname?.startsWith("/insights/bookings");
 
   const links = [
     {
@@ -82,7 +82,7 @@ export function NotFound({ host }: { host: string }) {
    **/
   if (isInsights) {
     return (
-      <div className="min-h-screen bg-white px-4" data-testid="404-page">
+      <div className="min-h-screen bg-primary px-4" data-testid="404-page">
         <main className="mx-auto max-w-xl pb-6 pt-16 sm:pt-24">
           <div className="text-center">
             <p className="text-sm font-semibold uppercase tracking-wide text-black">{t("error_404")}</p>

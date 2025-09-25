@@ -20,6 +20,7 @@ type ResendEmailOptions = {
 const log = logger.getSubLogger({ prefix: [`[[Auth] `] });
 
 export const resendVerifyEmail = async ({ input, ctx }: ResendEmailOptions) => {
+  log.info("Hitting")
   let emailToVerify = ctx.user.email;
   const identifer = emailToVerify;
 

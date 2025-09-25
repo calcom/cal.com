@@ -1,6 +1,6 @@
+import CreateTeamWrapper from "@calid/features/modules/teams/components/CreateTeamWrapper";
+import CreateTeamEvent from "@calid/features/modules/teams/pages/CreateTeamEvent";
 import { _generateMetadata } from "app/_utils";
-
-import CreateTeamEventType, { LayoutWrapper } from "~/settings/teams/[id]/event-types-view";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }) =>
   await _generateMetadata(
@@ -13,9 +13,9 @@ export const generateMetadata = async ({ params }: { params: Promise<{ id: strin
 
 const ServerPage = async () => {
   return (
-    <LayoutWrapper>
-      <CreateTeamEventType />
-    </LayoutWrapper>
+    <CreateTeamWrapper>
+      <CreateTeamEvent />
+    </CreateTeamWrapper>
   );
 };
 

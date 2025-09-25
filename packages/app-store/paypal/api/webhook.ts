@@ -16,6 +16,9 @@ export const config = {
   },
 };
 
+export const runtime = "nodejs"; // runtime environment
+export const dynamic = "force-dynamic"; // to disable static optimization and allow dynamic body handling
+
 export async function handlePaypalPaymentSuccess(
   payload: z.infer<typeof eventSchema>,
   rawPayload: string,

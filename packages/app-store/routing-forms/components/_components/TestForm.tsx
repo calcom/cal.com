@@ -1,5 +1,6 @@
 "use client";
 
+import { Button} from "@calid/features/ui/components/button";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Dispatch, SetStateAction } from "react";
 import { useState, useMemo } from "react";
@@ -10,7 +11,6 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import type { Brand } from "@calcom/types/utils";
-import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogHeader, DialogFooter } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -203,10 +203,10 @@ export const TestForm = ({
             {isDialog ? (
               <DialogHeader title={t("test_routing_form")} subtitle={t("test_preview_description")} />
             ) : !showRRData ? (
-              <div className="mb-6 flex items-center justify-between">
-                <h3 className="text-emphasis text-xl font-semibold">{t("preview")}</h3>
-                <div className="flex items-center gap-1">
-                  <Button
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="text-emphasis w-full text-base font-semibold">{t("preview")}</h3>
+                <div className="flex items-center gap-1  pt-2">
+                  {/* <Button
                     color="secondary"
                     href={formLink}
                     target="_blank"
@@ -215,7 +215,7 @@ export const TestForm = ({
                     data-testid="open-form-in-new-tab"
                     size="sm">
                     <span className="sr-only">{t("open_in_new_tab")}</span>
-                  </Button>
+                  </Button> */}
                   <Button
                     color="secondary"
                     onClick={resetForm}
@@ -224,14 +224,16 @@ export const TestForm = ({
                     size="sm">
                     <span className="sr-only">{t("reset")}</span>
                   </Button>
-                  <Button color="secondary" onClick={onClose} variant="icon" StartIcon="x" size="sm">
+                  {/* <Button color="secondary" onClick={onClose} variant="icon" StartIcon="x" size="sm">
                     <span className="sr-only">{t("close")}</span>
-                  </Button>
+                  </Button> */}
                 </div>
               </div>
             ) : (
               <></>
             )}
+
+            <div className="w-full border-t border-t-muted mb-3"></div>
             <FormView
               key={formKey}
               form={form}
@@ -369,5 +371,16 @@ export const TestFormRenderer = ({
         />
       </DialogContent>
     </Dialog>
+  );
+};
+
+export const PreviewRenderer = ({ testForm }: { testForm: UptoDateForm }) => {
+  const { t } = useLocale();
+  const isSubTeamForm = !!testForm.team?.parentId;
+
+  return (
+    <div className="bg-default h-full">
+      <TestForm form={testForm} supportsTeamMembersMatchingLogic={isSubTeamForm} onClose={() => {}} />
+    </div>
   );
 };

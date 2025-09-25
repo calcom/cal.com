@@ -1,10 +1,9 @@
+import { Badge } from "@calid/features/ui/components/badge";
 import Link from "next/link";
 import { createElement } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-
-import { Badge } from "../badge";
 
 export type ListProps = {
   roundContainer?: boolean;
@@ -21,8 +20,7 @@ export function List(props: ListProps) {
         "mx-0 rounded-sm sm:overflow-hidden ",
         // Add rounded top and bottom if roundContainer is true
         props.roundContainer && "[&>*:first-child]:rounded-t-md [&>*:last-child]:rounded-b-md ",
-        !props.noBorderTreatment &&
-          "border-subtle divide-subtle divide-y rounded-md border border-l border-r ",
+        !props.noBorderTreatment && "border-default divide-subtle  rounded-md border border-l border-r ",
         props.className
       )}>
       {props.children}
@@ -65,9 +63,61 @@ export function ListItem(props: ListItemProps) {
   );
 }
 
+export type ListItemAdvancedProps = {
+  heading: string;
+  headingTrailingItem: React.ReactNode;
+  subHeading: string;
+  disabled?: boolean;
+  actions?: JSX.Element;
+} & JSX.IntrinsicElements["li"];
+
+export function ListItemAdvanced(props: ListItemAdvancedProps) {
+  const { heading = "", children, disabled = false, actions = <div />, className = "" } = props;
+  const { t } = useLocale();
+  let subHeading = props.subHeading;
+  if (!subHeading) {
+    subHeading = "";
+  }
+  return (
+    <div
+      className={classNames(
+        "group flex w-full items-center justify-between px-3 py-5",
+        className,
+        disabled ? "hover:bg-muted" : ""
+      )}>
+      <div
+        className={classNames(
+          "text-default flex-grow truncate",
+          disabled ? "pointer-events-none cursor-not-allowed opacity-30" : ""
+        )}>
+        <div className="flex w-full flex-row items-center">
+          <h1 className="text-emphasis font-medium leading-none">{heading}</h1>
+          {props.headingTrailingItem && (
+            <span className="text-default ml-2 w-full px-2 pt-1 text-xs font-normal">
+              {props.headingTrailingItem}
+            </span>
+          )}
+          {disabled && (
+            <Badge data-testid="badge" variant="secondary" className="ml-2">
+              {t("readonly")}
+            </Badge>
+          )}
+        </div>
+        <h2 className="text-subtle text-xs leading-none">
+          {subHeading.substring(0, 100)}
+          {subHeading.length > 100 && "..."}
+        </h2>
+
+        <div className="mt-2">{children}</div>
+      </div>
+    </div>
+  );
+}
+
 export type ListLinkItemProps = {
   href: string;
   heading: string;
+  headingTrailingItem: React.ReactNode;
   subHeading: string;
   disabled?: boolean;
   actions?: JSX.Element;
@@ -97,13 +147,16 @@ export function ListLinkItem(props: ListLinkItemProps) {
         )}>
         <div className="flex items-center">
           <h1 className="text-sm font-semibold leading-none">{heading}</h1>
+          {props.headingTrailingItem && (
+            <span className="ml-2 text-xs font-normal text-neutral-500">{props.headingTrailingItem}</span>
+          )}
           {disabled && (
-            <Badge data-testid="badge" variant="gray" className="ml-2">
+            <Badge data-testid="badge" variant="secondary" className="ml-2">
               {t("readonly")}
             </Badge>
           )}
         </div>
-        <h2 className="min-h-4 mt-2 text-sm font-normal leading-none text-neutral-600">
+        <h2 className="mt-2 min-h-4 text-sm font-normal leading-none text-neutral-600">
           {subHeading.substring(0, 100)}
           {subHeading.length > 100 && "..."}
         </h2>

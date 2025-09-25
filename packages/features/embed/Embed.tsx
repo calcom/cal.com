@@ -1,3 +1,4 @@
+import { Icon } from "@calid/features/ui/components/icon";
 import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { useSession } from "next-auth/react";
@@ -32,7 +33,6 @@ import { Select, ColorPicker } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -203,7 +203,7 @@ const ChooseEmbedTypesDialogContent = ({
       <div className="items-start space-y-2 md:flex md:space-y-0">
         {types.map((embed, index) => (
           <button
-            className="hover:bg-subtle bg-muted	w-full self-stretch rounded-md border border-transparent p-6 text-left transition hover:rounded-md ltr:mr-4 ltr:last:mr-0 rtl:ml-4 rtl:last:ml-0 lg:w-1/3"
+            className="hover:bg-subtle bg-muted	w-full self-stretch rounded-md border border-transparent p-6 text-left transition hover:rounded-md lg:w-1/3 ltr:mr-4 ltr:last:mr-0 rtl:ml-4 rtl:last:ml-0"
             key={index}
             data-testid={embed.type}
             onClick={() => {
@@ -211,11 +211,11 @@ const ChooseEmbedTypesDialogContent = ({
                 embedType: embed.type as EmbedType,
               });
             }}>
-            <div className="bg-default order-none box-border flex-none rounded-md border border-solid transition dark:bg-transparent dark:invert">
+            {/* <div className="bg-default order-none box-border flex-none rounded-md border border-solid transition dark:bg-transparent dark:invert">
               {embed.illustration}
-            </div>
-            <div className="text-emphasis mt-4 font-semibold">{embed.title}</div>
-            <p className="text-subtle mt-2 text-sm">{embed.subtitle}</p>
+            </div> */}
+            <div className="text-emphasis text-center font-semibold">{embed.title}</div>
+            {/* <p className="text-subtle mt-2 text-sm">{embed.subtitle}</p>  */}
           </button>
         ))}
       </div>
@@ -468,7 +468,7 @@ const EmailEmbedPreview = ({
   }
   return (
     <div className="flex h-full items-center justify-center border p-5 last:font-medium">
-      <div className="border bg-white p-4">
+      <div className="bg-primary border p-4">
         <div
           style={{
             paddingBottom: "3px",
@@ -658,7 +658,7 @@ const EmailEmbedPreview = ({
   );
 };
 
-const EmbedTypeCodeAndPreviewDialogContent = ({
+export const EmbedTypeCodeAndPreviewDialogContent = ({
   embedType,
   embedUrl,
   tabs,
@@ -1355,6 +1355,7 @@ export const EmbedDialog = ({
   defaultBrandColor,
   noQueryParamMode = false,
 }: EmbedDialogProps) => {
+  noQueryParamMode = true;
   const { embedState, setEmbedState } = useEmbedDialogCtx(noQueryParamMode);
   const embedParams = useEmbedParams(noQueryParamMode);
 
@@ -1363,6 +1364,7 @@ export const EmbedDialog = ({
       setEmbedState(null);
     }
   };
+  const { gotoState } = useEmbedGoto(noQueryParamMode);
 
   return (
     <Dialog

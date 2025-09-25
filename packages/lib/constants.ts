@@ -1,4 +1,5 @@
 const VERCEL_URL = process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : "";
+export const SIGNUP_URL = process.env.NEXT_PUBLIC_SIGNUP_URL;
 const RAILWAY_STATIC_URL = process.env.RAILWAY_STATIC_URL ? `https://${process.env.RAILWAY_STATIC_URL}` : "";
 const HEROKU_URL = process.env.HEROKU_APP_NAME ? `https://${process.env.HEROKU_APP_NAME}.herokuapp.com` : "";
 const RENDER_URL = process.env.RENDER_EXTERNAL_URL ? `https://${process.env.RENDER_EXTERNAL_URL}` : "";
@@ -6,7 +7,7 @@ export const CALCOM_ENV = process.env.CALCOM_ENV || process.env.NODE_ENV;
 export const IS_PRODUCTION = CALCOM_ENV === "production";
 export const IS_PRODUCTION_BUILD = process.env.NODE_ENV === "production";
 export const ORGANIZER_EMAIL_EXEMPT_DOMAINS = process.env.ORGANIZER_EMAIL_EXEMPT_DOMAINS || "";
-const IS_DEV = CALCOM_ENV === "development";
+export const IS_DEV = CALCOM_ENV === "development";
 export const SINGLE_ORG_SLUG = process.env.NEXT_PUBLIC_SINGLE_ORG_SLUG;
 /** https://app.cal.com */
 export const WEBAPP_URL =
@@ -15,20 +16,20 @@ export const WEBAPP_URL =
   RAILWAY_STATIC_URL ||
   HEROKU_URL ||
   RENDER_URL ||
-  "http://localhost:3000";
+  "http://localhost:3001";
 
 // OAuth needs to have HTTPS(which is not generally setup locally) and a valid tld(*.local isn't a valid tld)
 // So for development purpose, we would stick to localhost only
-export const WEBAPP_URL_FOR_OAUTH = IS_PRODUCTION || IS_DEV ? WEBAPP_URL : "http://localhost:3000";
+export const WEBAPP_URL_FOR_OAUTH = IS_PRODUCTION || IS_DEV ? WEBAPP_URL : "http://localhost:3001";
 
 /** @deprecated use `WEBAPP_URL` */
 export const BASE_URL = WEBAPP_URL;
 export const WEBSITE_URL = process.env.NEXT_PUBLIC_WEBSITE_URL || "https://cal.com";
 export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Cal.com";
-export const SUPPORT_MAIL_ADDRESS = process.env.NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS || "help@cal.com";
+export const SUPPORT_MAIL_ADDRESS = process.env.NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS || "support@cal.id";
 export const COMPANY_NAME = process.env.NEXT_PUBLIC_COMPANY_NAME || "Cal.com, Inc.";
-export const SENDER_ID = process.env.NEXT_PUBLIC_SENDER_ID || "Cal";
-export const SENDER_NAME = process.env.NEXT_PUBLIC_SENDGRID_SENDER_NAME || "Cal.com";
+export const SENDER_ID = process.env.NEXT_PUBLIC_SENDER_ID || "Cal ID";
+export const SENDER_NAME = process.env.NEXT_PUBLIC_SENDGRID_SENDER_NAME || "Cal ID";
 export const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || APP_NAME;
 
 // This is the URL from which all Cal Links and their assets are served.
@@ -86,8 +87,8 @@ export const PUBLIC_QUICK_AVAILABILITY_ROLLOUT =
 
 /** @deprecated use `WEBAPP_URL` */
 export const NEXT_PUBLIC_BASE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL || `https://${process.env.VERCEL_URL}`;
-export const LOGO = "/calcom-logo-white-word.svg";
-export const LOGO_ICON = "/cal-com-icon-white.svg";
+export const LOGO = "/calid-logo-icon.svg";
+export const LOGO_ICON = "/calid-logo-icon.svg";
 export const AVATAR_FALLBACK = "/avatar.svg";
 export const FAVICON_16 = "/favicon-16x16.png";
 export const FAVICON_32 = "/favicon-32x32.png";
@@ -95,18 +96,19 @@ export const APPLE_TOUCH_ICON = "/apple-touch-icon.png";
 export const MSTILE_ICON = "/mstile-150x150.png";
 export const ANDROID_CHROME_ICON_192 = "/android-chrome-192x192.png";
 export const ANDROID_CHROME_ICON_256 = "/android-chrome-256x256.png";
-export const ROADMAP = "https://cal.com/roadmap";
+export const ROADMAP = "https://roadmap.onehash.ai";
 export const DESKTOP_APP_LINK = "https://cal.com/download";
 export const JOIN_COMMUNITY = "https://github.com/calcom/cal.com/discussions";
 export const POWERED_BY_URL = "https://go.cal.com/booking";
-export const DOCS_URL = "https://cal.com/docs";
-export const DEVELOPER_DOCS = "https://developer.cal.com";
+export const DOCS_URL = "https://cal.id/docs";
+export const DEVELOPER_DOCS = "https://cal.id/docs/developers";
 export const SEO_IMG_DEFAULT = `${CAL_URL}/og-image.png`;
 // The Dynamic OG Image is passed through Next's Image API to further optimize it.
 // This results in a 80% smaller image 🤯. It is however important that for the query
 // parameters you pass to the /api/social/og/image endpoint, you wrap them in encodeURIComponent
 // as well, otherwise the URL won't be valid.
 export const SEO_IMG_OGIMG = `${CAL_URL}/_next/image?w=1200&q=100&url=`;
+// export const SEO_IMG_OGIMG = `${CAL_URL}`;
 export const SEO_IMG_OGIMG_VIDEO = `${CAL_URL}/video-og-image.png`;
 export const IS_STRIPE_ENABLED = !!(
   process.env.STRIPE_CLIENT_ID &&
@@ -139,6 +141,7 @@ export const ORGANIZATION_MIN_SEATS = 5;
 // Needed for emails in E2E
 export const IS_MAILHOG_ENABLED = process.env.E2E_TEST_MAILHOG_ENABLED === "1";
 export const CALCOM_VERSION = process.env.NEXT_PUBLIC_CALCOM_VERSION as string;
+export const CALID_VERSION = process.env.NEXT_PUBLIC_CALID_VERSION as string;
 
 export const APP_CREDENTIAL_SHARING_ENABLED =
   !!process.env.CALCOM_CREDENTIAL_SYNC_SECRET && !!process.env.CALCOM_APP_CREDENTIAL_ENCRYPTION_KEY;
@@ -151,7 +154,7 @@ export const CREDENTIAL_SYNC_ENDPOINT = process.env.CALCOM_CREDENTIAL_SYNC_ENDPO
 // Service Account Encryption Key for encrypting/decrypting service account keys
 export const SERVICE_ACCOUNT_ENCRYPTION_KEY = process.env.CALCOM_SERVICE_ACCOUNT_ENCRYPTION_KEY;
 
-export const DEFAULT_LIGHT_BRAND_COLOR = "#292929";
+export const DEFAULT_LIGHT_BRAND_COLOR = "#007ee5";
 export const DEFAULT_DARK_BRAND_COLOR = "#fafafa";
 
 export const TOP_BANNER_HEIGHT = 40;
@@ -165,7 +168,7 @@ export const MAX_NB_INVITES = 100;
 
 export const URL_PROTOCOL_REGEX = /(^\w+:|^)\/\//;
 
-export const IS_VISUAL_REGRESSION_TESTING = Boolean(globalThis.window?.Meticulous?.isRunningAsTest);
+// export const IS_VISUAL_REGRESSION_TESTING = Boolean(globalThis.window?.Meticulous?.isRunningAsTest);
 
 export const BOOKER_NUMBER_OF_DAYS_TO_LOAD = parseInt(
   process.env.NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD ?? "0",
@@ -181,8 +184,8 @@ export const ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE_HELPER_DIALOGUE = 2;
 
 export const CALCOM_PRIVATE_API_ROUTE = process.env.CALCOM_PRIVATE_API_ROUTE || "https://goblin.cal.com";
 export const WEBSITE_PRIVACY_POLICY_URL =
-  process.env.NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL || "https://cal.com/privacy";
-export const WEBSITE_TERMS_URL = process.env.NEXT_PUBLIC_WEBSITE_TERMS_URL || "https://cal.com/terms";
+  process.env.NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL || "https://cal.id/info/privacy-policy";
+export const WEBSITE_TERMS_URL = process.env.NEXT_PUBLIC_WEBSITE_TERMS_URL || "https://cal.id/info/termofuse";
 export const LINGO_DOT_DEV_API_KEY = process.env.LINGO_DOT_DEV_API_KEY;
 
 /**
@@ -230,3 +233,39 @@ export const IS_SMS_CREDITS_ENABLED =
 export const DATABASE_CHUNK_SIZE = parseInt(process.env.DATABASE_CHUNK_SIZE || "25", 10);
 
 export const NEXTJS_CACHE_TTL = 3600; // 1 hour
+export const TEAMS_ENABLED = process.env.NEXT_PUBLIC_TEAMS_ENABLED === "true" || false;
+export const ONEHASH_CHAT_ORIGIN = process.env.NEXT_PUBLIC_ONEHASH_CHAT_ORIGIN;
+
+export const ONEHASH_CHAT_INTEGRATION_PAGE = `${ONEHASH_CHAT_ORIGIN}/app?to=cal_integration`;
+export const ONEHASH_CHAT_SYNC_BASE_URL = `${ONEHASH_CHAT_ORIGIN}/api/oh/integrations`;
+export const ONEHASH_API_KEY = process.env.ONEHASH_API_KEY;
+
+export const WHATSAPP_REMINDER_SID = process.env.WHATSAPP_REMINDER_SID;
+export const WHATSAPP_CANCELLED_SID = process.env.WHATSAPP_CANCELLED_SID;
+export const WHATSAPP_RESCHEDULED_SID = process.env.WHATSAPP_RESCHEDULED_SID;
+export const WHATSAPP_COMPLETED_SID = process.env.WHATSAPP_COMPLETED_SID;
+
+export const RECAPTCHA_KEY_LOW = process.env.NEXT_PUBLIC_RECAPTCHA_LOW;
+export const RECAPTCHA_KEY_MEDIUM = process.env.NEXT_PUBLIC_RECAPTCHA_MEDIUM;
+export const RECAPTCHA_KEY_HIGH = process.env.NEXT_PUBLIC_RECAPTCHA_HIGH;
+
+export const NGROK_URL = process.env.NGROK_URL;
+export const FIREBASE_SERVICE_ACCOUNT = process.env.FIREBASE_SERVICE_ACCOUNT;
+export const MOBILE_NOTIFICATIONS_ENABLED = process.env.MOBILE_NOTIFICATIONS_ENABLED;
+
+export const RECAPTCHA_SECRET_LOW = process.env.RECAPTCHA_SECRET_LOW;
+export const RECAPTCHA_SECRET_MEDIUM = process.env.RECAPTCHA_SECRET_MEDIUM;
+export const RECAPTCHA_SECRET_HIGH = process.env.RECAPTCHA_SECRET_HIGH;
+
+export const RAZORPAY_CLIENT_ID = process.env.NEXT_PUBLIC_RAZORPAY_CLIENT_ID;
+export const RAZORPAY_CLIENT_SECRET = process.env.RAZORPAY_CLIENT_SECRET;
+export const RAZORPAY_STATE_KEY = process.env.RAZORPAY_SECRET;
+
+export const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_SECRET;
+export const RAZORPAY_REDIRECT_URL = `${WEBAPP_URL}/apps/razorpay/callback`;
+export const RAZORPAY_UPI_ENABLED = process.env.RAZORPAY_UPI_ENABLED === "true";
+
+export const PHONE_NUMBER_VERIFICATION_ENABLED =
+  process.env.NEXT_PUBLIC_PHONE_NUMBER_VERIFICATION_ENABLED === "1";
+export const INNGEST_ID = process.env.INNGEST_ID ?? "onehash-cal";
+export const DEMO_URL = "https://app.cal.id/manas/demo";

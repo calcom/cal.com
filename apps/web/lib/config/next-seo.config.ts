@@ -11,6 +11,7 @@ export type HeadSeoProps = {
   username?: string;
   canonical?: string;
   nextSeoProps?: NextSeoProps;
+  bannerUrl?: string;
 };
 
 const seoImages = {

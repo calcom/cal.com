@@ -1,4 +1,6 @@
-import * as RadioGroup from "@radix-ui/react-radio-group";
+import { Button } from "@calid/features/ui/components/button";
+import { CheckboxField } from "@calid/features/ui/components/input/checkbox-field";
+import { Label } from "@calid/features/ui/components/label";
 import Link from "next/link";
 import { useCallback, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -9,11 +11,6 @@ import { BookerLayouts, defaultBookerLayoutSettings } from "@calcom/prisma/zod-u
 import { bookerLayoutOptions, type BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
-import { Button } from "@calcom/ui/components/button";
-import { Label } from "@calcom/ui/components/form";
-import { CheckboxField } from "@calcom/ui/components/form";
-
-import SectionBottomActions from "./SectionBottomActions";
 
 type BookerLayoutSelectorProps = {
   title?: string;
@@ -60,9 +57,16 @@ export const BookerLayoutSelector = ({
   const shouldShowUserSettings = (fallbackToUserSettings && !getValues(name || defaultFieldName)) || false;
 
   return (
-    <div className={classNames(isOuterBorder && "border-subtle rounded-lg border p-6")}>
-      <div className={classNames(isOuterBorder ? "pb-5" : "border-subtle rounded-t-xl border p-6")}>
-        <Label className={classNames("mb-1 font-semibold", isOuterBorder ? "text-sm" : "text-base")}>
+    <div
+      className={classNames(
+        isOuterBorder && "border-default rounded-lg border p-6",
+        !isOuterBorder && "border-subtle rounded-b-md border-x border-b pb-4"
+      )}>
+      <div
+        className={classNames(
+          isOuterBorder ? "pb-5" : "border-subtle rounded-t-xl border-x border-t px-6 pt-6"
+        )}>
+        <Label className={classNames("text-default text-sm font-semibold")}>
           {title ? title : t("layout")}
         </Label>
         <p className="text-subtle max-w-full break-words text-sm leading-tight">
@@ -70,9 +74,6 @@ export const BookerLayoutSelector = ({
         </p>
       </div>
       <Controller
-        // If the event does not have any settings, we don't want to register this field in the form.
-        // That way the settings won't get saved into the event on save, but remain null. Thus keep using
-        // the global user's settings.
         control={shouldShowUserSettings ? undefined : control}
         name={name || defaultFieldName}
         render={({ field: { value, onChange } }) => (
@@ -87,11 +88,14 @@ export const BookerLayoutSelector = ({
               isUserLoading={isUserLoading}
             />
             {!isOuterBorder && (
-              <SectionBottomActions align="end">
-                <Button loading={isLoading} type="submit" disabled={isDisabled} color="primary">
-                  {t("update")}
-                </Button>
-              </SectionBottomActions>
+              <Button
+                className="ml-6"
+                loading={isLoading}
+                type="submit"
+                disabled={isDisabled}
+                color="primary">
+                {t("update")}
+              </Button>
             )}
           </>
         )}
@@ -176,7 +180,7 @@ const BookerLayoutFields = ({
     if (user?.defaultBookerLayouts) onChange(user.defaultBookerLayouts);
   };
   return (
-    <div className={classNames("space-y-5", !isOuterBorder && "border-subtle border-x px-6 py-8")}>
+    <div className={classNames("space-y-5", !isOuterBorder && "border-subtle border-x px-6 pb-6 pt-8")}>
       <div
         className={classNames(
           "flex flex-col gap-5 transition-opacity sm:flex-row sm:gap-3",
@@ -191,13 +195,16 @@ const BookerLayoutFields = ({
                 src={`/bookerlayout_${layout}${isDark ? "_dark" : ""}.svg`}
                 alt="Layout preview"
               />
-              <CheckboxField
-                value={layout}
-                name={`bookerlayout_${layout}`}
-                description={t(`bookerlayout_${layout}`)}
-                checked={toggleValues[layout]}
-                onChange={(ev) => onLayoutToggleChange(layout, ev.target.checked)}
-              />
+              <div className="flex flex-row items-center gap-2">
+                <CheckboxField
+                  value={layout}
+                  checked={toggleValues[layout]}
+                  onCheckedChange={(checked) => {
+                    onLayoutToggleChange(layout, checked);
+                  }}
+                />
+                <div>{t(`bookerlayout_${layout}`)}</div>
+              </div>
             </label>
           </div>
         ))}
@@ -209,23 +216,19 @@ const BookerLayoutFields = ({
           disableFields && "pointer-events-none opacity-40",
           disableFields && isUserLoading && "animate-pulse"
         )}>
-        <Label>{t("bookerlayout_default_title")}</Label>
-        <RadioGroup.Root
-          key={defaultLayout}
-          className="border-subtle flex w-full gap-2 rounded-md border p-1"
-          defaultValue={defaultLayout}
-          onValueChange={(layout: BookerLayouts) => onDefaultLayoutChange(layout)}>
-          {bookerLayoutOptions.map((layout) => (
-            <RadioGroup.Item
-              className="aria-checked:bg-emphasis hover:[&:not(:disabled)]:bg-subtle focus:[&:not(:disabled)]:bg-subtle w-full rounded-[4px] p-1 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-40"
-              disabled={toggleValues[layout] === false}
-              key={layout}
-              value={layout}>
-              {t(`bookerlayout_${layout}`)}
-              <RadioGroup.Indicator />
-            </RadioGroup.Item>
-          ))}
-        </RadioGroup.Root>
+        <Label className="mr-2">{t("bookerlayout_default_title")}</Label>
+
+        {bookerLayoutOptions.map((layout) => (
+          <Button
+            disabled={toggleValues[layout] === false}
+            className="mr-2 px-4"
+            color={defaultLayout === layout ? "primary" : "secondary"}
+            onClick={() => {
+              onDefaultLayoutChange(layout);
+            }}>
+            {t(`bookerlayout_${layout}`)}
+          </Button>
+        ))}
       </div>
       {disableFields && (
         <p className="text-sm">
@@ -238,14 +241,14 @@ const BookerLayoutFields = ({
                 target="_blank"
                 href="/settings/my-account/appearance"
                 className="underline">
-                Appearance
+                {t("appearance")}
               </Link>,
               <Button
                 key="override-button"
                 onClick={onOverrideSettings}
                 color="minimal"
-                className="h-fit p-0 font-normal underline hover:bg-transparent focus-visible:bg-transparent">
-                Override
+                className="text-emphasis border-none p-0 font-normal underline">
+                {t("override")}
               </Button>,
             ]}
           />

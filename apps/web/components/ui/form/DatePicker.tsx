@@ -1,10 +1,10 @@
+import { Icon } from "@calid/features/ui/components/icon";
 import React from "react";
 import "react-calendar/dist/Calendar.css";
 import "react-date-picker/dist/DatePicker.css";
 import PrimitiveDatePicker from "react-date-picker/dist/entry.nostyle";
 
 import classNames from "@calcom/ui/classNames";
-import { Icon } from "@calcom/ui/components/icon";
 
 type Props = {
   date: Date;

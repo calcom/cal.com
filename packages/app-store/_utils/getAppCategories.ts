@@ -18,7 +18,14 @@ type AppCategoryEntry = {
 const getAppCategories = (baseURL: string, useQueryParam: boolean): AppCategoryEntry[] => {
   // Manually sorted alphabetically, but leaving "Other" at the end
   // TODO: Refactor and type with Record<AppCategories, AppCategoryEntry> to enforce consistency
+  const WEBAPP_URL = process.env.NEXT_PUBLIC_WEBAPP_URL;
   return [
+    {
+      name: "App Store",
+      href: getHref(WEBAPP_URL, "apps", useQueryParam),
+      icon: "blocks",
+      "data-testid": "store",
+    },
     {
       name: "analytics",
       href: getHref(baseURL, "analytics", useQueryParam),
@@ -60,6 +67,12 @@ const getAppCategories = (baseURL: string, useQueryParam: boolean): AppCategoryE
       href: getHref(baseURL, "payment", useQueryParam),
       icon: "credit-card",
       "data-testid": "payment",
+    },
+    {
+      name: "onehash",
+      href: getHref(baseURL, "onehash", useQueryParam),
+      icon: "layout-dashboard",
+      "data-testid": "onehash",
     },
     {
       name: "other",

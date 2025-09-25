@@ -1,19 +1,19 @@
+import { getDefaultAvatar } from "@calid/features/lib/defaultAvatar";
+import { Avatar } from "@calid/features/ui/components/avatar";
+import { Divider } from "@calid/features/ui/components/divider";
+import { VerticalDivider } from "@calid/features/ui/components/divider";
+import { Icon } from "@calid/features/ui/components/icon";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
 import { useSession } from "next-auth/react";
 import type { InputHTMLAttributes, ReactNode } from "react";
 import { forwardRef, useState } from "react";
 
-import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
-import { Avatar } from "@calcom/ui/components/avatar";
-import { VerticalDivider } from "@calcom/ui/components/divider";
-import { Divider } from "@calcom/ui/components/divider";
 import { FilterSearchField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { AnimatedPopover } from "@calcom/ui/components/popover";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { filterQuerySchema } from "../lib/getTeamsFiltersFromQuery";
 
@@ -63,7 +63,7 @@ export const TeamsFilter = ({
     return t("all");
   };
 
-  if (!teams || !teams.length) return null;
+  // if (!teams || !teams.length) return null;
 
   const userId = session.data?.user?.id || 0;
   const upId = session.data?.upId || "";
@@ -121,7 +121,7 @@ export const TeamsFilter = ({
                     removeItemByKeyAndValue("teamIds", team.id);
                   }
                 }}
-                icon={<Avatar alt={team?.name} imageSrc={getOrgOrTeamAvatar(team)} size="xs" />}
+                icon={<Avatar alt={team?.name} imageSrc={getDefaultAvatar(team)} size="xs" />}
               />
             ))}
         </FilterCheckboxFieldsContainer>
@@ -140,7 +140,10 @@ export const FilterCheckboxFieldsContainer = ({
 }) => {
   return (
     <div
-      className={classNames("flex flex-col gap-0.5 [&>*:first-child]:mt-1 [&>*:last-child]:mb-1", className)}>
+      className={classNames(
+        "flex flex-col gap-0.5 p-2 [&>*:first-child]:mt-1 [&>*:last-child]:mb-1",
+        className
+      )}>
       {children}
     </div>
   );
@@ -157,7 +160,7 @@ export const FilterCheckboxField = forwardRef<HTMLInputElement, Props>(
     return (
       <div
         data-testid={testId}
-        className="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 transition hover:cursor-pointer">
+        className="hover:bg-muted flex items-center rounded-md py-2 pl-3 pr-2.5 transition hover:cursor-pointer">
         <label className="flex w-full max-w-full items-center justify-between hover:cursor-pointer">
           <div className="flex items-center truncate">
             {icon && (

@@ -1,0 +1,18 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Razorpay",
+  "slug": "razorpay",
+  "type": "razorpay_payment",
+  "logo": "icon.png",
+  "url": "https://razorpay.com/",
+  "variant": "payment",
+  "categories": ["payment"],
+  "publisher": "OneHash",
+  "email": "support@cal.id",
+  "description": "Razorpay is the only payments solution in India that allows businesses to accept, process and disburse payments with its product suite.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "event-type-app-card",
+  "dirName": "razorpay",
+  "extendsFeature": "EventType"
+}

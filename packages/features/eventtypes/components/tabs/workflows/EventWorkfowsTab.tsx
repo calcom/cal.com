@@ -1,3 +1,7 @@
+import SkeletonLoader from "@calid/features/modules/workflows/components/event_workflow_tab_skeleton";
+import type { CalIdWorkflowType as WorkflowType } from "@calid/features/modules/workflows/config/types";
+import { getActionIcon } from "@calid/features/modules/workflows/utils/getActionicon";
+import { Icon } from "@calid/features/ui/components/icon";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -5,9 +9,6 @@ import { useFormContext } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import SkeletonLoader from "@calcom/features/ee/workflows/components/SkeletonLoaderEventWorkflowsTab";
-import type { WorkflowType } from "@calcom/features/ee/workflows/components/WorkflowListPage";
-import { getActionIcon } from "@calcom/features/ee/workflows/lib/getActionIcon";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -20,12 +21,11 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 
-type PartialWorkflowType = Pick<WorkflowType, "name" | "activeOn" | "isOrg" | "steps" | "id" | "readOnly">;
+type PartialWorkflowType = Pick<WorkflowType, "name" | "activeOn" | "steps" | "id" | "readOnly">;
 
 type ItemProps = {
   workflow: PartialWorkflowType;
@@ -141,7 +141,7 @@ const WorkflowListItem = (props: ItemProps) => {
           <div className="flex-none">
             <Link href={`/workflows/${workflow.id}`} passHref={true} target="_blank">
               <Button type="button" color="minimal" className="mr-4" EndIcon="external-link">
-                <div className="hidden ltr:mr-2 rtl:ml-2 sm:block">{t("edit")}</div>
+                <div className="hidden sm:block ltr:mr-2 rtl:ml-2">{t("edit")}</div>
               </Button>
             </Link>
           </div>
@@ -193,8 +193,8 @@ function EventWorkflowsTab(props: Props) {
 
   const workflowsDisableProps = shouldLockDisableProps("workflows", { simple: true });
   const lockedText = workflowsDisableProps.isLocked ? "locked" : "unlocked";
-  const { data, isPending } = trpc.viewer.workflows.list.useQuery({
-    teamId: eventType.team?.id,
+  const { data, isPending } = trpc.viewer.workflows.calid_list.useQuery({
+    calIdTeamId: eventType.calIdTeamId || undefined,
     userId: !isChildrenManagedEventType ? eventType.userId || undefined : undefined,
   });
   const router = useRouter();
@@ -206,13 +206,18 @@ function EventWorkflowsTab(props: Props) {
         const dataWf = data.workflows.find((wf) => wf.id === workflowOnEventType.id);
         return {
           ...workflowOnEventType,
-          readOnly: isChildrenManagedEventType && dataWf?.teamId ? true : dataWf?.readOnly ?? false,
+          readOnly: isChildrenManagedEventType && dataWf?.calIdTeamId ? true : dataWf?.readOnly ?? false,
+          trigger: dataWf?.trigger,
+          time: dataWf?.time,
+          timeUnit: dataWf?.timeUnit,
+          userId: dataWf?.userId,
+          calIdTeamId: dataWf?.calIdTeamId,
         } as WorkflowType;
       });
 
       const disabledWorkflows = data.workflows.filter(
         (workflow) =>
-          (!workflow.teamId || eventType.teamId === workflow.teamId) &&
+          (!workflow.calIdTeamId || eventType.teamId === workflow.calIdTeamId) &&
           !workflows
             .map((workflow) => {
               return workflow.id;

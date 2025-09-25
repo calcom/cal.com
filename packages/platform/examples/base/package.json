@@ -10,9 +10,9 @@
   },
   "dependencies": {
     "@calcom/atoms": "*",
-    "@prisma/client": "5.4.2",
+    "@prisma/client": "5.22.0",
     "next": "14.0.4",
-    "prisma": "^5.7.1",
+    "prisma": "5.22.0",
     "react": "^18",
     "react-dom": "^18",
     "react-select": "^5.8.0"

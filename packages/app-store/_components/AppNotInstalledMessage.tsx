@@ -1,8 +1,11 @@
+import { Icon } from "@calid/features/ui/components/icon";
+
+
+
 import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
 
 export default function AppNotInstalledMessage({ appName }: { appName: string }) {
   const { t } = useLocale();

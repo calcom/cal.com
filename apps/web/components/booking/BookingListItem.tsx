@@ -1,6 +1,20 @@
+import { Button } from "@calid/features/ui/components/button";
+import {
+  DropdownMenu, // DropdownItem,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@calid/features/ui/components/dropdown-menu";
+import { Icon } from "@calid/features/ui/components/icon";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import type { AssignmentReason } from "@prisma/client";
 import Link from "next/link";
+import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
+import { flushSync } from "react-dom";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 
 import type { getEventLocationValue } from "@calcom/app-store/locations";
@@ -25,54 +39,43 @@ import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
-import {
-  Dropdown,
-  DropdownItem,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuPortal,
-} from "@calcom/ui/components/dropdown";
 import { TextAreaField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { MeetingTimeInTimezones } from "@calcom/ui/components/popover";
 import { TableActions } from "@calcom/ui/components/table";
 import type { ActionType } from "@calcom/ui/components/table";
-import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
 import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
+import { BookingCancelDialog } from "@components/dialog/BookingCancelDialog";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { ReassignDialog } from "@components/dialog/ReassignDialog";
 import { RerouteDialog } from "@components/dialog/RerouteDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
+import { BookingExpandedCard } from "./BookingExpandedCard";
 import {
   getPendingActions,
   getCancelEventAction,
+  getRescheduleEventLink,
   getEditEventActions,
   getAfterEventActions,
   shouldShowPendingActions,
-  shouldShowEditActions,
-  shouldShowRecurringCancelAction,
   type BookingActionContext,
 } from "./bookingActions";
 
-type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]["status"];
+type BookingListingStatus = RouterInputs["viewer"]["bookings"]["calid_get"]["filters"]["status"];
 
-type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
+type BookingItem = RouterOutputs["viewer"]["bookings"]["calid_get"]["bookings"][number];
 
 export type BookingItemProps = BookingItem & {
+  expandedBooking: number | null;
+  setExpandedBooking: Dispatch<SetStateAction<number | null>>;
   listingStatus: BookingListingStatus;
-  recurringInfo: RouterOutputs["viewer"]["bookings"]["get"]["recurringInfo"][number] | undefined;
+  recurringInfo: RouterOutputs["viewer"]["bookings"]["calid_get"]["recurringInfo"][number] | undefined;
   loggedInUser: {
     userId: number | undefined;
     userTimeZone: string | undefined;
@@ -117,7 +120,7 @@ const isBookingReroutable = (booking: ParsedBooking): booking is ReroutableBooki
   return !!booking.routedFromRoutingFormReponse && !!booking.eventType?.team;
 };
 
-function BookingListItem(booking: BookingItemProps) {
+export default function BookingListItem(booking: BookingItemProps) {
   const parsedBooking = buildParsedBooking(booking);
 
   const { userTimeZone, userTimeFormat, userEmail } = booking.loggedInUser;
@@ -146,34 +149,56 @@ function BookingListItem(booking: BookingItemProps) {
 
   const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
     onSuccess: async (data) => {
-      showToast(data.message, "success");
+      triggerToast(data.message, "success");
       // Invalidate and refetch the bookings query to update the UI
       await utils.viewer.bookings.invalidate();
     },
     onError: (err) => {
-      showToast(err.message, "error");
+      triggerToast(err.message, "error");
     },
   });
+
+  const getIconFromLocationValue = (value: string) => {
+    switch (value) {
+      case "phone":
+        return "phone";
+      case "userPhone":
+        return "phone";
+      case "inPerson":
+        return "map-pin";
+      case "attendeeInPerson":
+        return "map-pin";
+      case "link":
+        return "link";
+      case "somewhereElse":
+        return "map";
+      default:
+        return "video";
+    }
+  };
 
   const mutation = trpc.viewer.bookings.confirm.useMutation({
     onSuccess: (data) => {
       if (data?.status === BookingStatus.REJECTED) {
         setRejectionDialogIsOpen(false);
-        showToast(t("booking_rejection_success"), "success");
+        triggerToast(t("booking_rejection_success"), "success");
       } else {
-        showToast(t("booking_confirmation_success"), "success");
+        triggerToast(t("booking_confirmation_success"), "success");
       }
       utils.viewer.bookings.invalidate();
     },
     onError: () => {
-      showToast(t("booking_confirmation_failed"), "error");
+      triggerToast(t("booking_confirmation_failed"), "error");
       utils.viewer.bookings.invalidate();
     },
   });
 
-  const isUpcoming = new Date(booking.endTime) >= new Date();
-  const isOngoing = isUpcoming && new Date() >= new Date(booking.startTime);
-  const isBookingInPast = new Date(booking.endTime) < new Date();
+  // const [expandedBooking, setExpandedBooking] = useState<number | null>(booking.id);
+  const { expandedBooking, setExpandedBooking } = booking;
+
+  const isUpcoming = dayjs(booking.endTime).tz(userTimeZone) >= dayjs().tz(userTimeZone);
+  const isOngoing = isUpcoming && dayjs().tz(userTimeZone) >= dayjs(booking.startTime).tz(userTimeZone);
+  const isBookingInPast = dayjs(booking.endTime).tz(userTimeZone) < dayjs().tz(userTimeZone);
   const isCancelled = booking.status === BookingStatus.CANCELLED;
   const isConfirmed = booking.status === BookingStatus.ACCEPTED;
   const isRejected = booking.status === BookingStatus.REJECTED;
@@ -183,6 +208,11 @@ function BookingListItem(booking: BookingItemProps) {
   const isTabRecurring = booking.listingStatus === "recurring";
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
   const isBookingFromRoutingForm = isBookingReroutable(parsedBooking);
+
+  console.log("attendees", booking.attendees);
+  console.log("startTime", booking.startTime);
+  console.log("endTime", booking.endTime);
+  console.log("timezone", userTimeZone);
 
   const paymentAppData = getPaymentAppData(booking.eventType);
 
@@ -269,6 +299,8 @@ function BookingListItem(booking: BookingItemProps) {
 
   const cancelEventAction = getCancelEventAction(actionContext);
 
+  const rescheduleEventLink = getRescheduleEventLink(actionContext);
+
   const RequestSentMessage = () => {
     return (
       <Badge startIcon="send" size="md" variant="gray" data-testid="request_reschedule_sent">
@@ -287,12 +319,15 @@ function BookingListItem(booking: BookingItemProps) {
     .format(isUpcoming ? (isDifferentYear ? "ddd, D MMM YYYY" : "ddd, D MMM") : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
   const [isOpenReassignDialog, setIsOpenReassignDialog] = useState(false);
+
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
+
+  const [isOpenSetCancellationDialog, setIsOpenCancellationDialog] = useState(false);
   const [isOpenAddGuestsDialog, setIsOpenAddGuestsDialog] = useState(false);
   const [rerouteDialogIsOpen, setRerouteDialogIsOpen] = useState(false);
   const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
     onSuccess: () => {
-      showToast(t("location_updated"), "success");
+      triggerToast(t("location_updated"), "success");
       setIsOpenLocationDialog(false);
       utils.viewer.bookings.invalidate();
     },
@@ -303,7 +338,7 @@ function BookingListItem(booking: BookingItemProps) {
       };
 
       const message = errorMessages[e.data?.code as string] || t("location_update_failed");
-      showToast(message, "error");
+      triggerToast(message, "error");
     },
   });
 
@@ -354,20 +389,21 @@ function BookingListItem(booking: BookingItemProps) {
   const showPendingPayment = paymentAppData.enabled && booking.payment.length && !booking.paid;
 
   const baseEditEventActions = getEditEventActions(actionContext);
+
   const editEventActions: ActionType[] = baseEditEventActions.map((action) => ({
     ...action,
     onClick:
       action.id === "reschedule_request"
         ? () => setIsOpenRescheduleDialog(true)
-        : action.id === "reroute"
-        ? () => setRerouteDialogIsOpen(true)
-        : action.id === "change_location"
+        : // : action.id === "reroute"
+        // ? () => setRerouteDialogIsOpen(true)
+        action.id === "change_location"
         ? () => setIsOpenLocationDialog(true)
         : action.id === "add_members"
         ? () => setIsOpenAddGuestsDialog(true)
-        : action.id === "reassign"
-        ? () => setIsOpenReassignDialog(true)
-        : undefined,
+        : // : action.id === "reassign"
+          // ? () => setIsOpenReassignDialog(true)
+          undefined,
   })) as ActionType[];
 
   const baseAfterEventActions = getAfterEventActions(actionContext);
@@ -382,6 +418,7 @@ function BookingListItem(booking: BookingItemProps) {
         ? () => setChargeCardDialogIsOpen(true)
         : action.id === "no_show"
         ? () => {
+            console.log("No showing");
             if (attendeeList.length === 1) {
               const attendee = attendeeList[0];
               noShowMutation.mutate({
@@ -399,13 +436,35 @@ function BookingListItem(booking: BookingItemProps) {
       (action.id === "view_recordings" && !booking.isRecorded),
   })) as ActionType[];
 
+  const rescheduleBooking = (href: string) => {
+    window.open(href, "_blank");
+  };
+
   return (
     <>
+      {isNoShowDialogOpen && (
+        <NoShowAttendeesDialog
+          bookingUid={booking.uid}
+          attendees={attendeeList}
+          setIsOpen={setIsNoShowDialogOpen}
+          isOpen={isNoShowDialogOpen}
+        />
+      )}
+
       <RescheduleDialog
         isOpenDialog={isOpenRescheduleDialog}
         setIsOpenDialog={setIsOpenRescheduleDialog}
         bookingUId={booking.uid}
       />
+
+      <BookingCancelDialog
+        isOpenDialog={isOpenSetCancellationDialog}
+        setIsOpenDialog={setIsOpenCancellationDialog}
+        seatReferenceUid={getSeatReferenceUid()}
+        bookingUId={booking.uid}
+        {...booking}
+      />
+
       {isOpenReassignDialog && (
         <ReassignDialog
           isOpenDialog={isOpenReassignDialog}
@@ -415,6 +474,7 @@ function BookingListItem(booking: BookingItemProps) {
           bookingFromRoutingForm={isBookingFromRoutingForm}
         />
       )}
+
       <EditLocationDialog
         booking={booking}
         saveLocation={saveLocation}
@@ -452,14 +512,6 @@ function BookingListItem(booking: BookingItemProps) {
           timeFormat={userTimeFormat ?? null}
         />
       )}
-      {isNoShowDialogOpen && (
-        <NoShowAttendeesDialog
-          bookingUid={booking.uid}
-          attendees={attendeeList}
-          setIsOpen={setIsNoShowDialogOpen}
-          isOpen={isNoShowDialogOpen}
-        />
-      )}
       <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
         <DialogContent title={t("rejection_reason_title")} description={t("rejection_reason_description")}>
           <div>
@@ -489,240 +541,236 @@ function BookingListItem(booking: BookingItemProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <div
-        data-testid="booking-item"
-        data-today={String(booking.isToday)}
-        className="hover:bg-muted group w-full">
-        <div className="flex flex-col sm:flex-row">
-          <div className="hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell sm:min-w-[12rem]">
-            <div className="flex h-full items-center">
-              {eventTypeColor && (
-                <div className="h-[70%] w-0.5" style={{ backgroundColor: eventTypeColor }} />
-              )}
-              <Link href={bookingLink} className="ml-3">
-                <div className="cursor-pointer py-4">
-                  <div className="text-emphasis text-sm leading-6">{startTime}</div>
-                  <div className="text-subtle text-sm">
-                    {formatTime(booking.startTime, userTimeFormat, userTimeZone)} -{" "}
-                    {formatTime(booking.endTime, userTimeFormat, userTimeZone)}
-                    <MeetingTimeInTimezones
-                      timeFormat={userTimeFormat}
-                      userTimezone={userTimeZone}
-                      startTime={booking.startTime}
-                      endTime={booking.endTime}
-                      attendees={booking.attendees}
-                    />
-                  </div>
-                  {!isPending && (
-                    <div>
-                      {(provider?.label ||
-                        (typeof locationToDisplay === "string" &&
-                          locationToDisplay?.startsWith("https://"))) &&
-                        locationToDisplay.startsWith("http") && (
-                          <a
-                            href={locationToDisplay}
-                            onClick={(e) => e.stopPropagation()}
-                            target="_blank"
-                            title={locationToDisplay}
-                            rel="noreferrer"
-                            className="text-sm leading-6 text-blue-600 hover:underline dark:text-blue-400">
-                            <div className="flex items-center gap-2">
-                              {provider?.iconUrl && (
-                                <img
-                                  src={provider.iconUrl}
-                                  className="h-4 w-4 rounded-sm"
-                                  alt={`${provider?.label} logo`}
-                                />
-                              )}
-                              {provider?.label
-                                ? t("join_event_location", { eventLocationType: provider?.label })
-                                : t("join_meeting")}
-                            </div>
-                          </a>
-                        )}
-                    </div>
-                  )}
-                </div>
-              </Link>
-            </div>
-          </div>
-          <div
-            data-testid="title-and-attendees"
-            className={`w-full px-4${isRejected ? " line-through" : ""}`}>
-            <Link href={bookingLink}>
-              {/* Time and Badges for mobile */}
-              <div className="w-full pb-2 pt-4 sm:hidden">
-                <div className="flex w-full items-center justify-between sm:hidden">
-                  <div className="text-emphasis text-sm leading-6">{startTime}</div>
-                  <div className="text-subtle pr-2 text-sm">
-                    {formatTime(booking.startTime, userTimeFormat, userTimeZone)} -{" "}
-                    {formatTime(booking.endTime, userTimeFormat, userTimeZone)}
-                    <MeetingTimeInTimezones
-                      timeFormat={userTimeFormat}
-                      userTimezone={userTimeZone}
-                      startTime={booking.startTime}
-                      endTime={booking.endTime}
-                      attendees={booking.attendees}
-                    />
-                  </div>
-                </div>
 
-                {isPending && (
-                  <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
-                    {t("unconfirmed")}
-                  </Badge>
-                )}
-                {booking.eventType?.team && (
-                  <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="gray">
-                    {booking.eventType.team.name}
-                  </Badge>
-                )}
-                {showPendingPayment && (
-                  <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
-                    {t("pending_payment")}
-                  </Badge>
-                )}
-                {recurringDates !== undefined && (
-                  <div className="text-muted text-sm sm:hidden">
-                    <RecurringBookingsTooltip
-                      userTimeFormat={userTimeFormat}
-                      userTimeZone={userTimeZone}
-                      booking={booking}
-                      recurringDates={recurringDates}
-                    />
-                  </div>
-                )}
-              </div>
-
-              <div className="cursor-pointer py-4">
+      <div className="bg-default border-default my-1.5 flex w-full flex-col items-start justify-between rounded-md border shadow-sm hover:shadow-md">
+        <div data-testid="booking-item" data-today={String(booking.isToday)} className="group w-full">
+          <div className="cursor-pointer">
+            <div className="flex flex-col pb-4">
+              <div className="flex flex-col lg:flex-row">
                 <div
-                  title={title}
-                  className={classNames(
-                    "max-w-10/12 sm:max-w-56 text-emphasis text-sm font-medium leading-6 md:max-w-full",
-                    isCancelled ? "line-through" : ""
-                  )}>
-                  {title}
-                  <span> </span>
+                  data-testid="title-and-attendees"
+                  onClick={() =>
+                    flushSync(() => {
+                      setExpandedBooking(expandedBooking === booking.id ? null : booking.id);
+                    })
+                  }
+                  className={`w-full px-4${isRejected ? " line-through" : ""}`}>
+                  {/* <Link href={bookingLink}> */}
+                  {/* Time and Badges for mobile */}
+                  <div className="w-full pb-2 pt-4 sm:hidden">
+                    <div className="flex w-full items-center justify-between sm:hidden">
+                      <div className="text-emphasis text-sm leading-6">{startTime}</div>
+                      <div className="text-subtle pr-2 text-sm">
+                        {formatTime(booking.startTime, userTimeFormat, userTimeZone)} -{" "}
+                        {formatTime(booking.endTime, userTimeFormat, userTimeZone)}
+                        <MeetingTimeInTimezones
+                          timeFormat={userTimeFormat}
+                          userTimezone={userTimeZone}
+                          startTime={booking.startTime}
+                          endTime={booking.endTime}
+                          attendees={booking.attendees}
+                        />
+                      </div>
+                    </div>
 
-                  {showPendingPayment && (
-                    <Badge className="hidden sm:inline-flex" variant="orange">
-                      {t("pending_payment")}
-                    </Badge>
-                  )}
+                    {isPending && (
+                      <Badge className="sm:hidden ltr:mr-2 rtl:ml-2" variant="orange">
+                        {t("unconfirmed")}
+                      </Badge>
+                    )}
+                    {booking.eventType?.team && (
+                      <Badge className="sm:hidden ltr:mr-2 rtl:ml-2" variant="gray">
+                        {booking.eventType.team.name}
+                      </Badge>
+                    )}
+                    {showPendingPayment && (
+                      <Badge className="sm:hidden ltr:mr-2 rtl:ml-2" variant="orange">
+                        {t("pending_payment")}
+                      </Badge>
+                    )}
+                    {recurringDates !== undefined && (
+                      <div className="text-muted text-sm sm:hidden">
+                        <RecurringBookingsTooltip
+                          userTimeFormat={userTimeFormat}
+                          userTimeZone={userTimeZone}
+                          booking={booking}
+                          recurringDates={recurringDates}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex cursor-pointer flex-col items-start justify-start pt-6">
+                    <div
+                      title={title}
+                      className={classNames(
+                        "text-emphasis flex w-full items-center gap-2 align-top text-base font-semibold leading-6"
+                      )}>
+                      <span className={isCancelled ? "line-through" : ""}>{booking.eventType?.title}</span>
+                      <span className="align-center text-subtle text-xs font-medium">with</span>
+                      <span className="align-center !decoration-none text-default text-sm font-medium">
+                        {attendeeList[0].name}
+                      </span>
+                      {attendeeList.length > 1 && (
+                        <span className="align-center text-default text-sm font-medium">
+                          + {attendeeList.length - 1} more
+                        </span>
+                      )}
+                      {showPendingPayment && (
+                        <Badge className="hidden sm:inline-flex" variant="orange">
+                          {t("pending_payment")}
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="text-subtle flex w-full cursor-pointer flex-row items-center py-2 text-xs font-medium">
+                      <div className="">{booking.isToday ? t("today_capitalized") : startTime}</div>
+                      <span className="px-2">{" • "}</span>
+                      <div className="flex items-center">
+                        {formatTime(booking.startTime, userTimeFormat, userTimeZone)} -{" "}
+                        {formatTime(booking.endTime, userTimeFormat, userTimeZone)}
+                        <MeetingTimeInTimezones
+                          timeFormat={userTimeFormat}
+                          userTimezone={userTimeZone}
+                          startTime={booking.startTime}
+                          endTime={booking.endTime}
+                          attendees={booking.attendees}
+                        />
+                      </div>
+                    </div>
+
+                    {!isPending && (
+                      <div>
+                        {(provider?.label ||
+                          (typeof locationToDisplay === "string" &&
+                            locationToDisplay?.startsWith("https://"))) &&
+                          locationToDisplay.startsWith("http") && (
+                            <a
+                              href={locationToDisplay}
+                              onClick={(e) => e.stopPropagation()}
+                              target="_blank"
+                              title={locationToDisplay}
+                              rel="noreferrer"
+                              className="text-active text-xs leading-6 hover:underline">
+                              <div className="flex items-center gap-2">
+                                <Icon name={getIconFromLocationValue(location)} className="h-3.5 w-3.5" />
+                                {provider?.label
+                                  ? t("join_event_location", { eventLocationType: provider?.label })
+                                  : t("join_meeting")}
+                              </div>
+                            </a>
+                          )}
+                      </div>
+                    )}
+                    {isCancelled && booking.rescheduled && (
+                      <div className="mt-2 inline-block md:hidden">
+                        <RequestSentMessage />
+                      </div>
+                    )}
+                  </div>
                 </div>
-                {booking.description && (
-                  <div
-                    className="max-w-10/12 sm:max-w-32 md:max-w-52 xl:max-w-80 text-default truncate text-sm"
-                    title={booking.description}>
-                    &quot;{booking.description}&quot;
+
+                <div className="flex w-full flex-col lg:w-auto">
+                  <div className="flex w-full flex-row flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium lg:flex-row lg:flex-nowrap lg:items-start lg:space-y-0 lg:pl-0 ltr:pr-4 rtl:pl-4">
+                    {shouldShowPendingActions(actionContext) && <TableActions actions={pendingActions} />}
+
+                    {!isCancelled && (
+                      <Button
+                        color="secondary"
+                        onClick={() => rescheduleBooking(rescheduleEventLink)}
+                        className="flex items-center space-x-2">
+                        <span>{t("reschedule")}</span>
+                      </Button>
+                    )}
+
+                    {!isCancelled && (
+                      <Button
+                        color="secondary"
+                        onClick={() => setIsOpenCancellationDialog(true)}
+                        className="flex items-center space-x-2">
+                        <span>{t("cancel")}</span>
+                      </Button>
+                    )}
+
+                    {!isCancelled && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button StartIcon="ellipsis" color="secondary" variant="icon" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          {editEventActions.map((action) => (
+                            <DropdownMenuItem
+                              key={action.id}
+                              className="rounded-lg"
+                              disabled={action.disabled}
+                              color={action.color}
+                              StartIcon={action.icon}
+                              href={action.href}
+                              onClick={action.onClick}
+                              data-bookingid={action.bookingId}
+                              data-testid={action.id}>
+                              {action.label}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+
+                    {/* {shouldShowRecurringCancelAction(actionContext) && (
+                  <TableActions actions={[cancelEventAction]} />
+                )} */}
+                    {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
+                    {isCancelled && booking.rescheduled && (
+                      <div className="hidden h-full w-full items-center md:flex">
+                        <RequestSentMessage />
+                      </div>
+                    )}
                   </div>
-                )}
-                {booking.attendees.length !== 0 && (
-                  <DisplayAttendees
-                    attendees={attendeeList}
-                    user={booking.user}
-                    currentEmail={userEmail}
-                    bookingUid={booking.uid}
-                    isBookingInPast={isBookingInPast}
-                  />
-                )}
-                {isCancelled && booking.rescheduled && (
-                  <div className="mt-2 inline-block md:hidden">
-                    <RequestSentMessage />
+
+                  <div className="flex-1" />
+
+                  <div className="flex flex-row justify-end pr-4">
+                    <button
+                      className="align-end text-muted-foreground hover:text-foreground flex items-center gap-2 text-sm transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setExpandedBooking(expandedBooking === booking.id ? null : booking.id);
+                      }}>
+                      <span>{t("details")}</span>
+                      <Icon
+                        name="chevron-down"
+                        className={`h-4 w-4 transition-transform ${
+                          expandedBooking === booking.id ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
                   </div>
-                )}
+                </div>
               </div>
-            </Link>
-          </div>
-          <div className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
-            {shouldShowPendingActions(actionContext) && <TableActions actions={pendingActions} />}
-            {shouldShowEditActions(actionContext) && (
-              <Dropdown>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    type="button"
-                    color="secondary"
-                    variant="icon"
-                    StartIcon="ellipsis"
-                    data-testid="booking-actions-dropdown"
-                  />
-                </DropdownMenuTrigger>
-                <DropdownMenuPortal>
-                  <DropdownMenuContent>
-                    <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("edit_event")}</DropdownMenuLabel>
-                    {editEventActions.map((action) => (
-                      <DropdownMenuItem className="rounded-lg" key={action.id} disabled={action.disabled}>
-                        <DropdownItem
-                          type="button"
-                          color={action.color}
-                          StartIcon={action.icon}
-                          href={action.href}
-                          disabled={action.disabled}
-                          onClick={action.onClick}
-                          data-bookingid={action.bookingId}
-                          data-testid={action.id}
-                          className={action.disabled ? "text-muted" : undefined}>
-                          {action.label}
-                        </DropdownItem>
-                      </DropdownMenuItem>
-                    ))}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("after_event")}</DropdownMenuLabel>
-                    {afterEventActions.map((action) => (
-                      <DropdownMenuItem className="rounded-lg" key={action.id} disabled={action.disabled}>
-                        <DropdownItem
-                          type="button"
-                          color={action.color}
-                          StartIcon={action.icon}
-                          href={action.href}
-                          onClick={action.onClick}
-                          disabled={action.disabled}
-                          data-bookingid={action.bookingId}
-                          data-testid={action.id}
-                          className={action.disabled ? "text-muted" : undefined}>
-                          {action.label}
-                        </DropdownItem>
-                      </DropdownMenuItem>
-                    ))}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      className="rounded-lg"
-                      key={cancelEventAction.id}
-                      disabled={cancelEventAction.disabled}>
-                      <DropdownItem
-                        type="button"
-                        color={cancelEventAction.color}
-                        StartIcon={cancelEventAction.icon}
-                        href={cancelEventAction.href}
-                        onClick={cancelEventAction.onClick}
-                        disabled={cancelEventAction.disabled}
-                        data-bookingid={cancelEventAction.bookingId}
-                        data-testid={cancelEventAction.id}
-                        className={cancelEventAction.disabled ? "text-muted" : undefined}>
-                        {cancelEventAction.label}
-                      </DropdownItem>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenuPortal>
-              </Dropdown>
-            )}
-            {shouldShowRecurringCancelAction(actionContext) && <TableActions actions={[cancelEventAction]} />}
-            {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
-            {isCancelled && booking.rescheduled && (
-              <div className="hidden h-full items-center md:flex">
-                <RequestSentMessage />
-              </div>
+              <BookingItemBadges
+                booking={booking}
+                isPending={isPending}
+                recurringDates={recurringDates}
+                userTimeFormat={userTimeFormat}
+                userTimeZone={userTimeZone}
+                isRescheduled={isRescheduled}
+              />
+            </div>
+
+            {expandedBooking === booking.id && (
+              <BookingExpandedCard
+                key={booking.id}
+                isHost={true}
+                showExpandedActions={true}
+                setSelectedMeeting={() => {}}
+                setShowMeetingNotes={() => {}}
+                handleMarkNoShow={() => {}}
+                isCurrentTime={() => true}
+                {...booking}
+              />
             )}
           </div>
         </div>
-        <BookingItemBadges
-          booking={booking}
-          isPending={isPending}
-          recurringDates={recurringDates}
-          userTimeFormat={userTimeFormat}
-          userTimeZone={userTimeZone}
-          isRescheduled={isRescheduled}
-        />
       </div>
 
       {isBookingFromRoutingForm && (
@@ -754,33 +802,26 @@ const BookingItemBadges = ({
   const { t } = useLocale();
 
   return (
-    <div className="hidden h-9 flex-row items-center pb-4 pl-6 sm:flex">
-      {isPending && (
-        <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
-          {t("unconfirmed")}
-        </Badge>
-      )}
+    <div className="flex flex-row flex-wrap items-center gap-2 pb-2 pl-4">
+      {isPending && <Badge variant="orange">{t("unconfirmed")}</Badge>}
       {isRescheduled && (
         <Tooltip content={`${t("rescheduled_by")} ${booking.rescheduler}`}>
-          <Badge variant="orange" className="ltr:mr-2 rtl:ml-2">
-            {t("rescheduled")}
-          </Badge>
+          <Badge variant="orange">{t("rescheduled")}</Badge>
         </Tooltip>
       )}
-      {booking.eventType?.team && (
-        <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
-          {booking.eventType.team.name}
-        </Badge>
-      )}
+      {booking.eventType?.team && <Badge variant="gray">{booking.eventType.team.name}</Badge>}
       {booking?.assignmentReason.length > 0 && (
-        <AssignmentReasonTooltip assignmentReason={booking.assignmentReason[0]} />
+        <AssignmentReasonTooltip
+          assignmentReason={{
+            ...booking.assignmentReason[0],
+            createdAt: new Date(booking.assignmentReason[0].createdAt),
+          }}
+        />
       )}
       {booking.paid && !booking.payment[0] ? (
-        <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
-          {t("error_collecting_card")}
-        </Badge>
+        <Badge variant="orange">{t("error_collecting_card")}</Badge>
       ) : booking.paid ? (
-        <Badge className="ltr:mr-2 rtl:ml-2" variant="green" data-testid="paid_badge">
+        <Badge variant="green" data-testid="paid_badge">
           {booking.payment[0].paymentOption === "HOLD" ? t("card_held") : t("paid")}
         </Badge>
       ) : null}
@@ -924,16 +965,16 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
 
   const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
     onSuccess: async (data) => {
-      showToast(data.message, "success");
+      triggerToast(data.message, "success");
       await utils.viewer.bookings.invalidate();
     },
     onError: (err) => {
-      showToast(err.message, "error");
+      triggerToast(err.message, "error");
     },
   });
 
   return (
-    <Dropdown open={openDropdown} onOpenChange={setOpenDropdown}>
+    <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
       <DropdownMenuTrigger asChild>
         <button
           data-testid="guest"
@@ -948,53 +989,52 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
           )}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuPortal>
-        <DropdownMenuContent>
-          {!isSmsCalEmail(email) && (
-            <DropdownMenuItem className="focus:outline-none">
-              <DropdownItem
-                StartIcon="mail"
-                href={`mailto:${email}`}
-                onClick={(e) => {
-                  setOpenDropdown(false);
-                  e.stopPropagation();
-                }}>
-                <a href={`mailto:${email}`}>{t("email")}</a>
-              </DropdownItem>
-            </DropdownMenuItem>
-          )}
 
-          <DropdownMenuItem className="focus:outline-none">
-            <DropdownItem
-              StartIcon={isCopied ? "clipboard-check" : "clipboard"}
-              onClick={(e) => {
-                e.preventDefault();
-                const isEmailCopied = isSmsCalEmail(email);
-                copyToClipboard(isEmailCopied ? email : phoneNumber ?? "");
-                setOpenDropdown(false);
-                showToast(isEmailCopied ? t("email_copied") : t("phone_number_copied"), "success");
-              }}>
-              {!isCopied ? t("copy") : t("copied")}
-            </DropdownItem>
+      <DropdownMenuContent>
+        {!isSmsCalEmail(email) && (
+          <DropdownMenuItem
+            className="focus:outline-none"
+            StartIcon="mail"
+            href={`mailto:${email}`}
+            onClick={(e) => {
+              setOpenDropdown(false);
+              e.stopPropagation();
+            }}>
+            {t("email")}
           </DropdownMenuItem>
+        )}
 
-          {isBookingInPast && (
-            <DropdownMenuItem className="focus:outline-none">
-              <DropdownItem
-                data-testid={noShow ? "unmark-no-show" : "mark-no-show"}
-                onClick={(e) => {
-                  e.preventDefault();
-                  setOpenDropdown(false);
-                  noShowMutation.mutate({ bookingUid, attendees: [{ noShow: !noShow, email }] });
-                }}
-                StartIcon={noShow ? "eye" : "eye-off"}>
-                {noShow ? t("unmark_as_no_show") : t("mark_as_no_show")}
-              </DropdownItem>
-            </DropdownMenuItem>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenuPortal>
-    </Dropdown>
+        <DropdownMenuItem
+          className="focus:outline-none"
+          StartIcon={isCopied ? "clipboard-check" : "clipboard"}
+          onClick={(e) => {
+            e.preventDefault();
+            const isEmailCopied = isSmsCalEmail(email);
+            copyToClipboard(isEmailCopied ? email : phoneNumber ?? "");
+            setOpenDropdown(false);
+            triggerToast(isEmailCopied ? t("email_copied") : t("phone_number_copied"), "success");
+          }}>
+          {!isCopied ? t("copy") : t("copied")}
+        </DropdownMenuItem>
+
+        {isBookingInPast && (
+          <DropdownMenuItem
+            className="focus:outline-none"
+            data-testid={noShow ? "unmark-no-show" : "mark-no-show"}
+            onClick={(e) => {
+              e.preventDefault();
+              setOpenDropdown(false);
+              noShowMutation.mutate({
+                bookingUid,
+                attendees: [{ noShow: !noShow, email }],
+              });
+            }}
+            StartIcon={noShow ? "eye" : "eye-off"}>
+            {noShow ? t("unmark_as_no_show") : t("mark_as_no_show")}
+          </DropdownMenuItem>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 
@@ -1017,11 +1057,11 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
   const utils = trpc.useUtils();
   const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
     onSuccess: async (data) => {
-      showToast(t(data.message), "success");
+      triggerToast(t(data.message), "success");
       await utils.viewer.bookings.invalidate();
     },
     onError: (err) => {
-      showToast(err.message, "error");
+      triggerToast(err.message, "error");
     },
   });
   const { control, handleSubmit } = useForm<{
@@ -1047,7 +1087,7 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
   const [openDropdown, setOpenDropdown] = useState(false);
 
   return (
-    <Dropdown open={openDropdown} onOpenChange={setOpenDropdown}>
+    <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
       <DropdownMenuTrigger asChild>
         <button
           data-testid="more-guests"
@@ -1056,10 +1096,12 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
           {t("plus_more", { count: attendees.length - 1 })}
         </button>
       </DropdownMenuTrigger>
+
       <DropdownMenuContent>
         <DropdownMenuLabel className="text-xs font-medium uppercase">
           {t("mark_as_no_show_title")}
         </DropdownMenuLabel>
+
         <form onSubmit={handleSubmit(onSubmit)}>
           {fields.slice(1).map((field, index) => (
             <Controller
@@ -1080,8 +1122,10 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
               )}
             />
           ))}
+
           <DropdownMenuSeparator />
-          <div className="flex justify-end p-2 ">
+
+          <div className="flex justify-end p-2">
             <Button
               data-testid="update-no-show"
               color="secondary"
@@ -1094,7 +1138,7 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
           </div>
         </form>
       </DropdownMenuContent>
-    </Dropdown>
+    </DropdownMenu>
   );
 };
 
@@ -1128,11 +1172,11 @@ const NoShowAttendeesDialog = ({
           attendee.email === newValue.email ? { ...attendee, noShow: newValue.noShow } : attendee
         )
       );
-      showToast(t(data.message), "success");
+      triggerToast(t(data.message), "success");
       await utils.viewer.bookings.invalidate();
     },
     onError: (err) => {
-      showToast(err.message, "error");
+      triggerToast(err.message, "error");
     },
   });
 
@@ -1175,7 +1219,7 @@ const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
   const [selectedEmail, setSelectedEmail] = useState("");
 
   return (
-    <Dropdown
+    <DropdownMenu
       open={openDropdown}
       onOpenChange={(value) => {
         setOpenDropdown(value);
@@ -1188,23 +1232,26 @@ const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
           {t("plus_more", { count: guests.length - 1 })}
         </button>
       </DropdownMenuTrigger>
+
       <DropdownMenuContent>
         <DropdownMenuLabel className="text-xs font-medium uppercase">{t("guests")}</DropdownMenuLabel>
+
         {guests.slice(1).map((guest) => (
-          <DropdownMenuItem key={guest.id}>
-            <DropdownItem
-              className="pr-6 focus:outline-none"
-              StartIcon={selectedEmail === guest.email ? "circle-check" : undefined}
-              onClick={(e) => {
-                e.preventDefault();
-                setSelectedEmail(guest.email);
-              }}>
-              <span className={`${selectedEmail !== guest.email ? "pl-6" : ""}`}>{guest.email}</span>
-            </DropdownItem>
+          <DropdownMenuItem
+            key={guest.id}
+            className="pr-6 focus:outline-none"
+            StartIcon={selectedEmail === guest.email ? "circle-check" : undefined}
+            onClick={(e) => {
+              e.preventDefault();
+              setSelectedEmail(guest.email);
+            }}>
+            <span className={selectedEmail !== guest.email ? "pl-6" : ""}>{guest.email}</span>
           </DropdownMenuItem>
         ))}
+
         <DropdownMenuSeparator />
-        <div className="flex justify-end space-x-2 p-2 ">
+
+        <div className="flex justify-end space-x-2 p-2">
           <Link href={`mailto:${selectedEmail}`}>
             <Button
               color="secondary"
@@ -1216,19 +1263,20 @@ const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
               {t("email")}
             </Button>
           </Link>
+
           <Button
             color="secondary"
             disabled={selectedEmail.length === 0}
             onClick={(e) => {
               e.preventDefault();
               copyToClipboard(selectedEmail);
-              showToast(t("email_copied"), "success");
+              triggerToast(t("email_copied"), "success");
             }}>
             {!isCopied ? t("copy") : t("copied")}
           </Button>
         </div>
       </DropdownMenuContent>
-    </Dropdown>
+    </DropdownMenu>
   );
 };
 
@@ -1249,13 +1297,21 @@ const DisplayAttendees = ({
   attendees.sort((a, b) => a.id - b.id);
 
   return (
-    <div className="text-emphasis text-sm">
-      {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
-      {attendees.length > 1 ? <span>,&nbsp;</span> : <span>&nbsp;{t("and")}&nbsp;</span>}
-      <Attendee {...attendees[0]} bookingUid={bookingUid} isBookingInPast={isBookingInPast} />
+    <div className="align-center !decoration-none text-sm font-bold text-slate-500">
+      {/* {user && <FirstAttendee user={user} currentEmail={currentEmail} />} */}
+      {/* {attendees.length > 1 ? <span>,&nbsp;</span> : <span>&nbsp;{t("and")}&nbsp;</span>} */}
+      <Attendee
+        name={attendees[0].name}
+        email={attendees[0].email}
+        phoneNumber={attendees[0].phoneNumber}
+        id={attendees[0].id}
+        noShow={attendees[0].noShow}
+        bookingUid={bookingUid}
+        isBookingInPast={isBookingInPast}
+      />
       {attendees.length > 1 && (
         <>
-          <div className="text-emphasis inline-block text-sm">&nbsp;{t("and")}&nbsp;</div>
+          <div>&nbsp;{t("and")}&nbsp;</div>
           {attendees.length > 2 ? (
             <Tooltip
               content={attendees.slice(1).map((attendee) => (
@@ -1289,5 +1345,3 @@ const AssignmentReasonTooltip = ({ assignmentReason }: { assignmentReason: Assig
     </Tooltip>
   );
 };
-
-export default BookingListItem;

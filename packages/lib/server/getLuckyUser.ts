@@ -12,7 +12,7 @@ import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
 import type { SelectedCalendar } from "@calcom/prisma/client";
-import type { AttributeType } from "@calcom/prisma/enums";
+import type { AttributeType, RoundRobinResetInterval, RoundRobinTimestampBasis } from "@calcom/prisma/enums";
 import { BookingStatus, RRTimestampBasis, RRResetInterval } from "@calcom/prisma/enums";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
@@ -70,6 +70,10 @@ interface GetLuckyUserParams<T extends PartialUser> {
       parentId?: number | null;
       rrResetInterval: RRResetInterval | null;
       rrTimestampBasis: RRTimestampBasis;
+    } | null;
+    calIdTeam: {
+      roundRobinResetInterval: RoundRobinResetInterval | null;
+      roundRobinTimestampBasis: RoundRobinTimestampBasis;
     } | null;
     includeNoShowInRRCalculation: boolean;
   };
@@ -662,13 +666,19 @@ async function fetchAllDataNeededForCalculations<
   const { attributeWeights, virtualQueuesData } = await prepareQueuesAndAttributesData(getLuckyUserParams);
 
   const interval =
-    eventType.isRRWeightsEnabled && getLuckyUserParams.eventType.team?.rrResetInterval
-      ? getLuckyUserParams.eventType.team?.rrResetInterval
+    eventType.isRRWeightsEnabled &&
+    (getLuckyUserParams.eventType.team?.rrResetInterval ||
+      getLuckyUserParams.eventType.calIdTeam?.roundRobinResetInterval)
+      ? getLuckyUserParams.eventType.team?.rrResetInterval ||
+        getLuckyUserParams.eventType.calIdTeam?.roundRobinResetInterval
       : RRResetInterval.MONTH;
 
   const rrTimestampBasis =
-    eventType.isRRWeightsEnabled && getLuckyUserParams.eventType.team?.rrTimestampBasis
-      ? getLuckyUserParams.eventType.team.rrTimestampBasis
+    eventType.isRRWeightsEnabled &&
+    (getLuckyUserParams.eventType.team?.rrTimestampBasis ||
+      getLuckyUserParams.eventType.calIdTeam?.roundRobinTimestampBasis)
+      ? getLuckyUserParams.eventType.team?.rrTimestampBasis ||
+        getLuckyUserParams.eventType.calIdTeam?.roundRobinTimestampBasis
       : RRTimestampBasis.CREATED_AT;
 
   const [

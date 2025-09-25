@@ -154,7 +154,7 @@ vi.mock("@calcom/features/webhooks/lib/getWebhooks", () => ({
   default: vi.fn().mockResolvedValue([]),
 }));
 
-vi.mock("@calcom/features/ee/workflows/lib/getAllWorkflows", () => ({
+vi.mock("@calid/features/modules/workflows/utils/getWorkflows", () => ({
   getAllWorkflows: vi.fn().mockResolvedValue([]),
   workflowSelect: {},
 }));

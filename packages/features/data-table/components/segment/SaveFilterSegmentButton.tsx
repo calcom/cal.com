@@ -1,3 +1,13 @@
+import { Button } from "@calid/features/ui/components/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@calid/features/ui/components/dialog";
+import { Icon } from "@calid/features/ui/components/icon";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -6,14 +16,6 @@ import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { type FilterSegmentScope } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTrigger,
-} from "@calcom/ui/components/dialog";
 import { Form, Input, Label, Select, Switch } from "@calcom/ui/components/form";
 import { RadioGroup, RadioField } from "@calcom/ui/components/radio";
 import { showToast } from "@calcom/ui/components/toast";
@@ -164,8 +166,9 @@ export function SaveFilterSegmentButton() {
 
   if (!isSegmentEnabled) {
     return (
-      <Button StartIcon="bookmark" color="secondary" disabled>
-        {t("save")}
+      <Button color="secondary" disabled className="flex items-center space-x-2">
+        <Icon name="bookmark" className="h-4 w-4" />
+        <span>{t("save")}</span>
       </Button>
     );
   }
@@ -174,15 +177,20 @@ export function SaveFilterSegmentButton() {
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button
-          StartIcon="bookmark"
           color="secondary"
           disabled={!canSaveSegment}
+          className="flex items-center space-x-2"
           data-testid="save-filter-segment-button">
-          {t("save")}
+          <Icon name="bookmark" className="h-4 w-4" />
+          <span>{t("save")}</span>
         </Button>
       </DialogTrigger>
+
       <DialogContent data-testid="save-filter-segment-dialog">
-        <DialogHeader title={t("save_segment")} />
+        <DialogHeader>
+          <DialogTitle>{t("save_segment")}</DialogTitle>
+        </DialogHeader>
+
         <Form form={form} handleSubmit={onSubmit}>
           {selectedSegment ? (
             <div className="mb-4">
@@ -237,7 +245,7 @@ export function SaveFilterSegmentButton() {
               </>
             )}
 
-            <DialogFooter>
+            <DialogFooter className="mt-4">
               <Button type="button" color="minimal" onClick={() => setIsOpen(false)}>
                 {t("cancel")}
               </Button>

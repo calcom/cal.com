@@ -1,8 +1,8 @@
 "use client";
 
 import { RenderComponentWithSnippet } from "@/app/components/render";
+import { Button } from "@calid/features/ui/components/button";
 
-import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 export const RawButtonExample: React.FC = () => (

@@ -115,7 +115,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   bookingInfo["endTime"] = (bookingInfo?.endTime as Date)?.toISOString() as unknown as Date;
 
   eventTypeRaw.users = !!eventTypeRaw.hosts?.length
-    ? eventTypeRaw.hosts.map((host) => host.user)
+    ? eventTypeRaw.hosts.map((host) => ({
+        ...host.user,
+        bannerUrl: host.user.bannerUrl,
+        faviconUrl: host.user.faviconUrl,
+      }))
     : eventTypeRaw.users;
 
   if (!eventTypeRaw.users.length) {
@@ -130,6 +134,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const eventType = {
     ...eventTypeRaw,
+    bannerUrl: eventTypeRaw.owner?.bannerUrl ?? eventTypeRaw.team?.bannerUrl ?? null,
+    faviconUrl: eventTypeRaw.owner?.faviconUrl ?? eventTypeRaw.team?.faviconUrl ?? null,
     periodStartDate: eventTypeRaw.periodStartDate?.toString() ?? null,
     periodEndDate: eventTypeRaw.periodEndDate?.toString() ?? null,
     metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventTypeRaw.metadata),
@@ -251,6 +257,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       rescheduledToUid,
       isLoggedInUserHost,
       internalNotePresets: internalNotes,
+      userBanner: eventType.users[0],
     },
   };
 }

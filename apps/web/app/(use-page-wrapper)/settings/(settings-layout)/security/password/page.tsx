@@ -18,7 +18,7 @@ const Page = async () => {
   const t = await getTranslate();
 
   return (
-    <SettingsHeader title={t("password")} description={t("password_description")} borderInShellHeader={true}>
+    <SettingsHeader title={t("password")} description={t("password_description")} borderInShellHeader={false}>
       <PasswordViewWrapper />
     </SettingsHeader>
   );

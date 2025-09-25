@@ -1,3 +1,6 @@
+import { Badge } from "@calid/features/ui/components/badge";
+import { Button, buttonClasses } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon";
 import { format } from "date-fns";
 import type { Dayjs } from "dayjs";
 import { useState, useEffect, useCallback } from "react";
@@ -5,8 +8,6 @@ import { useState, useEffect, useCallback } from "react";
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button, buttonClasses } from "@calcom/ui/components/button";
 import {
   Command,
   CommandList,
@@ -15,7 +16,6 @@ import {
   CommandSeparator,
 } from "@calcom/ui/components/command";
 import { DateRangePicker } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 
 import { useDataTable, useFilterValue } from "../../hooks";

@@ -1,9 +1,9 @@
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui/components/toast";
-import { Button } from "@calcom/ui/components/button";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { showToast } from "@calcom/ui/components/toast";
 
 import useAddAppMutation from "../_utils/useAddAppMutation";
 import { InstallAppButton } from "../components";
@@ -31,7 +31,7 @@ export default function OmniInstallAppButton({
     returnTo,
     onSuccess: (data) => {
       utils.viewer.apps.appById.invalidate({ appId });
-      utils.viewer.apps.integrations.invalidate({
+      utils.viewer.apps.calid_integrations.invalidate({
         extendsFeature: "EventType",
         ...(teamId && { teamId }),
       });
@@ -71,7 +71,7 @@ export default function OmniInstallAppButton({
           <Button
             loading={mutation.isPending}
             color="secondary"
-            className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
+            className="border-muted rounded-md [@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
             StartIcon="plus"
             {...props}>
             {t("add")}

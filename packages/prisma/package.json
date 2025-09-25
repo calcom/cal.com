@@ -6,7 +6,8 @@
     "clean": "rm -rf .turbo && rm -rf node_modules",
     "build": "ts-node --transpile-only ./auto-migrations.ts",
     "db-deploy": "yarn prisma migrate deploy",
-    "db-migrate": "yarn prisma migrate dev",
+    "db-migrate": "bash ./migrate.sh",
+    "db-rollback": "bash ./rollback.sh -d",
     "db-nuke": "docker compose down --volumes --remove-orphans || docker-compose down --volumes --remove-orphans",
     "db-reset": "run-s db-nuke db-setup",
     "db-seed": "yarn prisma db seed",
@@ -15,11 +16,13 @@
     "db-up": "docker compose up -d || docker-compose up -d",
     "dx": "yarn db-setup",
     "generate-schemas": "prisma generate && prisma format",
+    "format": " prisma format",
     "post-install": "yarn generate-schemas",
     "seed-app-store": "ts-node --transpile-only ./seed-app-store.ts",
     "delete-app": "ts-node --transpile-only ./delete-app.ts",
     "seed-insights": "ts-node --transpile-only ./seed-insights.ts",
-    "seed-pbac": "ts-node --transpile-only ./seed-pbac-organization.ts"
+    "seed-pbac": "ts-node --transpile-only ./seed-pbac-organization.ts",
+    "timezone": "ts-node --transpile-only ./timezone-fix.ts"
   },
   "devDependencies": {
     "@faker-js/faker": "9.2.0",
@@ -27,10 +30,10 @@
   },
   "dependencies": {
     "@calcom/lib": "*",
-    "@prisma/client": "^5.4.2",
+    "@prisma/client": "5.22.0",
     "@prisma/extension-accelerate": "^0.6.2",
     "@prisma/generator-helper": "^5.4.2",
-    "prisma": "^5.4.2",
+    "prisma": "5.22.0",
     "prisma-kysely": "^1.7.1",
     "ts-node": "^10.9.1",
     "zod": "^3.22.4",

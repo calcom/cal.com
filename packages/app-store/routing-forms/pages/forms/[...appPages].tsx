@@ -1,61 +1,59 @@
 "use client";
 
+import { TeamsFilter } from "@calid/features/modules/teams/components/filter/TeamsFilter";
+import { Badge } from "@calid/features/ui/components/badge";
+import { Button } from "@calid/features/ui/components/button";
+import { BlankCard } from "@calid/features/ui/components/card";
+import { Icon } from "@calid/features/ui/components/icon";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
-import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
 import { FilterResults } from "@calcom/features/filters/components/FilterResults";
-import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { ShellMain } from "@calcom/features/shell/Shell";
-import { UpgradeTip } from "@calcom/features/tips";
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
 import { ArrowButton } from "@calcom/ui/components/arrow-button";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
-import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { Icon } from "@calcom/ui/components/icon";
-import { List, ListLinkItem } from "@calcom/ui/components/list";
-import { Tooltip } from "@calcom/ui/components/tooltip";
+import { List } from "@calcom/ui/components/list";
+import { ListItemAdvanced } from "@calcom/ui/components/list";
 
-import type { SetNewFormDialogState, NewFormDialogState } from "../../components/FormActions";
-import { FormAction, FormActionsDropdown, FormActionsProvider } from "../../components/FormActions";
+import type { NewFormDialogState } from "../../components/FormActions";
+import type { SelectTeamDialogState, SetSelectTeamDialogState } from "../../components/FormActions";
+import {
+  FormAction,
+  FormActionsDropdown,
+  FormLinkDisplay,
+  FormActionsProvider,
+} from "../../components/FormActions";
 import { isFallbackRoute } from "../../lib/isFallbackRoute";
 import type { RoutingFormWithResponseCount } from "../../types/types";
 
-function NewFormButton({ setNewFormDialogState }: { setNewFormDialogState: SetNewFormDialogState }) {
+function NewFormButton({ setSelectTeamDialogState }: { setSelectTeamDialogState: SetSelectTeamDialogState }) {
   const { t } = useLocale();
   return (
-    <CreateButtonWithTeamsList
-      subtitle={t("create_routing_form_on").toUpperCase()}
-      data-testid="new-routing-form"
-      createFunction={(teamId) => {
-        setNewFormDialogState({ action: "new", target: teamId ? String(teamId) : "" });
-      }}
-    />
+    <Button StartIcon="plus" onClick={() => setSelectTeamDialogState({ target: null })}>
+      {t("new")}
+    </Button>
   );
 }
 
 export default function RoutingForms({ appUrl }: { appUrl: string }) {
   const { t } = useLocale();
-  const { hasPaidPlan } = useHasPaidPlan();
+  const router = useRouter();
   const routerQuery = useRouterQuery();
   const hookForm = useFormContext<RoutingFormWithResponseCount>();
   const utils = trpc.useUtils();
   const [parent] = useAutoAnimate<HTMLUListElement>();
 
-  const mutation = trpc.viewer.loggedInViewerRouter.routingFormOrder.useMutation({
+  const mutation = trpc.viewer.loggedInViewerRouter.calid_routingFormOrder.useMutation({
     onError: async (err) => {
       console.error(err.message);
-      await utils.viewer.appRoutingForms.forms.cancel();
+      await utils.viewer.appRoutingForms.calid_forms.cancel();
       await utils.viewer.appRoutingForms.invalidate();
     },
     onSettled: () => {
@@ -69,14 +67,20 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
   }, []);
   const filters = getTeamsFiltersFromQuery(routerQuery);
 
-  const queryRes = trpc.viewer.appRoutingForms.forms.useQuery({
+  const queryRes = trpc.viewer.appRoutingForms.calid_forms.useQuery({
     filters,
+  });
+
+  const { data: teams } = trpc.viewer.calidTeams.list.useQuery(undefined, {
+    refetchOnWindowFocus: false,
   });
 
   const [newFormDialogState, setNewFormDialogState] = useState<NewFormDialogState>(null);
 
+  const [selectTeamDialogState, setSelectTeamDialogState] = useState<SelectTeamDialogState>(null);
+
   const forms = queryRes.data?.filtered;
-  const features = [
+  const _features = [
     {
       icon: <Icon name="file-text" className="h-5 w-5 text-orange-500" />,
       title: t("create_your_first_form"),
@@ -132,196 +136,196 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
     }
   }
 
+  function handleFormClick(formId: string) {
+    router.push(`${appUrl}/form-edit/${formId}`);
+  }
+
   return (
-    <LicenseRequired>
-      <ShellMain
-        heading={t("routing")}
-        CTA={
-          hasPaidPlan && forms?.length ? (
-            <NewFormButton setNewFormDialogState={setNewFormDialogState} />
-          ) : null
-        }
-        subtitle={t("routing_forms_description")}>
-        <UpgradeTip
-          plan="team"
-          title={t("teams_plan_required")}
-          description={t("routing_forms_are_a_great_way")}
-          features={features}
-          background="/tips/routing-forms"
-          isParentLoading={<SkeletonLoaderTeamList />}
-          buttons={
-            <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
-              <ButtonGroup>
-                <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
-                  {t("upgrade")}
-                </Button>
-                <Button color="minimal" href="https://go.cal.com/teams-video" target="_blank">
-                  {t("learn_more")}
-                </Button>
-              </ButtonGroup>
-            </div>
-          }>
-          <FormActionsProvider
-            appUrl={appUrl}
-            newFormDialogState={newFormDialogState}
-            setNewFormDialogState={setNewFormDialogState}>
-            <div className="mb-10 w-full">
-              <div className="mb-2 flex">
-                <TeamsFilter />
-              </div>
-              <FilterResults
-                queryRes={queryRes}
-                emptyScreen={
-                  <EmptyScreen
-                    Icon="git-merge"
-                    headline={t("create_your_first_form")}
-                    description={t("create_your_first_form_description")}
-                    buttonRaw={<NewFormButton setNewFormDialogState={setNewFormDialogState} />}
+    // <LicenseRequired>
+    <ShellMain heading={t("routing")} subtitle={t("routing_forms_description")}>
+      <FormActionsProvider
+        appUrl={appUrl}
+        newFormDialogState={newFormDialogState}
+        setNewFormDialogState={setNewFormDialogState}
+        selectTeamDialogState={selectTeamDialogState}
+        setSelectTeamDialogState={setSelectTeamDialogState}>
+        <div className="mb-10 w-full">
+          <div className="mb-2 flex flex-row justify-between">
+            {teams && teams.length > 0 && <TeamsFilter />}
+            {forms?.length && <NewFormButton setSelectTeamDialogState={setSelectTeamDialogState} />}
+          </div>
+          <FilterResults
+            queryRes={queryRes}
+            emptyScreen={
+              <BlankCard
+                Icon="git-merge"
+                headline={t("create_your_first_form")}
+                description={t("create_your_first_form_description")}
+                buttonRaw={
+                  <NewFormButton
+                    setSelectTeamDialogState={(team) => {
+                      setSelectTeamDialogState(team);
+                    }}
                   />
                 }
-                noResultsScreen={
-                  <EmptyScreen
-                    Icon="git-merge"
-                    headline={t("no_results_for_filter")}
-                    description={t("change_filter_common")}
-                  />
-                }
-                SkeletonLoader={SkeletonLoaderTeamList}>
-                <div className="bg-default mb-16 overflow-hidden">
-                  <List data-testid="routing-forms-list" ref={parent}>
-                    {forms?.map(({ form, readOnly, hasError }, index) => {
-                      // Make the form read only if it has an error
-                      // TODO: Consider showing error in UI so user can report and get it fixed.
-                      readOnly = readOnly || hasError;
-                      if (!form) {
-                        return null;
-                      }
+              />
+            }
+            noResultsScreen={
+              <BlankCard
+                Icon="git-merge"
+                headline={t("no_results_for_filter")}
+                description={t("change_filter_common")}
+              />
+            }
+            SkeletonLoader={SkeletonLoaderTeamList}>
+            <div className="bg-default mb-16 overflow-hidden">
+              <List noBorderTreatment roundContainer data-testid="routing-forms-list" ref={parent}>
+                {forms?.map(({ form, readOnly, hasError }, index) => {
+                  // Make the form read only if it has an error
+                  // TODO: Consider showing error in UI so user can report and get it fixed.
+                  readOnly = readOnly || hasError;
+                  if (!form) {
+                    return null;
+                  }
 
-                      const description = form.description || "";
-                      form.routes = form.routes || [];
-                      const fields = form.fields || [];
-                      const userRoutes = form.routes.filter((route) => !isFallbackRoute(route));
-                      const firstItem = forms[0].form;
-                      const lastItem = forms[forms.length - 1].form;
+                  const description = form.description || "";
+                  form.routes = form.routes || [];
+                  const fields = form.fields || [];
+                  const userRoutes = form.routes.filter((route) => !isFallbackRoute(route));
+                  const firstItem = forms[0].form;
+                  const lastItem = forms[forms.length - 1].form;
 
-                      return (
-                        <div
-                          className="group flex w-full max-w-full items-center justify-between overflow-hidden"
-                          key={form.id}>
-                          {!(firstItem && firstItem.id === form.id) && (
-                            <ArrowButton onClick={() => moveRoutingForm(index, -1)} arrowDirection="up" />
-                          )}
-
-                          {!(lastItem && lastItem.id === form.id) && (
-                            <ArrowButton onClick={() => moveRoutingForm(index, 1)} arrowDirection="down" />
-                          )}
-                          <ListLinkItem
-                            href={`${appUrl}/form-edit/${form.id}`}
-                            heading={form.name}
-                            disabled={readOnly}
-                            subHeading={description}
-                            className="space-x-2 rtl:space-x-reverse"
-                            actions={
-                              <>
-                                {form.team?.name && (
-                                  <div className="border-subtle border-r-2">
-                                    <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
-                                      {form.team.name}
-                                    </Badge>
+                  return (
+                    <div
+                      className="border-default group my-2 flex w-full max-w-full cursor-pointer items-center gap-2 overflow-hidden rounded border hover:shadow-md"
+                      key={form.id}
+                      onClick={() => handleFormClick(form.id)}>
+                      <div
+                        className="flex flex-col gap-1"
+                        onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                        {!(firstItem && firstItem.id === form.id) && (
+                          <ArrowButton onClick={() => moveRoutingForm(index, -1)} arrowDirection="up" />
+                        )}
+                        {!(lastItem && lastItem.id === form.id) && (
+                          <ArrowButton onClick={() => moveRoutingForm(index, 1)} arrowDirection="down" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <ListItemAdvanced
+                          heading={form.name}
+                          headingTrailingItem={
+                            <div className="flex w-full flex-row items-center justify-between">
+                              <div className="bg-muted dark:bg-default py-.5 flex h-6 flex-row items-center space-x-1 rounded px-2 rtl:space-x-reverse">
+                                <FormLinkDisplay routingFormId={form.id} />
+                                <Tooltip content={t("copy_link_to_form")}>
+                                  <div onClick={(e) => e.stopPropagation()}>
+                                    <FormAction
+                                      routingForm={form}
+                                      action="copyLink"
+                                      color="secondary"
+                                      variant="icon"
+                                      size="xs">
+                                      <Icon name="link" className="h-3 w-3" />
+                                    </FormAction>
                                   </div>
-                                )}
-                                <FormAction
-                                  disabled={readOnly}
-                                  className="self-center"
-                                  action="toggle"
-                                  routingForm={form}
-                                />
-                                <ButtonGroup combined>
-                                  <Tooltip content={t("preview")}>
+                                </Tooltip>
+                                <Tooltip content={t("preview")}>
+                                  <div onClick={(e) => e.stopPropagation()}>
                                     <FormAction
                                       action="preview"
                                       routingForm={form}
                                       target="_blank"
-                                      StartIcon="external-link"
                                       color="secondary"
                                       variant="icon"
-                                    />
-                                  </Tooltip>
+                                      size="xs">
+                                      <Icon name="external-link" className="h-3 w-3" />
+                                    </FormAction>
+                                  </div>
+                                </Tooltip>
+                                <Tooltip content={t("embed")}>
+                                  <div onClick={(e) => e.stopPropagation()}>
+                                    <FormAction
+                                      routingForm={form}
+                                      action="embed"
+                                      color="secondary"
+                                      variant="icon"
+                                      size="xs">
+                                      <Icon name="code" className="h-3 w-3" />
+                                    </FormAction>
+                                  </div>
+                                </Tooltip>
+                              </div>
+
+                              <div className="flex-1" />
+                              {form.calIdTeam?.name && (
+                                <div className="border-subtle mr-2 border-r-2">
+                                  <Badge className="ltr:mr-2 rtl:ml-2" variant="secondary">
+                                    {form.calIdTeam.name}
+                                  </Badge>
+                                </div>
+                              )}
+
+                              <div onClick={(e) => e.stopPropagation()}>
+                                <FormAction
+                                  disabled={readOnly}
+                                  className="mr-2"
+                                  action="toggle"
+                                  routingForm={form}
+                                />
+                              </div>
+
+                              <div onClick={(e) => e.stopPropagation()}>
+                                <FormActionsDropdown disabled={readOnly}>
                                   <FormAction
+                                    action="edit"
+                                    color="minimal"
                                     routingForm={form}
-                                    action="copyLink"
-                                    color="secondary"
-                                    variant="icon"
-                                    StartIcon="link"
-                                    tooltip={t("copy_link_to_form")}
-                                  />
+                                    extraClassNames="!flex p-0">
+                                    {t("edit")}
+                                  </FormAction>
+                                  <FormAction action="download" routingForm={form}>
+                                    {t("download_responses")}
+                                  </FormAction>
+                                  <FormAction action="duplicate" routingForm={form} className="w-full">
+                                    {t("duplicate")}
+                                  </FormAction>
                                   <FormAction
+                                    action="_delete"
                                     routingForm={form}
-                                    action="embed"
-                                    color="secondary"
-                                    variant="icon"
-                                    StartIcon="code"
-                                    tooltip={t("embed")}
-                                  />
-                                  <FormActionsDropdown disabled={readOnly}>
-                                    <FormAction
-                                      action="edit"
-                                      routingForm={form}
-                                      color="minimal"
-                                      className="!flex"
-                                      StartIcon="pencil">
-                                      {t("edit")}
-                                    </FormAction>
-                                    <FormAction
-                                      action="download"
-                                      routingForm={form}
-                                      color="minimal"
-                                      StartIcon="download">
-                                      {t("download_responses")}
-                                    </FormAction>
-                                    <FormAction
-                                      action="duplicate"
-                                      routingForm={form}
-                                      color="minimal"
-                                      className="w-full"
-                                      StartIcon="copy">
-                                      {t("duplicate")}
-                                    </FormAction>
-                                    <FormAction
-                                      action="_delete"
-                                      routingForm={form}
-                                      color="destructive"
-                                      className="w-full"
-                                      StartIcon="trash">
-                                      {t("delete")}
-                                    </FormAction>
-                                  </FormActionsDropdown>
-                                </ButtonGroup>
-                              </>
-                            }>
-                            <div className="flex flex-wrap gap-1">
-                              <Badge variant="gray" startIcon="menu">
-                                {fields.length} {fields.length === 1 ? "field" : "fields"}
-                              </Badge>
-                              <Badge variant="gray" startIcon="git-merge">
-                                {userRoutes.length} {userRoutes.length === 1 ? "route" : "routes"}
-                              </Badge>
-                              <Badge variant="gray" startIcon="message-circle">
-                                {form._count.responses}{" "}
-                                {form._count.responses === 1 ? "response" : "responses"}
-                              </Badge>
+                                    className="text-cal-destructive w-full ">
+                                    {t("delete")}
+                                  </FormAction>
+                                </FormActionsDropdown>
+                              </div>
                             </div>
-                          </ListLinkItem>
-                        </div>
-                      );
-                    })}
-                  </List>
-                </div>
-              </FilterResults>
+                          }
+                          disabled={readOnly}
+                          subHeading={description}
+                          className="space-x-2 rtl:space-x-reverse"
+                          actions={<></>}>
+                          <div className="flex flex-wrap gap-1">
+                            <Badge variant="secondary" startIcon="menu">
+                              {fields.length} {fields.length === 1 ? "field" : "fields"}
+                            </Badge>
+                            <Badge variant="secondary" startIcon="git-merge">
+                              {userRoutes.length} {userRoutes.length === 1 ? "route" : "routes"}
+                            </Badge>
+                            <Badge variant="secondary" startIcon="message-circle">
+                              {form._count.responses} {form._count.responses === 1 ? "response" : "responses"}
+                            </Badge>
+                          </div>
+                        </ListItemAdvanced>
+                      </div>
+                    </div>
+                  );
+                })}
+              </List>
             </div>
-          </FormActionsProvider>
-        </UpgradeTip>
-      </ShellMain>
-    </LicenseRequired>
+          </FilterResults>
+        </div>
+      </FormActionsProvider>
+      {/* </UpgradeTip> */}
+    </ShellMain>
+    // </LicenseRequired>
   );
 }

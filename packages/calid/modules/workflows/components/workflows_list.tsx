@@ -1,0 +1,65 @@
+"use client";
+
+import { Button } from "@calid/features/ui/components/button";
+import React from "react";
+
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
+import type { CalIdWorkflowType, CalIdTeamProfile } from "../config/types";
+import { WorkflowCard } from "./workflow_card";
+import { TeamsFilter } from "./workflow_teams_filter";
+
+interface WorkflowsListProps {
+  workflows: CalIdWorkflowType[];
+  teamProfiles: CalIdTeamProfile[];
+  onCreateWorkflow: () => void;
+  onEdit: (workflowId: number) => void;
+  onToggle: (workflowId: number, enabled: boolean) => void;
+  onDuplicate: (workflowId: number) => void;
+  onDelete: (workflowId: number) => void;
+  onCopyLink: (workflowId: number) => void;
+  copiedLink: number | null;
+  isCreating: boolean;
+}
+
+export const WorkflowsList: React.FC<WorkflowsListProps> = ({
+  workflows,
+  teamProfiles,
+  onCreateWorkflow,
+  onEdit,
+  onToggle,
+  onDuplicate,
+  onDelete,
+  onCopyLink,
+  copiedLink,
+  isCreating,
+}) => {
+  const { t } = useLocale();
+
+  return (
+    <div className="w-full max-w-full space-y-4 pb-6">
+      {/* Teams Filter and New Button */}
+      <div className="mb-4 flex items-center justify-between">
+        <TeamsFilter profiles={teamProfiles} />
+
+        <Button StartIcon="plus" onClick={onCreateWorkflow} loading={isCreating} disabled={isCreating}>
+          {t("create_workflow")}
+        </Button>
+      </div>
+
+      {/* Workflows List */}
+      <div className="space-y-4">
+        {workflows.map((workflow) => (
+          <WorkflowCard
+            key={workflow.id}
+            workflow={workflow}
+            onEdit={onEdit}
+            onToggle={onToggle}
+            onDuplicate={onDuplicate}
+            onDelete={onDelete}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};

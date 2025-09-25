@@ -3,14 +3,16 @@ import { useQueryState, parseAsBoolean } from "nuqs";
 
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
+import { Button } from "@calid/features/ui/components/button";
 
 export function DynamicLink<T extends { username: string | null }>({
   table,
   domain,
+  onlyButton = false,
 }: {
   table: Table<T>;
   domain: string;
+  onlyButton?: boolean;
 }) {
   const { t } = useLocale();
   const [dynamicLinkVisible, _] = useQueryState("dynamicLink", parseAsBoolean);
@@ -30,7 +32,7 @@ export function DynamicLink<T extends { username: string | null }>({
 
   return (
     <>
-      {isVisible ? (
+      {isVisible && !onlyButton ? (
         <div className="w-full gap-1 rounded-lg text-sm font-medium leading-none md:flex">
           <div className="items-center truncate p-2 md:max-w-[300px]">
             <p className="text-center md:text-left">{domainWithoutHttps}</p>
@@ -55,6 +57,16 @@ export function DynamicLink<T extends { username: string | null }>({
             </Button>
           </div>
         </div>
+      ) : onlyButton ? (
+        <Button
+          color="secondary"
+          EndIcon="external-link"
+          size="sm"
+          onClick={() => copyToClipboard(dynamicLinkOfSelectedUsers)}
+          target="_blank"
+          rel="noopener noreferrer">
+          {t("copy")}
+        </Button>
       ) : null}
     </>
   );

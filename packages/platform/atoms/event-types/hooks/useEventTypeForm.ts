@@ -42,6 +42,7 @@ export const useEventTypeForm = ({
     startDate: new Date(eventType.periodStartDate || Date.now()),
     endDate: new Date(eventType.periodEndDate || Date.now()),
   });
+
   // this is a nightmare to type, will do in follow up PR
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const defaultValues: any = useMemo(() => {
@@ -144,6 +145,9 @@ export const useEventTypeForm = ({
       calVideoSettings: eventType.calVideoSettings,
       maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker || null,
       maxActiveBookingPerBookerOfferReschedule: eventType.maxActiveBookingPerBookerOfferReschedule,
+      disableCancelling: eventType.disableCancelling,
+      disableRescheduling: eventType.disableRescheduling,
+      captchaType: eventType.captchaType,
     };
   }, [eventType, periodDates]);
 
@@ -176,6 +180,18 @@ export const useEventTypeForm = ({
           offsetStart: z.union([z.string().transform((val) => +val), z.number()]).optional(),
           bookingFields: eventTypeBookingFieldsSchema,
           locations: locationsResolver(t),
+          successRedirectUrl: z
+            .string()
+            .url({
+              message: t("invalid_url_error_message", {
+                label: t("redirect_success_booking"),
+                //pass raw sampleUrl below, as // is being encoded to https:&#x2F;&#x2F;example.com
+                sampleUrl: "https://example.com",
+                interpolation: { escapeValue: false },
+              }),
+            })
+            .optional()
+            .or(z.literal("")),
           calVideoSettings: z
             .object({
               redirectUrlOnExit: z.string().url().nullish(),

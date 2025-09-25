@@ -1,9 +1,8 @@
+import type * as reminderScheduler from "@calid/features/modules/workflows/utils/reminderScheduler";
 import { beforeEach, vi } from "vitest";
 import { mockReset, mockDeep } from "vitest-mock-extended";
 
-import type * as reminderScheduler from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
-
-vi.mock("@calcom/features/ee/workflows/lib/reminders/reminderScheduler", () => reminderSchedulerMock);
+vi.mock("@calid/features/modules/workflows/utils/reminderScheduler", () => reminderSchedulerMock);
 
 beforeEach(() => {
   mockReset(reminderSchedulerMock);

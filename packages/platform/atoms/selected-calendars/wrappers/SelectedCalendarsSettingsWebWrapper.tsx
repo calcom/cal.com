@@ -65,7 +65,7 @@ const ConnectedCalendarList = ({
               title={connectedCalendar.integration.name}
               logo={connectedCalendar.integration.logo}
               description={connectedCalendar.primary?.email ?? connectedCalendar.integration.description}
-              className="border-subtle mt-4 rounded-lg border"
+              className="bg-muted border-subtle mt-4 pb-4 rounded-lg border"
               actions={
                 <div className="flex w-32 justify-end">
                   <CredentialActionsDropdown
@@ -78,11 +78,11 @@ const ConnectedCalendarList = ({
                   />
                 </div>
               }>
-              <div className="border-subtle border-t">
+              <div className="border-subtle">
                 {!fromOnboarding && (
                   <>
-                    <p className="text-subtle px-5 pt-4 text-sm">{t("toggle_calendars_conflict")}</p>
-                    <ul className="space-y-4 px-5 py-4">
+                    <p className="text-subtle px-5 font-medium text-xs">{t("toggle_calendars_conflict")}</p>
+                    <ul className="space-y-4 px-5 ">
                       {connectedCalendar.calendars?.map((cal) => (
                         <CalendarSwitch
                           disabled={isDisabled}
@@ -193,8 +193,8 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
 
 export const SelectedCalendarsSettingsWebWrapperSkeleton = () => {
   return (
-    <div className="border-subtle mt-6 rounded-lg border">
-      <div className="border-subtle border-b p-6">
+    <div className="border-default mt-6 rounded-md border">
+      <div className="border-default border-b p-6">
         <div className="flex items-center justify-between">
           <div>
             <div className="bg-emphasis h-4 w-32 animate-pulse rounded-md" />
@@ -244,11 +244,11 @@ const SelectedCalendarsSettingsHeading = (props: {
   ];
   const switchScopeSelectValue = optionsToSwitchScope.find((option) => option.value === props.scope);
   return (
-    <div className="border-subtle border-b p-6">
-      <div className="flex items-center justify-between">
+    <div className="border-subtle px-6 pt-6 ">
+      <div className="flex items-start justify-between">
         <div>
-          <h4 className="text-emphasis text-base font-semibold leading-5">{t("check_for_conflicts")}</h4>
-          <p className="text-default text-sm leading-tight">{t("select_calendars")}</p>
+          <h4 className="text-default text-base font-semibold leading-5">{t("check_for_conflicts")}</h4>
+          <p className="text-subtle text-sm mt-6 leading-tight">{t("select_calendars")}</p>
         </div>
 
         {!props.shouldDisableConnectionModification && (
@@ -262,7 +262,7 @@ const SelectedCalendarsSettingsHeading = (props: {
         )}
       </div>
       {props.showScopeSelector && (
-        <div className="mt-2 flex flex-row items-center space-x-2">
+        <div className="flex flex-row items-center space-x-2">
           <span className="text-default text-sm">Using</span>
           <Select
             onChange={(option) => {

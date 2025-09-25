@@ -161,20 +161,10 @@ const LoadingKPICards = (props: {
 
 // StatContainer: wraps the grid
 function StatContainer({ children }: { children: React.ReactNode }) {
-  return <div className="group grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4">{children}</div>;
+  return <div className="group grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-4">{children}</div>;
 }
 
 // StatItem: handles border logic
 function StatItem({ index, children }: { index: number; children: React.ReactNode }) {
-  return (
-    <div
-      className={classNames(
-        "border-muted flex-1 p-4",
-        index === 0 && "border-b sm:border-r md:border-b-0 md:border-r",
-        index === 1 && "border-b sm:border-r-0 md:border-b-0 md:border-r",
-        index === 2 && "border-b sm:border-b-0 sm:border-r md:border-b-0"
-      )}>
-      {children}
-    </div>
-  );
+  return <div className={classNames("border-muted flex-1 rounded-md border p-4")}>{children}</div>;
 }

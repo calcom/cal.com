@@ -1,11 +1,10 @@
+import { buttonClasses } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
 import * as Popover from "@radix-ui/react-popover";
 import React from "react";
 
 import classNames from "@calcom/ui/classNames";
-
-import { buttonClasses } from "../button";
-import { Icon } from "../icon";
-import { Tooltip } from "../tooltip";
 
 export const AnimatedPopover = ({
   text,
@@ -65,7 +64,7 @@ export const AnimatedPopover = ({
           {Trigger ? (
             Trigger
           ) : (
-            <div className="max-w-36 flex items-center">
+            <div className="flex max-w-36 items-center">
               <Tooltip content={prefix ? `${prefix}${text}` : text}>
                 <div className="flex select-none items-center truncate font-medium leading-none">
                   {PrefixComponent ? PrefixComponent : null}

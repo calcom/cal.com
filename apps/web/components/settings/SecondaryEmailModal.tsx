@@ -1,14 +1,21 @@
+import { Button } from "@calid/features/ui/components/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@calid/features/ui/components/dialog";
+import { Form } from "@calid/features/ui/components/form";
+import { InputError } from "@calid/features/ui/components/input/hint-or-errors";
+import { TextField } from "@calid/features/ui/components/input/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-
-import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
-import { Form, TextField, InputError } from "@calcom/ui/components/form";
 
 interface SecondaryEmailModalProps {
   isLoading: boolean;
@@ -44,13 +51,13 @@ const SecondaryEmailModal = ({
   }, [formMethods.watch]);
 
   return (
-    <Dialog open={true}>
-      <DialogContent
-        title={t("add_email")}
-        description={t("add_email_description")}
-        type="creation"
-        data-testid="secondary-email-add-dialog">
-        <Form form={formMethods} handleSubmit={handleAddEmail}>
+    <Dialog open={true} onOpenChange={onCancel}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("add_email")}</DialogTitle>
+          <DialogDescription>{t("add_email_description")}</DialogDescription>
+        </DialogHeader>
+        <Form form={formMethods} onSubmit={handleAddEmail}>
           <div className="text-subtle mb-4 text-sm">{t("change_email_hint")}</div>
           <TextField
             label={t("email_address")}
@@ -58,8 +65,10 @@ const SecondaryEmailModal = ({
             {...formMethods.register("email")}
           />
           {errorMessage && <InputError message={errorMessage} />}
-          <DialogFooter showDivider className="mt-10">
-            <DialogClose onClick={onCancel}>{t("cancel")}</DialogClose>
+          <DialogFooter className="mt-10">
+            <Button color="secondary" onClick={onCancel}>
+              {t("cancel")}
+            </Button>
             <Button type="submit" data-testid="add-secondary-email-button" disabled={isLoading}>
               {t("add_email")}
             </Button>

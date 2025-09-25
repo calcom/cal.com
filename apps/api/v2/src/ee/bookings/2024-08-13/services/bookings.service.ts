@@ -664,6 +664,7 @@ export class BookingsService_2024_08_13 {
 
       const databaseBooking =
         await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEvent(booking.uid);
+
       if (!databaseBooking) {
         throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
       }

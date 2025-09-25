@@ -1,3 +1,7 @@
+import { Icon } from "@calid/features/ui/components/icon";
+
+
+
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useEffect, useState } from "react";
 import type { SubmitHandler, UseFormReturn } from "react-hook-form";
@@ -26,7 +30,6 @@ import {
   Label,
   BooleanToggleGroupField,
 } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { fieldTypesConfigMap } from "./fieldTypes";

@@ -1,5 +1,8 @@
 "use client";
 
+import { Button } from "@calid/features//ui/components/button";
+import { Badge } from "@calid/features/ui/components/badge";
+import type { ButtonProps } from "@calid/features/ui/components/button";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -14,9 +17,6 @@ import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 import classNames from "@calcom/ui/classNames";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
-import type { ButtonProps } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
 
 interface AppCardProps {
@@ -55,18 +55,17 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
     setSearchTextIndex(searchText ? app.name.toLowerCase().indexOf(searchText.toLowerCase()) : undefined);
   }, [app.name, searchText]);
 
-  const handleAppInstall = () => {
+  const handleAppInstall = async () => {
     if (isConferencing(app.categories)) {
+      const onBoardingUrl = await getAppOnboardingUrl({
+        slug: app.slug,
+        step: AppOnboardingSteps.EVENT_TYPES_STEP,
+      });
       mutation.mutate({
         type: app.type,
         variant: app.variant,
         slug: app.slug,
-        returnTo:
-          WEBAPP_URL +
-          getAppOnboardingUrl({
-            slug: app.slug,
-            step: AppOnboardingSteps.EVENT_TYPES_STEP,
-          }),
+        returnTo: WEBAPP_URL + onBoardingUrl,
       });
     } else if (
       !doesAppSupportTeamInstall({
@@ -77,12 +76,17 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
     ) {
       mutation.mutate({ type: app.type });
     } else {
-      router.push(getAppOnboardingUrl({ slug: app.slug, step: AppOnboardingSteps.ACCOUNTS_STEP }));
+      const onBoardingUrl = await getAppOnboardingUrl({
+        slug: app.slug,
+        step: AppOnboardingSteps.ACCOUNTS_STEP,
+      });
+
+      router.push(onBoardingUrl);
     }
   };
 
   return (
-    <div className="border-subtle relative flex h-64 flex-col rounded-md border p-5">
+    <div className="border-default relative flex h-64 flex-col rounded-md border p-5">
       <div className="flex">
         <img
           src={app.logo}
@@ -131,52 +135,58 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
           data-testid={`app-store-app-card-${app.slug}`}>
           {t("details")}
         </Button>
-        {app.isGlobal || (credentials && credentials.length > 0 && allowedMultipleInstalls)
-          ? !app.isGlobal && (
-              <InstallAppButton
-                type={app.type}
-                teamsPlanRequired={app.teamsPlanRequired}
-                disableInstall={!!app.dependencies && !app.dependencyData?.some((data) => !data.installed)}
-                wrapperClassName="[@media(max-width:260px)]:w-full"
-                render={({ useDefaultComponent, ...props }) => {
-                  if (useDefaultComponent) {
-                    props = {
-                      ...props,
-                      onClick: () => {
-                        handleAppInstall();
-                      },
-                      loading: mutation.isPending,
-                    };
-                  }
-                  return <InstallAppButtonChild paid={app.paid} {...props} />;
-                }}
-              />
-            )
-          : credentials &&
-            !appInstalled && (
-              <InstallAppButton
-                type={app.type}
-                wrapperClassName="[@media(max-width:260px)]:w-full"
-                disableInstall={!!app.dependencies && app.dependencyData?.some((data) => !data.installed)}
-                teamsPlanRequired={app.teamsPlanRequired}
-                render={({ useDefaultComponent, ...props }) => {
-                  if (useDefaultComponent) {
-                    props = {
-                      ...props,
-                      disabled: !!props.disabled,
-                      onClick: () => {
-                        handleAppInstall();
-                      },
-                      loading: mutation.isPending,
-                    };
-                  }
-                  return <InstallAppButtonChild paid={app.paid} {...props} />;
-                }}
-              />
-            )}
+        {app.slug !== "onehash-chat" && (
+          <>
+            {app.isGlobal || (credentials && credentials.length > 0 && allowedMultipleInstalls)
+              ? !app.isGlobal && (
+                  <InstallAppButton
+                    type={app.type}
+                    teamsPlanRequired={app.teamsPlanRequired}
+                    disableInstall={
+                      !!app.dependencies && !app.dependencyData?.some((data) => !data.installed)
+                    }
+                    wrapperClassName="[@media(max-width:260px)]:w-full"
+                    render={({ useDefaultComponent, ...props }) => {
+                      if (useDefaultComponent) {
+                        props = {
+                          ...props,
+                          onClick: async () => {
+                            await handleAppInstall();
+                          },
+                          loading: mutation.isPending,
+                        };
+                      }
+                      return <InstallAppButtonChild paid={app.paid} {...props} />;
+                    }}
+                  />
+                )
+              : credentials &&
+                !appInstalled && (
+                  <InstallAppButton
+                    type={app.type}
+                    wrapperClassName="[@media(max-width:260px)]:w-full"
+                    disableInstall={!!app.dependencies && app.dependencyData?.some((data) => !data.installed)}
+                    teamsPlanRequired={app.teamsPlanRequired}
+                    render={({ useDefaultComponent, ...props }) => {
+                      if (useDefaultComponent) {
+                        props = {
+                          ...props,
+                          disabled: !!props.disabled,
+                          onClick: async () => {
+                            await handleAppInstall();
+                          },
+                          loading: mutation.isPending,
+                        };
+                      }
+                      return <InstallAppButtonChild paid={app.paid} {...props} />;
+                    }}
+                  />
+                )}
+          </>
+        )}
       </div>
-      <div className="max-w-44 absolute right-0 mr-4 flex flex-wrap justify-end gap-1">
-        {appAdded > 0 ? <Badge variant="green">{t("installed", { count: appAdded })}</Badge> : null}
+      <div className="absolute right-0 mr-4 flex max-w-44 flex-wrap justify-end gap-1">
+        {appAdded > 0 ? <Badge variant="success">{t("installed", { count: appAdded })}</Badge> : null}
         {app.isTemplate && (
           <span className="bg-error rounded-md px-2 py-1 text-sm font-normal text-red-800">Template</span>
         )}
@@ -204,7 +214,6 @@ const InstallAppButtonChild = ({
       <Button
         color="secondary"
         className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-        StartIcon="plus"
         data-testid="install-app-button"
         {...props}>
         {paid.trial ? t("start_paid_trial") : t("subscribe")}
@@ -216,7 +225,6 @@ const InstallAppButtonChild = ({
     <Button
       color="secondary"
       className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-      StartIcon="plus"
       data-testid="install-app-button"
       {...props}
       size="base">

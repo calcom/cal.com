@@ -62,6 +62,7 @@ import n8n_config_json from "./n8n/config.json";
 import nextcloudtalk_config_json from "./nextcloudtalk/config.json";
 import { metadata as office365calendar__metadata_ts } from "./office365calendar/_metadata";
 import office365video_config_json from "./office365video/config.json";
+import onehash_chat_config_json from "./onehash-chat/config.json";
 import paypal_config_json from "./paypal/config.json";
 import ping_config_json from "./ping/config.json";
 import pipedream_config_json from "./pipedream/config.json";
@@ -70,6 +71,7 @@ import plausible_config_json from "./plausible/config.json";
 import posthog_config_json from "./posthog/config.json";
 import qr_code_config_json from "./qr_code/config.json";
 import raycast_config_json from "./raycast/config.json";
+import razorpay_config_json from "./razorpay/config.json";
 import retell_ai_config_json from "./retell-ai/config.json";
 import riverside_config_json from "./riverside/config.json";
 import roam_config_json from "./roam/config.json";
@@ -170,6 +172,7 @@ export const appStoreMetadata = {
   nextcloudtalk: nextcloudtalk_config_json,
   office365calendar: office365calendar__metadata_ts,
   office365video: office365video_config_json,
+  "onehash-chat": onehash_chat_config_json,
   paypal: paypal_config_json,
   ping: ping_config_json,
   pipedream: pipedream_config_json,
@@ -178,6 +181,7 @@ export const appStoreMetadata = {
   posthog: posthog_config_json,
   qr_code: qr_code_config_json,
   raycast: raycast_config_json,
+  razorpay: razorpay_config_json,
   "retell-ai": retell_ai_config_json,
   riverside: riverside_config_json,
   roam: roam_config_json,

@@ -57,11 +57,20 @@
   --cal-radius-full: 9999px;
 
   /* Background Standard */
-  --cal-bg-emphasis: hsla(220, 13%, 91%, 1); /* gray.200 - active items and emphasising */
+  --cal-bg-emphasis: hsla(220, 13%, 91%, 1); /* gray.200 - emphasising */
   --cal-bg: hsla(0, 0%, 100%, 1); /* white - default background */
   --cal-bg-subtle: hsla(220, 14%, 94%, 1); /* gray.100 - hovering on items, subtle raising */
   --cal-bg-muted: hsla(210, 20%, 97%, 1); /* gray.50 - large items, sidebar, sections */
   --cal-bg-inverted: hsla(210, 30%, 4%, 1); /* gray.900 - tooltips */
+  --cal-bg-gradient: linear-gradient(
+    hsla(213, 100%, 97%, 1),
+    hsla(229, 100%, 97%, 1),
+    hsla(270, 100%, 98%, 1)
+  );
+  --cal-bg-active: hsla(207, 100%, 44.9%, 1); /* active tabs */
+  --cal-bg-active-dim: hsla(207, 100%, 45%, 0.2); /* active tabs */
+  --cal-bg-destructive: hsla(4, 61%, 49%, 1); /* destructive elements */
+  --cal-bg-destructive-dim: hsla(4, 61%, 49%, 0.1); /* destructive elements */
 
   /* Background Primary */
   --cal-bg-primary: hsla(214, 30%, 16%, 1); /* stone-100 */
@@ -108,12 +117,13 @@
 
   /* Borders */
   --cal-border-emphasis: hsla(218, 11%, 65%, 1); /* gray.400 - input:hover */
-  --cal-border: hsla(216, 12%, 84%, 1); /* gray.300 - inputs */
-  --cal-border-subtle: hsla(220, 13%, 91%, 1); /* gray.200 - container borders */
+  --cal-border: rgb(235, 239, 242); /* gray.300 - inputs */
+  --cal-border-subtle: rgb(235, 239, 242); /* gray.200 - container borders */
   --cal-border-muted: hsla(220, 14%, 94%, 1); /* gray.100 */
   --cal-border-error: hsla(0, 96%, 89%, 1); /* Keeping existing error border */
   --cal-border-semantic-error: hsla(0, 96%, 89%, 1);
   --cal-border-booker: var(--cal-border-subtle);
+  --cal-border-active: hsla(207, 100%, 44.9%, 1);
 
   /* Content/Text Standard */
   --cal-text-emphasis: hsla(210, 30%, 4%, 1); /* gray-900 */
@@ -121,6 +131,8 @@
   --cal-text-subtle: hsla(220, 9%, 46%, 1); /* gray-500 */
   --cal-text-muted: hsla(218, 11%, 65%, 1); /* gray-400 */
   --cal-text-inverted: hsla(0, 0%, 100%, 1); /* white */
+  --cal-text-destructive: hsla(0, 84%, 60%, 1);
+  --cal-text-active: hsla(207, 100%, 44.9%, 1);
 
   /* Content/Text Semantic */
   --cal-text-semantic-info: hsla(236, 80%, 25%, 1); /* blue-800 */
@@ -145,7 +157,7 @@
   --cal-text-info: hsla(225, 57%, 33%, 1); /* #253985 - interactive text/icons */
   --cal-text-success: hsla(144, 34%, 24%, 1); /* #285231 */
   --cal-text-attention: hsla(16, 62%, 28%, 1); /* Keeping existing attention text */
-  --cal-text-error: hsla(0, 63%, 31%, 1); /* Keeping existing error text */
+  --cal-text-error: hsla(0, 84%, 60%, 1); /* Keeping existing error text */
 
   /* Brand */
   --cal-brand: hsla(221, 39%, 11%, 1); /* Keeping existing brand color */
@@ -155,10 +167,15 @@
 .dark {
   /* Background Standard */
   --cal-bg-emphasis: hsla(0, 0%, 25%, 1); /* stone-700 */
-  --cal-bg: hsla(0, 0%, 6%, 1); /* stone-950 */
+  --cal-bg: hsla(0, 0%, 15%, 1);
   --cal-bg-subtle: hsla(0, 0%, 15%, 1); /* stone-800 */
   --cal-bg-muted: hsla(0, 0%, 9%, 1); /* stone-900 */
   --cal-bg-inverted: hsla(0, 0%, 98%, 1); /* stone-50 */
+  --cal-bg-gradient: linear-gradient(
+    hsla(0, 0%, 12%, 1),
+    hsla(0, 0%, 15%, 1),
+    hsla(0, 0%, 18%, 1)
+  );
 
   /* Background Primary */
   --cal-bg-primary: hsla(0, 0%, 96%, 1); /* stone-100 */
@@ -169,6 +186,7 @@
   --cal-bg-brand: hsla(0, 0%, 98%, 1); /* gray-50 */
   --cal-bg-brand-emphasis: hsla(0, 0%, 96%, 1); /* stone-100 */
   --cal-bg-brand-muted: hsla(0, 0%, 96%, 1); /* stone-100 */
+  --cal-bg-primary-active: hsla(207, 100%, 45%, 1);
 
   /* Background Semantic */
   --cal-bg-semantic-info-subtle: hsla(236, 80%, 8%, 1); /* blue-800 */
@@ -315,7 +333,7 @@ html.todesktop-platform-darwin aside {
 }
 
 html.todesktop-platform-darwin.dark main.bg-default {
-  background: rgba(0, 0, 0, 0.6) !important;
+  background: rgba(37, 37, 37, 0.6) !important;
 }
 
 html.todesktop-platform-darwin.light main.bg-default {
@@ -368,8 +386,8 @@ html.todesktop.dark {
 [multiple]:focus,
 textarea:focus,
 select:focus {
-  --tw-ring-color: var(--brand-color);
-  border-color: var(--brand-color);
+  --tw-ring-color: var(--cal-bg-subtle);
+  border-color: var(--cal-bg-subtle);
 }
 
 @layer components {
@@ -642,4 +660,56 @@ select:focus {
 
 [data-radix-popper-content-wrapper] {
   border: none;
+}
+
+.bg-cal-gradient {
+  background-image: var(--cal-bg-gradient);
+}
+
+.bg-cal-active {
+  background-color: var(--cal-bg-active);
+}
+
+.text-destructive {
+  color: var(--cal-text-destructive);
+}
+
+.text-active {
+  color: var(--cal-text-active);
+}
+
+.border-active {
+  border-color: var(--cal-border-active);
+}
+
+.text-cal-active {
+  color: var(--cal-bg-active);
+}
+
+.bg-cal-destructive {
+  background-color: var(--cal-bg-destructive);
+}
+
+.bg-cal-destructive-dim {
+  background-color: var(--cal-bg-destructive-dim);
+}
+
+.text-cal-destructive {
+  color: var(--cal-text-destructive);
+}
+
+.ring {
+  color: var(--cal-bg-active);
+}
+
+.border-active {
+  border-color: var(--cal-bg-active);
+}
+
+.border-destructive {
+  border-color: var(--cal-bg-destructive);
+}
+
+.data-\[state\=checked\]\:cal-bg-active[data-state="checked"] {
+  background-color: var(--cal-bg-active);
 }

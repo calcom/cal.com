@@ -1,8 +1,9 @@
+import { Button } from "@calid/features/ui/components/button";
+
+import type { ButtonProps } from "@calcom/features/ui/components/button";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppFrontendPayload } from "@calcom/types/App";
-import type { ButtonProps } from "@calcom/ui/components/button";
-import { Button } from "@calcom/ui/components/button";
 
 export const InstallAppButtonChild = ({
   multiInstall,
@@ -11,7 +12,7 @@ export const InstallAppButtonChild = ({
   ...props
 }: {
   multiInstall?: boolean;
-  credentials?: RouterOutputs["viewer"]["apps"]["appCredentialsByType"]["credentials"];
+  credentials?: RouterOutputs["viewer"]["apps"]["calid_appCredentialsByType"]["credentials"];
   paid?: AppFrontendPayload["paid"];
 } & ButtonProps) => {
   const { t } = useLocale();

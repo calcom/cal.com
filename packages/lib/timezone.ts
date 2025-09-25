@@ -36,3 +36,8 @@ export const handleOptionLabel = (option: ITimezoneOption, timezones: Timezones)
     ? `${cityName}${timezoneValue}`
     : `${option.value.replace(/_/g, " ")}${timezoneValue}`;
 };
+
+export const getServerTimezone = (): string => {
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  return timeZone;
+};

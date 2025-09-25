@@ -1,0 +1,16 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "OneHash Chat",
+  "slug": "onehash-chat",
+  "type": "onehash",
+  "logo": "icon.svg",
+  "url": "https://chat.onehash.ai",
+  "variant": "onehash",
+  "categories": ["onehash"],
+  "publisher": "OneHash",
+  "email": "support@cal.id",
+  "description": "Integrate your Cal account with OneHash Chat",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "link-as-an-app"
+}

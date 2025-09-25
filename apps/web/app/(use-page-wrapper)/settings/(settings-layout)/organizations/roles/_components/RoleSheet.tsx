@@ -13,11 +13,12 @@ import {
   getPermissionsForScope,
 } from "@calcom/features/pbac/domain/types/permission-registry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/button";
+import { Form, TextField, Checkbox, Label } from "@calcom/ui/components/form";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@calcom/ui/components/sheet";
 import { showToast } from "@calcom/ui/components/toast";
-import { Form, TextField, Checkbox, Label } from "@calcom/ui/form";
 
 import { revalidateTeamRoles } from "../actions";
 import { AdvancedPermissionGroup } from "./AdvancedPermissionGroup";
@@ -147,6 +148,7 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
   const onSubmit = (values: FormValues) => {
     // Store the color in localStorage
     const roleKey = isEditing && role ? role.id : `new_role_${values.name}`;
+    // eslint-disable-next-line @calcom/eslint/avoid-web-storage
     localStorage.setItem(`role_color_${roleKey}`, values.color);
 
     if (isEditing && role) {

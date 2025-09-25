@@ -1,3 +1,4 @@
+import { workflowSelect } from "@calid/features/modules/workflows/utils/getWorkflows";
 import { Prisma } from "@prisma/client";
 
 import type { LocationObject } from "@calcom/app-store/locations";
@@ -7,13 +8,13 @@ import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/book
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
-import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import { ONEHASH_API_KEY, ONEHASH_CHAT_SYNC_BASE_URL, IS_DEV } from "@calcom/lib/constants";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
-import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import isPrismaObj, { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
@@ -36,7 +37,10 @@ import type { TConfirmInputSchema } from "./confirm.schema";
 
 type ConfirmOptions = {
   ctx: {
-    user: Pick<NonNullable<TrpcSessionUser>, "id" | "email" | "username" | "role" | "destinationCalendar">;
+    user: Pick<
+      NonNullable<TrpcSessionUser>,
+      "id" | "email" | "username" | "role" | "destinationCalendar" | "metadata" | "name"
+    >;
   };
   input: TConfirmInputSchema;
 };
@@ -105,6 +109,14 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           parent: {
             select: {
               teamId: true,
+              calIdTeamId: true,
+            },
+          },
+          calIdTeamId: true,
+          calIdTeam: {
+            select: {
+              id: true,
+              name: true,
             },
           },
         },
@@ -121,6 +133,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           name: true,
           destinationCalendar: true,
           locale: true,
+          metadata: true,
         },
       },
       id: true,
@@ -137,7 +150,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   await checkIfUserIsAuthorizedToConfirmBooking({
     eventTypeId: booking.eventTypeId,
     loggedInUserId: user.id,
-    teamId: booking.eventType?.teamId || booking.eventType?.parent?.teamId,
+    // teamId: booking.eventType?.teamId || booking.eventType?.parent?.teamId,
+    teamId: booking.eventType?.calIdTeamId,
     bookingUserId: booking.userId,
     userRole: user.role,
   });
@@ -158,6 +172,22 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         status: BookingStatus.ACCEPTED,
       },
     });
+
+    if (isPrismaObjOrUndefined(user.metadata)?.connectedChatAccounts) {
+      await handleOHChatSync({
+        userId: user.id,
+        booking: {
+          hostName: user.name ?? "Cal User",
+          bookingLocation: booking.location ?? "N/A",
+          bookingEventType: booking.eventType?.title ?? "N/A",
+          bookingStartTime: booking.startTime.toISOString(),
+          bookingEndTime: booking.endTime.toISOString(),
+          bookerEmail: booking.attendees[0].email,
+          bookerPhone: booking.attendees[0]?.phoneNumber ?? undefined,
+          bookingUid: booking.uid,
+        },
+      });
+    }
 
     return { message: "Booking confirmed", status: BookingStatus.ACCEPTED };
   }
@@ -218,6 +248,10 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       timeZone: booking.user?.timeZone || "Europe/London",
       timeFormat: getTimeFormatStringFromUserTimeFormat(booking.user?.timeFormat),
       language: { translate: tOrganizer, locale: booking.user?.locale ?? "en" },
+      phoneNumber:
+        isPrismaObj(booking.user?.metadata) && booking.user?.metadata?.phoneNumber
+          ? (booking.user?.metadata?.phoneNumber as string)
+          : undefined,
     },
     attendees: attendeesList,
     location: booking.location ?? "",
@@ -231,10 +265,17 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
     eventTypeId: booking.eventType?.id,
     customReplyToEmail: booking.eventType?.customReplyToEmail,
-    team: !!booking.eventType?.team
+    // team: !!booking.eventType?.team
+    //   ? {
+    //       name: booking.eventType.team.name,
+    //       id: booking.eventType.team.id,
+    //       members: [],
+    //     }
+    //   : undefined,
+    team: !!booking.eventType?.calIdTeam
       ? {
-          name: booking.eventType.team.name,
-          id: booking.eventType.team.id,
+          name: booking.eventType.calIdTeam.name,
+          id: booking.eventType.calIdTeam.id,
           members: [],
         }
       : undefined,
@@ -301,6 +342,22 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       emailsEnabled,
       platformClientParams,
     });
+    if (isPrismaObjOrUndefined(user.metadata)?.connectedChatAccounts) {
+      await handleOHChatSync({
+        userId: user.id,
+        booking: {
+          hostName: user.name ?? "Cal User",
+          // bookingLocation: booking.location,
+          bookingLocation: evt.location ?? "N/A",
+          bookingEventType: booking.eventType?.title ?? "N/A",
+          bookingStartTime: evt.startTime,
+          bookingEndTime: evt.endTime,
+          bookerEmail: booking.attendees[0].email,
+          bookerPhone: booking.attendees[0]?.phoneNumber ?? undefined,
+          bookingUid: booking.uid,
+        },
+      });
+    }
   } else {
     evt.rejectionReason = rejectionReason;
     if (recurringEventId) {
@@ -321,7 +378,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       if (!!booking.payment.length) {
         await processPaymentRefund({
           booking: booking,
-          teamId: booking.eventType?.teamId,
+          // teamId: booking.eventType?.teamId,
+          teamId: booking.eventType?.calIdTeamId,
         });
       }
       // end handle refunds.
@@ -341,21 +399,21 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       await sendDeclinedEmailsAndSMS(evt, booking.eventType?.metadata as EventTypeMetadata);
     }
 
-    const teamId = await getTeamIdFromEventType({
+    const calIdTeamId = await getTeamIdFromEventType({
       eventType: {
-        team: { id: booking.eventType?.teamId ?? null },
+        team: { id: booking.eventType?.calIdTeamId ?? null },
         parentId: booking?.eventType?.parentId ?? null,
       },
     });
 
-    const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
+    const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId: calIdTeamId });
 
     // send BOOKING_REJECTED webhooks
     const subscriberOptions: GetSubscriberOptions = {
       userId: booking.userId,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_REJECTED,
-      teamId,
+      teamId: calIdTeamId,
       orgId,
       oAuthClientId: platformClientParams?.platformClientId,
     };
@@ -427,11 +485,23 @@ const checkIfUserIsAuthorizedToConfirmBooking = async ({
   }
 
   // Check if the user is an admin/owner of the team the booking belongs to
+  // if (teamId) {
+  //   const membership = await prisma.membership.findFirst({
+  //     where: {
+  //       userId: loggedInUserId,
+  //       teamId: teamId,
+  //       role: {
+  //         in: [MembershipRole.OWNER, MembershipRole.ADMIN],
+  //       },
+  //     },
+  //   });
+  //   if (membership) return;
+  // }
   if (teamId) {
-    const membership = await prisma.membership.findFirst({
+    const membership = await prisma.calIdMembership.findFirst({
       where: {
         userId: loggedInUserId,
-        teamId: teamId,
+        calIdTeamId: teamId,
         role: {
           in: [MembershipRole.OWNER, MembershipRole.ADMIN],
         },
@@ -442,3 +512,52 @@ const checkIfUserIsAuthorizedToConfirmBooking = async ({
 
   throw new TRPCError({ code: "UNAUTHORIZED", message: "User is not authorized to confirm this booking" });
 };
+
+async function handleOHChatSync({
+  userId,
+  booking,
+}: {
+  userId: number;
+  booking: {
+    hostName: string;
+    bookingLocation: string;
+    bookingEventType: string;
+    bookingStartTime: string;
+    bookingEndTime: string;
+    bookingUid: string;
+    bookerEmail: string;
+    bookerPhone?: string;
+  };
+}) {
+  if (IS_DEV) return Promise.resolve();
+
+  const credentials = await prisma.credential.findMany({
+    where: {
+      appId: "onehash-chat",
+      userId,
+    },
+  });
+
+  if (credentials.length == 0) return Promise.resolve();
+
+  const account_user_ids: number[] = credentials.reduce<number[]>((acc, cred) => {
+    const accountUserId = isPrismaObjOrUndefined(cred.key)?.account_user_id as number | undefined;
+    if (accountUserId !== undefined) {
+      acc.push(accountUserId);
+    }
+    return acc;
+  }, []);
+  const data = {
+    account_user_ids,
+    booking,
+  };
+
+  await fetch(`${ONEHASH_CHAT_SYNC_BASE_URL}/cal_booking`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${ONEHASH_API_KEY}`,
+    },
+    body: JSON.stringify(data),
+  });
+}

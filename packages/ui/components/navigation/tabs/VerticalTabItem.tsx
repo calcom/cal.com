@@ -61,10 +61,10 @@ const VerticalTabItem = ({
             aria-disabled={props.disabled ? "true" : undefined}
             target={props.isExternalLink ? "_blank" : "_self"}
             className={classNames(
-              props.textClassNames || "text-default text-sm font-medium leading-none",
-              "hover:bg-subtle [&[aria-current='page']]:bg-subtle [&[aria-current='page']]:text-emphasis group-hover:text-default group flex w-full flex-row items-center rounded-md p-2 transition",
+              props.textClassNames || "text-subtle text-sm font-medium leading-none",
+              "hover:bg-subtle [&[aria-current='page']]:bg-active dark:[&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-default group-hover:text-default group flex w-full flex-row items-center rounded-md p-2 transition",
               props.disabled && "pointer-events-none !opacity-30",
-              (isChild || !props.icon) && "ml-7",
+              // (isChild || !props.icon) && "ml-7",
               props.className
             )}
             data-testid={`vertical-tab-${props["data-testid"]}`}

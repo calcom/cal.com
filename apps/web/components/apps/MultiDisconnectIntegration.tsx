@@ -1,25 +1,24 @@
+import { Button } from "@calid/features/ui/components/button";
+import {
+  DropdownMenu,
+  DropdownMenuItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@calid/features/ui/components/dropdown-menu";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { useState } from "react";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
-import { Button } from "@calcom/ui/components/button";
 import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
-import {
-  Dropdown,
-  DropdownItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@calcom/ui/components/dropdown";
-import { showToast } from "@calcom/ui/components/toast";
 
 import type { inferRouterOutputs } from "@trpc/server";
 
 type RouterOutput = inferRouterOutputs<AppRouter>;
-type Credentials = RouterOutput["viewer"]["apps"]["appCredentialsByType"]["credentials"];
+type Credentials = RouterOutput["viewer"]["apps"]["calid_appCredentialsByType"]["credentials"];
 
 interface Props {
   credentials: Credentials;
@@ -36,19 +35,19 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
   } | null>(null);
   const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
 
-  const mutation = trpc.viewer.credentials.delete.useMutation({
+  const mutation = trpc.viewer.credentials.calid_delete.useMutation({
     onSuccess: () => {
-      showToast(t("app_removed_successfully"), "success");
+      triggerToast(t("app_removed_successfully"), "success");
       onSuccess && onSuccess();
       setConfirmationDialogOpen(false);
     },
     onError: () => {
-      showToast(t("error_removing_app"), "error");
+      triggerToast(t("error_removing_app"), "error");
       setConfirmationDialogOpen(false);
     },
     async onSettled() {
       await utils.viewer.calendars.connectedCalendars.invalidate();
-      await utils.viewer.apps.integrations.invalidate();
+      await utils.viewer.apps.calid_integrations.invalidate();
     },
   });
 
@@ -63,7 +62,7 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
 
   return (
     <>
-      <Dropdown>
+      <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button color="secondary">{t("disconnect")}</Button>
         </DropdownMenuTrigger>
@@ -73,7 +72,7 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
           </DropdownMenuLabel>
           {credentials.map((cred) => (
             <DropdownMenuItem key={cred.id}>
-              <DropdownItem
+              <DropdownMenuItem
                 type="button"
                 color="destructive"
                 className="hover:bg-subtle hover:text-emphasis w-full border-0"
@@ -89,11 +88,11 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
                 <div className="flex flex-col text-left">
                   <span>{cred.team?.name || getUserDisplayName(cred.user) || t("unnamed")}</span>
                 </div>
-              </DropdownItem>
+              </DropdownMenuItem>
             </DropdownMenuItem>
           ))}
         </DropdownMenuContent>
-      </Dropdown>
+      </DropdownMenu>
 
       <Dialog open={confirmationDialogOpen} onOpenChange={setConfirmationDialogOpen}>
         <ConfirmationDialogContent

@@ -8,7 +8,9 @@ import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/featu
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
+import { getEventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
 import { shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { EventRepository } from "@calcom/lib/server/repository/event";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
@@ -20,6 +22,7 @@ import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 import { getUsersInOrgContext } from "@server/lib/[user]/getServerSideProps";
 
 type Props = {
+  userBannerUrl: string | null;
   eventData: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
   booking?: GetBookingType;
   rescheduleUid: string | null;
@@ -30,6 +33,7 @@ type Props = {
   isSEOIndexable: boolean | null;
   themeBasis: null | string;
   orgBannerUrl: null;
+  eventTypes: Awaited<ReturnType<typeof getEventTypesPublic>>;
 };
 
 async function processReschedule({
@@ -168,6 +172,9 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     } as const;
   }
 
+  // Fetch all event types for the first user in the group
+  const eventTypes = await getEventTypesPublic(users[0].id);
+
   const props: Props = {
     eventData: {
       ...eventData,
@@ -184,6 +191,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     bookingUid: bookingUid ? `${bookingUid}` : null,
     rescheduleUid: null,
     orgBannerUrl: null,
+    eventTypes,
   };
 
   if (rescheduleUid) {
@@ -268,9 +276,14 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       : false
     : user?.allowSEOIndexing;
 
+  // Fetch all event types for the user
+  const eventTypes = await getEventTypesPublic(user.id);
+
   const props: Props = {
     eventData: eventData,
     user: username,
+    userBannerUrl: user.bannerUrl,
+    brandColor: user.profile?.brandColor || user.brandColor,
     slug,
     isBrandingHidden: shouldHideBrandingForUserEvent({
       eventTypeId: eventData.id,
@@ -281,7 +294,10 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     bookingUid: bookingUid ? `${bookingUid}` : null,
     rescheduleUid: null,
     orgBannerUrl: eventData?.owner?.profile?.organization?.bannerUrl ?? null,
+    eventTypes,
+    faviconUrl: user?.faviconUrl,
   };
+
   if (rescheduleUid) {
     const processRescheduleResult = await processReschedule({
       props,
@@ -303,6 +319,21 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     }
   }
 
+  console.log("Event metadata: ", eventData?.metadata);
+  if (eventData?.metadata?.apps?.stripe?.enabled) {
+    const credential = await prisma.credential.findUnique({
+      where: {
+        id: eventData.metadata?.apps?.stripe?.credentialId,
+      },
+    });
+    const isIndianStripeAccount = isPrismaObjOrUndefined(credential?.key)?.default_currency === "inr";
+
+    if (isIndianStripeAccount) {
+      props.eventData.metadata = Object.assign({}, props.eventData?.metadata, {
+        billingAddressRequired: true,
+      });
+    }
+  }
   return {
     props,
   };
@@ -316,6 +347,29 @@ const paramsSchema = z.object({
 // Booker page fetches a tiny bit of data server side, to determine early
 // whether the page should show an away state or dynamic booking not allowed.
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const { req, params } = context;
+  const selectedTime = req.cookies["selectedTime"] || "";
+  const slot = context.query.slot || "";
+
+  if (slot && slot !== selectedTime) {
+    const protocol = req.headers["x-forwarded-proto"] || "http";
+    const host = req.headers["host"];
+    const pathname = `/${params?.user}/${params?.type}`;
+
+    // const originalUrl = resolvedUrl;
+    const fullUrl = `${protocol}://${host}${pathname}`;
+    if (fullUrl) {
+      const url = new URL(fullUrl);
+      url.searchParams.delete("slot");
+      return {
+        redirect: {
+          permanent: false,
+          destination: url.toString(),
+        },
+      };
+    }
+  }
+
   const { user } = paramsSchema.parse(context.params);
   const isDynamicGroup = user.length > 1;
 

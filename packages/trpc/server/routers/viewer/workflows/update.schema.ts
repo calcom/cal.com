@@ -1,11 +1,10 @@
-import { z } from "zod";
-
 import {
   WORKFLOW_TEMPLATES,
-  TIME_UNIT,
   WORKFLOW_ACTIONS,
+  TIME_UNITS,
   WORKFLOW_TRIGGER_EVENTS,
-} from "@calcom/features/ee/workflows/lib/constants";
+} from "@calid/features/modules/workflows/config/constants";
+import { z } from "zod";
 
 export const ZUpdateInputSchema = z.object({
   id: z.number(),
@@ -29,7 +28,7 @@ export const ZUpdateInputSchema = z.object({
     .array(),
   trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
   time: z.number().nullable(),
-  timeUnit: z.enum(TIME_UNIT).nullable(),
+  timeUnit: z.enum(TIME_UNITS).nullable(),
   isActiveOnAll: z.boolean().optional(),
 });
 

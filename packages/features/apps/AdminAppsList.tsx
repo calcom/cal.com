@@ -1,5 +1,9 @@
 "use client";
 
+import { Icon } from "@calid/features/ui/components/icon";
+
+
+
 import { zodResolver } from "@hookform/resolvers/zod";
 // eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
@@ -29,7 +33,6 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Form } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { List } from "@calcom/ui/components/list";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
@@ -158,9 +161,7 @@ const AdminAppsList = ({
   return (
     <form
       {...rest}
-      className={
-        classNames?.form ?? "bg-default max-w-80 mb-4 rounded-md px-0 pt-0 md:max-w-full md:px-8 md:pt-10"
-      }
+      className={classNames?.form ?? "bg-default mb-4 w-full rounded-md px-0 pt-0 md:pt-10"}
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit();
@@ -172,7 +173,7 @@ const AdminAppsList = ({
         classNames={{
           root: className,
           verticalTabsItem: classNames?.verticalTabsItem,
-          container: cs("min-w-0 w-full", classNames?.appCategoryNavigationContainer ?? "max-w-[500px]"),
+          container: cs("min-w-0 w-full", classNames?.appCategoryNavigationContainer ?? ""),
         }}>
         <AdminAppsListContainer />
       </AppCategoryNavigation>
@@ -282,7 +283,6 @@ const AdminAppsListContainer = () => {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const category = searchParams?.get("category") || AppCategories.calendar;
-
   const { data: apps, isPending } = trpc.viewer.apps.listLocal.useQuery(
     { category },
     { enabled: searchParams !== null }

@@ -16,6 +16,7 @@ import {
   convertMapToFacetedValues,
   type FilterableColumn,
 } from "@calcom/features/data-table";
+import { Download } from "@calcom/features/insights/filters/Download";
 import { trpc } from "@calcom/trpc";
 
 import { RoutingFormResponsesDownload } from "../../filters/Download";
@@ -133,6 +134,8 @@ export function RoutingFormResponsesTable() {
           ToolbarRight={
             <>
               <DataTableFilters.ClearFiltersButton exclude={["createdAt"]} />
+              <Download />
+              <DateRangeFilter column={createdAtColumn} />
               <DataTableSegment.SaveButton />
               <DataTableSegment.Select />
             </>

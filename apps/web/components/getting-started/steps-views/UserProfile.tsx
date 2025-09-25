@@ -1,5 +1,8 @@
 "use client";
 
+import { Button } from "@calid/features/ui/components/button";
+import { triggerToast } from "@calid/features/ui/components/toast";
+import { CustomImageUploader } from "@calid/features/ui/components/uploader";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -9,13 +12,11 @@ import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { md } from "@calcom/lib/markdownIt";
 import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
+import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 import { UserAvatar } from "@calcom/ui/components/avatar";
-import { Button } from "@calcom/ui/components/button";
 import { Editor } from "@calcom/ui/components/editor";
 import { Label } from "@calcom/ui/components/form";
-import { ImageUploader } from "@calcom/ui/components/image-uploader";
-import { showToast } from "@calcom/ui/components/toast";
 
 type FormData = {
   bio: string;
@@ -40,36 +41,38 @@ const UserProfile = () => {
   // Create a separate mutation for avatar updates
   const avatarMutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async (data) => {
-      showToast(t("your_user_profile_updated_successfully"), "success");
+      triggerToast(t("your_user_profile_updated_successfully"), "success");
       setImageSrc(data.avatarUrl ?? "");
     },
     onError: () => {
-      showToast(t("problem_saving_user_profile"), "error");
+      triggerToast(t("problem_saving_user_profile"), "error");
     },
   });
 
   // Original mutation remains for onboarding completion
   const mutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async () => {
-      try {
-        if (eventTypes?.length === 0) {
-          await Promise.all(
-            DEFAULT_EVENT_TYPES.map(async (event) => {
-              return createEventType.mutate(event);
-            })
-          );
-        }
-      } catch (error) {
-        console.error(error);
-      }
+      utils.viewer.me.calid_get.invalidate();
+
+      // try {
+      //   if (eventTypes?.length === 0) {
+      //     // await Promise.all(
+      //     //   DEFAULT_EVENT_TYPES.map(async (event) => {
+      //     //     return createEventType.mutate(event);
+      //     //   })
+      //     // );
+      //   }
+      // } catch (error) {
+      //   console.error(error);
+      // }
 
       await utils.viewer.me.get.refetch();
       const redirectUrl = localStorage.getItem("onBoardingRedirect");
       localStorage.removeItem("onBoardingRedirect");
-      redirectUrl ? router.push(redirectUrl) : router.push("/");
+      redirectUrl ? router.push(redirectUrl) : router.push("/event-types");
     },
     onError: () => {
-      showToast(t("problem_saving_user_profile"), "error");
+      triggerToast(t("problem_saving_user_profile"), "error");
     },
   });
 
@@ -87,27 +90,30 @@ const UserProfile = () => {
   async function updateProfileHandler(newAvatar: string) {
     avatarMutation.mutate({
       avatarUrl: newAvatar,
+      metadata: {
+        currentOnboardingStep: "user-profile",
+      },
     });
   }
 
-  const DEFAULT_EVENT_TYPES = [
-    {
-      title: t("15min_meeting"),
-      slug: "15min",
-      length: 15,
-    },
-    {
-      title: t("30min_meeting"),
-      slug: "30min",
-      length: 30,
-    },
-    {
-      title: t("secret_meeting"),
-      slug: "secret",
-      length: 15,
-      hidden: true,
-    },
-  ];
+  // const DEFAULT_EVENT_TYPES = [
+  //   {
+  //     title: t("15min_meeting"),
+  //     slug: "15min",
+  //     length: 15,
+  //   },
+  //   {
+  //     title: t("30min_meeting"),
+  //     slug: "30min",
+  //     length: 30,
+  //   },
+  //   {
+  //     title: t("secret_meeting"),
+  //     slug: "secret",
+  //     length: 15,
+  //     hidden: true,
+  //   },
+  // ];
 
   return (
     <form onSubmit={onSubmit}>
@@ -122,25 +128,17 @@ const UserProfile = () => {
           className="border-default focus:ring-empthasis mt-1 block w-full rounded-sm border px-3 py-2 text-sm focus:border-gray-800 focus:outline-none"
           defaultValue={imageSrc}
         />
-        <div className="flex items-center px-4">
-          <ImageUploader
-            target="avatar"
+        <div className="flex items-center gap-2 px-4">
+          <CustomImageUploader
             id="avatar-upload"
-            buttonMsg={t("add_profile_photo")}
+            buttonMsg={t("upload_avatar")}
             handleAvatarChange={(newAvatar) => {
-              if (avatarRef.current) {
-                avatarRef.current.value = newAvatar;
-              }
-              const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-                window.HTMLInputElement.prototype,
-                "value"
-              )?.set;
-              nativeInputValueSetter?.call(avatarRef.current, newAvatar);
-              const ev2 = new Event("input", { bubbles: true });
-              avatarRef.current?.dispatchEvent(ev2);
               updateProfileHandler(newAvatar);
             }}
             imageSrc={imageSrc}
+            target="avatar"
+            triggerButtonColor="minimal"
+            testId="avatar"
           />
         </div>
       </div>

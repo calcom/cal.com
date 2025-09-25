@@ -1,6 +1,15 @@
+import { Button } from "@calid/features/ui/components/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@calid/features/ui/components/dialog";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Dialog, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { useDataTable } from "../../hooks";
@@ -44,15 +53,22 @@ export function DeleteSegmentDialog({
           onClose();
         }
       }}>
-      <ConfirmationDialogContent
-        variety="danger"
-        title={t("delete_segment")}
-        confirmBtnText={t("delete")}
-        cancelBtnText={t("cancel")}
-        isPending={isPending}
-        onConfirm={handleDelete}>
-        <p className="mt-5">{t("delete_segment_confirmation")}</p>
-      </ConfirmationDialogContent>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("delete_segment")}</DialogTitle>
+          <DialogDescription>
+            {t("delete_segment_confirmation", { segmentName: segment.name })}
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button type="button" color="minimal" onClick={onClose} disabled={isPending}>
+            {t("cancel")}
+          </Button>
+          <Button type="button" color="destructive" onClick={handleDelete} disabled={isPending}>
+            {isPending ? t("deleting") : t("delete")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

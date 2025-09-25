@@ -1,3 +1,4 @@
+import { Icon } from "@calid/features/ui/components/icon";
 import type { Action } from "kbar";
 import {
   KBarAnimator,
@@ -18,7 +19,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { MintlifyChat } from "../mintlify-chat/MintlifyChat";
@@ -224,22 +224,22 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
         keywords: "webhook automation",
         perform: () => router.push("/settings/developer/webhooks"),
       },
-      {
-        id: "api-keys",
-        name: "api_keys",
-        section: "developer",
-        shortcut: ["a", "p", "i"],
-        keywords: "api keys",
-        perform: () => router.push("/settings/developer/api-keys"),
-      },
-      {
-        id: "billing",
-        name: "manage_billing",
-        section: "billing",
-        shortcut: ["m", "b"],
-        keywords: "billing view manage",
-        perform: () => router.push("/settings/billing"),
-      },
+      // {
+      //   id: "api-keys",
+      //   name: "api_keys",
+      //   section: "developer",
+      //   shortcut: ["a", "p", "i"],
+      //   keywords: "api keys",
+      //   perform: () => router.push("/settings/developer/api-keys"),
+      // },
+      // {
+      //   id: "billing",
+      //   name: "manage_billing",
+      //   section: "billing",
+      //   shortcut: ["m", "b"],
+      //   keywords: "billing view manage",
+      //   perform: () => router.push("/settings/billing"),
+      // },
       ...appStoreActions,
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps

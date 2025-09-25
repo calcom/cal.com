@@ -79,10 +79,10 @@ export const Select = <
                 : "px-3 h-fit"
               : size === "sm"
               ? "h-7 px-2 py-1"
-              : "h-8 px-3 py-2",
+              : "h-8 px-3 py-1",
             props.isDisabled && "bg-subtle",
-            "rounded-[10px]",
-            "[&:focus-within]:border-emphasis [&:focus-within]:shadow-outline-gray-focused [&:focus-within]:ring-0 !flex",
+            "shadow-none border-default rounded-[6px]",
+            "[&:focus-within]:ring-2 !flex",
             innerClassNames?.control
           ),
         singleValue: () => cx("text-default placeholder:text-muted", innerClassNames?.singleValue),
@@ -95,7 +95,7 @@ export const Select = <
           ),
         menu: () =>
           cx(
-            "rounded-lg bg-default text-sm leading-4 text-default mt-1 border border-subtle shadow-dropdown p-1",
+            "rounded-lg bg-default text-sm leading-4 text-default mt-1 border border-muted p-1",
             innerClassNames?.menu
           ),
         groupHeading: () => "leading-none text-xs text-muted p-2 font-medium ml-1",

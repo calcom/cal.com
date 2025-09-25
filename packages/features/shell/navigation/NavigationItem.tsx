@@ -1,10 +1,10 @@
+import { Icon } from "@calid/features/ui/components/icon";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { Fragment, useState, useEffect } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import { Icon } from "@calcom/ui/components/icon";
 import type { IconName } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
@@ -16,6 +16,7 @@ const usePersistedExpansionState = (itemName: string) => {
 
   useEffect(() => {
     try {
+      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       const stored = sessionStorage.getItem(`nav-expansion-${itemName}`);
       if (stored !== null) {
         setIsExpanded(JSON.parse(stored));
@@ -26,6 +27,7 @@ const usePersistedExpansionState = (itemName: string) => {
   const setPersistedExpansion = (expanded: boolean) => {
     setIsExpanded(expanded);
     try {
+      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       sessionStorage.setItem(`nav-expansion-${itemName}`, JSON.stringify(expanded));
     } catch (_error) {}
   };
@@ -95,24 +97,24 @@ export const NavigationItem: React.FC<{
             onClick={() => setIsExpanded(!isExpanded)}
             className={classNames(
               "todesktop:py-[7px] text-default group flex w-full items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
-              "[&[aria-current='page']]:!bg-transparent",
-              "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
+              "[&[aria-current='page']]:bg-emphasis",
+              "[&[aria-current='page']]:text-emphasis mt-1.5 text-sm",
               isLocaleReady
-                ? "hover:bg-subtle todesktop:[&[aria-current='page']]:bg-emphasis todesktop:hover:bg-transparent hover:text-emphasis"
+                ? "hover:bg-emphasis todesktop:[&[aria-current='page']]:bg-emphasis todesktop:hover:bg-transparent hover:text-emphasis"
                 : ""
             )}>
             {item.icon && (
               <Icon
                 name={item.isLoading ? "rotate-cw" : item.icon}
                 className={classNames(
-                  "todesktop:!text-blue-500 mr-2 h-4 w-4 flex-shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2",
+                  "todesktop:!text-blue-500 mr-2 h-4 w-4 flex-shrink-0 md:ltr:mx-auto lg:ltr:mr-2 rtl:ml-2",
                   item.isLoading && "animate-spin"
                 )}
                 aria-hidden="true"
               />
             )}
             {isLocaleReady ? (
-              <span className="hidden w-full justify-between truncate text-ellipsis lg:flex">
+              <span className="hidden w-full items-center justify-between truncate text-ellipsis lg:flex">
                 {t(item.name)}
                 {item.badge && item.badge}
               </span>
@@ -134,15 +136,15 @@ export const NavigationItem: React.FC<{
             className={classNames(
               "todesktop:py-[7px] text-default group flex items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
               item.child
-                ? `[&[aria-current='page']]:!bg-transparent`
-                : `[&[aria-current='page']]:bg-emphasis`,
+                ? `[&[aria-current='page']]:bg-emphasis`
+                : `[&[aria-current='page']]:bg-active dark:[&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-white`,
               isChild
                 ? `[&[aria-current='page']]:text-emphasis [&[aria-current='page']]:bg-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 ${
                     props.index === 0 ? "mt-0" : "mt-px"
                   }`
-                : "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
+                : "mt-1.5 text-sm [&[aria-current='page']]:text-white",
               isLocaleReady
-                ? "hover:bg-subtle todesktop:[&[aria-current='page']]:bg-emphasis todesktop:hover:bg-transparent hover:text-emphasis"
+                ? "hover:bg-emphasis todesktop:[&[aria-current='page']]:bg-emphasis todesktop:hover:bg-transparent hover:text-emphasis"
                 : ""
             )}
             aria-current={current ? "page" : undefined}>
@@ -150,7 +152,7 @@ export const NavigationItem: React.FC<{
               <Icon
                 name={item.isLoading ? "rotate-cw" : item.icon}
                 className={classNames(
-                  "todesktop:!text-blue-500 mr-2 h-4 w-4 flex-shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2 [&[aria-current='page']]:text-inherit",
+                  "todesktop:!text-blue-500 mr-2 h-4 w-4 flex-shrink-0 md:ltr:mx-auto lg:ltr:mr-2 rtl:ml-2 [&[aria-current='page']]:text-inherit",
                   item.isLoading && "animate-spin"
                 )}
                 aria-hidden="true"

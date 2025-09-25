@@ -1,9 +1,13 @@
 "use client";
 
+import { Icon } from "@calid/features/ui/components/icon";
+import type { HorizontalTabItemProps } from "@calid/features/ui/components/navigation";
+import { HorizontalTabs } from "@calid/features/ui/components/navigation";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { AppCategories } from "@prisma/client";
 import type { UIEvent } from "react";
 import { useEffect, useRef, useState } from "react";
+import type { ChangeEventHandler } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
@@ -11,7 +15,7 @@ import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 import classNames from "@calcom/ui/classNames";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { Icon } from "@calcom/ui/components/icon";
+import { TextField } from "@calcom/ui/components/form";
 
 import { AppCard } from "./AppCard";
 
@@ -56,11 +60,10 @@ type AllAppsPropsType = {
 interface CategoryTabProps {
   selectedCategory: string | null;
   categories: string[];
-  searchText?: string;
   onCategoryChange: (category: string | null) => void;
 }
 
-function CategoryTab({ selectedCategory, categories, searchText, onCategoryChange }: CategoryTabProps) {
+function CategoryTab({ selectedCategory, categories, onCategoryChange }: CategoryTabProps) {
   const { t } = useLocale();
   const { ref, calculateScroll, leftVisible, rightVisible } = useShouldShowArrows();
 
@@ -77,26 +80,19 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
   };
 
   return (
-    <div className="relative mb-4 flex flex-col justify-between lg:flex-row lg:items-center">
-      <h2 className="text-emphasis hidden text-base font-semibold leading-none sm:block">
-        {searchText
-          ? t("search")
-          : t("category_apps", {
-              category:
-                (selectedCategory && selectedCategory[0].toUpperCase() + selectedCategory.slice(1)) ||
-                t("all"),
-            })}
-      </h2>
+    <div className="relative flex w-1/2 flex-col justify-between lg:flex-row lg:items-center">
       {leftVisible && (
-        <button onClick={handleLeft} className="absolute bottom-0 flex  lg:left-1/2">
+        <button onClick={handleLeft} className="absolute left-0 top-1/2 z-10 flex -translate-y-1/2">
           <div className="bg-default flex h-12 w-5 items-center justify-end">
-            <Icon name="chevron-left" className="text-subtle h-4 w-4" />
+            <div className="bg-primary flex h-5 w-5 items-center justify-center rounded-full border">
+              <Icon name="chevron-left" className="text-subtle h-4 w-4" />
+            </div>
           </div>
           <div className="to-default flex h-12 w-5 bg-gradient-to-l from-transparent" />
         </button>
       )}
       <ul
-        className="no-scrollbar mt-3 flex max-w-full space-x-1 overflow-x-auto lg:mt-0 lg:max-w-[50%]"
+        className="no-scrollbar flex space-x-1 overflow-x-auto lg:mt-0"
         onScroll={(e) => calculateScroll(e)}
         ref={ref}>
         <li
@@ -105,7 +101,7 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
           }}
           className={classNames(
             selectedCategory === null ? "bg-emphasis text-default" : "bg-muted text-emphasis",
-            "hover:bg-emphasis min-w-max rounded-md px-4 py-2.5 text-sm font-medium transition hover:cursor-pointer"
+            "hover:bg-emphasis min-w-max rounded-md p-2 text-sm font-medium transition hover:cursor-pointer"
           )}>
           {t("all")}
         </li>
@@ -121,17 +117,19 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
             }}
             className={classNames(
               selectedCategory === cat ? "bg-emphasis text-default" : "bg-muted text-emphasis",
-              "hover:bg-emphasis rounded-md px-4 py-2.5 text-sm font-medium transition hover:cursor-pointer"
+              "hover:bg-emphasis rounded-md p-2 text-sm font-medium transition hover:cursor-pointer"
             )}>
             {cat[0].toUpperCase() + cat.slice(1)}
           </li>
         ))}
       </ul>
       {rightVisible && (
-        <button onClick={handleRight} className="absolute bottom-0 right-0 flex ">
+        <button onClick={handleRight} className="absolute right-0 top-1/2 z-10 flex -translate-y-1/2">
           <div className="to-default flex h-12 w-5 bg-gradient-to-r from-transparent" />
           <div className="bg-default flex h-12 w-5 items-center justify-end">
-            <Icon name="chevron-right" className="text-subtle h-4 w-4" />
+            <div className="bg-primary flex h-5 w-5 items-center justify-center rounded-full border">
+              <Icon name="chevron-right" className="text-subtle h-4 w-4" />
+            </div>
           </div>
         </button>
       )}
@@ -139,10 +137,26 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
   );
 }
 
-export function AllApps({ apps, searchText, categories, userAdminTeams }: AllAppsPropsType) {
+function AppsSearch({ onChange }: { onChange: ChangeEventHandler<HTMLInputElement>; className?: string }) {
+  const { t } = useLocale();
+  return (
+    <TextField
+      addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
+      addOnClassname="!border-muted"
+      containerClassName={classNames("focus:!ring-offset-0 py-2")}
+      type="search"
+      autoComplete="false"
+      onChange={onChange}
+      placeholder={t("search")}
+    />
+  );
+}
+
+export function AllApps({ apps, categories, userAdminTeams }: AllAppsPropsType) {
   const { t } = useLocale();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [appsContainerRef, enableAnimation] = useAutoAnimate<HTMLDivElement>();
+  const [searchText, setSearchText] = useState<string | undefined>(undefined);
 
   const handleCategoryChange = (category: string | null) => {
     const validCategory =
@@ -159,20 +173,37 @@ export function AllApps({ apps, searchText, categories, userAdminTeams }: AllApp
         : true
     )
     .filter((app) => (searchText ? app.name.toLowerCase().includes(searchText.toLowerCase()) : true))
+    .filter((app) => app.slug !== "daily-video")
     .sort(function (a, b) {
       if (a.name < b.name) return -1;
       else if (a.name > b.name) return 1;
       return 0;
     });
 
+  const tabs: HorizontalTabItemProps[] = [
+    {
+      name: "app_store",
+      href: "/apps",
+      icon: "blocks",
+    },
+    {
+      name: "installed_apps",
+      href: "/apps/installed",
+      icon: "circle-check-big",
+    },
+  ];
+
   return (
     <div>
-      <CategoryTab
-        selectedCategory={selectedCategory}
-        searchText={searchText}
-        categories={categories}
-        onCategoryChange={handleCategoryChange}
-      />
+      <HorizontalTabs tabs={tabs} />
+      <div className="mb-4 flex justify-between gap-4">
+        <AppsSearch onChange={(e) => setSearchText(e.target.value)} />
+        <CategoryTab
+          selectedCategory={selectedCategory}
+          categories={categories}
+          onCategoryChange={handleCategoryChange}
+        />
+      </div>
       {filteredApps.length ? (
         <div
           className="grid gap-3 lg:grid-cols-4 [@media(max-width:1270px)]:grid-cols-3 [@media(max-width:500px)]:grid-cols-1 [@media(max-width:730px)]:grid-cols-1"

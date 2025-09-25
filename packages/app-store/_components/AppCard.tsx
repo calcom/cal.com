@@ -1,14 +1,14 @@
+import { Button } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon";
+import { Switch } from "@calid/features/ui/components/switch/switch";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
-import { useTranslation } from "react-i18next";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
-import { Button } from "@calcom/ui/components/button";
-import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Section } from "@calcom/ui/components/section";
 
 import type { CredentialOwner } from "../types";
@@ -27,7 +27,7 @@ export default function AppCard({
   hideSettingsIcon = false,
   hideAppCardOptions = false,
 }: {
-  app: RouterOutputs["viewer"]["apps"]["integrations"]["items"][number] & {
+  app: RouterOutputs["viewer"]["apps"]["calid_integrations"]["items"][number] & {
     credentialOwner?: CredentialOwner;
   };
   description?: React.ReactNode;
@@ -42,20 +42,20 @@ export default function AppCard({
   hideSettingsIcon?: boolean;
   hideAppCardOptions?: boolean;
 }) {
-  const { t } = useTranslation();
+  const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
   const { setAppData, LockedIcon, disabled: managedDisabled } = useAppContextWithSchema();
   const isPlatform = useIsPlatform();
 
   return (
-    <Section className={classNames(!app?.isInstalled && "rounded-xl")}>
+    <Section className={classNames(!app?.isInstalled && "bg-default border-default rounded-md border")}>
       <Section.Header
         rawHeading={
           <div>
             <div className="flex w-full items-center gap-1">
               <Section.Title>{app?.name}</Section.Title>
               {!app?.isInstalled && (
-                <span className="bg-emphasis ml-1 rounded px-1 py-0.5 text-xs font-medium leading-3 tracking-[0.01em]">
+                <span className="bg-muted text-muted ml-1 rounded px-1 py-1 text-xs font-semibold leading-3 tracking-[0.01em]">
                   {app?.categories[0].charAt(0).toUpperCase() + app?.categories[0].slice(1)}
                 </span>
               )}
@@ -95,7 +95,6 @@ export default function AppCard({
             {app?.isInstalled || app.credentialOwner ? (
               <div className="ml-auto flex items-center">
                 <Switch
-                  size="sm"
                   disabled={!app.enabled || managedDisabled || disableSwitch}
                   onCheckedChange={(enabled) => {
                     if (switchOnClick) {

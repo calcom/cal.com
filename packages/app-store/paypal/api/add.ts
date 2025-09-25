@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToTeam";
+import { throwIfNotHaveAdminAccessToCalIdTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToCalIdTeam";
 import prisma from "@calcom/prisma";
 
 import config from "../config.json";
@@ -10,10 +10,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
 
-  const { teamId } = req.query;
+  const { teamId, calIdTeamId } = req.query;
 
-  await throwIfNotHaveAdminAccessToTeam({ teamId: Number(teamId) ?? null, userId: req.session.user.id });
-  const installForObject = teamId ? { teamId: Number(teamId) } : { userId: req.session.user.id };
+  await throwIfNotHaveAdminAccessToCalIdTeam({
+    teamId: Number(calIdTeamId) ?? Number(teamId) ?? null,
+    userId: req.session.user.id,
+  });
+  const installForObject = calIdTeamId
+    ? { calIdTeamId: Number(calIdTeamId) }
+    : teamId
+    ? { teamId: Number(teamId) }
+    : { userId: req.session.user.id };
 
   const appType = config.type;
   try {

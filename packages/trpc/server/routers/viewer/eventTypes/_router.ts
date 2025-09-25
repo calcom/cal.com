@@ -4,6 +4,12 @@ import { logP } from "@calcom/lib/perf";
 
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
+import { ZCalIdCreateInputSchema } from "./calid/create.schema";
+import { ZCalIdDeleteInputSchema } from "./calid/delete.schema";
+import { ZCalIdGetInputSchema } from "./calid/get.schema";
+import { ZCalIdEventTypeInputSchema, ZCalIdGetEventTypesFromGroupSchema } from "./calid/getByViewer.schema";
+import { ZCalIdUpdateInputSchema } from "./calid/update.schema";
+import { eventOwnerProcedure as calIdEventOwnerProcedure } from "./calid/util";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZDuplicateInputSchema } from "./duplicate.schema";
@@ -90,6 +96,23 @@ export const eventTypesRouter = router({
       const timer = logP(`getTeamAndEventTypeOptions(${ctx.user.id})`);
 
       const result = await getTeamAndEventTypeOptions({
+        ctx,
+        input,
+      });
+
+      timer();
+
+      return result;
+    }),
+
+  getCalIdTeamAndEventTypeOptions: authedProcedure
+    .input(ZGetTeamAndEventTypeOptionsSchema)
+    .query(async ({ ctx, input }) => {
+      const { getCalIdTeamAndEventTypeOptions } = await import("./getCalIdTeamAndEventTypeOptions.handler");
+
+      const timer = logP(`getCalIdTeamAndEventTypeOptions(${ctx.user.id})`);
+
+      const result = await getCalIdTeamAndEventTypeOptions({
         ctx,
         input,
       });
@@ -193,4 +216,71 @@ export const eventTypesRouter = router({
       input,
     });
   }),
+
+  calid_create: authedProcedure.input(ZCalIdCreateInputSchema).mutation(async ({ ctx, input }) => {
+    const { createHandler } = await import("./calid/create.handler");
+
+    return createHandler({
+      ctx,
+      input,
+    });
+  }),
+
+  calid_get: authedProcedure.input(ZCalIdGetInputSchema).query(async ({ ctx, input }) => {
+    const { getHandler } = await import("./calid/get.handler");
+
+    return getHandler({
+      ctx,
+      input,
+    });
+  }),
+
+  calid_update: calIdEventOwnerProcedure.input(ZCalIdUpdateInputSchema).mutation(async ({ ctx, input }) => {
+    const { updateHandler } = await import("./calid/update.handler");
+
+    return updateHandler({
+      ctx,
+      input,
+    });
+  }),
+
+  calid_delete: calIdEventOwnerProcedure.input(ZCalIdDeleteInputSchema).mutation(async ({ ctx, input }) => {
+    const { deleteHandler } = await import("./calid/delete.handler");
+
+    return deleteHandler({
+      ctx,
+      input,
+    });
+  }),
+
+  calid_getByViewer: authedProcedure.input(ZCalIdEventTypeInputSchema).query(async ({ ctx, input }) => {
+    const { getByViewerHandler } = await import("./calid/getByViewer.handler");
+
+    return getByViewerHandler({
+      ctx,
+      input,
+    });
+  }),
+
+  calid_getUserEventGroups: authedProcedure
+    .input(ZCalIdEventTypeInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { getUserEventGroups } = await import("./calid/getUserEventGroups.handler");
+
+      return getUserEventGroups({
+        ctx,
+        input,
+      });
+    }),
+
+  calid_getEventTypesFromGroup: authedProcedure
+    .input(ZCalIdGetEventTypesFromGroupSchema)
+    .query(async ({ ctx, input }) => {
+      const { getEventTypesFromGroup } = await import("./calid/getEventTypesFromGroup.handler");
+
+      return getEventTypesFromGroup({
+        ctx,
+        input,
+      });
+    }),
 });

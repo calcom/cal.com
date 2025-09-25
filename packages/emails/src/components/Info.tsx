@@ -1,3 +1,4 @@
+import React from "react";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 
 const Spacer = () => <p style={{ height: 6 }} />;
@@ -9,6 +10,7 @@ export const Info = (props: {
   withSpacer?: boolean;
   lineThrough?: boolean;
   formatted?: boolean;
+  link?: string;
   isLabelHTML?: boolean;
 }) => {
   if (!props.description || props.description === "") return null;
@@ -38,16 +40,31 @@ export const Info = (props: {
         <p style={{ color: "#101010" }}>
           {props.isLabelHTML ? <StyledHtmlContent htmlContent={safeLabel} /> : props.label}
         </p>
-        <p
-          style={{
-            color: "#101010",
-            fontWeight: 400,
-            lineHeight: "24px",
-            whiteSpace: "pre-wrap",
-            textDecoration: props.lineThrough ? "line-through" : undefined,
-          }}>
-          {props.formatted ? <StyledHtmlContent htmlContent={safeDescription} /> : props.description}
-        </p>
+        {props.link ? (
+          <a
+            href={props.link as string}
+            target="_blank"
+            style={{
+              color: "#101010",
+              fontWeight: 400,
+              lineHeight: "24px",
+              whiteSpace: "pre-wrap",
+              textDecoration: props.lineThrough ? "line-through" : undefined,
+            }}>
+            {props.formatted ? <StyledHtmlContent htmlContent={safeDescription} /> : props.description}
+          </a>
+        ) : (
+          <p
+            style={{
+              color: "#101010",
+              fontWeight: 400,
+              lineHeight: "24px",
+              whiteSpace: "pre-wrap",
+              textDecoration: props.lineThrough ? "line-through" : undefined,
+            }}>
+            {props.formatted ? <StyledHtmlContent htmlContent={safeDescription} /> : props.description}
+          </p>
+        )}
         {props.extraInfo}
       </div>
     </>

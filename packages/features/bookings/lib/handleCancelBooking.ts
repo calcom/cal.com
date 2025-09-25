@@ -1,18 +1,26 @@
-import type { Prisma, WorkflowReminder } from "@prisma/client";
+import { sendCancelledReminders } from "@calid/features/modules/workflows/utils/reminderScheduler";
+import type { CalIdWorkflowReminder, Prisma } from "@prisma/client";
 import type { z } from "zod";
 
+import bookingCancelPaymentHandler from "@calcom/app-store/_utils/payments/bookingCancelPaymentHandler";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import EventManager from "@calcom/lib/EventManager";
+import {
+  IS_DEV,
+  ONEHASH_API_KEY,
+  ONEHASH_CHAT_SYNC_BASE_URL,
+  MOBILE_NOTIFICATIONS_ENABLED,
+} from "@calcom/lib/constants";
+import { sendMobileNotification } from "@calcom/lib/notifications";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -78,6 +86,7 @@ async function handler(input: CancelBookingInput) {
     cancelledBy,
     cancelSubsequentBookings,
     internalNote,
+    autoRefund,
   } = bookingCancelInput.parse(body);
   const bookingToDelete = await getBookingToDelete(id, uid);
   const {
@@ -179,6 +188,7 @@ async function handler(input: CancelBookingInput) {
       timeZone: true,
       timeFormat: true,
       locale: true,
+      metadata: true,
     },
   });
 
@@ -349,7 +359,7 @@ async function handler(input: CancelBookingInput) {
   let updatedBookings: {
     id: number;
     uid: string;
-    workflowReminders: WorkflowReminder[];
+    calIdWorkflowReminders: CalIdWorkflowReminder[];
     references: {
       type: string;
       credentialId: number | null;
@@ -358,7 +368,34 @@ async function handler(input: CancelBookingInput) {
     }[];
     startTime: Date;
     endTime: Date;
+    payment: any;
+    eventType: any;
+    metadata: any;
   }[] = [];
+
+  const updatedBookingSelect = {
+    id: true,
+    startTime: true,
+    endTime: true,
+    references: {
+      select: {
+        uid: true,
+        type: true,
+        externalCalendarId: true,
+        credentialId: true,
+      },
+    },
+    calIdWorkflowReminders: true,
+    uid: true,
+    payment: true,
+    eventType: {
+      select: {
+        teamId: true,
+        owner: true,
+      },
+    },
+    metadata: true,
+  };
 
   // by cancelling first, and blocking whilst doing so; we can ensure a cancel
   // action always succeeds even if subsequent integrations fail cancellation.
@@ -390,21 +427,7 @@ async function handler(input: CancelBookingInput) {
           gte: new Date(),
         },
       },
-      select: {
-        id: true,
-        startTime: true,
-        endTime: true,
-        references: {
-          select: {
-            uid: true,
-            type: true,
-            externalCalendarId: true,
-            credentialId: true,
-          },
-        },
-        workflowReminders: true,
-        uid: true,
-      },
+      select: updatedBookingSelect,
     });
     updatedBookings = updatedBookings.concat(allUpdatedBookings);
   } else {
@@ -427,21 +450,7 @@ async function handler(input: CancelBookingInput) {
         // Assume that canceling the booking is the last action
         iCalSequence: evt.iCalSequence || 100,
       },
-      select: {
-        id: true,
-        startTime: true,
-        endTime: true,
-        references: {
-          select: {
-            uid: true,
-            type: true,
-            externalCalendarId: true,
-            credentialId: true,
-          },
-        },
-        workflowReminders: true,
-        uid: true,
-      },
+      select: updatedBookingSelect,
     });
     updatedBookings.push(updatedBooking);
 
@@ -502,28 +511,62 @@ async function handler(input: CancelBookingInput) {
   } catch (error) {
     log.error(`Error deleting integrations`, safeStringify({ error }));
   }
+  const organizerHasIntegratedOHChat = !!isPrismaObjOrUndefined(organizer.metadata)?.connectedChatAccounts;
+  const cancelledBookingsUids = [];
 
   try {
     const webhookTriggerPromises = [];
-    const workflowReminderPromises = [];
-
+    const calIdWorkflowReminderPromises = [];
+    const paymentCancellationPromises = [];
     for (const booking of updatedBookings) {
       // delete scheduled webhook triggers of cancelled bookings
       webhookTriggerPromises.push(deleteWebhookScheduledTriggers({ booking }));
 
       //Workflows - cancel all reminders for cancelled bookings
-      workflowReminderPromises.push(WorkflowRepository.deleteAllWorkflowReminders(booking.workflowReminders));
+      calIdWorkflowReminderPromises.push(
+        WorkflowRepository.deleteAllWorkflowReminders(booking.calIdWorkflowReminders)
+      );
+      if (autoRefund) {
+        if (!booking.payment) {
+          log.warn(`No payment found for booking ${booking.id}`);
+          continue;
+        }
+        const cancelPaymentPromise = bookingCancelPaymentHandler({
+          payment: booking.payment,
+          eventType: booking.eventType,
+        });
+        const updateBookingPromise = prisma.booking.update({
+          where: {
+            id: booking.id,
+          },
+          data: {
+            metadata: {
+              ...booking.metadata,
+              paymentStatus: "refunded",
+            },
+          },
+        });
+
+        paymentCancellationPromises.push(Promise.all([cancelPaymentPromise, updateBookingPromise]));
+      }
+
+      cancelledBookingsUids.push(booking.uid);
     }
 
-    await Promise.allSettled([...webhookTriggerPromises, ...workflowReminderPromises]).then((results) => {
-      const rejectedReasons = results
-        .filter((result): result is PromiseRejectedResult => result.status === "rejected")
-        .map((result) => result.reason);
+    await Promise.allSettled([...webhookTriggerPromises, ...calIdWorkflowReminderPromises]).then(
+      (results) => {
+        const rejectedReasons = results
+          .filter((result): result is PromiseRejectedResult => result.status === "rejected")
+          .map((result) => result.reason);
 
-      if (rejectedReasons.length > 0) {
-        log.error("An error occurred when deleting workflow reminders and webhook triggers", rejectedReasons);
+        if (rejectedReasons.length > 0) {
+          log.error(
+            "An error occurred when deleting workflow reminders and webhook triggers",
+            rejectedReasons
+          );
+        }
       }
-    });
+    );
   } catch (error) {
     log.error("Error deleting scheduled webhooks and workflows", safeStringify({ error }));
   }
@@ -552,6 +595,25 @@ async function handler(input: CancelBookingInput) {
   } catch (error) {
     log.error("Error deleting event", error);
   }
+  if (MOBILE_NOTIFICATIONS_ENABLED) {
+    const result = await sendMobileNotification(
+      `host_${organizer.id}`,
+      {
+        title: tOrganizer("booking_cancelled"),
+        body: evt.title,
+      },
+      {
+        bookingId: evt.bookingId,
+        status: "CANCELLED",
+      }
+    );
+    if (result !== "skipped:disabled" && result !== "skipped:unavailable") {
+      log.debug("Mobile notification sent", { result });
+    }
+  }
+  if (organizerHasIntegratedOHChat) {
+    await handleOHChatSync(cancelledBookingsUids);
+  }
   return {
     success: true,
     message: "Booking successfully cancelled.",
@@ -559,6 +621,21 @@ async function handler(input: CancelBookingInput) {
     bookingId: bookingToDelete.id,
     bookingUid: bookingToDelete.uid,
   } satisfies HandleCancelBookingResponse;
+}
+
+async function handleOHChatSync(bookingUids: string[]) {
+  if (IS_DEV) return Promise.resolve();
+  if (bookingUids.length === 0) return Promise.resolve();
+
+  const queryParams = new URLSearchParams({ bookingUids: bookingUids.join(",") });
+
+  await fetch(`${ONEHASH_CHAT_SYNC_BASE_URL}/cal_booking?${queryParams}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${ONEHASH_API_KEY}`,
+    },
+  });
 }
 
 export default handler;

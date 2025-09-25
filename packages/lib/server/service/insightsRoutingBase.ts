@@ -11,27 +11,27 @@ import {
   isSingleSelectFilterValue,
 } from "@calcom/features/data-table/lib/utils";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
+import { prisma } from "@calcom/prisma";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { MembershipRepository } from "../repository/membership";
 import { TeamRepository } from "../repository/team";
 
 export const insightsRoutingServiceOptionsSchema = z.discriminatedUnion("scope", [
   z.object({
     scope: z.literal("user"),
     userId: z.number(),
-    orgId: z.number(),
+    orgId: z.number().optional().nullable(),
   }),
   z.object({
     scope: z.literal("org"),
     userId: z.number(),
-    orgId: z.number(),
+    orgId: z.number().nullable(),
   }),
   z.object({
     scope: z.literal("team"),
     userId: z.number(),
-    orgId: z.number(),
+    orgId: z.number().optional().nullable(),
     teamId: z.number(),
   }),
 ]);
@@ -70,7 +70,6 @@ export class InsightsRoutingBaseService {
     filters: InsightsRoutingServiceFilterOptions;
   }) {
     this.prisma = prisma;
-
     const validation = insightsRoutingServiceOptionsSchema.safeParse(options);
     this.options = validation.success ? validation.data : null;
 
@@ -319,10 +318,12 @@ export class InsightsRoutingBaseService {
     }
 
     if (scope === "user") {
-      return Prisma.sql`"formUserId" = ${this.options.userId} AND "formTeamId" IS NULL`;
-    } else if (scope === "org") {
-      return await this.buildOrgAuthorizationCondition(this.options);
-    } else if (scope === "team") {
+      return Prisma.sql`"formUserId" = ${this.options.userId} AND "formCalTeamId" IS NULL`;
+    }
+    // else if (scope === "org") {
+    //   return await this.buildOrgAuthorizationCondition(this.options);
+    // }
+    else if (scope === "team") {
       return await this.buildTeamAuthorizationCondition(this.options);
     } else {
       return NOTHING_CONDITION;
@@ -335,7 +336,7 @@ export class InsightsRoutingBaseService {
     // Get all teams from the organization
     const teamRepo = new TeamRepository(this.prisma);
     const teamsFromOrg = await teamRepo.findAllByParentId({
-      parentId: options.orgId,
+      parentId: options.orgId ?? 0,
       select: { id: true },
     });
 
@@ -347,28 +348,44 @@ export class InsightsRoutingBaseService {
   private async buildTeamAuthorizationCondition(
     options: Extract<InsightsRoutingServiceOptions, { scope: "team" }>
   ): Promise<Prisma.Sql> {
-    const teamRepo = new TeamRepository(this.prisma);
-    const childTeamOfOrg = await teamRepo.findByIdAndParentId({
-      id: options.teamId,
-      parentId: options.orgId,
-      select: { id: true },
-    });
-    if (options.orgId && !childTeamOfOrg) {
-      return NOTHING_CONDITION;
-    }
+    // const teamRepo = new TeamRepository(this.prisma);
+    // const childTeamOfOrg = await teamRepo.findByIdAndParentId({
+    //   id: options.teamId,
+    //   parentId: options.orgId,
+    //   select: { id: true },
+    // });
+    // if (options.orgId && !childTeamOfOrg) {
+    //   return NOTHING_CONDITION;
+    // }
 
-    return Prisma.sql`"formTeamId" = ${options.teamId}`;
+    return Prisma.sql`"formCalTeamId" = ${options.teamId}`;
   }
 
   private async isOwnerOrAdmin(userId: number, targetId: number): Promise<boolean> {
     // Check if the user is an owner or admin of the organization or team
-    const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: targetId });
+
+    const membership = await prisma.calIdMembership.findUnique({
+      where: {
+        userId_calIdTeamId: {
+          userId,
+          calIdTeamId: targetId,
+        },
+      },
+    });
+
     return Boolean(
       membership &&
-        membership.accepted &&
+        membership.acceptedInvitation &&
         membership.role &&
         (membership.role === MembershipRole.OWNER || membership.role === MembershipRole.ADMIN)
     );
+    // const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: targetId });
+    // return Boolean(
+    //   membership &&
+    //     membership.accepted &&
+    //     membership.role &&
+    //     (membership.role === MembershipRole.OWNER || membership.role === MembershipRole.ADMIN)
+    // );
   }
 
   private buildFormFieldSqlCondition(fieldId: string, filterValue: FilterValue): Prisma.Sql | null {

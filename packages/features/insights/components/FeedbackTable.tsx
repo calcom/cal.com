@@ -1,12 +1,13 @@
 "use client";
 
+import { Avatar } from "@calid/features/ui/components/avatar";
+import { Button } from "@calid/features/ui/components/button";
+import { BlankCard } from "@calid/features/ui/components/card";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
+
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { User } from "@calcom/prisma/client";
-import { Avatar } from "@calcom/ui/components/avatar";
-import { Button } from "@calcom/ui/components/button";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 
 export const FeedbackTable = ({
   data,
@@ -43,7 +44,7 @@ export const FeedbackTable = ({
             <div className="flex items-center space-x-4">
               <div className="text-default text-sm font-medium">{item.rating}</div>
               <Tooltip content={item.feedback}>
-                <div className="text-default max-w-32 md:max-w-52 truncate text-sm font-medium">
+                <div className="text-default max-w-32 truncate text-sm font-medium md:max-w-52">
                   {item.feedback}
                 </div>
               </Tooltip>
@@ -51,7 +52,7 @@ export const FeedbackTable = ({
           </div>
         ))
       ) : (
-        <EmptyScreen
+        <BlankCard
           Icon="zap"
           headline={t("no_ratings")}
           description={t("no_ratings_description")}

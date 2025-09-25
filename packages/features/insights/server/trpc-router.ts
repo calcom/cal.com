@@ -1,4 +1,5 @@
-import type { Prisma } from "@prisma/client";
+import { CalIdWorkflowEventsInsights } from "@calid/features/modules/insights/server/workflow-events";
+import type { CalIdMembership, Prisma } from "@prisma/client";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
@@ -8,11 +9,13 @@ import {
   routingFormStatsInputSchema,
   routingRepositoryBaseInputSchema,
   bookingRepositoryBaseInputSchema,
+  workflowRepositoryBaseInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
 import { getInsightsRoutingService } from "@calcom/lib/di/containers/insights-routing";
 import { InsightsBookingService } from "@calcom/lib/server/service/insightsBooking";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { WorkflowMethods, WorkflowStatus } from "@calcom/prisma/enums";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 
@@ -26,6 +29,7 @@ const UserBelongsToTeamInput = z.object({
   teamId: z.coerce.number().optional().nullable(),
   isAll: z.boolean().optional(),
 });
+const WorkflowMethodsSchema = z.nativeEnum(WorkflowMethods);
 
 type BuildBaseWhereConditionCtxType = {
   userIsOwnerAdminOfParentTeam: boolean;
@@ -75,63 +79,63 @@ export const buildBaseWhereCondition = async ({
     });
   }
 
-  // organization-wide queries condition
-  if (isAll && ctx.userIsOwnerAdminOfParentTeam && ctx.userOrganizationId) {
-    const teamsFromOrg = await ctx.insightsDb.team.findMany({
-      where: {
-        parentId: ctx.userOrganizationId,
-      },
-      select: {
-        id: true,
-      },
-    });
+  // // organization-wide queries condition
+  // if (isAll && ctx.userIsOwnerAdminOfParentTeam && ctx.userOrganizationId) {
+  //   const teamsFromOrg = await ctx.insightsDb.team.findMany({
+  //     where: {
+  //       parentId: ctx.userOrganizationId,
+  //     },
+  //     select: {
+  //       id: true,
+  //     },
+  //   });
 
-    const teamIds = [ctx.userOrganizationId, ...teamsFromOrg.map((t) => t.id)];
-    const usersFromOrg =
-      teamsFromOrg.length > 0
-        ? await ctx.insightsDb.membership.findMany({
-            where: {
-              team: {
-                id: {
-                  in: teamIds,
-                },
-              },
-              accepted: true,
-            },
-            select: {
-              userId: true,
-            },
-          })
-        : [];
+  //   const teamIds = [ctx.userOrganizationId, ...teamsFromOrg.map((t) => t.id)];
+  //   const usersFromOrg =
+  //     teamsFromOrg.length > 0
+  //       ? await ctx.insightsDb.membership.findMany({
+  //           where: {
+  //             team: {
+  //               id: {
+  //                 in: teamIds,
+  //               },
+  //             },
+  //             accepted: true,
+  //           },
+  //           select: {
+  //             userId: true,
+  //           },
+  //         })
+  //       : [];
 
-    conditions.push({
-      OR: [
-        {
-          teamId: {
-            in: teamIds,
-          },
-          isTeamBooking: true,
-        },
-        ...(usersFromOrg.length > 0
-          ? [
-              {
-                userId: {
-                  in: usersFromOrg.map((u) => u.userId),
-                },
-                isTeamBooking: false,
-              },
-            ]
-          : []),
-      ],
-    });
-  }
+  //   conditions.push({
+  //     OR: [
+  //       {
+  //         teamId: {
+  //           in: teamIds,
+  //         },
+  //         isTeamBooking: true,
+  //       },
+  //       ...(usersFromOrg.length > 0
+  //         ? [
+  //             {
+  //               userId: {
+  //                 in: usersFromOrg.map((u) => u.userId),
+  //               },
+  //               isTeamBooking: false,
+  //             },
+  //           ]
+  //         : []),
+  //     ],
+  //   });
+  // }
 
   // Team-specific queries condition
   if (!isAll && teamId) {
-    const usersFromTeam = await ctx.insightsDb.membership.findMany({
+    const usersFromTeam = await ctx.insightsDb.calIdMembership.findMany({
       where: {
-        teamId: teamId,
-        accepted: true,
+        calIdTeamId: teamId,
+        acceptedInvitation: true,
       },
       select: {
         userId: true,
@@ -142,7 +146,7 @@ export const buildBaseWhereCondition = async ({
     conditions.push({
       OR: [
         {
-          teamId,
+          calIdTeamId: teamId,
           isTeamBooking: true,
         },
         {
@@ -193,61 +197,66 @@ const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, getRa
     throw new TRPCError({ code: "BAD_REQUEST" });
   }
 
-  // If teamId is provided, check if user belongs to team
-  // If teamId is not provided, check if user belongs to any team
+  // // If teamId is provided, check if user belongs to team
+  // // If teamId is not provided, check if user belongs to any team
 
-  const membershipWhereConditional: Prisma.MembershipWhereInput = {
+  const membershipWhereConditional: Prisma.CalIdMembershipWhereInput = {
     userId: ctx.user.id,
-    accepted: true,
+    acceptedInvitation: true,
   };
 
   if (parse.data.teamId) {
-    membershipWhereConditional["teamId"] = parse.data.teamId;
+    membershipWhereConditional["calIdTeamId"] = parse.data.teamId;
   }
 
-  const membership = await ctx.insightsDb.membership.findFirst({
+  const membership = await ctx.insightsDb.calIdMembership.findFirst({
     where: membershipWhereConditional,
   });
 
-  let isOwnerAdminOfParentTeam = false;
-
-  // Probably we couldn't find a membership because the user is not a direct member of the team
-  // So that would mean ctx.user.organization is present
-  if ((parse.data.isAll && ctx.user.organizationId) || (!membership && ctx.user.organizationId)) {
-    //Look for membership type in organizationId
-    if (!membership && ctx.user.organizationId && parse.data.teamId) {
-      const isChildTeamOfOrg = await ctx.insightsDb.team.findFirst({
-        where: {
-          id: parse.data.teamId,
-          parentId: ctx.user.organizationId,
-        },
-      });
-      if (!isChildTeamOfOrg) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
-      }
-    }
-
-    const membershipOrg = await ctx.insightsDb.membership.findFirst({
-      where: {
-        userId: ctx.user.id,
-        teamId: ctx.user.organizationId,
-        accepted: true,
-        role: {
-          in: ["OWNER", "ADMIN"],
-        },
-      },
-    });
-    if (!membershipOrg) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
-    }
-    isOwnerAdminOfParentTeam = true;
+  if (!membership && !parse.data.teamId) {
+    // User doesn't belong to any team
+    throw new TRPCError({ code: "UNAUTHORIZED" });
   }
+
+  // // let isOwnerAdminOfParentTeam = false;
+
+  // // // Probably we couldn't find a membership because the user is not a direct member of the team
+  // // // So that would mean ctx.user.organization is present
+  // // if ((parse.data.isAll && ctx.user.organizationId) || (!membership && ctx.user.organizationId)) {
+  // //   //Look for membership type in organizationId
+  // //   if (!membership && ctx.user.organizationId && parse.data.teamId) {
+  // //     const isChildTeamOfOrg = await ctx.insightsDb.calIdteam.findFirst({
+  // //       where: {
+  // //         id: parse.data.teamId,
+  // //         parentId: ctx.user.organizationId,
+  // //       },
+  // //     });
+  // //     if (!isChildTeamOfOrg) {
+  // //       throw new TRPCError({ code: "UNAUTHORIZED" });
+  // //     }
+  // //   }
+
+  // //   const membershipOrg = await ctx.insightsDb.membership.findFirst({
+  // //     where: {
+  // //       userId: ctx.user.id,
+  // //       teamId: ctx.user.organizationId,
+  // //       accepted: true,
+  // //       role: {
+  // //         in: ["OWNER", "ADMIN"],
+  // //       },
+  // //     },
+  // //   });
+  // //   if (!membershipOrg) {
+  // //     throw new TRPCError({ code: "UNAUTHORIZED" });
+  // //   }
+  // //   isOwnerAdminOfParentTeam = true;
+  // // }
 
   return next({
     ctx: {
       user: {
         ...ctx.user,
-        isOwnerAdminOfParentTeam,
+        // isOwnerAdminOfParentTeam,
       },
     },
   });
@@ -453,14 +462,14 @@ export const insightsRouter = router({
         startDate,
         endDate,
         timeView,
-        timeZone,
+        timeZone: timeZone === "Asia/Calcutta" ? "Asia/Kolkata" : timeZone,
         weekStart: ctx.user.weekStart,
       });
 
       const insightsBookingService = createInsightsBookingService(ctx, input);
       try {
         return await insightsBookingService.getEventTrendsStats({
-          timeZone,
+          timeZone: timeZone === "Asia/Calcutta" ? "Asia/Kolkata" : timeZone,
           dateRanges,
         });
       } catch (e) {
@@ -582,43 +591,43 @@ export const insightsRouter = router({
       return [];
     }
 
-    // Validate if user belongs to org as admin/owner
-    if (user.organizationId && user.organization.isOrgAdmin) {
-      const teamsAndOrg = await ctx.insightsDb.team.findMany({
-        where: {
-          OR: [{ parentId: user.organizationId }, { id: user.organizationId }],
-        },
-        select: {
-          id: true,
-          slug: true,
-          name: true,
-          logoUrl: true,
-        },
-      });
-      const teamsFromOrg = teamsAndOrg.filter((team) => team.id !== user.organizationId);
-      const orgTeam = teamsAndOrg.find((team) => team.id === user.organizationId);
-      if (!orgTeam) {
-        return [];
-      }
+    // // Validate if user belongs to org as admin/owner
+    // if (user.organizationId && user.organization.isOrgAdmin) {
+    //   const teamsAndOrg = await ctx.insightsDb.team.findMany({
+    //     where: {
+    //       OR: [{ parentId: user.organizationId }, { id: user.organizationId }],
+    //     },
+    //     select: {
+    //       id: true,
+    //       slug: true,
+    //       name: true,
+    //       logoUrl: true,
+    //     },
+    //   });
+    //   const teamsFromOrg = teamsAndOrg.filter((team) => team.id !== user.organizationId);
+    //   const orgTeam = teamsAndOrg.find((team) => team.id === user.organizationId);
+    //   if (!orgTeam) {
+    //     return [];
+    //   }
 
-      const result: IResultTeamList[] = [
-        {
-          ...orgTeam,
-          isOrg: true,
-        },
-        ...teamsFromOrg,
-      ];
+    //   const result: IResultTeamList[] = [
+    //     {
+    //       ...orgTeam,
+    //       isOrg: true,
+    //     },
+    //     ...teamsFromOrg,
+    //   ];
 
-      return result;
-    }
+    //   return result;
+    // }
 
     // Look if user it's admin/owner in multiple teams
-    const belongsToTeams = await ctx.insightsDb.membership.findMany({
+    const belongsToTeams = await ctx.insightsDb.calIdMembership.findMany({
       where: {
-        team: {
+        calIdTeam: {
           slug: { not: null },
         },
-        accepted: true,
+        acceptedInvitation: true,
         userId: user.id,
         OR: [
           {
@@ -630,7 +639,7 @@ export const insightsRouter = router({
         ],
       },
       include: {
-        team: {
+        calIdTeam: {
           select: {
             id: true,
             name: true,
@@ -647,7 +656,7 @@ export const insightsRouter = router({
     }
 
     const result: IResultTeamList[] = belongsToTeams.map((membership) => {
-      return { ...membership.team };
+      return { ...membership.calIdTeam };
     });
 
     return result;
@@ -663,32 +672,32 @@ export const insightsRouter = router({
       const user = ctx.user;
       const { teamId, isAll } = input;
 
-      if (isAll && user.organizationId && user.organization.isOrgAdmin) {
-        const usersInTeam = await ctx.insightsDb.membership.findMany({
-          where: {
-            team: {
-              parentId: user.organizationId,
-            },
-          },
-          include: {
-            user: {
-              select: userSelect,
-            },
-          },
-          distinct: ["userId"],
-        });
-        return usersInTeam.map((membership) => membership.user);
-      }
+      // if (isAll && user.organizationId && user.organization.isOrgAdmin) {
+      //   const usersInTeam = await ctx.insightsDb.membership.findMany({
+      //     where: {
+      //       team: {
+      //         parentId: user.organizationId,
+      //       },
+      //     },
+      //     include: {
+      //       user: {
+      //         select: userSelect,
+      //       },
+      //     },
+      //     distinct: ["userId"],
+      //   });
+      //   return usersInTeam.map((membership) => membership.user);
+      // }
 
       if (!teamId) {
         return [];
       }
 
-      const membership = await ctx.insightsDb.membership.findFirst({
+      const membership = await ctx.insightsDb.calIdMembership.findFirst({
         where: {
           userId: user.id,
-          teamId,
-          accepted: true,
+          calIdTeamId: teamId,
+          acceptedInvitation: true,
         },
         include: {
           user: {
@@ -705,10 +714,10 @@ export const insightsRouter = router({
         return [membership.user];
       }
 
-      const usersInTeam = await ctx.insightsDb.membership.findMany({
+      const usersInTeam = await ctx.insightsDb.calIdMembership.findMany({
         where: {
-          teamId,
-          accepted: true,
+          calIdTeamId: teamId,
+          acceptedInvitation: true,
         },
         include: {
           user: {
@@ -740,7 +749,8 @@ export const insightsRouter = router({
         user: {
           id: user.id,
           organizationId: user.organizationId,
-          isOwnerAdminOfParentTeam: user.isOwnerAdminOfParentTeam,
+          // isOwnerAdminOfParentTeam: user.isOwnerAdminOfParentTeam,
+          isOwnerAdminOfParentTeam: false,
         },
       });
 
@@ -1029,11 +1039,178 @@ export const insightsRouter = router({
 
       try {
         return await insightsBookingService.getBookingsByHourStats({
-          timeZone,
+          timeZone: timeZone === "Asia/Calcutta" ? "Asia/Kolkata" : timeZone,
         });
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
+    }),
+
+  workflowsByStatus: userBelongsToTeamProcedure
+    .input(
+      rawDataInputSchema.extend({
+        type: WorkflowMethodsSchema.optional().nullable(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { startDate, endDate, eventTypeId, userId, teamId, type } = input;
+
+      const stats: {
+        sentCount: number;
+        readCount: number;
+        failedCount: number;
+        total: number;
+      } = {
+        sentCount: 0,
+        readCount: 0,
+        failedCount: 0,
+        total: 0,
+      };
+
+      const whereConditions = [
+        startDate
+          ? {
+              createdAt: {
+                gte: dayjs.utc(startDate).startOf("day"),
+              },
+            }
+          : null,
+
+        endDate
+          ? {
+              createdAt: {
+                lte: dayjs.utc(endDate).endOf("day"),
+              },
+            }
+          : null,
+        eventTypeId ? { eventTypeId } : null,
+
+        type ? { type } : null,
+      ].filter(Boolean) as Prisma.CalIdWorkflowInsightsWhereInput[]; // Type assertion
+
+      const whereQuery: Prisma.CalIdWorkflowInsightsWhereInput = whereConditions.length
+        ? { AND: whereConditions }
+        : {};
+      const eventTypeIds: number[] = [];
+      if (userId) {
+        const _eventTypeIds = (
+          await ctx.insightsDb.eventType.findMany({
+            where: { userId },
+            select: { id: true },
+          })
+        ).map(({ id }) => id);
+        eventTypeIds.push(..._eventTypeIds);
+      }
+
+      if (teamId) {
+        const _eventTypeIds = (
+          await ctx.insightsDb.eventType.findMany({
+            where: { calIdTeamId: teamId },
+            select: { id: true },
+          })
+        ).map(({ id }) => id);
+        eventTypeIds.push(..._eventTypeIds);
+      }
+
+      if (!eventTypeId)
+        (whereQuery.AND as Prisma.CalIdWorkflowInsightsWhereInput[]).push({
+          eventTypeId: { in: eventTypeIds },
+        });
+
+      const workflowInsights = await ctx.insightsDb.calIdWorkflowInsights.findMany({
+        where: whereQuery,
+      });
+
+      stats.total = workflowInsights.length;
+      workflowInsights.forEach((insight) => {
+        if (insight.status === WorkflowStatus.DELIVERED) {
+          stats.sentCount += 1;
+        }
+        if (insight.status === WorkflowStatus.READ) {
+          stats.readCount += 1;
+        }
+        if (insight.status === WorkflowStatus.FAILED) {
+          stats.failedCount += 1;
+        }
+      });
+
+      return stats;
+    }),
+
+  workflowsTimeline: userBelongsToTeamProcedure
+    .input(workflowRepositoryBaseInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { userId, teamId, eventTypeId, type, startDate, endDate, timeZone } = input;
+      // Build where conditions dynamically
+      const whereConditions = [
+        { createdAt: { gte: startDate } },
+        { createdAt: { lte: endDate } },
+        eventTypeId ? { eventTypeId } : null,
+        type ? { type } : null,
+      ].filter(Boolean) as Prisma.CalIdWorkflowInsightsWhereInput[];
+
+      const whereQuery: Prisma.CalIdWorkflowInsightsWhereInput = whereConditions.length
+        ? { AND: whereConditions }
+        : { AND: [] };
+
+      const eventTypeIds: number[] = [];
+      if (userId) {
+        const _eventTypeIds = (
+          await ctx.insightsDb.eventType.findMany({
+            where: { userId },
+            select: { id: true },
+          })
+        ).map(({ id }) => id);
+        eventTypeIds.push(..._eventTypeIds);
+      }
+
+      if (teamId) {
+        const _eventTypeIds = (
+          await ctx.insightsDb.eventType.findMany({
+            where: { calIdTeamId: teamId },
+            select: { id: true },
+          })
+        ).map(({ id }) => id);
+        eventTypeIds.push(..._eventTypeIds);
+      }
+
+      if (!eventTypeId && eventTypeIds.length > 0)
+        (whereQuery.AND as Prisma.CalIdWorkflowInsightsWhereInput[]).push({
+          eventTypeId: { in: eventTypeIds },
+        });
+
+      const timeView = getTimeView(input.startDate, input.endDate);
+      const dateRanges = getDateRanges({
+        startDate: input.startDate,
+        endDate: input.endDate,
+        timeZone: ctx.user.timeZone,
+        timeView,
+        weekStart: ctx.user.weekStart,
+      });
+
+      // Fetch aggregated counts
+      const countsByStatus = await CalIdWorkflowEventsInsights.countGroupedWorkflowByStatusForRanges(
+        whereQuery,
+        dateRanges,
+        timeZone
+      );
+
+      const ranges = dateRanges.map(({ startDate, endDate, formattedDate }) => {
+        const key = `${startDate}_${endDate}`;
+        const stats = countsByStatus[key] || { DELIVERED: 0, READ: 0, FAILED: 0, _all: 0 };
+
+        return {
+          startDate,
+          endDate,
+          formattedDate: formattedDate,
+          Sent: stats.DELIVERED,
+          Read: stats.READ,
+          Failed: stats.FAILED,
+          Total: stats._all,
+        };
+      });
+
+      return ranges;
     }),
 });
 
@@ -1058,53 +1235,54 @@ async function getEventTypeList({
     return [];
   }
 
-  const membershipWhereConditional: Prisma.MembershipWhereInput = {};
+  const membershipWhereConditional: Prisma.CalIdMembershipWhereInput = {};
 
-  let childrenTeamIds: number[] = [];
+  // let childrenTeamIds: number[] = [];
 
-  if (isAll && teamId && user.organizationId && user.isOwnerAdminOfParentTeam) {
-    const childTeams = await prisma.team.findMany({
-      where: {
-        parentId: user.organizationId,
-      },
-      select: {
-        id: true,
-      },
-    });
-    if (childTeams.length > 0) {
-      childrenTeamIds = childTeams.map((team) => team.id);
-    }
-    membershipWhereConditional["teamId"] = {
-      in: [user.organizationId, ...childrenTeamIds],
-    };
-  }
+  // if (isAll && teamId && user.organizationId && user.isOwnerAdminOfParentTeam) {
+  //   const childTeams = await prisma.calIdTeam.findMany({
+  //     where: {
+  //       parentId: user.organizationId,
+  //     },
+  //     select: {
+  //       id: true,
+  //     },
+  //   });
+  //   if (childTeams.length > 0) {
+  //     childrenTeamIds = childTeams.map((team) => team.id);
+  //   }
+  //   membershipWhereConditional["teamId"] = {
+  //     in: [user.organizationId, ...childrenTeamIds],
+  //   };
+  // }
 
+  let membership: CalIdMembership | null = null;
   if (teamId && !isAll) {
-    membershipWhereConditional["teamId"] = teamId;
+    membershipWhereConditional["calIdTeamId"] = teamId;
     membershipWhereConditional["userId"] = user.id;
-  }
-  if (userId) {
-    membershipWhereConditional["userId"] = userId;
-  }
 
-  // I'm not using unique here since when userId comes from input we should look for every
-  // event type that user owns
-  const membership = await prisma.membership.findFirst({
-    where: membershipWhereConditional,
-  });
+    // I'm not using unique here since when userId comes from input we should look for every
+    // event type that user owns
+    membership = await prisma.calIdMembership.findFirst({
+      where: membershipWhereConditional,
+    });
 
-  if (!membership && !user.isOwnerAdminOfParentTeam) {
-    throw new Error("User is not part of a team/org");
+    if (!membership && !user.isOwnerAdminOfParentTeam) {
+      throw new Error("User is not part of a team/org");
+    }
   }
+  // if (userId) {
+  //   membershipWhereConditional["userId"] = userId;
+  // }
 
   const eventTypeWhereConditional: Prisma.EventTypeWhereInput = {};
-  if (isAll && childrenTeamIds.length > 0 && user.organizationId && user.isOwnerAdminOfParentTeam) {
-    eventTypeWhereConditional["teamId"] = {
-      in: [user.organizationId, ...childrenTeamIds],
-    };
-  }
+  // if (isAll && childrenTeamIds.length > 0 && user.organizationId && user.isOwnerAdminOfParentTeam) {
+  //   eventTypeWhereConditional["teamId"] = {
+  //     in: [user.organizationId, ...childrenTeamIds],
+  //   };
+  // }
   if (teamId && !isAll) {
-    eventTypeWhereConditional["teamId"] = teamId;
+    eventTypeWhereConditional["calIdTeamId"] = teamId;
   }
   if (userId) {
     eventTypeWhereConditional["userId"] = userId;
@@ -1113,9 +1291,9 @@ async function getEventTypeList({
     select: {
       id: true;
       slug: true;
-      teamId: true;
+      calIdTeamId: true;
       title: true;
-      team: {
+      calIdTeam: {
         select: {
           name: true;
         };
@@ -1140,8 +1318,8 @@ async function getEventTypeList({
       id: true,
       slug: true,
       title: true,
-      teamId: true,
-      team: {
+      calIdTeamId: true,
+      calIdTeam: {
         select: {
           name: true,
         },

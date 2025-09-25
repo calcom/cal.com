@@ -9,34 +9,36 @@
 }
 
 .cal-query-builder .group-container {
-  padding: 8px !important;
-  border-radius: 16px;
-  border: 1px solid var(--cal-border-muted);
+  padding-bottom: 8px !important;
   background-color: var(--cal-bg);
 }
 
 .cal-query-builder .group--children:not(:empty) {
   background-color: var(--cal-bg);
-  border: 1px solid var(--cal-border-muted);
   border-radius: 10px;
-  padding: 8px;
+  padding-bottom: 8px;
 }
 
 .cal-query-builder .cal-query-builder-container .group-container {
   border: none;
-  padding: 0px;
+  padding: 8px;
 }
 
 .cal-query-builder .group .group--header {
+  justify-content: center;
   margin-left: 8px;
+  color: var(--cal-text-subtle);
+  border-top: 1px solid var(--cal-border-subtle);
+  padding-top: 4px;
+  font-weight: 500;
+  margin-bottom: 16px;
 }
 
-.cal-query-builder .group.group-or-rule:has(.group--header, :not(.group--header)):has(.group--children):has(.group--footer) {
-  background-color: var(--cal-bg-muted);
+.cal-query-builder
+  .group.group-or-rule:has(.group--header, :not(.group--header)):has(.group--children):has(.group--footer) {
+  background-color: var(--cal-bg);
   padding: 2px;
-  border-radius: 12px;
 }
-
 
 /* hide connectors */
 .cal-query-builder .group-or-rule::before,
@@ -71,7 +73,7 @@
 
 .cal-query-builder .widget--widget,
 .cal-query-builder .widget--widget,
-.cal-query-builder .widget--widget>* {
+.cal-query-builder .widget--widget > * {
   width: 100%;
 }
 
@@ -136,10 +138,17 @@
     flex-direction: column;
   }
 
-
   .cal-query-builder .rule--field,
   .cal-query-builder .rule--operator,
   .cal-query-builder .rule--value {
     width: 100%;
   }
+}
+
+.cal-query-builder .group--footer .group--actions button.action--ADD-RULE {
+  flex: 1;
+  width: 100%;
+  max-width: none;
+  justify-items: center;
+  display: block;
 }

@@ -1,19 +1,18 @@
-import { useSession } from "next-auth/react";
-import { useState, useMemo } from "react";
-
-import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
+import { Button } from "@calid/features/ui/components/button";
 import {
-  Dropdown,
-  DropdownItem,
+  DropdownMenu,
   DropdownMenuPortal,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuLabel,
-} from "@calcom/ui/components/dropdown";
-import { Icon, type IconName } from "@calcom/ui/components/icon";
+} from "@calid/features/ui/components/dropdown-menu";
+import { Icon, type IconName } from "@calid/features/ui/components/icon/Icon";
+import { useSession } from "next-auth/react";
+import { useState, useMemo } from "react";
+
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { useDataTable } from "../../hooks";
 import type { FilterSegmentOutput } from "../../lib/types";
@@ -101,26 +100,33 @@ export function FilterSegmentSelect() {
 
   if (!isSegmentEnabled) {
     return (
-      <Button color="secondary" StartIcon="list-filter" EndIcon="chevron-down" disabled>
-        {t("segment")}
+      <Button
+        color="secondary"
+        disabled
+        className="flex items-center space-x-2"
+        data-testid="save-filter-segment-button">
+        <Icon name="bookmark" className="h-4 w-4" />
+        <span>{t("segment")}</span>
       </Button>
     );
   }
 
   return (
     <>
-      <Dropdown>
+      <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             color="secondary"
-            StartIcon="list-filter"
-            EndIcon="chevron-down"
+            className="flex items-center space-x-2"
             data-testid="filter-segment-select">
-            {selectedSegment?.name || t("segment")}
+            <Icon name="list-filter" className="h-4 w-4" />
+            <span>{selectedSegment?.name || t("segment")}</span>
+            <Icon name="chevron-down" className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
+
         <DropdownMenuPortal>
-          <DropdownMenuContent align="start" className="w-60" data-testid="filter-segment-select-content">
+          <DropdownMenuContent align="end" className="w-48" data-testid="filter-segment-select-content">
             {segmentGroups.length === 0 && <p className="text-subtle px-3 py-1">{t("no_segments")}</p>}
 
             {segmentGroups.map((group, index) => (
@@ -128,6 +134,7 @@ export function FilterSegmentSelect() {
                 {group.label && (
                   <DropdownMenuLabel className={index === 0 ? "" : "mt-2"}>{group.label}</DropdownMenuLabel>
                 )}
+
                 {group.segments.map((segment) => (
                   <DropdownItemWithSubmenu
                     key={segment.id}
@@ -140,15 +147,15 @@ export function FilterSegmentSelect() {
                         setSegmentId(segment.id);
                       }
                     }}>
-                    {segment.id === segmentId && <Icon name="check" className="ml-3 h-4 w-4" />}
-                    <span className="ml-3">{segment.name}</span>
+                    {segment.id === segmentId && <Icon name="check" className="h-4 w-4" />}
+                    <span className={segment.id === segmentId ? "ml-2" : ""}>{segment.name}</span>
                   </DropdownItemWithSubmenu>
                 ))}
               </div>
             ))}
           </DropdownMenuContent>
         </DropdownMenuPortal>
-      </Dropdown>
+      </DropdownMenu>
 
       {segmentToRename && (
         <RenameSegmentDialog segment={segmentToRename} onClose={() => setSegmentToRename(undefined)} />
@@ -197,16 +204,15 @@ function DropdownItemWithSubmenu({
 
   return (
     <DropdownMenuItem className="cursor-pointer" onSelect={onSelect}>
-      <div className="flex items-center">
+      <div className="flex w-full items-center">
         {children}
         <div className="grow" />
-        <Dropdown open={isOpen} onOpenChange={setIsOpen}>
+        <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
           <DropdownMenuTrigger asChild>
             <Button
               StartIcon="ellipsis"
               variant="icon"
               color="minimal"
-              className="rounded-full"
               data-testid="filter-segment-select-submenu-button"
               onClick={(event) => {
                 event.preventDefault();
@@ -216,13 +222,14 @@ function DropdownItemWithSubmenu({
           </DropdownMenuTrigger>
           <DropdownMenuPortal>
             <DropdownMenuContent
-              align="start"
-              side="right"
+              className="mt-1.5"
+              align="end"
+              side="bottom"
               sideOffset={8}
               data-testid="filter-segment-select-submenu-content">
               {filteredSubmenuItems.map((item, index) => (
                 <DropdownMenuItem key={index}>
-                  <DropdownItem
+                  <DropdownMenuItem
                     color={item.isDestructive ? "destructive" : undefined}
                     StartIcon={item.iconName}
                     onClick={(event) => {
@@ -231,12 +238,12 @@ function DropdownItemWithSubmenu({
                       setIsOpen(false);
                     }}>
                     {t(item.labelKey)}
-                  </DropdownItem>
+                  </DropdownMenuItem>
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
           </DropdownMenuPortal>
-        </Dropdown>
+        </DropdownMenu>
       </div>
     </DropdownMenuItem>
   );

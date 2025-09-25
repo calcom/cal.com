@@ -1,5 +1,15 @@
 "use client";
 
+import { Badge } from "@calid/features/ui/components/badge";
+import { Button } from "@calid/features/ui/components/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@calid/features/ui/components/dropdown-menu";
+import { Icon } from "@calid/features/ui/components/icon";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import Link from "next/link";
 import { Fragment } from "react";
 
@@ -7,17 +17,6 @@ import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
-import {
-  Dropdown,
-  DropdownItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@calcom/ui/components/dropdown";
-import { Icon } from "@calcom/ui/components/icon";
-import { showToast } from "@calcom/ui/components/toast";
 
 export function ScheduleListItem({
   schedule,
@@ -41,9 +40,9 @@ export function ScheduleListItem({
   const { t, i18n } = useLocale();
 
   return (
-    <li key={schedule.id}>
-      <div className="hover:bg-muted flex items-center justify-between px-3 py-5 transition sm:px-4">
-        <div className="group flex w-full items-center justify-between ">
+    <div key={schedule.id}>
+      <div className="flex items-center justify-between px-3 py-5 transition-shadow hover:shadow-md sm:px-4">
+        <div className="group flex w-full items-center justify-between">
           <Link
             href={`/availability/${schedule.id}`}
             className="flex-grow truncate text-sm"
@@ -65,7 +64,6 @@ export function ScheduleListItem({
                     hour12: displayOptions?.hour12,
                   })
                 )
-                // sort the availability strings as per user's weekstart (settings)
                 .sort(sortAvailabilityStrings(i18n.language, displayOptions?.weekStart))
                 .map((availabilityString, index) => (
                   <Fragment key={index}>
@@ -74,7 +72,7 @@ export function ScheduleListItem({
                   </Fragment>
                 ))}
               {(schedule.timeZone || displayOptions?.timeZone) && (
-                <p className="my-1 flex items-center first-letter:text-xs">
+                <p className="my-1 flex items-center text-xs">
                   <Icon name="globe" className="h-3.5 w-3.5" />
                   &nbsp;{schedule.timeZone ?? displayOptions?.timeZone}
                 </p>
@@ -82,67 +80,56 @@ export function ScheduleListItem({
             </p>
           </Link>
         </div>
-        <Dropdown>
+        <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               data-testid="schedule-more"
-              type="button"
               variant="icon"
-              color="secondary"
-              StartIcon="ellipsis"
-            />
+              color="minimal"
+              type="button"
+              className="hover:bg-muted rounded-md transition-colors">
+              <Icon name="ellipsis" />
+            </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent>
+          <DropdownMenuContent className="min-w-40" align="end">
             {!schedule.isDefault && (
-              <DropdownMenuItem className="min-w-40 focus:ring-muted">
-                <DropdownItem
-                  type="button"
-                  StartIcon="star"
-                  onClick={() => {
-                    updateDefault({
-                      scheduleId: schedule.id,
-                      isDefault: true,
-                    });
-                  }}>
-                  {t("set_as_default")}
-                </DropdownItem>
+              <DropdownMenuItem
+                onClick={() =>
+                  updateDefault({
+                    scheduleId: schedule.id,
+                    isDefault: true,
+                  })
+                }>
+                <Icon name="star" className="mr-2 h-4 w-4" />
+                {t("set_as_default")}
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem className="outline-none">
-              <DropdownItem
-                type="button"
-                data-testid={`schedule-duplicate${schedule.id}`}
-                StartIcon="copy"
-                onClick={() => {
-                  duplicateFunction({
-                    scheduleId: schedule.id,
-                  });
-                }}>
-                {t("duplicate")}
-              </DropdownItem>
+
+            <DropdownMenuItem
+              onClick={() =>
+                duplicateFunction({
+                  scheduleId: schedule.id,
+                })
+              }
+              data-testid={`schedule-duplicate${schedule.id}`}>
+              <Icon name="copy" className="mr-2 h-4 w-4" />
+              {t("duplicate")}
             </DropdownMenuItem>
-            <DropdownMenuItem className="min-w-40 focus:ring-muted">
-              <DropdownItem
-                type="button"
-                color="destructive"
-                StartIcon="trash"
-                data-testid="delete-schedule"
-                className="rounded-t-none"
-                onClick={() => {
-                  if (!isDeletable) {
-                    showToast(t("requires_at_least_one_schedule"), "error");
-                  } else {
-                    deleteFunction({
-                      scheduleId: schedule.id,
-                    });
-                  }
-                }}>
-                {t("delete")}
-              </DropdownItem>
+            <DropdownMenuItem
+              onClick={() => {
+                if (!isDeletable) {
+                  triggerToast(t("requires_at_least_one_schedule"), "error");
+                } else {
+                  deleteFunction({ scheduleId: schedule.id });
+                }
+              }}
+              className="text-destructive">
+              <Icon name="trash" className="mr-2 h-4 w-4" />
+              {t("delete")}
             </DropdownMenuItem>
           </DropdownMenuContent>
-        </Dropdown>
+        </DropdownMenu>
       </div>
-    </li>
+    </div>
   );
 }

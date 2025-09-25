@@ -1,5 +1,7 @@
 "use client";
 
+import { BlankCard } from "@calid/features/ui/components/card";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { revalidateAvailabilityList } from "app/(use-page-wrapper)/(main-nav)/availability/actions";
 import Link from "next/link";
@@ -16,9 +18,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { ToggleGroup } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/components/toast";
 
 type AvailabilityListProps = {
   availabilities: RouterOutputs["viewer"]["availability"]["list"];
@@ -48,7 +48,7 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
       }
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
+        triggerToast(message, "error");
       }
     },
     onSettled: () => {
@@ -56,7 +56,7 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
     },
     onSuccess: () => {
       revalidateAvailabilityList();
-      showToast(t("schedule_deleted_successfully"), "success");
+      triggerToast(t("schedule_deleted_successfully"), "success");
     },
   });
 
@@ -64,7 +64,7 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
     onSuccess: async ({ schedule }) => {
       await utils.viewer.availability.list.invalidate();
       revalidateAvailabilityList();
-      showToast(
+      triggerToast(
         t("availability_updated_successfully", {
           scheduleName: schedule.name,
         }),
@@ -75,7 +75,7 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
     onError: (err) => {
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
+        triggerToast(message, "error");
       }
     },
   });
@@ -95,7 +95,7 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
         onSuccess: () => {
           utils.viewer.availability.list.invalidate();
           revalidateAvailabilityList();
-          showToast(t("success"), "success");
+          triggerToast(t("success"), "success");
           callback();
         },
       }
@@ -109,12 +109,12 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
   const duplicateMutation = trpc.viewer.availability.schedule.duplicate.useMutation({
     onSuccess: async ({ schedule }) => {
       await router.push(`/availability/${schedule.id}`);
-      showToast(t("schedule_created_successfully", { scheduleName: schedule.name }), "success");
+      triggerToast(t("schedule_created_successfully", { scheduleName: schedule.name }), "success");
     },
     onError: (err) => {
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
+        triggerToast(message, "error");
       }
     },
   });
@@ -127,7 +127,7 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
     <>
       {availabilities.schedules.length === 0 ? (
         <div className="flex justify-center">
-          <EmptyScreen
+          <BlankCard
             Icon="clock"
             headline={t("new_schedule_heading")}
             description={t("new_schedule_description")}
@@ -137,24 +137,26 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
         </div>
       ) : (
         <>
-          <div className="border-subtle bg-default overflow-hidden rounded-md border">
-            <ul className="divide-subtle divide-y" data-testid="schedules" ref={animationParentRef}>
-              {availabilities.schedules.map((schedule) => (
+          <div className="mb-4 flex justify-end">
+            <NewScheduleButton />
+          </div>
+          <div className="space-y-2" data-testid="schedules" ref={animationParentRef}>
+            {availabilities.schedules.map((schedule) => (
+              <div key={schedule.id} className="border-default bg-default rounded-md border">
                 <ScheduleListItem
                   displayOptions={{
                     hour12: user?.timeFormat ? user.timeFormat === 12 : undefined,
                     timeZone: user?.timeZone,
                     weekStart: user?.weekStart || "Sunday",
                   }}
-                  key={schedule.id}
                   schedule={schedule}
                   isDeletable={availabilities.schedules.length !== 1}
                   updateDefault={updateMutation.mutate}
                   deleteFunction={deleteMutation.mutate}
                   duplicateFunction={duplicateMutation.mutate}
                 />
-              ))}
-            </ul>
+              </div>
+            ))}
           </div>
           <div className="text-default mb-16 mt-4 hidden text-center text-sm md:block">
             {t("temporarily_out_of_office")}{" "}
@@ -195,7 +197,7 @@ export const AvailabilityCTA = ({ toggleGroupOptions }: AvailabilityCTAProps) =>
   // searchParams with a provided key/value pair
   const createQueryString = useCallback(
     (name: string, value: string) => {
-      const params = new URLSearchParams(searchParams ?? undefined);
+      const params = new URLSearchParams(searchParams?.toString() ?? "");
       params.set(name, value);
 
       return params.toString();
@@ -209,7 +211,7 @@ export const AvailabilityCTA = ({ toggleGroupOptions }: AvailabilityCTAProps) =>
         className="hidden h-fit md:block"
         defaultValue={searchParams?.get("type") ?? "mine"}
         onValueChange={(value) => {
-          if (!value) return;
+          if (!value || value === searchParams?.get("type")) return;
           router.push(`${pathname}?${createQueryString("type", value)}`);
         }}
         options={toggleGroupOptions}

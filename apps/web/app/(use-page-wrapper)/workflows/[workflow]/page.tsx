@@ -1,10 +1,11 @@
-import type { PageProps } from "app/_types";
-import { z } from "zod";
-
 // import { cookies, headers } from "next/headers";
 // import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 // import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-import LegacyPage from "@calcom/features/ee/workflows/pages/workflow";
+import LegacyPage from "@calid/features/modules/workflows/pages/workflow";
+import type { PageProps } from "app/_types";
+import { z } from "zod";
+
+// import LegacyPage from "@calcom/features/ee/workflows/pages/workflow";
 
 const querySchema = z.object({
   workflow: z
@@ -36,12 +37,16 @@ const Page = async ({ params }: PageProps) => {
   //     teamId: workflow?.team?.id,
   //   });
   // } catch (err) {}
+  // const t = await getTranslate();
 
   return (
+    // <Shell heading={t("workflows")} subtitle={t("workflows_edit_description")}>
     <LegacyPage
       workflow={parsed.data.workflow}
+
       //  workflowData={workflow} verifiedEmails={verifiedEmails} verifiedNumbers={verifiedNumbers}
     />
+    // </Shell>
   );
 };
 

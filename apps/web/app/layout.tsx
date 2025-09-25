@@ -121,7 +121,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         `}</style>
       </head>
       <body
-        className="dark:bg-default bg-subtle antialiased"
+        className="dark:bg-default bg-primary antialiased"
         style={
           isEmbed
             ? {
@@ -147,7 +147,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             "/apps",
             "/apps/routing-forms/forms",
             "/workflows",
-            "/insights",
+            "/insights/bookings",
           ]}
         />
 

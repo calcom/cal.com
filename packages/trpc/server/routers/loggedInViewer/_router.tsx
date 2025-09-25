@@ -2,6 +2,8 @@ import authedProcedure from "../../procedures/authedProcedure";
 import { router } from "../../trpc";
 import { ZAddNotificationsSubscriptionInputSchema } from "./addNotificationsSubscription.schema";
 import { ZAddSecondaryEmailInputSchema } from "./addSecondaryEmail.schema";
+import { ZCalIdEventTypeOrderInputSchema } from "./calid/eventTypeOrder.schema";
+import { ZCalIdRoutingFormOrderInputSchema } from "./calid/routingFormOrder.schema";
 import { ZConnectAndJoinInputSchema } from "./connectAndJoin.schema";
 import { ZEventTypeOrderInputSchema } from "./eventTypeOrder.schema";
 import { ZNoShowInputSchema } from "./markNoShow.schema";
@@ -19,6 +21,9 @@ type AppsRouterHandlerCache = {
   addNotificationsSubscription?: typeof import("./addNotificationsSubscription.handler").addNotificationsSubscriptionHandler;
   removeNotificationsSubscription?: typeof import("./removeNotificationsSubscription.handler").removeNotificationsSubscriptionHandler;
   markNoShow?: typeof import("./markNoShow.handler").markNoShow;
+  calid_eventTypeOrder?: typeof import("./calid/eventTypeOrder.handler").calIdEventTypeOrderHandler;
+  calid_routingFormOrder?: typeof import("./calid/routingFormOrder.handler").calIdRoutingFormOrderHandler;
+  calid_teamsAndUserProfilesQuery?: typeof import("./calid/teamsAndUserProfilesQuery.handler").calIdTeamsAndUserProfilesQuery;
 };
 
 export const loggedInViewerRouter = router({
@@ -70,5 +75,21 @@ export const loggedInViewerRouter = router({
   markNoShow: authedProcedure.input(ZNoShowInputSchema).mutation(async (opts) => {
     const { markNoShow } = await import("./markNoShow.handler");
     return markNoShow(opts);
+  }),
+  calid_eventTypeOrder: authedProcedure
+    .input(ZCalIdEventTypeOrderInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { calIdEventTypeOrderHandler } = await import("./calid/eventTypeOrder.handler");
+      return calIdEventTypeOrderHandler({ ctx, input });
+    }),
+  calid_routingFormOrder: authedProcedure
+    .input(ZCalIdRoutingFormOrderInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { calIdRoutingFormOrderHandler } = await import("./calid/routingFormOrder.handler");
+      return calIdRoutingFormOrderHandler({ ctx, input });
+    }),
+  calid_teamsAndUserProfilesQuery: authedProcedure.query(async ({ ctx }) => {
+    const { calIdTeamsAndUserProfilesQuery } = await import("./calid/teamsAndUserProfilesQuery.handler");
+    return calIdTeamsAndUserProfilesQuery({ ctx });
   }),
 });

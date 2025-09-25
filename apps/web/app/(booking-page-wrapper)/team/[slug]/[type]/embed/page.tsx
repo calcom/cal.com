@@ -6,9 +6,9 @@ import { cookies, headers } from "next/headers";
 import { loadTranslations } from "@calcom/lib/server/i18n";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
-import { getServerSideProps } from "@lib/team/[slug]/[type]/getServerSideProps";
+import { getCalIdServerSideProps } from "@lib/team/[slug]/[type]/getCalIdServerSideProps";
 
-import TypePage, { type PageProps as ClientPageProps } from "~/team/type-view";
+import TypePage, { type PageProps as ClientPageProps } from "~/team/calid-team-type-public-view";
 
 export const generateMetadata = async () => {
   return {
@@ -19,7 +19,7 @@ export const generateMetadata = async () => {
   };
 };
 
-const getData = withEmbedSsrAppDir<ClientPageProps>(getServerSideProps);
+const getData = withEmbedSsrAppDir<ClientPageProps>(getCalIdServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
   const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);

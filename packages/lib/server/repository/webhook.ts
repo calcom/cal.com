@@ -19,6 +19,18 @@ type WebhookGroup = {
   webhooks: Webhook[];
 };
 
+type CalIdWebhookGroup = {
+  calIdTeamId?: number | null;
+  profile: {
+    slug: string | null;
+    name: string | null;
+    image?: string;
+  };
+  metadata?: {
+    readOnly: boolean;
+  };
+  webhooks: Webhook[];
+};
 const filterWebhooks = (webhook: Webhook) => {
   const appIds = [
     "zapier",
@@ -175,6 +187,136 @@ export class WebhookRepository {
         teamId: true,
         userId: true,
         platform: true,
+        time: true,
+        timeUnit: true,
+      },
+    });
+  }
+
+  static async getAllCalIdWebhooksByUserId({
+    userId,
+    userRole,
+  }: {
+    userId: number;
+    userRole?: UserPermissionRole;
+  }) {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        username: true,
+        avatarUrl: true,
+        name: true,
+        webhooks: true,
+        calIdTeams: {
+          where: {
+            accepted: true,
+          },
+          select: {
+            role: true,
+            calIdTeam: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                metadata: true,
+                members: {
+                  select: {
+                    userId: true,
+                  },
+                },
+                webhooks: true,
+                logoUrl: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    let userWebhooks = user.webhooks;
+    userWebhooks = userWebhooks.filter(filterWebhooks);
+    let webhookGroups: CalIdWebhookGroup[] = [];
+
+    webhookGroups.push({
+      calIdTeamId: null,
+      profile: {
+        slug: user.username,
+        name: user.name,
+        image: getUserAvatarUrl({
+          avatarUrl: user.avatarUrl,
+        }),
+      },
+      webhooks: userWebhooks,
+      metadata: {
+        readOnly: false,
+      },
+    });
+
+    const calIdTeamWebhookGroups: CalIdWebhookGroup[] = user.calIdTeams.map((calIdMembership) => {
+      return {
+        calIdTeamId: calIdMembership.calIdTeam.id,
+        profile: {
+          name: calIdMembership.calIdTeam.name,
+          slug: calIdMembership.calIdTeam.slug || null,
+          image: getPlaceholderAvatar(calIdMembership.calIdTeam.logoUrl, calIdMembership.calIdTeam.name),
+        },
+        metadata: {
+          readOnly: calIdMembership.role === MembershipRole.MEMBER,
+        },
+        webhooks: calIdMembership.calIdTeam.webhooks.filter(filterWebhooks),
+      };
+    });
+
+    webhookGroups = webhookGroups.concat(calIdTeamWebhookGroups);
+
+    if (userRole === "ADMIN") {
+      const platformWebhooks = await prisma.webhook.findMany({
+        where: { platform: true },
+      });
+      webhookGroups.push({
+        calIdTeamId: null,
+        profile: {
+          slug: "Platform",
+          name: "Platform",
+          image: getPlaceholderAvatar(null, "Platform"),
+        },
+        webhooks: platformWebhooks,
+        metadata: {
+          readOnly: false,
+        },
+      });
+    }
+
+    return {
+      webhookGroups: webhookGroups.filter((groupBy) => !!groupBy.webhooks?.length),
+      profiles: webhookGroups.map((group) => ({
+        calIdTeamId: group.calIdTeamId,
+        ...group.profile,
+        ...group.metadata,
+      })),
+    };
+  }
+
+  static async findByCalIdTeamId(calIdTeamId: number) {
+    return await prisma.webhook.findMany({
+      where: {
+        calIdTeamId: calIdTeamId,
+      },
+      select: {
+        id: true,
+        subscriberUrl: true,
+        payloadTemplate: true,
+        active: true,
+        eventTriggers: true,
+        secret: true,
+        userId: true,
+        calIdTeamId: true,
         time: true,
         timeUnit: true,
       },

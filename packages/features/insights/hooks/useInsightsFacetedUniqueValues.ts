@@ -1,8 +1,9 @@
+import { workflowTypeToText } from "@calid/features/modules/insights/lib/workflowTypeToText";
 import type { Table } from "@tanstack/react-table";
 import { useCallback } from "react";
 
 import { convertFacetedValuesToMap, type FacetedValue } from "@calcom/features/data-table";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 
 import { bookingStatusToText } from "../lib/bookingStatusToText";
@@ -14,6 +15,12 @@ const statusOrder: Record<BookingStatus, number> = {
   [BookingStatus.AWAITING_HOST]: 3,
   [BookingStatus.CANCELLED]: 4,
   [BookingStatus.REJECTED]: 5,
+};
+
+const workflowOrder: Record<WorkflowMethods, number> = {
+  [WorkflowMethods.EMAIL]: 1,
+  [WorkflowMethods.SMS]: 2,
+  [WorkflowMethods.WHATSAPP]: 3,
 };
 
 export const useInsightsFacetedUniqueValues = ({
@@ -100,8 +107,17 @@ export const useInsightsFacetedUniqueValues = ({
         return convertFacetedValuesToMap(
           eventTypes?.map((eventType) => ({
             value: eventType.id,
-            label: eventType.teamId ? `${eventType.title} (${eventType.team?.name})` : eventType.title,
+            label: eventType.calIdTeamId
+              ? `${eventType.title} (${eventType.calIdTeam?.name})`
+              : eventType.title,
           })) ?? []
+        );
+      } else if (columnId === "workflowType") {
+        return convertFacetedValuesToMap(
+          Object.keys(workflowOrder).map((type) => ({
+            value: workflowOrder[type as WorkflowMethods],
+            label: workflowTypeToText(type as WorkflowMethods),
+          }))
         );
       }
       return new Map<FacetedValue, number>();

@@ -1,11 +1,11 @@
+import { Icon } from "@calid/features/ui/components/icon";
+import { Logo } from "@calid/features/ui/components/logo";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { KBarTrigger } from "@calcom/features/kbar/Kbar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/components/icon";
-import { Logo } from "@calcom/ui/components/logo";
 
 import { UserDropdown } from "./user-dropdown/UserDropdown";
 

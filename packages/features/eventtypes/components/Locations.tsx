@@ -1,3 +1,7 @@
+import { Icon } from "@calid/features/ui/components/icon";
+
+
+
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { ErrorMessage } from "@hookform/error-message";
 import Link from "next/link";
@@ -25,12 +29,8 @@ import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { TextField } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
 import { Input } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 export type TEventTypeLocation = Pick<EventTypeSetupProps["eventType"], "locations" | "calVideoSettings">;
@@ -342,7 +342,7 @@ const Locations: React.FC<LocationsProps> = ({
                 )}
               </div>
 
-              {isCalVideo && !isPlatform && (
+              {/* {isCalVideo && !isPlatform && (
                 <div className="bg-muted mt-2 space-y-2 rounded-lg p-4">
                   <div className="w-full">
                     <div className="flex flex-col gap-4">
@@ -467,7 +467,7 @@ const Locations: React.FC<LocationsProps> = ({
                     </div>
                   </div>
                 </div>
-              )}
+              )} */}
 
               {eventLocationType?.organizerInputType && (
                 <div className="mt-2 space-y-2">
@@ -632,7 +632,7 @@ const Locations: React.FC<LocationsProps> = ({
                 key="cant_find_the_right_conferencing_app_visit_our_app_store"
                 className="cursor-pointer text-blue-500 underline"
                 href="/apps/categories/conferencing">
-                App Store
+                {t("app_store")}
               </Link>,
             ]}
           />

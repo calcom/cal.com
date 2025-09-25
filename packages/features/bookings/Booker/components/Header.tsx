@@ -1,3 +1,6 @@
+import { Button } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon";
+import { ToggleGroup } from "@calid/features/ui/components/toggle-group";
 import { useCallback, useMemo } from "react";
 import { shallow } from "zustand/shallow";
 
@@ -7,10 +10,7 @@ import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
-import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-import { ToggleGroup } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { TimeFormatToggle } from "../../components/TimeFormatToggle";
@@ -19,9 +19,11 @@ import type { BookerLayout } from "../types";
 
 export function Header({
   extraDays,
+  brandColor,
   isMobile,
   enabledLayouts,
   nextSlots,
+  profile,
   eventSlug,
   isMyLink,
   renderOverlay,
@@ -32,6 +34,7 @@ export function Header({
   nextSlots: number;
   eventSlug: string;
   isMyLink: boolean;
+  brandColor: string;
   renderOverlay?: () => JSX.Element | null;
 }) {
   const { t, i18n } = useLocale();
@@ -56,16 +59,44 @@ export function Header({
     [setLayout, layout]
   );
 
+  const removeLastPathSection = (url) => {
+    try {
+      const u = new URL(url);
+      const segments = u.pathname.split("/").filter(Boolean);
+      if (!u.search.includes("slot")) {
+        segments.pop();
+      }
+      u.pathname = `/${segments.join("/")}`;
+      u.search = "";
+      return u.toString();
+    } catch (err) {
+      return null;
+    }
+  };
+
   if (isMobile || !enabledLayouts) return null;
 
   // In month view we only show the layout toggle.
   if (isMonthView) {
     return (
-      <div className="flex gap-2">
+      <div className="border-subtle flex w-full flex-row items-center gap-2 border-b pb-2 pl-10">
+        <Tooltip content={t("go_back")} side="bottom">
+          <Button
+            variant="icon"
+            brandColor={profile?.brandColor}
+            color="fab"
+            StartIcon="arrow-left"
+            onClick={() => {
+              window.location = removeLastPathSection(window.location);
+            }}
+          />
+        </Tooltip>
+        <div className="flex-1" />
         {isMyLink && !isEmbed ? (
           <Tooltip content={t("troubleshooter_tooltip")} side="bottom">
             <Button
               color="primary"
+              brandColor={brandColor}
               target="_blank"
               href={`${WEBAPP_URL}/availability/troubleshoot?eventType=${eventSlug}`}>
               {t("need_help")}
@@ -112,6 +143,7 @@ export function Header({
         <ButtonGroup>
           <Button
             className="group rtl:ml-1 rtl:rotate-180"
+            brandColor={brandColor}
             variant="icon"
             color="minimal"
             StartIcon="chevron-left"
@@ -120,6 +152,7 @@ export function Header({
           />
           <Button
             className="group rtl:mr-1 rtl:rotate-180"
+            brandColor={brandColor}
             variant="icon"
             color="minimal"
             StartIcon="chevron-right"
@@ -129,6 +162,7 @@ export function Header({
           {selectedDateMin3DaysDifference && (
             <Button
               className="capitalize ltr:ml-2 rtl:mr-2"
+              brandColor={brandColor}
               color="secondary"
               onClick={() => setSelectedDate({ date: today.format("YYYY-MM-DD") })}>
               {t("today")}

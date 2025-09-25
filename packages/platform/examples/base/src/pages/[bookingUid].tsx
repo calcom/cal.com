@@ -1,11 +1,14 @@
 import { Navbar } from "@/components/Navbar";
+import { Icon } from "@calid/features/ui/components/icon";
+
+
+
 import { Inter } from "next/font/google";
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import { useRouter } from "next/router";
 
 import { useBooking, useCancelBooking } from "@calcom/atoms";
 import dayjs from "@calcom/dayjs";
-import { Icon } from "@calcom/ui/components/icon";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -92,7 +95,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     <div>
                       <h4>
                         {booking.hosts[0]?.name}{" "}
-                        <span className="rounded-md bg-blue-800 px-2 text-sm text-white">Host</span>
+                        <span className="rounded-md bg-blue-800 px-2 text-sm text-default">Host</span>
                       </h4>
                     </div>
                   </div>

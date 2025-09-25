@@ -1,6 +1,6 @@
 import { uuid } from "short-uuid";
 
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
+import { hashPasswordWithSalt } from "@calcom/features/auth/lib/hashPassword";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { MembershipRole, RoleType } from "@calcom/prisma/enums";
 
@@ -546,10 +546,12 @@ async function createUser(userData: { email: string; username: string; name: str
     },
   });
 
+  const { hash, salt } = await hashPasswordWithSalt(userData.password);
   await prisma.userPassword.create({
     data: {
       userId: user.id,
-      hash: await hashPassword(userData.password),
+      hash,
+      salt,
     },
   });
 

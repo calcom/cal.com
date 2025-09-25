@@ -1,5 +1,4 @@
+import SMSWebhookHandler from "@calid/features/modules/workflows/api/webhook/smsWebhookHandler";
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 
-import handleSMSResponse from "@calcom/features/ee/workflows/api/handleSMSResponse";
-
-export const POST = defaultResponderForAppDir(handleSMSResponse);
+export const POST = defaultResponderForAppDir(SMSWebhookHandler);

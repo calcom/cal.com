@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@calid/features/ui/components/button";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useRef, useEffect } from "react";
@@ -7,7 +8,6 @@ import { useRef, useEffect } from "react";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TextField } from "@calcom/ui/components/form";
-import { Button } from "@calcom/ui/components/button";
 
 const ImpersonationView = () => {
   const { t } = useLocale();

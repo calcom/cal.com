@@ -1,9 +1,9 @@
+import { Button } from "@calid/features/ui/components/button";
 import type { FunctionComponent, SVGProps } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components/button";
 import {
   Dropdown,
   DropdownItem,
@@ -18,7 +18,10 @@ interface AdditionalCalendarSelectorProps {
 
 const AdditionalCalendarSelector = ({ isPending }: AdditionalCalendarSelectorProps): JSX.Element | null => {
   const { t } = useLocale();
-  const [data] = trpc.viewer.apps.integrations.useSuspenseQuery({ variant: "calendar", onlyInstalled: true });
+  const [data] = trpc.viewer.apps.calid_integrations.useSuspenseQuery({
+    variant: "calendar",
+    onlyInstalled: true,
+  });
 
   const options = data.items.map((item) => ({
     label: item.name,
@@ -36,7 +39,7 @@ const AdditionalCalendarSelector = ({ isPending }: AdditionalCalendarSelectorPro
   return (
     <Dropdown modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button StartIcon="plus" color="secondary" {...(isPending && { loading: isPending })}>
+        <Button StartIcon="plus" color="primary" {...(isPending && { loading: isPending })}>
           {t("add")}
         </Button>
       </DropdownMenuTrigger>

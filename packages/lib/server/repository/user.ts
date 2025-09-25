@@ -8,7 +8,7 @@ import { availabilityUserSelect } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma, User as UserType } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { CalIdMembershipRole, MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
@@ -117,6 +117,8 @@ const userSelect = {
   lastActiveAt: true,
   identityProvider: true,
   teams: true,
+  bannerUrl: true,
+  faviconUrl: true,
 } satisfies Prisma.UserSelect;
 
 export class UserRepository {
@@ -625,13 +627,14 @@ export class UserRepository {
     data: Omit<Prisma.UserCreateInput, "password" | "organization" | "movedToProfile"> & {
       username: string;
       hashedPassword?: string;
+      salt?: string;
       organizationId: number | null;
       creationSource: CreationSource;
       locked: boolean;
     }
   ) {
     const organizationIdValue = data.organizationId;
-    const { email, username, creationSource, locked, hashedPassword, ...rest } = data;
+    const { email, username, creationSource, locked, hashedPassword, salt, ...rest } = data;
 
     logger.info("create user", { email, username, organizationIdValue, locked });
     const t = await getTranslation("en", "common");
@@ -641,7 +644,7 @@ export class UserRepository {
       data: {
         username,
         email: email,
-        ...(hashedPassword && { password: { create: { hash: hashedPassword } } }),
+        ...(hashedPassword && { password: { create: { hash: hashedPassword, salt } } }),
         // Default schedule
         schedules: {
           create: {
@@ -729,6 +732,48 @@ export class UserRepository {
       },
     });
   }
+  async getUserCalIdAdminTeams({ userId }: { userId: number }) {
+    return await this.prismaClient.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        id: true,
+        avatarUrl: true,
+        name: true,
+        username: true,
+        calIdTeams: {
+          where: {
+            acceptedInvitation: true,
+            OR: [
+              {
+                role: { in: [CalIdMembershipRole.ADMIN, CalIdMembershipRole.OWNER] },
+              },
+              {
+                calIdTeam: {
+                  members: {
+                    some: {
+                      userId: userId,
+                      role: { in: [CalIdMembershipRole.ADMIN, CalIdMembershipRole.OWNER] },
+                    },
+                  },
+                },
+              },
+            ],
+          },
+          select: {
+            calIdTeam: {
+              select: {
+                id: true,
+                name: true,
+                logoUrl: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
   async isAdminOfTeamOrParentOrg({ userId, teamId }: { userId: number; teamId: number }) {
     const membershipQuery = {
       members: {
@@ -797,6 +842,7 @@ export class UserRepository {
       },
       select: {
         completedOnboarding: true,
+        metadata: true,
         teams: {
           select: {
             accepted: true,
@@ -911,6 +957,8 @@ export class UserRepository {
         allowSEOIndexing: true,
         receiveMonthlyDigestEmail: true,
         profiles: true,
+        bannerUrl: true,
+        faviconUrl: true,
       },
     });
 

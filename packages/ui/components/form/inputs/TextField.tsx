@@ -14,7 +14,7 @@ import type { InputFieldProps, InputProps } from "./types";
 export const inputStyles = cva(
   [
     // Base styles
-    "rounded-[10px] border",
+    "rounded-md border",
     "leading-none font-normal",
 
     // Colors
@@ -163,7 +163,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             placeholder={placeholder}
             className={classNames(
               "w-full min-w-0 truncate border-0 bg-transparent focus:outline-none focus:ring-0",
-              "text-default rounded-lg text-sm font-medium leading-none",
+              "text-default rounded-md text-sm font-medium leading-none",
               "placeholder:text-muted disabled:cursor-not-allowed disabled:bg-transparent",
               addOnLeading && "pl-0.5 pr-0",
               addOnSuffix && "pl-0",

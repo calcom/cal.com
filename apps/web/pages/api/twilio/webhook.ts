@@ -1,11 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
-import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
-import { IS_SMS_CREDITS_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
-import { getPublishedOrgIdFromMemberOrTeamId } from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
-import prisma from "@calcom/prisma";
 
 const InputSchema = z.object({
   userId: z
@@ -29,142 +25,145 @@ const InputSchema = z.object({
   Twilio status callback: creates expense log when sms is delivered or undelivered
 */
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const signature = req.headers["x-twilio-signature"];
-  const baseUrl = `${WEBAPP_URL}/api/twilio/webhook`;
+  return res.status(200).send(`Org/team billing not live`);
 
-  const queryParams = new URLSearchParams(req.query as Record<string, string>).toString();
-  const requestUrl = queryParams ? `${baseUrl}?${queryParams}` : baseUrl;
+  // const signature = req.headers["x-twilio-signature"];
+  // const baseUrl = `${WEBAPP_URL}/api/twilio/webhook`;
 
-  if (typeof signature !== "string") {
-    return res.status(401).send("Missing Twilio signature");
-  }
+  // const queryParams = new URLSearchParams(req.query as Record<string, string>).toString();
+  // const requestUrl = queryParams ? `${baseUrl}?${queryParams}` : baseUrl;
 
-  const isSignatureValid = await twilio.validateWebhookRequest({
-    requestUrl,
-    signature,
-    params: req.body,
-  });
+  // if (typeof signature !== "string") {
+  //   return res.status(401).send("Missing Twilio signature");
+  // }
 
-  if (!isSignatureValid) {
-    return res.status(401).send("Invalid Twilio signature");
-  }
+  // const isSignatureValid = await twilio.validateWebhookRequest({
+  //   requestUrl,
+  //   signature,
+  //   params: req.body,
+  // });
 
-  const messageStatus = req.body.MessageStatus;
+  // if (!isSignatureValid) {
+  //   return res.status(401).send("Invalid Twilio signature");
+  // }
 
-  if (messageStatus !== "delivered" && messageStatus !== "undelivered") {
-    return res.status(200).send(`SMS not yet delivered/undelivered`);
-  }
+  // const messageStatus = req.body.MessageStatus;
 
-  if (!IS_SMS_CREDITS_ENABLED) {
-    return res.status(200).send(`SMS credits are not enabled.`);
-  }
+  // if (messageStatus !== "delivered" && messageStatus !== "undelivered") {
+  //   return res.status(200).send(`SMS not yet delivered/undelivered`);
+  // }
 
-  const countryCode = await twilio.getCountryCodeForNumber(req.body.To);
+  // if (!IS_SMS_CREDITS_ENABLED) {
+  //   return res.status(200).send(`SMS credits are not enabled.`);
+  // }
 
-  const smsSid = req.body.SmsSid;
+  // const countryCode = await twilio.getCountryCodeForNumber(req.body.To);
 
-  const {
-    userId: parsedUserId,
-    teamId: parsedTeamId,
-    bookingUid: parsedBookingUid,
-  } = InputSchema.parse(req.query);
+  // const smsSid = req.body.SmsSid;
 
-  if (!parsedUserId && !parsedTeamId) {
-    return res.status(401).send("Team or user id is required");
-  }
-  const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
-  const creditService = new CreditService();
+  // const {
+  //   userId: parsedUserId,
+  //   teamId: parsedTeamId,
+  //   bookingUid: parsedBookingUid,
+  // } = InputSchema.parse(req.query);
 
-  if (countryCode === "US" || countryCode === "CA") {
-    // SMS to US and CA are free for teams
-    let teamIdToCharge = parsedTeamId;
+  // if (!parsedUserId && !parsedTeamId) {
+  //   return res.status(401).send("Team or user id is required");
+  // }
+  // const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
+  // const creditService = new CreditService();
 
-    if (!teamIdToCharge && parsedUserId) {
-      const teamMembership = await prisma.membership.findFirst({
-        where: {
-          userId: parsedUserId,
-          accepted: true,
-          team: {
-            slug: { not: null },
-          },
-        },
-        select: {
-          teamId: true,
-        },
-      });
-      teamIdToCharge = teamMembership?.teamId;
-    }
+  // if (countryCode === "US" || countryCode === "CA") {
+  //   // SMS to US and CA are free for teams
+  //   let teamIdToCharge = parsedTeamId;
 
-    if (teamIdToCharge) {
-      await creditService.chargeCredits({
-        teamId: teamIdToCharge,
-        bookingUid: parsedBookingUid,
-        smsSid,
-        credits: 0,
-      });
+  //   if (!teamIdToCharge && parsedUserId) {
+  //     const teamMembership = await prisma.calIdMembership.findFirst({
+  //       where: {
+  //         userId: parsedUserId,
+  //         acceptedInvitation: true,
+  //         calIdTeam: {
+  //           slug: { not: null },
+  //         },
+  //       },
+  //       select: {
+  //         calIdTeamId: true,
+  //       },
+  //     });
+  //     teamIdToCharge = teamMembership?.calIdTeamId;
+  //   }
 
-      return res.status(200).send(`SMS to US and CA are free for teams. Credits set to 0`);
-    }
-  }
+  //   if (teamIdToCharge) {
+  //     await creditService.chargeCredits({
+  //       teamId: teamIdToCharge,
+  //       bookingUid: parsedBookingUid,
+  //       smsSid,
+  //       credits: 0,
+  //     });
 
-  let orgId;
+  //     return res.status(200).send(`SMS to US and CA are free for teams. Credits set to 0`);
+  //   }
+  // }
 
-  if (parsedTeamId) {
-    const team = await prisma.team.findUnique({
-      where: {
-        id: parsedTeamId,
-      },
-      select: {
-        isOrganization: true,
-        id: true,
-      },
-    });
-    orgId = team?.isOrganization ? team.id : undefined;
-  }
+  // let orgId;
 
-  if (!orgId) {
-    orgId = await getPublishedOrgIdFromMemberOrTeamId({
-      ...(!parsedTeamId ? { memberId: parsedUserId } : {}),
-      teamId: parsedTeamId,
-    });
-  }
+  // if (parsedTeamId) {
+  //   const team = await prisma.calIdTeam.findUnique({
+  //     where: {
+  //       id: parsedTeamId,
+  //     },
+  //     select: {
+  //       // isOrganization: true,
+  //       id: true,
+  //     },
+  //   });
+  //   // orgId = team?.isOrganization ? team.id : undefined;
+  //   orgId = undefined; // TODO: TEAM_ORG
+  // }
 
-  if (orgId) {
-    await creditService.chargeCredits({
-      teamId: orgId,
-      bookingUid: parsedBookingUid,
-      smsSid,
-      credits: 0,
-    });
+  // if (!orgId) {
+  //   orgId = await getPublishedOrgIdFromMemberOrTeamId({
+  //     ...(!parsedTeamId ? { memberId: parsedUserId } : {}),
+  //     teamId: parsedTeamId,
+  //   });
+  // }
 
-    return res.status(200).send(`SMS are free for organizations. Credits set to 0`);
-  }
+  // if (orgId) {
+  //   await creditService.chargeCredits({
+  //     teamId: orgId,
+  //     bookingUid: parsedBookingUid,
+  //     smsSid,
+  //     credits: 0,
+  //   });
 
-  const { price, numSegments } = await twilio.getMessageInfo(smsSid);
+  //   return res.status(200).send(`SMS are free for organizations. Credits set to 0`);
+  // }
 
-  const credits = price ? creditService.calculateCreditsFromPrice(price) : null;
+  // const { price, numSegments } = await twilio.getMessageInfo(smsSid);
 
-  const chargedUserOrTeamId = await creditService.chargeCredits({
-    credits,
-    teamId: parsedTeamId,
-    userId: parsedUserId,
-    smsSid,
-    bookingUid: parsedBookingUid,
-    smsSegments: numSegments ?? undefined,
-  });
+  // const credits = price ? creditService.calculateCreditsFromPrice(price) : null;
 
-  if (chargedUserOrTeamId) {
-    return res.status(200).send(
-      `Expense log with ${credits ? credits : "no"} credits created for
-             ${
-               chargedUserOrTeamId.teamId
-                 ? `teamId ${chargedUserOrTeamId.teamId}`
-                 : `userId ${chargedUserOrTeamId.userId}`
-             }`
-    );
-  }
-  // this should never happen - even when out of credits we still charge a team
-  return res.status(500).send("No team or users found to be charged");
+  // const chargedUserOrTeamId = await creditService.chargeCredits({
+  //   credits,
+  //   teamId: parsedTeamId,
+  //   userId: parsedUserId,
+  //   smsSid,
+  //   bookingUid: parsedBookingUid,
+  //   smsSegments: numSegments ?? undefined,
+  // });
+
+  // if (chargedUserOrTeamId) {
+  //   return res.status(200).send(
+  //     `Expense log with ${credits ? credits : "no"} credits created for
+  //            ${
+  //              chargedUserOrTeamId.teamId
+  //                ? `teamId ${chargedUserOrTeamId.teamId}`
+  //                : `userId ${chargedUserOrTeamId.userId}`
+  //            }`
+  //   );
+  // }
+  // // this should never happen - even when out of credits we still charge a team
+  // return res.status(500).send("No team or users found to be charged");
 }
 
 export default defaultHandler({

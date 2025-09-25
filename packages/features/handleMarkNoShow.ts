@@ -183,6 +183,23 @@ const updateAttendees = async (
   const results = await Promise.allSettled(updatePromises);
   logFailedResults(results);
 
+  const markedNoShowAttendeesIDs: number[] = [];
+  const unMarkedNoShowAttendeesIDs: number[] = [];
+  const result: { noShow: boolean; email: string }[] = [];
+
+  const fullfilledResults = results.filter((x) => x.status === "fulfilled");
+
+  fullfilledResults.forEach((x) => {
+    const { noShow, id, email } = (
+      x as PromiseFulfilledResult<{ noShow: boolean; id: number; email: string }>
+    ).value;
+    result.push({ noShow, email });
+
+    (noShow ? markedNoShowAttendeesIDs : unMarkedNoShowAttendeesIDs).push(id);
+  });
+
+  await handleScheduledWorkflows(bookingUid, markedNoShowAttendeesIDs, unMarkedNoShowAttendeesIDs);
+
   return results
     .filter((x) => x.status === "fulfilled")
     .map((x) => (x as PromiseFulfilledResult<{ noShow: boolean; email: string }>).value)
@@ -239,5 +256,31 @@ const assertCanAccessBooking = async (bookingUid: string, userId?: number) => {
     });
   }
 };
+
+async function handleScheduledWorkflows(
+  bookingUid: string,
+  markedNoShowAttendeesIDs: number[],
+  unMarkedNoShowAttendeesIDs: number[]
+) {
+  const [workflowRemindersToDisable, workflowRemindersToEnable] = await Promise.all([
+    prisma.calIdWorkflowReminder.updateMany({
+      where: {
+        bookingUid: bookingUid,
+        OR: [{ cancelled: null }, { cancelled: false }],
+
+        attendeeId: { in: markedNoShowAttendeesIDs },
+      },
+      data: { cancelled: true },
+    }),
+    prisma.calIdWorkflowReminder.updateMany({
+      where: {
+        bookingUid: bookingUid,
+        cancelled: true,
+        attendeeId: { in: unMarkedNoShowAttendeesIDs },
+      },
+      data: { cancelled: false },
+    }),
+  ]);
+}
 
 export default handleMarkNoShow;

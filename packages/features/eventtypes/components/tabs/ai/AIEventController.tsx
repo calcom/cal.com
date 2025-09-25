@@ -1,3 +1,4 @@
+import { Icon } from "@calid/features/ui/components/icon";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import { useSession } from "next-auth/react";
 import React, { useState } from "react";
@@ -13,14 +14,13 @@ import type { EventTypeSetup, FormValues } from "@calcom/features/eventtypes/lib
 import { ComponentForField } from "@calcom/features/form-builder/FormBuilderField";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Label } from "@calcom/ui/components/form";
-import { Divider } from "@calcom/ui/components/divider";
-import { TextField } from "@calcom/ui/components/form";
-import { Button } from "@calcom/ui/components/button";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { Divider } from "@calcom/ui/components/divider";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Label } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 type AIEventControllerProps = {
@@ -235,7 +235,7 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
                     id="CHECK_IN_APPOINTMENT"
                     key="CHECK_IN_APPOINTMENT"
                     value="CHECK_IN_APPOINTMENT"
-                    className="min-w-4 bg-default border-default flex h-4 w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2 ">
+                    className="bg-default border-default flex h-4 w-4 min-w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2 ">
                     <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
                   </RadioGroup.Item>
                   <label className="h-full" htmlFor="CHECK_IN_APPOINTMENT">
@@ -248,7 +248,7 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
                     id="CUSTOM_TEMPLATE"
                     key="CUSTOM_TEMPLATE"
                     value="CUSTOM_TEMPLATE"
-                    className="min-w-4 bg-default border-default flex h-4 w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
+                    className="bg-default border-default flex h-4 w-4 min-w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
                     <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
                   </RadioGroup.Item>
                   <label htmlFor="CUSTOM_TEMPLATE">

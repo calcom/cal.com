@@ -1,13 +1,16 @@
 "use client";
 
+import { Button } from "@calid/features/ui/components/button";
+import { Label } from "@calid/features/ui/components/label";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { revalidateSettingsGeneral } from "app/(use-page-wrapper)/settings/(settings-layout)/my-account/general/actions";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
-import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { APP_NAME } from "@calcom/lib/constants";
 import { formatLocalizedDateTime } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localeOptions } from "@calcom/lib/i18n";
@@ -15,12 +18,9 @@ import { nameOfDay } from "@calcom/lib/weekday";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
-import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTravelSchedules } from "@calcom/web/app/cache/travelSchedule";
 
 import TravelScheduleModal from "@components/settings/TravelScheduleModal";
@@ -48,7 +48,7 @@ export type FormValues = {
 };
 
 interface GeneralViewProps {
-  user: RouterOutputs["viewer"]["me"]["get"];
+  user: RouterOutputs["viewer"]["me"]["calid_get"];
   travelSchedules: RouterOutputs["viewer"]["travelSchedules"]["get"];
 }
 
@@ -69,7 +69,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
       revalidateSettingsGeneral();
       revalidateTravelSchedules();
       reset(getValues());
-      showToast(t("settings_updated_successfully"), "success");
+      triggerToast(t("settings_updated_successfully"), "success");
       await update(res);
 
       if (res.locale) {
@@ -78,7 +78,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
       }
     },
     onError: () => {
-      showToast(t("error_updating_settings"), "error");
+      triggerToast(t("error_updating_settings"), "error");
     },
     onSettled: async () => {
       await utils.viewer.me.invalidate();
@@ -151,7 +151,10 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
   const watchedTzSchedules = formMethods.watch("travelSchedules");
 
   return (
-    <SettingsHeader title={t("general")} description={t("general_description")} borderInShellHeader={true}>
+    <SettingsHeader
+      title={t("general")}
+      description={t("general_description", { appName: APP_NAME })}
+      borderInShellHeader={false}>
       <div>
         <Form
           form={formMethods}
@@ -164,7 +167,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
               weekStart: values.weekStart.value,
             });
           }}>
-          <div className="border-subtle border-x border-y-0 px-4 py-8 sm:px-6">
+          <div className="bg-default border-default rounded-md border px-4 py-8 sm:px-6">
             <Controller
               name="locale"
               render={({ field: { value, onChange } }) => (
@@ -181,12 +184,13 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                 </>
               )}
             />
+            <div className="h-4" />
             <Controller
               name="timeZone"
               control={formMethods.control}
               render={({ field: { value } }) => (
                 <>
-                  <Label className="text-emphasis mt-6">
+                  <Label className="text-emphasis">
                     <>{t("timezone")}</>
                   </Label>
                   <TimezoneSelect
@@ -199,17 +203,17 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                 </>
               )}
             />
-            {!watchedTzSchedules.length ? (
-              <Button
-                color="secondary"
-                className="mt-2"
-                StartIcon="calendar"
-                onClick={() => setIsTZScheduleOpen(true)}>
-                {t("schedule_timezone_change")}
-              </Button>
-            ) : (
-              <div className="bg-muted border-subtle mt-2 rounded-md border p-4">
+
+            <div className="bg-default border-default mt-2 rounded-md border px-3 py-2">
+              <div className="flex flex-row items-center justify-between">
                 <Label>{t("travel_schedule")}</Label>
+                {!watchedTzSchedules.length && (
+                  <Button color="secondary" StartIcon="calendar" onClick={() => setIsTZScheduleOpen(true)}>
+                    {t("add")}
+                  </Button>
+                )}
+              </div>
+              {watchedTzSchedules.length > 0 && (
                 <div className="border-subtle bg-default mt-4 rounded-md border text-sm">
                   {watchedTzSchedules.map((schedule, index) => {
                     return (
@@ -251,6 +255,8 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                     );
                   })}
                 </div>
+              )}
+              {watchedTzSchedules.length > 0 && (
                 <Button
                   StartIcon="plus"
                   color="secondary"
@@ -258,9 +264,10 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                   onClick={() => setIsTZScheduleOpen(true)}>
                   {t("add")}
                 </Button>
-              </div>
-            )}
+              )}
+            </div>
 
+            <div className="h-4" />
             <Controller
               name="timeFormat"
               control={formMethods.control}
@@ -282,6 +289,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
             <div className="text-gray text-subtle mt-2 flex items-center text-xs">
               {t("timeformat_profile_hint")}
             </div>
+            <div className="h-4" />
             <Controller
               name="weekStart"
               control={formMethods.control}
@@ -300,59 +308,60 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                 </>
               )}
             />
-          </div>
 
-          <SectionBottomActions align="end">
+            <div className="border-muted mt-8 w-full border-b px-8" />
+
+            <SettingsToggle
+              toggleSwitchAtTheEnd={true}
+              title={t("dynamic_booking")}
+              description={t("allow_dynamic_booking")}
+              disabled={mutation.isPending}
+              checked={isAllowDynamicBookingChecked}
+              onCheckedChange={(checked) => {
+                setIsAllowDynamicBookingChecked(checked);
+                mutation.mutate({ allowDynamicBooking: checked });
+              }}
+              switchContainerClassName="mt-6"
+            />
+
+            <SettingsToggle
+              data-testid="my-seo-indexing-switch"
+              toggleSwitchAtTheEnd={true}
+              title={t("seo_indexing")}
+              description={t("allow_seo_indexing")}
+              disabled={mutation.isPending || user.organizationSettings?.allowSEOIndexing === false}
+              checked={isAllowSEOIndexingChecked}
+              onCheckedChange={(checked) => {
+                setIsAllowSEOIndexingChecked(checked);
+                mutation.mutate({ allowSEOIndexing: checked });
+              }}
+              switchContainerClassName="mt-6"
+            />
+
+            <SettingsToggle
+              toggleSwitchAtTheEnd={true}
+              title={t("monthly_digest_email")}
+              description={t("monthly_digest_email_for_teams")}
+              disabled={mutation.isPending}
+              checked={isReceiveMonthlyDigestEmailChecked}
+              onCheckedChange={(checked) => {
+                setIsReceiveMonthlyDigestEmailChecked(checked);
+                mutation.mutate({ receiveMonthlyDigestEmail: checked });
+              }}
+              switchContainerClassName="mt-6"
+            />
             <Button
               loading={isUpdateBtnLoading}
               disabled={isDisabled}
               color="primary"
               type="submit"
+              size="lg"
+              className="mt-4"
               data-testid="general-submit-button">
               <>{t("update")}</>
             </Button>
-          </SectionBottomActions>
+          </div>
         </Form>
-
-        <SettingsToggle
-          toggleSwitchAtTheEnd={true}
-          title={t("dynamic_booking")}
-          description={t("allow_dynamic_booking")}
-          disabled={mutation.isPending}
-          checked={isAllowDynamicBookingChecked}
-          onCheckedChange={(checked) => {
-            setIsAllowDynamicBookingChecked(checked);
-            mutation.mutate({ allowDynamicBooking: checked });
-          }}
-          switchContainerClassName="mt-6"
-        />
-
-        <SettingsToggle
-          data-testid="my-seo-indexing-switch"
-          toggleSwitchAtTheEnd={true}
-          title={t("seo_indexing")}
-          description={t("allow_seo_indexing")}
-          disabled={mutation.isPending || user.organizationSettings?.allowSEOIndexing === false}
-          checked={isAllowSEOIndexingChecked}
-          onCheckedChange={(checked) => {
-            setIsAllowSEOIndexingChecked(checked);
-            mutation.mutate({ allowSEOIndexing: checked });
-          }}
-          switchContainerClassName="mt-6"
-        />
-
-        <SettingsToggle
-          toggleSwitchAtTheEnd={true}
-          title={t("monthly_digest_email")}
-          description={t("monthly_digest_email_for_teams")}
-          disabled={mutation.isPending}
-          checked={isReceiveMonthlyDigestEmailChecked}
-          onCheckedChange={(checked) => {
-            setIsReceiveMonthlyDigestEmailChecked(checked);
-            mutation.mutate({ receiveMonthlyDigestEmail: checked });
-          }}
-          switchContainerClassName="mt-6"
-        />
         <TravelScheduleModal
           open={isTZScheduleOpen}
           onOpenChange={() => setIsTZScheduleOpen(false)}

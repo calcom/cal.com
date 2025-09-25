@@ -1,7 +1,8 @@
+import { cn } from "@calid/features/lib/cn";
+import { Button } from "@calid/features/ui/components/button";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import classNames from "@calcom/ui/classNames";
-import { Button } from "@calcom/ui/components/button";
 import { List } from "@calcom/ui/components/list";
 
 import { AppConnectionItem } from "../components/AppConnectionItem";
@@ -16,12 +17,30 @@ interface IConnectCalendarsProps {
 
 const ConnectedCalendars = (props: IConnectCalendarsProps) => {
   const { nextStep, isPageLoading } = props;
+
+  const updateProfileMutation = trpc.viewer.me.updateProfile.useMutation({
+    onSuccess: async (_data, _context) => {
+      nextStep();
+    },
+    onError: () => {
+      showToast(t("problem_saving_user_profile"), "error");
+    },
+  });
+
+  const handleNextStep = () => {
+    updateProfileMutation.mutate({
+      metadata: {
+        currentOnboardingStep: "connected-video",
+      },
+    });
+  };
+
   const queryConnectedCalendars = trpc.viewer.calendars.connectedCalendars.useQuery({
     onboarding: true,
     eventTypeId: null,
   });
   const { t } = useLocale();
-  const queryIntegrations = trpc.viewer.apps.integrations.useQuery({
+  const queryIntegrations = trpc.viewer.apps.calid_integrations.useQuery({
     variant: "calendar",
     onlyInstalled: false,
     sortByMostPopular: true,
@@ -63,7 +82,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
 
       {/* Connect calendars list */}
       {firstCalendar === undefined && queryIntegrations.data && queryIntegrations.data.items.length > 0 && (
-        <List className="bg-default divide-subtle border-subtle mx-1 divide-y rounded-md border p-0 dark:bg-black sm:mx-0">
+        <List className="bg-default border-subtle divide-subtle scroll-bar mx-1 max-h-[45vh] divide-y !overflow-y-scroll rounded-md border p-0 sm:mx-0">
           {queryIntegrations.data &&
             queryIntegrations.data.items.map((item) => (
               <li key={item.title}>
@@ -83,14 +102,19 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
       {queryIntegrations.isPending && <StepConnectionLoader />}
 
       <Button
+        color="primary"
         EndIcon="arrow-right"
         data-testid="save-calendar-button"
-        className={classNames(
-          "text-inverted bg-inverted border-inverted mt-8 flex w-full flex-row justify-center rounded-md border p-2 text-center text-sm",
+        className={cn(
+          "mt-8 flex w-full flex-row justify-center rounded-md border text-center text-sm",
           disabledNextButton ? "cursor-not-allowed opacity-20" : ""
         )}
         loading={isPageLoading}
-        onClick={() => nextStep()}
+        onClick={() => {
+          console.log("connected video step");
+          handleNextStep();
+          nextStep();
+        }}
         disabled={disabledNextButton}>
         {firstCalendar ? `${t("continue")}` : `${t("next_step_text")}`}
       </Button>

@@ -79,3 +79,15 @@ export const bookingRepositoryBaseInputSchema = z.object({
   eventTypeId: z.coerce.number().optional().nullable(),
   memberUserId: z.coerce.number().optional().nullable(),
 });
+
+export const workflowRepositoryBaseInputSchema = z.object({
+  scope: z.union([z.literal("user"), z.literal("team"), z.literal("org")]),
+  teamId: z.coerce.number().optional().nullable(),
+  userId: z.coerce.number().optional().nullable(),
+  selectedTeamId: z.number().optional(),
+  startDate: z.string(),
+  endDate: z.string(),
+  timeZone: z.string(),
+  eventTypeId: z.coerce.number().optional().nullable(),
+  type: z.string().optional(),
+});

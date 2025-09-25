@@ -5,8 +5,7 @@ import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useEmbedBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { TextArea } from "@calcom/ui/components/form";
-
+import { TextArea } from "@calid/features/ui/components/input/text-area";
 import type { EmbedFramework, EmbedType, PreviewState } from "../types";
 import { Codes } from "./EmbedCodes";
 import { buildCssVarsPerTheme } from "./buildCssVarsPerTheme";
@@ -43,16 +42,11 @@ export const tabs = [
       }
       return (
         <>
-          <div>
-            <small className="text-subtle flex py-2">
-              {t("place_where_cal_widget_appear", { appName: APP_NAME })}
-            </small>
-          </div>
           <TextArea
             data-testid="embed-code"
             ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
             name="embed-code"
-            className="text-default bg-default h-[calc(100%-50px)] font-mono"
+            className="text-default bg-muted h-[calc(100%-50px)] font-mono"
             style={{ resize: "none", overflow: "auto" }}
             readOnly
             value={`<!-- Cal ${embedType} embed code begins -->\n${
@@ -74,7 +68,7 @@ export const tabs = [
   </script>
   <!-- Cal ${embedType} embed code ends -->`}
           />
-          <p className="text-subtle hidden text-sm">{t("need_help_embedding")}</p>
+          <p className="text-muted hidden text-sm">{t("need_help_embedding")}</p>
         </>
       );
     }),
@@ -100,12 +94,12 @@ export const tabs = [
       }
       return (
         <>
-          <small className="text-subtle flex py-2">{t("create_update_react_component")}</small>
+          {/* <small className="text-muted flex py-2">{t("create_update_react_component")}</small> */}
           <TextArea
             data-testid="embed-react"
             ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
             name="embed-react"
-            className="text-default bg-default h-[calc(100%-50px)] font-mono"
+            className="text-default bg-muted h-[calc(100%-50px)] font-mono"
             readOnly
             style={{ resize: "none", overflow: "auto" }}
             value={`/* First make sure that you have installed the package */
@@ -150,12 +144,12 @@ export const tabs = [
       }
       return (
         <>
-          <small className="text-subtle flex py-2">{t("create_update_react_component")}</small>
+          {/* <small className="text-muted flex py-2">{t("create_update_react_component")}</small> */}
           <TextArea
             data-testid={`${EmbedTabName.ATOM_REACT}`}
             ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
             name={`${EmbedTabName.ATOM_REACT}`}
-            className="text-default bg-default h-[calc(100%-50px)] font-mono"
+            className="text-default bg-muted h-[calc(100%-50px)] font-mono"
             readOnly
             style={{ resize: "none", overflow: "auto" }}
             value={`/* First make sure that you have installed the package */

@@ -1,4 +1,5 @@
-import { verifyPhoneNumber } from "@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber";
+import { verifyPhoneNumber } from "@calid/features/modules/workflows/utils/phoneVerification";
+
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TVerifyPhoneNumberInputSchema } from "./verifyPhoneNumber.schema";

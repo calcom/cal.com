@@ -57,7 +57,6 @@ const ServerPage = async () => {
     appStore,
     userAdminTeams: userAdminTeamsIds,
   };
-
   return <AppsPage {...props} isAdmin={session?.user?.role === "ADMIN"} />;
 };
 

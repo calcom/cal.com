@@ -4,8 +4,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
+import { Badge } from "@calid/features/ui/components/badge";
+import { Button } from "@calid/features/ui/components/button";
 import {
   Dropdown,
   DropdownItem,
@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { Switch } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/components/toast";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 
@@ -40,20 +40,20 @@ export default function EventTypeWebhookListItem(props: {
   const utils = trpc.useUtils();
   const { webhook } = props;
 
-  const deleteWebhook = trpc.viewer.webhook.delete.useMutation({
+  const deleteWebhook = trpc.viewer.webhook.calid_delete.useMutation({
     async onSuccess() {
       if (webhook.eventTypeId) revalidateEventTypeEditPage(webhook.eventTypeId);
-      showToast(t("webhook_removed_successfully"), "success");
+      triggerToast(t("webhook_removed_successfully"), "success");
       await utils.viewer.webhook.getByViewer.invalidate();
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
     },
   });
-  const toggleWebhook = trpc.viewer.webhook.edit.useMutation({
+  const toggleWebhook = trpc.viewer.webhook.calid_edit.useMutation({
     async onSuccess(data) {
       if (webhook.eventTypeId) revalidateEventTypeEditPage(webhook.eventTypeId);
       // TODO: Better success message
-      showToast(t(data?.active ? "enabled" : "disabled"), "success");
+      triggerToast(t(data?.active ? "enabled" : "disabled"), "success");
       await utils.viewer.webhook.getByViewer.invalidate();
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
@@ -83,7 +83,7 @@ export default function EventTypeWebhookListItem(props: {
             </p>
           </Tooltip>
           {!!props.readOnly && (
-            <Badge variant="gray" className="ml-2 ">
+            <Badge variant="secondary" className="ml-2 ">
               {t("readonly")}
             </Badge>
           )}
@@ -94,7 +94,7 @@ export default function EventTypeWebhookListItem(props: {
               <Badge
                 key={trigger}
                 className="mt-2.5 basis-1/5 ltr:mr-2 rtl:ml-2"
-                variant="gray"
+                variant="secondary"
                 startIcon="zap">
                 {t(`${trigger.toLowerCase()}`)}
               </Badge>

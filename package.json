@@ -12,7 +12,8 @@
     "packages/app-store/ee/*",
     "packages/platform/*",
     "packages/platform/examples/base",
-    "example-apps/*"
+    "example-apps/*",
+    "packages/oe-features/*"
   ],
   "scripts": {
     "app-store-cli": "yarn workspace @calcom/app-store-cli",
@@ -30,6 +31,7 @@
     "build": "turbo run build --filter=@calcom/web...",
     "build:ai": "turbo run build --scope=\"@calcom/ai\"",
     "clean": "find . -name node_modules -o -name .next -o -name .turbo -o -name dist -type d -prune | xargs rm -rf",
+    "db-deploy": "turbo run db-deploy",
     "db-migrate": "yarn workspace @calcom/prisma run db-migrate",
     "db-rollback": "yarn workspace @calcom/prisma run db-rollback",
     "db-seed": "turbo run db-seed",
@@ -93,6 +95,7 @@
     "@snaplet/copycat": "^4.1.0",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^16.0.1",
+    "@types/react-google-recaptcha": "^2.1.9",
     "@vitest/ui": "^2.1.1",
     "c8": "^7.13.0",
     "checkly": "latest",
@@ -119,14 +122,20 @@
     "@daily-co/daily-js": "^0.76.0",
     "@evyweb/ioctopus": "^1.2.0",
     "@next/third-parties": "^14.2.5",
+    "@tiptap/extension-underline": "^2.3.0",
     "@vercel/functions": "^1.4.0",
     "city-timezones": "^1.2.1",
     "date-fns-tz": "^3.2.0",
     "eslint": "^8.34.0",
+    "inngest": "^3.13.0",
     "p-limit": "^6.2.0",
+    "react-google-recaptcha": "^3.1.0",
+    "react-live-chat-loader": "^2.8.1",
     "turbo": "^1.10.1"
   },
   "resolutions": {
+    "libphonenumber-js@^1.10.51": "patch:libphonenumber-js@npm%3A1.10.51#./.yarn/patches/libphonenumber-js-npm-1.10.51-4ff79b15f8.patch",
+    "libphonenumber-js@^1.10.12": "patch:libphonenumber-js@npm%3A1.10.51#./.yarn/patches/libphonenumber-js-npm-1.10.51-4ff79b15f8.patch",
     "types-ramda": "0.29.4",
     "@apidevtools/json-schema-ref-parser": "9.0.9",
     "@types/react": "18.0.26",

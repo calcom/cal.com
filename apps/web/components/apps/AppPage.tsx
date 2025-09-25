@@ -1,3 +1,7 @@
+import { Badge } from "@calid/features/ui/components/badge";
+import { Button } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { IframeHTMLAttributes } from "react";
@@ -9,17 +13,21 @@ import { doesAppSupportTeamInstall, isConferencing } from "@calcom/app-store/uti
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
-import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS, WEBAPP_URL } from "@calcom/lib/constants";
+import {
+  APP_NAME,
+  COMPANY_NAME,
+  ONEHASH_CHAT_INTEGRATION_PAGE,
+  SUPPORT_MAIL_ADDRESS,
+  WEBAPP_URL,
+} from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { trpc } from "@calcom/trpc/react";
 import type { App as AppType } from "@calcom/types/App";
 import classNames from "@calcom/ui/classNames";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
+import { Dropdown, DropdownMenuTrigger, DropdownMenuContent } from "@calcom/ui/components/dropdown";
 import { SkeletonButton, SkeletonText } from "@calcom/ui/components/skeleton";
-import { showToast } from "@calcom/ui/components/toast";
 
 import { InstallAppButtonChild } from "./InstallAppButtonChild";
 import { MultiDisconnectIntegration } from "./MultiDisconnectIntegration";
@@ -52,6 +60,14 @@ export type AppPageProps = {
   dependencies?: string[];
   concurrentMeetings: AppType["concurrentMeetings"];
   paid?: AppType["paid"];
+};
+
+type OHChatAppCredential = {
+  account_user_id: number;
+  account_name: string;
+  user_email: string;
+  user_name: string;
+  credentialId: number;
 };
 
 export const AppPage = ({
@@ -90,11 +106,11 @@ export const AppPage = ({
     onSuccess: async (data) => {
       if (data?.setupPending) return;
       setIsLoading(false);
-      showToast(data?.message || t("app_successfully_installed"), "success");
-      await utils.viewer.apps.appCredentialsByType.invalidate({ appType: type });
+      triggerToast(data?.message || t("app_successfully_installed"), "success");
+      await utils.viewer.apps.calid_appCredentialsByType.invalidate({ appType: type });
     },
     onError: (error) => {
-      if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
+      if (error instanceof Error) triggerToast(error.message || t("app_could_not_be_installed"), "error");
       setIsLoading(false);
     },
   });
@@ -111,24 +127,28 @@ export const AppPage = ({
     isPaid: !!paid,
   });
 
-  const handleAppInstall = () => {
+  const handleAppInstall = async () => {
     setIsLoading(true);
     if (isConferencing(categories)) {
+      const onBoardingUrl = await getAppOnboardingUrl({
+        slug: slug,
+        step: AppOnboardingSteps.EVENT_TYPES_STEP,
+      });
       mutation.mutate({
         type,
         variant,
         slug,
-        returnTo:
-          WEBAPP_URL +
-          getAppOnboardingUrl({
-            slug,
-            step: AppOnboardingSteps.EVENT_TYPES_STEP,
-          }),
+        returnTo: WEBAPP_URL + onBoardingUrl,
       });
     } else if (!availableForTeams) {
       mutation.mutate({ type });
     } else {
-      router.push(getAppOnboardingUrl({ slug, step: AppOnboardingSteps.ACCOUNTS_STEP }));
+      const onBoardingUrl = await getAppOnboardingUrl({
+        slug: slug,
+        step: AppOnboardingSteps.ACCOUNTS_STEP,
+      });
+
+      router.push(onBoardingUrl);
     }
   };
 
@@ -147,7 +167,10 @@ export const AppPage = ({
    */
   const [appInstalledForAllTargets, setAppInstalledForAllTargets] = useState(false);
 
-  const appDbQuery = trpc.viewer.apps.appCredentialsByType.useQuery({ appType: type });
+  // OneHash Chat specific state
+  const [ohChatAppCredentials, setOhChatAppCredentials] = useState<OHChatAppCredential[]>([]);
+
+  const appDbQuery = trpc.viewer.apps.calid_appCredentialsByType.useQuery({ appType: type });
 
   useEffect(
     function refactorMeWithoutEffect() {
@@ -161,8 +184,18 @@ export const AppPage = ({
           ? credentialsCount >= data.userAdminTeams.length
           : credentialsCount > 0;
       setAppInstalledForAllTargets(appInstalledForAllTargets);
+
+      // OneHash Chat specific logic
+      if (slug === "onehash-chat") {
+        setOhChatAppCredentials(
+          data?.credentials.map((c) => {
+            const key = isPrismaObjOrUndefined(c.key) ? (c.key as Record<string, number | string>) : {};
+            return { ...key, credentialId: c.id } as OHChatAppCredential;
+          }) || []
+        );
+      }
     },
-    [appDbQuery.data, availableForTeams]
+    [appDbQuery.data, availableForTeams, slug]
   );
 
   const dependencyData = trpc.viewer.apps.queryForDependencies.useQuery(dependencies, {
@@ -189,6 +222,50 @@ export const AppPage = ({
       return <SkeletonButton className="h-10 w-24" />;
     }
 
+    // Special case for OneHash Chat
+    if (slug === "onehash-chat") {
+      return (
+        <div className="flex space-x-3">
+          <Button
+            color="primary"
+            onClick={() => {
+              window.location.href = ONEHASH_CHAT_INTEGRATION_PAGE;
+            }}
+            loading={isLoading}>
+            {existingCredentials.length > 0 ? t("install_another") : t("install_app")}
+          </Button>
+          {existingCredentials.length > 0 && (
+            <Dropdown modal={false}>
+              <DropdownMenuTrigger asChild>
+                <Button color="secondary">{t("remove_app")}</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {ohChatAppCredentials?.map((c, i) => {
+                  return (
+                    <div className="flex w-full gap-2 p-2" key={`${c.account_name}-${c.account_user_id}`}>
+                      <div className="mx-2 w-full text-start">
+                        <p>User : {c.user_email}</p>
+                        <p className="font-semibold text-indigo-600">Account: {c.account_name}</p>
+                      </div>
+                      <DisconnectIntegration
+                        buttonProps={{ color: "secondary" }}
+                        label={t("disconnect")}
+                        credentialId={c.credentialId}
+                        onSuccess={() => {
+                          appDbQuery.refetch();
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </DropdownMenuContent>
+            </Dropdown>
+          )}
+        </div>
+      );
+    }
+
+    // Original logic for other apps
     const MultiInstallButtonEl = (
       <InstallAppButton
         type={type}
@@ -198,8 +275,8 @@ export const AppPage = ({
           if (useDefaultComponent) {
             props = {
               ...props,
-              onClick: () => {
-                handleAppInstall();
+              onClick: async () => {
+                await handleAppInstall();
               },
               loading: isLoading,
             };
@@ -218,8 +295,8 @@ export const AppPage = ({
           if (useDefaultComponent) {
             props = {
               ...props,
-              onClick: () => {
-                handleAppInstall();
+              onClick: async () => {
+                await handleAppInstall();
               },
               loading: isLoading,
             };
@@ -270,7 +347,7 @@ export const AppPage = ({
   return (
     <div className="relative mt-4 flex-1 flex-col items-start justify-start px-4 md:mt-0 md:flex md:px-8 lg:flex-row lg:px-0">
       {hasDescriptionItems && (
-        <div className="align-center bg-subtle -ml-4 -mr-4 mb-4 flex min-h-[450px] w-auto basis-3/5 snap-x snap-mandatory flex-row overflow-auto whitespace-nowrap p-4  md:-ml-8 md:-mr-8 md:mb-8 md:p-8 lg:mx-0 lg:mb-0 lg:max-w-2xl lg:flex-col lg:justify-center lg:rounded-md">
+        <div className="align-center -ml-4 -mr-4 mb-4 flex min-h-[450px] w-auto basis-3/5 snap-x snap-mandatory flex-row overflow-auto whitespace-nowrap rounded-md border p-2 md:-ml-8 md:-mr-8 md:mb-8 lg:mx-0 lg:mb-0 lg:max-w-2xl lg:flex-col lg:justify-center">
           {descriptionItems ? (
             descriptionItems.map((descriptionItem, index) =>
               typeof descriptionItem === "object" ? (
@@ -302,7 +379,7 @@ export const AppPage = ({
           <header>
             <div className="mb-4 flex items-center">
               <img
-                className={classNames(logo.includes("-dark") && "dark:invert", "min-h-16 min-w-16 h-16 w-16")}
+                className={classNames(logo.includes("-dark") && "dark:invert", "h-16 min-h-16 w-16 min-w-16")}
                 src={logo}
                 alt={name}
               />
@@ -450,7 +527,7 @@ export const AppPage = ({
         <span className="leading-1 text-subtle block text-xs">
           {t("every_app_published", { appName: APP_NAME, companyName: COMPANY_NAME })}
         </span>
-        <a className="mt-2 block text-xs text-red-500" href={`mailto:${SUPPORT_MAIL_ADDRESS}`}>
+        <a className="text-destructive mt-2 block text-xs" href={`mailto:${SUPPORT_MAIL_ADDRESS}`}>
           <Icon name="flag" className="inline h-3 w-3" /> {t("report_app")}
         </a>
       </div>

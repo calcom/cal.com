@@ -42,6 +42,13 @@ enum PeriodType {
   RANGE          @map("range")
 }
 
+enum CaptchaType {
+  OFF    @map("off")
+  LOW    @map("low")
+  MEDIUM @map("medium")
+  HIGH   @map("high")
+}
+
 enum CreationSource {
   API_V1 @map("api_v1")
   API_V2 @map("api_v2")
@@ -208,9 +215,18 @@ model EventType {
   restrictionScheduleId Int?
   restrictionSchedule   Schedule? @relation("restrictionSchedule", fields: [restrictionScheduleId], references: [id])
 
+  workflowInsights WorkflowInsights[]
+  captchaType      CaptchaType        @default(OFF)
+
+  calIdTeam             CalIdTeam?                   @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade)
+  calIdTeamId           Int?
+  calIdWorkflows        CalIdWorkflowsOnEventTypes[]
+  calIdWorkflowInsights CalIdWorkflowInsights[]
+
   @@unique([userId, slug])
   @@unique([teamId, slug])
   @@unique([userId, parentId])
+  @@unique([calIdTeamId, slug])
   @@index([userId])
   @@index([teamId])
   @@index([profileId])
@@ -218,6 +234,7 @@ model EventType {
   @@index([secondaryEmailId])
   @@index([parentId])
   @@index([restrictionScheduleId])
+  @@index([calIdTeamId])
 }
 
 model Credential {
@@ -245,11 +262,14 @@ model Credential {
   references             BookingReference[]
   delegationCredentialId String?
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
+  calIdTeam              CalIdTeam?            @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade) // NEW
+  calIdTeamId            Int?
 
   @@index([appId])
   @@index([subscriptionId])
   @@index([invalid])
   @@index([userId, delegationCredentialId])
+  @@index([calIdTeamId])
 }
 
 enum IdentityProvider {
@@ -291,8 +311,9 @@ enum UserPermissionRole {
 // It holds the password of a User, separate from the User model to avoid leaking the password hash
 model UserPassword {
   hash   String
-  userId Int    @unique
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int     @unique
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  salt   String?
 }
 
 model TravelSchedule {
@@ -319,9 +340,9 @@ model User {
   password            UserPassword?
   bio                 String?
   avatarUrl           String?
-  timeZone            String               @default("Europe/London")
+  timeZone            String               @default("Asia/Kolkata")
   travelSchedules     TravelSchedule[]
-  weekStart           String               @default("Sunday")
+  weekStart           String               @default("Monday")
   // DEPRECATED - TO BE REMOVED
   startTime           Int                  @default(0)
   endTime             Int                  @default(1440)
@@ -421,6 +442,12 @@ model User {
   filterSegmentPreferences       UserFilterSegmentPreference[]
   creditBalance                  CreditBalance?
   whitelistWorkflows             Boolean                       @default(false)
+  integrationAccounts            IntegrationAccounts[]
+  calIdTeams                     CalIdMembership[]
+  calIdWorkflows                 CalIdWorkflow[]
+  calIdWorkflowReminders         CalIdWorkflowReminder[]       @relation("UserCalIdWorkflowReminders")
+  bannerUrl                      String?
+  faviconUrl                     String?
 
   @@unique([email])
   @@unique([email, username])
@@ -431,6 +458,42 @@ model User {
   @@index([identityProvider])
   @@index([identityProviderId])
   @@map(name: "users")
+}
+
+model IntegrationAccounts {
+  id                     Int                     @id @default(autoincrement())
+  tokenType              String?
+  expiresIn              Int?
+  createdAt              Int?
+  refreshToken           String
+  accessToken            String
+  scope                  String?
+  ownerUniqIdentifier    String?
+  provider               IntegrationProvider
+  user                   User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                 Int
+  integrationUserProfile IntegrationUserProfile?
+
+  //a user can only have one integration account per provider
+  @@unique([userId, provider])
+}
+
+enum IntegrationProvider {
+  CALENDLY
+}
+
+model IntegrationUserProfile {
+  id                          Int                 @id @default(autoincrement())
+  scheduling_url              String?
+  avatar_url                  String?
+  created_at                  DateTime?
+  updated_at                  DateTime?
+  current_organization        String?
+  integrationAccount          IntegrationAccounts @relation(fields: [integrationAccountsUserId, integrationAccountsProvider], references: [userId, provider], onDelete: Cascade)
+  integrationAccountsUserId   Int
+  integrationAccountsProvider IntegrationProvider
+
+  @@unique([integrationAccountsUserId, integrationAccountsProvider])
 }
 
 model NotificationsSubscriptions {
@@ -504,7 +567,7 @@ model Team {
   inviteTokens           VerificationToken[]
   webhooks               Webhook[]
   timeFormat             Int?
-  timeZone               String                  @default("Europe/London")
+  timeZone               String                  @default("Asia/Kolkata")
   weekStart              String                  @default("Sunday")
   routingForms           App_RoutingForms_Form[]
   apiKeys                ApiKey[]
@@ -654,21 +717,26 @@ model VerificationToken {
   team             Team?           @relation(fields: [teamId], references: [id])
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id])
+  calIdTeamId      Int?
+  calIdTeam        CalIdTeam?      @relation(fields: [calIdTeamId], references: [id])
 
   @@unique([identifier, token])
   @@index([token])
   @@index([teamId])
+  @@index([calIdTeamId])
   @@index([secondaryEmailId])
 }
 
 model InstantMeetingToken {
-  id        Int      @id @default(autoincrement())
-  token     String   @unique
-  expires   DateTime
-  teamId    Int
-  team      Team     @relation(fields: [teamId], references: [id])
-  bookingId Int?     @unique
-  booking   Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  id          Int       @id @default(autoincrement())
+  token       String    @unique
+  expires     DateTime
+  teamId      Int
+  team        Team      @relation(fields: [teamId], references: [id])
+  bookingId   Int?      @unique
+  booking     Booking?  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  calIdTeamId Int
+  calIdTeam   CalIdTeam @relation(fields: [calIdTeamId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -704,16 +772,18 @@ model BookingReference {
 }
 
 model Attendee {
-  id          Int          @id @default(autoincrement())
-  email       String
-  name        String
-  timeZone    String
-  phoneNumber String?
-  locale      String?      @default("en")
-  booking     Booking?     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  bookingId   Int?
-  bookingSeat BookingSeat?
-  noShow      Boolean?     @default(false)
+  id                    Int                     @id @default(autoincrement())
+  email                 String
+  name                  String
+  timeZone              String
+  phoneNumber           String?
+  locale                String?                 @default("en")
+  booking               Booking?                @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId             Int?
+  bookingSeat           BookingSeat?
+  noShow                Boolean?                @default(false)
+  workflowReminder      WorkflowReminder[]
+  calIdWorkflowReminder CalIdWorkflowReminder[]
 
   @@index([email])
   @@index([bookingId])
@@ -793,6 +863,7 @@ model Booking {
   tracking                     Tracking?
   routingFormResponses         RoutingFormResponseDenormalized[]
   expenseLogs                  CreditExpenseLog[]
+  calIdWorkflowReminders       CalIdWorkflowReminder[]
 
   @@index([eventTypeId])
   @@index([userId])
@@ -1010,6 +1081,8 @@ model Webhook {
   scheduledTriggers     WebhookScheduledTriggers[]
   time                  Int?
   timeUnit              TimeUnit?
+  calIdTeamId           Int?
+  calIdTeam             CalIdTeam?                 @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade)
 
   @@unique([userId, subscriberUrl], name: "courseIdentifier")
   @@unique([platformOAuthClientId, subscriberUrl], name: "oauthclientwebhook")
@@ -1029,21 +1102,24 @@ model Impersonations {
 }
 
 model ApiKey {
-  id         String      @id @unique @default(cuid())
-  userId     Int
-  teamId     Int?
-  note       String?
-  createdAt  DateTime    @default(now())
-  expiresAt  DateTime?
-  lastUsedAt DateTime?
-  hashedKey  String      @unique()
-  user       User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  team       Team?       @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  app        App?        @relation(fields: [appId], references: [slug], onDelete: Cascade)
-  appId      String?
-  rateLimits RateLimit[]
+  id          String      @id @unique @default(cuid())
+  userId      Int
+  teamId      Int?
+  note        String?
+  createdAt   DateTime    @default(now())
+  expiresAt   DateTime?
+  lastUsedAt  DateTime?
+  hashedKey   String      @unique()
+  user        User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team        Team?       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  app         App?        @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  appId       String?
+  rateLimits  RateLimit[]
+  calIdTeam   CalIdTeam?  @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade) // NEW
+  calIdTeamId Int?
 
   @@index([userId])
+  @@index([calIdTeamId])
 }
 
 model RateLimit {
@@ -1117,6 +1193,7 @@ enum AppCategories {
   // Wherever video is in use, conferencing should also be used for legacy apps can have it.
   conferencing
   crm
+  onehash
 }
 
 model App {
@@ -1162,9 +1239,12 @@ model App_RoutingForms_Form {
   /// @zod.custom(imports.RoutingFormSettings)
   settings                 Json?
   incompleteBookingActions App_RoutingForms_IncompleteBookingActions[]
+  calIdTeam                CalIdTeam?                                  @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade) // NEW
+  calIdTeamId              Int?
 
   @@index([userId])
   @@index([disabled])
+  @@index([calIdTeamId])
 }
 
 model App_RoutingForms_FormResponse {
@@ -1226,6 +1306,7 @@ view RoutingFormResponse {
   formId                           String
   formName                         String
   formTeamId                       Int?
+  formCalTeamId                    Int?
   formUserId                       Int?
   bookingUid                       String?
   bookingStatus                    BookingStatus?
@@ -1279,9 +1360,11 @@ model RoutingFormResponseDenormalized {
   utm_content             String?
   response                App_RoutingForms_FormResponse @relation(fields: [id], references: [id], onDelete: Cascade)
   fields                  RoutingFormResponseField[]    @relation("DenormalizedResponseToFields")
+  formCalTeamId           Int?
 
   @@index([formId])
   @@index([formTeamId])
+  @@index([formCalTeamId])
   @@index([formUserId])
   @@index([formId, createdAt])
   @@index([bookingId])
@@ -1342,20 +1425,21 @@ model WorkflowStep {
 }
 
 model Workflow {
-  id            Int                     @id @default(autoincrement())
-  position      Int                     @default(0)
-  name          String
-  userId        Int?
-  user          User?                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  team          Team?                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId        Int?
-  activeOn      WorkflowsOnEventTypes[]
-  activeOnTeams WorkflowsOnTeams[]
-  isActiveOnAll Boolean                 @default(false)
-  trigger       WorkflowTriggerEvents
-  time          Int?
-  timeUnit      TimeUnit?
-  steps         WorkflowStep[]
+  id               Int                     @id @default(autoincrement())
+  position         Int                     @default(0)
+  name             String
+  userId           Int?
+  user             User?                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team             Team?                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId           Int?
+  activeOn         WorkflowsOnEventTypes[]
+  activeOnTeams    WorkflowsOnTeams[]
+  isActiveOnAll    Boolean                 @default(false)
+  trigger          WorkflowTriggerEvents
+  time             Int?
+  timeUnit         TimeUnit?
+  steps            WorkflowStep[]
+  workflowInsights WorkflowInsights[]
 
   @@index([userId])
   @@index([teamId])
@@ -1438,6 +1522,8 @@ model WorkflowReminder {
   seatReferenceId     String?
   isMandatoryReminder Boolean?        @default(false)
   retryCount          Int             @default(0)
+  attendeeId          Int?
+  attendee            Attendee?       @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
 
   @@index([bookingUid])
   @@index([workflowStepId])
@@ -1468,12 +1554,19 @@ enum WorkflowTemplates {
   RESCHEDULED
   COMPLETED
   RATING
+  THANKYOU
 }
 
 enum WorkflowMethods {
   EMAIL
   SMS
   WHATSAPP
+}
+
+enum WorkflowStatus {
+  DELIVERED
+  READ
+  FAILED
 }
 
 model BookingSeat {
@@ -1492,24 +1585,28 @@ model BookingSeat {
 }
 
 model VerifiedNumber {
-  id          Int    @id @default(autoincrement())
+  id          Int        @id @default(autoincrement())
   userId      Int?
-  user        User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
   teamId      Int?
-  team        Team?  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  team        Team?      @relation(fields: [teamId], references: [id], onDelete: Cascade)
   phoneNumber String
+  calIdTeamId Int?
+  calIdTeam   CalIdTeam? @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([teamId])
 }
 
 model VerifiedEmail {
-  id     Int    @id @default(autoincrement())
-  userId Int?
-  user   User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  teamId Int?
-  team   Team?  @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  email  String
+  id          Int        @id @default(autoincrement())
+  userId      Int?
+  user        User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId      Int?
+  team        Team?      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  email       String
+  calIdTeamId Int?
+  calIdTeam   CalIdTeam? @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([teamId])
@@ -1517,21 +1614,22 @@ model VerifiedEmail {
 
 model Feature {
   // The feature slug, ex: 'v2-workflows'
-  slug        String         @id @unique
+  slug        String              @id @unique
   // If the feature is currently enabled
-  enabled     Boolean        @default(false)
+  enabled     Boolean             @default(false)
   // A short description of the feature
   description String?
   // The type of feature flag
-  type        FeatureType?   @default(RELEASE)
+  type        FeatureType?        @default(RELEASE)
   // If the flag is considered stale
-  stale       Boolean?       @default(false)
+  stale       Boolean?            @default(false)
   lastUsedAt  DateTime?
-  createdAt   DateTime?      @default(now())
-  updatedAt   DateTime?      @default(now()) @updatedAt
+  createdAt   DateTime?           @default(now())
+  updatedAt   DateTime?           @default(now()) @updatedAt
   updatedBy   Int?
   users       UserFeatures[]
   teams       TeamFeatures[]
+  calIdTeams  CalIdTeamFeatures[]
 
   @@index([enabled])
   @@index([stale])
@@ -1604,16 +1702,20 @@ model OAuthClient {
 }
 
 model AccessCode {
-  id        Int           @id @default(autoincrement())
-  code      String
-  clientId  String?
-  client    OAuthClient?  @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
-  expiresAt DateTime
-  scopes    AccessScope[]
-  userId    Int?
-  user      User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  teamId    Int?
-  team      Team?         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  id          Int           @id @default(autoincrement())
+  code        String
+  clientId    String?
+  client      OAuthClient?  @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  expiresAt   DateTime
+  scopes      AccessScope[]
+  userId      Int?
+  user        User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId      Int?
+  team        Team?         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  calIdTeam   CalIdTeam?    @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade) // NEW
+  calIdTeamId Int?
+
+  @@index([calIdTeamId])
 }
 
 enum AccessScope {
@@ -1711,6 +1813,7 @@ view BookingTimeStatusDenormalized {
   noShowHost     Boolean?
   isTeamBooking  Boolean
   timeStatus     String? // this is the addition on top of BookingDenormalized
+  calIdTeamId    Int?
 }
 
 model CalendarCache {
@@ -1765,9 +1868,11 @@ model Avatar {
   // different every time to pop the cache.
   objectKey String @unique
 
-  isBanner Boolean @default(false)
+  isHeader  Boolean @default(false)
+  isBanner  Boolean @default(false)
+  isFavicon Boolean @default(false)
 
-  @@unique([teamId, userId, isBanner])
+  @@unique([teamId, userId, isBanner, isFavicon, isHeader])
   @@map(name: "avatars")
 }
 
@@ -2025,9 +2130,12 @@ model Attribute {
   options          AttributeOption[]
   isWeightsEnabled Boolean           @default(false)
   isLocked         Boolean           @default(false)
+  calIdTeam        CalIdTeam?        @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade) // NEW
+  calIdTeamId      Int?
 
   @@unique([teamId, slug])
   @@index([teamId])
+  @@index([calIdTeamId])
 }
 
 model AttributeToUser {
@@ -2038,6 +2146,12 @@ model AttributeToUser {
 
   // This is the membership id of the organization
   memberId Int
+
+  // This is the calIdMembership of the calIdTeam
+  calIdMember CalIdMembership? @relation(fields: [calIdMemberId], references: [id], onDelete: Cascade)
+
+  // This is the calIdMembership id of the calIdTeam
+  calIdMemberId Int?
 
   attributeOption   AttributeOption @relation(fields: [attributeOptionId], references: [id], onDelete: Cascade)
   attributeOptionId String
@@ -2058,6 +2172,7 @@ model AttributeToUser {
   updatedByDSync   DSyncData? @relation("updatedByDSync", fields: [updatedByDSyncId], references: [directoryId], onDelete: SetNull)
 
   @@unique([memberId, attributeOptionId])
+  @@unique([calIdMemberId, attributeOptionId])
 }
 
 enum AssignmentReasonEnum {
@@ -2278,6 +2393,18 @@ model App_RoutingForms_IncompleteBookingActions {
   credentialId Int?
 }
 
+model WorkflowInsights {
+  msgId       String          @unique
+  eventTypeId Int
+  eventType   EventType?      @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  workflowId  Int?
+  workflow    Workflow?       @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  type        WorkflowMethods
+  status      WorkflowStatus
+  metadata    Json?
+  createdAt   DateTime        @default(now())
+}
+
 model InternalNotePreset {
   id                 Int     @id @default(autoincrement())
   name               String
@@ -2295,6 +2422,7 @@ model InternalNotePreset {
 enum FilterSegmentScope {
   USER
   TEAM
+  CALIDTEAM
 }
 
 model FilterSegment {
@@ -2319,11 +2447,14 @@ model FilterSegment {
   team             Team?                         @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId           Int?
   userPreferences  UserFilterSegmentPreference[]
+  calIdTeam        CalIdTeam?                    @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade)
+  calIdTeamId      Int?
 
   // For user-scoped segments: scope + userId + tableIdentifier
   @@index([scope, userId, tableIdentifier])
   // For team-scoped segments: scope + teamId + tableIdentifier
   @@index([scope, teamId, tableIdentifier])
+  @@index([scope, calIdTeamId, tableIdentifier])
 }
 
 model UserFilterSegmentPreference {
@@ -2394,9 +2525,13 @@ model Role {
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
   type        RoleType         @default(CUSTOM)
+  calIdTeam   CalIdTeam?       @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade) // NEW
+  calIdTeamId Int?
 
   @@unique([name, teamId])
+  @@unique([name, calIdTeamId])
   @@index([teamId])
+  @@index([calIdTeamId])
 }
 
 model RolePermission {
@@ -2411,4 +2546,204 @@ model RolePermission {
   @@index([roleId])
   // TODO: come back to this with indexs.
   @@index([action])
+}
+
+model CalIdTeam {
+  id                   Int                   @id @default(autoincrement())
+  name                 String
+  slug                 String?
+  logoUrl              String?
+  bio                  String?
+  hideTeamBranding     Boolean               @default(false)
+  hideTeamProfileLink  Boolean               @default(false)
+  isTeamPrivate        Boolean               @default(false)
+  hideBookATeamMember  Boolean               @default(false)
+  members              CalIdMembership[]
+  eventTypes           EventType[]
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  metadata             Json?
+  theme                String?
+  brandColor           String?
+  darkBrandColor       String?
+  verifiedNumbers      VerifiedNumber[]
+  verifiedEmails       VerifiedEmail[]
+  inviteTokens         VerificationToken[]
+  webhooks             Webhook[]
+  timeFormat           Int?
+  timeZone             String                @default("Asia/Kolkata")
+  weekStart            String                @default("Monday")
+  bookingFrequency     Json?
+  filterSegments       FilterSegment[]
+  bannerUrl            String?
+  instantMeetingTokens InstantMeetingToken[]
+
+  credentials              Credential[] // Teams can have credentials for integrations
+  accessCodes              AccessCode[] // Teams can have OAuth access codes
+  routingForms             App_RoutingForms_Form[] // Teams can own routing forms
+  apiKeys                  ApiKey[] // Teams can have API keys for external access
+  attributes               Attribute[] // Teams can define custom attributes
+  roles                    Role[] // Teams can have custom roles
+  features                 CalIdTeamFeatures[] // Teams can have feature flags enabled
+  workflows                CalIdWorkflow[]
+  activeWorkflows          CalIdWorkflowsOnTeams[]
+  roundRobinResetInterval  RoundRobinResetInterval?  @default(MONTH)
+  roundRobinTimestampBasis RoundRobinTimestampBasis? @default(CREATED_AT)
+
+  @@unique([slug])
+}
+
+enum CalIdMembershipRole {
+  MEMBER
+  ADMIN
+  OWNER
+}
+
+model CalIdMembership {
+  id                 Int                 @id @default(autoincrement())
+  calIdTeamId        Int
+  userId             Int
+  acceptedInvitation Boolean             @default(false)
+  role               CalIdMembershipRole
+  calIdTeam          CalIdTeam           @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade)
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  impersonation      Boolean             @default(true)
+  createdAt          DateTime?           @default(now())
+  updatedAt          DateTime?           @updatedAt
+  AttributeToUser    AttributeToUser[]
+
+  @@unique([userId, calIdTeamId])
+  @@index([calIdTeamId])
+  @@index([userId])
+  @@index([acceptedInvitation])
+  @@index([role])
+}
+
+model CalIdTeamFeatures {
+  calIdTeam   CalIdTeam @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade)
+  calIdTeamId Int
+  feature     Feature   @relation(fields: [featureId], references: [slug], onDelete: Cascade)
+  featureId   String
+  assignedAt  DateTime  @default(now())
+  assignedBy  String
+  updatedAt   DateTime  @updatedAt
+
+  @@id([calIdTeamId, featureId])
+  @@index([calIdTeamId, featureId])
+}
+
+// CalId Workflow Models - Duplicates of Workflow models with CalId prefix
+
+model CalIdWorkflowStep {
+  id                        Int                     @id @default(autoincrement())
+  stepNumber                Int
+  action                    WorkflowActions
+  workflowId                Int
+  workflow                  CalIdWorkflow           @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  sendTo                    String?
+  reminderBody              String?
+  emailSubject              String?
+  template                  WorkflowTemplates       @default(REMINDER)
+  workflowReminders         CalIdWorkflowReminder[]
+  numberRequired            Boolean?
+  sender                    String?
+  numberVerificationPending Boolean                 @default(true)
+  includeCalendarEvent      Boolean                 @default(false)
+  verifiedAt                DateTime?
+  @@index([workflowId])
+}
+
+model CalIdWorkflow {
+  id               Int                          @id @default(autoincrement())
+  position         Int                          @default(0)
+  name             String
+  userId           Int?
+  user             User?                        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  calIdTeam        CalIdTeam?                   @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade)
+  calIdTeamId      Int?
+  activeOn         CalIdWorkflowsOnEventTypes[]
+  activeOnTeams    CalIdWorkflowsOnTeams[]
+  isActiveOnAll    Boolean                      @default(false)
+  trigger          WorkflowTriggerEvents
+  time             Int?
+  timeUnit         TimeUnit?
+  steps            CalIdWorkflowStep[]
+  workflowInsights CalIdWorkflowInsights[]
+  disabled         Boolean                      @default(false)
+
+  @@index([userId])
+  @@index([calIdTeamId])
+}
+
+model CalIdWorkflowsOnEventTypes {
+  id          Int           @id @default(autoincrement())
+  workflow    CalIdWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  workflowId  Int
+  eventType   EventType     @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId Int
+
+  @@unique([workflowId, eventTypeId])
+  @@index([workflowId])
+  @@index([eventTypeId])
+}
+
+model CalIdWorkflowsOnTeams {
+  id          Int           @id @default(autoincrement())
+  workflow    CalIdWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  workflowId  Int
+  calIdTeam   CalIdTeam     @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade)
+  calIdTeamId Int
+
+  @@unique([workflowId, calIdTeamId])
+  @@index([workflowId])
+  @@index([calIdTeamId])
+}
+
+model CalIdWorkflowReminder {
+  id                  Int                @id @default(autoincrement())
+  uuid                String?            @unique @default(uuid())
+  bookingUid          String?
+  booking             Booking?           @relation(fields: [bookingUid], references: [uid])
+  method              WorkflowMethods
+  scheduledDate       DateTime
+  referenceId         String?            @unique
+  scheduled           Boolean
+  workflowStepId      Int?
+  workflowStep        CalIdWorkflowStep? @relation(fields: [workflowStepId], references: [id], onDelete: Cascade)
+  cancelled           Boolean?
+  seatReferenceId     String?
+  isMandatoryReminder Boolean?           @default(false)
+  retryCount          Int                @default(0)
+  userId              Int?
+  user                User?              @relation("UserCalIdWorkflowReminders", fields: [userId], references: [id], onDelete: Cascade)
+  attendeeId          Int?
+  attendee            Attendee?          @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
+
+  @@index([bookingUid])
+  @@index([workflowStepId])
+  @@index([seatReferenceId])
+  @@index([method, scheduled, scheduledDate])
+  @@index([cancelled, scheduledDate])
+}
+
+model CalIdWorkflowInsights {
+  msgId       String          @unique
+  eventTypeId Int
+  eventType   EventType?      @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  workflowId  Int?
+  workflow    CalIdWorkflow?  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  type        WorkflowMethods
+  status      WorkflowStatus
+  metadata    Json?
+  createdAt   DateTime        @default(now())
+}
+
+enum RoundRobinResetInterval {
+  MONTH
+  DAY
+}
+
+enum RoundRobinTimestampBasis {
+  CREATED_AT
+  START_TIME
 }

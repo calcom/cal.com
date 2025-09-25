@@ -14,7 +14,7 @@ export const metadata = {
   url: "https://jitsi.org/",
   slug: "jitsi",
   title: "Jitsi Meet",
-  isGlobal: false,
+  isGlobal: true,
   email: "help@cal.com",
   appData: {
     location: {

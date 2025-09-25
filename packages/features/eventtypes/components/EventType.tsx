@@ -1,10 +1,10 @@
 "use client";
 
 /* eslint-disable @typescript-eslint/no-empty-function */
+import type { CalIdWorkflow } from "@calid/features/modules/workflows/config/types";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { UseFormReturn } from "react-hook-form";
 
-import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import type {
   TabMap,
@@ -50,7 +50,7 @@ export type EventTypeHosts = RouterOutputs["viewer"]["eventTypes"]["get"]["event
 export type TeamMembers = RouterOutputs["viewer"]["eventTypes"]["get"]["teamMembers"];
 
 export type EventTypeComponentProps = EventTypeSetupProps & {
-  allActiveWorkflows?: Workflow[];
+  allActiveWorkflows?: CalIdWorkflow[];
   tabMap: TabMap;
   onDelete: (id: number) => void;
   isDeleting?: boolean;

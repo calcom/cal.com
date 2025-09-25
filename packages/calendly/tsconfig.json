@@ -1,0 +1,4 @@
+{
+  "include": ["src/**/*.ts", "src/types.d.ts", "src/utils/calendly-oauth-popup.tsx"],
+  "exclude": ["node_modules"]
+}

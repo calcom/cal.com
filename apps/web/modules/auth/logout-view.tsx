@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import type { ParsedUrlQuery } from "querystring";
@@ -7,10 +9,7 @@ import { useEffect, useState } from "react";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
-
-import AuthContainer from "@components/ui/AuthContainer";
+import { Logo } from "@calid/features/ui/components/logo";
 
 export type PageProps = {
   query: ParsedUrlQuery;
@@ -41,28 +40,33 @@ export function Logout(props: PageProps) {
   };
 
   return (
-    <AuthContainer showLogo>
-      <div className="mb-4">
-        <div className="bg-success mx-auto flex h-12 w-12 items-center justify-center rounded-full">
-          <Icon name="check" className="h-6 w-6 text-green-600" />
-        </div>
-        <div className="mt-3 text-center sm:mt-5">
-          <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-title">
-            {t("youve_been_logged_out")}
-          </h3>
-          <div className="mt-2">
-            <p className="text-subtle text-sm">{t(message())}</p>
+    <div className="bg-default flex flex-col min-h-screen items-center justify-center px-4 sm:px-6 lg:px-8">
+      <div className="border-default w-full max-w-lg rounded-2xl border p-8 shadow-xl">
+        <div className="text-center">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+            <Icon name="check" className="h-8 w-8 text-green-600" />
           </div>
+          <h1 className="text-emphasis text-2xl font-bold">{t("youve_been_logged_out")}</h1>
+          <p className="text-subtle text-md leading-relaxed">{t(message())}</p>
+        </div>
+
+        <div className="mt-4">
+          <Button
+            data-testid="logout-btn"
+            onClick={navigateToLogin}
+            color="primary"
+            className="w-full justify-center py-3"
+            loading={btnLoading}>
+            {t("go_back_login")}
+          </Button>
         </div>
       </div>
-      <Button
-        data-testid="logout-btn"
-        onClick={navigateToLogin}
-        className="flex w-full justify-center"
-        loading={btnLoading}>
-        {t("go_back_login")}
-      </Button>
-    </AuthContainer>
+      <div className="mt-8">
+        <div className="mb-8 flex justify-center">
+          <Logo small icon />
+        </div>
+      </div>
+    </div>
   );
 }
 

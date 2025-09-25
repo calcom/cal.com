@@ -15,7 +15,7 @@ export type TopBannerProps = {
 
 const variantClassName = {
   default: "bg-gradient-primary",
-  warning: "bg-orange-400",
+  warning: "bg-amber-400",
   error: "bg-red-400",
 };
 

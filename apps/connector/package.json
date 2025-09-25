@@ -1,0 +1,35 @@
+{
+  "name": "@calid/connector",
+  "version": "1.0.0",
+  "description": "Fastify API server for Cal ID",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "tsx watch --env-file=.env src/server.ts",
+    "start": "node --env-file=.env dist/server.js",
+    "build": "tsc",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src --ext .ts,.tsx",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@calcom/prisma": "workspace:*",
+    "@fastify/autoload": "^5.8.0",
+    "@fastify/cors": "^8.4.0",
+    "@fastify/env": "4.x",
+    "@fastify/jwt": "^10.0.0",
+    "@fastify/swagger": "^8.12.0",
+    "@fastify/swagger-ui": "^2.1.0",
+    "@unkey/ratelimit": "^2.1.3",
+    "bcryptjs": "^2.4.3",
+    "fastify": "^4.24.3",
+    "zod": "^3.22.4",
+    "zod-to-json-schema": "^3.24.6"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20.8.0",
+    "rimraf": "^5.0.5",
+    "tsx": "^4.1.0",
+    "typescript": "^5.2.2"
+  }
+}

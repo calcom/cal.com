@@ -1,3 +1,5 @@
+// import EventTypes, { EventTypesCTA } from "~/event-types/views/event-types-listing-view";
+import { EventTypes } from "@calid/features/modules/event-types/pages/index";
 import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
 import { createRouterCaller, getTRPCContext } from "app/_trpc/context";
 import type { PageProps, ReadonlyHeaders, ReadonlyRequestCookies } from "app/_types";
@@ -11,8 +13,6 @@ import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsF
 import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-
-import EventTypes, { EventTypesCTA } from "~/event-types/views/event-types-listing-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -56,13 +56,13 @@ const Page = async ({ searchParams }: PageProps) => {
   const t = await getTranslate();
   const filters = getTeamsFiltersFromQuery(_searchParams);
   const userEventGroupsData = await getCachedEventGroups(_headers, _cookies, filters);
-
+  //  setHeaderMeta({
+  //     title: "Event Types",
+  //     description: "Manage your event types and booking configurations.",
+  //   });
   return (
-    <ShellMainAppDir
-      heading={t("event_types_page_title")}
-      subtitle={t("event_types_page_subtitle")}
-      CTA={<EventTypesCTA userEventGroupsData={userEventGroupsData} />}>
-      <EventTypes userEventGroupsData={userEventGroupsData} user={session.user} />
+    <ShellMainAppDir heading={t("event_types_page_title")} subtitle={t("event_types_page_subtitle")}>
+      <EventTypes />
     </ShellMainAppDir>
   );
 };

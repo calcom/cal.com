@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@calid/features/ui/components/icon";
 import { useCallback, useState } from "react";
 
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
@@ -9,8 +10,7 @@ import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Button } from "@calcom/ui/components/button";
-import { Label, Select, TextArea } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { Label, Select, Switch, TextArea } from "@calcom/ui/components/form";
 
 interface InternalNotePresetsSelectProps {
   internalNotePresets: { id: number; name: string }[];
@@ -76,6 +76,7 @@ type Props = {
     title?: string;
     uid?: string;
     id?: number;
+    isPaid: boolean;
   };
   profile: {
     name: string | null;
@@ -118,6 +119,7 @@ export default function CancelBooking(props: Props) {
   const telemetry = useTelemetry();
   const [error, setError] = useState<string | null>(booking ? null : t("booking_already_cancelled"));
   const [internalNote, setInternalNote] = useState<{ id: number; name: string } | null>(null);
+  const [autoRefund, setAutoRefund] = useState<boolean>(false);
 
   const cancelBookingRef = useCallback((node: HTMLTextAreaElement) => {
     if (node !== null) {
@@ -179,6 +181,18 @@ export default function CancelBooking(props: Props) {
             className="mb-4 mt-2 w-full "
             rows={3}
           />
+          {props.isHost && props.booking.isPaid && (
+            <div className="flex w-full justify-between">
+              <label className="text-default font-medium">{t("autorefund")}</label>
+              <Switch
+                tooltip={t("autorefund_info")}
+                checked={autoRefund}
+                onCheckedChange={(val) => {
+                  setAutoRefund(val);
+                }}
+              />
+            </div>
+          )}
           {props.isHost ? (
             <div className="-mt-2 mb-4 flex items-center gap-2">
               <Icon name="info" className="text-subtle h-4 w-4" />
@@ -215,6 +229,7 @@ export default function CancelBooking(props: Props) {
                       seatReferenceUid,
                       cancelledBy: currentUserEmail,
                       internalNote: internalNote,
+                      autoRefund,
                     }),
                     headers: {
                       "Content-Type": "application/json",

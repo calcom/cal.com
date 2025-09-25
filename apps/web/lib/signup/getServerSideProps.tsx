@@ -81,20 +81,20 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       token,
     },
     include: {
-      team: {
+      calIdTeam: {
         select: {
           metadata: true,
-          isOrganization: true,
-          parentId: true,
-          parent: {
-            select: {
-              slug: true,
-              isOrganization: true,
-              organizationSettings: true,
-            },
-          },
+          // isOrganization: true,
+          // parentId: true,
+          // parent: {
+          //   select: {
+          //     slug: true,
+          //     // isOrganization: true,
+          //     organizationSettings: true,
+          //   },
+          // },
           slug: true,
-          organizationSettings: true,
+          // organizationSettings: true,
         },
       },
     },
@@ -142,13 +142,15 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   const tokenTeam = {
     ...verificationToken?.team,
-    metadata: teamMetadataSchema.parse(verificationToken?.team?.metadata),
+    metadata: teamMetadataSchema.parse(verificationToken?.calIdTeam?.metadata),
   };
 
-  const isATeamInOrganization = tokenTeam?.parentId !== null;
+  // const isATeamInOrganization = tokenTeam?.parentId !== null;
   // Detect if the team is an org by either the metadata flag or if it has a parent team
-  const isOrganization = tokenTeam.isOrganization;
-  const isOrganizationOrATeamInOrganization = isOrganization || isATeamInOrganization;
+
+  // REVIEW: calidTeam doesn't have isOrganization field in prisma schema, so this will always be false for now
+  const isOrganization = false //tokenTeam.isOrganization;
+  const isOrganizationOrATeamInOrganization = false//isOrganization || isATeamInOrganization;
   // If we are dealing with an org, the slug may come from the team itself or its parent
   const orgSlug = isOrganizationOrATeamInOrganization
     ? tokenTeam.metadata?.requestedSlug || tokenTeam.parent?.slug || tokenTeam.slug

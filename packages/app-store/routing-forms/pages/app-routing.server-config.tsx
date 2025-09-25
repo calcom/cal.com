@@ -2,13 +2,15 @@ import "server-only";
 
 import type { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
 
-import { getServerSidePropsForSingleFormView as getServerSidePropsSingleForm } from "../components/getServerSidePropsSingleForm";
+import { getServerSidePropsForSingleFormViewCalId as getServerSidePropsSingleFormCalId } from "../components/getServerSidePropsSingleFormCalId";
 import { getServerSideProps as getServerSidePropsRoutingLink } from "./routing-link/getServerSideProps";
 
 export const routingServerSidePropsConfig: Record<string, AppGetServerSideProps> = {
-  "form-edit": getServerSidePropsSingleForm,
-  "route-builder": getServerSidePropsSingleForm,
+  "form-edit": getServerSidePropsSingleFormCalId,
+  "form-embed": getServerSidePropsSingleFormCalId,
+  "details": getServerSidePropsSingleFormCalId,
+  "route-builder": getServerSidePropsSingleFormCalId,
   "routing-link": getServerSidePropsRoutingLink,
-  reporting: getServerSidePropsSingleForm,
-  "incomplete-booking": getServerSidePropsSingleForm,
+  reporting: getServerSidePropsSingleFormCalId,
+  "incomplete-booking": getServerSidePropsSingleFormCalId,
 };

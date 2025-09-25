@@ -8,6 +8,7 @@ interface FilterBarProps<TData> {
 }
 
 export function FilterBar<TData>({ table }: FilterBarProps<TData>) {
+  // return <ActiveFilters table={table} />;
   return (
     <>
       <AddFilterButton table={table} hideWhenFilterApplied />

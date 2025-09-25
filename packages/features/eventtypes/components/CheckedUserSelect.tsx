@@ -1,12 +1,12 @@
+import { Icon } from "@calid/features/ui/components/icon";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { Props } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/components/icon";
-import { Label } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Label } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/components/form";
 
 export type CheckedUserSelectOption = {
   avatar: string;
@@ -41,7 +41,7 @@ export const CheckedUserSelect = ({
       {value.length > 0 ? (
         <div className="mt-6">
           <Label>{t("assigned_to")}</Label>
-          <div className="flex overflow-hidden rounded-md border border-gray-200 bg-white">
+          <div className="bg-primary flex overflow-hidden rounded-md border border-gray-200">
             <ul className="w-full" data-testid="managed-event-types" ref={animationRef}>
               {value.map((option, index) => {
                 return (

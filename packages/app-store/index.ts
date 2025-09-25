@@ -43,6 +43,7 @@ const appStore = {
   shimmervideo: createCachedImport(() => import("./shimmervideo")),
   hitpay: createCachedImport(() => import("./hitpay")),
   btcpayserver: createCachedImport(() => import("./btcpayserver")),
+  razorpay: () => import("./razorpay"),
 };
 
 function createCachedImport<T>(importFunc: () => Promise<T>): () => Promise<T> {

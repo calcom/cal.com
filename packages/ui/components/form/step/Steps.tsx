@@ -37,7 +37,7 @@ const Steps = (props: StepsProps) => {
               key={`step-${index}`}
               onClick={() => nextStep?.()}
               className={classNames(
-                "bg-inverted h-1 w-full rounded-[1px]",
+                "bg-brand-default h-1 w-full rounded-[1px]",
                 index < currentStep - 1 && !disableNavigation ? "cursor-pointer" : ""
               )}
               data-testid={`step-indicator-${index}`}

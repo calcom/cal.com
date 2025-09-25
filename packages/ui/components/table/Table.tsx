@@ -26,7 +26,7 @@ const ColumnTitle = ({ children, widthClassNames }: TableProps & DynamicWidth) =
 );
 
 const Body = ({ children }: TableProps) => (
-  <tbody className="divide-subtle divide-y rounded-md">{children}</tbody>
+  <tbody className="rounded-md">{children}</tbody>
 );
 
 const Row = ({ children }: TableProps) => <tr>{children}</tr>;
@@ -42,8 +42,8 @@ const Cell = ({ children, widthClassNames }: TableProps & DynamicWidth) => (
 );
 
 export const Table = ({ children }: TableProps) => (
-  <div className="bg-default border-subtle overflow-x-auto overflow-y-hidden rounded-md border">
-    <table className="divide-subtle w-full divide-y rounded-md">{children}</table>
+  <div className="bg-default overflow-x-auto overflow-y-hidden rounded-md ">
+    <table className="divide-subtle w-full rounded-md">{children}</table>
   </div>
 );
 

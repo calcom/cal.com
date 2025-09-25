@@ -16,12 +16,15 @@ import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
 import { RedirectType, type EventType, type User } from "@calcom/prisma/client";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import type { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
 const log = logger.getSubLogger({ prefix: ["[[pages/[user]]]"] });
 type UserPageProps = {
+  userNotFound: boolean;
+  slug: string;
   profile: {
     name: string;
     image: string;
@@ -36,8 +39,12 @@ type UserPageProps = {
     allowSEOIndexing: boolean;
     username: string | null;
   };
-  users: (Pick<User, "name" | "username" | "bio" | "verified" | "avatarUrl"> & {
+  users: (Pick<
+    User,
+    "name" | "username" | "bio" | "verified" | "avatarUrl" | "bannerUrl" | "faviconUrl" | "hideBranding"
+  > & {
     profile: UserProfile;
+    metadata: z.infer<typeof userMetadataSchema> | null;
   })[];
   themeBasis: string | null;
   markdownStrippedBio: string;
@@ -126,7 +133,10 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
 
   if (!usersInOrgContext.length || (!isValidOrgDomain && !isThereAnyNonOrgUser)) {
     return {
-      notFound: true,
+      props: {
+        userNotFound: true,
+        slug: String(context.query.user ?? ""),
+      },
     } as const;
   }
 
@@ -182,6 +192,10 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         avatarUrl: user.avatarUrl,
         verified: user.verified,
         profile: user.profile,
+        bannerUrl: user.bannerUrl,
+        faviconUrl: user.faviconUrl,
+        hideBranding: user.hideBranding,
+        metadata: (user.metadata as z.infer<typeof userMetadataSchema>) ?? null,
       })),
       entity: {
         ...(org?.logoUrl ? { logoUrl: org?.logoUrl } : {}),

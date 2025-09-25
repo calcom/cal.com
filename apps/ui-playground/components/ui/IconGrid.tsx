@@ -1,9 +1,9 @@
 "use client";
 
+import { Icon } from "@calid/features/ui/components/icon";
 import React, { useState, useMemo } from "react";
 import { Toaster } from "react-hot-toast";
 
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 type IconName =

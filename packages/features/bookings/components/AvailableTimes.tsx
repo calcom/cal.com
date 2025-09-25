@@ -1,4 +1,8 @@
 // We do not need to worry about importing framer-motion here as it is lazy imported in Booker.
+import { Icon } from "@calid/features/ui/components/icon";
+
+
+
 import * as HoverCard from "@radix-ui/react-hover-card";
 import { AnimatePresence, m } from "framer-motion";
 import { useMemo } from "react";
@@ -14,8 +18,7 @@ import type { IOutOfOfficeData } from "@calcom/lib/getUserAvailability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import classNames from "@calcom/ui/classNames";
-import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
+import { Button } from "@calid/features/ui/components/button";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import { useBookerTime } from "../Booker/components/hooks/useBookerTime";

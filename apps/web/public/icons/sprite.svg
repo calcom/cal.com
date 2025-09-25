@@ -5,6 +5,15 @@
 <symbol class="lucide lucide-activity" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="activity">
   <path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2" ></path>
 </symbol>
+<symbol class="lucide lucide-apple" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="apple">
+  <path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z" ></path>
+  <path d="M10 2c1 .5 2 2 2 5" ></path>
+</symbol>
+<symbol class="lucide lucide-archive" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="archive">
+  <rect width="20" height="5" x="2" y="3" rx="1" ></rect>
+  <path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8" ></path>
+  <path d="M10 12h4" ></path>
+</symbol>
 <symbol class="lucide lucide-arrow-down" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="arrow-down">
   <path d="M12 5v14" ></path>
   <path d="m19 12-7 7-7-7" ></path>
@@ -39,6 +48,10 @@
   <path d="M20.2 20.2c2.04-2.03.02-7.36-4.5-11.9-4.54-4.52-9.87-6.54-11.9-4.5-2.04 2.03-.02 7.36 4.5 11.9 4.54 4.52 9.87 6.54 11.9 4.5Z" ></path>
   <path d="M15.7 15.7c4.52-4.54 6.54-9.87 4.5-11.9-2.03-2.04-7.36-.02-11.9 4.5-4.52 4.54-6.54 9.87-4.5 11.9 2.03 2.04 7.36.02 11.9-4.5Z" ></path>
 </symbol>
+<symbol class="lucide lucide-award" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="award">
+  <path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526" ></path>
+  <circle cx="12" cy="8" r="6" ></circle>
+</symbol>
 <symbol class="lucide lucide-badge-check" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="badge-check">
   <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" ></path>
   <path d="m9 12 2 2 4-4" ></path>
@@ -47,9 +60,41 @@
   <circle cx="12" cy="12" r="10" ></circle>
   <path d="m4.9 4.9 14.2 14.2" ></path>
 </symbol>
+<symbol class="lucide lucide-banana" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="banana">
+  <path d="M4 13c3.5-2 8-2 10 2a5.5 5.5 0 0 1 8 5" ></path>
+  <path d="M5.15 17.89c5.52-1.52 8.65-6.89 7-12C11.55 4 11.5 2 13 2c3.22 0 5 5.5 5 8 0 6.5-4.2 12-10.49 12C5.11 22 2 22 2 20c0-1.5 1.14-1.55 3.15-2.11Z" ></path>
+</symbol>
+<symbol class="lucide lucide-battery" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="battery">
+  <rect width="16" height="10" x="2" y="7" rx="2" ry="2" ></rect>
+  <line x1="22" x2="22" y1="11" y2="13" ></line>
+</symbol>
+<symbol class="lucide lucide-beef" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="beef">
+  <circle cx="12.5" cy="8.5" r="2.5" ></circle>
+  <path d="M12.5 2a6.5 6.5 0 0 0-6.22 4.6c-1.1 3.13-.78 3.9-3.18 6.08A3 3 0 0 0 5 18c4 0 8.4-1.8 11.4-4.3A6.5 6.5 0 0 0 12.5 2Z" ></path>
+  <path d="m18.5 6 2.19 4.5a6.48 6.48 0 0 1 .31 2 6.49 6.49 0 0 1-2.6 5.2C15.4 20.2 11 22 7 22a3 3 0 0 1-2.68-1.66L2.4 16.5" ></path>
+</symbol>
+<symbol class="lucide lucide-beer" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="beer">
+  <path d="M17 11h1a3 3 0 0 1 0 6h-1" ></path>
+  <path d="M9 12v6" ></path>
+  <path d="M13 12v6" ></path>
+  <path d="M14 7.5c-1 0-1.44.5-3 .5s-2-.5-3-.5-1.72.5-2.5.5a2.5 2.5 0 0 1 0-5c.78 0 1.57.5 2.5.5S9.44 2 11 2s2 1.5 3 1.5 1.72-.5 2.5-.5a2.5 2.5 0 0 1 0 5c-.78 0-1.5-.5-2.5-.5Z" ></path>
+  <path d="M5 8v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8" ></path>
+</symbol>
+<symbol class="lucide lucide-bell-ring" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="bell-ring">
+  <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" ></path>
+  <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" ></path>
+  <path d="M4 2C2.8 3.7 2 5.7 2 8" ></path>
+  <path d="M22 8c0-2.3-.8-4.3-2-6" ></path>
+</symbol>
 <symbol class="lucide lucide-bell" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="bell">
   <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" ></path>
   <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" ></path>
+</symbol>
+<symbol class="lucide lucide-bike" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="bike">
+  <circle cx="18.5" cy="17.5" r="3.5" ></circle>
+  <circle cx="5.5" cy="17.5" r="3.5" ></circle>
+  <circle cx="15" cy="5" r="1" ></circle>
+  <path d="M12 17.5V14l-3-3 4-3 2 3h2" ></path>
 </symbol>
 <symbol class="lucide lucide-binary" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="binary">
   <rect x="14" y="14" width="4" height="6" rx="2" ></rect>
@@ -62,6 +107,9 @@
 <symbol class="lucide lucide-blocks" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="blocks">
   <rect width="7" height="7" x="14" y="3" rx="1" ></rect>
   <path d="M10 21V8a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5a1 1 0 0 0-1-1H3" ></path>
+</symbol>
+<symbol class="lucide lucide-bluetooth" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="bluetooth">
+  <path d="m7 7 10 10-5 5V2l5 5L7 17" ></path>
 </symbol>
 <symbol class="lucide lucide-bold" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="bold">
   <path d="M6 12h9a4 4 0 0 1 0 8H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h7a4 4 0 0 1 0 8" ></path>
@@ -80,8 +128,49 @@
   <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20" ></path>
   <circle cx="12" cy="8" r="2" ></circle>
 </symbol>
+<symbol class="lucide lucide-book" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="book">
+  <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20" ></path>
+</symbol>
 <symbol class="lucide lucide-bookmark" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="bookmark">
   <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" ></path>
+</symbol>
+<symbol class="lucide lucide-boxes" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="boxes">
+  <path d="M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42Z" ></path>
+  <path d="m7 16.5-4.74-2.85" ></path>
+  <path d="m7 16.5 5-3" ></path>
+  <path d="M7 16.5v5.17" ></path>
+  <path d="M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z" ></path>
+  <path d="m17 16.5-5-3" ></path>
+  <path d="m17 16.5 4.74-2.85" ></path>
+  <path d="M17 16.5v5.17" ></path>
+  <path d="M7.97 4.42A2 2 0 0 0 7 6.13v4.37l5 3 5-3V6.13a2 2 0 0 0-.97-1.71l-3-1.8a2 2 0 0 0-2.06 0l-3 1.8Z" ></path>
+  <path d="M12 8 7.26 5.15" ></path>
+  <path d="m12 8 4.74-2.85" ></path>
+  <path d="M12 13.5V8" ></path>
+</symbol>
+<symbol class="lucide lucide-brain" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="brain">
+  <path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z" ></path>
+  <path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z" ></path>
+  <path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4" ></path>
+  <path d="M17.599 6.5a3 3 0 0 0 .399-1.375" ></path>
+  <path d="M6.003 5.125A3 3 0 0 0 6.401 6.5" ></path>
+  <path d="M3.477 10.896a4 4 0 0 1 .585-.396" ></path>
+  <path d="M19.938 10.5a4 4 0 0 1 .585.396" ></path>
+  <path d="M6 18a4 4 0 0 1-1.967-.516" ></path>
+  <path d="M19.967 17.484A4 4 0 0 1 18 18" ></path>
+</symbol>
+<symbol class="lucide lucide-briefcase" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="briefcase">
+  <path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" ></path>
+  <rect width="20" height="14" x="2" y="6" rx="2" ></rect>
+</symbol>
+<symbol class="lucide lucide-building-2" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="building-2">
+  <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" ></path>
+  <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" ></path>
+  <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" ></path>
+  <path d="M10 6h4" ></path>
+  <path d="M10 10h4" ></path>
+  <path d="M10 14h4" ></path>
+  <path d="M10 18h4" ></path>
 </symbol>
 <symbol class="lucide lucide-building" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="building">
   <rect width="16" height="20" x="4" y="2" rx="2" ry="2" ></rect>
@@ -96,12 +185,51 @@
   <path d="M8 10h.01" ></path>
   <path d="M8 14h.01" ></path>
 </symbol>
+<symbol class="lucide lucide-bus" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="bus">
+  <path d="M8 6v6" ></path>
+  <path d="M15 6v6" ></path>
+  <path d="M2 12h19.6" ></path>
+  <path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3" ></path>
+  <circle cx="7" cy="18" r="2" ></circle>
+  <path d="M9 18h5" ></path>
+  <circle cx="16" cy="18" r="2" ></circle>
+</symbol>
+<symbol class="lucide lucide-cake" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="cake">
+  <path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8" ></path>
+  <path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1" ></path>
+  <path d="M2 21h20" ></path>
+  <path d="M7 8v3" ></path>
+  <path d="M12 8v3" ></path>
+  <path d="M17 8v3" ></path>
+  <path d="M7 4h.01" ></path>
+  <path d="M12 4h.01" ></path>
+  <path d="M17 4h.01" ></path>
+</symbol>
+<symbol class="lucide lucide-calculator" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="calculator">
+  <rect width="16" height="20" x="4" y="2" rx="2" ></rect>
+  <line x1="8" x2="16" y1="6" y2="6" ></line>
+  <line x1="16" x2="16" y1="14" y2="18" ></line>
+  <path d="M16 10h.01" ></path>
+  <path d="M12 10h.01" ></path>
+  <path d="M8 10h.01" ></path>
+  <path d="M12 14h.01" ></path>
+  <path d="M8 14h.01" ></path>
+  <path d="M12 18h.01" ></path>
+  <path d="M8 18h.01" ></path>
+</symbol>
 <symbol class="lucide lucide-calendar-check-2" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="calendar-check-2">
   <path d="M8 2v4" ></path>
   <path d="M16 2v4" ></path>
   <path d="M21 14V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8" ></path>
   <path d="M3 10h18" ></path>
   <path d="m16 20 2 2 4-4" ></path>
+</symbol>
+<symbol class="lucide lucide-calendar-check" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="calendar-check">
+  <path d="M8 2v4" ></path>
+  <path d="M16 2v4" ></path>
+  <rect width="18" height="18" x="3" y="4" rx="2" ></rect>
+  <path d="M3 10h18" ></path>
+  <path d="m9 16 2 2 4-4" ></path>
 </symbol>
 <symbol class="lucide lucide-calendar-days" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="calendar-days">
   <path d="M8 2v4" ></path>
@@ -153,6 +281,47 @@
   <rect width="18" height="18" x="3" y="4" rx="2" ></rect>
   <path d="M3 10h18" ></path>
 </symbol>
+<symbol class="lucide lucide-candy" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="candy">
+  <path d="m9.5 7.5-2 2a4.95 4.95 0 1 0 7 7l2-2a4.95 4.95 0 1 0-7-7Z" ></path>
+  <path d="M14 6.5v10" ></path>
+  <path d="M10 7.5v10" ></path>
+  <path d="m16 7 1-5 1.37.68A3 3 0 0 0 19.7 3H21v1.3c0 .46.1.92.32 1.33L22 7l-5 1" ></path>
+  <path d="m8 17-1 5-1.37-.68A3 3 0 0 0 4.3 21H3v-1.3a3 3 0 0 0-.32-1.33L2 17l5-1" ></path>
+</symbol>
+<symbol class="lucide lucide-car-front" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="car-front">
+  <path d="m21 8-2 2-1.5-3.7A2 2 0 0 0 15.646 5H8.4a2 2 0 0 0-1.903 1.257L5 10 3 8" ></path>
+  <path d="M7 14h.01" ></path>
+  <path d="M17 14h.01" ></path>
+  <rect width="18" height="8" x="3" y="10" rx="2" ></rect>
+  <path d="M5 18v2" ></path>
+  <path d="M19 18v2" ></path>
+</symbol>
+<symbol class="lucide lucide-car-taxi-front" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="car-taxi-front">
+  <path d="M10 2h4" ></path>
+  <path d="m21 8-2 2-1.5-3.7A2 2 0 0 0 15.646 5H8.4a2 2 0 0 0-1.903 1.257L5 10 3 8" ></path>
+  <path d="M7 14h.01" ></path>
+  <path d="M17 14h.01" ></path>
+  <rect width="18" height="8" x="3" y="10" rx="2" ></rect>
+  <path d="M5 18v2" ></path>
+  <path d="M19 18v2" ></path>
+</symbol>
+<symbol class="lucide lucide-car" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="car">
+  <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2" ></path>
+  <circle cx="7" cy="17" r="2" ></circle>
+  <path d="M9 17h6" ></path>
+  <circle cx="17" cy="17" r="2" ></circle>
+</symbol>
+<symbol class="lucide lucide-castle" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="castle">
+  <path d="M22 20v-9H2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2Z" ></path>
+  <path d="M18 11V4H6v7" ></path>
+  <path d="M15 22v-4a3 3 0 0 0-3-3a3 3 0 0 0-3 3v4" ></path>
+  <path d="M22 11V9" ></path>
+  <path d="M2 11V9" ></path>
+  <path d="M6 4V2" ></path>
+  <path d="M18 4V2" ></path>
+  <path d="M10 4V2" ></path>
+  <path d="M14 4V2" ></path>
+</symbol>
 <symbol class="lucide lucide-chart-bar" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="chart-bar">
   <path d="M3 3v16a2 2 0 0 0 2 2h16" ></path>
   <path d="M7 16h8" ></path>
@@ -163,12 +332,31 @@
   <path d="M3 3v16a2 2 0 0 0 2 2h16" ></path>
   <path d="m19 9-5 5-4-4-3 3" ></path>
 </symbol>
+<symbol class="lucide lucide-chart-no-axes-column-increasing" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="chart-no-axes-column-increasing">
+  <line x1="12" x2="12" y1="20" y2="10" ></line>
+  <line x1="18" x2="18" y1="20" y2="4" ></line>
+  <line x1="6" x2="6" y1="20" y2="16" ></line>
+</symbol>
+<symbol class="lucide lucide-chart-pie" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="chart-pie">
+  <path d="M21 12c.552 0 1.005-.449.95-.998a10 10 0 0 0-8.953-8.951c-.55-.055-.998.398-.998.95v8a1 1 0 0 0 1 1z" ></path>
+  <path d="M21.21 15.89A10 10 0 1 1 8 2.83" ></path>
+</symbol>
 <symbol class="lucide lucide-check-check" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="check-check">
   <path d="M18 6 7 17l-5-5" ></path>
   <path d="m22 10-7.5 7.5L13 16" ></path>
 </symbol>
 <symbol class="lucide lucide-check" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="check">
   <path d="M20 6 9 17l-5-5" ></path>
+</symbol>
+<symbol class="lucide lucide-chef-hat" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="chef-hat">
+  <path d="M17 21a1 1 0 0 0 1-1v-5.35c0-.457.316-.844.727-1.041a4 4 0 0 0-2.134-7.589 5 5 0 0 0-9.186 0 4 4 0 0 0-2.134 7.588c.411.198.727.585.727 1.041V20a1 1 0 0 0 1 1Z" ></path>
+  <path d="M6 17h12" ></path>
+</symbol>
+<symbol class="lucide lucide-cherry" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="cherry">
+  <path d="M2 17a5 5 0 0 0 10 0c0-2.76-2.5-5-5-3-2.5-2-5 .24-5 3Z" ></path>
+  <path d="M12 17a5 5 0 0 0 10 0c0-2.76-2.5-5-5-3-2.5-2-5 .24-5 3Z" ></path>
+  <path d="M7 14c3.22-2.91 4.29-8.75 5-12 1.66 2.38 4.94 9 5 12" ></path>
+  <path d="M22 9c-4.29 0-7.14-2.33-10-7 5.71 0 10 4.67 10 7Z" ></path>
 </symbol>
 <symbol class="lucide lucide-chevron-down" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="chevron-down">
   <path d="m6 9 6 6 6-6" ></path>
@@ -221,6 +409,10 @@
   <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" ></path>
   <path d="M12 17h.01" ></path>
 </symbol>
+<symbol class="lucide lucide-circle-parking" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="circle-parking">
+  <circle cx="12" cy="12" r="10" ></circle>
+  <path d="M9 17V7h4a3 3 0 0 1 0 6H9" ></path>
+</symbol>
 <symbol class="lucide lucide-circle-x" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="circle-x">
   <circle cx="12" cy="12" r="10" ></circle>
   <path d="m15 9-6 6" ></path>
@@ -238,13 +430,36 @@
   <rect width="8" height="4" x="8" y="2" rx="1" ry="1" ></rect>
   <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" ></path>
 </symbol>
+<symbol class="lucide lucide-clock-2" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="clock-2">
+  <circle cx="12" cy="12" r="10" ></circle>
+  <polyline points="12 6 12 12 16 10" ></polyline>
+</symbol>
 <symbol class="lucide lucide-clock" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="clock">
   <circle cx="12" cy="12" r="10" ></circle>
   <polyline points="12 6 12 12 16 14" ></polyline>
 </symbol>
+<symbol class="lucide lucide-cloud-download" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="cloud-download">
+  <path d="M12 13v8l-4-4" ></path>
+  <path d="m12 21 4-4" ></path>
+  <path d="M4.393 15.269A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.436 8.284" ></path>
+</symbol>
+<symbol class="lucide lucide-cloud-upload" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="cloud-upload">
+  <path d="M12 13v8" ></path>
+  <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" ></path>
+  <path d="m8 17 4-4 4 4" ></path>
+</symbol>
+<symbol class="lucide lucide-cloud" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="cloud">
+  <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" ></path>
+</symbol>
 <symbol class="lucide lucide-code" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="code">
   <polyline points="16 18 22 12 16 6" ></polyline>
   <polyline points="8 6 2 12 8 18" ></polyline>
+</symbol>
+<symbol class="lucide lucide-coffee" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="coffee">
+  <path d="M10 2v2" ></path>
+  <path d="M14 2v2" ></path>
+  <path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1" ></path>
+  <path d="M6 2v2" ></path>
 </symbol>
 <symbol class="lucide lucide-columns-3" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="columns-3">
   <rect width="18" height="18" x="3" y="3" rx="2" ></rect>
@@ -254,12 +469,24 @@
 <symbol class="lucide lucide-command" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="command">
   <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" ></path>
 </symbol>
+<symbol class="lucide lucide-compass" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="compass">
+  <path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z" ></path>
+  <circle cx="12" cy="12" r="10" ></circle>
+</symbol>
 <symbol class="lucide lucide-contact" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="contact">
   <path d="M17 18a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2" ></path>
   <rect width="18" height="18" x="3" y="4" rx="2" ></rect>
   <circle cx="12" cy="10" r="2" ></circle>
   <line x1="8" x2="8" y1="2" y2="4" ></line>
   <line x1="16" x2="16" y1="2" y2="4" ></line>
+</symbol>
+<symbol class="lucide lucide-cookie" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="cookie">
+  <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5" ></path>
+  <path d="M8.5 8.5v.01" ></path>
+  <path d="M16 15.5v.01" ></path>
+  <path d="M12 12v.01" ></path>
+  <path d="M11 17v.01" ></path>
+  <path d="M7 14v.01" ></path>
 </symbol>
 <symbol class="lucide lucide-copy" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="copy">
   <rect width="14" height="14" x="8" y="8" rx="2" ry="2" ></rect>
@@ -273,13 +500,43 @@
   <polyline points="15 10 20 15 15 20" ></polyline>
   <path d="M4 4v7a4 4 0 0 0 4 4h12" ></path>
 </symbol>
+<symbol class="lucide lucide-cpu" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="cpu">
+  <rect width="16" height="16" x="4" y="4" rx="2" ></rect>
+  <rect width="6" height="6" x="9" y="9" rx="1" ></rect>
+  <path d="M15 2v2" ></path>
+  <path d="M15 20v2" ></path>
+  <path d="M2 15h2" ></path>
+  <path d="M2 9h2" ></path>
+  <path d="M20 15h2" ></path>
+  <path d="M20 9h2" ></path>
+  <path d="M9 2v2" ></path>
+  <path d="M9 20v2" ></path>
+</symbol>
 <symbol class="lucide lucide-credit-card" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="credit-card">
   <rect width="20" height="14" x="2" y="5" rx="2" ></rect>
   <line x1="2" x2="22" y1="10" y2="10" ></line>
 </symbol>
+<symbol class="lucide lucide-cross" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="cross">
+  <path d="M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h5v5c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-2z" ></path>
+</symbol>
+<symbol class="lucide lucide-cup-soda" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="cup-soda">
+  <path d="m6 8 1.75 12.28a2 2 0 0 0 2 1.72h4.54a2 2 0 0 0 2-1.72L18 8" ></path>
+  <path d="M5 8h14" ></path>
+  <path d="M7 15a6.47 6.47 0 0 1 5 0 6.47 6.47 0 0 0 5 0" ></path>
+  <path d="m12 8 1-6h2" ></path>
+</symbol>
+<symbol class="lucide lucide-database" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="database">
+  <ellipse cx="12" cy="5" rx="9" ry="3" ></ellipse>
+  <path d="M3 5V19A9 3 0 0 0 21 19V5" ></path>
+  <path d="M3 12A9 3 0 0 0 21 12" ></path>
+</symbol>
 <symbol class="lucide lucide-disc" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="disc">
   <circle cx="12" cy="12" r="10" ></circle>
   <circle cx="12" cy="12" r="2" ></circle>
+</symbol>
+<symbol class="lucide lucide-dollar-sign" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="dollar-sign">
+  <line x1="12" x2="12" y1="2" y2="22" ></line>
+  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" ></path>
 </symbol>
 <symbol class="lucide lucide-dot" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="dot">
   <circle cx="12.1" cy="12.1" r="1" ></circle>
@@ -288,6 +545,9 @@
   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" ></path>
   <polyline points="7 10 12 15 17 10" ></polyline>
   <line x1="12" x2="12" y1="15" y2="3" ></line>
+</symbol>
+<symbol class="lucide lucide-egg" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="egg">
+  <path d="M12 22c6.23-.05 7.87-5.57 7.5-10-.36-4.34-3.95-9.96-7.5-10-3.55.04-7.14 5.66-7.5 10-.37 4.43 1.27 9.95 7.5 10z" ></path>
 </symbol>
 <symbol class="lucide lucide-ellipsis-vertical" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="ellipsis-vertical">
   <circle cx="12" cy="12" r="1" ></circle>
@@ -320,6 +580,11 @@
   <path d="M12 18v-6" ></path>
   <path d="m9 15 3 3 3-3" ></path>
 </symbol>
+<symbol class="lucide lucide-file-pen" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="file-pen">
+  <path d="M12.5 22H18a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v9.5" ></path>
+  <path d="M14 2v4a2 2 0 0 0 2 2h4" ></path>
+  <path d="M13.378 15.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z" ></path>
+</symbol>
 <symbol class="lucide lucide-file-text" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="file-text">
   <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" ></path>
   <path d="M14 2v4a2 2 0 0 0 2 2h4" ></path>
@@ -345,6 +610,14 @@
   <path d="M8.65 22c.21-.66.45-1.32.57-2" ></path>
   <path d="M9 6.8a6 6 0 0 1 9 5.2v2" ></path>
 </symbol>
+<symbol class="lucide lucide-fish" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="fish">
+  <path d="M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.47-3.44 6-7 6s-7.56-2.53-8.5-6Z" ></path>
+  <path d="M18 12v.5" ></path>
+  <path d="M16 17.93a9.77 9.77 0 0 1 0-11.86" ></path>
+  <path d="M7 10.67C7 8 5.58 5.97 2.73 5.5c-1 1.5-1 5 .23 6.5-1.24 1.5-1.24 5-.23 6.5C5.58 18.03 7 16 7 13.33" ></path>
+  <path d="M10.46 7.26C10.2 5.88 9.17 4.24 8 3h5.8a2 2 0 0 1 1.98 1.67l.23 1.4" ></path>
+  <path d="m16.01 17.93-.23 1.4A2 2 0 0 1 13.8 21H9.5a5.96 5.96 0 0 0 1.49-3.98" ></path>
+</symbol>
 <symbol class="lucide lucide-flag" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="flag">
   <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" ></path>
   <line x1="4" x2="4" y1="22" y2="15" ></line>
@@ -352,11 +625,38 @@
 <symbol class="lucide lucide-folder" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="folder">
   <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" ></path>
 </symbol>
+<symbol class="lucide lucide-forward" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="forward">
+  <polyline points="15 17 20 12 15 7" ></polyline>
+  <path d="M4 18v-2a4 4 0 0 1 4-4h12" ></path>
+</symbol>
+<symbol class="lucide lucide-frown" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="frown">
+  <circle cx="12" cy="12" r="10" ></circle>
+  <path d="M16 16s-1.5-2-4-2-4 2-4 2" ></path>
+  <line x1="9" x2="9.01" y1="9" y2="9" ></line>
+  <line x1="15" x2="15.01" y1="9" y2="9" ></line>
+</symbol>
+<symbol class="lucide lucide-fuel" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="fuel">
+  <line x1="3" x2="15" y1="22" y2="22" ></line>
+  <line x1="4" x2="14" y1="9" y2="9" ></line>
+  <path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18" ></path>
+  <path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5" ></path>
+</symbol>
 <symbol class="lucide lucide-gift" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="gift">
   <rect x="3" y="8" width="18" height="4" rx="1" ></rect>
   <path d="M12 8v13" ></path>
   <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7" ></path>
   <path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5" ></path>
+</symbol>
+<symbol class="lucide lucide-git-branch" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="git-branch">
+  <line x1="6" x2="6" y1="3" y2="15" ></line>
+  <circle cx="18" cy="6" r="3" ></circle>
+  <circle cx="6" cy="18" r="3" ></circle>
+  <path d="M18 9a9 9 0 0 1-9 9" ></path>
+</symbol>
+<symbol class="lucide lucide-git-commit-horizontal" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="git-commit-horizontal">
+  <circle cx="12" cy="12" r="3" ></circle>
+  <line x1="3" x2="9" y1="12" y2="12" ></line>
+  <line x1="15" x2="21" y1="12" y2="12" ></line>
 </symbol>
 <symbol class="lucide lucide-git-merge" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="git-merge">
   <circle cx="18" cy="18" r="3" ></circle>
@@ -372,6 +672,22 @@
   <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" ></path>
   <path d="M2 12h20" ></path>
 </symbol>
+<symbol class="lucide lucide-graduation-cap" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="graduation-cap">
+  <path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z" ></path>
+  <path d="M22 10v6" ></path>
+  <path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5" ></path>
+</symbol>
+<symbol class="lucide lucide-grape" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="grape">
+  <path d="M22 5V2l-5.89 5.89" ></path>
+  <circle cx="16.6" cy="15.89" r="3" ></circle>
+  <circle cx="8.11" cy="7.4" r="3" ></circle>
+  <circle cx="12.35" cy="11.65" r="3" ></circle>
+  <circle cx="13.91" cy="5.85" r="3" ></circle>
+  <circle cx="18.15" cy="10.09" r="3" ></circle>
+  <circle cx="6.56" cy="13.2" r="3" ></circle>
+  <circle cx="10.8" cy="17.44" r="3" ></circle>
+  <circle cx="5" cy="19" r="3" ></circle>
+</symbol>
 <symbol class="lucide lucide-grid-3x3" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="grid-3x3">
   <rect width="18" height="18" x="3" y="3" rx="2" ></rect>
   <path d="M3 9h18" ></path>
@@ -379,12 +695,48 @@
   <path d="M9 3v18" ></path>
   <path d="M15 3v18" ></path>
 </symbol>
+<symbol class="lucide lucide-grip-vertical" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="grip-vertical">
+  <circle cx="9" cy="12" r="1" ></circle>
+  <circle cx="9" cy="5" r="1" ></circle>
+  <circle cx="9" cy="19" r="1" ></circle>
+  <circle cx="15" cy="12" r="1" ></circle>
+  <circle cx="15" cy="5" r="1" ></circle>
+  <circle cx="15" cy="19" r="1" ></circle>
+</symbol>
+<symbol class="lucide lucide-hammer" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="hammer">
+  <path d="m15 12-8.373 8.373a1 1 0 1 1-3-3L12 9" ></path>
+  <path d="m18 15 4-4" ></path>
+  <path d="m21.5 11.5-1.914-1.914A2 2 0 0 1 19 8.172V7l-2.26-2.26a6 6 0 0 0-4.202-1.756L9 2.96l.92.82A6.18 6.18 0 0 1 12 8.4V10l2 2h1.172a2 2 0 0 1 1.414.586L18.5 14.5" ></path>
+</symbol>
 <symbol class="lucide lucide-handshake" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="handshake">
   <path d="m11 17 2 2a1 1 0 1 0 3-3" ></path>
   <path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4" ></path>
   <path d="m21 3 1 11h-2" ></path>
   <path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3" ></path>
   <path d="M3 4h8" ></path>
+</symbol>
+<symbol class="lucide lucide-hard-drive" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="hard-drive">
+  <line x1="22" x2="2" y1="12" y2="12" ></line>
+  <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" ></path>
+  <line x1="6" x2="6.01" y1="16" y2="16" ></line>
+  <line x1="10" x2="10.01" y1="16" y2="16" ></line>
+</symbol>
+<symbol class="lucide lucide-hash" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="hash">
+  <line x1="4" x2="20" y1="9" y2="9" ></line>
+  <line x1="4" x2="20" y1="15" y2="15" ></line>
+  <line x1="10" x2="8" y1="3" y2="21" ></line>
+  <line x1="16" x2="14" y1="3" y2="21" ></line>
+</symbol>
+<symbol class="lucide lucide-headphones" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="headphones">
+  <path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3" ></path>
+</symbol>
+<symbol class="lucide lucide-heart" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="heart">
+  <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" ></path>
+</symbol>
+<symbol class="lucide lucide-ice-cream-cone" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="ice-cream-cone">
+  <path d="m7 11 4.08 10.35a1 1 0 0 0 1.84 0L17 11" ></path>
+  <path d="M17 7A5 5 0 0 0 7 7" ></path>
+  <path d="M17 7a2 2 0 0 1 0 4H7a2 2 0 0 1 0-4" ></path>
 </symbol>
 <symbol class="lucide lucide-info" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="info">
   <circle cx="12" cy="12" r="10" ></circle>
@@ -401,6 +753,9 @@
   <path d="m21 2-9.6 9.6" ></path>
   <circle cx="7.5" cy="15.5" r="5.5" ></circle>
 </symbol>
+<symbol class="lucide lucide-laptop" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="laptop">
+  <path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16" ></path>
+</symbol>
 <symbol class="lucide lucide-layers" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="layers">
   <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" ></path>
   <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" ></path>
@@ -411,6 +766,21 @@
   <rect width="7" height="5" x="14" y="3" rx="1" ></rect>
   <rect width="7" height="9" x="14" y="12" rx="1" ></rect>
   <rect width="7" height="5" x="3" y="16" rx="1" ></rect>
+</symbol>
+<symbol class="lucide lucide-leaf" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="leaf">
+  <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" ></path>
+  <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" ></path>
+</symbol>
+<symbol class="lucide lucide-library" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="library">
+  <path d="m16 6 4 14" ></path>
+  <path d="M12 6v14" ></path>
+  <path d="M8 8v12" ></path>
+  <path d="M4 4v16" ></path>
+</symbol>
+<symbol class="lucide lucide-lightbulb" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="lightbulb">
+  <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" ></path>
+  <path d="M9 18h6" ></path>
+  <path d="M10 22h4" ></path>
 </symbol>
 <symbol class="lucide lucide-link-2" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="link-2">
   <path d="M9 17H7A5 5 0 0 1 7 7h2" ></path>
@@ -426,15 +796,15 @@
   <path d="M7 12h10" ></path>
   <path d="M10 18h4" ></path>
 </symbol>
-<symbol class="lucide lucide-loader" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="loader">
-  <path d="M12 2v4" ></path>
-  <path d="m16.2 7.8 2.9-2.9" ></path>
-  <path d="M18 12h4" ></path>
-  <path d="m16.2 16.2 2.9 2.9" ></path>
-  <path d="M12 18v4" ></path>
-  <path d="m4.9 19.1 2.9-2.9" ></path>
-  <path d="M2 12h4" ></path>
-  <path d="m4.9 4.9 2.9 2.9" ></path>
+<symbol class="lucide lucide-list-tree" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="list-tree">
+  <path d="M21 12h-8" ></path>
+  <path d="M21 6H8" ></path>
+  <path d="M21 18h-8" ></path>
+  <path d="M3 6v4c0 1.1.9 2 2 2h3" ></path>
+  <path d="M3 10v6c0 1.1.9 2 2 2h3" ></path>
+</symbol>
+<symbol class="lucide lucide-loader-circle" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="loader-circle">
+  <path d="M21 12a9 9 0 1 1-6.219-8.56" ></path>
 </symbol>
 <symbol class="lucide lucide-lock-open" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="lock-open">
   <rect width="18" height="11" x="3" y="11" rx="2" ry="2" ></rect>
@@ -466,6 +836,24 @@
   <path d="M15 5.764v15" ></path>
   <path d="M9 3.236v15" ></path>
 </symbol>
+<symbol class="lucide lucide-medal" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="medal">
+  <path d="M7.21 15 2.66 7.14a2 2 0 0 1 .13-2.2L4.4 2.8A2 2 0 0 1 6 2h12a2 2 0 0 1 1.6.8l1.6 2.14a2 2 0 0 1 .14 2.2L16.79 15" ></path>
+  <path d="M11 12 5.12 2.2" ></path>
+  <path d="m13 12 5.88-9.8" ></path>
+  <path d="M8 7h8" ></path>
+  <circle cx="12" cy="17" r="5" ></circle>
+  <path d="M12 18v-2h-.5" ></path>
+</symbol>
+<symbol class="lucide lucide-megaphone" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="megaphone">
+  <path d="m3 11 18-5v12L3 14v-3z" ></path>
+  <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" ></path>
+</symbol>
+<symbol class="lucide lucide-meh" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="meh">
+  <circle cx="12" cy="12" r="10" ></circle>
+  <line x1="8" x2="16" y1="15" y2="15" ></line>
+  <line x1="9" x2="9.01" y1="9" y2="9" ></line>
+  <line x1="15" x2="15.01" y1="9" y2="9" ></line>
+</symbol>
 <symbol class="lucide lucide-menu" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="menu">
   <line x1="4" x2="20" y1="12" y2="12" ></line>
   <line x1="4" x2="20" y1="6" y2="6" ></line>
@@ -474,20 +862,83 @@
 <symbol class="lucide lucide-message-circle" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="message-circle">
   <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" ></path>
 </symbol>
+<symbol class="lucide lucide-message-square" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="message-square">
+  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" ></path>
+</symbol>
 <symbol class="lucide lucide-messages-square" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="messages-square">
   <path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2z" ></path>
   <path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1" ></path>
 </symbol>
+<symbol class="lucide lucide-mic-off" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="mic-off">
+  <line x1="2" x2="22" y1="2" y2="22" ></line>
+  <path d="M18.89 13.23A7.12 7.12 0 0 0 19 12v-2" ></path>
+  <path d="M5 10v2a7 7 0 0 0 12 5" ></path>
+  <path d="M15 9.34V5a3 3 0 0 0-5.68-1.33" ></path>
+  <path d="M9 9v3a3 3 0 0 0 5.12 2.12" ></path>
+  <line x1="12" x2="12" y1="19" y2="22" ></line>
+</symbol>
+<symbol class="lucide lucide-mic" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="mic">
+  <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" ></path>
+  <path d="M19 10v2a7 7 0 0 1-14 0v-2" ></path>
+  <line x1="12" x2="12" y1="19" y2="22" ></line>
+</symbol>
+<symbol class="lucide lucide-microscope" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="microscope">
+  <path d="M6 18h8" ></path>
+  <path d="M3 22h18" ></path>
+  <path d="M14 22a7 7 0 1 0 0-14h-1" ></path>
+  <path d="M9 14h2" ></path>
+  <path d="M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2Z" ></path>
+  <path d="M12 6V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3" ></path>
+</symbol>
+<symbol class="lucide lucide-monitor-stop" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="monitor-stop">
+  <path d="M12 17v4" ></path>
+  <path d="M8 21h8" ></path>
+  <rect x="2" y="3" width="20" height="14" rx="2" ></rect>
+  <rect x="9" y="7" width="6" height="6" rx="1" ></rect>
+</symbol>
+<symbol class="lucide lucide-monitor" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="monitor">
+  <rect width="20" height="14" x="2" y="3" rx="2" ></rect>
+  <line x1="8" x2="16" y1="21" y2="21" ></line>
+  <line x1="12" x2="12" y1="17" y2="21" ></line>
+</symbol>
 <symbol class="lucide lucide-moon" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="moon">
   <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" ></path>
+</symbol>
+<symbol class="lucide lucide-navigation" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="navigation">
+  <polygon points="3 11 22 2 13 21 11 13 3 11" ></polygon>
 </symbol>
 <symbol class="lucide lucide-paintbrush" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="paintbrush">
   <path d="m14.622 17.897-10.68-2.913" ></path>
   <path d="M18.376 2.622a1 1 0 1 1 3.002 3.002L17.36 9.643a.5.5 0 0 0 0 .707l.944.944a2.41 2.41 0 0 1 0 3.408l-.944.944a.5.5 0 0 1-.707 0L8.354 7.348a.5.5 0 0 1 0-.707l.944-.944a2.41 2.41 0 0 1 3.408 0l.944.944a.5.5 0 0 0 .707 0z" ></path>
   <path d="M9 8c-1.804 2.71-3.97 3.46-6.583 3.948a.507.507 0 0 0-.302.819l7.32 8.883a1 1 0 0 0 1.185.204C12.735 20.405 16 16.792 16 15" ></path>
 </symbol>
+<symbol class="lucide lucide-palette" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="palette">
+  <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" ></circle>
+  <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" ></circle>
+  <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" ></circle>
+  <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" ></circle>
+  <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z" ></path>
+</symbol>
 <symbol class="lucide lucide-paperclip" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="paperclip">
   <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48" ></path>
+</symbol>
+<symbol class="lucide lucide-pen-line" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="pen-line">
+  <path d="M12 20h9" ></path>
+  <path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z" ></path>
+</symbol>
+<symbol class="lucide lucide-pen-tool" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="pen-tool">
+  <path d="M15.707 21.293a1 1 0 0 1-1.414 0l-1.586-1.586a1 1 0 0 1 0-1.414l5.586-5.586a1 1 0 0 1 1.414 0l1.586 1.586a1 1 0 0 1 0 1.414z" ></path>
+  <path d="m18 13-1.375-6.874a1 1 0 0 0-.746-.776L3.235 2.028a1 1 0 0 0-1.207 1.207L5.35 15.879a1 1 0 0 0 .776.746L13 18" ></path>
+  <path d="m2.3 2.3 7.286 7.286" ></path>
+  <circle cx="11" cy="11" r="2" ></circle>
+</symbol>
+<symbol class="lucide lucide-pen" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="pen">
+  <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" ></path>
+</symbol>
+<symbol class="lucide lucide-pencil-line" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="pencil-line">
+  <path d="M12 20h9" ></path>
+  <path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z" ></path>
+  <path d="m15 5 3 3" ></path>
 </symbol>
 <symbol class="lucide lucide-pencil" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="pencil">
   <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" ></path>
@@ -501,9 +952,39 @@
 <symbol class="lucide lucide-phone" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="phone">
   <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" ></path>
 </symbol>
+<symbol class="lucide lucide-pill" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="pill">
+  <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z" ></path>
+  <path d="m8.5 8.5 7 7" ></path>
+</symbol>
+<symbol class="lucide lucide-pin" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="pin">
+  <path d="M12 17v5" ></path>
+  <path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z" ></path>
+</symbol>
+<symbol class="lucide lucide-pizza" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="pizza">
+  <path d="M15 11h.01" ></path>
+  <path d="M11 15h.01" ></path>
+  <path d="M16 16h.01" ></path>
+  <path d="m2 16 20 6-6-20A20 20 0 0 0 2 16" ></path>
+  <path d="M5.71 17.11a17.04 17.04 0 0 1 11.4-11.4" ></path>
+</symbol>
+<symbol class="lucide lucide-plane" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="plane">
+  <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" ></path>
+</symbol>
 <symbol class="lucide lucide-plus" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="plus">
   <path d="M5 12h14" ></path>
   <path d="M12 5v14" ></path>
+</symbol>
+<symbol class="lucide lucide-presentation" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="presentation">
+  <path d="M2 3h20" ></path>
+  <path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3" ></path>
+  <path d="m7 21 5-5 5 5" ></path>
+</symbol>
+<symbol class="lucide lucide-radio" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="radio">
+  <path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9" ></path>
+  <path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5" ></path>
+  <circle cx="12" cy="12" r="2" ></circle>
+  <path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5" ></path>
+  <path d="M19.1 4.9C23 8.8 23 15.1 19.1 19" ></path>
 </symbol>
 <symbol class="lucide lucide-refresh-ccw" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="refresh-ccw">
   <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" ></path>
@@ -523,6 +1004,10 @@
   <path d="m7 22-4-4 4-4" ></path>
   <path d="M21 13v1a4 4 0 0 1-4 4H3" ></path>
 </symbol>
+<symbol class="lucide lucide-reply" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="reply">
+  <polyline points="9 17 4 12 9 7" ></polyline>
+  <path d="M20 18v-2a4 4 0 0 0-4-4H4" ></path>
+</symbol>
 <symbol class="lucide lucide-rocket" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="rocket">
   <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" ></path>
   <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" ></path>
@@ -537,6 +1022,58 @@
   <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" ></path>
   <path d="M21 3v5h-5" ></path>
 </symbol>
+<symbol class="lucide lucide-route" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="route">
+  <circle cx="6" cy="19" r="3" ></circle>
+  <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15" ></path>
+  <circle cx="18" cy="5" r="3" ></circle>
+</symbol>
+<symbol class="lucide lucide-ruler" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="ruler">
+  <path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z" ></path>
+  <path d="m14.5 12.5 2-2" ></path>
+  <path d="m11.5 9.5 2-2" ></path>
+  <path d="m8.5 6.5 2-2" ></path>
+  <path d="m17.5 15.5 2-2" ></path>
+</symbol>
+<symbol class="lucide lucide-sailboat" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="sailboat">
+  <path d="M22 18H2a4 4 0 0 0 4 4h12a4 4 0 0 0 4-4Z" ></path>
+  <path d="M21 14 10 2 3 14h18Z" ></path>
+  <path d="M10 2v16" ></path>
+</symbol>
+<symbol class="lucide lucide-salad" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="salad">
+  <path d="M7 21h10" ></path>
+  <path d="M12 21a9 9 0 0 0 9-9H3a9 9 0 0 0 9 9Z" ></path>
+  <path d="M11.38 12a2.4 2.4 0 0 1-.4-4.77 2.4 2.4 0 0 1 3.2-2.77 2.4 2.4 0 0 1 3.47-.63 2.4 2.4 0 0 1 3.37 3.37 2.4 2.4 0 0 1-1.1 3.7 2.51 2.51 0 0 1 .03 1.1" ></path>
+  <path d="m13 12 4-4" ></path>
+  <path d="M10.9 7.25A3.99 3.99 0 0 0 4 10c0 .73.2 1.41.54 2" ></path>
+</symbol>
+<symbol class="lucide lucide-scale" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="scale">
+  <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" ></path>
+  <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" ></path>
+  <path d="M7 21h10" ></path>
+  <path d="M12 3v18" ></path>
+  <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" ></path>
+</symbol>
+<symbol class="lucide lucide-school" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="school">
+  <path d="M14 22v-4a2 2 0 1 0-4 0v4" ></path>
+  <path d="m18 10 4 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-8l4-2" ></path>
+  <path d="M18 5v17" ></path>
+  <path d="m4 6 8-4 8 4" ></path>
+  <path d="M6 5v17" ></path>
+  <circle cx="12" cy="9" r="2" ></circle>
+</symbol>
+<symbol class="lucide lucide-scissors" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="scissors">
+  <circle cx="6" cy="6" r="3" ></circle>
+  <path d="M8.12 8.12 12 12" ></path>
+  <path d="M20 4 8.12 15.88" ></path>
+  <circle cx="6" cy="18" r="3" ></circle>
+  <path d="M14.8 14.8 20 20" ></path>
+</symbol>
+<symbol class="lucide lucide-scroll-text" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="scroll-text">
+  <path d="M15 12h-5" ></path>
+  <path d="M15 8h-5" ></path>
+  <path d="M19 17V5a2 2 0 0 0-2-2H4" ></path>
+  <path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3" ></path>
+</symbol>
 <symbol class="lucide lucide-search" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="search">
   <circle cx="11" cy="11" r="8" ></circle>
   <path d="m21 21-4.3-4.3" ></path>
@@ -544,6 +1081,12 @@
 <symbol class="lucide lucide-send" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="send">
   <path d="m22 2-7 20-4-9-9-4Z" ></path>
   <path d="M22 2 11 13" ></path>
+</symbol>
+<symbol class="lucide lucide-server" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="server">
+  <rect width="20" height="8" x="2" y="2" rx="2" ry="2" ></rect>
+  <rect width="20" height="8" x="2" y="14" rx="2" ry="2" ></rect>
+  <line x1="6" x2="6.01" y1="6" y2="6" ></line>
+  <line x1="6" x2="6.01" y1="18" y2="18" ></line>
 </symbol>
 <symbol class="lucide lucide-settings" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="settings">
   <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" ></path>
@@ -556,12 +1099,24 @@
   <line x1="8.59" x2="15.42" y1="13.51" y2="17.49" ></line>
   <line x1="15.41" x2="8.59" y1="6.51" y2="10.49" ></line>
 </symbol>
+<symbol class="lucide lucide-share" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="share">
+  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" ></path>
+  <polyline points="16 6 12 2 8 6" ></polyline>
+  <line x1="12" x2="12" y1="2" y2="15" ></line>
+</symbol>
 <symbol class="lucide lucide-shield-check" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="shield-check">
   <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" ></path>
   <path d="m9 12 2 2 4-4" ></path>
 </symbol>
 <symbol class="lucide lucide-shield" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="shield">
   <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" ></path>
+</symbol>
+<symbol class="lucide lucide-ship" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="ship">
+  <path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" ></path>
+  <path d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.94 5.34 2.81 7.76" ></path>
+  <path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6" ></path>
+  <path d="M12 10v4" ></path>
+  <path d="M12 2v3" ></path>
 </symbol>
 <symbol class="lucide lucide-shuffle" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="shuffle">
   <path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22" ></path>
@@ -596,6 +1151,12 @@
   <rect width="14" height="20" x="5" y="2" rx="2" ry="2" ></rect>
   <path d="M12 18h.01" ></path>
 </symbol>
+<symbol class="lucide lucide-smile" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="smile">
+  <circle cx="12" cy="12" r="10" ></circle>
+  <path d="M8 14s1.5 2 4 2 4-2 4-2" ></path>
+  <line x1="9" x2="9.01" y1="9" y2="9" ></line>
+  <line x1="15" x2="15.01" y1="9" y2="9" ></line>
+</symbol>
 <symbol class="lucide lucide-sparkles" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="sparkles">
   <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" ></path>
   <path d="M20 3v4" ></path>
@@ -603,11 +1164,28 @@
   <path d="M4 17v2" ></path>
   <path d="M5 18H3" ></path>
 </symbol>
+<symbol class="lucide lucide-speaker" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="speaker">
+  <rect width="16" height="20" x="4" y="2" rx="2" ></rect>
+  <path d="M12 6h.01" ></path>
+  <circle cx="12" cy="14" r="4" ></circle>
+  <path d="M12 14h.01" ></path>
+</symbol>
 <symbol class="lucide lucide-split" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="split">
   <path d="M16 3h5v5" ></path>
   <path d="M8 3H3v5" ></path>
   <path d="M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3" ></path>
   <path d="m15 9 6-6" ></path>
+</symbol>
+<symbol class="lucide lucide-square-arrow-out-up-right" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="square-arrow-out-up-right">
+  <path d="M21 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h6" ></path>
+  <path d="m21 3-9 9" ></path>
+  <path d="M15 3h6v6" ></path>
+</symbol>
+<symbol class="lucide lucide-square-chart-gantt" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="square-chart-gantt">
+  <rect width="18" height="18" x="3" y="3" rx="2" ></rect>
+  <path d="M9 8h7" ></path>
+  <path d="M8 12h6" ></path>
+  <path d="M11 16h5" ></path>
 </symbol>
 <symbol class="lucide lucide-square-check" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="square-check">
   <rect width="18" height="18" x="3" y="3" rx="2" ></rect>
@@ -619,6 +1197,11 @@
 </symbol>
 <symbol class="lucide lucide-star" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="star">
   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" ></polygon>
+</symbol>
+<symbol class="lucide lucide-stethoscope" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="stethoscope">
+  <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3" ></path>
+  <path d="M8 15v1a6 6 0 0 0 6 6a6 6 0 0 0 6-6v-4" ></path>
+  <circle cx="20" cy="10" r="2" ></circle>
 </symbol>
 <symbol class="lucide lucide-sun" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="sun">
   <circle cx="12" cy="12" r="4" ></circle>
@@ -651,14 +1234,42 @@
   <path d="m16 6-4 4-4-4" ></path>
   <path d="M16 18a4 4 0 0 0-8 0" ></path>
 </symbol>
+<symbol class="lucide lucide-tablet" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="tablet">
+  <rect width="16" height="20" x="4" y="2" rx="2" ry="2" ></rect>
+  <line x1="12" x2="12.01" y1="18" y2="18" ></line>
+</symbol>
 <symbol class="lucide lucide-tags" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="tags">
   <path d="m15 5 6.3 6.3a2.4 2.4 0 0 1 0 3.4L17 19" ></path>
   <path d="M9.586 5.586A2 2 0 0 0 8.172 5H3a1 1 0 0 0-1 1v5.172a2 2 0 0 0 .586 1.414L8.29 18.29a2.426 2.426 0 0 0 3.42 0l3.58-3.58a2.426 2.426 0 0 0 0-3.42z" ></path>
   <circle cx="6.5" cy="9.5" r=".5" fill="currentColor" ></circle>
 </symbol>
+<symbol class="lucide lucide-target" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="target">
+  <circle cx="12" cy="12" r="10" ></circle>
+  <circle cx="12" cy="12" r="6" ></circle>
+  <circle cx="12" cy="12" r="2" ></circle>
+</symbol>
 <symbol class="lucide lucide-terminal" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="terminal">
   <polyline points="4 17 10 11 4 5" ></polyline>
   <line x1="12" x2="20" y1="19" y2="19" ></line>
+</symbol>
+<symbol class="lucide lucide-thermometer" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="thermometer">
+  <path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z" ></path>
+</symbol>
+<symbol class="lucide lucide-thumbs-down" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="thumbs-down">
+  <path d="M17 14V2" ></path>
+  <path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z" ></path>
+</symbol>
+<symbol class="lucide lucide-thumbs-up" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="thumbs-up">
+  <path d="M7 10v12" ></path>
+  <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" ></path>
+</symbol>
+<symbol class="lucide lucide-train-front" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="train-front">
+  <path d="M8 3.1V7a4 4 0 0 0 8 0V3.1" ></path>
+  <path d="m9 15-1-1" ></path>
+  <path d="m15 15 1-1" ></path>
+  <path d="M9 19c-2.8 0-5-2.2-5-5v-4a8 8 0 0 1 16 0v4c0 2.8-2.2 5-5 5Z" ></path>
+  <path d="m8 19-2 3" ></path>
+  <path d="m16 19 2 3" ></path>
 </symbol>
 <symbol class="lucide lucide-trash-2" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="trash-2">
   <path d="M3 6h18" ></path>
@@ -677,10 +1288,29 @@
   <rect width="3" height="9" x="7" y="7" ></rect>
   <rect width="3" height="5" x="14" y="7" ></rect>
 </symbol>
+<symbol class="lucide lucide-trending-up" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="trending-up">
+  <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" ></polyline>
+  <polyline points="16 7 22 7 22 13" ></polyline>
+</symbol>
 <symbol class="lucide lucide-triangle-alert" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="triangle-alert">
   <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" ></path>
   <path d="M12 9v4" ></path>
   <path d="M12 17h.01" ></path>
+</symbol>
+<symbol class="lucide lucide-trophy" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="trophy">
+  <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" ></path>
+  <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" ></path>
+  <path d="M4 22h16" ></path>
+  <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" ></path>
+  <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" ></path>
+  <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" ></path>
+</symbol>
+<symbol class="lucide lucide-truck" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="truck">
+  <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" ></path>
+  <path d="M15 18H9" ></path>
+  <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14" ></path>
+  <circle cx="17" cy="18" r="2" ></circle>
+  <circle cx="7" cy="18" r="2" ></circle>
 </symbol>
 <symbol class="lucide lucide-upload" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="upload">
   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" ></path>
@@ -714,6 +1344,17 @@
   <path d="M22 21v-2a4 4 0 0 0-3-3.87" ></path>
   <path d="M16 3.13a4 4 0 0 1 0 7.75" ></path>
 </symbol>
+<symbol class="lucide lucide-utensils-crossed" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="utensils-crossed">
+  <path d="m16 2-2.3 2.3a3 3 0 0 0 0 4.2l1.8 1.8a3 3 0 0 0 4.2 0L22 8" ></path>
+  <path d="M15 15 3.3 3.3a4.2 4.2 0 0 0 0 6l7.3 7.3c.7.7 2 .7 2.8 0L15 15Zm0 0 7 7" ></path>
+  <path d="m2.1 21.8 6.4-6.3" ></path>
+  <path d="m19 5-7 7" ></path>
+</symbol>
+<symbol class="lucide lucide-utensils" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="utensils">
+  <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" ></path>
+  <path d="M7 2v20" ></path>
+  <path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" ></path>
+</symbol>
 <symbol class="lucide lucide-venetian-mask" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="venetian-mask">
   <path d="M2 12a5 5 0 0 0 5 5 8 8 0 0 1 5 2 8 8 0 0 1 5-2 5 5 0 0 0 5-5V7h-5a8 8 0 0 0-5 2 8 8 0 0 0-5-2H2Z" ></path>
   <path d="M6 11c1.5 0 3 .5 3 2-2 0-3 0-3-2Z" ></path>
@@ -722,6 +1363,10 @@
 <symbol class="lucide lucide-video" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="video">
   <path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5" ></path>
   <rect x="2" y="6" width="14" height="12" rx="2" ></rect>
+</symbol>
+<symbol class="lucide lucide-wallet" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="wallet">
+  <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1" ></path>
+  <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4" ></path>
 </symbol>
 <symbol class="lucide lucide-waypoints" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="waypoints">
   <circle cx="12" cy="4.5" r="2.5" ></circle>
@@ -736,6 +1381,26 @@
   <path d="M18 16.98h-5.99c-1.1 0-1.95.94-2.48 1.9A4 4 0 0 1 2 17c.01-.7.2-1.4.57-2" ></path>
   <path d="m6 17 3.13-5.78c.53-.97.1-2.18-.5-3.1a4 4 0 1 1 6.89-4.06" ></path>
   <path d="m12 6 3.13 5.73C15.66 12.7 16.9 13 18 13a4 4 0 0 1 0 8" ></path>
+</symbol>
+<symbol class="lucide lucide-wifi" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="wifi">
+  <path d="M12 20h.01" ></path>
+  <path d="M2 8.82a15 15 0 0 1 20 0" ></path>
+  <path d="M5 12.859a10 10 0 0 1 14 0" ></path>
+  <path d="M8.5 16.429a5 5 0 0 1 7 0" ></path>
+</symbol>
+<symbol class="lucide lucide-wine" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="wine">
+  <path d="M8 22h8" ></path>
+  <path d="M7 10h10" ></path>
+  <path d="M12 15v7" ></path>
+  <path d="M12 15a5 5 0 0 0 5-5c0-2-.5-4-2-8H9c-1.5 4-2 6-2 8a5 5 0 0 0 5 5Z" ></path>
+</symbol>
+<symbol class="lucide lucide-workflow" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="workflow">
+  <rect width="8" height="8" x="3" y="3" rx="2" ></rect>
+  <path d="M7 11v4a2 2 0 0 0 2 2h4" ></path>
+  <rect width="8" height="8" x="13" y="13" rx="2" ></rect>
+</symbol>
+<symbol class="lucide lucide-wrench" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="wrench">
+  <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" ></path>
 </symbol>
 <symbol class="lucide lucide-x" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="x">
   <path d="M18 6 6 18" ></path>

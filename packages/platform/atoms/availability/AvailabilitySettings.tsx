@@ -1,5 +1,11 @@
 "use client";
 
+import { cn } from "@calid/features/lib/cn";
+import { Button } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon";
+import { Label } from "@calid/features/ui/components/label";
+import { Switch } from "@calid/features/ui/components/switch";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
 import type { SetStateAction, Dispatch } from "react";
 import React, {
   useMemo,
@@ -32,19 +38,12 @@ import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import classNames from "@calcom/ui/classNames";
-import { Button } from "@calcom/ui/components/button";
 import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
-import { VerticalDivider } from "@calcom/ui/components/divider";
 import { EditableHeading } from "@calcom/ui/components/editable-heading";
 import { Form } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText, SelectSkeletonLoader, Skeleton } from "@calcom/ui/components/skeleton";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { Shell as PlatformShell } from "../src/components/ui/shell";
-import { cn } from "../src/lib/utils";
 import { Timezone as PlatformTimzoneSelect } from "../timezone/index";
 import type { AvailabilityFormValues, scheduleClassNames, AvailabilitySettingsFormRef } from "./types";
 
@@ -202,7 +201,7 @@ const DateOverride = ({
   };
 
   return (
-    <div className="p-6">
+    <div className="border-subtle rounded-md border p-4">
       <h3 className="text-emphasis font-medium leading-6">
         {t("date_overrides")}{" "}
         <Tooltip content={t("date_overrides_info")}>
@@ -251,7 +250,7 @@ const SmallScreenSideBar = ({ open, children }: { open: boolean; children: JSX.E
     <div
       className={classNames(
         open
-          ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 sm:hidden"
+          ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity sm:hidden dark:bg-opacity-70"
           : ""
       )}>
       <div
@@ -384,8 +383,8 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
           )
         }
         CTA={
-          <div className={cn(customClassNames?.ctaClassName, "flex items-center justify-end")}>
-            <div className="sm:hover:bg-muted hidden items-center rounded-md px-2 transition sm:flex">
+          <div className={cn(customClassNames?.ctaClassName, "mr-1 flex items-center justify-end")}>
+            <div className="hidden items-center rounded-md px-2 transition sm:flex">
               {!openSidebar && allowSetToDefault ? (
                 <>
                   <Skeleton
@@ -415,7 +414,6 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                       />
                     )}
                   />
-                  <VerticalDivider className="hidden sm:inline" />
                 </>
               ) : null}
             </div>
@@ -441,7 +439,6 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                   isPending={isDeleting}
                   handleDelete={handleDelete}
                 />
-                <VerticalDivider className="hidden sm:inline" />
               </>
             )}
             <SmallScreenSideBar open={openSidebar}>
@@ -449,7 +446,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                 <div
                   className={classNames(
                     openSidebar
-                      ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 sm:hidden"
+                      ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity sm:hidden dark:bg-opacity-70"
                       : ""
                   )}>
                   <div
@@ -517,8 +514,8 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                       )}
                     </div>
 
-                    <div className="min-w-40 col-span-3 space-y-2 px-2 py-4 lg:col-span-1">
-                      <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
+                    <div className="col-span-3 min-w-40 space-y-2 border px-2 py-4 lg:col-span-1">
+                      <div className="w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0 xl:max-w-80">
                         <div>
                           <Skeleton
                             as={Label}
@@ -600,106 +597,118 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
             handleSubmit={async (props) => {
               handleSubmit(props);
             }}
-            className={cn(customClassNames?.formClassName, "flex flex-col sm:mx-0 xl:flex-row xl:space-x-6")}>
-            <div className="flex-1 flex-row xl:mr-0">
-              <div
-                className={cn(
-                  "border-subtle mb-6 rounded-md border",
-                  customClassNames?.scheduleClassNames?.scheduleContainer
-                )}>
-                <div>
-                  {typeof weekStart === "string" && (
-                    <Schedule
-                      labels={{
-                        addTime: t("add_time_availability"),
-                        copyTime: t("copy_times_to"),
-                        deleteTime: t("delete"),
-                      }}
-                      classNames={
-                        customClassNames?.scheduleClassNames ? { ...customClassNames.scheduleClassNames } : {}
-                      }
-                      control={form.control}
-                      name="schedule"
-                      userTimeFormat={timeFormat}
-                      weekStart={
-                        [
-                          "Sunday",
-                          "Monday",
-                          "Tuesday",
-                          "Wednesday",
-                          "Thursday",
-                          "Friday",
-                          "Saturday",
-                        ].indexOf(weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6
-                      }
-                    />
-                  )}
+            className={cn(customClassNames?.formClassName, "flex flex-col sm:mx-0 xl:space-x-6")}>
+            <div className="space-y-6">
+              {/* Container for first two divs - responsive layout */}
+              <div className="flex flex-col gap-6 md:flex-row">
+                {/* First div - Schedule (60% on md+ screens, full width on mobile) */}
+                <div className="border-subtle flex-1 rounded-md border md:flex-[3]">
+                  <div className={cn("mb-6", customClassNames?.scheduleClassNames?.scheduleContainer)}>
+                    <div>
+                      {typeof weekStart === "string" && (
+                        <Schedule
+                          labels={{
+                            addTime: t("add_time_availability"),
+                            copyTime: t("copy_times_to"),
+                            deleteTime: t("delete"),
+                          }}
+                          classNames={
+                            customClassNames?.scheduleClassNames
+                              ? { ...customClassNames.scheduleClassNames }
+                              : {}
+                          }
+                          control={form.control}
+                          name="schedule"
+                          userTimeFormat={timeFormat}
+                          weekStart={
+                            [
+                              "Sunday",
+                              "Monday",
+                              "Tuesday",
+                              "Wednesday",
+                              "Thursday",
+                              "Friday",
+                              "Saturday",
+                            ].indexOf(weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6
+                          }
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Second div - Timezone & Troubleshooter (40% on md+ screens, full width on mobile) */}
+                <div className="border-subtle flex-1 rounded-md border md:flex-[2]">
+                  <div className=" space-y-4 p-4">
+                    <div className="w-full">
+                      <div>
+                        <Skeleton
+                          as={Label}
+                          htmlFor="timeZone-responsive"
+                          className="mb-0 inline-block leading-none"
+                          waitForTranslation={!isPlatform}>
+                          {t("timezone")}
+                        </Skeleton>
+                        <Controller
+                          name="timeZone"
+                          render={({ field: { onChange, value } }) =>
+                            value ? (
+                              <TimezoneSelect
+                                inputId="timeZone-responsive"
+                                value={value}
+                                className="focus:border-brand-default border-default mt-1 block w-full rounded-md text-sm"
+                                onChange={(timezone) => onChange(timezone.value)}
+                              />
+                            ) : (
+                              <SelectSkeletonLoader className="mt-1 w-full" />
+                            )
+                          }
+                        />
+                      </div>
+                      {isPlatform ? (
+                        <></>
+                      ) : (
+                        <>
+                          <hr className="border-subtle my-6" />
+                          <div className="rounded-md">
+                            <Skeleton
+                              as="h3"
+                              className="mb-0 inline-block text-sm font-medium"
+                              waitForTranslation={!isPlatform}>
+                              {t("something_doesnt_look_right")}
+                            </Skeleton>
+                            <div className="mt-3 flex">
+                              <Skeleton
+                                as={Button}
+                                href="/availability/troubleshoot"
+                                color="secondary"
+                                waitForTranslation={!isPlatform}>
+                                {t("launch_troubleshooter")}
+                              </Skeleton>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
-              {enableOverrides && (
-                <DateOverride
-                  workingHours={schedule.workingHours}
-                  userTimeFormat={timeFormat}
-                  handleSubmit={handleSubmit}
-                  travelSchedules={travelSchedules}
-                  weekStart={
-                    ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
-                      weekStart
-                    ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
-                  }
-                  overridesModalClassNames={customClassNames?.overridesModalClassNames}
-                />
-              )}
-            </div>
-            <div className="min-w-40 col-span-3 hidden space-y-2 md:block lg:col-span-1">
-              <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
-                <div>
-                  <Skeleton
-                    as={Label}
-                    htmlFor="timeZone-lg-viewport"
-                    className="mb-0 inline-block leading-none"
-                    waitForTranslation={!isPlatform}>
-                    {t("timezone")}
-                  </Skeleton>
-                  <Controller
-                    name="timeZone"
-                    render={({ field: { onChange, value } }) =>
-                      value ? (
-                        <TimezoneSelect
-                          inputId="timeZone-lg-viewport"
-                          value={value}
-                          className="focus:border-brand-default border-default mt-1 block w-72 rounded-md text-sm"
-                          onChange={(timezone) => onChange(timezone.value)}
-                        />
-                      ) : (
-                        <SelectSkeletonLoader className="mt-1 w-72" />
-                      )
+
+              {/* Third div - Date Override (remains independent) */}
+              <div>
+                {enableOverrides && (
+                  <DateOverride
+                    workingHours={schedule.workingHours}
+                    userTimeFormat={timeFormat}
+                    handleSubmit={handleSubmit}
+                    travelSchedules={travelSchedules}
+                    weekStart={
+                      ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
+                        weekStart
+                      ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
                     }
+                    overridesModalClassNames={customClassNames?.overridesModalClassNames}
                   />
-                </div>
-                {isPlatform ? (
-                  <></>
-                ) : (
-                  <>
-                    <hr className="border-subtle my-6 mr-8" />
-                    <div className="rounded-md">
-                      <Skeleton
-                        as="h3"
-                        className="mb-0 inline-block text-sm font-medium"
-                        waitForTranslation={!isPlatform}>
-                        {t("something_doesnt_look_right")}
-                      </Skeleton>
-                      <div className="mt-3 flex">
-                        <Skeleton
-                          as={Button}
-                          href="/availability/troubleshoot"
-                          color="secondary"
-                          waitForTranslation={!isPlatform}>
-                          {t("launch_troubleshooter")}
-                        </Skeleton>
-                      </div>
-                    </div>
-                  </>
                 )}
               </div>
             </div>

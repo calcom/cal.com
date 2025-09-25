@@ -1,7 +1,7 @@
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { scheduleNoShowTriggers } from "@calcom/features/bookings/lib/handleNewBooking/scheduleNoShowTriggers";
-import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import isPrismaObj, { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
@@ -204,6 +204,10 @@ export const Handler = async ({ ctx, input }: Options) => {
       timeZone: user.timeZone,
       timeFormat: getTimeFormatStringFromUserTimeFormat(user.timeFormat),
       language: { translate: tOrganizer, locale: user.locale ?? "en" },
+      phoneNumber:
+        isPrismaObj(user.metadata) && user.metadata?.phoneNumber
+          ? (user.metadata?.phoneNumber as string)
+          : undefined,
     },
     hideOrganizerEmail: updatedBooking.eventType?.hideOrganizerEmail,
     attendees: attendeesList,

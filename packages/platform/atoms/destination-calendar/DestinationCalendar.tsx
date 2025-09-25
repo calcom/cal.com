@@ -9,10 +9,10 @@ export const DestinationCalendarSettings = (props: DestinationCalendarProps & { 
   const { t } = useLocale();
 
   return (
-    <div className={cn("border-subtle mb-6 mt-8 rounded-lg border", props?.classNames)}>
+    <div className={cn("border-default mb-6 mt-4 rounded-lg border", props?.classNames)}>
       <DestinationCalendarSettingsHeading />
-      <div className="border-t">
-        <div className="border-subtle flex w-full flex-col space-y-3 border-y-0 p-6">
+      <div>
+        <div className="border-subtle flex w-full flex-col space-y-3 border-y-0 px-6 pb-6">
           <div>
             <Label className="text-default mb-0 font-medium">{t("add_events_to")}</Label>
             <DestinationCalendarSelector {...props} />
@@ -28,10 +28,10 @@ const DestinationCalendarSettingsHeading = () => {
 
   return (
     <div className="p-6">
-      <h2 className="text-emphasis mb-1 text-base font-bold leading-5 tracking-wide">
+      <h2 className="text-default mb-1 text-base font-semibold leading-5 tracking-wide">
         {t("add_to_calendar")}
       </h2>
-      <p className="text-subtle text-sm leading-tight">{t("add_to_calendar_description")}</p>
+      <p className="text-subtle mt-6 text-sm leading-tight">{t("add_to_calendar_description")}</p>
     </div>
   );
 };

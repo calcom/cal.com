@@ -1,5 +1,10 @@
 "use client";
 
+import { Button } from "@calid/features/ui/components/button";
+import { BlankCard } from "@calid/features/ui/components/card";
+import { Icon } from "@calid/features/ui/components/icon";
+import { TextField } from "@calid/features/ui/components/input/input";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useWatch } from "react-hook-form";
@@ -8,17 +13,8 @@ import { v4 as uuidv4 } from "uuid";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import { Button } from "@calcom/ui/components/button";
 import { FormCard } from "@calcom/ui/components/card";
-import {
-  BooleanToggleGroupField,
-  Label,
-  SelectField,
-  TextField,
-  MultiOptionInput,
-} from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
-import { Tooltip } from "@calcom/ui/components/tooltip";
+import { BooleanToggleGroupField, Label, SelectField, MultiOptionInput } from "@calcom/ui/components/form";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -87,10 +83,12 @@ function Field({
         moveUp={moveUp}
         moveDown={moveDown}
         badge={
-          router ? { text: router.name, variant: "gray", href: `${appUrl}/form-edit/${router.id}` } : null
+          router
+            ? { text: router.name, variant: "secondary", href: `${appUrl}/form-edit/${router.id}` }
+            : null
         }
         deleteField={router ? null : deleteField}>
-        <div className="bg-default border-default w-full gap-3 rounded-2xl border p-3">
+        <div className="bg-default w-full gap-3 rounded-2xl p-3">
           <div className="mb-3 w-full">
             <TextField
               data-testid={`${hookFieldNamespace}.label`}
@@ -258,7 +256,7 @@ const FormEdit = ({
     form.fields = [];
   }
   return hookFormFields.length ? (
-    <div className="w-full py-4 lg:py-8">
+    <div className="w-full py-4">
       <div ref={animationRef} className="flex w-full flex-col rounded-md">
         {hookFormFields.map((field, key) => {
           const existingField = Boolean((form.fields || []).find((f) => f.id === field.id));
@@ -305,43 +303,14 @@ const FormEdit = ({
       ) : null}
     </div>
   ) : (
-    <div className="w-full py-4 lg:py-8">
-      {/* TODO: remake empty screen for V3 */}
-      <div className="border-sublte bg-muted flex flex-col items-center gap-6 rounded-xl border p-11">
-        <div className="mb-3 grid">
-          {/* Icon card - Top */}
-          <div className="bg-default border-subtle z-30 col-start-1 col-end-1 row-start-1 row-end-1 h-10 w-10 transform rounded-md border shadow-sm">
-            <div className="text-emphasis flex h-full items-center justify-center">
-              <Icon name="menu" className="text-emphasis h-4 w-4" />
-            </div>
-          </div>
-          {/* Left fanned card */}
-          <div
-            className="bg-default border-subtle z-20 col-start-1 col-end-1 row-start-1 row-end-1 h-10 w-10 rounded-md border shadow-sm"
-            style={{
-              transform: "translate(-12px, 2px) rotate(-6deg)",
-            }}
-          />
-          {/* Right fanned card */}
-          <div
-            className="bg-default border-subtle z-10 col-start-1 col-end-1 row-start-1 row-end-1 h-10 w-10 rounded-md border shadow-sm"
-            style={{
-              transform: "translate(12px, 2px) rotate(6deg)",
-            }}
-          />
-        </div>
-        <div>
-          <h1 className="text-emphasis text-emphasis text-center text-lg font-semibold">
-            Create your first question
-          </h1>
-          <p className="text-default mt-2 text-center text-sm leading-normal">
-            Fields are the form fields that the booker would see.
-          </p>
-        </div>
-        <Button data-testid="add-field" onClick={addField} StartIcon="plus" className="mt-6">
-          Add question
-        </Button>
-      </div>
+    <div className="w-full">
+      <BlankCard
+        Icon="menu"
+        headline="Create your first question"
+        description="Fields are the form fields that the booker would see."
+        buttonText="Add question"
+        buttonOnClick={addField}
+      />
     </div>
   );
 };
@@ -352,7 +321,7 @@ export default function FormEditPage({
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   return (
     <>
-      <Toaster position="bottom-right" />
+      <Toaster position="bottom-center" />
       <SingleForm
         {...props}
         appUrl={appUrl}

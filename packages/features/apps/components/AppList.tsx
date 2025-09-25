@@ -1,3 +1,11 @@
+import { Button } from "@calid/features/ui/components/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@calid/features/ui/components/dropdown-menu";
+import { Icon } from "@calid/features/ui/components/icon";
 import { useCallback, useState } from "react";
 
 import { AppSettings } from "@calcom/app-store/_components/AppSettings";
@@ -18,14 +26,6 @@ import type { AppCategories } from "@calcom/prisma/enums";
 import { type RouterOutputs } from "@calcom/trpc";
 import type { App } from "@calcom/types/App";
 import { Alert } from "@calcom/ui/components/alert";
-import { Button } from "@calcom/ui/components/button";
-import {
-  Dropdown,
-  DropdownItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@calcom/ui/components/dropdown";
 import { List } from "@calcom/ui/components/list";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -33,7 +33,7 @@ export type HandleDisconnect = (credentialId: number, app: App["slug"], teamId?:
 
 interface AppListProps {
   variant?: AppCategories;
-  data: RouterOutputs["viewer"]["apps"]["integrations"];
+  data: RouterOutputs["viewer"]["apps"]["calid_integrations"];
   handleDisconnect: HandleDisconnect;
   listClassName?: string;
   defaultConferencingApp: RouterOutputs["viewer"]["apps"]["getUsersDefaultConferencingApp"];
@@ -72,14 +72,16 @@ export const AppList = ({
   const ChildAppCard = ({
     item,
   }: {
-    item: RouterOutputs["viewer"]["apps"]["integrations"]["items"][number] & {
+    item: RouterOutputs["viewer"]["apps"]["calid_integrations"]["items"][number] & {
       credentialOwner?: CredentialOwner;
     };
   }) => {
     const appSlug = item?.slug;
+    if (appSlug === "daily-video") return null;
+
     const appIsDefault =
       appSlug === defaultConferencingApp?.appSlug ||
-      (appSlug === "daily-video" && !defaultConferencingApp?.appSlug);
+      (appSlug === "jitsi" && !defaultConferencingApp?.appSlug);
     return (
       <AppListCard
         key={item.name}
@@ -94,35 +96,38 @@ export const AppList = ({
         actions={
           !item.credentialOwner?.readOnly ? (
             <div className="flex justify-end">
-              <Dropdown modal={false}>
+              <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
-                  <Button StartIcon="ellipsis" variant="icon" color="secondary" />
+                  <Button
+                    variant="icon"
+                    color="minimal"
+                    type="button"
+                    className="hover:bg-muted rounded-md transition-colors">
+                    <Icon name="ellipsis" />
+                  </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent>
+                <DropdownMenuContent align="end">
                   {!appIsDefault && variant === "conferencing" && (
-                    <DropdownMenuItem>
-                      <DropdownItem
-                        type="button"
-                        color="secondary"
-                        StartIcon="video"
-                        onClick={() => {
-                          const locationType = getLocationFromApp(item?.locationOption?.value ?? "");
-                          if (locationType?.linkType === "static") {
-                            setLocationType({ ...locationType, slug: appSlug });
-                          } else {
-                            handleUpdateUserDefaultConferencingApp({
-                              appSlug,
-                              onSuccessCallback: () => setBulkUpdateModal(true),
-                              onErrorCallback: () => {
-                                return;
-                              },
-                            });
-                          }
-                        }}>
-                        {t("set_as_default")}
-                      </DropdownItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        const locationType = getLocationFromApp(item?.locationOption?.value ?? "");
+                        if (locationType?.linkType === "static") {
+                          setLocationType({ ...locationType, slug: appSlug });
+                        } else {
+                          handleUpdateUserDefaultConferencingApp({
+                            appSlug,
+                            onSuccessCallback: () => setBulkUpdateModal(true),
+                            onErrorCallback: () => {
+                              return;
+                            },
+                          });
+                        }
+                      }}>
+                      <Icon name="video" className="mr-2 h-4 w-4" />
+                      {t("set_as_default")}
                     </DropdownMenuItem>
                   )}
+
                   <ConnectOrDisconnectIntegrationMenuItem
                     credentialId={item.credentialOwner?.credentialId || item.userCredentialIds[0]}
                     type={item.type}
@@ -137,7 +142,7 @@ export const AppList = ({
                     }
                   />
                 </DropdownMenuContent>
-              </Dropdown>
+              </DropdownMenu>
             </div>
           ) : null
         }>
@@ -146,23 +151,24 @@ export const AppList = ({
     );
   };
 
-  const appsWithTeamCredentials = data.items.filter((app) => app.teams.length);
+  const appsWithTeamCredentials = data.items.filter((app) => app.calIdTeams && app.calIdTeams.length > 0);
   const cardsForAppsWithTeams = appsWithTeamCredentials.map((app) => {
     const appCards = [];
 
     if (app.userCredentialIds.length) {
       appCards.push(<ChildAppCard item={app} />);
     }
-    for (const team of app.teams) {
+    for (const team of app.calIdTeams) {
       if (team) {
         appCards.push(
           <ChildAppCard
+            key={`${app.slug}-${team.calIdTeamId}`}
             item={{
               ...app,
               credentialOwner: {
                 name: team.name,
                 avatar: team.logoUrl,
-                teamId: team.teamId,
+                teamId: team.calIdTeamId,
                 credentialId: team.credentialId,
                 readOnly: !team.isAdmin,
               },
@@ -182,7 +188,7 @@ export const AppList = ({
         {data.items
           .filter((item) => item.invalidCredentialIds)
           .map((item, i) => {
-            if (!item.teams.length) return <ChildAppCard key={i} item={item} />;
+            if (!item.calIdTeams || !item.calIdTeams.length) return <ChildAppCard key={i} item={item} />;
           })}
       </List>
       {locationType && (
@@ -226,14 +232,12 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
 
   if (credentialId || type === "stripe_payment" || isGlobal) {
     return (
-      <DropdownMenuItem>
-        <DropdownItem
-          color="destructive"
-          onClick={() => handleDisconnect(credentialId, app, teamId)}
-          disabled={isGlobal || isDelegationCredential({ credentialId })}
-          StartIcon="trash">
-          {t("remove_app")}
-        </DropdownItem>
+      <DropdownMenuItem
+        className="text-destructive hover:border-semantic-error hover:bg-error"
+        onClick={() => handleDisconnect(credentialId, app, teamId)}
+        disabled={isGlobal || isDelegationCredential({ credentialId })}>
+        <Icon name="trash-2" className="mr-2 h-4 w-4" />
+        {t("remove_app")}
       </DropdownMenuItem>
     );
   }

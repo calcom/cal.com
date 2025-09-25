@@ -1,11 +1,9 @@
+import type { IconName } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon";
 import type { ReactNode } from "react";
 import React from "react";
 
 import classNames from "@calcom/ui/classNames";
-
-import { Button } from "../button";
-import type { IconName } from "../icon";
-import { Icon } from "../icon";
 
 export function EmptyScreen({
   Icon: icon,
@@ -16,12 +14,9 @@ export function EmptyScreen({
   buttonText,
   buttonOnClick,
   buttonRaw,
-  border = true,
-  dashedBorder = true,
   className,
   iconClassName,
   iconWrapperClassName,
-  limitWidth = true,
 }: {
   Icon?: IconName;
   customIcon?: React.ReactElement;
@@ -30,58 +25,56 @@ export function EmptyScreen({
   description?: string | React.ReactElement;
   buttonText?: string;
   buttonOnClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
-  buttonRaw?: ReactNode; // Used incase you want to provide your own button.
-  border?: boolean;
-  dashedBorder?: boolean;
+  buttonRaw?: ReactNode;
   iconWrapperClassName?: string;
   iconClassName?: string;
-  limitWidth?: boolean;
 } & React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <>
-      <div
-        data-testid="empty-screen"
-        className={classNames(
-          "flex w-full select-none flex-col items-center justify-center rounded-lg p-7 lg:p-20",
-          border && "border-subtle border",
-          dashedBorder && "border-dashed",
-          className
-        )}>
-        {!avatar ? null : (
-          <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full">{avatar}</div>
-        )}
-
-        {!icon ? null : (
-          <div
-            className={classNames(
-              "bg-emphasis flex h-[72px] w-[72px] items-center justify-center rounded-full ",
-              iconWrapperClassName
-            )}>
-            <Icon
-              name={icon}
-              className={classNames("text-default inline-block h-10 w-10 stroke-[1.3px]", iconClassName)}
-            />
-          </div>
-        )}
-        {!customIcon ? null : <>{customIcon}</>}
-        <div className={`flex ${limitWidth ? "max-w-[420px]" : ""}  flex-col items-center`}>
-          <h2
-            className={classNames(
-              "text-semibold font-cal text-emphasis text-center text-xl normal-nums",
-              icon && "mt-6",
-              !description && "mb-8"
-            )}>
-            {headline}
-          </h2>
-          {description && (
-            <div className="text-default mb-8 mt-3 text-center text-sm font-normal leading-6">
-              {description}
-            </div>
-          )}
-          {buttonOnClick && buttonText && <Button onClick={(e) => buttonOnClick(e)}>{buttonText}</Button>}
-          {buttonRaw}
+    <div
+      data-testid="empty-screen"
+      className={classNames(
+        "rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 py-12 text-center",
+        className
+      )}>
+      {/* Avatar / Icon */}
+      {avatar ? (
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-200">
+          {avatar}
         </div>
-      </div>
-    </>
+      ) : icon ? (
+        <div
+          className={classNames(
+            "mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-200",
+            iconWrapperClassName
+          )}>
+          <Icon name={icon} className={classNames("h-6 w-6 text-gray-400", iconClassName)} />
+        </div>
+      ) : (
+        customIcon && (
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-200">
+            {customIcon}
+          </div>
+        )
+      )}
+
+      {/* Headline */}
+      <p className="mb-4 text-sm font-medium">{headline}</p>
+
+      {/* Description (optional) */}
+      {description && <div className="mb-4 text-sm text-gray-500">{description}</div>}
+
+      {/* Button */}
+      {buttonRaw
+        ? buttonRaw
+        : buttonOnClick &&
+          buttonText && (
+            <button
+              onClick={buttonOnClick}
+              className="bg-primary hover:bg-primary/90 rounded-lg px-4 py-2 font-medium text-default"
+              style={{ fontSize: "14px" }}>
+              {buttonText}
+            </button>
+          )}
+    </div>
   );
 }

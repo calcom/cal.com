@@ -1,24 +1,48 @@
 "use client";
 
+import { Avatar } from "@calid/features/ui/components/avatar";
+import { Button } from "@calid/features/ui/components/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  DialogClose,
+  DialogFooter,
+} from "@calid/features/ui/components/dialog";
+import { Form, FormField } from "@calid/features/ui/components/form";
+import { TextField } from "@calid/features/ui/components/input/input";
+import { PasswordField } from "@calid/features/ui/components/input/input";
+import {
+  usePhoneNumberField,
+  PhoneNumberField,
+  isPhoneNumberComplete,
+} from "@calid/features/ui/components/input/phone-number-field";
+import { Label } from "@calid/features/ui/components/label";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { revalidateSettingsProfile } from "app/cache/path/settings/my-account";
+import { isValidPhoneNumber } from "libphonenumber-js";
 // eslint-disable-next-line no-restricted-imports
 import { get, pick } from "lodash";
 import { signOut, useSession } from "next-auth/react";
+import { useMemo } from "react";
 import type { BaseSyntheticEvent } from "react";
 import React, { useRef, useState } from "react";
-import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import { Dialog } from "@calcom/features/components/controlled-dialog";
-import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { DisplayInfo } from "@calcom/features/users/components/UserTable/EditSheet/DisplayInfo";
-import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
+import {
+  APP_NAME,
+  FULL_NAME_LENGTH_MAX_LIMIT,
+  PHONE_NUMBER_VERIFICATION_ENABLED,
+} from "@calcom/lib/constants";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
 import { IdentityProvider } from "@calcom/prisma/enums";
@@ -26,17 +50,8 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import { Alert } from "@calcom/ui/components/alert";
-import { UserAvatar } from "@calcom/ui/components/avatar";
-import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogTrigger, DialogClose } from "@calcom/ui/components/dialog";
 import { Editor } from "@calcom/ui/components/editor";
-import { Form } from "@calcom/ui/components/form";
-import { PasswordField } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
-import { showToast } from "@calcom/ui/components/toast";
 
 import TwoFactor from "@components/auth/TwoFactor";
 import CustomEmailTextField from "@components/settings/CustomEmailTextField";
@@ -64,16 +79,19 @@ export type FormValues = {
   email: string;
   bio: string;
   secondaryEmails: Email[];
+  metadata?: {
+    phoneNumber?: string;
+  };
 };
 type Props = {
-  user: RouterOutputs["viewer"]["me"]["get"];
+  user: RouterOutputs["viewer"]["me"]["calid_get"];
 };
 
 const ProfileView = ({ user }: Props) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const { update } = useSession();
-  const updateProfileMutation = trpc.viewer.me.updateProfile.useMutation({
+  const updateProfileMutation = trpc.viewer.me.calid_updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
       utils.viewer.me.invalidate();
@@ -81,9 +99,9 @@ const ProfileView = ({ user }: Props) => {
       revalidateSettingsProfile();
 
       if (res.hasEmailBeenChanged && res.sendEmailVerification) {
-        showToast(t("change_of_email_toast", { email: tempFormValues?.email }), "success");
+        triggerToast(t("change_of_email_toast", { email: tempFormValues?.email }), "success");
       } else {
-        showToast(t("settings_updated_successfully"), "success");
+        triggerToast(t("settings_updated_successfully"), "success");
       }
 
       setTempFormValues(null);
@@ -93,22 +111,22 @@ const ProfileView = ({ user }: Props) => {
         // TODO: Add error codes.
         case "email_already_used":
           {
-            showToast(t(e.message), "error");
+            triggerToast(t(e.message), "error");
           }
           return;
         default:
-          showToast(t("error_updating_settings"), "error");
+          triggerToast(t("error_updating_settings"), "error");
       }
     },
   });
   const unlinkConnectedAccountMutation = trpc.viewer.loggedInViewerRouter.unlinkConnectedAccount.useMutation({
     onSuccess: async (res) => {
-      showToast(t(res.message), "success");
+      triggerToast(t(res.message), "success");
       utils.viewer.me.invalidate();
       revalidateSettingsProfile();
     },
     onError: (e) => {
-      showToast(t(e.message), "error");
+      triggerToast(t(e.message), "error");
     },
   });
 
@@ -144,7 +162,7 @@ const ProfileView = ({ user }: Props) => {
     await utils.viewer.me.invalidate();
     revalidateSettingsProfile();
 
-    showToast(t("Your account was deleted"), "success");
+    triggerToast(t("Your account was deleted"), "success");
 
     setHasDeleteErrors(false); // dismiss any open errors
     if (process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com") {
@@ -248,13 +266,17 @@ const ProfileView = ({ user }: Props) => {
         emailPrimary: false,
       })),
     ],
+
+    metadata: {
+      phoneNumber: (isPrismaObjOrUndefined(user.metadata)?.phoneNumber as string) ?? "",
+    },
   };
 
   return (
     <SettingsHeader
       title={t("profile")}
       description={t("profile_description", { appName: APP_NAME })}
-      borderInShellHeader={true}>
+      borderInShellHeader={false}>
       <ProfileForm
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
@@ -273,7 +295,7 @@ const ProfileView = ({ user }: Props) => {
         handleAddSecondaryEmail={() => setShowSecondaryEmailModalOpen(true)}
         handleResendVerifyEmail={(email) => {
           resendVerifyEmailMutation.mutate({ email });
-          showToast(t("email_sent"), "success");
+          triggerToast(t("email_sent"), "success");
         }}
         handleAccountDisconnect={(values) => {
           if (isCALIdentityProvider) return;
@@ -288,12 +310,12 @@ const ProfileView = ({ user }: Props) => {
           <div className="mt-6">
             <UsernameAvailabilityField
               onSuccessMutation={async () => {
-                showToast(t("settings_updated_successfully"), "success");
+                triggerToast(t("settings_updated_successfully"), "success");
                 await utils.viewer.me.invalidate();
                 revalidateSettingsProfile();
               }}
               onErrorMutation={() => {
-                showToast(t("error_updating_settings"), "error");
+                triggerToast(t("error_updating_settings"), "error");
               }}
             />
           </div>
@@ -301,60 +323,64 @@ const ProfileView = ({ user }: Props) => {
         isCALIdentityProvider={isCALIdentityProvider}
       />
 
-      <div className="border-subtle mt-6 rounded-lg rounded-b-none border border-b-0 p-6">
-        <Label className="mb-0 text-base font-semibold text-red-700">{t("danger_zone")}</Label>
-        <p className="text-subtle text-sm">{t("account_deletion_cannot_be_undone")}</p>
-      </div>
-      {/* Delete account Dialog */}
-      <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
-        <SectionBottomActions align="end">
+      <div className="bg-cal-destructive-dim border-destructive mb-2 mt-6 rounded-md border p-6">
+        <Label className="text-destructive mb-1 text-base font-semibold">{t("danger_zone")}</Label>
+        <p className="text-subtle mb-1 text-sm">{t("account_deletion_cannot_be_undone")}</p>
+
+        <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
           <DialogTrigger asChild>
-            <Button data-testid="delete-account" color="destructive" className="mt-1" StartIcon="trash-2">
+            <Button
+              data-testid="delete-account"
+              variant="button"
+              color="destructive"
+              className="bg-default text-destructive"
+              StartIcon="trash-2">
               {t("delete_account")}
             </Button>
           </DialogTrigger>
-        </SectionBottomActions>
-        <DialogContent
-          title={t("delete_account_modal_title")}
-          description={t("confirm_delete_account_modal", { appName: APP_NAME })}
-          type="creation"
-          Icon="triangle-alert">
-          <>
-            <div className="mb-10">
-              <p className="text-subtle mb-4 text-sm">{t("delete_account_confirmation_message")}</p>
-              {isCALIdentityProvider && (
-                <PasswordField
-                  data-testid="password"
-                  name="password"
-                  id="password"
-                  autoComplete="current-password"
-                  required
-                  label="Password"
-                  ref={passwordRef}
-                />
-              )}
+          <DialogContent
+            title={t("delete_account_modal_title")}
+            description={t("confirm_delete_account_modal", { appName: APP_NAME })}
+            type="creation"
+            Icon="triangle-alert">
+            <>
+              <div className="mb-10">
+                <p className="text-subtle mb-4 text-sm">{t("delete_account_confirmation_message")}</p>
+                {isCALIdentityProvider && (
+                  <PasswordField
+                    data-testid="password"
+                    name="password"
+                    id="password"
+                    autoComplete="current-password"
+                    required
+                    label="Password"
+                    ref={passwordRef}
+                  />
+                )}
 
-              {user?.twoFactorEnabled && isCALIdentityProvider && (
-                <Form handleSubmit={onConfirm} className="pb-4" form={form}>
-                  <TwoFactor center={false} />
-                </Form>
-              )}
+                {user?.twoFactorEnabled && isCALIdentityProvider && (
+                  <Form onSubmit={onConfirm} className="pb-4" form={form}>
+                    <TwoFactor center={false} />
+                  </Form>
+                )}
 
-              {hasDeleteErrors && <Alert severity="error" title={deleteErrorMessage} />}
-            </div>
-            <DialogFooter showDivider>
-              <DialogClose />
-              <Button
-                color="primary"
-                data-testid="delete-account-confirm"
-                onClick={(e) => onConfirmButton(e)}
-                loading={deleteMeMutation.isPending}>
-                {t("delete_my_account")}
-              </Button>
-            </DialogFooter>
-          </>
-        </DialogContent>
-      </Dialog>
+                {hasDeleteErrors && <Alert severity="error" title={deleteErrorMessage} />}
+              </div>
+              <DialogFooter>
+                <DialogClose />
+                <Button
+                  color="primary"
+                  data-testid="delete-account-confirm"
+                  onClick={(e) => onConfirmButton(e)}
+                  loading={deleteMeMutation.isPending}>
+                  {t("delete_my_account")}
+                </Button>
+              </DialogFooter>
+            </>
+          </DialogContent>
+        </Dialog>
+      </div>
+      {/* Delete account Dialog */}
 
       {/* If changing email, confirm password */}
       <Dialog open={confirmPasswordOpen} onOpenChange={setConfirmPasswordOpen}>
@@ -390,7 +416,7 @@ const ProfileView = ({ user }: Props) => {
 
             {confirmPasswordErrorMessage && <Alert severity="error" title={confirmPasswordErrorMessage} />}
           </div>
-          <DialogFooter showDivider>
+          <DialogFooter>
             <Button
               data-testid="profile-update-email-submit-button"
               color="primary"
@@ -481,9 +507,9 @@ const ProfileForm = ({
   handleAccountDisconnect,
   extraField,
   isPending = false,
-  isFallbackImg,
+  isFallbackImg: _isFallbackImg,
   user,
-  userOrganization,
+  userOrganization: _userOrganization,
   isCALIdentityProvider,
 }: {
   defaultValues: FormValues;
@@ -494,8 +520,8 @@ const ProfileForm = ({
   extraField?: React.ReactNode;
   isPending: boolean;
   isFallbackImg: boolean;
-  user: RouterOutputs["viewer"]["me"]["get"];
-  userOrganization: RouterOutputs["viewer"]["me"]["get"]["organization"];
+  user: RouterOutputs["viewer"]["me"]["calid_get"];
+  userOrganization: RouterOutputs["viewer"]["me"]["calid_get"]["organization"] | null;
   isCALIdentityProvider: boolean;
 }) => {
   const { t } = useLocale();
@@ -521,12 +547,40 @@ const ProfileForm = ({
         emailPrimary: z.boolean().optional(),
       })
     ),
+    metadata: z
+      .object({
+        phoneNumber: z
+          .string()
+          .refine(
+            (val) => {
+              return val === "" || isValidPhoneNumber(val);
+            },
+            { message: t("invalid_phone_number") }
+          )
+          .optional(),
+      })
+      .optional(),
   });
 
   const formMethods = useForm<FormValues>({
     defaultValues,
     resolver: zodResolver(profileFormSchema),
   });
+
+  const phoneFieldHelpers = usePhoneNumberField(
+    {
+      getValues: formMethods.getValues,
+      setValue: formMethods.setValue,
+    },
+    defaultValues,
+    "metadata.phoneNumber"
+  );
+
+  const handleDeleteNumber = () => {
+    phoneFieldHelpers.setValue("", { shouldDirty: true });
+    const values = formMethods.getValues();
+    onSubmit(getUpdatedFormValues(values));
+  };
 
   const {
     fields: secondaryEmailFields,
@@ -539,7 +593,7 @@ const ProfileForm = ({
   });
 
   const getUpdatedFormValues = (values: FormValues) => {
-    const changedFields = formMethods.formState.dirtyFields?.secondaryEmails || [];
+    const changedFields = (formMethods.formState.dirtyFields as any)?.secondaryEmails || [];
     const updatedValues: FormValues = {
       ...values,
     };
@@ -578,15 +632,29 @@ const ProfileForm = ({
   };
 
   const handleFormSubmit = (values: FormValues) => {
-    onSubmit(getUpdatedFormValues(values));
+    const phoneNumber = values.metadata?.phoneNumber || "";
+    const isPhoneValid = isPhoneNumberComplete(phoneNumber, PHONE_NUMBER_VERIFICATION_ENABLED); // Assuming verification is required
+
+    if (
+      formMethods.formState.dirtyFields.metadata &&
+      (formMethods.formState.dirtyFields.metadata as any)?.phoneNumber === true &&
+      phoneNumber &&
+      !isPhoneValid
+    ) {
+      triggerToast(t("please_verify_phone_number"), "error");
+      return;
+    }
+
+    const finalValues = getUpdatedFormValues(values);
+    onSubmit(finalValues);
   };
 
   const onDisconnect = () => {
     handleAccountDisconnect(getUpdatedFormValues(formMethods.getValues()));
   };
 
-  const { data: usersAttributes, isPending: usersAttributesPending } =
-    trpc.viewer.attributes.getByUserId.useQuery({
+  const { data: usersAttributes, isPending: _usersAttributesPending } =
+    trpc.viewer.attributes.calid_getByUserId.useQuery({
       userId: user.id,
     });
 
@@ -595,20 +663,32 @@ const ProfileForm = ({
   } = formMethods;
 
   const isDisabled = isSubmitting || !isDirty;
+
+  const bioValue = formMethods.watch("bio") || "";
+  const renderedBio = useMemo(() => {
+    md.render(bioValue), [bioValue];
+  });
+  const getText = React.useCallback(() => bioValue, [bioValue]);
+
   return (
-    <Form form={formMethods} handleSubmit={handleFormSubmit}>
-      <div className="border-subtle border-x px-4 pb-10 pt-8 sm:px-6">
+    <Form form={formMethods} onSubmit={handleFormSubmit}>
+      <div className="border-default rounded-md border px-4 py-6 sm:px-6">
+        <h2 className="mb-2 text-sm font-medium">{t("profile_picture")}</h2>
         <div className="flex items-center">
-          <Controller
+          <FormField
             control={formMethods.control}
             name="avatarUrl"
             render={({ field: { value, onChange } }) => {
               const showRemoveAvatarButton = value !== null;
               return (
                 <>
-                  <UserAvatar data-testid="profile-upload-avatar" previewSrc={value} size="lg" user={user} />
+                  <Avatar
+                    data-testid="profile-upload-avatar"
+                    imageSrc={getUserAvatarUrl({ avatarUrl: value })}
+                    size="lg"
+                    alt={user.name || "Nameless User"}
+                  />
                   <div className="ms-4">
-                    <h2 className="mb-2 text-sm font-medium">{t("profile_picture")}</h2>
                     <div className="flex gap-2">
                       <ImageUploader
                         target="avatar"
@@ -617,6 +697,7 @@ const ProfileForm = ({
                         handleAvatarChange={(newAvatar) => {
                           onChange(newAvatar);
                         }}
+                        buttonSize="lg"
                         imageSrc={getUserAvatarUrl({ avatarUrl: value })}
                         triggerButtonColor={showRemoveAvatarButton ? "secondary" : "secondary"}
                       />
@@ -638,20 +719,13 @@ const ProfileForm = ({
           />
         </div>
         {extraField}
-        <p className="text-subtle mt-1 flex gap-1 text-sm">
-          <Icon name="info" className="mt-0.5 flex-shrink-0" />
-          <span className="flex-1">{t("tip_username_plus")}</span>
-        </p>
         <div className="mt-6">
           <TextField label={t("full_name")} {...formMethods.register("name")} />
         </div>
         <div className="mt-6">
           <Label>{t("email")}</Label>
           <div className="-mt-2 flex flex-wrap items-start gap-2">
-            <div
-              className={
-                secondaryEmailFields.length > 1 ? "grid w-full grid-cols-1 gap-2 sm:grid-cols-2" : "flex-1"
-              }>
+            <div className={secondaryEmailFields.length > 1 ? "grid w-full" : "flex-1"}>
               {secondaryEmailFields.map((field, index) => (
                 <CustomEmailTextField
                   key={field.itemId}
@@ -676,17 +750,35 @@ const ProfileForm = ({
             <Button
               color="secondary"
               StartIcon="plus"
-              className="mt-2"
+              size="lg"
+              className="mt-2 h-[40px]"
               onClick={() => handleAddSecondaryEmail()}
               data-testid="add-secondary-email">
               {t("add_email")}
             </Button>
           </div>
         </div>
+
+        <div className="mt-6">
+          <PhoneNumberField
+            getValue={phoneFieldHelpers.getValue}
+            setValue={phoneFieldHelpers.setValue}
+            getValues={formMethods.getValues}
+            defaultValues={defaultValues}
+            isRequired={false}
+            allowDelete={true}
+            hasExistingNumber={!!defaultValues.metadata.phoneNumber}
+            isNumberVerificationRequired={PHONE_NUMBER_VERIFICATION_ENABLED} // Only require OTP when phone is mandatory
+            errorMessage={formMethods.formState.errors.metadata?.phoneNumber?.message}
+            onDeleteNumber={handleDeleteNumber}
+            fieldName="metadata.phoneNumber"
+          />
+        </div>
+
         <div className="mt-6">
           <Label>{t("about")}</Label>
           <Editor
-            getText={() => md.render(formMethods.getValues("bio") || "")}
+            getText={getText}
             setText={(value: string) => {
               formMethods.setValue("bio", turndown(value), { shouldDirty: true });
             }}
@@ -737,17 +829,16 @@ const ProfileForm = ({
             </div>
           </div>
         )}
-      </div>
-      <SectionBottomActions align="end">
         <Button
           loading={isPending}
           disabled={isDisabled}
           color="primary"
+          className="mt-4"
           type="submit"
           data-testid="profile-submit-button">
           {t("update")}
         </Button>
-      </SectionBottomActions>
+      </div>
     </Form>
   );
 };

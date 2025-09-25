@@ -22,7 +22,7 @@ export class UsersService {
     return users;
   }
 
-  getUserMainProfile(user: UserWithProfile) {
+getUserMainProfile(user: UserWithProfile) {
     return (
       user?.movedToProfile ||
       user.profiles?.find((p) => p.organizationId === user.organizationId) ||

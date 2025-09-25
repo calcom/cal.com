@@ -39,7 +39,7 @@ export const ForgotPasswordEmail = (
               style={{ color: "#3E3E3E" }}
               target="_blank"
               rel="noreferrer">
-              <>{props.language("contact_our_support_team")}</>
+              <>{props.language("contact_us")}</>
             </a>
           </>
         </p>

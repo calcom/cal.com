@@ -26,12 +26,14 @@ export const filterQuerySchema = z.object({
   teamIds: queryNumberArray.optional(),
   userIds: queryNumberArray.optional(),
   upIds: queryStringArray.optional(),
+  calIdTeamIds: queryNumberArray.optional(),
 });
 
 export const filterQuerySchemaStrict = z.object({
-  teamIds: z.number().array().optional(),
+  teamIds: z.number().array().optional().nullable(),
   userIds: z.number().array().optional(),
   upIds: z.string().array().optional(),
+  calIdTeamIds: z.number().array().optional(),
 });
 
 export const getTeamsFiltersFromQuery = (query: ParsedUrlQuery) => {
@@ -41,10 +43,17 @@ export const getTeamsFiltersFromQuery = (query: ParsedUrlQuery) => {
   filters.teamIds = filters.teamIds?.sort();
   filters.upIds = filters.upIds?.sort();
   filters.userIds = filters.userIds?.sort();
+  filters.calIdTeamIds = filters.calIdTeamIds?.sort();
 
   const isUserIdFilterPresent = filters.userIds?.length;
   const isUpIdFilterPresent = filters.upIds?.length;
-  if (!filters.teamIds?.length && !isUserIdFilterPresent && !isUpIdFilterPresent) {
+  const isCalIdTeamIdFilterPresent = filters.calIdTeamIds?.length;
+  if (
+    !filters.teamIds?.length &&
+    !isUserIdFilterPresent &&
+    !isUpIdFilterPresent &&
+    !isCalIdTeamIdFilterPresent
+  ) {
     return undefined;
   }
 

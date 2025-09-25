@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@calid/features/ui/components/icon";
 import Link from "next/link";
 
 import type { UseAddAppMutationOptions } from "@calcom/app-store/_utils/useAddAppMutation";
@@ -10,7 +11,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
 import classNames from "@calcom/ui/classNames";
-import { Icon } from "@calcom/ui/components/icon";
 
 import { InstallAppButtonMap } from "./apps.browser.generated";
 import type { InstallAppButtonProps } from "./types";

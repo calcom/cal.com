@@ -1,4 +1,6 @@
 import type { Booking, Prisma, Prisma as PrismaClientType } from "@prisma/client";
+import { sql } from "kysely";
+
 import type { Kysely } from "kysely";
 import { type SelectQueryBuilder } from "kysely";
 import { jsonObjectFrom, jsonArrayFrom } from "kysely/helpers/postgres";
@@ -430,6 +432,8 @@ export async function getBookings({
           "Booking.endTime",
           "Booking.metadata",
           "Booking.uid",
+          sql`${eb.ref("startTime")} AT TIME ZONE 'UTC'`.as('startTimeUtc'),
+          sql`${eb.ref("endTime")} AT TIME ZONE 'UTC'`.as('endTimeUtc'),
           eb
             .cast<Prisma.JsonValue>( // Target TypeScript type
               eb.ref("Booking.responses"), // Source column
@@ -576,6 +580,7 @@ export async function getBookings({
         .execute()
     : [];
 
+
   const [
     recurringInfoBasic,
     recurringInfoExtended,
@@ -706,8 +711,8 @@ export async function getBookings({
           currency: booking.eventType?.currency || "usd",
           metadata: EventTypeMetaDataSchema.parse(booking.eventType?.metadata || {}),
         },
-        startTime: booking.startTime.toISOString(),
-        endTime: booking.endTime.toISOString(),
+        startTime: booking.startTimeUtc.toISOString(),
+        endTime: booking.endTimeUtc.toISOString(),
       };
     })
   );

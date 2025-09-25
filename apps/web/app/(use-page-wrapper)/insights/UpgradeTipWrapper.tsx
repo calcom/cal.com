@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@calid/features/ui/components/icon";
 import { useSession } from "next-auth/react";
 
 import { UpgradeTip } from "@calcom/features/tips";
@@ -7,7 +8,6 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-import { Icon } from "@calcom/ui/components/icon";
 
 export default function UpgradeTipWrapper({ children }: { children: React.ReactNode }) {
   const { t } = useLocale();
@@ -38,7 +38,7 @@ export default function UpgradeTipWrapper({ children }: { children: React.ReactN
       features={features}
       background="/tips/insights"
       buttons={
-        <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
+        <div className="space-y-2 sm:space-x-2 rtl:space-x-reverse">
           <ButtonGroup>
             <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
               {t("create_team")}

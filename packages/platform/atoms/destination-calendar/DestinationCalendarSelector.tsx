@@ -147,7 +147,7 @@ export const DestinationCalendarSelector = ({
         isMulti={false}
       />
       {hideAdvancedText ? null : (
-        <p className="text-sm leading-tight">{t("you_can_override_calendar_in_advanced_tab")}</p>
+        <p className="text-subtle text-sm leading-tight">{t("you_can_override_calendar_in_advanced_tab")}</p>
       )}
     </div>
   );

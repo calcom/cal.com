@@ -87,6 +87,7 @@ export class CalendarEventBuilder {
       translate: TFunction;
       locale: string;
     };
+    phoneNumber?: string;
   }) {
     this.event = {
       ...this.event,
@@ -98,6 +99,7 @@ export class CalendarEventBuilder {
         timeZone: organizer.timeZone,
         language: organizer.language,
         timeFormat: organizer.timeFormat,
+        phoneNumber: organizer.phoneNumber,
       },
     };
     return this;

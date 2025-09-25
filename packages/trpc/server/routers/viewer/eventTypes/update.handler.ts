@@ -1,15 +1,17 @@
+import {
+  canDisableParticipantNotifications,
+  canDisableOrganizerNotifications,
+} from "@calid/features/modules/workflows/utils/notificationDisableCheck";
 import { Prisma } from "@prisma/client";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
-import {
-  allowDisablingAttendeeConfirmationEmails,
-  allowDisablingHostConfirmationEmails,
-} from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import tasker from "@calcom/features/tasker";
+import { IS_DEV, ONEHASH_API_KEY, ONEHASH_CHAT_SYNC_BASE_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { CalVideoSettingsRepository } from "@calcom/lib/server/repository/calVideoSettings";
@@ -48,6 +50,7 @@ type User = {
   organizationId: number | null;
   email: SessionUser["email"];
   locale: string;
+  metadata: SessionUser["metadata"];
 };
 
 type UpdateOptions = {
@@ -100,6 +103,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const eventType = await ctx.prisma.eventType.findUniqueOrThrow({
     where: { id },
     select: {
+      id: true,
       title: true,
       locations: true,
       description: true,
@@ -457,7 +461,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (input.metadata?.disableStandardEmails?.confirmation) {
     //check if user is allowed to disabled standard emails
-    const workflows = await ctx.prisma.workflow.findMany({
+    const workflows = await ctx.prisma.calIdWorkflow.findMany({
       where: {
         activeOn: {
           some: {
@@ -472,13 +476,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
 
     if (input.metadata?.disableStandardEmails.confirmation?.host) {
-      if (!allowDisablingHostConfirmationEmails(workflows)) {
+      if (!canDisableOrganizerNotifications(workflows)) {
         input.metadata.disableStandardEmails.confirmation.host = false;
       }
     }
 
     if (input.metadata?.disableStandardEmails.confirmation?.attendee) {
-      if (!allowDisablingAttendeeConfirmationEmails(workflows)) {
+      if (!canDisableParticipantNotifications(workflows)) {
         input.metadata.disableStandardEmails.confirmation.attendee = false;
       }
     }
@@ -629,6 +633,16 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     return acc;
   }, {});
 
+  if (!teamId && isPrismaObjOrUndefined(ctx.user.metadata)?.connectedChatAccounts && ctx.user?.username) {
+    await handleOHChatSync({
+      prismaClient: ctx.prisma,
+      eventTypeId: eventType.id,
+      userId: ctx.user.id,
+      username: ctx.user?.username,
+      updatedValues,
+    });
+  }
+
   // Handling updates to children event types (managed events types)
   await updateChildrenEventTypes({
     eventTypeId: id,
@@ -651,4 +665,60 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
   return { eventType };
+};
+
+const handleOHChatSync = async ({
+  prismaClient,
+  eventTypeId,
+  username,
+  updatedValues,
+  userId,
+}: {
+  prismaClient: PrismaClient;
+  eventTypeId: number;
+  username: string;
+  userId: number;
+  updatedValues: Record<string, any>;
+}): Promise<void> => {
+  if (IS_DEV) return Promise.resolve();
+
+  if (!updatedValues.slug && !updatedValues.title) return Promise.resolve();
+  const credentials = await prismaClient.credential.findMany({
+    where: {
+      appId: "onehash-chat",
+      userId,
+    },
+  });
+
+  if (credentials.length == 0) return Promise.resolve();
+
+  const account_user_ids: number[] = credentials.reduce<number[]>((acc, cred) => {
+    const accountUserId = isPrismaObjOrUndefined(cred.key)?.account_user_id as number | undefined;
+    if (accountUserId !== undefined) {
+      acc.push(accountUserId);
+    }
+    return acc;
+  }, []);
+
+  if (account_user_ids.length === 0) return Promise.resolve();
+
+  const updatedData = {
+    account_user_ids,
+    cal_events: [
+      {
+        uid: eventTypeId,
+        ...(updatedValues.slug ? { url: `${WEBAPP_URL}/${username}/${updatedValues.slug}` } : {}),
+        ...(updatedValues.title ? { title: updatedValues.title } : {}),
+      },
+    ],
+  };
+
+  await fetch(`${ONEHASH_CHAT_SYNC_BASE_URL}/cal_event`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${ONEHASH_API_KEY}`,
+    },
+    body: JSON.stringify(updatedData),
+  });
 };

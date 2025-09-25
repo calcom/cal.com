@@ -2,6 +2,8 @@ import authedProcedure, { authedAdminProcedure } from "../../../procedures/authe
 import { router } from "../../../trpc";
 import { ZAppByIdInputSchema } from "./appById.schema";
 import { ZAppCredentialsByTypeInputSchema } from "./appCredentialsByType.schema";
+import { ZCalIdAppCredentialsByTypeInputSchema } from "./calid/appCredentialsByType.schema";
+import { ZCalIdIntegrationsInputSchema } from "./calid/integrations.schema";
 import { checkGlobalKeysSchema } from "./checkGlobalKeys.schema";
 import { ZIntegrationsInputSchema } from "./integrations.schema";
 import { ZListLocalInputSchema } from "./listLocal.schema";
@@ -28,6 +30,8 @@ type AppsRouterHandlerCache = {
   checkGlobalKeys?: typeof import("./checkGlobalKeys.handler").checkForGlobalKeysHandler;
   setDefaultConferencingApp?: typeof import("./setDefaultConferencingApp.handler").setDefaultConferencingAppHandler;
   updateUserDefaultConferencingApp?: typeof import("./updateUserDefaultConferencingApp.handler").updateUserDefaultConferencingAppHandler;
+  calid_appCredentialsByType?: typeof import("./calid/appCredentialsByType.handler").appCredentialsByTypeHandler;
+  calid_integrations?: typeof import("./calid/integrations.handler").integrationsHandler;
 };
 
 export const appsRouter = router({
@@ -132,4 +136,14 @@ export const appsRouter = router({
       );
       return updateUserDefaultConferencingAppHandler({ ctx, input });
     }),
+  calid_appCredentialsByType: authedProcedure
+    .input(ZCalIdAppCredentialsByTypeInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { appCredentialsByTypeHandler } = await import("./calid/appCredentialsByType.handler");
+      return appCredentialsByTypeHandler({ ctx, input });
+    }),
+  calid_integrations: authedProcedure.input(ZCalIdIntegrationsInputSchema).query(async ({ ctx, input }) => {
+    const { integrationsHandler } = await import("./calid/integrations.handler");
+    return integrationsHandler({ ctx, input });
+  }),
 });

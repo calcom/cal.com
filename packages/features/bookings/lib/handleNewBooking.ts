@@ -1,3 +1,10 @@
+import type { CalIdWorkflow } from "@calid/features/modules/workflows/config/types";
+import {
+  canDisableParticipantNotifications,
+  canDisableOrganizerNotifications,
+} from "@calid/features/modules/workflows/utils/notificationDisableCheck";
+import { scheduleWorkflowReminders } from "@calid/features/modules/workflows/utils/reminderScheduler";
+import { scheduleMandatoryReminder } from "@calid/features/modules/workflows/utils/scheduleMandatoryReminder";
 import type { DestinationCalendar, User } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
@@ -8,12 +15,12 @@ import processExternalId from "@calcom/app-store/_utils/calendars/processExterna
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import {
   getLocationValueForDB,
+  JitsiLocationType,
   MeetLocationType,
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
-import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import {
   sendAttendeeRequestEmailAndSMS,
   sendOrganizerRequestEmail,
@@ -29,11 +36,6 @@ import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhoo
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
-import {
-  allowDisablingAttendeeConfirmationEmails,
-  allowDisablingHostConfirmationEmails,
-} from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { UsersRepository } from "@calcom/features/users/users.repository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
@@ -46,6 +48,12 @@ import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager";
 import { handleAnalyticsEvents } from "@calcom/lib/analyticsManager/handleAnalyticsEvents";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
+import {
+  IS_DEV,
+  ONEHASH_API_KEY,
+  ONEHASH_CHAT_SYNC_BASE_URL,
+  MOBILE_NOTIFICATIONS_ENABLED,
+} from "@calcom/lib/constants";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import {
   enrichHostsWithDelegationCredentials,
@@ -56,11 +64,14 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getEventName, updateHostInEventName } from "@calcom/lib/event";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
+import firebaseService from "@calcom/lib/firebaseAdmin";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
+import isPrismaObj from "@calcom/lib/isPrismaObj";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
@@ -989,7 +1000,7 @@ async function handler(
     } else if (organizationDefaultLocation) {
       locationBodyString = organizationDefaultLocation;
     } else {
-      locationBodyString = "integrations:daily";
+      locationBodyString = JitsiLocationType;
     }
   }
 
@@ -1142,6 +1153,10 @@ async function handler(
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
       timeFormat: getTimeFormatStringFromUserTimeFormat(organizerUser.timeFormat),
+      phoneNumber:
+        isPrismaObj(organizerUser.metadata) && organizerUser.metadata?.phoneNumber
+          ? (organizerUser.metadata?.phoneNumber as string)
+          : undefined,
     })
     .withAttendees(attendeesList)
     .withMetadataAndResponses({
@@ -1234,7 +1249,7 @@ async function handler(
     oAuthClientId: platformClientId,
   };
 
-  const workflows = await getAllWorkflowsFromEventType(
+  const workflows: CalIdWorkflow[] = await getAllWorkflowsFromEventType(
     {
       ...eventType,
       metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
@@ -1872,11 +1887,11 @@ async function handler(
           eventType.metadata?.disableStandardEmails?.confirmation?.attendee || false;
 
         if (isHostConfirmationEmailsDisabled) {
-          isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
+          isHostConfirmationEmailsDisabled = canDisableOrganizerNotifications(workflows);
         }
 
         if (isAttendeeConfirmationEmailDisabled) {
-          isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
+          isAttendeeConfirmationEmailDisabled = canDisableParticipantNotifications(workflows);
         }
 
         loggerWithEventDetails.debug(
@@ -1996,6 +2011,8 @@ async function handler(
 
     // Convert type of eventTypePaymentAppCredential to appId: EventTypeAppList
     if (!booking.user) booking.user = organizerUser;
+
+    console.log("Got here for payment", { bookerPhoneNumber });
     const payment = await handlePayment({
       evt,
       selectedEventType: eventType,
@@ -2046,6 +2063,7 @@ async function handler(
       paymentId: payment?.id,
       isDryRun,
       ...(isDryRun ? { troubleshooterData } : {}),
+      paymentLink: (isPrismaObjOrUndefined(payment?.data)?.paymentLink as string) || undefined,
     };
   }
 
@@ -2173,15 +2191,14 @@ async function handler(
   };
 
   if (!eventType.metadata?.disableStandardEmails?.all?.attendee) {
-    await scheduleMandatoryReminder({
-      evt: evtWithMetadata,
+    await scheduleMandatoryReminder(
+      evtWithMetadata,
       workflows,
-      requiresConfirmation: !isConfirmedByDefault,
-      hideBranding: !!eventType.owner?.hideBranding,
-      seatReferenceUid: evt.attendeeSeatId,
-      isPlatformNoEmail: noEmail && Boolean(platformClientId),
-      isDryRun,
-    });
+      !isConfirmedByDefault,
+      !!eventType.owner?.hideBranding,
+      evt.attendeeSeatId,
+      noEmail && Boolean(platformClientId)
+    );
   }
 
   try {
@@ -2216,6 +2233,48 @@ async function handler(
     }
   } catch (error) {
     loggerWithEventDetails.error("Error while scheduling no show triggers", JSON.stringify({ error }));
+  }
+
+  if (MOBILE_NOTIFICATIONS_ENABLED) {
+    try {
+      await firebaseService.sendNotification(
+        `host_${organizerUser.id}`,
+        {
+          title: isConfirmedByDefault
+            ? rescheduleUid
+              ? tOrganizer("booking_rescheduled")
+              : tOrganizer("booking_created")
+            : tOrganizer("booking_requested"),
+          body: evt.title,
+        },
+        {
+          bookingId: booking.id,
+          status: isConfirmedByDefault ? "UPCOMING" : "UNCONFIRMED",
+        }
+      );
+    } catch (error) {
+      loggerWithEventDetails.error("Error while send mobile notification", JSON.stringify({ error }));
+    }
+  }
+  if (
+    booking.status === BookingStatus.ACCEPTED &&
+    isPrismaObjOrUndefined(organizerUser.metadata)?.connectedChatAccounts
+  ) {
+    await handleOHChatSync({
+      userId: organizerUser.id,
+      booking: {
+        hostName: organizerUser.name ?? "Cal User",
+        bookingLocation,
+        // bookingLocation:evt.location,
+        bookingEventType: eventType.title,
+        bookingStartTime: evt.startTime,
+        bookingEndTime: evt.endTime,
+        bookerEmail,
+        bookerPhone: bookerPhoneNumber,
+        bookingUid: booking.uid,
+        ...(originalRescheduledBooking?.uid && { originalBookingUid: originalRescheduledBooking?.uid }),
+      },
+    });
   }
 
   if (!isDryRun) {
@@ -2253,4 +2312,52 @@ async function handler(
   };
 }
 
+async function handleOHChatSync({
+  userId,
+  booking,
+}: {
+  userId: number;
+  booking: {
+    hostName: string;
+    bookingLocation: string;
+    bookingEventType: string;
+    bookingStartTime: string;
+    bookingEndTime: string;
+    bookingUid: string;
+    bookerEmail?: string;
+    bookerPhone?: string;
+    originalBookingUid?: string;
+  };
+}) {
+  if (IS_DEV) return Promise.resolve();
+  const credentials = await prisma.credential.findMany({
+    where: {
+      appId: "onehash-chat",
+      userId,
+    },
+  });
+
+  if (credentials.length == 0) return Promise.resolve();
+
+  const account_user_ids: number[] = credentials.reduce<number[]>((acc, cred) => {
+    const accountUserId = isPrismaObjOrUndefined(cred.key)?.account_user_id as number | undefined;
+    if (accountUserId !== undefined) {
+      acc.push(accountUserId);
+    }
+    return acc;
+  }, []);
+  const data = {
+    account_user_ids,
+    booking,
+  };
+
+  await fetch(`${ONEHASH_CHAT_SYNC_BASE_URL}/cal_booking`, {
+    method: booking.originalBookingUid ? "PATCH" : "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${ONEHASH_API_KEY}`,
+    },
+    body: JSON.stringify(data),
+  });
+}
 export default handler;

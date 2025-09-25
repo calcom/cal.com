@@ -1,3 +1,4 @@
+import { Icon } from "@calid/features/ui/components/icon";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -13,7 +14,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button } from "@calcom/ui/components/button";
 import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 import KeyField from "../../components/KeyInput";
@@ -102,7 +102,7 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
       }),
   });
 
-  const integrations = trpc.viewer.apps.integrations.useQuery({ variant: "payment", appId: "hitpay" });
+  const integrations = trpc.viewer.apps.calid_integrations.useQuery({ variant: "payment", appId: "hitpay" });
   const [HitPayPaymentAppCredentials] = integrations.data?.items || [];
   const [credentialId] = HitPayPaymentAppCredentials?.userCredentialIds || [-1];
   const showContent = !!integrations.data && integrations.isSuccess && !!credentialId;
@@ -117,7 +117,7 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
     },
   });
 
-  const deleteMutation = trpc.viewer.credentials.delete.useMutation({
+  const deleteMutation = trpc.viewer.credentials.calid_delete.useMutation({
     onSuccess: () => {
       router.push("/apps/hitpay");
     },

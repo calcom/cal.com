@@ -22,6 +22,9 @@ import EventRequestSMS from "../sms/attendee/event-request-sms";
 import EventRequestToRescheduleSMS from "../sms/attendee/event-request-to-reschedule-sms";
 import EventSuccessfullyReScheduledSMS from "../sms/attendee/event-rescheduled-sms";
 import EventSuccessfullyScheduledSMS from "../sms/attendee/event-scheduled-sms";
+import type { BookingExportEmailProps } from "./src/templates/BookingExportEmail";
+import type { CalendlyCampaignEmailProps } from "./src/templates/CalendlyCampaignEmail";
+import type { ImportDataEmailProps } from "./src/templates/ImportDataEmail";
 import type { MonthlyDigestEmailData } from "./src/templates/MonthlyDigestEmail";
 import type { OrganizationAdminNoSlotsEmailInput } from "./src/templates/OrganizationAdminNoSlots";
 import type { EmailVerifyLink } from "./templates/account-verify-email";
@@ -45,7 +48,9 @@ import AttendeeVerifyEmail from "./templates/attendee-verify-email";
 import AttendeeWasRequestedToRescheduleEmail from "./templates/attendee-was-requested-to-reschedule-email";
 import BookingRedirectEmailNotification from "./templates/booking-redirect-notification";
 import type { IBookingRedirect } from "./templates/booking-redirect-notification";
+import BookingExportEmail from "./templates/bookings-export-email";
 import BrokenIntegrationEmail from "./templates/broken-integration-email";
+import CalendlyCampaignEmail from "./templates/calendly-campaign-email";
 import type { ChangeOfEmailVerifyLink } from "./templates/change-account-email-verify";
 import ChangeOfEmailVerifyEmail from "./templates/change-account-email-verify";
 import CreditBalanceLimitReachedEmail from "./templates/credit-balance-limit-reached-email";
@@ -56,6 +61,7 @@ import type { Feedback } from "./templates/feedback-email";
 import FeedbackEmail from "./templates/feedback-email";
 import type { PasswordReset } from "./templates/forgot-password-email";
 import ForgotPasswordEmail from "./templates/forgot-password-email";
+import ImportDataEmail from "./templates/import-data-email";
 import MonthlyDigestEmail from "./templates/monthly-digest-email";
 import NoShowFeeChargedEmail from "./templates/no-show-fee-charged-email";
 import OrganizationAdminNoSlotsEmail from "./templates/organization-admin-no-slots-email";
@@ -90,6 +96,7 @@ const sendEmail = (prepare: () => BaseEmail) => {
       const email = prepare();
       resolve(email.sendEmail());
     } catch (e) {
+      console.error(`${prepare.constructor.name}.sendEmail failed`, e);
       reject(console.error(`${prepare.constructor.name}.sendEmail failed`, e));
     }
   });
@@ -154,6 +161,14 @@ export const sendScheduledEmailsAndSMS = withReporting(
   _sendScheduledEmailsAndSMS,
   "sendScheduledEmailsAndSMS"
 );
+
+export const sendImportDataEmail = async (importData: ImportDataEmailProps) => {
+  await sendEmail(() => new ImportDataEmail(importData));
+};
+
+export const sendCampaigningEmail = async (campaigningEmailData: CalendlyCampaignEmailProps) => {
+  await sendEmail(() => new CalendlyCampaignEmail(campaigningEmailData));
+};
 
 // for rescheduled round robin booking that assigned new members
 export const sendRoundRobinScheduledEmailsAndSMS = async ({
@@ -867,4 +882,8 @@ export const sendDelegationCredentialDisabledEmail = async ({
         conferencingAppName,
       })
   );
+};
+
+export const sendBookingsExportEmail = async (bookingExportEmailprops: BookingExportEmailProps) => {
+  await sendEmail(() => new BookingExportEmail(bookingExportEmailprops));
 };

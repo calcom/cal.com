@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import React, { type CSSProperties } from "react";
 
 import { BASE_URL, IS_PRODUCTION } from "@calcom/lib/constants";
 

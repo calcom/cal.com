@@ -1,27 +1,50 @@
+import { TeamsList } from "@calid/features/modules/teams/pages/TeamsList";
 import type { SearchParams } from "app/_types";
 import type { Session } from "next-auth";
 import { unstable_cache } from "next/cache";
 
-import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import { TeamsListing } from "@calcom/features/ee/teams/components/TeamsListing";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { TeamService } from "@calcom/lib/server/service/teamService";
 import prisma from "@calcom/prisma";
+import type { RouterOutputs } from "@calcom/trpc/react";
 
 import { TRPCError } from "@trpc/server";
 
-import { TeamsCTA } from "./CTA";
-
-const getCachedTeams = unstable_cache(
-  async (userId: number) => {
-    const teamRepo = new TeamRepository(prisma);
-    return await teamRepo.findTeamsByUserId({
-      userId,
-      includeOrgs: true,
+const getCachedCalIdTeams = unstable_cache(
+  async (userId: number): Promise<RouterOutputs["viewer"]["calidTeams"]["list"]> => {
+    const calIdMemberships = await prisma.calIdMembership.findMany({
+      where: {
+        userId,
+      },
+      include: {
+        calIdTeam: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            logoUrl: true,
+            metadata: true,
+            inviteTokens: true,
+          },
+        },
+      },
+      orderBy: {
+        role: "desc",
+      },
     });
+
+    return calIdMemberships.map(({ calIdTeam: { inviteTokens, ...team }, ...membership }) => ({
+      role: membership.role,
+      acceptedInvitation: membership.acceptedInvitation,
+      ...team,
+      innviteToken:
+        inviteTokens.find((token) => token.identifier === `invite-link-for-calIdTeamId-${team.id}`) || null,
+    }));
   },
-  undefined,
-  { revalidate: 3600, tags: ["viewer.teams.list"] } // Cache for 1 hour
+  ["calid-teams"],
+  {
+    revalidate: 3600,
+    tags: ["viewer.calidTeams.list"],
+  }
 );
 
 export const ServerTeamsListing = async ({
@@ -34,36 +57,27 @@ export const ServerTeamsListing = async ({
   const token = Array.isArray(searchParams?.token) ? searchParams.token[0] : searchParams?.token;
   const userId = session.user.id;
 
-  let teamNameFromInvite,
-    errorMsgFromInvite = null;
+  let teamNameFromInvitation,
+    errorMsgFromInvitation = null;
 
   if (token) {
     try {
-      teamNameFromInvite = await TeamService.inviteMemberByToken(token, userId);
+      teamNameFromInvitation = await TeamService.inviteMemberByToken(token, userId);
     } catch (e) {
-      errorMsgFromInvite = "Error while fetching teams";
-      if (e instanceof TRPCError) errorMsgFromInvite = e.message;
+      errorMsgFromInvitation = "Error while fetching teams";
+      if (e instanceof TRPCError) errorMsgFromInvitation = e.message;
     }
   }
 
-  const teams = await getCachedTeams(userId);
-  const userProfile = session?.user?.profile;
-  const orgId = userProfile?.organizationId ?? session?.user.org?.id;
-  const orgRole =
-    session?.user?.org?.role ??
-    userProfile?.organization?.members.find((m: { userId: number }) => m.userId === userId)?.role;
-  const isOrgAdminOrOwner = checkAdminOrOwner(orgRole);
+  const teams = await getCachedCalIdTeams(userId);
 
   return {
     Main: (
-      <TeamsListing
+      <TeamsList
         teams={teams}
-        orgId={orgId ?? null}
-        isOrgAdmin={isOrgAdminOrOwner}
-        teamNameFromInvite={teamNameFromInvite ?? null}
-        errorMsgFromInvite={errorMsgFromInvite}
+        teamNameFromInvitation={teamNameFromInvitation}
+        errorMsgFromInvitation={errorMsgFromInvitation}
       />
     ),
-    CTA: !orgId || isOrgAdminOrOwner ? <TeamsCTA /> : null,
   };
 };

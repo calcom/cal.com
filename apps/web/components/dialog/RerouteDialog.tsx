@@ -38,7 +38,7 @@ const enum ReroutingStatusEnum {
   REROUTING_FAILED = "failed",
 }
 
-type ResponseWithForm = RouterOutputs["viewer"]["appRoutingForms"]["getResponseWithFormFields"];
+type ResponseWithForm = RouterOutputs["viewer"]["appRoutingForms"]["calid_getResponseWithFormFields"];
 
 type BookingToReroute = Pick<PrismaBooking, "metadata" | "responses" | "id" | "uid" | "title" | "status"> & {
   routedFromRoutingFormReponse: {
@@ -710,7 +710,7 @@ const RerouteDialogContentAndFooter = ({
     data: responseWithForm,
     isPending: isRoutingFormLoading,
     error: formResponseFetchError,
-  } = trpc.viewer.appRoutingForms.getResponseWithFormFields.useQuery({
+  } = trpc.viewer.appRoutingForms.calid_getResponseWithFormFields.useQuery({
     formResponseId: booking.routedFromRoutingFormReponse.id,
   });
 

@@ -1,7 +1,8 @@
-import { workflowSelect } from "@calcom/ee/workflows/lib/getAllWorkflows";
+import { workflowSelect } from "@calid/features/modules/workflows/utils/getWorkflows";
+
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
-import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import isPrismaObj, { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -92,6 +93,7 @@ export async function getBooking(bookingId: number) {
           locale: true,
           destinationCalendar: true,
           isPlatformManaged: true,
+          metadata: true,
         },
       },
     },
@@ -161,6 +163,10 @@ export async function getBooking(bookingId: number) {
       timeFormat: getTimeFormatStringFromUserTimeFormat(user.timeFormat),
       language: { translate: t, locale: user.locale ?? "en" },
       id: user.id,
+      phoneNumber:
+        isPrismaObj(user.metadata) && user.metadata?.phoneNumber
+          ? (user.metadata?.phoneNumber as string)
+          : undefined,
     },
     hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
     team: !!booking.eventType?.team

@@ -1,3 +1,4 @@
+import { Button } from "@calid/features/ui/components/button";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import type { Key } from "react";
@@ -20,7 +21,6 @@ import { ascendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/interval
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { PeriodType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
-import { Button } from "@calcom/ui/components/button";
 import {
   InputField,
   DateRangePicker,
@@ -133,7 +133,7 @@ function RangeLimitRadioItem({
           <RadioGroup.Item
             id={radioValue}
             value={radioValue}
-            className="min-w-4 bg-default border-default flex h-4 w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
+            className="bg-default border-default flex h-4 w-4 min-w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
             <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
           </RadioGroup.Item>
         )}
@@ -211,7 +211,7 @@ function RollingLimitRadioItem({
         <RadioGroup.Item
           id={radioValue}
           value={radioValue}
-          className="min-w-4 bg-default border-default flex h-4 w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
+          className="bg-default border-default flex h-4 w-4 min-w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
           <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
         </RadioGroup.Item>
       )}
@@ -858,15 +858,15 @@ const IntervalLimitItem = ({
     <div
       data-testid="add-limit"
       className={classNames(
-        "mb-4 flex w-full min-w-0 items-center gap-x-2 text-sm rtl:space-x-reverse",
+        " mb-4 flex w-full min-w-0 items-center justify-between gap-x-2 text-sm rtl:space-x-reverse",
         customClassNames?.container
       )}
       key={limitKey}>
       <TextField
         required
         type="number"
-        containerClassName={textFieldSuffix ? "w-32 sm:w-44 -mb-1 shrink" : "w-14 sm:w-16 mb-0 shrink"}
-        className={classNames("mb-0", customClassNames?.limitText)}
+        containerClassName={textFieldSuffix ? "w-full shrink" : "w-full"}
+        className={classNames("mb-0", customClassNames?.limitText, "h-full")}
         placeholder={`${value}`}
         disabled={disabled}
         min={step}
@@ -881,7 +881,7 @@ const IntervalLimitItem = ({
         isDisabled={disabled}
         defaultValue={INTERVAL_LIMIT_OPTIONS.find((option) => option.value === limitKey)}
         onChange={onIntervalSelect}
-        className={classNames("w-36", customClassNames?.limitSelect?.select)}
+        className={classNames("w-full", customClassNames?.limitSelect?.select)}
         innerClassNames={customClassNames?.limitSelect?.innerClassNames}
       />
       {hasDeleteButton && !disabled && (
@@ -899,6 +899,7 @@ const IntervalLimitItem = ({
 
 type IntervalLimitsManagerProps<K extends "durationLimits" | "bookingLimits"> = {
   propertyName: K;
+  extraButton: React.Node;
   defaultLimit: number;
   step: number;
   textFieldSuffix?: string;
@@ -909,6 +910,7 @@ type IntervalLimitsManagerProps<K extends "durationLimits" | "bookingLimits"> = 
 export const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimits">({
   propertyName,
   defaultLimit,
+  extraButton,
   step,
   textFieldSuffix,
   disabled,
@@ -1001,11 +1003,15 @@ export const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimit
                     />
                   );
                 })}
-            {currentIntervalLimits && Object.keys(currentIntervalLimits).length <= 3 && !disabled && (
-              <Button color="minimal" StartIcon="plus" onClick={addLimit}>
-                {t("add_limit")}
-              </Button>
-            )}
+            <div className="flex flex-row items-center gap-4">
+              {currentIntervalLimits && Object.keys(currentIntervalLimits).length <= 3 && !disabled && (
+                <Button color="minimal" StartIcon="plus" onClick={addLimit}>
+                  {t("add_limit")}
+                </Button>
+              )}
+
+              {extraButton}
+            </div>
           </ul>
         );
       }}

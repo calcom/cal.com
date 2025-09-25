@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@calid/features/ui/components/icon";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -11,6 +12,7 @@ import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { CreateButton } from "@calcom/features/ee/teams/components/createButton/CreateButton";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
+import { EmbedDialogProvider } from "@calcom/features/embed/lib/hooks/useEmbedDialogCtx";
 import { EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
@@ -50,7 +52,6 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
@@ -682,7 +683,7 @@ export const InfiniteEventTypeList = ({
                       </div>
                     </div>
                   </div>
-                  <div className="min-w-9 mx-5 flex sm:hidden">
+                  <div className="mx-5 flex min-w-9 sm:hidden">
                     <Dropdown>
                       <DropdownMenuTrigger asChild data-testid={`event-type-options-${type.id}`}>
                         <Button type="button" variant="icon" color="secondary" StartIcon="ellipsis" />
@@ -936,7 +937,9 @@ const InfiniteScrollMain = ({
       {eventTypeGroups.length > 1 && <HorizontalTabs tabs={tabs} />}
       {eventTypeGroups.length >= 1 && <InfiniteTeamsTab activeEventTypeGroup={activeEventTypeGroup[0]} />}
       {eventTypeGroups.length === 0 && <CreateFirstEventTypeView slug={profiles[0].slug ?? ""} />}
-      <EventTypeEmbedDialog />
+      <EmbedDialogProvider>
+        <EventTypeEmbedDialog />
+      </EmbedDialogProvider>
       {searchParams?.get("dialog") === "duplicate" && <DuplicateDialog />}
     </>
   );
@@ -978,7 +981,9 @@ const EventTypesPage = ({ userEventGroupsData, user }: Props) => {
      * During signup, if the account already exists, we redirect the user to /event-types instead of onboarding.
      * Adding this redirection logic here as well to ensure the user is redirected to the correct redirectUrl.
      */
+    // eslint-disable-next-line @calcom/eslint/avoid-web-storage
     const redirectUrl = localStorage.getItem("onBoardingRedirect");
+    // eslint-disable-next-line @calcom/eslint/avoid-web-storage
     localStorage.removeItem("onBoardingRedirect");
     redirectUrl && router.push(redirectUrl);
     // eslint-disable-next-line react-hooks/exhaustive-deps

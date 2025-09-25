@@ -50,8 +50,10 @@ const HorizontalTabItem = function ({
       scroll={linkScroll}
       aria-disabled={props.disabled ? "true" : undefined}
       className={classNames(
-        isCurrent ? "bg-subtle text-emphasis" : "hover:bg-muted hover:text-default text-subtle",
-        "inline-flex h-fit items-center justify-center whitespace-nowrap rounded-md p-2 text-sm font-medium leading-none transition md:mb-0",
+        isCurrent
+          ? "border-b-2 border-blue-500 text-blue-600"
+          : "border-b-2 border-transparent text-gray-500 hover:border-gray-400 hover:text-gray-700",
+        "inline-flex h-fit items-center justify-center whitespace-nowrap p-4 text-sm font-medium leading-none transition md:mb-0",
         props.disabled && "pointer-events-none !opacity-30",
         props.className
       )}

@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@calid/features/ui/components/icon";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 
@@ -7,7 +8,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 export type ICalendarSwitchProps = {
@@ -82,7 +82,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
       }
     },
     async onSettled() {
-      await utils.viewer.apps.integrations.invalidate();
+      await utils.viewer.apps.calid_integrations.invalidate();
       await utils.viewer.calendars.connectedCalendars.invalidate();
     },
     onError() {
@@ -92,10 +92,11 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
   });
   return (
     <div className={classNames("my-2 flex flex-row items-center")}>
-      <div className="flex pl-2">
+      <div className="flex">
         <Switch
           id={externalId}
           checked={checkedInternal}
+          size="base"
           disabled={disabled || mutation.isPending}
           onCheckedChange={async (isOn: boolean) => {
             setCheckedInternal(isOn);

@@ -1,3 +1,5 @@
+import { Button } from "@calid/features/ui/components/button";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
 import { noop } from "@tanstack/react-table";
 import { formatInTimeZone } from "date-fns-tz";
 
@@ -6,9 +8,7 @@ import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
-import { Button } from "@calcom/ui/components/button";
 import { DialogTrigger } from "@calcom/ui/components/dialog";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import DateOverrideInputDialog from "./DateOverrideInputDialog";
 
@@ -98,37 +98,9 @@ const DateOverrideList = ({
               ))
             )}
           </div>
-          <div className="flex flex-row-reverse gap-5 space-x-2 rtl:space-x-reverse">
-            <DateOverrideInputDialog
-              userTimeFormat={userTimeFormat}
-              excludedDates={excludedDates}
-              workingHours={workingHours}
-              value={item.ranges.map((range) => ({
-                start: new Date(range.start),
-                end: new Date(range.end),
-              }))}
-              weekStart={weekStart}
-              onChange={(ranges) => {
-                // update has very weird side-effects with sorting.
-                replace([...fields.filter((currentItem) => currentItem.id !== item.id), { ranges }]);
-                delete unsortedFieldArrayMap[item.id];
-                handleAvailabilityUpdate();
-              }}
-              Trigger={
-                <DialogTrigger asChild>
-                  <Button
-                    tooltip={t("edit")}
-                    className="text-default h-5"
-                    color="minimal"
-                    variant="icon"
-                    StartIcon="pencil"
-                  />
-                </DialogTrigger>
-              }
-            />
+          <div className="flex flex-row-reverse gap-1 space-x-2 rtl:space-x-reverse">
             <Tooltip content="Delete">
               <Button
-                className="text-default h-5"
                 data-testid="delete-button"
                 title={t("date_overrides_delete_on_date", {
                   date: isPlatform
@@ -149,6 +121,27 @@ const DateOverrideList = ({
                 }}
               />
             </Tooltip>
+            <DateOverrideInputDialog
+              userTimeFormat={userTimeFormat}
+              excludedDates={excludedDates}
+              workingHours={workingHours}
+              value={item.ranges.map((range) => ({
+                start: new Date(range.start),
+                end: new Date(range.end),
+              }))}
+              weekStart={weekStart}
+              onChange={(ranges) => {
+                // update has very weird side-effects with sorting.
+                replace([...fields.filter((currentItem) => currentItem.id !== item.id), { ranges }]);
+                delete unsortedFieldArrayMap[item.id];
+                handleAvailabilityUpdate();
+              }}
+              Trigger={
+                <DialogTrigger asChild>
+                  <Button tooltip={t("edit")} color="minimal" variant="icon" StartIcon="pen-line" />
+                </DialogTrigger>
+              }
+            />
           </div>
         </li>
       ))}

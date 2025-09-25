@@ -1,3 +1,5 @@
+import { Button } from "@calid/features/ui/components/button";
+import { Input } from "@calid/features/ui/components/input/input";
 import { ErrorMessage } from "@hookform/error-message";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
@@ -14,15 +16,13 @@ import {
   LocationType,
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
-import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { Dialog, DialogContent, DialogFooter } from "@calid/features/ui/components/dialog";
 import PhoneInput from "@calcom/features/components/phone-input";
 import type { LocationOption } from "@calcom/features/form/components/LocationSelect";
 import LocationSelect from "@calcom/features/form/components/LocationSelect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
-import { Form, Input } from "@calcom/ui/components/form";
+import { Form } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "../../lib/QueryCell";
@@ -103,6 +103,25 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selection]);
+
+  const getIconFromValue = (value: string) => {
+    switch (value) {
+      case "phone":
+        return <Icon name="phone" className="h-3.5 w-3.5" />;
+      case "userPhone":
+        return <Icon name="phone" className="h-3.5 w-3.5" />;
+      case "inPerson":
+        return <Icon name="map-pin" className="h-3.5 w-3.5" />;
+      case "attendeeInPerson":
+        return <Icon name="map-pin" className="h-3.5 w-3.5" />;
+      case "link":
+        return <Icon name="link" className="h-3.5 w-3.5" />;
+      case "somewhereElse":
+        return <Icon name="map" className="h-3.5 w-3.5" />;
+      default:
+        return <Icon name="video" className="h-3.5 w-3.5" />;
+    }
+  };
 
   const locationFormSchema = z.object({
     locationType: z.string(),
@@ -258,9 +277,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
             }
           }}>
           <div className="flex flex-row space-x-3">
-            <div className="bg-subtle mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
-              <Icon name="map-pin" className="text-emphasis h-6 w-6" />
-            </div>
             <div className="w-full">
               <div className="mt-3 text-center sm:mt-0 sm:text-left">
                 <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-title">
@@ -269,10 +285,13 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               </div>
               <div className="mt-3 text-center sm:mt-0 sm:text-left" />
 
-              <p className="text-emphasis mb-2 ml-1 mt-6 text-sm font-bold">{t("current_location")}:</p>
-              <p className="text-emphasis mb-2 ml-1 break-all text-sm">
-                {getHumanReadableLocationValue(booking.location, t)}
-              </p>
+              <div className="text-muted flex flex-row items-center pt-4">
+                <p className="text-emphasis pr-2 text-sm font-bold">{t("current_location")}:</p>
+                {getIconFromValue(booking.location)}
+                <p className=" text-emphasis break-all pl-1 text-sm">
+                  {getHumanReadableLocationValue(booking.location, t)}
+                </p>
+              </div>
               <QueryCell
                 query={locationsQuery}
                 success={({ data }) => {
@@ -331,7 +350,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               {selectedLocation && SelectedLocationInput}
             </div>
           </div>
-          <DialogFooter showDivider className="mt-8">
+          <DialogFooter className="mt-8">
             <Button
               onClick={() => {
                 setShowLocationModal(false);
@@ -339,11 +358,13 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 setEditingLocationType?.("");
                 locationFormMethods.unregister(["locationType", "locationLink"]);
               }}
-              type="button"
               color="secondary">
               {t("cancel")}
             </Button>
-            <Button data-testid="update-location" type="submit" disabled={isLocationUpdating}>
+            <Button
+              data-testid="update-location"
+              type="submit"
+              disabled={isLocationUpdating}>
               {t("update")}
             </Button>
           </DialogFooter>

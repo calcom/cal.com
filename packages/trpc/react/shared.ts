@@ -42,4 +42,5 @@ export const ENDPOINTS = [
   "credits",
   "filterSegments",
   "pbac",
+  "calidTeams",
 ] as const;

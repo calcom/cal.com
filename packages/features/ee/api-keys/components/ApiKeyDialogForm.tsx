@@ -10,8 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogFooter } from "@calcom/ui/components/dialog";
-import { Form } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { Form, TextArea } from "@calcom/ui/components/form";
 import { SelectField } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
@@ -167,7 +166,7 @@ export default function ApiKeyDialogForm({
               name="note"
               control={form.control}
               render={({ field: { onChange, value } }) => (
-                <TextField
+                <TextArea
                   name="note"
                   label={t("personal_note")}
                   placeholder={t("personal_note_placeholder")}

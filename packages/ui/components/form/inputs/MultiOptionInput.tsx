@@ -1,3 +1,7 @@
+import { Icon } from "@calid/features/ui/components/icon";
+
+
+
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import {
   useFieldArray,
@@ -12,7 +16,6 @@ import { v4 as uuidv4 } from "uuid";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 
 export interface Option {
   label: string;
@@ -234,13 +237,14 @@ export const MultiOptionInput = <TFieldValues extends FieldValues>({
                     {...control.register(`${fieldArrayName}.${index}.value` as Path<TFieldValues>)}
                     addOnSuffix={
                       showRemoveButton ? (
-                        <button
+                        <Button
                           type="button"
+                          variant="outline"
                           onClick={() => handleRemoveOption(index)}
                           aria-label="Remove option"
                           disabled={disabled}>
                           <Icon name="x" className="h-4 w-4" />
-                        </button>
+                        </Button>
                       ) : null
                     }
                   />
@@ -260,13 +264,16 @@ export const MultiOptionInput = <TFieldValues extends FieldValues>({
                   data-testid={`${fieldArrayName}.${index}-input`}
                   addOnSuffix={
                     showRemoveButton ? (
-                      <button
+                      <Button
                         type="button"
+                        size="sm"
+                        className="mx-2"
+                        variant="outline"
                         onClick={() => handleRemoveOption(index)}
                         aria-label="Remove option"
                         disabled={disabled}>
-                        <Icon name="x" className="h-4 w-4" />
-                      </button>
+                        <Icon name="x" className="h-3 w-3" />
+                      </Button>
                     ) : null
                   }
                 />

@@ -1,9 +1,9 @@
 "use client";
 
 import { RenderComponentWithSnippet } from "@/app/components/render";
+import { Icon } from "@calid/features/ui/components/icon";
 import { useState } from "react";
 
-import { Icon } from "@calcom/ui/components/icon";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 
 const tabItems = [

@@ -1,26 +1,13 @@
-import { _generateMetadata, getTranslate } from "app/_utils";
+import { TeamEditLayout } from "@calid/features/modules/teams/components/TeamEditLayout";
+import TeamSettingsView from "@calid/features/modules/teams/settings/TeamSettingsView";
 
-import TeamSettingsView from "@calcom/features/ee/teams/pages/team-settings-view";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-
-export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }) =>
-  await _generateMetadata(
-    (t) => t("settings"),
-    (t) => t("team_settings_description"),
-    undefined,
-    undefined,
-    `/settings/teams/${(await params).id}/settings`
-  );
-
-const Page = async () => {
-  const t = await getTranslate();
+const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
+  const { id } = await params;
+  const teamId = parseInt(id);
   return (
-    <SettingsHeader
-      title={t("settings")}
-      description={t("team_settings_description")}
-      borderInShellHeader={false}>
-      <TeamSettingsView />
-    </SettingsHeader>
+    <TeamEditLayout teamId={teamId}>
+      <TeamSettingsView teamId={teamId} />
+    </TeamEditLayout>
   );
 };
 

@@ -1,4 +1,6 @@
 /* eslint-disable @next/next/no-head-element */
+import React from "react";
+
 import BaseTable from "./BaseTable";
 import EmailBodyLogo from "./EmailBodyLogo";
 import EmailHead from "./EmailHead";
@@ -24,6 +26,7 @@ export const BaseEmailHtml = (props: {
   subtitle?: React.ReactNode | string;
   headerType?: BodyHeadType;
   hideLogo?: boolean;
+  bannerUrl?: string | null;
 }) => {
   return (
     <Html>
@@ -197,7 +200,9 @@ export const BaseEmailHtml = (props: {
               </Row>
             </div>
           </div>
-          {!Boolean(props.hideLogo) && <EmailBodyLogo />}
+          {/* {!Boolean(props.hideLogo) && <EmailBodyLogo />} */}
+          <EmailBodyLogo disableLogo={props.hideLogo} bannerUrl={props.bannerUrl} />
+
           <RawHtml html="<!--[if mso | IE]></td></tr></table><![endif]-->" />
         </div>
       </body>

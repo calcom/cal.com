@@ -1,6 +1,6 @@
+import { TIME_UNITS } from "@calid/features/modules/workflows/config/constants";
 import { z } from "zod";
 
-import { TIME_UNIT } from "@calcom/features/ee/workflows/lib/constants";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 const commonSchema = z.object({
@@ -17,7 +17,7 @@ export const ZWebhook = z.object({
   appId: z.string().nullable(),
   secret: z.string().nullable(),
   time: z.number(),
-  timeUnit: z.enum(TIME_UNIT),
+  timeUnit: z.enum(TIME_UNITS),
   eventTriggers: z.array(z.string()),
   payloadTemplate: z.string().nullable(),
 });

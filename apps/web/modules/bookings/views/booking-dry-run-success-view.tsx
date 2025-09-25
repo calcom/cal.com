@@ -1,7 +1,8 @@
 "use client";
 
+import { Icon } from "@calid/features/ui/components/icon";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/components/icon";
 
 export default function DryRunSuccessful() {
   const { t } = useLocale();

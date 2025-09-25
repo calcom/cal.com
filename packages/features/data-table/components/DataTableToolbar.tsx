@@ -1,5 +1,7 @@
 "use client";
 
+import { Button, type ButtonProps } from "@calid/features/ui/components/button";
+import { Input } from "@calid/features/ui/components/input/input";
 import type { Table } from "@tanstack/react-table";
 import { forwardRef, useEffect } from "react";
 import type { ComponentPropsWithoutRef } from "react";
@@ -7,8 +9,6 @@ import { useState, type Ref, type ChangeEvent } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import { Button, type ButtonProps } from "@calcom/ui/components/button";
-import { Input } from "@calcom/ui/components/form";
 
 import { useColumnFilters, useDataTable } from "../hooks";
 
@@ -52,7 +52,7 @@ function SearchBarComponent({ className }: SearchBarProps, ref: Ref<HTMLInputEle
   return (
     <Input
       ref={ref}
-      className={classNames("max-w-48", className)}
+      className={classNames("h-[50px] max-w-48", className)}
       placeholder={t("search")}
       value={localValue}
       onChange={handleSearchChange}

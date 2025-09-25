@@ -14,6 +14,7 @@ module.exports = {
     "../../packages/features/!(node_modules)/**/*.{js,ts,jsx,tsx}",
     "../../packages/ui/!(node_modules)/**/*.{js,ts,jsx,tsx}",
     "../../packages/platform/atoms/!(node_modules)/**/*.{js,ts,jsx,tsx}",
+    "../../packages/calid/!(node_modules)/**/*.{js,ts,jsx,tsx}",
   ],
   darkMode: "class",
   theme: {
@@ -73,12 +74,19 @@ module.exports = {
         subtle: "var(--cal-bg-subtle)",
         muted: "var(--cal-bg-muted)",
         inverted: "var(--cal-bg-inverted)",
+        gradient: "var(--cal-bg-gradient)",
+        active: "var(--cal-bg-active)",
+        adv: "hsl(var(--cal-bg-active) / <alpha-value>)",
+
+        ring: "var(--cal-bg-active)",
+        destructive: "var(--cal-bg-destructive)",
 
         // Primary Background
         primary: {
           default: "var(--cal-bg-primary)",
           emphasis: "var(--cal-bg-primary-emphasis)",
           muted: "var(--cal-bg-primary-muted)",
+          active: "var(--cal-bg-active)",
         },
 
         // Brand
@@ -159,6 +167,7 @@ module.exports = {
         default: "var(--cal-border)",
         subtle: "var(--cal-border-subtle)",
         muted: "var(--cal-border-muted)",
+        active: "var(--cal-border-active)",
 
         // Semantic Borders
         semantic: {
@@ -181,6 +190,8 @@ module.exports = {
         subtle: "var(--cal-text-subtle)",
         muted: "var(--cal-text-muted)",
         inverted: "var(--cal-text-inverted)",
+        destructive: "var(--cal-text-destructive)",
+        active: "var(--cal-text-active)",
 
         // Semantic Text
         semantic: {
@@ -311,6 +322,10 @@ module.exports = {
         // Outline - red
         "button-outline-red-focused":
           "0px 0px 0px 1px rgba(255, 255, 255, 0.32), 0px 0px 0px 2px rgba(220, 38, 38, 0.15)",
+      },
+      cursor: {
+        grab: "grab",
+        grabbing: "grabbing",
       },
     },
   },

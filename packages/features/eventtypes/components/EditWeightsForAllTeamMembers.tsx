@@ -1,5 +1,8 @@
 "use client";
 
+import { Button } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import Link from "next/link";
 import { useState, useEffect, useRef, useMemo } from "react";
 
@@ -11,9 +14,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { buttonClasses } from "@calcom/ui/components/button";
-import { Button } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import {
   Sheet,
   SheetBody,
@@ -23,7 +24,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@calcom/ui/components/sheet";
-import { showToast } from "@calcom/ui/components/toast";
 
 import {
   useTeamMembersWithSegment,
@@ -215,9 +215,9 @@ export const EditWeightsForAllTeamMembers = ({
       setUploadErrors(newErrors);
 
       if (newErrors.length > 0) {
-        showToast(t("weights_updated_with_errors", { count: newErrors.length }), "warning");
+        triggerToast(t("weights_updated_with_errors", { count: newErrors.length }), "warning");
       } else {
-        showToast(t("weights_updated_from_csv"), "success");
+        triggerToast(t("weights_updated_from_csv"), "success");
       }
       e.target.value = "";
     };
@@ -266,7 +266,7 @@ export const EditWeightsForAllTeamMembers = ({
                       key="weights_description"
                       className="underline underline-offset-2"
                       target="_blank"
-                      href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#weights">
+                      href="https://cal.id">
                       Learn more
                     </Link>,
                   ]}

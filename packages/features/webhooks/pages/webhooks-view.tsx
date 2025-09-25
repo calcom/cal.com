@@ -7,15 +7,15 @@ import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import type { WebhooksByViewer } from "@calcom/trpc/server/routers/viewer/webhook/getByViewer.handler";
+import type { WebhooksByViewer } from "@calcom/trpc/server/routers/viewer/webhook/calid/getByViewer.handler";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { BlankCard } from "@calid/features/ui/components/card";
 
 import { WebhookListItem, CreateNewWebhookButton } from "../components";
 
 type Props = {
-  data: RouterOutputs["viewer"]["webhook"]["getByViewer"];
+  data: RouterOutputs["viewer"]["webhook"]["calid_getByViewer"];
   isAdmin: boolean;
 };
 
@@ -45,12 +45,11 @@ const WebhooksList = ({
     <SettingsHeader
       title={t("webhooks")}
       description={t("add_webhook_description", { appName: APP_NAME })}
-      CTA={webhooksByViewer.webhookGroups.length > 0 ? <CreateNewWebhookButton isAdmin={isAdmin} /> : null}
       borderInShellHeader={false}>
       {!!webhookGroups.length ? (
         <div className={classNames("mt-6")}>
           {webhookGroups.map((group) => (
-            <div key={group.teamId}>
+            <div key={group.calIdTeamId}>
               {hasTeams && (
                 <div className="items-centers flex">
                   <Avatar
@@ -64,8 +63,12 @@ const WebhooksList = ({
                   </div>
                 </div>
               )}
+              <div className="flex flex-row justify-end">
+                <CreateNewWebhookButton isAdmin={isAdmin} />
+              </div>
+
               <div className="flex flex-col" key={group.profile.slug}>
-                <div className={classNames("border-subtle mb-8 mt-3 rounded-lg border border-t")}>
+                <div className={classNames("border-default mb-8 mt-3 rounded-lg border border-t")}>
                   {group.webhooks.map((webhook, index) => (
                     <WebhookListItem
                       key={webhook.id}
@@ -83,13 +86,12 @@ const WebhooksList = ({
           ))}
         </div>
       ) : (
-        <EmptyScreen
+        <BlankCard
           Icon="link"
           headline={t("create_your_first_webhook")}
           description={t("create_your_first_webhook_description", { appName: APP_NAME })}
           className="mt-6 rounded-b-lg"
           buttonRaw={<CreateNewWebhookButton isAdmin={isAdmin} />}
-          border={true}
         />
       )}
     </SettingsHeader>
