@@ -1,3 +1,4 @@
+import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import type { CalendarSubscriptionEventItem } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionPort.interface";
 import logger from "@calcom/lib/logger";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
@@ -72,7 +73,16 @@ export class CalendarSyncService {
       return;
     }
 
-    // todo handle cancel booking
+    await handleCancelBooking({
+      userId: booking.userId!,
+      bookingData: {
+        uid: booking.uid,
+        allRemainingBookings: true,
+        cancelSubsequentBookings: true,
+        cancellationReason: "Cancelled on user's calendar",
+        cancelledBy: booking.userPrimaryEmail!,
+      },
+    });
   }
 
   /**
