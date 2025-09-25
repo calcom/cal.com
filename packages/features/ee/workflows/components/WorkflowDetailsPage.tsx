@@ -96,7 +96,6 @@ export default function WorkflowDetailsPage(props: Props) {
       includeCalendarEvent: false,
       verifiedAt: SCANNING_WORKFLOW_STEPS ? null : new Date(),
       agentId: null,
-      allowedCountryCodes: [],
     };
     steps?.push(step);
     form.setValue("steps", steps);
