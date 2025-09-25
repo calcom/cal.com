@@ -55,6 +55,7 @@ env:
 
 jobs:
   e2e-atoms:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     timeout-minutes: 15
     name: E2E Atoms
     runs-on: buildjet-16vcpu-ubuntu-2204
