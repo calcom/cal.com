@@ -356,14 +356,7 @@ export const Components: Record<FieldType, Component> = {
                   checked={value.includes(option.value)}
                 />
                 <span className="text-emphasis me-2 ms-2 text-sm">
-                  <span 
-                    dangerouslySetInnerHTML={{ 
-                      __html: (option.label ?? "").replace(
-                        /(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+\.[a-zA-Z]{2,})(?:\/[^\s]*)?/g,
-                        '<a href="http://$1" style="color: #3b82f6; text-decoration: underline;" target="_blank" rel="noopener noreferrer">$&</a>'
-                      )
-                    }} 
-                  />
+                  🚨 TESTING: {option.label ?? ""} 🚨
                 </span>
               </label>
             );
