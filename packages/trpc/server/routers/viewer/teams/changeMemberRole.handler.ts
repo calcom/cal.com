@@ -40,25 +40,6 @@ export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOp
     });
   }
 
-  // For traditional role checks, fall back to existing logic
-  if (
-    typeof input.role === "string" &&
-    Object.values(MembershipRole).includes(input.role as MembershipRole)
-  ) {
-    // Only owners can award owner role.
-    if (input.role === MembershipRole.OWNER) {
-      const permissionCheckService = new PermissionCheckService();
-      const hasOwnerPermission = await permissionCheckService.checkPermission({
-        userId: ctx.user.id,
-        teamId: input.teamId,
-        permission: "team.changeMemberRole",
-        fallbackRoles: [MembershipRole.OWNER],
-      });
-
-      if (!hasOwnerPermission) throw new TRPCError({ code: "UNAUTHORIZED" });
-    }
-  }
-
   const memberships = await prisma.membership.findMany({
     where: {
       teamId: input.teamId,
