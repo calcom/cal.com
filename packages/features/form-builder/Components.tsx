@@ -355,7 +355,9 @@ export const Components: Record<FieldType, Component> = {
                   value={option.value}
                   checked={value.includes(option.value)}
                 />
-                <span className="text-emphasis me-2 ms-2 text-sm">{option.label ?? ""}</span>
+                <span className="text-emphasis me-2 ms-2 text-sm" style={{backgroundColor: 'lime', color: 'black', padding: '5px'}}>
+                  🟢 COMPONENTS.TSX WORKS! 🟢 {option.label ?? ""}
+                </span>
               </label>
             );
           })}

@@ -95,13 +95,22 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                 {descriptionAsSafeHtml ? (
                   <span
                     className={classNames(
-                      "text-default ml-2 text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600",
+                      "text-default ml-2 text-sm",
                       !label && "font-medium",
                       rest.descriptionClassName
                     )}
+                    style={{
+                      color: 'var(--cal-text)'
+                    }}
                     // eslint-disable-next-line react/no-danger
                     dangerouslySetInnerHTML={{
-                      __html: markdownToSafeHTML(descriptionAsSafeHtml),
+                      __html: (() => {
+                        const html = markdownToSafeHTML(descriptionAsSafeHtml) || '';
+                        return html.replace(
+                          /<a(\s[^>]*)?>/g,
+                          '<a$1 style="color: #3b82f6 !important; text-decoration: underline !important;">'
+                        );
+                      })(),
                     }}
                   />
                 ) : (
@@ -110,8 +119,9 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                       "text-default ml-2 text-sm",
                       !label && "font-medium",
                       rest.descriptionClassName
-                    )}>
-                    {description}
+                    )}
+                    style={{backgroundColor: 'red', color: 'white', padding: '5px'}}>
+                    🔴 UI CHECKBOX WORKS! 🔴 {description}
                   </span>
                 )}
               </>
