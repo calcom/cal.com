@@ -36,7 +36,7 @@ export default function generateIcsFile({
       status,
       t,
     }),
-    type: "text/calendar; method=REQUEST",
+    type: "text/calendar; charset=UTF-8; method=REQUEST",
     disposition: "attachment",
   };
 }
