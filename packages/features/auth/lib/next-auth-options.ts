@@ -261,7 +261,7 @@ if (IS_GOOGLE_LOGIN_ENABLED) {
         params: {
           scope: [...GOOGLE_OAUTH_SCOPES, ...GOOGLE_CALENDAR_SCOPES].join(" "),
           access_type: "offline",
-          prompt: "consent",
+          prompt: "select_account",
         },
       },
     })
