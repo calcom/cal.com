@@ -522,6 +522,7 @@ export const Components: Record<FieldType, Component> = {
     factory: ({ readOnly, name, label, value, setValue }) => {
       return (
         <div className="flex">
+          🔵 BOOLEAN TYPE CHECKBOX 🔵
           <CheckboxField
             name={name}
             onChange={(e) => {
