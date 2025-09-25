@@ -19,7 +19,23 @@ export default defineConfig(({ mode }) => {
         "@calcom/platform-utils",
       ],
     },
-    plugins: [react(), dts({ insertTypesEntry: true })],
+    plugins: [
+      react(),
+      dts({
+        insertTypesEntry: true,
+        beforeWriteFile: (filePath, content) => {
+          // Check if the content includes the broken path from kysely
+          if (content.includes(`kysely/types.ts').$Enums`)) {
+            // Replace the broken path with the correct import
+            return {
+              filePath,
+              content: content.replaceAll(`kysely/types.ts').$Enums`, `kysely/types.ts')`),
+            };
+          }
+          return { filePath, content };
+        },
+      }),
+    ],
     define: {
       "process.env.NEXT_PUBLIC_WEBAPP_URL": `"${webAppUrl}"`,
     },
@@ -34,7 +50,16 @@ export default defineConfig(({ mode }) => {
         formats: ["es"],
       },
       rollupOptions: {
-        external: ["react", "fs", "path", "os", "react/jsx-runtime", "react-dom", "react-dom/client"],
+        external: [
+          "react",
+          "fs",
+          "path",
+          "os",
+          "react/jsx-runtime",
+          "react-dom",
+          "react-dom/client",
+          "@prisma/client",
+        ],
         output: {
           format: "esm",
           globals: {
@@ -54,10 +79,9 @@ export default defineConfig(({ mode }) => {
         "@calcom/lib/hooks/useLocale": path.resolve(__dirname, "./lib/useLocale"),
         "@radix-ui/react-tooltip": path.resolve(__dirname, "./src/components/ui/tooltip.tsx"),
         "@radix-ui/react-dialog": path.resolve(__dirname, "./src/components/ui/dialog.tsx"),
-        ".prisma/client": path.resolve(__dirname, "../../prisma-client"),
-        "@prisma/client": path.resolve(__dirname, "../../prisma-client"),
-        "@calcom/prisma/client": path.resolve(__dirname, "../../prisma-client"),
-        "@calcom/prisma": path.resolve(__dirname, "../../prisma"),
+        "@calcom/prisma/client/runtime/library": resolve("./prisma-types/index.ts"),
+        "@calcom/prisma/client": path.resolve(__dirname, "../../kysely/types.ts"),
+        kysely: path.resolve(__dirname, "./kysely-types/index.ts"),
         "@calcom/dayjs": path.resolve(__dirname, "../../dayjs"),
         "@calcom/platform-constants": path.resolve(__dirname, "../constants/index.ts"),
         "@calcom/platform-types": path.resolve(__dirname, "../types/index.ts"),
