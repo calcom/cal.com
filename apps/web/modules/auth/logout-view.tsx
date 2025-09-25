@@ -40,12 +40,8 @@ export function Logout(props: PageProps) {
   };
 
   return (
-    <div className="bg-default flex min-h-screen items-center justify-center px-4 sm:px-6 lg:px-8">
+    <div className="bg-default flex flex-col min-h-screen items-center justify-center px-4 sm:px-6 lg:px-8">
       <div className="border-default w-full max-w-lg rounded-2xl border p-8 shadow-xl">
-        <div className="mb-8 flex justify-center">
-          <Logo small icon />
-        </div>
-
         <div className="text-center">
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
             <Icon name="check" className="h-8 w-8 text-green-600" />
@@ -63,6 +59,11 @@ export function Logout(props: PageProps) {
             loading={btnLoading}>
             {t("go_back_login")}
           </Button>
+        </div>
+      </div>
+      <div className="mt-8">
+        <div className="mb-8 flex justify-center">
+          <Logo small icon />
         </div>
       </div>
     </div>

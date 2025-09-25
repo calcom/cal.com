@@ -76,9 +76,6 @@ export default function ForgotPassword(props: PageProps) {
   const Success = () => {
     return (
       <div className="text-center">
-        <div className="mb-8 flex justify-center">
-          <Logo small icon />
-        </div>
         <h1 className="text-emphasis text-2xl font-bold">{t("reset_link_sent")}</h1>
         <p className="text-subtle mb-6">{t("password_reset_email", { email })}</p>
         <p className="text-subtle mb-8">{t("password_reset_leading")}</p>
@@ -91,17 +88,12 @@ export default function ForgotPassword(props: PageProps) {
   };
 
   return (
-    <div className="bg-default flex min-h-screen items-center justify-center px-4 sm:px-6 lg:px-8">
+    <div className="bg-default flex flex-col min-h-screen items-center justify-center px-4 sm:px-6 lg:px-8">
       <div className="border-default max-w-lg rounded-2xl border p-8 shadow-xl">
         {success ? (
           <Success />
         ) : (
           <div className="text-center">
-            {/* logo */}
-            <div className="mb-8 flex justify-center">
-              <Logo small icon />
-            </div>
-
             <h1 className="text-emphasis text-3xl font-bold">{t("forgot_password")}</h1>
             <p className="text-subtle mb-8">{t("forgot_password_description")}</p>
 
@@ -119,7 +111,7 @@ export default function ForgotPassword(props: PageProps) {
                 />
               </div>
               <Button
-                className="w-full justify-center py-3"
+                className="w-full justify-center py-3 bg-active dark:bg-gray-200 border-active dark:border-default"
                 type="submit"
                 color="primary"
                 disabled={loading}
@@ -136,6 +128,11 @@ export default function ForgotPassword(props: PageProps) {
             </div>
           </div>
         )}
+      </div>
+      <div className="mt-8">
+        <div className="mb-8 flex justify-center">
+          <Logo small icon />
+        </div>
       </div>
     </div>
   );
