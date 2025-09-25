@@ -1,8 +1,9 @@
 "use client";
-import {useEffect} from "react";
-import Head from "next/head";
+
 import type { EmbedProps } from "app/WithEmbedSSR";
+import Head from "next/head";
 import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 
 import { BookerWebWrapper as Booker } from "@calcom/atoms/booker";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
@@ -42,10 +43,23 @@ function Type({
   console.log("faviconUrl", faviconUrl);
 
   useEffect(() => {
-    if (faviconUrl) {
-      const defaultFavicons = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
-      defaultFavicons.forEach((link) => link.parentNode?.removeChild(link));
+    const defaultFavicons = document.querySelectorAll('link[rel="icon"]');
+    console.log("Removing default favicons: ", defaultFavicons);
+    defaultFavicons.forEach((link) => {
+      link.rel = "icon";
+      // }
+      link.href = faviconUrl;
+      link.type = "image/png";
+    });
+    if (defaultFavicons.length === 0) {
+      const link: HTMLLinkElement = document.createElement("link");
+      link.rel = "icon";
+      link.href = faviconUrl ?? "/favicon.ico";
+      link.type = "image/png";
+      document.head.appendChild(link);
     }
+
+    console.log("Links are: ", defaultFavicons);
   }, [faviconUrl]);
 
   return (
