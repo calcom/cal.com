@@ -44,7 +44,6 @@ export const getSmsReminderNumberField = () =>
 export const getSmsReminderNumberSource = ({
   workflowId,
   isSmsReminderNumberRequired,
-  allowedCountryCodes,
 }: {
   workflowId: Workflow["id"];
   isSmsReminderNumberRequired: boolean;
@@ -54,7 +53,6 @@ export const getSmsReminderNumberSource = ({
   type: "workflow",
   label: "Workflow",
   fieldRequired: isSmsReminderNumberRequired,
-  allowedCountryCodes: allowedCountryCodes || [],
   editUrl: `/workflows/${workflowId}`,
 });
 
@@ -146,41 +144,21 @@ export const ensureBookingInputsHaveSystemFields = ({
 
   const smsNumberSources = [] as NonNullable<(typeof bookingFields)[number]["sources"]>;
 
-  const allCountryCodeArrays: string[][] = [];
   workflows.forEach((workflow) => {
     workflow.workflow.steps.forEach((step) => {
       if (step.action === "SMS_ATTENDEE" || step.action === "WHATSAPP_ATTENDEE") {
         const workflowId = workflow.workflow.id;
-        const stepAllowedCountryCodes = step.allowedCountryCodes || [];
-
-        if (stepAllowedCountryCodes.length > 0) {
-          allCountryCodeArrays.push(stepAllowedCountryCodes);
-        }
 
         smsNumberSources.push(
           getSmsReminderNumberSource({
             workflowId,
             isSmsReminderNumberRequired: !!step.numberRequired,
-            allowedCountryCodes: stepAllowedCountryCodes,
           })
         );
       }
     });
   });
 
-  // Find intersection of all country code arrays (codes allowed in ALL workflows)
-  let allAllowedCountryCodes: string[] = [];
-  if (allCountryCodeArrays.length > 0) {
-    // Start with the first array
-    allAllowedCountryCodes = allCountryCodeArrays[0];
-
-    // Find intersection with each subsequent array
-    for (let i = 1; i < allCountryCodeArrays.length; i++) {
-      allAllowedCountryCodes = allAllowedCountryCodes.filter((code) =>
-        allCountryCodeArrays[i].includes(code)
-      );
-    }
-  }
   const isEmailFieldOptional = !!bookingFields.find((field) => field.name === "email" && !field.required);
 
   // These fields should be added before other user fields
@@ -370,19 +348,7 @@ export const ensureBookingInputsHaveSystemFields = ({
     bookingFields.splice(indexForLocation + 1, 0, {
       ...getSmsReminderNumberField(),
       sources: smsNumberSources,
-      ...(allAllowedCountryCodes.length > 0 ? { allowedCountryCodes: allAllowedCountryCodes } : {}),
     });
-  }
-
-  const indexForSmsPhoneField = bookingFields.findIndex(
-    (f) => getFieldIdentifier(f.name) === getFieldIdentifier("smsReminderNumber")
-  );
-
-  if (indexForSmsPhoneField !== -1 && allAllowedCountryCodes.length > 0) {
-    bookingFields[indexForSmsPhoneField] = {
-      ...bookingFields[indexForSmsPhoneField],
-      allowedCountryCodes: allAllowedCountryCodes,
-    };
   }
 
   // Backward Compatibility: If we are migrating from old system, we need to map `customInputs` to `bookingFields`
