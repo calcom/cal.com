@@ -87,15 +87,11 @@ export default function App({ Component, pageProps }: AppProps) {
           defaultValue={options.find((opt: TUser | null) => opt?.email.includes("lauris"))}
           onChange={(opt: TUser | null) => setSelectedUser(opt)}
           options={options}
-          onChange={setSelectedUser}
-          options={options}
         />
       )}
       <CalProvider
         accessToken={accessToken}
-         
         clientId={process.env.NEXT_PUBLIC_X_CAL_ID ?? ""}
-         
         options={{ apiUrl: process.env.NEXT_PUBLIC_CALCOM_API_URL ?? "", refreshUrl: "/api/refresh" }}>
         {email ? (
           <>
