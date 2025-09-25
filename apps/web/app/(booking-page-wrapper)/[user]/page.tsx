@@ -64,6 +64,8 @@ const ServerPage = async (props: PageProps) => {
     buildLegacyCtx(await headers(), await cookies(), awaitParams, awaitSearchParams)
   );
 
+  console.log("next props: ", nextProps)
+
   return <LegacyPage {...nextProps} />;
 };
 

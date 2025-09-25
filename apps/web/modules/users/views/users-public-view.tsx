@@ -6,7 +6,9 @@ import { Button } from "@calid/features/ui/components/button";
 import { Icon, type IconName } from "@calid/features/ui/components/icon";
 import classNames from "classnames";
 import type { InferGetServerSidePropsType } from "next";
+import Head from "next/head";
 import Link from "next/link";
+import { useEffect } from "react";
 import type { z } from "zod";
 
 import {
@@ -107,130 +109,152 @@ export function UserPage(props: PageProps) {
     return <UserNotFound slug={props.slug ?? "User"} />;
   }
 
+  useEffect(() => {
+    if (user.faviconUrl) {
+      const defaultFavicons = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
+
+      console.log("Removing default favicons: ", defaultFavicons);
+      defaultFavicons.forEach((link) => link.parentNode?.removeChild(link));
+
+      console.log("Removed default favicons");
+    }
+  }, [user.faviconUrl]);
+
+  console.log("Fav: ", user.faviconUrl);
+
   return (
-    <div
-      className={classNames(
-        shouldAlignCentrally ? "mx-auto" : "",
-        isEmbed ? "max-w-3xl" : "",
-        "bg-default flex min-h-screen w-full flex-col"
-      )}>
-      <main
+    <>
+      {user.faviconUrl && (
+        <Head>
+          <link rel="icon" href={user.faviconUrl} type="image/x-icon" />
+        </Head>
+      )}
+      <div
         className={classNames(
           shouldAlignCentrally ? "mx-auto" : "",
-          isEmbed ? "border-booker border-booker-width bg-default rounded-md" : "bg-default",
-          "h-full w-full"
+          isEmbed ? "max-w-3xl" : "",
+          "bg-default flex min-h-screen w-full flex-col"
         )}>
-        <div
+        <main
           className={classNames(
-            "border-subtle bg-cal-gradient dark:bg-cal-gradient text-default mb-4 flex flex-col items-center bg-cover bg-center p-4"
-          )}
-          style={{
-            backgroundImage: headerUrl ? `url(${headerUrl})` : undefined,
-          }}>
-          <Avatar
-            size="xl"
-            imageSrc={user.avatarUrl}
-            alt={profile.name || "User Avatar"}
-            title={profile.name || "User"}
-          />
-          <h1 className="text-default mt-2 text-2xl font-bold" data-testid="name-title">
-            {profile.name}
-            {!isOrg && user.verified && (
-              <Icon
-                name="badge-check"
-                className="text-default mx-1 -mt-1 inline h-6 w-6 fill-blue-500 dark:text-black"
-              />
+            shouldAlignCentrally ? "mx-auto" : "",
+            isEmbed ? "border-booker border-booker-width bg-default rounded-md" : "bg-default",
+            "h-full w-full"
+          )}>
+          <div
+            className={classNames(
+              "border-subtle bg-cal-gradient dark:bg-cal-gradient text-default mb-4 flex flex-col items-center bg-cover bg-center p-4"
             )}
-            {isOrg && (
-              <Icon
-                name="badge-check"
-                className="text-default mx-1 -mt-1 inline h-6 w-6 fill-yellow-500 dark:text-black"
-              />
+            style={{
+              backgroundImage: headerUrl ? `url(${headerUrl})` : undefined,
+            }}>
+            <Avatar
+              size="xl"
+              imageSrc={user.avatarUrl}
+              alt={profile.name || "User Avatar"}
+              title={profile.name || "User"}
+            />
+            <h1 className="text-default mt-2 text-2xl font-bold" data-testid="name-title">
+              {profile.name}
+              {!isOrg && user.verified && (
+                <Icon
+                  name="badge-check"
+                  className="text-default mx-1 -mt-1 inline h-6 w-6 fill-blue-500 dark:text-black"
+                />
+              )}
+              {isOrg && (
+                <Icon
+                  name="badge-check"
+                  className="text-default mx-1 -mt-1 inline h-6 w-6 fill-yellow-500 dark:text-black"
+                />
+              )}
+            </h1>
+            {!isBioEmpty && (
+              <>
+                <div
+                  className="text-subtle break-words text-center text-sm font-medium md:px-[10%] lg:px-[20%]"
+                  // eslint-disable-next-line react/no-danger
+                  dangerouslySetInnerHTML={{ __html: props.safeBio }}
+                />
+              </>
             )}
-          </h1>
-          {!isBioEmpty && (
-            <>
-              <div
-                className="text-subtle break-words text-center text-sm font-medium md:px-[10%] lg:px-[20%]"
-                // eslint-disable-next-line react/no-danger
-                dangerouslySetInnerHTML={{ __html: props.safeBio }}
-              />
-            </>
-          )}
-        </div>
+          </div>
 
-        <DividerWithText />
+          <DividerWithText />
 
-        <div
-          className={classNames("bg-default mx-auto flex flex-col gap-4 rounded-md pb-8 pt-2 lg:max-w-4xl")}
-          data-testid="event-types">
-          {eventTypes.map((type) => {
-            const iconParams = getIconParamsFromMetadata(type.metadata);
-            return (
-              <div
-                key={type.id}
-                className="dark:hover:bg-emphasis hover:bg-muted border-default bg-default group relative rounded-md border shadow-md transition hover:scale-[1.02]"
-                data-testid="event-type-link">
-                {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
-                <div className="block w-full px-2 py-4">
-                  <div className="mb-2 flex flex-row items-center gap-2">
-                    <div className="self-start p-2">
-                      <Icon
-                        name={iconParams?.icon?.toLowerCase() as IconName}
-                        className="h-6 w-6"
-                        style={{ color: iconParams.color }}
-                      />
-                    </div>
-                    <div className="mr-20">
-                      <h3 className="text-default text-base font-semibold">{type.title}</h3>
-                      {type.descriptionAsSafeHTML && (
-                        <div
-                          className={classNames(
-                            "text-subtle line-clamp-3 break-words text-sm",
-                            "line-clamp-4 [&>*:not(:first-child)]:hidden"
-                          )}
-                          // eslint-disable-next-line react/no-danger
-                          dangerouslySetInnerHTML={{
-                            __html: markdownToSafeHTML(type.descriptionAsSafeHTML || ""),
-                          }}
+          <div
+            className={classNames("bg-default mx-auto flex flex-col gap-4 rounded-md pb-8 pt-2 lg:max-w-4xl")}
+            data-testid="event-types">
+            {eventTypes.map((type) => {
+              const iconParams = getIconParamsFromMetadata(type.metadata);
+              return (
+                <div
+                  key={type.id}
+                  className="dark:hover:bg-emphasis hover:bg-muted border-default bg-default group relative rounded-md border shadow-md transition hover:scale-[1.02]"
+                  data-testid="event-type-link">
+                  {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
+                  <div className="block w-full px-2 py-4">
+                    <div className="mb-2 flex flex-row items-center gap-2">
+                      <div className="self-start p-2">
+                        <Icon
+                          name={iconParams?.icon?.toLowerCase() as IconName}
+                          className="h-6 w-6"
+                          style={{ color: iconParams.color }}
                         />
-                      )}
+                      </div>
+                      <div className="mr-20">
+                        <h3 className="text-default text-base font-semibold">{type.title}</h3>
+                        {type.descriptionAsSafeHTML && (
+                          <div
+                            className={classNames(
+                              "text-subtle line-clamp-3 break-words text-sm",
+                              "line-clamp-4 [&>*:not(:first-child)]:hidden"
+                            )}
+                            // eslint-disable-next-line react/no-danger
+                            dangerouslySetInnerHTML={{
+                              __html: markdownToSafeHTML(type.descriptionAsSafeHTML || ""),
+                            }}
+                          />
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex w-full flex-row justify-between">
-                    <EventTypeDescription eventType={type} isPublic={true} shortenDescription />
-                    <Link
-                      key={type.id}
-                      style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
-                      prefetch={false}
-                      href={{
-                        pathname: `/${user.profile.username}/${type.slug}`,
-                        query,
-                      }}
-                      passHref
-                      onClick={async () => {
-                        sdkActionManager?.fire("eventTypeSelected", {
-                          eventType: type,
-                        });
-                      }}>
-                      <Button variant="button" brandColor={profile?.brandColor} type="button" size="base">
-                        {t("schedule")}
-                      </Button>
-                    </Link>
+                    <div className="flex w-full flex-row justify-between">
+                      <EventTypeDescription eventType={type} isPublic={true} shortenDescription />
+                      <Link
+                        key={type.id}
+                        style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
+                        prefetch={false}
+                        href={{
+                          pathname: `/${user.profile.username}/${type.slug}`,
+                          query,
+                        }}
+                        passHref
+                        onClick={async () => {
+                          sdkActionManager?.fire("eventTypeSelected", {
+                            eventType: type,
+                          });
+                        }}>
+                        <Button variant="button" brandColor={profile?.brandColor} type="button" size="base">
+                          {t("schedule")}
+                        </Button>
+                      </Link>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
 
-        {isEventListEmpty && <EmptyPage name={profile.name || "User"} />}
+          {isEventListEmpty && <EmptyPage name={profile.name || "User"} />}
 
-        <div key="logo" className={classNames("mb-8 flex w-full justify-center [&_img]:h-[32px]")}>
-          <Branding faviconUrl={user?.bannerUrl} />
-        </div>
-      </main>
-    </div>
+          {(!user.hideBranding || user?.bannerUrl) && (
+            <div key="logo" className={classNames("mb-8 flex w-full justify-center [&_img]:h-[32px]")}>
+              <Branding faviconUrl={user?.bannerUrl} />
+            </div>
+          )}
+        </main>
+      </div>
+    </>
   );
 }
 

@@ -282,7 +282,9 @@ const AppProviders = (props: AppPropsWithChildren) => {
             isBookingPage={props.Component.isBookingPage || isBookingPage}
             router={props.router}>
             <FeatureFlagsProvider>
-              <OrgBrandProvider>{props.children}</OrgBrandProvider>
+              <OrgBrandProvider>
+                {props.children}
+              </OrgBrandProvider>
             </FeatureFlagsProvider>
           </CalcomThemeProvider>
         </TooltipProvider>

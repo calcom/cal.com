@@ -295,6 +295,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     rescheduleUid: null,
     orgBannerUrl: eventData?.owner?.profile?.organization?.bannerUrl ?? null,
     eventTypes,
+    faviconUrl: user?.faviconUrl,
   };
 
   if (rescheduleUid) {

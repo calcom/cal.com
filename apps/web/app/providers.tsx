@@ -29,7 +29,7 @@ export function Providers({ isEmbed, children, nonce: _nonce }: ProvidersProps) 
           {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
           <CacheProvider>
             <WebPushProvider>
-              <OneHashChatProvider>{children}</OneHashChatProvider>
+              {!isBookingPage ? <OneHashChatProvider>{children}</OneHashChatProvider> : children}
             </WebPushProvider>
           </CacheProvider>
         </TrpcProvider>
