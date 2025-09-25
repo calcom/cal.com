@@ -23,45 +23,39 @@ const minimumOfOne = (input: number) => (input < 1 ? 1 : input);
 function getCorrectedSlotStartTime({
   slotStartTime,
   range,
-  showOptimizedSlots,
   interval,
 }: {
-  showOptimizedSlots: boolean | null | undefined;
-  interval: number;
   slotStartTime: Dayjs;
   range: DateRange;
+  interval: number;
 }) {
-  if (showOptimizedSlots) {
-    let correctedSlotStartTime = slotStartTime;
-    // if showOptimizedSlots option is selected, the slotStartTime should not be modified,
-    // so that maximum possible slots are shown.
-    // The below logic in this entire `if branch` only tries to add an increment if sufficient minutes are available (after max possible slots are consumed),
-    // so that slots are shown respecting the 'Start of the Hour'.
-    const minutesRequiredToMoveToNextSlot = interval - (slotStartTime.minute() % interval);
-    const minutesRequiredToMoveTo15MinSlot = 15 - (slotStartTime.minute() % 15);
-    const minutesRequiredToMoveTo5MinSlot = 5 - (slotStartTime.minute() % 5);
-    const extraMinutesAvailable = range.end.diff(slotStartTime, "minutes") % interval;
+  let correctedSlotStartTime = slotStartTime;
+  // if showOptimizedSlots option is selected, the slotStartTime should not be modified,
+  // so that maximum possible slots are shown.
+  // The below logic in this entire `if branch` only tries to add an increment if sufficient minutes are available (after max possible slots are consumed),
+  // so that slots are shown respecting the 'Start of the Hour'.
+  const minutesRequiredToMoveToNextSlot = interval - (slotStartTime.minute() % interval);
+  const minutesRequiredToMoveTo15MinSlot = 15 - (slotStartTime.minute() % 15);
+  const minutesRequiredToMoveTo5MinSlot = 5 - (slotStartTime.minute() % 5);
+  const extraMinutesAvailable = range.end.diff(slotStartTime, "minutes") % interval;
 
-    if (extraMinutesAvailable >= minutesRequiredToMoveToNextSlot) {
-      // For cases like, Availability -> 9:05 - 12:00, 60Min EventTypes.
-      // Total available minutes are 175, so only 2 60Min slots can be provided max
-      // And still 175-120 = 55mins are available, hence 'slotStartTime' is pushed to 10:00 to respect 'Start of the Hour'.
-      // Slots will be shown as '10:00, 11:00' instead of '09:05, 10:05'
-      correctedSlotStartTime = slotStartTime.add(minutesRequiredToMoveToNextSlot, "minute");
-    } else if (extraMinutesAvailable >= minutesRequiredToMoveTo15MinSlot) {
-      // For cases like, Availability -> 9:05 - 11:55, 60Min EventTypes.
-      // Total available minutes are 170, so only 2 60Min slots can be provided max
-      // And still 175-120 = 50mins are available, but it is less 55mins which is required to push to 10:00
-      // so slotStartTime is pushed to next 15Min slot 09:15, instead of showing slots like 9:05,10:05 now slots will be 9:15,10:15
-      correctedSlotStartTime = slotStartTime.add(minutesRequiredToMoveTo15MinSlot, "minute");
-    } else if (extraMinutesAvailable >= minutesRequiredToMoveTo5MinSlot) {
-      // so slotStartTime is pushed to next 5Min, instead of showing slots like 11:22,11:37 now slots will be 11:25,11:40
-      correctedSlotStartTime = slotStartTime.add(minutesRequiredToMoveTo5MinSlot, "minute");
-    }
-    return correctedSlotStartTime;
+  if (extraMinutesAvailable >= minutesRequiredToMoveToNextSlot) {
+    // For cases like, Availability -> 9:05 - 12:00, 60Min EventTypes.
+    // Total available minutes are 175, so only 2 60Min slots can be provided max
+    // And still 175-120 = 55mins are available, hence 'slotStartTime' is pushed to 10:00 to respect 'Start of the Hour'.
+    // Slots will be shown as '10:00, 11:00' instead of '09:05, 10:05'
+    correctedSlotStartTime = slotStartTime.add(minutesRequiredToMoveToNextSlot, "minute");
+  } else if (extraMinutesAvailable >= minutesRequiredToMoveTo15MinSlot) {
+    // For cases like, Availability -> 9:05 - 11:55, 60Min EventTypes.
+    // Total available minutes are 170, so only 2 60Min slots can be provided max
+    // And still 175-120 = 50mins are available, but it is less 55mins which is required to push to 10:00
+    // so slotStartTime is pushed to next 15Min slot 09:15, instead of showing slots like 9:05,10:05 now slots will be 9:15,10:15
+    correctedSlotStartTime = slotStartTime.add(minutesRequiredToMoveTo15MinSlot, "minute");
+  } else if (extraMinutesAvailable >= minutesRequiredToMoveTo5MinSlot) {
+    // so slotStartTime is pushed to next 5Min, instead of showing slots like 11:22,11:37 now slots will be 11:25,11:40
+    correctedSlotStartTime = slotStartTime.add(minutesRequiredToMoveTo5MinSlot, "minute");
   }
-
-  return slotStartTime.startOf("hour").add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute");
+  return correctedSlotStartTime;
 }
 
 function buildSlotsWithDateRanges({
@@ -128,11 +122,10 @@ function buildSlotsWithDateRanges({
     // For current day bookings, normalizing the seconds to zero to avoid issues with time calculations
     slotStartTime = slotStartTime.set("second", 0).set("millisecond", 0);
 
-    if (slotStartTime.minute() % interval !== 0) {
+    if (slotStartTime.minute() % interval !== 0 && showOptimizedSlots) {
       slotStartTime = getCorrectedSlotStartTime({
-        showOptimizedSlots,
-        interval,
         slotStartTime,
+        interval,
         range,
       });
     }
