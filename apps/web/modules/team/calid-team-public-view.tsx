@@ -129,7 +129,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
                       eventType: type,
                     });
                   }}>
-                  <Button variant="button" brandColor={team.brandColor} type="button" size="base">
+                  <Button variant="button" brandColor={team.brandColor} darkBrandColor={team.darkBrandColor} type="button" size="base">
                     {t("schedule")}
                   </Button>
                 </Link>
@@ -229,7 +229,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
                   </h2>
                 </div>
               ) : (
-                <Team members={team.members} teamName={team.name} />
+                <Team members={team.members} teamName={team.name} brandColor={team.brandColor} darkBrandColor={team.darkBrandColor} />
               ))}
             {!showMembers.isOn && team.eventTypes && team.eventTypes.length > 0 && (
               <div

@@ -249,7 +249,7 @@ export function UserPage(props: PageProps) {
                             eventType: type,
                           });
                         }}>
-                        <Button variant="button" brandColor={profile?.brandColor} type="button" size="base">
+                        <Button variant="button" brandColor={profile?.brandColor} darkBrandColor={profile?.darkBrandColor} type="button" size="base">
                           {t("schedule")}
                         </Button>
                       </Link>

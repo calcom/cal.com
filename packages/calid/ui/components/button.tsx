@@ -33,7 +33,8 @@ export type ButtonBaseProps = {
     // If a string (e.g. hex/rgb/css var) is provided, it will be used as a custom
     // color for primary-style buttons (background, border, and readable text color)
     color?: ButtonColor;
-    brandColor?: string;
+    brandColor?: string | null;
+    darkBrandColor?: string | null;
   };
 
 export type ButtonProps = ButtonBaseProps &
@@ -228,6 +229,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     EndIcon,
     shallow,
     brandColor,
+    darkBrandColor,
     iconColor,
     // attributes propagated from `HTMLAnchorProps` or `HTMLButtonProps`
     ...passThroughProps
@@ -237,6 +239,12 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
   // If pass an `href`-attr is passed it's `<a>`, otherwise it's a `<button />`
   const isLink = typeof props.href !== "undefined";
   const elementType = "button";
+
+  // Detect if dark mode is active
+  const isDarkMode = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
+
+  // Determine which brand color to use based on theme
+  const effectiveBrandColor = isDarkMode && darkBrandColor ? darkBrandColor : brandColor;
   const element = React.createElement(
     elementType,
     {
@@ -250,8 +258,8 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         return classes;
       })(),
       style: {
-        backgroundColor: brandColor,
-        border: brandColor ? "none" : undefined,
+        backgroundColor: effectiveBrandColor,
+        border: effectiveBrandColor ? "none" : undefined,
       },
       // if we click a disabled button, we prevent going through the click handler
       onClick: disabled
