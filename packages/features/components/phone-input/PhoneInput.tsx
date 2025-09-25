@@ -81,7 +81,7 @@ function BasePhoneInput({
       enableSearch
       disableSearchIcon
       country={effectiveDefaultCountry}
-      onlyCountries={onlyCountries}
+      onlyCountries={onlyCountries && onlyCountries.length > 0 ? onlyCountries : undefined}
       disableCountryCode={singleCountry}
       inputProps={{
         name,
@@ -141,7 +141,7 @@ function BasePhoneInputWeb({
       country={value ? undefined : effectiveDefaultCountry}
       enableSearch
       disableSearchIcon
-      onlyCountries={onlyCountries}
+      onlyCountries={onlyCountries && onlyCountries.length > 0 ? onlyCountries : undefined}
       disableCountryCode={singleCountry}
       inputProps={{
         name,
