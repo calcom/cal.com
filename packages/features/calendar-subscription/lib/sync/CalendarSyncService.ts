@@ -60,7 +60,6 @@ export class CalendarSyncService {
    */
   async cancelBooking(event: CalendarSubscriptionEventItem) {
     log.debug("cancelBooking", { event });
-    log.debug("rescheduleBooking", { event });
     const [bookingUid] = event.iCalUID?.split("@") ?? [undefined];
     if (!bookingUid) {
       log.debug("Unable to sync, booking not found");
