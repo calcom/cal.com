@@ -165,8 +165,6 @@ export class CalendarSubscriptionService {
       throw err;
     }
 
-    console.log(JSON.stringify(events));
-
     if (!events?.items?.length) {
       log.debug("No events fetched", { channelId: selectedCalendar.channelId });
       return;
