@@ -25,7 +25,7 @@ export const deleteInviteHandler = async ({ ctx, input }: DeleteInviteOptions) =
       teamId: true,
       id: true,
       team: {
-        select: { isOrganization: true, parentId: true },
+        select: { isOrganization: true },
       },
     },
   });
@@ -34,7 +34,7 @@ export const deleteInviteHandler = async ({ ctx, input }: DeleteInviteOptions) =
   if (!verificationToken.teamId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   const permissionCheckService = new PermissionCheckService();
-  const isOrgContext = !!(verificationToken.team?.parentId || verificationToken.team?.isOrganization);
+  const isOrgContext = !!verificationToken.team?.isOrganization;
   const permission = isOrgContext ? "organization.invite" : "team.invite";
   const hasInvitePermission = await permissionCheckService.checkPermission({
     userId: ctx.user.id,
