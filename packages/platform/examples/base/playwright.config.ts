@@ -11,22 +11,6 @@ const DEFAULT_TEST_TIMEOUT = process.env.CI ? 60000 : 240000;
 
 const headless = !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS;
 
-// Debug logging for environment variables in CI
-if (process.env.CI) {
-  console.log("=== E2E Environment Variables Debug ===");
-  console.log(`NEXT_PUBLIC_IS_E2E: "1"`);
-  console.log(`NODE_ENV: "test"`);
-  console.log(`NEXT_PUBLIC_X_CAL_ID: "${process.env.ATOMS_E2E_OAUTH_CLIENT_ID ?? ""}"`);
-  console.log(`X_CAL_SECRET_KEY: "${process.env.ATOMS_E2E_OAUTH_CLIENT_SECRET ?? ""}"`);
-  console.log(`NEXT_PUBLIC_CALCOM_API_URL: "${process.env.ATOMS_E2E_API_URL ?? ""}"`);
-  console.log(
-    `VITE_BOOKER_EMBED_OAUTH_CLIENT_ID: "${process.env.ATOMS_E2E_OAUTH_CLIENT_ID_BOOKER_EMBED ?? ""}"`
-  );
-  console.log(`VITE_BOOKER_EMBED_API_URL: "${process.env.ATOMS_E2E_API_URL ?? ""}"`);
-  console.log(`ORGANIZATION_ID: "${String(process.env.ATOMS_E2E_ORG_ID ?? "")}"`);
-  console.log("=== End Environment Variables Debug ===");
-}
-
 export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
