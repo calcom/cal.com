@@ -215,7 +215,8 @@ export class UpdateWorkflowDto {
     | OnPaymentInitiatedTriggerDto
     | OnNoShowUpdateTriggerDto
     | OnAfterCalVideoGuestsNoShowTriggerDto
-    | OnAfterCalVideoHostsNoShowTriggerDto;
+    | OnAfterCalVideoHostsNoShowTriggerDto
+    | OnFormSubmittedTriggerDto;
 
   @ApiPropertyOptional({
     description: "Steps to execute as part of the workflow",
