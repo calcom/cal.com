@@ -35,7 +35,7 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
     fallbackRoles: [MembershipRole.OWNER],
   });
 
-  if (!hasPermission) throw new TRPCError({ code: "UNAUTHORIZED" });
+  if (!hasPermission) throw new TRPCError({ code: "FORBIDDEN" });
 
   return await TeamService.delete({ id: input.teamId });
 };
