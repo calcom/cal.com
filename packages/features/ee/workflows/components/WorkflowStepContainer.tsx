@@ -10,7 +10,6 @@ import type { RetellAgentWithDetails } from "@calcom/features/calAIPhone/provide
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import PhoneInput from "@calcom/features/components/phone-input";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
-import { getCountryOptions, getCountryLabel } from "@calcom/lib/countryCodeUtils";
 import { formatPhoneNumber } from "@calcom/lib/formatPhoneNumber";
 import { useHasActiveTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -1072,42 +1071,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   </>
                 )
               )}
-            </div>
-          )}
-          {form.getValues(`steps.${step.stepNumber - 1}.action`) === "SMS_ATTENDEE" && (
-            <div className="bg-muted mt-2 rounded-md p-4 pt-0">
-              <div className="mt-3 space-y-1">
-                <Label htmlFor={`steps.${step.stepNumber - 1}.allowedCountryCodes`}>
-                  {t("allowed_country_codes")}
-                </Label>
-                <Controller
-                  name={`steps.${step.stepNumber - 1}.allowedCountryCodes`}
-                  control={form.control}
-                  render={({ field }) => (
-                    <Select
-                      isMulti
-                      isSearchable
-                      className="text-sm"
-                      isDisabled={props.readOnly}
-                      placeholder={t("select_country_codes")}
-                      options={getCountryOptions()}
-                      value={
-                        field.value?.map((code: string) => ({
-                          label: getCountryLabel(code),
-                          value: code,
-                        })) || []
-                      }
-                      onChange={(selectedOptions) => {
-                        field.onChange(selectedOptions?.map((option) => option.value) || []);
-                      }}
-                    />
-                  )}
-                />
-                <div className="mt-1 flex text-gray-500">
-                  <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
-                  <p className="text-sm">{t("country_code_restriction_help")}</p>
-                </div>
-              </div>
             </div>
           )}
           {canRequirePhoneNumber(form.getValues(`steps.${step.stepNumber - 1}.action`)) &&
