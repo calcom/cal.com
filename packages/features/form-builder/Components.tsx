@@ -355,18 +355,32 @@ export const Components: Record<FieldType, Component> = {
                   value={option.value}
                   checked={value.includes(option.value)}
                 />
-                <span className="text-emphasis me-2 ms-2 text-sm">
-                  {/^https?:\/\//.test(option.label || "") || /^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.[a-zA-Z]{2,}/.test(option.label || "") ? (
-                    <a 
-                      href={/^https?:\/\//.test(option.label || "") ? option.label : `https://${option.label}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="text-blue-500 underline hover:text-blue-600"
-                    >
-                      {option.label}
-                    </a>
-                  ) : option.label || ""}
-                </span>
+                {(() => {
+                  const isLink = /^https?:\/\//.test(option.label || "") || /^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.[a-zA-Z]{2,}/.test(option.label || "");
+                  console.log(`CHECKBOX OPTION: "${option.label}" - IS_LINK: ${isLink}`);
+                  
+                  if (isLink) {
+                    return (
+                      <span 
+                        style={{ 
+                          color: 'red', 
+                          backgroundColor: 'yellow', 
+                          border: '2px solid green',
+                          padding: '2px'
+                        }}
+                        className="me-2 ms-2 text-sm"
+                      >
+                        🔗 LINK DETECTED: {option.label}
+                      </span>
+                    );
+                  }
+                  
+                  return (
+                    <span className="text-emphasis me-2 ms-2 text-sm">
+                      {option.label || ""}
+                    </span>
+                  );
+                })()}
               </label>
             );
           })}
