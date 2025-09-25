@@ -20,10 +20,11 @@ export class PBACRemoveMemberService extends BaseRemoveMemberService {
       action: CustomAction.Remove,
     });
 
-    const teamsWithPermission = await this.permissionService.getTeamIdsWithPermission(
+    const teamsWithPermission = await this.permissionService.getTeamIdsWithPermission({
       userId,
-      removePermission
-    );
+      permission: removePermission,
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+    });
 
     // Convert to Set for O(1) lookup
     const teamsWithPermissionSet = new Set(teamsWithPermission);

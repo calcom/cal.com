@@ -69,10 +69,11 @@ describe("PBACRemoveMemberService", () => {
           action: CustomAction.Remove,
         });
 
-        expect(mockPermissionCheckService.getTeamIdsWithPermission).toHaveBeenCalledWith(
+        expect(mockPermissionCheckService.getTeamIdsWithPermission).toHaveBeenCalledWith({
           userId,
-          removePermission
-        );
+          permission: removePermission,
+          fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+        });
       });
 
       it("should check organization.remove permission for org context", async () => {
