@@ -111,7 +111,27 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                       !label && "font-medium",
                       rest.descriptionClassName
                     )}>
-                    {description}
+                    {typeof description === 'string' && (description.includes('http') || /[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.[a-zA-Z]{2,}/.test(description)) ? (
+                      description.split(/(\s+)/).map((part, index) => {
+                        const urlMatch = part.match(/^https?:\/\/.+/);
+                        const domainMatch = !urlMatch && part.match(/^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.[a-zA-Z]{2,}$/);
+                        
+                        if (urlMatch || domainMatch) {
+                          return (
+                            <a
+                              key={index}
+                              href={urlMatch ? part : `https://${part}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{ color: '#3b82f6 !important', textDecoration: 'underline !important' }}
+                            >
+                              {part}
+                            </a>
+                          );
+                        }
+                        return part;
+                      })
+                    ) : description}
                   </span>
                 )}
               </>
