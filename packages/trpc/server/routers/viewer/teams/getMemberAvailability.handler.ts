@@ -1,6 +1,5 @@
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
 import { getUserAvailabilityService } from "@calcom/lib/di/containers/GetUserAvailability";
-import { isTeamMember } from "@calcom/features/ee/teams/lib/queries";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -17,8 +16,15 @@ type GetMemberAvailabilityOptions = {
 
 export const getMemberAvailabilityHandler = async ({ ctx, input }: GetMemberAvailabilityOptions) => {
   const userAvailabilityService = getUserAvailabilityService();
-  const team = await isTeamMember(ctx.user?.id, input.teamId);
-  if (!team) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+  const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+    userId: ctx.user.id,
+    teamId: input.teamId,
+  });
+
+  if (!membership) {
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "User is not a member of this team" });
+  }
 
   // verify member is in team
   const members = await MembershipRepository.findByTeamIdForAvailability({ teamId: input.teamId });
