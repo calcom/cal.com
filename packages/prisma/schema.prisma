@@ -1872,9 +1872,7 @@ model Avatar {
   isBanner  Boolean @default(false)
   isFavicon Boolean @default(false)
 
-  @@unique([teamId, userId, isHeader])
-  @@unique([teamId, userId, isFavicon])
-  @@unique([teamId, userId, isBanner])
+  @@unique([teamId, userId, isBanner, isFavicon, isHeader])
   @@map(name: "avatars")
 }
 
