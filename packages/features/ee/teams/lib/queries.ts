@@ -385,27 +385,6 @@ export async function getTeamWithoutMembers(args: {
   };
 }
 
-export async function isTeamOwner(userId: number, teamId: number) {
-  return !!(await prisma.membership.findFirst({
-    where: {
-      userId,
-      teamId,
-      accepted: true,
-      role: "OWNER",
-    },
-  }));
-}
-
-export async function isTeamMember(userId: number, teamId: number) {
-  return !!(await prisma.membership.findFirst({
-    where: {
-      userId,
-      teamId,
-      accepted: true,
-    },
-  }));
-}
-
 export function generateNewChildEventTypeDataForDB({
   eventType,
   userId,
