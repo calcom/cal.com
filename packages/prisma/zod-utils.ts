@@ -132,12 +132,13 @@ const _eventTypeMetaDataSchemaWithoutApps = z.object({
     })
     .optional()
     .nullable(),
+  billingAddressRequired: z.boolean().optional(),
 });
 
 export const eventTypeMetaDataSchemaWithUntypedApps = _eventTypeMetaDataSchemaWithoutApps.merge(
   z.object({
     apps: z.unknown().optional(),
-    billingAddressRequired: z.boolean().optional(),
+    // billingAddressRequired: z.boolean().optional(),
   })
 );
 

@@ -36,6 +36,7 @@ type IEventType = Ensure<
     Omit<Prisma.EventTypeCreateInput, NotSupportedProps> & {
       userId: PrismaEventType["userId"];
       profileId: PrismaEventType["profileId"];
+      calIdTeamId: PrismaEventType["calIdTeamId"];
       teamId: PrismaEventType["teamId"];
       parentId: PrismaEventType["parentId"];
       scheduleId: PrismaEventType["scheduleId"];
@@ -87,8 +88,8 @@ export class EventTypeRepository {
     const {
       userId,
       profileId,
-      teamId,
-      parentId,
+      calIdTeamId,
+      // parentId,
       scheduleId,
       bookingLimits,
       recurringEvent,
@@ -110,8 +111,8 @@ export class EventTypeRepository {
             },
           }
         : null),
-      ...(teamId ? { team: { connect: { id: teamId } } } : null),
-      ...(parentId ? { parent: { connect: { id: parentId } } } : null),
+      ...(calIdTeamId ? { calIdTeam: { connect: { id: calIdTeamId } } } : null),
+      // ...(parentId ? { parent: { connect: { id: parentId } } } : null),
       ...(scheduleId ? { schedule: { connect: { id: scheduleId } } } : null),
       ...(metadata ? { metadata: metadata } : null),
       ...(bookingLimits
@@ -1731,6 +1732,46 @@ export class EventTypeRepository {
               userId: true,
               teamId: true,
               team: {
+                select: {
+                  id: true,
+                  slug: true,
+                  name: true,
+                  members: true,
+                },
+              },
+              activeOn: {
+                select: {
+                  eventType: {
+                    select: {
+                      id: true,
+                      title: true,
+                      parentId: true,
+                      _count: {
+                        select: {
+                          children: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              steps: true,
+            },
+          },
+        },
+      },
+      calIdWorkflows: {
+        include: {
+          workflow: {
+            select: {
+              name: true,
+              id: true,
+              trigger: true,
+              time: true,
+              timeUnit: true,
+              userId: true,
+              calIdTeamId: true,
+              calIdTeam: {
                 select: {
                   id: true,
                   slug: true,

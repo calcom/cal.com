@@ -398,9 +398,7 @@ const getUsersData = async (
             theme: true,
             metadata: true,
             organization: true,
-            defaultScheduleId: true,
-            profile: true,
-            book,
+            defaultScheduleId: true
           },
         },
       },

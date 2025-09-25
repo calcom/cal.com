@@ -40,7 +40,7 @@ export const eventOwnerProcedure = authedProcedure
             id: true,
           },
         },
-        team: {
+        calIdTeam: {
           select: {
             members: {
               select: {
@@ -58,10 +58,10 @@ export const eventOwnerProcedure = authedProcedure
     }
 
     const isAuthorized = (function () {
-      if (event.team) {
+      if (event.calIdTeam) {
         const isOrgAdmin = !!ctx.user?.organization?.isOrgAdmin;
         return (
-          event.team.members
+          event.calIdTeam.members
             .filter((member) => checkAdminOrOwner(member.role))
             .map((member) => member.userId)
             .includes(ctx.user.id) || isOrgAdmin
@@ -75,8 +75,8 @@ export const eventOwnerProcedure = authedProcedure
     }
 
     const isAllowed = (function () {
-      if (event.team) {
-        const allTeamMembers = event.team.members.map((member) => member.userId);
+      if (event.calIdTeam) {
+        const allTeamMembers = event.calIdTeam.members.map((member) => member.userId);
         return input.users.every((userId: number) => allTeamMembers.includes(userId));
       }
       return input.users.every((userId: number) => userId === ctx.user.id);

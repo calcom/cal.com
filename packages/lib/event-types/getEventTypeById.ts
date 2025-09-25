@@ -243,7 +243,7 @@ export const getEventTypeById = async ({
           return {
             ...user,
             profileId: user.profile.id,
-            eventTypes: user.eventTypes.map((evTy) => evTy.slug),
+            eventTypes: user.eventTypes?.map((evTy: any) => evTy.slug) || [],
             membership: member.role,
           };
         })
@@ -251,7 +251,8 @@ export const getEventTypeById = async ({
 
   // Find the current users membership so we can check role to enable/disable deletion.
   // Sets to null if no membership is found - this must mean we are in a none team event type
-  const currentUserMembership = eventTypeObject.team?.members.find((el) => el.user.id === userId) ?? null;
+  const currentUserMembership =
+    eventTypeObject.team?.members.find((el: any) => el.user.id === userId) ?? null;
 
   let destinationCalendar = eventTypeObject.destinationCalendar;
   if (!destinationCalendar) {
@@ -338,12 +339,12 @@ export const getEventTypeByIdForCalId = async ({
   const apps = newMetadata?.apps || {};
   const eventTypeWithParsedMetadata = { ...rawEventType, metadata: newMetadata };
   const userRepo = new UserRepository(prisma);
-  const eventTeamMembershipsWithUserProfile = [];
-  for (const eventTeamMembership of rawEventType.team?.members || []) {
-    eventTeamMembershipsWithUserProfile.push({
-      ...eventTeamMembership,
+  const calIdTeamMembershipsWithUserProfile = [];
+  for (const calIdTeamMembership of (rawEventType as any).calIdTeam?.members || []) {
+    calIdTeamMembershipsWithUserProfile.push({
+      ...calIdTeamMembership,
       user: await userRepo.enrichUserWithItsProfile({
-        user: eventTeamMembership.user,
+        user: calIdTeamMembership.user,
       }),
     });
   }
@@ -380,9 +381,11 @@ export const getEventTypeByIdForCalId = async ({
 
   const eventType = {
     ...restEventType,
+    calIdTeamId: (rawEventType as any).calIdTeamId,
+    calIdTeam: (rawEventType as any).calIdTeam,
     schedule:
       rawEventType.schedule?.id ||
-      (!rawEventType.team ? rawEventType.users[0]?.defaultScheduleId : null) ||
+      (!(rawEventType as any).calIdTeam ? rawEventType.users[0]?.defaultScheduleId : null) ||
       null,
     restrictionScheduleId: rawEventType.restrictionScheduleId || null,
     restrictionScheduleName: rawEventType.restrictionSchedule?.name || null,
@@ -397,9 +400,9 @@ export const getEventTypeByIdForCalId = async ({
     metadata: parsedMetaData,
     customInputs: parsedCustomInputs,
     users: rawEventType.users,
-    bookerUrl: restEventType.team
-      ? await getBookerBaseUrl(restEventType.team.parentId)
-      : restEventType.owner
+    bookerUrl: (rawEventType as any).calIdTeam
+      ? await getBookerBaseUrl((rawEventType as any).calIdTeam.parentId)
+      : rawEventType.owner
       ? await getBookerBaseUrl(currentOrganizationId)
       : WEBSITE_URL,
     children: childrenWithUserProfile.flatMap((ch) =>
@@ -413,8 +416,8 @@ export const getEventTypeByIdForCalId = async ({
               name: ch.owner.name ?? "",
               username: ch.owner.username ?? "",
               membership:
-                restEventType.team?.members.find((tm) => tm.user.id === ch.owner?.id)?.role ||
-                MembershipRole.MEMBER,
+                (rawEventType as any).calIdTeam?.members.find((tm: any) => tm.user.id === ch.owner?.id)
+                  ?.role || MembershipRole.MEMBER,
             },
             created: true,
           }
@@ -423,7 +426,7 @@ export const getEventTypeByIdForCalId = async ({
   };
 
   // backwards compat
-  if (eventType.users.length === 0 && !eventType.team) {
+  if (eventType.users.length === 0 && !(eventType as any).calIdTeam) {
     const fallbackUser = await prisma.user.findUnique({
       where: {
         id: userId,
@@ -453,7 +456,7 @@ export const getEventTypeByIdForCalId = async ({
 
   const t = await getTranslation(currentUser?.locale ?? "en", "common");
 
-  if (!currentUser?.id && !eventType.teamId) {
+  if (!currentUser?.id && !(eventType as any).calIdTeam) {
     throw new TRPCError({
       code: "NOT_FOUND",
       message: "Could not find user or team",
@@ -461,7 +464,7 @@ export const getEventTypeByIdForCalId = async ({
   }
 
   const locationOptions = await getLocationGroupedOptions(
-    eventType.teamId ? { teamId: eventType.teamId } : { userId },
+    (eventType as any).calIdTeamId ? { teamId: (eventType as any).calIdTeamId } : { userId },
     t
   );
   if (eventType.schedulingType === SchedulingType.MANAGED) {
@@ -477,7 +480,7 @@ export const getEventTypeByIdForCalId = async ({
     });
   }
 
-  const isOrgTeamEvent = !!eventType?.teamId && !!eventType.team?.parentId;
+  const isOrgTeamEvent = !!(eventType as any)?.calIdTeam;
   const eventTypeObject = Object.assign({}, eventType, {
     users: eventTypeUsers,
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
@@ -485,10 +488,10 @@ export const getEventTypeByIdForCalId = async ({
     bookingFields: getBookingFieldsWithSystemFields({ ...eventType, isOrgTeamEvent }),
   });
 
-  const isOrgEventType = !!eventTypeObject.team?.parentId;
-  const teamMembers = eventTypeObject.team
-    ? eventTeamMembershipsWithUserProfile
-        .filter((member) => member.accepted || isOrgEventType)
+  const isOrgEventType = !!(eventTypeObject as any).calIdTeam?.parentId;
+  const teamMembers = (eventTypeObject as any).calIdTeam
+    ? calIdTeamMembershipsWithUserProfile
+        .filter((member) => member.acceptedInvitation || isOrgEventType)
         .map((member) => {
           const user: typeof member.user & { avatar: string } = {
             ...member.user,
@@ -497,7 +500,7 @@ export const getEventTypeByIdForCalId = async ({
           return {
             ...user,
             profileId: user.profile.id,
-            eventTypes: user.eventTypes.map((evTy) => evTy.slug),
+            eventTypes: user.eventTypes?.map((evTy: any) => evTy.slug) || [],
             membership: member.role,
           };
         })
@@ -505,7 +508,8 @@ export const getEventTypeByIdForCalId = async ({
 
   // Find the current users membership so we can check role to enable/disable deletion.
   // Sets to null if no membership is found - this must mean we are in a none team event type
-  const currentUserMembership = eventTypeObject.team?.members.find((el) => el.user.id === userId) ?? null;
+  const currentUserMembership =
+    (eventTypeObject as any).calIdTeam?.members.find((el: any) => el.user.id === userId) ?? null;
 
   let destinationCalendar = eventTypeObject.destinationCalendar;
   if (!destinationCalendar) {
@@ -520,15 +524,15 @@ export const getEventTypeByIdForCalId = async ({
   const finalObj = {
     eventType: {
       ...eventTypeObject,
-      bookerUrl: eventTypeObject.calIdTeam
-        ? await getBookerBaseUrl(eventTypeObject.calIdTeam.parentId)
+      bookerUrl: (eventTypeObject as any).calIdTeam
+        ? await getBookerBaseUrl((eventTypeObject as any).calIdTeam.parentId)
         : eventTypeObject.owner
         ? await getBookerBaseUrl(currentOrganizationId)
         : WEBSITE_URL,
     },
     locationOptions,
     destinationCalendar,
-    team: eventTypeObject.team || null,
+    team: (eventTypeObject as any).calIdTeam || null,
     teamMembers,
     currentUserMembership,
     isUserOrganizationAdmin,

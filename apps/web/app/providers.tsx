@@ -1,4 +1,5 @@
 "use client";
+import {useEffect} from "react";
 
 import OneHashChatProvider from "@calid/features/modules/support/OneHashChatProvider";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -20,6 +21,18 @@ type ProvidersProps = {
 };
 export function Providers({ isEmbed, children, nonce: _nonce }: ProvidersProps) {
   const isBookingPage = useIsBookingPage();
+
+  useEffect(() => {
+    const link: HTMLLinkElement = document.createElement("link");
+    link.rel = "icon";
+
+    if (!isBookingPage) {
+      link.href = "/favicon.ico";
+    }
+
+    link.type = "image/png";
+    document.head.appendChild(link);
+  }, [isBookingPage]);
 
   return (
     <QueryClientProvider client={queryClient}>
