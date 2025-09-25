@@ -1,8 +1,15 @@
+import { WorkflowActivationPreValidation } from "@/modules/workflows/inputs/workflow-activation.validator";
 import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsNumber, IsString, IsOptional, ValidateNested, ArrayMinSize } from "class-validator";
 
-import { WorkflowActivationDto } from "./create-workflow.input";
+import {
+  BaseWorkflowActivationDto,
+  WORKFLOW_EVENT_TYPE_ACTIVATION,
+  WORKFLOW_FORM_ACTIVATION,
+  WorkflowActivationDto,
+  WorkflowFormActivationDto,
+} from "./create-workflow.input";
 import {
   WorkflowEmailAttendeeStepDto,
   WorkflowEmailAddressStepDto,
@@ -154,14 +161,28 @@ export class UpdateWorkflowDto {
   @IsOptional()
   name?: string;
 
-  @ApiPropertyOptional({
-    description: "Activation settings for the workflow, the action that will trigger the workflow.",
-    type: WorkflowActivationDto,
+  @ApiProperty({
+    description: "Activation settings for the workflow",
+    oneOf: [
+      { $ref: getSchemaPath(WorkflowActivationDto) },
+      { $ref: getSchemaPath(WorkflowFormActivationDto) },
+    ],
   })
   @ValidateNested()
-  @Type(() => WorkflowActivationDto)
-  @IsOptional()
-  activation?: WorkflowActivationDto;
+  @Type(() => BaseWorkflowActivationDto, {
+    discriminator: {
+      property: "type",
+      subTypes: [
+        { value: WorkflowActivationDto, name: WORKFLOW_EVENT_TYPE_ACTIVATION },
+        { value: WorkflowFormActivationDto, name: WORKFLOW_FORM_ACTIVATION },
+      ],
+    },
+  })
+  @WorkflowActivationPreValidation({
+    message:
+      "Workflow validation type does not work with the specified trigger type, when using FORM_SUBMITTED trigger you must provide form activation.",
+  })
+  activation!: WorkflowFormActivationDto | WorkflowActivationDto;
 
   @ApiPropertyOptional({
     description: "Trigger configuration for the workflow",

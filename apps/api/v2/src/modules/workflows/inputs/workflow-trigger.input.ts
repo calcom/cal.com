@@ -17,6 +17,7 @@ export const BOOKING_REQUESTED = "bookingRequested";
 export const BOOKING_PAYMENT_INITIATED = "bookingPaymentInitiated";
 export const BOOKING_PAID = "bookingPaid";
 export const BOOKING_NO_SHOW_UPDATED = "bookingNoShowUpdated";
+
 export const WORKFLOW_TRIGGER_TYPES = [
   BEFORE_EVENT,
   EVENT_CANCELLED,

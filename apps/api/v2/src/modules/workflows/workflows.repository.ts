@@ -9,7 +9,11 @@ import { updateWorkflow } from "@calcom/platform-libraries/workflows";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Workflow, WorkflowStep } from "@calcom/prisma/client";
 
-export type WorkflowType = Workflow & { activeOn: { eventTypeId: number }[]; steps: WorkflowStep[] };
+export type WorkflowType = Workflow & {
+  activeOn: { eventTypeId: number }[];
+  steps: WorkflowStep[];
+  activeOnRoutingForms: { routingFormId: string }[];
+};
 
 @Injectable()
 export class WorkflowsRepository {
@@ -28,6 +32,7 @@ export class WorkflowsRepository {
       include: {
         steps: true,
         activeOn: { select: { eventTypeId: true } },
+        activeOnRoutingForms: { select: { routingFormId: true } },
       },
     });
 
@@ -42,6 +47,7 @@ export class WorkflowsRepository {
       include: {
         steps: true,
         activeOn: { select: { eventTypeId: true } },
+        activeOnRoutingForms: { select: { routingFormId: true } },
       },
       skip,
       take,
@@ -59,7 +65,7 @@ export class WorkflowsRepository {
         timeUnit: TimeUnit.HOUR,
         teamId,
       },
-      include: { activeOn: true, steps: true },
+      include: { activeOn: true, steps: true, activeOnRoutingForms: true },
     });
   }
 

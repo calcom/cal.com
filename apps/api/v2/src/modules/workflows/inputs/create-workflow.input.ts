@@ -1,3 +1,4 @@
+import { WorkflowActivationPreValidation } from "@/modules/workflows/inputs/workflow-activation.validator";
 import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
@@ -8,6 +9,7 @@ import {
   IsString,
   ValidateNested,
   ValidateIf,
+  IsIn,
 } from "class-validator";
 
 import {
@@ -57,7 +59,33 @@ import {
   RESCHEDULE_EVENT,
 } from "./workflow-trigger.input";
 
-export class WorkflowActivationDto {
+export const WORKFLOW_FORM_ACTIVATION = "form";
+export const WORKFLOW_EVENT_TYPE_ACTIVATION = "event-type";
+export const WORKFLOW_ACTIVATION_TYPES = [WORKFLOW_FORM_ACTIVATION, WORKFLOW_EVENT_TYPE_ACTIVATION] as const;
+
+export type WorkflowActivationType = (typeof WORKFLOW_ACTIVATION_TYPES)[number];
+
+export class BaseWorkflowActivationDto {
+  @ApiProperty({
+    description: "Trigger type for the workflow",
+    default: WORKFLOW_EVENT_TYPE_ACTIVATION,
+  })
+  @IsString()
+  @IsIn([WORKFLOW_ACTIVATION_TYPES, WORKFLOW_FORM_ACTIVATION])
+  @IsOptional()
+  type: WorkflowActivationType = WORKFLOW_EVENT_TYPE_ACTIVATION;
+}
+
+export class WorkflowActivationDto extends BaseWorkflowActivationDto {
+  @ApiProperty({
+    description: "Trigger type for the workflow",
+    default: WORKFLOW_EVENT_TYPE_ACTIVATION,
+  })
+  @IsString()
+  @IsIn([WORKFLOW_EVENT_TYPE_ACTIVATION])
+  @IsOptional()
+  type: typeof WORKFLOW_EVENT_TYPE_ACTIVATION = WORKFLOW_EVENT_TYPE_ACTIVATION;
+
   @ApiProperty({
     description: "Whether the workflow is active for all the event-types",
     example: false,
@@ -72,10 +100,39 @@ export class WorkflowActivationDto {
     example: [698191],
     type: [Number],
   })
-  @ValidateIf((o) => !Boolean(o.isActiveOnAllEventTypes))
+  @ValidateIf((o) => !o.isActiveOnAllEventTypes)
   @IsOptional()
   @IsNumber({}, { each: true })
   activeOnEventTypeIds: number[] = [];
+}
+
+export class WorkflowFormActivationDto extends BaseWorkflowActivationDto {
+  @ApiProperty({
+    description: "Trigger type for the workflow",
+    default: WORKFLOW_FORM_ACTIVATION,
+  })
+  @IsString()
+  @IsIn([WORKFLOW_FORM_ACTIVATION])
+  @IsOptional()
+  type: typeof WORKFLOW_FORM_ACTIVATION = WORKFLOW_FORM_ACTIVATION;
+
+  @ApiProperty({
+    description: "Whether the workflow is active for all the routing forms",
+    example: false,
+    type: Boolean,
+  })
+  @IsBoolean()
+  isActiveOnAllRoutingForms = false;
+
+  @ApiPropertyOptional({
+    description: "List of routing form IDs the workflow applies to",
+    example: [698191],
+    type: [Number],
+  })
+  @ValidateIf((o) => !o.isActiveOnAllEventTypes)
+  @IsOptional()
+  @IsNumber({}, { each: true })
+  activeOnRoutingFormIds: string[] = [];
 }
 
 export type TriggerDtoType =
@@ -121,10 +178,28 @@ export class CreateWorkflowDto {
   @IsString()
   name!: string;
 
-  @ApiProperty({ description: "Activation settings for the workflow", type: WorkflowActivationDto })
+  @ApiProperty({
+    description: "Activation settings for the workflow",
+    oneOf: [
+      { $ref: getSchemaPath(WorkflowActivationDto) },
+      { $ref: getSchemaPath(WorkflowFormActivationDto) },
+    ],
+  })
   @ValidateNested()
-  @Type(() => WorkflowActivationDto)
-  activation!: WorkflowActivationDto;
+  @Type(() => BaseWorkflowActivationDto, {
+    discriminator: {
+      property: "type",
+      subTypes: [
+        { value: WorkflowActivationDto, name: WORKFLOW_EVENT_TYPE_ACTIVATION },
+        { value: WorkflowFormActivationDto, name: WORKFLOW_FORM_ACTIVATION },
+      ],
+    },
+  })
+  @WorkflowActivationPreValidation({
+    message:
+      "Workflow validation type does not work with the specified trigger type, when using FORM_SUBMITTED trigger you must provide form activation.",
+  })
+  activation!: WorkflowFormActivationDto | WorkflowActivationDto;
 
   @ApiProperty({
     description: "Trigger configuration for the workflow",
@@ -177,7 +252,7 @@ export class CreateWorkflowDto {
     | OnPaymentInitiatedTriggerDto
     | OnNoShowUpdateTriggerDto
     | OnAfterCalVideoGuestsNoShowTriggerDto
-    | OnFormSubmittedTriggerDto
+    | OnFormSubmittedTriggerDto;
 
   @ApiProperty({
     description: "Steps to execute as part of the workflow",

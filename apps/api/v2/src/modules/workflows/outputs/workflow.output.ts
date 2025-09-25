@@ -1,4 +1,11 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import {
+  WorkflowActivationDto,
+  WorkflowFormActivationDto,
+  BaseWorkflowActivationDto,
+  WORKFLOW_EVENT_TYPE_ACTIVATION,
+  WORKFLOW_FORM_ACTIVATION,
+} from "@/modules/workflows/inputs/create-workflow.input";
+import { ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
 import { IsArray, IsEnum, ValidateNested } from "class-validator";
 
@@ -168,11 +175,24 @@ export class WorkflowOutput {
   @Expose()
   teamId?: number;
 
-  @ApiProperty({ description: "Activation settings (scope)", type: WorkflowActivationOutputDto })
-  @Expose()
+  @ApiProperty({
+    description: "Activation settings for the workflow",
+    oneOf: [
+      { $ref: getSchemaPath(WorkflowActivationDto) },
+      { $ref: getSchemaPath(WorkflowFormActivationDto) },
+    ],
+  })
   @ValidateNested()
-  @Type(() => WorkflowActivationOutputDto)
-  activation!: WorkflowActivationOutputDto;
+  @Type(() => BaseWorkflowActivationDto, {
+    discriminator: {
+      property: "type",
+      subTypes: [
+        { value: WorkflowActivationDto, name: WORKFLOW_EVENT_TYPE_ACTIVATION },
+        { value: WorkflowFormActivationDto, name: WORKFLOW_FORM_ACTIVATION },
+      ],
+    },
+  })
+  activation!: WorkflowFormActivationDto | WorkflowActivationDto;
 
   @ApiProperty({ description: "Trigger configuration", type: WorkflowTriggerOutputDto })
   @Expose()
