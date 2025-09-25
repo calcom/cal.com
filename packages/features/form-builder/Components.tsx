@@ -355,8 +355,15 @@ export const Components: Record<FieldType, Component> = {
                   value={option.value}
                   checked={value.includes(option.value)}
                 />
-                <span className="text-emphasis me-2 ms-2 text-sm" style={{backgroundColor: 'lime', color: 'black', padding: '5px'}}>
-                  🟢 COMPONENTS.TSX WORKS! 🟢 {option.label ?? ""}
+                <span className="text-emphasis me-2 ms-2 text-sm">
+                  <span 
+                    dangerouslySetInnerHTML={{ 
+                      __html: (option.label ?? "").replace(
+                        /(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+\.[a-zA-Z]{2,})(?:\/[^\s]*)?/g,
+                        '<a href="http://$1" style="color: #3b82f6; text-decoration: underline;" target="_blank" rel="noopener noreferrer">$&</a>'
+                      )
+                    }} 
+                  />
                 </span>
               </label>
             );

@@ -119,9 +119,8 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                       "text-default ml-2 text-sm",
                       !label && "font-medium",
                       rest.descriptionClassName
-                    )}
-                    style={{backgroundColor: 'red', color: 'white', padding: '5px'}}>
-                    🔴 UI CHECKBOX WORKS! 🔴 {description}
+                    )}>
+                    {description}
                   </span>
                 )}
               </>
