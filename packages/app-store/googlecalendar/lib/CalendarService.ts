@@ -257,6 +257,7 @@ export default class GoogleCalendarService implements Calendar {
               location: getLocation(calEvent),
               description: calEvent.calendarDescription,
             },
+            sendUpdates: "none",
           });
         }
       } else {
@@ -286,6 +287,7 @@ export default class GoogleCalendarService implements Calendar {
               additionalInformation: { hangoutLink: event.hangoutLink },
             }),
           },
+          sendUpdates: "none",
         });
       }
 
@@ -392,6 +394,7 @@ export default class GoogleCalendarService implements Calendar {
               additionalInformation: { hangoutLink: evt.data.hangoutLink },
             }),
           },
+          sendUpdates: "none",
         });
         return {
           uid: "",
