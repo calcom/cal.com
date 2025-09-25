@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
+import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsArray, IsBoolean, IsInt, IsNumber, IsOptional, IsString, ValidateNested } from "class-validator";
 
@@ -75,6 +75,7 @@ class Routing {
   crmOwnerRecordType?: string;
 }
 
+@ApiExtraModels(SlotsOutput_2024_09_04, RangeSlotsOutput_2024_09_04)
 export class CreateRoutingFormResponseOutputData {
   @ApiPropertyOptional({
     type: Number,
