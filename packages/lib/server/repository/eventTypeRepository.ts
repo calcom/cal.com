@@ -1760,6 +1760,46 @@ export class EventTypeRepository {
           },
         },
       },
+      calIdWorkflows: {
+        include: {
+          workflow: {
+            select: {
+              name: true,
+              id: true,
+              trigger: true,
+              time: true,
+              timeUnit: true,
+              userId: true,
+              calIdTeamId: true,
+              calIdTeam: {
+                select: {
+                  id: true,
+                  slug: true,
+                  name: true,
+                  members: true,
+                },
+              },
+              activeOn: {
+                select: {
+                  eventType: {
+                    select: {
+                      id: true,
+                      title: true,
+                      parentId: true,
+                      _count: {
+                        select: {
+                          children: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              steps: true,
+            },
+          },
+        },
+      },
       secondaryEmailId: true,
       maxLeadThreshold: true,
       includeNoShowInRRCalculation: true,
