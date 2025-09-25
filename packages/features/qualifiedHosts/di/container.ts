@@ -1,11 +1,11 @@
+import { createContainer } from "@calcom/lib/di/di";
+import { bookingRepositoryModule } from "@calcom/lib/di/modules/Booking";
+import { filterHostsModule } from "@calcom/lib/di/modules/FilterHosts";
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 
-import type { QualifiedHostsService } from "../../bookings/findQualifiedHostsWithDelegationCredentials";
-import { createContainer } from "../di";
-import { bookingRepositoryModule } from "../modules/Booking";
-import { filterHostsModule } from "../modules/FilterHosts";
-import { qualifiedHostsModule } from "../modules/QualifiedHosts";
+import type { QualifiedHostsService } from "../services/findQualifiedHostsWithDelegationCredentials";
+import { qualifiedHostsModule } from "./module";
 
 const container = createContainer();
 container.load(DI_TOKENS.PRISMA_MODULE, prismaModule);

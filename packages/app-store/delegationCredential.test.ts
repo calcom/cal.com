@@ -18,7 +18,7 @@ import {
   enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
   enrichUserWithDelegationConferencingCredentialsWithoutOrgId,
   getAllDelegationCredentialsForUserIncludeServiceAccountKey,
-} from "./server";
+} from "./delegationCredential";
 
 // Mock OrganizationRepository
 vi.mock("@calcom/lib/server/repository/organization", () => ({
