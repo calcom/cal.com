@@ -10,6 +10,8 @@ export enum Resource {
   RoutingForm = "routingForm",
   Workflow = "workflow",
   Webhook = "webhook",
+  Availability = "availability",
+  OutOfOffice = "ooo",
 }
 
 export enum CrudAction {
@@ -114,6 +116,7 @@ export const isValidPermissionString = (val: unknown): val is PermissionString =
  * @returns A new object without the _resource property
  */
 export const filterResourceConfig = (config: ResourceConfig): Omit<ResourceConfig, "_resource"> => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { _resource, ...rest } = config;
   return rest;
 };
@@ -554,6 +557,78 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       i18nKey: "pbac_action_delete",
       descriptionI18nKey: "pbac_desc_delete_webhooks",
       dependsOn: ["webhook.read"],
+    },
+  },
+  [Resource.Availability]: {
+    _resource: {
+      i18nKey: "pbac_resource_availability",
+    },
+    [CrudAction.Create]: {
+      description: "Create availability",
+      category: "availability",
+      i18nKey: "pbac_action_create",
+      descriptionI18nKey: "pbac_desc_create_availability",
+      scope: [],
+      dependsOn: ["availability.read"],
+    },
+    [CrudAction.Read]: {
+      description: "View availability",
+      category: "availability",
+      i18nKey: "pbac_action_read",
+      descriptionI18nKey: "pbac_desc_view_availability",
+      scope: [],
+    },
+    [CrudAction.Update]: {
+      description: "Update availability",
+      category: "availability",
+      i18nKey: "pbac_action_update",
+      descriptionI18nKey: "pbac_desc_update_availability",
+      scope: [],
+      dependsOn: ["availability.read"],
+    },
+    [CrudAction.Delete]: {
+      description: "Delete availability",
+      category: "availability",
+      i18nKey: "pbac_action_delete",
+      descriptionI18nKey: "pbac_desc_delete_availability",
+      scope: [],
+      dependsOn: ["availability.read"],
+    },
+  },
+  [Resource.OutOfOffice]: {
+    _resource: {
+      i18nKey: "pbac_resource_out_of_office",
+    },
+    [CrudAction.Create]: {
+      description: "Create out of office",
+      category: "ooo",
+      i18nKey: "pbac_action_create",
+      descriptionI18nKey: "pbac_desc_create_out_of_office",
+      scope: [],
+      dependsOn: ["ooo.read"],
+    },
+    [CrudAction.Read]: {
+      description: "View out of office",
+      category: "ooo",
+      i18nKey: "pbac_action_read",
+      descriptionI18nKey: "pbac_desc_view_out_of_office",
+      scope: [],
+    },
+    [CrudAction.Update]: {
+      description: "Update out of office",
+      category: "ooo",
+      i18nKey: "pbac_action_update",
+      descriptionI18nKey: "pbac_desc_update_out_of_office",
+      scope: [],
+      dependsOn: ["ooo.read"],
+    },
+    [CrudAction.Delete]: {
+      description: "Delete out of office",
+      category: "ooo",
+      i18nKey: "pbac_action_delete",
+      descriptionI18nKey: "pbac_desc_delete_out_of_office",
+      scope: [],
+      dependsOn: ["ooo.read"],
     },
   },
 };
