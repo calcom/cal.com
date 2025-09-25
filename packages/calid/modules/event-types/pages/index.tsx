@@ -235,7 +235,7 @@ export const EventTypes = () => {
   return (
     <div className="bg-background min-h-screen">
       {/* Responsive Container */}
-      <div className="mx-auto max-w-7xl ">
+      <div className="mx-auto w-full ">
         {/* Team Tabs */}
         <TeamTabs
           eventTypeGroups={eventTypeGroups}
