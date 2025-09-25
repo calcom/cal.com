@@ -1454,9 +1454,7 @@ async function handler(
   }
 
   const changedOrganizer =
-    !!originalRescheduledBooking &&
-    eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
-    originalRescheduledBooking.userId !== evt.organizer.id;
+    !!originalRescheduledBooking && originalRescheduledBooking.userId !== evt.organizer.id;
 
   const skipDeleteEventsAndMeetings = changedOrganizer;
 
