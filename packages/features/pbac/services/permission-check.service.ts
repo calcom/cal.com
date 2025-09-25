@@ -255,7 +255,15 @@ export class PermissionCheckService {
   /**
    * Gets all team IDs where the user has a specific permission
    */
-  async getTeamIdsWithPermission(userId: number, permission: PermissionString): Promise<number[]> {
+  async getTeamIdsWithPermission({
+    userId,
+    permission,
+    fallbackRoles,
+  }: {
+    userId: number;
+    permission: PermissionString;
+    fallbackRoles: MembershipRole[];
+  }): Promise<number[]> {
     try {
       const validationResult = this.permissionService.validatePermission(permission);
       if (!validationResult.isValid) {
@@ -263,7 +271,7 @@ export class PermissionCheckService {
         return [];
       }
 
-      return await this.repository.getTeamIdsWithPermission(userId, permission);
+      return await this.repository.getTeamIdsWithPermission({ userId, permission, fallbackRoles });
     } catch (error) {
       this.logger.error(error);
       return [];
@@ -273,7 +281,15 @@ export class PermissionCheckService {
   /**
    * Gets all team IDs where the user has all of the specified permissions
    */
-  async getTeamIdsWithPermissions(userId: number, permissions: PermissionString[]): Promise<number[]> {
+  async getTeamIdsWithPermissions({
+    userId,
+    permissions,
+    fallbackRoles,
+  }: {
+    userId: number;
+    permissions: PermissionString[];
+    fallbackRoles: MembershipRole[];
+  }): Promise<number[]> {
     try {
       const validationResult = this.permissionService.validatePermissions(permissions);
       if (!validationResult.isValid) {
@@ -281,7 +297,7 @@ export class PermissionCheckService {
         return [];
       }
 
-      return await this.repository.getTeamIdsWithPermissions(userId, permissions);
+      return await this.repository.getTeamIdsWithPermissions({ userId, permissions, fallbackRoles });
     } catch (error) {
       this.logger.error(error);
       return [];
