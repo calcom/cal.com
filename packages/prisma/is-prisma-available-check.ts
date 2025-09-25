@@ -1,3 +1,5 @@
+import { Prisma } from "@calcom/prisma/client";
+
 export async function isPrismaAvailableCheck(): Promise<boolean> {
   try {
     const { prisma } = await import("./index");
