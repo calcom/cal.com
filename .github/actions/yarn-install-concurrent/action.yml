@@ -1,39 +1,59 @@
+########################################################################################
+# "yarn install concurrent" composite action for concurrent yarn and playwright install #
+#--------------------------------------------------------------------------------------#
+# This action consolidates yarn-install and yarn-playwright-install patterns while    #
+# running yarn prisma generate and yarn playwright install concurrently for improved  #
+# CI build times. Reuses existing caching strategies to avoid code duplication.       #
+########################################################################################
+
 name: "Yarn install & Playwright install (concurrent)"
 description: "Install dependencies and Playwright browsers concurrently for faster CI builds"
+inputs:
+  node_version:
+    required: false
+    default: v20.x
+
 runs:
   using: "composite"
   steps:
-    - name: Use Node v20.x
+    # Node.js setup (from yarn-install action)
+    - name: Use Node ${{ inputs.node_version }}
       uses: buildjet/setup-node@v4
       with:
-        node-version: v20.x
+        node-version: ${{ inputs.node_version }}
     - name: Expose yarn config as "$GITHUB_OUTPUT"
       id: yarn-config
+      shell: bash
       run: |
         echo "CACHE_FOLDER=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
-      shell: bash
+
+    # Yarn caching (from yarn-install action)
     - name: Restore yarn cache
       uses: buildjet/cache@v4
       id: yarn-download-cache
       with:
         path: ${{ steps.yarn-config.outputs.CACHE_FOLDER }}
         key: yarn-download-cache-${{ hashFiles('yarn.lock') }}
+
     - name: Restore node_modules
       id: yarn-nm-cache
       uses: buildjet/cache@v4
       with:
         path: "**/node_modules/"
         key: ${{ runner.os }}-yarn-nm-cache-${{ hashFiles('yarn.lock', '.yarnrc.yml') }}
+
     - name: Restore yarn install state
       id: yarn-install-state-cache
       uses: buildjet/cache@v4
       with:
         path: .yarn/ci-cache/
         key: ${{ runner.os }}-yarn-install-state-cache-${{ hashFiles('yarn.lock', '.yarnrc.yml') }}
+
+    # Playwright caching (from yarn-playwright-install action)
     - name: Get installed Playwright version
+      shell: bash
       id: playwright-version
       run: echo "PLAYWRIGHT_VERSION=$(node -e "console.log(require('./package.json').devDependencies['@playwright/test'])")" >> $GITHUB_ENV
-      shell: bash
     - name: Cache playwright binaries
       id: playwright-cache
       uses: buildjet/cache@v4
@@ -43,30 +63,22 @@ runs:
           ~/.cache/ms-playwright
           ${{ github.workspace }}/node_modules/playwright
         key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
-    - name: Install dependencies concurrently
-      run: |
-        # Run yarn install and playwright install in parallel
-        yarn install --inline-builds &
-        YARN_PID=$!
-        
-        # Wait for yarn install to complete, then run prisma generate
-        wait $YARN_PID
-        yarn prisma generate &
-        PRISMA_PID=$!
-        
-        # Run playwright install in parallel with prisma generate
-        yarn playwright install --with-deps &
-        PLAYWRIGHT_PID=$!
-        
-        # Wait for both to complete
-        wait $PRISMA_PID
-        wait $PLAYWRIGHT_PID
+
+    # Concurrent installation: yarn install -> (yarn prisma generate || yarn playwright install)
+    - name: Install dependencies with concurrent playwright
       shell: bash
+      run: |
+        # Run yarn install first
+        yarn install --inline-builds
+        
+        # Then run yarn prisma generate and yarn playwright install concurrently
+        yarn prisma generate &
+        yarn playwright install --with-deps &
+        wait
       env:
-        # CI optimizations. Overrides yarnrc.yml options (or their defaults) in the CI action.
-        YARN_ENABLE_IMMUTABLE_INSTALLS: "false" # So it doesn't try to remove our private submodule deps
-        YARN_ENABLE_GLOBAL_CACHE: "false" # Use local cache folder to keep downloaded archives
-        YARN_INSTALL_STATE_PATH: .yarn/ci-cache/install-state.gz # Very small speedup when lock does not change
-        YARN_NM_MODE: "hardlinks-local" # Reduce node_modules size
-        # Other environment variables
-        HUSKY: "0" # By default do not run HUSKY install
+        # CI optimizations (from yarn-install action)
+        YARN_ENABLE_IMMUTABLE_INSTALLS: "false"
+        YARN_ENABLE_GLOBAL_CACHE: "false"
+        YARN_INSTALL_STATE_PATH: .yarn/ci-cache/install-state.gz
+        YARN_NM_MODE: "hardlinks-local"
+        HUSKY: "0"
