@@ -20,6 +20,7 @@ export const getMemberAvailabilityHandler = async ({ ctx, input }: GetMemberAvai
   const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
     userId: ctx.user.id,
     teamId: input.teamId,
+    accepted: true,
   });
 
   if (!membership) {

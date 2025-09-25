@@ -17,6 +17,7 @@ export const getInternalNotesPresetsHandler = async ({ ctx, input }: UpdateMembe
   const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
     userId: ctx.user.id,
     teamId: input.teamId,
+    accepted: true,
   });
 
   if (!membership) {
