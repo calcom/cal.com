@@ -1,10 +1,5 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
-import {
-  isCalAIAction,
-  isEmailAction,
-  isFormTrigger,
-  isSMSAction,
-} from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import { isEmailAction, isFormTrigger } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import tasker from "@calcom/features/tasker";
 import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
@@ -101,9 +96,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (isFormTrigger(trigger)) {
     const hasEmailHostStep = steps.some((step) => step.action === WorkflowActions.EMAIL_HOST);
-    const hasCalAIStep = steps.some((step) => isCalAIAction(step.action));
 
-    if (hasEmailHostStep || hasCalAIStep) {
+    if (hasEmailHostStep) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "This action is not allowed for form triggers",
@@ -365,7 +359,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       let newStep;
 
       if (foundStep) {
-        const { senderName, ...rest } = {
+        const { senderName: _, ...rest } = {
           ...foundStep,
           numberVerificationPending: false,
           sender: getSender({
@@ -426,7 +420,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           const aiPhoneService = createDefaultAIPhoneServiceProvider();
           const externalErrors: string[] = [];
 
-          const phoneNumberOperations: Promise<any>[] = [];
+          const phoneNumberOperations: Promise<{ success: boolean; message: string } | void>[] = [];
 
           if (agent.outboundPhoneNumbers) {
             for (const phoneNumber of agent.outboundPhoneNumbers) {
@@ -638,7 +632,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
         const {
           id: _stepId,
-          senderName,
+          senderName: _,
           ...stepToAdd
         } = {
           ...newStep,
