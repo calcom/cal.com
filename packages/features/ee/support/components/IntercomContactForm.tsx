@@ -110,7 +110,7 @@ export const IntercomContactForm = () => {
   };
 
   return (
-    <div className="fixed bottom-[1rem] right-[1rem] z-40 [&_[data-radix-popper-content-wrapper]]:!bottom-[1rem]">
+    <div className="fixed bottom-[1rem] right-[1rem] z-50 [&_[data-radix-popper-content-wrapper]]:!bottom-[1rem]">
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger
           asChild
