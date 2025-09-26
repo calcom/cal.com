@@ -2219,10 +2219,10 @@ describe("Event types Endpoints", () => {
             const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
             const createdEventType = responseBody.data;
 
-            const splitNameBookingField = createdEventType.bookingFields.find(
+            const splitNameBookingFieldResponse = createdEventType.bookingFields.find(
               (field) => field.type === "splitName"
             ) as SplitNameDefaultFieldOutput_2024_06_14 | undefined;
-            expect(splitNameBookingField).toEqual(splitNameBookingField);
+            expect(splitNameBookingFieldResponse).toEqual(splitNameBookingField);
 
             await eventTypesRepositoryFixture.delete(createdEventType.id);
           });
