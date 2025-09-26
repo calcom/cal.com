@@ -5,6 +5,8 @@ import type { ScheduleWorkflowRemindersArgs } from "@calcom/ee/workflows/lib/rem
 import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import type { timeUnitLowerCase } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import type { Workflow } from "@calcom/ee/workflows/lib/types";
+//todo: fix
+// eslint-disable-next-line no-restricted-imports
 import { tasker } from "@calcom/features/tasker";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { prisma } from "@calcom/prisma";
@@ -61,7 +63,7 @@ export class WorkflowService {
     const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
 
     const allWorkflows = await getAllWorkflows({
-      entityWorkflows: routingFormWorkflows as any, // Temporary cast until Prisma client is regenerated
+      entityWorkflows: routingFormWorkflows,
       userId,
       teamId,
       orgId,
@@ -141,6 +143,7 @@ export class WorkflowService {
     workflows: Workflow[];
     responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
     responseId: number;
+    routedEventTypeId: number | null;
     form: {
       id: string;
       userId: number;
@@ -158,7 +161,7 @@ export class WorkflowService {
     const workflowsToTrigger: Workflow[] = [];
 
     workflowsToTrigger.push(
-      ...workflows.filter((workflow) => workflow.trigger === ("FORM_SUBMITTED" as any))
+      ...workflows.filter((workflow) => workflow.trigger === WorkflowTriggerEvents.FORM_SUBMITTED)
     );
 
     let smsReminderNumber: string | null = null;
@@ -177,6 +180,7 @@ export class WorkflowService {
       teamId: form.teamId ?? undefined,
     });
 
+    // todo: ideally I am also passing the routed event type id
     await scheduleWorkflowReminders({
       smsReminderNumber,
       formData: {
