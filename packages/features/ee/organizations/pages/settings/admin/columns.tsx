@@ -13,7 +13,7 @@ import { showToast } from "@calcom/ui/components/toast";
 
 import { subdomainSuffix } from "../../../../organizations/lib/orgDomains";
 
-type OrganizationData = {
+export type OrganizationData = {
   id: number;
   name: string;
   slug: string | null;

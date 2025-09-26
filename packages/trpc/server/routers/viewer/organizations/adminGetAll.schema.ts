@@ -5,6 +5,7 @@ export const ZAdminGetAllInput = z.object({
   skip: z.number().min(0).default(0),
   orderBy: z.enum(["createdAt", "name"]).default("createdAt"),
   sortOrder: z.enum(["asc", "desc"]).default("desc"),
+  searchTerm: z.string().optional(),
 });
 
 export type TAdminGetAllInput = z.infer<typeof ZAdminGetAllInput>;

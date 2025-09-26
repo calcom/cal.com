@@ -13,13 +13,43 @@ type AdminGetAllOptions = {
 };
 
 export const adminGetAllHandler = async ({ input }: AdminGetAllOptions) => {
-  const { take, skip, orderBy, sortOrder } = input;
+  const { take, skip, orderBy, sortOrder, searchTerm } = input;
+
+  const whereClause = {
+    isOrganization: true,
+    ...(searchTerm && {
+      OR: [
+        {
+          name: {
+            contains: searchTerm,
+            mode: "insensitive" as const,
+          },
+        },
+        {
+          slug: {
+            contains: searchTerm,
+            mode: "insensitive" as const,
+          },
+        },
+        {
+          members: {
+            some: {
+              user: {
+                email: {
+                  contains: searchTerm,
+                  mode: "insensitive" as const,
+                },
+              },
+            },
+          },
+        },
+      ],
+    }),
+  };
 
   const [allOrgs, totalCount] = await Promise.all([
     prisma.team.findMany({
-      where: {
-        isOrganization: true,
-      },
+      where: whereClause,
       select: {
         id: true,
         name: true,
@@ -49,9 +79,7 @@ export const adminGetAllHandler = async ({ input }: AdminGetAllOptions) => {
       skip,
     }),
     prisma.team.count({
-      where: {
-        isOrganization: true,
-      },
+      where: whereClause,
     }),
   ]);
 
