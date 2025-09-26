@@ -204,6 +204,7 @@ class LegacyRoleManager implements IRoleManager {
       const memberships = await prisma.membership.findMany({
         where: {
           teamId: targetId,
+          accepted: true,
         },
       });
       await this.validateRoleChange(userId, targetId, memberId, newRole, memberships);
