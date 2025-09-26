@@ -30,12 +30,14 @@ import type { CheckBookingAndDurationLimitsService } from "@calcom/features/book
 import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
+import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getFullName } from "@calcom/features/form-builder/utils";
+import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import { handleAnalyticsEvents } from "@calcom/features/tasker/tasks/analytics/handleAnalyticsEvents";
 import { UsersRepository } from "@calcom/features/users/users.repository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
@@ -73,7 +75,6 @@ import type { HostRepository } from "@calcom/lib/server/repository/host";
 import type { PrismaOOORepository as OooRepository } from "@calcom/lib/server/repository/ooo";
 import type { UserRepository } from "@calcom/lib/server/repository/user";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
-import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
@@ -423,6 +424,7 @@ export interface IBookingServiceDependencies {
   oooRepository: OooRepository;
   userRepository: UserRepository;
   attributeRepository: AttributeRepository;
+  hashedLinkService: HashedLinkService;
 }
 
 async function handler(
@@ -2045,6 +2047,43 @@ async function handler(
       }
     : undefined;
 
+  const bookingFlowConfig = {
+    isDryRun,
+  };
+
+  const bookingCreatedPayload = {
+    booking,
+    eventType,
+    config: bookingFlowConfig,
+    bookingFormData: {
+      // FIXME: It looks like hasHashedBookingLink is set to true based on the value of hashedLink when sending the request. So, technically we could remove hasHashedBookingLink usage completely
+      hashedLink: hasHashedBookingLink ? reqBody.hashedLink ?? null : null,
+    },
+  };
+
+  const bookingEventHandler = new BookingEventHandlerService({
+    log: loggerWithEventDetails,
+    hashedLinkService: deps.hashedLinkService,
+  });
+
+  // TODO: Incrementally move all stuff that happens after a booking is created to these handlers
+  if (originalRescheduledBooking) {
+    await bookingEventHandler.onBookingRescheduled({
+      ...bookingCreatedPayload,
+      reschedule: {
+        originalBooking: {
+          uid: originalRescheduledBooking.uid,
+        },
+        rescheduleReason: rescheduleReason ?? null,
+        rescheduledBy: reqBody.rescheduledBy ?? null,
+      },
+    });
+  } else {
+    await bookingEventHandler.onBookingCreated({
+      ...bookingCreatedPayload,
+    });
+  }
+
   const webhookData: EventPayloadType = {
     ...evt,
     ...eventTypeInfo,
@@ -2280,23 +2319,6 @@ async function handler(
       webhookData,
       isDryRun,
     });
-  }
-
-  try {
-    const hashedLinkService = new HashedLinkService();
-    if (hasHashedBookingLink && reqBody.hashedLink && !isDryRun) {
-      await hashedLinkService.validateAndIncrementUsage(reqBody.hashedLink as string);
-    }
-  } catch (error) {
-    loggerWithEventDetails.error("Error while updating hashed link", JSON.stringify({ error }));
-
-    // Handle repository errors and convert to HttpErrors
-    if (error instanceof Error) {
-      throw new HttpError({ statusCode: 410, message: error.message });
-    }
-
-    // For unexpected errors, provide a generic message
-    throw new HttpError({ statusCode: 500, message: "Failed to process booking link" });
   }
 
   if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });

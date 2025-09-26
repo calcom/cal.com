@@ -53,6 +53,12 @@ export const DI_TOKENS = {
   HOST_REPOSITORY_MODULE: Symbol("HostRepositoryModule"),
   ATTRIBUTE_REPOSITORY: Symbol("AttributeRepository"),
   ATTRIBUTE_REPOSITORY_MODULE: Symbol("AttributeRepositoryModule"),
+  HASHED_LINK_REPOSITORY: Symbol("HashedLinkRepository"),
+  HASHED_LINK_REPOSITORY_MODULE: Symbol("HashedLinkRepositoryModule"),
+  MEMBERSHIP_SERVICE: Symbol("MembershipService"),
+  MEMBERSHIP_SERVICE_MODULE: Symbol("MembershipServiceModule"),
+  HASHED_LINK_SERVICE: Symbol("HashedLinkService"),
+  HASHED_LINK_SERVICE_MODULE: Symbol("HashedLinkServiceModule"),
   // Booking service tokens
   ...BOOKING_DI_TOKENS,
 };

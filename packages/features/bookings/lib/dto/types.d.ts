@@ -7,6 +7,7 @@ import type getBookingDataSchemaForApi from "@calcom/features/bookings/lib/getBo
 import type { SchedulingType } from "@calcom/prisma/enums";
 
 import type { ExtendedBookingCreateBody } from "../bookingCreateBodySchema";
+import type { BookingFlowConfig } from "../dto/types";
 import type { InstantBookingCreateService } from "../service/InstantBookingCreateService";
 import type { RegularBookingService } from "../service/RegularBookingService";
 
@@ -48,3 +49,8 @@ export type BookingHandlerInput = {
 export type RegularBookingCreateResult = Awaited<ReturnType<RegularBookingService["createBooking"]>>;
 
 export type InstantBookingCreateResult = Awaited<ReturnType<InstantBookingCreateService["create"]>>;
+
+// More properties to be added to this config in followup PRs
+export type BookingFlowConfig = {
+  isDryRun: boolean;
+};

@@ -1,4 +1,5 @@
 import { redisModule } from "@calcom/features/redis/di/redisModule";
+import { membershipRepositoryModule } from "@calcom/features/users/di/MembershipRepository.module";
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 import type { AvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
@@ -13,7 +14,6 @@ import { eventTypeRepositoryModule } from "../modules/EventType";
 import { featuresRepositoryModule } from "../modules/Features";
 import { filterHostsModule } from "../modules/FilterHosts";
 import { getUserAvailabilityModule } from "../modules/GetUserAvailability";
-import { membershipRepositoryModule } from "../modules/Membership";
 import { noSlotsNotificationModule } from "../modules/NoSlotsNotification";
 import { oooRepositoryModule } from "../modules/Ooo";
 import { qualifiedHostsModule } from "../modules/QualifiedHosts";
