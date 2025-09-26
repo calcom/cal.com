@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
-import { RegularBookingService } from "@calcom/features/bookings/lib/handleNewBooking";
+import { RegularBookingService } from "@calcom/features/bookings/lib/service/RegularBookingService";
 import { moduleLoader as attributeRepositoryModuleLoader } from "@calcom/lib/di/modules/Attribute";
 import { moduleLoader as bookingRepositoryModuleLoader } from "@calcom/lib/di/modules/Booking";
 import { moduleLoader as cacheModuleLoader } from "@calcom/lib/di/modules/Cache";
