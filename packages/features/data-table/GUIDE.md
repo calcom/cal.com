@@ -14,7 +14,9 @@ A comprehensive guide to using Cal.com's DataTable system for building powerful,
 8. [Advanced Usage](#advanced-usage)
 9. [Real-world Examples](#real-world-examples)
 10. [TypeScript Types Reference](#typescript-types-reference)
-11. [Best Practices](#best-practices)
+11. [Troubleshooting](#troubleshooting)
+12. [Testing Patterns](#testing-patterns)
+13. [Best Practices](#best-practices)
 
 ## Overview
 
@@ -35,6 +37,66 @@ The system consists of three main layers:
 1. **DataTableProvider** - Context provider managing all table state
 2. **DataTableWrapper** - UI wrapper handling pagination, toolbars, and loading states
 3. **DataTable** - Core table component with optional virtualization
+
+#### Data Flow Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        DataTableProvider                        │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │   Table State   │  │  Filter State   │  │ Segment State   │  │
+│  │ • pagination    │  │ • columnFilters │  │ • activeSegment │  │
+│  │ • sorting       │  │ • searchTerm    │  │ • userSegments  │  │
+│  │ • columnVis     │  │ • activeFilters │  │ • systemSegments│  │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                       DataTableWrapper                          │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │   Toolbar       │  │   Data Table    │  │   Pagination    │  │
+│  │ • SearchBar     │  │ • Columns       │  │ • PageControls  │  │
+│  │ • FilterBar     │  │ • Rows          │  │ • PageSize      │  │
+│  │ • Segments      │  │ • Selection     │  │ • TotalCount    │  │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                         Backend API                             │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │ Filter Processing│  │ Data Fetching   │  │ Response Format │  │
+│  │ • makeWhereClause│  │ • Prisma Query  │  │ • data[]        │  │
+│  │ • makeSqlCondition│  │ • Raw SQL      │  │ • totalCount    │  │
+│  │ • Column Mapping │  │ • Pagination   │  │ • meta          │  │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+#### Component Hierarchy
+
+```
+DataTableProvider (Context)
+└── DataTableWrapper (UI Container)
+    ├── Toolbar
+    │   ├── ToolbarLeft
+    │   │   ├── DataTableToolbar.SearchBar
+    │   │   ├── DataTableFilters.FilterBar
+    │   │   └── DataTableFilters.ColumnVisibilityButton
+    │   └── ToolbarRight
+    │       ├── DataTableFilters.ClearFiltersButton
+    │       ├── DataTableSegment.SaveButton
+    │       └── DataTableSegment.Select
+    ├── DataTable (Core Table)
+    │   ├── Table Header
+    │   ├── Table Body (Virtualized/Standard)
+    │   └── Selection Bar (Conditional)
+    └── Pagination Controls
+        ├── Page Navigation
+        ├── Page Size Selector
+        └── Total Count Display
+```
 
 ## Quick Start
 
@@ -795,13 +857,6 @@ The DataTable system provides utility functions for both Prisma and raw SQL appr
 - **`makeSqlCondition()`** - Converts filter values to raw SQL conditions
 - **`makeOrderBy()`** - Converts sorting state to Prisma orderBy format
 
-#### Key Hooks for Server-Side Integration
-
-- **`useColumnFilters()`** - Get applied filters for backend requests
-- **`useDataTable()`** - Get `limit`, `offset`, `sorting` for pagination
-- **`useFilterValue(columnId, schema)`** - Get specific filter value with validation
-- **Custom parameter hooks** - Extract complex manipulation logic
-
 ### Custom Hooks
 
 #### useDataTable
@@ -1096,6 +1151,355 @@ type UserFilterSegment = FilterSegmentOutput & {
 
 // Combined segment type
 type CombinedFilterSegment = SystemFilterSegmentInternal | UserFilterSegment;
+```
+
+## Troubleshooting
+
+### Common Issues and Solutions
+
+#### 1. Filters Not Working
+
+**Problem:** Filters appear but don't affect the data displayed.
+
+**Causes & Solutions:**
+- **Missing `useSegments` prop:** Filter segments require `useSegments={useSegments}` in `DataTableProvider`
+- **Server-side filtering not implemented:** Ensure your API endpoint processes `useColumnFilters()` output
+- **Column ID mismatch:** Verify filter column IDs match your data column accessors
+
+```tsx
+// ❌ Wrong: Missing useSegments prop
+<DataTableProvider tableIdentifier="users">
+
+// ✅ Correct: Include useSegments prop
+<DataTableProvider tableIdentifier="users" useSegments={useSegments}>
+```
+
+#### 2. Pagination Not Working
+
+**Problem:** Pagination controls don't change the displayed data.
+
+**Causes & Solutions:**
+- **Missing server-side pagination:** Use `useDataTable()` to get `limit`, `offset`, `pageIndex`
+- **Incorrect `totalRowCount`:** Ensure your API returns accurate total count
+- **Wrong pagination mode:** Use `paginationMode="standard"` for most cases
+
+```tsx
+// ✅ Correct: Implement server-side pagination
+const { limit, offset, pageIndex, pageSize } = useDataTable();
+const { data } = useQuery({
+  queryKey: ['users', { limit, offset }],
+  queryFn: () => fetchUsers({ limit, offset })
+});
+```
+
+#### 3. Performance Issues
+
+**Problem:** Table is slow or unresponsive with large datasets.
+
+**Causes & Solutions:**
+- **Using infinite mode incorrectly:** Switch to `paginationMode="standard"`
+- **Not memoizing columns:** Wrap column definitions in `useMemo()`
+- **Server-side optimization needed:** Implement proper indexing and query optimization
+
+```tsx
+// ✅ Correct: Memoize column definitions
+const columns = useMemo(() => [
+  { id: "name", header: "Name", accessorKey: "name" }
+], []);
+```
+
+#### 4. TypeScript Errors
+
+**Problem:** Type errors when using DataTable components.
+
+**Causes & Solutions:**
+- **Missing generic types:** Specify data type in `DataTableWrapper<YourDataType>`
+- **Incorrect filter value types:** Use proper `FilterValue` types from the system
+- **Column meta missing:** Add `meta: { type: ColumnFilterType.* }` to filterable columns
+
+```tsx
+// ✅ Correct: Proper typing
+<DataTableWrapper<UserData>
+  table={table}
+  // ... other props
+/>
+```
+
+#### 5. Segments Not Saving
+
+**Problem:** User segments don't persist or save properly.
+
+**Causes & Solutions:**
+- **Missing segment hooks:** Ensure `useSegments` is properly configured
+- **Authentication issues:** Verify user has permission to save segments
+- **Backend not handling segments:** Check segment API endpoints are implemented
+
+#### 6. Faceted Filters Empty
+
+**Problem:** Select filters show no options.
+
+**Causes & Solutions:**
+- **Missing `getFacetedUniqueValues`:** Implement this function in your table config
+- **Data not loaded:** Ensure faceted data is fetched before table renders
+- **Incorrect data format:** Use `convertFacetedValuesToMap()` utility
+
+```tsx
+// ✅ Correct: Implement getFacetedUniqueValues
+const table = useReactTable({
+  // ... other options
+  getFacetedUniqueValues: (_, columnId) => () => {
+    switch (columnId) {
+      case "status":
+        return convertFacetedValuesToMap(statusOptions);
+      default:
+        return new Map();
+    }
+  }
+});
+```
+
+#### 7. Search Not Working
+
+**Problem:** Search bar doesn't filter results.
+
+**Causes & Solutions:**
+- **Server-side search not implemented:** Process `searchTerm` from `useDataTable()`
+- **Debouncing issues:** Use the built-in `DataTableToolbar.SearchBar` component
+- **Column search configuration:** Ensure searchable columns are properly configured
+
+### Debugging Tips
+
+1. **Use React DevTools:** Inspect DataTable context values
+2. **Check Network Tab:** Verify API calls include correct filter parameters
+3. **Console Logging:** Add logs to custom hooks to trace data flow
+4. **Type Checking:** Run `yarn type-check:ci` to catch type issues early
+
+## Testing Patterns
+
+### Unit Testing DataTable Components
+
+The DataTable system uses **Vitest** for testing with comprehensive patterns for different component types.
+
+#### Testing Utility Functions
+
+```tsx
+// Example: Testing filter utility functions
+import { describe, expect, it, vi } from "vitest";
+import { makeSqlCondition } from "../server";
+import { ColumnFilterType } from "../types";
+
+describe("makeSqlCondition", () => {
+  it("should create equals condition for single-select values", () => {
+    const filterValue = {
+      type: ColumnFilterType.SINGLE_SELECT,
+      data: "option1",
+    };
+
+    const result = makeSqlCondition(filterValue);
+    expect(result).toEqual(Prisma.sql`= ${"option1"}`);
+  });
+
+  it("should handle edge cases", () => {
+    const filterValue = {
+      type: ColumnFilterType.MULTI_SELECT,
+      data: [],
+    };
+
+    const result = makeSqlCondition(filterValue);
+    expect(result).toEqual(Prisma.sql`= ANY(${[]})`);
+  });
+});
+```
+
+#### Testing Date/Time Functions
+
+```tsx
+// Example: Testing date range utilities with mocking
+import { describe, it, expect, vi } from "vitest";
+import dayjs from "@calcom/dayjs";
+
+// Mock dayjs for consistent test results
+vi.mock("@calcom/dayjs", () => {
+  const mockDayjs = vi.fn(() => ({
+    startOf: vi.fn().mockReturnThis(),
+    endOf: vi.fn().mockReturnThis(),
+    toISOString: vi.fn().mockReturnValue("2024-03-20T00:00:00.000Z"),
+  }));
+  return { default: mockDayjs };
+});
+
+describe("getDateRangeFromPreset", () => {
+  it("should return today's date range for 'tdy' preset", () => {
+    const result = getDateRangeFromPreset("tdy");
+    expect(result.preset.value).toBe("tdy");
+    expect(dayjs).toHaveBeenCalled();
+  });
+});
+```
+
+#### Testing React Components
+
+```tsx
+// Example: Testing DataTable components
+import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
+import { DataTableProvider } from "../DataTableProvider";
+import { DataTableWrapper } from "../components/DataTableWrapper";
+
+const mockTable = {
+  getRowModel: () => ({ rows: [] }),
+  getHeaderGroups: () => [],
+  getState: () => ({ pagination: { pageIndex: 0, pageSize: 10 } }),
+  // ... other required table methods
+};
+
+describe("DataTableWrapper", () => {
+  it("should render with basic props", () => {
+    render(
+      <DataTableProvider tableIdentifier="test">
+        <DataTableWrapper
+          table={mockTable}
+          testId="test-table"
+          isPending={false}
+        />
+      </DataTableProvider>
+    );
+
+    expect(screen.getByTestId("test-table")).toBeInTheDocument();
+  });
+
+  it("should show loading state when isPending is true", () => {
+    render(
+      <DataTableProvider tableIdentifier="test">
+        <DataTableWrapper
+          table={mockTable}
+          testId="test-table"
+          isPending={true}
+          LoaderView={<div>Loading...</div>}
+        />
+      </DataTableProvider>
+    );
+
+    expect(screen.getByText("Loading...")).toBeInTheDocument();
+  });
+});
+```
+
+#### Testing Custom Hooks
+
+```tsx
+// Example: Testing DataTable hooks
+import { renderHook } from "@testing-library/react";
+import { describe, it, expect } from "vitest";
+import { useColumnFilters } from "../hooks/useColumnFilters";
+import { DataTableProvider } from "../DataTableProvider";
+
+const wrapper = ({ children }) => (
+  <DataTableProvider tableIdentifier="test">
+    {children}
+  </DataTableProvider>
+);
+
+describe("useColumnFilters", () => {
+  it("should return empty array when no filters applied", () => {
+    const { result } = renderHook(() => useColumnFilters(), { wrapper });
+    expect(result.current).toEqual([]);
+  });
+
+  it("should exclude specified columns", () => {
+    const { result } = renderHook(
+      () => useColumnFilters({ exclude: ["createdAt"] }),
+      { wrapper }
+    );
+    // Test that excluded columns are not in the result
+  });
+});
+```
+
+#### Testing Server-Side Integration
+
+```tsx
+// Example: Testing API integration patterns
+import { describe, it, expect, vi } from "vitest";
+import { makeWhereClause } from "../server";
+
+describe("Server Integration", () => {
+  it("should build correct Prisma where clause", () => {
+    const filters = [
+      {
+        id: "status",
+        value: { type: ColumnFilterType.SINGLE_SELECT, data: "active" }
+      }
+    ];
+
+    const whereClause = makeWhereClause({
+      columnName: "status",
+      filterValue: filters[0].value
+    });
+
+    expect(whereClause).toEqual({ status: "active" });
+  });
+});
+```
+
+### Testing Best Practices
+
+#### 1. Mock External Dependencies
+- **Always mock `dayjs`** for consistent date/time testing
+- **Mock API calls** using MSW or vi.mock()
+- **Mock React Query** for data fetching tests
+
+#### 2. Test Edge Cases
+- **Empty data arrays** for multi-select filters
+- **Invalid filter types** and malformed data
+- **Timezone transitions** for date-related functions
+- **Large datasets** for performance testing
+
+#### 3. Component Testing Strategy
+- **Unit tests** for utility functions and hooks
+- **Integration tests** for component interactions
+- **E2E tests** for complete user workflows (when needed)
+
+#### 4. Test File Organization
+```
+packages/features/data-table/
+├── lib/
+│   ├── __tests__/
+│   │   ├── server.test.ts
+│   │   └── preserveLocalTime.test.ts
+│   └── dateRange.test.ts
+├── components/
+│   └── __tests__/
+│       ├── DataTable.test.tsx
+│       └── DataTableWrapper.test.tsx
+└── hooks/
+    └── __tests__/
+        └── useColumnFilters.test.tsx
+```
+
+#### 5. Common Test Utilities
+
+```tsx
+// Create reusable test utilities
+export const createMockTable = (overrides = {}) => ({
+  getRowModel: () => ({ rows: [] }),
+  getHeaderGroups: () => [],
+  getState: () => ({ pagination: { pageIndex: 0, pageSize: 10 } }),
+  ...overrides,
+});
+
+export const renderWithDataTableProvider = (
+  component: React.ReactElement,
+  options = {}
+) => {
+  const wrapper = ({ children }) => (
+    <DataTableProvider tableIdentifier="test" {...options}>
+      {children}
+    </DataTableProvider>
+  );
+  
+  return render(component, { wrapper });
+};
 ```
 
 ## Best Practices
