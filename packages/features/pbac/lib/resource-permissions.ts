@@ -1,30 +1,12 @@
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { prisma } from "@calcom/prisma";
-import type { MembershipRole } from "@calcom/prisma/enums";
-
 import { PermissionMapper } from "../domain/mappers/PermissionMapper";
 import type { Resource, CustomAction } from "../domain/types/permission-registry";
 import { CrudAction } from "../domain/types/permission-registry";
 import { PermissionCheckService } from "../services/permission-check.service";
 
-interface RoleMapping {
-  roles: MembershipRole[];
-  condition?: (userRole: MembershipRole) => boolean;
-}
-
-interface FallbackRoleConfig {
-  read?: RoleMapping;
-  create?: RoleMapping;
-  update?: RoleMapping;
-  delete?: RoleMapping;
-}
-
 interface ResourcePermissionsOptions {
   userId: number;
   teamId: number;
   resource: Resource;
-  userRole: MembershipRole;
-  fallbackRoles?: FallbackRoleConfig;
 }
 
 interface ResourcePermissions {
@@ -34,42 +16,14 @@ interface ResourcePermissions {
   canCreate: boolean;
 }
 
-const checkRoleAccess = (userRole: MembershipRole, mapping?: RoleMapping): boolean => {
-  if (!mapping) return false;
-
-  const { roles, condition } = mapping;
-  const hasRole = roles.includes(userRole);
-
-  if (condition) {
-    return hasRole && condition(userRole);
-  }
-
-  return hasRole;
-};
-
 export const getResourcePermissions = async ({
   userId,
   teamId,
   resource,
-  userRole,
-  fallbackRoles = {},
 }: ResourcePermissionsOptions): Promise<ResourcePermissions> => {
-  const featureRepo = new FeaturesRepository(prisma);
   const permissionService = new PermissionCheckService();
 
-  const pbacEnabled = await featureRepo.checkIfTeamHasFeature(teamId, "pbac");
-
-  // If PBAC is disabled, use fallback role configuration
-  if (!pbacEnabled) {
-    return {
-      canRead: checkRoleAccess(userRole, fallbackRoles.read),
-      canCreate: checkRoleAccess(userRole, fallbackRoles.create),
-      canEdit: checkRoleAccess(userRole, fallbackRoles.update),
-      canDelete: checkRoleAccess(userRole, fallbackRoles.delete),
-    };
-  }
-
-  // PBAC is enabled, get permissions from the service
+  // Get permissions from the service
   const resourcePermissions = await permissionService.getResourcePermissions({
     userId,
     teamId,
@@ -89,42 +43,22 @@ export const getResourcePermissions = async ({
 // Enhanced function to get specific custom action permissions
 type ActionType = CrudAction | CustomAction;
 
-interface SpecificActionMapping {
-  [key: string]: RoleMapping;
-}
-
 interface SpecificPermissionsOptions {
   userId: number;
   teamId: number;
   resource: Resource;
-  userRole: MembershipRole;
   actions: ActionType[];
-  fallbackRoles?: SpecificActionMapping;
 }
 
 export const getSpecificPermissions = async ({
   userId,
   teamId,
   resource,
-  userRole,
   actions,
-  fallbackRoles = {},
 }: SpecificPermissionsOptions): Promise<Record<string, boolean>> => {
-  const featureRepo = new FeaturesRepository(prisma);
   const permissionService = new PermissionCheckService();
 
-  const pbacEnabled = await featureRepo.checkIfTeamHasFeature(teamId, "pbac");
-
-  // If PBAC is disabled, use fallback role configuration
-  if (!pbacEnabled) {
-    const permissions: Record<string, boolean> = {};
-    for (const action of actions) {
-      permissions[action] = checkRoleAccess(userRole, fallbackRoles[action]);
-    }
-    return permissions;
-  }
-
-  // PBAC is enabled, get permissions from the service
+  // Get permissions from the service
   const resourcePermissions = await permissionService.getResourcePermissions({
     userId,
     teamId,

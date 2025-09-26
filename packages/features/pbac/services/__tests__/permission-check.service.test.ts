@@ -2,7 +2,6 @@ import { prisma } from "@calcom/prisma/__mocks__/prisma";
 
 import { vi, type Mock, describe, it, expect, beforeEach } from "vitest";
 
-import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
@@ -13,7 +12,6 @@ import { PermissionCheckService } from "../permission-check.service";
 import type { PermissionService } from "../permission.service";
 
 vi.mock("../../infrastructure/repositories/PermissionRepository");
-vi.mock("@calcom/features/flags/features.repository");
 vi.mock("@calcom/lib/server/repository/membership");
 vi.mock("../permission.service");
 
@@ -28,7 +26,6 @@ type MockRepository = {
 describe("PermissionCheckService", () => {
   let service: PermissionCheckService;
   let mockRepository: MockRepository;
-  let mockFeaturesRepository: { checkIfTeamHasFeature: Mock };
   let mockPermissionService: { validatePermission: Mock; validatePermissions: Mock };
 
   beforeEach(() => {
@@ -47,10 +44,6 @@ describe("PermissionCheckService", () => {
       getTeamIdsWithPermissions: vi.fn(),
     } as MockRepository;
 
-    mockFeaturesRepository = {
-      checkIfTeamHasFeature: vi.fn(),
-    };
-
     mockPermissionService = {
       validatePermission: vi.fn().mockReturnValue({ isValid: true }),
       validatePermissions: vi.fn().mockReturnValue({ isValid: true }),
@@ -58,7 +51,6 @@ describe("PermissionCheckService", () => {
 
     service = new PermissionCheckService(
       mockRepository,
-      mockFeaturesRepository as unknown as FeaturesRepository,
       mockPermissionService as unknown as PermissionService
     );
 
@@ -67,8 +59,7 @@ describe("PermissionCheckService", () => {
   });
 
   describe("checkPermission", () => {
-    it("should check permission with PBAC enabled", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
+    it("should check permission with PBAC logic", async () => {
       mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce({
         id: 1,
         teamId: 1,
@@ -86,59 +77,11 @@ describe("PermissionCheckService", () => {
       });
 
       expect(result).toBe(true);
-      expect(mockFeaturesRepository.checkIfTeamHasFeature).toHaveBeenCalledWith(1, "pbac");
       expect(mockRepository.getMembershipByUserAndTeam).toHaveBeenCalledWith(1, 1);
       expect(mockRepository.checkRolePermission).toHaveBeenCalledWith("admin_role", "eventType.create");
     });
 
-    it("should check permission with PBAC disabled (fallback to roles)", async () => {
-      const membership = {
-        id: 1,
-        teamId: 1,
-        userId: 1,
-        accepted: true,
-        role: "ADMIN" as MembershipRole,
-        customRoleId: "admin_role",
-        disableImpersonation: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(false);
-
-      const result = await service.checkPermission({
-        userId: 1,
-        teamId: 1,
-        permission: "eventType.create",
-        fallbackRoles: ["ADMIN", "OWNER"],
-      });
-
-      expect(result).toBe(true);
-      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
-        userId: 1,
-        teamId: 1,
-      });
-      expect(mockFeaturesRepository.checkIfTeamHasFeature).toHaveBeenCalledWith(1, "pbac");
-      expect(mockRepository.checkRolePermission).not.toHaveBeenCalled();
-    });
-
-    it("should return false if membership not found when PBAC disabled", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(false);
-      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(null);
-
-      const result = await service.checkPermission({
-        userId: 1,
-        teamId: 1,
-        permission: "eventType.create",
-        fallbackRoles: ["ADMIN", "OWNER"],
-      });
-
-      expect(result).toBe(false);
-    });
-
     it("should check org-level permissions when user has no team membership but PBAC is enabled", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
       mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce(null);
       mockRepository.getTeamById.mockResolvedValueOnce({ id: 1, parentId: 2 });
       mockRepository.getOrgMembership.mockResolvedValueOnce({
@@ -164,7 +107,6 @@ describe("PermissionCheckService", () => {
     });
 
     it("should return false if PBAC enabled but no customRoleId on team or org", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
       mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce({
         id: 1,
         teamId: 1,
@@ -191,8 +133,7 @@ describe("PermissionCheckService", () => {
   });
 
   describe("checkPermissions", () => {
-    it("should check multiple permissions with PBAC enabled", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
+    it("should check multiple permissions with PBAC logic", async () => {
       mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce({
         id: 1,
         teamId: 1,
@@ -210,7 +151,6 @@ describe("PermissionCheckService", () => {
       });
 
       expect(result).toBe(true);
-      expect(mockFeaturesRepository.checkIfTeamHasFeature).toHaveBeenCalledWith(1, "pbac");
       expect(mockRepository.getMembershipByUserAndTeam).toHaveBeenCalledWith(1, 1);
       expect(mockRepository.checkRolePermissions).toHaveBeenCalledWith("admin_role", [
         "eventType.create",
@@ -218,40 +158,7 @@ describe("PermissionCheckService", () => {
       ]);
     });
 
-    it("should check multiple permissions with PBAC disabled (fallback to roles)", async () => {
-      const membership = {
-        id: 1,
-        teamId: 1,
-        userId: 1,
-        accepted: true,
-        role: "ADMIN" as MembershipRole,
-        customRoleId: "admin_role",
-        disableImpersonation: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(false);
-
-      const result = await service.checkPermissions({
-        userId: 1,
-        teamId: 1,
-        permissions: ["eventType.create", "team.invite"],
-        fallbackRoles: ["ADMIN", "OWNER"],
-      });
-
-      expect(result).toBe(true);
-      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
-        userId: 1,
-        teamId: 1,
-      });
-      expect(mockFeaturesRepository.checkIfTeamHasFeature).toHaveBeenCalledWith(1, "pbac");
-      expect(mockRepository.checkRolePermissions).not.toHaveBeenCalled();
-    });
-
     it("should return false when permissions array is empty", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
       mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce({
         id: 1,
         teamId: 1,
@@ -274,7 +181,6 @@ describe("PermissionCheckService", () => {
     });
 
     it("should check org-level permissions when user has no team membership with checkPermissions", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
       mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce(null);
       mockRepository.getTeamById.mockResolvedValueOnce({ id: 1, parentId: 2 });
       mockRepository.getOrgMembership.mockResolvedValueOnce({
@@ -441,7 +347,6 @@ describe("PermissionCheckService", () => {
 
   describe("getResourcePermissions", () => {
     it("should return org permissions when user has no team membership but has org membership", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
       mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce(null);
       mockRepository.getTeamById.mockResolvedValueOnce({ id: 1, parentId: 2 });
       mockRepository.getOrgMembership.mockResolvedValueOnce({
@@ -467,22 +372,8 @@ describe("PermissionCheckService", () => {
         Resource.EventType
       );
     });
-    it("should return empty array when PBAC is disabled", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(false);
 
-      const result = await service.getResourcePermissions({
-        userId: 1,
-        teamId: 1,
-        resource: Resource.EventType,
-      });
-
-      expect(result).toEqual([]);
-      expect(mockFeaturesRepository.checkIfTeamHasFeature).toHaveBeenCalledWith(1, "pbac");
-      expect(mockRepository.getMembershipByUserAndTeam).not.toHaveBeenCalled();
-    });
-
-    it("should return team-level permissions when PBAC is enabled and no org membership", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
+    it("should return team-level permissions when no org membership", async () => {
       mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce({
         id: 1,
         teamId: 1,
@@ -509,7 +400,6 @@ describe("PermissionCheckService", () => {
     });
 
     it("should return only team permissions when team has no parentId", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
       mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce({
         id: 1,
         teamId: 1,
@@ -536,7 +426,6 @@ describe("PermissionCheckService", () => {
     });
 
     it("should return combined team and org permissions when both exist", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
       mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce({
         id: 1,
         teamId: 1,
@@ -579,7 +468,6 @@ describe("PermissionCheckService", () => {
     });
 
     it("should deduplicate permissions when team and org have overlapping permissions", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
       mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce({
         id: 1,
         teamId: 1,
@@ -610,7 +498,6 @@ describe("PermissionCheckService", () => {
     });
 
     it("should return only org permissions when team has no custom role", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
       mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce({
         id: 1,
         teamId: 1,
@@ -643,7 +530,6 @@ describe("PermissionCheckService", () => {
     });
 
     it("should return empty array when no membership found", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
       mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce(null);
 
       const result = await service.getResourcePermissions({
@@ -657,7 +543,6 @@ describe("PermissionCheckService", () => {
     });
 
     it("should return empty array and log error when repository throws", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
       mockRepository.getMembershipByUserAndTeam.mockRejectedValueOnce(new Error("Database error"));
 
       const result = await service.getResourcePermissions({
@@ -670,7 +555,6 @@ describe("PermissionCheckService", () => {
     });
 
     it("should enforce correct hierarchy - org permissions should take precedence over team permissions", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
       mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce({
         id: 1,
         teamId: 1,

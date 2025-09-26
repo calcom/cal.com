@@ -1,6 +1,3 @@
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { RoleManagementError, RoleManagementErrorCode } from "../domain/errors/role-management.error";
@@ -9,7 +6,6 @@ import { PermissionCheckService } from "./permission-check.service";
 import { RoleService } from "./role.service";
 
 interface IRoleManager {
-  isPBACEnabled: boolean;
   checkPermissionToChangeRole(userId: number, targetId: number, scope: "org" | "team"): Promise<void>;
   assignRole(
     userId: number,
@@ -22,8 +18,6 @@ interface IRoleManager {
 }
 
 class PBACRoleManager implements IRoleManager {
-  public isPBACEnabled = true;
-
   constructor(
     private readonly roleService: RoleService,
     private readonly permissionCheckService: PermissionCheckService
@@ -55,7 +49,7 @@ class PBACRoleManager implements IRoleManager {
     const isDefaultRole = role in DEFAULT_ROLE_IDS;
 
     // Also check if the role is a default role ID value
-    const isDefaultRoleId = Object.values(DEFAULT_ROLE_IDS).includes(role as any);
+    const isDefaultRoleId = Object.values(DEFAULT_ROLE_IDS).includes(role as string);
 
     if (isDefaultRole) {
       // Handle enum values like MembershipRole.ADMIN
@@ -93,77 +87,13 @@ class PBACRoleManager implements IRoleManager {
   }
 }
 
-class LegacyRoleManager implements IRoleManager {
-  public isPBACEnabled = false;
-  async checkPermissionToChangeRole(userId: number, targetId: number, scope: "org" | "team"): Promise<void> {
-    let hasPermission = false;
-    if (scope === "team") {
-      const team = await prisma.membership.findFirst({
-        where: {
-          userId,
-          teamId: targetId,
-          accepted: true,
-          OR: [{ role: "ADMIN" }, { role: "OWNER" }],
-        },
-      });
-      hasPermission = !!team;
-    } else {
-      hasPermission = !!(await isOrganisationAdmin(userId, targetId));
-    }
-
-    // Only OWNER/ADMIN can update role
-    if (!hasPermission) {
-      throw new RoleManagementError(
-        "Only owners or admin can update roles",
-        RoleManagementErrorCode.UNAUTHORIZED
-      );
-    }
-  }
-
-  async assignRole(
-    userId: number,
-    organizationId: number,
-    role: MembershipRole | string,
-    _membershipId: number
-  ): Promise<void> {
-    await prisma.membership.update({
-      where: {
-        userId_teamId: {
-          userId,
-          teamId: organizationId,
-        },
-      },
-      data: {
-        role: role as MembershipRole,
-      },
-    });
-  }
-
-  async getAllRoles(_organizationId: number): Promise<{ id: string; name: string }[]> {
-    return [
-      { id: MembershipRole.OWNER, name: "Owner" },
-      { id: MembershipRole.ADMIN, name: "Admin" },
-      { id: MembershipRole.MEMBER, name: "Member" },
-    ];
-  }
-
-  async getTeamRoles(_teamId: number): Promise<{ id: string; name: string }[]> {
-    return [
-      { id: MembershipRole.OWNER, name: "Owner" },
-      { id: MembershipRole.ADMIN, name: "Admin" },
-      { id: MembershipRole.MEMBER, name: "Member" },
-    ];
-  }
-}
-
 export class RoleManagementFactory {
   private static instance: RoleManagementFactory;
-  private featuresRepository: FeaturesRepository;
   private roleService: RoleService;
   private permissionCheckService: PermissionCheckService;
 
   private constructor() {
-    (this.featuresRepository = new FeaturesRepository(prisma)), (this.roleService = new RoleService());
+    this.roleService = new RoleService();
     this.permissionCheckService = new PermissionCheckService();
   }
 
@@ -174,11 +104,7 @@ export class RoleManagementFactory {
     return RoleManagementFactory.instance;
   }
 
-  async createRoleManager(organizationId: number): Promise<IRoleManager> {
-    const isPBACEnabled = await this.featuresRepository.checkIfTeamHasFeature(organizationId, "pbac");
-
-    return isPBACEnabled
-      ? new PBACRoleManager(this.roleService, this.permissionCheckService)
-      : new LegacyRoleManager();
+  async createRoleManager(): Promise<IRoleManager> {
+    return new PBACRoleManager(this.roleService, this.permissionCheckService);
   }
 }

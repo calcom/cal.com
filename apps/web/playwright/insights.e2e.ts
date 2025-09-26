@@ -1,6 +1,5 @@
 import { expect } from "@playwright/test";
 
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { randomString } from "@calcom/lib/random";
 import { prisma } from "@calcom/prisma";
@@ -328,10 +327,6 @@ test.describe("Insights", async () => {
         customRoleId: customRole.id,
       },
     });
-
-    const featuresRepository = new FeaturesRepository(prisma);
-    const isPBACEnabled = await featuresRepository.checkIfTeamHasFeature(orgId, "pbac");
-    expect(isPBACEnabled).toBe(true);
 
     const permissionService = new PermissionCheckService();
     const hasPermission = await permissionService.checkPermission({

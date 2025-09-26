@@ -179,11 +179,9 @@ export interface SettingsPermissions {
 
 const useTabs = ({
   isDelegationCredentialEnabled,
-  isPbacEnabled,
   permissions,
 }: {
   isDelegationCredentialEnabled: boolean;
-  isPbacEnabled: boolean;
   permissions?: SettingsPermissions;
 }) => {
   const session = useSession();
@@ -221,29 +219,19 @@ const useTabs = ({
           });
         }
 
-        // Add pbac menu item only if feature flag is enabled AND user has permission to view roles
-        // This prevents showing the menu item when user has no organization permissions
-        if (isPbacEnabled) {
-          if (permissions?.canViewRoles) {
-            newArray.push({
-              name: "roles_and_permissions",
-              href: "/settings/organizations/roles",
-            });
-          }
+        // Add PBAC menu items based on user permissions
+        if (permissions?.canViewRoles) {
+          newArray.push({
+            name: "roles_and_permissions",
+            href: "/settings/organizations/roles",
+          });
+        }
 
-          if (permissions?.canViewOrganizationBilling) {
-            newArray.push({
-              name: "billing",
-              href: "/settings/organizations/billing",
-            });
-          }
-        } else {
-          if (isOrgAdminOrOwner) {
-            newArray.push({
-              name: "billing",
-              href: "/settings/organizations/billing",
-            });
-          }
+        if (permissions?.canViewOrganizationBilling) {
+          newArray.push({
+            name: "billing",
+            href: "/settings/organizations/billing",
+          });
         }
 
         return {
@@ -279,7 +267,7 @@ const useTabs = ({
       if (isAdmin) return true;
       return !adminRequiredKeys.includes(tab.name);
     });
-  }, [isAdmin, orgBranding, isOrgAdminOrOwner, user, isDelegationCredentialEnabled, isPbacEnabled, permissions]);
+  }, [isAdmin, orgBranding, isOrgAdminOrOwner, user, isDelegationCredentialEnabled, permissions]);
 
   return processTabsMemod;
 };
@@ -309,24 +297,11 @@ interface SettingsSidebarContainerProps {
   permissions?: SettingsPermissions;
 }
 
-const TeamRolesNavItem = ({
-  team,
-  teamFeatures,
-}: {
-  team: { id: number; parentId?: number | null };
-  teamFeatures?: Record<number, TeamFeatures>;
-}) => {
+const TeamRolesNavItem = ({ team }: { team: { id: number; parentId?: number | null } }) => {
   const { t } = useLocale();
 
-  // Always call the hook first (Rules of Hooks)
-  const isPbacEnabled = useIsFeatureEnabledForTeam({
-    teamFeatures,
-    teamId: team.parentId || 0, // Use 0 as fallback when no parentId
-    feature: "pbac",
-  });
-
-  // Only show for sub-teams (teams with parentId) AND when parent has PBAC enabled
-  if (!team.parentId || !isPbacEnabled) return null;
+  // Only show for sub-teams (teams with parentId) - PBAC is always enabled
+  if (!team.parentId) return null;
 
   return (
     <VerticalTabItem
@@ -338,7 +313,7 @@ const TeamRolesNavItem = ({
   );
 };
 
-const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, TeamFeatures> }) => {
+const TeamListCollapsible = () => {
   const { data: teams } = trpc.viewer.teams.list.useQuery();
   const { t } = useLocale();
   const [teamMenuState, setTeamMenuState] =
@@ -355,7 +330,6 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
         const tabMembers = Array.from(document.getElementsByTagName("a")).filter(
           (bottom) => bottom.dataset.testid === "vertical-tab-Members"
         )[1];
-        // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- Settings layout isn't embedded
         tabMembers?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }
@@ -520,15 +494,8 @@ const SettingsSidebarContainer = ({
     feature: "delegation-credential",
   });
 
-  const isPbacEnabled = useIsFeatureEnabledForTeam({
-    teamFeatures,
-    teamId: organizationId,
-    feature: "pbac",
-  });
-
   const tabsWithPermissions = useTabs({
     isDelegationCredentialEnabled,
-    isPbacEnabled,
     permissions,
   });
 
@@ -549,7 +516,6 @@ const SettingsSidebarContainer = ({
         const tabMembers = Array.from(document.getElementsByTagName("a")).filter(
           (bottom) => bottom.dataset.testid === "vertical-tab-Members"
         )[1];
-        // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- Settings layout isn't embedded
         tabMembers?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }

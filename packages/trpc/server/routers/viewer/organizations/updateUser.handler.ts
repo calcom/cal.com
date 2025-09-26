@@ -170,8 +170,7 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
     });
   }
 
-  // We cast to membership role as we know pbac insnt enabled on this instance.
-  if (checkAdminOrOwner(input.role as MembershipRole) && roleManager.isPBACEnabled) {
+  if (checkAdminOrOwner(input.role as MembershipRole)) {
     const teamIds = requestedMember.team.children
       .map((sub_team) => sub_team.members.find((item) => item.userId === input.userId)?.teamId)
       .filter(Boolean) as number[]; //filter out undefined
