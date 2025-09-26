@@ -642,7 +642,7 @@ select:focus {
 
 /* Intercom widget z-index settings */
 .intercom-lightweight-app {
-  @apply z-40 !important;
+  @apply !z-40;
 }
 
 /* Intercom launcher button */
