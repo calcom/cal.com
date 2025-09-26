@@ -242,7 +242,7 @@ export const useBookings = ({
         } else {
           showToast(t("something_went_wrong_on_our_end"), "error");
         }
-      } catch () {
+      } catch (err) {
         showToast(t("something_went_wrong_on_our_end"), "error");
       }
     },
