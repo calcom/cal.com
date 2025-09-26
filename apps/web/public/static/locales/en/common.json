@@ -2380,6 +2380,7 @@
   "invite_link_copied": "Invite link copied",
   "invite_link_deleted": "Invite link deleted",
   "api_key_deleted": "API Key deleted",
+  "delete_api_key_warning": "This will permanently delete the API key. Any applications using this key will immediately lose access to your account. This action cannot be undone.",
   "invite_link_updated": "Invite link settings saved",
   "link_expires_after": "Links set to expire after...",
   "one_day": "1 day",
