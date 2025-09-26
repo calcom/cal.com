@@ -38,6 +38,7 @@ interface PageProps {
     templateWorkflowId?: string;
     teamId?: string;
     name?: string;
+    eventTypeId?: string;
   }>;
 }
 
@@ -45,7 +46,7 @@ const Page = async ({ searchParams }: PageProps) => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   const user = session?.user;
 
-  const { action, templateWorkflowId, teamId, name } = await searchParams;
+  const { action, templateWorkflowId, teamId, name, eventTypeId } = await searchParams;
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
@@ -73,6 +74,7 @@ const Page = async ({ searchParams }: PageProps) => {
 
   const userId = user.id;
   const parsedTeamId = teamId ? parseInt(teamId, 10) : undefined;
+  const parsedEventTypeId = eventTypeId ? parseInt(eventTypeId, 10) : undefined;
 
   if (parsedTeamId) {
     const permissionService = new PermissionCheckService();
@@ -115,6 +117,42 @@ const Page = async ({ searchParams }: PageProps) => {
         includeCalendarEvent: false,
       },
     });
+
+    if (parsedEventTypeId) {
+      const permissionService = new PermissionCheckService();
+      let hasPermission = false;
+
+      if (user.org?.id) {
+        hasPermission = await permissionService.checkPermission({
+          userId,
+          teamId: user.org?.id,
+          permission: "eventType.update",
+          fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        });
+      } else if (parsedTeamId) {
+        hasPermission = await permissionService.checkPermission({
+          userId,
+          teamId: parsedTeamId,
+          permission: "eventType.update",
+          fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        });
+      } else {
+        const eventTypeRepo = new EventTypeRepository(prisma);
+        hasPermission = await eventTypeRepo.isPersonalUserEventType({
+          userId,
+          eventTypeId: parsedEventTypeId,
+        });
+      }
+
+      if (hasPermission) {
+        await prisma.workflowsOnEventTypes.create({
+          data: {
+            workflowId: workflow.id,
+            eventTypeId: parsedEventTypeId,
+          },
+        });
+      }
+    }
 
     const redirectUrl = `/workflows/${workflow.id}?autoCreateAgent=true&templateWorkflowId=${templateWorkflowId}`;
 

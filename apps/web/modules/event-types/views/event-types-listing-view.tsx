@@ -657,7 +657,7 @@ export const InfiniteEventTypeList = ({
                                 )}
                                 {IS_CALCOM && <DropdownMenuItem className="outline-none">
                                   <DropdownItem
-                                      href={`/workflow/new?action=calAi&templateWorkflowId=wf-11&eventTypeId=${type.id}`}
+                                      href={`/workflow/new?action=calAi&templateWorkflowId=wf-11&eventTypeId=${type.id}` + (group?.teamId ? `&teamId=${group.teamId}` : "")}
                                       data-testid={`event-type-cal-ai-workflows-${type.id}`}
                                       StartIcon="sparkles">
                                       {t("cal_ai_workflows")} <Badge variant="purple" className="ms-3">{t("new")}</Badge>
