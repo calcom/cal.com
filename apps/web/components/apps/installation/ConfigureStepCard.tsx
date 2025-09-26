@@ -222,6 +222,10 @@ const ConfigureStepCardContent: FC<ConfigureStepCardProps> = (props) => {
     }
   }, [submit, allUpdated, mainForSubmitRef]);
 
+  if (!formPortalRef?.current) {
+    return null;
+  }
+
   return createPortal(
     <div className="mt-8">
       {fields.map((group, groupIndex) => (
