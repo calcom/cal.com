@@ -197,66 +197,52 @@ const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, getRa
     throw new TRPCError({ code: "BAD_REQUEST" });
   }
 
-  // // If teamId is provided, check if user belongs to team
-  // // If teamId is not provided, check if user belongs to any team
+  const { teamId, isAll } = parse.data;
 
-  const membershipWhereConditional: Prisma.CalIdMembershipWhereInput = {
-    userId: ctx.user.id,
-    acceptedInvitation: true,
-  };
+  // Case 1: specific team provided
+  if (teamId && !isAll) {
+    const membership = await ctx.insightsDb.calIdMembership.findFirst({
+      where: {
+        calIdTeamId: teamId,
+        userId: ctx.user.id,
+        acceptedInvitation: true,
+      },
+    });
 
-  if (parse.data.teamId) {
-    membershipWhereConditional["calIdTeamId"] = parse.data.teamId;
+    if (!membership) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
   }
 
-  const membership = await ctx.insightsDb.calIdMembership.findFirst({
-    where: membershipWhereConditional,
-  });
+  // Case 2: isAll=true and no specific team -> user must belong to at least one team
+  if (isAll && !teamId) {
+    const memberships = await ctx.insightsDb.calIdMembership.findMany({
+      where: {
+        userId: ctx.user.id,
+        acceptedInvitation: true,
+      },
+      select: { calIdTeamId: true },
+    });
 
-  if (!membership && !parse.data.teamId) {
-    // User doesn't belong to any team
-    throw new TRPCError({ code: "UNAUTHORIZED" });
+    if (memberships.length === 0) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
+    // // you could attach teamIds to ctx if you want downstream resolvers to use them
+    // ctx.user.teamIds = memberships.map((m) => m.calIdTeamId);
   }
 
-  // // let isOwnerAdminOfParentTeam = false;
+  // Case 3: isAll=true and teamId provided -> skip membership check,
 
-  // // // Probably we couldn't find a membership because the user is not a direct member of the team
-  // // // So that would mean ctx.user.organization is present
-  // // if ((parse.data.isAll && ctx.user.organizationId) || (!membership && ctx.user.organizationId)) {
-  // //   //Look for membership type in organizationId
-  // //   if (!membership && ctx.user.organizationId && parse.data.teamId) {
-  // //     const isChildTeamOfOrg = await ctx.insightsDb.calIdteam.findFirst({
-  // //       where: {
-  // //         id: parse.data.teamId,
-  // //         parentId: ctx.user.organizationId,
-  // //       },
-  // //     });
-  // //     if (!isChildTeamOfOrg) {
-  // //       throw new TRPCError({ code: "UNAUTHORIZED" });
-  // //     }
-  // //   }
-
-  // //   const membershipOrg = await ctx.insightsDb.membership.findFirst({
-  // //     where: {
-  // //       userId: ctx.user.id,
-  // //       teamId: ctx.user.organizationId,
-  // //       accepted: true,
-  // //       role: {
-  // //         in: ["OWNER", "ADMIN"],
-  // //       },
-  // //     },
-  // //   });
-  // //   if (!membershipOrg) {
-  // //     throw new TRPCError({ code: "UNAUTHORIZED" });
-  // //   }
-  // //   isOwnerAdminOfParentTeam = true;
-  // // }
+  if (isAll && teamId) {
+    // optionally allow OR enforce membership validation here
+  }
 
   return next({
     ctx: {
       user: {
         ...ctx.user,
-        // isOwnerAdminOfParentTeam,
+        // isOwnerAdminOfParentTeam: false, // enable later if needed
       },
     },
   });
@@ -1231,102 +1217,83 @@ async function getEventTypeList({
     isOwnerAdminOfParentTeam: boolean;
   };
 }) {
-  if (!teamId && !userId) {
+  // Must have at least teamId or userId or isAll=true
+  if (!teamId && !userId && !isAll) {
     return [];
   }
 
-  const membershipWhereConditional: Prisma.CalIdMembershipWhereInput = {};
-
-  // let childrenTeamIds: number[] = [];
-
-  // if (isAll && teamId && user.organizationId && user.isOwnerAdminOfParentTeam) {
-  //   const childTeams = await prisma.calIdTeam.findMany({
-  //     where: {
-  //       parentId: user.organizationId,
-  //     },
-  //     select: {
-  //       id: true,
-  //     },
-  //   });
-  //   if (childTeams.length > 0) {
-  //     childrenTeamIds = childTeams.map((team) => team.id);
-  //   }
-  //   membershipWhereConditional["teamId"] = {
-  //     in: [user.organizationId, ...childrenTeamIds],
-  //   };
-  // }
-
   let membership: CalIdMembership | null = null;
-  if (teamId && !isAll) {
-    membershipWhereConditional["calIdTeamId"] = teamId;
-    membershipWhereConditional["userId"] = user.id;
+  let teamIds: number[] = [];
 
-    // I'm not using unique here since when userId comes from input we should look for every
-    // event type that user owns
+  // Case 1: specific team (with membership check)
+  if (teamId && !isAll) {
     membership = await prisma.calIdMembership.findFirst({
-      where: membershipWhereConditional,
+      where: {
+        calIdTeamId: teamId,
+        userId: user.id,
+      },
     });
 
-    if (!membership && !user.isOwnerAdminOfParentTeam) {
-      throw new Error("User is not part of a team/org");
+    if (!membership) {
+      throw new Error("User is not part of this team");
     }
-  }
-  // if (userId) {
-  //   membershipWhereConditional["userId"] = userId;
-  // }
 
-  const eventTypeWhereConditional: Prisma.EventTypeWhereInput = {};
-  // if (isAll && childrenTeamIds.length > 0 && user.organizationId && user.isOwnerAdminOfParentTeam) {
-  //   eventTypeWhereConditional["teamId"] = {
-  //     in: [user.organizationId, ...childrenTeamIds],
-  //   };
-  // }
-  if (teamId && !isAll) {
-    eventTypeWhereConditional["calIdTeamId"] = teamId;
+    teamIds = [teamId];
   }
+
+  // Case 2: isAll=true and no specific team -> collect all teams where user is member
+  if (isAll && !teamId) {
+    const memberships = await prisma.calIdMembership.findMany({
+      where: { userId: user.id },
+      select: { calIdTeamId: true, role: true },
+    });
+
+    teamIds = memberships.map((m) => m.calIdTeamId);
+
+    if (teamIds.length === 0) {
+      return [];
+    }
+
+    // Optional: if you want to know the user's role in these teams,
+    // you can keep the memberships array for role-based restrictions
+  }
+
+  // Case 3: isAll=true and teamId provided -> skip membership check, just use teamId
+  if (isAll && teamId) {
+    teamIds = [teamId];
+  }
+
+  // Build event type filter
+  const eventTypeWhere: Prisma.EventTypeWhereInput = {};
+
+  if (teamIds.length > 0) {
+    eventTypeWhere.calIdTeamId = { in: teamIds };
+  }
+
   if (userId) {
-    eventTypeWhereConditional["userId"] = userId;
+    eventTypeWhere.userId = userId;
   }
-  let eventTypeResult: Prisma.EventTypeGetPayload<{
-    select: {
-      id: true;
-      slug: true;
-      calIdTeamId: true;
-      title: true;
-      calIdTeam: {
-        select: {
-          name: true;
-        };
-      };
-    };
-  }>[] = [];
 
-  let isMember = membership?.role === "MEMBER";
-  if (user.isOwnerAdminOfParentTeam) {
-    isMember = false;
+  // Restrict results if the user is only a MEMBER (only applies in Case 1)
+  const isMemberOnly = membership?.role === "MEMBER" && !user.isOwnerAdminOfParentTeam;
+
+  if (isMemberOnly) {
+    eventTypeWhere.OR = [{ userId: user.id }, { users: { some: { id: user.id } } }];
   }
-  if (isMember) {
-    eventTypeWhereConditional["OR"] = [
-      { userId: user.id },
-      { users: { some: { id: user.id } } },
-      // @TODO this is not working as expected
-      // hosts: { some: { id: user.id } },
-    ];
-  }
-  eventTypeResult = await prisma.eventType.findMany({
+
+  // Final query
+  const eventTypes = await prisma.eventType.findMany({
     select: {
       id: true,
       slug: true,
       title: true,
       calIdTeamId: true,
       calIdTeam: {
-        select: {
-          name: true,
-        },
+        select: { name: true },
       },
     },
-    where: eventTypeWhereConditional,
+    where: eventTypeWhere,
   });
 
-  return eventTypeResult;
+  return eventTypes;
 }
