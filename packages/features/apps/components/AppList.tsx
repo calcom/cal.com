@@ -91,7 +91,7 @@ export const AppList = ({
         slug={item.slug}
         invalidCredential={
           item.invalidCredentialIds.length > 0
-            ? !!item.invalidCredentialIds.find((id) => id === credentialIdToCompare)
+            ? !!item.invalidCredentialIds.find((id: number) => id === credentialIdToCompare)
             : false
         }
         credentialOwner={item?.credentialOwner}
