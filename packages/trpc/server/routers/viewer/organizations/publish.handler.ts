@@ -66,6 +66,7 @@ export const publishHandler = async ({ ctx }: PublishOptions) => {
   const { requestedSlug, ...newMetadata } = metadata.data;
   let updatedTeam: Awaited<ReturnType<typeof prisma.team.update>>;
 
+
   try {
     updatedTeam = await prisma.team.update({
       where: { id: orgId },

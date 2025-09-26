@@ -247,7 +247,7 @@ model EventType {
   // Inbound agents for this event type
   inboundAgents Agent[] @relation("inboundAgentEventType")
 
-  createdAt DateTime?
+  createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
 
 
