@@ -229,7 +229,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                     <div>
                       <div className="hidden md:block">
                         {workflow.team?.name && (
-                          <Badge className="mr-4 mt-1 p-[1px] px-2" variant="gray">
+                          <Badge className="mr-4 mt-1 mb-2 p-[1px] px-2" variant="gray">
                             <Avatar
                               alt={workflow.team?.name || ""}
                               href={
