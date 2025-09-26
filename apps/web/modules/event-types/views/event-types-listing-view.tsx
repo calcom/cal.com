@@ -15,7 +15,7 @@ import { EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import { InfiniteSkeletonLoader } from "@calcom/features/eventtypes/components/SkeletonLoader";
-import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
+import { IS_CALCOM, APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { extractHostTimezone } from "@calcom/lib/hashedLinksUtils";
 import { filterActiveLinks } from "@calcom/lib/hashedLinksUtils";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
@@ -655,6 +655,15 @@ export const InfiniteEventTypeList = ({
                                     </EventTypeEmbedButton>
                                   </DropdownMenuItem>
                                 )}
+                                {IS_CALCOM && <DropdownMenuItem className="outline-none">
+                                  <DropdownItem
+                                      href={`/workflow/new?action=calAi&templateWorkflowId=wf-11&eventTypeId=${type.id}`}
+                                      data-testid={`event-type-cal-ai-workflows-${type.id}`}
+                                      StartIcon="sparkles">
+                                      {t("cal_ai_workflows")} <Badge variant="purple" className="ms-3">{t("new")}</Badge>
+                                    </DropdownItem>
+                                </DropdownMenuItem>}
+
                                 {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
                                 {!readOnly && !isChildrenManagedEventType && (
                                   <>

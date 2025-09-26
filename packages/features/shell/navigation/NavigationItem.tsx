@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { Fragment, useState, useEffect } from "react";
-
+import { IS_CALCOM } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import classNames from "@calcom/ui/classNames";
@@ -216,10 +216,12 @@ export const NavigationItem: React.FC<{
             ) : (
               <SkeletonText className="h-[20px] w-full" />
             )}
-            {item.name === "workflows" && (
-              <Badge startIcon="sparkles" variant="purple">
-                Cal.ai
-              </Badge>
+            {IS_CALCOM && item.name === "workflows" && (
+              <Link  href="/workflow/new?action=calAi&templateWorkflowId=wf-11" >
+                <Badge startIcon="sparkles" variant="purple">
+                  Cal.ai
+                </Badge>
+              </Link>
             )}
           </Link>
         </Tooltip>
