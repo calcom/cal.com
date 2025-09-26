@@ -9,6 +9,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import type { Option } from "@calcom/ui/components/form/checkbox/MultiSelectCheckboxes";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
@@ -23,7 +24,7 @@ interface WebCallDialogProps {
   teamId?: number;
   isOrganization?: boolean;
   form: UseFormReturn<FormValues>;
-  eventTypeOptions?: Array<{ value: string; label: string }>;
+  eventTypeOptions?: Option[];
 }
 
 interface TranscriptEntry {
