@@ -310,7 +310,6 @@ const OnboardingPage = ({
                   />
                 )}
               {currentStep === AppOnboardingSteps.CONFIGURE_STEP &&
-                formPortalRef.current &&
                 eventTypeGroups && (
                   <ConfigureStepCard
                     slug={appMetadata.slug}
