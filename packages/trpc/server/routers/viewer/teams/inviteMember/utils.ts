@@ -470,6 +470,23 @@ export async function createMemberships({
   }
 }
 
+const createVerificationToken = async (identifier: string, teamId: number)=>{
+   const token = randomBytes(32).toString("hex");
+        await prisma.verificationToken.create({
+          data: {
+            identifier,
+            token,
+            expires: new Date(new Date().setHours(168)), // +1 week
+            team: {
+              connect: {
+                id: teamId,
+              },
+            },
+          },
+        });
+        return token;
+}
+
 export async function sendSignupToOrganizationEmail({
   usernameOrEmail,
   team,
@@ -488,18 +505,7 @@ export async function sendSignupToOrganizationEmail({
   try {
     const token: string = randomBytes(32).toString("hex");
 
-    await prisma.verificationToken.create({
-      data: {
-        identifier: usernameOrEmail,
-        token,
-        expires: new Date(new Date().setHours(168)), // +1 week
-        team: {
-          connect: {
-            id: teamId,
-          },
-        },
-      },
-    });
+    await createVerificationToken(usernameOrEmail, teamId);
     await sendTeamInviteEmail({
       language: translation,
       from: inviterName || `${team.name}'s admin`,
@@ -642,17 +648,15 @@ export const groupUsersByJoinability = ({
       connectionInfoMap,
     });
 
-    if (autoJoinStatus.autoAccept) {
-      usersToAutoJoin.push({
-        ...existingUserWithMemberships,
-        ...autoJoinStatus,
-      });
-    } else {
-      regularUsers.push({
-        ...existingUserWithMemberships,
-        ...autoJoinStatus,
-      });
-    }
+    autoJoinStatus.autoAccept
+      ? usersToAutoJoin.push({
+          ...existingUserWithMemberships,
+          ...autoJoinStatus,
+        })
+      : regularUsers.push({
+          ...existingUserWithMemberships,
+          ...autoJoinStatus,
+        });
   }
 
   return [usersToAutoJoin, regularUsers];
@@ -706,9 +710,7 @@ export const sendExistingUserTeamInviteEmails = async ({
     // inform user of membership by email
     if (currentUserTeamName) {
       const inviteTeamOptions = {
-        joinLink: isAutoJoin
-          ? `${WEBAPP_URL}/auth/login?callbackUrl=/settings/teams`
-          : `${WEBAPP_URL}/teams?autoAccept=true`,
+        joinLink: `${WEBAPP_URL}/auth/login?callbackUrl=/settings/teams`,
         isCalcomMember: true,
       };
       /**
@@ -716,19 +718,7 @@ export const sendExistingUserTeamInviteEmails = async ({
        * This only changes if the user is a CAL user and has not completed onboarding and has no password
        */
       if (!user.completedOnboarding && !user.password?.hash && user.identityProvider === "CAL") {
-        const token = randomBytes(32).toString("hex");
-        await prisma.verificationToken.create({
-          data: {
-            identifier: user.email,
-            token,
-            expires: new Date(new Date().setHours(168)), // +1 week
-            team: {
-              connect: {
-                id: teamId,
-              },
-            },
-          },
-        });
+        const token =  await createVerificationToken(user.email, teamId);
 
         inviteTeamOptions.joinLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
         inviteTeamOptions.isCalcomMember = false;
@@ -741,22 +731,9 @@ export const sendExistingUserTeamInviteEmails = async ({
         });
 
         if (!verificationToken) {
-          const token = randomBytes(32).toString("hex");
-          verificationToken = await prisma.verificationToken.create({
-            data: {
-              identifier: user.email,
-              token,
-              expires: new Date(new Date().setHours(168)), // +1 week
-              team: {
-                connect: {
-                  id: teamId,
-                },
-              },
-            },
-          });
-        }
+          const token = await createVerificationToken(user.email, teamId);
 
-        inviteTeamOptions.joinLink = `${WEBAPP_URL}/teams?token=${verificationToken.token}&autoAccept=true`;
+        inviteTeamOptions.joinLink = `${WEBAPP_URL}/teams?token=${verificationToken.token}`;
       }
 
       return sendTeamInviteEmail({
@@ -776,6 +753,12 @@ export const sendExistingUserTeamInviteEmails = async ({
   });
 
   await sendEmails(sendEmailsPromises);
+};
+
+type inviteMemberHandlerInput = {
+  teamId: number;
+  role?: "ADMIN" | "MEMBER" | "OWNER";
+  language: string;
 };
 
 export async function handleExistingUsersInvites({

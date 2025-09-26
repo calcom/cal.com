@@ -110,37 +110,61 @@ export class TeamService {
     await Promise.allSettled(teamBillingPromises);
   }
 
-  // TODO: Move errors away from TRPC error to make it more generic
-  static async inviteMemberByToken(token: string, userId: number) {
-    const verificationToken = await prisma.verificationToken.findFirst({
-      where: {
-        token,
-        OR: [{ expiresInDays: null }, { expires: { gte: new Date() } }],
+// TODO: Move errors away from TRPC error to make it more generic
+static async inviteMemberByToken(token: string, userId: number) {
+  const verificationToken = await prisma.verificationToken.findFirst({
+    where: {
+      token,
+      OR: [{ expiresInDays: null }, { expires: { gte: new Date() } }],
+    },
+    include: {
+      team: {
+        select: { name: true },
       },
-      include: {
-        team: {
-          select: {
-            name: true,
-          },
+    },
+  });
+
+  if (!verificationToken) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Invite not found" });
+  }
+
+  if (!verificationToken.teamId || !verificationToken.team) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Invite token is not associated with any team",
+    });
+  }
+
+  const existingMembership = await prisma.membership.findUnique({
+    where: {
+      userId_teamId: {
+        userId,
+        teamId: verificationToken.teamId,
+      },
+    },
+  });
+
+  if (existingMembership) {
+    await prisma.membership.update({
+      where: {
+        userId_teamId: {
+          userId,
+          teamId: verificationToken.teamId,
         },
       },
+      data: {
+        accepted: true,
+      },
     });
-
-    if (!verificationToken) throw new TRPCError({ code: "NOT_FOUND", message: "Invite not found" });
-    if (!verificationToken.teamId || !verificationToken.team)
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Invite token is not associated with any team",
-      });
-
+  } else {
     try {
       await prisma.membership.create({
         data: {
           createdAt: new Date(),
           teamId: verificationToken.teamId,
-          userId: userId,
+          userId,
           role: MembershipRole.MEMBER,
-          accepted: true,
+          accepted: false,
         },
       });
     } catch (e) {
@@ -153,12 +177,14 @@ export class TeamService {
         }
       } else throw e;
     }
-
-    const teamBilling = await TeamBilling.findAndInit(verificationToken.teamId);
-    await teamBilling.updateQuantity();
-
-    return verificationToken.team.name;
   }
+
+  const teamBilling = await TeamBilling.findAndInit(verificationToken.teamId);
+  await teamBilling.updateQuantity();
+
+  return verificationToken.team.name;
+}
+
 
   static async publish(teamId: number) {
     const teamBilling = await TeamBilling.findAndInit(teamId);
