@@ -408,17 +408,17 @@ export class TeamRepository {
     teamId: number;
     parentId?: number | null;
   }) {
-    const whereClause: Prisma.TeamWhereInput = { slug, parentId: null };
+    const whereClause: Prisma.TeamWhereInput = {
+      slug,
+      parentId: parentId ?? null,
+      NOT: { id: teamId },
+    };
 
-    if (parentId) {
-      whereClause.parentId = parentId;
-    }
-
-    const conflictingTeams = await this.prismaClient.team.findMany({
+    const conflictingTeam = await this.prismaClient.team.findFirst({
       where: whereClause,
       select: { id: true },
     });
 
-    return !conflictingTeams.some((team) => team.id !== teamId);
+    return !conflictingTeam;
   }
 }

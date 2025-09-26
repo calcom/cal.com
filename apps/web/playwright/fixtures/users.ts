@@ -471,7 +471,7 @@ export const createUsersFixture = (
                 },
                 data: {
                   orgProfiles: _user.profiles.length
-                    ? {
+                  ? {
                         connect: _user.profiles.map((profile) => ({ id: profile.id })),
                       }
                     : {
@@ -719,19 +719,22 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     },
     getAllTeamMembership: async () => {
       const memberships = await prisma.membership.findMany({
-        where: { userId: user.id },
+        where: {
+          userId: user.id,
+          team: {
+            isOrganization: false,
+          },
+        },
         include: { team: true, user: true },
       });
 
-      const filteredMemberships = memberships
-        .filter((membership) => !membership.team.isOrganization)
-        .map((membership) => ({
-          ...membership,
-          team: {
-            ...membership.team,
-            metadata: teamMetadataSchema.parse(membership.team.metadata),
-          },
-        }));
+      const filteredMemberships = memberships.map((membership) => ({
+        ...membership,
+        team: {
+          ...membership.team,
+          metadata: teamMetadataSchema.parse(membership.team.metadata),
+        },
+      }));
 
       if (filteredMemberships.length === 0) {
         throw new Error("No team memberships found for user");
