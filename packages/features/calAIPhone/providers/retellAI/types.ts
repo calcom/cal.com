@@ -113,7 +113,7 @@ export type RetellAgentWithDetails = {
   enabled: boolean;
   userId: number | null;
   teamId: number | null;
-  eventTypeId?: number | null;
+  inboundEventTypeId?: number | null;
   outboundPhoneNumbers: Array<{
     id: number;
     phoneNumber: string;

@@ -5,13 +5,13 @@
 
 */
 -- AlterTable
-ALTER TABLE "Agent" ADD COLUMN     "eventTypeId" INTEGER;
+ALTER TABLE "Agent" ADD COLUMN     "inboundEventTypeId" INTEGER;
 
 -- AlterTable
 ALTER TABLE "WorkflowStep" ADD COLUMN     "inboundAgentId" TEXT;
 
 -- CreateIndex
-CREATE INDEX "Agent_eventTypeId_idx" ON "Agent"("eventTypeId");
+CREATE INDEX "Agent_inboundEventTypeId_idx" ON "Agent"("inboundEventTypeId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "WorkflowStep_inboundAgentId_key" ON "WorkflowStep"("inboundAgentId");
@@ -23,4 +23,4 @@ CREATE INDEX "WorkflowStep_inboundAgentId_idx" ON "WorkflowStep"("inboundAgentId
 ALTER TABLE "WorkflowStep" ADD CONSTRAINT "WorkflowStep_inboundAgentId_fkey" FOREIGN KEY ("inboundAgentId") REFERENCES "Agent"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Agent" ADD CONSTRAINT "Agent_eventTypeId_fkey" FOREIGN KEY ("eventTypeId") REFERENCES "EventType"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Agent" ADD CONSTRAINT "Agent_inboundEventTypeId_fkey" FOREIGN KEY ("inboundEventTypeId") REFERENCES "EventType"("id") ON DELETE SET NULL ON UPDATE CASCADE;

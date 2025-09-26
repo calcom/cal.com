@@ -2536,8 +2536,8 @@ model Agent {
   providerAgentId String @unique
 
   // Event type association for inbound agents
-  eventTypeId Int?
-  eventType   EventType? @relation("inboundAgentEventType", fields: [eventTypeId], references: [id], onDelete: SetNull)
+  inboundEventTypeId Int?
+  eventType          EventType? @relation("inboundAgentEventType", fields: [inboundEventTypeId], references: [id], onDelete: SetNull)
 
   enabled   Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -2550,7 +2550,7 @@ model Agent {
 
   @@index([userId])
   @@index([teamId])
-  @@index([eventTypeId])
+  @@index([inboundEventTypeId])
 }
 
 model CalAiPhoneNumber {

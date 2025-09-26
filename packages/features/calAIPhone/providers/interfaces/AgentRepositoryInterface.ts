@@ -86,7 +86,7 @@ export interface AgentData {
   enabled: boolean;
   userId: number | null;
   teamId: number | null;
-  eventTypeId?: number | null;
+  inboundEventTypeId?: number | null;
   createdAt: Date;
   updatedAt: Date;
 }
