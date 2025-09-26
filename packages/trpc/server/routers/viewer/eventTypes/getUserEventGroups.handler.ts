@@ -63,22 +63,30 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
 
   const permissionCheckService = new PermissionCheckService();
 
-  const teamPermissionsArray = await Promise.all(
-    filteredEventTypeGroups
-      .map((group) => group.teamId)
-      .filter((teamId): teamId is number => teamId !== null && teamId !== undefined)
-      .map(async (teamId) => {
-        const canCreateEventType = await permissionCheckService.checkPermission({
-          userId: user.id,
-          teamId: teamId,
-          permission: "eventType.create",
-          fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
-        });
-        return [teamId, { canCreateEventType }] as const;
-      })
-  );
+  const teamIdsToCheck = filteredEventTypeGroups
+    .map((group) => group.teamId)
+    .filter((teamId): teamId is number => teamId !== null && teamId !== undefined);
 
-  const teamPermissions = Object.fromEntries(teamPermissionsArray);
+  const teamPermissionChecks = teamIdsToCheck.map(async (teamId) => {
+    const canCreateEventType = await permissionCheckService.checkPermission({
+      userId: user.id,
+      teamId: teamId,
+      permission: "eventType.create",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+    });
+    return {
+      teamId,
+      permissions: {
+        canCreateEventType,
+      },
+    };
+  });
+
+  const teamPermissionsArray = await Promise.all(teamPermissionChecks);
+  const teamPermissions = teamPermissionsArray.reduce((acc, item) => {
+    acc[item.teamId] = item.permissions;
+    return acc;
+  }, {} as Record<number, { canCreateEventType: boolean }>);
 
   return {
     eventTypeGroups: filteredEventTypeGroups,
