@@ -112,7 +112,7 @@ const ApiKeyListItem = ({
             setDeleteDialogOpen(false);
           }}>
           <div className="mt-2">
-            <p className="text-sm text-gray-600 dark:text-gray-300">{t("delete_api_key_warning")}</p>
+            <p className="text-subtle text-sm">{t("delete_api_key_warning")}</p>
           </div>
         </ConfirmationDialogContent>
       </Dialog>
