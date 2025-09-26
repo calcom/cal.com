@@ -1,9 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useMemo } from "react";
 
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import type { CredentialOwner } from "@calcom/types/CredentialOwner";
 import classNames from "@calcom/ui/classNames";
 
@@ -59,6 +61,18 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
     highlight,
   } = props;
 
+  const processedDescription = useMemo(() => {
+    const cleaned = stripMarkdown(description);
+    // Simple approach: if description is longer than what fits, truncate and add ...
+    const maxLength = 120; // List cards can fit a bit more text
+    if (cleaned.length <= maxLength) return cleaned;
+    
+    // Find last complete word within limit and add ...
+    const truncated = cleaned.substring(0, maxLength);
+    const lastSpace = truncated.lastIndexOf(' ');
+    return truncated.substring(0, lastSpace) + "...";
+  }, [description]);
+
   return (
     <div
       className={classNames(
@@ -87,7 +101,7 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
           <ListItemText
             component="p"
             className={classNames("whitespace-normal break-words", classNameObject?.description)}>
-            {description}
+            {processedDescription}
           </ListItemText>
           {invalidCredential && (
             <div className="flex gap-x-2 pt-2">

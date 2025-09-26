@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
 import { isRedirectApp } from "@calcom/app-store/_utils/redirectApps";
@@ -11,6 +11,7 @@ import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
@@ -39,6 +40,30 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   });
 
   const appInstalled = enabledOnTeams && userAdminTeams ? userAdminTeams.length < appAdded : appAdded > 0;
+
+  // AGGRESSIVE TRUNCATION: MS Teams overflows in middle of 2nd line, so truncate much earlier
+  const displayDescription = useMemo(() => {
+    const cleaned = stripMarkdown(app.description);
+    if (!cleaned) return "";
+
+    // FORCE TRUNCATION TEST - Always truncate to see if our code is running
+    const maxChars = 10; // EXTREME test - should always truncate
+    
+    if (cleaned.length <= maxChars) {
+      return cleaned;
+    }
+    
+    // Find last word boundary within the tight limit
+    const truncated = cleaned.substring(0, maxChars);
+    const lastSpace = truncated.lastIndexOf(' ');
+    
+    // Use word boundary if found, otherwise use the max limit (ensuring truncation at end)
+    const finalLength = lastSpace > 10 ? lastSpace : maxChars - 3; // Reserve 3 chars for "..."
+    
+    return cleaned.substring(0, finalLength) + "...";
+  }, [app.description]);
+
+
 
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
@@ -120,12 +145,11 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
       <p
         className="text-default mt-2 flex-grow text-sm"
         style={{
+          lineHeight: "1.4em",
+          maxHeight: "5.6em",
           overflow: "hidden",
-          display: "-webkit-box",
-          WebkitBoxOrient: "vertical",
-          WebkitLineClamp: "3",
         }}>
-        {app.description}
+        {displayDescription}
       </p>
 
       <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
