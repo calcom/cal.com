@@ -162,6 +162,8 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     restrictionScheduleId: null,
     useBookerTimezone: false,
     bookingRequiresAuthentication: false,
+    createdAt: null,
+    updatedAt: null,
     ...eventType,
   };
 };
