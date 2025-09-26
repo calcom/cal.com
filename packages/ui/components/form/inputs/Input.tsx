@@ -98,7 +98,11 @@ type TextAreaProps = JSX.IntrinsicElements["textarea"];
 export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function TextAreaInput(props, ref) {
   return (
     // inputStyles(),
-    <textarea {...props} ref={ref} className={classNames("min-h-[80px] w-full", props.className)} />
+    <textarea
+      {...props}
+      ref={ref}
+      className={classNames("bg-default min-h-[80px] w-full", props.className)}
+    />
   );
 });
 
