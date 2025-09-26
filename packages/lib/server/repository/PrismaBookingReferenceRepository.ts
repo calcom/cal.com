@@ -97,6 +97,7 @@ export class PrismaBookingReferenceRepository {
     return await this.deps.prismaClient.bookingReference.findMany({
       where: {
         type: appType,
+        deletedAt: null,
         booking: {
           id: bookingId,
         },
@@ -107,6 +108,7 @@ export class PrismaBookingReferenceRepository {
   async findByUserId({ userId }: { userId: number }) {
     return await this.deps.prismaClient.bookingReference.findMany({
       where: {
+        deletedAt: null,
         booking: {
           userId,
         },

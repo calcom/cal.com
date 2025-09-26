@@ -754,6 +754,7 @@ model BookingReference {
   domainWideDelegationCredentialId String?
 
   @@index([bookingId])
+  @@index([deletedAt])
   @@index([type])
   @@index([uid])
 }
