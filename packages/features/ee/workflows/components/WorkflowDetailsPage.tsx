@@ -31,13 +31,23 @@ interface Props {
   user: User;
   isOrg: boolean;
   allOptions: Option[];
+  eventTypeOptions: Option[];
   onSaveWorkflow?: () => Promise<void>;
   permissions: WorkflowPermissions;
 }
 
 export default function WorkflowDetailsPage(props: Props) {
-  const { form, workflowId, selectedOptions, setSelectedOptions, teamId, isOrg, allOptions, permissions } =
-    props;
+  const {
+    form,
+    workflowId,
+    selectedOptions,
+    setSelectedOptions,
+    teamId,
+    isOrg,
+    allOptions,
+    eventTypeOptions,
+    permissions,
+  } = props;
   const { t } = useLocale();
 
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
@@ -171,6 +181,7 @@ export default function WorkflowDetailsPage(props: Props) {
               setSelectedOptions={setSelectedOptions}
               isOrganization={isOrg}
               allOptions={allOptions}
+              eventTypeOptions={eventTypeOptions}
               onSaveWorkflow={props.onSaveWorkflow}
               actionOptions={transformedActionOptions}
             />
@@ -240,6 +251,7 @@ export default function WorkflowDetailsPage(props: Props) {
                         setReload={setReload}
                         teamId={teamId}
                         readOnly={permissions.readOnly}
+                        eventTypeOptions={eventTypeOptions}
                         onSaveWorkflow={props.onSaveWorkflow}
                         setIsDeleteStepDialogOpen={setIsDeleteStepDialogOpen}
                         isDeleteStepDialogOpen={isDeleteStepDialogOpen}

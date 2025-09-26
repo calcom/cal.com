@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import type { Workflow } from "@calcom/ee/workflows/lib/types";
 import logger from "@calcom/lib/logger";
@@ -36,7 +37,7 @@ export async function triggerFormSubmittedNoEventWorkflow(payload: string): Prom
   const shouldTrigger = await shouldTriggerFormSubmittedNoEvent({
     formId: form.id,
     responseId,
-    responses,
+    responses: responses as FORM_SUBMITTED_WEBHOOK_RESPONSES,
     submittedAt,
   });
 
@@ -46,7 +47,7 @@ export async function triggerFormSubmittedNoEventWorkflow(payload: string): Prom
     await scheduleWorkflowReminders({
       smsReminderNumber,
       formData: {
-        responses,
+        responses: responses as FORM_SUBMITTED_WEBHOOK_RESPONSES,
         user: { email: form.user.email, timeFormat: form.user.timeFormat, locale: form.user.locale ?? "en" },
       },
       hideBranding,

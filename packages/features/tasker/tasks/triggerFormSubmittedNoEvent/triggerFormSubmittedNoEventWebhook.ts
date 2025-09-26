@@ -45,7 +45,7 @@ export async function triggerFormSubmittedNoEventWebhook(payload: string): Promi
 
   const shouldTrigger = await shouldTriggerFormSubmittedNoEvent({
     formId: form.id,
-    responses,
+    responses: responses as FORM_SUBMITTED_WEBHOOK_RESPONSES,
     responseId,
   });
 
@@ -62,7 +62,7 @@ export async function triggerFormSubmittedNoEventWebhook(payload: string): Promi
       teamId: form.teamId,
       redirect,
       responseId,
-      responses,
+      responses: responses as FORM_SUBMITTED_WEBHOOK_RESPONSES,
     },
   }).catch((e) => {
     console.error(`Error executing FORM_SUBMITTED_NO_EVENT webhook`, webhook, e);
@@ -82,7 +82,7 @@ export async function triggerFormSubmittedNoEventWebhook(payload: string): Promi
       // Get action function
       const bookingActionFunction = incompleteBookingActionFunctions[actionType];
 
-      const emailValue = getSubmitterEmail(responses);
+      const emailValue = getSubmitterEmail(responses as FORM_SUBMITTED_WEBHOOK_RESPONSES);
       if (emailValue) {
         await bookingActionFunction(incompleteBookingAction, emailValue);
       }

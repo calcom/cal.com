@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import dayjs from "@calcom/dayjs";
 import { CAL_AI_AGENT_PHONE_NUMBER_FIELD } from "@calcom/features/bookings/lib/SystemField";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
@@ -10,7 +11,6 @@ import prisma from "@calcom/prisma";
 import { WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
-import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/trpc/utils";
 
 import type { FormSubmissionData, WorkflowContextData } from "./reminderScheduler";
 import type { BookingInfo } from "./smsReminderManager";
@@ -73,6 +73,7 @@ const createWorkflowReminderAndExtractPhone = async (
       scheduledDate: scheduledDate.toDate(),
       scheduled: true,
       seatReferenceId: seatReferenceUid,
+      bookingUid: evt?.uid,
     },
   });
 
@@ -91,20 +92,7 @@ type ScheduleAIPhoneCallArgs = {
   teamId: number | null;
   seatReferenceUid?: string;
   verifiedAt: Date | null;
-} & (
-  | { evt: BookingInfo; formData?: never }
-  | {
-      evt?: never;
-      formData: {
-        responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
-        user: {
-          email: string;
-          timeFormat: number | null;
-          locale: string;
-        };
-      };
-    }
-);
+} & WorkflowContextData;
 
 export type ScheduleAIPhoneCallArgsWithRequiredFields = Omit<ScheduleAIPhoneCallArgs, "workflowStepId"> & {
   workflowStepId: number; // Required
@@ -159,11 +147,14 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
   );
 
   if (!workflowStep?.agent) {
+    console.log("no agent");
     logger.warn(`No agent configured for workflow step ${workflowStepId}`);
     return;
   }
 
   if (!workflowStep.agent.outboundPhoneNumbers?.length || !activePhoneNumbers?.length) {
+    console.log("no number");
+
     logger.warn(`No active outbound phone number configured for agent ${workflowStep.agent.id}`);
     return;
   }
@@ -171,6 +162,8 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
   const featuresRepository = new FeaturesRepository(prisma);
   const calAIVoiceAgents = await featuresRepository.checkIfFeatureIsEnabledGlobally("cal-ai-voice-agents");
   if (!calAIVoiceAgents) {
+    console.log("disabled");
+
     logger.warn("Cal AI voice agents are disabled - skipping AI phone call scheduling");
     return;
   }
@@ -251,6 +244,7 @@ const scheduleAIPhoneCallForEvt = async (
         teamId,
         providerAgentId: agent.providerAgentId,
         referenceUid: workflowReminder.uuid || uuidv4(),
+        formResponses: null,
       });
 
       logger.info(`AI phone call scheduled for workflow step ${workflowStepId} at ${scheduledDate}`);
@@ -280,6 +274,7 @@ const scheduleAIPhoneCallForEvt = async (
         teamId,
         providerAgentId: agent.providerAgentId,
         referenceUid: workflowReminder.uuid || uuidv4(),
+        formResponses: null,
       });
 
       logger.info(`AI phone call scheduled for immediate execution for workflow step ${workflowStepId}`);
@@ -323,6 +318,7 @@ const scheduleAIPhoneCallForForm = async (
       userId,
       teamId,
       scheduledDate: null,
+      formResponses: formData.responses,
       bookingUid: null,
       providerAgentId: agent.providerAgentId,
       referenceUid: workflowReminder.uuid || uuidv4(),
@@ -334,7 +330,7 @@ const scheduleAIPhoneCallForForm = async (
 };
 
 interface ScheduleAIPhoneCallTaskArgs {
-  workflowReminderId?: number;
+  workflowReminderId: number;
   scheduledDate: Date | null;
   agentId: string;
   phoneNumber: string;
@@ -344,6 +340,7 @@ interface ScheduleAIPhoneCallTaskArgs {
   teamId: number | null;
   providerAgentId: string;
   referenceUid: string;
+  formResponses: FORM_SUBMITTED_WEBHOOK_RESPONSES | null;
 }
 
 const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
@@ -358,14 +355,20 @@ const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
     teamId,
     providerAgentId,
     referenceUid,
+    formResponses,
   } = args;
 
-  const featuresRepository = new FeaturesRepository(prisma);
-  const calAIVoiceAgents = await featuresRepository.checkIfFeatureIsEnabledGlobally("cal-ai-voice-agents");
-  if (!calAIVoiceAgents) {
-    logger.warn("Cal AI voice agents are disabled - skipping AI phone call");
+  if (!formResponses && !bookingUid) {
+    logger.warn("context missing for creating AI phone call task");
     return;
   }
+
+  // const featuresRepository = new FeaturesRepository(prisma);
+  // const calAIVoiceAgents = await featuresRepository.checkIfFeatureIsEnabledGlobally("cal-ai-voice-agents");
+  // if (!calAIVoiceAgents) {
+  //   logger.warn("Cal AI voice agents are disabled - skipping AI phone call");
+  //   return;
+  // }
 
   if (userId) {
     await checkRateLimitAndThrowError({
@@ -386,9 +389,10 @@ const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
         userId,
         teamId,
         providerAgentId,
+        responses: formResponses,
       },
       {
-        scheduledAt: scheduledDate,
+        scheduledAt: scheduledDate || undefined,
         maxAttempts: 1,
         referenceUid,
       }

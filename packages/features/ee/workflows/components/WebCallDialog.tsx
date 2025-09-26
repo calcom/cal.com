@@ -13,6 +13,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
+import { isFormTrigger } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 
 interface WebCallDialogProps {
@@ -22,6 +23,7 @@ interface WebCallDialogProps {
   teamId?: number;
   isOrganization?: boolean;
   form: UseFormReturn<FormValues>;
+  eventTypeOptions?: Array<{ value: string; label: string }>;
 }
 
 interface TranscriptEntry {
@@ -39,6 +41,7 @@ export function WebCallDialog({
   teamId,
   isOrganization = false,
   form,
+  eventTypeOptions = [],
 }: WebCallDialogProps) {
   const { t } = useLocale();
   const [callStatus, setCallStatus] = useState<CallStatus>("idle");
@@ -195,10 +198,28 @@ export function WebCallDialog({
   };
 
   const handleStartCall = () => {
-    const firstEventTypeId = form.getValues("activeOn")?.[0]?.value;
-    if (!firstEventTypeId) {
-      showToast(t("choose_at_least_one_event_type_test_call"), "error");
-      return;
+    const trigger = form.getValues("trigger");
+
+    let eventTypeId: number;
+
+    if (isFormTrigger(trigger)) {
+      // For form triggers, we need to pick a random event type since form triggers
+      // are active on routing forms, not event types
+      if (!eventTypeOptions || eventTypeOptions.length === 0) {
+        showToast(t("no_event_types_available_for_test_call"), "error");
+        return;
+      }
+
+      // Pick the first available event type
+      eventTypeId = parseInt(eventTypeOptions[0].value, 10);
+    } else {
+      // For regular event type triggers, use the selected event type
+      const firstEventTypeId = form.getValues("activeOn")?.[0]?.value;
+      if (!firstEventTypeId) {
+        showToast(t("choose_at_least_one_event_type_test_call"), "error");
+        return;
+      }
+      eventTypeId = parseInt(firstEventTypeId, 10);
     }
 
     if (agentId) {
@@ -208,7 +229,7 @@ export function WebCallDialog({
       createWebCallMutation.mutate({
         agentId: agentId,
         teamId: teamId,
-        eventTypeId: parseInt(firstEventTypeId, 10),
+        eventTypeId: eventTypeId,
       });
     }
   };
@@ -454,8 +475,7 @@ export function WebCallDialog({
                   type="button"
                   onClick={handleStartCall}
                   loading={createWebCallMutation.isPending || callStatus === "connecting"}
-                  disabled={!hasCredits || createWebCallMutation.isPending || callStatus === "connecting"}
-                  >
+                  disabled={!hasCredits || createWebCallMutation.isPending || callStatus === "connecting"}>
                   <Icon name="phone" className="mr-2 h-4 w-4" />
                   {callStatus === "connecting" ? t("connecting") : t("start_web_call")}
                 </Button>

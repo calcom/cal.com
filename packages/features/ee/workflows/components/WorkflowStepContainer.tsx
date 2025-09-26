@@ -88,6 +88,7 @@ type WorkflowStepProps = {
   setSelectedOptions?: Dispatch<SetStateAction<Option[]>>;
   isOrganization?: boolean;
   allOptions?: Option[];
+  eventTypeOptions?: Option[];
   onSaveWorkflow?: () => Promise<void>;
   setIsDeleteStepDialogOpen?: Dispatch<SetStateAction<boolean>>;
   isDeleteStepDialogOpen?: boolean;
@@ -1549,6 +1550,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             workflowId={params?.workflow as string}
             workflowStepId={step?.id}
             form={form}
+            eventTypeOptions={props.eventTypeOptions}
           />
         )}
 
@@ -1570,6 +1572,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             teamId={teamId}
             isOrganization={props.isOrganization}
             form={form}
+            eventTypeOptions={props.eventTypeOptions || []}
           />
         )}
 

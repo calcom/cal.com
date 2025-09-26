@@ -222,6 +222,7 @@ const processWorkflowStep = async (
       userId: workflow.userId,
       teamId: workflow.teamId,
       seatReferenceUid,
+      reminderPhone: smsReminderNumber,
       verifiedAt: step.verifiedAt,
       ...contextData,
     });
