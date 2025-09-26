@@ -364,7 +364,15 @@ export class Cal {
       "https://app.cal.com"
     );
 
-    const urlInstance = new URL(`${originToUse}/${this.calLink}`);
+    let urlInstance;
+    if (calLink.startsWith("data:")) {
+      iframe.src = calLink;
+      return;
+    } else if (calLink.startsWith("http")) {
+      urlInstance = new URL(calLink);
+    } else {
+      urlInstance = new URL(`${originToUse}/${calLink}`);
+    }
     if (!urlInstance.pathname.endsWith("embed")) {
       // TODO: Make a list of patterns that are embeddable. All except that should be allowed with a warning that "The page isn't optimized for embedding"
       urlInstance.pathname = `${urlInstance.pathname}/embed`;
@@ -491,7 +499,7 @@ export class Cal {
       // Try to readjust and scroll into view if more than 25% is hidden.
       // Otherwise we assume that user might have positioned the content appropriately already
       if (top < 0 && Math.abs(top / height) >= 0.25) {
-        // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- Intentionally done
+         
         this.inlineEl.scrollIntoView({ behavior: "smooth" });
       }
     });
@@ -852,14 +860,23 @@ export class Cal {
   async fetchIframeContent({
     calLink,
     calOrigin,
+    isPrerendering = false,
   }: {
     calLink: string;
     calOrigin: string;
+    isPrerendering?: boolean;
   }): Promise<IframeContent> {
     const calLinkUrlObject = new URL(calLink, calOrigin);
     const isHeadlessRouterPath = calLinkUrlObject ? isRouterPath(calLinkUrlObject.toString()) : false;
 
     if (!isHeadlessRouterPath) {
+      return {
+        type: "src",
+        src: calLink,
+      };
+    }
+
+    if (isPrerendering) {
       return {
         type: "src",
         src: calLink,
@@ -974,6 +991,7 @@ class CalApi {
     const iframeContent = await this.cal.fetchIframeContent({
       calLink,
       calOrigin,
+      isPrerendering: false,
     });
 
     const iframe = this.cal.createIframe({
@@ -1226,6 +1244,7 @@ class CalApi {
           const iframeContent = await this.cal.fetchIframeContent({
             calLink: calLinkUrlObject.toString(),
             calOrigin,
+            isPrerendering,
           });
 
           this.cal.loadInIframe({
@@ -1267,6 +1286,7 @@ class CalApi {
     const iframeContent = await this.cal.fetchIframeContent({
       calLink: calLinkUrlObject.toString(),
       calOrigin,
+      isPrerendering,
     });
 
     const iframe = this.cal.createIframe({
@@ -1584,7 +1604,7 @@ document.addEventListener("click", (e) => {
   try {
     config = JSON.parse(configString);
   } catch (e) {
-    console.warn('Error parsing calConfig', e);
+    console.warn("Error parsing calConfig", e);
     config = {};
   }
 
