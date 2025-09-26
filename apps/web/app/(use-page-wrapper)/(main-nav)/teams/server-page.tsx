@@ -2,11 +2,12 @@ import type { SearchParams } from "app/_types";
 import type { Session } from "next-auth";
 import { unstable_cache } from "next/cache";
 
-import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { TeamsListing } from "@calcom/features/ee/teams/components/TeamsListing";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { TeamService } from "@calcom/lib/server/service/teamService";
 import prisma from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -49,21 +50,28 @@ export const ServerTeamsListing = async ({
   const teams = await getCachedTeams(userId);
   const userProfile = session?.user?.profile;
   const orgId = userProfile?.organizationId ?? session?.user.org?.id;
-  const orgRole =
-    session?.user?.org?.role ??
-    userProfile?.organization?.members.find((m: { userId: number }) => m.userId === userId)?.role;
-  const isOrgAdminOrOwner = checkAdminOrOwner(orgRole);
+
+  const permissionCheckService = new PermissionCheckService();
+  const teamIdsWithCreatePermission = orgId
+    ? await permissionCheckService.getTeamIdsWithPermission({
+        userId: session.user.id,
+        permission: "team.create",
+        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      })
+    : [];
+
+  const canCreateTeam = !orgId || teamIdsWithCreatePermission.includes(orgId);
 
   return {
     Main: (
       <TeamsListing
         teams={teams}
         orgId={orgId ?? null}
-        isOrgAdmin={isOrgAdminOrOwner}
+        isOrgAdmin={canCreateTeam}
         teamNameFromInvite={teamNameFromInvite ?? null}
         errorMsgFromInvite={errorMsgFromInvite}
       />
     ),
-    CTA: !orgId || isOrgAdminOrOwner ? <TeamsCTA /> : null,
+    CTA: !orgId || canCreateTeam ? <TeamsCTA /> : null,
   };
 };
