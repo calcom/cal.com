@@ -2149,7 +2149,7 @@
   "delete_sso_configuration_confirmation": "はい。{{connectionType}} の構成を削除します",
   "delete_sso_configuration_confirmation_description": "{{connectionType}} の構成を削除してもよろしいですか？{{connectionType}} でのログインを使用しているチームメンバーは、Cal.com にアクセスできなくなります。",
   "organizer_timezone": "主催者のタイムゾーン",
-  "email_user_cta": "Accept Invite",
+  "email_user_cta": "招待を表示",
   "email_no_user_invite_heading_subteam": "{{parentTeamName}}組織のチームに参加するよう招待されました",
   "email_no_user_invite_heading_org": "{{appName}}組織に参加するよう招待されました",
   "email_no_user_invite_subheading": "{{invitedBy}} は {{appName}} のチームに参加するようあなたを招待しました。{{appName}} は、イベント調整スケジューラーです。チームと延々とメールのやりとりをすることなくミーティングのスケジュール設定を行うことができます。",

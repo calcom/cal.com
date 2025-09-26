@@ -2149,7 +2149,7 @@
   "delete_sso_configuration_confirmation": "Da, șterg configurația {{connectionType}}",
   "delete_sso_configuration_confirmation_description": "Sigur doriți să ștergeți configurația {{connectionType}}? Membrii echipei dvs. care utilizează conectarea prin {{connectionType}} nu vor mai putea accesa Cal.com.",
   "organizer_timezone": "Fusul orar al organizatorului",
-  "email_user_cta": "Accept Invite",
+  "email_user_cta": "Vizualizare invitație",
   "email_no_user_invite_heading_subteam": "Ai fost invitat să te alături unei echipe din organizația {{parentTeamName}}.",
   "email_no_user_invite_heading_org": "Ai fost invitat să te alături unei organizații {{appName}}.",
   "email_no_user_invite_subheading": "{{invitedBy}} v-a invitat să faceți parte din echipa sa de pe {{appName}}. {{appName}} este un instrument de planificare a evenimentelor, care vă permite dvs. și echipei dvs. să programați ședințe fără a face ping-pong prin e-mail.",

@@ -2149,7 +2149,7 @@
   "delete_sso_configuration_confirmation": "Да, удалить конфигурацию {{connectionType}}",
   "delete_sso_configuration_confirmation_description": "Удалить конфигурацию {{connectionType}}? Участники команды, входящие в Cal.com через {{connectionType}}, больше не смогут получить к нему доступ.",
   "organizer_timezone": "Часовой пояс организатора",
-  "email_user_cta": "Accept Invite",
+  "email_user_cta": "Посмотреть приглашение",
   "email_no_user_invite_heading_subteam": "Вас пригласили присоединиться к команде организации {{parentTeamName}}.",
   "email_no_user_invite_heading_org": "Вас пригласили присоединиться к организации {{appName}}.",
   "email_no_user_invite_subheading": "{{invitedBy}} пригласил(-а) вас в команду в {{appName}}. {{appName}} — это гибкий планировщик событий, с помощью которого пользователи и целые команды могут планировать встречи без утомительной переписки по электронной почте.",

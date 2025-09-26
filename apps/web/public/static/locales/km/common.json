@@ -2149,7 +2149,7 @@
   "delete_sso_configuration_confirmation": "បាទ/ចាស, លុបការកំណត់រចនាសម្ព័ន្ធ {{connectionType}}",
   "delete_sso_configuration_confirmation_description": "តើអ្នកប្រាកដថាអ្នកចង់លុបការកំណត់រចនាសម្ព័ន្ធ {{connectionType}} មែនទេ? សមាជិកក្រុមរបស់អ្នកដែលប្រើការចូល {{connectionType}} នឹងមិនអាចចូលប្រើ Cal.com បានទៀតទេ។",
   "organizer_timezone": "ល្វែងម៉ោងរបស់អ្នករៀបចំ",
-  "email_user_cta": "Accept Invite",
+  "email_user_cta": "មើលការអញ្ជើញ",
   "email_no_user_invite_heading_subteam": "អ្នកត្រូវបានអញ្ជើញឱ្យចូលរួមក្នុងក្រុមនៃអង្គការ {{parentTeamName}}",
   "email_no_user_invite_heading_org": "អ្នកត្រូវបានអញ្ជើញឱ្យចូលរួមក្នុងអង្គការ {{appName}}",
   "email_no_user_invite_subheading": "{{invitedBy}} បានអញ្ជើញអ្នកឱ្យចូលរួមជាក្រុមរបស់ពួកគេនៅលើ {{appName}}។ {{appName}} គឺជាកម្មវិធីរៀបចំព្រឹត្តិការណ៍ដែលអនុញ្ញាតឱ្យអ្នកនិងក្រុមរបស់អ្នករៀបចំការជួបប្រជុំដោយមិនចាំបាច់ផ្លាស់ប្តូរអ៊ីមែល។",

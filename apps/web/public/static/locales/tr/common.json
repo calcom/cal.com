@@ -2149,7 +2149,7 @@
   "delete_sso_configuration_confirmation": "Evet, {{connectionType}} yapılandırmasını sil",
   "delete_sso_configuration_confirmation_description": "{{connectionType}} yapılandırmasını silmek istediğinizden emin misiniz? {{connectionType}} girişini kullanan ekip üyeleriniz artık Cal.com'a erişemeyecek.",
   "organizer_timezone": "Organizatörün saat dilimi",
-  "email_user_cta": "Accept Invite",
+  "email_user_cta": "Daveti görüntüle",
   "email_no_user_invite_heading_subteam": "{{parentTeamName}} kuruluşunun bir ekibine katılmaya davet edildiniz",
   "email_no_user_invite_heading_org": "Bir {{appName}} kuruluşuna katılmaya davet edildiniz",
   "email_no_user_invite_subheading": "{{invitedBy}}, sizi {{appName}} ekibine katılmaya davet etti. {{appName}}, size ve ekibinize e-posta iletişimine ihtiyaç duymadan toplantı planlama yapma olanağı sağlayan bir etkinlik planlayıcıdır.",

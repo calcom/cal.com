@@ -2149,7 +2149,7 @@
   "delete_sso_configuration_confirmation": "Ναι, διαγραφή διαμόρφωσης {{connectionType}}",
   "delete_sso_configuration_confirmation_description": "Είστε βέβαιοι ότι θέλετε να διαγράψετε τη διαμόρφωση {{connectionType}}; Τα μέλη της ομάδας σας που χρησιμοποιούν σύνδεση {{connectionType}} δεν θα μπορούν πλέον να έχουν πρόσβαση στο Cal.com.",
   "organizer_timezone": "Ζώνη ώρας διοργανωτή",
-  "email_user_cta": "Accept Invite",
+  "email_user_cta": "Προβολή πρόσκλησης",
   "email_no_user_invite_heading_subteam": "Έχετε προσκληθεί να συμμετάσχετε σε μια ομάδα του οργανισμού {{parentTeamName}}",
   "email_no_user_invite_heading_org": "Έχετε προσκληθεί να συμμετάσχετε σε έναν οργανισμό {{appName}}",
   "email_no_user_invite_subheading": "Ο/Η {{invitedBy}} σας έχει προσκαλέσει να συμμετάσχετε στην ομάδα τους στο {{appName}}. Το {{appName}} είναι ο προγραμματιστής συναντήσεων που επιτρέπει σε εσάς και την ομάδα σας να κανονίζετε συναντήσεις χωρίς ατελείωτα email.",

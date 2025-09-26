@@ -2149,7 +2149,7 @@
   "delete_sso_configuration_confirmation": "Tak, usuń konfigurację {{connectionType}}",
   "delete_sso_configuration_confirmation_description": "Czy na pewno chcesz usunąć konfigurację {{connectionType}}? Członkowie zespołu, którzy używają logowania {{connectionType}} nie będą już mogli uzyskać dostępu do Cal.com.",
   "organizer_timezone": "Strefa czasowa organizatora",
-  "email_user_cta": "Accept Invite",
+  "email_user_cta": "Wyświetl zaproszenie",
   "email_no_user_invite_heading_subteam": "Zostałeś/zostałaś zaproszony/a do dołączenia do zespołu organizacji {{parentTeamName}}.",
   "email_no_user_invite_heading_org": "Zostałeś/zostałaś zaproszony/a do dołączenia do organizacji {{appName}}.",
   "email_no_user_invite_subheading": "Użytkownik {{invitedBy}} zaprasza Cię do dołączenia do jego zespołu w aplikacji {{appName}}. Aplikacja {{appName}} to terminarz do planowania wydarzeń, który umożliwi Tobie i Twojemu zespołowi planowanie spotkań bez czasochłonnej wymiany wiadomości e-mail.",

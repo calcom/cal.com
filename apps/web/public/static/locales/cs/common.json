@@ -2149,7 +2149,7 @@
   "delete_sso_configuration_confirmation": "Ano, odstranit konfiguraci {{connectionType}}",
   "delete_sso_configuration_confirmation_description": "Opravdu chcete odstranit konfiguraci {{connectionType}}? Členové vašeho týmu, kteří používají přihlášení {{connectionType}}, ztratí přístup k webu Cal.com.",
   "organizer_timezone": "Časové pásmo organizátora",
-  "email_user_cta": "Accept Invite",
+  "email_user_cta": "Zobrazit pozvánku",
   "email_no_user_invite_heading_subteam": "Byli jste pozváni k připojení do týmu organizace {{parentTeamName}}",
   "email_no_user_invite_heading_org": "Byli jste pozváni k připojení do organizace {{appName}}",
   "email_no_user_invite_subheading": "Uživatel {{invitedBy}} vás pozval, abyste se připojili k jeho týmu v aplikaci {{appName}}. {{appName}} je plánovač událostí, který vám a vašemu týmu umožňuje plánovat schůzky bez e-mailového ping-pongu.",

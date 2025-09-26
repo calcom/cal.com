@@ -2149,7 +2149,7 @@
   "delete_sso_configuration_confirmation": "نعم، حذف تكوين {{connectionType}}",
   "delete_sso_configuration_confirmation_description": "هل تريد بالتأكيد حذف تكوين {{connectionType}}؟ لن يتمكن أعضاء فريقك الذين يستخدمون معلومات تسجيل الدخول إلى {{connectionType}} من الوصول إلى Cal.com بعد الآن.",
   "organizer_timezone": "منظم المناطق الزمنية",
-  "email_user_cta": "Accept Invite",
+  "email_user_cta": "عرض الدعوة",
   "email_no_user_invite_heading_subteam": "تمت دعوتك للانضمام إلى فريق من منظمة {{parentTeamName}}",
   "email_no_user_invite_heading_org": "تمت دعوتك للانضمام إلى منظمة {{appName}}",
   "email_no_user_invite_subheading": "دعاك {{invitedBy}} للانضمام إلى فريقه على {{appName}}. إن {{appName}} هو برنامج جدولة الأحداث الذي يمكّنك أنت وفريقك من جدولة الاجتماعات دون الحاجة إلى المراسلة عبر البريد الإلكتروني.",

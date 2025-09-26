@@ -2149,7 +2149,7 @@
   "delete_sso_configuration_confirmation": "Kyllä, poista {{connectionType}}-määritykset",
   "delete_sso_configuration_confirmation_description": "Haluatko varmasti poistaa {{connectionType}}-määritykset? Tiimisi jäsenet, jotka käyttävät {{connectionType}}-kirjautumista, eivät enää pääse käyttämään Cal.comia.",
   "organizer_timezone": "Järjestäjän aikavyöhyke",
-  "email_user_cta": "Accept Invite",
+  "email_user_cta": "Näytä kutsu",
   "email_no_user_invite_heading_subteam": "Sinut on kutsuttu liittymään {{parentTeamName}}-organisaation tiimiin",
   "email_no_user_invite_heading_org": "Sinut on kutsuttu liittymään {{appName}}-organisaatioon",
   "email_no_user_invite_subheading": "{{invitedBy}} on kutsunut sinut liittymään tiimiinsä palvelussa {{appName}}. {{appName}} on tapaamisenhallintakalenteri, jonka avulla sinä ja tiimisi voitte sopia tapaamisia ilman loputtomia sähköposteja.",

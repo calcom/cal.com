@@ -2149,7 +2149,7 @@
   "delete_sso_configuration_confirmation": "Sí, elimina la configuració de {{connectionType}}",
   "delete_sso_configuration_confirmation_description": "Estàs segur que vols eliminar la configuració de {{connectionType}}? Els membres del teu equip que utilitzin l'inici de sessió {{connectionType}} ja no podran accedir a Cal.com.",
   "organizer_timezone": "Zona horària de l'organitzador",
-  "email_user_cta": "Accept Invite",
+  "email_user_cta": "Veure invitació",
   "email_no_user_invite_heading_subteam": "Has estat convidat a unir-te a un equip de l'organització {{parentTeamName}}",
   "email_no_user_invite_heading_org": "Has estat convidat a unir-te a una organització de {{appName}}",
   "email_no_user_invite_subheading": "{{invitedBy}} t'ha convidat a unir-te al seu equip a {{appName}}. {{appName}} és el programador de reunions que us permet a tu i al teu equip programar trobades sense el ping-pong dels correus electrònics.",
