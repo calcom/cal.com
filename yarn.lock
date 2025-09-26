@@ -3243,6 +3243,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/eslint-config@workspace:packages/eslint-config"
   dependencies:
+    "@calcom/eslint-plugin-eslint": "workspace:*"
     "@eslint/js": 9.36.0
     "@next/eslint-plugin-next": 15.4.5
     "@typescript-eslint/eslint-plugin": 8.39.0
