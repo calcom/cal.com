@@ -52,15 +52,14 @@ export const ServerTeamsListing = async ({
   const orgId = userProfile?.organizationId ?? session?.user.org?.id;
 
   const permissionCheckService = new PermissionCheckService();
-  const teamIdsWithCreatePermission = orgId
-    ? await permissionCheckService.getTeamIdsWithPermission({
+  const canCreateTeam = orgId
+    ? await permissionCheckService.checkPermission({
         userId: session.user.id,
+        teamId: orgId,
         permission: "team.create",
         fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
       })
-    : [];
-
-  const canCreateTeam = !orgId || teamIdsWithCreatePermission.includes(orgId);
+    : false;
 
   return {
     Main: (
