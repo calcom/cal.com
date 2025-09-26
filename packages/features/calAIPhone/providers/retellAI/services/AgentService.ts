@@ -1,5 +1,7 @@
+import { isValidPhoneNumber } from "libphonenumber-js";
 import { v4 as uuidv4 } from "uuid";
 
+import { replaceEventTypePlaceholders } from "@calcom/features/ee/workflows/components/agent-configuration/utils/promptUtils";
 import { RETELL_AI_TEST_MODE, RETELL_AI_TEST_EVENT_TYPE_MAP } from "@calcom/lib/constants";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { HttpError } from "@calcom/lib/http-error";
@@ -14,17 +16,30 @@ import type {
   AIPhoneServiceTools,
 } from "../../../interfaces/AIPhoneService.interface";
 import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
+import type { PhoneNumberRepositoryInterface } from "../../interfaces/PhoneNumberRepositoryInterface";
 import { RetellAIServiceMapper } from "../RetellAIServiceMapper";
 import type { RetellAIRepository, Language } from "../types";
 import { getLlmId } from "../types";
 
 export class AgentService {
   private logger = logger.getSubLogger({ prefix: ["AgentService"] });
+  private retellRepository: RetellAIRepository;
+  private agentRepository: AgentRepositoryInterface;
+  private phoneNumberRepository: PhoneNumberRepositoryInterface;
 
-  constructor(
-    private retellRepository: RetellAIRepository,
-    private agentRepository: AgentRepositoryInterface
-  ) {}
+  constructor({
+    retellRepository,
+    agentRepository,
+    phoneNumberRepository,
+  }: {
+    retellRepository: RetellAIRepository;
+    agentRepository: AgentRepositoryInterface;
+    phoneNumberRepository: PhoneNumberRepositoryInterface;
+  }) {
+    this.retellRepository = retellRepository;
+    this.agentRepository = agentRepository;
+    this.phoneNumberRepository = phoneNumberRepository;
+  }
 
   private async createApiKey({ userId, teamId }: { userId: number; teamId?: number }) {
     const apiKeyRepository = await PrismaApiKeyRepository.withGlobalPrisma();
@@ -447,7 +462,7 @@ export class AgentService {
     }
   }
 
-  async createAgent({
+  async createOutboundAgent({
     name: _name,
     userId,
     teamId,
@@ -485,7 +500,7 @@ export class AgentService {
     });
 
     if (workflowStepId) {
-      await this.agentRepository.linkToWorkflowStep({
+      await this.agentRepository.linkOutboundAgentToWorkflow({
         workflowStepId,
         agentId: agent.id,
       });
@@ -495,6 +510,112 @@ export class AgentService {
       id: agent.id,
       providerAgentId: agent.providerAgentId,
       message: "Agent created successfully",
+    };
+  }
+
+  async createInboundAgent({
+    name,
+    phoneNumber,
+    userId,
+    teamId,
+    workflowStepId,
+    aiConfigurationService,
+  }: {
+    name?: string;
+    phoneNumber: string;
+    userId: number;
+    teamId?: number;
+    workflowStepId: number;
+    aiConfigurationService: {
+      setupInboundAIConfiguration: () => Promise<{ llmId: string; agentId: string }>;
+    };
+  }) {
+    if (teamId) {
+      const canManage = await this.agentRepository.canManageTeamResources({
+        userId,
+        teamId,
+      });
+      if (!canManage) {
+        throw new HttpError({
+          statusCode: 403,
+          message: "You don't have permission to create agents for this team.",
+        });
+      }
+    }
+
+    const isPhoneNumberValid = isValidPhoneNumber(phoneNumber);
+    if (!isPhoneNumberValid) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Invalid phone number",
+      });
+    }
+
+    let phoneNumberRecord;
+    if (teamId) {
+      phoneNumberRecord = await this.phoneNumberRepository.findByPhoneNumberAndTeamId({
+        phoneNumber,
+        teamId,
+        userId,
+      });
+    } else {
+      phoneNumberRecord = await this.phoneNumberRepository.findByPhoneNumberAndUserId({
+        phoneNumber,
+        userId,
+      });
+    }
+
+    if (!phoneNumberRecord) {
+      throw new HttpError({
+        statusCode: 404,
+        message: "Phone number not found or you don't have access to it",
+      });
+    }
+
+    if (phoneNumberRecord.inboundAgentId) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Inbound agent already configured for this phone number",
+      });
+    }
+
+    const agentName = name || `Inbound Agent - ${workflowStepId}`;
+
+    const llmConfig = await aiConfigurationService.setupInboundAIConfiguration();
+
+    const agent = await this.agentRepository.create({
+      name: agentName,
+      providerAgentId: llmConfig.agentId,
+      userId,
+      teamId,
+    });
+
+    await this.agentRepository.linkInboundAgentToWorkflow({
+      workflowStepId,
+      agentId: agent.id,
+    });
+
+    // Update the Retell phone number with the new inbound agent ID
+    await this.retellRepository.updatePhoneNumber(phoneNumber, {
+      inbound_agent_id: llmConfig.agentId,
+    });
+
+    const updateResult = await this.phoneNumberRepository.setInboundProviderAgentIdIfUnset({
+      id: phoneNumberRecord.id,
+      inboundProviderAgentId: agent.providerAgentId,
+    });
+
+    if (!updateResult.success) {
+      throw new HttpError({
+        statusCode: 409,
+        message: `Inbound agent was configured by another request. Conflicting agent: ${updateResult.conflictingAgentId}`,
+      });
+    }
+
+    return {
+      id: agent.id,
+      providerAgentId: agent.providerAgentId,
+      message: "Inbound agent created successfully",
     };
   }
 
@@ -537,8 +658,13 @@ export class AgentService {
       });
     }
 
+    const updatedPrompt =
+      agent.eventTypeId && generalPrompt
+        ? replaceEventTypePlaceholders(generalPrompt, agent.eventTypeId)
+        : generalPrompt;
+
     const hasRetellUpdates =
-      generalPrompt !== undefined ||
+      updatedPrompt !== undefined ||
       beginMessage !== undefined ||
       generalTools !== undefined ||
       voiceId !== undefined ||
@@ -551,10 +677,10 @@ export class AgentService {
 
         if (
           llmId &&
-          (generalPrompt !== undefined || beginMessage !== undefined || generalTools !== undefined)
+          (updatedPrompt !== undefined || beginMessage !== undefined || generalTools !== undefined)
         ) {
           const llmUpdateData = RetellAIServiceMapper.extractLLMUpdateData(
-            generalPrompt,
+            updatedPrompt,
             beginMessage,
             generalTools
           );

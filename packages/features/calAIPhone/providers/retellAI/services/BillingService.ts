@@ -20,11 +20,19 @@ const stripeErrorSchema = z.object({
 
 export class BillingService {
   private logger = logger.getSubLogger({ prefix: ["BillingService"] });
+  private phoneNumberRepository: PhoneNumberRepositoryInterface;
+  private retellRepository: RetellAIRepository;
 
-  constructor(
-    private phoneNumberRepository: PhoneNumberRepositoryInterface,
-    private retellRepository: RetellAIRepository
-  ) {}
+  constructor({
+    phoneNumberRepository,
+    retellRepository,
+  }: {
+    phoneNumberRepository: PhoneNumberRepositoryInterface;
+    retellRepository: RetellAIRepository;
+  }) {
+    this.phoneNumberRepository = phoneNumberRepository;
+    this.retellRepository = retellRepository;
+  }
 
   async generatePhoneNumberCheckoutSession({
     userId,
@@ -140,7 +148,7 @@ export class BillingService {
       await this.phoneNumberRepository.updateSubscriptionStatus({
         id: phoneNumberId,
         subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
-        disconnectOutboundAgent: false,
+        disconnectAgents: false,
       });
 
       try {
@@ -166,7 +174,7 @@ export class BillingService {
       await this.phoneNumberRepository.updateSubscriptionStatus({
         id: phoneNumberId,
         subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
-        disconnectOutboundAgent: true,
+        disconnectAgents: true,
       });
 
       // Delete the phone number from Retell, DB

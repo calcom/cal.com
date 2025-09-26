@@ -5,8 +5,15 @@ import type { RetellAIRepository, RetellVoice } from "../types";
 
 export class VoiceService {
   private logger = logger.getSubLogger({ prefix: ["VoiceService"] });
+  private retellRepository: RetellAIRepository;
 
-  constructor(private retellRepository: RetellAIRepository) {}
+  constructor({
+    retellRepository,
+  }: {
+    retellRepository: RetellAIRepository;
+  }) {
+    this.retellRepository = retellRepository;
+  }
 
   async listVoices(): Promise<RetellVoice[]> {
     try {

@@ -71,7 +71,11 @@ export class PrismaAgentRepositoryAdapter implements AgentRepositoryInterface {
     await PrismaAgentRepository.delete(params);
   }
 
-  async linkToWorkflowStep(params: { workflowStepId: number; agentId: string }): Promise<void> {
-    await PrismaAgentRepository.linkToWorkflowStep(params);
+  async linkOutboundAgentToWorkflow(params: { workflowStepId: number; agentId: string }): Promise<void> {
+    await PrismaAgentRepository.linkOutboundAgentToWorkflow(params);
+  }
+
+  async linkInboundAgentToWorkflow(params: { workflowStepId: number; agentId: string }): Promise<void> {
+    await PrismaAgentRepository.linkInboundAgentToWorkflow(params);
   }
 }

@@ -9,13 +9,13 @@ import type { WorkflowPermissions } from "@calcom/lib/server/repository/workflow
 import { WorkflowActions } from "@calcom/prisma/enums";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { FormCard, FormCardBody } from "@calcom/ui/components/card";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
-import { isCalAIAction, isFormTrigger, isSMSAction, isWhatsappAction } from "../lib/actionHelperFunctions";
+import { useAgentsData } from "../hooks/useAgentsData";
+import { isCalAIAction, isSMSAction, isFormTrigger, isWhatsappAction } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
 import WorkflowStepContainer from "./WorkflowStepContainer";
@@ -105,8 +105,6 @@ export default function WorkflowDetailsPage(props: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventTypeId]);
 
-  const steps = form.getValues("steps") || [];
-
   const addAction = (
     action: WorkflowActions,
     sendTo?: string,
@@ -143,29 +141,24 @@ export default function WorkflowDetailsPage(props: Props) {
       includeCalendarEvent: false,
       verifiedAt: SCANNING_WORKFLOW_STEPS ? null : new Date(),
       agentId: null,
+      inboundAgentId: null,
     };
     steps?.push(step);
     form.setValue("steps", steps);
   };
 
-  const agentQueriesTrpc = trpc.useQueries((t) =>
-    steps.map((step, index) => {
-      const watchedAgentId = form.watch(`steps.${index}.agentId`);
-      const agentId = step?.agentId ?? watchedAgentId ?? null;
-
-      return t.viewer.aiVoiceAgent.get({ id: agentId ?? "" }, { enabled: !!agentId });
-    })
-  );
+  const { outboundAgentQueries: agentQueriesTrpc, inboundAgentQueries: inboundAgentQueriesTrpc } =
+    useAgentsData(form);
 
   return (
     <>
       <div>
         <FormCard
-          className="border-muted mb-0"
+          className="mb-0 border-muted"
           collapsible={false}
           label={
-            <div className="flex items-center gap-2 pb-2 pt-1">
-              <div className="border-subtle text-subtle ml-1 rounded-lg border p-1">
+            <div className="flex gap-2 items-center pt-1 pb-2">
+              <div className="p-1 ml-1 rounded-lg border border-subtle text-subtle">
                 <Icon name="zap" size="16" />
               </div>
               <div className="text-sm font-medium leading-none">{t("trigger")}</div>
@@ -194,16 +187,18 @@ export default function WorkflowDetailsPage(props: Props) {
             {form.getValues("steps")?.map((step, index) => {
               const agentData = agentQueriesTrpc[index]?.data;
               const isAgentLoading = agentQueriesTrpc[index]?.isPending;
+              const inboundAgentData = inboundAgentQueriesTrpc[index]?.data;
+              const isInboundAgentLoading = inboundAgentQueriesTrpc[index]?.isPending;
 
               return (
                 <div key={index}>
                   <FormCard
                     key={step.id}
-                    className="bg-muted border-muted mb-0"
+                    className="mb-0 bg-muted border-muted"
                     collapsible={false}
                     label={
-                      <div className="flex items-center gap-2 pb-2 pt-1">
-                        <div className="border-subtle text-subtle rounded-lg border p-1">
+                      <div className="flex gap-2 items-center pt-1 pb-2">
+                        <div className="p-1 rounded-lg border border-subtle text-subtle">
                           <Icon name="arrow-right" size="16" />
                         </div>
                         <div className="text-sm font-medium leading-none">{t("action")}</div>
@@ -258,6 +253,9 @@ export default function WorkflowDetailsPage(props: Props) {
                         isAgentLoading={isAgentLoading}
                         agentData={agentData}
                         actionOptions={transformedActionOptions}
+                        inboundAgentData={inboundAgentData}
+                        isInboundAgentLoading={isInboundAgentLoading}
+                        allOptions={allOptions}
                       />
                     </FormCardBody>
                   </FormCard>

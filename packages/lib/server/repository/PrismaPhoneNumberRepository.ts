@@ -434,18 +434,21 @@ export class PrismaPhoneNumberRepository {
   static async updateSubscriptionStatus({
     id,
     subscriptionStatus,
-    disconnectOutboundAgent = false,
+    disconnectAgents = false,
   }: {
     id: number;
     subscriptionStatus: PhoneNumberSubscriptionStatus;
-    disconnectOutboundAgent?: boolean;
+    disconnectAgents?: boolean;
   }) {
     const updateData: Prisma.CalAiPhoneNumberUpdateInput = {
       subscriptionStatus,
     };
 
-    if (disconnectOutboundAgent) {
+    if (disconnectAgents) {
       updateData.outboundAgent = {
+        disconnect: true,
+      };
+      updateData.inboundAgent = {
         disconnect: true,
       };
     }
@@ -515,6 +518,60 @@ export class PrismaPhoneNumberRepository {
       },
       data: updateData,
     });
+  }
+
+  static async setInboundProviderAgentIdIfUnset({
+    id,
+    inboundProviderAgentId,
+  }: {
+    id: number;
+    inboundProviderAgentId: string;
+  }): Promise<{ success: boolean; conflictingAgentId?: string }> {
+    try {
+      // First find the agent to connect
+      const agent = await prisma.agent.findFirst({
+        where: {
+          providerAgentId: inboundProviderAgentId,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!agent) {
+        throw new Error(`Agent with providerAgentId ${inboundProviderAgentId} not found`);
+      }
+
+      // Atomic update: only set if inboundAgentId is currently null
+      const result = await prisma.calAiPhoneNumber.updateMany({
+        where: {
+          id,
+          inboundAgentId: null, // Only update if currently null
+        },
+        data: {
+          inboundAgentId: agent.id,
+        },
+      });
+
+      // Check if the update was successful (count === 1 means the record was found and updated)
+      if (result.count === 1) {
+        return { success: true };
+      }
+
+      // If count === 0, it means the record either doesn't exist or inboundAgentId is not null
+      // Get the current agent to provide context
+      const current = await prisma.calAiPhoneNumber.findUnique({
+        where: { id },
+        select: { inboundAgentId: true },
+      });
+      return {
+        success: false,
+        conflictingAgentId: current?.inboundAgentId || undefined,
+      };
+    } catch (error) {
+      // Rethrow non-Prisma errors
+      throw error;
+    }
   }
 
   static async findByPhoneNumber({ phoneNumber }: { phoneNumber: string }) {

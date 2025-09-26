@@ -62,7 +62,7 @@ export class PrismaPhoneNumberRepositoryAdapter implements PhoneNumberRepository
   async updateSubscriptionStatus(params: {
     id: number;
     subscriptionStatus: PhoneNumberSubscriptionStatus;
-    disconnectOutboundAgent?: boolean;
+    disconnectAgents?: boolean;
   }): Promise<void> {
     await PrismaPhoneNumberRepository.updateSubscriptionStatus(params);
   }
@@ -77,5 +77,12 @@ export class PrismaPhoneNumberRepositoryAdapter implements PhoneNumberRepository
       inboundProviderAgentId: params.inboundProviderAgentId,
       outboundProviderAgentId: params.outboundProviderAgentId,
     });
+  }
+
+  async setInboundProviderAgentIdIfUnset(params: {
+    id: number;
+    inboundProviderAgentId: string;
+  }): Promise<{ success: boolean; conflictingAgentId?: string }> {
+    return await PrismaPhoneNumberRepository.setInboundProviderAgentIdIfUnset(params);
   }
 }
