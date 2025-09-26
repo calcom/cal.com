@@ -1,6 +1,8 @@
+import { isTeamOwner } from "@calcom/features/ee/teams/lib/queries";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { prisma } from "@calcom/prisma";
+import type { Membership } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { RoleManagementError, RoleManagementErrorCode } from "../domain/errors/role-management.error";
@@ -10,7 +12,13 @@ import { RoleService } from "./role.service";
 
 interface IRoleManager {
   isPBACEnabled: boolean;
-  checkPermissionToChangeRole(userId: number, targetId: number, scope: "org" | "team"): Promise<void>;
+  checkPermissionToChangeRole(
+    userId: number,
+    targetId: number,
+    scope: "org" | "team",
+    memberId?: number,
+    newRole?: MembershipRole | string
+  ): Promise<void>;
   assignRole(
     userId: number,
     organizationId: number,
@@ -29,7 +37,17 @@ class PBACRoleManager implements IRoleManager {
     private readonly permissionCheckService: PermissionCheckService
   ) {}
 
-  async checkPermissionToChangeRole(userId: number, targetId: number, scope: "org" | "team"): Promise<void> {
+  async checkPermissionToChangeRole(
+    userId: number,
+    targetId: number,
+    scope: "org" | "team",
+    // Not required for this instance
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _memberId?: number,
+    // Not required for this instance
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _newRole?: MembershipRole | string
+  ): Promise<void> {
     const hasPermission = await this.permissionCheckService.checkPermission({
       userId,
       teamId: targetId,
@@ -95,7 +113,69 @@ class PBACRoleManager implements IRoleManager {
 
 class LegacyRoleManager implements IRoleManager {
   public isPBACEnabled = false;
-  async checkPermissionToChangeRole(userId: number, targetId: number, scope: "org" | "team"): Promise<void> {
+
+  protected async validateRoleChange(
+    userId: number,
+    teamId: number,
+    memberId: number,
+    newRole: MembershipRole | string,
+    memberships: Membership[]
+  ): Promise<void> {
+    // Only validate for traditional MembershipRole values
+    if (typeof newRole !== "string" || !Object.values(MembershipRole).includes(newRole as MembershipRole)) {
+      return;
+    }
+
+    const targetMembership = memberships.find((m) => m.userId === memberId);
+    const myMembership = memberships.find((m) => m.userId === userId);
+    const teamOwners = memberships.filter((m) => m.role === MembershipRole.OWNER);
+    const teamHasMoreThanOneOwner = teamOwners.length > 1;
+
+    if (!targetMembership) {
+      throw new RoleManagementError("Target membership not found", RoleManagementErrorCode.UNAUTHORIZED);
+    }
+
+    // Only owners can award owner role
+    if (newRole === MembershipRole.OWNER && !(await isTeamOwner(userId, teamId))) {
+      throw new RoleManagementError("Only owners can award owner role", RoleManagementErrorCode.UNAUTHORIZED);
+    }
+
+    // Admins cannot change the role of an owner
+    if (myMembership?.role === MembershipRole.ADMIN && targetMembership?.role === MembershipRole.OWNER) {
+      throw new RoleManagementError(
+        "You can not change the role of an owner if you are an admin.",
+        RoleManagementErrorCode.UNAUTHORIZED
+      );
+    }
+
+    // Cannot change the role of the only owner
+    if (targetMembership?.role === MembershipRole.OWNER && !teamHasMoreThanOneOwner) {
+      throw new RoleManagementError(
+        "You can not change the role of the only owner of a team.",
+        RoleManagementErrorCode.UNAUTHORIZED
+      );
+    }
+
+    // Admins cannot promote themselves to a higher role (except to MEMBER which is a demotion)
+    if (
+      myMembership?.role === MembershipRole.ADMIN &&
+      memberId === userId &&
+      newRole !== MembershipRole.MEMBER
+    ) {
+      throw new RoleManagementError(
+        "You can not change yourself to a higher role.",
+        RoleManagementErrorCode.UNAUTHORIZED
+      );
+    }
+  }
+
+  async checkPermissionToChangeRole(
+    userId: number,
+    targetId: number,
+    scope: "org" | "team",
+    memberId?: number,
+    newRole?: MembershipRole | string
+  ): Promise<void> {
     let hasPermission = false;
     if (scope === "team") {
       const team = await prisma.membership.findFirst({
@@ -118,12 +198,24 @@ class LegacyRoleManager implements IRoleManager {
         RoleManagementErrorCode.UNAUTHORIZED
       );
     }
+
+    // Additional validation for team role changes in legacy mode
+    if (scope === "team" && memberId && newRole) {
+      const memberships = await prisma.membership.findMany({
+        where: {
+          teamId: targetId,
+        },
+      });
+      await this.validateRoleChange(userId, targetId, memberId, newRole, memberships);
+    }
   }
 
   async assignRole(
     userId: number,
     organizationId: number,
     role: MembershipRole | string,
+    // Used in other implementation
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _membershipId: number
   ): Promise<void> {
     await prisma.membership.update({
@@ -139,6 +231,8 @@ class LegacyRoleManager implements IRoleManager {
     });
   }
 
+  // Used in other implementation
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async getAllRoles(_organizationId: number): Promise<{ id: string; name: string }[]> {
     return [
       { id: MembershipRole.OWNER, name: "Owner" },
@@ -147,6 +241,8 @@ class LegacyRoleManager implements IRoleManager {
     ];
   }
 
+  // Used in other implementation
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async getTeamRoles(_teamId: number): Promise<{ id: string; name: string }[]> {
     return [
       { id: MembershipRole.OWNER, name: "Owner" },
@@ -156,6 +252,8 @@ class LegacyRoleManager implements IRoleManager {
   }
 }
 
+export { LegacyRoleManager };
+
 export class RoleManagementFactory {
   private static instance: RoleManagementFactory;
   private featuresRepository: FeaturesRepository;
@@ -163,6 +261,8 @@ export class RoleManagementFactory {
   private permissionCheckService: PermissionCheckService;
 
   private constructor() {
+    // Not used but needed for DI
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     (this.featuresRepository = new FeaturesRepository(prisma)), (this.roleService = new RoleService());
     this.permissionCheckService = new PermissionCheckService();
   }
