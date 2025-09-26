@@ -3,42 +3,59 @@ import { prisma } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TrpcSessionUser } from "../../../types";
+import type { TAdminGetAllInput } from "./adminGetAll.schema";
 
 type AdminGetAllOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
+  input: TAdminGetAllInput;
 };
 
-export const adminGetUnverifiedHandler = async ({}: AdminGetAllOptions) => {
-  const allOrgs = await prisma.team.findMany({
-    where: {
-      isOrganization: true,
-    },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      metadata: true,
-      organizationSettings: true,
-      members: {
-        where: {
-          role: "OWNER",
-        },
-        select: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
+export const adminGetAllHandler = async ({ input }: AdminGetAllOptions) => {
+  const { take, skip, orderBy, sortOrder } = input;
+
+  const [allOrgs, totalCount] = await Promise.all([
+    prisma.team.findMany({
+      where: {
+        isOrganization: true,
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        metadata: true,
+        organizationSettings: true,
+        createdAt: true,
+        members: {
+          where: {
+            role: "OWNER",
+          },
+          select: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
             },
           },
         },
       },
-    },
-  });
+      orderBy: {
+        [orderBy]: sortOrder,
+      },
+      take,
+      skip,
+    }),
+    prisma.team.count({
+      where: {
+        isOrganization: true,
+      },
+    }),
+  ]);
 
-  return allOrgs
+  const organizations = allOrgs
     .map((org) => {
       const parsed = teamMetadataSchema.safeParse(org.metadata);
       if (!parsed.success) {
@@ -48,6 +65,11 @@ export const adminGetUnverifiedHandler = async ({}: AdminGetAllOptions) => {
       return { ...org, metadata: parsed.data };
     })
     .filter((org): org is NonNullable<typeof org> => org !== null);
+
+  return {
+    organizations,
+    totalCount,
+  };
 };
 
-export default adminGetUnverifiedHandler;
+export default adminGetAllHandler;
