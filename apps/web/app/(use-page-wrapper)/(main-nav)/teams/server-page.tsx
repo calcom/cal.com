@@ -67,7 +67,9 @@ export const ServerTeamsListing = async ({
       <TeamsListing
         teams={teams}
         orgId={orgId ?? null}
-        isOrgAdmin={canCreateTeam}
+        permissions={{
+          canCreateTeam: canCreateTeam,
+        }}
         teamNameFromInvite={teamNameFromInvite ?? null}
         errorMsgFromInvite={errorMsgFromInvite}
       />

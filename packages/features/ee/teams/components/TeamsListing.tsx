@@ -19,7 +19,9 @@ import TeamList from "./TeamList";
 
 type TeamsListingProps = {
   orgId: number | null;
-  isOrgAdmin: boolean;
+  permissions: {
+    canCreateTeam: boolean;
+  };
   teams: RouterOutputs["viewer"]["teams"]["list"];
   teamNameFromInvite: string | null;
   errorMsgFromInvite: string | null;
@@ -27,7 +29,7 @@ type TeamsListingProps = {
 
 export function TeamsListing({
   orgId,
-  isOrgAdmin,
+  permissions,
   teams: data,
   teamNameFromInvite,
   errorMsgFromInvite,
@@ -51,7 +53,7 @@ export function TeamsListing({
     }
   );
 
-  const isCreateTeamButtonDisabled = !!(orgId && !isOrgAdmin);
+  const isCreateTeamButtonDisabled = !!(orgId && !permissions.canCreateTeam);
 
   const features = [
     {
@@ -128,7 +130,7 @@ export function TeamsListing({
           features={features}
           background="/tips/teams"
           buttons={
-            !orgId || isOrgAdmin ? (
+            !orgId || permissions.canCreateTeam ? (
               <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
                 <ButtonGroup>
                   <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
