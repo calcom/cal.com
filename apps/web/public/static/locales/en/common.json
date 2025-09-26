@@ -1037,7 +1037,7 @@
   "disable_notes": "Hide notes in calendar",
   "disable_notes_description": "For privacy reasons, additional inputs and notes will be hidden in the calendar entry. They will still be sent to your email.",
   "requires_confirmation_description": "The booking needs to be manually confirmed before it is pushed to your calendar and a confirmation is sent.",
-  "requires_confirmation_will_block_slot_description": "Unconfirmed bookings still block calendar slots.",
+  "requires_confirmation_will_block_slot_description": "Unconfirmed bookings should block availability across all your event types.",
   "recurring_event": "Recurring Event",
   "recurring_event_description": "People can subscribe for recurring events",
   "connect_and_join": "Connect and Join",
