@@ -476,7 +476,7 @@ const createVerificationToken = async (identifier: string, teamId: number) => {
     data: {
       identifier,
       token,
-      expires: new Date(new Date().setHours(168)), // +1 week
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // +1 week
       team: {
         connect: {
           id: teamId,
