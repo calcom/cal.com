@@ -1,9 +1,10 @@
 import prisma from "@calcom/prisma";
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/lib/formSubmissionUtils";
 
 export interface ValidationOptions {
   responseId: number;
   formId: string;
-  responses: any;
+  responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
   submittedAt?: Date;
 }
 
@@ -50,15 +51,34 @@ async function hasBooking(responseId: number): Promise<boolean> {
   return !!bookingFromResponse;
 }
 
-export function getSubmitterEmail(responses: any) {
+export function getSubmitterEmail(responses: FORM_SUBMITTED_WEBHOOK_RESPONSES) {
   const submitterEmail = Object.values(responses).find(
     (response): response is { value: string; label: string } => {
+      //todo: fix using the correct type
       const value =
         typeof response === "object" && response && "value" in response ? response.value : response;
       return typeof value === "string" && value.includes("@");
     }
   )?.value;
   return submitterEmail;
+}
+
+/**
+ * Extracts the submitter's name from form responses.
+ * Looks for fields with identifiers "name", "firstName", or "lastName" in that order of preference.
+ */
+export function getSubmitterName(responses: FORM_SUBMITTED_WEBHOOK_RESPONSES) {
+  const nameField = responses?.name || responses?.firstName || responses?.lastName;
+
+  if (nameField && typeof nameField === "object") {
+    // Try the new response property first, then fall back to value
+    if (typeof nameField.response === "string") {
+      return nameField.response;
+    }
+    if (typeof nameField.value === "string") {
+      return nameField.value;
+    }
+  }
 }
 
 /**
@@ -71,7 +91,7 @@ async function hasDuplicateSubmission({
   submittedAt,
 }: {
   formId: string;
-  responses: any;
+  responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
   responseId: number;
   submittedAt?: Date;
 }): Promise<boolean> {

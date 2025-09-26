@@ -88,6 +88,7 @@ type WorkflowStepProps = {
   setSelectedOptions?: Dispatch<SetStateAction<Option[]>>;
   isOrganization?: boolean;
   allOptions?: Option[];
+  eventTypeOptions?: Option[];
   onSaveWorkflow?: () => Promise<void>;
   setIsDeleteStepDialogOpen?: Dispatch<SetStateAction<boolean>>;
   isDeleteStepDialogOpen?: boolean;
@@ -367,15 +368,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     name: "steps",
   });
 
-  const hasAiAction = hasCalAIAction(steps);
-  const hasEmailToHostAction = steps.some((s) => s.action === WorkflowActions.EMAIL_HOST);
-
-  const disallowFormTriggers = hasAiAction || hasEmailToHostAction;
-
-  const filteredTriggerOptions = triggerOptions.filter(
-    (option) => !(isFormTrigger(option.value) && disallowFormTriggers)
-  );
-
   if (step && !form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
     const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
 
@@ -604,7 +596,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     }
                   }}
                   defaultValue={selectedTrigger}
-                  options={filteredTriggerOptions}
+                  options={triggerOptions}
                 />
               );
             }}
@@ -1558,6 +1550,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             workflowId={params?.workflow as string}
             workflowStepId={step?.id}
             form={form}
+            eventTypeOptions={props.eventTypeOptions}
           />
         )}
 
@@ -1579,6 +1572,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             teamId={teamId}
             isOrganization={props.isOrganization}
             form={form}
+            eventTypeOptions={props.eventTypeOptions || []}
           />
         )}
 

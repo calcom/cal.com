@@ -543,6 +543,7 @@ function WorkflowPage({
                             ? routingFormOptions
                             : allEventTypeOptions
                         }
+                        eventTypeOptions={allEventTypeOptions}
                         onSaveWorkflow={handleSaveWorkflow}
                         permissions={permissions}
                       />

@@ -223,6 +223,8 @@ export async function _onFormSubmission(
       await WorkflowService.scheduleFormWorkflows({
         workflows,
         responses: fieldResponsesByIdentifier,
+        routedEventTypeId:
+          chosenAction && chosenAction.type === "eventTypeRedirectUrl" ? chosenAction.value : null,
         responseId,
         form: {
           ...form,

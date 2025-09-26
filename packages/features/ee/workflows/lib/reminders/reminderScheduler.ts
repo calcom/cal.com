@@ -35,6 +35,13 @@ export type FormSubmissionData = {
   };
 };
 
+export type WorkflowContextData =
+  | { evt: BookingInfo; formData?: never }
+  | {
+      evt?: never;
+      formData: FormSubmissionData;
+    };
+
 export type ExtendedCalendarEvent = Omit<CalendarEvent, "bookerUrl"> & {
   metadata?: { videoCallUrl: string | undefined };
   eventType: {
@@ -47,13 +54,7 @@ export type ExtendedCalendarEvent = Omit<CalendarEvent, "bookerUrl"> & {
   bookerUrl: string;
 };
 
-type ProcessWorkflowStepParams = (
-  | { calendarEvent: ExtendedCalendarEvent; formData?: never }
-  | {
-      calendarEvent?: never;
-      formData: FormSubmissionData;
-    }
-) & {
+type ProcessWorkflowStepParams = WorkflowContextData & {
   smsReminderNumber: string | null;
   emailAttendeeSendToOverride?: string;
   hideBranding?: boolean;
@@ -83,12 +84,7 @@ const processWorkflowStep = async (
 
   if (!evt && !formData) return;
 
-  const contextData:
-    | { evt: BookingInfo; formData?: never }
-    | {
-        evt?: never;
-        formData: FormSubmissionData;
-      } = evt ? { evt } : { formData: formData as FormSubmissionData };
+  const contextData: WorkflowContextData = evt ? { evt } : { formData: formData as FormSubmissionData };
 
   if (isSMSOrWhatsappAction(step.action)) {
     await checkSMSRateLimit({
@@ -216,12 +212,7 @@ const processWorkflowStep = async (
       evt,
     });
   } else if (isCalAIAction(step.action)) {
-    if (!evt) {
-      // cal.ai not yet supported for form triggers
-      return;
-    }
     await scheduleAIPhoneCall({
-      evt,
       triggerEvent: workflow.trigger,
       timeSpan: {
         time: workflow.time,
@@ -231,7 +222,9 @@ const processWorkflowStep = async (
       userId: workflow.userId,
       teamId: workflow.teamId,
       seatReferenceUid,
+      reminderPhone: smsReminderNumber,
       verifiedAt: step.verifiedAt,
+      ...contextData,
     });
   }
 };
