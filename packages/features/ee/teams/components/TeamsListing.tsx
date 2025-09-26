@@ -18,6 +18,7 @@ import { UpgradeTip } from "../../../tips";
 import TeamList from "./TeamList";
 
 type TeamsListingProps = {
+  autoAccept: boolean;
   orgId: number | null;
   isOrgAdmin: boolean;
   teams: RouterOutputs["viewer"]["teams"]["list"];
@@ -26,6 +27,7 @@ type TeamsListingProps = {
 };
 
 export function TeamsListing({
+  autoAccept,
   orgId,
   isOrgAdmin,
   teams: data,
@@ -88,6 +90,11 @@ export function TeamsListing({
 
   useEffect(() => {
     if (!token) {
+      return;
+    }
+
+    if(autoAccept){
+      showToast(t("successfully_joined", "success"));
       return;
     }
 

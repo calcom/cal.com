@@ -2152,6 +2152,7 @@
   "email_user_cta": "View Invitation",
   "accept_invite": "Accept Invite",
   "join_now": "Join Now",
+  "successfully_joined": "Successfully joined",
   "email_no_user_invite_heading_subteam": "You've been invited to join a team of {{parentTeamName}} organization",
   "email_no_user_invite_heading_org": "You've been invited to join a {{appName}} organization",
   "email_no_user_invite_subheading": "{{invitedBy}} has invited you to join their team on {{appName}}. {{appName}} is the event-juggling scheduler that enables you and your team to schedule meetings without the email tennis.",
