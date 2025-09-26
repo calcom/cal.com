@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-restricted-imports
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -403,6 +402,9 @@ export type BookingHandlerInput = {
   // These used to come from headers but now we're passing them as params
   hostname?: string;
   forcedSlug?: string;
+  skipAvailabilityCheck: boolean;
+  skipEventLimitsCheck: boolean;
+  skipCalendarSyncTaskCreation: boolean;
 } & PlatformParams;
 
 function formatAvailabilitySnapshot(data: {
@@ -511,7 +513,7 @@ async function handler(
 
     try {
       await verifyCodeUnAuthenticated(bookerEmail, verificationCode);
-    } catch (error) {
+    } catch {
       throw new HttpError({
         statusCode: 400,
         message: "invalid_verification_code",
@@ -811,7 +813,6 @@ async function handler(
             );
           }
         } else {
-          eventTypeWithUsers.users[0].credentials;
           await ensureAvailableUsers(
             eventTypeWithUsers,
             {
@@ -880,7 +881,11 @@ async function handler(
       const nonFixedUsers: IsFixedAwareUser[] = [];
 
       availableUsers.forEach((user) => {
-        user.isFixed ? fixedUserPool.push(user) : nonFixedUsers.push(user);
+        if (user.isFixed) {
+          fixedUserPool.push(user);
+        } else {
+          nonFixedUsers.push(user);
+        }
       });
 
       // Group non-fixed users by their group IDs
@@ -1000,7 +1005,7 @@ async function handler(
 
       // Filter out host groups that have no hosts in them
       const nonEmptyHostGroups = Object.fromEntries(
-        Object.entries(hostGroups).filter(([_groupId, hosts]) => hosts.length > 0)
+        Object.entries(hostGroups).filter(([, hosts]) => hosts.length > 0)
       );
       // If there are RR hosts, we need to find a lucky user
       if (
