@@ -5,6 +5,8 @@ import onlyWarn from "eslint-plugin-only-warn";
 import turboPlugin from "eslint-plugin-turbo";
 import tseslint from "typescript-eslint";
 
+import calcomEslintPlugin from "@calcom/eslint-plugin-eslint";
+
 /**
  * A shared ESLint configuration for the repository.
  *
@@ -19,9 +21,11 @@ export const config = [
       turbo: turboPlugin,
       import: importPlugin,
       onlyWarn,
+      "@calcom/eslint": calcomEslintPlugin,
     },
     rules: {
       "turbo/no-undeclared-env-vars": "warn",
+      "@calcom/eslint/no-scroll-into-view-embed": "error",
     },
     languageOptions: {
       ecmaVersion: 2021,

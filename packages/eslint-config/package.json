@@ -9,6 +9,7 @@
     "./react-internal": "./react-internal.js"
   },
   "dependencies": {
+    "@calcom/eslint-plugin-eslint": "workspace:*",
     "@eslint/js": "9.36.0",
     "@next/eslint-plugin-next": "15.4.5",
     "@typescript-eslint/eslint-plugin": "8.39.0",
