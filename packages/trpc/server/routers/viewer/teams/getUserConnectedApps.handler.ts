@@ -79,7 +79,7 @@ const checkCanUserAccessConnectedApps = async (
     isOrgAdminOrOwner = await permissionCheckService.checkPermission({
       userId: user.id,
       teamId: team.parent.id,
-      permission: "organization.read",
+      permission: "team.read",
       fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
     });
   }
