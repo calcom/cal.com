@@ -194,11 +194,11 @@ export class CalendarSubscriptionService {
    * Subscribe periodically to new calendars
    */
   async checkForNewSubscriptions() {
-    log.debug("checkForNewSubscriptions");
     const rows = await this.deps.selectedCalendarRepository.findNextSubscriptionBatch({
       take: 100,
       integrations: this.deps.adapterFactory.getProviders(),
     });
+    log.debug("checkForNewSubscriptions", { count: rows.length });
     await Promise.allSettled(rows.map(({ id }) => this.subscribe(id)));
   }
 
