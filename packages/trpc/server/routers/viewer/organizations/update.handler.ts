@@ -15,7 +15,7 @@ import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../types";
 import type { TUpdateInputSchema } from "./update.schema";
 
-export const handleBannerUpdate = async (
+export const getBannerUrl = async (
   banner: string | null | undefined,
   teamId: number
 ): Promise<string | null | undefined> => {
@@ -217,10 +217,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     metadata: mergeMetadata({ ...input.metadata }),
   };
 
-  const bannerResult = await handleBannerUpdate(input.banner, currentOrgId);
-  if (bannerResult !== undefined) {
-    data.bannerUrl = bannerResult;
-  }
+  data.bannerUrl = await getBannerUrl(input.banner, currentOrgId);
 
   if (
     input.logoUrl &&
