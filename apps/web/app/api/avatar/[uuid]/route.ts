@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { AVATAR_FALLBACK, WEBAPP_URL } from "@calcom/lib/constants";
 import { convertSvgToPng } from "@calcom/lib/server/imageUtils";
+import { StorageServiceFactory } from "@calcom/lib/server/storage/StorageServiceFactory";
 import prisma from "@calcom/prisma";
 
 const querySchema = z.object({
@@ -37,18 +38,12 @@ async function handler(req: NextRequest, { params }: { params: Promise<Params> }
 
   let img;
   try {
-    const { data } = await prisma.avatar.findUniqueOrThrow({
-      where: {
-        objectKey,
-      },
-      select: {
-        data: true,
-      },
-    });
+    const storageService = StorageServiceFactory.getStorageService();
+    const imageData = await storageService.retrieveImage(objectKey);
 
-    // Convert SVG to PNG if needed and update the database
-    if (data.startsWith("data:image/svg+xml;base64,")) {
-      const pngData = await convertSvgToPng(data);
+    // Convert SVG to PNG if needed (maintain existing logic)
+    if (imageData.data.startsWith("data:image/svg+xml;base64,")) {
+      const pngData = await convertSvgToPng(imageData.data);
 
       await prisma.avatar.update({
         where: { objectKey },
@@ -56,9 +51,9 @@ async function handler(req: NextRequest, { params }: { params: Promise<Params> }
       });
       img = pngData;
     } else {
-      img = data;
+      img = imageData.data;
     }
-  } catch (e) {
+  } catch {
     // If anything goes wrong or avatar is not found, use default avatar
     const url = new URL(AVATAR_FALLBACK, WEBAPP_URL).toString();
     return NextResponse.redirect(url, 302);
