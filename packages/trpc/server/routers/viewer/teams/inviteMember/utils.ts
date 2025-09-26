@@ -735,6 +735,7 @@ export const sendExistingUserTeamInviteEmails = async ({
 
         inviteTeamOptions.joinLink = `${WEBAPP_URL}/teams?token=${verificationToken.token}`;
       }
+    }
 
       return sendTeamInviteEmail({
         language,
