@@ -1,23 +1,29 @@
+import { GetUsersInput } from "@/modules/users/inputs/get-users.input";
+import { BadRequestException } from "@nestjs/common";
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsOptional, Validate, ArrayMaxSize } from "class-validator";
-
-import { GetUsersInput } from "../../../users/inputs/get-users.input";
-import { IsEmailStringOrArray } from "../../../users/validators/isEmailStringOrArray";
+import { ArrayNotEmpty, isEmail, IsOptional } from "class-validator";
 
 export class GetTeamMembershipsInput extends GetUsersInput {
   @IsOptional()
-  @Validate(IsEmailStringOrArray)
-  @ArrayMaxSize(20, {
-    message: "emails array cannot contain more than 20 email addresses for team membership filtering",
+  @Transform(({ value }) => {
+    if (typeof value === "string") {
+      return value.split(",").map((email: string) => {
+        const trimmed = email.trim();
+        if (!isEmail(trimmed)) {
+          throw new BadRequestException(`Invalid email ${trimmed}`);
+        }
+        return trimmed;
+      });
+    }
+    return value;
   })
-  @Transform(({ value }: { value: string | string[] }) => {
-    return typeof value === "string" ? [value] : value;
-  })
+  @ArrayNotEmpty({ message: "emails cannot be empty." })
   @ApiPropertyOptional({
     type: [String],
-    description: "Filter team memberships by email addresses (max 20 emails for performance)",
-    example: ["user1@example.com", "user2@example.com"],
+    description:
+      "Filter team memberships by email addresses. If you want to filter by multiple emails, separate them with a comma (max 20 emails for performance).",
+    example: "?emails=user1@example.com,user2@example.com",
   })
   emails?: string[];
 }
