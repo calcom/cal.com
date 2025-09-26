@@ -29,7 +29,7 @@ import { CreateInviteOutputDto } from "./outputs/invite.output";
 export class OrganizationsTeamsInviteController {
   @Post("/invite")
   @Roles("TEAM_ADMIN")
-  @ApiOperation({ summary: "Create or fetch team invite link" })
+  @ApiOperation({ summary: "Create team invite link" })
   @HttpCode(HttpStatus.OK)
   async createInvite(
     @Param("orgId", ParseIntPipe) _orgId: number,
