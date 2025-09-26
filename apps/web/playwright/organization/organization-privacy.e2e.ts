@@ -3,7 +3,6 @@ import { expect } from "@playwright/test";
 import { prisma } from "@calcom/prisma";
 
 import { test } from "../lib/fixtures";
-import { createAllPermissionsArray } from "../lib/test-helpers/pbac";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -45,14 +44,6 @@ test.describe("Organization - Privacy", () => {
       name: "org-member-user",
       organizationId: org.id,
       roleInOrganization: "MEMBER",
-    });
-
-    await applyCustomRole({
-      userId: memberInOrg.id,
-      teamId: org.id,
-      permissions: createAllPermissionsArray().filter(
-        ({ resource, action }) => !(resource === "organization" && action === "listMembers")
-      ),
     });
 
     await owner.apiLogin();
@@ -130,13 +121,6 @@ test.describe("Organization - Privacy", () => {
     // @ts-expect-error expect doesnt assert on a type level
     const memberOfTeam = await users.set(memberUser?.user.email);
 
-    await applyCustomRole({
-      userId: memberOfTeam.id,
-      teamId,
-      permissions: createAllPermissionsArray().filter(
-        ({ resource, action }) => !(resource === "team" && action === "listMembers")
-      ),
-    });
     await memberOfTeam.apiLogin();
 
     await page.goto(`/settings/teams/${teamId}/settings`);
@@ -202,12 +186,6 @@ test.describe("Organization - Privacy", () => {
     // @ts-expect-error expect doesnt assert on a type level
     const memberOfTeam = await users.set(memberUser?.user.email);
 
-    await applyCustomRole({
-      userId: memberOfTeam.id,
-      teamId,
-      permissions: createAllPermissionsArray(),
-    });
-
     await memberOfTeam.apiLogin();
 
     // 1) All team members can see members in team
@@ -236,37 +214,3 @@ test.describe("Organization - Privacy", () => {
     await expect(page.getByTestId("make-team-private-check")).toBeVisible();
   });
 });
-
-async function applyCustomRole({
-  userId,
-  teamId,
-  permissions,
-}: {
-  userId: number;
-  teamId: number;
-  permissions: Array<{ resource: string; action: string }>;
-}) {
-  const customRole = await prisma.role.create({
-    data: {
-      id: `organization_privacy_e2e_${Date.now()}`,
-      name: "test role",
-      teamId,
-      type: "CUSTOM",
-      permissions: {
-        create: permissions,
-      },
-    },
-  });
-
-  await prisma.membership.update({
-    where: {
-      userId_teamId: {
-        userId,
-        teamId,
-      },
-    },
-    data: {
-      customRoleId: customRole.id,
-    },
-  });
-}
