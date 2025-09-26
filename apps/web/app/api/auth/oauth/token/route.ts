@@ -3,6 +3,7 @@ import { parseUrlFormData } from "app/api/parseRequestData";
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { v4 as uuidv4 } from "uuid";
 
 import prisma from "@calcom/prisma";
 import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
@@ -83,8 +84,19 @@ async function handler(req: NextRequest) {
     expiresIn: 1800, // 30 min
   });
 
+  const sessionExpiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+  const subjectKey = accessCode.userId ? `user:${accessCode.userId}` : `team:${accessCode.teamId}`;
+  const newJti = uuidv4();
+
+  await prisma.oAuthRefreshSession.upsert({
+    where: { clientId_subjectKey: { clientId: client_id, subjectKey } },
+    create: { clientId: client_id, subjectKey, currentJti: newJti, expiresAt: sessionExpiresAt },
+    update: { currentJti: newJti, expiresAt: sessionExpiresAt },
+  });
+
   const refresh_token = jwt.sign(payloadRefreshToken, secretKey, {
     expiresIn: 365 * 24 * 60 * 60, // 1 year
+    jwtid: newJti,
   });
 
   return NextResponse.json({ access_token, refresh_token }, { status: 200 });

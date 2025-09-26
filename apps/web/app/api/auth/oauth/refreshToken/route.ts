@@ -3,6 +3,7 @@ import { parseUrlFormData } from "app/api/parseRequestData";
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { v4 as uuidv4 } from "uuid";
 
 import prisma from "@calcom/prisma";
 import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
@@ -38,10 +39,10 @@ async function handler(req: NextRequest) {
   const secretKey = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
   let decodedRefreshToken: OAuthTokenPayload;
+  const refreshTokenRaw = req.headers.get("authorization")?.split(" ")[1] || "";
 
   try {
-    const refreshToken = req.headers.get("authorization")?.split(" ")[1] || "";
-    decodedRefreshToken = jwt.verify(refreshToken, secretKey) as OAuthTokenPayload;
+    decodedRefreshToken = jwt.verify(refreshTokenRaw, secretKey) as OAuthTokenPayload;
   } catch {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
@@ -51,6 +52,25 @@ async function handler(req: NextRequest) {
   }
 
   if (!decodedRefreshToken.clientId || decodedRefreshToken.clientId !== client_id) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  const decodedRaw = jwt.decode(refreshTokenRaw);
+  const presentedJti =
+    decodedRaw && typeof decodedRaw === "object" ? (decodedRaw as { jti?: string }).jti : undefined;
+  if (!presentedJti) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  const subjectKey = decodedRefreshToken.userId
+    ? `user:${decodedRefreshToken.userId}`
+    : `team:${decodedRefreshToken.teamId}`;
+
+  const session = await prisma.oAuthRefreshSession.findUnique({
+    where: { clientId_subjectKey: { clientId: client_id, subjectKey } },
+  });
+
+  if (!session || session.expiresAt <= new Date() || session.currentJti !== presentedJti) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
@@ -74,8 +94,16 @@ async function handler(req: NextRequest) {
     expiresIn: 1800, // 30 min
   });
 
+  const newJti = uuidv4();
+  const sessionExpiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+  await prisma.oAuthRefreshSession.update({
+    where: { clientId_subjectKey: { clientId: client_id, subjectKey } },
+    data: { currentJti: newJti, expiresAt: sessionExpiresAt },
+  });
+
   const refresh_token = jwt.sign(payloadRefreshToken, secretKey, {
     expiresIn: 365 * 24 * 60 * 60, // 1 year
+    jwtid: newJti,
   });
 
   return NextResponse.json({ access_token, refresh_token }, { status: 200 });

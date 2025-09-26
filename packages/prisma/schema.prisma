@@ -1658,12 +1658,13 @@ model SelectedSlots {
 }
 
 model OAuthClient {
-  clientId     String       @id @unique
-  redirectUri  String
-  clientSecret String
-  name         String
-  logo         String?
-  accessCodes  AccessCode[]
+  clientId        String                @id @unique
+  redirectUri     String
+  clientSecret    String
+  name            String
+  logo            String?
+  accessCodes     AccessCode[]
+  refreshSessions OAuthRefreshSession[]
 }
 
 model AccessCode {
@@ -1677,6 +1678,20 @@ model AccessCode {
   user      User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
   teamId    Int?
   team      Team?         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+}
+
+model OAuthRefreshSession {
+  id         String      @id @default(cuid())
+  clientId   String
+  client     OAuthClient @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  subjectKey String
+  currentJti String
+  expiresAt  DateTime
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@unique([clientId, subjectKey])
+  @@index([expiresAt])
 }
 
 enum AccessScope {
