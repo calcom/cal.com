@@ -347,6 +347,95 @@ const columns = [
 ];
 ```
 
+### Faceted Filters with `getFacetedUniqueValues`
+
+For select filters that need dynamic options based on data, use `getFacetedUniqueValues` in your table configuration:
+
+```tsx
+// In your table configuration
+const table = useReactTable({
+  // ... other options
+  getFacetedUniqueValues: (_, columnId) => () => {
+    switch (columnId) {
+      case "teamId":
+        return convertFacetedValuesToMap(
+          teams.map(team => ({
+            label: team.name,
+            value: team.id
+          }))
+        );
+      case "role":
+        return convertFacetedValuesToMap([
+          { label: "Admin", value: "admin" },
+          { label: "Member", value: "member" }
+        ]);
+      default:
+        return new Map();
+    }
+  }
+});
+```
+
+**Custom Faceted Values Hook Example:**
+
+From `apps/web/modules/bookings/hooks/useFacetedUniqueValues.ts`:
+
+```tsx
+export function useFacetedUniqueValues() {
+  const eventTypes = useEventTypes();
+  const { data: teams } = trpc.viewer.teams.list.useQuery();
+  const { data: members } = trpc.viewer.teams.listSimpleMembers.useQuery();
+  
+  return useCallback(
+    (_: Table<any>, columnId: string) => (): Map<FacetedValue, number> => {
+      if (columnId === "eventTypeId") {
+        return convertFacetedValuesToMap(eventTypes || []);
+      } else if (columnId === "teamId") {
+        return convertFacetedValuesToMap(
+          (teams || []).map((team) => ({
+            label: team.name,
+            value: team.id,
+          }))
+        );
+      } else if (columnId === "userId") {
+        return convertFacetedValuesToMap(
+          (members || [])
+            .map((member) => ({
+              label: member.name,
+              value: member.id,
+            }))
+            .filter((option): option is { label: string; value: number } => Boolean(option.label))
+        );
+      }
+      return new Map<FacetedValue, number>();
+    },
+    [eventTypes, teams, members]
+  );
+}
+```
+
+**Usage in Table Configuration:**
+
+```tsx
+// From packages/features/users/components/UserTable/UserListTable.tsx
+const table = useReactTable({
+  // ... other options
+  getFacetedUniqueValues: (_, columnId) => () => {
+    if (facetedTeamValues) {
+      switch (columnId) {
+        case "role":
+          return convertFacetedValuesToMap(facetedTeamValues.roles);
+        case "teamId":
+          return convertFacetedValuesToMap(facetedTeamValues.teams);
+        default:
+          return new Map();
+      }
+    }
+    return new Map();
+  }
+});
+```
+
 ### Filter Components
 
 #### FilterBar
@@ -376,6 +465,19 @@ Displays active filters and add filter button:
 ## Segment System
 
 Segments allow users to save and share filter configurations. There are two types:
+
+**Important:** Filter segments are only enabled when you pass the `useSegments` prop to `DataTableProvider`:
+
+```tsx
+<DataTableProvider
+  tableIdentifier="users"
+  useSegments={useSegments} // Required to enable segments
+>
+  {/* Your table content */}
+</DataTableProvider>
+```
+
+Without the `useSegments` prop, segment functionality will be disabled and segment-related components will not be available.
 
 ### System Segments
 
@@ -540,6 +642,67 @@ For bulk actions when rows are selected:
 
 ## Advanced Usage
 
+### Server-Side Operations
+
+The DataTable system is designed primarily for **server-side filtering, sorting, and pagination** rather than client-side operations. This approach provides better performance and scalability.
+
+#### Basic Server-Side Pattern
+
+```tsx
+// Get current table state for API calls
+const { limit, offset, sorting } = useDataTable();
+const columnFilters = useColumnFilters();
+
+// Use in your API call
+const { data } = trpc.users.list.useQuery({
+  limit,
+  offset,
+  sorting,
+  filters: columnFilters
+});
+```
+
+#### Advanced Parameter Manipulation
+
+For complex cases where you need to manipulate filter data before sending to the backend, extract the logic into a separate hook:
+
+```tsx
+// packages/features/insights/hooks/useInsightsRoutingParameters.ts
+export function useInsightsRoutingParameters() {
+  const { scope, selectedTeamId } = useInsightsOrgTeams();
+  
+  // Get date range filter and manipulate it
+  const createdAtRange = useFilterValue("createdAt", ZDateRangeFilterValue)?.data;
+  const startDate = useChangeTimeZoneWithPreservedLocalTime(
+    useMemo(() => {
+      return dayjs(createdAtRange?.startDate ?? getDefaultStartDate().toISOString())
+        .startOf("day")
+        .toISOString();
+    }, [createdAtRange?.startDate])
+  );
+  
+  // Get other column filters excluding the manipulated ones
+  const columnFilters = useColumnFilters({
+    exclude: ["createdAt"],
+  });
+
+  return {
+    scope,
+    selectedTeamId,
+    startDate,
+    endDate,
+    columnFilters,
+  };
+}
+```
+
+#### Key Hooks for Server-Side Integration
+
+- **`useColumnFilters()`** - Get applied filters for backend requests
+- **`useDataTable()`** - Get `limit`, `offset`, `sorting` for pagination
+- **`useFilterValue(columnId, schema)`** - Get specific filter value with validation
+- **Custom parameter hooks** - Extract complex manipulation logic
+
 ### Custom Hooks
 
 #### useDataTable
@@ -565,6 +728,11 @@ Get processed column filters for API calls:
 ```tsx
 const columnFilters = useColumnFilters();
 // Returns: ColumnFilter[] ready for backend consumption
+
+// With exclusions (useful when manipulating specific filters)
+const columnFilters = useColumnFilters({
+  exclude: ["createdAt", "dateRange"]
+});
 ```
 
 #### useFilterableColumns
