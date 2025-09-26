@@ -126,46 +126,14 @@ export const filterResourceConfig = (config: ResourceConfig): Omit<ResourceConfi
 };
 
 /**
- * Filter resources and actions based on scope
+ * Filter resources and actions based on scope and optionally team privacy settings
  * @param scope The scope to filter by (Team or Organization)
+ * @param isPrivate Whether the team/organization is private (optional)
  * @returns Filtered permission registry
  */
-export const getPermissionsForScope = (scope: Scope): PermissionRegistry => {
+export const getPermissionsForScope = (scope: Scope, isPrivate?: boolean): PermissionRegistry => {
   const filteredRegistry: Partial<PermissionRegistry> = {};
-
-  Object.entries(PERMISSION_REGISTRY).forEach(([resource, config]) => {
-    const filteredConfig: ResourceConfig = { _resource: config._resource };
-
-    Object.entries(config).forEach(([action, details]) => {
-      if (action === "_resource") return;
-
-      const permissionDetails = details as PermissionDetails;
-      // If no scope is defined, include in both Team and Organization (backward compatibility)
-      // If scope is defined, only include if it matches the requested scope
-      if (!permissionDetails.scope || permissionDetails.scope.includes(scope)) {
-        filteredConfig[action as CrudAction | CustomAction] = permissionDetails;
-      }
-    });
-
-    // Only include resource if it has at least one action for this scope
-    const hasActions = Object.keys(filteredConfig).length > 1; // > 1 because _resource is always there
-    if (hasActions) {
-      filteredRegistry[resource as Resource] = filteredConfig;
-    }
-  });
-
-  return filteredRegistry as PermissionRegistry;
-};
-
-/**
- * Filter permissions based on scope and team privacy settings
- * @param scope The scope to filter by (Team or Organization)
- * @param isPrivate Whether the team/organization is private
- * @returns Filtered permission registry
- */
-export const getPermissionsForScopeAndPrivacy = (scope: Scope, isPrivate: boolean): PermissionRegistry => {
-  const filteredRegistry: Partial<PermissionRegistry> = {};
-  const teamPrivacy = isPrivate ? "private" : "public";
+  const teamPrivacy = isPrivate !== undefined ? (isPrivate ? "private" : "public") : undefined;
 
   Object.entries(PERMISSION_REGISTRY).forEach(([resource, config]) => {
     const filteredConfig: ResourceConfig = { _resource: config._resource };
@@ -178,8 +146,8 @@ export const getPermissionsForScopeAndPrivacy = (scope: Scope, isPrivate: boolea
       // Check scope
       const scopeMatches = !permissionDetails.scope || permissionDetails.scope.includes(scope);
 
-      // Check privacy visibility
-      const privacyMatches =
+      // Check privacy visibility (only if isPrivate is provided)
+      const privacyMatches = teamPrivacy === undefined ||
         !permissionDetails.visibleWhen?.teamPrivacy ||
         permissionDetails.visibleWhen.teamPrivacy === "both" ||
         permissionDetails.visibleWhen.teamPrivacy === teamPrivacy;

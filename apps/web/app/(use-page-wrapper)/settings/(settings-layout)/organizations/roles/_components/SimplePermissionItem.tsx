@@ -5,7 +5,6 @@ import {
   Scope,
   PERMISSION_REGISTRY,
   getPermissionsForScope,
-  getPermissionsForScopeAndPrivacy,
 } from "@calcom/features/pbac/domain/types/permission-registry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ToggleGroup } from "@calcom/ui/components/form";
@@ -32,7 +31,7 @@ export function SimplePermissionItem({
 }: SimplePermissionItemProps) {
   const { t } = useLocale();
   const { getResourcePermissionLevel, toggleResourcePermissionLevel } = usePermissions(scope);
-  const scopedRegistry = getPermissionsForScopeAndPrivacy(scope, isPrivate);
+  const scopedRegistry = getPermissionsForScope(scope, isPrivate);
 
   const registry = scopedRegistry || PERMISSION_REGISTRY;
   const isAllResources = resource === "*";

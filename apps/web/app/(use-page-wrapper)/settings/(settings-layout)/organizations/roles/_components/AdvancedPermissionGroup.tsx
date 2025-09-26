@@ -7,7 +7,6 @@ import {
   Scope,
   CrudAction,
   getPermissionsForScope,
-  getPermissionsForScopeAndPrivacy,
 } from "@calcom/features/pbac/domain/types/permission-registry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -38,7 +37,7 @@ export function AdvancedPermissionGroup({
 }: AdvancedPermissionGroupProps) {
   const { t } = useLocale();
   const { toggleSinglePermission, toggleResourcePermissionLevel } = usePermissions(scope);
-  const scopedRegistry = getPermissionsForScopeAndPrivacy(scope, isPrivate);
+  const scopedRegistry = getPermissionsForScope(scope, isPrivate);
   const resourceConfig = scopedRegistry[resource];
   const [isExpanded, setIsExpanded] = useState(false);
 

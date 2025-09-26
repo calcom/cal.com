@@ -11,7 +11,6 @@ import {
   CrudAction,
   Scope,
   getPermissionsForScope,
-  getPermissionsForScopeAndPrivacy,
 } from "@calcom/features/pbac/domain/types/permission-registry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -118,7 +117,7 @@ export function RoleSheet({
 
   const { filteredResources, scopedRegistry } = useMemo(() => {
     // Use privacy-aware filtering if we have privacy information
-    const scopedRegistry = getPermissionsForScopeAndPrivacy(scope, isPrivate);
+    const scopedRegistry = getPermissionsForScope(scope, isPrivate);
     const filteredResources = Object.keys(scopedRegistry).filter((resource) =>
       t(
         scopedRegistry[resource as Resource][CrudAction.All as keyof (typeof scopedRegistry)[Resource]]
