@@ -1,5 +1,15 @@
 ## 1.1.2
 
+## 1.9.0
+
+### Minor Changes
+
+- [#23840](https://github.com/calcom/cal.com/pull/23840) [`63740c0`](https://github.com/calcom/cal.com/commit/63740c02c752f89a90d8373fb19c09e3f0da935f) Thanks [@Ryukemeister](https://github.com/Ryukemeister)! - This PR adds a new atom called `CalendarView` which is a read only calendar view component for a user.
+
+### Patch Changes
+
+- [#23891](https://github.com/calcom/cal.com/pull/23891) [`4f114ef`](https://github.com/calcom/cal.com/commit/4f114ef8d3b241394976ed930be70197eff6431d) Thanks [@supalarry](https://github.com/supalarry)! - fix: EventTypeSettings Checkbox booking field label
+
 ## 1.8.0
 
 ### Minor Changes
