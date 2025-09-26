@@ -244,7 +244,7 @@ model EventType {
 
   bookingRequiresAuthentication Boolean @default(false)
 
-  createdAt DateTime?
+  createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
 
   @@unique([userId, slug])
@@ -2268,8 +2268,8 @@ model Watchlist {
   action      WatchlistAction   @default(REPORT)
   severity    WatchlistSeverity @default(LOW)
   createdAt   DateTime          @default(now())
-  createdBy   User              @relation("CreatedWatchlists", onDelete: SetNull, fields: [createdById], references: [id])
-  createdById Int
+  createdBy   User?             @relation("CreatedWatchlists", onDelete: SetNull, fields: [createdById], references: [id])
+  createdById Int?
   updatedAt   DateTime          @updatedAt
   updatedBy   User?             @relation("UpdatedWatchlists", onDelete: SetNull, fields: [updatedById], references: [id])
   updatedById Int?

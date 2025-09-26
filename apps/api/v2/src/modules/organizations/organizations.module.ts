@@ -47,6 +47,7 @@ import { OrganizationsTeamsController } from "@/modules/organizations/teams/inde
 import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import { OrganizationsTeamsService } from "@/modules/organizations/teams/index/services/organizations-teams.service";
 import { OrganizationsTeamsMembershipsController } from "@/modules/organizations/teams/memberships/organizations-teams-memberships.controller";
+import { OrganizationsTeamsInviteController } from "@/modules/organizations/teams/invite/organizations-teams-invite.controller";
 import { OrganizationsTeamsMembershipsRepository } from "@/modules/organizations/teams/memberships/organizations-teams-memberships.repository";
 import { OrganizationsTeamsMembershipsService } from "@/modules/organizations/teams/memberships/services/organizations-teams-memberships.service";
 import { OrganizationsTeamsRoutingFormsModule } from "@/modules/organizations/teams/routing-forms/organizations-teams-routing-forms.module";
@@ -183,6 +184,7 @@ import { Module } from "@nestjs/common";
     OrganizationsMembershipsController,
     OrganizationsEventTypesController,
     OrganizationsTeamsMembershipsController,
+    OrganizationsTeamsInviteController,
     OrganizationsAttributesController,
     OrganizationsAttributesOptionsController,
     OrganizationsWebhooksController,
