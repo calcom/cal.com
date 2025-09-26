@@ -319,5 +319,3 @@ export default function CancelBooking(props: Props) {
     </>
   );
 }
-
-// test
