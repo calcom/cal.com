@@ -1,10 +1,12 @@
+import { randomBytes } from "crypto";
+
 import { TeamBilling } from "@calcom/features/ee/billing/teams";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { deleteWorkfowRemindersOfRemovedMember } from "@calcom/features/ee/teams/lib/deleteWorkflowRemindersOfRemovedMember";
+import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
-import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
@@ -14,7 +16,6 @@ import type { Membership } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
-import { randomBytes } from "crypto";
 
 const log = logger.getSubLogger({ prefix: ["TeamService"] });
 
@@ -164,7 +165,7 @@ export class TeamService {
     await Promise.allSettled(teamBillingPromises);
   }
 
-// TODO: Move errors away from TRPC error to make it more generic
+  // TODO: Move errors away from TRPC error to make it more generic
   static async inviteMemberByToken(token: string, userId: number) {
     const verificationToken = await prisma.verificationToken.findFirst({
       where: {
@@ -330,7 +331,7 @@ export class TeamService {
     }
 
     if (
-      currentUser.email !== verificationToken.identifier ||
+      currentUser.email !== verificationToken.identifier &&
       currentUser.username !== verificationToken.identifier
     ) {
       throw new TRPCError({

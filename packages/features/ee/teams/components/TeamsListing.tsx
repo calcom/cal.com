@@ -93,8 +93,8 @@ export function TeamsListing({
       return;
     }
 
-    if(autoAccept){
-      showToast(t("successfully_joined", "success"));
+    if (autoAccept) {
+      showToast(t("successfully_joined"), "success");
       return;
     }
 
