@@ -63,6 +63,12 @@ export type BookerStore = {
   verifiedEmail: string | null;
   setVerifiedEmail: (email: string | null) => void;
   /**
+   * Verification code for email verification.
+   * Stored after successful verification to be included in booking request
+   */
+  verificationCode: string | null;
+  setVerificationCode: (code: string | null) => void;
+  /**
    * Current month being viewed. Format is YYYY-MM.
    */
   month: string | null;
@@ -251,6 +257,10 @@ export const createBookerStore = () =>
     setVerifiedEmail: (email: string | null) => {
       set({ verifiedEmail: email });
     },
+    verificationCode: null,
+    setVerificationCode: (code: string | null) => {
+      set({ verificationCode: code });
+    },
     month:
       getQueryParam("month") ||
       (getQueryParam("date") && dayjs(getQueryParam("date")).isValid()
@@ -370,18 +380,8 @@ export const createBookerStore = () =>
       // if the user reschedules a booking right after the confirmation page.
       // In that case the time would still be store in the store, this way we
       // force clear this.
-      // Also, fetch the original booking duration if user is rescheduling and
-      // update the selectedDuration
       if (rescheduleUid && bookingData) {
         set({ selectedTimeslot: null });
-        const originalBookingLength = dayjs(bookingData?.endTime).diff(
-          dayjs(bookingData?.startTime),
-          "minutes"
-        );
-        set({ selectedDuration: originalBookingLength });
-        if (!isPlatform || allowUpdatingUrlParams) {
-          updateQueryParam("duration", originalBookingLength ?? "");
-        }
       }
       if (month) set({ month });
 

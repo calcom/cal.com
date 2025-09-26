@@ -7,7 +7,11 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { appDataSchema } from "../zod";
 import EventTypeAppSettingsInterface from "./EventTypeAppSettingsInterface";
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
+  app,
+  eventType,
+  onAppInstallSuccess,
+}) {
   const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();
   const { enabled: showGifSelection, updateEnabled: setShowGifSelection } = useIsAppEnabled(app);
 
@@ -15,6 +19,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
 
   return (
     <AppCard
+      onAppInstallSuccess={onAppInstallSuccess}
       app={app}
       description={t("confirmation_page_gif")}
       switchOnClick={(e) => {

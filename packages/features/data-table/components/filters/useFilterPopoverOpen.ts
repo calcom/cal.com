@@ -7,11 +7,15 @@ export function useFilterPopoverOpen(columnId: string) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout | undefined;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
     if (filterToOpen.current === columnId) {
       timeoutId = setTimeout(() => {
         setOpen(true);
+        // Reset only if we still own the marker to avoid clobbering a newer selection.
+        if (filterToOpen.current === columnId) {
+          filterToOpen.current = undefined;
+        }
       }, 0);
     }
 

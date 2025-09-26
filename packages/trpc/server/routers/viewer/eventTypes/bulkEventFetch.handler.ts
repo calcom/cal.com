@@ -1,4 +1,4 @@
-import { getBulkUserEventTypes } from "@calcom/lib/event-types/getBulkEventTypes";
+import { getBulkUserEventTypes } from "@calcom/app-store/_utils/getBulkEventTypes";
 
 import type { TrpcSessionUser } from "../../../types";
 

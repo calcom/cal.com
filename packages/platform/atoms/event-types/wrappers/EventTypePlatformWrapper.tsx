@@ -3,6 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useRef, useState, useEffect, forwardRef, useImperativeHandle, useCallback } from "react";
 
+import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
 import ManagedEventTypeDialog from "@calcom/features/eventtypes/components/dialogs/ManagedEventDialog";
@@ -96,14 +97,18 @@ const EventType = forwardRef<
   const { data: user, isLoading: isUserLoading } = useMe();
 
   const handleDeleteSuccess = () => {
-    showToast(t("event_type_deleted_successfully"), "success");
+    if (!disableToasts) {
+      showToast(t("event_type_deleted_successfully"), "success");
+    }
     isTeamEventTypeDeleted.current = true;
     setSlugExistsChildrenDialogOpen([]);
     onDeleteSuccess?.();
   };
 
   const handleDeleteError = (err: Error) => {
-    showToast(err.message, "error");
+    if (!disableToasts) {
+      showToast(err.message, "error");
+    }
     onDeleteError?.(err.message);
   };
 
@@ -137,7 +142,9 @@ const EventType = forwardRef<
 
       // Reset the form with these values as new default values to ensure the correct comparison for dirtyFields eval
       form.reset(currentValues);
-      toast({ description: t("event_type_updated_successfully", { eventTypeTitle: eventType.title }) });
+      if (!disableToasts) {
+        toast({ description: t("event_type_updated_successfully", { eventTypeTitle: eventType.title }) });
+      }
       onSuccess?.(currentValues);
       callbacksRef.current?.onSuccess?.();
     },
@@ -148,7 +155,9 @@ const EventType = forwardRef<
       const currentValues = form.getValues();
       const message = err?.message;
       const description = message ? t(message) : t(err.message);
-      toast({ description });
+      if (!disableToasts) {
+        toast({ description });
+      }
       onError?.(currentValues, err);
 
       const errorObj = new Error(description);
@@ -386,6 +395,7 @@ export const EventTypePlatformWrapper = forwardRef<
     allowDelete = true,
     customClassNames,
     isDryRun,
+    disableToasts,
     onFormStateChange,
   } = props;
   const { data: eventTypeQueryData } = useAtomsEventTypeById(id);
@@ -408,19 +418,22 @@ export const EventTypePlatformWrapper = forwardRef<
   if (!eventTypeQueryData) return null;
 
   return (
-    <EventType
-      {...eventTypeQueryData}
-      id={id}
-      tabs={tabs}
-      onSuccess={onSuccess}
-      onError={onError}
-      onDeleteSuccess={onDeleteSuccess}
-      onDeleteError={onDeleteError}
-      allowDelete={allowDelete}
-      customClassNames={customClassNames}
-      isDryRun={isDryRun}
-      onFormStateChange={onFormStateChange}
-      ref={ref}
-    />
+    <BookerStoreProvider>
+      <EventType
+        {...eventTypeQueryData}
+        id={id}
+        tabs={tabs}
+        onSuccess={onSuccess}
+        onError={onError}
+        onDeleteSuccess={onDeleteSuccess}
+        onDeleteError={onDeleteError}
+        allowDelete={allowDelete}
+        customClassNames={customClassNames}
+        isDryRun={isDryRun}
+        onFormStateChange={onFormStateChange}
+        ref={ref}
+        disableToasts={disableToasts}
+      />
+    </BookerStoreProvider>
   );
 });

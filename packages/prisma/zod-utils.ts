@@ -1,4 +1,3 @@
-import type { Prisma } from "@prisma/client";
 import type { UnitTypeLongPlural } from "dayjs";
 import type { TFunction } from "i18next";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
@@ -12,15 +11,15 @@ import type {
   ZodTypeAny,
 } from "zod";
 
-import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
-import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
-import type { FieldType as FormBuilderFieldType } from "@calcom/features/form-builder/schema";
-import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/schema";
+import { isPasswordValid } from "@calcom/lib/auth/isPasswordValid";
 import { emailSchema as emailRegexSchema, emailRegex } from "@calcom/lib/emailSchema";
+import { getValidRhfFieldName } from "@calcom/lib/getValidRhfFieldName";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { zodAttributesQueryValue } from "@calcom/lib/raqb/zod";
 import { slugify } from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
+
+import type { Prisma } from "./client";
 
 // Let's not import 118kb just to get an enum
 export enum Frequency {
@@ -82,9 +81,6 @@ export type BookerLayoutSettings = z.infer<typeof bookerLayouts>;
 
 export const RequiresConfirmationThresholdUnits: z.ZodType<UnitTypeLongPlural> = z.enum(["hours", "minutes"]);
 
-export const EventTypeAppMetadataSchema = z.object(appDataSchemas).partial();
-export const eventTypeAppMetadataOptionalSchema = EventTypeAppMetadataSchema.optional();
-
 const _eventTypeMetaDataSchemaWithoutApps = z.object({
   smartContractAddress: z.string().optional(),
   blockchainId: z.number().optional(),
@@ -129,25 +125,14 @@ const _eventTypeMetaDataSchemaWithoutApps = z.object({
 
 export const eventTypeMetaDataSchemaWithUntypedApps = _eventTypeMetaDataSchemaWithoutApps.merge(
   z.object({
-    apps: z.unknown().optional(),
+    apps: z.record(z.string(), z.any()).optional(),
   })
 );
 
 export const EventTypeMetaDataSchema = eventTypeMetaDataSchemaWithUntypedApps.nullable();
 export const eventTypeMetaDataSchemaWithoutApps = _eventTypeMetaDataSchemaWithoutApps.nullable();
-export const eventTypeMetaDataSchemaWithTypedApps = _eventTypeMetaDataSchemaWithoutApps
-  .merge(
-    z.object({
-      apps: eventTypeAppMetadataOptionalSchema,
-    })
-  )
-  .nullable();
 
 export type EventTypeMetadata = z.infer<typeof EventTypeMetaDataSchema>;
-
-export const eventTypeBookingFields = formBuilderFieldsSchema;
-export const BookingFieldTypeEnum = eventTypeBookingFields.element.shape.type.Enum;
-export type BookingFieldType = FormBuilderFieldType;
 
 // Validation of user added bookingFields' responses happen using `getBookingResponsesSchema` which requires `eventType`.
 // So it is a dynamic validation and thus entire validation can't exist here
@@ -176,6 +161,8 @@ export const bookingResponses = z
     rescheduleReason: z.string().optional(),
   })
   .nullable();
+
+export type BookingResponses = z.infer<typeof bookingResponses>;
 
 export const eventTypeLocations = z.array(
   z.object({
@@ -309,6 +296,12 @@ export const bookingCancelInput = bookingCancelSchema.refine(
   "At least one of the following required: 'id', 'uid'."
 );
 
+export const bookingCancelWithCsrfSchema = bookingCancelSchema
+  .extend({
+    csrfToken: z.string().length(64, "Invalid CSRF token"),
+  })
+  .refine((data) => !!data.id || !!data.uid, "At least one of the following required: 'id', 'uid'.");
+
 export const vitalSettingsUpdateSchema = z.object({
   connected: z.boolean().optional(),
   selectedParam: z.string().optional(),
@@ -373,24 +366,41 @@ export enum BillingPeriod {
   ANNUALLY = "ANNUALLY",
 }
 
-export const teamMetadataSchema = z
-  .object({
-    defaultConferencingApp: schemaDefaultConferencingApp.optional(),
-    requestedSlug: z.string().or(z.null()),
-    paymentId: z.string(),
-    subscriptionId: z.string().nullable(),
-    subscriptionItemId: z.string().nullable(),
-    orgSeats: z.number().nullable(),
-    orgPricePerSeat: z.number().nullable(),
-    migratedToOrgFrom: z
-      .object({
-        teamSlug: z.string().or(z.null()).optional(),
-        lastMigrationTime: z.string().optional(),
-        reverted: z.boolean().optional(),
-        lastRevertTime: z.string().optional(),
+const baseTeamMetadataSchema = z.object({
+  defaultConferencingApp: schemaDefaultConferencingApp.optional(),
+  requestedSlug: z.string().or(z.null()),
+  paymentId: z.string(),
+  subscriptionId: z.string().nullable(),
+  subscriptionItemId: z.string().nullable(),
+  orgSeats: z.number().nullable(),
+  orgPricePerSeat: z.number().nullable(),
+  migratedToOrgFrom: z
+    .object({
+      teamSlug: z.string().or(z.null()).optional(),
+      lastMigrationTime: z.string().optional(),
+      reverted: z.boolean().optional(),
+      lastRevertTime: z.string().optional(),
+    })
+    .optional(),
+  billingPeriod: z.nativeEnum(BillingPeriod).optional(),
+});
+
+export const teamMetadataSchema = baseTeamMetadataSchema.partial().nullable();
+
+export const teamMetadataStrictSchema = baseTeamMetadataSchema
+  .extend({
+    subscriptionId: z
+      .string()
+      .refine((val) => val.startsWith("sub_"), {
+        message: "subscriptionId must start with 'sub_'",
       })
-      .optional(),
-    billingPeriod: z.nativeEnum(BillingPeriod).optional(),
+      .nullable(),
+    subscriptionItemId: z
+      .string()
+      .refine((val) => val.startsWith("si_"), {
+        message: "subscriptionItemId must start with 'si_'",
+      })
+      .nullable(),
   })
   .partial()
   .nullable();
@@ -754,3 +764,193 @@ export const serviceAccountKeySchema = z
 export type TServiceAccountKeySchema = z.infer<typeof serviceAccountKeySchema>;
 
 export const rrSegmentQueryValueSchema = zodAttributesQueryValue.nullish();
+
+// Routing Form Fields
+export const fieldTypeEnum = z.enum([
+  "name",
+  "text",
+  "textarea",
+  "number",
+  "email",
+  "phone",
+  "address",
+  "multiemail",
+  "select",
+  "multiselect",
+  "checkbox",
+  "radio",
+  "radioInput",
+  "boolean",
+  "url",
+]);
+
+export type FieldType = z.infer<typeof fieldTypeEnum>;
+
+export const excludeOrRequireEmailSchema = z.string().superRefine((val, ctx) => {
+  const allDomains = val.split(",").map((dom) => dom.trim());
+
+  const regex = /^(?:@?[a-z0-9-]+(?:\.[a-z]{2,})?)?(?:@[a-z0-9-]+\.[a-z]{2,})?$/;
+
+  /*
+  Valid patterns - [ example, example.anything, anyone@example.anything ]
+  Invalid patterns - Patterns involving capital letter [ Example, Example.anything, Anyone@example.anything ]
+*/
+
+  const isValid = !allDomains.some((domain) => !regex.test(domain));
+
+  if (!isValid) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Enter valid domain or email",
+    });
+  }
+});
+
+export const EditableSchema = z.enum([
+  "system", // Can't be deleted, can't be hidden, name can't be edited, can't be marked optional
+  "system-but-optional", // Can't be deleted. Name can't be edited. But can be hidden or be marked optional
+  "system-but-hidden", // Can't be deleted, name can't be edited, will be shown
+  "user", // Fully editable
+  "user-readonly", // All fields are readOnly.
+]);
+
+export const baseFieldSchema = z.object({
+  name: z.string().transform(getValidRhfFieldName),
+  type: fieldTypeEnum,
+  // TODO: We should make at least one of `defaultPlaceholder` and `placeholder` required. Do the same for label.
+  label: z.string().optional(),
+  labelAsSafeHtml: z.string().optional(),
+
+  /**
+   * It is the default label that will be used when a new field is created.
+   * Note: It belongs in FieldsTypeConfig, so that changing defaultLabel in code can work for existing fields as well(for fields that are using the default label).
+   * Supports translation
+   */
+  defaultLabel: z.string().optional(),
+
+  placeholder: z.string().optional(),
+  /**
+   * It is the default placeholder that will be used when a new field is created.
+   * Note: Same as defaultLabel, it belongs in FieldsTypeConfig
+   * Supports translation
+   */
+  defaultPlaceholder: z.string().optional(),
+  required: z.boolean().default(false).optional(),
+  /**
+   * It is the list of options that is valid for a certain type of fields.
+   *
+   */
+  options: z
+    .array(
+      z.object({
+        label: z.string(),
+        value: z.string(),
+        price: z.coerce.number().min(0).optional(),
+      })
+    )
+    .optional(),
+  /**
+   * This is an alternate way to specify options when the options are stored elsewhere. Form Builder expects options to be present at `dataStore[getOptionsAt]`
+   * This allows keeping a single source of truth in DB.
+   */
+  getOptionsAt: z.string().optional(),
+
+  /**
+   * For `radioInput` type of questions, it stores the input that is shown based on the user option selected.
+   * e.g. If user is given a list of locations and he selects "Phone", then he will be shown a phone input
+   */
+  optionsInputs: z
+    .record(
+      z.object({
+        // Support all types as needed
+        // Must be a subset of `fieldTypeEnum`.TODO: Enforce it in TypeScript
+        type: z.enum(["address", "phone", "text"]),
+        required: z.boolean().optional(),
+        placeholder: z.string().optional(),
+      })
+    )
+    .optional(),
+
+  /**
+   * It is the minimum number of characters that can be entered in the field.
+   * It is used for types with `supportsLengthCheck= true`.
+   * @default 0
+   * @requires supportsLengthCheck = true
+   */
+  minLength: z.number().optional(),
+
+  /**
+   * It is the maximum number of characters that can be entered in the field.
+   * It is used for types with `supportsLengthCheck= true`.
+   * @requires supportsLengthCheck = true
+   */
+  maxLength: z.number().optional(),
+
+  // Emails that needs to be excluded
+  excludeEmails: excludeOrRequireEmailSchema.optional(),
+  // Emails that need to be required
+  requireEmails: excludeOrRequireEmailSchema.optional(),
+  // Price associated with the field which works like addons which users can add to the booking
+  price: z.coerce.number().min(0).optional(),
+});
+
+export const variantsConfigSchema = z.object({
+  variants: z.record(
+    z.object({
+      /**
+       * Variant Fields schema for a variant of the main field.
+       * It doesn't support non text fields as of now
+       **/
+      fields: baseFieldSchema
+        .omit({
+          defaultLabel: true,
+          defaultPlaceholder: true,
+          options: true,
+          getOptionsAt: true,
+          optionsInputs: true,
+        })
+        .array(),
+    })
+  ),
+});
+
+export const fieldSchema = baseFieldSchema.merge(
+  z.object({
+    variant: z.string().optional(),
+    variantsConfig: variantsConfigSchema.optional(),
+
+    views: z
+      .object({
+        label: z.string(),
+        id: z.string(),
+        description: z.string().optional(),
+      })
+      .array()
+      .optional(),
+
+    /**
+     * It is used to hide fields such as location when there are less than two options
+     */
+    hideWhenJustOneOption: z.boolean().default(false).optional(),
+
+    hidden: z.boolean().optional(),
+    editable: EditableSchema.default("user").optional(),
+    sources: z
+      .array(
+        z.object({
+          // Unique ID for the `type`. If type is workflow, it's the workflow ID
+          id: z.string(),
+          type: z.union([z.literal("user"), z.literal("system"), z.string()]),
+          label: z.string(),
+          editUrl: z.string().optional(),
+          // Mark if a field is required by this source or not. This allows us to set `field.required` based on all the sources' fieldRequired value
+          fieldRequired: z.boolean().optional(),
+        })
+      )
+      .optional(),
+    disableOnPrefill: z.boolean().default(false).optional(),
+  })
+);
+
+export const eventTypeBookingFields = z.array(fieldSchema);
+export const BookingFieldTypeEnum = eventTypeBookingFields.element.shape.type.Enum;

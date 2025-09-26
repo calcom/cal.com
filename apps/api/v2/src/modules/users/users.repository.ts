@@ -3,8 +3,9 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { Injectable, NotFoundException } from "@nestjs/common";
-import type { Profile, User, Team, Prisma } from "@prisma/client";
-import { CreationSource } from "@prisma/client";
+
+import { CreationSource } from "@calcom/platform-libraries";
+import type { Profile, User, Team, Prisma } from "@calcom/prisma/client";
 
 import { userMetadata } from "@calcom/platform-libraries";
 

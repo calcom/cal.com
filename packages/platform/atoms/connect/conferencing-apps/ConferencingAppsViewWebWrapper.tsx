@@ -1,12 +1,13 @@
 "use client";
 
-import { useReducer, Suspense } from "react";
+import { useReducer } from "react";
 
 import { AppList } from "@calcom/features/apps/components/AppList";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
@@ -23,38 +24,45 @@ export type UpdateUsersDefaultConferencingAppParams = {
 export type BulkUpdatParams = { eventTypeIds: number[]; callback: () => void };
 type RemoveAppParams = { credentialId: number; teamId?: number; callback: () => void };
 
-const SkeletonLoader = () => {
+export const SkeletonLoader = () => {
+  const { t } = useLocale();
   return (
-    <SkeletonContainer>
-      <div className="divide-subtle border-subtle space-y-6 rounded-b-lg border border-t-0 px-6 py-4">
-        <SkeletonText className="h-8 w-full" />
-        <SkeletonText className="h-8 w-full" />
-      </div>
-    </SkeletonContainer>
+    <SettingsHeader
+      title={t("conferencing")}
+      description={t("conferencing_description")}
+      CTA={<AddConferencingButton />}
+      borderInShellHeader={true}>
+      <SkeletonContainer>
+        <div className="divide-subtle border-subtle space-y-6 rounded-b-lg border border-t-0 px-6 py-4">
+          <SkeletonText className="h-8 w-full" />
+          <SkeletonText className="h-8 w-full" />
+        </div>
+      </SkeletonContainer>
+    </SettingsHeader>
   );
 };
 
-const InstalledConferencingApps = ({
+type IntegrationsOutput = RouterOutputs["viewer"]["apps"]["integrations"];
+type DefaultConferencingApp = RouterOutputs["viewer"]["apps"]["getUsersDefaultConferencingApp"] | undefined;
+type EventTypesList = RouterOutputs["viewer"]["eventTypes"]["bulkEventFetch"]["eventTypes"];
+
+export const InstalledConferencingApps = ({
   disconnectIntegrationModalCtrl,
+  integrations,
+  defaultConferencingApp,
+  eventTypes,
 }: {
   disconnectIntegrationModalCtrl: ReturnType<typeof useDisconnectIntegrationModalController>;
+  integrations: IntegrationsOutput;
+  defaultConferencingApp: DefaultConferencingApp;
+  eventTypes: EventTypesList;
 }) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const { data: defaultConferencingApp } = trpc.viewer.apps.getUsersDefaultConferencingApp.useQuery();
-
   const updateDefaultAppMutation = trpc.viewer.apps.updateUserDefaultConferencingApp.useMutation();
 
   const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation();
-
-  const { data: eventTypesQueryData, isFetching: isEventTypesFetching } =
-    trpc.viewer.eventTypes.bulkEventFetch.useQuery();
-
-  const [result] = trpc.viewer.apps.integrations.useSuspenseQuery({
-    variant: "conferencing",
-    onlyInstalled: true,
-  });
 
   const handleConnectDisconnectIntegrationMenuToggle = () => {
     utils.viewer.apps.integrations.invalidate();
@@ -100,7 +108,7 @@ const InstalledConferencingApps = ({
     );
   };
 
-  if (result.items.length === 0) {
+  if (integrations.items.length === 0) {
     return (
       <EmptyScreen
         Icon="calendar"
@@ -124,14 +132,14 @@ const InstalledConferencingApps = ({
     <AppList
       listClassName="rounded-lg rounded-t-none border-t-0 max-w-full"
       handleDisconnect={disconnectIntegrationModalCtrl.disconnect}
-      data={result}
+      data={integrations}
       variant="conferencing"
       defaultConferencingApp={defaultConferencingApp}
       handleUpdateUserDefaultConferencingApp={handleUpdateUserDefaultConferencingApp}
       handleBulkUpdateDefaultLocation={handleBulkUpdateDefaultLocation}
       isBulkUpdateDefaultLocationPending={updateDefaultAppMutation.isPending}
-      eventTypes={eventTypesQueryData?.eventTypes}
-      isEventTypesFetching={isEventTypesFetching}
+      eventTypes={eventTypes}
+      isEventTypesFetching={false}
       handleConnectDisconnectIntegrationMenuToggle={handleConnectDisconnectIntegrationMenuToggle}
       handleBulkEditDialogToggle={handleBulkEditDialogToggle}
     />
@@ -180,7 +188,15 @@ const AddConferencingButton = () => {
   );
 };
 
-export const ConferencingAppsViewWebWrapper = () => {
+export const ConferencingAppsViewWebWrapper = ({
+  integrations,
+  defaultConferencingApp,
+  eventTypes,
+}: {
+  integrations: IntegrationsOutput;
+  defaultConferencingApp: DefaultConferencingApp;
+  eventTypes: EventTypesList;
+}) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
@@ -214,9 +230,12 @@ export const ConferencingAppsViewWebWrapper = () => {
       borderInShellHeader={true}>
       <>
         <div className="bg-default w-full sm:mx-0 xl:mt-0">
-          <Suspense fallback={<SkeletonLoader />}>
-            <InstalledConferencingApps disconnectIntegrationModalCtrl={disconnectIntegrationModalCtrl} />
-          </Suspense>
+          <InstalledConferencingApps
+            disconnectIntegrationModalCtrl={disconnectIntegrationModalCtrl}
+            integrations={integrations}
+            defaultConferencingApp={defaultConferencingApp}
+            eventTypes={eventTypes}
+          />
         </div>
         <DisconnectIntegrationModal
           handleModelClose={disconnectIntegrationModalCtrl.close}

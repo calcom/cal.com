@@ -102,7 +102,7 @@ describe("AIPhoneServiceRegistry", () => {
       AIPhoneServiceRegistry.initialize();
 
       expect(AIPhoneServiceRegistry.isInitialized()).toBe(true);
-      expect(AIPhoneServiceRegistry.getDefaultProvider()).toBeNull();
+      expect(AIPhoneServiceRegistry.getDefaultProvider()).toBe(AIPhoneServiceProviderType.RETELL_AI);
     });
   });
 
@@ -114,10 +114,10 @@ describe("AIPhoneServiceRegistry", () => {
       expect(AIPhoneServiceRegistry.getAvailableProviders()).toContain("test-provider");
     });
 
-    it("should set first registered provider as default", () => {
+    it("should keep default as retellAI even after registering provider", () => {
       AIPhoneServiceRegistry.registerProvider("test-provider", mockFactory);
 
-      expect(AIPhoneServiceRegistry.getDefaultProvider()).toBe("test-provider");
+      expect(AIPhoneServiceRegistry.getDefaultProvider()).toBe(AIPhoneServiceProviderType.RETELL_AI);
     });
 
     it("should allow overriding existing provider", () => {
@@ -190,12 +190,12 @@ describe("AIPhoneServiceRegistry", () => {
       expect(provider).toBe(mockProvider);
     });
 
-    it("should throw error when no default provider is set", () => {
+    it("should throw error when default provider is not registered", () => {
       const config: AIPhoneServiceProviderConfig = { apiKey: "test-key" };
 
       expect(() => {
         AIPhoneServiceRegistry.createDefaultProvider(config);
-      }).toThrow("No default provider set");
+      }).toThrow("AI phone service provider 'retellAI' not found");
     });
   });
 
@@ -225,8 +225,8 @@ describe("AIPhoneServiceRegistry", () => {
       expect(AIPhoneServiceRegistry.getDefaultProvider()).toBe("test-provider");
     });
 
-    it("should return null when no default provider is set", () => {
-      expect(AIPhoneServiceRegistry.getDefaultProvider()).toBeNull();
+    it("should return retellAI as default provider", () => {
+      expect(AIPhoneServiceRegistry.getDefaultProvider()).toBe(AIPhoneServiceProviderType.RETELL_AI);
     });
   });
 
@@ -296,19 +296,19 @@ describe("createAIPhoneServiceProvider", () => {
     };
   });
 
-  it("should throw error when registry is not initialized", () => {
+  it("should automatically initialize registry when not initialized", () => {
     // Registry starts uninitialized
     expect(AIPhoneServiceRegistry.isInitialized()).toBe(false);
 
-    // Should throw error for uninitialized registry
+    // Should automatically initialize the registry and create provider
     expect(() => {
       createAIPhoneServiceProvider({
         config: { apiKey: "test-key" },
       });
-    }).toThrow("AIPhoneServiceRegistry not initialized");
+    }).not.toThrow();
 
-    // Registry should still be uninitialized
-    expect(AIPhoneServiceRegistry.isInitialized()).toBe(false);
+    // Registry should now be initialized
+    expect(AIPhoneServiceRegistry.isInitialized()).toBe(true);
   });
 
   it("should create provider with specified type and config", () => {
@@ -376,12 +376,12 @@ describe("createAIPhoneServiceProvider", () => {
     });
   });
 
-  it("should throw error when no provider type and no default provider", () => {
+  it("should throw error when default provider is not registered", () => {
     AIPhoneServiceRegistry.initialize(); // Initialize without providers
 
     expect(() => {
       createAIPhoneServiceProvider();
-    }).toThrow("No provider type specified and no default provider configured");
+    }).toThrow("AI phone service provider 'retellAI' not found");
   });
 });
 

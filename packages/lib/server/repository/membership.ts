@@ -1,6 +1,6 @@
-import { availabilityUserSelect, prisma, type PrismaTransaction, type PrismaClient } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/client";
-import type { Prisma, Membership } from "@calcom/prisma/client";
+import { availabilityUserSelect, prisma, type PrismaTransaction } from "@calcom/prisma";
+import type { Prisma, Membership, PrismaClient } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import logger from "../../logger";
@@ -314,6 +314,41 @@ export class MembershipRepository {
     });
   }
 
+  async findAllMembershipsByUserIdForBilling({ userId }: { userId: number }) {
+    return this.prismaClient.membership.findMany({
+      where: { userId },
+      select: {
+        accepted: true,
+        user: {
+          select: {
+            isPlatformManaged: true,
+          },
+        },
+        team: {
+          select: {
+            slug: true,
+            isOrganization: true,
+            isPlatform: true,
+            metadata: true,
+            platformBilling: {
+              select: {
+                plan: true,
+              },
+            },
+            parent: {
+              select: {
+                isOrganization: true,
+                slug: true,
+                metadata: true,
+                isPlatform: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
   static async findByTeamIdForAvailability({ teamId }: { teamId: number }) {
     const memberships = await prisma.membership.findMany({
       where: { teamId },
@@ -459,6 +494,50 @@ export class MembershipRepository {
       // this is explicit, and typed in TSelect default typings
       select: select ?? { userId: true },
     })) as unknown as Promise<MembershipDTOFromSelect<TSelect>[]>;
+  }
+
+  static async findAllAcceptedTeamMemberships(userId: number, where?: Prisma.MembershipWhereInput) {
+    const teams = await prisma.team.findMany({
+      where: {
+        members: {
+          some: {
+            userId,
+            accepted: true,
+            ...(where ?? {}),
+          },
+        },
+      },
+    });
+    return teams;
+  }
+
+  static async findAllByUserId({
+    userId,
+    filters,
+  }: {
+    userId: number;
+    filters?: {
+      accepted?: boolean;
+      roles?: MembershipRole[];
+    };
+  }) {
+    return prisma.membership.findMany({
+      where: {
+        userId,
+        ...(filters?.accepted !== undefined && { accepted: filters.accepted }),
+        ...(filters?.roles && { role: { in: filters.roles } }),
+      },
+      select: {
+        teamId: true,
+        role: true,
+        team: {
+          select: {
+            id: true,
+            parentId: true,
+          },
+        },
+      },
+    });
   }
 
   async findTeamAdminsByTeamId({ teamId }: { teamId: number }) {
