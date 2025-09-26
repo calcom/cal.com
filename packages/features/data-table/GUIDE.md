@@ -644,7 +644,7 @@ For bulk actions when rows are selected:
 
 ### Server-Side Operations
 
-The DataTable system is designed primarily for **server-side filtering, sorting, and pagination** rather than client-side operations. This approach provides better performance and scalability.
+The DataTable system is designed for **server-side filtering, sorting, and pagination** with standard pagination. This approach is necessary because we only fetch a limited number of items per page, unlike the previous infinite scrolling approach that cached large amounts of data and could filter on the client side.
 
 #### Basic Server-Side Pattern
 
@@ -660,6 +660,90 @@ const { data } = trpc.users.list.useQuery({
   sorting,
   filters: columnFilters
 });
+```
+
+#### Prisma Where Clause Construction
+
+For Prisma-based backends, extract individual filters and build typed where conditions:
+
+```tsx
+// From packages/trpc/server/routers/viewer/organizations/listMembers.handler.ts
+const roleFilter = filters.find((filter) => filter.id === "role") as
+  | TypedColumnFilter<ColumnFilterType.MULTI_SELECT>
+  | undefined;
+const teamFilter = filters.find((filter) => filter.id === "teams") as
+  | TypedColumnFilter<ColumnFilterType.MULTI_SELECT>
+  | undefined;
+const lastActiveAtFilter = filters.find((filter) => filter.id === "lastActiveAt") as
+  | TypedColumnFilter<ColumnFilterType.DATE_RANGE>
+  | undefined;
+
+const whereClause: Prisma.MembershipWhereInput = {
+  user: {
+    ...(teamFilter && {
+      teams: {
+        some: {
+          team: makeWhereClause({
+            columnName: "name",
+            filterValue: teamFilter.value,
+          }),
+        },
+      },
+    }),
+    ...(lastActiveAtFilter &&
+      makeWhereClause({
+        columnName: "lastActiveAt",
+        filterValue: lastActiveAtFilter.value,
+      })),
+  },
+  teamId: organizationId,
+  ...(roleFilter && makeWhereClause({
+    columnName: "role",
+    filterValue: roleFilter.value,
+  })),
+};
+```
+
+#### Raw SQL Optimization
+
+For performance-critical queries, use raw SQL with `makeSqlCondition`:
+
+```tsx
+// From packages/lib/server/service/InsightsRoutingBaseService.ts
+async getFilterConditions(): Promise<Prisma.Sql | null> {
+  const conditions: Prisma.Sql[] = [];
+  const columnFilters = this.filters.columnFilters || [];
+  
+  // Convert columnFilters array to object for easier access
+  const filtersMap = columnFilters.reduce((acc, filter) => {
+    acc[filter.id] = filter;
+    return acc;
+  }, {} as Record<string, TypedColumnFilter<ColumnFilterType>>);
+
+  // Extract booking status order filter
+  const bookingStatusOrder = filtersMap["bookingStatusOrder"];
+  if (bookingStatusOrder && isMultiSelectFilterValue(bookingStatusOrder.value)) {
+    const statusCondition = makeSqlCondition(bookingStatusOrder.value);
+    if (statusCondition) {
+      conditions.push(Prisma.sql`rfrd."bookingStatusOrder" ${statusCondition}`);
+    }
+  }
+
+  // Extract booking UID filter
+  const bookingUid = filtersMap["bookingUid"];
+  if (bookingUid && isTextFilterValue(bookingUid.value)) {
+    const uidCondition = makeSqlCondition(bookingUid.value);
+    if (uidCondition) {
+      conditions.push(Prisma.sql`rfrd."bookingUid" ${uidCondition}`);
+    }
+  }
+
+  // Join all conditions with AND
+  return conditions.reduce((acc, condition, index) => {
+    if (index === 0) return condition;
+    return Prisma.sql`(${acc}) AND (${condition})`;
+  });
+}
 ```
 
 #### Advanced Parameter Manipulation
@@ -695,6 +779,21 @@ export function useInsightsRoutingParameters() {
   };
 }
 ```
+
+#### Key Hooks for Server-Side Integration
+
+- **`useColumnFilters()`** - Get applied filters for backend requests
+- **`useDataTable()`** - Get `limit`, `offset`, `sorting` for pagination
+- **`useFilterValue(columnId, schema)`** - Get specific filter value with validation
+- **Custom parameter hooks** - Extract complex manipulation logic
+
+#### Server Utility Functions
+
+The DataTable system provides utility functions for both Prisma and raw SQL approaches:
+
+- **`makeWhereClause()`** - Converts filter values to Prisma where clause objects
+- **`makeSqlCondition()`** - Converts filter values to raw SQL conditions
+- **`makeOrderBy()`** - Converts sorting state to Prisma orderBy format
 
 #### Key Hooks for Server-Side Integration
 
