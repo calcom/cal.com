@@ -2,6 +2,7 @@ import type { calendar_v3 } from "@googleapis/calendar";
 import { v4 as uuid } from "uuid";
 
 import { CalendarAuth } from "@calcom/app-store/googlecalendar/lib/CalendarAuth";
+import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 
@@ -54,7 +55,6 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
     credential: CalendarCredential
   ): Promise<CalendarSubscriptionResult> {
     log.debug("Attempt to subscribe to Google Calendar", { externalId: selectedCalendar.externalId });
-    selectedCalendar;
 
     const MONTH_IN_SECONDS = 60 * 60 * 24 * 30;
 
@@ -117,11 +117,12 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
     };
 
     if (!syncToken) {
-      // first sync or unsync (30 days)
-      const DAYS_30_IN_MS = 30 * 24 * 60 * 60 * 1000;
-      const now = new Date();
+      const now = dayjs();
+      // first sync or unsync (3 months)
+      const threeMonths = now.add(3, "month");
+
       const timeMinISO = now.toISOString();
-      const timeMaxISO = new Date(now.getTime() + DAYS_30_IN_MS).toISOString();
+      const timeMaxISO = threeMonths.toISOString();
       params.timeMin = timeMinISO;
       params.timeMax = timeMaxISO;
     } else {
