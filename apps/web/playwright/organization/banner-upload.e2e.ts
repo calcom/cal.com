@@ -180,4 +180,76 @@ test.describe("Organization Banner Upload", () => {
       await expect(page.getByText(/Please use an image with/)).toBeVisible();
     });
   });
+
+  test("it preserves banner when updating profile without banner changes", async ({ page, users }) => {
+    const owner = await users.create(undefined, { hasTeam: true, isUnpublished: true, isOrg: true });
+    const { team: org } = await owner.getOrgMembership();
+
+    await owner.apiLogin();
+    await page.goto("/settings/organizations/profile");
+
+    let objectKey: string;
+
+    await test.step("Upload initial banner", async () => {
+      await page.getByTestId("open-upload-banner-dialog").click();
+
+      const [fileChooser] = await Promise.all([
+        page.waitForEvent("filechooser"),
+        page.getByTestId("open-upload-image-filechooser").click(),
+      ]);
+
+      await fileChooser.setFiles(`${path.dirname(__filename)}/../fixtures/cal.png`);
+
+      await page.getByTestId("upload-avatar").click();
+
+      await page.getByTestId("update-org-profile-button").click();
+      await page.waitForSelector("text=Your organization updated successfully");
+
+      const response = await prisma.avatar.findUniqueOrThrow({
+        where: {
+          teamId_userId_isBanner: {
+            userId: 0,
+            teamId: org.id,
+            isBanner: true,
+          },
+        },
+      });
+
+      objectKey = response.objectKey;
+
+      const bannerImage = page.getByTestId("profile-upload-banner").locator("img");
+      await expect(bannerImage).toHaveAttribute(
+        "src",
+        new RegExp(`^/api/avatar/${response.objectKey}\\.png$`)
+      );
+    });
+
+    await test.step("Update organization name without touching banner", async () => {
+      await page.getByLabel("Organization name").fill("Updated Organization Name");
+
+      await page.getByTestId("update-org-profile-button").click();
+      await page.waitForSelector("text=Your organization updated successfully");
+    });
+
+    await test.step("Verify banner is preserved after profile update", async () => {
+      const response = await prisma.avatar.findUniqueOrThrow({
+        where: {
+          teamId_userId_isBanner: {
+            userId: 0,
+            teamId: org.id,
+            isBanner: true,
+          },
+        },
+      });
+
+      expect(response.objectKey).toBe(objectKey);
+
+      const bannerImage = page.getByTestId("profile-upload-banner").locator("img");
+      await expect(bannerImage).toHaveAttribute("src", new RegExp(`^/api/avatar/${objectKey}\\.png$`));
+
+      await expect(page.getByRole("textbox", { name: "Organization name" })).toHaveValue(
+        "Updated Organization Name"
+      );
+    });
+  });
 });
