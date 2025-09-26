@@ -1,6 +1,11 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-yarn lint-staged
+if [ "$SKIP_WARNINGS" = "1" ]; then
+  echo "Emergency mode: skipping max-warnings"
+  yarn lint-staged-emergency
+else
+  yarn lint-staged
+fi
 
 yarn app-store:build && git add packages/app-store/*.generated.*
