@@ -13,15 +13,11 @@ const bookingReferenceSelect = {
   bookingId: true,
 } satisfies Prisma.BookingReferenceSelect;
 
-type Dependencies = {
-  prismaClient: PrismaClient;
-};
-
 export class PrismaBookingReferenceRepository {
-  constructor(private readonly deps: Dependencies) {}
+  constructor(private readonly prismaClient: PrismaClient) {}
 
   async findDailyVideoReferenceByRoomName({ roomName }: { roomName: string }) {
-    return this.deps.prismaClient.bookingReference.findFirst({
+    return this.prismaClient.bookingReference.findFirst({
       where: { type: "daily_video", uid: roomName, meetingId: roomName, bookingId: { not: null } },
       select: bookingReferenceSelect,
     });
@@ -39,8 +35,8 @@ export class PrismaBookingReferenceRepository {
   }) {
     const newReferenceTypes = newReferencesToCreate.map((reference) => reference.type);
 
-    await this.deps.prismaClient.$transaction([
-      this.deps.prismaClient.bookingReference.deleteMany({
+    await this.prismaClient.$transaction([
+      this.prismaClient.bookingReference.deleteMany({
         where: {
           bookingId,
           type: {
@@ -48,7 +44,7 @@ export class PrismaBookingReferenceRepository {
           },
         },
       }),
-      this.deps.prismaClient.bookingReference.createMany({
+      this.prismaClient.bookingReference.createMany({
         data: newReferencesToCreate.map((reference) => {
           return { ...reference, bookingId };
         }),
@@ -57,7 +53,7 @@ export class PrismaBookingReferenceRepository {
   }
 
   async delete(id: number) {
-    await this.deps.prismaClient.bookingReference.update({
+    await this.prismaClient.bookingReference.update({
       where: { id },
       data: {
         deletedAt: new Date(),
@@ -66,7 +62,7 @@ export class PrismaBookingReferenceRepository {
   }
 
   async deleteBookingReferences({ bookingId }: { bookingId: number }) {
-    await this.deps.prismaClient.bookingReference.updateMany({
+    await this.prismaClient.bookingReference.updateMany({
       where: {
         bookingId,
       },
@@ -77,7 +73,7 @@ export class PrismaBookingReferenceRepository {
   }
 
   async findBookingReferences({ bookingId }: { bookingId: number }) {
-    return await this.deps.prismaClient.bookingReference.findMany({
+    return await this.prismaClient.bookingReference.findMany({
       where: {
         bookingId,
         deletedAt: null,
@@ -87,14 +83,14 @@ export class PrismaBookingReferenceRepository {
   }
 
   async findBookingReferenceById(id: number) {
-    return await this.deps.prismaClient.bookingReference.findFirst({
+    return await this.prismaClient.bookingReference.findFirst({
       where: { id, deletedAt: null },
       select: bookingReferenceSelect,
     });
   }
 
   async findByBookingAndApp({ bookingId, appType }: { bookingId: number; appType: string }) {
-    return await this.deps.prismaClient.bookingReference.findMany({
+    return await this.prismaClient.bookingReference.findMany({
       where: {
         type: appType,
         deletedAt: null,
@@ -106,7 +102,7 @@ export class PrismaBookingReferenceRepository {
   }
 
   async findByUserId({ userId }: { userId: number }) {
-    return await this.deps.prismaClient.bookingReference.findMany({
+    return await this.prismaClient.bookingReference.findMany({
       where: {
         deletedAt: null,
         booking: {

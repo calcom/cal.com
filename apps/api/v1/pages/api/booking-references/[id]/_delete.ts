@@ -39,7 +39,7 @@ export async function deleteHandler(req: NextApiRequest) {
   const { query } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
 
-  const bookingReferenceRepo = new PrismaBookingReferenceRepository({ prismaClient: prisma });
+  const bookingReferenceRepo = new PrismaBookingReferenceRepository(prisma);
   await bookingReferenceRepo.delete(id);
 
   return { message: `BookingReference with id: ${id} deleted` };

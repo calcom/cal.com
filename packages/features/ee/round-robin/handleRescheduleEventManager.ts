@@ -170,7 +170,7 @@ export const handleRescheduleEventManager = async ({
 
   const newReferencesToCreate = structuredClone(updateManager.referencesToCreate);
 
-  const bookingReferenceRepo = new PrismaBookingReferenceRepository({ prismaClient: prisma });
+  const bookingReferenceRepo = new PrismaBookingReferenceRepository(prisma);
   await bookingReferenceRepo.replaceBookingReferences({
     bookingId,
     newReferencesToCreate,

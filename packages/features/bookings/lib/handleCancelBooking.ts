@@ -519,7 +519,7 @@ async function handler(input: CancelBookingInput) {
 
     await eventManager.cancelEvent(evt, bookingToDelete.references, isBookingInRecurringSeries);
 
-    const bookingReferenceRepo = new PrismaBookingReferenceRepository({ prismaClient: prisma });
+    const bookingReferenceRepo = new PrismaBookingReferenceRepository(prisma);
     await bookingReferenceRepo.deleteBookingReferences({ bookingId: bookingToDelete.id });
   } catch (error) {
     log.error(`Error deleting integrations`, safeStringify({ error }));

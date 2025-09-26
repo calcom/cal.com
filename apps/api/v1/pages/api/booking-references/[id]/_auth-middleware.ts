@@ -14,7 +14,7 @@ async function authMiddleware(req: NextApiRequest) {
   if (isSystemWideAdmin) return;
   // Find all references where the user has bookings
 
-  const bookingReferenceRepo = new PrismaBookingReferenceRepository({ prismaClient: prisma });
+  const bookingReferenceRepo = new PrismaBookingReferenceRepository(prisma);
   const bookingRepo = new BookingRepository(prisma);
 
   const [booking, bookingReference] = await Promise.all([

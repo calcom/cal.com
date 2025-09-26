@@ -701,7 +701,7 @@ export default class SalesforceCRMService implements CRM {
       return;
     }
 
-    const bookingReferenceRepo = new PrismaBookingReferenceRepository({ prismaClient: prisma });
+    const bookingReferenceRepo = new PrismaBookingReferenceRepository(prisma);
     const salesforceEvents = await bookingReferenceRepo.findByBookingAndApp({
       bookingId,
       appType: appMeta.type,

@@ -303,7 +303,7 @@ const handleDeleteCredential = async ({
               },
             });
 
-            const bookingReferenceRepo = new PrismaBookingReferenceRepository({ prismaClient: prisma });
+            const bookingReferenceRepo = new PrismaBookingReferenceRepository(prisma);
             await bookingReferenceRepo.deleteBookingReferences({ bookingId: booking.id });
 
             const attendeesListPromises = booking.attendees.map(async (attendee) => {

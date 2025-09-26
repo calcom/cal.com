@@ -29,7 +29,7 @@ import { prisma } from "@calcom/prisma";
  */
 async function getHandler(req: NextApiRequest) {
   const { userId } = req;
-  const bookingReferenceRepo = new PrismaBookingReferenceRepository({ prismaClient: prisma });
+  const bookingReferenceRepo = new PrismaBookingReferenceRepository(prisma);
   return {
     booking_references: await bookingReferenceRepo.findByUserId({ userId }),
   };
