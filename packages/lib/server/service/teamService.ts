@@ -111,7 +111,7 @@ export class TeamService {
   }
 
   // TODO: Move errors away from TRPC error to make it more generic
-  static async inviteMemberByToken(token: string, userId: number) {
+  static async inviteMemberByToken(token: string, userId: number, autoAccept: boolean = false) {
     const verificationToken = await prisma.verificationToken.findFirst({
       where: {
         token,
@@ -140,7 +140,7 @@ export class TeamService {
           teamId: verificationToken.teamId,
           userId: userId,
           role: MembershipRole.MEMBER,
-          accepted: false,
+          accepted: autoAccept,
         },
       });
     } catch (e) {

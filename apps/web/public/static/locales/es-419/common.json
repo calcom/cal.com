@@ -2149,7 +2149,7 @@
   "delete_sso_configuration_confirmation": "Sí, eliminar configuración de {{connectionType}}",
   "delete_sso_configuration_confirmation_description": "¿Estás seguro de que deseas eliminar la configuración de {{connectionType}}? Los miembros de tu equipo que usan el inicio de sesión de {{connectionType}} ya no podrán acceder a Cal.com.",
   "organizer_timezone": "Zona horaria del organizador",
-  "email_user_cta": "Ver invitación",
+  "email_user_cta": "Accept Invite",
   "email_no_user_invite_heading_subteam": "Has sido invitado a unirte a un equipo de la organización {{parentTeamName}}",
   "email_no_user_invite_heading_org": "Has sido invitado a unirte a una organización de {{appName}}",
   "email_no_user_invite_subheading": "{{invitedBy}} te ha invitado a unirte a su equipo en {{appName}}. {{appName}} es el programador de eventos que te permite a ti y a tu equipo agendar reuniones sin el ir y venir de correos electrónicos.",

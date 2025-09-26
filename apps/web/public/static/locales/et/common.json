@@ -2149,7 +2149,7 @@
   "delete_sso_configuration_confirmation": "Jah, kustuta {{connectionType}} konfiguratsioon",
   "delete_sso_configuration_confirmation_description": "Kas soovite kindlasti konfiguratsiooni {{connectionType}} kustutada? Teie meeskonnaliikmed, kes kasutavad {{connectionType}} sisselogimist, ei pääse enam saidile Cal.com juurde.",
   "organizer_timezone": "Korraldaja ajavöönd",
-  "email_user_cta": "Vaata kutset",
+  "email_user_cta": "Accept Invite",
   "email_no_user_invite_heading_subteam": "Teid on kutsutud liituma {{parentTeamName}} organisatsiooni meeskonnaga.",
   "email_no_user_invite_heading_org": "Teid on kutsutud liituma {{appName}} organisatsiooniga.",
   "email_no_user_invite_subheading": "{{invitedBy}} kutsus teid liituma oma meeskonnaga rakenduses {{appName}}. {{appName}} on sündmustega žongleerimise ajakava, mis võimaldab teil ja teie meeskonnal koosolekuid ajastada ilma meilitenniseta.",

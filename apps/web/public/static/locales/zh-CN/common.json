@@ -2149,7 +2149,7 @@
   "delete_sso_configuration_confirmation": "是，删除 {{connectionType}} 配置",
   "delete_sso_configuration_confirmation_description": "确定要删除 {{connectionType}} 配置吗？使用 {{connectionType}} 登录的团队成员将无法再访问 Cal.com。",
   "organizer_timezone": "组织者时区",
-  "email_user_cta": "查看邀请",
+  "email_user_cta": "Accept Invite",
   "email_no_user_invite_heading_subteam": "您已被邀请加入 {{parentTeamName}} 组织的一个团队。",
   "email_no_user_invite_heading_org": "您已被邀请加入一个 {{appName}} 组织。",
   "email_no_user_invite_subheading": "{{invitedBy}} 已邀请您加入他们在 {{appName}} 上的团队。{{appName}} 是一个活动安排调度程序，让您和您的团队无需通过电子邮件沟通即可安排会议。",

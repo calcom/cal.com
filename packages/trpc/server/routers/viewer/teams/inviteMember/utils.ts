@@ -642,15 +642,17 @@ export const groupUsersByJoinability = ({
       connectionInfoMap,
     });
 
-    autoJoinStatus.autoAccept
-      ? usersToAutoJoin.push({
-          ...existingUserWithMemberships,
-          ...autoJoinStatus,
-        })
-      : regularUsers.push({
-          ...existingUserWithMemberships,
-          ...autoJoinStatus,
-        });
+    if (autoJoinStatus.autoAccept) {
+      usersToAutoJoin.push({
+        ...existingUserWithMemberships,
+        ...autoJoinStatus,
+      });
+    } else {
+      regularUsers.push({
+        ...existingUserWithMemberships,
+        ...autoJoinStatus,
+      });
+    }
   }
 
   return [usersToAutoJoin, regularUsers];
@@ -704,7 +706,9 @@ export const sendExistingUserTeamInviteEmails = async ({
     // inform user of membership by email
     if (currentUserTeamName) {
       const inviteTeamOptions = {
-        joinLink: `${WEBAPP_URL}/auth/login?callbackUrl=/settings/teams`,
+        joinLink: isAutoJoin
+          ? `${WEBAPP_URL}/auth/login?callbackUrl=/settings/teams`
+          : `${WEBAPP_URL}/teams?autoAccept=true`,
         isCalcomMember: true,
       };
       /**
@@ -728,6 +732,31 @@ export const sendExistingUserTeamInviteEmails = async ({
 
         inviteTeamOptions.joinLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
         inviteTeamOptions.isCalcomMember = false;
+      } else if (!isAutoJoin) {
+        let verificationToken = await prisma.verificationToken.findFirst({
+          where: {
+            identifier: user.email,
+            teamId: teamId,
+          },
+        });
+
+        if (!verificationToken) {
+          const token = randomBytes(32).toString("hex");
+          verificationToken = await prisma.verificationToken.create({
+            data: {
+              identifier: user.email,
+              token,
+              expires: new Date(new Date().setHours(168)), // +1 week
+              team: {
+                connect: {
+                  id: teamId,
+                },
+              },
+            },
+          });
+        }
+
+        inviteTeamOptions.joinLink = `${WEBAPP_URL}/teams?token=${verificationToken.token}&autoAccept=true`;
       }
 
       return sendTeamInviteEmail({
@@ -747,12 +776,6 @@ export const sendExistingUserTeamInviteEmails = async ({
   });
 
   await sendEmails(sendEmailsPromises);
-};
-
-type inviteMemberHandlerInput = {
-  teamId: number;
-  role?: "ADMIN" | "MEMBER" | "OWNER";
-  language: string;
 };
 
 export async function handleExistingUsersInvites({

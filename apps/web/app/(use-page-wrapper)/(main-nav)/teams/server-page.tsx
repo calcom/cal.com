@@ -32,6 +32,7 @@ export const ServerTeamsListing = async ({
   session: Session;
 }) => {
   const token = Array.isArray(searchParams?.token) ? searchParams.token[0] : searchParams?.token;
+  const autoAccept = searchParams?.autoAccept === "true";
   const userId = session.user.id;
 
   let teamNameFromInvite,
@@ -39,7 +40,7 @@ export const ServerTeamsListing = async ({
 
   if (token) {
     try {
-      teamNameFromInvite = await TeamService.inviteMemberByToken(token, userId);
+      teamNameFromInvite = await TeamService.inviteMemberByToken(token, userId, autoAccept);
     } catch (e) {
       errorMsgFromInvite = "Error while fetching teams";
       if (e instanceof TRPCError) errorMsgFromInvite = e.message;

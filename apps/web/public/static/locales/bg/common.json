@@ -2149,7 +2149,7 @@
   "delete_sso_configuration_confirmation": "Да, изтрий {{connectionType}} конфигурацията",
   "delete_sso_configuration_confirmation_description": "Сигурни ли сте, че искате да изтриете {{connectionType}} конфигурацията? Членовете на вашия екип, които използват {{connectionType}} вход, вече няма да имат достъп до Cal.com.",
   "organizer_timezone": "Часова зона на организатора",
-  "email_user_cta": "Преглед на поканата",
+  "email_user_cta": "Accept Invite",
   "email_no_user_invite_heading_subteam": "Поканени сте да се присъедините към екип от организацията {{parentTeamName}}",
   "email_no_user_invite_heading_org": "Поканени сте да се присъедините към организация в {{appName}}",
   "email_no_user_invite_subheading": "{{invitedBy}} ви покани да се присъедините към техния екип в {{appName}}. {{appName}} е платформа за управление на събития, която позволява на вас и вашия екип да планирате срещи без безкрайна размяна на имейли.",

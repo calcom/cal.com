@@ -2149,7 +2149,7 @@
   "delete_sso_configuration_confirmation": "হ্যাঁ, মুছুন {{connectionType}} কনফিগারেশন",
   "delete_sso_configuration_confirmation_description": "আপনি কি নিশ্চিত যে আপনি এটি মুছতে চান? {{connectionType}} কনফিগারেশন?  {{connectionType}} লগইন আর Cal.com অ্যাক্সেস করতে সক্ষম হবে না।",
   "organizer_timezone": "আয়োজক টাইমজোন",
-  "email_user_cta": "আমন্ত্রণ দেখুন",
+  "email_user_cta": "Accept Invite",
   "email_no_user_invite_heading_subteam": "আপনাকে {{parentTeamName}} সংস্থার একটি দলে যোগদানের আমন্ত্রণ জানানো হয়েছে",
   "email_no_user_invite_heading_org": "আপনাকে একটি {{appName}} সংস্থায় যোগদানের আমন্ত্রণ জানানো হয়েছে",
   "email_no_user_invite_subheading": "{{invitedBy}} আপনাকে তাদের দলে যোগদানের জন্য আমন্ত্রণ জানিয়েছে {{appName}}। {{appName}} ইভেন্ট-জ্যাকলিং শিডিয়ুলার যা আপনাকে এবং আপনার দলকে ইমেল টেনিস ছাড়াই সভাগুলির সময়সূচী করতে সক্ষম করে।",

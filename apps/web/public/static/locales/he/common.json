@@ -2149,7 +2149,7 @@
   "delete_sso_configuration_confirmation": "כן, מחק את הגדרות {{connectionType}}",
   "delete_sso_configuration_confirmation_description": "אתה בטוח שאתה רוצה למחוק את הגדרות {{connectionType}}? חברי הצוות שלך שמשתמשים ב- {{connectionType}} להזדהות לא יוכלו להשתמש בו להכנס ל- Cal.com.",
   "organizer_timezone": "מארגן אזורי זמן",
-  "email_user_cta": "צפה בהזמנה",
+  "email_user_cta": "Accept Invite",
   "email_no_user_invite_heading_subteam": "הוזמנת להצטרף לצוות בארגון {{parentTeamName}}",
   "email_no_user_invite_heading_org": "הוזמנת להצטרף לארגון {{appName}}",
   "email_no_user_invite_subheading": "{{invitedBy}} הזמין אותך להצטרף לצוות שלו ב- {{appName}}. {{appName}} הינה מתזמן זימונים שמאפשר לך ולצוות שלך לזמן פגישות בלי כל הפינג פונג במיילים.",
