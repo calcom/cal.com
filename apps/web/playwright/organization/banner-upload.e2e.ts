@@ -48,7 +48,7 @@ test.describe("Organization Banner Upload", () => {
 
       await expect(bannerImage).toHaveAttribute(
         "src",
-        new RegExp(`^\/api\/avatar\/${response.objectKey}\.png$`)
+        new RegExp(`^/api/avatar/${response.objectKey}\\.png$`)
       );
 
       const urlResponse = await page.request.get((await bannerImage.getAttribute("src")) || "", {
@@ -82,7 +82,7 @@ test.describe("Organization Banner Upload", () => {
       await expect(page.getByText("no banner")).toBeVisible();
     });
 
-    const requestedSlug = org.metadata?.requestedSlug;
+    const slug = org.metadata?.requestedSlug ?? org.slug;
 
     await test.step("Can re-upload a banner after removal", async () => {
       await page.getByTestId("open-upload-banner-dialog").click();
@@ -115,12 +115,12 @@ test.describe("Organization Banner Upload", () => {
 
       await expect(bannerImage).toHaveAttribute(
         "src",
-        new RegExp(`^\/api\/avatar\/${response.objectKey}\.png$`)
+        new RegExp(`^/api/avatar/${response.objectKey}\\.png$`)
       );
     });
 
     await test.step("Banner displays correctly on organization public page", async () => {
-      await page.goto(`/org/${requestedSlug}`);
+      await page.goto(`/org/${slug}`);
 
       await expect(page.locator('[data-testid="empty-screen"]')).toHaveCount(1);
 
@@ -139,10 +139,7 @@ test.describe("Organization Banner Upload", () => {
     await test.step("Shows error for oversized image", async () => {
       await page.getByTestId("open-upload-banner-dialog").click();
 
-      // Mock a large file by creating a data URL with a lot of data
-      const largeImageData = "data:image/png;base64," + "A".repeat(6 * 1024 * 1024); // > 5MB
-
-      await page.evaluate((data) => {
+      await page.evaluate(() => {
         const input = document.querySelector('input[type="file"]') as HTMLInputElement;
         if (input) {
           // Create a fake file that exceeds the size limit
@@ -155,7 +152,7 @@ test.describe("Organization Banner Upload", () => {
           input.files = dataTransfer.files;
           input.dispatchEvent(new Event("input", { bubbles: true }));
         }
-      }, largeImageData);
+      });
 
       // Wait for error toast
       await expect(page.getByText("Image size exceed the limit")).toBeVisible();
