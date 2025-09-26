@@ -7,9 +7,8 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
-import { Controller, UseGuards, Post, Param, ParseIntPipe, Body, HttpCode, HttpStatus } from "@nestjs/common";
+import { Controller, UseGuards, Post, Param, ParseIntPipe, HttpCode, HttpStatus } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-import { CreateInviteInput } from "./inputs/create-invite.input";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
@@ -34,10 +33,9 @@ export class OrganizationsTeamsInviteController {
   @HttpCode(HttpStatus.OK)
   async createInvite(
     @Param("orgId", ParseIntPipe) _orgId: number,
-    @Param("teamId", ParseIntPipe) teamId: number,
-    @Body() body: CreateInviteInput
+    @Param("teamId", ParseIntPipe) teamId: number
   ): Promise<CreateInviteOutputDto> {
-    const result = await TeamService.createInvite(teamId, { token: body?.token });
+    const result = await TeamService.createInvite(teamId);
     return { status: SUCCESS_STATUS, data: result };
   }
 }

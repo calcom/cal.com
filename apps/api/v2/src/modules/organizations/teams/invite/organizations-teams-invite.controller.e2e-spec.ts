@@ -90,49 +90,38 @@ describe("Organizations Teams Invite Endpoints", () => {
     it("should create a team invite", async () => {
       return request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/teams/${orgTeam.id}/invite`)
-        .send({})
         .expect(200)
         .then((response) => {
           expect(response.body.status).toEqual(SUCCESS_STATUS);
-          expect(response.body.data.token).toEqual(expect.any(String));
           expect(response.body.data.token.length).toBeGreaterThan(0);
           expect(response.body.data.inviteLink).toEqual(expect.any(String));
           expect(response.body.data.inviteLink).toContain(response.body.data.token);
         });
     });
 
-    it("should return the same invite when reusing the token", async () => {
+    it("should create a new invite on each request", async () => {
       const first = await request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/teams/${orgTeam.id}/invite`)
-        .send({})
         .expect(200);
-      const token = first.body.data.token as string;
+      const firstToken = first.body.data.token as string;
 
       return request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/teams/${orgTeam.id}/invite`)
-        .send({ token })
         .expect(200)
         .then((response) => {
           expect(response.body.status).toEqual(SUCCESS_STATUS);
-          expect(response.body.data.token).toEqual(token);
+          expect(response.body.data.token).not.toEqual(firstToken);
           expect(response.body.data.inviteLink).toEqual(expect.any(String));
-          expect(response.body.data.inviteLink).toContain(token);
+          expect(response.body.data.inviteLink).toContain(response.body.data.token);
         });
     });
 
     it("should fail for team not in organization", async () => {
       return request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/teams/${nonOrgTeam.id}/invite`)
-        .send({})
         .expect(404);
     });
 
-    it("should fail when reusing a non-existing token", async () => {
-      return request(app.getHttpServer())
-        .post(`/v2/organizations/${org.id}/teams/${orgTeam.id}/invite`)
-        .send({ token: "non-existing-token" })
-        .expect(404);
-    });
 
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(user.email);
