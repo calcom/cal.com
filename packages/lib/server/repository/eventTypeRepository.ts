@@ -1422,4 +1422,15 @@ export class EventTypeRepository {
       },
     });
   }
+
+  async isPersonalUserEventType({ userId, eventTypeId }: { userId: number; eventTypeId: number }) {
+    const eventType = await this.prismaClient.eventType.findFirst({
+      where: {
+        id: eventTypeId,
+        userId,
+      },
+    });
+
+    return !!eventType;
+  }
 }
