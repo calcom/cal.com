@@ -20,13 +20,13 @@ A comprehensive guide to using Cal.com's DataTable system for building powerful,
 
 The DataTable system is a comprehensive solution for displaying tabular data with advanced features including:
 
-- **Virtualized rendering** for performance with large datasets
 - **Advanced filtering** with 5 filter types and custom operators
 - **Segment system** for saving and sharing filter configurations
-- **Flexible pagination** (infinite scroll or traditional pagination)
+- **Traditional pagination** with page-based navigation (recommended)
 - **Column management** (sorting, resizing, visibility)
 - **Bulk actions** and selection management
 - **Full TypeScript support**
+- **Alternative infinite scroll** mode (has known issues, use with caution)
 
 ### Architecture
 
@@ -34,7 +34,7 @@ The system consists of three main layers:
 
 1. **DataTableProvider** - Context provider managing all table state
 2. **DataTableWrapper** - UI wrapper handling pagination, toolbars, and loading states
-3. **DataTable** - Core virtualized table component
+3. **DataTable** - Core table component with optional virtualization
 
 ## Quick Start
 
@@ -225,15 +225,15 @@ type DataTableWrapperProps<TData> = {
 
 ### DataTable
 
-The core virtualized table component with column resizing and pinning support.
+The core table component with column resizing and pinning support.
 
 #### Key Features
 
-- **Virtualization** - Renders only visible rows for performance
 - **Column resizing** - Drag to resize columns
 - **Column pinning** - Pin columns to left/right
 - **Responsive design** - Adapts to mobile screens
 - **Accessibility** - Full keyboard navigation support
+- **Optional virtualization** - Available for infinite mode (use with caution)
 
 ## Filter System
 
@@ -439,9 +439,32 @@ Segments saved by users with personal or team scope:
 
 ## Pagination Modes
 
-### Infinite Pagination
+### Standard Pagination (Recommended)
 
-Best for large datasets with virtualized scrolling:
+Traditional page-based pagination is the recommended approach:
+
+```tsx
+<DataTableWrapper
+  paginationMode="standard"
+  totalRowCount={totalCount}
+  table={table}
+/>
+```
+
+**Features:**
+- Page numbers and navigation
+- Configurable page sizes
+- Total count display
+- Reliable performance
+- Better user experience
+- No virtualization issues
+
+**Why Standard Mode is Preferred:**
+Standard pagination provides a more predictable and stable user experience. It avoids the complexity and potential issues associated with virtualized infinite scrolling.
+
+### Infinite Pagination (Use with Caution)
+
+Alternative infinite scroll mode with known limitations:
 
 ```tsx
 <DataTableWrapper
@@ -457,25 +480,12 @@ Best for large datasets with virtualized scrolling:
 - Automatic loading on scroll
 - Virtualized rendering
 - Fixed container height (80dvh)
-- Optimized for performance
 
-### Standard Pagination
-
-Traditional page-based pagination:
-
-```tsx
-<DataTableWrapper
-  paginationMode="standard"
-  totalRowCount={totalCount}
-  table={table}
-/>
-```
-
-**Features:**
-- Page numbers and navigation
-- Configurable page sizes
-- Total count display
-- Better for smaller datasets
+**Known Issues:**
+- Virtualized infinite loading has several problems
+- Can cause performance and UX issues
+- Standard mode was introduced to address these problems
+- Use only when absolutely necessary and with thorough testing
 
 ## Toolbar Components
 
@@ -825,10 +835,10 @@ type CombinedFilterSegment = SystemFilterSegmentInternal | UserFilterSegment;
 
 ### Performance
 
-1. **Use infinite pagination** for large datasets (>1000 rows)
+1. **Use standard pagination** for most use cases (recommended)
 2. **Implement proper memoization** for column definitions
 3. **Debounce search inputs** (handled automatically by DataTableToolbar.SearchBar)
-4. **Use column virtualization** for tables with many columns
+4. **Consider infinite mode only for specific cases** where traditional pagination isn't suitable, but be aware of potential issues
 
 ### State Management
 
@@ -840,7 +850,7 @@ type CombinedFilterSegment = SystemFilterSegmentInternal | UserFilterSegment;
 ### User Experience
 
 1. **Provide loading states** with LoaderView and EmptyView
-2. **Use appropriate pagination mode** based on data size
+2. **Use standard pagination** for consistent user experience
 3. **Include search functionality** for text-heavy data
 4. **Implement bulk actions** for management interfaces
 5. **Show filter counts** and active filter indicators
