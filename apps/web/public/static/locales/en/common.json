@@ -3758,6 +3758,6 @@
   "please_select_event_type_first": "Please select an event type first",
   "edit_configuration": "Edit Configuration",
   "select_event_type_for_inbound_calls": "Inbound calls can book only one event type. Select the event type where meetings will be scheduled when callers reach your agent.",
-  "setup_inbound_agent_for_incoming_calls": "Setup inbound agent for incoming calls",
+  "setup_inbound_agent_for_incoming_calls": "Set up inbound agent for incoming calls",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
