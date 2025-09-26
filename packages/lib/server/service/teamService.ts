@@ -112,78 +112,78 @@ export class TeamService {
 
 // TODO: Move errors away from TRPC error to make it more generic
 static async inviteMemberByToken(token: string, userId: number) {
-  const verificationToken = await prisma.verificationToken.findFirst({
-    where: {
-      token,
-      OR: [{ expiresInDays: null }, { expires: { gte: new Date() } }],
-    },
-    include: {
-      team: {
-        select: { name: true },
+    const verificationToken = await prisma.verificationToken.findFirst({
+      where: {
+        token,
+        OR: [{ expiresInDays: null }, { expires: { gte: new Date() } }],
       },
-    },
-  });
-
-  if (!verificationToken) {
-    throw new TRPCError({ code: "NOT_FOUND", message: "Invite not found" });
-  }
-
-  if (!verificationToken.teamId || !verificationToken.team) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Invite token is not associated with any team",
+      include: {
+        team: {
+          select: { name: true },
+        },
+      },
     });
-  }
 
-  const existingMembership = await prisma.membership.findUnique({
-    where: {
-      userId_teamId: {
-        userId,
-        teamId: verificationToken.teamId,
-      },
-    },
-  });
+    if (!verificationToken) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "Invite not found" });
+    }
 
-  if (existingMembership) {
-    await prisma.membership.update({
+    if (!verificationToken.teamId || !verificationToken.team) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Invite token is not associated with any team",
+      });
+    }
+
+    const existingMembership = await prisma.membership.findUnique({
       where: {
         userId_teamId: {
           userId,
           teamId: verificationToken.teamId,
         },
       },
-      data: {
-        accepted: true,
-      },
     });
-  } else {
-    try {
-      await prisma.membership.create({
+
+    if (existingMembership) {
+      await prisma.membership.update({
+        where: {
+          userId_teamId: {
+            userId,
+            teamId: verificationToken.teamId,
+          },
+        },
         data: {
-          createdAt: new Date(),
-          teamId: verificationToken.teamId,
-          userId,
-          role: MembershipRole.MEMBER,
-          accepted: false,
+          accepted: true,
         },
       });
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === "P2002") {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "This user is a member of this team / has a pending invitation.",
-          });
-        }
-      } else throw e;
+    } else {
+      try {
+        await prisma.membership.create({
+          data: {
+            createdAt: new Date(),
+            teamId: verificationToken.teamId,
+            userId,
+            role: MembershipRole.MEMBER,
+            accepted: false,
+          },
+        });
+      } catch (e) {
+        if (e instanceof Prisma.PrismaClientKnownRequestError) {
+          if (e.code === "P2002") {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: "This user is a member of this team / has a pending invitation.",
+            });
+          }
+        } else throw e;
+      }
     }
+
+    const teamBilling = await TeamBilling.findAndInit(verificationToken.teamId);
+    await teamBilling.updateQuantity();
+
+    return verificationToken.team.name;
   }
-
-  const teamBilling = await TeamBilling.findAndInit(verificationToken.teamId);
-  await teamBilling.updateQuantity();
-
-  return verificationToken.team.name;
-}
 
 
   static async publish(teamId: number) {
