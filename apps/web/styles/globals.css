@@ -640,8 +640,50 @@ select:focus {
   @apply !border-r-default left-0.5 !border-y-0 !border-l-0;
 }
 
+/* Intercom widget z-index settings */
 .intercom-lightweight-app {
   @apply z-40 !important;
+}
+
+/* Intercom launcher button */
+.intercom-launcher,
+.intercom-launcher-frame,
+#intercom-container .intercom-launcher-frame {
+  z-index: 40 !important;
+}
+
+/* Intercom messenger window */
+.intercom-messenger,
+.intercom-messenger-frame,
+#intercom-container .intercom-messenger-frame {
+  z-index: 40 !important;
+}
+
+/* Intercom chat widget and frames */
+.intercom-app,
+.intercom-namespace .intercom-1o29jst,
+iframe#intercom-frame {
+  z-index: 40 !important;
+}
+
+/* Intercom minimize button and controls */
+.intercom-launcher-discovery-frame,
+.intercom-chat-card-author-avatar,
+.intercom-launcher-badge,
+.intercom-launcher-preview-body,
+.intercom-launcher-inactive,
+.intercom-launcher-active,
+.intercom-messenger-header-minimize-button,
+.intercom-1o29jst button,
+button[aria-label="Minimize"] {
+  z-index: 40 !important;
+}
+
+/* All Intercom iframes and nested elements */
+iframe[title="Intercom"],
+iframe[name^="intercom"],
+div[class*="intercom"] {
+  z-index: 40 !important;
 }
 
 [data-radix-popper-content-wrapper] {
