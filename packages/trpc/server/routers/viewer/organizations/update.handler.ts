@@ -15,6 +15,38 @@ import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../types";
 import type { TUpdateInputSchema } from "./update.schema";
 
+export const handleBannerUpdate = async (
+  banner: string | null | undefined,
+  teamId: number
+): Promise<string | null | undefined> => {
+  if (banner === undefined) {
+    // Banner not provided, don't update
+    return undefined;
+  }
+
+  if (banner === null) {
+    // Explicitly set to null, remove banner
+    return null;
+  }
+
+  if (
+    banner.startsWith("data:image/png;base64,") ||
+    banner.startsWith("data:image/jpeg;base64,") ||
+    banner.startsWith("data:image/jpg;base64,")
+  ) {
+    // Valid base64 image, resize and upload
+    const resizedBanner = await resizeBase64Image(banner, { maxSize: 1500 });
+    return await uploadLogo({
+      logo: resizedBanner,
+      teamId,
+      isBanner: true,
+    });
+  }
+
+  // Invalid banner string, don't update
+  return undefined;
+};
+
 type UpdateOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
@@ -185,20 +217,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     metadata: mergeMetadata({ ...input.metadata }),
   };
 
-  if (
-    input.banner &&
-    (input.banner.startsWith("data:image/png;base64,") ||
-      input.banner.startsWith("data:image/jpeg;base64,") ||
-      input.banner.startsWith("data:image/jpg;base64,"))
-  ) {
-    const banner = await resizeBase64Image(input.banner, { maxSize: 1500 });
-    data.bannerUrl = await uploadLogo({
-      logo: banner,
-      teamId: currentOrgId,
-      isBanner: true,
-    });
-  } else {
-    data.bannerUrl = null;
+  const bannerResult = await handleBannerUpdate(input.banner, currentOrgId);
+  if (bannerResult !== undefined) {
+    data.bannerUrl = bannerResult;
   }
 
   if (
