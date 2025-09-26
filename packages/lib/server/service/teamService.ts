@@ -145,17 +145,24 @@ static async inviteMemberByToken(token: string, userId: number) {
     });
 
     if (existingMembership) {
-      await prisma.membership.update({
-        where: {
-          userId_teamId: {
-            userId,
-            teamId: verificationToken.teamId,
+      await Promise.all([
+        prisma.membership.update({
+          where: {
+            userId_teamId: {
+              userId,
+              teamId: verificationToken.teamId,
+            },
           },
-        },
-        data: {
-          accepted: true,
-        },
-      });
+          data: {
+            accepted: true,
+          },
+        }),
+        prisma.verificationToken.delete({
+          where: {
+            id: verificationToken.id,
+          },
+        }),
+      ]);
     } else {
       try {
         await prisma.membership.create({
