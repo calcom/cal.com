@@ -233,15 +233,12 @@ test.describe("Team", () => {
     });
 
     await test.step("Auto-accept invitation by clicking link", async () => {
-      const context = await browser.newContext();
-      const invitePage = await context.newPage();
+      const [secondContext, secondPage] = await invitedUser.apiLoginOnNewBrowser(browser);
 
-      await invitedUser.apiLogin(invitePage);
+      await secondPage.goto(inviteLink);
+      await secondPage.waitForURL("/teams");
 
-      await invitePage.goto(inviteLink);
-      await invitePage.waitForURL("/teams");
-
-      await expect(invitePage.getByText("Successfully joined")).toBeVisible();
+      await expect(secondPage.getByText("Successfully joined")).toBeVisible();
 
       const membership = await prisma.membership.findFirst({
         where: {
@@ -251,8 +248,8 @@ test.describe("Team", () => {
       });
       expect(membership?.accepted).toBe(true);
 
-      await invitePage.close();
-      await context.close();
+      await secondPage.close();
+      await secondContext.close();
     });
   });
 
@@ -293,16 +290,13 @@ test.describe("Team", () => {
     });
 
     await test.step("Wrong user tries to use invitation link", async () => {
-      const context = await browser.newContext();
-      const wrongUserPage = await context.newPage();
+      const [secondContext, secondPage] = await wrongUser.apiLoginOnNewBrowser(browser);
 
-      await wrongUser.apiLogin(wrongUserPage);
+      await secondPage.goto(inviteLink);
 
-      await wrongUserPage.goto(inviteLink);
+      await secondPage.waitForURL("/teams");
 
-      await wrongUserPage.waitForURL("/teams");
-
-      await expect(wrongUserPage.getByText("This invitation is not for your account")).toBeVisible();
+      await expect(secondPage.getByText("This invitation is not for your account")).toBeVisible();
 
       const membership = await prisma.membership.findFirst({
         where: {
@@ -320,8 +314,8 @@ test.describe("Team", () => {
       });
       expect(invitedMembership?.accepted).toBe(false);
 
-      await wrongUserPage.close();
-      await context.close();
+      await secondPage.close();
+      await secondContext.close();
     });
   });
 });

@@ -172,7 +172,8 @@ export class TeamService {
         token,
         OR: [{ expiresInDays: null }, { expires: { gte: new Date() } }],
       },
-      include: {
+      select: {
+        teamId: true,
         team: {
           select: {
             name: true,
@@ -236,7 +237,7 @@ export class TeamService {
         data: {
           accepted: true,
         },
-        include: {
+        select: {
           team: true,
         },
       });
@@ -250,9 +251,6 @@ export class TeamService {
           },
           data: {
             accepted: true,
-          },
-          include: {
-            team: true,
           },
         });
       }
@@ -279,7 +277,7 @@ export class TeamService {
           where: {
             userId_teamId: { userId, teamId },
           },
-          include: {
+          select: {
             team: true,
           },
         });
@@ -301,12 +299,12 @@ export class TeamService {
     const verificationToken = await prisma.verificationToken.findFirst({
       where: {
         token: acceptanceToken,
-        OR: [{ expiresInDays: null }, { expires: { gte: new Date() } }],
+        expires: { gte: new Date() },
       },
-      include: {
-        team: {
-          select: { name: true },
-        },
+      select: {
+        identifier: true,
+        teamId: true,
+        team: { select: { name: true } },
       },
     });
 
