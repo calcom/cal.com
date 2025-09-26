@@ -85,19 +85,17 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
 
   const organizationId = team?.parentId || teamId;
 
-  // Get custom roles if PBAC is enabled
+  // Get custom roles from PBAC (always enabled)
   let customRoles: { [key: string]: { id: string; name: string } } = {};
   try {
     const roleManager = await RoleManagementFactory.getInstance().createRoleManager(organizationId);
-    if (roleManager.isPBACEnabled) {
-      const roles = await roleManager.getTeamRoles(teamId);
-      customRoles = roles.reduce((acc, role) => {
-        acc[role.id] = role;
-        return acc;
-      }, {} as { [key: string]: { id: string; name: string } });
-    }
-  } catch (error) {
-    // PBAC not enabled or error occurred, continue with traditional roles
+    const roles = await roleManager.getTeamRoles(teamId);
+    customRoles = roles.reduce((acc, role) => {
+      acc[role.id] = role;
+      return acc;
+    }, {} as { [key: string]: { id: string; name: string } });
+  } catch {
+    // Error occurred getting roles, continue with traditional roles
   }
 
   const membersWithApps = await Promise.all(

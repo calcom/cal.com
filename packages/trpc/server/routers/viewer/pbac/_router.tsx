@@ -1,11 +1,9 @@
 import { z } from "zod";
 
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { isValidPermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { RoleService } from "@calcom/features/pbac/services/role.service";
-import prisma from "@calcom/prisma";
 import { RoleType, MembershipRole } from "@calcom/prisma/enums";
 
 import authedProcedure from "../../../procedures/authedProcedure";
@@ -178,13 +176,6 @@ export const permissionsRouter = router({
     .query(async ({ ctx, input }) => {
       if (!ctx.user?.id) {
         throw new Error("Unauthorized");
-      }
-
-      const featureRepo = new FeaturesRepository(prisma);
-      const teamHasPBACFeature = await featureRepo.checkIfTeamHasFeature(input.teamId, "pbac");
-
-      if (!teamHasPBACFeature) {
-        throw new Error("PBAC is not enabled for this team");
       }
 
       // Check if user has permission to view roles

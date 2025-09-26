@@ -13,7 +13,6 @@ import {
 } from "../../domain/types/permission-registry";
 
 export class PermissionRepository implements IPermissionRepository {
-  private readonly PBAC_FEATURE_FLAG = "pbac" as const;
   private client: PrismaClientWithExtensions;
 
   constructor(client: PrismaClientWithExtensions = db) {
@@ -227,7 +226,6 @@ export class PermissionRepository implements IPermissionRepository {
   async getTeamIdsWithPermissions({
     userId,
     permissions,
-    fallbackRoles,
   }: {
     userId: number;
     permissions: PermissionString[];
@@ -267,16 +265,7 @@ export class PermissionRepository implements IPermissionRepository {
         ) = ${permissions.length}
     `;
 
-    const teamsWithFallbackRolesPromise = this.client.$queryRaw<{ teamId: number }[]>`
-      SELECT DISTINCT m."teamId"
-      FROM "Membership" m
-      INNER JOIN "Team" t ON m."teamId" = t.id
-      LEFT JOIN "TeamFeatures" f ON t.id = f."teamId" AND f."featureId" = ${this.PBAC_FEATURE_FLAG}
-      WHERE m."userId" = ${userId}
-        AND m."accepted" = true
-        AND m."role"::text = ANY(${fallbackRoles})
-        AND f."teamId" IS NULL
-    `;
+    const teamsWithFallbackRolesPromise = Promise.resolve<{ teamId: number }[]>([]);
 
     const [teamsWithPermission, teamsWithFallbackRoles] = await Promise.all([
       teamsWithPermissionPromise,

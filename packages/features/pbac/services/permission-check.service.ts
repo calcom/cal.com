@@ -1,7 +1,4 @@
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
-import prisma from "@calcom/prisma";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
 import { PermissionMapper } from "../domain/mappers/PermissionMapper";
@@ -17,17 +14,13 @@ import { PermissionRepository } from "../infrastructure/repositories/PermissionR
 import { PermissionService } from "./permission.service";
 
 export class PermissionCheckService {
-  private readonly PBAC_FEATURE_FLAG = "pbac" as const;
   private readonly logger = logger.getSubLogger({ prefix: ["PermissionCheckService"] });
-  private readonly featuresRepository: FeaturesRepository;
   private readonly permissionService: PermissionService;
 
   constructor(
     private readonly repository: IPermissionRepository = new PermissionRepository(),
-    featuresRepository: FeaturesRepository = new FeaturesRepository(prisma),
     permissionService: PermissionService = new PermissionService()
   ) {
-    this.featuresRepository = featuresRepository;
     this.permissionService = permissionService;
   }
 
@@ -50,15 +43,6 @@ export class PermissionCheckService {
     resource: Resource;
   }): Promise<PermissionString[]> {
     try {
-      const isPBACEnabled = await this.featuresRepository.checkIfTeamHasFeature(
-        teamId,
-        this.PBAC_FEATURE_FLAG
-      );
-
-      if (!isPBACEnabled) {
-        return [];
-      }
-
       const { membership, orgMembership } = await this.getMembership({ userId, teamId });
       const actions = new Set<CrudAction | CustomAction>();
 
@@ -94,7 +78,6 @@ export class PermissionCheckService {
     userId,
     teamId,
     permission,
-    fallbackRoles,
   }: {
     userId: number;
     teamId: number;
@@ -108,24 +91,8 @@ export class PermissionCheckService {
         return false;
       }
 
-      const isPBACEnabled = await this.featuresRepository.checkIfTeamHasFeature(
-        teamId,
-        this.PBAC_FEATURE_FLAG
-      );
-
-      if (isPBACEnabled) {
-        // Check if user has permission through team or org membership
-        return this.hasPermission({ userId, teamId }, permission);
-      }
-
-      // Fallback to role-based check only if user has team membership
-      const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
-        userId,
-        teamId,
-      });
-
-      if (!membership) return false;
-      return this.checkFallbackRoles(membership.role, fallbackRoles);
+      // Check if user has permission through team or org membership
+      return this.hasPermission({ userId, teamId }, permission);
     } catch (error) {
       this.logger.error(error);
       return false;
@@ -139,7 +106,6 @@ export class PermissionCheckService {
     userId,
     teamId,
     permissions,
-    fallbackRoles,
   }: {
     userId: number;
     teamId: number;
@@ -153,24 +119,8 @@ export class PermissionCheckService {
         return false;
       }
 
-      const isPBACEnabled = await this.featuresRepository.checkIfTeamHasFeature(
-        teamId,
-        this.PBAC_FEATURE_FLAG
-      );
-
-      if (isPBACEnabled) {
-        // Check if user has permissions through team or org membership
-        return this.hasPermissions({ userId, teamId }, permissions);
-      }
-
-      // Fallback to role-based check only if user has team membership
-      const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
-        userId,
-        teamId,
-      });
-
-      if (!membership) return false;
-      return this.checkFallbackRoles(membership.role, fallbackRoles);
+      // Check if user has permissions through team or org membership
+      return this.hasPermissions({ userId, teamId }, permissions);
     } catch (error) {
       this.logger.error(error);
       return false;
@@ -258,7 +208,6 @@ export class PermissionCheckService {
   async getTeamIdsWithPermission({
     userId,
     permission,
-    fallbackRoles,
   }: {
     userId: number;
     permission: PermissionString;
@@ -284,7 +233,6 @@ export class PermissionCheckService {
   async getTeamIdsWithPermissions({
     userId,
     permissions,
-    fallbackRoles,
   }: {
     userId: number;
     permissions: PermissionString[];
