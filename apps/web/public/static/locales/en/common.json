@@ -3752,7 +3752,7 @@
   "configure_agent_to_handle_incoming_calls": "Configure agent to handle incoming calls",
   "incoming_calls": "Incoming Calls",
   "outgoing_calls": "Outgoing Calls",
-  "inbound_agent_setup_success": "Inbound agent set up successful",
+  "inbound_agent_setup_success": "Inbound agent setup successful",
   "inbound_agent_configured": "Inbound agent configured",
   "setup_inbound_agent": "Set up Inbound Agent",
   "please_select_event_type_first": "Please select an event type first",
