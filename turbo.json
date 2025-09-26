@@ -1,7 +1,6 @@
 {
   "$schema": "https://turborepo.org/schema.json",
   "globalDependencies": ["yarn.lock"],
-  "ui": "tui",
   "globalEnv": [
     "ALLOWED_HOSTNAMES",
     "ANALYZE",
