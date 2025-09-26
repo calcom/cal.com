@@ -94,8 +94,6 @@ const BookerComponent = ({
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
 
-  console.log("Is branding hidden: ", hideBranding);
-
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const {
     shouldShowFormInDialog,
@@ -573,17 +571,19 @@ const BookerComponent = ({
             </div>
           )}
 
-          {(!hideBranding || orgBannerUrl) && (!isPlatform || isPlatformBookerEmbed) && !shouldRenderCaptcha && (
-            <m.span
-              key="logo"
-              className={classNames(
-                "mb-6 mt-auto pt-6 [&_img]:h-[15px]",
-                hasDarkBackground ? "dark" : "",
-                layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
-              )}>
-              <Branding faviconUrl={orgBannerUrl} />
-            </m.span>
-          )}
+          {(!hideBranding || orgBannerUrl) &&
+            (!isPlatform || isPlatformBookerEmbed) &&
+            !shouldRenderCaptcha && (
+              <m.span
+                key="logo"
+                className={classNames(
+                  "mb-6 mt-auto pt-6 [&_img]:h-[15px]",
+                  hasDarkBackground ? "dark" : "",
+                  layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
+                )}>
+                <Branding faviconUrl={orgBannerUrl} />
+              </m.span>
+            )}
         </div>
       </div>
 
