@@ -145,7 +145,7 @@ static async inviteMemberByToken(token: string, userId: number) {
     });
 
     if (existingMembership) {
-      await Promise.all([
+      await prisma.$transaction([
         prisma.membership.update({
           where: {
             userId_teamId: {
