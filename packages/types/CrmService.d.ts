@@ -27,7 +27,7 @@ export interface CrmEvent {
   type?: string;
   password?: string;
   url?: string;
-  additionalInfo?: any;
+  additionalInfo?: unknown;
 }
 
 export interface CRM {
@@ -48,9 +48,9 @@ export interface CRM {
     organizerEmail?: string,
     calEventResponses?: CalEventResponses | null
   ) => Promise<Contact[]>;
-  getAppOptions: () => any;
+  getAppOptions: () => Record<string, unknown> | void;
   handleAttendeeNoShow?: (
-    bookingUid: string,
+    bookingId: number,
     attendees: { email: string; noShow: boolean }[]
   ) => Promise<void>;
 }

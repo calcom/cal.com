@@ -1,5 +1,6 @@
 import type { TokenResponse, Connection, Field } from "@jsforce/jsforce-node";
 import jsforce from "@jsforce/jsforce-node";
+import { DuplicateError } from "@jsforce/jsforce-node/lib/api/soap/schema";
 import { RRule } from "rrule";
 import { z } from "zod";
 
@@ -11,6 +12,7 @@ import { checkIfFreeEmailDomain } from "@calcom/lib/freeEmailDomainCheck/checkIf
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { PrismaAssignmentReasonRepository } from "@calcom/lib/server/repository/PrismaAssignmentReasonRepository";
+import { PrismaBookingReferenceRepository } from "@calcom/lib/server/repository/PrismaBookingReferenceRepository";
 import { PrismaRoutingFormResponseRepository as RoutingFormResponseRepository } from "@calcom/lib/server/repository/PrismaRoutingFormResponseRepository";
 import { prisma } from "@calcom/prisma";
 import type { CalendarEvent, CalEventResponses } from "@calcom/types/Calendar";
@@ -45,15 +47,6 @@ type ExtendedTokenResponse = TokenResponse & {
   instance_url: string;
 };
 
-type ContactSearchResult = {
-  attributes: {
-    type: string;
-    url: string;
-  };
-  Id: string;
-  Email: string;
-};
-
 const sfApiErrors = {
   INVALID_EVENTWHOIDS: "INVALID_FIELD: No such column 'EventWhoIds' on sobject of type Event",
 };
@@ -62,6 +55,7 @@ type ContactRecord = {
   Id?: string;
   Email?: string;
   OwnerId?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 };
 
@@ -674,9 +668,10 @@ export default class SalesforceCRMService implements CRM {
             if (result.success) {
               createdContacts.push({ id: result.id, email: attendee.email });
             }
-          } catch (error: any) {
-            if (error.name === "DUPLICATES_DETECTED") {
-              const existingId = this.getExistingIdFromDuplicateError(error);
+          } catch (error: unknown) {
+            if (error instanceof Error && error.name === "DUPLICATES_DETECTED") {
+              // we know it's a DuplicateError now (DUPLICATES_DETECTED)
+              const existingId = this.getExistingIdFromDuplicateError(error as unknown as DuplicateError);
               if (existingId) {
                 log.info("Using existing record:", existingId);
                 createdContacts.push({ id: existingId, email: attendee.email });
@@ -696,23 +691,20 @@ export default class SalesforceCRMService implements CRM {
     return createdContacts;
   }
 
-  async handleAttendeeNoShow(bookingUid: string, attendees: { email: string; noShow: boolean }[]) {
+  async handleAttendeeNoShow(bookingId: number, attendees: { email: string; noShow: boolean }[]) {
     const appOptions = this.getAppOptions();
     const { sendNoShowAttendeeData = false, sendNoShowAttendeeDataField = {} } = appOptions;
     const conn = await this.conn;
     // Check that no show is enabled
     if (!sendNoShowAttendeeData && !sendNoShowAttendeeDataField) {
-      this.log.warn(`No show settings not set for bookingUid ${bookingUid}`);
+      this.log.warn(`No show settings not set for bookingId ${bookingId}`);
       return;
     }
-    // Get all Salesforce events associated with the booking
-    const salesforceEvents = await prisma.bookingReference.findMany({
-      where: {
-        type: appMeta.type,
-        booking: {
-          uid: bookingUid,
-        },
-      },
+
+    const bookingReferenceRepo = new PrismaBookingReferenceRepository({ prismaClient: prisma });
+    const salesforceEvents = await bookingReferenceRepo.findByBookingAndApp({
+      bookingId,
+      appType: appMeta.type,
     });
 
     const salesforceEntity = await conn.describe("Event");
@@ -721,7 +713,7 @@ export default class SalesforceCRMService implements CRM {
 
     if (!noShowField || (noShowField.type as unknown as string) !== "boolean") {
       this.log.warn(
-        `No show field on Salesforce doesn't exist or is not of type boolean for bookingUid ${bookingUid}`
+        `No show field on Salesforce doesn't exist or is not of type boolean for bookingUid ${bookingId}`
       );
       return;
     }
@@ -747,7 +739,7 @@ export default class SalesforceCRMService implements CRM {
         salesforceAttendeeEmail = leadQuery.records[0].Email;
       } else {
         this.log.warn(
-          `Could not find attendee for bookingUid ${bookingUid} and salesforce event id ${event.uid}`
+          `Could not find attendee for bookingId ${bookingId} and salesforce event id ${event.uid}`
         );
       }
 
@@ -757,7 +749,7 @@ export default class SalesforceCRMService implements CRM {
 
         if (!noShowData) {
           this.log.warn(
-            `No show data could not be found for ${salesforceAttendeeEmail} and bookingUid ${bookingUid}`
+            `No show data could not be found for ${salesforceAttendeeEmail} and bookingId ${bookingId}`
           );
         } else {
           // Update the event with the no show data
@@ -770,11 +762,11 @@ export default class SalesforceCRMService implements CRM {
     }
   }
 
-  private getExistingIdFromDuplicateError(error: any): string | null {
+  private getExistingIdFromDuplicateError(error: DuplicateError): string | null {
     if (error.duplicateResult && error.duplicateResult.matchResults) {
       for (const matchResult of error.duplicateResult.matchResults) {
         if (matchResult.matchRecords && matchResult.matchRecords.length > 0) {
-          return matchResult.matchRecords[0].record.Id;
+          return matchResult.matchRecords[0].record.Id ?? null;
         }
       }
     }
@@ -1059,16 +1051,26 @@ export default class SalesforceCRMService implements CRM {
     recordId,
   }: {
     existingFields: Field[];
-    personRecord: Record<string, any>;
-    fieldsToWriteTo: Record<string, any>;
+    personRecord: {
+      Id: string;
+    } | null;
+    fieldsToWriteTo: Record<
+      string,
+      {
+        whenToWrite: WhenToWriteToRecord;
+        fieldType: SalesforceFieldType;
+        value: string | boolean;
+      }
+    >;
     startTime?: string;
     bookingUid?: string | null;
     organizerEmail?: string;
     calEventResponses?: CalEventResponses | null;
     recordId: string;
-  }): Promise<Record<string, any>> {
+  }): Promise<Record<string, unknown>> {
     const log = logger.getSubLogger({ prefix: [`[buildRecordUpdatePayload] ${recordId}`] });
-    const writeOnRecordBody: Record<string, any> = {};
+    // mostly string, but picklistValue is actually typehinted any in jsforce
+    const writeOnRecordBody: Record<string, unknown> = {};
     let fieldTypeHandled = false;
 
     for (const field of existingFields) {
@@ -1084,10 +1086,10 @@ export default class SalesforceCRMService implements CRM {
       );
 
       // Skip if field should only be written when empty and already has a value
-      if (fieldConfig.whenToWrite === WhenToWriteToRecord.FIELD_EMPTY && personRecord[field.name]) {
+      if (fieldConfig.whenToWrite === WhenToWriteToRecord.FIELD_EMPTY && personRecord) {
         log.info(
           `Field ${field.name} on contactId ${personRecord?.Id} already exists with value ${
-            personRecord[field.name]
+            personRecord[field.name as "Id"]
           }`
         );
         continue;
@@ -1096,7 +1098,7 @@ export default class SalesforceCRMService implements CRM {
       if (fieldConfig.fieldType === SalesforceFieldType.CUSTOM) {
         fieldTypeHandled = true;
         const extractedValue = await this.getTextFieldValue({
-          fieldValue: fieldConfig.value,
+          fieldValue: String(fieldConfig.value),
           fieldLength: field.length,
           calEventResponses,
           bookingUid,
@@ -1117,7 +1119,7 @@ export default class SalesforceCRMService implements CRM {
       ) {
         fieldTypeHandled = true;
         const extractedText = await this.getTextFieldValue({
-          fieldValue: fieldConfig.value,
+          fieldValue: String(fieldConfig.value),
           fieldLength: field.length,
           calEventResponses,
           bookingUid,
@@ -1135,7 +1137,7 @@ export default class SalesforceCRMService implements CRM {
       ) {
         fieldTypeHandled = true;
         const dateValue = await this.getDateFieldValue(
-          fieldConfig.value,
+          String(fieldConfig.value),
           startTime,
           bookingUid,
           organizerEmail
@@ -1147,7 +1149,7 @@ export default class SalesforceCRMService implements CRM {
       } else if (field.type === SalesforceFieldType.PICKLIST) {
         fieldTypeHandled = true;
         const picklistValue = await this.getPicklistFieldValue({
-          fieldConfigValue: fieldConfig.value,
+          fieldConfigValue: String(fieldConfig.value),
           salesforceField: field,
           calEventResponses,
           bookingUid,
@@ -1170,7 +1172,7 @@ export default class SalesforceCRMService implements CRM {
       }
       log.error(
         `No value found for field ${field.name} with value ${
-          personRecord[field.name]
+          personRecord ? personRecord[field.name as "Id"] : "-- Person record not found -- "
         }, field config ${JSON.stringify(fieldConfig)} and Salesforce config ${JSON.stringify(field)}`
       );
     }
@@ -1192,7 +1194,7 @@ export default class SalesforceCRMService implements CRM {
       : [];
 
     const confirmedCustomFieldInputs: {
-      [key: string]: any;
+      [key: string]: string | undefined;
     } = {};
 
     for (const field of customFieldInputs) {
@@ -1439,7 +1441,10 @@ export default class SalesforceCRMService implements CRM {
     contactId: string,
     existingFields: Field[],
     personRecordType: SalesforceRecordEnum
-  ): Promise<Record<string, any> | null> {
+  ): Promise<{
+    Id: string;
+    [key: string]: unknown;
+  } | null> {
     const conn = await this.conn;
     const existingFieldNames = existingFields.map((field) => field.name);
 
@@ -1452,7 +1457,15 @@ export default class SalesforceCRMService implements CRM {
       return null;
     }
 
-    return query.records[0] as Record<string, any>;
+    if (!("Id" in query.records[0])) {
+      this.log.warn(`Found person record for id ${contactId} but unable to determine required Id key`);
+      return null;
+    }
+    // we know Id is really set now, so tell TS this is the case.
+    return query.records[0] as {
+      Id: string;
+      [key: string]: unknown;
+    };
   }
 
   private async createNewContactUnderAnAccount({
@@ -1509,11 +1522,9 @@ export default class SalesforceCRMService implements CRM {
 
       if (!accountId) return;
 
-      const accountQuery = (await conn.query(
+      const accountQuery = await conn.query(
         `SELECT ${lookupField.name} FROM ${SalesforceRecordEnum.ACCOUNT} WHERE Id = '${accountId}'`
-      )) as {
-        records: { [key: string]: any };
-      };
+      );
 
       if (!accountQuery.records.length) return;
 

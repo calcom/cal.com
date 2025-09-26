@@ -731,7 +731,7 @@ model InstantMeetingToken {
 }
 
 model BookingReference {
-  id                         Int      @id @default(autoincrement())
+  id                         Int       @id @default(autoincrement())
   /// @zod.string.min(1)
   type                       String
   /// @zod.string.min(1)
@@ -740,10 +740,11 @@ model BookingReference {
   thirdPartyRecurringEventId String?
   meetingPassword            String?
   meetingUrl                 String?
-  booking                    Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  booking                    Booking?  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   bookingId                  Int?
   externalCalendarId         String?
   deleted                    Boolean?
+  deletedAt                  DateTime?
 
   credential                       Credential?           @relation(fields: [credentialId], references: [id], onDelete: SetNull)
   credentialId                     Int?

@@ -1,10 +1,8 @@
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
-
-import { schemaBookingReferenceReadPublic } from "~/lib/validations/booking-reference";
+import { PrismaBookingReferenceRepository } from "@calcom/lib/server/repository/PrismaBookingReferenceRepository";
+import { prisma } from "@calcom/prisma";
 
 /**
  * @swagger
@@ -30,12 +28,11 @@ import { schemaBookingReferenceReadPublic } from "~/lib/validations/booking-refe
  *         description: No booking references were found
  */
 async function getHandler(req: NextApiRequest) {
-  const { userId, isSystemWideAdmin } = req;
-  const args: Prisma.BookingReferenceFindManyArgs = isSystemWideAdmin
-    ? {}
-    : { where: { booking: { userId } } };
-  const data = await prisma.bookingReference.findMany(args);
-  return { booking_references: data.map((br) => schemaBookingReferenceReadPublic.parse(br)) };
+  const { userId } = req;
+  const bookingReferenceRepo = new PrismaBookingReferenceRepository({ prismaClient: prisma });
+  return {
+    booking_references: await bookingReferenceRepo.findByUserId({ userId }),
+  };
 }
 
 export default defaultResponder(getHandler);

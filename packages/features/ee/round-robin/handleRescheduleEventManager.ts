@@ -1,14 +1,14 @@
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import { MeetLocationType } from "@calcom/app-store/locations";
+import EventManager from "@calcom/features/bookings/lib/EventManager";
+import type { EventManagerInitParams } from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import type { EventType } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getVideoCallDetails } from "@calcom/features/bookings/lib/handleNewBooking/getVideoCallDetails";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import EventManager from "@calcom/features/bookings/lib/EventManager";
-import type { EventManagerInitParams } from "@calcom/features/bookings/lib/EventManager";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
+import { PrismaBookingReferenceRepository } from "@calcom/lib/server/repository/PrismaBookingReferenceRepository";
 import { prisma } from "@calcom/prisma";
 import type { DestinationCalendar } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
@@ -170,7 +170,8 @@ export const handleRescheduleEventManager = async ({
 
   const newReferencesToCreate = structuredClone(updateManager.referencesToCreate);
 
-  await BookingReferenceRepository.replaceBookingReferences({
+  const bookingReferenceRepo = new PrismaBookingReferenceRepository({ prismaClient: prisma });
+  await bookingReferenceRepo.replaceBookingReferences({
     bookingId,
     newReferencesToCreate,
   });

@@ -1,7 +1,8 @@
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { PrismaBookingReferenceRepository } from "@calcom/lib/server/repository/PrismaBookingReferenceRepository";
+import { prisma } from "@calcom/prisma";
 
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
@@ -37,7 +38,10 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
 export async function deleteHandler(req: NextApiRequest) {
   const { query } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
-  await prisma.bookingReference.delete({ where: { id } });
+
+  const bookingReferenceRepo = new PrismaBookingReferenceRepository({ prismaClient: prisma });
+  await bookingReferenceRepo.delete(id);
+
   return { message: `BookingReference with id: ${id} deleted` };
 }
 

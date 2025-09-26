@@ -17,11 +17,12 @@ export default async function handleSendingAttendeeNoShowDataToApps(
   attendees: NoShowAttendees
 ) {
   // Get event type metadata
-  const eventTypeQuery = await prisma.booking.findUnique({
+  const bookingWithEventType = await prisma.booking.findUnique({
     where: {
       uid: bookingUid,
     },
     select: {
+      id: true,
       eventType: {
         select: {
           metadata: true,
@@ -29,12 +30,12 @@ export default async function handleSendingAttendeeNoShowDataToApps(
       },
     },
   });
-  if (!eventTypeQuery || !eventTypeQuery?.eventType?.metadata) {
+  if (!bookingWithEventType || !bookingWithEventType?.eventType?.metadata) {
     log.warn(`For no show, could not find eventType for bookingUid ${bookingUid}`);
     return;
   }
 
-  const eventTypeMetadataParse = EventTypeMetaDataSchema.safeParse(eventTypeQuery?.eventType?.metadata);
+  const eventTypeMetadataParse = EventTypeMetaDataSchema.safeParse(bookingWithEventType?.eventType?.metadata);
   if (!eventTypeMetadataParse.success) {
     log.error(`Malformed event type metadata for bookingUid ${bookingUid}`);
     return;
@@ -48,7 +49,7 @@ export default async function handleSendingAttendeeNoShowDataToApps(
       const appCategory = app.appCategories[0];
 
       if (appCategory === "crm") {
-        await handleCRMNoShow(bookingUid, app, attendees);
+        await handleCRMNoShow(bookingWithEventType.id, app, attendees);
       }
     }
   }
@@ -57,7 +58,7 @@ export default async function handleSendingAttendeeNoShowDataToApps(
 }
 
 async function handleCRMNoShow(
-  bookingUid: string,
+  bookingId: number,
   appData: z.infer<typeof eventTypeAppCardZod>,
   attendees: NoShowAttendees
 ) {
@@ -77,10 +78,10 @@ async function handleCRMNoShow(
   });
 
   if (!credential) {
-    log.warn(`CRM credential not found for bookingUid ${bookingUid}`);
+    log.warn(`CRM credential not found for bookingId ${bookingId}`);
     return;
   }
 
   const crm = new CrmManager(credential, appData);
-  await crm.handleAttendeeNoShow(bookingUid, attendees);
+  await crm.handleAttendeeNoShow(bookingId, attendees);
 }

@@ -7,12 +7,7 @@ import type { CRM, ContactCreateInput } from "@calcom/types/CrmService";
 const log = logger.getSubLogger({ prefix: ["CrmManager"] });
 export default class CrmManager {
   crmService: CRM | null | undefined = null;
-  credential: CredentialPayload;
-  appOptions: any;
-  constructor(credential: CredentialPayload, appOptions?: any) {
-    this.credential = credential;
-    this.appOptions = appOptions;
-  }
+  constructor(private credential: CredentialPayload, private appOptions?: Record<string, unknown>) {}
 
   private async getCrmService(credential: CredentialPayload) {
     if (this.crmService) return this.crmService;
@@ -83,10 +78,10 @@ export default class CrmManager {
     return createdContacts;
   }
 
-  public async handleAttendeeNoShow(bookingUid: string, attendees: { email: string; noShow: boolean }[]) {
+  public async handleAttendeeNoShow(bookingId: number, attendees: { email: string; noShow: boolean }[]) {
     const crmService = await this.getCrmService(this.credential);
     if (crmService?.handleAttendeeNoShow) {
-      await crmService.handleAttendeeNoShow(bookingUid, attendees);
+      await crmService.handleAttendeeNoShow(bookingId, attendees);
     }
   }
 }
