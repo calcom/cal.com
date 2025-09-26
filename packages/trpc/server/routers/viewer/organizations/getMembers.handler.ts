@@ -21,7 +21,7 @@ export const getMembersHandler = async ({ input, ctx }: CreateOptions) => {
 
   const permissionCheckService = new PermissionCheckService();
 
-  const hasPermissionToViewPrivateMembers = await permissionCheckService.checkPermission({
+  const hasPermissionToViewMembers = await permissionCheckService.checkPermission({
     userId: ctx.user.id,
     teamId: ctx.user.organizationId,
     permission: ctx.user.organization.isPrivate
@@ -32,7 +32,7 @@ export const getMembersHandler = async ({ input, ctx }: CreateOptions) => {
       : [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
   });
 
-  if (isOrgPrivate && !hasPermissionToViewPrivateMembers) return [];
+  if (!hasPermissionToViewMembers) return [];
 
   const teamQuery = await prisma.team.findUnique({
     where: {
