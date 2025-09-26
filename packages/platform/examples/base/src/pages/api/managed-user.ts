@@ -141,7 +141,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "An unexpected error occurred";
-    return res.status(400).json({ message });
+    return res.status(500).json({ message });
   }
 }
 
