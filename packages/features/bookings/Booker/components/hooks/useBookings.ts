@@ -114,6 +114,43 @@ export interface IUseBookingErrors {
 export type UseBookingsReturnType = ReturnType<typeof useBookings>;
 
 const STORAGE_KEY = "instantBookingData";
+const COOLDOWN_STORAGE_KEY = "instantBookingCooldownByEvent";
+const COOLDOWN_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
+
+type InstantBookingCooldownMap = Record<string, number>;
+
+const readInstantCooldownMap = (): InstantBookingCooldownMap => {
+  try {
+    const raw = localStorage.getItem(COOLDOWN_STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as InstantBookingCooldownMap) : {};
+  } catch {
+    return {};
+  }
+};
+
+const writeInstantCooldownMap = (map: InstantBookingCooldownMap) => {
+  try {
+    localStorage.setItem(COOLDOWN_STORAGE_KEY, JSON.stringify(map));
+  } catch {
+    // don't do anything
+  }
+};
+
+const getInstantCooldownRemainingMs = (eventTypeId?: number | null): number => {
+  if (!eventTypeId) return 0;
+  const map = readInstantCooldownMap();
+  const lastTs = map[String(eventTypeId)];
+  if (!lastTs) return 0;
+  const remaining = lastTs + COOLDOWN_WINDOW_MS - Date.now();
+  return remaining > 0 ? remaining : 0;
+};
+
+const setInstantCooldownNow = (eventTypeId?: number | null) => {
+  if (!eventTypeId) return;
+  const map = readInstantCooldownMap();
+  map[String(eventTypeId)] = Date.now();
+  writeInstantCooldownMap(map);
+};
 
 const storeInLocalStorage = ({
   eventTypeId,
@@ -133,7 +170,6 @@ export const useBookings = ({
   hashedLink,
   bookingForm,
   metadata,
-  teamMemberEmail,
   isBookingDryRun,
 }: IUseBookings) => {
   const router = useRouter();
@@ -179,6 +215,8 @@ export const useBookings = ({
     }
   }, [eventTypeId, isInstantMeeting]);
 
+  const instantConnectCooldownMs = getInstantCooldownRemainingMs(eventTypeId);
+
   const _instantBooking = trpc.viewer.bookings.getInstantBookingLocation.useQuery(
     {
       bookingId: bookingId,
@@ -204,7 +242,7 @@ export const useBookings = ({
         } else {
           showToast(t("something_went_wrong_on_our_end"), "error");
         }
-      } catch (err) {
+      } catch () {
         showToast(t("something_went_wrong_on_our_end"), "error");
       }
     },
@@ -245,7 +283,7 @@ export const useBookings = ({
       const { uid, paymentUid } = booking;
       const fullName = getFullName(bookingForm.getValues("responses.name"));
 
-      const users = !!event.data?.subsetOfHosts?.length
+      const users = event.data?.subsetOfHosts?.length
         ? event.data?.subsetOfHosts.map((host) => host.user)
         : event.data?.subsetOfUsers;
 
@@ -368,6 +406,7 @@ export const useBookings = ({
           expiryTime: responseData.expires,
           bookingId: responseData.bookingId,
         });
+        setInstantCooldownNow(eventTypeId);
       }
 
       updateQueryParam("bookingId", responseData.bookingId);
@@ -472,7 +511,19 @@ export const useBookings = ({
     bookingForm,
     hashedLink,
     metadata,
-    handleInstantBooking: createInstantBookingMutation.mutate,
+    handleInstantBooking: (
+      variables: Parameters<typeof createInstantBookingMutation.mutate>[0]
+    ) => {
+      const remaining = getInstantCooldownRemainingMs(eventTypeId);
+      if (remaining > 0) {
+        showToast(
+          t("please_try_again_later_or_book_another_slot"),
+          "error"
+        );
+        return;
+      }
+      createInstantBookingMutation.mutate(variables);
+    },
     handleRecBooking: createRecurringBookingMutation.mutate,
     handleBooking: createBookingMutation.mutate,
     isBookingDryRun,
@@ -506,5 +557,6 @@ export const useBookings = ({
     errors,
     loadingStates,
     instantVideoMeetingUrl,
+    instantConnectCooldownMs,
   };
 };
