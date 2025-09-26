@@ -49,8 +49,8 @@ describe("TeamService", () => {
       // @ts-ignore
       const mockTeamRepo = {
         deleteById: vi.fn().mockResolvedValue(mockDeletedTeam),
-      };
-      vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo as any);
+      } as Pick<TeamRepository, "deleteById">;
+      vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo);
 
       const result = await TeamService.delete({ id: 1 });
 
@@ -69,7 +69,7 @@ describe("TeamService", () => {
       await expect(TeamService.inviteMemberByToken("invalid-token", 1)).rejects.toThrow(TRPCError);
     });
 
-    it("should create membership and update billing", async () => {
+    it("should create auto-accepted membership and update billing", async () => {
       const mockToken = {
         teamId: 1,
         team: { name: "Test Team" },
@@ -85,7 +85,7 @@ describe("TeamService", () => {
 
       expect(prismaMock.membership.create).toHaveBeenCalledWith({
         data: {
-          accepted: false,
+          accepted: true,
           createdAt: expect.any(Date),
           role: MembershipRole.MEMBER,
           teamId: 1,
