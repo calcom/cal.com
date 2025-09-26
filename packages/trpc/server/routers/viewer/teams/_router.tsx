@@ -2,7 +2,6 @@ import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZAcceptOrLeaveInputSchema } from "./acceptOrLeave.schema";
 import { ZAddMembersToEventTypes } from "./addMembersToEventTypes.schema";
-import { ZAutoAcceptInviteInputSchema } from "./autoAcceptInvite.schema";
 import { ZChangeMemberRoleInputSchema } from "./changeMemberRole.schema";
 import { ZCheckIfMembershipExistsInputSchema } from "./checkIfMembershipExists.schema";
 import { ZCreateInputSchema } from "./create.schema";
@@ -144,10 +143,6 @@ export const viewerTeamsRouter = router({
   }),
   resendInvitation: authedProcedure.input(ZResendInvitationInputSchema).mutation(async (opts) => {
     const { default: handler } = await import("./resendInvitation.handler");
-    return handler(opts);
-  }),
-  autoAcceptInvite: authedProcedure.input(ZAutoAcceptInviteInputSchema).mutation(async (opts) => {
-    const { default: handler } = await import("./autoAcceptInvite.handler");
     return handler(opts);
   }),
   roundRobinReassign: authedProcedure.input(ZRoundRobinReassignInputSchema).mutation(async (opts) => {

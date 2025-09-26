@@ -37,7 +37,7 @@ export const resendInvitationHandler = async ({ ctx, input }: InviteMemberOption
   }
 
   const inviteTeamOptions = {
-    joinLink: `${WEBAPP_URL}/teams?token=${verificationToken?.token || "auto-accept"}&autoAccept=true`,
+    joinLink: `${WEBAPP_URL}/teams?token=${verificationToken?.token || "auto-accept"}`,
     isCalcomMember: true,
     isAutoJoin: false,
   };
