@@ -50,12 +50,16 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
+  if (!decodedRefreshToken.clientId || decodedRefreshToken.clientId !== client_id) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
   const payloadAccessToken: OAuthTokenPayload = {
     userId: decodedRefreshToken.userId,
     teamId: decodedRefreshToken.teamId,
     scope: decodedRefreshToken.scope,
     token_type: "Access Token",
-    clientId: client_id,
+    clientId: decodedRefreshToken.clientId,
   };
 
   const payloadRefreshToken: OAuthTokenPayload = {
@@ -63,7 +67,7 @@ async function handler(req: NextRequest) {
     teamId: decodedRefreshToken.teamId,
     scope: decodedRefreshToken.scope,
     token_type: "Refresh Token",
-    clientId: client_id,
+    clientId: decodedRefreshToken.clientId,
   };
 
   const access_token = jwt.sign(payloadAccessToken, secretKey, {
