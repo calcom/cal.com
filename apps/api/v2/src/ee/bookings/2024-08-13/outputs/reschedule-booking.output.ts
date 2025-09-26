@@ -7,8 +7,6 @@ import {
   BookingOutput_2024_08_13,
   CreateRecurringSeatedBookingOutput_2024_08_13,
   CreateSeatedBookingOutput_2024_08_13,
-  GetRecurringSeatedBookingOutput_2024_08_13,
-  GetSeatedBookingOutput_2024_08_13,
   RecurringBookingOutput_2024_08_13,
 } from "@calcom/platform-types";
 

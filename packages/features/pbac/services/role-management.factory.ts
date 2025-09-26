@@ -1,6 +1,5 @@
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { isTeamAdmin } from "@calcom/features/ee/teams/lib/queries";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -97,12 +96,23 @@ class PBACRoleManager implements IRoleManager {
 class LegacyRoleManager implements IRoleManager {
   public isPBACEnabled = false;
   async checkPermissionToChangeRole(userId: number, targetId: number, scope: "org" | "team"): Promise<void> {
-    const membership =
-      scope === "team"
-        ? !!(await isTeamAdmin(userId, targetId))
-        : !!(await isOrganisationAdmin(userId, targetId));
+    let hasPermission = false;
+    if (scope === "team") {
+      const team = await prisma.membership.findFirst({
+        where: {
+          userId,
+          teamId: targetId,
+          accepted: true,
+          OR: [{ role: "ADMIN" }, { role: "OWNER" }],
+        },
+      });
+      hasPermission = !!team;
+    } else {
+      hasPermission = !!(await isOrganisationAdmin(userId, targetId));
+    }
+
     // Only OWNER/ADMIN can update role
-    if (!membership) {
+    if (!hasPermission) {
       throw new RoleManagementError(
         "Only owners or admin can update roles",
         RoleManagementErrorCode.UNAUTHORIZED
