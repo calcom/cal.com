@@ -760,6 +760,10 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     },
     logout: async () => {
       await page.goto("/auth/logout");
+      const logoutBtn = page.getByTestId("logout-btn");
+      await expect(logoutBtn).toHaveText("Go back to the login page");
+      await page.reload();
+      await expect(logoutBtn).toHaveText("Go back to the login page");
     },
     getFirstTeamMembership: async () => {
       const memberships = await prisma.membership.findMany({

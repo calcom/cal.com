@@ -244,6 +244,9 @@ model EventType {
 
   bookingRequiresAuthentication Boolean @default(false)
 
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+
   @@unique([userId, slug])
   @@unique([teamId, slug])
   @@unique([userId, parentId])
@@ -1747,7 +1750,7 @@ model BookingDenormalized {
 }
 
 view BookingTimeStatusDenormalized {
-  id             Int           @id @unique
+  id             Int           @unique
   uid            String
   eventTypeId    Int?
   title          String
@@ -2248,22 +2251,47 @@ enum WatchlistSeverity {
   CRITICAL
 }
 
+enum WatchlistAction {
+  REPORT
+  BLOCK
+}
+
 model Watchlist {
-  id          String            @id @unique @default(cuid())
-  type        WatchlistType
-  // The identifier of the Watchlisted entity (email or domain)
+  id   String        @id @unique @default(cuid())
+  type WatchlistType
+
   value       String
   description String?
+
+  organizationId Int?
+
+  action      WatchlistAction   @default(REPORT)
+  severity    WatchlistSeverity @default(LOW)
   createdAt   DateTime          @default(now())
-  createdBy   User              @relation("CreatedWatchlists", onDelete: Cascade, fields: [createdById], references: [id])
-  createdById Int
+  createdBy   User?             @relation("CreatedWatchlists", onDelete: SetNull, fields: [createdById], references: [id])
+  createdById Int?
   updatedAt   DateTime          @updatedAt
   updatedBy   User?             @relation("UpdatedWatchlists", onDelete: SetNull, fields: [updatedById], references: [id])
   updatedById Int?
-  severity    WatchlistSeverity @default(LOW)
 
-  @@unique([type, value])
-  @@index([type, value])
+  @@unique([type, value, organizationId])
+  @@index([type, value, organizationId, action])
+}
+
+model BlockedBookingLog {
+  id          String @id @default(uuid())
+  email       String
+  eventTypeId Int?
+
+  organizationId Int?
+
+  bookingData Json?
+  createdAt   DateTime @default(now())
+  watchlistId String?
+
+  @@index([organizationId, createdAt])
+  @@index([email])
+  @@index([watchlistId])
 }
 
 enum BillingPeriod {
