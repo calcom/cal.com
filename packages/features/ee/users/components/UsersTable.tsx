@@ -22,8 +22,6 @@ import { Icon } from "@calcom/ui/components/icon";
 import { DropdownActions, Table } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { withLicenseRequired } from "../../common/components/LicenseRequired";
-
 const { Cell, ColumnTitle, Header, Row } = Table;
 
 const FETCH_LIMIT = 25;
@@ -193,7 +191,7 @@ function UsersTableBare() {
             {flatData.map((user) => (
               <Row key={user.email}>
                 <Cell widthClassNames="w-auto">
-                  <div className="min-h-10 flex ">
+                  <div className="flex min-h-10 ">
                     <Avatar
                       size="md"
                       alt={`Avatar of ${user.username || "Nameless"}`}
@@ -359,4 +357,5 @@ const DeleteUserDialog = ({
   );
 };
 
-export const UsersTable = withLicenseRequired(UsersTableBare);
+// export const UsersTable = withLicenseRequired(UsersTableBare);
+export const UsersTable = UsersTableBare;
