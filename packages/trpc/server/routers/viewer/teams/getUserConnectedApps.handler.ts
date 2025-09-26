@@ -1,5 +1,7 @@
 import { getAppFromSlug } from "@calcom/app-store/utils";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import type { AppCategories } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -71,15 +73,16 @@ const checkCanUserAccessConnectedApps = async (
     },
   });
 
-  const isOrgAdminOrOwner =
-    team.parent &&
-    (await prisma.membership.findFirst({
-      where: {
-        userId: user.id,
-        teamId: team.parent.id,
-        OR: [{ role: "ADMIN" }, { role: "OWNER" }],
-      },
-    }));
+  let isOrgAdminOrOwner = false;
+  if (team.parent) {
+    const permissionCheckService = new PermissionCheckService();
+    isOrgAdminOrOwner = await permissionCheckService.checkPermission({
+      userId: user.id,
+      teamId: team.parent.id,
+      permission: "organization.read",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+    });
+  }
 
   if (!isMember && !isOrgAdminOrOwner) {
     throw new Error("User is not authorized to access this team's connected apps");
