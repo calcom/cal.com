@@ -16,7 +16,7 @@ export type RateLimitHelper = {
     | "ai"
     | "sms"
     | "smsMonth"
-    | "instant";
+    | "instantMeeting";
   identifier: string;
   opts?: LimitOptions;
   /**
@@ -59,11 +59,11 @@ export function rateLimiter() {
       timeout,
       onError,
     }),
-    instant: new Ratelimit({
+    instantMeeting: new Ratelimit({
       rootKey: UNKEY_ROOT_KEY,
-      namespace: "instant",
+      namespace: "instantMeeting",
       limit: 1,
-      duration: "5m",
+      duration: "10m",
       timeout,
       onError,
     }),
