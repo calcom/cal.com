@@ -44,6 +44,7 @@ const CalendarViewPlatformWrapperComponent = (
     view = "MONTH_VIEW",
   } = props;
 
+  // TODO: for CalendarView v2 we can determine isTeamEvent automatically, aka if teamId is passed then we internally set isTeamEvent to true.
   const teamId: number | undefined = props.isTeamEvent ? props.teamId : undefined;
   const username = useMemo(() => {
     if (props.username) {
