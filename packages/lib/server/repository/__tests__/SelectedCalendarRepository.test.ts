@@ -130,6 +130,22 @@ describe("SelectedCalendarRepository", () => {
         where: {
           integration: { in: ["google_calendar", "office365_calendar"] },
           OR: [{ syncSubscribedAt: null }, { channelExpiration: { lte: expect.any(Date) } }],
+          user: {
+            teams: {
+              some: {
+                team: {
+                  features: {
+                    some: {
+                      OR: [
+                        { featureId: "calendar-subscription-cache" },
+                        { featureId: "calendar-subscription-sync" },
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
         take: 10,
       });
@@ -150,6 +166,22 @@ describe("SelectedCalendarRepository", () => {
         where: {
           integration: { in: [] },
           OR: [{ syncSubscribedAt: null }, { channelExpiration: { lte: expect.any(Date) } }],
+          user: {
+            teams: {
+              some: {
+                team: {
+                  features: {
+                    some: {
+                      OR: [
+                        { featureId: "calendar-subscription-cache" },
+                        { featureId: "calendar-subscription-sync" },
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
         take: 5,
       });
