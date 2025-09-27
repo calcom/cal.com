@@ -277,6 +277,7 @@ export const bookingCancelSchema = z.object({
   cancellationReason: z.string().optional(),
   seatReferenceUid: z.string().optional(),
   cancelledBy: z.string().email({ message: "Invalid email" }).optional(),
+  fromReport: z.boolean().optional(), // Indicates cancellation is from report booking
   internalNote: z
     .object({
       id: z.number(),
