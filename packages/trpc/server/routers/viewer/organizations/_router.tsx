@@ -11,6 +11,7 @@ import { ZAddMembersToEventTypes } from "./addMembersToEventTypes.schema";
 import { ZAddMembersToTeams } from "./addMembersToTeams.schema";
 import { ZAdminDeleteInput } from "./adminDelete.schema";
 import { ZAdminGet } from "./adminGet.schema";
+import { ZAdminGetAllInput } from "./adminGetAll.schema";
 import { ZAdminUpdate } from "./adminUpdate.schema";
 import { ZAdminVerifyInput } from "./adminVerify.schema";
 import { ZBulkUsersDelete } from "./bulkDeleteUsers.schema.";
@@ -135,7 +136,7 @@ export const viewerOrganizationsRouter = router({
     return handler(opts);
   }),
 
-  adminGetAll: authedAdminProcedure.query(async (opts) => {
+  adminGetAll: authedAdminProcedure.input(ZAdminGetAllInput).query(async (opts) => {
     const { default: handler } = await import("./adminGetAll.handler");
     return handler(opts);
   }),
