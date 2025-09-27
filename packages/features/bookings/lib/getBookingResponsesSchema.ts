@@ -1,4 +1,4 @@
-import { isValidPhoneNumber } from "libphonenumber-js";
+import { isValidPhoneNumber, getCountryCallingCode, type CountryCode } from "libphonenumber-js";
 import z from "zod";
 
 import type { ALL_VIEWS } from "@calcom/features/form-builder/schema";
@@ -6,7 +6,6 @@ import { dbReadResponseSchema, fieldTypesSchemaMap } from "@calcom/features/form
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { bookingResponses, emailSchemaRefinement } from "@calcom/prisma/zod-utils";
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 type View = ALL_VIEWS | (string & {});
 type BookingFields = (z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">) | null;
 type CommonParams = { bookingFields: BookingFields; view: View };
@@ -103,15 +102,41 @@ function preprocess<T extends z.ZodType>({
           };
           try {
             parsedValue = JSON.parse(value);
-          } catch (e) {}
+          } catch (e) {
+            console.error("Failed to parse JSON:", e);
+          }
           const optionsInputs = field.optionsInputs;
           const optionInputField = optionsInputs?.[parsedValue.value];
           if (optionInputField && optionInputField.type === "phone") {
-            parsedValue.optionValue = ensureValidPhoneNumber(parsedValue.optionValue);
+            let phoneValue = parsedValue.optionValue;
+            // Auto-prepend country code for single country restrictions
+            if (field.allowedCountryCodes?.length === 1 && phoneValue) {
+              const countryCode = field.allowedCountryCodes[0].toUpperCase();
+              const dialCode = getCountryCallingCode(countryCode as CountryCode);
+
+              // If phoneValue doesn't start with + or doesn't start with the correct country code
+              if (!phoneValue.startsWith(`+${dialCode}`)) {
+                // Remove any existing + and prepend the correct country code
+                phoneValue = `+${dialCode}${phoneValue.replace(/^\+/, "")}`;
+              }
+            }
+            parsedValue.optionValue = ensureValidPhoneNumber(phoneValue);
           }
           newResponses[field.name] = parsedValue;
         } else if (field.type === "phone") {
-          newResponses[field.name] = ensureValidPhoneNumber(value);
+          // Auto-prepend country code for single country restrictions
+          let phoneValue = value;
+          if (field.allowedCountryCodes?.length === 1 && phoneValue) {
+            const countryCode = field.allowedCountryCodes[0].toUpperCase();
+            const dialCode = getCountryCallingCode(countryCode as CountryCode);
+
+            // If phoneValue doesn't start with + or doesn't start with the correct country code
+            if (!phoneValue.startsWith(`+${dialCode}`)) {
+              // Remove any existing + and prepend the correct country code
+              phoneValue = `+${dialCode}${phoneValue.replace(/^\+/, "")}`;
+            }
+          }
+          newResponses[field.name] = ensureValidPhoneNumber(phoneValue);
         } else {
           newResponses[field.name] = value;
         }

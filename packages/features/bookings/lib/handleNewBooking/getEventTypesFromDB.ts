@@ -194,9 +194,8 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
     throw new Error(ErrorCode.EventTypeNotFound);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { profile, hosts, users, ...restEventType } = eventType;
-
-  const isOrgTeamEvent = !!eventType?.team && !!profile?.organizationId;
 
   const hostsWithSelectedCalendars = hosts.map((host) => ({
     ...host,
@@ -213,7 +212,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
     recurringEvent: parseRecurringEvent(eventType?.recurringEvent),
     customInputs: customInputSchema.array().parse(eventType?.customInputs || []),
     locations: (eventType?.locations ?? []) as LocationObject[],
-    bookingFields: getBookingFieldsWithSystemFields({ ...restEventType, isOrgTeamEvent }),
+    bookingFields: getBookingFieldsWithSystemFields({ ...restEventType }),
     rrSegmentQueryValue: rrSegmentQueryValueSchema.parse(eventType.rrSegmentQueryValue) ?? null,
     isDynamic: false,
     hostGroups: eventType.hostGroups || [],

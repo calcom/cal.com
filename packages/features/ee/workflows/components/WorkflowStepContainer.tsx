@@ -1,7 +1,7 @@
 import { type TFunction } from "i18next";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import "react-phone-number-input/style.css";
@@ -102,7 +102,7 @@ const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
     [WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW]: "how_long_after_guests_no_show",
   };
   if (!triggerMap[trigger]) return null;
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
   return t(triggerMap[trigger]!);
 };
 
@@ -236,8 +236,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     },
   });
 
-  const verifiedNumbers = _verifiedNumbers?.map((number) => number.phoneNumber) || [];
-  const verifiedEmails = _verifiedEmails || [];
+  const verifiedNumbers = useMemo(
+    () => _verifiedNumbers?.map((number) => number.phoneNumber) || [],
+    [_verifiedNumbers]
+  );
+  const verifiedEmails = useMemo(() => _verifiedEmails || [], [_verifiedEmails]);
   const [isAdditionalInputsDialogOpen, setIsAdditionalInputsDialogOpen] = useState(false);
   const [isTestAgentDialogOpen, setIsTestAgentDialogOpen] = useState(false);
   const [isWebCallDialogOpen, setIsWebCallDialogOpen] = useState(false);
@@ -386,23 +389,29 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const refEmailSubject = useRef<HTMLTextAreaElement | null>(null);
 
-  const getNumberVerificationStatus = () =>
-    !!step &&
-    !!verifiedNumbers.find(
-      (number: string) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`)
-    );
+  const getNumberVerificationStatus = useCallback(
+    () =>
+      !!step &&
+      !!verifiedNumbers.find(
+        (number: string) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`)
+      ),
+    [step, verifiedNumbers, form]
+  );
 
-  const getEmailVerificationStatus = () =>
-    !!step &&
-    !!verifiedEmails.find((email: string) => email === form.getValues(`steps.${step.stepNumber - 1}.sendTo`));
+  const getEmailVerificationStatus = useCallback(
+    () =>
+      !!step &&
+      !!verifiedEmails.find(
+        (email: string) => email === form.getValues(`steps.${step.stepNumber - 1}.sendTo`)
+      ),
+    [step, verifiedEmails, form]
+  );
 
   const [numberVerified, setNumberVerified] = useState(getNumberVerificationStatus());
   const [emailVerified, setEmailVerified] = useState(getEmailVerificationStatus());
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => setNumberVerified(getNumberVerificationStatus()), [verifiedNumbers.length]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => setEmailVerified(getEmailVerificationStatus()), [verifiedEmails.length]);
+  useEffect(() => setNumberVerified(getNumberVerificationStatus()), [getNumberVerificationStatus]);
+  useEffect(() => setEmailVerified(getEmailVerificationStatus()), [getEmailVerificationStatus]);
 
   const addVariableEmailSubject = (variable: string) => {
     if (step) {
@@ -1011,7 +1020,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   {t("send_code")}
                 </Button>
               </div>
-
               {form.formState.errors.steps && form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
                 <p className="text-error mt-1 text-xs">
                   {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
@@ -1522,7 +1530,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             agentData={agentData}
             onUpdate={(data) => {
               updateAgentMutation.mutate({
-                //eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 id: stepAgentId!,
                 teamId: teamId,
                 generalPrompt: data.generalPrompt,
