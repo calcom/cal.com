@@ -1,8 +1,15 @@
+import { WorkflowActivationPreValidation } from "@/modules/workflows/inputs/workflow-activation.validator";
 import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsNumber, IsString, IsOptional, ValidateNested, ArrayMinSize } from "class-validator";
 
-import { WorkflowActivationDto } from "./create-workflow.input";
+import {
+  BaseWorkflowActivationDto,
+  WORKFLOW_EVENT_TYPE_ACTIVATION,
+  WORKFLOW_FORM_ACTIVATION,
+  WorkflowActivationDto,
+  WorkflowFormActivationDto,
+} from "./create-workflow.input";
 import {
   WorkflowEmailAttendeeStepDto,
   WorkflowEmailAddressStepDto,
@@ -36,6 +43,8 @@ import {
   AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
   OnAfterCalVideoHostsNoShowTriggerDto,
   AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+  OnFormSubmittedTriggerDto,
+  FORM_SUBMITTED,
   OnNoShowUpdateTriggerDto,
   OnRejectedTriggerDto,
   OnRequestedTriggerDto,
@@ -126,6 +135,7 @@ export class UpdateWhatsAppAttendeePhoneWorkflowStepDto extends WorkflowPhoneWha
 @ApiExtraModels(
   OnBeforeEventTriggerDto,
   OnAfterEventTriggerDto,
+  OnFormSubmittedTriggerDto,
   OnCancelTriggerDto,
   OnCreationTriggerDto,
   OnRescheduleTriggerDto,
@@ -151,14 +161,29 @@ export class UpdateWorkflowDto {
   @IsOptional()
   name?: string;
 
-  @ApiPropertyOptional({
-    description: "Activation settings for the workflow, the action that will trigger the workflow.",
-    type: WorkflowActivationDto,
+  @ApiProperty({
+    description: "Activation settings for the workflow",
+    oneOf: [
+      { $ref: getSchemaPath(WorkflowActivationDto) },
+      { $ref: getSchemaPath(WorkflowFormActivationDto) },
+    ],
   })
   @ValidateNested()
-  @Type(() => WorkflowActivationDto)
+  @Type(() => BaseWorkflowActivationDto, {
+    discriminator: {
+      property: "type",
+      subTypes: [
+        { value: WorkflowActivationDto, name: WORKFLOW_EVENT_TYPE_ACTIVATION },
+        { value: WorkflowFormActivationDto, name: WORKFLOW_FORM_ACTIVATION },
+      ],
+    },
+  })
   @IsOptional()
-  activation?: WorkflowActivationDto;
+  @WorkflowActivationPreValidation({
+    message:
+      "Workflow validation type does not work with the specified trigger type, when using FORM_SUBMITTED trigger you must provide form activation.",
+  })
+  activation?: WorkflowFormActivationDto | WorkflowActivationDto;
 
   @ApiPropertyOptional({
     description: "Trigger configuration for the workflow",
@@ -170,6 +195,7 @@ export class UpdateWorkflowDto {
       { $ref: getSchemaPath(OnRescheduleTriggerDto) },
       { $ref: getSchemaPath(OnAfterCalVideoGuestsNoShowTriggerDto) },
       { $ref: getSchemaPath(OnAfterCalVideoHostsNoShowTriggerDto) },
+      { $ref: getSchemaPath(OnFormSubmittedTriggerDto) },
       { $ref: getSchemaPath(OnRejectedTriggerDto) },
       { $ref: getSchemaPath(OnRequestedTriggerDto) },
       { $ref: getSchemaPath(OnPaidTriggerDto) },
@@ -190,6 +216,7 @@ export class UpdateWorkflowDto {
         { value: OnRescheduleTriggerDto, name: RESCHEDULE_EVENT },
         { value: OnAfterCalVideoGuestsNoShowTriggerDto, name: AFTER_GUESTS_CAL_VIDEO_NO_SHOW },
         { value: OnAfterCalVideoHostsNoShowTriggerDto, name: AFTER_HOSTS_CAL_VIDEO_NO_SHOW },
+        { value: OnFormSubmittedTriggerDto, name: FORM_SUBMITTED },
         { value: OnRequestedTriggerDto, name: BOOKING_REQUESTED },
         { value: OnRejectedTriggerDto, name: BOOKING_REJECTED },
         { value: OnPaymentInitiatedTriggerDto, name: BOOKING_PAYMENT_INITIATED },
@@ -210,7 +237,8 @@ export class UpdateWorkflowDto {
     | OnPaymentInitiatedTriggerDto
     | OnNoShowUpdateTriggerDto
     | OnAfterCalVideoGuestsNoShowTriggerDto
-    | OnAfterCalVideoHostsNoShowTriggerDto;
+    | OnAfterCalVideoHostsNoShowTriggerDto
+    | OnFormSubmittedTriggerDto;
 
   @ApiPropertyOptional({
     description: "Steps to execute as part of the workflow",

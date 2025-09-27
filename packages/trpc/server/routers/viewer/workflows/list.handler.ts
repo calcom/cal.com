@@ -4,7 +4,7 @@ import type { WorkflowType } from "@calcom/features/ee/workflows/components/Work
 import { addPermissionsToWorkflows } from "@calcom/lib/server/repository/workflow-permissions";
 import { prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TListInputSchema } from "./list.schema";
@@ -20,17 +20,27 @@ type ListOptions = {
 export const listHandler = async ({ ctx, input }: ListOptions) => {
   const workflows: WorkflowType[] = [];
 
+  const excludeFormTriggersWhereClause = input.includeOnlyEventTypeWorkflows
+    ? {
+        trigger: {
+          not: {
+            in: [WorkflowTriggerEvents.FORM_SUBMITTED],
+          },
+        },
+      }
+    : {};
+
   const org = await prisma.team.findFirst({
     where: {
       isOrganization: true,
       children: {
         some: {
-          id: input?.teamId,
+          id: input.teamId,
         },
       },
       members: {
         some: {
-          userId: input?.userId || ctx.user.id,
+          userId: input.userId || ctx.user.id,
           accepted: true,
         },
       },
@@ -43,6 +53,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
   if (org) {
     const activeOrgWorkflows = await prisma.workflow.findMany({
       where: {
+        ...excludeFormTriggersWhereClause,
         team: {
           id: org.id,
           members: {
@@ -61,7 +72,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
               some: {
                 team: {
                   OR: [
-                    { id: input?.teamId },
+                    { id: input.teamId },
                     {
                       members: {
                         some: {
@@ -109,6 +120,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
   if (input && input.teamId) {
     const teamWorkflows: WorkflowType[] = await prisma.workflow.findMany({
       where: {
+        ...excludeFormTriggersWhereClause,
         team: {
           id: input.teamId,
           members: {
@@ -171,6 +183,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
   if (input && input.userId) {
     const userWorkflows: WorkflowType[] = await prisma.workflow.findMany({
       where: {
+        ...excludeFormTriggersWhereClause,
         userId: ctx.user.id,
       },
       include: {
@@ -218,6 +231,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
 
   const allWorkflows = await prisma.workflow.findMany({
     where: {
+      ...excludeFormTriggersWhereClause,
       OR: [
         { userId: ctx.user.id },
         {

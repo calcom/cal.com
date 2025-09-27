@@ -143,10 +143,18 @@ export class WorkflowsInputService {
     const updateData: TUpdateInputSchema = {
       id: workflowIdToUse,
       name: updateDto.name ?? currentData.name,
-      activeOn:
-        updateDto?.activation?.activeOnEventTypeIds ??
-        currentData?.activeOn.map((active) => active.eventTypeId) ??
-        [],
+      activeOnEventTypeIds:
+        updateDto?.activation?.type === "event-type"
+          ? updateDto?.activation?.activeOnEventTypeIds ??
+            currentData?.activeOn.map((active) => active.eventTypeId) ??
+            []
+          : [],
+      activeOnRoutingFormIds:
+        updateDto?.activation?.type === "form"
+          ? updateDto?.activation?.activeOnRoutingFormIds ??
+            currentData?.activeOnRoutingForms.map((active) => active.routingFormId) ??
+            []
+          : [],
       steps: mappedSteps,
       trigger: triggerForZod,
       time:
@@ -155,7 +163,10 @@ export class WorkflowsInputService {
           ? updateDto?.trigger?.offset?.value ?? currentData?.time ?? null
           : null,
       timeUnit: timeUnitForZod ? TIME_UNIT_TO_ENUM[timeUnitForZod] : null,
-      isActiveOnAll: updateDto?.activation?.isActiveOnAllEventTypes ?? currentData.isActiveOnAll ?? false,
+      isActiveOnAll:
+        updateDto?.activation?.type === "event-type"
+          ? updateDto?.activation?.isActiveOnAllEventTypes ?? currentData.isActiveOnAll ?? false
+          : updateDto?.activation?.isActiveOnAllRoutingForms ?? currentData.isActiveOnAll ?? false,
     } as const satisfies TUpdateInputSchema;
 
     return updateData;

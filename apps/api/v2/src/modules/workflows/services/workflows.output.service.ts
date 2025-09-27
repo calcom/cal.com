@@ -1,4 +1,8 @@
-import { WorkflowActivationDto, TriggerDtoType } from "@/modules/workflows/inputs/create-workflow.input";
+import {
+  WorkflowActivationDto,
+  TriggerDtoType,
+  WorkflowFormActivationDto,
+} from "@/modules/workflows/inputs/create-workflow.input";
 import { WorkflowOutput, WorkflowStepOutputDto } from "@/modules/workflows/outputs/workflow.output";
 import { WorkflowType } from "@/modules/workflows/workflows.repository";
 import { Injectable } from "@nestjs/common";
@@ -33,10 +37,19 @@ import {
 @Injectable()
 export class WorkflowsOutputService {
   toOutputDto(workflow: WorkflowType): WorkflowOutput {
-    const activation: WorkflowActivationDto = {
-      isActiveOnAllEventTypes: workflow.isActiveOnAll,
-      activeOnEventTypeIds: workflow.activeOn?.map((relation) => relation.eventTypeId) ?? [],
-    };
+    const activation: WorkflowActivationDto | WorkflowFormActivationDto =
+      workflow.trigger === "FORM_SUBMITTED"
+        ? {
+            isActiveOnAllRoutingForms: workflow.isActiveOnAll,
+            type: "form",
+            activeOnRoutingFormIds:
+              workflow.activeOnRoutingForms?.map((relation) => relation.routingFormId) ?? [],
+          }
+        : {
+            isActiveOnAllEventTypes: workflow.isActiveOnAll,
+            type: "event-type",
+            activeOnEventTypeIds: workflow.activeOn?.map((relation) => relation.eventTypeId) ?? [],
+          };
 
     const trigger: TriggerDtoType =
       workflow.trigger === WORKFLOW_TRIGGER_TO_ENUM[BEFORE_EVENT] ||
