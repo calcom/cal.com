@@ -90,7 +90,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         log.info("Updating workflow insights for event", { msgId, event, eventTypeId, status });
-        await prisma.calidWorkflowInsights.upsert({
+        await prisma.calIdWorkflowInsights.upsert({
           where: { msgId: msgId },
           update: { status: status },
           create: {

@@ -16,12 +16,6 @@ const statusMap = {
   failed: WorkflowStatus.FAILED,
 };
 
-export const config = {
-  api: {
-    bodyParser: true,
-  },
-};
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
@@ -38,6 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
 
     if (!msgId || !event || !eventTypeId) {
+      log.warn(`Webhook fields not found: ${msgId}, ${event}, ${eventTypeId}`);
       return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -56,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({ error: "Status not handled" });
     }
 
-    await prisma.calidWorkflowInsights.upsert({
+    await prisma.calIdWorkflowInsights.upsert({
       where: { msgId },
       update: { status },
       create: {
