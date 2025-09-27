@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-restricted-imports
+ 
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -1455,7 +1455,7 @@ async function handler(
 
   const changedOrganizer =
     !!originalRescheduledBooking &&
-    eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+    (eventType.schedulingType === SchedulingType.ROUND_ROBIN || eventType.schedulingType === SchedulingType.COLLECTIVE) &&
     originalRescheduledBooking.userId !== evt.organizer.id;
 
   const skipDeleteEventsAndMeetings = changedOrganizer;
