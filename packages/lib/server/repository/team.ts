@@ -411,4 +411,27 @@ export class TeamRepository {
       },
     });
   }
+
+  async isSlugAvailableForUpdate({
+    slug,
+    teamId,
+    parentId,
+  }: {
+    slug: string;
+    teamId: number;
+    parentId?: number | null;
+  }) {
+    const whereClause: Prisma.TeamWhereInput = {
+      slug,
+      parentId: parentId ?? null,
+      NOT: { id: teamId },
+    };
+
+    const conflictingTeam = await this.prismaClient.team.findFirst({
+      where: whereClause,
+      select: { id: true },
+    });
+
+    return !conflictingTeam;
+  }
 }
