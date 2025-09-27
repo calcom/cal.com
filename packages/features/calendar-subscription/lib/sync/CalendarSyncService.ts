@@ -42,7 +42,7 @@ export class CalendarSyncService {
 
     log.debug("handleEvents: processing calendar events", { count: calEvents.length });
 
-    await Promise.all(
+    await Promise.allSettled(
       calEvents.map((e) => {
         if (e.status === "cancelled") {
           return this.cancelBooking(e);
@@ -72,7 +72,18 @@ export class CalendarSyncService {
       return;
     }
 
-    // todo handle cancel booking
+    // causing import issues
+    const handleCancelBooking = await import("@calcom/features/bookings/lib/handleCancelBooking");
+    await handleCancelBooking({
+      userId: booking.userId!,
+      bookingData: {
+        uid: booking.uid,
+        allRemainingBookings: true,
+        cancelSubsequentBookings: true,
+        cancellationReason: "Cancelled on user's calendar",
+        cancelledBy: booking.userPrimaryEmail!,
+      },
+    });
   }
 
   /**
@@ -93,6 +104,17 @@ export class CalendarSyncService {
       return;
     }
 
-    // todo handle update booking
+    // causing import issues
+    const handleNewBooking = await import("@calcom/features/bookings/lib/handleCancelBooking");
+    await handleNewBooking({
+      bookingData: {
+        ...booking,
+        startTime: event.start?.toISOString() ?? booking.startTime,
+        endTime: event.end?.toISOString() ?? booking.endTime,
+      },
+      skipAvailabilityCheck: true,
+      skipEventLimitsCheck: true,
+      skipCalendarSyncTaskCreation: true,
+    });
   }
 }
