@@ -3,6 +3,7 @@ import publicProcedure from "../../../procedures/publicProcedure";
 import { router } from "../../../trpc";
 import { ZAddGuestsInputSchema } from "./addGuests.schema";
 import { ZConfirmInputSchema } from "./confirm.schema";
+import { ZDeleteBookingInputSchema } from "./delete.schema";
 import { ZEditLocationInputSchema } from "./editLocation.schema";
 import { ZFindInputSchema } from "./find.schema";
 import { ZGetInputSchema } from "./get.schema";
@@ -63,6 +64,15 @@ export const bookingsRouter = router({
     const { confirmHandler } = await import("./confirm.handler");
 
     return confirmHandler({
+      ctx,
+      input,
+    });
+  }),
+
+  delete: bookingsProcedure.input(ZDeleteBookingInputSchema).mutation(async ({ input, ctx }) => {
+    const { deleteHandler } = await import("./delete.handler");
+
+    return deleteHandler({
       ctx,
       input,
     });
