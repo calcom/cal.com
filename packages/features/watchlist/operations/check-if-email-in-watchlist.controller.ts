@@ -1,7 +1,7 @@
 import { startSpan } from "@sentry/nextjs";
 
-import type { Watchlist } from "../watchlist.model";
-import { WatchlistRepository } from "../watchlist.repository";
+import { getWatchlistReadRepository } from "@calcom/lib/di/watchlist/containers/watchlist";
+import type { Watchlist } from "@calcom/lib/di/watchlist/types";
 
 /**
  * Controllers use Presenters to convert the data to a UI-friendly format just before
@@ -26,7 +26,7 @@ export async function checkIfEmailIsBlockedInWatchlistController(
 ): Promise<ReturnType<typeof presenter>> {
   return await startSpan({ name: "checkIfEmailInWatchlist Controller" }, async () => {
     const lowercasedEmail = email.toLowerCase();
-    const watchlistRepository = new WatchlistRepository();
+    const watchlistRepository = getWatchlistReadRepository();
     const watchlistedEmail = await watchlistRepository.getBlockedEmailInWatchlist(lowercasedEmail);
     return presenter(watchlistedEmail);
   });
