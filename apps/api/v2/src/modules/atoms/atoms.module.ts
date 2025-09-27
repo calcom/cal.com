@@ -1,4 +1,5 @@
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
+import { AtomsSecondaryEmailsRepository } from "@/modules/atoms/atoms-secondary-emails.repository";
 import { AtomsRepository } from "@/modules/atoms/atoms.repository";
 import { AtomsConferencingAppsController } from "@/modules/atoms/controllers/atoms.conferencing-apps.controller";
 import { AtomsController } from "@/modules/atoms/controllers/atoms.controller";
@@ -33,6 +34,7 @@ import { Module } from "@nestjs/common";
     CredentialsRepository,
     UsersRepository,
     AtomsRepository,
+    AtomsSecondaryEmailsRepository,
     UsersService,
     SchedulesAtomsService,
     VerificationAtomsService,
