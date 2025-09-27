@@ -355,7 +355,9 @@ export const Components: Record<FieldType, Component> = {
                   value={option.value}
                   checked={value.includes(option.value)}
                 />
-                <span className="text-emphasis me-2 ms-2 text-sm">{option.label ?? ""}</span>
+                <span className="text-emphasis me-2 ms-2 text-sm">
+                  🚨 TESTING: {option.label ?? ""} 🚨
+                </span>
               </label>
             );
           })}
@@ -520,6 +522,7 @@ export const Components: Record<FieldType, Component> = {
     factory: ({ readOnly, name, label, value, setValue }) => {
       return (
         <div className="flex">
+          🔵 BOOLEAN TYPE CHECKBOX 🔵
           <CheckboxField
             name={name}
             onChange={(e) => {

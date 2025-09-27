@@ -99,9 +99,18 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                       !label && "font-medium",
                       rest.descriptionClassName
                     )}
+                    style={{
+                      color: 'var(--cal-text)'
+                    }}
                     // eslint-disable-next-line react/no-danger
                     dangerouslySetInnerHTML={{
-                      __html: markdownToSafeHTML(descriptionAsSafeHtml),
+                      __html: (() => {
+                        const html = markdownToSafeHTML(descriptionAsSafeHtml) || '';
+                        return html.replace(
+                          /<a(\s[^>]*)?>/g,
+                          '<a$1 style="color: #3b82f6 !important; text-decoration: underline !important;">'
+                        );
+                      })(),
                     }}
                   />
                 ) : (
