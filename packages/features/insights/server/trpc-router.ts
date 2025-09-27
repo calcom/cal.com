@@ -1039,7 +1039,7 @@ export const insightsRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const { startDate, endDate, eventTypeId, userId, teamId, type } = input;
+      const { startDate, endDate, eventTypeId, memberUserId: userId, selectedTeamId: teamId, type } = input;
 
       const stats: {
         sentCount: number;
@@ -1102,6 +1102,9 @@ export const insightsRouter = router({
         (whereQuery.AND as Prisma.CalIdWorkflowInsightsWhereInput[]).push({
           eventTypeId: { in: eventTypeIds },
         });
+
+      
+      console.log("Workflow insights: ", JSON.stringify(whereQuery, null, 2));
 
       const workflowInsights = await ctx.insightsDb.calIdWorkflowInsights.findMany({
         where: whereQuery,

@@ -110,6 +110,8 @@ export const getEventTypesFromDB = async (id: number) => {
   const { profile, ...restEventType } = eventType;
   const isOrgTeamEvent = !!eventType?.team && !!profile?.organizationId;
 
+
+  console.log("CalIdWorkflows: ", eventType.calIdWorkflows);
   return {
     isDynamic: false,
     ...restEventType,

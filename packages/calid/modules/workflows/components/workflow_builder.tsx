@@ -823,6 +823,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
         !verifiedNumbersData?.find((verifiedNumber) => verifiedNumber.phoneNumber === step.sendTo)
       ) {
         isVerified = false;
+        console.log("Verified number: ", verifiedNumbersData, "Send to: ", step.sendTo);
         triggerToast(t("not_verified"), "error");
       }
 
@@ -895,7 +896,8 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
           phoneNumber: step.sendTo,
           code,
           calIdTeamId: workflowData?.calIdTeam?.id,
-        });
+        })
+        verifiedNumbersData.add(step.sendTo);
       }
     },
     [verificationCodes, verifyPhoneNumberMutation, workflowData?.calIdTeam?.id]
