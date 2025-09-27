@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 "use client";
 
 import { useSession } from "next-auth/react";
@@ -17,14 +18,25 @@ import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
+import { Dialog, DialogContent, DialogHeader, DialogFooter } from "@calcom/ui/components/dialog";
 import { Select } from "@calcom/ui/components/form";
 import { TextField, Label, InputError } from "@calcom/ui/components/form";
+import { Checkbox } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { ProgressBar } from "@calcom/ui/components/progress-bar";
+// Fix Switch import
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { BillingCreditsSkeleton } from "./BillingCreditsSkeleton";
+
+/* eslint-disable prettier/prettier */
+
+/* eslint-disable prettier/prettier */
+
+/* eslint-disable prettier/prettier */
+
+/* eslint-disable prettier/prettier */
 
 type MonthOption = {
   value: string;
@@ -99,6 +111,8 @@ export default function BillingCredits() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
   const utils = trpc.useUtils();
+
+  const [showAutoRechargeModal, setShowAutoRechargeModal] = useState(false);
 
   const {
     register,
@@ -176,6 +190,8 @@ export default function BillingCredits() {
 
   const teamCreditsPercentageUsed = totalCredits > 0 ? (totalUsed / totalCredits) * 100 : 0;
   const numberFormatter = new Intl.NumberFormat();
+
+  const autoRechargeSettings = creditsData?.settings;
 
   return (
     <>
@@ -260,6 +276,68 @@ export default function BillingCredits() {
                     {t("buy")}
                   </Button>
                 </div>
+              </div>
+            </div>
+          ) : (
+            <></>
+          )}
+          <Label>
+            {creditsData.credits.totalMonthlyCredits ? t("additional_credits") : t("available_credits")}
+          </Label>
+          <div className="mt-2 text-sm">{creditsData.credits.additionalCredits}</div>
+
+          {/* Auto-recharge section */}
+          <div className="-mx-6 mb-6 mt-6">
+            <hr className="border-subtle mb-3 mt-3" />
+          </div>
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <Label>{t("auto_recharge")}</Label>
+              <p className="text-subtle mt-1 text-sm">
+                {autoRechargeSettings?.enabled
+                  ? t("auto_recharge_enabled_description", {
+                      threshold: autoRechargeSettings?.threshold,
+                      amount: autoRechargeSettings?.amount,
+                    })
+                  : t("auto_recharge_disabled_description")}
+              </p>
+              {autoRechargeSettings?.lastAutoRechargeAt && (
+                <p className="text-subtle mt-1 text-sm">
+                  {t("last_auto_recharged_at", {
+                    date: dayjs(autoRechargeSettings.lastAutoRechargeAt).format("MMM D, YYYY HH:mm"),
+                  })}
+                </p>
+              )}
+            </div>
+            <Button
+              color="secondary"
+              onClick={() => setShowAutoRechargeModal(true)}
+              data-testid="configure-auto-recharge">
+              {autoRechargeSettings?.enabled ? t("edit") : t("setup")}
+            </Button>
+          </div>
+
+          <div className="-mx-6 mb-6 mt-6">
+            <hr className="border-subtle mb-3 mt-3" />
+          </div>
+          <form onSubmit={handleSubmit(onSubmit)} className="flex">
+            <div className="-mb-1 mr-auto">
+              <Label>{t("buy_additional_credits")}</Label>
+              <div className="flex flex-col">
+                <TextField
+                  required
+                  type="number"
+                  {...register("quantity", {
+                    required: t("error_required_field"),
+                    min: { value: 50, message: t("minimum_of_credits_required") },
+                    valueAsNumber: true,
+                  })}
+                  label=""
+                  containerClassName="w-60"
+                  onChange={(e) => setValue("quantity", Number(e.target.value))}
+                  min={50}
+                  addOnSuffix={<>{t("credits")}</>}
+                />
                 {errors.quantity && <InputError message={errors.quantity.message ?? t("invalid_input")} />}
               </div>
             </form>
@@ -308,6 +386,17 @@ export default function BillingCredits() {
           />
         </div>
       </div>
+
+      {/* Auto-recharge modal */}
+      {showAutoRechargeModal && (
+        <AutoRechargeModal
+          defaultValues={autoRechargeSettings}
+          onSubmit={handleAutoRechargeSubmit}
+          onCancel={() => setShowAutoRechargeModal(false)}
+          isLoading={updateAutoRechargeMutation.isLoading}
+        />
+      )}
+    </div>
       {teamId && (
         <MemberInvitationModalWithoutMembers
           teamId={teamId}
@@ -319,5 +408,111 @@ export default function BillingCredits() {
         />
       )}
     </>
+  );
+}
+
+function AutoRechargeModal({
+  defaultValues,
+  onSubmit,
+  onCancel,
+  isLoading,
+}: {
+  defaultValues?: {
+    enabled: boolean;
+    threshold: number;
+    amount: number;
+  };
+  onSubmit: (data: { enabled: boolean; threshold: number; amount: number }) => void;
+  onCancel: () => void;
+  isLoading: boolean;
+}) {
+  const { t } = useLocale();
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<{
+    enabled: boolean;
+    threshold: number;
+    amount: number;
+  }>({
+    defaultValues: {
+      enabled: defaultValues?.enabled ?? false,
+      threshold: defaultValues?.threshold ?? 50,
+      amount: defaultValues?.amount ?? 100,
+    },
+  });
+
+  const enabled = watch("enabled");
+
+  return (
+    <Dialog open onOpenChange={onCancel}>
+      <DialogContent>
+        <DialogHeader title={t("auto_recharge_settings")} />
+        <p className="text-subtle mb-4">{t("auto_recharge_description")}</p>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="space-y-4 py-4">
+            <div className="flex items-center">
+              <Checkbox
+                {...register("enabled")}
+                defaultChecked={defaultValues?.enabled}
+                id="auto-recharge-toggle"
+              />
+              <Label className="ml-2" htmlFor="auto-recharge-toggle">
+                {t("enable_auto_recharge")}
+              </Label>
+            </div>
+
+            {enabled && (
+              <>
+                <div>
+                  <Label htmlFor="threshold">{t("recharge_threshold")}</Label>
+                  <TextField
+                    id="threshold"
+                    type="number"
+                    {...register("threshold", {
+                      required: t("error_required_field"),
+                      min: { value: 10, message: t("minimum_threshold") },
+                      valueAsNumber: true,
+                    })}
+                    placeholder="50"
+                  />
+                  {errors.threshold && (
+                    <InputError message={errors.threshold.message ?? t("invalid_input")} />
+                  )}
+                  <p className="text-subtle mt-1 text-sm">{t("threshold_description")}</p>
+                </div>
+
+                <div>
+                  <Label htmlFor="amount">{t("recharge_amount")}</Label>
+                  <TextField
+                    id="amount"
+                    type="number"
+                    {...register("amount", {
+                      required: t("error_required_field"),
+                      min: { value: 50, message: t("minimum_amount") },
+                      valueAsNumber: true,
+                    })}
+                    placeholder="100"
+                  />
+                  {errors.amount && <InputError message={errors.amount.message ?? t("invalid_input")} />}
+                  <p className="text-subtle mt-1 text-sm">{t("amount_description")}</p>
+                </div>
+              </>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button type="button" color="secondary" onClick={onCancel}>
+              {t("cancel")}
+            </Button>
+            <Button type="submit" loading={isLoading}>
+              {t("save")}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
