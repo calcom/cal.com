@@ -32,6 +32,7 @@ export const ServerTeamsListing = async ({
   session: Session;
 }) => {
   const token = Array.isArray(searchParams?.token) ? searchParams.token[0] : searchParams?.token;
+  const autoAccept = Array.isArray(searchParams?.autoAccept) ? searchParams.autoAccept[0] : searchParams?.autoAccept;
   const userId = session.user.id;
 
   let teamNameFromInvite,
@@ -39,7 +40,11 @@ export const ServerTeamsListing = async ({
 
   if (token) {
     try {
-      teamNameFromInvite = await TeamService.inviteMemberByToken(token, userId);
+       if (autoAccept === "true") {
+        await TeamService.acceptInvitationByToken(token, userId);
+      } else {
+        teamNameFromInvite = await TeamService.inviteMemberByToken(token, userId);
+      }
     } catch (e) {
       errorMsgFromInvite = "Error while fetching teams";
       if (e instanceof TRPCError) errorMsgFromInvite = e.message;
@@ -57,6 +62,7 @@ export const ServerTeamsListing = async ({
   return {
     Main: (
       <TeamsListing
+        autoAccept={autoAccept === "true"}
         teams={teams}
         orgId={orgId ?? null}
         isOrgAdmin={isOrgAdminOrOwner}
