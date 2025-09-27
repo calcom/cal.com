@@ -160,7 +160,7 @@ export class CalendarSubscriptionService {
       log.debug("Error fetching events", { channelId: selectedCalendar.channelId, err });
       await this.deps.selectedCalendarRepository.updateSyncStatus(selectedCalendar.id, {
         syncErrorAt: new Date(),
-        syncErrorCount: (selectedCalendar.syncErrorCount || 0) + 1,
+        syncErrorCount: { increment: 1 },
       });
       throw err;
     }
