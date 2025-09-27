@@ -2,6 +2,8 @@ import dayjs from "@calcom/dayjs";
 import type { BookerState } from "@calcom/features/bookings/Booker/types";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
+import { getPrefetchMonthCount } from "../../utils/getPrefetchMonthCount";
+
 interface UsePrefetchParams {
   date: string;
   month: string | null;
@@ -40,14 +42,12 @@ export const usePrefetch = ({ date, month, bookerLayout, bookerState }: UsePrefe
       (!isValidDate || isSameMonth) &&
       isAfter2Weeks);
 
-  const monthCount =
-    ((bookerLayout.layout !== BookerLayouts.WEEK_VIEW && bookerState === "selecting_time") ||
-      bookerLayout.layout === BookerLayouts.COLUMN_VIEW) &&
-    !isNaN(monthAfterAdding1Month) &&
-    !isNaN(monthAfterAddingExtraDaysColumnView) &&
-    monthAfterAdding1Month !== monthAfterAddingExtraDaysColumnView
-      ? 2
-      : undefined;
+  const monthCount = getPrefetchMonthCount(
+    bookerLayout.layout,
+    bookerState,
+    monthAfterAdding1Month,
+    monthAfterAddingExtraDaysColumnView
+  );
 
   return {
     prefetchNextMonth,
