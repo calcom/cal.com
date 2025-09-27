@@ -502,15 +502,13 @@ export async function sendSignupToOrganizationEmail({
   isOrg: boolean;
 }) {
   try {
-    const token: string = randomBytes(32).toString("hex");
-
-    await createVerificationToken(usernameOrEmail, teamId);
+    const verificationToken = await createVerificationToken(usernameOrEmail, teamId);
     await sendTeamInviteEmail({
       language: translation,
       from: inviterName || `${team.name}'s admin`,
       to: usernameOrEmail,
       teamName: team.name,
-      joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`,
+      joinLink: `${WEBAPP_URL}/signup?token=${verificationToken.token}&callbackUrl=/getting-started`,
       isCalcomMember: false,
       isOrg: isOrg,
       parentTeamName: team?.parent?.name,
