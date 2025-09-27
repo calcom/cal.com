@@ -37,6 +37,10 @@ export type EventDataMap = {
     };
   };
   linkReady: Record<string, never>;
+  availabilityLoaded: {
+    eventId: number;
+    eventSlug: string;
+  };
   __connectInitiated: Record<string, never>;
   __connectCompleted: Record<string, never>;
   bookingSuccessfulV2: BaseBookingEventPayload & {
