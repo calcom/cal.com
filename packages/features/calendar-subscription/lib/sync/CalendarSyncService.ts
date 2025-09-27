@@ -74,7 +74,7 @@ export class CalendarSyncService {
 
     // causing import issues
     const handleCancelBooking = await import("@calcom/features/bookings/lib/handleCancelBooking");
-    await handleCancelBooking({
+    await handleCancelBooking.default({
       userId: booking.userId!,
       bookingData: {
         uid: booking.uid,
@@ -105,16 +105,13 @@ export class CalendarSyncService {
     }
 
     // causing import issues
-    const handleNewBooking = await import("@calcom/features/bookings/lib/handleCancelBooking");
-    await handleNewBooking({
+    const handleNewBooking = await import("@calcom/features/bookings/lib/handleNewBooking");
+    await handleNewBooking.default({
       bookingData: {
         ...booking,
         startTime: event.start?.toISOString() ?? booking.startTime,
         endTime: event.end?.toISOString() ?? booking.endTime,
       },
-      skipAvailabilityCheck: true,
-      skipEventLimitsCheck: true,
-      skipCalendarSyncTaskCreation: true,
     });
   }
 }
