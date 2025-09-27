@@ -3,6 +3,8 @@ import dayjs from "@calcom/dayjs";
 import type { IOutOfOfficeData } from "@calcom/lib/getUserAvailability";
 import type { Availability } from "@calcom/prisma/client";
 
+import { createTimeInTimezone } from "./dayjs/timezone-utils";
+
 export type DateRange = {
   start: Dayjs;
   end: Dayjs;
@@ -49,29 +51,25 @@ export function processWorkingHours(
   let endTimeToKeyMap: Map<number, number[]> | undefined;
 
   for (let date = dateFrom.startOf("day"); utcDateTo.isAfter(date); date = date.add(1, "day")) {
-    const fromOffset = dateFrom.startOf("day").utcOffset();
-
     const adjustedTimezone = getAdjustedTimezone(date, timeZone, travelSchedules);
 
-    const offset = date.tz(adjustedTimezone).utcOffset();
-
-    // it always has to be start of the day (midnight) even when DST changes
-    const dateInTz = date.add(fromOffset - offset, "minutes").tz(adjustedTimezone);
+    // Use IANA timezone conversion instead of offset calculations to handle DST correctly
+    // This ensures proper handling of DST transitions like America/Santiago
+    const dateInTz = date.tz(adjustedTimezone, true); // Force timezone interpretation
     if (!item.days.includes(dateInTz.day())) {
       continue;
     }
 
-    let start = dateInTz
-      .add(item.startTime.getUTCHours(), "hours")
-      .add(item.startTime.getUTCMinutes(), "minutes");
+    // Create start and end times using IANA timezone logic
+    const startTimeString = `${String(item.startTime.getUTCHours()).padStart(2, "0")}:${String(
+      item.startTime.getUTCMinutes()
+    ).padStart(2, "0")}`;
+    const endTimeString = `${String(item.endTime.getUTCHours()).padStart(2, "0")}:${String(
+      item.endTime.getUTCMinutes()
+    ).padStart(2, "0")}`;
 
-    let end = dateInTz.add(item.endTime.getUTCHours(), "hours").add(item.endTime.getUTCMinutes(), "minutes");
-
-    const offsetBeginningOfDay = dayjs(start.format("YYYY-MM-DD hh:mm")).tz(adjustedTimezone).utcOffset();
-    const offsetDiff = start.utcOffset() - offsetBeginningOfDay; // there will be 60 min offset on the day day of DST change
-
-    start = start.add(offsetDiff, "minute");
-    end = end.add(offsetDiff, "minute");
+    const start = createTimeInTimezone(dateInTz.format("YYYY-MM-DD"), startTimeString, adjustedTimezone);
+    const end = createTimeInTimezone(dateInTz.format("YYYY-MM-DD"), endTimeString, adjustedTimezone);
 
     const startResult = dayjs.max(start, dateFrom);
     let endResult = dayjs.min(end, dateTo.tz(adjustedTimezone));
@@ -97,7 +95,10 @@ export function processWorkingHours(
         if (!endTimeToKeyMap.has(endTime)) {
           endTimeToKeyMap.set(endTime, []);
         }
-        endTimeToKeyMap.get(endTime)!.push(Number(key));
+        const existingKeys = endTimeToKeyMap.get(endTime);
+        if (existingKeys) {
+          existingKeys.push(Number(key));
+        }
       }
     }
 
@@ -148,7 +149,10 @@ export function processWorkingHours(
         if (!endTimeToKeyMap.has(endTimeKey)) {
           endTimeToKeyMap.set(endTimeKey, []);
         }
-        endTimeToKeyMap.get(endTimeKey)!.push(newKey);
+        const keysAtEndTime = endTimeToKeyMap.get(endTimeKey);
+        if (keysAtEndTime) {
+          keysAtEndTime.push(newKey);
+        }
       }
 
       delete results[oldKey]; // delete the previous end time
@@ -165,7 +169,10 @@ export function processWorkingHours(
       if (!endTimeToKeyMap.has(endTimeKey)) {
         endTimeToKeyMap.set(endTimeKey, []);
       }
-      endTimeToKeyMap.get(endTimeKey)!.push(newKey);
+      const keysAtEndTime = endTimeToKeyMap.get(endTimeKey);
+      if (keysAtEndTime) {
+        keysAtEndTime.push(newKey);
+      }
     }
   }
 
@@ -184,28 +191,32 @@ export function processDateOverride({
   travelSchedules: TravelSchedule[];
 }) {
   const overrideDate = dayjs(item.date);
-
   const adjustedTimezone = getAdjustedTimezone(overrideDate, timeZone, travelSchedules);
 
-  const itemDateStartOfDay = itemDateAsUtc.startOf("day");
-  const startDate = itemDateStartOfDay
-    .add(item.startTime.getUTCHours(), "hours")
-    .add(item.startTime.getUTCMinutes(), "minutes")
-    .second(0)
-    .tz(adjustedTimezone, true);
+  // Use IANA timezone logic for date override processing
+  const startTimeString = `${String(item.startTime.getUTCHours()).padStart(2, "0")}:${String(
+    item.startTime.getUTCMinutes()
+  ).padStart(2, "0")}`;
 
-  let endDate = itemDateStartOfDay;
+  const startDate = createTimeInTimezone(
+    itemDateAsUtc.format("YYYY-MM-DD"),
+    startTimeString,
+    adjustedTimezone
+  );
+
+  let endDate: Dayjs;
   const endTimeHours = item.endTime.getUTCHours();
   const endTimeMinutes = item.endTime.getUTCMinutes();
 
   if (endTimeHours === 23 && endTimeMinutes === 59) {
-    endDate = endDate.add(1, "day").tz(timeZone, true);
+    // Handle end-of-day case (23:59) - add one day
+    endDate = startDate.add(1, "day").startOf("day");
   } else {
-    endDate = itemDateStartOfDay
-      .add(endTimeHours, "hours")
-      .add(endTimeMinutes, "minutes")
-      .second(0)
-      .tz(adjustedTimezone, true);
+    const endTimeString = `${String(endTimeHours).padStart(2, "0")}:${String(endTimeMinutes).padStart(
+      2,
+      "0"
+    )}`;
+    endDate = createTimeInTimezone(itemDateAsUtc.format("YYYY-MM-DD"), endTimeString, adjustedTimezone);
   }
 
   return {
