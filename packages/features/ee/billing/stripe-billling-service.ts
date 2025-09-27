@@ -5,11 +5,7 @@ import type { BillingService } from "./billing-service";
 export class StripeBillingService implements BillingService {
   private stripe: Stripe;
   constructor() {
-    const stripeKey = process.env.STRIPE_PRIVATE_KEY;
-    if (!stripeKey) {
-      throw new Error("STRIPE_PRIVATE_KEY environment variable is required");
-    }
-    this.stripe = new Stripe(stripeKey, {
+    this.stripe = new Stripe(process.env.STRIPE_PRIVATE_KEY || "", {
       apiVersion: "2020-08-27",
     });
   }
