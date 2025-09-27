@@ -138,3 +138,5 @@ export { checkEmailVerificationRequired } from "@calcom/trpc/server/routers/publ
 
 export { TeamService } from "@calcom/lib/server/service/teamService";
 export { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+
+export { sendEmail as sendSimpleEmail } from "@calcom/lib/sendSimpleEmail";
