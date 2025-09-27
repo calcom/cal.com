@@ -3,6 +3,7 @@ import { vi } from "vitest";
 const featuresRepositoryModuleMock = {
   FeaturesRepository: vi.fn().mockImplementation(() => ({
     checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(true),
+    checkIfUserHasFeature: vi.fn().mockResolvedValue(true),
   })),
 };
 

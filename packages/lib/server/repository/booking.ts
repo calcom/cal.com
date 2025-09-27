@@ -387,6 +387,17 @@ export class BookingRepository {
     });
   }
 
+  async findBookingByUidWithEventType({ bookingUid }: { bookingUid: string }) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        uid: bookingUid,
+      },
+      include: {
+        eventType: true,
+      },
+    });
+  }
+
   async findByIdIncludeUserAndAttendees(bookingId: number) {
     return await this.prismaClient.booking.findUnique({
       where: {
@@ -725,13 +736,9 @@ export class BookingRepository {
             },
           },
         },
-        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         destinationCalendar: true,
-        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         payment: true,
-        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         references: true,
-        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         workflowReminders: true,
       },
     });
@@ -873,13 +880,9 @@ export class BookingRepository {
         status: filterForUnconfirmed ? BookingStatus.PENDING : BookingStatus.ACCEPTED,
       },
       include: {
-        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         attendees: true,
-        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         references: true,
-        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         user: true,
-        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         payment: true,
       },
     });
