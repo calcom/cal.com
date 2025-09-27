@@ -1,7 +1,6 @@
-import type { BookerState } from "bookings/Booker/types";
-
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
+import type { BookerState } from "../types";
 import { areDifferentValidMonths } from "./areDifferentValidMonths";
 
 export const getPrefetchMonthCount = (
