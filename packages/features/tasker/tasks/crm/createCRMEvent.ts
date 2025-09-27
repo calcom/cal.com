@@ -2,7 +2,8 @@ import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { RetryableError } from "@calcom/lib/crmManager/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import prisma from "@calcom/prisma";
+import { PrismaBookingReferenceRepository } from "@calcom/lib/server/repository/PrismaBookingReferenceRepository";
+import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -103,10 +104,10 @@ export async function createCRMEvent(payload: string): Promise<void> {
     const calendarEvent = await buildCalendarEvent(bookingUid);
 
     const bookingReferencesToCreate: Prisma.BookingReferenceUncheckedCreateInput[] = [];
-    const existingBookingReferences = await prisma.bookingReference.findMany({
-      where: {
-        bookingId: booking.id,
-      },
+
+    const bookingReferenceRepo = new PrismaBookingReferenceRepository(prisma);
+    const existingBookingReferences = await bookingReferenceRepo.findBookingReferences({
+      bookingId: booking.id,
     });
 
     const errorPerApp: Record<AppSlug, UnknownError> = {};
