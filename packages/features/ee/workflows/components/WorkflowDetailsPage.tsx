@@ -9,12 +9,12 @@ import type { WorkflowPermissions } from "@calcom/lib/server/repository/workflow
 import type { WorkflowActions } from "@calcom/prisma/enums";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { FormCard, FormCardBody } from "@calcom/ui/components/card";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
+import { useAgentsData } from "../hooks/useAgentsData";
 import { isCalAIAction, isSMSAction } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
@@ -58,8 +58,6 @@ export default function WorkflowDetailsPage(props: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventTypeId]);
 
-  const steps = form.getValues("steps") || [];
-
   const addAction = (
     action: WorkflowActions,
     sendTo?: string,
@@ -96,19 +94,14 @@ export default function WorkflowDetailsPage(props: Props) {
       includeCalendarEvent: false,
       verifiedAt: SCANNING_WORKFLOW_STEPS ? null : new Date(),
       agentId: null,
+      inboundAgentId: null,
     };
     steps?.push(step);
     form.setValue("steps", steps);
   };
 
-  const agentQueriesTrpc = trpc.useQueries((t) =>
-    steps.map((step, index) => {
-      const watchedAgentId = form.watch(`steps.${index}.agentId`);
-      const agentId = step?.agentId ?? watchedAgentId ?? null;
-
-      return t.viewer.aiVoiceAgent.get({ id: agentId ?? "" }, { enabled: !!agentId });
-    })
-  );
+  const { outboundAgentQueries: agentQueriesTrpc, inboundAgentQueries: inboundAgentQueriesTrpc } =
+    useAgentsData(form);
 
   return (
     <>
@@ -145,6 +138,8 @@ export default function WorkflowDetailsPage(props: Props) {
             {form.getValues("steps")?.map((step, index) => {
               const agentData = agentQueriesTrpc[index]?.data;
               const isAgentLoading = agentQueriesTrpc[index]?.isPending;
+              const inboundAgentData = inboundAgentQueriesTrpc[index]?.data;
+              const isInboundAgentLoading = inboundAgentQueriesTrpc[index]?.isPending;
 
               return (
                 <div key={index}>
@@ -207,6 +202,9 @@ export default function WorkflowDetailsPage(props: Props) {
                         isDeleteStepDialogOpen={isDeleteStepDialogOpen}
                         isAgentLoading={isAgentLoading}
                         agentData={agentData}
+                        inboundAgentData={inboundAgentData}
+                        isInboundAgentLoading={isInboundAgentLoading}
+                        allOptions={allOptions}
                       />
                     </FormCardBody>
                   </FormCard>
