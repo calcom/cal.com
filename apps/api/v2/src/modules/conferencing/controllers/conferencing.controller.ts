@@ -17,25 +17,25 @@ import { SetDefaultConferencingAppOutputResponseDto } from "@/modules/conferenci
 import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { HttpService } from "@nestjs/axios";
-import { Logger } from "@nestjs/common";
+import { Logger, ParseIntPipe } from "@nestjs/common";
 import {
   Controller,
+  Delete,
   Get,
-  Query,
   HttpCode,
   HttpStatus,
-  UseGuards,
-  Post,
   Param,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+  HttpException,
   BadRequestException,
-  Delete,
   Headers,
   Redirect,
-  Req,
-  HttpException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiParam, ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 import { Request } from "express";
 
@@ -80,7 +80,10 @@ export class ConferencingController {
     @Param("app") app: string
   ): Promise<ConferencingAppOutputResponseDto> {
     const credential = await this.conferencingService.connectUserNonOauthApp(app, user.id);
-    return { status: SUCCESS_STATUS, data: plainToInstance(ConferencingAppsOutputDto, credential) };
+    return {
+      status: SUCCESS_STATUS,
+      data: plainToInstance(ConferencingAppsOutputDto, credential, { strategy: "excludeAll" }),
+    };
   }
 
   @Get("/:app/oauth/auth-url")
@@ -169,6 +172,21 @@ export class ConferencingController {
           const fallbackUrl = decodedCallbackState.onErrorReturnTo || "";
           return { url: fallbackUrl };
         }
+      } else if (decodedCallbackState.orgId) {
+        const apiUrl = this.config.get("api.url");
+        const url = `${apiUrl}/organizations/${decodedCallbackState.orgId}/conferencing/${app}/oauth/callback`;
+        const params: Record<string, string | undefined> = { state, code, error, error_description };
+        const headers = {
+          Authorization: `Bearer ${decodedCallbackState.accessToken}`,
+        };
+        try {
+          const response = await this.httpService.axiosRef.get(url, { params, headers });
+          const redirectUrl = response.data?.url || decodedCallbackState.onErrorReturnTo || "";
+          return { url: redirectUrl };
+        } catch (err) {
+          const fallbackUrl = decodedCallbackState.onErrorReturnTo || "";
+          return { url: fallbackUrl };
+        }
       }
 
       return this.conferencingService.connectOauthApps(app, code, decodedCallbackState);
@@ -190,10 +208,12 @@ export class ConferencingController {
   async listInstalledConferencingApps(
     @GetUser() user: UserWithProfile
   ): Promise<ConferencingAppsOutputResponseDto> {
-    const conferencingApps = await this.conferencingService.getConferencingApps(user.id);
+    const conferencingApps = await this.conferencingService.getConferencingApps(user);
     return {
       status: SUCCESS_STATUS,
-      data: conferencingApps.map((app) => plainToInstance(ConferencingAppsOutputDto, app)),
+      data: conferencingApps.map((app) =>
+        plainToInstance(ConferencingAppsOutputDto, app, { strategy: "excludeAll" })
+      ),
     };
   }
 
@@ -213,6 +233,32 @@ export class ConferencingController {
     @Param("app") app: string
   ): Promise<SetDefaultConferencingAppOutputResponseDto> {
     await this.conferencingService.setDefaultConferencingApp(user, app);
+    return { status: SUCCESS_STATUS };
+  }
+
+  @Post("/:app/default/:credentialId")
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({ summary: "Set your default conferencing application with specific credential ID" })
+  @ApiParam({
+    name: "app",
+    description: "Conferencing application type",
+    enum: [GOOGLE_MEET, ZOOM, OFFICE_365_VIDEO, CAL_VIDEO],
+    required: true,
+  })
+  @ApiParam({
+    name: "credentialId",
+    description: "Specific credential ID to use for the conferencing app",
+    type: Number,
+    required: true,
+  })
+  async defaultWithCredential(
+    @GetUser() user: UserWithProfile,
+    @Param("app") app: string,
+    @Param("credentialId", ParseIntPipe) credentialId: number
+  ): Promise<SetDefaultConferencingAppOutputResponseDto> {
+    await this.conferencingService.setDefaultConferencingApp(user, app, credentialId);
     return { status: SUCCESS_STATUS };
   }
 
