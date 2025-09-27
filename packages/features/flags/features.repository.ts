@@ -2,6 +2,8 @@ import { captureException } from "@sentry/nextjs";
 
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
+import type { Feature } from "@calcom/prisma/client";
+
 import type { AppFlags, TeamFeatures } from "./config";
 import type { IFeaturesRepository } from "./features.repository.interface";
 
@@ -15,13 +17,9 @@ interface CacheOptions {
  * for users, teams, and global application features.
  */
 export class FeaturesRepository implements IFeaturesRepository {
-  private static featuresCache: { data: any[]; expiry: number } | null = null;
+  private static featuresCache: { data: Feature[]; expiry: number } | null = null;
 
   constructor(private prismaClient: PrismaClient) {}
-
-  private clearCache() {
-    FeaturesRepository.featuresCache = null;
-  }
 
   /**
    * Gets all features with their enabled status.
@@ -198,44 +196,23 @@ export class FeaturesRepository implements IFeaturesRepository {
    */
   async checkIfTeamHasFeature(teamId: number, featureId: keyof AppFlags): Promise<boolean> {
     try {
-      // Early return if team has feature directly assigned
-      const teamHasFeature = await this.prismaClient.teamFeatures.findUnique({
-        where: {
-          teamId_featureId: {
-            teamId,
-            featureId,
-          },
-        },
-      });
-      if (teamHasFeature) return true;
-
       const query = Prisma.sql`
-        WITH RECURSIVE TeamHierarchy AS (
-          -- Start with the initial team
-          SELECT id, "parentId",
-            CASE WHEN EXISTS (
-              SELECT 1 FROM "TeamFeatures" tf
-              WHERE tf."teamId" = id AND tf."featureId" = ${featureId}
-            ) THEN true ELSE false END as has_feature
-          FROM "Team"
-          WHERE id = ${teamId}
-
+        WITH RECURSIVE th AS (
+          SELECT t.id, t."parentId"
+          FROM "Team" t
+          WHERE t.id = ${teamId}
           UNION ALL
-
-          -- Recursively get parent teams
-          SELECT p.id, p."parentId",
-            CASE WHEN EXISTS (
-              SELECT 1 FROM "TeamFeatures" tf
-              WHERE tf."teamId" = p.id AND tf."featureId" = ${featureId}
-            ) THEN true ELSE false END as has_feature
+          SELECT p.id, p."parentId"
           FROM "Team" p
-          INNER JOIN TeamHierarchy c ON p.id = c."parentId"
-          WHERE NOT c.has_feature -- Stop recursion if we found a team with the feature
+          JOIN th c ON p.id = c."parentId"
         )
-        SELECT 1
-        FROM TeamHierarchy
-        WHERE has_feature = true
-        LIMIT 1;
+        SELECT EXISTS (
+          SELECT 1
+          FROM th
+          JOIN "TeamFeatures" tf
+            ON tf."teamId" = th.id
+          AND tf."featureId" = ${featureId}
+        ) AS has_feature;
       `;
 
       const result = await this.prismaClient.$queryRaw<unknown[]>(query);
