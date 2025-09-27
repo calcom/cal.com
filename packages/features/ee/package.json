@@ -6,8 +6,8 @@
   "license": "See license in LICENSE",
   "main": "./index.ts",
   "dependencies": {
-    "@calcom/lib": "*",
-    "@calcom/ui": "*",
+    "@calcom/lib": "workspace:*",
+    "@calcom/ui": "workspace:*",
     "@hookform/error-message": "^2.0.0",
     "@hookform/resolvers": "^2.9.7",
     "@sendgrid/client": "^7.7.0",
@@ -17,6 +17,6 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@calcom/tsconfig": "*"
+    "@calcom/tsconfig": "workspace:*"
   }
 }
