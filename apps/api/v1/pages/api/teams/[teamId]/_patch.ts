@@ -98,6 +98,15 @@ export async function patchHandler(req: NextApiRequest) {
       });
   }
 
+  if (data.lockDefaultAvailability) {
+    if (!_team.parentId) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Lock default availability feature is only available for teams within organizations.",
+      });
+    }
+  }
+
   let paymentUrl;
   if (_team.slug === null && data.slug) {
     data.metadata = {
