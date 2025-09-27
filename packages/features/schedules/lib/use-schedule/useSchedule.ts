@@ -3,10 +3,10 @@ import { useSearchParams } from "next/navigation";
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
+import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS } from "@calcom/lib/constants";
-import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { trpc } from "@calcom/trpc/react";
 
 import { useApiV2AvailableSlots } from "./useApiV2AvailableSlots";
@@ -18,9 +18,7 @@ export type UseScheduleWithCacheArgs = {
   month?: string | null;
   timezone?: string | null;
   selectedDate?: string | null;
-  prefetchNextMonth?: boolean;
   duration?: number | null;
-  monthCount?: number | null;
   dayCount?: number | null;
   rescheduleUid?: string | null;
   isTeamEvent?: boolean;
@@ -28,6 +26,14 @@ export type UseScheduleWithCacheArgs = {
   teamMemberEmail?: string | null;
   useApiV2?: boolean;
   enabled?: boolean;
+  /***
+   * Required when prefetching is needed
+   */
+  bookerLayout?: {
+    layout: string;
+    extraDays: number;
+    columnViewExtraDays: { current: number };
+  };
 };
 
 export const useSchedule = ({
@@ -37,9 +43,7 @@ export const useSchedule = ({
   eventSlug,
   eventId,
   selectedDate,
-  prefetchNextMonth,
   duration,
-  monthCount,
   dayCount,
   rescheduleUid,
   isTeamEvent,
@@ -47,15 +51,15 @@ export const useSchedule = ({
   teamMemberEmail,
   useApiV2 = false,
   enabled: enabledProp = true,
+  bookerLayout,
 }: UseScheduleWithCacheArgs) => {
   const bookerState = useBookerStore((state) => state.state);
 
   const [startTime, endTime] = useTimesForSchedule({
     month,
-    monthCount,
     dayCount,
-    prefetchNextMonth,
     selectedDate,
+    bookerLayout,
   });
   const searchParams = useSearchParams();
   const routedTeamMemberIds = searchParams
@@ -87,6 +91,7 @@ export const useSchedule = ({
     startTime,
     // if `prefetchNextMonth` is true, two months are fetched at once.
     endTime,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     timeZone: timezone!,
     duration: duration ? `${duration}` : undefined,
     rescheduleUid,
