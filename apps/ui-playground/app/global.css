@@ -636,10 +636,6 @@ select:focus {
   @apply !border-r-default left-0.5 !border-y-0 !border-l-0;
 }
 
-.intercom-lightweight-app  {
-  @apply z-40 !important;
-}
-
 @import "../../web/styles/tokens.css";
 
 @layer base {
@@ -1025,10 +1021,6 @@ select:focus {
 
 .react-tel-input .flag-dropdown {
   @apply !border-r-default left-0.5 !border-y-0 !border-l-0;
-}
-
-.intercom-lightweight-app  {
-  @apply z-40 !important;
 }
 
 .prose :where(a:not([data-card])):not(:where([class~="not-prose"] *)) {
