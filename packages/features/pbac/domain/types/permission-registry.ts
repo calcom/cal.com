@@ -27,6 +27,7 @@ export enum CustomAction {
   Remove = "remove",
   ChangeMemberRole = "changeMemberRole",
   ListMembers = "listMembers",
+  ListMembersPrivate = "listMembersPrivate",
   ManageBilling = "manageBilling",
   ReadTeamBookings = "readTeamBookings",
   ReadOrgBookings = "readOrgBookings",
@@ -46,6 +47,9 @@ export interface PermissionDetails {
   descriptionI18nKey: string;
   scope?: Scope[]; // Optional for backward compatibility
   dependsOn?: PermissionString[]; // Dependencies that must be enabled when this permission is enabled
+  visibleWhen?: {
+    teamPrivacy?: "private" | "public" | "both"; // Control visibility based on team privacy setting
+  };
 }
 
 export type ResourceConfig = {
@@ -122,12 +126,14 @@ export const filterResourceConfig = (config: ResourceConfig): Omit<ResourceConfi
 };
 
 /**
- * Filter resources and actions based on scope
+ * Filter resources and actions based on scope and optionally team privacy settings
  * @param scope The scope to filter by (Team or Organization)
+ * @param isPrivate Whether the team/organization is private (optional)
  * @returns Filtered permission registry
  */
-export const getPermissionsForScope = (scope: Scope): PermissionRegistry => {
+export const getPermissionsForScope = (scope: Scope, isPrivate?: boolean): PermissionRegistry => {
   const filteredRegistry: Partial<PermissionRegistry> = {};
+  const teamPrivacy = isPrivate !== undefined ? (isPrivate ? "private" : "public") : undefined;
 
   Object.entries(PERMISSION_REGISTRY).forEach(([resource, config]) => {
     const filteredConfig: ResourceConfig = { _resource: config._resource };
@@ -136,9 +142,17 @@ export const getPermissionsForScope = (scope: Scope): PermissionRegistry => {
       if (action === "_resource") return;
 
       const permissionDetails = details as PermissionDetails;
-      // If no scope is defined, include in both Team and Organization (backward compatibility)
-      // If scope is defined, only include if it matches the requested scope
-      if (!permissionDetails.scope || permissionDetails.scope.includes(scope)) {
+
+      // Check scope
+      const scopeMatches = !permissionDetails.scope || permissionDetails.scope.includes(scope);
+
+      // Check privacy visibility (only if isPrivate is provided)
+      const privacyMatches = teamPrivacy === undefined ||
+        !permissionDetails.visibleWhen?.teamPrivacy ||
+        permissionDetails.visibleWhen.teamPrivacy === "both" ||
+        permissionDetails.visibleWhen.teamPrivacy === teamPrivacy;
+
+      if (scopeMatches && privacyMatches) {
         filteredConfig[action as CrudAction | CustomAction] = permissionDetails;
       }
     });
@@ -282,6 +296,19 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "team",
       i18nKey: "pbac_action_list_members",
       descriptionI18nKey: "pbac_desc_list_team_members",
+      visibleWhen: {
+        teamPrivacy: "public", // Only show for public teams
+      },
+    },
+    [CustomAction.ListMembersPrivate]: {
+      description: "List private team members",
+      category: "team",
+      i18nKey: "pbac_action_list_members", // Use same UI label as listMembers for consistency
+      descriptionI18nKey: "pbac_desc_list_team_members", // Use same description as listMembers
+      dependsOn: ["team.read"],
+      visibleWhen: {
+        teamPrivacy: "private", // Only show for private teams
+      },
     },
     [CustomAction.ChangeMemberRole]: {
       description: "Change role of team members",
@@ -330,6 +357,20 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       descriptionI18nKey: "pbac_desc_list_organization_members",
       scope: [Scope.Organization],
       dependsOn: ["organization.read"],
+      visibleWhen: {
+        teamPrivacy: "public", // Only show for public orgs
+      },
+    },
+    [CustomAction.ListMembersPrivate]: {
+      description: "List private organization members",
+      category: "org",
+      i18nKey: "pbac_action_list_members", // Same UI label as listMembers for consistency
+      descriptionI18nKey: "pbac_desc_list_organization_members", // Same description as listMembers
+      scope: [Scope.Organization],
+      dependsOn: ["organization.read"],
+      visibleWhen: {
+        teamPrivacy: "private", // Only show for private orgs
+      },
     },
     [CustomAction.Invite]: {
       description: "Invite organization members",
