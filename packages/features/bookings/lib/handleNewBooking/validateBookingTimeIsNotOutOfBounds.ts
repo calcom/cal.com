@@ -5,6 +5,8 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import { withReporting } from "@calcom/lib/sentryWrapper";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import type { EventType } from "@calcom/prisma/client";
 
 type ValidateBookingTimeEventType = Pick<
@@ -26,8 +28,9 @@ const _validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBookingTim
   reqBodyTimeZone: string,
   eventType: T,
   eventTimeZone: string | null | undefined,
-  logger: Logger<unknown>
+  traceContext: TraceContext
 ) => {
+  const traceLogger = distributedTracing.getTracingLogger(traceContext);
   let timeOutOfBounds = false;
   try {
     timeOutOfBounds = isOutOfBounds(
@@ -44,12 +47,12 @@ const _validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBookingTim
       eventType.minimumBookingNotice
     );
   } catch (error) {
-    logger.warn({
+    traceLogger.warn({
       message: "NewBooking: Unable to determine timeOutOfBounds status. Defaulting to false.",
     });
 
     if (error instanceof BookingDateInPastError) {
-      logger.info(`Booking eventType ${eventType.id} failed`, JSON.stringify({ error }));
+      traceLogger.info(`Booking eventType ${eventType.id} failed`, JSON.stringify({ error }));
       throw new HttpError({ statusCode: 400, message: error.message });
     }
   }

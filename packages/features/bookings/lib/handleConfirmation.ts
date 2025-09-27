@@ -1,6 +1,8 @@
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
+import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
+import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
@@ -11,14 +13,14 @@ import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
-import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
@@ -30,8 +32,6 @@ import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calenda
 
 import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
-
-const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 
 export async function handleConfirmation(args: {
   user: EventManagerUser & { username: string | null };
@@ -73,6 +73,7 @@ export async function handleConfirmation(args: {
   paid?: boolean;
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
+  traceContext?: TraceContext;
 }) {
   const {
     user,
@@ -84,7 +85,23 @@ export async function handleConfirmation(args: {
     paid,
     emailsEnabled = true,
     platformClientParams,
+    traceContext,
   } = args;
+
+  const confirmationMeta = {
+    bookingId: bookingId.toString(),
+    eventTypeId: booking.eventTypeId?.toString() || "null",
+    eventTypeTitle: booking.eventType?.title || "unknown",
+    userId: booking.userId?.toString() || "null",
+    recurringEventId: recurringEventId || "null",
+    paid: paid?.toString() || "false",
+    emailsEnabled: emailsEnabled.toString(),
+    platformClientId: platformClientParams?.platformClientId || "null",
+  };
+
+  const spanContext = distributedTracing.createSpan(traceContext, "handle_confirmation", confirmationMeta);
+
+  const tracingLogger = distributedTracing.getTracingLogger(spanContext);
   const eventType = booking.eventType;
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
   const apps = eventTypeAppMetadataOptionalSchema.parse(eventTypeMetadata?.apps);
@@ -101,7 +118,7 @@ export async function handleConfirmation(args: {
       message: "Booking failed",
     };
 
-    log.error(`Booking ${user.username} failed`, safeStringify({ error, results }));
+    tracingLogger.error(`Booking ${user.username} failed`, { error, results });
   } else {
     if (results.length) {
       // TODO: Handle created event metadata more elegantly
@@ -140,7 +157,7 @@ export async function handleConfirmation(args: {
         );
       }
     } catch (error) {
-      log.error(error);
+      tracingLogger.error("Error sending scheduled emails and SMS", { error });
     }
   }
   let updatedBookings: {
@@ -359,6 +376,7 @@ export async function handleConfirmation(args: {
           hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
           seatReferenceUid: evt.attendeeSeatId,
           isPlatformNoEmail: !emailsEnabled && Boolean(platformClientParams?.platformClientId),
+          traceContext: spanContext,
         });
       }
 
@@ -374,7 +392,7 @@ export async function handleConfirmation(args: {
     }
   } catch (error) {
     // Silently fail
-    console.error(error);
+    tracingLogger.error("Error in workflow reminders", { error });
   }
 
   try {
@@ -455,6 +473,7 @@ export async function handleConfirmation(args: {
       teamId,
       orgId,
       oAuthClientId: platformClientParams?.platformClientId,
+      traceContext: spanContext,
     });
 
     const eventTypeInfo: EventTypeInfo = {
@@ -485,10 +504,13 @@ export async function handleConfirmation(args: {
         sub,
         payload
       ).catch((e) => {
-        log.error(
-          `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}, URL: ${sub.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}, platformClientId: ${platformClientParams?.platformClientId}`,
-          safeStringify(e)
-        );
+        tracingLogger.error(`Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}`, {
+          url: sub.subscriberUrl,
+          bookingId: evt.bookingId,
+          bookingUid: evt.uid,
+          platformClientId: platformClientParams?.platformClientId,
+          error: safeStringify(e),
+        });
       })
     );
 
@@ -545,10 +567,12 @@ export async function handleConfirmation(args: {
           sub,
           payload
         ).catch((e) => {
-          log.error(
-            `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_PAID}, URL: ${sub.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
-            safeStringify(e)
-          );
+          tracingLogger.error(`Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_PAID}`, {
+            url: sub.subscriberUrl,
+            bookingId: evt.bookingId,
+            bookingUid: evt.uid,
+            error: safeStringify(e),
+          });
         })
       );
 
@@ -586,6 +610,6 @@ export async function handleConfirmation(args: {
     }
   } catch (error) {
     // Silently fail
-    console.error(error);
+    tracingLogger.error("Error in webhook processing", { error });
   }
 }

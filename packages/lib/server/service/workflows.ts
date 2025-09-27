@@ -1,6 +1,7 @@
 import type { ScheduleWorkflowRemindersArgs } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import type { Workflow } from "@calcom/ee/workflows/lib/types";
+import type { TraceContext } from "@calcom/lib/tracing";
 import { prisma } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 
@@ -77,11 +78,13 @@ export class WorkflowService {
     isConfirmedByDefault,
     isRescheduleEvent,
     workflows,
+    traceContext,
     ...args
   }: ScheduleWorkflowRemindersArgs & {
     isConfirmedByDefault: boolean;
     isRescheduleEvent: boolean;
     isNormalBookingOrFirstRecurringSlot: boolean;
+    traceContext: TraceContext;
   }) {
     if (workflows.length <= 0) return;
 
@@ -114,6 +117,7 @@ export class WorkflowService {
     await scheduleWorkflowReminders({
       ...args,
       workflows: workflowsToTrigger,
+      traceContext,
     });
   }
 

@@ -12,6 +12,8 @@ import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits"
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import prisma from "@calcom/prisma";
 
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
@@ -58,10 +60,11 @@ const _ensureAvailableUsers = async (
     users: IsFixedAwareUser[];
   },
   input: { dateFrom: string; dateTo: string; timeZone: string; originalRescheduledBooking?: BookingType },
-  loggerWithEventDetails: Logger<unknown>,
+  traceContext: TraceContext,
   shouldServeCache?: boolean
   // ReturnType hint of at least one IsFixedAwareUser, as it's made sure at least one entry exists
 ): Promise<[IsFixedAwareUser, ...IsFixedAwareUser[]]> => {
+  const tracingLogger = distributedTracing.getTracingLogger(traceContext);
   const userAvailabilityService = getUserAvailabilityService();
   const availableUsers: IsFixedAwareUser[] = [];
 
@@ -162,7 +165,7 @@ const _ensureAvailableUsers = async (
       });
 
       if (!restrictionSchedule) {
-        loggerWithEventDetails.error(`Restriction schedule ${eventType.restrictionScheduleId} not found`);
+        tracingLogger.error(`Restriction schedule ${eventType.restrictionScheduleId} not found`);
         throw new Error(ErrorCode.RestrictionScheduleNotFound);
       }
 
@@ -171,9 +174,7 @@ const _ensureAvailableUsers = async (
         : restrictionSchedule.timeZone!;
 
       if (!eventType.useBookerTimezone && !restrictionSchedule.timeZone) {
-        loggerWithEventDetails.error(
-          `No timezone is set for the restriction schedule and useBookerTimezone is false`
-        );
+        tracingLogger.error(`No timezone is set for the restriction schedule and useBookerTimezone is false`);
         throw new Error(ErrorCode.BookingNotAllowedByRestrictionSchedule);
       }
 
@@ -203,14 +204,11 @@ const _ensureAvailableUsers = async (
       });
 
       if (!hasDateRangeForBooking(restrictionRanges, startDateTimeUtc, endDateTimeUtc)) {
-        loggerWithEventDetails.error(
-          `Booking outside restriction schedule availability.`,
-          piiFreeInputDataForLogging
-        );
+        tracingLogger.error(`Booking outside restriction schedule availability.`, piiFreeInputDataForLogging);
         throw new Error(ErrorCode.BookingNotAllowedByRestrictionSchedule);
       }
     } catch (error) {
-      loggerWithEventDetails.error(`Error checking restriction schedule.`, piiFreeInputDataForLogging);
+      tracingLogger.error(`Error checking restriction schedule.`, piiFreeInputDataForLogging);
       throw error;
     }
   }
@@ -219,13 +217,13 @@ const _ensureAvailableUsers = async (
     const { oooExcludedDateRanges: dateRanges, busy: bufferedBusyTimes } = userAvailability;
     const user = eventType.users[index];
 
-    loggerWithEventDetails.debug(
+    tracingLogger.debug(
       "calendarBusyTimes==>>>",
       JSON.stringify({ bufferedBusyTimes, dateRanges, isRecurringEvent: eventType.recurringEvent })
     );
 
     if (!dateRanges.length) {
-      loggerWithEventDetails.error(
+      tracingLogger.error(
         `User ${user.id} does not have availability at this time.`,
         piiFreeInputDataForLogging
       );
@@ -234,7 +232,7 @@ const _ensureAvailableUsers = async (
 
     //check if event time is within the date range
     if (!hasDateRangeForBooking(dateRanges, startDateTimeUtc, endDateTimeUtc)) {
-      loggerWithEventDetails.error(`No date range for booking.`, piiFreeInputDataForLogging);
+      tracingLogger.error(`No date range for booking.`, piiFreeInputDataForLogging);
       return;
     }
 
@@ -248,12 +246,12 @@ const _ensureAvailableUsers = async (
         availableUsers.push({ ...user, availabilityData: userAvailability });
       }
     } catch (error) {
-      loggerWithEventDetails.error("Unable set isAvailableToBeBooked. Using true. ", error);
+      tracingLogger.error("Unable set isAvailableToBeBooked. Using true. ", error);
     }
   });
 
   if (availableUsers.length === 0) {
-    loggerWithEventDetails.error(`No available users found.`, piiFreeInputDataForLogging);
+    tracingLogger.error(`No available users found.`, piiFreeInputDataForLogging);
     throw new Error(ErrorCode.NoAvailableUsersFound);
   }
 

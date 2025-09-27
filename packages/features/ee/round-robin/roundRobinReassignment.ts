@@ -9,6 +9,7 @@ import {
   sendRoundRobinScheduledEmailsAndSMS,
   sendRoundRobinUpdatedEmailsAndSMS,
 } from "@calcom/emails";
+import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
@@ -19,7 +20,6 @@ import AssignmentReasonRecorder, {
   RRReassignmentType,
 } from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
-import EventManager from "@calcom/features/bookings/lib/EventManager";
 import {
   enrichHostsWithDelegationCredentials,
   enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
@@ -31,6 +31,7 @@ import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { prisma } from "@calcom/prisma";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata, PlatformClientParams } from "@calcom/prisma/zod-utils";
@@ -147,6 +148,13 @@ export const roundRobinReassignment = async ({
     return availableUsers;
   }, [] as IsFixedAwareUser[]);
 
+  const traceContext = distributedTracing.createTrace("round_robin_reassignment", {
+    meta: {
+      bookingUid: booking.uid || "unknown",
+      eventTypeId: eventType.id.toString(),
+    },
+  });
+
   const availableUsers = await ensureAvailableUsers(
     { ...eventType, users: availableEventTypeUsers },
     {
@@ -154,7 +162,7 @@ export const roundRobinReassignment = async ({
       dateTo: dayjs(booking.endTime).format(),
       timeZone: eventType.timeZone || originalOrganizer.timeZone,
     },
-    roundRobinReassignLogger
+    traceContext
   );
   const luckyUserService = getLuckyUserService();
   const reassignedRRHost = await luckyUserService.getLuckyUser({

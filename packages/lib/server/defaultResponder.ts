@@ -2,10 +2,18 @@ import { wrapApiHandlerWithSentry } from "@sentry/nextjs";
 import { captureException } from "@sentry/nextjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { type TraceContext } from "@calcom/lib/tracing";
+import { TracedError } from "@calcom/lib/tracing/error";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
+
 import { getServerErrorFromUnknown } from "./getServerErrorFromUnknown";
 import { performance } from "./perfObserver";
 
-type Handle<T> = (req: NextApiRequest, res: NextApiResponse) => Promise<T>;
+export interface TracedRequest extends NextApiRequest {
+  traceContext: TraceContext;
+}
+
+type Handle<T> = (req: TracedRequest, res: NextApiResponse) => Promise<T>;
 
 /** Allows us to get type inference from API handler responses */
 export function defaultResponder<T>(
@@ -15,22 +23,39 @@ export function defaultResponder<T>(
 ) {
   return async (req: NextApiRequest, res: NextApiResponse) => {
     let ok = false;
+    const operation = endpointRoute?.replace(/^\//, "").replace(/\//g, "_") || "api_request";
+    const traceContext = distributedTracing.createTrace(operation, {
+      meta: {
+        method: req.method || "",
+        url: req.url || "",
+        body: JSON.stringify(req.body),
+      },
+    });
+    const tracingLogger = distributedTracing.getTracingLogger(traceContext);
+
+    const tracedReq = req as TracedRequest;
+    tracedReq.traceContext = traceContext;
+
     try {
       performance.mark("Start");
       const result = endpointRoute
-        ? await wrapApiHandlerWithSentry(f, endpointRoute)(req, res)
-        : await f(req, res);
+        ? await wrapApiHandlerWithSentry(f, endpointRoute)(tracedReq, res)
+        : await f(tracedReq, res);
       ok = true;
       if (result && !res.writableEnded) {
+        res.setHeader("X-Trace-Id", traceContext.traceId);
         return res.json(result);
       }
     } catch (err) {
-      const error = getServerErrorFromUnknown(err);
+      tracingLogger.error(`${operation} request failed`, { error: err });
+      const tracedError = TracedError.createFromError(err, traceContext);
+      const error = getServerErrorFromUnknown(tracedError);
       // we don't want to report Bad Request errors to Sentry / console
       if (!(error.statusCode >= 400 && error.statusCode < 500)) {
         console.error(error);
         captureException(error);
       }
+      res.setHeader("X-Trace-Id", traceContext.traceId);
       return res
         .status(error.statusCode)
         .json({ message: error.message, url: error.url, method: error.method, data: error?.data || null });

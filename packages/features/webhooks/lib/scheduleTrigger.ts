@@ -1,14 +1,16 @@
 import { v4 } from "uuid";
 
+import { DailyLocationType, getHumanReadableLocationValue } from "@calcom/app-store/locations";
 import { selectOOOEntries } from "@calcom/app-store/zapier/api/subscriptions/listOOOEntries";
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import tasker from "@calcom/features/tasker";
-import { DailyLocationType, getHumanReadableLocationValue } from "@calcom/app-store/locations";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { prisma } from "@calcom/prisma";
 import type { Prisma, Webhook, Booking, ApiKey } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -277,14 +279,35 @@ export async function scheduleTrigger({
   subscriber,
   triggerEvent,
   isDryRun = false,
+  traceContext,
 }: {
   booking: { id: number; endTime: Date; startTime: Date };
   subscriberUrl: string;
   subscriber: { id: string; appId: string | null };
   triggerEvent: WebhookTriggerEvents;
   isDryRun?: boolean;
+  traceContext?: TraceContext;
 }) {
   if (isDryRun) return;
+
+  // TODO: check this
+  const spanContext = traceContext
+    ? distributedTracing.createSpan(traceContext, "webhook_scheduling")
+    : undefined;
+  const tracingLogger = spanContext ? distributedTracing.getTracingLogger(spanContext) : log;
+
+  tracingLogger.info("Scheduling webhook trigger", {
+    bookingId: booking.id,
+    triggerEvent,
+    subscriberUrl,
+    originalTraceId: traceContext?.traceId,
+  });
+
+  const payloadData = { triggerEvent, ...booking };
+  const payload = JSON.stringify(
+    spanContext ? distributedTracing.injectTraceIntoPayload(payloadData, spanContext) : payloadData
+  );
+
   try {
     const payload = JSON.stringify({ triggerEvent, ...booking });
 
