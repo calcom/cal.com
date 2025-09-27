@@ -5,7 +5,11 @@ import type { BillingService } from "./billing-service";
 export class StripeBillingService implements BillingService {
   private stripe: Stripe;
   constructor() {
-    this.stripe = new Stripe(process.env.STRIPE_PRIVATE_KEY || "", {
+    const stripeKey = process.env.STRIPE_PRIVATE_KEY;
+    if (!stripeKey) {
+      throw new Error("STRIPE_PRIVATE_KEY environment variable is required");
+    }
+    this.stripe = new Stripe(stripeKey, {
       apiVersion: "2020-08-27",
     });
   }
@@ -48,7 +52,7 @@ export class StripeBillingService implements BillingService {
     metadata?: Record<string, string>;
     allowPromotionCodes?: boolean;
   }) {
-    const { priceId, quantity, successUrl, cancelUrl, metadata, allowPromotionCodes = false } = args;
+    const { priceId, quantity, successUrl, cancelUrl, metadata, allowPromotionCodes = true } = args;
 
     const session = await this.stripe.checkout.sessions.create({
       line_items: [{ price: priceId, quantity }],
@@ -57,9 +61,6 @@ export class StripeBillingService implements BillingService {
       cancel_url: cancelUrl,
       metadata: metadata,
       allow_promotion_codes: allowPromotionCodes,
-      invoice_creation: {
-       enabled: true,
-      },
     });
 
     return {
