@@ -353,6 +353,41 @@ export class MembershipRepository {
     });
   }
 
+  async findAllMembershipsByUserIdForBilling({ userId }: { userId: number }) {
+    return this.prismaClient.membership.findMany({
+      where: { userId },
+      select: {
+        accepted: true,
+        user: {
+          select: {
+            isPlatformManaged: true,
+          },
+        },
+        team: {
+          select: {
+            slug: true,
+            isOrganization: true,
+            isPlatform: true,
+            metadata: true,
+            platformBilling: {
+              select: {
+                plan: true,
+              },
+            },
+            parent: {
+              select: {
+                isOrganization: true,
+                slug: true,
+                metadata: true,
+                isPlatform: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
   static async findByTeamIdForAvailability({ teamId }: { teamId: number }) {
     const memberships = await prisma.membership.findMany({
       where: { teamId },
