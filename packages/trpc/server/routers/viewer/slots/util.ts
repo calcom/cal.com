@@ -8,6 +8,7 @@ import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import type { QualifiedHostsService } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
@@ -15,7 +16,6 @@ import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
-import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { getBusyTimesService } from "@calcom/lib/di/containers/BusyTimes";
 import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
 import type { BusyTimesService } from "@calcom/lib/getBusyTimes";
@@ -975,46 +975,43 @@ export class AvailableSlotsService {
 
     // Extract current session user from context or from reschedule/booking context
     let currentSessionUser: { id: number; email: string } | null = null;
-    
+
     // First, try to get user from reschedule context (for reschedule scenarios)
     if (input.rescheduleUid && input.email) {
       // When rescheduling, the email in input represents the user who needs intersection
       // This could be either the original booker or invitee
       try {
         const userRepo = this.dependencies.userRepo;
-        const rescheduleUser = await userRepo.findByEmail(input.email);
+        const rescheduleUser = await userRepo.findByEmail({ email: input.email });
         if (rescheduleUser?.id) {
-          currentSessionUser = { 
-            id: rescheduleUser.id, 
-            email: rescheduleUser.email 
+          currentSessionUser = {
+            id: rescheduleUser.id,
+            email: rescheduleUser.email,
           };
-          log.debug("Found reschedule user for intersection", { 
-            email: input.email, 
-            userId: rescheduleUser.id 
-          });
+          log.debug("Found reschedule user for intersection", { userId: rescheduleUser.id });
         }
       } catch (error) {
         log.debug("Failed to find reschedule user", { email: input.email, error });
       }
     }
-    
+
     // If no reschedule user found, try session user (for regular booking scenarios)
     if (!currentSessionUser && ctx) {
       try {
         // Try to get session user from context using the existing session middleware approach
         const { getSession, getUserFromSession } = await import("../../../middlewares/sessionMiddleware");
-        
+
         const session = await getSession(ctx as any);
         if (session?.user) {
           const userFromSession = await getUserFromSession(ctx as any, session);
           if (userFromSession?.id && userFromSession?.email) {
-            currentSessionUser = { 
-              id: userFromSession.id, 
-              email: userFromSession.email 
+            currentSessionUser = {
+              id: userFromSession.id,
+              email: userFromSession.email,
             };
-            log.debug("Found session user for intersection", { 
-              userId: userFromSession.id, 
-              email: userFromSession.email 
+            log.debug("Found session user for intersection", {
+              userId: userFromSession.id,
+              email: userFromSession.email,
             });
           }
         }
@@ -1134,24 +1131,28 @@ export class AvailableSlotsService {
       try {
         loggerWithEventDetails.info("Current user detected, intersecting availabilities", {
           sessionUserId: currentSessionUser.id,
-          organizerUserIds: allUsersAvailability.map(u => u.user.id),
+          organizerUserIds: allUsersAvailability.map((u) => u.user.id),
         });
 
         // Check if the session user is NOT one of the organizers/hosts
-        const isSessionUserAnOrganizer = allUsersAvailability.some(u => u.user.id === currentSessionUser.id);
-        
+        const isSessionUserAnOrganizer = allUsersAvailability.some(
+          (u) => u.user.id === currentSessionUser.id
+        );
+
         if (!isSessionUserAnOrganizer) {
           // Fetch current session user's availability for the same time period
-          const sessionUserAvailability = await this.dependencies.userAvailabilityService.getUserAvailability({
-            userId: currentSessionUser.id,
-            dateFrom: startTime.format(),
-            dateTo: endTime.format(),
-            eventTypeId: eventType.id,
-            returnDateOverrides: false,
-            bypassBusyCalendarTimes,
-            silentlyHandleCalendarFailures: silentCalendarFailures,
-            shouldServeCache,
-          });
+          const sessionUserAvailability = await this.dependencies.userAvailabilityService.getUserAvailability(
+            {
+              userId: currentSessionUser.id,
+              dateFrom: startTime.format(),
+              dateTo: endTime.format(),
+              eventTypeId: eventType.id,
+              returnDateOverrides: false,
+              bypassBusyCalendarTimes,
+              silentlyHandleCalendarFailures: silentCalendarFailures,
+              shouldServeCache,
+            }
+          );
 
           loggerWithEventDetails.info("Session user availability fetched", {
             sessionUserId: currentSessionUser.id,
@@ -1162,23 +1163,29 @@ export class AvailableSlotsService {
           // If session user has availability, intersect it with the organizer's availability
           if (sessionUserAvailability.dateRanges && sessionUserAvailability.dateRanges.length > 0) {
             const { intersect } = await import("@calcom/lib/date-ranges");
-            
+
             // Intersect session user's availability with each organizer's availability
-            const intersectedAvailabilities = allUsersAvailability.map(organizerAvailability => ({
+            const intersectedAvailabilities = allUsersAvailability.map((organizerAvailability) => ({
               ...organizerAvailability,
               dateRanges: intersect([organizerAvailability.dateRanges, sessionUserAvailability.dateRanges]),
-              oooExcludedDateRanges: intersect([organizerAvailability.oooExcludedDateRanges, sessionUserAvailability.dateRanges]),
+              oooExcludedDateRanges: intersect([
+                organizerAvailability.oooExcludedDateRanges,
+                sessionUserAvailability.dateRanges,
+              ]),
             }));
 
             loggerWithEventDetails.info("Availability intersection completed", {
-              originalOrganizerRanges: allUsersAvailability.map(u => u.dateRanges?.length || 0),
+              originalOrganizerRanges: allUsersAvailability.map((u) => u.dateRanges?.length || 0),
               sessionUserRanges: sessionUserAvailability.dateRanges?.length || 0,
-              intersectedRanges: intersectedAvailabilities.map(u => u.dateRanges?.length || 0),
+              intersectedRanges: intersectedAvailabilities.map((u) => u.dateRanges?.length || 0),
             });
 
             // Update the aggregated availability with intersected results
             allUsersAvailability = intersectedAvailabilities;
-            aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
+            aggregatedAvailability = getAggregatedAvailability(
+              allUsersAvailability,
+              eventType.schedulingType
+            );
           } else {
             // If session user has no availability, no slots should be available
             loggerWithEventDetails.info("Session user has no availability, returning empty slots");

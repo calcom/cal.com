@@ -80,18 +80,25 @@ describe("User Availability Intersection Tests", () => {
           uid: "test-reschedule-uid",
           eventTypeId: 1,
           title: "Existing Meeting",
-          startTime: new Date("2024-05-21T05:00:00.000Z"), // 10:30 AM IST
-          endTime: new Date("2024-05-21T05:30:00.000Z"),   // 11:00 AM IST
+          startTime: new Date("2024-05-21T05:00:00.000Z").toString(), // 10:30 AM IST
+          endTime: new Date("2024-05-21T05:30:00.000Z").toString(),   // 11:00 AM IST
           attendees: [
             {
               email: "sujal@example.com",
-              name: "Sujal",
+              bookingSeat: {
+                referenceUid: "test-reschedule-uid",
+                data: "some-data",
+              }
             },
             {
-              email: "aayush@example.com", 
-              name: "Aayush",
+              email: "aayush@example.com",
+              bookingSeat: {
+                referenceUid: "test-reschedule-uid",
+                data: "some-data",
+              }
             },
           ],
+          status: "ACCEPTED",
         },
       ],
     });
