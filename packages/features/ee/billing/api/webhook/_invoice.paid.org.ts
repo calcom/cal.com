@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/IBillingRepository";
+import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
 import { createOrganizationFromOnboarding } from "@calcom/features/ee/organizations/lib/server/createOrganizationFromOnboarding";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -40,6 +42,7 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
   const { object: invoice } = invoicePaidSchema.parse(data);
   const subscriptionItemId = invoice.lines.data[0]?.subscription_item;
   const subscriptionId = invoice.subscription;
+  console.log("invoice", invoice);
   logger.debug(
     `Processing invoice paid webhook for customer ${invoice.customer} and subscription ${invoice.subscription}`
   );
@@ -92,6 +95,17 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
       organizationOnboarding,
       paymentSubscriptionId,
       paymentSubscriptionItemId,
+    });
+
+    const internalTeamBillingService = new InternalTeamBilling(organization);
+    await internalTeamBillingService.saveTeamBilling({
+      teamId: organization.id,
+      subscriptionId: paymentSubscriptionId,
+      subscriptionItemId: paymentSubscriptionItemId,
+      customerId: invoice.customer,
+      // TODO: Write actual status when webhook events are added
+      status: SubscriptionStatus.ACTIVE,
+      planName: Plan.ORGANIZATION,
     });
 
     logger.debug(`Marking onboarding as complete for organization ${organization.id}`);
