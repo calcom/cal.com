@@ -4,7 +4,7 @@ import { nextJsConfig } from "@calcom/eslint-config/next-js";
 export default [
   ...nextJsConfig,
   forbid({
-    from: "../../tests/libs/__mocks__/prismaMock.ts",
+    from: "../../../../tests/libs/__mocks__/prismaMock.ts",
     target: ".",
     message: "Please don't use prismaMock",
   }),
