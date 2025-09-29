@@ -2304,6 +2304,7 @@
   "locked_by_team_admin": "Locked by team admin",
   "app_not_connected": "You have not connected a {{appName}} account.",
   "connect_now": "Connect now",
+  "connect_now_unavailable_tooltip": "Connect now is currently unavailable. Please book from above slots or try again later.",
   "managed_event_dialog_confirm_button_one": "Replace & notify {{count}} member",
   "managed_event_dialog_confirm_button_other": "Replace & notify {{count}} members",
   "managed_event_dialog_title_one": "The url /{{slug}} already exists for {{count}} member. Do you want to replace it?",
