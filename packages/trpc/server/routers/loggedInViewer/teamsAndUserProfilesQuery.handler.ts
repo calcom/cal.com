@@ -4,7 +4,7 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { withRoleCanCreateEntity } from "@calcom/lib/entityPermissionUtils.server";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { PrismaClient } from "@calcom/prisma";
-import type { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
