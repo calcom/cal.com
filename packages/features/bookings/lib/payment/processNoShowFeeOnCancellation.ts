@@ -32,7 +32,10 @@ export const processNoShowFeeOnCancellation = async ({
       teamId: booking.eventType.teamId,
     });
 
-    if (membership && (membership.role === "ADMIN" || membership.role === "OWNER")) {
+    if (
+      membership &&
+      (membership.role === UserPermissionRole.OWNER || membership.role === UserPermissionRole.ADMIN)
+    ) {
       log.info(
         `Booking ${booking.uid} was cancelled by team admin/owner (${cancelledByUserId}), skipping no-show fee`
       );
