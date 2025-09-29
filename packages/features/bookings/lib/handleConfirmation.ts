@@ -473,7 +473,10 @@ export async function handleConfirmation(args: {
       eventTypeId: eventType?.id,
       status: "ACCEPTED",
       smsReminderNumber: booking.smsReminderNumber || undefined,
-      metadata: meetingUrl ? { videoCallUrl: meetingUrl } : undefined,
+      metadata: {
+        ...(evt.metadata || {}),
+        ...(meetingUrl ? { videoCallUrl: meetingUrl } : {})
+      },
       ...(platformClientParams ? platformClientParams : {}),
     };
 
