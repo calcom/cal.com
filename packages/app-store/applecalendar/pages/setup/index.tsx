@@ -1,3 +1,7 @@
+import { Button } from "@calid/features/ui/components/button";
+import { Form } from "@calid/features/ui/components/form";
+import { PasswordField } from "@calid/features/ui/components/input/input";
+import { TextField } from "@calid/features/ui/components/input/input";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -5,11 +9,7 @@ import { Toaster } from "sonner";
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { PasswordField } from "@calid/features/ui/components/input/input";
-import { TextField } from "@calid/features/ui/components/input/input";
 import { Alert } from "@calcom/ui/components/alert";
-import { Button } from "@calid/features/ui/components/button";
-import { Form } from "@calid/features/ui/components/form";
 
 export default function AppleCalendarSetup() {
   const { t } = useLocale();
@@ -25,7 +25,7 @@ export default function AppleCalendarSetup() {
 
   return (
     <div className="bg-emphasis flex h-screen dark:bg-inherit">
-      <div className="bg-default dark:bg-muted border-subtle m-auto rounded p-5 dark:border md:w-[560px] md:p-10">
+      <div className="bg-default dark:bg-muted border-subtle m-auto rounded p-5 md:w-[560px] md:p-10 dark:border">
         <div className="flex flex-col space-y-5 md:flex-row md:space-x-5 md:space-y-0">
           <div>
             {/* eslint-disable @next/next/no-img-element */}
@@ -54,26 +54,8 @@ export default function AppleCalendarSetup() {
             <div className="my-2 mt-4">
               <Form
                 form={form}
-                handleSubmit={async (values) => {
-                  try {
-                    setErrorMessage("");
-                    const res = await fetch("/api/integrations/applecalendar/add", {
-                      method: "POST",
-                      body: JSON.stringify(values),
-                      headers: {
-                        "Content-Type": "application/json",
-                      },
-                    });
-                    const json = await res.json();
-                    if (!res.ok) {
-                      setErrorMessage(t(json?.message) || t("something_went_wrong"));
-                    } else {
-                      router.push(json.url);
-                    }
-                  } catch (err) {
-                    setErrorMessage(t("unable_to_add_apple_calendar"));
-                  }
-                }}>
+                // handleSubmit={}
+              >
                 <fieldset
                   className="space-y-4"
                   disabled={form.formState.isSubmitting}
@@ -97,12 +79,34 @@ export default function AppleCalendarSetup() {
                 </fieldset>
 
                 {errorMessage && <Alert severity="error" title={errorMessage} className="my-4" />}
-                <div className="mt-5 justify-end space-x-2 rtl:space-x-reverse sm:mt-4 sm:flex">
+                <div className="mt-5 justify-end space-x-2 sm:mt-4 sm:flex rtl:space-x-reverse">
                   <Button type="button" color="secondary" onClick={() => router.back()}>
                     {t("cancel")}
                   </Button>
                   <Button
-                    type="submit"
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const values = form.getValues();
+                        setErrorMessage("");
+                        console.log("Apple calendar values", values);
+                        const res = await fetch("/api/integrations/applecalendar/add", {
+                          method: "POST",
+                          body: JSON.stringify(values),
+                          headers: {
+                            "Content-Type": "application/json",
+                          },
+                        });
+                        const json = await res.json();
+                        if (!res.ok) {
+                          setErrorMessage(t(json?.message) || t("something_went_wrong"));
+                        } else {
+                          router.push(json.url);
+                        }
+                      } catch (err) {
+                        setErrorMessage(t("unable_to_add_apple_calendar"));
+                      }
+                    }}
                     loading={form.formState.isSubmitting}
                     data-testid="apple-calendar-login-button">
                     {t("save")}
