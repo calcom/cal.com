@@ -514,6 +514,10 @@ describe("Event types Endpoints", () => {
         },
         customName: `{Event type title} between {Organiser} and {Scheduler}`,
         bookingRequiresAuthentication: true,
+        bookerActiveBookingsLimit: {
+          maximumActiveBookings: 2,
+          offerReschedule: true,
+        },
       };
 
       return request(app.getHttpServer())
@@ -588,6 +592,7 @@ describe("Event types Endpoints", () => {
 
           expect(createdEventType.bookingFields).toEqual(expectedBookingFields);
           expect(createdEventType.bookingRequiresAuthentication).toEqual(true);
+          expect(createdEventType.bookerActiveBookingsLimit).toEqual(body.bookerActiveBookingsLimit);
           eventType = responseBody.data;
         });
     });
@@ -1204,6 +1209,9 @@ describe("Event types Endpoints", () => {
         },
         customName: `{Event type title} betweennnnnnnnnnn {Organiser} and {Scheduler}`,
         bookingRequiresAuthentication: false,
+        bookerActiveBookingsLimit: {
+          disabled: true,
+        },
       };
 
       return request(app.getHttpServer())
@@ -1287,6 +1295,7 @@ describe("Event types Endpoints", () => {
           expect(updatedEventType.calVideoSettings?.disableTranscriptionForOrganizer).toEqual(
             body.calVideoSettings?.disableTranscriptionForOrganizer
           );
+          expect(updatedEventType.bookerActiveBookingsLimit).toEqual(body.bookerActiveBookingsLimit);
 
           eventType.title = newTitle;
           eventType.scheduleId = secondSchedule.id;
@@ -1308,6 +1317,7 @@ describe("Event types Endpoints", () => {
           eventType.color = updatedEventType.color;
           eventType.bookingFields = updatedEventType.bookingFields;
           eventType.calVideoSettings = updatedEventType.calVideoSettings;
+          eventType.bookerActiveBookingsLimit = updatedEventType.bookerActiveBookingsLimit;
 
           expect(updatedEventType.bookingRequiresAuthentication).toEqual(false);
         });

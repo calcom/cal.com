@@ -18,6 +18,7 @@ import {
   IsUrl,
 } from "class-validator";
 
+import { BookerActiveBookingsLimit_2024_06_14 } from "./booker-active-booking-limit.input";
 import { BookerLayouts_2024_06_14 } from "./booker-layouts.input";
 import type { InputBookingField_2024_06_14 } from "./booking-fields.input";
 import {
@@ -118,7 +119,8 @@ import { Seats_2024_06_14 } from "./seats.input";
   LocationDefaultFieldInput_2024_06_14,
   NotesDefaultFieldInput_2024_06_14,
   GuestsDefaultFieldInput_2024_06_14,
-  RescheduleReasonDefaultFieldInput_2024_06_14
+  RescheduleReasonDefaultFieldInput_2024_06_14,
+  BookerActiveBookingsLimit_2024_06_14
 )
 class BaseUpdateEventTypeInput {
   @IsOptional()
@@ -242,6 +244,28 @@ class BaseUpdateEventTypeInput {
   })
   @Type(() => Object)
   bookingLimitsCount?: BookingLimitsCount_2024_06_14;
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value && typeof value === "object") {
+      if ("maximumActiveBookings" in value || "offerReschedule" in value) {
+        return Object.assign(new BookerActiveBookingsLimit_2024_06_14(), value);
+      } else if ("disabled" in value) {
+        return Object.assign(new Disabled_2024_06_14(), value);
+      }
+    }
+    return value;
+  })
+  @ValidateNested()
+  @DocsPropertyOptional({
+    description: "Limit the number of active bookings a booker can make for this event type.",
+    oneOf: [
+      { $ref: getSchemaPath(BookerActiveBookingsLimit_2024_06_14) },
+      { $ref: getSchemaPath(Disabled_2024_06_14) },
+    ],
+  })
+  @Type(() => Object)
+  bookerActiveBookingsLimit?: BookerActiveBookingsLimit_2024_06_14 | Disabled_2024_06_14;
 
   @IsOptional()
   @IsBoolean()

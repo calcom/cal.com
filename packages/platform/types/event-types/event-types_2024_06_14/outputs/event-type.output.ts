@@ -30,6 +30,7 @@ import {
   CalVideoSettings,
 } from "../inputs";
 import { Recurrence_2024_06_14 } from "../inputs";
+import { BookerActiveBookingsLimit_2024_06_14 } from "../inputs/booker-active-booking-limit.input";
 import { BookerLayouts_2024_06_14 } from "../inputs/booker-layouts.input";
 import type { BookingLimitsCount_2024_06_14 } from "../inputs/booking-limits-count.input";
 import type { ConfirmationPolicy_2024_06_14 } from "../inputs/confirmation-policy.input";
@@ -345,6 +346,11 @@ class BaseEventTypeOutput_2024_06_14 {
   @IsOptional()
   @ApiPropertyOptional()
   bookingLimitsCount?: BookingLimitsCount_2024_06_14;
+
+  @IsOptional()
+  @Type(() => BookerActiveBookingsLimit_2024_06_14)
+  @ApiPropertyOptional({ type: BookerActiveBookingsLimit_2024_06_14 })
+  bookerActiveBookingsLimit?: BookerActiveBookingsLimit_2024_06_14;
 
   @IsOptional()
   @IsBoolean()

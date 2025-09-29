@@ -21,6 +21,7 @@ import {
 
 import { SchedulingType } from "@calcom/platform-enums";
 
+import { BookerActiveBookingsLimit_2024_06_14 } from "./booker-active-booking-limit.input";
 import { BookerLayouts_2024_06_14 } from "./booker-layouts.input";
 import {
   AddressFieldInput_2024_06_14,
@@ -107,6 +108,7 @@ export const CREATE_EVENT_SLUG_EXAMPLE = "learn-the-secrets-of-masterchief";
   CalendarDaysWindow_2024_06_14,
   RangeWindow_2024_06_14,
   BaseBookingLimitsCount_2024_06_14,
+  BookerActiveBookingsLimit_2024_06_14,
   Disabled_2024_06_14,
   BaseBookingLimitsDuration_2024_06_14,
   Recurrence_2024_06_14,
@@ -295,6 +297,28 @@ class BaseCreateEventTypeInput {
   })
   @Type(() => Object)
   bookingLimitsCount?: BookingLimitsCount_2024_06_14;
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value && typeof value === "object") {
+      if ("maximumActiveBookings" in value || "offerReschedule" in value) {
+        return Object.assign(new BookerActiveBookingsLimit_2024_06_14(), value);
+      } else if ("disabled" in value) {
+        return Object.assign(new Disabled_2024_06_14(), value);
+      }
+    }
+    return value;
+  })
+  @ValidateNested()
+  @DocsPropertyOptional({
+    description: "Limit the number of active bookings a booker can make for this event type.",
+    oneOf: [
+      { $ref: getSchemaPath(BookerActiveBookingsLimit_2024_06_14) },
+      { $ref: getSchemaPath(Disabled_2024_06_14) },
+    ],
+  })
+  @Type(() => Object)
+  bookerActiveBookingsLimit?: BookerActiveBookingsLimit_2024_06_14 | Disabled_2024_06_14;
 
   @IsOptional()
   @IsBoolean()
