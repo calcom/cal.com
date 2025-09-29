@@ -114,6 +114,7 @@ describe("confirmHandler", () => {
   it("should preserve custom metadata from evt and merge with videoCallUrl", async () => {
     vi.setSystemTime("2050-01-07T00:00:00Z");
 
+    const originalHandleConfirmation = handleConfirmationModule.handleConfirmation;
     const handleConfirmationSpy = vi.spyOn(handleConfirmationModule, "handleConfirmation");
     const sendPayloadMock = vi.mocked(sendPayload);
 
@@ -198,7 +199,7 @@ describe("confirmHandler", () => {
       };
 
       // Call the real implementation with modified params
-      return handleConfirmationModule.handleConfirmation.wrappedMethod(modifiedParams);
+      return originalHandleConfirmation(modifiedParams);
     });
 
     const ctx = {
