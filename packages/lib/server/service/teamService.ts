@@ -216,82 +216,85 @@ export class TeamService {
     return verificationToken.team.name;
   }
 
-  static async acceptOrLeaveTeamMembership({
-    accept,
+  static async acceptTeamMembership({
     userId,
     teamId,
     userEmail,
     username,
   }: {
-    accept: boolean;
     userId: number;
     teamId: number;
     userEmail: string;
     username: string | null;
   }) {
-    if (accept) {
-      const teamMembership = await prisma.membership.update({
+    const teamMembership = await prisma.membership.update({
+      where: {
+        userId_teamId: { userId, teamId },
+      },
+      data: {
+        accepted: true,
+      },
+      select: {
+        team: true,
+      },
+    });
+
+    const team = teamMembership.team;
+
+    if (team.parentId) {
+      await prisma.membership.update({
         where: {
-          userId_teamId: { userId, teamId },
+          userId_teamId: { userId, teamId: team.parentId },
         },
         data: {
           accepted: true,
+        },
+      });
+    }
+
+    const isASubteam = team.parentId !== null;
+    const idOfOrganizationInContext = team.isOrganization ? team.id : isASubteam ? team.parentId : null;
+    const needProfileUpdate = !!idOfOrganizationInContext;
+
+    if (needProfileUpdate) {
+      await createAProfileForAnExistingUser({
+        user: {
+          id: userId,
+          email: userEmail,
+          currentUsername: username,
+        },
+        organizationId: idOfOrganizationInContext,
+      });
+    }
+
+    await updateNewTeamMemberEventTypes(userId, teamId);
+  }
+  static async leaveTeamMembership({
+    userId,
+    teamId,
+  }: {
+    userId: number;
+    teamId: number;
+  }) {
+    try {
+      const membership = await prisma.membership.delete({
+        where: {
+          userId_teamId: { userId, teamId },
         },
         select: {
           team: true,
         },
       });
 
-      const team = teamMembership.team;
-
-      if (team.parentId) {
-        await prisma.membership.update({
+      if (membership.team.parentId) {
+        await prisma.membership.delete({
           where: {
-            userId_teamId: { userId, teamId: team.parentId },
-          },
-          data: {
-            accepted: true,
+            userId_teamId: { userId, teamId: membership.team.parentId },
           },
         });
       }
-
-      const isASubteam = team.parentId !== null;
-      const idOfOrganizationInContext = team.isOrganization ? team.id : isASubteam ? team.parentId : null;
-      const needProfileUpdate = !!idOfOrganizationInContext;
-
-      if (needProfileUpdate) {
-        await createAProfileForAnExistingUser({
-          user: {
-            id: userId,
-            email: userEmail,
-            currentUsername: username,
-          },
-          organizationId: idOfOrganizationInContext,
-        });
-      }
-
-      await updateNewTeamMemberEventTypes(userId, teamId);
-    } else {
-      try {
-        const membership = await prisma.membership.delete({
-          where: {
-            userId_teamId: { userId, teamId },
-          },
-          select: {
-            team: true,
-          },
-        });
-
-        if (membership.team.parentId) {
-          await prisma.membership.delete({
-            where: {
-              userId_teamId: { userId, teamId: membership.team.parentId },
-            },
-          });
-        }
-      } catch (e) {
-        console.log(e);
-      }
+    } catch (e) {
+      console.log(e);
     }
   }
 
@@ -338,8 +341,7 @@ export class TeamService {
       });
     }
 
-    await TeamService.acceptOrLeaveTeamMembership({
-      accept: true,
+    await TeamService.acceptTeamMembership({
       userId,
       teamId: verificationToken.teamId,
       userEmail: currentUser.email,

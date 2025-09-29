@@ -103,7 +103,7 @@ describe("TeamService", () => {
     });
   });
 
-  describe("acceptOrLeaveTeamMembership", () => {
+  describe("acceptTeamMembership", () => {
     it("should accept membership and update event types for regular team", async () => {
       const mockMembership = {
         team: { id: 1, parentId: null, isOrganization: false },
@@ -112,8 +112,7 @@ describe("TeamService", () => {
       prismaMock.membership.update.mockResolvedValue(mockMembership as Membership & { team: Team });
       vi.mocked(updateNewTeamMemberEventTypes).mockResolvedValue(undefined);
 
-      await TeamService.acceptOrLeaveTeamMembership({
-        accept: true,
+      await TeamService.acceptTeamMembership({
         userId: 1,
         teamId: 1,
         userEmail: "test@example.com",
@@ -137,8 +136,7 @@ describe("TeamService", () => {
       vi.mocked(createAProfileForAnExistingUser).mockResolvedValue({} as Profile);
       vi.mocked(updateNewTeamMemberEventTypes).mockResolvedValue(undefined);
 
-      await TeamService.acceptOrLeaveTeamMembership({
-        accept: true,
+      await TeamService.acceptTeamMembership({
         userId: 1,
         teamId: 1,
         userEmail: "test@example.com",
@@ -166,8 +164,7 @@ describe("TeamService", () => {
       vi.mocked(createAProfileForAnExistingUser).mockResolvedValue({} as Profile);
       vi.mocked(updateNewTeamMemberEventTypes).mockResolvedValue(undefined);
 
-      await TeamService.acceptOrLeaveTeamMembership({
-        accept: true,
+      await TeamService.acceptTeamMembership({
         userId: 1,
         teamId: 1,
         userEmail: "test@example.com",
@@ -188,7 +185,8 @@ describe("TeamService", () => {
         organizationId: 2,
       });
     });
-
+  });
+  describe("leaveTeamMembership", () => {
     it("should delete membership when rejecting invitation", async () => {
       const mockMembership = {
         team: { id: 1, parentId: null },
@@ -196,12 +194,9 @@ describe("TeamService", () => {
 
       prismaMock.membership.delete.mockResolvedValue(mockMembership as Membership & { team: Team });
 
-      await TeamService.acceptOrLeaveTeamMembership({
-        accept: false,
+      await TeamService.leaveTeamMembership({
         userId: 1,
         teamId: 1,
-        userEmail: "test@example.com",
-        username: "testuser",
       });
 
       expect(prismaMock.membership.delete).toHaveBeenCalledWith({
@@ -219,12 +214,9 @@ describe("TeamService", () => {
         .mockResolvedValueOnce(mockMembership as Membership & { team: Team })
         .mockResolvedValueOnce({} as Membership);
 
-      await TeamService.acceptOrLeaveTeamMembership({
-        accept: false,
+      await TeamService.leaveTeamMembership({
         userId: 1,
         teamId: 1,
-        userEmail: "test@example.com",
-        username: "testuser",
       });
 
       expect(prismaMock.membership.delete).toHaveBeenCalledTimes(2);

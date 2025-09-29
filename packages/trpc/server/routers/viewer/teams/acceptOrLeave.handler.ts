@@ -11,13 +11,19 @@ type AcceptOrLeaveOptions = {
 };
 
 export const acceptOrLeaveHandler = async ({ ctx, input }: AcceptOrLeaveOptions) => {
-  await TeamService.acceptOrLeaveTeamMembership({
-    accept: input.accept,
-    userId: ctx.user.id,
-    teamId: input.teamId,
-    userEmail: ctx.user.email,
-    username: ctx.user.username,
-  });
+  if (input.accept) {
+    await TeamService.acceptTeamMembership({
+      userId: ctx.user.id,
+      teamId: input.teamId,
+      userEmail: ctx.user.email,
+      username: ctx.user.username,
+    });
+  } else {
+    await TeamService.leaveTeamMembership({
+      userId: ctx.user.id,
+      teamId: input.teamId,
+    });
+  }
 };
 
 export default acceptOrLeaveHandler;
