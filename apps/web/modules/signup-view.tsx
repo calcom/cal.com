@@ -274,7 +274,7 @@ export default function Signup({
         };
 
         const constructCallBackIfUrlNotPresent = () => {
-          if (!!isPlatformUser) {
+          if (isPlatformUser) {
             return `${WEBAPP_URL}/${gettingStartedWithPlatform}?from=signup`;
           }
 
@@ -284,7 +284,7 @@ export default function Signup({
         const constructCallBackUrl = () => {
           const callbackUrlSearchParams = searchParams?.get("callbackUrl");
 
-          return !!callbackUrlSearchParams
+          return callbackUrlSearchParams
             ? constructCallBackIfUrlPresent()
             : constructCallBackIfUrlNotPresent();
         };
@@ -426,6 +426,7 @@ export default function Signup({
                     id="signup-email"
                     {...register("email")}
                     label={t("email")}
+                    placeholder="john@doe.com"
                     type="email"
                     autoComplete="email"
                     disabled={prepopulateFormValues?.email}
@@ -522,8 +523,8 @@ export default function Signup({
                         usernameTaken
                       }>
                       {premiumUsername && !usernameTaken
-                        ? `${t("create_account")} (${getPremiumPlanPriceValue()})`
-                        : t("create_account")}
+                        ? `${t("get_started")} (${getPremiumPlanPriceValue()})`
+                        : t("get_started")}
                     </Button>
                   )}
                 </Form>

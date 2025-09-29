@@ -1,7 +1,8 @@
-// eslint-disable-next-line no-restricted-imports
+ 
 import { orderBy } from "lodash";
 
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
@@ -51,6 +52,15 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
   if (isFilterSet && filters?.upIds && !isUpIdInFilter) {
     shouldListUserEvents = true;
   }
+
+  // Get teams where user has eventType.read permission for PBAC readonly check
+  const permissionCheckService = new PermissionCheckService();
+  const teamsWithEventTypeReadPermission = await permissionCheckService.getTeamIdsWithPermission({
+    userId: user.id,
+    permission: "eventType.read",
+    fallbackRoles: [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
+  });
+
   const eventTypeRepo = new EventTypeRepository(prisma);
   const [profileMemberships, profileEventTypes] = await Promise.all([
     MembershipRepository.findAllByUpIdIncludeTeamWithMembersAndEventTypes(
@@ -113,7 +123,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
       ...eventType,
       safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
       users: await Promise.all(
-        (!!eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
+        (eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
           async (u) =>
             await userRepo.enrichUserWithItsProfile({
               user: u,
@@ -281,13 +291,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
             },
             metadata: {
               membershipCount: team.members.length,
-              readOnly:
-                membership.role ===
-                (team.parentId
-                  ? orgMembership && compareMembership(orgMembership, membership.role)
-                    ? orgMembership
-                    : MembershipRole.MEMBER
-                  : MembershipRole.MEMBER),
+              readOnly: !teamsWithEventTypeReadPermission.includes(team.id),
             },
             eventTypes: eventTypes
               .filter(filterByTeamIds)

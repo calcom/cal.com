@@ -92,7 +92,6 @@ const BookerComponent = ({
   );
 
   const selectedDate = useBookerStoreContext((state) => state.selectedDate);
-  const setSelectedDate = useBookerStoreContext((state) => state.setSelectedDate);
 
   const {
     shouldShowFormInDialog,
@@ -145,7 +144,14 @@ const BookerComponent = ({
 
   const { bookerFormErrorRef, key, formEmail, bookingForm, errors: formErrors } = bookerForm;
 
-  const { handleBookEvent, errors, loadingStates, expiryTime, instantVideoMeetingUrl } = bookings;
+  const {
+    handleBookEvent,
+    errors,
+    loadingStates,
+    expiryTime,
+    instantVideoMeetingUrl,
+    instantConnectCooldownMs,
+  } = bookings;
 
   const watchedCfToken = bookingForm.watch("cfToken");
 
@@ -230,9 +236,8 @@ const BookerComponent = ({
     setSelectedTimeslot(slot || null);
   }, [slot, setSelectedTimeslot]);
 
-  const onSubmit = (timeSlot?: string) => {
+  const onSubmit = (timeSlot?: string) =>
     renderConfirmNotVerifyEmailButtonCond ? handleBookEvent(timeSlot) : handleVerifyEmail();
-  };
 
   const EventBooker = useMemo(() => {
     return bookerState === "booking" ? (
@@ -543,6 +548,7 @@ const BookerComponent = ({
               style={{ animationDelay: "1s" }}>
               <InstantBooking
                 event={event.data}
+                cooldownMs={instantConnectCooldownMs}
                 onConnectNow={() => {
                   onConnectNowInstantMeeting();
                 }}

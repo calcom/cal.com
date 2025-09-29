@@ -6,7 +6,7 @@ import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles
 import { SubscribeToPlanInput } from "@/modules/billing/controllers/inputs/subscribe-to-plan.input";
 import { CheckPlatformBillingResponseDto } from "@/modules/billing/controllers/outputs/CheckPlatformBillingResponse.dto";
 import { SubscribeTeamToBillingResponseDto } from "@/modules/billing/controllers/outputs/SubscribeTeamToBillingResponse.dto";
-import { BillingService } from "@/modules/billing/services/billing.service";
+import { IBillingService } from "@/modules/billing/interfaces/billing-service.interface";
 import { StripeService } from "@/modules/stripe/stripe.service";
 import {
   Body,
@@ -19,6 +19,7 @@ import {
   Headers,
   HttpCode,
   HttpStatus,
+  Inject,
   Logger,
   Delete,
   ParseIntPipe,
@@ -40,7 +41,7 @@ export class BillingController {
   private logger = new Logger("Billing Controller");
 
   constructor(
-    private readonly billingService: BillingService,
+    @Inject("IBillingService") private readonly billingService: IBillingService,
     public readonly stripeService: StripeService,
     private readonly configService: ConfigService<AppConfig>
   ) {

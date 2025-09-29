@@ -39,9 +39,9 @@ import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-import type { Membership, Team, UserPermissionRole } from "@calcom/prisma/client";
+import type { Membership, Team } from "@calcom/prisma/client";
 import { CreationSource } from "@calcom/prisma/enums";
-import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
+import { IdentityProvider, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import { getOrgUsernameFromEmail } from "../signup/utils/getOrgUsernameFromEmail";
@@ -249,7 +249,7 @@ const providers: Provider[] = [
       // authentication success- but does it meet the minimum password requirements?
       const validateRole = (role: UserPermissionRole) => {
         // User's role is not "ADMIN"
-        if (role !== "ADMIN") return role;
+        if (role !== UserPermissionRole.ADMIN) return role;
         // User's identity provider is not "CAL"
         if (user.identityProvider !== IdentityProvider.CAL) return role;
 
@@ -517,7 +517,7 @@ export const getOptions = ({
       }
       const autoMergeIdentities = async () => {
         const existingUser = await prisma.user.findFirst({
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+           
           where: { email: token.email! },
           select: {
             id: true,

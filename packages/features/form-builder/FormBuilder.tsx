@@ -426,7 +426,7 @@ export const FormBuilder = function FormBuilder({
 function Options({
   label = "Options",
   value,
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+   
   onChange = () => {},
   className = "",
   readOnly = false,
@@ -698,7 +698,7 @@ function FieldEditDialog({
                       />
                     ) : null}
 
-                    {!!fieldType?.supportsLengthCheck ? (
+                    {fieldType?.supportsLengthCheck ? (
                       <FieldWithLengthCheckSupport containerClassName="mt-6" fieldForm={fieldForm} />
                     ) : null}
 
@@ -953,7 +953,6 @@ function VariantFields({
           onCheckedChange={(checked) => {
             fieldForm.setValue("variant", checked ? otherVariant : defaultVariant);
           }}
-          classNames={{ container: "mt-2" }}
           tooltip={t("Toggle Variant")}
         />
       ) : (

@@ -101,10 +101,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           name: "privacy",
           href: "/settings/organizations/privacy",
         },
-        {
-          name: "billing",
-          href: "/settings/organizations/billing",
-        },
+
         { name: "OAuth Clients", href: "/settings/organizations/platform/oauth-clients" },
         {
           name: "SSO",
@@ -173,17 +170,12 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
 // The following keys are assigned to admin only
 const adminRequiredKeys = ["admin"];
 const organizationRequiredKeys = ["organization"];
-const organizationAdminKeys = [
-  "privacy",
-  "billing",
-  "OAuth Clients",
-  "SSO",
-  "directory_sync",
-  "delegation_credential",
-];
+const organizationAdminKeys = ["privacy", "OAuth Clients", "SSO", "directory_sync", "delegation_credential"];
 
 export interface SettingsPermissions {
   canViewRoles?: boolean;
+  canViewOrganizationBilling?: boolean;
+  canUpdateOrganization?: boolean;
 }
 
 const useTabs = ({
@@ -212,10 +204,13 @@ const useTabs = ({
         };
       } else if (tab.href === "/settings/organizations") {
         const newArray = (tab?.children ?? []).filter(
-          (child) => isOrgAdminOrOwner || !organizationAdminKeys.includes(child.name)
+          (child) =>
+            permissions?.canUpdateOrganization ||
+            isOrgAdminOrOwner ||
+            !organizationAdminKeys.includes(child.name)
         );
 
-        if (isOrgAdminOrOwner) {
+        if (permissions?.canUpdateOrganization || isOrgAdminOrOwner) {
           newArray.splice(4, 0, {
             name: "attributes",
             href: "/settings/organizations/attributes",
@@ -232,11 +227,27 @@ const useTabs = ({
 
         // Add pbac menu item only if feature flag is enabled AND user has permission to view roles
         // This prevents showing the menu item when user has no organization permissions
-        if (isPbacEnabled && permissions?.canViewRoles) {
-          newArray.push({
-            name: "roles_and_permissions",
-            href: "/settings/organizations/roles",
-          });
+        if (isPbacEnabled) {
+          if (permissions?.canViewRoles) {
+            newArray.push({
+              name: "roles_and_permissions",
+              href: "/settings/organizations/roles",
+            });
+          }
+
+          if (permissions?.canViewOrganizationBilling) {
+            newArray.push({
+              name: "billing",
+              href: "/settings/organizations/billing",
+            });
+          }
+        } else {
+          if (permissions?.canUpdateOrganization || isOrgAdminOrOwner) {
+            newArray.push({
+              name: "billing",
+              href: "/settings/organizations/billing",
+            });
+          }
         }
 
         return {
@@ -257,7 +268,8 @@ const useTabs = ({
         return { ...tab, children: filtered };
       } else if (tab.href === "/settings/developer") {
         const filtered = tab?.children?.filter(
-          (childTab) => isOrgAdminOrOwner || childTab.name !== "admin_api"
+          (childTab) =>
+            permissions?.canUpdateOrganization || isOrgAdminOrOwner || childTab.name !== "admin_api"
         );
         return { ...tab, children: filtered };
       }
@@ -267,12 +279,21 @@ const useTabs = ({
     // check if name is in adminRequiredKeys
     return processedTabs.filter((tab) => {
       if (organizationRequiredKeys.includes(tab.name)) return !!orgBranding;
-      if (tab.name === "other_teams" && !isOrgAdminOrOwner) return false;
+      if (tab.name === "other_teams" && !(permissions?.canUpdateOrganization || isOrgAdminOrOwner))
+        return false;
 
       if (isAdmin) return true;
       return !adminRequiredKeys.includes(tab.name);
     });
-  }, [isAdmin, orgBranding, isOrgAdminOrOwner, user, isDelegationCredentialEnabled]);
+  }, [
+    isAdmin,
+    orgBranding,
+    isOrgAdminOrOwner,
+    user,
+    isDelegationCredentialEnabled,
+    isPbacEnabled,
+    permissions,
+  ]);
 
   return processTabsMemod;
 };
@@ -431,6 +452,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                       name={t("profile")}
                       href={`/settings/teams/${team.id}/profile`}
                       textClassNames="px-3 text-emphasis font-medium text-sm"
+                      className="me-5 h-7 w-auto !px-2"
                       disableChevron
                     />
                   )}
@@ -438,6 +460,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                     name={t("members")}
                     href={`/settings/teams/${team.id}/members`}
                     textClassNames="px-3 text-emphasis font-medium text-sm"
+                    className="me-5 h-7 w-auto !px-2"
                     disableChevron
                   />
                   {/* Show roles only for sub-teams with PBAC-enabled parent */}
@@ -458,6 +481,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                         name={t("appearance")}
                         href={`/settings/teams/${team.id}/appearance`}
                         textClassNames="px-3 text-emphasis font-medium text-sm"
+                        className="me-5 h-7 w-auto !px-2"
                         disableChevron
                       />
                       {/* Hide if there is a parent ID */}
@@ -467,6 +491,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                             name={t("billing")}
                             href={`/settings/teams/${team.id}/billing`}
                             textClassNames="px-3 text-emphasis font-medium text-sm"
+                            className="me-5 h-7 w-auto !px-2"
                             disableChevron
                           />
                         </>
@@ -475,6 +500,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                         name={t("settings")}
                         href={`/settings/teams/${team.id}/settings`}
                         textClassNames="px-3 text-emphasis font-medium text-sm"
+                        className="me-5 h-7 w-auto !px-2"
                         disableChevron
                       />
                     </>
@@ -631,11 +657,12 @@ const SettingsSidebarContainer = ({
                       </div>
                     </Link>
                     <TeamListCollapsible teamFeatures={teamFeatures} />
-                    {(!orgBranding?.id || isOrgAdminOrOwner) && (
+                    {(!orgBranding?.id || permissions?.canUpdateOrganization || isOrgAdminOrOwner) && (
                       <VerticalTabItem
                         name={t("add_a_team")}
                         href={`${WEBAPP_URL}/settings/teams/new`}
                         textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
+                        className="me-5 h-7 w-auto !px-2"
                         icon="plus"
                         disableChevron
                       />
@@ -737,12 +764,14 @@ const SettingsSidebarContainer = ({
                                   name={t("profile")}
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/profile`}
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
+                                  className="me-5 h-7 w-auto !px-2"
                                   disableChevron
                                 />
                                 <VerticalTabItem
                                   name={t("members")}
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/members`}
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
+                                  className="me-5 h-7 w-auto !px-2"
                                   disableChevron
                                 />
                                 <>

@@ -2,10 +2,11 @@ import { _generateMetadata } from "app/_utils";
 import { getTranslate } from "app/_utils";
 
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import BillingView from "~/settings/billing/billing-view";
 
-import { validateUserHasOrgAdmin } from "../../actions/validateUserHasOrgAdmin";
+import { validateUserHasOrgPerms } from "../../actions/validateUserHasOrgPerms";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -18,9 +19,11 @@ export const generateMetadata = async () =>
 
 const Page = async () => {
   const t = await getTranslate();
-  await validateUserHasOrgAdmin();
 
-  // TODO(SEAN): Add PBAC to this page in the next PR
+  await validateUserHasOrgPerms({
+    permission: "organization.manageBilling",
+    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+  });
 
   return (
     <SettingsHeader

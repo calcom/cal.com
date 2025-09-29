@@ -29,6 +29,8 @@ import {
   Select,
   SettingsToggle,
 } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import MaxActiveBookingsPerBookerController from "./MaxActiveBookingsPerBookerController";
 
@@ -248,28 +250,39 @@ function RollingLimitRadioItem({
           <span className="me-2 ms-2">&nbsp;{t("into_the_future")}</span>
         </div>
         <div className="-ml-6 flex flex-col py-2">
-          <CheckboxField
-            checked={!!rollingExcludeUnavailableDays}
-            disabled={isDisabled}
-            description={t("always_show_x_days", {
-              x: periodDaysWatch,
-            })}
-            onChange={(e) => {
-              const isChecked = e.target.checked;
-              formMethods.setValue(
-                "periodDays",
-                Math.min(periodDaysWatch, ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK)
-              );
-              formMethods.setValue(
-                "periodType",
-                getPeriodTypeFromUiValue({
-                  value: PeriodType.ROLLING,
-                  rollingExcludeUnavailableDays: isChecked,
-                }),
-                { shouldDirty: true }
-              );
-            }}
-          />
+          <div className="flex items-center">
+            <CheckboxField
+              checked={!!rollingExcludeUnavailableDays}
+              disabled={isDisabled}
+              description={t("always_show_x_days", {
+                x: periodDaysWatch,
+              })}
+              onChange={(e) => {
+                const isChecked = e.target.checked;
+                formMethods.setValue(
+                  "periodDays",
+                  Math.min(periodDaysWatch, ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK)
+                );
+                formMethods.setValue(
+                  "periodType",
+                  getPeriodTypeFromUiValue({
+                    value: PeriodType.ROLLING,
+                    rollingExcludeUnavailableDays: isChecked,
+                  }),
+                  { shouldDirty: true }
+                );
+              }}
+            />
+            <Tooltip
+              content={t("always_show_x_days_description", {
+                x: periodDaysWatch,
+              })}>
+              <Icon
+                name="info"
+                className="text-default hover:text-attention hover:bg-attention ms-1 inline h-4 w-4 rounded-md"
+              />
+            </Tooltip>
+          </div>
         </div>
       </div>
     </div>
