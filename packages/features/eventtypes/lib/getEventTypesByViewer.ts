@@ -2,6 +2,7 @@
 import { orderBy } from "lodash";
 
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
@@ -19,8 +20,6 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeMetaDataSchemaWithUntypedApps } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
-
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 
 const log = logger.getSubLogger({ prefix: ["viewer.eventTypes.getByViewer"] });
 
