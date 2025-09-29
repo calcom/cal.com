@@ -9,7 +9,7 @@ import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole, TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { WorkflowMethods } from "@calcom/prisma/enums";
 import type { TFilteredListInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/filteredList.schema";
 import type { TGetVerifiedEmailsInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/getVerifiedEmails.schema";
@@ -271,7 +271,7 @@ export class WorkflowRepository {
     };
 
     if (filtered) {
-      if (!!filters.teamIds) {
+      if (filters.teamIds) {
         where.OR.push({
           team: {
             id: {
@@ -287,7 +287,7 @@ export class WorkflowRepository {
         });
       }
 
-      if (!!filters.userIds) {
+      if (filters.userIds) {
         where.OR.push({
           userId: {
             in: filters.userIds,
@@ -440,7 +440,7 @@ export class WorkflowRepository {
     const reminderMethods: {
       [x: string]: (id: number, referenceId: string | null) => void;
     } = {
-      [WorkflowMethods.EMAIL]: (id, referenceId) => deleteScheduledEmailReminder(id),
+      [WorkflowMethods.EMAIL]: (id) => deleteScheduledEmailReminder(id),
       [WorkflowMethods.SMS]: (id, referenceId) => deleteScheduledSMSReminder(id, referenceId),
       [WorkflowMethods.WHATSAPP]: (id, referenceId) => deleteScheduledWhatsappReminder(id, referenceId),
       [WorkflowMethods.AI_PHONE_CALL]: (id, referenceId) => deleteScheduledAIPhoneCall(id, referenceId),
@@ -461,6 +461,93 @@ export class WorkflowRepository {
           result.reason
         );
       }
+    });
+  }
+
+  static async findUniqueForUpdate(id: number) {
+    return await prisma.workflow.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        userId: true,
+        isActiveOnAll: true,
+        trigger: true,
+        time: true,
+        timeUnit: true,
+        team: {
+          select: {
+            isOrganization: true,
+          },
+        },
+        teamId: true,
+        user: {
+          select: {
+            teams: true,
+          },
+        },
+        steps: true,
+        activeOn: true,
+        activeOnTeams: true,
+        activeOnRoutingForms: true,
+      },
+    });
+  }
+
+  static async updateWorkflow(
+    id: number,
+    data: {
+      name: string;
+      trigger: WorkflowTriggerEvents;
+      time: number | null;
+      timeUnit: TimeUnit | null;
+      isActiveOnAll: boolean;
+    }
+  ) {
+    return await prisma.workflow.update({
+      where: { id },
+      data,
+    });
+  }
+
+  static async findUniqueWithRelations(id: number) {
+    return await prisma.workflow.findUnique({
+      where: { id },
+      include: {
+        activeOn: {
+          select: {
+            eventType: true,
+          },
+        },
+        activeOnTeams: {
+          select: {
+            team: true,
+          },
+        },
+        activeOnRoutingForms: {
+          select: {
+            routingForm: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+        team: {
+          select: {
+            id: true,
+            slug: true,
+            members: true,
+            name: true,
+            isOrganization: true,
+          },
+        },
+        steps: {
+          orderBy: {
+            stepNumber: "asc",
+          },
+        },
+      },
     });
   }
 }
