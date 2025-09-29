@@ -413,8 +413,12 @@ export class PaymentService implements IAbstractPaymentService {
       const payment = await this.getPayment({
         id: paymentId,
       });
-      const stripeAccount = (payment.data as unknown as StripePaymentData).stripeAccount;
+      // no payment found, return false.
+      if (!payment) {
+        return false;
+      }
 
+      const stripeAccount = (payment.data as unknown as StripePaymentData).stripeAccount;
       if (!stripeAccount) {
         throw new Error("Stripe account not found");
       }
