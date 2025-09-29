@@ -33,14 +33,14 @@ export async function canAccessEntity(
 ) {
   if (entity.teamId) {
     const permissionService = new PermissionCheckService();
-    const hasEditPermission = await permissionService.checkPermission({
+    const hasReadPermission = await permissionService.checkPermission({
       teamId: entity.teamId,
       userId,
       permission,
       fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER],
     });
 
-    return hasEditPermission;
+    return hasReadPermission;
   }
   if (entity.userId === userId) return true;
 }
