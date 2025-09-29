@@ -236,7 +236,6 @@ test.describe("Team", () => {
       const [secondContext, secondPage] = await invitedUser.apiLoginOnNewBrowser(browser);
 
       await secondPage.goto(inviteLink);
-      await secondPage.waitForURL("/teams");
 
       await expect(secondPage.getByText("Successfully joined")).toBeVisible();
 
@@ -293,8 +292,6 @@ test.describe("Team", () => {
       const [secondContext, secondPage] = await wrongUser.apiLoginOnNewBrowser(browser);
 
       await secondPage.goto(inviteLink);
-
-      await secondPage.waitForURL("/teams");
 
       await expect(secondPage.getByText("This invitation is not for your account")).toBeVisible();
 

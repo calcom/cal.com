@@ -123,7 +123,7 @@ describe("TeamService", () => {
       expect(prismaMock.membership.update).toHaveBeenCalledWith({
         where: { userId_teamId: { userId: 1, teamId: 1 } },
         data: { accepted: true },
-        include: { team: true },
+        select: { team: true },
       });
       expect(updateNewTeamMemberEventTypes).toHaveBeenCalledWith(1, 1);
     });
@@ -178,7 +178,6 @@ describe("TeamService", () => {
       expect(prismaMock.membership.update).toHaveBeenNthCalledWith(2, {
         where: { userId_teamId: { userId: 1, teamId: 2 } },
         data: { accepted: true },
-        include: { team: true },
       });
       expect(createAProfileForAnExistingUser).toHaveBeenCalledWith({
         user: {
@@ -207,7 +206,7 @@ describe("TeamService", () => {
 
       expect(prismaMock.membership.delete).toHaveBeenCalledWith({
         where: { userId_teamId: { userId: 1, teamId: 1 } },
-        include: { team: true },
+        select: { team: true },
       });
     });
 
@@ -360,7 +359,7 @@ describe("TeamService", () => {
       expect(prismaMock.membership.update).toHaveBeenCalledWith({
         where: { userId_teamId: { userId: 1, teamId: 1 } },
         data: { accepted: true },
-        include: { team: true },
+        select: { team: true },
       });
     });
 
@@ -393,7 +392,7 @@ describe("TeamService", () => {
       expect(prismaMock.membership.update).toHaveBeenCalledWith({
         where: { userId_teamId: { userId: 1, teamId: 1 } },
         data: { accepted: true },
-        include: { team: true },
+        select: { team: true },
       });
     });
   });

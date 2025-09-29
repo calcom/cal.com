@@ -34,6 +34,7 @@ export const ServerTeamsListing = async ({
   const token = Array.isArray(searchParams?.token) ? searchParams.token[0] : searchParams?.token;
   const autoAccept = Array.isArray(searchParams?.autoAccept) ? searchParams.autoAccept[0] : searchParams?.autoAccept;
   const userId = session.user.id;
+  let invitationAccepted = false;
 
   let teamNameFromInvite,
     errorMsgFromInvite = null;
@@ -42,6 +43,7 @@ export const ServerTeamsListing = async ({
     try {
        if (autoAccept === "true") {
         await TeamService.acceptInvitationByToken(token, userId);
+        invitationAccepted = true;
       } else {
         teamNameFromInvite = await TeamService.inviteMemberByToken(token, userId);
       }
@@ -62,7 +64,7 @@ export const ServerTeamsListing = async ({
   return {
     Main: (
       <TeamsListing
-        autoAccept={autoAccept === "true"}
+        invitationAccepted={invitationAccepted}
         teams={teams}
         orgId={orgId ?? null}
         isOrgAdmin={isOrgAdminOrOwner}

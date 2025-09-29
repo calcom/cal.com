@@ -18,7 +18,7 @@ import { UpgradeTip } from "../../../tips";
 import TeamList from "./TeamList";
 
 type TeamsListingProps = {
-  autoAccept: boolean;
+  invitationAccepted: boolean;
   orgId: number | null;
   isOrgAdmin: boolean;
   teams: RouterOutputs["viewer"]["teams"]["list"];
@@ -27,7 +27,7 @@ type TeamsListingProps = {
 };
 
 export function TeamsListing({
-  autoAccept,
+  invitationAccepted,
   orgId,
   isOrgAdmin,
   teams: data,
@@ -93,18 +93,18 @@ export function TeamsListing({
       return;
     }
 
-    if (autoAccept) {
+    if (errorMsgFromInvite) {
+      showToast(errorMsgFromInvite, "error");
+      return;
+    }
+
+    if (invitationAccepted) {
       showToast(t("successfully_joined"), "success");
       return;
     }
 
     if (teamNameFromInvite) {
       showToast(t("team_invite_received", { teamName: teamNameFromInvite }), "success");
-      return;
-    }
-
-    if (errorMsgFromInvite) {
-      showToast(errorMsgFromInvite, "error");
       return;
     }
   }, []);
