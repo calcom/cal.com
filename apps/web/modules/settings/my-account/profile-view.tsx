@@ -16,12 +16,12 @@ import {
   usePhoneNumberField,
   PhoneNumberField,
   isPhoneNumberComplete,
+  isStrictlyValidNumber,
 } from "@calid/features/ui/components/input/phone-number-field";
 import { Label } from "@calid/features/ui/components/label";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { revalidateSettingsProfile } from "app/cache/path/settings/my-account";
-import { isValidPhoneNumber } from "libphonenumber-js";
 // eslint-disable-next-line no-restricted-imports
 import { get, pick } from "lodash";
 import { signOut, useSession } from "next-auth/react";
@@ -553,7 +553,8 @@ const ProfileForm = ({
           .string()
           .refine(
             (val) => {
-              return val === "" || isValidPhoneNumber(val);
+              // return val === "" || isValidPhoneNumber(val);
+              return val === "" || isStrictlyValidNumber(val);
             },
             { message: t("invalid_phone_number") }
           )
