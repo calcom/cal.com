@@ -25,7 +25,7 @@ The Cal.com API has 3 authentication methods:
 2. Platform OAuth client credentials
 3. Managed user access token
 
-**For Platform customers:** You must use OAuth credentials or managed user access tokens - never API keys. This is critical because OAuth authentication ensures all data created through the API is properly attached to your OAuth client, maintaining data integrity and proper attribution in your Platform integration.
+If you are a platform customer you don't need an API key and must instead use OAuth credentials or a managed user access token. We cover when to use which below.
 
 ### 1. API key
 
@@ -49,18 +49,44 @@ in your request header.
 
 All API requests must be made over HTTPS. Calls made over plain HTTP will fail. API requests without authentication will also fail.
 
-### 2. OAuth client credentials
-You need to use OAuth credentials when:
+### 2. OAuth client credentials (Required for Platform customers)
+
+**Critical for Platform integrations:** OAuth client credentials are mandatory for Platform customers and ensure all created data is properly attributed to your OAuth client. Without proper OAuth authentication, data may not be associated with your client correctly.
+
+**When to use OAuth credentials:**
 
 1. Managing managed users [API reference](https://cal.com/docs/api-reference/v2/platform-managed-users/create-a-managed-user)
 2. Creating OAuth client webhooks [API reference](https://cal.com/docs/api-reference/v2/platform-webhooks/create-a-webhook)
 3. Refreshing tokens of a managed user [API reference](https://cal.com/docs/api-reference/v2/platform-managed-users/refresh-managed-user-tokens)
 4. Teams related endpoints: Managing organization teams [API reference](https://cal.com/docs/api-reference/v2/orgs-teams/create-a-team), adding managed users as members to teams [API reference](https://cal.com/docs/api-reference/v2/orgs-teams-memberships/create-a-membership), creating team event types [API reference](https://cal.com/docs/api-reference/v2/orgs-event-types/create-an-event-type).
 
-OAuth credentials can be accessed in the platform dashboard https://app.cal.com/settings/platform after you have created an OAuth client. Each one has an ID and secret. You then need to pass them as request headers:
+**How to get OAuth credentials:**
+OAuth credentials can be accessed in the platform dashboard https://app.cal.com/settings/platform after you have created an OAuth client. Each one has an ID and secret.
 
-1. `x-cal-client-id` - ID of the OAuth client.
-2. `x-cal-secret-key` - secret of the OAuth client.
+**Required headers for OAuth authentication:**
+```javascript
+{
+  'x-cal-client-id': 'your_oauth_client_id',
+  'x-cal-secret-key': 'your_oauth_client_secret',
+  'Content-Type': 'application/json'
+}
+```
+
+**Example request with OAuth headers:**
+```javascript
+fetch('https://api.cal.com/v2/platform/managed-users', {
+  method: 'POST',
+  headers: {
+    'x-cal-client-id': 'your_oauth_client_id',
+    'x-cal-secret-key': 'your_oauth_client_secret',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    email: 'user@example.com',
+    username: 'username'
+  })
+});
+```
 
 ### 3. Managed user access token
 
