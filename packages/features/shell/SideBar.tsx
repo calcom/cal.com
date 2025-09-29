@@ -66,7 +66,11 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
     publicPageUrl,
     isAdmin,
     user,
-    onSkipTrial: () => setIsSkipTrialModalOpen(true),
+    onNavClick: (navItemName: string) => {
+      if (navItemName === "skip_trial") {
+        setIsSkipTrialModalOpen(true);
+      }
+    },
   });
 
   const sidebarStylingAttributes = {
