@@ -527,8 +527,7 @@ export class PrismaPhoneNumberRepository {
     id: number;
     inboundProviderAgentId: string;
   }): Promise<{ success: boolean; conflictingAgentId?: string }> {
-    try {
-      // First find the agent to connect
+
       const agent = await prisma.agent.findFirst({
         where: {
           providerAgentId: inboundProviderAgentId,
@@ -546,7 +545,7 @@ export class PrismaPhoneNumberRepository {
       const result = await prisma.calAiPhoneNumber.updateMany({
         where: {
           id,
-          inboundAgentId: null, // Only update if currently null
+          inboundAgentId: null,
         },
         data: {
           inboundAgentId: agent.id,
@@ -568,10 +567,6 @@ export class PrismaPhoneNumberRepository {
         success: false,
         conflictingAgentId: current?.inboundAgentId || undefined,
       };
-    } catch (error) {
-      // Rethrow non-Prisma errors
-      throw error;
-    }
   }
 
   static async findByPhoneNumber({ phoneNumber }: { phoneNumber: string }) {
