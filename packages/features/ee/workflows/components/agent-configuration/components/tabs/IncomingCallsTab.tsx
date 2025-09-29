@@ -50,7 +50,7 @@ export function IncomingCallsTab({
       if (data.agentId && form && workflowStepId) {
         const stepIndex = form.getValues("steps")?.findIndex((s) => s.id === workflowStepId);
         if (stepIndex !== undefined && stepIndex !== -1) {
-          form.setValue(`steps.${stepIndex}.inboundAgentId`, data.agentId);
+          form.setValue(`steps.${stepIndex}.inboundAgentId`, data.agentId, { shouldDirty: true });
         }
       }
 
