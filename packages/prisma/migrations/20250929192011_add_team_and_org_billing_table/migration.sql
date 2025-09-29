@@ -16,7 +16,7 @@ CREATE TABLE "TeamBilling" (
 -- CreateTable
 CREATE TABLE "OrganizationBilling" (
     "id" TEXT NOT NULL,
-    "teamId" INTEGER NOT NULL,
+    "organizationId" INTEGER NOT NULL,
     "subscriptionId" TEXT NOT NULL,
     "subscriptionItemId" TEXT NOT NULL,
     "customerId" TEXT NOT NULL,
@@ -35,7 +35,7 @@ CREATE UNIQUE INDEX "TeamBilling_teamId_key" ON "TeamBilling"("teamId");
 CREATE UNIQUE INDEX "TeamBilling_subscriptionId_key" ON "TeamBilling"("subscriptionId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "OrganizationBilling_teamId_key" ON "OrganizationBilling"("teamId");
+CREATE UNIQUE INDEX "OrganizationBilling_organizationId_key" ON "OrganizationBilling"("organizationId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "OrganizationBilling_subscriptionId_key" ON "OrganizationBilling"("subscriptionId");
@@ -44,4 +44,4 @@ CREATE UNIQUE INDEX "OrganizationBilling_subscriptionId_key" ON "OrganizationBil
 ALTER TABLE "TeamBilling" ADD CONSTRAINT "TeamBilling_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "OrganizationBilling" ADD CONSTRAINT "OrganizationBilling_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "OrganizationBilling" ADD CONSTRAINT "OrganizationBilling_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
