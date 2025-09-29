@@ -22,8 +22,9 @@ export async function canEditEntity(
     });
 
     return hasEditPermission;
-  }
-  if (entity.userId === userId) return true;
+  } else if (entity.userId === userId) return true;
+
+  return false;
 }
 
 export async function canAccessEntity(
@@ -41,8 +42,9 @@ export async function canAccessEntity(
     });
 
     return hasReadPermission;
-  }
-  if (entity.userId === userId) return true;
+  } else if (entity.userId === userId) return true;
+
+  return false;
 }
 
 export async function canCreateEntity({
