@@ -49,56 +49,57 @@ in your request header.
 
 All API requests must be made over HTTPS. Calls made over plain HTTP will fail. API requests without authentication will also fail.
 
-### 2. OAuth client credentials
-You need to use OAuth credentials when:
+### 2. OAuth client credentials (Required for Platform customers)
+
+**Critical for Platform integrations:** OAuth client credentials are mandatory for Platform customers and ensure all created data is properly attributed to your OAuth client. Without proper OAuth authentication, data may not be associated with your client correctly.
+
+**When to use OAuth credentials:**
 
 1. Managing managed users [API reference](https://cal.com/docs/api-reference/v2/platform-managed-users/create-a-managed-user)
 2. Creating OAuth client webhooks [API reference](https://cal.com/docs/api-reference/v2/platform-webhooks/create-a-webhook)
 3. Refreshing tokens of a managed user [API reference](https://cal.com/docs/api-reference/v2/platform-managed-users/refresh-managed-user-tokens)
 4. Teams related endpoints: Managing organization teams [API reference](https://cal.com/docs/api-reference/v2/orgs-teams/create-a-team), adding managed users as members to teams [API reference](https://cal.com/docs/api-reference/v2/orgs-teams-memberships/create-a-membership), creating team event types [API reference](https://cal.com/docs/api-reference/v2/orgs-event-types/create-an-event-type).
 
-OAuth credentials can be accessed in the platform dashboard https://app.cal.com/settings/platform after you have created an OAuth client. Each one has an ID and secret. You then need to pass them as request headers:
+**How to get OAuth credentials:**
+OAuth credentials can be accessed in the platform dashboard https://app.cal.com/settings/platform after you have created an OAuth client. Each one has an ID and secret.
 
-1. `x-cal-client-id` - ID of the OAuth client.
-2. `x-cal-secret-key` - secret of the OAuth client.
-
-### 3. Managed user access token
-
-**Important for Platform customers:** Managed user access tokens ensure that actions are performed on behalf of specific managed users while maintaining proper OAuth client attribution. All data created using these tokens is still associated with your OAuth client.
-
-After you create a managed user you will receive its access and refresh tokens. The response also includes managed user's id, so we recommend you to add new properties to your users table calAccessToken, calRefreshToken and calManagedUserId to store this information.
-
-**When to use managed user access tokens:**
-1. Schedules [API reference](https://cal.com/docs/api-reference/v2/schedules/create-a-schedule)
-2. Event types [API reference](https://cal.com/docs/api-reference/v2/event-types/create-an-event-type)
-3. Bookings - some endpoints like creating a booking is public, but some like getting all managed user's bookings require managed user's access token [API reference](https://cal.com/docs/api-reference/v2/bookings/get-all-bookings)
-
-**How to use managed user access tokens:**
+**Required headers for OAuth authentication:**
 ```javascript
 {
-  'Authorization': 'Bearer your_managed_user_access_token',
+  'x-cal-client-id': 'your_oauth_client_id',
+  'x-cal-secret-key': 'your_oauth_client_secret',
   'Content-Type': 'application/json'
 }
 ```
 
-**Example request with managed user access token:**
+**Example request with OAuth headers:**
 ```javascript
-fetch('https://api.cal.com/v2/event-types', {
+fetch('https://api.cal.com/v2/platform/managed-users', {
   method: 'POST',
   headers: {
-    'Authorization': 'Bearer your_managed_user_access_token',
+    'x-cal-client-id': 'your_oauth_client_id',
+    'x-cal-secret-key': 'your_oauth_client_secret',
     'Content-Type': 'application/json'
   },
   body: JSON.stringify({
-    title: 'My Event Type',
-    slug: 'my-event-type',
-    length: 30
+    email: 'user@example.com',
+    username: 'username'
   })
 });
 ```
 
-**Token management:**
-- **Validity period:** Access tokens are valid for 60 minutes and refresh tokens for 1 year
-- **Refreshing tokens:** Use the refresh endpoint [API reference](https://cal.com/docs/api-reference/v2/oauth/post-v2oauth-refresh). After refreshing you will receive new access and refresh tokens that you must store in your database
-- **Recovering tokens:** If you lose managed user's access or refresh tokens, you can force refresh them using OAuth client credentials [API reference](https://cal.com/docs/api-reference/v2/platform-managed-users/force-refresh-tokens)
+### 3. Managed user access token
+
+After you create a managed user you will receive its access and refresh tokens. The response also includes managed user's id, so we recommend you to add new properties to your users table calAccessToken, calRefreshToken and calManagedUserId to store this information.
+
+You need to use access token when managing managed user's:
+1. Schedules [API reference](https://cal.com/docs/api-reference/v2/schedules/create-a-schedule)
+2. Event types [API reference](https://cal.com/docs/api-reference/v2/event-types/create-an-event-type)
+3. Bookings - some endpoints like creating a booking is public, but some like getting all managed user's bookings require managed user's access token [API reference](https://cal.com/docs/api-reference/v2/bookings/get-all-bookings)
+
+It is passed as an authorization bearer request header Authorization: Bearer \<access-token\>.
+
+Validity period: access tokens are valid for 60 minutes and refresh tokens for 1 year, and tokens can be refreshed using the refresh endpoint [API reference](https://cal.com/docs/api-reference/v2/oauth/post-v2oauth-refresh). After refreshing you will receive the new access and refresh tokens that you have to store in your database.
+
+Recovering tokens: if you ever lose managed user's access or refresh tokens, you can force refresh them using the OAuth client credentials and store them in your database [API reference](https://cal.com/docs/api-reference/v2/platform-managed-users/force-refresh-tokens).
 
