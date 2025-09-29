@@ -41,10 +41,16 @@ export class BusyTimesService {
     rescheduleUid?: string | null;
     duration?: number | null;
     currentBookings?:
-      | (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title"> & {
+      | (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title" | "status"> & {
           eventType: Pick<
             EventType,
-            "id" | "beforeEventBuffer" | "afterEventBuffer" | "seatsPerTimeSlot"
+            | "id"
+            | "beforeEventBuffer"
+            | "afterEventBuffer"
+            | "seatsPerTimeSlot"
+            | "requiresConfirmation"
+            | "requiresConfirmationWillBlockSlot"
+            | "title"
           > | null;
           _count?: {
             seatsReferences: number;
@@ -130,10 +136,22 @@ export class BusyTimesService {
 
     const bookingSeatCountMap: { [x: string]: number } = {};
     const busyTimes = bookings.reduce((aggregate: EventBusyDetails[], booking) => {
-      const { id, startTime, endTime, eventType, title, ...rest } = booking;
+      const { id, startTime, endTime, eventType, title, status, ...rest } = booking;
 
       const minutesToBlockBeforeEvent = (eventType?.beforeEventBuffer || 0) + (afterEventBuffer || 0);
       const minutesToBlockAfterEvent = (eventType?.afterEventBuffer || 0) + (beforeEventBuffer || 0);
+
+      /*
+       * requiresConfirmationWillBlockSlot enabled events blocks slot for all eventTypes for PENDING bookings .
+       */
+      let bookingTitle = title;
+      if (
+        status === BookingStatus.PENDING &&
+        eventType?.requiresConfirmation &&
+        eventType?.requiresConfirmationWillBlockSlot
+      ) {
+        bookingTitle = `unconfirmed but ${eventType.title} has this settings enabled`;
+      }
 
       if (rest._count?.seatsReferences) {
         const bookedAt = `${dayjs(startTime).utc().format()}<>${dayjs(endTime).utc().format()}`;
@@ -172,7 +190,7 @@ export class BusyTimesService {
       aggregate.push({
         start: dayjs(startTime).subtract(minutesToBlockBeforeEvent, "minute").toDate(),
         end: dayjs(endTime).add(minutesToBlockAfterEvent, "minute").toDate(),
-        title,
+        title: bookingTitle,
         source: `eventType-${eventType?.id}-booking-${id}`,
       });
       return aggregate;
@@ -374,20 +392,31 @@ export class BusyTimesService {
         eventType: {
           select: {
             id: true,
+            requiresConfirmation: true,
+            requiresConfirmationWillBlockSlot: true,
+            title: true,
           },
         },
         title: true,
         userId: true,
+        status: true,
       },
     });
 
-    busyTimes = bookings.map(({ id, startTime, endTime, eventType, title, userId }) => ({
-      start: dayjs(startTime).toDate(),
-      end: dayjs(endTime).toDate(),
-      title,
-      source: `eventType-${eventType?.id}-booking-${id}`,
-      userId,
-    }));
+    busyTimes = bookings.map(({ id, startTime, endTime, eventType, title, userId, status }) => {
+      let bookingTitle = title;
+      if (status === BookingStatus.PENDING && eventType?.requiresConfirmation) {
+        bookingTitle = `unconfirmed but ${eventType.title} has this settings enabled`;
+      }
+
+      return {
+        start: dayjs(startTime).toDate(),
+        end: dayjs(endTime).toDate(),
+        title: bookingTitle,
+        source: `eventType-${eventType?.id}-booking-${id}`,
+        userId,
+      };
+    });
 
     logger.silly(`Fetch limit checks bookings for eventId: ${eventTypeId} ${JSON.stringify(busyTimes)}`);
     performance.mark("getBusyTimesForLimitChecksEnd");

@@ -213,12 +213,14 @@ export class BookingRepository {
       uid: true,
       userId: true,
       startTime: true,
+      status: true,
       endTime: true,
       title: true,
       attendees: true,
       eventType: {
         select: {
           id: true,
+          title: true,
           onlyShowFirstAvailableSlot: true,
           afterEventBuffer: true,
           beforeEventBuffer: true,
@@ -761,13 +763,9 @@ export class BookingRepository {
             },
           },
         },
-        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         destinationCalendar: true,
-        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         payment: true,
-        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         references: true,
-        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         workflowReminders: true,
       },
     });
@@ -909,13 +907,9 @@ export class BookingRepository {
         status: filterForUnconfirmed ? BookingStatus.PENDING : BookingStatus.ACCEPTED,
       },
       include: {
-        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         attendees: true,
-        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         references: true,
-        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         user: true,
-        // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
         payment: true,
       },
     });
