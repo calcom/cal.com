@@ -22,7 +22,6 @@ import { router } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import { hasInsightsPermission } from "./hasInsightsPermission";
 import { getTimeView, getDateRanges, type GetDateRangesParams } from "./insightsDateUtils";
 import { RoutingEventsInsights } from "./routing-events";
 import { VirtualQueuesInsights } from "./virtual-queues";
@@ -240,21 +239,6 @@ const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, getRa
   });
 });
 
-const insightsPbacProcedure = userBelongsToTeamProcedure.use(async ({ ctx, next }) => {
-  const hasPermission = await hasInsightsPermission({
-    userId: ctx.user.id,
-    organizationId: ctx.user.organizationId,
-  });
-
-  if (!hasPermission) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-
-  return next({
-    ctx,
-  });
-});
-
 const userSelect = {
   id: true,
   name: true,
@@ -324,7 +308,7 @@ function createInsightsBookingService(
     options: {
       scope,
       userId: ctx.user.id,
-      orgId: ctx.user.organizationId ?? 0,
+      orgId: ctx.user.organizationId,
       ...(selectedTeamId && { teamId: selectedTeamId }),
     },
     filters: {
@@ -353,7 +337,7 @@ function createInsightsRoutingService(
 }
 
 export const insightsRouter = router({
-  bookingKPIStats: insightsPbacProcedure
+  bookingKPIStats: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const currentPeriodService = createInsightsBookingService(ctx, input);
@@ -458,31 +442,33 @@ export const insightsRouter = router({
         },
       };
     }),
-  eventTrends: insightsPbacProcedure.input(bookingRepositoryBaseInputSchema).query(async ({ ctx, input }) => {
-    const { columnFilters, timeZone } = input;
-    const { startDate, endDate } = extractDateRangeFromColumnFilters(columnFilters);
+  eventTrends: userBelongsToTeamProcedure
+    .input(bookingRepositoryBaseInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { columnFilters, timeZone } = input;
+      const { startDate, endDate } = extractDateRangeFromColumnFilters(columnFilters);
 
-    // Calculate timeView and dateRanges
-    const timeView = getTimeView(startDate, endDate);
-    const dateRanges = getDateRanges({
-      startDate,
-      endDate,
-      timeView,
-      timeZone,
-      weekStart: ctx.user.weekStart,
-    });
-
-    const insightsBookingService = createInsightsBookingService(ctx, input);
-    try {
-      return await insightsBookingService.getEventTrendsStats({
+      // Calculate timeView and dateRanges
+      const timeView = getTimeView(startDate, endDate);
+      const dateRanges = getDateRanges({
+        startDate,
+        endDate,
+        timeView,
         timeZone,
-        dateRanges,
+        weekStart: ctx.user.weekStart,
       });
-    } catch (e) {
-      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-    }
-  }),
-  popularEvents: insightsPbacProcedure
+
+      const insightsBookingService = createInsightsBookingService(ctx, input);
+      try {
+        return await insightsBookingService.getEventTrendsStats({
+          timeZone,
+          dateRanges,
+        });
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+    }),
+  popularEvents: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
       const insightsBookingService = createInsightsBookingService(ctx, input);
@@ -493,7 +479,7 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
-  averageEventDuration: insightsPbacProcedure
+  averageEventDuration: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const { columnFilters, timeZone } = input;
@@ -554,7 +540,7 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
-  membersWithMostCancelledBookings: insightsPbacProcedure
+  membersWithMostCancelledBookings: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
       const insightsBookingService = createInsightsBookingService(ctx, input);
@@ -568,7 +554,7 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
-  membersWithMostCompletedBookings: insightsPbacProcedure
+  membersWithMostCompletedBookings: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
       const insightsBookingService = createInsightsBookingService(ctx, input);
@@ -583,7 +569,7 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
-  membersWithLeastCompletedBookings: insightsPbacProcedure
+  membersWithLeastCompletedBookings: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
       const insightsBookingService = createInsightsBookingService(ctx, input);
@@ -598,7 +584,7 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
-  membersWithMostBookings: insightsPbacProcedure
+  membersWithMostBookings: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
       const insightsBookingService = createInsightsBookingService(ctx, input);
@@ -609,7 +595,7 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
-  membersWithLeastBookings: insightsPbacProcedure
+  membersWithLeastBookings: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
       const insightsBookingService = createInsightsBookingService(ctx, input);
@@ -773,7 +759,7 @@ export const insightsRouter = router({
 
       return usersInTeam.map((membership) => membership.user);
     }),
-  eventTypeList: insightsPbacProcedure
+  eventTypeList: userBelongsToTeamProcedure
     .input(
       z.object({
         teamId: z.coerce.number().nullish(),
@@ -799,13 +785,13 @@ export const insightsRouter = router({
 
       return eventTypeList;
     }),
-  recentRatings: insightsPbacProcedure
+  recentRatings: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const insightsBookingService = createInsightsBookingService(ctx, input);
       return await insightsBookingService.getRecentRatingsStats();
     }),
-  membersWithMostNoShow: insightsPbacProcedure
+  membersWithMostNoShow: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
       const insightsBookingService = createInsightsBookingService(ctx, input);
@@ -816,19 +802,19 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
-  membersWithHighestRatings: insightsPbacProcedure
+  membersWithHighestRatings: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const insightsBookingService = createInsightsBookingService(ctx, input);
       return await insightsBookingService.getMembersRatingStats("DESC");
     }),
-  membersWithLowestRatings: insightsPbacProcedure
+  membersWithLowestRatings: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const insightsBookingService = createInsightsBookingService(ctx, input);
       return await insightsBookingService.getMembersRatingStats("ASC");
     }),
-  rawData: insightsPbacProcedure
+  rawData: userBelongsToTeamProcedure
     .input(
       bookingRepositoryBaseInputSchema.extend({
         limit: z.number().max(100).optional(),
@@ -836,7 +822,7 @@ export const insightsRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const { limit, offset } = input;
+      const { limit, offset, timeZone } = input;
 
       const insightsBookingService = createInsightsBookingService(ctx, input);
 
@@ -844,13 +830,14 @@ export const insightsRouter = router({
         return await insightsBookingService.getCsvData({
           limit: limit ?? 100,
           offset: offset ?? 0,
+          timeZone,
         });
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
 
-  getRoutingFormsForFilters: insightsPbacProcedure
+  getRoutingFormsForFilters: userBelongsToTeamProcedure
     .input(z.object({ userId: z.number().optional(), teamId: z.number().optional(), isAll: z.boolean() }))
     .query(async ({ ctx, input }) => {
       const { teamId, isAll } = input;
@@ -861,13 +848,13 @@ export const insightsRouter = router({
         organizationId: ctx.user.organizationId ?? undefined,
       });
     }),
-  routingFormsByStatus: insightsPbacProcedure
+  routingFormsByStatus: userBelongsToTeamProcedure
     .input(insightsRoutingServiceInputSchema)
     .query(async ({ ctx, input }) => {
       const insightsRoutingService = createInsightsRoutingService(ctx, input);
       return await insightsRoutingService.getRoutingFormStats();
     }),
-  routingFormResponses: insightsPbacProcedure
+  routingFormResponses: userBelongsToTeamProcedure
     .input(insightsRoutingServicePaginatedInputSchema)
     .query(async ({ ctx, input }) => {
       const insightsRoutingService = createInsightsRoutingService(ctx, input);
@@ -877,7 +864,7 @@ export const insightsRouter = router({
         offset: input.offset,
       });
     }),
-  routingFormResponsesForDownload: insightsPbacProcedure
+  routingFormResponsesForDownload: userBelongsToTeamProcedure
     .input(insightsRoutingServicePaginatedInputSchema)
     .query(async ({ ctx, input }) => {
       const headersPromise = RoutingEventsInsights.getRoutingFormHeaders({
@@ -900,9 +887,10 @@ export const insightsRouter = router({
       return await RoutingEventsInsights.getRoutingFormPaginatedResponsesForDownload({
         headersPromise,
         dataPromise,
+        timeZone: ctx.user.timeZone,
       });
     }),
-  getRoutingFormFieldOptions: insightsPbacProcedure
+  getRoutingFormFieldOptions: userBelongsToTeamProcedure
     .input(
       z.object({
         userId: z.number().optional(),
@@ -919,7 +907,7 @@ export const insightsRouter = router({
       });
       return options;
     }),
-  failedBookingsByField: insightsPbacProcedure
+  failedBookingsByField: userBelongsToTeamProcedure
     .input(insightsRoutingServiceInputSchema)
     .query(async ({ ctx, input }) => {
       const insightsRoutingService = createInsightsRoutingService(ctx, input);
@@ -929,7 +917,7 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
-  routingFormResponsesHeaders: insightsPbacProcedure
+  routingFormResponsesHeaders: userBelongsToTeamProcedure
     .input(
       z.object({
         userId: z.number().optional(),
@@ -949,7 +937,7 @@ export const insightsRouter = router({
 
       return headers || [];
     }),
-  routedToPerPeriod: insightsPbacProcedure
+  routedToPerPeriod: userBelongsToTeamProcedure
     .input(routedToPerPeriodInputSchema)
     .query(async ({ ctx, input }) => {
       const { period, limit, searchQuery, ...rest } = input;
@@ -965,7 +953,7 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
-  routedToPerPeriodCsv: insightsPbacProcedure
+  routedToPerPeriodCsv: userBelongsToTeamProcedure
     .input(routedToPerPeriodCsvInputSchema)
     .query(async ({ ctx, input }) => {
       const { period, searchQuery, ...rest } = input;
@@ -998,7 +986,7 @@ export const insightsRouter = router({
       throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
     }
   }),
-  getRoutingFunnelData: insightsPbacProcedure
+  getRoutingFunnelData: userBelongsToTeamProcedure
     .input(routingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const timeView = getTimeView(input.startDate, input.endDate);
@@ -1016,7 +1004,7 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
-  bookingsByHourStats: insightsPbacProcedure
+  bookingsByHourStats: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const { timeZone } = input;
@@ -1030,7 +1018,7 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
-  recentNoShowGuests: insightsPbacProcedure
+  recentNoShowGuests: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const insightsBookingService = createInsightsBookingService(ctx, input);

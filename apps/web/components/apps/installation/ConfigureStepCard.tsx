@@ -7,10 +7,10 @@ import { useFieldArray, useFormContext } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import NoSSR from "@calcom/lib/components/NoSSR";
-import { locationsResolver } from "@calcom/lib/event-types/utils/locationsResolver";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { LocationObject } from "@calcom/app-store/locations";
+import { locationsResolver } from "@calcom/app-store/locations";
+import NoSSR from "@calcom/lib/components/NoSSR";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import type { EventTypeMetaDataSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { Avatar } from "@calcom/ui/components/avatar";
