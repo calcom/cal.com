@@ -492,7 +492,7 @@ export async function sendSignupToOrganizationEmail({
       data: {
         identifier: usernameOrEmail,
         token,
-        expires: new Date(new Date().setHours(168)), // +1 week
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // +1 week
         team: {
           connect: {
             id: teamId,
@@ -717,7 +717,7 @@ export const sendExistingUserTeamInviteEmails = async ({
           data: {
             identifier: user.email,
             token,
-            expires: new Date(new Date().setHours(168)), // +1 week
+            expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // +1 week
             team: {
               connect: {
                 id: teamId,
