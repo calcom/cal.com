@@ -422,7 +422,10 @@ export class TeamRepository {
     parentId?: number | null;
   }) {
     const whereClause: Prisma.TeamWhereInput = {
-      slug,
+      slug: {
+        equals: slug,
+        mode: "insensitive",
+      },
       parentId: parentId ?? null,
       NOT: { id: teamId },
     };
