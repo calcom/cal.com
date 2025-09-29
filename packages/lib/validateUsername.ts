@@ -85,42 +85,44 @@ export const validateAndGetCorrectedUsernameInTeam = async (
   isSignup: boolean
 ) => {
   try {
-    const team = await prisma.team.findUnique({
-      where: {
-        id: teamId,
-      },
-      select: {
-        metadata: true,
-        isOrganization: true,
-        parentId: true,
-        organizationSettings: true,
-        parent: {
-          select: {
-            organizationSettings: true,
-          },
-        },
-      },
-    });
+    return validateAndGetCorrectedUsernameAndEmail({ username, email, isSignup });
 
-    console.log("validateAndGetCorrectedUsernameInTeam", {
-      teamId,
-      team,
-    });
-    const organization = team?.isOrganization ? team : team?.parent;
-    if (organization) {
-      // Organization context -> org-context username check
-      const orgId = team?.parentId || teamId;
-      return validateAndGetCorrectedUsernameAndEmail({
-        username,
-        email,
-        organizationId: orgId,
-        orgAutoAcceptEmail: organization?.organizationSettings?.orgAutoAcceptEmail || "",
-        isSignup,
-      });
-    } else {
-      // Regular team context -> regular username check
-      return validateAndGetCorrectedUsernameAndEmail({ username, email, isSignup });
-    }
+    // const team = await prisma.team.findUnique({
+    //   where: {
+    //     id: teamId,
+    //   },
+    //   select: {
+    //     metadata: true,
+    //     isOrganization: true,
+    //     parentId: true,
+    //     organizationSettings: true,
+    //     parent: {
+    //       select: {
+    //         organizationSettings: true,
+    //       },
+    //     },
+    //   },
+    // });
+
+    // console.log("validateAndGetCorrectedUsernameInTeam", {
+    //   teamId,
+    //   team,
+    // });
+    // const organization = team?.isOrganization ? team : team?.parent;
+    // if (organization) {
+    //   // Organization context -> org-context username check
+    //   const orgId = team?.parentId || teamId;
+    //   return validateAndGetCorrectedUsernameAndEmail({
+    //     username,
+    //     email,
+    //     organizationId: orgId,
+    //     orgAutoAcceptEmail: organization?.organizationSettings?.orgAutoAcceptEmail || "",
+    //     isSignup,
+    //   });
+    // } else {
+    //   // Regular team context -> regular username check
+    //   return validateAndGetCorrectedUsernameAndEmail({ username, email, isSignup });
+    // }
   } catch (error) {
     console.error(error);
     return { isValid: false, username: undefined, email: undefined };
