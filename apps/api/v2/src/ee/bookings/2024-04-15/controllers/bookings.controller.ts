@@ -7,6 +7,9 @@ import { MarkNoShowOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/ma
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { sha256Hash, isApiKey, stripApiKey } from "@/lib/api-key";
 import { VERSION_2024_04_15, VERSION_2024_06_11, VERSION_2024_06_14 } from "@/lib/api-versions";
+import { InstantBookingCreateService } from "@/lib/services/instant-booking-create.service";
+import { RecurringBookingService } from "@/lib/services/recurring-booking.service";
+import { RegularBookingService } from "@/lib/services/regular-booking.service";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
@@ -45,11 +48,8 @@ import { v4 as uuidv4 } from "uuid";
 import { X_CAL_CLIENT_ID, X_CAL_PLATFORM_EMBED } from "@calcom/platform-constants";
 import { BOOKING_READ, SUCCESS_STATUS, BOOKING_WRITE } from "@calcom/platform-constants";
 import {
-  handleNewRecurringBooking,
-  handleNewBooking,
   BookingResponse,
   HttpError,
-  handleInstantMeeting,
   handleMarkNoShow,
   getAllUserBookings,
   getBookingInfo,
@@ -58,6 +58,7 @@ import {
   ErrorCode,
 } from "@calcom/platform-libraries";
 import { CreationSource } from "@calcom/platform-libraries";
+import { type InstantBookingCreateResult } from "@calcom/platform-libraries/bookings";
 import {
   GetBookingsInput_2024_04_15,
   CancelBookingInput_2024_04_15,
@@ -109,7 +110,10 @@ export class BookingsController_2024_04_15 {
     private readonly apiKeyRepository: ApiKeysRepository,
     private readonly platformBookingsService: PlatformBookingsService,
     private readonly usersRepository: UsersRepository,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    private readonly regularBookingService: RegularBookingService,
+    private readonly recurringBookingService: RecurringBookingService,
+    private readonly instantBookingCreateService: InstantBookingCreateService
   ) {}
 
   @Get("/")
@@ -187,17 +191,19 @@ export class BookingsController_2024_04_15 {
     const { orgSlug, locationUrl } = body;
     try {
       const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl, isEmbed);
-      const booking = await handleNewBooking({
+      const booking = await this.regularBookingService.createBooking({
         bookingData: bookingRequest.body,
-        userId: bookingRequest.userId,
-        hostname: bookingRequest.headers?.host || "",
-        forcedSlug: orgSlug,
-        platformClientId: bookingRequest.platformClientId,
-        platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
-        platformCancelUrl: bookingRequest.platformCancelUrl,
-        platformBookingUrl: bookingRequest.platformBookingUrl,
-        platformBookingLocation: bookingRequest.platformBookingLocation,
-        areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+        bookingMeta: {
+          userId: bookingRequest.userId,
+          hostname: bookingRequest.headers?.host || "",
+          forcedSlug: orgSlug,
+          platformClientId: bookingRequest.platformClientId,
+          platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+          platformCancelUrl: bookingRequest.platformCancelUrl,
+          platformBookingUrl: bookingRequest.platformBookingUrl,
+          platformBookingLocation: bookingRequest.platformBookingLocation,
+          areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+        },
       });
       if (booking.userId && booking.uid && booking.startTime) {
         void (await this.billingService.increaseUsageByUserId(booking.userId, {
@@ -315,15 +321,17 @@ export class BookingsController_2024_04_15 {
 
       const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed);
 
-      const createdBookings: BookingResponse[] = await handleNewRecurringBooking({
+      const createdBookings: BookingResponse[] = await this.recurringBookingService.createBooking({
         bookingData: bookingRequest.body,
-        userId: bookingRequest.userId,
-        hostname: bookingRequest.headers?.host || "",
-        platformClientId: bookingRequest.platformClientId,
-        platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
-        platformCancelUrl: bookingRequest.platformCancelUrl,
-        platformBookingUrl: bookingRequest.platformBookingUrl,
-        platformBookingLocation: bookingRequest.platformBookingLocation,
+        bookingMeta: {
+          userId: bookingRequest.userId,
+          hostname: bookingRequest.headers?.host || "",
+          platformClientId: bookingRequest.platformClientId,
+          platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+          platformCancelUrl: bookingRequest.platformCancelUrl,
+          platformBookingUrl: bookingRequest.platformBookingUrl,
+          platformBookingLocation: bookingRequest.platformBookingLocation,
+        },
       });
 
       createdBookings.forEach(async (booking) => {
@@ -351,14 +359,15 @@ export class BookingsController_2024_04_15 {
     @Body() body: CreateBookingInput_2024_04_15,
     @Headers(X_CAL_CLIENT_ID) clientId?: string,
     @Headers(X_CAL_PLATFORM_EMBED) isEmbed?: string
-  ): Promise<ApiResponse<Awaited<ReturnType<typeof handleInstantMeeting>>>> {
+  ): Promise<ApiResponse<InstantBookingCreateResult>> {
     const oAuthClientId =
       clientId?.toString() || (await this.getOAuthClientIdFromEventType(body.eventTypeId));
     req.userId = (await this.getOwnerId(req)) ?? -1;
     try {
-      const instantMeeting = await handleInstantMeeting(
-        await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed)
-      );
+      const bookingReq = await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed);
+      const instantMeeting = await this.instantBookingCreateService.createBooking({
+        bookingData: bookingReq.body,
+      });
 
       if (instantMeeting.userId && instantMeeting.bookingUid) {
         const now = new Date();
