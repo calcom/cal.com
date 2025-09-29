@@ -2,6 +2,7 @@ import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-util
 import logger from "@calcom/lib/logger";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import type { Payment } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { handleNoShowFee } from "./handleNoShowFee";
 import { shouldChargeNoShowCancellationFee } from "./shouldChargeNoShowCancellationFee";
@@ -34,7 +35,7 @@ export const processNoShowFeeOnCancellation = async ({
 
     if (
       membership &&
-      (membership.role === UserPermissionRole.OWNER || membership.role === UserPermissionRole.ADMIN)
+      (membership.role === MembershipRole.OWNER || membership.role === MembershipRole.ADMIN)
     ) {
       log.info(
         `Booking ${booking.uid} was cancelled by team admin/owner (${cancelledByUserId}), skipping no-show fee`
