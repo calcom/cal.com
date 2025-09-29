@@ -195,7 +195,7 @@ describe("confirmHandler", () => {
           metadata: {
             customField: "custom-value",
           },
-        },
+        } as any,
       };
 
       // Call the real implementation with modified params
