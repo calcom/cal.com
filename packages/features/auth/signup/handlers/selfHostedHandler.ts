@@ -4,16 +4,16 @@ import { checkPremiumUsername } from "@calcom/ee/common/lib/checkPremiumUsername
 import { hashPasswordWithSalt } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
-import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
+import { IS_PREMIUM_USERNAME_ENABLED, SIGNUP_URL } from "@calcom/lib/constants";
+import { checkIfUserNameTaken, usernameSlugRandom } from "@calcom/lib/getName";
 import logger from "@calcom/lib/logger";
+import { sendUserToMakeWebhook } from "@calcom/lib/sendUserToWebhook";
 import { isUsernameReservedDueToMigration } from "@calcom/lib/server/username";
-import slugify from "@calcom/lib/slugify";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/lib/validateUsername";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 
-import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
 import { prefillAvatar } from "../utils/prefillAvatar";
 import {
   findTokenByToken,
@@ -23,15 +23,17 @@ import {
 
 export default async function handler(body: Record<string, string>) {
   const { email, password, language, token } = signupSchema.parse(body);
-
-  const username = slugify(body.username);
+  const { existingUserWithUsername, username: _username } = await checkIfUserNameTaken({
+    username: body.username,
+  });
+  const username = existingUserWithUsername ? usernameSlugRandom(body.username) : _username;
   const userEmail = email.toLowerCase();
 
   if (!username) {
     return NextResponse.json({ message: "Invalid username" }, { status: 422 });
   }
 
-  let foundToken: { id: number; teamId: number | null; expires: Date } | null = null;
+  let foundToken: { id: number; calIdTeamId: number | null; expires: Date } | null = null;
   let correctedUsername = username;
   if (token) {
     foundToken = await findTokenByToken({ token });
@@ -39,7 +41,7 @@ export default async function handler(body: Record<string, string>) {
     correctedUsername = await validateAndGetCorrectedUsernameForTeam({
       username,
       email: userEmail,
-      teamId: foundToken?.teamId,
+      teamId: foundToken?.calIdTeamId,
       isSignup: true,
     });
   } else {
@@ -60,27 +62,27 @@ export default async function handler(body: Record<string, string>) {
 
   const { hash, salt } = await hashPasswordWithSalt(password);
 
-  if (foundToken && foundToken?.teamId) {
-    const team = await prisma.team.findUnique({
+  if (foundToken && foundToken?.calIdTeamId) {
+    const team = await prisma.calIdTeam.findUnique({
       where: {
-        id: foundToken.teamId,
+        id: foundToken.calIdTeamId,
       },
-      include: {
-        parent: {
-          select: {
-            id: true,
-            slug: true,
-            organizationSettings: true,
-          },
-        },
-        organizationSettings: true,
-      },
+      // include: {
+      //   parent: {
+      //     select: {
+      //       id: true,
+      //       slug: true,
+      //       organizationSettings: true,
+      //     },
+      //   },
+      //   organizationSettings: true,
+      // },
     });
 
     if (team) {
-      const isInviteForATeamInOrganization = !!team.parent;
-      const isCheckingUsernameInGlobalNamespace = !team.isOrganization && !isInviteForATeamInOrganization;
-
+      // const isInviteForATeamInOrganization = !!team.parent;
+      // const isCheckingUsernameInGlobalNamespace = !team.isOrganization && !isInviteForATeamInOrganization;
+      const isCheckingUsernameInGlobalNamespace = true;
       if (isCheckingUsernameInGlobalNamespace) {
         const isUsernameAvailable = !(await isUsernameReservedDueToMigration(correctedUsername));
         if (!isUsernameAvailable) {
@@ -114,13 +116,21 @@ export default async function handler(body: Record<string, string>) {
         team,
       });
 
-      // Accept any child team invites for orgs.
-      if (team.parent) {
-        await joinAnyChildTeamOnOrgInvite({
-          userId: user.id,
-          org: team.parent,
-        });
-      }
+      // // Accept any child team invites for orgs.
+      // if (team.parent) {
+      //   await joinAnyChildTeamOnOrgInvite({
+      //     userId: user.id,
+      //     org: team.parent,
+      //   });
+      // }
+
+      await sendUserToMakeWebhook({
+        id: user.id,
+        email: user.email,
+        name: user.name ?? "N/A",
+        username: user.username ?? "N/A",
+        identityProvider: user.identityProvider,
+      });
     }
 
     // Cleanup token after use
@@ -138,7 +148,7 @@ export default async function handler(body: Record<string, string>) {
       const checkUsername = await checkPremiumUsername(correctedUsername);
       if (checkUsername.premium) {
         return NextResponse.json(
-          { message: "Sign up from https://cal.com/signup to claim your premium username" },
+          { message: `Sign up from ${SIGNUP_URL} to claim your premium username` },
           { status: 422 }
         );
       }
