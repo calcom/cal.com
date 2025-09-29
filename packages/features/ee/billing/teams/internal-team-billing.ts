@@ -12,6 +12,8 @@ import type { Prisma } from "@calcom/prisma/client";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
 import billing from "..";
+import { IBillingRepository, IBillingRepositoryCreateArgs } from "../repository/IBillingRepository";
+import { BillingRepositoryFactory } from "../repository/billingRepositoryFactory";
 import { TeamBillingPublishResponseStatus, type TeamBilling, type TeamBillingInput } from "./team-billing";
 
 const log = logger.getSubLogger({ prefix: ["TeamBilling"] });
@@ -22,8 +24,10 @@ export class InternalTeamBilling implements TeamBilling {
   private _team!: Omit<TeamBillingInput, "metadata"> & {
     metadata: NonNullable<z.infer<typeof teamPaymentMetadataSchema>>;
   };
+  private billingRepository: IBillingRepository;
   constructor(team: TeamBillingInput) {
     this.team = team;
+    this.billingRepository = BillingRepositoryFactory.getRepository(team.isOrganization);
   }
   set team(team: TeamBillingInput) {
     const metadata = teamPaymentMetadataSchema.parse(team.metadata || {});
@@ -200,5 +204,8 @@ export class InternalTeamBilling implements TeamBilling {
       this.logErrorFromUnknown(error);
       return false;
     }
+  }
+  async saveTeamBilling(args: IBillingRepositoryCreateArgs) {
+    await this.billingRepository.create(args);
   }
 }
