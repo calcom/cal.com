@@ -5,6 +5,7 @@ import { headers, cookies } from "next/headers";
 import React from "react";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
+import { IS_PROD_DOMAIN } from "@calcom/lib/constants";
 import { loadTranslations } from "@calcom/lib/server/i18n";
 import { IconSprites } from "@calcom/ui/components/icon";
 
@@ -73,10 +74,13 @@ export const metadata = {
     creator: "@calcom",
     card: "summary_large_image",
   },
-  robots: {
-    index: true,
-    follow: true,
-  },
+  //allow indexing only on production domain
+  robots: IS_PROD_DOMAIN
+    ? {
+        index: true,
+        follow: true,
+      }
+    : { index: false, follow: false },
 };
 
 const getInitialProps = async () => {
