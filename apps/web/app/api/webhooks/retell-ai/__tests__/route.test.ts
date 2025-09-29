@@ -695,7 +695,7 @@ describe("Retell AI Webhook Handler", () => {
   describe("Web Call Tests", () => {
     const mockAgent: Pick<
       Agent,
-      "id" | "name" | "providerAgentId" | "enabled" | "userId" | "teamId" | "createdAt" | "updatedAt"
+      "id" | "name" | "providerAgentId" | "enabled" | "userId" | "teamId" | "createdAt" | "updatedAt" | "inboundEventTypeId"
     > = {
       id: "agent-123",
       name: "Test Agent",
@@ -705,6 +705,7 @@ describe("Retell AI Webhook Handler", () => {
       teamId: null,
       createdAt: new Date(),
       updatedAt: new Date(),
+      inboundEventTypeId: null,
     };
 
     beforeEach(() => {
@@ -755,7 +756,7 @@ describe("Retell AI Webhook Handler", () => {
     });
 
     it("should handle web call with team agent", async () => {
-      const teamAgent = { ...mockAgent, userId: 2, teamId: 10 };
+      const teamAgent = { ...mockAgent, userId: 2, teamId: 10, inboundEventTypeId: null };
       vi.mocked(PrismaAgentRepository.findByProviderAgentId).mockResolvedValue(teamAgent);
       mockChargeCredits.mockResolvedValue(undefined);
 
