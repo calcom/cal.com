@@ -3,103 +3,77 @@ title: 'Introduction to API v2'
 description: 'Introduction to Cal.com API v2 endpoints'
 ---
 
-## Authentication for Platform customers
+## Platform endpoints
+Platform customers have the following endpoints available:
 
-**Platform customers must use OAuth authentication** - API keys are not supported. All data created through the API will be attached to your OAuth client, ensuring proper data ownership and isolation.
+1. Endpoints prefixed with "Platform".
+2. Endpoints with no prefix e.g "Bookings", "Event Types".
+3. If you are at least on the ESSENTIALS plan, then all endpoints prefixed with "Orgs" except "Orgs / Attributes", "Orgs / Attributes / Options" and "Orgs / Teams / Routing forms / Responses".
 
-### OAuth client credentials (Required for Platform operations)
+## Organizations endpoints
+Organizations customers have all the endpoints except the ones prefixed with "Platform" and "Teams" and "Orgs / Orgs" because
+children organizations are only allowed in the platform plan right now.
 
-OAuth credentials are **required** for all Platform-specific operations. Without proper OAuth headers, your data will not be correctly associated with your OAuth client.
+## Teams endpoints
+Teams customers have all the endpoints except the ones prefixed with "Platform" and "Orgs".
 
-#### Getting your OAuth credentials
+## Authentication
 
-1. Access your OAuth credentials in the [Platform dashboard](https://app.cal.com/settings/platform)
-2. Create an OAuth client if you haven't already
-3. Note your Client ID and Secret Key
+The Cal.com API has 3 authentication methods:
 
-#### Using OAuth credentials
+1. API key
+2. Platform OAuth client credentials
+3. Managed user access token
 
-Pass these headers with **every Platform API request**:
+**For Platform customers:** You must use OAuth credentials or managed user access tokens - never API keys. This is critical because OAuth authentication ensures all data created through the API is properly attached to your OAuth client, maintaining data integrity and proper attribution in your Platform integration.
 
-```bash
-curl -X POST "https://api.cal.com/v2/platform/managed-users" \
-  -H "x-cal-client-id: your_oauth_client_id" \
-  -H "x-cal-secret-key: your_oauth_secret_key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "user@example.com",
-    "username": "newuser"
-  }'
+### 1. API key
+
+You can view and manage your API keys in your settings page under the security tab in Cal.com.
+
+<img src="/images/i1600x899-DllqhV6w_3Vj_oxtjov.png" />
+
+API Keys are under Settings > Security
+
+Test mode secret keys have the prefix `cal_` and live mode secret keys have the prefix `cal_live_`.
+
+Your API keys carry many privileges, so be sure to keep them secure! Do not share your secret API keys in publicly accessible areas such as GitHub, client-side code, and so forth.
+
+Authentication to the API is performed via the Authorization header. For example, the request would go something like:
+
+```
+'Authorization': 'Bearer YOUR_API_KEY'
 ```
 
-**Critical**: These headers ensure all created data (users, bookings, event types) is properly attached to your OAuth client.
+in your request header.
 
-#### When to use OAuth credentials
+All API requests must be made over HTTPS. Calls made over plain HTTP will fail. API requests without authentication will also fail.
 
-Use OAuth credentials for:
+### 2. OAuth client credentials
+You need to use OAuth credentials when:
 
-- **Managing managed users** - [Create](https://cal.com/docs/api-reference/v2/platform-managed-users/create-a-managed-user), [refresh tokens](https://cal.com/docs/api-reference/v2/platform-managed-users/refresh-managed-user-tokens)
-- **Platform webhooks** - [Create webhooks](https://cal.com/docs/api-reference/v2/platform-webhooks/create-a-webhook)
-- **Organization management** - [Teams](https://cal.com/docs/api-reference/v2/orgs-teams/create-a-team), [memberships](https://cal.com/docs/api-reference/v2/orgs-teams-memberships/create-a-membership), [team event types](https://cal.com/docs/api-reference/v2/orgs-event-types/create-an-event-type)
+1. Managing managed users [API reference](https://cal.com/docs/api-reference/v2/platform-managed-users/create-a-managed-user)
+2. Creating OAuth client webhooks [API reference](https://cal.com/docs/api-reference/v2/platform-webhooks/create-a-webhook)
+3. Refreshing tokens of a managed user [API reference](https://cal.com/docs/api-reference/v2/platform-managed-users/refresh-managed-user-tokens)
+4. Teams related endpoints: Managing organization teams [API reference](https://cal.com/docs/api-reference/v2/orgs-teams/create-a-team), adding managed users as members to teams [API reference](https://cal.com/docs/api-reference/v2/orgs-teams-memberships/create-a-membership), creating team event types [API reference](https://cal.com/docs/api-reference/v2/orgs-event-types/create-an-event-type).
 
-### Managed user access tokens
+OAuth credentials can be accessed in the platform dashboard https://app.cal.com/settings/platform after you have created an OAuth client. Each one has an ID and secret. You then need to pass them as request headers:
 
-After creating a managed user, you'll receive access and refresh tokens. Store these securely in your database alongside the managed user ID.
+1. `x-cal-client-id` - ID of the OAuth client.
+2. `x-cal-secret-key` - secret of the OAuth client.
 
-#### Using managed user tokens
+### 3. Managed user access token
 
-For managed user-specific operations, use the access token:
+After you create a managed user you will receive its access and refresh tokens. The response also includes managed user's id, so we recommend you to add new properties to your users table calAccessToken, calRefreshToken and calManagedUserId to store this information.
 
-```bash
-curl -X GET "https://api.cal.com/v2/bookings" \
-  -H "Authorization: Bearer managed_user_access_token" \
-  -H "Content-Type: application/json"
-```
+You need to use access token when managing managed user's:
+1. Schedules [API reference](https://cal.com/docs/api-reference/v2/schedules/create-a-schedule)
+2. Event types [API reference](https://cal.com/docs/api-reference/v2/event-types/create-an-event-type)
+3. Bookings - some endpoints like creating a booking is public, but some like getting all managed user's bookings require managed user's access token [API reference](https://cal.com/docs/api-reference/v2/bookings/get-all-bookings)
 
-#### When to use managed user tokens
+It is passed as an authorization bearer request header Authorization: Bearer \<access-token\>.
 
-Use managed user access tokens for:
+Validity period: access tokens are valid for 60 minutes and refresh tokens for 1 year, and tokens can be refreshed using the refresh endpoint [API reference](https://cal.com/docs/api-reference/v2/oauth/post-v2oauth-refresh). After refreshing you will receive the new access and refresh tokens that you have to store in your database.
 
-- **User schedules** - [Create/manage schedules](https://cal.com/docs/api-reference/v2/schedules/create-a-schedule)
-- **User event types** - [Create/manage event types](https://cal.com/docs/api-reference/v2/event-types/create-an-event-type)  
-- **User bookings** - [Get user's bookings](https://cal.com/docs/api-reference/v2/bookings/get-all-bookings)
-
-#### Token management
-
-- **Access tokens**: Valid for 60 minutes
-- **Refresh tokens**: Valid for 1 year
-- **Refreshing**: Use the [refresh endpoint](https://cal.com/docs/api-reference/v2/oauth/post-v2oauth-refresh)
-- **Recovery**: [Force refresh tokens](https://cal.com/docs/api-reference/v2/platform-managed-users/force-refresh-tokens) using OAuth credentials
-
-```bash
-# Refresh tokens
-curl -X POST "https://api.cal.com/v2/oauth/refresh" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "refreshToken": "user_refresh_token"
-  }'
-```
-
-## Available endpoints by plan
-
-### Platform endpoints
-Platform customers have access to:
-
-1. **Platform-prefixed endpoints** (require OAuth credentials)
-2. **Standard endpoints** like "Bookings", "Event Types" (require managed user tokens)
-3. **Organization endpoints** (ESSENTIALS+ plan) - all "Orgs" endpoints except "Orgs / Attributes", "Orgs / Attributes / Options" and "Orgs / Teams / Routing forms / Responses"
-
-### Organizations endpoints
-Organization customers have all endpoints except "Platform" and "Teams" prefixed endpoints, and "Orgs / Orgs" (children organizations require Platform plan).
-
-### Teams endpoints  
-Teams customers have all endpoints except "Platform" and "Orgs" prefixed endpoints.
-
-## Security requirements
-
-- All API requests must be made over **HTTPS**
-- HTTP requests will fail
-- Requests without proper authentication will fail
-- Store OAuth credentials and tokens securely
-- Never expose credentials in client-side code or public repositories
+Recovering tokens: if you ever lose managed user's access or refresh tokens, you can force refresh them using the OAuth client credentials and store them in your database [API reference](https://cal.com/docs/api-reference/v2/platform-managed-users/force-refresh-tokens).
 
