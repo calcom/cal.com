@@ -182,6 +182,7 @@ export default function Signup({
 
   useEffect(() => {
     if (redirectUrl) {
+      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       localStorage.setItem("onBoardingRedirect", redirectUrl);
     }
   }, [redirectUrl]);
@@ -235,7 +236,10 @@ export default function Signup({
 
         telemetry.event(telemetryEventTypes.signup, collectPageParameters());
 
-        const verifyOrGettingStarted = emailVerificationEnabled ? "auth/verify-email" : "getting-started";
+        //if we have token, means user was invited through email
+        const verifyOrGettingStarted =
+          token || !emailVerificationEnabled ? "getting-started" : "auth/verify-email";
+
         const gettingStartedWithPlatform = "settings/platform/new";
 
         const constructCallBackIfUrlPresent = () => {
@@ -276,7 +280,7 @@ export default function Signup({
 
   return (
     <>
-      <div className="bg-default flex flex-col min-h-screen items-center justify-center p-4">
+      <div className="bg-default flex min-h-screen flex-col items-center justify-center p-4">
         <div className="border-default w-full max-w-7xl overflow-hidden rounded-2xl border shadow-xl">
           <div className="grid min-h-[600px] grid-cols-1 lg:grid-cols-2">
             {/* Left Column - Signup Form */}
@@ -401,7 +405,7 @@ export default function Signup({
                   <Button
                     type="submit"
                     data-testid="signup-submit-button"
-                    className="w-full justify-center py-3 bg-active dark:bg-gray-200 border-active dark:border-default"
+                    className="bg-active border-active dark:border-default w-full justify-center py-3 dark:bg-gray-200"
                     loading={loadingSubmitState}
                     disabled={
                       !!formMethods.formState.errors.username ||
@@ -423,7 +427,9 @@ export default function Signup({
               <div className="mt-4">
                 <div className="text-center">
                   <span className="text-subtle">{t("already_have_account")} </span>
-                  <Link href="/auth/login" className="text-active dark:text-default font-medium hover:underline">
+                  <Link
+                    href="/auth/login"
+                    className="text-active dark:text-default font-medium hover:underline">
                     {t("sign_in")}
                   </Link>
                 </div>
@@ -433,7 +439,9 @@ export default function Signup({
                     {t("terms")}
                   </Link>{" "}
                   and{" "}
-                  <Link href={WEBSITE_PRIVACY_POLICY_URL} className="text-active dark:text-default hover:underline">
+                  <Link
+                    href={WEBSITE_PRIVACY_POLICY_URL}
+                    className="text-active dark:text-default hover:underline">
                     {t("privacy_policy")}
                   </Link>
                 </div>
@@ -459,7 +467,7 @@ export default function Signup({
                 {/* Features List */}
                 <div className="space-y-2">
                   <div className="flex items-start space-x-2">
-                    <div className="bg-cal-active dark:bg-gray-300 mt-2 h-2 w-2 flex-shrink-0 rounded-full" />
+                    <div className="bg-cal-active mt-2 h-2 w-2 flex-shrink-0 rounded-full dark:bg-gray-300" />
                     <div>
                       <h3 className="text-default font-semibold">Smart scheduling algorithms</h3>
                       <span className="text-subtle text-sm">
@@ -469,7 +477,7 @@ export default function Signup({
                   </div>
 
                   <div className="flex items-start space-x-2">
-                    <div className="bg-cal-active dark:bg-gray-300 mt-2 h-2 w-2 flex-shrink-0 rounded-full" />
+                    <div className="bg-cal-active mt-2 h-2 w-2 flex-shrink-0 rounded-full dark:bg-gray-300" />
                     <div>
                       <h3 className="text-default font-semibold">Calendar integrations</h3>
                       <span className="text-subtle text-sm">
@@ -479,7 +487,7 @@ export default function Signup({
                   </div>
 
                   <div className="flex items-start space-x-2">
-                    <div className="bg-cal-active dark:bg-gray-300 mt-2 h-2 w-2 flex-shrink-0 rounded-full" />
+                    <div className="bg-cal-active mt-2 h-2 w-2 flex-shrink-0 rounded-full dark:bg-gray-300" />
                     <div>
                       <h3 className="text-default font-semibold">Team collaboration tools</h3>
                       <span className="text-subtle text-sm">

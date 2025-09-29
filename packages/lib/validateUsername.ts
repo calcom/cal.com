@@ -85,6 +85,17 @@ export const validateAndGetCorrectedUsernameInTeam = async (
   isSignup: boolean
 ) => {
   try {
+    //CASE 1: if its the same user that was invited to the team, allow the username
+    const user = await prisma.user.findFirst({
+      where: {
+        email,
+        invitedTo: teamId,
+      },
+    });
+    if (user) {
+      return { isValid: true, username: user.username, email: user.email };
+    }
+    //CASE 2: if its a different user, check if the username or email is taken in the team
     return validateAndGetCorrectedUsernameAndEmail({ username, email, isSignup });
 
     // const team = await prisma.team.findUnique({

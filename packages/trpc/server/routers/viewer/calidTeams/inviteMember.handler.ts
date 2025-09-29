@@ -179,7 +179,8 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
           from: ctx.user.name || "A team admin",
           language: await getTranslation(input.language, "common"),
           teamName: team.name,
-          joinLink: `${WEBAPP_URL}/signup?token=${inviteToken}&callbackUrl=/teams/${teamId}`,
+
+          joinLink: `${WEBAPP_URL}/signup?token=${inviteToken}&redirect=/teams`,
           isCalcomMember: false,
           isAutoJoin: false,
           isOrg: false,

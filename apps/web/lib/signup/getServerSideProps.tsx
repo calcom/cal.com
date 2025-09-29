@@ -33,10 +33,10 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const token = z.string().optional().parse(ctx.query.token);
   const redirectUrlData = z
     .string()
-    .refine((value) => value.startsWith(WEBAPP_URL), {
-      params: (value: string) => ({ value }),
-      message: "Redirect URL must start with 'cal.com'",
-    })
+    // .refine((value) => value.startsWith(WEBAPP_URL), {
+    //   params: (value: string) => ({ value }),
+    //   message: `Redirect URL must start with '${WEBAPP_URL}'`,
+    // })
     .optional()
     .safeParse(ctx.query.redirect);
 
@@ -137,6 +137,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     const [username] = email.split("@");
     return username;
   };
+  verificationToken.identifier = getEmailFromTokenIdentifier(verificationToken.identifier);
 
   let username = guessUsernameFromEmail(verificationToken.identifier);
 
@@ -149,8 +150,8 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   // Detect if the team is an org by either the metadata flag or if it has a parent team
 
   // REVIEW: calidTeam doesn't have isOrganization field in prisma schema, so this will always be false for now
-  const isOrganization = false //tokenTeam.isOrganization;
-  const isOrganizationOrATeamInOrganization = false//isOrganization || isATeamInOrganization;
+  const isOrganization = false; //tokenTeam.isOrganization;
+  const isOrganizationOrATeamInOrganization = false; //isOrganization || isATeamInOrganization;
   // If we are dealing with an org, the slug may come from the team itself or its parent
   const orgSlug = isOrganizationOrATeamInOrganization
     ? tokenTeam.metadata?.requestedSlug || tokenTeam.parent?.slug || tokenTeam.slug
@@ -191,4 +192,12 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
         : null,
     },
   };
+};
+
+const getEmailFromTokenIdentifier = (input: string): string => {
+  const lastDashIndex = input.lastIndexOf("-");
+  if (lastDashIndex === -1) {
+    return input; // no dash found, return whole string
+  }
+  return input.slice(lastDashIndex + 1);
 };
