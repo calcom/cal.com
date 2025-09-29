@@ -16,9 +16,6 @@ CREATE INDEX "Agent_inboundEventTypeId_idx" ON "Agent"("inboundEventTypeId");
 -- CreateIndex
 CREATE UNIQUE INDEX "WorkflowStep_inboundAgentId_key" ON "WorkflowStep"("inboundAgentId");
 
--- CreateIndex
-CREATE INDEX "WorkflowStep_inboundAgentId_idx" ON "WorkflowStep"("inboundAgentId");
-
 -- AddForeignKey
 ALTER TABLE "WorkflowStep" ADD CONSTRAINT "WorkflowStep_inboundAgentId_fkey" FOREIGN KEY ("inboundAgentId") REFERENCES "Agent"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 

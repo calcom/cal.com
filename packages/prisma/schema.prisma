@@ -1403,12 +1403,11 @@ model WorkflowStep {
   verifiedAt                DateTime?
   agentId                   String?            @unique
   agent                     Agent?             @relation(fields: [agentId], references: [id], onDelete: SetNull)
-  
+
   inboundAgentId            String?            @unique
   inboundAgent              Agent?             @relation("WorkflowStepInboundAgent", fields: [inboundAgentId], references: [id], onDelete: SetNull)
 
   @@index([workflowId])
-  @@index([inboundAgentId])
 }
 
 model Workflow {
