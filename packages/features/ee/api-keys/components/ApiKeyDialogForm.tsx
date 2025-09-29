@@ -157,7 +157,7 @@ export default function ApiKeyDialogForm({
               {defaultValues ? t("edit_api_key") : t("create_api_key")}
             </h2>
             {IS_CALCOM ? (
-              <div className="mt-4 block gap-2 sm:flex">
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row">
                 <div className="border-emphasis relative flex w-full items-start rounded-[10px] border p-4 text-sm">
                   {t("api_key_modal_subtitle")}
                 </div>
@@ -178,7 +178,7 @@ export default function ApiKeyDialogForm({
             <Controller
               name="note"
               control={form.control}
-              render={({ field: { onChange, value } }) => (
+              render={({ field: { value } }) => (
                 <TextField
                   name="note"
                   label={t("personal_note")}
@@ -211,7 +211,7 @@ export default function ApiKeyDialogForm({
               </div>
               <Controller
                 name="expiresAt"
-                render={({ field: { onChange, value } }) => {
+                render={({ field: { onChange } }) => {
                   const defaultValue = expiresAtOptions[1];
 
                   return (
