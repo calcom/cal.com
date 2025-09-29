@@ -973,25 +973,55 @@ export class AvailableSlotsService {
         }
       : orgDomainConfig(ctx?.req);
 
-    // Extract current session user from context
+    // Extract current session user from context or from reschedule/booking context
     let currentSessionUser: { id: number; email: string } | null = null;
-    try {
-      // Try to get session user from context using the existing session middleware approach
-      const { getSession, getUserFromSession } = await import("../../../middlewares/sessionMiddleware");
-      
-      const session = await getSession(ctx as any);
-      if (session?.user) {
-        const userFromSession = await getUserFromSession(ctx as any, session);
-        if (userFromSession?.id && userFromSession?.email) {
+    
+    // First, try to get user from reschedule context (for reschedule scenarios)
+    if (input.rescheduleUid && input.email) {
+      // When rescheduling, the email in input represents the user who needs intersection
+      // This could be either the original booker or invitee
+      try {
+        const userRepo = this.dependencies.userRepo;
+        const rescheduleUser = await userRepo.findByEmail(input.email);
+        if (rescheduleUser?.id) {
           currentSessionUser = { 
-            id: userFromSession.id, 
-            email: userFromSession.email 
+            id: rescheduleUser.id, 
+            email: rescheduleUser.email 
           };
+          log.debug("Found reschedule user for intersection", { 
+            email: input.email, 
+            userId: rescheduleUser.id 
+          });
         }
+      } catch (error) {
+        log.debug("Failed to find reschedule user", { email: input.email, error });
       }
-    } catch (error) {
-      // Session extraction failed, continue without session user (allows public bookings)
-      log.debug("Failed to extract session user, continuing without session intersection", { error });
+    }
+    
+    // If no reschedule user found, try session user (for regular booking scenarios)
+    if (!currentSessionUser && ctx) {
+      try {
+        // Try to get session user from context using the existing session middleware approach
+        const { getSession, getUserFromSession } = await import("../../../middlewares/sessionMiddleware");
+        
+        const session = await getSession(ctx as any);
+        if (session?.user) {
+          const userFromSession = await getUserFromSession(ctx as any, session);
+          if (userFromSession?.id && userFromSession?.email) {
+            currentSessionUser = { 
+              id: userFromSession.id, 
+              email: userFromSession.email 
+            };
+            log.debug("Found session user for intersection", { 
+              userId: userFromSession.id, 
+              email: userFromSession.email 
+            });
+          }
+        }
+      } catch (error) {
+        // Session extraction failed, continue without session user (allows public bookings)
+        log.debug("Failed to extract session user, continuing without session intersection", { error });
+      }
     }
 
     if (process.env.INTEGRATION_TEST_MODE === "true") {
