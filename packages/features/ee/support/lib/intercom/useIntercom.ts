@@ -40,7 +40,7 @@ export const useIntercom = () => {
       },
     },
   });
-  const { hasPaidPlan } = useHasPaidPlan();
+  const { hasPaidPlan, plan } = useHasPaidPlan();
   const { hasTeamPlan } = useHasTeamPlan();
 
   const boot = async () => {
@@ -83,6 +83,7 @@ export const useIntercom = () => {
         sum_of_event_types: statsData?.sumOfEventTypes,
         sum_of_team_event_types: statsData?.sumOfTeamEventTypes,
         is_premium: data?.isPremium,
+        Plan: plan,
       },
     });
   };
@@ -127,6 +128,7 @@ export const useIntercom = () => {
         sum_of_event_types: statsData?.sumOfEventTypes,
         sum_of_team_event_types: statsData?.sumOfTeamEventTypes,
         is_premium: data?.isPremium,
+        Plan: plan,
       },
     });
     hookData.show();
@@ -179,6 +181,7 @@ export const useBootIntercom = () => {
           });
         },
       };
+      window.dispatchEvent(new Event("support:ready"));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, statsData, hasPaidPlan, isTieredSupportEnabled]);

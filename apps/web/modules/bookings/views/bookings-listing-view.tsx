@@ -4,7 +4,6 @@ import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper }
 import { useSearchParams, usePathname } from "next/navigation";
 import { useMemo, useRef } from "react";
 
-import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import dayjs from "@calcom/dayjs";
 import {
   useDataTable,
@@ -29,6 +28,7 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
+import { WipeMyCalActionButton } from "@calcom/web/components/apps/wipemycalother/wipeMyCalActionButton";
 
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
@@ -57,6 +57,9 @@ const descriptionByStatus: Record<BookingListingStatus, string> = {
 type BookingsProps = {
   status: (typeof validStatuses)[number];
   userId?: number;
+  permissions: {
+    canReadOthersBookings: boolean;
+  };
 };
 
 function useSystemSegments(userId?: number) {
@@ -111,7 +114,7 @@ type RowData =
       type: "today" | "next";
     };
 
-function BookingsContent({ status }: BookingsProps) {
+function BookingsContent({ status, permissions }: BookingsProps) {
   const { t } = useLocale();
   const user = useMeQuery().data;
   const tableContainerRef = useRef<HTMLDivElement>(null);
@@ -154,7 +157,7 @@ function BookingsContent({ status }: BookingsProps) {
       href: queryString ? `${tabConfig.path}?${queryString}` : tabConfig.path,
       "data-testid": tabConfig["data-testid"],
     }));
-  }, [searchParams?.toString()]);
+  }, [searchParams]);
 
   const eventTypeIds = useFilterValue("eventTypeId", ZMultiSelectFilterValue)?.data as number[] | undefined;
   const teamIds = useFilterValue("teamId", ZMultiSelectFilterValue)?.data as number[] | undefined;
@@ -215,7 +218,7 @@ function BookingsContent({ status }: BookingsProps) {
       columnHelper.accessor((row) => row.type === "data" && row.booking.user?.id, {
         id: "userId",
         header: t("member"),
-        enableColumnFilter: user?.isTeamAdminOrOwner ?? false,
+        enableColumnFilter: permissions.canReadOthersBookings,
         enableSorting: false,
         cell: () => null,
         meta: {
@@ -314,7 +317,7 @@ function BookingsContent({ status }: BookingsProps) {
         },
       }),
     ];
-  }, [user, status, t]);
+  }, [user, status, t, permissions.canReadOthersBookings]);
 
   const isEmpty = useMemo(() => !query.data?.bookings.length, [query.data]);
 
@@ -352,7 +355,7 @@ function BookingsContent({ status }: BookingsProps) {
         isToday: false,
       })) || []
     );
-  }, [query.data]);
+  }, [query.data, status, user?.timeZone]);
 
   const bookingsToday = useMemo<RowData[]>(() => {
     return (
@@ -371,7 +374,7 @@ function BookingsContent({ status }: BookingsProps) {
           isToday: true,
         })) ?? []
     );
-  }, [query.data]);
+  }, [query.data, user?.timeZone]);
 
   const finalData = useMemo<RowData[]>(() => {
     if (status !== "upcoming") {

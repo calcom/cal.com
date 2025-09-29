@@ -15,7 +15,7 @@ test.describe("Workflow Tab - Event Type", () => {
       test("Creating a new workflow", async ({ workflowPage }) => {
         const { createWorkflow, assertListCount } = workflowPage;
 
-        await createWorkflow({ name: "" });
+        await createWorkflow({ name: "test workflow" });
         await assertListCount(3);
       });
 

@@ -72,6 +72,10 @@ async function handleCalAIPhoneNumberSubscriptionDeleted(
   }
 
   try {
+    if (phoneNumber.subscriptionStatus === "CANCELLED") {
+      return { success: true, subscriptionId: subscription.id, skipped: true };
+    }
+
     const aiService = createDefaultAIPhoneServiceProvider();
 
     await aiService.cancelPhoneNumberSubscription({
