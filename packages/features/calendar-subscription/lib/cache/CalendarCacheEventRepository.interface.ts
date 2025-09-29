@@ -33,7 +33,7 @@ export interface ICalendarCacheEventRepository {
    * @param start
    * @param end
    */
-  findAllBySelectedCalendarIds(
+  findAllBySelectedCalendarIdsBetween(
     selectedCalendarId: string[],
     start: Date,
     end: Date

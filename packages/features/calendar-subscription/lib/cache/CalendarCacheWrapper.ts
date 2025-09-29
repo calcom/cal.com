@@ -55,16 +55,14 @@ export class CalendarCacheWrapper implements Calendar {
    * @param dateFrom
    * @param dateTo
    * @param selectedCalendars
-   * @param _shouldServeCache
-   * @param _fallbackToPrimary
-   * @returns
+   * @param shouldServeCache
    */
   async getAvailability(
     dateFrom: string,
     dateTo: string,
     selectedCalendars: IntegrationCalendar[],
-    shouldServeCache?: boolean,
-    _fallbackToPrimary?: boolean
+    shouldServeCache?: boolean
+    // _fallbackToPrimary?: boolean
   ): Promise<EventBusyDate[]> {
     if (!shouldServeCache) {
       return this.deps.originalCalendar.getAvailability(dateFrom, dateTo, selectedCalendars);
@@ -75,7 +73,7 @@ export class CalendarCacheWrapper implements Calendar {
     if (!selectedCalendarIds.length) {
       return Promise.resolve([]);
     }
-    return this.deps.calendarCacheEventRepository.findAllBySelectedCalendarIds(
+    return this.deps.calendarCacheEventRepository.findAllBySelectedCalendarIdsBetween(
       selectedCalendarIds,
       new Date(dateFrom),
       new Date(dateTo)
@@ -88,18 +86,17 @@ export class CalendarCacheWrapper implements Calendar {
    * @param dateFrom
    * @param dateTo
    * @param selectedCalendars
-   * @param _fallbackToPrimary
    * @returns
    */
   async getAvailabilityWithTimeZones?(
     dateFrom: string,
     dateTo: string,
-    selectedCalendars: IntegrationCalendar[],
-    _fallbackToPrimary?: boolean
+    selectedCalendars: IntegrationCalendar[]
+    // _fallbackToPrimary?: boolean
   ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]> {
     log.debug("getAvailabilityWithTimeZones from cache", { dateFrom, dateTo, selectedCalendars });
     const selectedCalendarIds = selectedCalendars.map((e) => e.id).filter((id): id is string => Boolean(id));
-    const result = await this.deps.calendarCacheEventRepository.findAllBySelectedCalendarIds(
+    const result = await this.deps.calendarCacheEventRepository.findAllBySelectedCalendarIdsBetween(
       selectedCalendarIds,
       new Date(dateFrom),
       new Date(dateTo)

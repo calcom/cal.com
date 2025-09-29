@@ -49,7 +49,7 @@ describe("CalendarCacheEventService", () => {
       deleteMany: vi.fn().mockResolvedValue(undefined),
       deleteAllBySelectedCalendarId: vi.fn().mockResolvedValue(undefined),
       deleteStale: vi.fn().mockResolvedValue(undefined),
-      findAllBySelectedCalendarIds: vi.fn().mockResolvedValue([]),
+      findAllBySelectedCalendarIdsBetween: vi.fn().mockResolvedValue([]),
     };
 
     service = new CalendarCacheEventService({

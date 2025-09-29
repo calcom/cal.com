@@ -44,7 +44,7 @@ describe("CalendarCacheEventRepository", () => {
     vi.clearAllMocks();
   });
 
-  describe("findAllBySelectedCalendarIds", () => {
+  describe("findAllBySelectedCalendarIdsBetween", () => {
     test("should find events by selected calendar IDs and date range", async () => {
       const mockEvents = [
         {
@@ -56,7 +56,7 @@ describe("CalendarCacheEventRepository", () => {
 
       vi.mocked(mockPrismaClient.calendarCacheEvent.findMany).mockResolvedValue(mockEvents);
 
-      const result = await repository.findAllBySelectedCalendarIds(
+      const result = await repository.findAllBySelectedCalendarIdsBetween(
         ["calendar-1", "calendar-2"],
         new Date("2023-12-01T00:00:00Z"),
         new Date("2023-12-01T23:59:59Z")
