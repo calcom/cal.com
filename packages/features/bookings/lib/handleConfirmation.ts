@@ -473,12 +473,16 @@ export async function handleConfirmation(args: {
       eventTypeId: eventType?.id,
       status: "ACCEPTED",
       smsReminderNumber: booking.smsReminderNumber || undefined,
-      metadata: {
-        ...((evt as any).metadata || {}),
-        ...(meetingUrl ? { videoCallUrl: meetingUrl } : {})
-      },
       ...(platformClientParams ? platformClientParams : {}),
     };
+
+    // Add videoCallUrl to existing metadata if meeting URL exists
+    if (meetingUrl) {
+      payload.metadata = {
+        ...(payload.metadata || {}),
+        videoCallUrl: meetingUrl,
+      };
+    }
 
     const promises = subscribersBookingCreated.map((sub) =>
       sendPayload(
