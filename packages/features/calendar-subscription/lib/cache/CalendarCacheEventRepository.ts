@@ -5,7 +5,7 @@ import type { CalendarCacheEvent } from "@calcom/prisma/client";
 export class CalendarCacheEventRepository implements ICalendarCacheEventRepository {
   constructor(private prismaClient: PrismaClient) {}
 
-  async findAllBySelectedCalendarIds(
+  async findAllBySelectedCalendarIdsBetween(
     selectedCalendarId: string[],
     start: Date,
     end: Date

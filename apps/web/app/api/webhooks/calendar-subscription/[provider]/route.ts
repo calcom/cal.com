@@ -17,6 +17,17 @@ import { defaultResponderForAppDir } from "@calcom/web/app/api/defaultResponderF
 
 const log = logger.getSubLogger({ prefix: ["calendar-webhook"] });
 
+function extractAndValidateProviderFromParams(params: Params): CalendarSubscriptionProvider | null {
+  if (!("provider" in params)) {
+    return null;
+  }
+  const { provider } = params;
+  if (provider === "google_calendar" || provider === "office365_calendar") {
+    return provider;
+  }
+  return null;
+}
+
 /**
  * Handles incoming POST requests for calendar webhooks.
  * It processes the webhook based on the calendar provider specified in the URL.
@@ -28,16 +39,9 @@ const log = logger.getSubLogger({ prefix: ["calendar-webhook"] });
  * @param {Promise<Params>} context.params - A promise that resolves to the route parameters.
  * @returns {Promise<NextResponse>} - A promise that resolves to the response object.
  */
-
-function isCalendarSubscriptionProvider(provider: string): provider is CalendarSubscriptionProvider {
-  return provider === "google_calendar" || provider === "office365_calendar";
-}
-
-async function postHandler(request: NextRequest, context: { params: Promise<Params> }) {
-  // extract and validate provider
-  const providerFromParams = (await context.params).provider as string[][0];
-
-  if (!isCalendarSubscriptionProvider(providerFromParams)) {
+async function postHandler(request: NextRequest, ctx: { params: Promise<Params> }) {
+  const providerFromParams = extractAndValidateProviderFromParams(await ctx.params);
+  if (!providerFromParams) {
     return NextResponse.json({ message: "Unsupported provider" }, { status: 400 });
   }
 

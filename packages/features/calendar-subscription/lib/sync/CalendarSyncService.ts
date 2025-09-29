@@ -42,7 +42,7 @@ export class CalendarSyncService {
 
     log.debug("handleEvents: processing calendar events", { count: calEvents.length });
 
-    await Promise.allSettled(
+    await Promise.all(
       calEvents.map((e) => {
         if (e.status === "cancelled") {
           return this.cancelBooking(e);

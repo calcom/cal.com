@@ -333,7 +333,9 @@ describe("CalendarSubscriptionService", () => {
 
       expect(mockSelectedCalendarRepository.updateSyncStatus).toHaveBeenCalledWith(mockSelectedCalendar.id, {
         syncErrorAt: expect.any(Date),
-        syncErrorCount: 1,
+        syncErrorCount: {
+          increment: 1,
+        },
       });
     });
 
