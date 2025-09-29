@@ -2616,9 +2616,9 @@ model TeamBilling {
 }
 
 model OrganizationBilling {
-  id             String @id @default(uuid())
-  organizationId Int    @unique
-  organization   Team   @relation("OrganizationBilling", fields: [organizationId], references: [id], onDelete: Cascade)
+  id     String @id @default(uuid())
+  teamId Int    @unique
+  team   Team   @relation("OrganizationBilling", fields: [teamId], references: [id], onDelete: Cascade)
 
   subscriptionId     String @unique
   subscriptionItemId String
