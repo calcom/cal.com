@@ -63,6 +63,7 @@ async function handler(request: NextRequest) {
         subscriptionId: checkoutSessionSubscription.id,
         subscriptionItemId: checkoutSessionSubscription.items.data[0].id,
         customerId: checkoutSessionSubscription.customer as string,
+        // TODO: Implement true subscription status when webhook events are implemented
         status: SubscriptionStatus.ACTIVE,
         planName: Plan.TEAM,
       });
