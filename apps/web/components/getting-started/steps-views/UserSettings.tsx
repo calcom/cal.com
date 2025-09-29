@@ -5,9 +5,9 @@ import { Input } from "@calid/features/ui/components/input/input";
 import {
   usePhoneNumberField,
   PhoneNumberField,
+  isStrictlyValidNumber,
 } from "@calid/features/ui/components/input/phone-number-field";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { isValidPhoneNumber } from "libphonenumber-js";
 import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
@@ -54,13 +54,15 @@ const UserSettings = (props: IUserSettingsProps) => {
             .min(1, { message: t("phone_number_required") })
             .refine(
               (val) => {
-                return isValidPhoneNumber(val);
+                //return isValidPhoneNumber(val);
+                return isStrictlyValidNumber(val);
               },
               { message: t("invalid_phone_number") }
             )
         : z.string().refine(
             (val) => {
-              return val === "" || isValidPhoneNumber(val);
+              // return val === "" || isValidPhoneNumber(val);
+              return val === "" || isStrictlyValidNumber(val);
             },
             { message: t("invalid_phone_number") }
           ),
