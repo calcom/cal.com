@@ -173,4 +173,137 @@ describe("InternalTeamBilling", () => {
       });
     });
   });
+
+  describe("saveTeamBilling", () => {
+    it("should delegate to organization billing repository when team is an organization", async () => {
+      const mockOrgTeam = {
+        id: 1,
+        metadata: {},
+        isOrganization: true,
+        parentId: null,
+      };
+      const internalTeamBilling = new InternalTeamBilling(mockOrgTeam);
+
+      const mockBillingArgs = {
+        teamId: 1,
+        subscriptionId: "sub_org_123",
+        subscriptionItemId: "si_org_123",
+        customerId: "cus_org_123",
+        planName: "ORGANIZATION" as const,
+        status: "ACTIVE" as const,
+      };
+
+      prismaMock.organizationBilling.create.mockResolvedValue({
+        id: "billing_org_123",
+        ...mockBillingArgs,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      await internalTeamBilling.saveTeamBilling(mockBillingArgs);
+
+      expect(prismaMock.organizationBilling.create).toHaveBeenCalledWith({
+        data: mockBillingArgs,
+      });
+      expect(prismaMock.teamBilling.create).not.toHaveBeenCalled();
+    });
+
+    it("should delegate to team billing repository when team is not an organization", async () => {
+      const mockRegularTeam = {
+        id: 2,
+        metadata: {},
+        isOrganization: false,
+        parentId: null,
+      };
+      const internalTeamBilling = new InternalTeamBilling(mockRegularTeam);
+
+      const mockBillingArgs = {
+        teamId: 2,
+        subscriptionId: "sub_team_456",
+        subscriptionItemId: "si_team_456",
+        customerId: "cus_team_456",
+        planName: "TEAM" as const,
+        status: "ACTIVE" as const,
+      };
+
+      prismaMock.teamBilling.create.mockResolvedValue({
+        id: "billing_team_456",
+        ...mockBillingArgs,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      await internalTeamBilling.saveTeamBilling(mockBillingArgs);
+
+      expect(prismaMock.teamBilling.create).toHaveBeenCalledWith({
+        data: mockBillingArgs,
+      });
+      expect(prismaMock.organizationBilling.create).not.toHaveBeenCalled();
+    });
+
+    it("should pass all billing arguments correctly to repository", async () => {
+      const mockTeam = {
+        id: 3,
+        metadata: {},
+        isOrganization: false,
+        parentId: null,
+      };
+      const internalTeamBilling = new InternalTeamBilling(mockTeam);
+
+      const mockBillingArgs = {
+        teamId: 3,
+        subscriptionId: "sub_detailed_789",
+        subscriptionItemId: "si_detailed_789",
+        customerId: "cus_detailed_789",
+        planName: "ENTERPRISE" as const,
+        status: "TRIALING" as const,
+      };
+
+      prismaMock.teamBilling.create.mockResolvedValue({
+        id: "billing_detailed_789",
+        ...mockBillingArgs,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      await internalTeamBilling.saveTeamBilling(mockBillingArgs);
+
+      expect(prismaMock.teamBilling.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          teamId: 3,
+          subscriptionId: "sub_detailed_789",
+          subscriptionItemId: "si_detailed_789",
+          customerId: "cus_detailed_789",
+          planName: "ENTERPRISE",
+          status: "TRIALING",
+        }),
+      });
+    });
+
+    it("should propagate repository errors", async () => {
+      const mockTeam = {
+        id: 4,
+        metadata: {},
+        isOrganization: false,
+        parentId: null,
+      };
+      const internalTeamBilling = new InternalTeamBilling(mockTeam);
+
+      const mockBillingArgs = {
+        teamId: 4,
+        subscriptionId: "sub_error_999",
+        subscriptionItemId: "si_error_999",
+        customerId: "cus_error_999",
+        planName: "TEAM" as const,
+        status: "ACTIVE" as const,
+      };
+
+      const repositoryError = new Error("Database constraint violation");
+      prismaMock.teamBilling.create.mockRejectedValue(repositoryError);
+
+      await expect(internalTeamBilling.saveTeamBilling(mockBillingArgs)).rejects.toThrow(
+        "Database constraint violation"
+      );
+    });
+  });
 });
