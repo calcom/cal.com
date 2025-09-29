@@ -18,6 +18,7 @@ interface SimplePermissionItemProps {
   onChange: (permissions: string[]) => void;
   disabled?: boolean;
   scope?: Scope;
+  isPrivate?: boolean;
 }
 
 export function SimplePermissionItem({
@@ -26,10 +27,11 @@ export function SimplePermissionItem({
   onChange,
   disabled,
   scope = Scope.Organization,
+  isPrivate = false,
 }: SimplePermissionItemProps) {
   const { t } = useLocale();
   const { getResourcePermissionLevel, toggleResourcePermissionLevel } = usePermissions(scope);
-  const scopedRegistry = getPermissionsForScope(scope);
+  const scopedRegistry = getPermissionsForScope(scope, isPrivate);
 
   const registry = scopedRegistry || PERMISSION_REGISTRY;
   const isAllResources = resource === "*";
