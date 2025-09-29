@@ -1,10 +1,10 @@
 "use client";
-import {useEffect} from "react";
 
 import OneHashChatProvider from "@calid/features/modules/support/OneHashChatProvider";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { TrpcProvider } from "app/_trpc/trpc-provider";
 import { SessionProvider } from "next-auth/react";
+import { useEffect } from "react";
 import CacheProvider from "react-inlinesvg/provider";
 
 import { WebPushProvider } from "@calcom/features/notifications/WebPushContext";
