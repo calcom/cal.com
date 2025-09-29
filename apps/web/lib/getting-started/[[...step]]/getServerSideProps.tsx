@@ -24,7 +24,6 @@ async function getRequestCountryOrigin(
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req } = context;
-  const country = await getRequestCountryOrigin(req); // Default to IN if country not found
 
   const session = await getServerSession({ req });
 
@@ -55,7 +54,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       return { redirect: { permanent: true, destination: `/getting-started/${currentOnboardingStep}` } };
     }
   }
-
+  const country = await getRequestCountryOrigin(req); // Default to IN if country not found
   return {
     props: {
       hasPendingInvites: user.teams.find((team) => team.accepted === false) ?? false,
