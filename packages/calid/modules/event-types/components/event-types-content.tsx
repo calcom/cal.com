@@ -29,6 +29,7 @@ export const EventTypesContent: React.FC<EventTypesContentProps> = ({
   onLoadMore,
   onCreatePersonal,
   onCreateTeam,
+  buttonInViewRef
 }) => {
   if (isLoading) {
     return (
@@ -78,13 +79,13 @@ export const EventTypesContent: React.FC<EventTypesContentProps> = ({
 
       {/* Load More Button */}
       {hasNextPage && (
-        <div className="py-6 text-center">
+        <div className="py-6 text-center" ref={buttonInViewRef.ref}>
           <Button
             onClick={onLoadMore}
             loading={isFetchingNextPage}
             color="minimal"
             className="w-full sm:w-auto">
-            {hasNextPage ? "Load more" : "No more results"}
+            Load more
           </Button>
         </div>
       )}
