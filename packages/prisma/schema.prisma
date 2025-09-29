@@ -2545,7 +2545,7 @@ model Agent {
   inboundPhoneNumbers  CalAiPhoneNumber[] @relation("InboundAgent")
   outboundPhoneNumbers CalAiPhoneNumber[] @relation("OutboundAgent")
   workflowStep         WorkflowStep?
-  inboundWorkflowSteps WorkflowStep[]     @relation("WorkflowStepInboundAgent")
+  inboundWorkflowStep  WorkflowStep?     @relation("WorkflowStepInboundAgent")
 
   @@index([userId])
   @@index([teamId])

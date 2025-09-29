@@ -649,8 +649,8 @@ export class AgentService {
     }
 
     const updatedPrompt =
-      agent.eventTypeId && generalPrompt
-        ? replaceEventTypePlaceholders(generalPrompt, agent.eventTypeId)
+      agent.inboundEventTypeId && generalPrompt
+        ? replaceEventTypePlaceholders(generalPrompt, agent.inboundEventTypeId)
         : generalPrompt;
 
     const hasRetellUpdates =
