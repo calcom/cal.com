@@ -53,7 +53,8 @@ export class ErrorsBookingsService_2024_08_13 {
           "Attendee with this email can't book because the maximum number of active bookings has been reached."
         );
       } else if (error.message === "booker_limit_exceeded_error_reschedule") {
-        const errorData = "data" in error ? error.data : { rescheduleUid: undefined };
+        const errorData =
+          "data" in error ? (error.data as { rescheduleUid: string }) : { rescheduleUid: undefined };
         let message =
           "Attendee with this email can't book because the maximum number of active bookings has been reached.";
         if (errorData?.rescheduleUid) {
