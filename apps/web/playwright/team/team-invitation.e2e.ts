@@ -194,7 +194,7 @@ test.describe("Team", () => {
 
   test("Auto-accept invitation for existing user", async ({ browser, page, users, emails }) => {
     const t = await localize("en");
-    const teamOwner = await users.create({ name: `team-owner-${Date.now()}` }, { hasTeam: true });
+    const teamOwner = await users.create({ name: "Invited User" }, { hasTeam: true });
     const { team } = await teamOwner.getFirstTeamMembership();
     const invitedUser = await users.create({
       email: `invited-user-${Date.now()}@example.com`,
@@ -255,7 +255,7 @@ test.describe("Team", () => {
 
   test("Error when wrong user tries to use invitation link", async ({ browser, page, users, emails }) => {
     const t = await localize("en");
-    const teamOwner = await users.create({ name: `team-owner-${Date.now()}` }, { hasTeam: true });
+    const teamOwner = await users.create({ name: "Wrong User" }, { hasTeam: true });
     const { team } = await teamOwner.getFirstTeamMembership();
     const invitedUser = await users.create({
       email: `invited-user-${Date.now()}@example.com`,
