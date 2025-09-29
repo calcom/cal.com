@@ -114,6 +114,8 @@ export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProf
     teamsData = teamsData.filter((_, index) => permissionChecks[index]);
   }
 
+  const noPbacFallbackRoles = [MembershipRole.ADMIN, MembershipRole.MEMBER] as MembershipRole[];
+
   return [
     {
       teamId: null,
@@ -134,7 +136,7 @@ export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProf
       role: membership.role,
       readOnly: input?.withPermission
         ? !hasPermissionForFiltered[index]
-        : !withRoleCanCreateEntity(membership.role),
+        : !noPbacFallbackRoles.includes(membership.role),
     })),
   ];
 };
