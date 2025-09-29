@@ -508,7 +508,7 @@ export class WorkflowRepository {
       trigger: WorkflowTriggerEvents;
       time: number | null;
       timeUnit: TimeUnit | null;
-      isActiveOnAll: boolean;
+      isActiveOnAll?: boolean;
     }
   ) {
     return await prisma.workflow.update({

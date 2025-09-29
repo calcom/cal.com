@@ -587,7 +587,7 @@ export class PrismaAgentRepository {
     });
   }
 
-  static async findAgentWithProviderId(agentId: string) {
+  static async findProviderAgentIdById(agentId: string) {
     return await prisma.agent.findUnique({
       where: { id: agentId },
       select: { providerAgentId: true },

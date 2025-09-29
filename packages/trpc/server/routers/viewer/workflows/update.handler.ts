@@ -561,7 +561,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     trigger,
     time,
     timeUnit,
-    isActiveOnAll: isActiveOnAll ?? false,
+    isActiveOnAll,
   });
 
   const workflow = await WorkflowRepository.findUniqueWithRelations(id);
@@ -645,7 +645,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         if (!step.agentId) return;
 
         try {
-          const agent = await PrismaAgentRepository.findAgentWithProviderId(step.agentId);
+          const agent = await PrismaAgentRepository.findProviderAgentIdById(step.agentId);
 
           if (!agent?.providerAgentId) {
             log.error(`Agent not found for step ${step.id} agentId ${step.agentId}`);
