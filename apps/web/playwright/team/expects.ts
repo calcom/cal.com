@@ -36,5 +36,5 @@ export async function expectExistingUserToBeInvitedToOrganization(
   userEmail: string,
   subject?: string | null
 ) {
-  return expectInvitationEmailToBeReceived(page, emails, userEmail, subject, "settings/team");
+  return expectInvitationEmailToBeReceived(page, emails, userEmail, subject, "teams?token");
 }
