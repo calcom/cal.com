@@ -27,7 +27,7 @@ const handleSubscriptionUpdate = async (event: Stripe.Event) => {
   });
 
   if (!app) {
-    throw new HttpCode({ statusCode: 202, message: "Received and discarded" });
+    throw new HttpCode({ statusCode: 202 });
   }
 
   await prisma.credential.update({
@@ -51,7 +51,7 @@ const handleSubscriptionDeleted = async (event: Stripe.Event) => {
   });
 
   if (!app) {
-    throw new HttpCode({ statusCode: 202, message: "Received and discarded" });
+    throw new HttpCode({ statusCode: 202 });
   }
 
   // should we delete the credential here rather than marking as inactive?
