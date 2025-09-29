@@ -425,4 +425,26 @@ export class TeamRepository {
       },
     });
   }
+
+  async findOrganization({ teamId, userId }: { teamId?: number; userId: number }) {
+    return await this.prismaClient.team.findFirst({
+      where: {
+        isOrganization: true,
+        children: {
+          some: {
+            id: teamId,
+          },
+        },
+        members: {
+          some: {
+            userId,
+            accepted: true,
+          },
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+  }
 }
