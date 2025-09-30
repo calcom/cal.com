@@ -6,7 +6,26 @@ import { RRTimestampBasis, BookingStatus } from "@calcom/prisma/enums";
 import { bookingMinimalSelect } from "@calcom/prisma/selects/booking";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
+import type {
+  BookingWhereInput,
+  IBookingRepository,
+  BookingUpdateData,
+  BookingWhereUniqueInput,
+} from "./dto/IBookingRepository";
 import { UserRepository } from "./user";
+
+const workflowReminderSelect = {
+  id: true,
+  referenceId: true,
+  method: true,
+};
+
+const referenceSelect = {
+  uid: true,
+  type: true,
+  externalCalendarId: true,
+  credentialId: true,
+};
 
 export type FormResponse = Record<
   // Field ID
@@ -121,7 +140,7 @@ const buildWhereClauseForActiveBookings = ({
     : {}),
 });
 
-export class BookingRepository {
+export class BookingRepository implements IBookingRepository {
   constructor(private prismaClient: PrismaClient) {}
 
   async getBookingAttendees(bookingId: number) {
@@ -384,6 +403,22 @@ export class BookingRepository {
         uid: bookingUid,
       },
       select: bookingMinimalSelect,
+    });
+  }
+
+  async findByUidIncludeWorkflowRemindersAndReferences({ bookingUid }: { bookingUid: string }) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        uid: bookingUid,
+      },
+      include: {
+        workflowReminders: {
+          select: workflowReminderSelect,
+        },
+        references: {
+          select: referenceSelect,
+        },
+      },
     });
   }
 
@@ -1043,6 +1078,42 @@ export class BookingRepository {
             data: true,
           },
         },
+      },
+    });
+  }
+
+  async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdateData }) {
+    return await this.prismaClient.booking.updateMany({
+      where: where,
+      data,
+    });
+  }
+
+  async update({ where, data }: { where: BookingWhereUniqueInput; data: BookingUpdateData }) {
+    return await this.prismaClient.booking.update({
+      where,
+      data,
+    });
+  }
+
+  /**
+   * Find bookings with workflow reminders for cleanup during cancellation
+   * Used after bulk cancellation of recurring events
+   */
+  async findManyIncludeWorkflowReminders({ where }: { where: BookingWhereInput }) {
+    return await this.prismaClient.booking.findMany({
+      where,
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        references: {
+          select: referenceSelect,
+        },
+        workflowReminders: {
+          select: workflowReminderSelect,
+        },
+        uid: true,
       },
     });
   }

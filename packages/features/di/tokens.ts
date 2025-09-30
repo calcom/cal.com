@@ -53,11 +53,13 @@ export const DI_TOKENS = {
   HOST_REPOSITORY_MODULE: Symbol("HostRepositoryModule"),
   ATTRIBUTE_REPOSITORY: Symbol("AttributeRepository"),
   ATTRIBUTE_REPOSITORY_MODULE: Symbol("AttributeRepositoryModule"),
+  PROFILE_REPOSITORY: Symbol("ProfileRepository"),
+  PROFILE_REPOSITORY_MODULE: Symbol("ProfileRepositoryModule"),
 
   // Booking service tokens are registered here because we don't want to import from features in lib.
   BOOKING_CANCEL_SERVICE: Symbol("BookingCancelService"),
   BOOKING_CANCEL_SERVICE_MODULE: Symbol("BookingCancelServiceModule"),
-
-  // Booking feature tokens that are in packages/lib/di/bookings
+  
+  // Booking service tokens
   ...BOOKING_DI_TOKENS,
 };
