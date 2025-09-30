@@ -28,7 +28,8 @@
       "@/utils/*": ["utils/*"],
       "@/repositories/*": ["repositories/*"],
       "@/services/*": ["services/*"],
-      "@/routes/*": ["routes/*"]
+      "@/routes/*": ["routes/*"],
+      "@calcom/lib/*": ["../../packages/lib/*"] // relative path from connector/src
     }
   },
   "include": ["src/**/*"],
