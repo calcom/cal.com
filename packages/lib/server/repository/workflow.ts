@@ -9,7 +9,12 @@ import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { MembershipRole, TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import {
+  MembershipRole,
+  TimeUnit,
+  WorkflowTriggerEvents,
+  WorkflowType as PrismaWorkflowType,
+} from "@calcom/prisma/enums";
 import { WorkflowMethods } from "@calcom/prisma/enums";
 import type { TFilteredListInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/filteredList.schema";
 import type { TGetVerifiedEmailsInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/getVerifiedEmails.schema";
@@ -27,6 +32,13 @@ const excludeFormTriggersWhereClause = {
       in: [WorkflowTriggerEvents.FORM_SUBMITTED],
     },
   },
+};
+
+const getWorkflowType = (trigger: WorkflowTriggerEvents): PrismaWorkflowType => {
+  if (trigger === WorkflowTriggerEvents.FORM_SUBMITTED) {
+    return PrismaWorkflowType.ROUTING_FORM;
+  }
+  return PrismaWorkflowType.EVENT_TYPE;
 };
 
 export type TGetInputSchema = z.infer<typeof ZGetInputSchema>;
@@ -511,9 +523,13 @@ export class WorkflowRepository {
       isActiveOnAll?: boolean;
     }
   ) {
+    const type = getWorkflowType(data.trigger);
     return await prisma.workflow.update({
       where: { id },
-      data,
+      data: {
+        ...data,
+        type,
+      },
     });
   }
 
