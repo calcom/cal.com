@@ -151,16 +151,22 @@ export async function getBookings({
       userIdsWhereUserIsAdminOrOwner.includes(userId)
     );
 
-    const isCurrentUser = filters.userIds.length === 1 && user.id === filters.userIds[0];
+    const hasCurrentUser = filters.userIds.includes(user.id);
+
+    let userIds = filters.userIds;
 
     //  Scope depends on `user.orgId`:
     // - Throw an error if trying to filter by usersIds that are not within your ORG
     // - Throw an error if trying to filter by usersIds that are not within your TEAM
-    if (!areUserIdsWithinUserOrgOrTeam && !isCurrentUser) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "You do not have permissions to fetch bookings for specified userIds",
-      });
+    if (!areUserIdsWithinUserOrgOrTeam) {
+      if (!hasCurrentUser) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have permissions to fetch bookings for specified userIds",
+        });
+      }
+
+      userIds = [user.id];
     }
 
     // 1. Booking created by one of the filtered users
@@ -172,7 +178,7 @@ export async function getBookings({
         .select("Booking.endTime")
         .select("Booking.createdAt")
         .select("Booking.updatedAt")
-        .where("userId", "in", filters.userIds),
+        .where("userId", "in", userIds),
       tables: ["Booking"],
     });
 
@@ -251,7 +257,7 @@ export async function getBookings({
     // 4. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees
     // - If Current user is TEAM_OWNER/ADMIN so we get bookings where team members are attendees
-    userEmailsWhereUserIsAdminOrOwner?.length &&
+    if (userEmailsWhereUserIsAdminOrOwner?.length) {
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -264,10 +270,11 @@ export async function getBookings({
           .where("Attendee.email", "in", userEmailsWhereUserIsAdminOrOwner),
         tables: ["Booking", "Attendee"],
       });
+    }
     // 5. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees via seatsReference
     // - If Current user is TEAM_OWNER/ADMIN so we get bookings where team members are attendees via seatsReference
-    userEmailsWhereUserIsAdminOrOwner?.length &&
+    if (userEmailsWhereUserIsAdminOrOwner?.length) {
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -281,11 +288,12 @@ export async function getBookings({
           .where("Attendee.email", "in", userEmailsWhereUserIsAdminOrOwner),
         tables: ["Booking", "Attendee", "BookingSeat"],
       });
+    }
 
     // 6. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN, get booking created for an event type within the organization
     // - If Current user is TEAM_OWNER/ADMIN, get bookings created for an event type within the team
-    eventTypeIdsWhereUserIsAdminOrOwner?.length &&
+    if (eventTypeIdsWhereUserIsAdminOrOwner?.length) {
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -298,11 +306,12 @@ export async function getBookings({
           .where("Booking.eventTypeId", "in", eventTypeIdsWhereUserIsAdminOrOwner),
         tables: ["Booking", "EventType"],
       });
+    }
 
     // 7. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN, get bookings created by users within the same organization
     // - If Current user is TEAM_OWNER/ADMIN, get bookings created by users within the same organization
-    userIdsWhereUserIsAdminOrOwner?.length &&
+    if (userIdsWhereUserIsAdminOrOwner?.length) {
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -314,6 +323,7 @@ export async function getBookings({
           .where("Booking.userId", "in", userIdsWhereUserIsAdminOrOwner),
         tables: ["Booking"],
       });
+    }
   }
 
   const queriesWithFilters = bookingQueries.map(({ query, tables }) => {
