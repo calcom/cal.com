@@ -113,7 +113,7 @@ export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProf
     teamsData = teamsData.filter((_, index) => permissionChecks[index]);
   }
 
-  const rolesWithWriteAccess = [MembershipRole.ADMIN, MembershipRole.MEMBER] as MembershipRole[];
+  const rolesWithWriteAccess = [MembershipRole.ADMIN, MembershipRole.OWNER] as MembershipRole[];
 
   return [
     {
