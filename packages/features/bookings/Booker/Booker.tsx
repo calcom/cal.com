@@ -201,7 +201,7 @@ const BookerComponent = ({
     renderCaptcha &&
     CLOUDFLARE_SITE_ID &&
     CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1" &&
-    (bookerState === "booking" || (bookerState === "selecting_time" && skipConfirmStep))
+    (bookerState === "booking" || bookerState === "selecting_time")
   );
 
   const onAvailableTimeSlotSelect = (time: string) => {
@@ -238,7 +238,6 @@ const BookerComponent = ({
 
   const onSubmit = (timeSlot?: string) =>
     renderConfirmNotVerifyEmailButtonCond ? handleBookEvent(timeSlot) : handleVerifyEmail();
-
 
   const EventBooker = useMemo(() => {
     return bookerState === "booking" ? (
