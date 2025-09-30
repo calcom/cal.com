@@ -79,6 +79,10 @@ class MyDocument extends Document<Props> {
       "/teams",
       "/workflows",
       "/insights",
+      "/signup",
+      "/auth/sso/google",
+      "/auth/verify-email",
+      "/getting-started",
     ];
 
     // Meta Pixel allowed paths
@@ -167,12 +171,12 @@ class MyDocument extends Document<Props> {
             />
           )}
 
-          {allowScript && (
+          {/* {allowScript && (
             <Script
               src="https://cdn.amplitude.com/script/ca8f70a47b97a98998c9b476e4977212.js"
               strategy="beforeInteractive"
             />
-          )}
+          )} */}
 
           {allowScript && (
             <Script
