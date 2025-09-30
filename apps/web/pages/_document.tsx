@@ -79,6 +79,7 @@ class MyDocument extends Document<Props> {
       "/teams",
       "/workflows",
       "/insights",
+      "/signup",
     ];
 
     // Meta Pixel allowed paths
