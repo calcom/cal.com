@@ -113,7 +113,7 @@ export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProf
     teamsData = teamsData.filter((_, index) => permissionChecks[index]);
   }
 
-  const noPbacFallbackRoles = [MembershipRole.ADMIN, MembershipRole.MEMBER] as MembershipRole[];
+  const rolesWithWriteAccess = [MembershipRole.ADMIN, MembershipRole.MEMBER] as MembershipRole[];
 
   return [
     {
@@ -135,7 +135,7 @@ export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProf
       role: membership.role,
       readOnly: input?.withPermission
         ? !hasPermissionForFiltered[index]
-        : !noPbacFallbackRoles.includes(membership.role),
+        : !rolesWithWriteAccess.includes(membership.role),
     })),
   ];
 };
