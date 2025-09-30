@@ -25,6 +25,7 @@ export const createHandler = async ({ ctx, input }: CreateHandlerOptions) => {
   return await aiService.createAgent({
     name,
     userId: ctx.user.id,
+    userTimeZone: ctx.user.timeZone ?? "Europe/London",
     teamId,
     workflowStepId,
     generalPrompt: generalPrompt ?? retellConfig.generalPrompt,

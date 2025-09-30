@@ -5,6 +5,8 @@ import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { PrismaApiKeyRepository } from "@calcom/lib/server/repository/PrismaApiKeyRepository";
+import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { isAuthorized } from "@calcom/trpc/server/routers/viewer/workflows/util";
 
 import type {
   AIPhoneServiceUpdateModelParams,
@@ -450,17 +452,20 @@ export class AgentService {
   async createAgent({
     name: _name,
     userId,
+    userTimeZone,
     teamId,
     workflowStepId,
     setupAIConfiguration,
   }: {
     name?: string;
     userId: number;
+    userTimeZone: string;
     teamId?: number;
     workflowStepId?: number;
     setupAIConfiguration: () => Promise<{ llmId: string; agentId: string }>;
   }) {
     const agentName = _name || `Agent - ${userId} ${uuidv4()}`;
+    let activeEventTypeIds: number[] = [];
 
     if (teamId) {
       const canManage = await this.agentRepository.canManageTeamResources({
@@ -471,6 +476,28 @@ export class AgentService {
         throw new HttpError({
           statusCode: 403,
           message: "You don't have permission to create agents for this team.",
+        });
+      }
+    }
+
+    if (workflowStepId) {
+      const { workflowId, eventTypeIds } = await WorkflowRepository.getEventTypeIdsByWorkflowStepId({
+        workflowStepId,
+      });
+      activeEventTypeIds = eventTypeIds;
+      const isUserAuthorized = await isAuthorized({
+        workflow: {
+          id: workflowId,
+          userId,
+          teamId,
+        },
+        currentUserId: userId,
+        permission: "workflow.update",
+      });
+      if (!isUserAuthorized) {
+        throw new HttpError({
+          statusCode: 403,
+          message: "You don't have permission to create agents for this workflow.",
         });
       }
     }
@@ -489,6 +516,24 @@ export class AgentService {
         workflowStepId,
         agentId: agent.id,
       });
+
+      if (activeEventTypeIds.length > 0) {
+        await Promise.all(
+          activeEventTypeIds.map(async (eventTypeId) => {
+            try {
+              await this.updateToolsFromAgentId(agent.providerAgentId, {
+                eventTypeId,
+                timeZone: userTimeZone ?? "Europe/London",
+                userId,
+                teamId: teamId || undefined,
+              });
+            } catch (error) {
+              const message = `${error instanceof Error ? error.message : "Unknown error"}`;
+              this.logger.error(message);
+            }
+          })
+        );
+      }
     }
 
     return {
