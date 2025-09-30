@@ -813,14 +813,16 @@ async function toggleQuestionRequireStatusAndSave({
     .first();
 
   await requiredCheckbox.waitFor({ state: 'visible' });
-  const isCurrentlyChecked = await requiredCheckbox.isChecked();
-  
-  if (isCurrentlyChecked !== required) {
+  const getState = async () => {
+    const aria = (await requiredCheckbox.getAttribute('aria-checked')) ?? '';
+    const dataState = (await requiredCheckbox.getAttribute('data-state')) ?? '';
+    return aria === 'true' || dataState === 'checked';
+  };
+  if ((await getState()) !== required) {
     await requiredCheckbox.click();
-    
-    const newState = await requiredCheckbox.isChecked();
-    if (newState !== required) {
-      throw new Error(`Failed to set required state to ${required}. Current state: ${newState}`);
+    const finalState = await getState();
+    if (finalState !== required) {
+      throw new Error(`Failed to set required state to ${required}. Current state: ${finalState}`);
     }
   }
   
