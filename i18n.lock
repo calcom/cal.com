@@ -2149,6 +2149,9 @@ checksums:
     delete_sso_configuration_confirmation_description: 60d81840d21bb15a508bf69275e7d2b4
     organizer_timezone: a97fbf27366f1dfe959d64042a2ac442
     email_user_cta: e15f010644b32a63c77aa2a1ae4bb885
+    accept_invite: bd2e50d88d4d949ffeacf472dfcf52ed
+    join_now: 1d6305a8e38d3c0e2f422c2687bc4efc
+    successfully_joined: 1d2f5746efab4ec4a8858a150d09ba12
     email_no_user_invite_heading_subteam: 5c5df57c46ddddbc43817e8f4897785c
     email_no_user_invite_heading_org: 945f9476a671b849876132c67ed83b19
     email_no_user_invite_subheading: e0d5166214861fcc3d006318b2cff4ee
