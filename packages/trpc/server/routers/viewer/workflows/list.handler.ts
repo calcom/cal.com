@@ -1,7 +1,9 @@
 import type { WorkflowType } from "@calcom/features/ee/workflows/components/WorkflowListPage";
 // import dayjs from "@calcom/dayjs";
 // import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { addPermissionsToWorkflows } from "@calcom/lib/server/repository/workflow-permissions";
 import { prisma } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -10,6 +12,7 @@ import type { TListInputSchema } from "./list.schema";
 type ListOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
+    prisma: PrismaClient;
   };
   input: TListInputSchema;
 };
@@ -156,7 +159,13 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
 
     workflows.push(...workflowsWithReadOnly);
 
-    return { workflows };
+    // Add permissions to each workflow
+    const workflowsWithPermissions = await addPermissionsToWorkflows(workflows, ctx.user.id);
+
+    // Filter workflows based on view permission
+    const filteredWorkflows = workflowsWithPermissions.filter((workflow) => workflow.permissions.canView);
+
+    return { workflows: filteredWorkflows };
   }
 
   if (input && input.userId) {
@@ -198,7 +207,13 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
 
     workflows.push(...userWorkflows);
 
-    return { workflows };
+    // Add permissions to each workflow
+    const workflowsWithPermissions = await addPermissionsToWorkflows(workflows, ctx.user.id);
+
+    // Filter workflows based on view permission
+    const filteredWorkflows = workflowsWithPermissions.filter((workflow) => workflow.permissions.canView);
+
+    return { workflows: filteredWorkflows };
   }
 
   const allWorkflows = await prisma.workflow.findMany({
@@ -259,5 +274,11 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
 
   workflows.push(...workflowsWithReadOnly);
 
-  return { workflows };
+  // Add permissions to each workflow
+  const workflowsWithPermissions = await addPermissionsToWorkflows(workflows, ctx.user.id);
+
+  // Filter workflows based on view permission
+  const filteredWorkflows = workflowsWithPermissions.filter((workflow) => workflow.permissions.canView);
+
+  return { workflows: filteredWorkflows };
 };

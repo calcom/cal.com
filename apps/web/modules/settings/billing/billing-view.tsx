@@ -77,21 +77,26 @@ const BillingView = () => {
 
   return (
     <>
-      <div className="border-subtle space-y-6 rounded-b-lg border border-t-0 px-6 py-8 text-sm sm:space-y-8">
-        <CtaRow title={t("view_and_manage_billing_details")} description={t("view_and_edit_billing_details")}>
-          <Button color="primary" href={billingHref} target="_blank" EndIcon="external-link">
+      <div className="bg-muted border-muted mt-5 rounded-xl border p-1">
+        <div className="bg-default border-muted flex rounded-[10px] border px-5 py-4">
+          <div className="flex w-full flex-col gap-1">
+            <h3 className="text-emphasis text-sm font-semibold leading-none">{t("manage_billing")}</h3>
+            <p className="text-subtle text-sm font-medium leading-tight">
+              {t("view_and_manage_billing_details")}
+            </p>
+          </div>
+          <Button color="primary" href={billingHref} target="_blank" size="sm" EndIcon="external-link">
             {t("billing_portal")}
           </Button>
-        </CtaRow>
-      </div>
-      <BillingCredits />
-      <div className="border-subtle mt-6 space-y-6 rounded-lg border px-6 py-8 text-sm sm:space-y-8">
-        <CtaRow title={t("need_anything_else")} description={t("further_billing_help")}>
-          <Button color="secondary" onClick={onContactSupportClick}>
+        </div>
+        <div className="flex items-center justify-between px-4 py-5">
+          <p className="text-subtle text-sm font-medium leading-tight">{t("need_help")}</p>
+          <Button color="secondary" size="sm" onClick={onContactSupportClick}>
             {t("contact_support")}
           </Button>
-        </CtaRow>
+        </div>
       </div>
+      <BillingCredits />
     </>
   );
 };
