@@ -100,6 +100,171 @@ test.describe("Manage Booking Questions", () => {
       });
     });
 
+    test("Do a booking with a Date type question and verify a few thing in b/w", async ({
+      page,
+      users,
+      context,
+    }, testInfo) => {
+
+      test.setTimeout(testInfo.timeout * 3);
+      const user = await createAndLoginUserWithEventTypes({ users, page });
+
+      const webhookReceiver = await addWebhook(user);
+
+      await test.step("Go to EventType Advanced Page ", async () => {
+        const $eventTypes = page.locator("[data-testid=event-types] > li a");
+        const firstEventTypeElement = $eventTypes.first();
+
+        await firstEventTypeElement.click();
+        await expect(page.getByTestId("vertical-tab-basics")).toHaveAttribute("aria-current", "page");
+        await page.getByTestId("vertical-tab-event_advanced_tab_title").click();
+      });
+
+      await test.step("Add Date Question and verify all properties", async () => {
+        await addQuestionAndSave({
+          page,
+          question: {
+            name: "appointment-date",
+            type: "Date",
+            label: "Preferred Appointment Date",
+            placeholder: "Select your preferred date",
+            required: true,
+          },
+        });
+
+        await doOnFreshPreview(page, context, async (page) => {
+          await expectSystemFieldsToBeThereOnBookingPage({ page });
+          const dateFieldLocator = page.locator('[data-fob-field-name="appointment-date"]');
+
+          await expect(dateFieldLocator).toBeVisible();
+          expect(await getLabelText(dateFieldLocator)).toBe("Preferred Appointment Date");
+
+          const datePickerButton = dateFieldLocator.locator('[data-testid="pick-date"]');
+          await expect(datePickerButton).toBeVisible();
+          await expect(datePickerButton).toContainText("Pick a date");
+          await expect(datePickerButton).toHaveAttribute("data-testid", "pick-date");
+
+          await expect(datePickerButton.locator('[data-testid="calendar"]')).toBeVisible();
+        });
+      });
+
+      await test.step("Test Date picker interaction and validation", async () => {
+        await doOnFreshPreview(page, context, async (page) => {
+          const dateFieldLocator = page.locator('[data-fob-field-name="appointment-date"]');
+          const datePickerButton = dateFieldLocator.locator('[data-testid="pick-date"]');
+          
+          await datePickerButton.click();
+          await expect(page.locator('[role="dialog"]')).toBeVisible();
+          
+          await expect(page.locator('[role="grid"]')).toBeVisible();
+          await expect(page.locator('[role="gridcell"]')).toHaveCount(42);
+          
+          await page.locator('body').click();
+          await expect(page.locator('[role="dialog"]')).toBeHidden();
+          
+          await expect(datePickerButton).toContainText("Pick a date");
+        });
+      });
+
+      await test.step("Test required field validation", async () => {
+        await doOnFreshPreview(page, context, async (page) => {
+
+          await bookTimeSlot({ page, name: "Booker", email: "booker@example.com" });
+          await expectErrorToBeThereFor({ page, name: "appointment-date" });
+        });
+      });
+
+      await test.step("Test date selection and format", async () => {
+        await doOnFreshPreview(page, context, async (page) => {
+          const dateFieldLocator = page.locator('[data-fob-field-name="appointment-date"]');
+          const datePickerButton = dateFieldLocator.locator('[data-testid="pick-date"]');
+
+          await datePickerButton.click();
+          await page.locator('[role="gridcell"]').filter({ hasText: /^15$/ }).first().click();
+
+          await expect(datePickerButton).not.toContainText("Pick a date");
+          const buttonText = await datePickerButton.textContent();
+          expect(buttonText).toMatch(/^[A-Z][a-z]{2} \d{1,2}, \d{4}$/); // e.g., "Dec 15, 2024"
+
+          await datePickerButton.click();
+          await page.locator('[role="gridcell"]').filter({ hasText: /^20$/ }).first().click();
+
+          const newButtonText = await datePickerButton.textContent();
+          expect(newButtonText).not.toBe(buttonText);
+          expect(newButtonText).toMatch(/^[A-Z][a-z]{2} \d{1,2}, \d{4}$/);
+        });
+      });
+
+      await test.step("Complete booking and verify date format in webhook", async () => {
+        await doOnFreshPreview(page, context, async (page) => {
+          const dateFieldLocator = page.locator('[data-fob-field-name="appointment-date"]');
+
+          await dateFieldLocator.locator('[data-testid="pick-date"]').click();
+          await page.locator('[role="gridcell"]').filter({ hasText: /^15$/ }).first().click();
+          
+          await bookTimeSlot({ page, name: "Booker", email: "booker@example.com" });
+          await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+          const dateResponse = page.locator('[data-testid="field-response"][data-fob-field="appointment-date"]');
+          await expect(dateResponse).toBeVisible();
+
+          await webhookReceiver.waitForRequestCount(1);
+          const [request] = webhookReceiver.requestList;
+          // @ts-expect-error body is unknown
+          const payload = request.body.payload;
+
+          // Verify webhook payload has correct date format (YYYY-MM-DD)
+          expect(payload.responses).toMatchObject({
+            "appointment-date": {
+              label: "Preferred Appointment Date",
+              value: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+            },
+          });
+
+          expect(payload.userFieldsResponses).toMatchObject({
+            "appointment-date": {
+              label: "Preferred Appointment Date",
+              value: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+            },
+          });
+
+          // Verify the date value is a valid date
+          const dateValue = payload.responses["appointment-date"].value;
+          const parsedDate = new Date(dateValue);
+          expect(parsedDate.toISOString().split('T')[0]).toBe(dateValue);
+        });
+      });
+
+      await test.step("Test date field prefill functionality", async () => {
+        const searchParams = new URLSearchParams();
+        searchParams.append("appointment-date", "2024-12-25");
+        
+        await doOnFreshPreviewWithSearchParams(searchParams, page, context, async (page) => {
+          await selectFirstAvailableTimeSlotNextMonth(page);
+          
+          const dateFieldLocator = page.locator('[data-fob-field-name="appointment-date"]');
+          const datePickerButton = dateFieldLocator.locator('[data-testid="pick-date"]');
+          
+          // Verify field is prefilled with provided date in display format
+          await expect(datePickerButton).toContainText("Dec 25, 2024");
+          await expect(datePickerButton).not.toContainText("Pick a date");
+        });
+      });
+
+      await test.step("Test optional date field behavior", async () => {
+        await toggleQuestionRequireStatusAndSave({
+          required: false,
+          name: "appointment-date",
+          page,
+        });
+
+        await doOnFreshPreview(page, context, async (page) => {
+          await bookTimeSlot({ page, name: "Booker Optional", email: "booker.optional@example.com" });
+          await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+        });
+      });
+    });
+
     test("Split 'Full name' into 'First name' and 'Last name'", async ({
       page,
       users,
