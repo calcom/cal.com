@@ -118,23 +118,16 @@ jobs:
     uses: ./.github/workflows/unit-tests.yml
     secrets: inherit
 
-  integration-test:
-    name: Tests
-    needs: [changes, check-label, deps]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/integration-tests.yml
-    secrets: inherit
-
   build-api-v1:
     name: Production builds
-    needs: [changes, check-label, deps, integration-test]
+    needs: [changes, check-label, deps]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/api-v1-production-build.yml
     secrets: inherit
 
   build-api-v2:
     name: Production builds
-    needs: [changes, check-label, deps, integration-test]
+    needs: [changes, check-label, deps]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/api-v2-production-build.yml
     secrets: inherit
@@ -155,9 +148,16 @@ jobs:
 
   build:
     name: Production builds
-    needs: [changes, check-label, deps, integration-test]
+    needs: [changes, check-label, deps]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/production-build-without-database.yml
+    secrets: inherit
+
+  integration-test:
+    name: Tests
+    needs: [changes, check-label, build, build-api-v1, build-api-v2]
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/integration-tests.yml
     secrets: inherit
 
   e2e:
