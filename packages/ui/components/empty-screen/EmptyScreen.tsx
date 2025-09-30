@@ -1,5 +1,5 @@
-import type { IconName } from "@calid/features/ui/components/icon/Icon";
 import { Icon } from "@calid/features/ui/components/icon";
+import type { IconName } from "@calid/features/ui/components/icon/Icon";
 import type { ReactNode } from "react";
 import React from "react";
 
@@ -70,7 +70,7 @@ export function EmptyScreen({
           buttonText && (
             <button
               onClick={buttonOnClick}
-              className="bg-primary hover:bg-primary/90 rounded-lg px-4 py-2 font-medium text-default"
+              className="bg-primary hover:bg-primary/90 text-default rounded-lg px-4 py-2 font-medium"
               style={{ fontSize: "14px" }}>
               {buttonText}
             </button>
