@@ -377,6 +377,9 @@ function BookingsContent({ status, permissions }: BookingsProps) {
   }, [query.data, user?.timeZone]);
 
   const finalData = useMemo<RowData[]>(() => {
+    if (query.isError) {
+      return [];
+    }
     if (status !== "upcoming") {
       return flatData;
     }
@@ -388,7 +391,7 @@ function BookingsContent({ status, permissions }: BookingsProps) {
       merged.push({ type: "next" as const }, ...flatData);
     }
     return merged;
-  }, [bookingsToday, flatData, status]);
+  }, [bookingsToday, flatData, status, query.isError]);
 
   const getFacetedUniqueValues = useFacetedUniqueValues();
 
@@ -423,53 +426,57 @@ function BookingsContent({ status, permissions }: BookingsProps) {
       </div>
       <main className="w-full">
         <div className="flex w-full flex-col">
-          {query.status === "error" && (
+          {query.isError && (
             <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
           )}
-          {query.status !== "error" && (
-            <>
-              {!!bookingsToday.length && status === "upcoming" && (
-                <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
-              )}
-              <DataTableWrapper
-                className="mb-6"
-                tableContainerRef={tableContainerRef}
-                table={table}
-                testId={`${status}-bookings`}
-                bodyTestId="bookings"
-                headerClassName="hidden"
-                isPending={query.isPending}
-                totalRowCount={query.data?.totalCount}
-                variant="compact"
-                paginationMode="standard"
-                ToolbarLeft={
-                  <>
-                    <DataTableFilters.FilterBar table={table} />
-                  </>
-                }
-                ToolbarRight={
-                  <>
-                    <DataTableFilters.ClearFiltersButton />
-                    <DataTableSegment.SaveButton />
-                    <DataTableSegment.Select />
-                  </>
-                }
-                LoaderView={<SkeletonLoader />}
-                EmptyView={
-                  <div className="flex items-center justify-center pt-2 xl:pt-0">
-                    <EmptyScreen
-                      Icon="calendar"
-                      headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
-                      description={t("no_status_bookings_yet_description", {
-                        status: t(status).toLowerCase(),
-                        description: t(descriptionByStatus[status]),
-                      })}
-                    />
-                  </div>
-                }
-              />
-            </>
+          {!!bookingsToday.length && status === "upcoming" && !query.isError && (
+            <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
           )}
+          <DataTableWrapper
+            className="mb-6"
+            tableContainerRef={tableContainerRef}
+            table={table}
+            testId={`${status}-bookings`}
+            bodyTestId="bookings"
+            headerClassName="hidden"
+            isPending={query.isPending && !query.isError}
+            totalRowCount={query.isError ? 0 : query.data?.totalCount}
+            variant="compact"
+            paginationMode="standard"
+            ToolbarLeft={
+              <>
+                <DataTableFilters.FilterBar table={table} />
+              </>
+            }
+            ToolbarRight={
+              <>
+                <DataTableFilters.ClearFiltersButton />
+                <DataTableSegment.SaveButton />
+                <DataTableSegment.Select />
+              </>
+            }
+            LoaderView={<SkeletonLoader />}
+            EmptyView={
+              <div className="flex items-center justify-center pt-2 xl:pt-0">
+                {query.isError ? (
+                  <EmptyScreen
+                    Icon="triangle-alert"
+                    headline={t("something_went_wrong")}
+                    description={t("change_filter_common")}
+                  />
+                ) : (
+                  <EmptyScreen
+                    Icon="calendar"
+                    headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
+                    description={t("no_status_bookings_yet_description", {
+                      status: t(status).toLowerCase(),
+                      description: t(descriptionByStatus[status]),
+                    })}
+                  />
+                )}
+              </div>
+            }
+          />
         </div>
       </main>
     </div>
