@@ -17,7 +17,10 @@ import {
   ValidateNested,
   ArrayNotEmpty,
   ArrayUnique,
+  Validate,
 } from "class-validator";
+import { HostsOrAssignAllValidator } from "./hosts-validator.input";
+
 
 import { SchedulingType } from "@calcom/platform-enums";
 
@@ -557,6 +560,7 @@ export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInpu
   @Type(() => Host)
   @IsArray()
   @IsOptional()
+  @Validate(HostsOrAssignAllValidator)
   @DocsPropertyOptional({
     type: [Host],
     description:
@@ -566,6 +570,7 @@ export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInpu
 
   @IsBoolean()
   @IsOptional()
+  @Validate(HostsOrAssignAllValidator)
   @DocsPropertyOptional({
     description: "If true, all current and future team members will be assigned to this event type",
   })
