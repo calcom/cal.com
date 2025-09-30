@@ -95,11 +95,10 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                 {descriptionAsSafeHtml ? (
                   <span
                     className={classNames(
-                      "text-default ml-2 text-sm",
+                      "text-default ml-2 text-sm [&_a]:text-blue-500",
                       !label && "font-medium",
                       rest.descriptionClassName
                     )}
-                    // eslint-disable-next-line react/no-danger
                     dangerouslySetInnerHTML={{
                       __html: markdownToSafeHTML(descriptionAsSafeHtml),
                     }}
