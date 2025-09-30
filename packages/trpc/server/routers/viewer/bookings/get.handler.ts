@@ -39,19 +39,13 @@ const getFilteredUserIds = (
   rawUserIds: number[],
   userId: number
 ) => {
-  if (
-    !Array.isArray(userIdsWhereUserIsAdminOrOwner) ||
-    userIdsWhereUserIsAdminOrOwner.length === 0 ||
-    !Array.isArray(rawUserIds) ||
-    rawUserIds.length === 0 ||
-    !userId
-  ) {
+  if (!Array.isArray(rawUserIds) || rawUserIds.length === 0 || !userId) {
     return [];
   }
 
-  const areUserIdsWithinUserOrgOrTeam = rawUserIds.every((rawUserId) =>
-    userIdsWhereUserIsAdminOrOwner.includes(rawUserId)
-  );
+  const areUserIdsWithinUserOrgOrTeam =
+    Array.isArray(userIdsWhereUserIsAdminOrOwner) &&
+    rawUserIds.every((rawUserId) => userIdsWhereUserIsAdminOrOwner.includes(rawUserId));
 
   const hasCurrentUser = rawUserIds.includes(userId);
 
