@@ -1,12 +1,16 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsBoolean, IsOptional } from "class-validator";
 
+export const disableStandardEmailsToAttendeesDescription =
+  "Disables standard email communication to attendees for this event type, including booking confirmations, reminders, and cancellations.";
+export const disableStandardEmailsToHostsDescription =
+  "Disables standard email communication to hosts for this event type, including booking confirmations, reminders, and cancellations.";
+
 export class EmailSettings_2024_06_14 {
   @IsBoolean()
   @IsOptional()
   @ApiProperty({
-    description:
-      "Disables standard email communication related to this event type, including booking confirmations, reminders, and cancellations.",
+    description: disableStandardEmailsToAttendeesDescription,
     required: false,
   })
   disableStandardEmailsToAttendees?: boolean;
@@ -14,8 +18,7 @@ export class EmailSettings_2024_06_14 {
   @IsBoolean()
   @IsOptional()
   @ApiProperty({
-    description:
-      "Disables standard email communication related to this event type, including booking confirmations, reminders, and cancellations.",
+    description: disableStandardEmailsToHostsDescription,
     required: false,
   })
   disableStandardEmailsToHosts?: boolean;

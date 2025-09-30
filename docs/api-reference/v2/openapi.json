@@ -15634,11 +15634,11 @@
         "properties": {
           "disableStandardEmailsToAttendees": {
             "type": "boolean",
-            "description": "Disables standard email communication related to this event type, including booking confirmations, reminders, and cancellations."
+            "description": "Disables standard email communication to attendees for this event type, including booking confirmations, reminders, and cancellations."
           },
           "disableStandardEmailsToHosts": {
             "type": "boolean",
-            "description": "Disables standard email communication related to this event type, including booking confirmations, reminders, and cancellations."
+            "description": "Disables standard email communication to hosts for this event type, including booking confirmations, reminders, and cancellations."
           }
         }
       },
@@ -16875,11 +16875,11 @@
         "properties": {
           "disableStandardEmailsToAttendees": {
             "type": "boolean",
-            "description": "Disables standard email communication related to this event type, including booking confirmations, reminders, and cancellations."
+            "description": "Disables standard email communication to attendees for this event type, including booking confirmations, reminders, and cancellations."
           },
           "disableStandardEmailsToHosts": {
             "type": "boolean",
-            "description": "Disables standard email communication related to this event type, including booking confirmations, reminders, and cancellations."
+            "description": "Disables standard email communication to hosts for this event type, including booking confirmations, reminders, and cancellations."
           }
         }
       },
