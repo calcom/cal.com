@@ -24,10 +24,13 @@ export function checkForConflicts({
   if (!Array.isArray(busy) || busy.length < 1) {
     return false; // guaranteed no conflicts when there is no busy times.
   }
-  if (seatsPerTimeSlot && currentSeats) {
+  if (currentSeats) {
     const booking = currentSeats.find((b) => b.startTime.toISOString() === time.toISOString());
     if (booking) {
-      return booking._count.attendees >= seatsPerTimeSlot;
+      if (seatsPerTimeSlot !== undefined) {
+        return booking._count.attendees >= seatsPerTimeSlot;
+      }
+      return false;
     }
   }
   const slotStart = time.valueOf();
