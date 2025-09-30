@@ -4,7 +4,7 @@ export async function isPrismaAvailableCheck(): Promise<boolean> {
   try {
     const { prisma } = await import("./index");
 
-    await prisma.$queryRawUnsafe("SELECT 1");
+    await prisma.$queryRawUnsafe<unknown[]>("SELECT 1");
     await prisma.$disconnect();
     return true;
   } catch (e: unknown) {
