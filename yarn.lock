@@ -2962,7 +2962,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/lib@*, @calcom/lib@workspace:packages/lib":
+"@calcom/lib@*, @calcom/lib@workspace:*, @calcom/lib@workspace:packages/lib":
   version: 0.0.0-use.local
   resolution: "@calcom/lib@workspace:packages/lib"
   dependencies:
@@ -3903,6 +3903,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calid/connector@workspace:apps/connector"
   dependencies:
+    "@calcom/lib": "workspace:*"
     "@calcom/prisma": "workspace:*"
     "@fastify/autoload": ^5.8.0
     "@fastify/cors": ^8.4.0
