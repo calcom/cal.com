@@ -12,6 +12,8 @@ import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/proc
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
@@ -28,10 +30,12 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 // TODO: Prisma import would be used from DI in a followup PR when we remove `handler` export
 import prisma from "@calcom/prisma";
-import type { Prisma, PrismaClient, WorkflowReminder } from "@calcom/prisma/client";
+import type { PrismaClient } from "@calcom/prisma";
+import type { WorkflowMethods } from "@calcom/prisma/enums";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema, bookingCancelInput } from "@calcom/prisma/zod-utils";
@@ -39,6 +43,8 @@ import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import { BookingRepository } from "../repositories/BookingRepository";
+import { PrismaBookingAttendeeRepository } from "../repositories/PrismaBookingAttendeeRepository";
 import type {
   CancelRegularBookingData,
   CancelBookingMeta,
@@ -67,7 +73,29 @@ export type CancelBookingInput = {
   bookingData: z.infer<typeof bookingCancelInput>;
 } & PlatformParams;
 
-async function handler(input: CancelBookingInput) {
+type Dependencies = {
+  userRepository: UserRepository;
+  bookingRepository: BookingRepository;
+  profileRepository: ProfileRepository;
+  bookingReferenceRepository: BookingReferenceRepository;
+  attendeeRepository: PrismaBookingAttendeeRepository;
+};
+
+async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
+  const prismaClient = prisma as PrismaClient;
+  const {
+    userRepository,
+    bookingRepository,
+    profileRepository,
+    bookingReferenceRepository,
+    attendeeRepository,
+  } = dependencies || { // We keep this fallback here till the followup PR where we start using the BookingCancelService itself everywhere including tests and then we can ensure that dependencies would be a required param
+    userRepository: new UserRepository(prismaClient),
+    bookingRepository: new BookingRepository(prismaClient),
+    profileRepository: new ProfileRepository({ prismaClient }),
+    bookingReferenceRepository: new BookingReferenceRepository({ prismaClient }),
+    attendeeRepository: new PrismaBookingAttendeeRepository(prismaClient),
+  };
   const body = input.bookingData;
   const {
     id,
@@ -183,19 +211,8 @@ async function handler(input: CancelBookingInput) {
 
   const webhooks = await getWebhooks(subscriberOptions);
 
-  const organizer = await prisma.user.findUniqueOrThrow({
-    where: {
-      id: bookingToDelete.userId,
-    },
-    select: {
-      id: true,
-      username: true,
-      name: true,
-      email: true,
-      timeZone: true,
-      timeFormat: true,
-      locale: true,
-    },
+  const organizer = await userRepository.findByIdOrThrow({
+    id: bookingToDelete.userId,
   });
 
   const teamMembersPromises = [];
@@ -234,10 +251,8 @@ async function handler(input: CancelBookingInput) {
   const teamMembers = await Promise.all(teamMembersPromises);
   const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
 
-  const ownerProfile = await prisma.profile.findFirst({
-    where: {
-      userId: bookingToDelete.userId,
-    },
+  const ownerProfile = await profileRepository.findFirstByUserId({
+    userId: bookingToDelete.userId,
   });
 
   const bookerUrl = await getBookerBaseUrl(
@@ -280,17 +295,17 @@ async function handler(input: CancelBookingInput) {
     destinationCalendar: bookingToDelete?.destinationCalendar
       ? [bookingToDelete?.destinationCalendar]
       : bookingToDelete?.user.destinationCalendar
-      ? [bookingToDelete?.user.destinationCalendar]
-      : [],
+        ? [bookingToDelete?.user.destinationCalendar]
+        : [],
     cancellationReason: cancellationReason,
     ...(teamMembers &&
       teamId && {
-        team: {
-          name: bookingToDelete?.eventType?.team?.name || "Nameless",
-          members: teamMembers,
-          id: teamId,
-        },
-      }),
+      team: {
+        name: bookingToDelete?.eventType?.team?.name || "Nameless",
+        members: teamMembers,
+        id: teamId,
+      },
+    }),
     seatsPerTimeSlot: bookingToDelete.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: bookingToDelete.eventType?.seatsShowAttendees,
     iCalUID: bookingToDelete.iCalUID,
@@ -365,7 +380,11 @@ async function handler(input: CancelBookingInput) {
   let updatedBookings: {
     id: number;
     uid: string;
-    workflowReminders: WorkflowReminder[];
+    workflowReminders: {
+      id: number;
+      referenceId: string | null;
+      method: WorkflowMethods;
+    }[];
     references: {
       type: string;
       credentialId: number | null;
@@ -386,7 +405,7 @@ async function handler(input: CancelBookingInput) {
     const recurringEventId = bookingToDelete.recurringEventId;
     const gte = cancelSubsequentBookings ? bookingToDelete.startTime : new Date();
     // Proceed to mark as cancelled all remaining recurring events instances (greater than or equal to right now)
-    await prisma.booking.updateMany({
+    await bookingRepository.updateMany({
       where: {
         recurringEventId,
         startTime: {
@@ -399,43 +418,24 @@ async function handler(input: CancelBookingInput) {
         cancelledBy: cancelledBy,
       },
     });
-    const allUpdatedBookings = await prisma.booking.findMany({
+    const allUpdatedBookings = await bookingRepository.findManyIncludeWorkflowRemindersAndReferences({
       where: {
         recurringEventId: bookingToDelete.recurringEventId,
         startTime: {
           gte: new Date(),
         },
       },
-      select: {
-        id: true,
-        startTime: true,
-        endTime: true,
-        references: {
-          select: {
-            uid: true,
-            type: true,
-            externalCalendarId: true,
-            credentialId: true,
-          },
-        },
-        workflowReminders: true,
-        uid: true,
-      },
     });
     updatedBookings = updatedBookings.concat(allUpdatedBookings);
   } else {
     if (bookingToDelete?.eventType?.seatsPerTimeSlot) {
-      await prisma.attendee.deleteMany({
-        where: {
-          bookingId: bookingToDelete.id,
-        },
-      });
+      await attendeeRepository.deleteManyByBookingId(bookingToDelete.id);
     }
 
-    const where: Prisma.BookingWhereUniqueInput = uid ? { uid } : { id };
-
-    const updatedBooking = await prisma.booking.update({
-      where,
+    const updatedBooking = await bookingRepository.updateIncludeWorkflowRemindersAndReferences({
+      where: {
+        uid: bookingToDelete.uid,
+      },
       data: {
         status: BookingStatus.CANCELLED,
         cancellationReason: cancellationReason,
@@ -443,22 +443,8 @@ async function handler(input: CancelBookingInput) {
         // Assume that canceling the booking is the last action
         iCalSequence: evt.iCalSequence || 100,
       },
-      select: {
-        id: true,
-        startTime: true,
-        endTime: true,
-        references: {
-          select: {
-            uid: true,
-            type: true,
-            externalCalendarId: true,
-            credentialId: true,
-          },
-        },
-        workflowReminders: true,
-        uid: true,
-      },
     });
+
     updatedBookings.push(updatedBooking);
 
     if (bookingToDelete.payment.some((payment) => payment.paymentOption === "ON_BOOKING")) {
@@ -524,12 +510,7 @@ async function handler(input: CancelBookingInput) {
 
     await eventManager.cancelEvent(evt, bookingToDelete.references, isBookingInRecurringSeries);
 
-    await prisma.bookingReference.updateMany({
-      where: {
-        bookingId: bookingToDelete.id,
-      },
-      data: { deleted: true },
-    });
+    await bookingReferenceRepository.updateManyByBookingId(bookingToDelete.id, { deleted: true });
   } catch (error) {
     log.error(`Error deleting integrations`, safeStringify({ error }));
   }
@@ -594,22 +575,27 @@ async function handler(input: CancelBookingInput) {
 }
 
 type BookingCancelServiceDependencies = {
-  prismaClient: PrismaClient;
+  userRepository: UserRepository;
+  bookingRepository: BookingRepository;
+  profileRepository: ProfileRepository;
+  bookingReferenceRepository: BookingReferenceRepository;
+  attendeeRepository: PrismaBookingAttendeeRepository;
 };
+
 /**
  * Takes care of cancelling bookings. This includes regular bookings, recurring bookings, seated bookings, etc.
  * Handles both individual booking cancellations and bulk cancellations for recurring events.
  */
 export class BookingCancelService implements IBookingCancelService {
-  constructor(private readonly deps: BookingCancelServiceDependencies) {}
+  constructor(private readonly deps: BookingCancelServiceDependencies) { }
 
   async cancelBooking(input: { bookingData: CancelRegularBookingData; bookingMeta?: CancelBookingMeta }) {
     const cancelBookingInput: CancelBookingInput = {
       bookingData: input.bookingData,
       ...(input.bookingMeta || {}),
     };
-    // TODO: Deps to be passed to it later when we stop exporting handler
-    return handler(cancelBookingInput);
+
+    return handler(cancelBookingInput, this.deps);
   }
 }
 

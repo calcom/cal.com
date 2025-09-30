@@ -406,6 +406,7 @@ export class UserRepository {
     return user;
   }
 
+
   async findManyByOrganization({ organizationId }: { organizationId: number }) {
     const profiles = await ProfileRepository.findManyForOrg({ organizationId });
     return profiles.map((profile) => profile.user);
