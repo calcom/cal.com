@@ -34,6 +34,47 @@ type InputByStatus = "upcoming" | "recurring" | "past" | "cancelled" | "unconfir
 
 const log = logger.getSubLogger({ prefix: ["bookings.get"] });
 
+const getFilteredUserIds = (
+  userIdsWhereUserIsAdminOrOwner: number[],
+  rawUserIds: number[],
+  userId: number
+) => {
+  if (
+    !Array.isArray(userIdsWhereUserIsAdminOrOwner) ||
+    userIdsWhereUserIsAdminOrOwner.length === 0 ||
+    !Array.isArray(rawUserIds) ||
+    rawUserIds.length === 0 ||
+    !userId
+  ) {
+    return [];
+  }
+
+  const areUserIdsWithinUserOrgOrTeam = rawUserIds.every((rawUserId) =>
+    userIdsWhereUserIsAdminOrOwner.includes(rawUserId)
+  );
+
+  const hasCurrentUser = rawUserIds.includes(userId);
+
+  let filteredUserIds = rawUserIds;
+
+  //  Scope depends on `user.orgId`:
+  // - Throw an error if trying to filter by usersIds that are not within your ORG
+  // - Throw an error if trying to filter by usersIds that are not within your TEAM
+  if (!areUserIdsWithinUserOrgOrTeam) {
+    if (!hasCurrentUser) {
+      filteredUserIds = [];
+      log.error({
+        code: "FORBIDDEN",
+        message: "You do not have permissions to fetch bookings for specified userIds",
+      });
+    } else {
+      filteredUserIds = [userId];
+    }
+  }
+
+  return filteredUserIds;
+};
+
 export const getHandler = async ({ ctx, input }: GetOptions) => {
   // using offset actually because cursor pagination requires a unique column
   // for orderBy, but we don't use a unique column in our orderBy
@@ -126,13 +167,11 @@ export async function getBookings({
 
   const [
     eventTypeIdsFromTeamIdsFilter,
-    attendeeEmailsFromUserIdsFilter,
     eventTypeIdsFromEventTypeIdsFilter,
     eventTypeIdsWhereUserIsAdminOrOwner,
     userIdsAndEmailsWhereUserIsAdminOrOwner,
   ] = await Promise.all([
     getEventTypeIdsFromTeamIdsFilter(prisma, filters?.teamIds),
-    getAttendeeEmailsFromUserIdsFilter(prisma, user.email, filters?.userIds),
     getEventTypeIdsFromEventTypeIdsFilter(prisma, filters?.eventTypeIds),
     getEventTypeIdsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
     getUserIdsAndEmailsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
@@ -147,28 +186,12 @@ export async function getBookings({
 
   // If userIds filter is provided
   if (!!filters?.userIds && filters.userIds.length > 0) {
-    const areUserIdsWithinUserOrgOrTeam = filters.userIds.every((userId) =>
-      userIdsWhereUserIsAdminOrOwner.includes(userId)
+    const userIds = getFilteredUserIds(userIdsWhereUserIsAdminOrOwner, filters.userIds, user.id);
+    const attendeeEmailsFromUserIdsFilter = await getAttendeeEmailsFromUserIdsFilter(
+      prisma,
+      user.email,
+      userIds
     );
-
-    const hasCurrentUser = filters.userIds.includes(user.id);
-
-    let userIds = filters.userIds;
-
-    //  Scope depends on `user.orgId`:
-    // - Throw an error if trying to filter by usersIds that are not within your ORG
-    // - Throw an error if trying to filter by usersIds that are not within your TEAM
-    if (!areUserIdsWithinUserOrgOrTeam) {
-      if (!hasCurrentUser) {
-        userIds = [];
-        log.error({
-          code: "FORBIDDEN",
-          message: "You do not have permissions to fetch bookings for specified userIds",
-        });
-      } else {
-        userIds = [user.id];
-      }
-    }
 
     // 1. Booking created by one of the filtered users
     if (userIds.length > 0) {
