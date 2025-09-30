@@ -1,5 +1,4 @@
 // ============================================================================
-import { UnauthorizedError } from "@/utils/error";
 // COMPLETE AuthGuards with authenticateSystemAdmin method
 // ============================================================================
 import { UserRole } from "@/types/auth";
@@ -74,17 +73,15 @@ export class AuthGuards {
    * Flexible authentication (API key or Access token)
    */
   static authenticateFlexible() {
-      return this.authenticateBearer(["API_KEY", "ACCESS_TOKEN"]);
+    return this.authenticateBearer(["API_KEY", "ACCESS_TOKEN"]);
   }
 
   static authenticateOptional() {
     try {
       return this.authenticateBearer(["API_KEY", "ACCESS_TOKEN"]);
-    } catch(e) {
-      if(e instanceof UnauthorizedError) 
-      {
-        return async (request: AuthRequest, reply: FastifyReply): Promise<void> => {
-        }
+    } catch (e) {
+      if (e instanceof UnauthorizedError) {
+        return async (request: AuthRequest, reply: FastifyReply): Promise<void> => {};
       }
     }
   }
