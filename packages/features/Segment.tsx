@@ -1,8 +1,8 @@
 "use client";
 
+import { Query, Builder, Utils as QbUtils } from "@react-awesome-query-builder/ui";
+import type { ImmutableTree, BuilderProps } from "@react-awesome-query-builder/ui";
 import { useCallback, useState } from "react";
-import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
-import type { ImmutableTree, BuilderProps } from "react-awesome-query-builder";
 import type { JsonTree } from "react-awesome-query-builder";
 
 import {
