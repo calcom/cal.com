@@ -138,11 +138,7 @@ describe("handleNewBooking", () => {
                 status: BookingStatus.ACCEPTED,
                 startTime: `${plus1DateString}T05:00:00.000Z`,
                 endTime: `${plus1DateString}T05:30:00.000Z`,
-                users: [
-                  {
-                    id: 101, // organizer
-                  },
-                ],
+                userId: 101,
                 references: [
                   {
                     type: appStoreMetadata.dailyvideo.type,
