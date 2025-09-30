@@ -9,6 +9,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@calid/features/ui/components/dialog";
+import { TextArea } from "@calid/features/ui/components/input/text-area";
 import { Switch } from "@calid/features/ui/components/switch";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { useSession } from "next-auth/react";
@@ -219,7 +220,7 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
           <label className="text-emphasis mb-3 block text-sm font-medium">
             {t("cancellation_reason_host")}
           </label>
-          <textarea
+          <TextArea
             data-testid="cancel_reason"
             value={cancelReason}
             onChange={(e) => setCancelReason(e.target.value)}
