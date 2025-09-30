@@ -189,11 +189,14 @@ export class PermissionCheckService {
         membership.customRoleId,
         permission
       );
+
+      console.log("hasTeamPermission", hasTeamPermission);
       if (hasTeamPermission) return true;
     }
 
     // If no team permission, check org-level permissions
     if (orgMembership?.customRoleId) {
+      console.log(await this.repository.checkRolePermission(orgMembership.customRoleId, permission));
       return this.repository.checkRolePermission(orgMembership.customRoleId, permission);
     }
 
