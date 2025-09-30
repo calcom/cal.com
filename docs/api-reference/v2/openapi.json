@@ -15278,6 +15278,20 @@
           }
         }
       },
+      "BookerActiveBookingsLimit_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "maximumActiveBookings": {
+            "type": "number",
+            "description": "The maximum number of active bookings a booker can have for this event type.",
+            "example": 3
+          },
+          "offerReschedule": {
+            "type": "boolean",
+            "description": "Whether to offer rescheduling the last active booking to the chosen time slot when limit is reached."
+          }
+        }
+      },
       "Disabled_2024_06_14": {
         "type": "object",
         "properties": {
@@ -15615,6 +15629,19 @@
         },
         "required": ["type"]
       },
+      "EmailSettings_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "disableStandardEmailsToAttendees": {
+            "type": "boolean",
+            "description": "Disables standard email communication related to this event type, including booking confirmations, reminders, and cancellations."
+          },
+          "disableStandardEmailsToHosts": {
+            "type": "boolean",
+            "description": "Disables standard email communication related to this event type, including booking confirmations, reminders, and cancellations."
+          }
+        }
+      },
       "CalVideoSettings": {
         "type": "object",
         "properties": {
@@ -15769,6 +15796,17 @@
             "oneOf": [
               {
                 "$ref": "#/components/schemas/BaseBookingLimitsCount_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
+          },
+          "bookerActiveBookingsLimit": {
+            "description": "Limit the number of active bookings a booker can make for this event type.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BookerActiveBookingsLimit_2024_06_14"
               },
               {
                 "$ref": "#/components/schemas/Disabled_2024_06_14"
@@ -16832,6 +16870,19 @@
         },
         "required": ["type", "slug", "label", "required", "placeholder", "hidden", "isDefault"]
       },
+      "EmailSettingsOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "disableStandardEmailsToAttendees": {
+            "type": "boolean",
+            "description": "Disables standard email communication related to this event type, including booking confirmations, reminders, and cancellations."
+          },
+          "disableStandardEmailsToHosts": {
+            "type": "boolean",
+            "description": "Disables standard email communication related to this event type, including booking confirmations, reminders, and cancellations."
+          }
+        }
+      },
       "EventTypeOutput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -17017,6 +17068,9 @@
           },
           "bookingLimitsCount": {
             "type": "object"
+          },
+          "bookerActiveBookingsLimit": {
+            "$ref": "#/components/schemas/BookerActiveBookingsLimit_2024_06_14"
           },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean"
@@ -17296,6 +17350,17 @@
             "oneOf": [
               {
                 "$ref": "#/components/schemas/BaseBookingLimitsCount_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
+          },
+          "bookerActiveBookingsLimit": {
+            "description": "Limit the number of active bookings a booker can make for this event type.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BookerActiveBookingsLimit_2024_06_14"
               },
               {
                 "$ref": "#/components/schemas/Disabled_2024_06_14"
@@ -18873,6 +18938,17 @@
               }
             ]
           },
+          "bookerActiveBookingsLimit": {
+            "description": "Limit the number of active bookings a booker can make for this event type.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BookerActiveBookingsLimit_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
+          },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean",
             "description": "This will limit your availability for this event type to one slot per day, scheduled at the earliest available time."
@@ -19049,6 +19125,18 @@
                 }
               ]
             }
+          },
+          "emailSettings": {
+            "description": "Email settings for this event type - only available for organization team event types.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EmailSettings_2024_06_14"
+              }
+            ]
+          },
+          "rescheduleWithSameRoundRobinHost": {
+            "type": "boolean",
+            "description": "Rescheduled events will be assigned to the same host as initially scheduled."
           }
         },
         "required": ["lengthInMinutes", "title", "slug", "schedulingType"]
@@ -19282,6 +19370,9 @@
           "bookingLimitsCount": {
             "type": "object"
           },
+          "bookerActiveBookingsLimit": {
+            "$ref": "#/components/schemas/BookerActiveBookingsLimit_2024_06_14"
+          },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean"
           },
@@ -19384,6 +19475,18 @@
           },
           "team": {
             "$ref": "#/components/schemas/EventTypeTeam"
+          },
+          "emailSettings": {
+            "description": "Email settings for this event type. Only available for organization team event types.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EmailSettingsOutput_2024_06_14"
+              }
+            ]
+          },
+          "rescheduleWithSameRoundRobinHost": {
+            "type": "boolean",
+            "description": "Rescheduled events will be assigned to the same host as initially scheduled."
           }
         },
         "required": [
@@ -19672,6 +19775,17 @@
               }
             ]
           },
+          "bookerActiveBookingsLimit": {
+            "description": "Limit the number of active bookings a booker can make for this event type.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BookerActiveBookingsLimit_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
+          },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean",
             "description": "This will limit your availability for this event type to one slot per day, scheduled at the earliest available time."
@@ -19841,6 +19955,18 @@
                 }
               ]
             }
+          },
+          "emailSettings": {
+            "description": "Email settings for this event type. Only available for organization team event types.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EmailSettings_2024_06_14"
+              }
+            ]
+          },
+          "rescheduleWithSameRoundRobinHost": {
+            "type": "boolean",
+            "description": "Rescheduled events will be assigned to the same host as initially scheduled."
           }
         }
       },
