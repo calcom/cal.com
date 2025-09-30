@@ -56,8 +56,8 @@ jobs:
         if: steps.cache-api-v2-build.outputs.cache-hit != 'true'
         run: |
           export NODE_OPTIONS="--max_old_space_size=8192"
-          yarn workspace @calcom/api-v2 run generate-schemas
-          rm -rf apps/api/v2/node_modules
-          yarn install
+          yarn workspace @calcom/api-v2 run generate-schemas &&
+          rm -rf apps/api/v2/node_modules &&
+          yarn install &&
           yarn workspace @calcom/api-v2 run build
         shell: bash
