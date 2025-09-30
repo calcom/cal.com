@@ -8,10 +8,12 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
 import { SchedulingType } from "@calcom/platform-libraries";
+import { EventTypeMetadata } from "@calcom/platform-libraries/event-types";
 import {
   CreateTeamEventTypeInput_2024_06_14,
   UpdateTeamEventTypeInput_2024_06_14,
   HostPriority,
+  EmailSettings_2024_06_14,
 } from "@calcom/platform-types";
 
 export type TransformedCreateTeamEventTypeInput = Awaited<
@@ -132,25 +134,8 @@ export class InputOrganizationsEventTypesService {
         ? { managedEventConfig: {}, ...eventType.metadata }
         : eventType.metadata;
 
-    if (
-      emailSettings?.disableEmailsToAttendees !== undefined ||
-      emailSettings?.disableEmailsToHosts !== undefined
-    ) {
-      metadata = {
-        ...metadata,
-        disableStandardEmails: {
-          ...metadata?.disableStandardEmails,
-          all: {
-            ...metadata?.disableStandardEmails?.all,
-            ...(emailSettings?.disableEmailsToAttendees !== undefined && {
-              attendee: emailSettings.disableEmailsToAttendees,
-            }),
-            ...(emailSettings?.disableEmailsToHosts !== undefined && {
-              host: emailSettings.disableEmailsToHosts,
-            }),
-          },
-        },
-      };
+    if (emailSettings) {
+      metadata = this.addEmailSettingsToMetadata(emailSettings, metadata);
     }
 
     const teamEventType = {
@@ -168,6 +153,36 @@ export class InputOrganizationsEventTypesService {
     };
 
     return teamEventType;
+  }
+
+  private addEmailSettingsToMetadata(
+    emailSettings: EmailSettings_2024_06_14,
+    metadata: NonNullable<EventTypeMetadata>
+  ) {
+    if (
+      emailSettings?.disableEmailsToAttendees === undefined &&
+      emailSettings?.disableEmailsToHosts === undefined
+    ) {
+      return metadata;
+    }
+
+    const clonedMetadata = structuredClone(metadata);
+
+    if (!clonedMetadata.disableStandardEmails) {
+      clonedMetadata.disableStandardEmails = {};
+    }
+    if (!clonedMetadata.disableStandardEmails.all) {
+      clonedMetadata.disableStandardEmails.all = {};
+    }
+
+    if (emailSettings?.disableEmailsToAttendees !== undefined) {
+      clonedMetadata.disableStandardEmails.all.attendee = emailSettings.disableEmailsToAttendees;
+    }
+    if (emailSettings?.disableEmailsToHosts !== undefined) {
+      clonedMetadata.disableStandardEmails.all.host = emailSettings.disableEmailsToHosts;
+    }
+
+    return clonedMetadata;
   }
 
   async transformInputUpdateTeamEventType(
@@ -191,25 +206,8 @@ export class InputOrganizationsEventTypesService {
 
     let metadata = eventType.metadata;
 
-    if (
-      emailSettings?.disableEmailsToAttendees !== undefined ||
-      emailSettings?.disableEmailsToHosts !== undefined
-    ) {
-      metadata = {
-        ...metadata,
-        disableStandardEmails: {
-          ...metadata?.disableStandardEmails,
-          all: {
-            ...metadata?.disableStandardEmails?.all,
-            ...(emailSettings?.disableEmailsToAttendees !== undefined && {
-              attendee: emailSettings.disableEmailsToAttendees,
-            }),
-            ...(emailSettings?.disableEmailsToHosts !== undefined && {
-              host: emailSettings.disableEmailsToHosts,
-            }),
-          },
-        },
-      };
+    if (emailSettings) {
+      metadata = this.addEmailSettingsToMetadata(emailSettings, metadata);
     }
 
     const teamEventType = {
