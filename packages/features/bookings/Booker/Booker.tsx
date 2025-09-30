@@ -215,10 +215,23 @@ const BookerComponent = ({
     if (!selectedDate) return setBookerState("selecting_date");
     if (!selectedTimeslot) return setBookerState("selecting_time");
     const isSkipConfirmStepSupported = !isInstantMeeting && layout !== BookerLayouts.WEEK_VIEW;
-    if (selectedTimeslot && skipConfirmStep && isSkipConfirmStepSupported)
-      return setBookerState("selecting_time");
+    if (selectedTimeslot && skipConfirmStep && isSkipConfirmStepSupported) {
+      if ((shouldRenderCaptcha && watchedCfToken) || !shouldRenderCaptcha) {
+        return setBookerState("selecting_time");
+      }
+    }
     return setBookerState("booking");
-  }, [event, selectedDate, selectedTimeslot, setBookerState, skipConfirmStep, layout, isInstantMeeting]);
+  }, [
+    event,
+    selectedDate,
+    selectedTimeslot,
+    setBookerState,
+    skipConfirmStep,
+    layout,
+    isInstantMeeting,
+    shouldRenderCaptcha,
+    watchedCfToken,
+  ]);
 
   const unavailableTimeSlots = isQuickAvailabilityCheckFeatureEnabled
     ? allSelectedTimeslots.filter((slot) => {
