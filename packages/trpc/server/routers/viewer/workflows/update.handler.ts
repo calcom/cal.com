@@ -523,7 +523,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       addedSteps.map((step) =>
         workflowStepRepository.createWorkflowStep({
           ...step,
-          workflow: { connect: { id } },
+          workflowId: id,
           numberVerificationPending: false,
           ...(!SCANNING_WORKFLOW_STEPS ? { verifiedAt: new Date() } : {}),
         })
