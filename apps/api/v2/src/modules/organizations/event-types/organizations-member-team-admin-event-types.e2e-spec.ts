@@ -356,8 +356,8 @@ describe("Organizations Event Types Endpoints", () => {
           lightThemeHex: "#fafafa",
         },
         emailSettings: {
-          disableStandardEmailsToAttendees: true,
-          disableStandardEmailsToHosts: true,
+          disableEmailsToAttendees: true,
+          disableEmailsToHosts: true,
         },
         rescheduleWithSameRoundRobinHost: true,
       };
@@ -607,8 +607,8 @@ describe("Organizations Event Types Endpoints", () => {
         hosts: newHosts,
         successRedirectUrl: "https://new-url-success.com",
         emailSettings: {
-          disableStandardEmailsToAttendees: false,
-          disableStandardEmailsToHosts: false,
+          disableEmailsToAttendees: false,
+          disableEmailsToHosts: false,
         },
         rescheduleWithSameRoundRobinHost: false,
       };

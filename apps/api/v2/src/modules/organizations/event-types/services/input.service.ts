@@ -133,8 +133,8 @@ export class InputOrganizationsEventTypesService {
         : eventType.metadata;
 
     if (
-      emailSettings?.disableStandardEmailsToAttendees !== undefined ||
-      emailSettings?.disableStandardEmailsToHosts !== undefined
+      emailSettings?.disableEmailsToAttendees !== undefined ||
+      emailSettings?.disableEmailsToHosts !== undefined
     ) {
       metadata = {
         ...metadata,
@@ -142,11 +142,11 @@ export class InputOrganizationsEventTypesService {
           ...metadata?.disableStandardEmails,
           all: {
             ...metadata?.disableStandardEmails?.all,
-            ...(emailSettings?.disableStandardEmailsToAttendees !== undefined && {
-              attendee: emailSettings.disableStandardEmailsToAttendees,
+            ...(emailSettings?.disableEmailsToAttendees !== undefined && {
+              attendee: emailSettings.disableEmailsToAttendees,
             }),
-            ...(emailSettings?.disableStandardEmailsToHosts !== undefined && {
-              host: emailSettings.disableStandardEmailsToHosts,
+            ...(emailSettings?.disableEmailsToHosts !== undefined && {
+              host: emailSettings.disableEmailsToHosts,
             }),
           },
         },
@@ -192,8 +192,8 @@ export class InputOrganizationsEventTypesService {
     let metadata = eventType.metadata;
 
     if (
-      emailSettings?.disableStandardEmailsToAttendees !== undefined ||
-      emailSettings?.disableStandardEmailsToHosts !== undefined
+      emailSettings?.disableEmailsToAttendees !== undefined ||
+      emailSettings?.disableEmailsToHosts !== undefined
     ) {
       metadata = {
         ...metadata,
@@ -201,11 +201,11 @@ export class InputOrganizationsEventTypesService {
           ...metadata?.disableStandardEmails,
           all: {
             ...metadata?.disableStandardEmails?.all,
-            ...(emailSettings?.disableStandardEmailsToAttendees !== undefined && {
-              attendee: emailSettings.disableStandardEmailsToAttendees,
+            ...(emailSettings?.disableEmailsToAttendees !== undefined && {
+              attendee: emailSettings.disableEmailsToAttendees,
             }),
-            ...(emailSettings?.disableStandardEmailsToHosts !== undefined && {
-              host: emailSettings.disableStandardEmailsToHosts,
+            ...(emailSettings?.disableEmailsToHosts !== undefined && {
+              host: emailSettings.disableEmailsToHosts,
             }),
           },
         },

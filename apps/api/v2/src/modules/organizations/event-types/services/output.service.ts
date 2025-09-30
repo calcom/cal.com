@@ -213,8 +213,8 @@ export class OutputOrganizationsEventTypesService {
 
     if (attendee !== undefined || host !== undefined) {
       return {
-        disableStandardEmailsToAttendees: attendee ?? false,
-        disableStandardEmailsToHosts: host ?? false,
+        disableEmailsToAttendees: attendee ?? false,
+        disableEmailsToHosts: host ?? false,
       };
     }
 

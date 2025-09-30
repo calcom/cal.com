@@ -15632,13 +15632,13 @@
       "EmailSettings_2024_06_14": {
         "type": "object",
         "properties": {
-          "disableStandardEmailsToAttendees": {
+          "disableEmailsToAttendees": {
             "type": "boolean",
-            "description": "Disables standard email communication to attendees for this event type, including booking confirmations, reminders, and cancellations."
+            "description": "Disables all email communication to attendees for this event type, including booking confirmations, reminders, and cancellations. This DOES NOT include emails sent by custom email workflows."
           },
-          "disableStandardEmailsToHosts": {
+          "disableEmailsToHosts": {
             "type": "boolean",
-            "description": "Disables standard email communication to hosts for this event type, including booking confirmations, reminders, and cancellations."
+            "description": "Disables all email communication to hosts for this event type, including booking confirmations, reminders, and cancellations. This DOES NOT include emails sent by custom email workflows."
           }
         }
       },
@@ -16869,19 +16869,6 @@
           }
         },
         "required": ["type", "slug", "label", "required", "placeholder", "hidden", "isDefault"]
-      },
-      "EmailSettingsOutput_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "disableStandardEmailsToAttendees": {
-            "type": "boolean",
-            "description": "Disables standard email communication to attendees for this event type, including booking confirmations, reminders, and cancellations."
-          },
-          "disableStandardEmailsToHosts": {
-            "type": "boolean",
-            "description": "Disables standard email communication to hosts for this event type, including booking confirmations, reminders, and cancellations."
-          }
-        }
       },
       "EventTypeOutput_2024_06_14": {
         "type": "object",
@@ -19480,7 +19467,7 @@
             "description": "Email settings for this event type. Only available for organization team event types.",
             "allOf": [
               {
-                "$ref": "#/components/schemas/EmailSettingsOutput_2024_06_14"
+                "$ref": "#/components/schemas/EmailSettings_2024_06_14"
               }
             ]
           },

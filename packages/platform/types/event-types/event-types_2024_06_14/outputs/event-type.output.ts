@@ -36,6 +36,7 @@ import type { BookingLimitsCount_2024_06_14 } from "../inputs/booking-limits-cou
 import type { ConfirmationPolicy_2024_06_14 } from "../inputs/confirmation-policy.input";
 import { DestinationCalendar_2024_06_14 } from "../inputs/destination-calendar.input";
 import type { Disabled_2024_06_14 } from "../inputs/disabled.input";
+import { EmailSettings_2024_06_14 } from "../inputs/email-settings.input";
 import {
   EmailDefaultFieldOutput_2024_06_14,
   NameDefaultFieldOutput_2024_06_14,
@@ -59,7 +60,6 @@ import {
 } from "../outputs/booking-fields.output";
 import type { OutputBookingField_2024_06_14 } from "./booking-fields.output";
 import { ValidateOutputBookingFields_2024_06_14 } from "./booking-fields.output";
-import { EmailSettingsOutput_2024_06_14 } from "./email-settings.output";
 import type { OutputLocation_2024_06_14 } from "./locations.output";
 import {
   OutputAddressLocation_2024_06_14,
@@ -181,7 +181,7 @@ class EventTypeTeam {
   BusinessDaysWindow_2024_06_14,
   CalendarDaysWindow_2024_06_14,
   RangeWindow_2024_06_14,
-  EmailSettingsOutput_2024_06_14
+  EmailSettings_2024_06_14
 )
 class BaseEventTypeOutput_2024_06_14 {
   @IsInt()
@@ -537,12 +537,12 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
 
   @IsOptional()
   @ValidateNested()
-  @Type(() => EmailSettingsOutput_2024_06_14)
+  @Type(() => EmailSettings_2024_06_14)
   @ApiPropertyOptional({
     description: "Email settings for this event type. Only available for organization team event types.",
-    type: () => EmailSettingsOutput_2024_06_14,
+    type: () => EmailSettings_2024_06_14,
   })
-  emailSettings?: EmailSettingsOutput_2024_06_14;
+  emailSettings?: EmailSettings_2024_06_14;
 
   @IsBoolean()
   @IsOptional()
