@@ -1282,7 +1282,7 @@ async function handler(
       attendeeLanguage,
       paymentAppData,
       fullName,
-      smsReminderNumber,
+      smsReminderNumber: bookerPhoneNumber,
       eventTypeInfo,
       uid,
       eventTypeId,
@@ -1395,7 +1395,7 @@ async function handler(
         input: {
           bookerEmail,
           rescheduleReason,
-          smsReminderNumber,
+          smsReminderNumber: bookerPhoneNumber,
           responses,
         },
         evt,
@@ -1973,7 +1973,8 @@ async function handler(
     metadata: { ...metadata, ...reqBody.metadata },
     eventTypeId,
     status: "ACCEPTED",
-    smsReminderNumber: booking?.smsReminderNumber || undefined,
+    // smsReminderNumber: booking?.smsReminderNumber || undefined,
+    smsReminderNumber: bookerPhoneNumber || undefined,
     rescheduledBy: reqBody.rescheduledBy,
     ...(assignmentReason ? { assignmentReason: [assignmentReason] } : {}),
   };
@@ -2204,7 +2205,8 @@ async function handler(
   try {
     await scheduleWorkflowReminders({
       workflows,
-      smsReminderNumber: smsReminderNumber || null,
+      // smsReminderNumber: smsReminderNumber || null,
+      smsReminderNumber: bookerPhoneNumber || null,
       calendarEvent: evtWithMetadata,
       isNotConfirmed: rescheduleUid ? false : !isConfirmedByDefault,
       isRescheduleEvent: !!rescheduleUid,
