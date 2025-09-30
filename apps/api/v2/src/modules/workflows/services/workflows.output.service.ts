@@ -35,7 +35,7 @@ import {
 export class WorkflowsOutputService {
   toOutputDto(workflow: WorkflowType): WorkflowOutput {
     const activation: WorkflowActivationDto | WorkflowFormActivationDto =
-      workflow.trigger === "FORM_SUBMITTED"
+      workflow.type === "ROUTING_FORM"
         ? {
             isActiveOnAllRoutingForms: workflow.isActiveOnAll,
             activeOnRoutingFormIds:
