@@ -11,7 +11,7 @@ import type { z } from "zod";
 
 import { SMS_REMINDER_NUMBER_FIELD } from "@calcom/features/bookings/lib/SystemField";
 import {
-  getSmsReminderNumberField,
+  //getSmsReminderNumberField,
   getSmsReminderNumberSource,
 } from "@calcom/features/bookings/lib/getBookingFields";
 import { removeBookingField, upsertBookingField } from "@calcom/features/eventtypes/lib/bookingFieldsManager";
@@ -306,7 +306,7 @@ export async function upsertSmsReminderFieldForEventTypes({
 
   for (const eventTypeId of allEventTypeIds) {
     await upsertBookingField(
-      getSmsReminderNumberField(),
+      //getSmsReminderNumberField(),
       getSmsReminderNumberSource({
         workflowId,
         isSmsReminderNumberRequired,
