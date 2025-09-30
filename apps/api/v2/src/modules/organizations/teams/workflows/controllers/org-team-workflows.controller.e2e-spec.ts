@@ -61,6 +61,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
   let org: Team;
   let orgTeam: Team;
   let createdWorkflowId: number;
+  let createdFormWorkflowId: number;
   const authEmail = `org-teams-workflows-user-${randomString()}@example.com`;
   let user: User;
   let apiKeyString: string;
@@ -69,6 +70,8 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
   let verifiedEmailId: number;
   let verifiedEmailId2: number;
   let createdWorkflow: GetWorkflowOutput["data"];
+  let createdFormWorkflow: GetWorkflowOutput["data"];
+
   const emailToVerify = `org-teams-workflows-team-${randomString()}@example.com`;
   const phoneToVerify = `+37255556666`;
 
@@ -90,7 +93,6 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
 
   let sampleCreateWorkflowRoutingFormDto: CreateFormWorkflowDto = {
     name: `E2E Test Workflow ${randomString()}`,
-    type: "form",
     activation: {
       activeOnRoutingFormIds: [],
       isActiveOnAllRoutingForms: true,
@@ -267,7 +269,6 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
 
     sampleCreateWorkflowRoutingFormDto = {
       name: `E2E Test Form Workflow ${randomString()}`,
-      type: "form",
       activation: {
         isActiveOnAllRoutingForms: true,
         activeOnRoutingFormIds: [],
@@ -323,6 +324,8 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
           const responseBody: GetWorkflowOutput = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
+          expect(responseBody.data.activation).toBeDefined();
+
           expect(responseBody.data.name).toEqual(sampleCreateWorkflowDto.name);
           if (responseBody.data.activation instanceof WorkflowActivationDto) {
             expect(responseBody.data.activation.isActiveOnAllEventTypes).toEqual(
@@ -375,9 +378,9 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
       ) as unknown as CreateWorkflowDto;
       invalidWorkflow.trigger.type = AFTER_EVENT;
       return request(app.getHttpServer())
-        .post(basePath)
+        .post(`${basePath}/routing-form`)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
-        .send({ invalidWorkflow })
+        .send(invalidWorkflow)
         .expect(400);
     });
 
@@ -401,7 +404,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
         } as unknown as WorkflowEmailAddressStepDto,
       ];
       return request(app.getHttpServer())
-        .post(basePath)
+        .post(`${basePath}/routing-form`)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send(invalidWorkflow)
         .expect(400);
@@ -426,7 +429,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
         },
       ];
       return request(app.getHttpServer())
-        .post(basePath)
+        .post(`${basePath}/routing-form`)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send(validWorkflow)
         .expect(201)
@@ -453,8 +456,8 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
           const trigger = sampleCreateWorkflowRoutingFormDto.trigger as OnFormSubmittedTriggerDto;
           expect(responseBody.data.trigger?.type).toEqual(trigger.type);
 
-          createdWorkflowId = responseBody.data.id;
-          createdWorkflow = responseBody.data;
+          createdFormWorkflowId = responseBody.data.id;
+          createdFormWorkflow = responseBody.data;
         });
     });
 
@@ -503,7 +506,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
       return request(app.getHttpServer())
         .post(basePath)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
-        .send({ ...sampleCreateWorkflowDto, type: "form" })
+        .send({ ...sampleCreateWorkflowDto, trigger: { ...sampleCreateWorkflowDto, type: "formSubmitted" } })
         .expect(400);
     });
 
@@ -660,55 +663,22 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
         });
     });
 
-    it("should not update an existing workflow, trying to convert an event-type workflow into a form workflow without all the correct data ", async () => {
+    it("should not update an existing event-type workflow, trying to use form workflow trigger", async () => {
       const step2 = createdWorkflow.steps.find((step) => step.stepNumber === 2);
       expect(step2).toBeDefined();
       const step3 = createdWorkflow.steps.find((step) => step.stepNumber === 3);
       expect(step3).toBeDefined();
-      const partialUpdateDto: Partial<CreateWorkflowDto> = {
+      const partialUpdateDto = {
         name: updatedName,
         trigger: {
-          type: "afterEvent",
+          type: "formSubmitted",
           offset: {
             unit: "minute",
             value: 10,
           },
         },
-        steps:
-          step3 && step2
-            ? [
-                {
-                  stepNumber: 1,
-                  id: step3.id,
-                  action: "email_address",
-                  recipient: EMAIL,
-                  template: REMINDER,
-                  verifiedEmailId: verifiedEmailId2,
-                  sender: "updatedSender",
-                  includeCalendarEvent: false,
-                  message: {
-                    subject: "Update Upcoming: {EVENT_NAME}",
-                    html: "<p>Update Reminder for your event {EVENT_NAME}.</p>",
-                  },
-                } as UpdateEmailAddressWorkflowStepDto,
-                {
-                  stepNumber: 2,
-                  id: step2.id,
-                  action: "whatsapp_number",
-                  recipient: PHONE_NUMBER,
-                  template: REMINDER,
-                  verifiedPhoneId: verifiedPhoneId2,
-                  sender: "updatedSender",
-                  message: {
-                    subject: "Update Upcoming: {EVENT_NAME}",
-                    text: "Update Reminder for your event {EVENT_NAME}.",
-                  },
-                } as UpdatePhoneWhatsAppNumberWorkflowStepDto,
-              ]
-            : [],
       };
-      // forcing invalid type
-      partialUpdateDto.type = "form" as unknown as "event-type";
+
       expect(createdWorkflowId).toBeDefined();
       expect(createdWorkflow).toBeDefined();
       return request(app.getHttpServer())
@@ -716,6 +686,65 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send(partialUpdateDto)
         .expect(400);
+    });
+
+    it("should update an existing routing form workflow, update the first step and discard any other steps", async () => {
+      const step1 = createdFormWorkflow.steps.find((step) => step.stepNumber === 1);
+      expect(step1).toBeDefined();
+
+      const partialUpdateDto: Partial<CreateFormWorkflowDto> = {
+        name: updatedName,
+        trigger: {
+          type: "formSubmitted",
+        },
+        steps: step1
+          ? [
+              {
+                stepNumber: 1,
+                id: step1.id,
+                action: "email_address",
+                recipient: EMAIL,
+                template: REMINDER,
+                verifiedEmailId: verifiedEmailId2,
+                sender: "updatedSender",
+                includeCalendarEvent: true,
+                message: {
+                  subject: "Update Upcoming: {EVENT_NAME}",
+                  html: "<p>Update Reminder for your event {EVENT_NAME}.</p>",
+                },
+              } as UpdateEmailAddressWorkflowStepDto,
+            ]
+          : [],
+      };
+      expect(createdFormWorkflowId).toBeDefined();
+      expect(createdFormWorkflow).toBeDefined();
+      return request(app.getHttpServer())
+        .patch(`${basePath}/${createdFormWorkflowId}/routing-form`)
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+        .send(partialUpdateDto)
+        .expect(200)
+        .then((response) => {
+          const responseBody: GetWorkflowOutput = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(responseBody.data.id).toEqual(createdFormWorkflowId);
+          expect(responseBody.data.name).toEqual(updatedName);
+          expect(responseBody.data.activation).toBeDefined();
+          if (step1) {
+            const newStep1 = responseBody.data.steps.find((step) => step.id === step1.id);
+            expect(newStep1).toBeDefined();
+            if (newStep1) {
+              expect(newStep1.sender).toEqual("updatedSender");
+              expect(newStep1.email).toEqual(emailToVerify);
+              expect(newStep1.includeCalendarEvent).toEqual(true);
+            }
+          }
+
+          // we updated 1 steps, no more steps should be defined
+          expect(responseBody.data.steps[1]?.id).toBeUndefined();
+          const trigger = partialUpdateDto.trigger as OnFormSubmittedTriggerDto;
+          expect(responseBody.data.trigger?.type).toEqual(trigger.type);
+        });
     });
 
     it("should return 404 for updating a non-existent workflow ID", async () => {

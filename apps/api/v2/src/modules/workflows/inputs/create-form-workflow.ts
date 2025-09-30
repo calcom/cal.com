@@ -1,45 +1,20 @@
 import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
-import { Transform, Type } from "class-transformer";
-import {
-  IsBoolean,
-  ArrayMinSize,
-  IsOptional,
-  IsString,
-  ValidateNested,
-  ValidateIf,
-  IsIn,
-} from "class-validator";
+import { Type } from "class-transformer";
+import { IsBoolean, ArrayMinSize, IsOptional, IsString, ValidateNested, ValidateIf } from "class-validator";
 
 import {
-  BaseWorkflowStepDto,
+  BaseFormWorkflowStepDto,
   EMAIL_ADDRESS,
   EMAIL_ATTENDEE,
   FORM_ALLOWED_STEP_ACTIONS,
   WorkflowEmailAddressStepDto,
   WorkflowEmailAttendeeStepDto,
-  WorkflowEmailHostStepDto,
-  WorkflowPhoneAttendeeStepDto,
-  WorkflowPhoneNumberStepDto,
-  WorkflowPhoneWhatsAppAttendeeStepDto,
-  WorkflowPhoneWhatsAppNumberStepDto,
 } from "./workflow-step.input";
 import {
-  BaseWorkflowTriggerDto,
+  BaseFormWorkflowTriggerDto,
   FORM_SUBMITTED,
   FORM_WORKFLOW_TRIGGER_TYPES,
-  OnAfterCalVideoGuestsNoShowTriggerDto,
-  OnAfterCalVideoHostsNoShowTriggerDto,
-  OnAfterEventTriggerDto,
-  OnBeforeEventTriggerDto,
-  OnCancelTriggerDto,
-  OnCreationTriggerDto,
   OnFormSubmittedTriggerDto,
-  OnNoShowUpdateTriggerDto,
-  OnPaidTriggerDto,
-  OnPaymentInitiatedTriggerDto,
-  OnRejectedTriggerDto,
-  OnRequestedTriggerDto,
-  OnRescheduleTriggerDto,
 } from "./workflow-trigger.input";
 
 export const WORKFLOW_FORM_ACTIVATION = "form";
@@ -68,62 +43,16 @@ export class WorkflowFormActivationDto {
   activeOnRoutingFormIds: string[] = [];
 }
 
-export type TriggerDtoType =
-  | OnAfterEventTriggerDto
-  | OnBeforeEventTriggerDto
-  | OnCreationTriggerDto
-  | OnRescheduleTriggerDto
-  | OnCancelTriggerDto
-  | OnAfterCalVideoGuestsNoShowTriggerDto
-  | OnFormSubmittedTriggerDto
-  | OnRejectedTriggerDto
-  | OnRequestedTriggerDto
-  | OnPaymentInitiatedTriggerDto
-  | OnPaidTriggerDto
-  | OnNoShowUpdateTriggerDto
-  | OnAfterCalVideoHostsNoShowTriggerDto;
-
 @ApiExtraModels(
-  OnBeforeEventTriggerDto,
-  OnAfterEventTriggerDto,
   OnFormSubmittedTriggerDto,
-  OnCancelTriggerDto,
-  OnCreationTriggerDto,
-  OnRescheduleTriggerDto,
-  OnNoShowUpdateTriggerDto,
-  OnRejectedTriggerDto,
-  OnRequestedTriggerDto,
-  OnPaymentInitiatedTriggerDto,
-  OnPaidTriggerDto,
-  OnAfterCalVideoGuestsNoShowTriggerDto,
-  OnAfterCalVideoHostsNoShowTriggerDto,
   WorkflowEmailAddressStepDto,
   WorkflowEmailAttendeeStepDto,
-  WorkflowEmailHostStepDto,
-  WorkflowPhoneWhatsAppAttendeeStepDto,
-  WorkflowPhoneWhatsAppNumberStepDto,
-  WorkflowPhoneNumberStepDto,
-  WorkflowPhoneAttendeeStepDto,
-  BaseWorkflowTriggerDto
+  BaseFormWorkflowTriggerDto
 )
 export class CreateFormWorkflowDto {
   @ApiProperty({ description: "Name of the workflow", example: "Platform Test Workflow" })
   @IsString()
   name!: string;
-
-  @ApiProperty({
-    description: "type of the workflow",
-    example: WORKFLOW_FORM_ACTIVATION,
-    default: WORKFLOW_FORM_ACTIVATION,
-  })
-  @IsString()
-  @IsIn([WORKFLOW_FORM_ACTIVATION, WORKFLOW_EVENT_TYPE_ACTIVATION])
-  @IsOptional()
-  @Transform(
-    ({ value }: { value?: typeof WORKFLOW_EVENT_TYPE_ACTIVATION | typeof WORKFLOW_FORM_ACTIVATION }) =>
-      value ?? WORKFLOW_EVENT_TYPE_ACTIVATION
-  )
-  type: typeof WORKFLOW_FORM_ACTIVATION = WORKFLOW_FORM_ACTIVATION;
 
   @ApiProperty({
     description: "Activation settings for the workflow",
@@ -138,7 +67,7 @@ export class CreateFormWorkflowDto {
     oneOf: [{ $ref: getSchemaPath(OnFormSubmittedTriggerDto) }],
   })
   @ValidateNested()
-  @Type(() => BaseWorkflowTriggerDto, {
+  @Type(() => BaseFormWorkflowTriggerDto, {
     keepDiscriminatorProperty: true,
     discriminator: {
       property: "type",
@@ -159,7 +88,7 @@ export class CreateFormWorkflowDto {
   @ArrayMinSize(1, {
     message: `Your workflow must contain at least one allowed step. allowed steps are ${FORM_ALLOWED_STEP_ACTIONS.toString()}`,
   })
-  @Type(() => BaseWorkflowStepDto, {
+  @Type(() => BaseFormWorkflowStepDto, {
     keepDiscriminatorProperty: true,
     discriminator: {
       property: "action",

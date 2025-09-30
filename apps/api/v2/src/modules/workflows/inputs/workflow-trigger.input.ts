@@ -104,6 +104,8 @@ export const ENUM_TO_TIME_UNIT = {
 } as const;
 
 export type WorkflowTriggerType = (typeof WORKFLOW_TRIGGER_TYPES)[number];
+export type WorkflowEventTypeTriggerType = (typeof EVENT_TYPE_WORKFLOW_TRIGGER_TYPES)[number];
+export type WorkflowFormTriggerType = (typeof FORM_WORKFLOW_TRIGGER_TYPES)[number];
 
 export class WorkflowTriggerOffsetDto {
   @ApiProperty({ description: "Time value for offset before/after event trigger", example: 24, type: Number })
@@ -118,11 +120,20 @@ export class WorkflowTriggerOffsetDto {
 
 export class BaseWorkflowTriggerDto {
   @ApiProperty({
-    description: "Trigger type for the workflow",
+    description: "Trigger type for the event-type workflow",
   })
   @IsString()
-  @IsIn([WORKFLOW_TRIGGER_TYPES])
-  type!: WorkflowTriggerType;
+  @IsIn([EVENT_TYPE_WORKFLOW_TRIGGER_TYPES])
+  type!: WorkflowEventTypeTriggerType;
+}
+
+export class BaseFormWorkflowTriggerDto {
+  @ApiProperty({
+    description: "Trigger type for the routing-form workflow",
+  })
+  @IsString()
+  @IsIn([FORM_WORKFLOW_TRIGGER_TYPES])
+  type!: WorkflowFormTriggerType;
 }
 
 export class OnCreationTriggerDto {

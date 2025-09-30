@@ -20,8 +20,6 @@ import { CreateWorkflowDto } from "@/modules/workflows/inputs/create-workflow.in
 import { UpdateFormWorkflowDto } from "@/modules/workflows/inputs/update-form-workflow.input";
 import { UpdateWorkflowDto } from "@/modules/workflows/inputs/update-workflow.input";
 import { GetWorkflowOutput, GetWorkflowsOutput } from "@/modules/workflows/outputs/workflow.output";
-import { WorkflowValidationPipe } from "@/modules/workflows/pipes/create-workflow-input-validation.pipe";
-import { UpdateWorkflowValidationPipe } from "@/modules/workflows/pipes/update-workflow-input-validation.pipe";
 import { TeamWorkflowsService } from "@/modules/workflows/services/team-workflows.service";
 import {
   Controller,
@@ -35,7 +33,7 @@ import {
   Body,
   Delete,
 } from "@nestjs/common";
-import { ApiBody, ApiHeader, ApiOperation, ApiTags, getSchemaPath } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { SkipTakePagination } from "@calcom/platform-types";
@@ -83,28 +81,28 @@ export class OrganizationTeamWorkflowsController {
   }
 
   @Post("/")
-  @ApiOperation({ summary: "Create organization team workflow" })
+  @ApiOperation({ summary: "Create organization team workflow for event-types" })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("SCALE")
-  @ApiBody({
-    schema: {
-      discriminator: {
-        propertyName: "type",
-        mapping: {
-          "event-type": getSchemaPath(CreateWorkflowDto),
-          form: getSchemaPath(CreateFormWorkflowDto),
-        },
-      },
-      oneOf: [{ $ref: getSchemaPath(CreateWorkflowDto) }, { $ref: getSchemaPath(CreateFormWorkflowDto) }],
-    },
-  })
-  async createWorkflow(
+  async createEventTypeWorkflow(
     @GetUser() user: UserWithProfile,
     @Param("teamId", ParseIntPipe) teamId: number,
-    @Body(new WorkflowValidationPipe()) data: CreateWorkflowDto | CreateFormWorkflowDto
+    @Body() data: CreateWorkflowDto
   ): Promise<GetWorkflowOutput> {
-    console.log("AFTER PIPE", data);
-    const workflow = await this.workflowsService.createTeamWorkflow(user, teamId, data);
+    const workflow = await this.workflowsService.createEventTypeTeamWorkflow(user, teamId, data);
+    return { data: workflow, status: SUCCESS_STATUS };
+  }
+
+  @Post("/routing-form")
+  @ApiOperation({ summary: "Create organization team workflow for routing-forms" })
+  @Roles("TEAM_ADMIN")
+  @PlatformPlan("SCALE")
+  async createFormWorkflow(
+    @GetUser() user: UserWithProfile,
+    @Param("teamId", ParseIntPipe) teamId: number,
+    @Body() data: CreateFormWorkflowDto
+  ): Promise<GetWorkflowOutput> {
+    const workflow = await this.workflowsService.createFormTeamWorkflow(user, teamId, data);
     return { data: workflow, status: SUCCESS_STATUS };
   }
 
@@ -113,26 +111,28 @@ export class OrganizationTeamWorkflowsController {
   @ApiOperation({ summary: "Update organization team workflow" })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("SCALE")
-  @ApiBody({
-    schema: {
-      discriminator: {
-        propertyName: "type",
-        mapping: {
-          "event-type": getSchemaPath(UpdateWorkflowDto),
-          form: getSchemaPath(UpdateFormWorkflowDto),
-        },
-      },
-      oneOf: [{ $ref: getSchemaPath(UpdateWorkflowDto) }, { $ref: getSchemaPath(UpdateFormWorkflowDto) }],
-    },
-  })
   async updateWorkflow(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("workflowId", ParseIntPipe) workflowId: number,
     @GetUser() user: UserWithProfile,
-    @Body(UpdateWorkflowValidationPipe) data: UpdateWorkflowDto | UpdateFormWorkflowDto
+    @Body() data: UpdateWorkflowDto
   ): Promise<GetWorkflowOutput> {
-    console.log("DATA Update", data);
-    const workflow = await this.workflowsService.updateTeamWorkflow(user, teamId, workflowId, data);
+    const workflow = await this.workflowsService.updateEventTypeTeamWorkflow(user, teamId, workflowId, data);
+    return { data: workflow, status: SUCCESS_STATUS };
+  }
+
+  @Patch("/:workflowId/routing-form")
+  @UseGuards(IsWorkflowInTeam)
+  @ApiOperation({ summary: "Update organization routing form team workflow" })
+  @Roles("TEAM_ADMIN")
+  @PlatformPlan("SCALE")
+  async updateRoutingFormWorkflow(
+    @Param("teamId", ParseIntPipe) teamId: number,
+    @Param("workflowId", ParseIntPipe) workflowId: number,
+    @GetUser() user: UserWithProfile,
+    @Body() data: UpdateFormWorkflowDto
+  ): Promise<GetWorkflowOutput> {
+    const workflow = await this.workflowsService.updateFormTeamWorkflow(user, teamId, workflowId, data);
     return { data: workflow, status: SUCCESS_STATUS };
   }
 

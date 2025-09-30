@@ -1,12 +1,8 @@
 import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
-import { Transform, Type } from "class-transformer";
-import { IsString, IsOptional, ValidateNested, ArrayMinSize, IsIn } from "class-validator";
+import { Type } from "class-transformer";
+import { IsString, IsOptional, ValidateNested, ArrayMinSize } from "class-validator";
 
-import {
-  WORKFLOW_EVENT_TYPE_ACTIVATION,
-  WORKFLOW_FORM_ACTIVATION,
-  WorkflowActivationDto,
-} from "./create-workflow.input";
+import { WorkflowActivationDto } from "./create-workflow.input";
 import {
   BaseWorkflowStepDto,
   EMAIL_ADDRESS,
@@ -81,20 +77,6 @@ export class UpdateWorkflowDto {
   @IsString()
   @IsOptional()
   name?: string;
-
-  @ApiProperty({
-    description: "type of the workflow",
-    example: WORKFLOW_EVENT_TYPE_ACTIVATION,
-    default: WORKFLOW_EVENT_TYPE_ACTIVATION,
-  })
-  @IsString()
-  @IsIn([WORKFLOW_FORM_ACTIVATION, WORKFLOW_EVENT_TYPE_ACTIVATION])
-  @IsOptional()
-  @Transform(
-    ({ value }: { value?: typeof WORKFLOW_EVENT_TYPE_ACTIVATION | typeof WORKFLOW_FORM_ACTIVATION }) =>
-      value ?? WORKFLOW_EVENT_TYPE_ACTIVATION
-  )
-  type: typeof WORKFLOW_EVENT_TYPE_ACTIVATION = WORKFLOW_EVENT_TYPE_ACTIVATION;
 
   @ApiProperty({
     description: "Activation settings for the workflow",

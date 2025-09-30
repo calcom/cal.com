@@ -117,12 +117,12 @@ export class WorkflowsInputService {
     };
   }
 
-  async mapUpdateDtoToZodUpdateSchema(
+  private async _mapCommonWorkflowProperties(
     updateDto: UpdateWorkflowDto | UpdateFormWorkflowDto,
-    workflowIdToUse: number,
+    currentData: WorkflowType,
     teamId: number,
-    currentData: WorkflowType
-  ): Promise<TUpdateInputSchema> {
+    workflowIdToUse: number
+  ) {
     const mappedSteps = updateDto?.steps
       ? await Promise.all(
           updateDto.steps.map(async (stepDto: UpdateWorkflowStepDto, index: number) =>
@@ -134,39 +134,89 @@ export class WorkflowsInputService {
     const triggerForZod = updateDto?.trigger?.type
       ? WORKFLOW_TRIGGER_TO_ENUM[updateDto?.trigger?.type]
       : currentData.trigger;
+
     const timeUnitForZod =
       updateDto.trigger instanceof OnBeforeEventTriggerDto ||
       updateDto.trigger instanceof OnAfterEventTriggerDto
         ? updateDto?.trigger?.offset?.unit ?? currentData.timeUnit ?? null
         : undefined;
 
+    const time =
+      updateDto.trigger instanceof OnBeforeEventTriggerDto ||
+      updateDto.trigger instanceof OnAfterEventTriggerDto
+        ? updateDto?.trigger?.offset?.value ?? currentData?.time ?? null
+        : null;
+
+    const timeUnit = timeUnitForZod ? TIME_UNIT_TO_ENUM[timeUnitForZod] : null;
+
+    return { mappedSteps, triggerForZod, time, timeUnit };
+  }
+
+  async mapEventTypeUpdateDtoToZodSchema(
+    updateDto: UpdateWorkflowDto,
+    workflowIdToUse: number,
+    teamId: number,
+    currentData: WorkflowType
+  ): Promise<TUpdateInputSchema> {
+    const { mappedSteps, triggerForZod, time, timeUnit } = await this._mapCommonWorkflowProperties(
+      updateDto,
+      currentData,
+      teamId,
+      workflowIdToUse
+    );
+
     const updateData: TUpdateInputSchema = {
       id: workflowIdToUse,
       name: updateDto.name ?? currentData.name,
-      activeOnEventTypeIds:
-        updateDto.type === "event-type"
-          ? updateDto?.activation?.activeOnEventTypeIds ??
-            currentData?.activeOn.map((active) => active.eventTypeId) ??
-            []
-          : [],
-      activeOnRoutingFormIds:
-        updateDto.type === "form"
-          ? updateDto?.activation?.activeOnRoutingFormIds ??
-            currentData?.activeOnRoutingForms.map((active) => active.routingFormId) ??
-            []
-          : [],
       steps: mappedSteps,
       trigger: triggerForZod,
-      time:
-        updateDto.trigger instanceof OnBeforeEventTriggerDto ||
-        updateDto.trigger instanceof OnAfterEventTriggerDto
-          ? updateDto?.trigger?.offset?.value ?? currentData?.time ?? null
-          : null,
-      timeUnit: timeUnitForZod ? TIME_UNIT_TO_ENUM[timeUnitForZod] : null,
-      isActiveOnAll:
-        updateDto.type === "event-type"
-          ? updateDto?.activation?.isActiveOnAllEventTypes ?? currentData.isActiveOnAll ?? false
-          : updateDto?.activation?.isActiveOnAllRoutingForms ?? currentData.isActiveOnAll ?? false,
+      time: time,
+      timeUnit: timeUnit,
+
+      // Event-type specific logic
+      activeOnEventTypeIds:
+        updateDto?.activation?.activeOnEventTypeIds ??
+        currentData?.activeOn.map((active) => active.eventTypeId) ??
+        [],
+      isActiveOnAll: updateDto?.activation?.isActiveOnAllEventTypes ?? currentData.isActiveOnAll ?? false,
+
+      // Explicitly set form-related fields to their default/empty state
+      activeOnRoutingFormIds: [],
+    } as const satisfies TUpdateInputSchema;
+
+    return updateData;
+  }
+
+  async mapFormUpdateDtoToZodSchema(
+    updateDto: UpdateFormWorkflowDto,
+    workflowIdToUse: number,
+    teamId: number,
+    currentData: WorkflowType
+  ): Promise<TUpdateInputSchema> {
+    const { mappedSteps, triggerForZod, time, timeUnit } = await this._mapCommonWorkflowProperties(
+      updateDto,
+      currentData,
+      teamId,
+      workflowIdToUse
+    );
+
+    const updateData: TUpdateInputSchema = {
+      id: workflowIdToUse,
+      name: updateDto.name ?? currentData.name,
+      steps: mappedSteps,
+      trigger: triggerForZod,
+      time: time,
+      timeUnit: timeUnit,
+
+      // Form-specific logic
+      activeOnRoutingFormIds:
+        updateDto?.activation?.activeOnRoutingFormIds ??
+        currentData?.activeOnRoutingForms.map((active) => active.routingFormId) ??
+        [],
+      isActiveOnAll: updateDto?.activation?.isActiveOnAllRoutingForms ?? currentData.isActiveOnAll ?? false,
+
+      // Explicitly set event-type-related fields to their default/empty state
+      activeOnEventTypeIds: [],
     } as const satisfies TUpdateInputSchema;
 
     return updateData;

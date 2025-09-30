@@ -136,6 +136,13 @@ export class BaseWorkflowStepDto {
   sender!: string;
 }
 
+export class BaseFormWorkflowStepDto extends BaseWorkflowStepDto {
+  @ApiProperty({ description: "Action to perform", example: EMAIL_HOST, enum: STEP_ACTIONS })
+  @IsString()
+  @IsIn(FORM_ALLOWED_STEP_ACTIONS)
+  action!: StepAction;
+}
+
 export class WorkflowEmailHostStepDto extends BaseWorkflowStepDto {
   @ApiProperty({
     description: "Action to perform, send an email to the host of the event",

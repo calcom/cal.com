@@ -34,13 +34,9 @@ export class TeamWorkflowsService {
     return this.workflowOutputService.toOutputDto(workflow);
   }
 
-  async createTeamWorkflow(
-    user: UserWithProfile,
-    teamId: number,
-    data: CreateWorkflowDto | CreateFormWorkflowDto
-  ) {
+  async createEventTypeTeamWorkflow(user: UserWithProfile, teamId: number, data: CreateWorkflowDto) {
     const workflowHusk = await this.workflowsRepository.createTeamWorkflowHusk(teamId);
-    const mappedData = await this.workflowInputService.mapUpdateDtoToZodUpdateSchema(
+    const mappedData = await this.workflowInputService.mapEventTypeUpdateDtoToZodSchema(
       data,
       workflowHusk.id,
       teamId,
@@ -60,18 +56,72 @@ export class TeamWorkflowsService {
     return this.workflowOutputService.toOutputDto(createdWorkflow);
   }
 
-  async updateTeamWorkflow(
+  async createFormTeamWorkflow(user: UserWithProfile, teamId: number, data: CreateFormWorkflowDto) {
+    const workflowHusk = await this.workflowsRepository.createTeamWorkflowHusk(teamId);
+    const mappedData = await this.workflowInputService.mapFormUpdateDtoToZodSchema(
+      data,
+      workflowHusk.id,
+      teamId,
+      workflowHusk
+    );
+
+    const createdWorkflow = await this.workflowsRepository.updateTeamWorkflow(
+      user,
+      teamId,
+      workflowHusk.id,
+      mappedData
+    );
+    if (!createdWorkflow) {
+      throw new BadRequestException(`Could not create Workflow in team ${teamId}`);
+    }
+
+    return this.workflowOutputService.toOutputDto(createdWorkflow);
+  }
+
+  async updateFormTeamWorkflow(
     user: UserWithProfile,
     teamId: number,
     workflowId: number,
-    data: UpdateWorkflowDto | UpdateFormWorkflowDto
+    data: UpdateFormWorkflowDto
   ) {
     const currentWorkflow = await this.workflowsRepository.getTeamWorkflowById(teamId, workflowId);
 
     if (!currentWorkflow) {
       throw new NotFoundException(`Workflow with ID ${workflowId} not found for team ${teamId}`);
     }
-    const mappedData = await this.workflowInputService.mapUpdateDtoToZodUpdateSchema(
+    const mappedData = await this.workflowInputService.mapFormUpdateDtoToZodSchema(
+      data,
+      workflowId,
+      teamId,
+      currentWorkflow
+    );
+
+    const updatedWorkflow = await this.workflowsRepository.updateTeamWorkflow(
+      user,
+      teamId,
+      workflowId,
+      mappedData
+    );
+
+    if (!updatedWorkflow) {
+      throw new BadRequestException(`Could not update Workflow with ID ${workflowId} in team ${teamId}`);
+    }
+
+    return this.workflowOutputService.toOutputDto(updatedWorkflow);
+  }
+
+  async updateEventTypeTeamWorkflow(
+    user: UserWithProfile,
+    teamId: number,
+    workflowId: number,
+    data: UpdateWorkflowDto
+  ) {
+    const currentWorkflow = await this.workflowsRepository.getTeamWorkflowById(teamId, workflowId);
+
+    if (!currentWorkflow) {
+      throw new NotFoundException(`Workflow with ID ${workflowId} not found for team ${teamId}`);
+    }
+    const mappedData = await this.workflowInputService.mapEventTypeUpdateDtoToZodSchema(
       data,
       workflowId,
       teamId,

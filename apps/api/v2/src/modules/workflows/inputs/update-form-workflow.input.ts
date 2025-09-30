@@ -1,11 +1,10 @@
 import { WorkflowFormActivationDto } from "@/modules/workflows/inputs/create-form-workflow";
-import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
-import { Transform, Type } from "class-transformer";
-import { IsString, IsOptional, ValidateNested, ArrayMinSize, IsIn } from "class-validator";
+import { ApiExtraModels, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
+import { Type } from "class-transformer";
+import { IsString, IsOptional, ValidateNested, ArrayMinSize } from "class-validator";
 
-import { WORKFLOW_EVENT_TYPE_ACTIVATION, WORKFLOW_FORM_ACTIVATION } from "./create-workflow.input";
 import {
-  BaseWorkflowStepDto,
+  BaseFormWorkflowStepDto,
   EMAIL_ADDRESS,
   EMAIL_ATTENDEE,
   FORM_ALLOWED_STEP_ACTIONS,
@@ -18,38 +17,14 @@ import {
   UpdateWhatsAppAttendeePhoneWorkflowStepDto,
 } from "./workflow-step.input";
 import {
-  BaseWorkflowTriggerDto,
-  OnBeforeEventTriggerDto,
-  OnAfterEventTriggerDto,
-  OnCancelTriggerDto,
-  OnCreationTriggerDto,
-  OnRescheduleTriggerDto,
-  OnAfterCalVideoGuestsNoShowTriggerDto,
-  OnAfterCalVideoHostsNoShowTriggerDto,
   OnFormSubmittedTriggerDto,
   FORM_SUBMITTED,
-  OnNoShowUpdateTriggerDto,
-  OnRejectedTriggerDto,
-  OnRequestedTriggerDto,
-  OnPaymentInitiatedTriggerDto,
-  OnPaidTriggerDto,
   FORM_WORKFLOW_TRIGGER_TYPES,
+  BaseFormWorkflowTriggerDto,
 } from "./workflow-trigger.input";
 
 @ApiExtraModels(
-  OnBeforeEventTriggerDto,
-  OnAfterEventTriggerDto,
   OnFormSubmittedTriggerDto,
-  OnCancelTriggerDto,
-  OnCreationTriggerDto,
-  OnRescheduleTriggerDto,
-  OnNoShowUpdateTriggerDto,
-  OnRejectedTriggerDto,
-  OnRequestedTriggerDto,
-  OnPaymentInitiatedTriggerDto,
-  OnPaidTriggerDto,
-  OnAfterCalVideoGuestsNoShowTriggerDto,
-  OnAfterCalVideoHostsNoShowTriggerDto,
   UpdateEmailAddressWorkflowStepDto,
   UpdateEmailAttendeeWorkflowStepDto,
   UpdateEmailHostWorkflowStepDto,
@@ -57,27 +32,13 @@ import {
   UpdatePhoneWhatsAppNumberWorkflowStepDto,
   UpdateWhatsAppAttendeePhoneWorkflowStepDto,
   UpdatePhoneNumberWorkflowStepDto,
-  BaseWorkflowTriggerDto
+  BaseFormWorkflowTriggerDto
 )
 export class UpdateFormWorkflowDto {
   @ApiPropertyOptional({ description: "Name of the workflow", example: "Rounting-form Test Workflow" })
   @IsString()
   @IsOptional()
   name?: string;
-
-  @ApiProperty({
-    description: "type of the workflow",
-    example: WORKFLOW_FORM_ACTIVATION,
-    default: WORKFLOW_FORM_ACTIVATION,
-  })
-  @IsString()
-  @IsIn([WORKFLOW_FORM_ACTIVATION, WORKFLOW_EVENT_TYPE_ACTIVATION])
-  @IsOptional()
-  @Transform(
-    ({ value }: { value?: typeof WORKFLOW_EVENT_TYPE_ACTIVATION | typeof WORKFLOW_FORM_ACTIVATION }) =>
-      value ?? WORKFLOW_EVENT_TYPE_ACTIVATION
-  )
-  type: typeof WORKFLOW_FORM_ACTIVATION = WORKFLOW_FORM_ACTIVATION;
 
   @ValidateNested()
   @Type(() => WorkflowFormActivationDto)
@@ -89,7 +50,7 @@ export class UpdateFormWorkflowDto {
   })
   @IsOptional()
   @ValidateNested()
-  @Type(() => BaseWorkflowTriggerDto, {
+  @Type(() => BaseFormWorkflowTriggerDto, {
     keepDiscriminatorProperty: true,
     discriminator: {
       property: "type",
@@ -111,7 +72,7 @@ export class UpdateFormWorkflowDto {
     message: `Your workflow must contain at least one allowed step. allowed steps are ${FORM_ALLOWED_STEP_ACTIONS.toString()}`,
   })
   @IsOptional()
-  @Type(() => BaseWorkflowStepDto, {
+  @Type(() => BaseFormWorkflowStepDto, {
     keepDiscriminatorProperty: true,
     discriminator: {
       property: "action",
