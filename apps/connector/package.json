@@ -5,13 +5,15 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch --env-file=.env src/server.ts",
-    "start": "node --env-file=.env dist/server.js",
-  "build": "tsc && tsc-alias -p tsconfig.json",
+    "start": "node -r tsconfig-paths/register --env-file=.env dist/server.js",
+    "build": "tsc; tsc-alias -p tsconfig.json",
+    "alias": "tsc-alias -p tsconfig.json",
     "type-check": "tsc --noEmit",
     "lint": "eslint src --ext .ts,.tsx",
     "clean": "rimraf dist"
   },
   "dependencies": {
+    "@calcom/lib": "workspace:*",
     "@calcom/prisma": "workspace:*",
     "@fastify/autoload": "^5.8.0",
     "@fastify/cors": "^8.4.0",
