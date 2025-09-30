@@ -1,4 +1,5 @@
 import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 
 import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency-key";
 import { bookingReferenceExtension } from "./extensions/booking-reference";
@@ -9,7 +10,8 @@ import { usageTrackingExtention } from "./extensions/usage-tracking";
 import { PrismaClient, type Prisma } from "./generated/prisma/client";
 
 const connectionString = process.env.DATABASE_URL || "";
-const adapter = new PrismaPg({ connectionString });
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
 
 const prismaOptions: Prisma.PrismaClientOptions = {
   adapter,
@@ -47,7 +49,8 @@ export const customPrisma = (options?: Prisma.PrismaClientOptions) => {
 
   if (options?.datasources?.db?.url) {
     const customConnectionString = options.datasources.db.url;
-    const customAdapter = new PrismaPg({ connectionString: customConnectionString });
+    const customPool = new Pool({ connectionString: customConnectionString });
+    const customAdapter = new PrismaPg(customPool);
 
     const { datasources: _datasources, ...restOptions } = options;
     finalOptions = {
