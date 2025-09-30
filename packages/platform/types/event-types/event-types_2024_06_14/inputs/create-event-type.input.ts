@@ -64,6 +64,7 @@ import type { ConfirmationPolicy_2024_06_14 } from "./confirmation-policy.input"
 import { BaseConfirmationPolicy_2024_06_14, ValidateConfirmationPolicy } from "./confirmation-policy.input";
 import { DestinationCalendar_2024_06_14 } from "./destination-calendar.input";
 import { Disabled_2024_06_14 } from "./disabled.input";
+import { EmailSettings_2024_06_14 } from "./email-settings.input";
 import { EventTypeColor_2024_06_14 } from "./event-type-color.input";
 import {
   InputAddressLocation_2024_06_14,
@@ -124,7 +125,8 @@ export const CREATE_EVENT_SLUG_EXAMPLE = "learn-the-secrets-of-masterchief";
   NotesDefaultFieldInput_2024_06_14,
   GuestsDefaultFieldInput_2024_06_14,
   RescheduleReasonDefaultFieldInput_2024_06_14,
-  InputOrganizersDefaultApp_2024_06_14
+  InputOrganizersDefaultApp_2024_06_14,
+  EmailSettings_2024_06_14
 )
 export class CalVideoSettings {
   @IsOptional()
@@ -614,4 +616,20 @@ export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInpu
   })
   @Type(() => Object)
   locations?: InputTeamLocation_2024_06_14[];
+
+  @IsOptional()
+  @ValidateNested()
+  @DocsPropertyOptional({
+    description: "Email settings for this event type - only available for organization team event types.",
+    type: () => EmailSettings_2024_06_14,
+  })
+  @Type(() => EmailSettings_2024_06_14)
+  emailSettings?: EmailSettings_2024_06_14;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    description: "Rescheduled events will be assigned to the same host as initially scheduled.",
+  })
+  rescheduleWithSameRoundRobinHost?: boolean;
 }

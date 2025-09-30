@@ -18,6 +18,8 @@ export {
   eventTypeLocations,
 } from "@calcom/prisma/zod-utils";
 
+export type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
+
 export { validateCustomEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 export { EventManager };
 export { getEventTypeById } from "@calcom/features/eventtypes/lib/getEventTypeById";

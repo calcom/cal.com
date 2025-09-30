@@ -28,7 +28,11 @@ import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, BadRequestException } from "@nestjs/common";
 
 import { getApps, getUsersCredentialsIncludeServiceAccountKey } from "@calcom/platform-libraries/app-store";
-import { validateCustomEventName, EventTypeMetaDataSchema } from "@calcom/platform-libraries/event-types";
+import {
+  validateCustomEventName,
+  EventTypeMetaDataSchema,
+  EventTypeMetadata,
+} from "@calcom/platform-libraries/event-types";
 import {
   CreateEventTypeInput_2024_06_14,
   DestinationCalendar_2024_06_14,
@@ -138,6 +142,13 @@ export class InputEventTypesService_2024_06_14 {
       ? this.transformInputBookerActiveBookingsLimit(inputEventType.bookerActiveBookingsLimit)
       : {};
 
+    const metadata: EventTypeMetadata = {
+      bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
+      requiresConfirmationThreshold:
+        confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
+      multipleDuration: lengthInMinutesOptions,
+    };
+
     const eventType = {
       ...rest,
       length: lengthInMinutes,
@@ -148,12 +159,7 @@ export class InputEventTypesService_2024_06_14 {
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
         : undefined,
       ...this.transformInputBookingWindow(bookingWindow),
-      metadata: {
-        bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
-        requiresConfirmationThreshold:
-          confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
-        multipleDuration: lengthInMinutesOptions,
-      },
+      metadata,
       requiresConfirmation: confirmationPolicyTransformed?.requiresConfirmation ?? undefined,
       requiresConfirmationWillBlockSlot:
         confirmationPolicyTransformed?.requiresConfirmationWillBlockSlot ?? undefined,
@@ -218,6 +224,14 @@ export class InputEventTypesService_2024_06_14 {
       ? this.transformInputBookerActiveBookingsLimit(inputEventType.bookerActiveBookingsLimit)
       : {};
 
+    const metadata: EventTypeMetadata = {
+      ...metadataTransformed,
+      bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
+      requiresConfirmationThreshold:
+        confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
+      multipleDuration: lengthInMinutesOptions,
+    };
+
     const eventType = {
       ...rest,
       length: lengthInMinutes,
@@ -230,13 +244,7 @@ export class InputEventTypesService_2024_06_14 {
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
         : undefined,
       ...this.transformInputBookingWindow(bookingWindow),
-      metadata: {
-        ...metadataTransformed,
-        bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
-        requiresConfirmationThreshold:
-          confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
-        multipleDuration: lengthInMinutesOptions,
-      },
+      metadata,
       recurringEvent: recurrence ? this.transformInputRecurrignEvent(recurrence) : undefined,
       requiresConfirmation: confirmationPolicyTransformed?.requiresConfirmation ?? undefined,
       requiresConfirmationWillBlockSlot:

@@ -68,6 +68,7 @@ import {
 } from "./create-event-type.input";
 import { DestinationCalendar_2024_06_14 } from "./destination-calendar.input";
 import { Disabled_2024_06_14 } from "./disabled.input";
+import { EmailSettings_2024_06_14 } from "./email-settings.input";
 import { EventTypeColor_2024_06_14 } from "./event-type-color.input";
 import {
   InputAddressLocation_2024_06_14,
@@ -120,7 +121,8 @@ import { Seats_2024_06_14 } from "./seats.input";
   NotesDefaultFieldInput_2024_06_14,
   GuestsDefaultFieldInput_2024_06_14,
   RescheduleReasonDefaultFieldInput_2024_06_14,
-  BookerActiveBookingsLimit_2024_06_14
+  BookerActiveBookingsLimit_2024_06_14,
+  EmailSettings_2024_06_14
 )
 class BaseUpdateEventTypeInput {
   @IsOptional()
@@ -509,4 +511,20 @@ export class UpdateTeamEventTypeInput_2024_06_14 extends BaseUpdateEventTypeInpu
   })
   @Type(() => Object)
   locations?: InputTeamLocation_2024_06_14[];
+
+  @IsOptional()
+  @ValidateNested()
+  @DocsPropertyOptional({
+    description: "Email settings for this event type. Only available for organization team event types.",
+    type: () => EmailSettings_2024_06_14,
+  })
+  @Type(() => EmailSettings_2024_06_14)
+  emailSettings?: EmailSettings_2024_06_14;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    description: "Rescheduled events will be assigned to the same host as initially scheduled.",
+  })
+  rescheduleWithSameRoundRobinHost?: boolean;
 }
