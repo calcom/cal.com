@@ -91,6 +91,37 @@ const Page = async ({ searchParams }: PageProps) => {
     }
   }
 
+  if (parsedEventTypeId) {
+    const permissionService = new PermissionCheckService();
+    let hasPermission = false;
+
+    if (user.org?.id) {
+      hasPermission = await permissionService.checkPermission({
+        userId,
+        teamId: user.org?.id,
+        permission: "eventType.update",
+        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      });
+    } else if (parsedTeamId) {
+      hasPermission = await permissionService.checkPermission({
+        userId,
+        teamId: parsedTeamId,
+        permission: "eventType.update",
+        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      });
+    } else {
+      const eventTypeRepo = new EventTypeRepository(prisma);
+      hasPermission = await eventTypeRepo.isPersonalUserEventType({
+        userId,
+        eventTypeId: parsedEventTypeId,
+      });
+    }
+
+    if (!hasPermission) {
+      redirect("/workflows?error=unauthorized");
+    }
+  }
+
   const template = WORKFLOW_TEMPLATES[templateWorkflowId as keyof typeof WORKFLOW_TEMPLATES];
 
   try {
@@ -119,39 +150,12 @@ const Page = async ({ searchParams }: PageProps) => {
     });
 
     if (parsedEventTypeId) {
-      const permissionService = new PermissionCheckService();
-      let hasPermission = false;
-
-      if (user.org?.id) {
-        hasPermission = await permissionService.checkPermission({
-          userId,
-          teamId: user.org?.id,
-          permission: "eventType.update",
-          fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-        });
-      } else if (parsedTeamId) {
-        hasPermission = await permissionService.checkPermission({
-          userId,
-          teamId: parsedTeamId,
-          permission: "eventType.update",
-          fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-        });
-      } else {
-        const eventTypeRepo = new EventTypeRepository(prisma);
-        hasPermission = await eventTypeRepo.isPersonalUserEventType({
-          userId,
+      await prisma.workflowsOnEventTypes.create({
+        data: {
+          workflowId: workflow.id,
           eventTypeId: parsedEventTypeId,
-        });
-      }
-
-      if (hasPermission) {
-        await prisma.workflowsOnEventTypes.create({
-          data: {
-            workflowId: workflow.id,
-            eventTypeId: parsedEventTypeId,
-          },
-        });
-      }
+        },
+      });
     }
 
     const redirectUrl = `/workflows/${workflow.id}?autoCreateAgent=true&templateWorkflowId=${templateWorkflowId}`;
@@ -168,7 +172,6 @@ const Page = async ({ searchParams }: PageProps) => {
       throw error;
     }
 
-    console.error("Failed to create Cal AI workflow:", error);
     redirect("/workflows?error=failed-to-create-workflow");
   }
 };
