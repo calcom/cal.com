@@ -1159,7 +1159,7 @@ export default function Success(props: PageProps) {
                       <span className="underline">
                         <a
                           target="_blank"
-                          href="https://cal.id/blog/google-s-new-spam-policy-may-be-affecting-your-invitations">
+                          href="https://cal.id/info/google-spam-policy">
                           {t("resolve")}
                         </a>
                       </span>
