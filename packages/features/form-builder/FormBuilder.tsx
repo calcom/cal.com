@@ -380,6 +380,12 @@ export const FormBuilder = function FormBuilder({
           handleSubmit={(data: Parameters<SubmitHandler<RhfFormField>>[0]) => {
             const type = data.type || "text";
             const isNewField = !fieldDialog.data;
+
+            if (data.name === "guests" && type !== "multiemail") {
+              showToast(t("guests_field_must_be_multiemail"), "error");
+              return;
+            }
+
             if (isNewField && fields.some((f) => f.name === data.name)) {
               showToast(t("form_builder_field_already_exists"), "error");
               return;
@@ -947,7 +953,6 @@ function VariantFields({
           onCheckedChange={(checked) => {
             fieldForm.setValue("variant", checked ? otherVariant : defaultVariant);
           }}
-          classNames={{ container: "mt-2" }}
           tooltip={t("Toggle Variant")}
         />
       ) : (

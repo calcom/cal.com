@@ -6,11 +6,11 @@
   "main": "./index.ts",
   "description": "SendGrid delivers your transactional and marketing emails through the world's largest cloud-based email delivery platform.",
   "dependencies": {
-    "@calcom/lib": "*",
-    "@calcom/prisma": "*",
+    "@calcom/lib": "workspace:*",
+    "@calcom/prisma": "workspace:*",
     "@sendgrid/client": "^7.7.0"
   },
   "devDependencies": {
-    "@calcom/types": "*"
+    "@calcom/types": "workspace:*"
   }
 }
