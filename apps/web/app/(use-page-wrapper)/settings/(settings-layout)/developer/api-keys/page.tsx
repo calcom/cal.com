@@ -1,3 +1,5 @@
+// import ApiKeysView from "~/settings/developer/api-keys-view";
+import ApiKeysView from "@calid/features/modules/api-keys/pages";
 import { _generateMetadata } from "app/_utils";
 import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
@@ -8,8 +10,6 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { PrismaApiKeyRepository } from "@calcom/lib/server/repository/PrismaApiKeyRepository";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-
-import ApiKeysView from "~/settings/developer/api-keys-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
