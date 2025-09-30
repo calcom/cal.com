@@ -165,9 +165,9 @@ export async function getBookings({
           code: "FORBIDDEN",
           message: "You do not have permissions to fetch bookings for specified userIds",
         });
+      } else {
+        userIds = [user.id];
       }
-
-      userIds = [user.id];
     }
 
     // 1. Booking created by one of the filtered users
