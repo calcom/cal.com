@@ -12,19 +12,23 @@ export function checkForConflicts({
   time,
   eventLength,
   currentSeats,
+  seatsPerTimeSlot,
 }: {
   busy: BufferedBusyTimes;
   time: Dayjs;
   eventLength: number;
   currentSeats?: CurrentSeats;
+  seatsPerTimeSlot?: number;
 }) {
   // Early return
   if (!Array.isArray(busy) || busy.length < 1) {
     return false; // guaranteed no conflicts when there is no busy times.
   }
-  // no conflicts if some seats are found for the current time slot
-  if (currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString())) {
-    return false;
+  if (seatsPerTimeSlot && currentSeats) {
+    const booking = currentSeats.find((b) => b.startTime.toISOString() === time.toISOString());
+    if (booking) {
+      return booking._count.attendees >= seatsPerTimeSlot;
+    }
   }
   const slotStart = time.valueOf();
   const slotEnd = slotStart + eventLength * 60 * 1000;
