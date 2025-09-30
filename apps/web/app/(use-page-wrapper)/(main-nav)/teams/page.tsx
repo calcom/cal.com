@@ -23,7 +23,7 @@ const ServerPage = async ({ searchParams: _searchParams }: ServerPageProps) => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   const searchParams = await _searchParams;
   const token = Array.isArray(searchParams?.token) ? searchParams.token[0] : searchParams?.token;
-  const autoAccept = searchParams?.autoAccept;
+  const autoAccept = Array.isArray(searchParams?.autoAccept) ? searchParams.autoAccept[0] : searchParams?.autoAccept;
   const callbackUrl = token ? `/teams?token=${encodeURIComponent(token)}${autoAccept ? `&autoAccept=${encodeURIComponent(autoAccept)}` : ''}` : null;
 
   if (!session) {
