@@ -45,6 +45,12 @@ export class PBACRoleManager implements IRoleManager {
     // Get current membership details
     const currentMembership = await prisma.membership.findUnique({
       where: { id: membershipId },
+      select: {
+        id: true,
+        customRoleId: true,
+        role: true,
+        teamId: true,
+      },
     });
 
     if (!currentMembership) {
