@@ -451,7 +451,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           sender: newStep.sender,
           numberVerificationPending: false,
           includeCalendarEvent: newStep.includeCalendarEvent,
-          agent: newStep.agentId ? { connect: { id: newStep.agentId } } : undefined,
+          agentId: newStep.agentId || null,
           verifiedAt: !SCANNING_WORKFLOW_STEPS ? new Date() : didBodyChange ? null : oldStep.verifiedAt,
         });
 

@@ -9,11 +9,11 @@ export class WorkflowStepRepository {
     });
   }
 
-  async createWorkflowStep(data: Prisma.WorkflowStepCreateInput) {
+  async createWorkflowStep(data: Prisma.WorkflowStepUncheckedCreateInput) {
     return await this.prismaClient.workflowStep.create({ data });
   }
 
-  async updateWorkflowStep(id: number, data: Prisma.WorkflowStepUpdateInput) {
+  async updateWorkflowStep(id: number, data: Prisma.WorkflowStepUncheckedUpdateInput) {
     return await this.prismaClient.workflowStep.update({
       where: { id },
       data,
