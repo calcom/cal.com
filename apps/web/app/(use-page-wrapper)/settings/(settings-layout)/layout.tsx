@@ -47,6 +47,7 @@ export default async function SettingsLayoutAppDir(props: SettingsLayoutProps) {
   let teamFeatures: Record<number, TeamFeatures> | null = null;
   let canViewRoles = false;
   let canViewOrganizationBilling = false;
+  let canUpdateOrganization = false;
   const orgId = session?.user?.profile?.organizationId ?? session?.user.org?.id;
 
   // For now we only grab organization features but it would be nice to fetch these on the server side for specific team feature flags
@@ -68,6 +69,7 @@ export default async function SettingsLayoutAppDir(props: SettingsLayoutProps) {
       canViewRoles = roleActions[CrudAction.Read] ?? false;
       const orgActions = PermissionMapper.toActionMap(organizationPermissions, Resource.Organization);
       canViewOrganizationBilling = orgActions[CustomAction.ManageBilling] ?? isOrgAdminOrOwner;
+      canUpdateOrganization = orgActions[CrudAction.Update] ?? isOrgAdminOrOwner;
     }
   }
 
@@ -76,7 +78,7 @@ export default async function SettingsLayoutAppDir(props: SettingsLayoutProps) {
       <SettingsLayoutAppDirClient
         {...props}
         teamFeatures={teamFeatures ?? {}}
-        permissions={{ canViewRoles, canViewOrganizationBilling }}
+        permissions={{ canViewRoles, canViewOrganizationBilling, canUpdateOrganization }}
       />
     </>
   );
