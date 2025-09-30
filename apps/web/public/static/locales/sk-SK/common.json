@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "Zamknuté tímovým administrátorom",
   "app_not_connected": "Nemáte pripojený účet {{appName}}.",
   "connect_now": "Pripojiť teraz",
-  "connect_now_unavailable_tooltip": "Pripojenie teraz je momentálne nedostupné. Prosím, rezervujte si termín z vyššie uvedených časov alebo to skúste neskôr.",
   "managed_event_dialog_confirm_button_one": "Nahradiť a upozorniť {{count}} člena",
   "managed_event_dialog_confirm_button_other": "Nahradiť a upozorniť {{count}} členov",
   "managed_event_dialog_title_one": "URL /{{slug}} už existuje pre {{count}} člena. Chcete ho nahradiť?",

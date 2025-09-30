@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "Taldeko administratzaileak blokeatuta",
   "app_not_connected": "Ez duzu {{appName}} konturik konektatu.",
   "connect_now": "Konektatu orain",
-  "connect_now_unavailable_tooltip": "Orain konektatzea ez dago eskuragarri. Mesedez, erreserbatu goiko txandetatik edo saiatu berriro geroago.",
   "managed_event_dialog_confirm_button_one": "Ordezkatu eta {{count}} kideari jakinarazi",
   "managed_event_dialog_confirm_button_other": "Ordezkatu eta {{count}} kideei jakinarazi",
   "managed_event_dialog_title_one": "/{{slug}} URLa dagoeneko existitzen da {{count}} kiderentzat. Ordezkatu nahi duzu?",

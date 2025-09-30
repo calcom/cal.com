@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "مقفل من قبل المشرف",
   "app_not_connected": "أنت غير متصل بحساب {{appName}}.",
   "connect_now": "اتصل الآن",
-  "connect_now_unavailable_tooltip": "الاتصال الآن غير متاح حاليًا. يرجى الحجز من الفترات المتاحة أعلاه أو المحاولة مرة أخرى لاحقًا.",
   "managed_event_dialog_confirm_button_one": "الاستبدال وإخطار {{count}} عضو",
   "managed_event_dialog_confirm_button_other": "الاستبدال وإخطار {{count}} من الأعضاء",
   "managed_event_dialog_title_one": "رابط /{{slug}} موجود بالفعل لـ {{count}} عضو. هل تريد استبداله؟",

@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "Заблокировано администратором команды",
   "app_not_connected": "Вы не подключили аккаунт {{appName}}.",
   "connect_now": "Подключить",
-  "connect_now_unavailable_tooltip": "Функция \"Подключиться сейчас\" в данный момент недоступна. Пожалуйста, выберите время из доступных выше слотов или попробуйте позже.",
   "managed_event_dialog_confirm_button_one": "Заменить и уведомить {{count}} участника",
   "managed_event_dialog_confirm_button_other": "Заменить и уведомить участников ({{count}})",
   "managed_event_dialog_title_one": "URL-адрес /{{slug}} уже используется {{count}} участником. Заменить?",

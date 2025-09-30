@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "Заблоковано адміністратором команди",
   "app_not_connected": "Ви не під’єднали обліковий запис {{appName}}.",
   "connect_now": "Під’єднати",
-  "connect_now_unavailable_tooltip": "Підключення зараз недоступне. Будь ласка, забронюйте з доступних слотів вище або спробуйте пізніше.",
   "managed_event_dialog_confirm_button_one": "Замінити й повідомити {{count}} учасника",
   "managed_event_dialog_confirm_button_other": "Замінити й повідомити учасників ({{count}})",
   "managed_event_dialog_title_one": "URL-адреса /{{slug}} вже існує для {{count}} учасника. Замінити її?",

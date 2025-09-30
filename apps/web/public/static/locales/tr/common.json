@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "Ekip yöneticisi tarafından kilitlendi",
   "app_not_connected": "{{appName}} hesabı bağlamadınız.",
   "connect_now": "Hemen bağlan",
-  "connect_now_unavailable_tooltip": "Şu anda hemen bağlan kullanılamıyor. Lütfen yukarıdaki zaman dilimlerinden rezervasyon yapın veya daha sonra tekrar deneyin.",
   "managed_event_dialog_confirm_button_one": "{{count}} üyeyi değiştirin ve bilgilendirin",
   "managed_event_dialog_confirm_button_other": "{{count}} üyeyi değiştirin ve bilgilendirin",
   "managed_event_dialog_title_one": "URL /{{slug}}, {{count}} üye için zaten mevcut. Bunu değiştirmek istiyor musunuz?",
