@@ -19,11 +19,6 @@ export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
 
     this.prisma = new PrismaClient({
       adapter,
-      datasources: {
-        db: {
-          url: dbUrl,
-        },
-      },
     });
   }
 

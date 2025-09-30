@@ -42,14 +42,31 @@ if (!isNaN(loggerLevel)) {
 
 const baseClient = globalForPrisma.baseClient || new PrismaClient(prismaOptions);
 
-export const customPrisma = (options?: Prisma.PrismaClientOptions) =>
-  new PrismaClient({ ...prismaOptions, ...options })
+export const customPrisma = (options?: Prisma.PrismaClientOptions) => {
+  let finalOptions = { ...prismaOptions };
+
+  if (options?.datasources?.db?.url) {
+    const customConnectionString = options.datasources.db.url;
+    const customAdapter = new PrismaPg({ connectionString: customConnectionString });
+
+    const { datasources: _datasources, ...restOptions } = options;
+    finalOptions = {
+      ...prismaOptions,
+      ...restOptions,
+      adapter: customAdapter,
+    };
+  } else if (options) {
+    finalOptions = { ...prismaOptions, ...options };
+  }
+
+  return new PrismaClient(finalOptions)
     .$extends(usageTrackingExtention(baseClient))
     .$extends(excludeLockedUsersExtension())
     .$extends(excludePendingPaymentsExtension())
     .$extends(bookingIdempotencyKeyExtension())
     .$extends(bookingReferenceExtension())
     .$extends(disallowUndefinedDeleteUpdateManyExtension()) as unknown as PrismaClient;
+};
 
 // FIXME: Due to some reason, there are types failing in certain places due to the $extends. Fix it and then enable it
 // Specifically we get errors like `Type 'string | Date | null | undefined' is not assignable to type 'Exact<string | Date | null | undefined, string | Date | null | undefined>'`
