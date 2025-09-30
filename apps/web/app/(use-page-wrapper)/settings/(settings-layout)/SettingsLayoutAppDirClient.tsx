@@ -65,7 +65,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
       children: [
         //
         { name: "webhooks", href: "/settings/developer/webhooks", icon: "webhook" },
-        // { name: "api_keys", href: "/settings/developer/api-keys", icon: "key" },
+        { name: "api_keys", href: "/settings/developer/api-keys", icon: "key" },
         // { name: "admin_api", href: "/settings/organizations/admin-api" },
         // TODO: Add profile level for embeds
         // { name: "embeds", href: "/v2/settings/developer/embeds", icon: "code" },
