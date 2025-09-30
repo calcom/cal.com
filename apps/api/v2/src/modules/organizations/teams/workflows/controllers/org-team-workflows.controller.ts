@@ -15,9 +15,13 @@ import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { IsWorkflowInTeam } from "@/modules/auth/guards/workflows/is-workflow-in-team";
 import { UserWithProfile } from "@/modules/users/users.repository";
+import { CreateFormWorkflowDto } from "@/modules/workflows/inputs/create-form-workflow";
 import { CreateWorkflowDto } from "@/modules/workflows/inputs/create-workflow.input";
+import { UpdateFormWorkflowDto } from "@/modules/workflows/inputs/update-form-workflow.input";
 import { UpdateWorkflowDto } from "@/modules/workflows/inputs/update-workflow.input";
 import { GetWorkflowOutput, GetWorkflowsOutput } from "@/modules/workflows/outputs/workflow.output";
+import { WorkflowValidationPipe } from "@/modules/workflows/pipes/create-workflow-input-validation.pipe";
+import { UpdateWorkflowValidationPipe } from "@/modules/workflows/pipes/update-workflow-input-validation.pipe";
 import { TeamWorkflowsService } from "@/modules/workflows/services/team-workflows.service";
 import {
   Controller,
@@ -31,7 +35,7 @@ import {
   Body,
   Delete,
 } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiBody, ApiHeader, ApiOperation, ApiTags, getSchemaPath } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { SkipTakePagination } from "@calcom/platform-types";
@@ -82,11 +86,24 @@ export class OrganizationTeamWorkflowsController {
   @ApiOperation({ summary: "Create organization team workflow" })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("SCALE")
+  @ApiBody({
+    schema: {
+      discriminator: {
+        propertyName: "type",
+        mapping: {
+          "event-type": getSchemaPath(CreateWorkflowDto),
+          form: getSchemaPath(CreateFormWorkflowDto),
+        },
+      },
+      oneOf: [{ $ref: getSchemaPath(CreateWorkflowDto) }, { $ref: getSchemaPath(CreateFormWorkflowDto) }],
+    },
+  })
   async createWorkflow(
     @GetUser() user: UserWithProfile,
     @Param("teamId", ParseIntPipe) teamId: number,
-    @Body() data: CreateWorkflowDto
+    @Body(new WorkflowValidationPipe()) data: CreateWorkflowDto | CreateFormWorkflowDto
   ): Promise<GetWorkflowOutput> {
+    console.log("AFTER PIPE", data);
     const workflow = await this.workflowsService.createTeamWorkflow(user, teamId, data);
     return { data: workflow, status: SUCCESS_STATUS };
   }
@@ -96,12 +113,25 @@ export class OrganizationTeamWorkflowsController {
   @ApiOperation({ summary: "Update organization team workflow" })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("SCALE")
+  @ApiBody({
+    schema: {
+      discriminator: {
+        propertyName: "type",
+        mapping: {
+          "event-type": getSchemaPath(UpdateWorkflowDto),
+          form: getSchemaPath(UpdateFormWorkflowDto),
+        },
+      },
+      oneOf: [{ $ref: getSchemaPath(UpdateWorkflowDto) }, { $ref: getSchemaPath(UpdateFormWorkflowDto) }],
+    },
+  })
   async updateWorkflow(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("workflowId", ParseIntPipe) workflowId: number,
     @GetUser() user: UserWithProfile,
-    @Body() data: UpdateWorkflowDto
+    @Body(UpdateWorkflowValidationPipe) data: UpdateWorkflowDto | UpdateFormWorkflowDto
   ): Promise<GetWorkflowOutput> {
+    console.log("DATA Update", data);
     const workflow = await this.workflowsService.updateTeamWorkflow(user, teamId, workflowId, data);
     return { data: workflow, status: SUCCESS_STATUS };
   }

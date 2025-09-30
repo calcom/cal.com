@@ -1,6 +1,8 @@
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { TeamsVerifiedResourcesRepository } from "@/modules/verified-resources/teams-verified-resources.repository";
+import { CreateFormWorkflowDto } from "@/modules/workflows/inputs/create-form-workflow";
 import { CreateWorkflowDto } from "@/modules/workflows/inputs/create-workflow.input";
+import { UpdateFormWorkflowDto } from "@/modules/workflows/inputs/update-form-workflow.input";
 import { UpdateWorkflowDto } from "@/modules/workflows/inputs/update-workflow.input";
 import { WorkflowsInputService } from "@/modules/workflows/services/workflows.input.service";
 import { WorkflowsOutputService } from "@/modules/workflows/services/workflows.output.service";
@@ -32,7 +34,11 @@ export class TeamWorkflowsService {
     return this.workflowOutputService.toOutputDto(workflow);
   }
 
-  async createTeamWorkflow(user: UserWithProfile, teamId: number, data: CreateWorkflowDto) {
+  async createTeamWorkflow(
+    user: UserWithProfile,
+    teamId: number,
+    data: CreateWorkflowDto | CreateFormWorkflowDto
+  ) {
     const workflowHusk = await this.workflowsRepository.createTeamWorkflowHusk(teamId);
     const mappedData = await this.workflowInputService.mapUpdateDtoToZodUpdateSchema(
       data,
@@ -58,7 +64,7 @@ export class TeamWorkflowsService {
     user: UserWithProfile,
     teamId: number,
     workflowId: number,
-    data: UpdateWorkflowDto
+    data: UpdateWorkflowDto | UpdateFormWorkflowDto
   ) {
     const currentWorkflow = await this.workflowsRepository.getTeamWorkflowById(teamId, workflowId);
 

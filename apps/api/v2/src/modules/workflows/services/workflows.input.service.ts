@@ -1,11 +1,6 @@
 import { TeamsVerifiedResourcesRepository } from "@/modules/verified-resources/teams-verified-resources.repository";
-import {
-  UpdateWorkflowDto,
-  UpdateWorkflowStepDto,
-  UpdateEmailAttendeeWorkflowStepDto,
-  UpdateEmailAddressWorkflowStepDto,
-  UpdateEmailHostWorkflowStepDto,
-} from "@/modules/workflows/inputs/update-workflow.input";
+import { UpdateFormWorkflowDto } from "@/modules/workflows/inputs/update-form-workflow.input";
+import { UpdateWorkflowDto } from "@/modules/workflows/inputs/update-workflow.input";
 import { WorkflowType } from "@/modules/workflows/workflows.repository";
 import { BadRequestException, Injectable } from "@nestjs/common";
 
@@ -21,10 +16,9 @@ import {
   STEP_ACTIONS_TO_ENUM,
   TemplateType,
   TextWorkflowMessageDto,
+  UpdateWorkflowStepDto,
   WHATSAPP_ATTENDEE,
   WHATSAPP_NUMBER,
-  WorkflowPhoneNumberStepDto,
-  WorkflowPhoneWhatsAppNumberStepDto,
 } from "../inputs/workflow-step.input";
 import {
   OnAfterEventTriggerDto,
@@ -37,6 +31,31 @@ import {
 export class WorkflowsInputService {
   constructor(private readonly teamsVerifiedResourcesRepository: TeamsVerifiedResourcesRepository) {}
 
+  private async _getTeamPhoneNumberFromVerifiedId(teamId: number, verifiedPhoneId: number) {
+    const phoneResource = await this.teamsVerifiedResourcesRepository.getTeamVerifiedPhoneNumberById(
+      verifiedPhoneId,
+      teamId
+    );
+
+    if (!phoneResource?.phoneNumber) {
+      throw new BadRequestException("Invalid Verified Phone Id.");
+    }
+
+    return phoneResource.phoneNumber;
+  }
+
+  private async _getTeamEmailFromVerifiedId(teamId: number, verifiedEmailId: number) {
+    const emailResource = await this.teamsVerifiedResourcesRepository.getTeamVerifiedEmailById(
+      verifiedEmailId,
+      teamId
+    );
+    if (!emailResource?.email) {
+      throw new BadRequestException("Invalid Verified Email Id.");
+    }
+
+    return emailResource.email;
+  }
+
   private async mapUpdateWorkflowStepToZodUpdateSchema(
     stepDto: UpdateWorkflowStepDto,
     index: number,
@@ -45,61 +64,42 @@ export class WorkflowsInputService {
   ) {
     let reminderBody: string | null = null;
     let sendTo: string | null = null;
+    let phoneRequired: boolean | null = null;
     const html = stepDto.message instanceof HtmlWorkflowMessageDto ? stepDto.message.html : null;
     const text = stepDto.message instanceof TextWorkflowMessageDto ? stepDto.message.text : null;
-    const includeCalendarEvent =
-      stepDto instanceof UpdateEmailAddressWorkflowStepDto ||
-      stepDto instanceof UpdateEmailAttendeeWorkflowStepDto ||
-      stepDto instanceof UpdateEmailHostWorkflowStepDto
-        ? stepDto.includeCalendarEvent
-        : false;
+    let includeCalendarEvent = false;
 
     switch (stepDto.action) {
       case EMAIL_HOST:
       case EMAIL_ATTENDEE:
       case EMAIL_ADDRESS:
         reminderBody = html ?? null;
+        includeCalendarEvent = stepDto.includeCalendarEvent;
         break;
       case SMS_ATTENDEE:
+        phoneRequired = stepDto.phoneRequired ?? false;
+        break;
       case SMS_NUMBER:
+        break;
       case WHATSAPP_ATTENDEE:
+        phoneRequired = stepDto.phoneRequired ?? false;
+        break;
       case WHATSAPP_NUMBER:
         reminderBody = text ?? null;
         break;
     }
     if (stepDto.action === EMAIL_ADDRESS) {
       if (stepDto.verifiedEmailId) {
-        const emailResource = await this.teamsVerifiedResourcesRepository.getTeamVerifiedEmailById(
-          stepDto.verifiedEmailId,
-          teamId
-        );
-        if (!emailResource?.email) {
-          throw new BadRequestException("Invalid Verified Email Id.");
-        }
-        sendTo = emailResource.email;
+        sendTo = await this._getTeamEmailFromVerifiedId(teamId, stepDto.verifiedEmailId);
       }
     } else if (stepDto.action === SMS_NUMBER || stepDto.action === WHATSAPP_NUMBER) {
-      if (
-        stepDto instanceof WorkflowPhoneNumberStepDto ||
-        stepDto instanceof WorkflowPhoneWhatsAppNumberStepDto
-      ) {
-        if (stepDto.verifiedPhoneId) {
-          const phoneResource = await this.teamsVerifiedResourcesRepository.getTeamVerifiedPhoneNumberById(
-            stepDto.verifiedPhoneId,
-            teamId
-          );
-
-          if (!phoneResource?.phoneNumber) {
-            throw new BadRequestException("Invalid Verified Phone Id.");
-          }
-
-          sendTo = phoneResource.phoneNumber;
-        }
+      if (stepDto.verifiedPhoneId) {
+        sendTo = await this._getTeamPhoneNumberFromVerifiedId(teamId, stepDto.verifiedPhoneId);
       }
     }
 
     const actionForZod = STEP_ACTIONS_TO_ENUM[stepDto.action];
-    const templateForZod = stepDto.template as unknown as Uppercase<TemplateType>;
+    const templateForZod = stepDto?.template?.toUpperCase() as unknown as Uppercase<TemplateType>;
 
     return {
       id: stepDto.id ?? -(index + 1),
@@ -110,7 +110,7 @@ export class WorkflowsInputService {
       reminderBody: reminderBody,
       emailSubject: stepDto.message.subject ?? null,
       template: templateForZod,
-      numberRequired: null,
+      numberRequired: phoneRequired,
       sender: stepDto.sender ?? null,
       senderName: stepDto.sender ?? null,
       includeCalendarEvent: includeCalendarEvent,
@@ -118,7 +118,7 @@ export class WorkflowsInputService {
   }
 
   async mapUpdateDtoToZodUpdateSchema(
-    updateDto: UpdateWorkflowDto,
+    updateDto: UpdateWorkflowDto | UpdateFormWorkflowDto,
     workflowIdToUse: number,
     teamId: number,
     currentData: WorkflowType
@@ -144,13 +144,13 @@ export class WorkflowsInputService {
       id: workflowIdToUse,
       name: updateDto.name ?? currentData.name,
       activeOnEventTypeIds:
-        updateDto?.activation?.type === "event-type"
+        updateDto.type === "event-type"
           ? updateDto?.activation?.activeOnEventTypeIds ??
             currentData?.activeOn.map((active) => active.eventTypeId) ??
             []
           : [],
       activeOnRoutingFormIds:
-        updateDto?.activation?.type === "form"
+        updateDto.type === "form"
           ? updateDto?.activation?.activeOnRoutingFormIds ??
             currentData?.activeOnRoutingForms.map((active) => active.routingFormId) ??
             []
@@ -164,7 +164,7 @@ export class WorkflowsInputService {
           : null,
       timeUnit: timeUnitForZod ? TIME_UNIT_TO_ENUM[timeUnitForZod] : null,
       isActiveOnAll:
-        updateDto?.activation?.type === "event-type"
+        updateDto.type === "event-type"
           ? updateDto?.activation?.isActiveOnAllEventTypes ?? currentData.isActiveOnAll ?? false
           : updateDto?.activation?.isActiveOnAllRoutingForms ?? currentData.isActiveOnAll ?? false,
     } as const satisfies TUpdateInputSchema;

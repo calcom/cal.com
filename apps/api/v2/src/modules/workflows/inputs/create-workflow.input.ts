@@ -1,6 +1,5 @@
-import { WorkflowActivationPreValidation } from "@/modules/workflows/inputs/workflow-activation.validator";
 import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import {
   IsBoolean,
   ArrayMinSize,
@@ -19,6 +18,7 @@ import {
   EMAIL_HOST,
   SMS_ATTENDEE,
   SMS_NUMBER,
+  STEP_ACTIONS,
   WHATSAPP_ATTENDEE,
   WHATSAPP_NUMBER,
   WorkflowEmailAddressStepDto,
@@ -41,7 +41,7 @@ import {
   BOOKING_REJECTED,
   BOOKING_REQUESTED,
   EVENT_CANCELLED,
-  FORM_SUBMITTED,
+  EVENT_TYPE_WORKFLOW_TRIGGER_TYPES,
   NEW_EVENT,
   OnAfterCalVideoGuestsNoShowTriggerDto,
   OnAfterCalVideoHostsNoShowTriggerDto,
@@ -65,27 +65,7 @@ export const WORKFLOW_ACTIVATION_TYPES = [WORKFLOW_FORM_ACTIVATION, WORKFLOW_EVE
 
 export type WorkflowActivationType = (typeof WORKFLOW_ACTIVATION_TYPES)[number];
 
-export class BaseWorkflowActivationDto {
-  @ApiProperty({
-    description: "Trigger type for the workflow",
-    default: WORKFLOW_EVENT_TYPE_ACTIVATION,
-  })
-  @IsString()
-  @IsIn([WORKFLOW_ACTIVATION_TYPES, WORKFLOW_FORM_ACTIVATION])
-  @IsOptional()
-  type: WorkflowActivationType = WORKFLOW_EVENT_TYPE_ACTIVATION;
-}
-
-export class WorkflowActivationDto extends BaseWorkflowActivationDto {
-  @ApiProperty({
-    description: "Trigger type for the workflow",
-    default: WORKFLOW_EVENT_TYPE_ACTIVATION,
-  })
-  @IsString()
-  @IsIn([WORKFLOW_EVENT_TYPE_ACTIVATION])
-  @IsOptional()
-  type: typeof WORKFLOW_EVENT_TYPE_ACTIVATION = WORKFLOW_EVENT_TYPE_ACTIVATION;
-
+export class WorkflowActivationDto {
   @ApiProperty({
     description: "Whether the workflow is active for all the event-types",
     example: false,
@@ -104,35 +84,6 @@ export class WorkflowActivationDto extends BaseWorkflowActivationDto {
   @IsOptional()
   @IsNumber({}, { each: true })
   activeOnEventTypeIds: number[] = [];
-}
-
-export class WorkflowFormActivationDto extends BaseWorkflowActivationDto {
-  @ApiProperty({
-    description: "Trigger type for the workflow",
-    default: WORKFLOW_FORM_ACTIVATION,
-  })
-  @IsString()
-  @IsIn([WORKFLOW_FORM_ACTIVATION])
-  @IsOptional()
-  type: typeof WORKFLOW_FORM_ACTIVATION = WORKFLOW_FORM_ACTIVATION;
-
-  @ApiProperty({
-    description: "Whether the workflow is active for all the routing forms",
-    example: false,
-    type: Boolean,
-  })
-  @IsBoolean()
-  isActiveOnAllRoutingForms = false;
-
-  @ApiPropertyOptional({
-    description: "List of routing form IDs the workflow applies to",
-    example: [698191],
-    type: [Number],
-  })
-  @ValidateIf((o) => !o.isActiveOnAllEventTypes)
-  @IsOptional()
-  @IsNumber({}, { each: true })
-  activeOnRoutingFormIds: string[] = [];
 }
 
 export type TriggerDtoType =
@@ -179,30 +130,29 @@ export class CreateWorkflowDto {
   name!: string;
 
   @ApiProperty({
-    description: "Activation settings for the workflow",
-    oneOf: [
-      { $ref: getSchemaPath(WorkflowActivationDto) },
-      { $ref: getSchemaPath(WorkflowFormActivationDto) },
-    ],
+    description: "type of the workflow",
+    example: WORKFLOW_EVENT_TYPE_ACTIVATION,
+    default: WORKFLOW_EVENT_TYPE_ACTIVATION,
   })
-  @ValidateNested()
-  @Type(() => BaseWorkflowActivationDto, {
-    discriminator: {
-      property: "type",
-      subTypes: [
-        { value: WorkflowActivationDto, name: WORKFLOW_EVENT_TYPE_ACTIVATION },
-        { value: WorkflowFormActivationDto, name: WORKFLOW_FORM_ACTIVATION },
-      ],
-    },
-  })
-  @WorkflowActivationPreValidation({
-    message:
-      "Workflow validation type does not work with the specified trigger type, when using FORM_SUBMITTED trigger you must provide form activation.",
-  })
-  activation!: WorkflowFormActivationDto | WorkflowActivationDto;
+  @IsString()
+  @IsIn([WORKFLOW_FORM_ACTIVATION, WORKFLOW_EVENT_TYPE_ACTIVATION])
+  @IsOptional()
+  @Transform(
+    ({ value }: { value?: typeof WORKFLOW_EVENT_TYPE_ACTIVATION | typeof WORKFLOW_FORM_ACTIVATION }) =>
+      value ?? WORKFLOW_EVENT_TYPE_ACTIVATION
+  )
+  type: typeof WORKFLOW_EVENT_TYPE_ACTIVATION = WORKFLOW_EVENT_TYPE_ACTIVATION;
 
   @ApiProperty({
-    description: "Trigger configuration for the workflow",
+    description: "Activation settings for the workflow",
+    type: WorkflowActivationDto,
+  })
+  @ValidateNested()
+  @Type(() => WorkflowActivationDto)
+  activation!: WorkflowActivationDto;
+
+  @ApiProperty({
+    description: `Trigger configuration for the event-type workflow, allowed triggers are ${EVENT_TYPE_WORKFLOW_TRIGGER_TYPES.toString()}`,
     oneOf: [
       { $ref: getSchemaPath(OnBeforeEventTriggerDto) },
       { $ref: getSchemaPath(OnAfterEventTriggerDto) },
@@ -211,7 +161,6 @@ export class CreateWorkflowDto {
       { $ref: getSchemaPath(OnRescheduleTriggerDto) },
       { $ref: getSchemaPath(OnAfterCalVideoGuestsNoShowTriggerDto) },
       { $ref: getSchemaPath(OnAfterCalVideoHostsNoShowTriggerDto) },
-      { $ref: getSchemaPath(OnFormSubmittedTriggerDto) },
       { $ref: getSchemaPath(OnRejectedTriggerDto) },
       { $ref: getSchemaPath(OnRequestedTriggerDto) },
       { $ref: getSchemaPath(OnPaidTriggerDto) },
@@ -221,6 +170,7 @@ export class CreateWorkflowDto {
   })
   @ValidateNested()
   @Type(() => BaseWorkflowTriggerDto, {
+    keepDiscriminatorProperty: true,
     discriminator: {
       property: "type",
       subTypes: [
@@ -231,7 +181,6 @@ export class CreateWorkflowDto {
         { value: OnRescheduleTriggerDto, name: RESCHEDULE_EVENT },
         { value: OnAfterCalVideoGuestsNoShowTriggerDto, name: AFTER_GUESTS_CAL_VIDEO_NO_SHOW },
         { value: OnAfterCalVideoHostsNoShowTriggerDto, name: AFTER_HOSTS_CAL_VIDEO_NO_SHOW },
-        { value: OnFormSubmittedTriggerDto, name: FORM_SUBMITTED },
         { value: OnRequestedTriggerDto, name: BOOKING_REQUESTED },
         { value: OnRejectedTriggerDto, name: BOOKING_REJECTED },
         { value: OnPaymentInitiatedTriggerDto, name: BOOKING_PAYMENT_INITIATED },
@@ -251,11 +200,10 @@ export class CreateWorkflowDto {
     | OnPaidTriggerDto
     | OnPaymentInitiatedTriggerDto
     | OnNoShowUpdateTriggerDto
-    | OnAfterCalVideoGuestsNoShowTriggerDto
-    | OnFormSubmittedTriggerDto;
+    | OnAfterCalVideoGuestsNoShowTriggerDto;
 
   @ApiProperty({
-    description: "Steps to execute as part of the workflow",
+    description: `Steps to execute as part of the event-type workflow, allowed steps are ${STEP_ACTIONS.toString()}`,
     oneOf: [
       { $ref: getSchemaPath(WorkflowEmailAddressStepDto) },
       { $ref: getSchemaPath(WorkflowEmailAttendeeStepDto) },
@@ -268,8 +216,11 @@ export class CreateWorkflowDto {
     type: "array",
   })
   @ValidateNested({ each: true })
-  @ArrayMinSize(1, { message: "Your workflow must contain at least one step." })
+  @ArrayMinSize(1, {
+    message: `Your workflow must contain at least one allowed step. allowed steps are ${STEP_ACTIONS.toString()}`,
+  })
   @Type(() => BaseWorkflowStepDto, {
+    keepDiscriminatorProperty: true,
     discriminator: {
       property: "action",
       subTypes: [

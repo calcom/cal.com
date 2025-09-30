@@ -1,8 +1,5 @@
-import {
-  WorkflowActivationDto,
-  TriggerDtoType,
-  WorkflowFormActivationDto,
-} from "@/modules/workflows/inputs/create-workflow.input";
+import { WorkflowFormActivationDto } from "@/modules/workflows/inputs/create-form-workflow";
+import { WorkflowActivationDto, TriggerDtoType } from "@/modules/workflows/inputs/create-workflow.input";
 import { WorkflowOutput, WorkflowStepOutputDto } from "@/modules/workflows/outputs/workflow.output";
 import { WorkflowType } from "@/modules/workflows/workflows.repository";
 import { Injectable } from "@nestjs/common";
@@ -41,13 +38,11 @@ export class WorkflowsOutputService {
       workflow.trigger === "FORM_SUBMITTED"
         ? {
             isActiveOnAllRoutingForms: workflow.isActiveOnAll,
-            type: "form",
             activeOnRoutingFormIds:
               workflow.activeOnRoutingForms?.map((relation) => relation.routingFormId) ?? [],
           }
         : {
             isActiveOnAllEventTypes: workflow.isActiveOnAll,
-            type: "event-type",
             activeOnEventTypeIds: workflow.activeOn?.map((relation) => relation.eventTypeId) ?? [],
           };
 
@@ -69,6 +64,7 @@ export class WorkflowsOutputService {
       let recipient: RecipientType;
       let email = "";
       let phone = "";
+      let phoneRequired: boolean | null = false;
       let text;
       let html;
       switch (ENUM_TO_STEP_ACTIONS[step.action]) {
@@ -83,10 +79,12 @@ export class WorkflowsOutputService {
         case SMS_ATTENDEE:
           text = step.reminderBody ?? "";
           recipient = ATTENDEE;
+          phoneRequired = step.numberRequired ?? false;
           break;
         case WHATSAPP_ATTENDEE:
           text = step.reminderBody ?? "";
           recipient = ATTENDEE;
+          phoneRequired = step.numberRequired ?? false;
           break;
         case EMAIL_ADDRESS:
           html = step.reminderBody ?? "";
@@ -113,6 +111,7 @@ export class WorkflowsOutputService {
         template: ENUM_TO_TEMPLATES[step.template],
         includeCalendarEvent: step.includeCalendarEvent,
         sender: step.sender ?? "Default Sender",
+        phoneRequired,
         message: {
           subject: step.emailSubject ?? "",
           text,
@@ -127,6 +126,7 @@ export class WorkflowsOutputService {
       activation: activation,
       trigger: trigger,
       steps: steps.sort((stepA, stepB) => stepA.stepNumber - stepB.stepNumber),
+      type: workflow.trigger === "FORM_SUBMITTED" ? "form" : "event-type",
     };
   }
 }

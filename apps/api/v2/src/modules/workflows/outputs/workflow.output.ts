@@ -1,13 +1,12 @@
+import { WorkflowFormActivationDto } from "@/modules/workflows/inputs/create-form-workflow";
 import {
   WorkflowActivationDto,
-  WorkflowFormActivationDto,
-  BaseWorkflowActivationDto,
   WORKFLOW_EVENT_TYPE_ACTIVATION,
   WORKFLOW_FORM_ACTIVATION,
 } from "@/modules/workflows/inputs/create-workflow.input";
 import { ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
-import { IsArray, IsEnum, ValidateNested } from "class-validator";
+import { IsArray, IsBoolean, IsEnum, IsIn, IsOptional, IsString, ValidateNested } from "class-validator";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 
@@ -80,6 +79,16 @@ export class WorkflowStepOutputDto {
   })
   @Expose()
   phone?: string;
+
+  @ApiPropertyOptional({
+    description: "whether or not the attendees are required to provide their phone numbers when booking",
+    example: true,
+    default: false,
+  })
+  @IsBoolean()
+  @Expose()
+  @IsOptional()
+  phoneRequired?: boolean;
 
   @ApiProperty({ description: "Template type used", example: REMINDER, enum: TEMPLATES })
   @Expose()
@@ -164,6 +173,15 @@ export class WorkflowOutput {
   @Expose()
   name!: string;
 
+  @ApiProperty({
+    description: "type of the workflow",
+    example: WORKFLOW_EVENT_TYPE_ACTIVATION,
+    default: WORKFLOW_EVENT_TYPE_ACTIVATION,
+  })
+  @IsString()
+  @IsIn([WORKFLOW_FORM_ACTIVATION, WORKFLOW_EVENT_TYPE_ACTIVATION])
+  type!: typeof WORKFLOW_EVENT_TYPE_ACTIVATION | typeof WORKFLOW_FORM_ACTIVATION;
+
   @ApiPropertyOptional({
     description: "ID of the user who owns the workflow (if not team-owned)",
     example: 2313,
@@ -184,15 +202,7 @@ export class WorkflowOutput {
   })
   @Expose()
   @ValidateNested()
-  @Type(() => BaseWorkflowActivationDto, {
-    discriminator: {
-      property: "type",
-      subTypes: [
-        { value: WorkflowActivationDto, name: WORKFLOW_EVENT_TYPE_ACTIVATION },
-        { value: WorkflowFormActivationDto, name: WORKFLOW_FORM_ACTIVATION },
-      ],
-    },
-  })
+  @IsEnum([WorkflowFormActivationDto, WorkflowActivationDto])
   activation!: WorkflowFormActivationDto | WorkflowActivationDto;
 
   @ApiProperty({ description: "Trigger configuration", type: WorkflowTriggerOutputDto })
