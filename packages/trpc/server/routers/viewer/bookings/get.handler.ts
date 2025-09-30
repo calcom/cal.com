@@ -160,7 +160,8 @@ export async function getBookings({
     // - Throw an error if trying to filter by usersIds that are not within your TEAM
     if (!areUserIdsWithinUserOrgOrTeam) {
       if (!hasCurrentUser) {
-        throw new TRPCError({
+        userIds = [];
+        log.error({
           code: "FORBIDDEN",
           message: "You do not have permissions to fetch bookings for specified userIds",
         });
@@ -170,17 +171,19 @@ export async function getBookings({
     }
 
     // 1. Booking created by one of the filtered users
-    bookingQueries.push({
-      query: kysely
-        .selectFrom("Booking")
-        .select("Booking.id")
-        .select("Booking.startTime")
-        .select("Booking.endTime")
-        .select("Booking.createdAt")
-        .select("Booking.updatedAt")
-        .where("userId", "in", userIds),
-      tables: ["Booking"],
-    });
+    if (userIds.length > 0) {
+      bookingQueries.push({
+        query: kysely
+          .selectFrom("Booking")
+          .select("Booking.id")
+          .select("Booking.startTime")
+          .select("Booking.endTime")
+          .select("Booking.createdAt")
+          .select("Booking.updatedAt")
+          .where("userId", "in", userIds),
+        tables: ["Booking"],
+      });
+    }
 
     // 2. Attendee email matches one of the filtered users' emails
     if (attendeeEmailsFromUserIdsFilter?.length) {
