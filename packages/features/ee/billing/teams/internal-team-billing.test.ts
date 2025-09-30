@@ -6,6 +6,7 @@ import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/pay
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import * as billingModule from "..";
+import { BillingRepositoryFactory } from "../repository/billingRepositoryFactory";
 import { InternalTeamBilling } from "./internal-team-billing";
 import { TeamBillingPublishResponseStatus } from "./team-billing";
 
@@ -28,6 +29,8 @@ vi.mock("..", () => ({
 vi.mock("@calcom/features/ee/teams/lib/payments", () => ({
   purchaseTeamOrOrgSubscription: vi.fn(),
 }));
+
+vi.mock("../repository/billingRepositoryFactory");
 const mockTeam = {
   id: 1,
   metadata: {
@@ -175,6 +178,14 @@ describe("InternalTeamBilling", () => {
   });
 
   describe("saveTeamBilling", () => {
+    const mockOrgRepository = {
+      create: vi.fn(),
+    };
+
+    const mockTeamRepository = {
+      create: vi.fn(),
+    };
+
     it("should delegate to organization billing repository when team is an organization", async () => {
       const mockOrgTeam = {
         id: 1,
@@ -182,7 +193,6 @@ describe("InternalTeamBilling", () => {
         isOrganization: true,
         parentId: null,
       };
-      const internalTeamBilling = new InternalTeamBilling(mockOrgTeam);
 
       const mockBillingArgs = {
         teamId: 1,
@@ -193,19 +203,23 @@ describe("InternalTeamBilling", () => {
         status: "ACTIVE" as const,
       };
 
-      prismaMock.organizationBilling.create.mockResolvedValue({
+      const mockCreatedRecord = {
         id: "billing_org_123",
         ...mockBillingArgs,
         createdAt: new Date(),
         updatedAt: new Date(),
-      });
+      };
 
+      mockOrgRepository.create.mockResolvedValue(mockCreatedRecord);
+      vi.mocked(BillingRepositoryFactory.getRepository).mockReturnValue(
+        mockOrgRepository as unknown as ReturnType<typeof BillingRepositoryFactory.getRepository>
+      );
+
+      const internalTeamBilling = new InternalTeamBilling(mockOrgTeam);
       await internalTeamBilling.saveTeamBilling(mockBillingArgs);
 
-      expect(prismaMock.organizationBilling.create).toHaveBeenCalledWith({
-        data: mockBillingArgs,
-      });
-      expect(prismaMock.teamBilling.create).not.toHaveBeenCalled();
+      expect(BillingRepositoryFactory.getRepository).toHaveBeenCalledWith(true);
+      expect(mockOrgRepository.create).toHaveBeenCalledWith(mockBillingArgs);
     });
 
     it("should delegate to team billing repository when team is not an organization", async () => {
@@ -215,7 +229,6 @@ describe("InternalTeamBilling", () => {
         isOrganization: false,
         parentId: null,
       };
-      const internalTeamBilling = new InternalTeamBilling(mockRegularTeam);
 
       const mockBillingArgs = {
         teamId: 2,
@@ -226,19 +239,23 @@ describe("InternalTeamBilling", () => {
         status: "ACTIVE" as const,
       };
 
-      prismaMock.teamBilling.create.mockResolvedValue({
+      const mockCreatedRecord = {
         id: "billing_team_456",
         ...mockBillingArgs,
         createdAt: new Date(),
         updatedAt: new Date(),
-      });
+      };
 
+      mockTeamRepository.create.mockResolvedValue(mockCreatedRecord);
+      vi.mocked(BillingRepositoryFactory.getRepository).mockReturnValue(
+        mockTeamRepository as unknown as ReturnType<typeof BillingRepositoryFactory.getRepository>
+      );
+
+      const internalTeamBilling = new InternalTeamBilling(mockRegularTeam);
       await internalTeamBilling.saveTeamBilling(mockBillingArgs);
 
-      expect(prismaMock.teamBilling.create).toHaveBeenCalledWith({
-        data: mockBillingArgs,
-      });
-      expect(prismaMock.organizationBilling.create).not.toHaveBeenCalled();
+      expect(BillingRepositoryFactory.getRepository).toHaveBeenCalledWith(false);
+      expect(mockTeamRepository.create).toHaveBeenCalledWith(mockBillingArgs);
     });
 
     it("should pass all billing arguments correctly to repository", async () => {
@@ -248,7 +265,6 @@ describe("InternalTeamBilling", () => {
         isOrganization: false,
         parentId: null,
       };
-      const internalTeamBilling = new InternalTeamBilling(mockTeam);
 
       const mockBillingArgs = {
         teamId: 3,
@@ -259,25 +275,31 @@ describe("InternalTeamBilling", () => {
         status: "TRIALING" as const,
       };
 
-      prismaMock.teamBilling.create.mockResolvedValue({
+      const mockCreatedRecord = {
         id: "billing_detailed_789",
         ...mockBillingArgs,
         createdAt: new Date(),
         updatedAt: new Date(),
-      });
+      };
 
+      mockTeamRepository.create.mockResolvedValue(mockCreatedRecord);
+      vi.mocked(BillingRepositoryFactory.getRepository).mockReturnValue(
+        mockTeamRepository as unknown as ReturnType<typeof BillingRepositoryFactory.getRepository>
+      );
+
+      const internalTeamBilling = new InternalTeamBilling(mockTeam);
       await internalTeamBilling.saveTeamBilling(mockBillingArgs);
 
-      expect(prismaMock.teamBilling.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
+      expect(mockTeamRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
           teamId: 3,
           subscriptionId: "sub_detailed_789",
           subscriptionItemId: "si_detailed_789",
           customerId: "cus_detailed_789",
           planName: "ENTERPRISE",
           status: "TRIALING",
-        }),
-      });
+        })
+      );
     });
 
     it("should propagate repository errors", async () => {
@@ -287,7 +309,6 @@ describe("InternalTeamBilling", () => {
         isOrganization: false,
         parentId: null,
       };
-      const internalTeamBilling = new InternalTeamBilling(mockTeam);
 
       const mockBillingArgs = {
         teamId: 4,
@@ -299,7 +320,12 @@ describe("InternalTeamBilling", () => {
       };
 
       const repositoryError = new Error("Database constraint violation");
-      prismaMock.teamBilling.create.mockRejectedValue(repositoryError);
+      mockTeamRepository.create.mockRejectedValue(repositoryError);
+      vi.mocked(BillingRepositoryFactory.getRepository).mockReturnValue(
+        mockTeamRepository as unknown as ReturnType<typeof BillingRepositoryFactory.getRepository>
+      );
+
+      const internalTeamBilling = new InternalTeamBilling(mockTeam);
 
       await expect(internalTeamBilling.saveTeamBilling(mockBillingArgs)).rejects.toThrow(
         "Database constraint violation"
