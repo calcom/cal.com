@@ -1,5 +1,10 @@
+import { randomBytes } from "crypto";
+
 import { TeamBilling } from "@calcom/features/ee/billing/teams";
 import { deleteWorkfowRemindersOfRemovedMember } from "@calcom/features/ee/teams/lib/deleteWorkflowRemindersOfRemovedMember";
+import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
@@ -47,6 +52,56 @@ export type RemoveMemberResult = {
 };
 
 export class TeamService {
+  static async createInvite(
+    teamId: number,
+    options?: { token?: string }
+  ): Promise<{ token: string; inviteLink: string }> {
+    const team = await prisma.team.findUnique({
+      where: { id: teamId },
+      select: { parentId: true, isOrganization: true },
+    });
+
+    if (!team) throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });
+
+    const isOrganizationOrATeamInOrganization = !!(team.parentId || team.isOrganization);
+
+    if (options?.token) {
+      const existingToken = await prisma.verificationToken.findFirst({
+        where: {
+          token: options.token,
+          identifier: `invite-link-for-teamId-${teamId}`,
+          teamId,
+        },
+      });
+      if (!existingToken) throw new TRPCError({ code: "NOT_FOUND", message: "Invite token not found" });
+      return {
+        token: existingToken.token,
+        inviteLink: TeamService.buildInviteLink(existingToken.token, isOrganizationOrATeamInOrganization),
+      };
+    }
+
+    const token = randomBytes(32).toString("hex");
+    await prisma.verificationToken.create({
+      data: {
+        identifier: `invite-link-for-teamId-${teamId}`,
+        token,
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // +1 week
+        expiresInDays: 7,
+        teamId,
+      },
+    });
+
+    return {
+      token,
+      inviteLink: TeamService.buildInviteLink(token, isOrganizationOrATeamInOrganization),
+    };
+  }
+
+  private static buildInviteLink(token: string, isOrgContext: boolean): string {
+    const teamInviteLink = `${WEBAPP_URL}/teams?token=${token}`;
+    const orgInviteLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
+    return isOrgContext ? orgInviteLink : teamInviteLink;
+  }
   /**
    * Deletes a team and all its associated data in a safe, transactional order.
    * External, critical services like billing are handled first to prevent data inconsistencies.
@@ -117,7 +172,8 @@ export class TeamService {
         token,
         OR: [{ expiresInDays: null }, { expires: { gte: new Date() } }],
       },
-      include: {
+      select: {
+        teamId: true,
         team: {
           select: {
             name: true,
@@ -158,6 +214,139 @@ export class TeamService {
     await teamBilling.updateQuantity();
 
     return verificationToken.team.name;
+  }
+
+  static async acceptTeamMembership({
+    userId,
+    teamId,
+    userEmail,
+    username,
+  }: {
+    userId: number;
+    teamId: number;
+    userEmail: string;
+    username: string | null;
+  }) {
+    const teamMembership = await prisma.membership.update({
+      where: {
+        userId_teamId: { userId, teamId },
+      },
+      data: {
+        accepted: true,
+      },
+      select: {
+        team: true,
+      },
+    });
+
+    const team = teamMembership.team;
+
+    if (team.parentId) {
+      await prisma.membership.update({
+        where: {
+          userId_teamId: { userId, teamId: team.parentId },
+        },
+        data: {
+          accepted: true,
+        },
+      });
+    }
+
+    const isASubteam = team.parentId !== null;
+    const idOfOrganizationInContext = team.isOrganization ? team.id : isASubteam ? team.parentId : null;
+    const needProfileUpdate = !!idOfOrganizationInContext;
+
+    if (needProfileUpdate) {
+      await createAProfileForAnExistingUser({
+        user: {
+          id: userId,
+          email: userEmail,
+          currentUsername: username,
+        },
+        organizationId: idOfOrganizationInContext,
+      });
+    }
+
+    await updateNewTeamMemberEventTypes(userId, teamId);
+  }
+  static async leaveTeamMembership({
+    userId,
+    teamId,
+  }: {
+    userId: number;
+    teamId: number;
+  }) {
+    try {
+      const membership = await prisma.membership.delete({
+        where: {
+          userId_teamId: { userId, teamId },
+        },
+        select: {
+          team: true,
+        },
+      });
+
+      if (membership.team.parentId) {
+        await prisma.membership.delete({
+          where: {
+            userId_teamId: { userId, teamId: membership.team.parentId },
+          },
+        });
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  static async acceptInvitationByToken(acceptanceToken: string, userId: number) {
+    const verificationToken = await prisma.verificationToken.findFirst({
+      where: {
+        token: acceptanceToken,
+        expires: { gte: new Date() },
+      },
+      select: {
+        identifier: true,
+        teamId: true,
+        team: { select: { name: true } },
+      },
+    });
+
+    if (!verificationToken) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "Invite not found" });
+    }
+
+    if (!verificationToken.teamId || !verificationToken.team) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Invite token is not associated with any team",
+      });
+    }
+
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, username: true },
+    });
+
+    if (!currentUser) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+    }
+
+    if (
+      currentUser.email !== verificationToken.identifier &&
+      currentUser.username !== verificationToken.identifier
+    ) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "This invitation is not for your account",
+      });
+    }
+
+    await TeamService.acceptTeamMembership({
+      userId,
+      teamId: verificationToken.teamId,
+      userEmail: currentUser.email,
+      username: currentUser.username,
+    });
   }
 
   static async publish(teamId: number) {
