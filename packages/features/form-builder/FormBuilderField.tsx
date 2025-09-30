@@ -142,7 +142,6 @@ const WithLabel = ({
   htmlFor: string;
 }) => {
   const { t } = useLocale();
-
   return (
     <div>
       {/* multiemail doesnt show label initially. It is shown on clicking CTA */}
@@ -164,7 +163,10 @@ const WithLabel = ({
             </div>
           )}
       {children}
-      {field.name === "smsReminderNumber" && (
+      {/* {field.name === "smsReminderNumber" && (
+        <div className="text-sm text-gray-500">{t("sms_workflow_consent")}</div>
+      )} */}
+      {field.name === "attendeePhoneNumber" && field.sources?.some((s) => s.label === "CalIdWorkflow") && (
         <div className="text-sm text-gray-500">{t("sms_workflow_consent")}</div>
       )}
     </div>

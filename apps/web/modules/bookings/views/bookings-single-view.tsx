@@ -26,11 +26,7 @@ import {
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
-import {
-  SMS_REMINDER_NUMBER_FIELD,
-  SystemField,
-  TITLE_FIELD,
-} from "@calcom/features/bookings/lib/SystemField";
+import { SystemField, TITLE_FIELD } from "@calcom/features/bookings/lib/SystemField";
 import { getCalendarLinks, CalendarLinkType } from "@calcom/lib/bookings/getCalendarLinks";
 import { APP_NAME } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime, formatToLocalizedTimezone } from "@calcom/lib/dayjs";
@@ -767,7 +763,7 @@ export default function Success(props: PageProps) {
                           // TITLE is also an identifier for booking question "What is this meeting about?"
                           if (
                             isSystemField.success &&
-                            field.name !== SMS_REMINDER_NUMBER_FIELD &&
+                            //field.name !== SMS_REMINDER_NUMBER_FIELD &&
                             field.name !== TITLE_FIELD
                           )
                             return null;

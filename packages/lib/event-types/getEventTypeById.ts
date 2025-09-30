@@ -228,7 +228,11 @@ export const getEventTypeById = async ({
     users: eventTypeUsers,
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
-    bookingFields: getBookingFieldsWithSystemFields({ ...eventType, isOrgTeamEvent }),
+    bookingFields: getBookingFieldsWithSystemFields({
+      ...eventType,
+      isOrgTeamEvent,
+      workflows: eventType.calIdWorkflows,
+    }),
   });
 
   const isOrgEventType = !!eventTypeObject.team?.parentId;
@@ -425,7 +429,7 @@ export const getEventTypeByIdForCalId = async ({
     ),
   };
 
-  // backwards compat
+  // backwards compats
   if (eventType.users.length === 0 && !(eventType as any).calIdTeam) {
     const fallbackUser = await prisma.user.findUnique({
       where: {
@@ -485,7 +489,11 @@ export const getEventTypeByIdForCalId = async ({
     users: eventTypeUsers,
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
-    bookingFields: getBookingFieldsWithSystemFields({ ...eventType, isOrgTeamEvent }),
+    bookingFields: getBookingFieldsWithSystemFields({
+      ...eventType,
+      isOrgTeamEvent,
+      workflows: eventType.calIdWorkflows,
+    }),
   });
 
   const isOrgEventType = !!(eventTypeObject as any).calIdTeam?.parentId;
