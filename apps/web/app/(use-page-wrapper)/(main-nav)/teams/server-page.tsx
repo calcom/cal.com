@@ -32,7 +32,7 @@ export const ServerTeamsListing = async ({
   session: Session;
 }) => {
   const token = Array.isArray(searchParams?.token) ? searchParams.token[0] : searchParams?.token;
-  const autoAccept = Array.isArray(searchParams?.autoAccept) ? searchParams.autoAccept[0] : searchParams?.autoAccept;
+  const autoAccept = searchParams?.autoAccept;
   const userId = session.user.id;
   let invitationAccepted = false;
 
