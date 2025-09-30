@@ -144,7 +144,7 @@ test.describe("Manage Booking Questions", () => {
           await expect(datePickerButton).toContainText("Pick a date");
           await expect(datePickerButton).toHaveAttribute("data-testid", "pick-date");
 
-          await expect(datePickerButton.locator('[data-testid="calendar"]')).toBeVisible();
+          await expect(datePickerButton.locator('svg[aria-hidden]')).toBeVisible();
         });
       });
 
@@ -733,7 +733,12 @@ async function addQuestionAndSave({
   }
 
   if (question.required !== undefined) {
-    // await page.fill('[name="name"]', question.required);
+    const requiredCheckbox = page.locator('[data-testid="field-required"]').first();
+    const isCurrentlyChecked = await requiredCheckbox.isChecked();
+    
+    if (isCurrentlyChecked !== question.required) {
+      await requiredCheckbox.click();
+    }
   }
 
   await page.click('[data-testid="field-add-save"]');
@@ -799,11 +804,26 @@ async function toggleQuestionRequireStatusAndSave({
   page: Page;
 }) {
   await page.locator(`[data-testid="field-${name}"]`).locator('[data-testid="edit-field-action"]').click();
-  await page
+
+  await page.locator('[data-testid="edit-field-dialog"]').waitFor({ state: 'visible' });
+  
+  const requiredCheckbox = page
     .locator('[data-testid="edit-field-dialog"]')
     .locator('[data-testid="field-required"]')
-    .first()
-    .click();
+    .first();
+
+  await requiredCheckbox.waitFor({ state: 'visible' });
+  const isCurrentlyChecked = await requiredCheckbox.isChecked();
+  
+  if (isCurrentlyChecked !== required) {
+    await requiredCheckbox.click();
+    
+    const newState = await requiredCheckbox.isChecked();
+    if (newState !== required) {
+      throw new Error(`Failed to set required state to ${required}. Current state: ${newState}`);
+    }
+  }
+  
   await page.locator('[data-testid="field-add-save"]').click();
   await saveEventType(page);
 }
