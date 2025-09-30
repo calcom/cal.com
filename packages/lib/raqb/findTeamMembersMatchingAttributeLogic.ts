@@ -1,7 +1,7 @@
+import type { ImmutableTree, JsonLogicResult, JsonTree } from "@react-awesome-query-builder/ui";
+import { Utils as QbUtils } from "@react-awesome-query-builder/ui";
+import type { BasicConfig as Config } from "@react-awesome-query-builder/ui";
 import async from "async";
-import type { ImmutableTree, JsonLogicResult, JsonTree } from "react-awesome-query-builder";
-import type { Config } from "react-awesome-query-builder/lib";
-import { Utils as QbUtils } from "react-awesome-query-builder/lib";
 
 import type { dynamicFieldValueOperands } from "@calcom/lib/raqb/types";
 import { getAttributesAssignmentData } from "@calcom/lib/service/attribute/server/getAttributes";
@@ -160,7 +160,7 @@ async function getLogicResultForAllMembers(
         attributesQueryValue,
       });
       attributesDataPerUser.set(member.userId, attributesData);
-      const result = !!jsonLogic.apply(attributeJsonLogic as any, attributesData)
+      const result = jsonLogic.apply(attributeJsonLogic as any, attributesData)
         ? RaqbLogicResult.MATCH
         : RaqbLogicResult.NO_MATCH;
 
