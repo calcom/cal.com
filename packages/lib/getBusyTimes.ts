@@ -189,11 +189,12 @@ const _getBusyTimes = async (params: {
     );
 
     if (!calendarBusyTimesQuery.success) {
-      throw new Error(
+      logger.error(
         `Failed to fetch busy calendar times for selected calendars ${selectedCalendars.map(
           (calendar) => calendar.id
         )}`
       );
+      return [];
     }
 
     const calendarBusyTimes = calendarBusyTimesQuery.data;
