@@ -19,11 +19,7 @@ export class PBACRoleManager implements IRoleManager {
     userId: number,
     targetId: number,
     scope: "org" | "team",
-    // Not required for this instance
-     
     _memberId?: number,
-    // Not required for this instance
-     
     _newRole?: MembershipRole | string
   ): Promise<void> {
     const hasPermission = await this.permissionCheckService.checkPermission({
