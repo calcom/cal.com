@@ -1383,6 +1383,11 @@ enum WorkflowActions {
   CAL_AI_PHONE_CALL
 }
 
+enum WorkflowType {
+  EVENT_TYPE
+  ROUTING_FORM
+}
+
 model WorkflowStep {
   id                        Int                @id @default(autoincrement())
   stepNumber                Int
@@ -1421,6 +1426,7 @@ model Workflow {
   time                 Int?
   timeUnit             TimeUnit?
   steps                WorkflowStep[]
+  type                 WorkflowType              @default(EVENT_TYPE)
 
   @@index([userId])
   @@index([teamId])
