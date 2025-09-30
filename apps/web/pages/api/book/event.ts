@@ -1,3 +1,4 @@
+import { checkBotId } from "botid/server";
 import type { NextApiRequest } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -17,6 +18,18 @@ async function handler(req: NextApiRequest & { userId?: number }) {
       token: req.body["cfToken"] as string,
       remoteIp: userIp,
     });
+  }
+
+  if (process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER === "1") {
+    const verification = await checkBotId({
+      developmentOptions: {
+        bypass: "BAD-BOT", // default: 'HUMAN'
+      },
+    });
+
+    if (verification.isBot) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
   }
 
   await checkRateLimitAndThrowError({

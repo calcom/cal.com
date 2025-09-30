@@ -2,6 +2,7 @@
 // The added config here will be used whenever a users loads a page in their browser.
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 import * as Sentry from "@sentry/nextjs";
+import { initBotId } from "botid/client/core";
 
 if (process.env.NODE_ENV === "production") {
   Sentry.init({
@@ -48,3 +49,12 @@ export function onRouterTransitionStart(url: string, navigationType: "push" | "r
     Sentry.captureRouterTransitionStart(url, navigationType);
   }
 }
+
+initBotId({
+  protect: [
+    {
+      path: "/api/book/event",
+      method: "POST",
+    },
+  ],
+});
