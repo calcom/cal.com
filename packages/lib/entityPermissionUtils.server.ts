@@ -1,23 +1,18 @@
-import { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-export type EntityPermission = {
+export type Entity = {
   userId: number | null;
   teamId: number | null;
 };
 
-export async function canEditEntity(
-  entity: EntityPermission,
-  userId: number,
-  permission: PermissionString = "routingForm.update"
-) {
+export async function canEditEntity(entity: Entity, userId: number) {
   if (entity.teamId) {
     const permissionService = new PermissionCheckService();
     const hasEditPermission = await permissionService.checkPermission({
       teamId: entity.teamId,
       userId,
-      permission,
+      permission: "routingForm.update",
       fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
     });
 
@@ -27,17 +22,13 @@ export async function canEditEntity(
   return false;
 }
 
-export async function canAccessEntity(
-  entity: EntityPermission,
-  userId: number,
-  permission: PermissionString = "routingForm.read"
-) {
+export async function canAccessEntity(entity: Entity, userId: number) {
   if (entity.teamId) {
     const permissionService = new PermissionCheckService();
     const hasReadPermission = await permissionService.checkPermission({
       teamId: entity.teamId,
       userId,
-      permission,
+      permission: "routingForm.read",
       fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER],
     });
 
@@ -50,18 +41,16 @@ export async function canAccessEntity(
 export async function canCreateEntity({
   targetTeamId,
   userId,
-  permission = "routingForm.create",
 }: {
   targetTeamId: number | null | undefined;
   userId: number;
-  permission?: PermissionString;
 }) {
   if (targetTeamId) {
     const permissionService = new PermissionCheckService();
     const hasEditPermission = await permissionService.checkPermission({
       teamId: targetTeamId,
       userId,
-      permission,
+      permission: "routingForm.create",
       fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
     });
 
