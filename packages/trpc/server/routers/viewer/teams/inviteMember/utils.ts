@@ -4,15 +4,14 @@ import type { TFunction } from "i18next";
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { ENABLE_PROFILE_SWITCHER, WEBAPP_URL } from "@calcom/lib/constants";
 import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries/teams";
-import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -66,12 +65,20 @@ export async function ensureAtleastAdminPermissions({
   teamId: number;
   isOrg?: boolean;
 }) {
+  const permissionCheckService = new PermissionCheckService();
+
   // Checks if the team they are inviting to IS the org. Not a child team
-  if (isOrg) {
-    if (!(await isOrganisationAdmin(userId, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
-  } else {
-    // TODO: do some logic here to check if the user is inviting a NEW user to a team that ISNT in the same org
-    if (!(await isTeamAdmin(userId, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+  // TODO: do some logic here to check if the user is inviting a NEW user to a team that ISNT in the same org
+  const permission = isOrg ? "organization.invite" : "team.invite";
+  const hasInvitePermission = await permissionCheckService.checkPermission({
+    userId,
+    teamId,
+    permission,
+    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+  });
+
+  if (!hasInvitePermission) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 }
 
@@ -485,7 +492,7 @@ export async function sendSignupToOrganizationEmail({
       data: {
         identifier: usernameOrEmail,
         token,
-        expires: new Date(new Date().setHours(168)), // +1 week
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // +1 week
         team: {
           connect: {
             id: teamId,
@@ -710,7 +717,7 @@ export const sendExistingUserTeamInviteEmails = async ({
           data: {
             identifier: user.email,
             token,
-            expires: new Date(new Date().setHours(168)), // +1 week
+            expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // +1 week
             team: {
               connect: {
                 id: teamId,

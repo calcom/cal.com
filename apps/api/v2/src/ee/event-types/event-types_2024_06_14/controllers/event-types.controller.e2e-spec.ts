@@ -38,6 +38,7 @@ import type {
   GuestsDefaultFieldOutput_2024_06_14,
   NameDefaultFieldInput_2024_06_14,
   NotesDefaultFieldInput_2024_06_14,
+  SplitNameDefaultFieldOutput_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
 import type { PlatformOAuthClient, Team, User, Schedule, EventType } from "@calcom/prisma/client";
@@ -1141,6 +1142,9 @@ describe("Event types Endpoints", () => {
           disableRecordingForGuests: true,
           disableRecordingForOrganizer: true,
           enableAutomaticRecordingForOrganizer: true,
+          enableAutomaticTranscription: true,
+          disableTranscriptionForGuests: true,
+          disableTranscriptionForOrganizer: true,
         },
         bookingFields: [
           nameBookingField,
@@ -1273,6 +1277,15 @@ describe("Event types Endpoints", () => {
           );
           expect(updatedEventType.calVideoSettings?.enableAutomaticRecordingForOrganizer).toEqual(
             body.calVideoSettings?.enableAutomaticRecordingForOrganizer
+          );
+          expect(updatedEventType.calVideoSettings?.enableAutomaticTranscription).toEqual(
+            body.calVideoSettings?.enableAutomaticTranscription
+          );
+          expect(updatedEventType.calVideoSettings?.disableTranscriptionForGuests).toEqual(
+            body.calVideoSettings?.disableTranscriptionForGuests
+          );
+          expect(updatedEventType.calVideoSettings?.disableTranscriptionForOrganizer).toEqual(
+            body.calVideoSettings?.disableTranscriptionForOrganizer
           );
 
           eventType.title = newTitle;
@@ -1435,23 +1448,23 @@ describe("Event types Endpoints", () => {
       try {
         await eventTypesRepositoryFixture.delete(eventType.id);
       } catch (e) {
-        // Event type might have been deleted by the test
+        console.log(e);
       }
       try {
         await userRepositoryFixture.delete(user.id);
       } catch (e) {
-        // User might have been deleted by the test
+        console.log(e);
       }
       try {
         await userRepositoryFixture.delete(falseTestUser.id);
       } catch (e) {
-        // User might have been deleted by the test
+        console.log(e);
       }
 
       try {
         await userRepositoryFixture.delete(orgUser.id);
       } catch (e) {
-        // User might have been deleted by the test
+        console.log(e);
       }
       await app.close();
     });
@@ -2175,6 +2188,47 @@ describe("Event types Endpoints", () => {
       });
     });
 
+    describe("split name booking field", () => {
+      it("should create an event type with split name booking field", async () => {
+        const splitNameBookingField: SplitNameDefaultFieldOutput_2024_06_14 = {
+          isDefault: true,
+          type: "splitName",
+          slug: "splitName",
+          firstNameLabel: "First name",
+          firstNamePlaceholder: "",
+          lastNameLabel: "last name",
+          lastNamePlaceholder: "",
+          lastNameRequired: false,
+          disableOnPrefill: false,
+        };
+
+        const body: CreateEventTypeInput_2024_06_14 = {
+          title: "Coding class 9",
+          slug: "coding-class-9",
+          description: "Let's learn how to code like a pro.",
+          lengthInMinutes: 60,
+          bookingFields: [splitNameBookingField],
+        };
+
+        return request(app.getHttpServer())
+          .post("/api/v2/event-types")
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+          .send(body)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+            const createdEventType = responseBody.data;
+
+            const splitNameBookingFieldResponse = createdEventType.bookingFields.find(
+              (field) => field.type === "splitName"
+            ) as SplitNameDefaultFieldOutput_2024_06_14 | undefined;
+            expect(splitNameBookingFieldResponse).toEqual(splitNameBookingField);
+
+            await eventTypesRepositoryFixture.delete(createdEventType.id);
+          });
+      });
+    });
+
     afterAll(async () => {
       await oauthClientRepositoryFixture.delete(oAuthClient.id);
       await teamRepositoryFixture.delete(organization.id);
@@ -2182,12 +2236,12 @@ describe("Event types Endpoints", () => {
         await eventTypesRepositoryFixture.delete(legacyEventTypeId1);
         await eventTypesRepositoryFixture.delete(legacyEventTypeId2);
       } catch (e) {
-        // Event type might have been deleted by the test
+        console.log(e);
       }
       try {
         await userRepositoryFixture.delete(user.id);
       } catch (e) {
-        // User might have been deleted by the test
+        console.log(e);
       }
       await app.close();
     });
@@ -2367,7 +2421,7 @@ describe("Event types Endpoints", () => {
 
         const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
         const updatedEventType = responseBody.data;
-        +expect(updatedEventType.hidden).toBe(false);
+        expect(updatedEventType.hidden).toBe(false);
       });
     });
 
@@ -2377,12 +2431,12 @@ describe("Event types Endpoints", () => {
       try {
         await eventTypesRepositoryFixture.delete(legacyEventTypeId1);
       } catch (e) {
-        // Event type might have been deleted by the test
+        console.log(e);
       }
       try {
         await userRepositoryFixture.delete(user.id);
       } catch (e) {
-        // User might have been deleted by the test
+        console.log(e);
       }
       await app.close();
     });

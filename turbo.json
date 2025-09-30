@@ -81,6 +81,7 @@
     "GOOGLE_API_CREDENTIALS",
     "GOOGLE_LOGIN_ENABLED",
     "GOOGLE_WEBHOOK_TOKEN",
+    "GOOGLE_WEBHOOK_URL",
     "HEROKU_APP_NAME",
     "HUBSPOT_CLIENT_ID",
     "HUBSPOT_CLIENT_SECRET",
@@ -120,6 +121,7 @@
     "NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE_MONTHLY",
     "NEXT_PUBLIC_STRIPE_PRICING_TABLE_PUBLISHABLE_KEY",
     "NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID",
+    "ORG_MONTHLY_CREDITS",
     "NEXT_PUBLIC_PLAIN_CHAT_ID",
     "NEXT_PUBLIC_PLAIN_CHAT_EXCLUDED_PATHS",
     "NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD",
@@ -187,6 +189,7 @@
     "STRIPE_TEAM_MONTHLY_PRICE_ID",
     "STRIPE_TEAM_PRODUCT_ID",
     "STRIPE_ORG_MONTHLY_PRICE_ID",
+    "ORG_MONTHLY_CREDITS",
     "TANDEM_BASE_URL",
     "TANDEM_CLIENT_ID",
     "TANDEM_CLIENT_SECRET",
@@ -274,10 +277,22 @@
     "NEXT_PUBLIC_WEBAPP_URL",
     "NEXT_PUBLIC_WEBSITE_URL",
     "BUILD_STANDALONE",
+    "ATOMS_E2E_APPLE_ID",
+    "ATOMS_E2E_APPLE_CONNECT_APP_SPECIFIC_PASSCODE",
     "INTERCOM_API_TOKEN",
-    "NEXT_PUBLIC_INTERCOM_APP_ID"
+    "NEXT_PUBLIC_INTERCOM_APP_ID",
+    "MICROSOFT_WEBHOOK_TOKEN",
+    "MICROSOFT_WEBHOOK_URL",
+    "_CAL_INTERNAL_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS",
+    "ENTERPRISE_SLUGS",
+    "PLATFORM_ENTERPRISE_SLUGS"
   ],
   "tasks": {
+    "@calcom/web#copy-app-store-static": {
+      "inputs": ["../../packages/app-store/**/static/**/*"],
+      "outputLogs": "new-only",
+      "outputs": ["public/app-store/**"]
+    },
     "@calcom/prisma#build": {
       "cache": false,
       "dependsOn": ["post-install"]
@@ -331,6 +346,7 @@
         "STRIPE_TEAM_MONTHLY_PRICE_ID",
         "NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID",
         "STRIPE_TEAM_PRODUCT_ID",
+        "ORG_MONTHLY_CREDITS",
         "STRIPE_ORG_MONTHLY_PRICE_ID",
         "STRIPE_ORG_PRODUCT_ID",
         "NEXT_PUBLIC_API_V2_URL",
@@ -438,13 +454,12 @@
       "cache": false
     },
     "lint": {
-      "cache": false
+      "dependsOn": ["^lint"]
     },
     "lint:fix": {
       "cache": false
     },
     "lint:report": {
-      "cache": false,
       "outputs": ["lint-results"]
     },
     "post-install": {

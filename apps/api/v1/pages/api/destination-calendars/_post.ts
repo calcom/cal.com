@@ -1,6 +1,9 @@
 import type { NextApiRequest } from "next";
 
-import { getCalendarCredentialsWithoutDelegation, getConnectedCalendars } from "@calcom/lib/CalendarManager";
+import {
+  getCalendarCredentialsWithoutDelegation,
+  getConnectedCalendars,
+} from "@calcom/features/calendars/lib/CalendarManager";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";

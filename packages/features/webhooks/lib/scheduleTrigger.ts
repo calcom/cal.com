@@ -4,7 +4,7 @@ import { selectOOOEntries } from "@calcom/app-store/zapier/api/subscriptions/lis
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import tasker from "@calcom/features/tasker";
-import { DailyLocationType, getHumanReadableLocationValue } from "@calcom/lib/location";
+import { DailyLocationType, getHumanReadableLocationValue } from "@calcom/app-store/locations";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
