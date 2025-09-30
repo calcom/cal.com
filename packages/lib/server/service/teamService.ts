@@ -10,6 +10,7 @@ import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { Membership } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
+import type { ActiveFilters } from "@calcom/features/data-table/lib/types";
 
 import { TRPCError } from "@trpc/server";
 import { randomBytes } from "crypto";
@@ -240,6 +241,8 @@ export class TeamService {
 
     await deleteWorkfowRemindersOfRemovedMember(team, userId, isOrg);
 
+    await TeamService.cleanupFilterSegmentsWithRemovedUser(userId, team.id);
+
     return { membership };
   }
 
@@ -428,5 +431,68 @@ export class TeamService {
         },
       }),
     ]);
+
+    await TeamService.cleanupFilterSegmentsWithRemovedUser(membership.userId, teamId);
+  }
+
+  private static async cleanupFilterSegmentsWithRemovedUser(userId: number, teamId: number) {
+    try {
+      const filterSegments = await prisma.filterSegment.findMany({
+        where: {
+          scope: "TEAM",
+          teamId: teamId,
+        },
+        select: {
+          id: true,
+          activeFilters: true,
+        },
+      });
+
+      for (const segment of filterSegments) {
+        if (!segment.activeFilters) continue;
+
+        let updatedFilters = false;
+        const activeFilters: ActiveFilters = segment.activeFilters as ActiveFilters;
+
+        const updatedActiveFilters = activeFilters.map((filter) => {
+          if (filter.f === "userId" && filter.v) {
+            if (typeof filter.v === "object" && filter.v !== null) {
+              const filterValue = filter.v;
+
+              if (filterValue.type === "ms" && Array.isArray(filterValue.data)) {
+                const filteredUserIds = filterValue.data.filter((id) => id !== userId);
+
+                if (filteredUserIds.length !== filterValue.data.length) {
+                  updatedFilters = true;
+                  return {
+                    f: "userId",
+                    v: {
+                      type: "ms",
+                      data: filteredUserIds,
+                    },
+                  };
+                }
+              } else if (filterValue.type === "ss" && filterValue.data === userId) {
+                updatedFilters = true;
+                return null;
+              }
+            }
+          }
+
+          return filter;
+        }).filter(Boolean) as ActiveFilters;
+
+        if (updatedFilters) {
+          await prisma.filterSegment.update({
+            where: { id: segment.id },
+            data: {
+              activeFilters: updatedActiveFilters,
+            },
+          });
+        }
+      }
+    } catch (error) {
+      log.error(`Failed to cleanup filter segments for removed user ${userId} from team ${teamId}`, error);
+    }
   }
 }
