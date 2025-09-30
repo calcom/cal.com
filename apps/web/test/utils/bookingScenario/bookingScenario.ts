@@ -571,7 +571,6 @@ function addBookingReferencesToDB(bookingReferences: Prisma.BookingReferenceCrea
 
 async function addBookingsToDb(
   bookings: (Prisma.BookingCreateInput & {
-     
     references: any[];
     user?: { id: number };
   })[]
@@ -679,7 +678,6 @@ export async function addBookings(bookings: InputBooking[]) {
   );
 }
 
- 
 async function addWebhooksToDb(webhooks: any[]) {
   await prismock.webhook.createMany({
     data: webhooks,
@@ -942,7 +940,6 @@ export async function addUsers(users: InputUser[]) {
     }
     if (user.profiles) {
       newUser.profiles = {
-         
         // @ts-expect-error Not sure why this is not working
         createMany: {
           data: user.profiles,
@@ -957,7 +954,6 @@ export async function addUsers(users: InputUser[]) {
   return await addUsersToDb(prismaUsersCreate);
 }
 
- 
 async function addAppsToDb(apps: any[]) {
   log.silly("TestData: Creating Apps", JSON.stringify({ apps }));
   await prismock.app.createMany({
@@ -1024,7 +1020,6 @@ export async function createOrganization(orgData: {
   slug: string;
   metadata?: z.infer<typeof teamMetadataSchema>;
   withTeam?: boolean;
-   
 }): Promise<TeamCreateReturnType & { slug: NonNullable<TeamCreateReturnType["slug"]>; children: any }> {
   const org = await prismock.team.create({
     data: {
@@ -1805,7 +1800,6 @@ export async function mockCalendar(
       credential: any
     ) {
       return {
-         
         createEvent: async function (...rest: any[]): Promise<NewCalendarEventType> {
           if (calendarData?.creationCrash) {
             throw new Error("MockCalendarService.createEvent fake error");
@@ -1877,14 +1871,12 @@ export async function mockCalendar(
             });
           }
         },
-         
         updateEvent: async function (...rest: any[]): Promise<NewCalendarEventType> {
           if (calendarData?.updationCrash) {
             throw new Error("MockCalendarService.updateEvent fake error");
           }
           const [uid, event, externalCalendarId] = rest;
           log.silly("mockCalendar.updateEvent", JSON.stringify({ uid, event, externalCalendarId }));
-           
           updateEventCalls.push({
             args: {
               uid,
@@ -1901,7 +1893,6 @@ export async function mockCalendar(
             additionalInfo: {},
             uid: "PROBABLY_UNUSED_UID",
             iCalUID: normalizedCalendarData.update?.iCalUID,
-             
             id: normalizedCalendarData.update?.uid || "FALLBACK_MOCK_ID",
             // Password and URL seems useless for CalendarService, plan to remove them if that's the case
             password: "MOCK_PASSWORD",
@@ -1914,10 +1905,10 @@ export async function mockCalendar(
             conferenceData: isGoogleMeetLocation ? event.conferenceData : undefined,
           });
         },
-         
+
         deleteEvent: async (...rest: any[]) => {
           log.silly("mockCalendar.deleteEvent", JSON.stringify({ rest }));
-           
+
           deleteEventCalls.push({
             args: {
               uid: rest[0],
@@ -2008,16 +1999,15 @@ export function mockVideoApp({
     url: `http://mock-${metadataLookupKey}.example.com`,
   };
   log.silly("mockVideoApp", JSON.stringify({ metadataLookupKey, appStoreLookupKey }));
-   
+
   const createMeetingCalls: any[] = [];
-   
+
   const updateMeetingCalls: any[] = [];
-   
+
   const deleteMeetingCalls: any[] = [];
 
   const mockVideoAdapter = (credential: any) => {
     return {
-       
       createMeeting: (...rest: any[]) => {
         if (creationCrash) {
           throw new Error("MockVideoApiAdapter.createMeeting fake error");
@@ -2032,7 +2022,7 @@ export function mockVideoApp({
           ...videoMeetingData,
         });
       },
-       
+
       updateMeeting: async (...rest: any[]) => {
         if (updationCrash) {
           throw new Error("MockVideoApiAdapter.updateMeeting fake error");
@@ -2054,7 +2044,7 @@ export function mockVideoApp({
           ...videoMeetingData,
         });
       },
-       
+
       deleteMeeting: async (...rest: any[]) => {
         log.silly("MockVideoApiAdapter.deleteMeeting", JSON.stringify(rest));
         deleteMeetingCalls.push({
@@ -2264,7 +2254,7 @@ export function getExpectedCalEventForBookingRequest({
   eventType,
 }: {
   bookingRequest: ReturnType<typeof getMockRequestDataForBooking>;
-   
+
   eventType: any;
 }) {
   return {
@@ -2542,7 +2532,6 @@ export const createDelegationCredential = async (orgId: number, type: "google" |
   throw new Error(`Unsupported type: ${type}`);
 };
 
- 
 export const buildDelegationCredential = ({ serviceAccountKey }: { serviceAccountKey: any }) => {
   return {
     id: -1,
