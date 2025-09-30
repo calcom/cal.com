@@ -1,9 +1,5 @@
 import { WorkflowFormActivationDto } from "@/modules/workflows/inputs/create-form-workflow";
-import {
-  WorkflowActivationDto,
-  WORKFLOW_EVENT_TYPE_ACTIVATION,
-  WORKFLOW_FORM_ACTIVATION,
-} from "@/modules/workflows/inputs/create-workflow.input";
+import { WorkflowActivationDto } from "@/modules/workflows/inputs/create-workflow.input";
 import { ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
 import { IsArray, IsBoolean, IsEnum, IsIn, IsOptional, IsString, ValidateNested } from "class-validator";
@@ -29,6 +25,9 @@ import {
   WORKFLOW_TRIGGER_TYPES,
   WorkflowTriggerType,
 } from "../inputs/workflow-trigger.input";
+
+export const WORKFLOW_TYPE_FORM = "routing-form";
+export const WORKFLOW_TYPE_EVENT_TYPE = "event-type";
 
 export class WorkflowMessageOutputDto {
   @ApiProperty({
@@ -175,12 +174,12 @@ export class WorkflowOutput {
 
   @ApiProperty({
     description: "type of the workflow",
-    example: WORKFLOW_EVENT_TYPE_ACTIVATION,
-    default: WORKFLOW_EVENT_TYPE_ACTIVATION,
+    example: WORKFLOW_TYPE_EVENT_TYPE,
+    default: WORKFLOW_TYPE_EVENT_TYPE,
   })
   @IsString()
-  @IsIn([WORKFLOW_FORM_ACTIVATION, WORKFLOW_EVENT_TYPE_ACTIVATION])
-  type!: typeof WORKFLOW_EVENT_TYPE_ACTIVATION | typeof WORKFLOW_FORM_ACTIVATION;
+  @IsIn([WORKFLOW_TYPE_FORM, WORKFLOW_TYPE_EVENT_TYPE])
+  type!: typeof WORKFLOW_TYPE_EVENT_TYPE | typeof WORKFLOW_TYPE_FORM;
 
   @ApiPropertyOptional({
     description: "ID of the user who owns the workflow (if not team-owned)",

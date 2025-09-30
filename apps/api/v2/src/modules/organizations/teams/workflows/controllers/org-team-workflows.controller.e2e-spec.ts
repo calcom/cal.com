@@ -202,7 +202,6 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
 
     sampleCreateWorkflowDto = {
       name: `E2E Test Workflow ${randomString()}`,
-      type: "event-type",
       activation: {
         isActiveOnAllEventTypes: true,
         activeOnEventTypeIds: [],
@@ -369,6 +368,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
 
           createdWorkflowId = responseBody.data.id;
           createdWorkflow = responseBody.data;
+          expect(responseBody.data.type).toEqual("event-type");
         });
     });
 
@@ -438,7 +438,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(responseBody.data.name).toEqual(sampleCreateWorkflowRoutingFormDto.name);
-          expect(responseBody.data.type).toEqual("form");
+          expect(responseBody.data.type).toEqual("routing-form");
 
           if (responseBody.data.activation instanceof WorkflowFormActivationDto) {
             expect(responseBody.data.activation.isActiveOnAllRoutingForms).toEqual(
@@ -556,6 +556,22 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(responseBody.data.id).toEqual(createdWorkflowId);
+          expect(responseBody.data.type).toEqual("event-type");
+        });
+    });
+
+    it("should get a specific workflow by ID", async () => {
+      expect(createdWorkflowId).toBeDefined();
+      return request(app.getHttpServer())
+        .get(`${basePath}/${createdFormWorkflowId}`)
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+        .expect(200)
+        .then((response) => {
+          const responseBody: GetWorkflowOutput = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(responseBody.data.id).toEqual(createdFormWorkflowId);
+          expect(responseBody.data.type).toEqual("routing-form");
         });
     });
 
@@ -744,6 +760,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
           expect(responseBody.data.steps[1]?.id).toBeUndefined();
           const trigger = partialUpdateDto.trigger as OnFormSubmittedTriggerDto;
           expect(responseBody.data.trigger?.type).toEqual(trigger.type);
+          expect(responseBody.data.type).toEqual("routing-form");
         });
     });
 

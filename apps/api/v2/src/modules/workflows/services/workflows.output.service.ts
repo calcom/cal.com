@@ -1,5 +1,5 @@
 import { WorkflowFormActivationDto } from "@/modules/workflows/inputs/create-form-workflow";
-import { WorkflowActivationDto, TriggerDtoType } from "@/modules/workflows/inputs/create-workflow.input";
+import { WorkflowActivationDto } from "@/modules/workflows/inputs/create-workflow.input";
 import { WorkflowOutput, WorkflowStepOutputDto } from "@/modules/workflows/outputs/workflow.output";
 import { WorkflowType } from "@/modules/workflows/workflows.repository";
 import { Injectable } from "@nestjs/common";
@@ -28,8 +28,36 @@ import {
   ENUM_TO_TIME_UNIT,
   ENUM_TO_WORKFLOW_TRIGGER,
   HOUR,
+  OnAfterCalVideoGuestsNoShowTriggerDto,
+  OnAfterCalVideoHostsNoShowTriggerDto,
+  OnAfterEventTriggerDto,
+  OnBeforeEventTriggerDto,
+  OnCancelTriggerDto,
+  OnCreationTriggerDto,
+  OnFormSubmittedTriggerDto,
+  OnNoShowUpdateTriggerDto,
+  OnPaidTriggerDto,
+  OnPaymentInitiatedTriggerDto,
+  OnRejectedTriggerDto,
+  OnRequestedTriggerDto,
+  OnRescheduleTriggerDto,
   WORKFLOW_TRIGGER_TO_ENUM,
 } from "../inputs/workflow-trigger.input";
+
+export type TriggerDtoType =
+  | OnAfterEventTriggerDto
+  | OnBeforeEventTriggerDto
+  | OnCreationTriggerDto
+  | OnRescheduleTriggerDto
+  | OnCancelTriggerDto
+  | OnAfterCalVideoGuestsNoShowTriggerDto
+  | OnFormSubmittedTriggerDto
+  | OnRejectedTriggerDto
+  | OnRequestedTriggerDto
+  | OnPaymentInitiatedTriggerDto
+  | OnPaidTriggerDto
+  | OnNoShowUpdateTriggerDto
+  | OnAfterCalVideoHostsNoShowTriggerDto;
 
 @Injectable()
 export class WorkflowsOutputService {
@@ -126,7 +154,7 @@ export class WorkflowsOutputService {
       activation: activation,
       trigger: trigger,
       steps: steps.sort((stepA, stepB) => stepA.stepNumber - stepB.stepNumber),
-      type: workflow.trigger === "FORM_SUBMITTED" ? "form" : "event-type",
+      type: workflow.type === "ROUTING_FORM" ? "routing-form" : "event-type",
     };
   }
 }

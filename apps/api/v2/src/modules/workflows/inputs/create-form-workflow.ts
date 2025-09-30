@@ -17,12 +17,6 @@ import {
   OnFormSubmittedTriggerDto,
 } from "./workflow-trigger.input";
 
-export const WORKFLOW_FORM_ACTIVATION = "form";
-export const WORKFLOW_EVENT_TYPE_ACTIVATION = "event-type";
-export const WORKFLOW_ACTIVATION_TYPES = [WORKFLOW_FORM_ACTIVATION, WORKFLOW_EVENT_TYPE_ACTIVATION] as const;
-
-export type WorkflowActivationType = (typeof WORKFLOW_ACTIVATION_TYPES)[number];
-
 export class WorkflowFormActivationDto {
   @ApiProperty({
     description: "Whether the workflow is active for all the routing forms",
