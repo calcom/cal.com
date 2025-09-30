@@ -1015,14 +1015,14 @@ async function main() {
     },
   });
 
-  const pro4UserTeam = await createUserAndEventType({
-    user: {
-      email: "teampro4@example.com",
-      password: "teampro4",
-      username: "teampro4",
-      name: "Team Pro Example 4",
-    },
-  });
+  // const pro4UserTeam = await createUserAndEventType({
+  //   user: {
+  //     email: "teampro4@example.com",
+  //     password: "teampro4",
+  //     username: "teampro4",
+  //     name: "Team Pro Example 4",
+  //   },
+  // });
 
   if (!!(process.env.E2E_TEST_CALCOM_QA_EMAIL && process.env.E2E_TEST_CALCOM_QA_PASSWORD)) {
     await createUserAndEventType({
