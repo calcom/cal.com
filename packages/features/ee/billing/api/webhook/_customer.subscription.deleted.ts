@@ -64,7 +64,7 @@ const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) =
 
 async function handleCalAIPhoneNumberSubscriptionDeleted(
   subscription: Data["object"],
-  phoneNumber: NonNullable<Awaited<ReturnType<typeof PrismaPhoneNumberRepository.findByStripeSubscriptionId>>>
+  phoneNumber: NonNullable<Awaited<ReturnType<PrismaPhoneNumberRepository["findByStripeSubscriptionId"]>>>
 ) {
   if (!subscription.id) {
     throw new HttpCode(400, "Subscription ID not found");
