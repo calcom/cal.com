@@ -123,7 +123,6 @@ export const ensureBookingInputsHaveSystemFields = ({
   const smsNumberSources = [] as NonNullable<(typeof bookingFields)[number]["sources"]>;
   let phoneFieldRequired = false;
   workflows.forEach((workflow) => {
-    console.log("Workflow is: ", workflow)
     workflow.workflow?.steps?.forEach((step) => {
       if (step.action === "SMS_ATTENDEE" || step.action === "WHATSAPP_ATTENDEE") {
         const workflowId = workflow.workflow.id;
