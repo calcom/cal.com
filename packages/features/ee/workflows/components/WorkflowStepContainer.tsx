@@ -377,56 +377,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     (option) => !(isFormTrigger(option.value) && disallowFormTriggers)
   );
 
-  // Watch for changes in reminderBody to update the Editor UI
-  const currentStepReminderBody = step
-    ? useWatch({
-        control: form.control,
-        name: `steps.${step.stepNumber - 1}.reminderBody`,
-      })
-    : null;
-
-  const currentStepEmailSubject = step
-    ? useWatch({
-        control: form.control,
-        name: `steps.${step.stepNumber - 1}.emailSubject`,
-      })
-    : null;
-
-  useEffect(() => {
-    setUpdateTemplate((prev) => !prev);
-  }, [currentStepReminderBody, currentStepEmailSubject]);
-
-  if (step && !currentStepReminderBody) {
-    const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
-
-    // Skip setting reminderBody for CAL_AI actions since they don't need email templates
-    if (!isCalAIAction(action)) {
-      const template = getTemplateBodyForAction({
-        action,
-        locale: i18n.language,
-        t,
-        template: step.template ?? WorkflowTemplates.REMINDER,
-        timeFormat,
-      });
-      form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, template);
-    }
-  }
-
-  if (step && !currentStepEmailSubject) {
-    const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
-    // Skip setting emailSubject for CAL_AI actions since they don't need email subjects
-    if (!isCalAIAction(action)) {
-      const subjectTemplate = emailReminderTemplate({
-        isEditingMode: true,
-        locale: i18n.language,
-        t,
-        action: action,
-        timeFormat,
-      }).emailSubject;
-      form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectTemplate);
-    }
-  }
-
   const { ref: emailSubjectFormRef, ...restEmailSubjectForm } = step
     ? form.register(`steps.${step.stepNumber - 1}.emailSubject`)
     : { ref: null, name: "" };
@@ -1376,9 +1326,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </Label>
               </div>
               <Editor
-                getText={() => {
-                  return currentStepReminderBody || "";
-                }}
+                getText={() => props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || ""}
                 setText={(text: string) => {
                   props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
                   props.form.clearErrors();
