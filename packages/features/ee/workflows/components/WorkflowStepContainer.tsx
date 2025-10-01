@@ -102,8 +102,8 @@ type WorkflowStepProps = {
     isOrganization: boolean;
     isCalAi: boolean;
   }[];
-  updateTemplate?: boolean;
-  setUpdateTemplate?: Dispatch<SetStateAction<boolean>>;
+  updateTemplate: boolean;
+  setUpdateTemplate: Dispatch<SetStateAction<boolean>>;
 };
 
 const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
