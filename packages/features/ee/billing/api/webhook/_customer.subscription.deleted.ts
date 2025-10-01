@@ -1,5 +1,6 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
+import prisma from "@calcom/prisma";
 
 import type { LazyModule, SWHMap } from "./__handler";
 import { HttpCode } from "./__handler";
@@ -12,8 +13,9 @@ const STRIPE_TEAM_PRODUCT_ID = process.env.STRIPE_TEAM_PRODUCT_ID || "";
 
 const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) => {
   const subscription = data.object;
+  const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
 
-  const phoneNumber = await PrismaPhoneNumberRepository.findByStripeSubscriptionId({
+  const phoneNumber = await phoneNumberRepo.findByStripeSubscriptionId({
     stripeSubscriptionId: subscription.id,
   });
 

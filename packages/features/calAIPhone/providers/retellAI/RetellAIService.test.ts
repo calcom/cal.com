@@ -11,30 +11,6 @@ import { RetellAIError } from "./errors";
 import { createMockDatabaseAgent } from "./services/__tests__/test-utils";
 import type { RetellAIRepository } from "./types";
 
-vi.mock("@calcom/lib/server/repository/PrismaPhoneNumberRepository", () => ({
-  PrismaPhoneNumberRepository: {
-    createPhoneNumber: vi.fn(),
-    findByPhoneNumberAndUserId: vi.fn(),
-    deletePhoneNumber: vi.fn(),
-    updateAgents: vi.fn(),
-    updateSubscriptionStatus: vi.fn(),
-    findByIdAndUserId: vi.fn(),
-  },
-}));
-vi.mock("@calcom/lib/server/repository/PrismaAgentRepository", () => ({
-  PrismaAgentRepository: {
-    findByIdWithUserAccess: vi.fn(),
-    findByProviderAgentIdWithUserAccess: vi.fn(),
-    findManyWithUserAccess: vi.fn(),
-    findByIdWithUserAccessAndDetails: vi.fn(),
-    canManageTeamResources: vi.fn(),
-    create: vi.fn(),
-    linkOutboundAgentToWorkflow: vi.fn(),
-    findByIdWithAdminAccess: vi.fn(),
-    delete: vi.fn(),
-    findByIdWithCallAccess: vi.fn(),
-  },
-}));
 
 vi.mock("@calcom/app-store/stripepayment/lib/customer", () => ({
   getStripeCustomerIdFromUserId: vi.fn(),
@@ -996,7 +972,6 @@ describe("RetellAIService", () => {
     it("should throw error if agent not found", async () => {
       const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
       const { checkRateLimitAndThrowError } = await import("@calcom/lib/checkRateLimitAndThrowError");
-      const { PrismaAgentRepository } = await import("@calcom/lib/server/repository/PrismaAgentRepository");
 
       // Mock sufficient credits
       const mockHasAvailableCredits = vi.fn().mockResolvedValue(true);
@@ -1005,7 +980,7 @@ describe("RetellAIService", () => {
       }));
 
       (checkRateLimitAndThrowError as any).mockResolvedValue(undefined);
-      (PrismaAgentRepository.findByIdWithCallAccess as any).mockResolvedValue(null);
+      mockAgentRepository.findByIdWithCallAccess.mockResolvedValue(null);
 
       await expect(
         service.createTestCall({

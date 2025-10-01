@@ -103,7 +103,7 @@ export type CreateAgentRequest = Retell.AgentCreateParams;
 export type UpdateLLMRequest = Retell.LlmUpdateParams;
 export type UpdateAgentRequest = Retell.AgentUpdateParams;
 export type Agent = NonNullable<
-  Awaited<ReturnType<typeof PrismaAgentRepository.findByIdWithUserAccessAndDetails>>
+  Awaited<ReturnType<PrismaAgentRepository["findByIdWithUserAccessAndDetails"]>>
 >;
 
 export type RetellAgentWithDetails = {

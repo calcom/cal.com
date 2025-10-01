@@ -150,7 +150,8 @@ async function handleCallAnalyzed(callData: any) {
       };
     }
 
-    const agent = await PrismaAgentRepository.findByProviderAgentId({
+    const agentRepo = new PrismaAgentRepository(prisma);
+    const agent = await agentRepo.findByProviderAgentId({
       providerAgentId: agent_id,
     });
 
@@ -168,7 +169,8 @@ async function handleCallAnalyzed(callData: any) {
 
     log.info(`Processing web call ${call_id} for agent ${agent_id}, user ${userId}, team ${teamId}`);
   } else {
-    const phoneNumber = await PrismaPhoneNumberRepository.findByPhoneNumber({
+    const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
+    const phoneNumber = await phoneNumberRepo.findByPhoneNumber({
       phoneNumber: from_number,
     });
 
