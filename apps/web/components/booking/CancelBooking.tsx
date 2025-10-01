@@ -266,10 +266,10 @@ export default function CancelBooking(props: Props) {
 
                   telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
 
-                  const response = await fetch("/api/csrf", { cache: "no-store" });
+                  const response = await fetch("/api/csrf?sameSite=none", { cache: "no-store" });
                   const { csrfToken } = await response.json();
 
-                  const res = await fetch("/api/cancel?sameSite=none", {
+                  const res = await fetch("/api/cancel", {
                     body: JSON.stringify({
                       uid: booking?.uid,
                       cancellationReason: cancellationReason,

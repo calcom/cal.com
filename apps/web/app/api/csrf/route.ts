@@ -7,16 +7,16 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const sameSiteParam = url.searchParams.get("sameSite");
 
+  const useSecureCookies = WEBAPP_URL.startsWith("https://");
+
   // Validate the param, default to "lax"
   let sameSite: "lax" | "strict" | "none" = "lax";
-  if (sameSiteParam === "strict" || sameSiteParam === "none") {
+  if (sameSiteParam === "strict" || (sameSiteParam === "none" && useSecureCookies)) {
     sameSite = sameSiteParam;
   }
 
   const token = randomBytes(32).toString("hex");
   const res = NextResponse.json({ csrfToken: token });
-
-  const useSecureCookies = WEBAPP_URL.startsWith("https://");
 
   res.cookies.set("calcom.csrf_token", token, {
     httpOnly: true,
