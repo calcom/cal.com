@@ -15,6 +15,12 @@ import { ZAdminGetAllInputSchema } from "./adminGetAll.schema";
 import { ZAdminGetBilling } from "./adminGetBilling.schema";
 import { ZAdminUpdate } from "./adminUpdate.schema";
 import { ZAdminUpdateMetadataSchema } from "./adminUpdateMetadata.schema";
+import {
+  ZAdminApplyDiscount,
+  ZAdminCancelSubscription,
+  ZAdminCreateDiscount,
+  ZAdminUpdateBilling,
+} from "./adminUpdateBilling.schema";
 import { ZAdminVerifyInput } from "./adminVerify.schema";
 import { ZBulkUsersDelete } from "./bulkDeleteUsers.schema.";
 import { ZCreateInputSchema } from "./create.schema";
@@ -148,6 +154,22 @@ export const viewerOrganizationsRouter = router({
   }),
   adminGetBilling: authedAdminProcedure.input(ZAdminGetBilling).query(async (opts) => {
     const { default: handler } = await import("./adminGetBilling.handler");
+    return handler(opts);
+  }),
+  adminUpdateBilling: authedAdminProcedure.input(ZAdminUpdateBilling).mutation(async (opts) => {
+    const { default: handler } = await import("./adminUpdateBilling.handler");
+    return handler(opts);
+  }),
+  adminApplyDiscount: authedAdminProcedure.input(ZAdminApplyDiscount).mutation(async (opts) => {
+    const { default: handler } = await import("./adminApplyDiscount.handler");
+    return handler(opts);
+  }),
+  adminCancelSubscription: authedAdminProcedure.input(ZAdminCancelSubscription).mutation(async (opts) => {
+    const { default: handler } = await import("./adminCancelSubscription.handler");
+    return handler(opts);
+  }),
+  adminCreateDiscount: authedAdminProcedure.input(ZAdminCreateDiscount).mutation(async (opts) => {
+    const { default: handler } = await import("./adminCreateDiscount.handler");
     return handler(opts);
   }),
   adminUpdate: authedAdminProcedure.input(ZAdminUpdate).mutation(async (opts) => {

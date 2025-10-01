@@ -32,15 +32,15 @@ generator zod {
   /// createRelationValuesTypes = true
 }
 
-generator kysely {
-  provider = "prisma-kysely"
-  output   = "../kysely"
-  fileName = "types.ts"
-}
+// generator kysely {
+//   provider = "prisma-kysely"
+//   output   = "../kysely"
+//   fileName = "types.ts"
+// }
 
-generator enums {
-  provider = "ts-node --transpile-only ./enum-generator.ts"
-}
+// generator enums {
+//   provider = "ts-node --transpile-only ./enum-generator.ts"
+// }
 
 enum SchedulingType {
   ROUND_ROBIN @map("roundRobin")

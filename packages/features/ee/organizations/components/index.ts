@@ -5,3 +5,4 @@ export { AdminOnboardingHandover } from "./AdminOnboardingHandover";
 export { OrgBillingInfo } from "./OrgBillingInfo";
 export { OrgPaymentHistory } from "./OrgPaymentHistory";
 export { OrgMetadata } from "./OrgMetadata";
+export { BillingManagementSheet } from "./BillingManagementSheet";

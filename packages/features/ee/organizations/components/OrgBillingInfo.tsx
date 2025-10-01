@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { trpc } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
@@ -7,7 +9,10 @@ import { PanelCard } from "@calcom/ui/components/card";
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
+import { BillingManagementSheet } from "./BillingManagementSheet";
+
 export const OrgBillingInfo = ({ orgId }: { orgId: number }) => {
+  const [isManageOpen, setIsManageOpen] = useState(false);
   const { data: billingData, isLoading } = trpc.viewer.organizations.adminGetBilling.useQuery({
     id: orgId,
   });
@@ -40,22 +45,28 @@ export const OrgBillingInfo = ({ orgId }: { orgId: number }) => {
     : null;
 
   return (
-    <PanelCard title="Stripe & Billing">
-      <div className="space-y-4 p-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-emphasis text-sm font-medium">Stripe Customer</div>
-            <div className="text-subtle font-mono text-xs">{billingData.stripeCustomerId}</div>
+    <>
+      <PanelCard title="Stripe & Billing">
+        <div className="space-y-4 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-emphasis text-sm font-medium">Stripe Customer</div>
+              <div className="text-subtle font-mono text-xs">{billingData.stripeCustomerId}</div>
+            </div>
+            <div className="flex gap-2">
+              <Button color="secondary" onClick={() => setIsManageOpen(true)}>
+                Manage Billing
+              </Button>
+              <Button
+                color="secondary"
+                StartIcon="external-link"
+                href={stripeCustomerUrl}
+                target="_blank"
+                rel="noopener noreferrer">
+                View in Stripe
+              </Button>
+            </div>
           </div>
-          <Button
-            color="secondary"
-            StartIcon="external-link"
-            href={stripeCustomerUrl}
-            target="_blank"
-            rel="noopener noreferrer">
-            View in Stripe
-          </Button>
-        </div>
 
         {billingData.stripeSubscriptionId && (
           <div className="border-subtle flex items-center justify-between border-t pt-4">
@@ -141,5 +152,19 @@ export const OrgBillingInfo = ({ orgId }: { orgId: number }) => {
         )}
       </div>
     </PanelCard>
+
+      <BillingManagementSheet
+        isOpen={isManageOpen}
+        onClose={() => setIsManageOpen(false)}
+        orgId={orgId}
+        billingData={{
+          stripeSubscriptionId: billingData.stripeSubscriptionId,
+          seats: billingData.seats,
+          pricePerSeat: billingData.pricePerSeat,
+          billingPeriod: billingData.billingPeriod,
+          subscriptionDetails: billingData.subscriptionDetails,
+        }}
+      />
+    </>
   );
 };
