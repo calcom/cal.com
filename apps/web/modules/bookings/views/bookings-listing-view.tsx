@@ -395,6 +395,11 @@ function BookingsContent({ status, permissions }: BookingsProps) {
 
   const getFacetedUniqueValues = useFacetedUniqueValues();
 
+  // Log errors in development for debugging
+  if (process.env.NODE_ENV !== "production" && query.isError) {
+    console.error("Bookings query error:", query.error);
+  }
+
   const table = useReactTable<RowData>({
     data: finalData,
     columns,
@@ -427,7 +432,7 @@ function BookingsContent({ status, permissions }: BookingsProps) {
       <main className="w-full">
         <div className="flex w-full flex-col">
           {query.isError && (
-            <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
+            <Alert severity="error" title={t("something_went_wrong")} message={t("change_filter_common")} />
           )}
           {!!bookingsToday.length && status === "upcoming" && !query.isError && (
             <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
