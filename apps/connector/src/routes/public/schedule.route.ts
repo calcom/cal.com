@@ -37,15 +37,12 @@ export async function scheduleRoutes(fastify: FastifyInstance): Promise<void> {
 
   const scheduleService = new ScheduleService(prisma);
   // Route with specific auth methods allowed
-  fastify.get('/my-schedules', { 
+  fastify.get('/', { 
     preHandler: AuthGuards.authenticateFlexible(),
     schema: {
       description: 'Get current user schedules',
-      tags: ['API Auth - Users'],
-      security: [
-        { bearerAuth: [] },
-        { apiKey: [] },
-      ],
+      tags: ['Schedule'],
+      security: [{ bearerAuth: [] }],
       response: {
         200: zodToJsonSchema(responseSchemas.success(z.array(scheduleSchema), 'Current user schedules')),
         401: zodToJsonSchema(responseSchemas.unauthorized()),
@@ -63,11 +60,8 @@ export async function scheduleRoutes(fastify: FastifyInstance): Promise<void> {
     preHandler: AuthGuards.authenticateFlexible(),
     schema: {
       description: 'Create a schedule',
-      tags: ['API Auth - Users'],
-      security: [
-        { bearerAuth: [] },
-        { apiKey: [] },
-      ],
+      tags: ['Schedule'],
+      security: [{ bearerAuth: [] }],
       body: zodToJsonSchema(scheduleBodySchema),
       response: {
         200: zodToJsonSchema(responseSchemas.success(scheduleSchema, 'Schedule created')),
@@ -89,11 +83,8 @@ export async function scheduleRoutes(fastify: FastifyInstance): Promise<void> {
       preHandler: AuthGuards.authenticateFlexible(),
       schema: {
         description: 'Create a schedule for the current user',
-        tags: ['API Auth - Users'],
-        security: [
-          { bearerAuth: [] },
-          { apiKey: [] },
-        ],
+        tags: ['Schedule'],
+        security: [{ bearerAuth: [] }],
         response: { 200: zodToJsonSchema(responseSchemas.successNoData('Schedule deleted')),
           401: zodToJsonSchema(responseSchemas.unauthorized()),
         },
@@ -119,11 +110,8 @@ export async function scheduleRoutes(fastify: FastifyInstance): Promise<void> {
       preHandler: AuthGuards.authenticateFlexible(),
       schema: {
         description: 'Update a schedule for the current user',
-        tags: ['API Auth - Users'],
-        security: [
-          { bearerAuth: [] },
-          { apiKey: [] },
-        ],
+        tags: ['Schedule'],
+        security: [{ bearerAuth: [] }],
         body: zodToJsonSchema(scheduleBodySchema),
         response: {
           200: zodToJsonSchema(responseSchemas.success(scheduleSchema, 'Schedule updated')),
