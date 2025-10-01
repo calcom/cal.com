@@ -133,7 +133,7 @@ export const OrgBillingInfo = ({ orgId }: { orgId: number }) => {
             </div>
             {billingData.subscriptionDetails.cancelAtPeriodEnd && (
               <div className="mt-2 flex items-center gap-2">
-                <Icon name="alert" className="h-4 w-4 text-orange-500" />
+                <Icon name="info" className="h-4 w-4 text-orange-500" />
                 <span className="text-sm text-orange-600">Subscription will cancel at period end</span>
               </div>
             )}
