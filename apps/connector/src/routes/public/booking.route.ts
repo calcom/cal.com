@@ -29,15 +29,12 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
   const bookingService = new BookingService(prisma);
   const userService = new UserService(prisma)
   // Route with specific auth methods allowed
-  fastify.get('/all-bookings', { 
+  fastify.get('/', { 
     preHandler: AuthGuards.authenticateFlexible(),
     schema: {
       description: 'Get current user availability',
-      tags: ['API Auth - Users'],
-      security: [
-        { bearerAuth: [] },
-        { apiKey: [] },
-      ],
+      tags: ['Booking'],
+      security: [{ bearerAuth: [] }],
       querystring: zodToJsonSchema(bookingsQuerySchema),
       response: {
         200: zodToJsonSchema(responseSchemas.success(z.any(), 'Current user availability')),
@@ -54,11 +51,11 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
   })
 
   // Public route to create a new booking
-  fastify.post('/book', {
+  fastify.post('/', {
     preHandler: AuthGuards.authenticateFlexible(),
     schema: {
       description: 'Create a new booking',
-      tags: ['Public - Bookings'],
+      tags: ['Booking'],
       body: zodToJsonSchema(createBookingBodySchema),
       response: {
         200: zodToJsonSchema(responseSchemas.success(bookingResponseSchema, 'Booking created')),
@@ -112,11 +109,8 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
     preHandler: AuthGuards.authenticateFlexible(),
     schema: {
       description: 'Get booking by id',
-      tags: ['Public - Bookings'],
-      security: [
-        { bearerAuth: [] },
-        { apiKey: [] },
-      ],
+      tags: ['Booking'],
+      security: [{ bearerAuth: [] }],
       params: zodToJsonSchema(z.object({ id: z.union([z.string(), z.number()]) })),
       querystring: zodToJsonSchema(z.object({ expand: z.union([z.string(), z.array(z.string())]).optional() })),
       response: {
@@ -155,11 +149,8 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
     preHandler: AuthGuards.authenticateFlexible(),
     schema: {
       description: 'Delete booking by id',
-      tags: ['Public - Bookings'],
-      security: [
-        { bearerAuth: [] },
-        { apiKey: [] },
-      ],
+      tags: ['Booking'],
+      security: [{ bearerAuth: [] }],
       params: zodToJsonSchema(z.object({ id: z.union([z.string(), z.number()]) })),
       response: {
         200: zodToJsonSchema(responseSchemas.success(z.object({ id: z.number().int() }), 'Booking deleted')),
@@ -195,11 +186,8 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
     preHandler: AuthGuards.authenticateFlexible(),
     schema: {
       description: 'Cancel booking by id',
-      tags: ['Public - Bookings'],
-      security: [
-        { bearerAuth: [] },
-        { apiKey: [] },
-      ],
+      tags: ['Booking'],
+      security: [{ bearerAuth: [] }],
       params: zodToJsonSchema(z.object({ id: z.union([z.string(), z.number()]) })),
       body: zodToJsonSchema(cancelBookingBodySchema),
       response: {
@@ -263,11 +251,8 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
     preHandler: AuthGuards.authenticateFlexible(),
     schema: {
       description: 'Change booking confirmation status (accept or decline)',
-      tags: ['Public - Bookings'],
-      security: [
-        { bearerAuth: [] },
-        { apiKey: [] },
-      ],
+      tags: ['Booking'],
+      security: [{ bearerAuth: [] }],
       params: zodToJsonSchema(z.object({ id: z.union([z.string(), z.number()]) })),
       body: zodToJsonSchema(bookingConfirmPatchBodySchema.omit({ bookingId: true })),
       response: {
@@ -336,11 +321,8 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
     preHandler: AuthGuards.authenticateFlexible(),
     schema: {
       description: 'Reassign booking to automatically via round robin',
-      tags: ['Public - Bookings'],
-      security: [
-        { bearerAuth: [] },
-        { apiKey: [] },
-      ],
+      tags: ['Booking'],
+      security: [{ bearerAuth: [] }],
       params: zodToJsonSchema(z.object({ id: z.union([z.string(), z.number()]) })),
       response: {
         200: zodToJsonSchema(responseSchemas.success(z.object({
@@ -416,11 +398,8 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
     preHandler: AuthGuards.authenticateFlexible(),
     schema: {
       description: 'Reassign booking to a certain user',
-      tags: ['Public - Bookings'],
-      security: [
-        { bearerAuth: [] },
-        { apiKey: [] },
-      ],
+      tags: ['Booking'],
+      security: [{ bearerAuth: [] }],
       params: zodToJsonSchema(z.object({ id: z.union([z.string(), z.number()]) })),
       body: zodToJsonSchema(z.object({
         userId: z.number().int().positive(),
@@ -501,11 +480,8 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
     preHandler: AuthGuards.authenticateFlexible(),
     schema: {
       description: 'Reschedule booking by id',
-      tags: ['Public - Bookings'],
-      security: [
-        { bearerAuth: [] },
-        { apiKey: [] },
-      ],
+      tags: ['Booking'],
+      security: [{ bearerAuth: [] }],
       params: zodToJsonSchema(z.object({ id: z.union([z.string(), z.number()]) })),
       body: zodToJsonSchema(z.object({
         start: z.string().min(1),
