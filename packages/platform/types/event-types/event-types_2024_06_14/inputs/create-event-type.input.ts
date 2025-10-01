@@ -17,9 +17,7 @@ import {
   ValidateNested,
   ArrayNotEmpty,
   ArrayUnique,
-  Validate,
 } from "class-validator";
-import { HostsOrAssignAllValidator } from "./hosts-validator.input";
 
 
 import { SchedulingType } from "@calcom/platform-enums";
@@ -560,19 +558,17 @@ export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInpu
   @Type(() => Host)
   @IsArray()
   @IsOptional()
-  @Validate(HostsOrAssignAllValidator)
   @DocsPropertyOptional({
     type: [Host],
     description:
-      "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users.",
+      "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users. Note: Provide either hosts or assignAllTeamMembers but not both",
   })
   hosts?: Host[];
 
   @IsBoolean()
   @IsOptional()
-  @Validate(HostsOrAssignAllValidator)
   @DocsPropertyOptional({
-    description: "If true, all current and future team members will be assigned to this event type",
+    description: "If true, all current and future team members will be assigned to this event type. Note: Provide either hosts or assignAllTeamMembers but not both",
   })
   assignAllTeamMembers?: boolean;
 
