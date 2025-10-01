@@ -2,7 +2,6 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
 
-import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { TeamEventTypeForm } from "@calcom/features/ee/teams/components/TeamEventTypeForm";
@@ -26,6 +25,17 @@ export interface EventTypeParent {
   name?: string | null;
   slug?: string | null;
   image?: string | null;
+}
+
+export interface ProfileOption {
+  teamId: number | null | undefined;
+  label: string | null;
+  image: string;
+  membershipRole: MembershipRole | null | undefined;
+  slug: string | null;
+  permissions: {
+    canCreateEventType: boolean;
+  };
 }
 
 const locationFormSchema = z.array(
@@ -55,16 +65,7 @@ const querySchema = z.object({
     .optional(),
 });
 
-export default function CreateEventTypeDialog({
-  profileOptions,
-}: {
-  profileOptions: {
-    teamId: number | null | undefined;
-    label: string | null;
-    image: string | undefined;
-    membershipRole: MembershipRole | null | undefined;
-  }[];
-}) {
+export function CreateEventTypeDialog({ profileOptions }: { profileOptions: ProfileOption[] }) {
   const { t } = useLocale();
   const router = useRouter();
   const orgBranding = useOrgBranding();
@@ -75,7 +76,7 @@ export default function CreateEventTypeDialog({
 
   const teamProfile = profileOptions.find((profile) => profile.teamId === teamId);
 
-  const isTeamAdminOrOwner = teamId !== undefined && checkAdminOrOwner(teamProfile?.membershipRole);
+  const permissions = teamProfile?.permissions ?? { canCreateEventType: false };
 
   const onSuccessMutation = (eventType: EventType) => {
     router.replace(`/event-types/${eventType.id}${teamId ? "?tabName=team" : ""}`);
@@ -124,7 +125,7 @@ export default function CreateEventTypeDialog({
           <TeamEventTypeForm
             teamSlug={team?.slug}
             teamId={teamId}
-            isTeamAdminOrOwner={isTeamAdminOrOwner}
+            permissions={permissions}
             urlPrefix={urlPrefix}
             isPending={createMutation.isPending}
             form={form}

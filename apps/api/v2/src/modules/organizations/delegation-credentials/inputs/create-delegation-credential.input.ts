@@ -4,9 +4,11 @@ import {
   MicrosoftServiceAccountKeyInput,
 } from "@/modules/organizations/delegation-credentials/inputs/service-account-key.input";
 import { ApiProperty, getSchemaPath } from "@nestjs/swagger";
+import { ApiExtraModels } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
-import { IsString, IsNotEmpty, ValidateNested, Validate } from "class-validator";
+import { IsString, IsNotEmpty, Validate } from "class-validator";
 
+@ApiExtraModels(GoogleServiceAccountKeyInput, MicrosoftServiceAccountKeyInput)
 export class CreateDelegationCredentialInput {
   @IsString()
   @IsNotEmpty()

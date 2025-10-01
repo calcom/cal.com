@@ -213,7 +213,8 @@
             "platform/atoms/event-type",
             "platform/atoms/calendar-settings",
             "platform/atoms/payment-form",
-            "platform/atoms/conferencing-apps"
+            "platform/atoms/conferencing-apps",
+            "platform/atoms/calendar-view"
           ]
         },
         {

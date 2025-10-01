@@ -385,29 +385,6 @@ export async function getTeamWithoutMembers(args: {
   };
 }
 
-// also returns team
-export async function isTeamAdmin(userId: number, teamId: number) {
-  const team = await prisma.membership.findFirst({
-    where: {
-      userId,
-      teamId,
-      accepted: true,
-      OR: [{ role: "ADMIN" }, { role: "OWNER" }],
-    },
-    include: {
-      team: {
-        select: {
-          metadata: true,
-          parentId: true,
-          isOrganization: true,
-        },
-      },
-    },
-  });
-  if (!team) return false;
-  return team;
-}
-
 export async function isTeamOwner(userId: number, teamId: number) {
   return !!(await prisma.membership.findFirst({
     where: {

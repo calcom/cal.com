@@ -26,12 +26,12 @@ export default function Header({
     <div>
       <header
         className={classNames(
-          "border-subtle mx-auto block justify-between sm:flex",
+          "border-subtle mx-auto flex justify-between",
           borderInShellHeader && "rounded-t-lg border px-4 py-6 sm:px-6",
           borderInShellHeader === undefined && "mb-8 border-b pb-8"
         )}>
-        <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="flex w-full items-center">
+        <div className="flex w-full items-center justify-between gap-2">
+          <div className="flex items-center">
             {backButton && (
               <a href="javascript:history.back()">
                 <Icon name="arrow-left" className="mr-7" />
@@ -52,7 +52,7 @@ export default function Header({
               )}
             </div>
           </div>
-          <div className={classNames("flex-shrink-0 sm:ms-auto", ctaClassName)}>{CTA}</div>
+          <div className={classNames("flex-shrink-0", ctaClassName)}>{CTA}</div>
         </div>
       </header>
       <Suspense fallback={<Icon name="loader" className="mx-auto my-5 animate-spin" />}>{children}</Suspense>

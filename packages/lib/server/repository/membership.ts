@@ -1,7 +1,6 @@
-
 import { availabilityUserSelect, prisma, type PrismaTransaction } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { Prisma, Membership, PrismaClient } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import logger from "../../logger";
@@ -310,6 +309,41 @@ export class MembershipRepository {
         userId_teamId: {
           userId,
           teamId,
+        },
+      },
+    });
+  }
+
+  async findAllMembershipsByUserIdForBilling({ userId }: { userId: number }) {
+    return this.prismaClient.membership.findMany({
+      where: { userId },
+      select: {
+        accepted: true,
+        user: {
+          select: {
+            isPlatformManaged: true,
+          },
+        },
+        team: {
+          select: {
+            slug: true,
+            isOrganization: true,
+            isPlatform: true,
+            metadata: true,
+            platformBilling: {
+              select: {
+                plan: true,
+              },
+            },
+            parent: {
+              select: {
+                isOrganization: true,
+                slug: true,
+                metadata: true,
+                isPlatform: true,
+              },
+            },
+          },
         },
       },
     });

@@ -54,15 +54,15 @@ export class SalesforceGraphQLClient {
     if (query?.error) {
       const errors = query.error;
       if (errors.graphQLErrors.length) {
-        log.error("GraphQL error", safeStringify({ errors }));
+        log.error("GraphQL error", errors.graphQLErrors);
       }
       if (errors.networkError) {
-        log.error("Network error", safeStringify({ errors }));
+        log.error("Network error", errors.networkError);
       }
     }
 
     if (!queryData) {
-      log.error("No query data found", safeStringify({ error: query?.error }));
+      log.error("No query data found", query?.error);
       return [];
     }
 

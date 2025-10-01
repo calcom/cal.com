@@ -102,6 +102,7 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
       CustomAction.ChangeMemberRole,
       CustomAction.Remove,
       CustomAction.ListMembers,
+      CustomAction.ListMembersPrivate,
       CustomAction.Impersonate,
     ],
     fallbackRoles: {
@@ -120,12 +121,17 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
       [CustomAction.Impersonate]: {
         roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
       },
+      [CustomAction.ListMembersPrivate]: {
+        roles: fallbackRolesCanListMembers,
+      },
     },
   });
 
   // Map specific permissions to member actions
   const memberPermissions = {
-    canListMembers: permissions[CustomAction.ListMembers],
+    canListMembers: team.isPrivate
+      ? permissions[CustomAction.ListMembersPrivate]
+      : permissions[CustomAction.ListMembers],
     canInvite: permissions[CustomAction.Invite],
     canChangeMemberRole: permissions[CustomAction.ChangeMemberRole],
     canRemove: permissions[CustomAction.Remove],

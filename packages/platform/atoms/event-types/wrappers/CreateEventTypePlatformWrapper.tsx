@@ -77,12 +77,16 @@ export const CreateEventTypePlatformWrapper = ({
   const team = teams?.find((t) => t.id === teamId);
   const { t } = useLocale();
 
+  const permissions = {
+    canCreateEventType: team?.role === "ADMIN" || team?.role === "OWNER",
+  };
+
   return teamId && team ? (
     <AtomsWrapper customClassName={customClassNames?.atomsWrapper}>
       <TeamEventTypeForm
         teamSlug={team?.slug}
         teamId={teamId}
-        isTeamAdminOrOwner={team.role === "ADMIN" || team.role === "OWNER"}
+        permissions={permissions}
         urlPrefix=""
         isPending={createTeamEventTypeQuery.isPending}
         form={form}

@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
+import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsEnum, IsISO8601, IsOptional, IsString, ValidateNested } from "class-validator";
 
@@ -297,6 +297,12 @@ export class DateTimeWithZone {
   timeZone!: string;
 }
 
+@ApiExtraModels(
+  CalendarEventVideoLocation,
+  CalendarEventPhoneLocation,
+  CalendarEventSipLocation,
+  CalendarEventMoreLocation
+)
 export class UnifiedCalendarEventOutput {
   @ValidateNested()
   @Type(() => DateTimeWithZone)

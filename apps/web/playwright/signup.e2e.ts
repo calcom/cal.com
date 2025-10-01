@@ -209,7 +209,7 @@ test.describe("Email Signup Flow Test", async () => {
       data: {
         identifier: userToCreate.email,
         token,
-        expires: new Date(new Date().setHours(168)), // +1 week
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // +1 week
         team: {
           create: {
             name: "Rick's Team",

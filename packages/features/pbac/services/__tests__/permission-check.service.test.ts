@@ -327,10 +327,18 @@ describe("PermissionCheckService", () => {
       const expectedTeamIds = [1, 2, 3];
       mockRepository.getTeamIdsWithPermission.mockResolvedValueOnce(expectedTeamIds);
 
-      const result = await service.getTeamIdsWithPermission(1, "eventType.read");
+      const result = await service.getTeamIdsWithPermission({
+        userId: 1,
+        permission: "eventType.read",
+        fallbackRoles: [],
+      });
 
       expect(result).toEqual(expectedTeamIds);
-      expect(mockRepository.getTeamIdsWithPermission).toHaveBeenCalledWith(1, "eventType.read");
+      expect(mockRepository.getTeamIdsWithPermission).toHaveBeenCalledWith({
+        userId: 1,
+        permission: "eventType.read",
+        fallbackRoles: [],
+      });
     });
 
     it("should return empty array when permission validation fails", async () => {
@@ -339,7 +347,11 @@ describe("PermissionCheckService", () => {
         error: "Invalid permissions",
       });
 
-      const result = await service.getTeamIdsWithPermission(1, "eventType.read");
+      const result = await service.getTeamIdsWithPermission({
+        userId: 1,
+        permission: "eventType.read",
+        fallbackRoles: [],
+      });
 
       expect(result).toEqual([]);
       expect(mockRepository.getTeamIdsWithPermission).not.toHaveBeenCalled();
@@ -348,10 +360,18 @@ describe("PermissionCheckService", () => {
     it("should return empty array and log error when repository throws", async () => {
       mockRepository.getTeamIdsWithPermission.mockRejectedValueOnce(new Error("Database error"));
 
-      const result = await service.getTeamIdsWithPermission(1, "eventType.read");
+      const result = await service.getTeamIdsWithPermission({
+        userId: 1,
+        permission: "eventType.read",
+        fallbackRoles: [],
+      });
 
       expect(result).toEqual([]);
-      expect(mockRepository.getTeamIdsWithPermission).toHaveBeenCalledWith(1, "eventType.read");
+      expect(mockRepository.getTeamIdsWithPermission).toHaveBeenCalledWith({
+        userId: 1,
+        permission: "eventType.read",
+        fallbackRoles: [],
+      });
     });
   });
 
@@ -361,10 +381,14 @@ describe("PermissionCheckService", () => {
       const permissions: PermissionString[] = ["eventType.read", "eventType.create"];
       mockRepository.getTeamIdsWithPermissions.mockResolvedValueOnce(expectedTeamIds);
 
-      const result = await service.getTeamIdsWithPermissions(1, permissions);
+      const result = await service.getTeamIdsWithPermissions({ userId: 1, permissions, fallbackRoles: [] });
 
       expect(result).toEqual(expectedTeamIds);
-      expect(mockRepository.getTeamIdsWithPermissions).toHaveBeenCalledWith(1, permissions);
+      expect(mockRepository.getTeamIdsWithPermissions).toHaveBeenCalledWith({
+        userId: 1,
+        permissions,
+        fallbackRoles: [],
+      });
     });
 
     it("should return empty array when permissions validation fails", async () => {
@@ -373,7 +397,11 @@ describe("PermissionCheckService", () => {
         error: "Invalid permissions",
       });
 
-      const result = await service.getTeamIdsWithPermissions(1, ["eventType.read"] as PermissionString[]);
+      const result = await service.getTeamIdsWithPermissions({
+        userId: 1,
+        permissions: ["eventType.read"] as PermissionString[],
+        fallbackRoles: [],
+      });
 
       expect(result).toEqual([]);
       expect(mockRepository.getTeamIdsWithPermissions).not.toHaveBeenCalled();
@@ -382,20 +410,32 @@ describe("PermissionCheckService", () => {
     it("should return empty array when permissions array is empty", async () => {
       mockRepository.getTeamIdsWithPermissions.mockResolvedValueOnce([]);
 
-      const result = await service.getTeamIdsWithPermissions(1, []);
+      const result = await service.getTeamIdsWithPermissions({
+        userId: 1,
+        permissions: [],
+        fallbackRoles: [],
+      });
 
       expect(result).toEqual([]);
-      expect(mockRepository.getTeamIdsWithPermissions).toHaveBeenCalledWith(1, []);
+      expect(mockRepository.getTeamIdsWithPermissions).toHaveBeenCalledWith({
+        userId: 1,
+        permissions: [],
+        fallbackRoles: [],
+      });
     });
 
     it("should return empty array and log error when repository throws", async () => {
       const permissions: PermissionString[] = ["eventType.read", "eventType.create"];
       mockRepository.getTeamIdsWithPermissions.mockRejectedValueOnce(new Error("Database error"));
 
-      const result = await service.getTeamIdsWithPermissions(1, permissions);
+      const result = await service.getTeamIdsWithPermissions({ userId: 1, permissions, fallbackRoles: [] });
 
       expect(result).toEqual([]);
-      expect(mockRepository.getTeamIdsWithPermissions).toHaveBeenCalledWith(1, permissions);
+      expect(mockRepository.getTeamIdsWithPermissions).toHaveBeenCalledWith({
+        userId: 1,
+        permissions,
+        fallbackRoles: [],
+      });
     });
   });
 

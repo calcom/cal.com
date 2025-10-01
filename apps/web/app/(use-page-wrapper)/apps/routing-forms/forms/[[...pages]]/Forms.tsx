@@ -18,6 +18,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { ArrowButton } from "@calcom/ui/components/arrow-button";
 import { Badge } from "@calcom/ui/components/badge";
@@ -45,6 +46,10 @@ function NewFormButton({ setNewFormDialogState }: { setNewFormDialogState: SetNe
       data-testid="new-routing-form"
       createFunction={(teamId) => {
         setNewFormDialogState({ action: "new", target: teamId ? String(teamId) : "" });
+      }}
+      withPermission={{
+        permission: "routingForm.create",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
       }}
     />
   );

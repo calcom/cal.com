@@ -8,8 +8,8 @@ import * as path from "path";
 // "nest-cli" with the "nest-cli.json" file, and for nest cli to be loaded with plugins correctly the "@nestjs/swagger"
 // should reside in the project's node_modules already before the "nest start" command is executed.
 async function copyNestSwagger() {
-  const monorepoRoot = path.resolve(__dirname, "../../../../");
-  const nodeModulesNestjs = path.resolve(__dirname, "../node_modules/@nestjs");
+  const monorepoRoot = path.resolve(__dirname, "../../../../../");
+  const nodeModulesNestjs = path.resolve(__dirname, "../../node_modules/@nestjs");
   const swaggerModulePath = "@nestjs/swagger";
 
   const sourceDir = path.join(monorepoRoot, "node_modules", swaggerModulePath);

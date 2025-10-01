@@ -44,6 +44,18 @@ const getCachedResourcePermissions = unstable_cache(
   { revalidate: 3600 }
 );
 
+const getCachedTeamPrivacy = unstable_cache(
+  async (teamId: number) => {
+    const team = await prisma.team.findUnique({
+      where: { id: teamId },
+      select: { isPrivate: true },
+    });
+    return team?.isPrivate ?? false;
+  },
+  ["team-privacy"],
+  { revalidate: 3600 }
+);
+
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("roles_and_permissions"),
@@ -69,9 +81,10 @@ const Page = async ({ searchParams }: { searchParams: Record<string, string | st
 
   roleSearchParamsCache.parse(searchParams);
 
-  const [roles, rolePermissions] = await Promise.all([
+  const [roles, rolePermissions, isPrivate] = await Promise.all([
     getCachedTeamRoles(session.user.org.id),
     getCachedResourcePermissions(session.user.id, session.user.org.id, Resource.Role),
+    getCachedTeamPrivacy(session.user.org.id),
   ]);
 
   // NOTE: this approach of fetching permssions per resource does not account for fall back roles.
@@ -108,6 +121,7 @@ const Page = async ({ searchParams }: { searchParams: Record<string, string | st
         }}
         initialSelectedRole={selectedRole}
         initialSheetOpen={isSheetOpen}
+        isPrivate={isPrivate}
       />
     </SettingsHeader>
   );
