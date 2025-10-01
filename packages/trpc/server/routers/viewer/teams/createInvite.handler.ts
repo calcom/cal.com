@@ -1,7 +1,5 @@
-import { randomBytes } from "crypto";
-
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { TeamService } from "@calcom/lib/server/service/teamService";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -38,38 +36,8 @@ export const createInviteHandler = async ({ ctx, input }: CreateInviteOptions) =
 
   if (!hasInvitePermission) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  const isOrganizationOrATeamInOrganization = !!(team.parentId || team.isOrganization);
-
-  if (input.token) {
-    const existingToken = await prisma.verificationToken.findFirst({
-      where: { token: input.token, identifier: `invite-link-for-teamId-${teamId}`, teamId },
-    });
-    if (!existingToken) throw new TRPCError({ code: "NOT_FOUND" });
-    return {
-      token: existingToken.token,
-      inviteLink: await getInviteLink(existingToken.token, isOrganizationOrATeamInOrganization),
-    };
-  }
-
-  const token = randomBytes(32).toString("hex");
-  await prisma.verificationToken.create({
-    data: {
-      identifier: `invite-link-for-teamId-${teamId}`,
-      token,
-      expires: new Date(new Date().setHours(168)), // +1 week,
-      expiresInDays: 7,
-      teamId,
-    },
-  });
-
-  return { token, inviteLink: await getInviteLink(token, isOrganizationOrATeamInOrganization) };
+  const result = await TeamService.createInvite(teamId, { token: input.token });
+  return result;
 };
-
-async function getInviteLink(token = "", isOrgContext = false) {
-  const teamInviteLink = `${WEBAPP_URL}/teams?token=${token}`;
-  const orgInviteLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
-  if (isOrgContext) return orgInviteLink;
-  return teamInviteLink;
-}
 
 export default createInviteHandler;
