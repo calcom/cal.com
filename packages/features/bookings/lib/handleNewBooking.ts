@@ -88,7 +88,7 @@ import type {
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
-import { validateBookingEmail } from "../../emailValidation/lib/validateBookingEmail";
+import { validateBookingEmailGenerator } from "../../emailValidation/lib/validateBookingEmail";
 import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/sendPayload";
 import { BookingActionMap, BookingEmailSmsHandler } from "./BookingEmailSmsHandler";
 import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
@@ -497,13 +497,21 @@ async function handler(
 
   await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
 
-  // TODO: We might want to merge other booker email related validations into this flow
-  await validateBookingEmail({
+  // Generator-based email validation: cache check happens immediately, yields promise for parallel execution
+  const emailValidatorGenerator = validateBookingEmailGenerator({
     email: bookerEmail,
     teamId: eventType.teamId ?? eventType.parent?.teamId ?? null,
     logger: loggerWithEventDetails,
     // Commented out till we can get the client IP address here
     // clientIP,
+  });
+
+  // First we await quick validation(done from cache only). Possible slowdown (~100ms)
+  await emailValidatorGenerator.next();
+
+  let fullEmailValidationError: Error | null = null;
+  const fullEmailValidationPromise = emailValidatorGenerator.next().catch((error) => {
+    fullEmailValidationError = error;
   });
 
   if (!rawBookingData.rescheduleUid) {
@@ -1532,6 +1540,12 @@ async function handler(
 
   try {
     if (!isDryRun) {
+      // Await email validation result. By now it has likely completed running in parallel, specially for team event booking where loading availability of multiple members take time
+      await fullEmailValidationPromise;
+      if (fullEmailValidationError) {
+        throw fullEmailValidationError;
+      }
+
       booking = await createBooking({
         uid,
         rescheduledBy: reqBody.rescheduledBy,

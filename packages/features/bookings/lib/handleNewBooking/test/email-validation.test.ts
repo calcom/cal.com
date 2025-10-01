@@ -17,10 +17,21 @@ import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAn
 
 import { vi, beforeEach, describe, expect } from "vitest";
 
+import { RedisService } from "@calcom/features/redis/RedisService";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
 import { getNewBookingHandler } from "./getNewBookingHandler";
+
+// Mock Redis Service
+vi.mock("@calcom/features/redis/RedisService");
+
+const mockRedisService = {
+  get: vi.fn(),
+  set: vi.fn(),
+  del: vi.fn(),
+  expire: vi.fn(),
+};
 
 // Mock ZeroBounce API responses
 const mockZeroBounceResponses: Record<string, unknown> = {};
@@ -68,6 +79,13 @@ describe("Email Validation", () => {
     Object.keys(mockZeroBounceResponses).forEach((key) => delete mockZeroBounceResponses[key]);
     process.env.ZEROBOUNCE_API_KEY = zeroBounceAPIKey;
 
+    // Setup Redis mock implementation
+    vi.mocked(RedisService).mockImplementation(() => mockRedisService as unknown as RedisService);
+
+    // Configure Redis mock to return null by default (cache miss)
+    mockRedisService.get.mockResolvedValue(null);
+    mockRedisService.set.mockResolvedValue(undefined);
+
     // Enable email validation feature for team with id 1 (used in tests)
     await enableEmailValidationForTeam(1);
   });
@@ -112,7 +130,7 @@ describe("Email Validation", () => {
     mockZeroBounceResponses["valid-user@example.com"] = {
       address: "valid-user@example.com",
       status: "valid",
-      processed_at: "2023-12-07 10:00:00.000",
+      sub_status: "",
     };
 
     mockCalendarToHaveNoBusySlots("googlecalendar", {
@@ -155,7 +173,7 @@ describe("Email Validation", () => {
     });
   });
 
-  test("should reject booking with invalid email", async () => {
+  test("should reject booking with invalid email from ZeroBounce, initiating validation request immediately in parallel to availability check", async () => {
     const handleNewBooking = getNewBookingHandler();
     const booker = getBooker({
       email: "invalid@nonexistent-domain.fake",
@@ -168,6 +186,13 @@ describe("Email Validation", () => {
       id: 101,
       schedules: [TestData.schedules.IstWorkHours],
       credentials: [getGoogleCalendarCredential()],
+      selectedCalendars: [TestData.selectedCalendars.google],
+    });
+
+    mockCalendarToHaveNoBusySlots("googlecalendar", {
+      create: { id: "google_calendar_event_id" },
+      // Slow down availability check to 5 seconds to ensure that validation failure would happen before availability check
+      getAvailabilitySlowDownTime: 5000,
     });
 
     await createBookingScenario(
@@ -191,7 +216,6 @@ describe("Email Validation", () => {
       address: "invalid@nonexistent-domain.fake",
       status: "invalid",
       sub_status: "mailbox_not_found",
-      processed_at: "2023-12-07 10:00:00.000",
     };
 
     const mockBookingData = getMockRequestDataForBooking({
@@ -205,13 +229,16 @@ describe("Email Validation", () => {
       },
     });
 
+    const newBookingPromise = handleNewBooking({
+      bookingData: mockBookingData,
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    expect(fetch).toHaveBeenCalled();
+
     // Now with email validation feature enabled, invalid emails should be rejected
-    await expect(
-      handleNewBooking({
-        bookingData: mockBookingData,
-      })
-    ).rejects.toThrow("Unable to create booking with this email address.");
-  });
+    await expect(newBookingPromise).rejects.toThrow("Unable to create booking with this email address.");
+  }, 7000);
 
   test("should fallback to allow booking when ZeroBounce API fails", async ({ emails }) => {
     const handleNewBooking = getNewBookingHandler();
@@ -302,5 +329,72 @@ describe("Email Validation", () => {
       emails,
       iCalUID: createdBooking.iCalUID,
     });
+  });
+
+  test("should use cached email validation result from Redis", async () => {
+    const handleNewBooking = getNewBookingHandler();
+    const booker = getBooker({
+      email: "cached-user@example.com",
+      name: "Cached User",
+    });
+
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      schedules: [TestData.schedules.IstWorkHours],
+      credentials: [getGoogleCalendarCredential()],
+      selectedCalendars: [TestData.selectedCalendars.google],
+      destinationCalendar: {
+        integration: TestData.apps["google-calendar"].type,
+        externalId: "organizer@example.com",
+      },
+    });
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            teamId: 1,
+            slotInterval: 30,
+            length: 30,
+            users: [{ id: 101 }],
+          },
+        ],
+        organizer,
+        apps: [TestData.apps["google-calendar"]],
+      })
+    );
+
+    const cachedResult = {
+      email: "cached-user@example.com",
+      status: "invalid",
+    };
+
+    mockRedisService.get.mockResolvedValue(cachedResult);
+
+    mockCalendarToHaveNoBusySlots("googlecalendar", {
+      create: { id: "google_calendar_event_id" },
+    });
+
+    const mockBookingData = getMockRequestDataForBooking({
+      data: {
+        eventTypeId: 1,
+        responses: {
+          email: booker.email,
+          name: booker.name,
+          location: { optionValue: "", value: "New York" },
+        },
+      },
+    });
+
+    await expect(
+      handleNewBooking({
+        bookingData: mockBookingData,
+      })
+    ).rejects.toThrow("Unable to create booking with this email address.");
+
+    expect(mockRedisService.get).toHaveBeenCalledWith("email_validation:cached-user@example.com");
   });
 });

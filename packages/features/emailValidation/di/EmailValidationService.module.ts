@@ -1,5 +1,6 @@
-import { ModuleLoader, bindModuleToClassOnToken, createModule } from "@calcom/lib/di/di";
-import { DI_TOKENS } from "@calcom/lib/di/tokens";
+import { ModuleLoader, bindModuleToClassOnToken, createModule } from "@calcom/features/di/di";
+import { moduleLoader as userRepositoryModuleLoader } from "@calcom/features/di/modules/User";
+import { DI_TOKENS } from "@calcom/features/di/tokens";
 
 import { EmailValidationService } from "../lib/service/EmailValidationService";
 import { moduleLoader as emailValidationProviderServiceLoader } from "./EmailValidationProviderService.module";
@@ -16,6 +17,7 @@ export const emailValidationServiceLoader = bindModuleToClassOnToken({
   classs: EmailValidationService,
   depsMap: {
     emailValidationProvider: emailValidationProviderServiceLoader,
+    userRepository: userRepositoryModuleLoader,
   },
 });
 

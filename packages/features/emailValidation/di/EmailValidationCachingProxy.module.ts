@@ -1,6 +1,6 @@
+import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
+import { DI_TOKENS } from "@calcom/features/di/tokens";
 import { moduleLoader as redisModuleLoader } from "@calcom/features/redis/di/redisModule";
-import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/lib/di/di";
-import { DI_TOKENS } from "@calcom/lib/di/tokens";
 
 import { EmailValidationCachingProxy } from "../lib/service/EmailValidationCachingProxy";
 import { moduleLoader as emailValidationServiceLoader } from "./EmailValidationService.module";

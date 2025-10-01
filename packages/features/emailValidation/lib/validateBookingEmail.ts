@@ -7,6 +7,10 @@ import { prisma } from "@calcom/prisma";
 
 import { getEmailValidationService } from "../di/EmailValidation.container";
 
+function getPiiFreeEmail(email: string): string {
+  return email.toLowerCase().slice(0, 10);
+}
+
 interface ValidateBookingEmailParams {
   email: string;
   teamId: number | null;
@@ -14,12 +18,12 @@ interface ValidateBookingEmailParams {
   clientIP?: string;
 }
 
-export async function validateBookingEmail({
+export async function* validateBookingEmailGenerator({
   email,
   teamId,
   logger,
 }: // clientIP,
-ValidateBookingEmailParams): Promise<void> {
+ValidateBookingEmailParams): AsyncGenerator<null, void, unknown> {
   // Check if email validation feature is enabled for this team/org
   const featuresRepository = new FeaturesRepository(prisma);
 
@@ -47,24 +51,42 @@ ValidateBookingEmailParams): Promise<void> {
 
   try {
     const emailValidationService = getEmailValidationService();
-    const result = await emailValidationService.validateEmail({
+    const emailValidationGenerator = emailValidationService.validateEmailGenerator({
       email,
       // Temporary commented out till we have confirmation that we have the client IP address here
       // ipAddress: clientIP,
     });
 
-    const isBlocked = emailValidationService.isEmailBlocked(result.status);
+    const { value: cachedResult } = await emailValidationGenerator.next();
+
+    if (cachedResult) {
+      const result = cachedResult;
+      const isBlocked = emailValidationService.isEmailBlocked(result.status);
+
+      if (isBlocked) {
+        throw new HttpError({
+          statusCode: 400,
+          message: "Unable to create booking with this email address.",
+        });
+      }
+      return;
+    }
+
+    yield null;
+
+    const { value: resultFromProvider } = await emailValidationGenerator.next();
+
+    if (!resultFromProvider) {
+      logger.warn(
+        "No result from email validation provider",
+        safeStringify({ email: getPiiFreeEmail(email), teamId })
+      );
+      return;
+    }
+
+    const isBlocked = emailValidationService.isEmailBlocked(resultFromProvider.status);
 
     if (isBlocked) {
-      logger.info(
-        "Email blocked due to validation status",
-        safeStringify({
-          email,
-          status: result.status,
-          teamId,
-        })
-      );
-
       throw new HttpError({
         statusCode: 400,
         message: "Unable to create booking with this email address.",
@@ -74,8 +96,8 @@ ValidateBookingEmailParams): Promise<void> {
     logger.info(
       "Email validation passed",
       safeStringify({
-        email,
-        status: result.status,
+        email: getPiiFreeEmail(email),
+        status: resultFromProvider.status,
         teamId,
       })
     );
@@ -89,7 +111,7 @@ ValidateBookingEmailParams): Promise<void> {
     logger.error(
       "Email validation service error - allowing booking",
       safeStringify({
-        email,
+        email: getPiiFreeEmail(email),
         error: error instanceof Error ? error.message : "Unknown error",
         teamId,
       })

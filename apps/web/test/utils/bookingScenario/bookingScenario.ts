@@ -1817,6 +1817,7 @@ export async function mockCalendar(
     creationCrash?: boolean;
     updationCrash?: boolean;
     getAvailabilityCrash?: boolean;
+    getAvailabilitySlowDownTime?: number;
   }
 ): Promise<CalendarServiceMethodMock> {
   const appStoreLookupKey = metadataLookupKey;
@@ -1974,6 +1975,9 @@ export async function mockCalendar(
         },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         getAvailability: async (...rest: any[]): Promise<EventBusyDate[]> => {
+          if (calendarData?.getAvailabilitySlowDownTime) {
+            await new Promise((resolve) => setTimeout(resolve, calendarData.getAvailabilitySlowDownTime));
+          }
           if (calendarData?.getAvailabilityCrash) {
             throw new Error("MockCalendarService.getAvailability fake error");
           }
