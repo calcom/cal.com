@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "チームの管理者によりロックされています",
   "app_not_connected": "{{appName}} のアカウントに接続していません。",
   "connect_now": "今すぐ接続",
-  "connect_now_unavailable_tooltip": "今すぐ接続は現在利用できません。上記の空き枠から予約するか、後でもう一度お試しください。",
   "managed_event_dialog_confirm_button_one": "{{count}} 人のメンバーを置き換えて通知する",
   "managed_event_dialog_confirm_button_other": "{{count}} 人のメンバーを置き換えて通知する",
   "managed_event_dialog_title_one": "{{count}} 人のメンバーがすでに URL /{{slug}} を使用しています。置き換えますか？",

@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "Заключено от администратора на екипа",
   "app_not_connected": "Не сте свързали {{appName}} акаунт.",
   "connect_now": "Свържете сега",
-  "connect_now_unavailable_tooltip": "Свързването сега не е налично. Моля, резервирайте от горните слотове или опитайте отново по-късно.",
   "managed_event_dialog_confirm_button_one": "Замени и уведоми {{count}} член",
   "managed_event_dialog_confirm_button_other": "Замени и уведоми {{count}} члена",
   "managed_event_dialog_title_one": "URL адресът /{{slug}} вече съществува за {{count}} член. Искате ли да го замените?",

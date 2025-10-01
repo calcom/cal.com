@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "Csapatadminisztrátor zárolta",
   "app_not_connected": "Nem csatlakoztatott {{appName}}-fiókot.",
   "connect_now": "Csatlakozzon most",
-  "connect_now_unavailable_tooltip": "A Csatlakozás most funkció jelenleg nem elérhető. Kérjük, foglaljon időpontot a fenti időpontokból, vagy próbálja újra később.",
   "managed_event_dialog_confirm_button_one": "{{count}} tag cseréje és értesítése",
   "managed_event_dialog_confirm_button_other": "{{count}} tagok cseréje és értesítése",
   "managed_event_dialog_title_one": "A /{{slug}} URL már létezik {{count}} tagok számára. Ki akarod cserélni?",

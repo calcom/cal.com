@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "Blocat de administratorul echipei",
   "app_not_connected": "Nu ați conectat un cont {{appName}}.",
   "connect_now": "Conectați-l acum",
-  "connect_now_unavailable_tooltip": "Conectarea acum nu este disponibilă momentan. Vă rugăm să rezervați din sloturile de mai sus sau să încercați din nou mai târziu.",
   "managed_event_dialog_confirm_button_one": "Înlocuiți și anunțați {{count}} membru",
   "managed_event_dialog_confirm_button_other": "Înlocuiți și anunțați {{count}} (de) membri",
   "managed_event_dialog_title_one": "URL-ul /{{slug}} există deja pentru {{count}} membru. Doriți să îl înlocuiți?",

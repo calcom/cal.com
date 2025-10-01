@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "Komanda admini tərəfindən kilidlənib",
   "app_not_connected": "Siz {{appName}} hesabını bağlamamısınız.",
   "connect_now": "İndi bağlayın",
-  "connect_now_unavailable_tooltip": "İndi qoşulmaq hazırda əlçatan deyil. Zəhmət olmasa yuxarıdakı slotlardan rezervasiya edin və ya sonra yenidən cəhd edin.",
   "managed_event_dialog_confirm_button_one": "Əvəz et və {{count}} üzvü xəbərdar et",
   "managed_event_dialog_confirm_button_other": "Əvəz et və {{count}} üzvləri xəbərdar et",
   "managed_event_dialog_title_one": "/{{slug}} url-si artıq {{count}} üzv üçün mövcuddur. Onu əvəz etmək istəyirsiniz?",

@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "팀 관리자에 의해 잠김",
   "app_not_connected": "{{appName}} 계정을 연결하지 않았습니다.",
   "connect_now": "지금 연결",
-  "connect_now_unavailable_tooltip": "지금 연결하기는 현재 사용할 수 없습니다. 위의 시간대에서 예약하거나 나중에 다시 시도해 주세요.",
   "managed_event_dialog_confirm_button_one": "회원 {{count}}명 바꾸기 및 알림",
   "managed_event_dialog_confirm_button_other": "회원 {{count}}명 바꾸기 및 알림",
   "managed_event_dialog_title_one": "URL /{{slug}}은(는) {{count}}명의 회원에 대해 이미 존재합니다. 바꾸시겠습니까?",

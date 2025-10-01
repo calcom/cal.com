@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "Zablokowane przez administratora zespołu",
   "app_not_connected": "Nie podłączono konta {{appName}}.",
   "connect_now": "Podłącz teraz",
-  "connect_now_unavailable_tooltip": "Opcja 'Połącz teraz' jest obecnie niedostępna. Zarezerwuj z powyższych dostępnych terminów lub spróbuj ponownie później.",
   "managed_event_dialog_confirm_button_one": "Zastąp i poinformuj {{count}} członka",
   "managed_event_dialog_confirm_button_other": "Zastąp i powiadom {{count}} członków",
   "managed_event_dialog_title_one": "Adres URL /{{slug}} już istnieje dla {{count}} członka. Czy chcesz go zastąpić?",

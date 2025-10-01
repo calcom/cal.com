@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "Bloqueado pelo administrador da equipa",
   "app_not_connected": "Não associou uma conta {{appName}}.",
   "connect_now": "Associar agora",
-  "connect_now_unavailable_tooltip": "Conectar agora está indisponível. Por favor, reserve nos horários acima ou tente novamente mais tarde.",
   "managed_event_dialog_confirm_button_one": "Substituir e notificar {{count}} membro",
   "managed_event_dialog_confirm_button_other": "Substituir e notificar {{count}} membros",
   "managed_event_dialog_title_one": "A URL /{{slug}} já existe para {{count}} membro. Pretende substituir a mesma?",

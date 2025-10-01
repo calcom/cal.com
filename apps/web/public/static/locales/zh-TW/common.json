@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "已由團隊管理員鎖定",
   "app_not_connected": "您尚未連結 {{appName}} 帳號。",
   "connect_now": "立即連結",
-  "connect_now_unavailable_tooltip": "立即連接目前無法使用。請從上方時段預訂或稍後再試。",
   "managed_event_dialog_confirm_button_one": "取代並通知 {{count}} 位成員",
   "managed_event_dialog_confirm_button_other": "取代並通知 {{count}} 位成員",
   "managed_event_dialog_title_one": "{{count}} 位成員已有網址 /{{slug}}。是否要替換？",
