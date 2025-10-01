@@ -600,7 +600,9 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should return empty to get bookings by organizationId and Id of a user that does not exist", async () => {
+      it("should return empty array when filtering by non-existent user ID", async () => {
+        await bookingsRepositoryFixture.deleteAllBookings(orgUser.id, orgUser.email);
+        await bookingsRepositoryFixture.deleteAllBookings(orgUser2.id, orgUser2.email);
         return request(app.getHttpServer())
           .get(`/v2/organizations/${organization.id}/bookings?userIds=972930`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -613,7 +615,9 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should return empty to get bookings by organizationId and Id of a user that does not belong to the org", async () => {
+      it("should return empty array when filtering by user ID outside organization", async () => {
+        await bookingsRepositoryFixture.deleteAllBookings(orgUser.id, orgUser.email);
+        await bookingsRepositoryFixture.deleteAllBookings(orgUser2.id, orgUser2.email);
         return request(app.getHttpServer())
           .get(`/v2/organizations/${organization.id}/bookings?userIds=${nonOrgUser1.id}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
