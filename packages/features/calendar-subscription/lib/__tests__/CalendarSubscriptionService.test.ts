@@ -115,7 +115,7 @@ describe("CalendarSubscriptionService", () => {
     };
 
     mockSelectedCalendarRepository = {
-      findByIdWithCredentials: vi.fn().mockResolvedValue(mockSelectedCalendar),
+      findById: vi.fn().mockResolvedValue(mockSelectedCalendar),
       findByChannelId: vi.fn().mockResolvedValue(mockSelectedCalendar),
       findNextSubscriptionBatch: vi.fn().mockResolvedValue([mockSelectedCalendar]),
       updateSyncStatus: vi.fn().mockResolvedValue(mockSelectedCalendar),
@@ -145,15 +145,15 @@ describe("CalendarSubscriptionService", () => {
       calendarSyncService: mockCalendarSyncService,
     });
 
-    const { getCredentialForCalendarCache } = await import("../__mocks__/delegationCredential");
-    getCredentialForCalendarCache.mockResolvedValue(mockCredential);
+    const { getCredentialForSelectedCalendar } = await import("../__mocks__/delegationCredential");
+    getCredentialForSelectedCalendar.mockResolvedValue(mockCredential);
   });
 
   describe("subscribe", () => {
     test("should successfully subscribe to a calendar", async () => {
       await service.subscribe("test-calendar-id");
 
-      expect(mockSelectedCalendarRepository.findByIdWithCredentials).toHaveBeenCalledWith("test-calendar-id");
+      expect(mockSelectedCalendarRepository.findById).toHaveBeenCalledWith("test-calendar-id");
       expect(mockAdapterFactory.get).toHaveBeenCalledWith("google_calendar");
       expect(mockAdapter.subscribe).toHaveBeenCalledWith(mockSelectedCalendar, mockCredential);
       expect(mockSelectedCalendarRepository.updateSubscription).toHaveBeenCalledWith("test-calendar-id", {
@@ -167,7 +167,7 @@ describe("CalendarSubscriptionService", () => {
     });
 
     test("should return early if selected calendar not found", async () => {
-      mockSelectedCalendarRepository.findByIdWithCredentials.mockResolvedValue(null);
+      mockSelectedCalendarRepository.findById.mockResolvedValue(null);
 
       await service.subscribe("non-existent-id");
 
@@ -175,10 +175,11 @@ describe("CalendarSubscriptionService", () => {
       expect(mockSelectedCalendarRepository.updateSubscription).not.toHaveBeenCalled();
     });
 
-    test("should return early if selected calendar has no credentialId", async () => {
-      mockSelectedCalendarRepository.findByIdWithCredentials.mockResolvedValue({
+    test("should return early if selected calendar has no credentialId or delegationCredentialId", async () => {
+      mockSelectedCalendarRepository.findById.mockResolvedValue({
         ...mockSelectedCalendar,
         credentialId: null,
+        delegationCredentialId: null,
       });
 
       await service.subscribe("test-calendar-id");
@@ -194,7 +195,7 @@ describe("CalendarSubscriptionService", () => {
 
       await service.unsubscribe("test-calendar-id");
 
-      expect(mockSelectedCalendarRepository.findByIdWithCredentials).toHaveBeenCalledWith("test-calendar-id");
+      expect(mockSelectedCalendarRepository.findById).toHaveBeenCalledWith("test-calendar-id");
       expect(mockAdapter.unsubscribe).toHaveBeenCalledWith(mockSelectedCalendar, mockCredential);
       expect(mockSelectedCalendarRepository.updateSubscription).toHaveBeenCalledWith("test-calendar-id", {
         syncSubscribedAt: null,
@@ -211,7 +212,7 @@ describe("CalendarSubscriptionService", () => {
     });
 
     test("should return early if selected calendar not found", async () => {
-      mockSelectedCalendarRepository.findByIdWithCredentials.mockResolvedValue(null);
+      mockSelectedCalendarRepository.findById.mockResolvedValue(null);
 
       await service.unsubscribe("non-existent-id");
 
@@ -356,10 +357,11 @@ describe("CalendarSubscriptionService", () => {
       expect(mockCalendarSyncService.handleEvents).not.toHaveBeenCalled();
     });
 
-    test("should return early when selected calendar has no credentialId", async () => {
+    test("should return early when selected calendar has no credentialId or delegationCredentialId", async () => {
       const calendarWithoutCredential = {
         ...mockSelectedCalendar,
         credentialId: null,
+        delegationCredentialId: null,
       };
 
       await service.processEvents(calendarWithoutCredential);
