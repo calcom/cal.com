@@ -5,7 +5,7 @@ import type {
   Type as RAQBType,
   Settings as RAQBSettings,
   Operator as RAQBOperator,
-} from "react-awesome-query-builder";
+} from "@react-awesome-query-builder/ui";
 
 export type Conjunction = RAQBConjunction;
 export type Conjunctions = Record<string, Conjunction>;
