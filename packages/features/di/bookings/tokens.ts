@@ -5,4 +5,8 @@ export const BOOKING_DI_TOKENS = {
   RECURRING_BOOKING_SERVICE_MODULE: Symbol("RecurringBookingServiceModule"),
   INSTANT_BOOKING_CREATE_SERVICE: Symbol("InstantBookingCreateService"),
   INSTANT_BOOKING_CREATE_SERVICE_MODULE: Symbol("InstantBookingCreateServiceModule"),
+  EMAIL_VALIDATION_SERVICE: Symbol("EmailValidationService"),
+  EMAIL_VALIDATION_SERVICE_MODULE: Symbol("EmailValidationServiceModule"),
+  EMAIL_VALIDATION_PROVIDER_SERVICE: Symbol("EmailValidationProviderService"),
+  EMAIL_VALIDATION_PROVIDER_SERVICE_MODULE: Symbol("EmailValidationProviderServiceModule"),
 };
