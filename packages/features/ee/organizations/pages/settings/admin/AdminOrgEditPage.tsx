@@ -95,8 +95,7 @@ export const OrgForm = ({
       {/* Payment History Section */}
       <OrgPaymentHistory orgId={org.id} />
 
-      {/* Metadata Section */}
-      <OrgMetadata metadata={org.metadata} />
+      <OrgMetadata metadata={org.metadata} orgId={org.id} />
     </div>
   );
 };
