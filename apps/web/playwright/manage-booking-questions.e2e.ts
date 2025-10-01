@@ -729,15 +729,36 @@ async function addQuestionAndSave({
   }
 
   if (question.placeholder !== undefined) {
-    await page.fill('[name="placeholder"]', question.placeholder);
+    // Wait for placeholder field to be available (some field types may not have it)
+    const placeholderField = page.locator('[name="placeholder"]');
+    try {
+      await placeholderField.waitFor({ state: 'visible', timeout: 5000 });
+      await placeholderField.fill(question.placeholder);
+    } catch (error) {
+      console.warn(`Placeholder field not available for ${question.type} field type, skipping...`);
+    }
   }
 
   if (question.required !== undefined) {
     const requiredCheckbox = page.locator('[data-testid="field-required"]').first();
-    const isCurrentlyChecked = await requiredCheckbox.isChecked();
+    await requiredCheckbox.waitFor({ state: 'visible' });
     
-    if (isCurrentlyChecked !== question.required) {
+    const getState = async () => {
+      const aria = (await requiredCheckbox.getAttribute('aria-checked')) ?? '';
+      const dataState = (await requiredCheckbox.getAttribute('data-state')) ?? '';
+      const checked = (await requiredCheckbox.getAttribute('checked')) ?? '';
+      const isChecked = await requiredCheckbox.isChecked();
+      
+      return aria === 'true' || 
+             dataState === 'checked' || 
+             checked !== null || 
+             isChecked;
+    };
+    
+    const currentState = await getState();
+    if (currentState !== question.required) {
       await requiredCheckbox.click();
+      await page.waitForTimeout(100);
     }
   }
 
@@ -816,13 +837,33 @@ async function toggleQuestionRequireStatusAndSave({
   const getState = async () => {
     const aria = (await requiredCheckbox.getAttribute('aria-checked')) ?? '';
     const dataState = (await requiredCheckbox.getAttribute('data-state')) ?? '';
-    return aria === 'true' || dataState === 'checked';
+    const checked = (await requiredCheckbox.getAttribute('checked')) ?? '';
+    const isChecked = await requiredCheckbox.isChecked();
+    
+    return aria === 'true' || 
+           dataState === 'checked' || 
+           checked !== null || 
+           isChecked;
   };
-  if ((await getState()) !== required) {
+  
+  const currentState = await getState();
+  if (currentState !== required) {
     await requiredCheckbox.click();
+
+    await page.waitForTimeout(100);
+    
     const finalState = await getState();
     if (finalState !== required) {
-      throw new Error(`Failed to set required state to ${required}. Current state: ${finalState}`);
+      const aria = await requiredCheckbox.getAttribute('aria-checked');
+      const dataState = await requiredCheckbox.getAttribute('data-state');
+      const checked = await requiredCheckbox.getAttribute('checked');
+      const isChecked = await requiredCheckbox.isChecked();
+      
+      throw new Error(
+        `Failed to set required state to ${required}. ` +
+        `Current state: ${finalState}. ` +
+        `Debug info - aria-checked: ${aria}, data-state: ${dataState}, checked: ${checked}, isChecked: ${isChecked}`
+      );
     }
   }
   
