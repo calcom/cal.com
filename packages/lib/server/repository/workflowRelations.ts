@@ -77,4 +77,12 @@ export class WorkflowRelationsRepository {
       },
     });
   }
+
+  async deleteAllActiveOnRelations(workflowId: number) {
+    return await Promise.all([
+      this.deleteAllActiveOnTeams(workflowId),
+      this.deleteAllActiveOnRoutingForms(workflowId),
+      this.deleteAllActiveOnEventTypes(workflowId),
+    ]);
+  }
 }

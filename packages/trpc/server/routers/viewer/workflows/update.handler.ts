@@ -144,9 +144,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       activeOnIds: activeOnEventTypeIds.filter((activeOn) => !newActiveOn.includes(activeOn)),
     });
 
-    //update active on
-    await workflowRelationsRepository.deleteAllActiveOnTeams(id);
+    // clean up any old active on values
+    await workflowRelationsRepository.deleteAllActiveOnRelations(id);
 
+    // create all new active on relationships
     await workflowRelationsRepository.createActiveOnTeams(id, activeOnEventTypeIds);
   } else if (isFormTrigger(trigger)) {
     // activeOnRoutingFormIds are routing form ids
@@ -164,8 +165,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
 
-    // Update active routing forms relationships
-    await workflowRelationsRepository.deleteAllActiveOnRoutingForms(id);
+    // clean up any old active on values
+    await workflowRelationsRepository.deleteAllActiveOnRelations(id);
 
     // Create new workflow - routing forms relationships
     await workflowRelationsRepository.createActiveOnRoutingForms(id, routingFormIds ?? []);
@@ -218,10 +219,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     //remove all scheduled Email and SMS reminders for eventTypes that are not active any more
     removedActiveOnIds = oldActiveOnIds.filter((eventTypeId) => !activeOnWithChildren.includes(eventTypeId));
 
+    // clean up any old active on values
     await deleteRemindersOfActiveOnIds({ removedActiveOnIds, workflowSteps: userWorkflow.steps, isOrg });
 
-    //update active on
-    await workflowRelationsRepository.deleteAllActiveOnEventTypes(id);
+    // clean up an old relationships
+    await workflowRelationsRepository.deleteAllActiveOnRelations(id);
 
     //create all workflow - eventtypes relationships
     await workflowRelationsRepository.createActiveOnEventTypes(id, activeOnWithChildren);
