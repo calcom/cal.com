@@ -10,6 +10,7 @@ import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 
 import useRouterQuery from "@lib/hooks/useRouterQuery";
+import { sanitizeUsername } from "@lib/sanitizeUsername";
 
 import type { TRPCClientErrorLike } from "@trpc/client";
 
@@ -56,7 +57,7 @@ export const UsernameAvailabilityField = ({
       : { username: currentUsernameState || "", setQuery: setCurrentUsernameState };
   const formMethods = useForm({
     defaultValues: {
-      username: currentUsername,
+      username: sanitizeUsername(currentUsername || user.username || ""),
     },
   });
 
@@ -78,7 +79,12 @@ export const UsernameAvailabilityField = ({
           setCurrentUsername={setCurrentUsername}
           inputUsernameValue={value}
           usernameRef={ref}
-          setInputUsernameValue={onChange}
+          setInputUsernameValue={(val) => {
+            const sanitizedUsername = sanitizeUsername(val);
+            onChange(sanitizedUsername);
+            formMethods.setValue("username", sanitized, { shouldDirty: true });
+            setCurrentUsername(sanitizedUsername);
+          }}
           onSuccessMutation={onSuccessMutation}
           onErrorMutation={onErrorMutation}
           disabled={!!user.organization?.id}
