@@ -16,21 +16,7 @@ type AdminGetAllOptions = {
 };
 
 export const adminGetUnverifiedHandler = async ({ input }: AdminGetAllOptions) => {
-  const { limit, offset, searchTerm, filters = [] } = input;
-
-  // Extract filters
-  const reviewedFilter = filters.find((filter) => filter.id === "reviewed") as
-    | TypedColumnFilter<ColumnFilterType.SINGLE_SELECT>
-    | undefined;
-  const dnsConfiguredFilter = filters.find((filter) => filter.id === "dnsConfigured") as
-    | TypedColumnFilter<ColumnFilterType.SINGLE_SELECT>
-    | undefined;
-  const publishedFilter = filters.find((filter) => filter.id === "published") as
-    | TypedColumnFilter<ColumnFilterType.SINGLE_SELECT>
-    | undefined;
-  const adminApiFilter = filters.find((filter) => filter.id === "adminApi") as
-    | TypedColumnFilter<ColumnFilterType.SINGLE_SELECT>
-    | undefined;
+  const { limit, offset, searchTerm } = input;
 
   // Build where clause
   const whereClause: Prisma.TeamWhereInput = {
@@ -41,45 +27,7 @@ export const adminGetUnverifiedHandler = async ({ input }: AdminGetAllOptions) =
         { slug: { contains: searchTerm, mode: "insensitive" } },
       ],
     }),
-    ...(reviewedFilter && {
-      organizationSettings: {
-        ...makeWhereClause({
-          columnName: "isAdminReviewed",
-          filterValue: reviewedFilter.value,
-        }),
-      },
-    }),
-    ...(dnsConfiguredFilter && {
-      organizationSettings: {
-        ...makeWhereClause({
-          columnName: "isOrganizationConfigured",
-          filterValue: dnsConfiguredFilter.value,
-        }),
-      },
-    }),
-    ...(adminApiFilter && {
-      organizationSettings: {
-        ...makeWhereClause({
-          columnName: "isAdminAPIEnabled",
-          filterValue: adminApiFilter.value,
-        }),
-      },
-    }),
   };
-
-  // Apply published filter (slug is null or not null)
-  if (publishedFilter) {
-    if (
-      publishedFilter.value.type === ColumnFilterType.SINGLE_SELECT &&
-      typeof publishedFilter.value.data === "string"
-    ) {
-      if (publishedFilter.value.data === "true") {
-        whereClause.slug = { not: null };
-      } else if (publishedFilter.value.data === "false") {
-        whereClause.slug = null;
-      }
-    }
-  }
 
   // Get total count
   const totalCount = await prisma.team.count({
