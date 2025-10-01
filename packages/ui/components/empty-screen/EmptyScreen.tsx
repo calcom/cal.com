@@ -33,7 +33,7 @@ export function EmptyScreen({
     <div
       data-testid="empty-screen"
       className={classNames(
-        "rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 py-12 text-center",
+        "rounded-lg border-2 border-dashed border-gray-300 bg-default py-12 text-center",
         className
       )}>
       {/* Avatar / Icon */}
