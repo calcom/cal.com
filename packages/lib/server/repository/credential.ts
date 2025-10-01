@@ -10,7 +10,7 @@ const log = logger.getSubLogger({ prefix: ["CredentialRepository"] });
 
 type CredentialCreateInput = {
   type: string;
-  key: unknown;
+  key: object;
   userId: number;
   appId: string;
   delegationCredentialId?: string | null;
@@ -18,7 +18,7 @@ type CredentialCreateInput = {
 
 type CredentialUpdateInput = {
   type?: string;
-  key?: unknown;
+  key?: object;
   userId?: number;
   appId?: string;
   delegationCredentialId?: string | null;
@@ -166,7 +166,7 @@ export class CredentialRepository {
       return {
         ...rest,
         // We queried only those where delegationCredentialId is not null
-         
+
         delegationCredentialId: delegationCredentialId!,
       };
     });
