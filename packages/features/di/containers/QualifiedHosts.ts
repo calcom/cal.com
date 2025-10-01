@@ -1,7 +1,7 @@
 import { DI_TOKENS } from "@calcom/features/di/tokens";
+import type { QualifiedHostsService } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 
-import type { QualifiedHostsService } from "../../bookings/findQualifiedHostsWithDelegationCredentials";
 import { createContainer } from "../di";
 import { bookingRepositoryModule } from "../modules/Booking";
 import { filterHostsModule } from "../modules/FilterHosts";

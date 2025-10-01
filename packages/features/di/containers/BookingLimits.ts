@@ -1,8 +1,8 @@
 import { DI_TOKENS } from "@calcom/features/di/tokens";
+import type { CheckBookingLimitsService } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 
-import type { CheckBookingAndDurationLimitsService } from "../../../features/bookings/lib/handleNewBooking/checkBookingAndDurationLimits";
-import type { CheckBookingLimitsService } from "../../intervalLimits/server/checkBookingLimits";
+import type { CheckBookingAndDurationLimitsService } from "../../bookings/lib/handleNewBooking/checkBookingAndDurationLimits";
 import { createContainer } from "../di";
 import { bookingRepositoryModule } from "../modules/Booking";
 import { checkBookingAndDurationLimitsModule } from "../modules/CheckBookingAndDurationLimits";

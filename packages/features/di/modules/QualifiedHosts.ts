@@ -1,5 +1,6 @@
-import type { IQualifiedHostsService } from "../../bookings/findQualifiedHostsWithDelegationCredentials";
-import { QualifiedHostsService } from "../../bookings/findQualifiedHostsWithDelegationCredentials";
+import type { IQualifiedHostsService } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
+import { QualifiedHostsService } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
+
 import { createModule } from "../di";
 import { DI_TOKENS } from "../tokens";
 
