@@ -4,4 +4,6 @@ export {
 } from "@calcom/lib/server/repository/schedule";
 
 export { updateSchedule, type UpdateScheduleResponse } from "@calcom/lib/schedules/updateSchedule";
-export {UserAvailabilityService} from "@calcom/lib/getUserAvailability"
+export { UserAvailabilityService } from "@calcom/lib/getUserAvailability";
+
+export { listHandler as getAvailabilityListHandler } from "@calcom/trpc/server/routers/viewer/availability/list.handler";
