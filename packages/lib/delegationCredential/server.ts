@@ -670,7 +670,7 @@ export async function getCredentialForSelectedCalendar({
         delegationCredentialId: credential.delegationCredential.id,
       });
     }
-    return credential && buildNonDelegationCredential(credential);
+    return credential ? buildNonDelegationCredential(credential) : undefined;
   }
   if (delegationCredentialId && userId) {
     return findUniqueDelegationCalendarCredential({
