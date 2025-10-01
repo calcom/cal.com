@@ -172,7 +172,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 "@type": "ContactPoint",
                 telephone: "+91 8827 000 000",
                 contactType: "Customer Support",
-                email: "support@cal.id",
+                email: "support@onehash.ai",
                 areaServed: "Worldwide",
                 availableLanguage: [
                   "en",
