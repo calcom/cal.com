@@ -17,13 +17,11 @@ export const generateMetadata = async () =>
 const Page = async () => {
   const t = await getTranslate();
   return (
-    <>
-      <SettingsHeader title={t("organizations")} description={t("orgs_page_description")}>
-        <LicenseRequired>
-          <AdminOrgTable />
-        </LicenseRequired>
-      </SettingsHeader>
-    </>
+    <SettingsHeader title={t("organizations")} description={t("orgs_page_description")}>
+      <LicenseRequired>
+        <AdminOrgTable />
+      </LicenseRequired>
+    </SettingsHeader>
   );
 };
 
