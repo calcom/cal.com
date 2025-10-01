@@ -141,7 +141,6 @@ describe("_onFormSubmission", () => {
           },
           name: { value: "Test Name", response: "Test Name" },
         },
-        responseId,
         form: {
           ...mockForm,
           fields: mockForm.fields.map((field) => ({

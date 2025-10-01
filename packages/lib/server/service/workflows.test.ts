@@ -79,7 +79,6 @@ describe("WorkflowService.scheduleFormWorkflows", () => {
     await WorkflowService.scheduleFormWorkflows({
       workflows,
       responses: mockResponses,
-      responseId: 123,
       form: mockForm,
     });
 
@@ -133,7 +132,6 @@ describe("WorkflowService.scheduleFormWorkflows", () => {
     await WorkflowService.scheduleFormWorkflows({
       workflows,
       responses: mockResponses,
-      responseId: 123,
       form: formWithoutPhone,
     });
 
