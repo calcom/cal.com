@@ -3600,6 +3600,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/viasocket@workspace:packages/app-store/viasocket":
+  version: 0.0.0-use.local
+  resolution: "@calcom/viasocket@workspace:packages/app-store/viasocket"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/vimcal@workspace:packages/app-store/vimcal":
   version: 0.0.0-use.local
   resolution: "@calcom/vimcal@workspace:packages/app-store/vimcal"
