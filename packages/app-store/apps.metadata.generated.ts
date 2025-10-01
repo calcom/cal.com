@@ -33,6 +33,7 @@ import facetime_config_json from "./facetime/config.json";
 import fathom_config_json from "./fathom/config.json";
 import { metadata as feishucalendar__metadata_ts } from "./feishucalendar/_metadata";
 import fonio_ai_config_json from "./fonio-ai/config.json";
+import framer_config_json from "./framer/config.json";
 import ga4_config_json from "./ga4/config.json";
 import { metadata as giphy__metadata_ts } from "./giphy/_metadata";
 import { metadata as googlecalendar__metadata_ts } from "./googlecalendar/_metadata";
@@ -142,6 +143,7 @@ export const appStoreMetadata = {
   fathom: fathom_config_json,
   feishucalendar: feishucalendar__metadata_ts,
   "fonio-ai": fonio_ai_config_json,
+  framer: framer_config_json,
   ga4: ga4_config_json,
   giphy: giphy__metadata_ts,
   googlecalendar: googlecalendar__metadata_ts,
