@@ -112,8 +112,10 @@ test.describe("Booking Filters", () => {
     await test.step("Remove one team member from team", async () => {
       await prisma.membership.delete({
         where: {
-          userId: secondUser.id,
-          teamId: team.id,
+          userId_teamId: {
+            userId: secondUser.id,
+            teamId: team.id,
+          },
         },
       });
     });
