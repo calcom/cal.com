@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button, buttonClasses } from "@calcom/ui/components/button";
@@ -29,6 +30,7 @@ import {
   getDateRangeFromPreset,
   type PresetOption,
 } from "../../lib/dateRange";
+import { preserveLocalTime } from "../../lib/preserveLocalTime";
 import type { FilterableColumn, DateRangeFilterOptions } from "../../lib/types";
 import { ZDateRangeFilterValue, ColumnFilterType } from "../../lib/types";
 import { useFilterPopoverOpen } from "./useFilterPopoverOpen";
@@ -48,9 +50,8 @@ export const DateRangeFilter = ({
 }: DateRangeFilterProps) => {
   const { open, onOpenChange } = useFilterPopoverOpen(column.id);
   const filterValue = useFilterValue(column.id, ZDateRangeFilterValue);
-  const { updateFilter, removeFilter } = useDataTable();
+  const { updateFilter, removeFilter, timeZone: givenTimeZone } = useDataTable();
   const range = options?.range ?? "past";
-  const endOfDay = options?.endOfDay ?? false;
   const forceCustom = range === "custom";
   const forcePast = range === "past";
 
@@ -70,6 +71,19 @@ export const DateRangeFilter = ({
       : DEFAULT_PRESET
   );
 
+  const convertTimestamp = useCallback(
+    (timestamp: string) => {
+      if (!options?.convertToTimeZone) {
+        return timestamp;
+      }
+      if (!givenTimeZone || CURRENT_TIMEZONE === givenTimeZone) {
+        return timestamp;
+      }
+      return preserveLocalTime(timestamp, CURRENT_TIMEZONE, givenTimeZone);
+    },
+    [options?.convertToTimeZone, givenTimeZone]
+  );
+
   const updateValues = useCallback(
     ({ preset, startDate, endDate }: { preset: PresetOption; startDate?: Dayjs; endDate?: Dayjs }) => {
       setSelectedPreset(preset);
@@ -80,14 +94,14 @@ export const DateRangeFilter = ({
         updateFilter(column.id, {
           type: ColumnFilterType.DATE_RANGE,
           data: {
-            startDate: startDate.toDate().toISOString(),
-            endDate: (endOfDay ? endDate.endOf("day") : endDate).toDate().toISOString(),
+            startDate: convertTimestamp(startDate.toDate().toISOString()),
+            endDate: convertTimestamp(endDate.toDate().toISOString()),
             preset: preset.value,
           },
         });
       }
     },
-    [column.id, endOfDay]
+    [column.id, updateFilter, convertTimestamp]
   );
 
   useEffect(() => {
@@ -126,10 +140,12 @@ export const DateRangeFilter = ({
     startDate?: Date | undefined;
     endDate?: Date | undefined;
   }) => {
+    // DateRangePicker returns the beginning of the day,
+    // so we need to update `endDate` to the end of the day.
     updateValues({
       preset: CUSTOM_PRESET,
       startDate: startDate ? dayjs(startDate) : getDefaultStartDate(),
-      endDate: endDate ? dayjs(endDate) : undefined,
+      endDate: endDate ? dayjs(endDate).add(1, "day").subtract(1, "millisecond") : undefined,
     });
   };
 

@@ -1,6 +1,7 @@
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -18,9 +19,21 @@ type AddBulkToEventTypeHandler = {
 export async function addMembersToEventTypesHandler({ ctx, input }: AddBulkToEventTypeHandler) {
   if (!ctx.user.organizationId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  // check if user is admin of organization
-  if (!(await isOrganisationAdmin(ctx.user?.id, ctx.user.organizationId)))
-    throw new TRPCError({ code: "UNAUTHORIZED" });
+  // Check if user has permission to manage event types in the organization
+  const permissionCheckService = new PermissionCheckService();
+  const hasPermission = await permissionCheckService.checkPermission({
+    userId: ctx.user.id,
+    teamId: ctx.user.organizationId,
+    permission: "eventType.update",
+    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+  });
+
+  if (!hasPermission) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You are not authorized to manage event types in this organization",
+    });
+  }
 
   const { eventTypeIds, teamIds, userIds } = input;
 
