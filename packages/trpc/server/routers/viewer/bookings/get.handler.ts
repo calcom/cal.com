@@ -124,45 +124,38 @@ export async function getBookings({
     },
   };
 
-  const [
-    eventTypeIdsFromTeamIdsFilter,
-    attendeeEmailsFromUserIdsFilter,
-    eventTypeIdsFromEventTypeIdsFilter,
-    eventTypeIdsWhereUserIsAdminOrOwner,
-    userIdsAndEmailsWhereUserIsAdminOrOwner,
-  ] = await Promise.all([
-    getEventTypeIdsFromTeamIdsFilter(prisma, filters?.teamIds),
-    getAttendeeEmailsFromUserIdsFilter(prisma, user.email, filters?.userIds),
-    getEventTypeIdsFromEventTypeIdsFilter(prisma, filters?.eventTypeIds),
-    getEventTypeIdsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
-    getUserIdsAndEmailsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
-  ]);
-
-  const bookingQueries: { query: BookingsUnionQuery; tables: (keyof DB)[] }[] = [];
-
+  const userIdsAndEmailsWhereUserIsAdminOrOwner = await getUserIdsAndEmailsWhereUserIsAdminOrOwner(
+    prisma,
+    membershipConditionWhereUserIsAdminOwner
+  );
   // If user is organization owner/admin, contains organization members emails and ids (organization plan)
   // If user is only team owner/admin, contain team members emails and ids (teams plan)
   const [userIdsWhereUserIsAdminOrOwner, userEmailsWhereUserIsAdminOrOwner] =
     userIdsAndEmailsWhereUserIsAdminOrOwner;
 
+  // Keep only those userIds that are within scope or the current user's own ID
+  const filteredUserIds = filters?.userIds?.filter(
+    (userId) => userIdsWhereUserIsAdminOrOwner.includes(userId) || user.id === userId
+  );
+
+  filters.userIds = filteredUserIds;
+
+  const [
+    eventTypeIdsFromTeamIdsFilter,
+    attendeeEmailsFromUserIdsFilter,
+    eventTypeIdsFromEventTypeIdsFilter,
+    eventTypeIdsWhereUserIsAdminOrOwner,
+  ] = await Promise.all([
+    getEventTypeIdsFromTeamIdsFilter(prisma, filters?.teamIds),
+    getAttendeeEmailsFromUserIdsFilter(prisma, user.email, filters?.userIds),
+    getEventTypeIdsFromEventTypeIdsFilter(prisma, filters?.eventTypeIds),
+    getEventTypeIdsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
+  ]);
+
+  const bookingQueries: { query: BookingsUnionQuery; tables: (keyof DB)[] }[] = [];
+
   // If userIds filter is provided
-  if (!!filters?.userIds && filters.userIds.length > 0) {
-    const areUserIdsWithinUserOrgOrTeam = filters.userIds.every((userId) =>
-      userIdsWhereUserIsAdminOrOwner.includes(userId)
-    );
-
-    const isCurrentUser = filters.userIds.length === 1 && user.id === filters.userIds[0];
-
-    //  Scope depends on `user.orgId`:
-    // - Throw an error if trying to filter by usersIds that are not within your ORG
-    // - Throw an error if trying to filter by usersIds that are not within your TEAM
-    if (!areUserIdsWithinUserOrgOrTeam && !isCurrentUser) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "You do not have permissions to fetch bookings for specified userIds",
-      });
-    }
-
+  if (!!filters?.userIds && filters?.userIds?.length) {
     // 1. Booking created by one of the filtered users
     bookingQueries.push({
       query: kysely
