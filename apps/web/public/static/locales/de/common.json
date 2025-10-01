@@ -10,8 +10,6 @@
   "accept_invitation": "Einladung annehmen",
   "max_characters": "Max. Zeichen",
   "min_characters": "Min. Zeichen",
-  "min_characters_required": "Min. {{count}} Zeichen erforderlich",
-  "max_characters_allowed": "Max. {{count}} Zeichen erlaubt",
   "calcom_explained": "{{appName}} stellt die Planungsinfrastruktur für absolut jeden bereit.",
   "calcom_explained_new_user": "Schließen Sie die Einrichtung Ihres {{appName}}-Kontos ab! Sie sind nur noch wenige Schritte davon entfernt, all Ihre Terminplanungsprobleme zu lösen.",
   "have_any_questions": "Haben Sie Fragen? Wir sind hier um Ihnen zu helfen.",
