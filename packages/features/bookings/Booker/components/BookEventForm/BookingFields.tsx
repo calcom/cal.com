@@ -115,7 +115,9 @@ export const BookingFields = ({
           readOnly = false;
         }
 
-        if (field.name === SystemField.Enum.smsReminderNumber || field.name === SystemField.Enum.unifiedPhoneNumber) {
+        if (field.name === SystemField.Enum.smsReminderNumber || 
+            field.name === SystemField.Enum.unifiedPhoneNumber ||
+            field.name === SystemField.Enum.attendeePhoneNumber) {
           // Phone fields and location.optionValue when location.value===phone are the same data point. We should solve it in a better way in the Form Builder itself.
           // I think we should have a way to connect 2 fields together and have them share the same value in Form Builder
           if (locationResponse?.value === "phone") {

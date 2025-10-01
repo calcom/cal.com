@@ -4,7 +4,7 @@ import {
   SMS_REMINDER_NUMBER_FIELD,
   CAL_AI_AGENT_PHONE_NUMBER_FIELD,
 } from "@calcom/features/bookings/lib/SystemField";
-import { getUnifiedPhoneField } from "@calcom/features/bookings/lib/phoneFieldManager";
+import { phoneFieldService } from "@calcom/features/bookings/lib/phone-fields";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
 import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
@@ -146,9 +146,6 @@ export const ensureBookingInputsHaveSystemFields = ({
     [EventTypeCustomInputType.RADIO]: BookingFieldTypeEnum.radio,
     [EventTypeCustomInputType.PHONE]: BookingFieldTypeEnum.phone,
   };
-
-  // Use unified phone field instead of separate fields for each workflow type
-  const unifiedPhoneField = getUnifiedPhoneField(workflows);
 
   const isEmailFieldOptional = !!bookingFields.find((field) => field.name === "email" && !field.required);
 
@@ -325,37 +322,8 @@ export const ensureBookingInputsHaveSystemFields = ({
 
   bookingFields = missingSystemBeforeFields.concat(bookingFields);
 
-  // Check if we have any workflows that need phone numbers
-  const hasPhoneWorkflows = workflows.some((workflow) => 
-    workflow.workflow.steps.some((step) => 
-      step.action === "SMS_ATTENDEE" || 
-      step.action === "WHATSAPP_ATTENDEE" || 
-      step.action === "CAL_AI_PHONE_CALL"
-    )
-  );
-
-  if (hasPhoneWorkflows) {
-    // Remove any existing workflow phone fields (they might be from old data)
-    bookingFields = bookingFields.filter(
-      (f) => f.name !== SMS_REMINDER_NUMBER_FIELD && f.name !== CAL_AI_AGENT_PHONE_NUMBER_FIELD
-    );
-    
-    // Add unified phone field if we generated one
-    if (unifiedPhoneField) {
-      const indexForLocation = bookingFields.findIndex(
-        (f) => getFieldIdentifier(f.name) === getFieldIdentifier("location")
-      );
-      // Add the unified phone field after `location` field always
-      bookingFields.splice(indexForLocation + 1, 0, unifiedPhoneField);
-    }
-  } else {
-    // No phone workflows active - remove all workflow phone fields including unified
-    bookingFields = bookingFields.filter(
-      (f) => f.name !== SMS_REMINDER_NUMBER_FIELD && 
-             f.name !== CAL_AI_AGENT_PHONE_NUMBER_FIELD &&
-             f.name !== "unifiedPhoneNumber"
-    );
-  }
+  // Consolidate phone fields using the new service
+  bookingFields = phoneFieldService.consolidatePhoneFields(bookingFields, workflows);
 
   // Backward Compatibility: If we are migrating from old system, we need to map `customInputs` to `bookingFields`
   if (handleMigration) {

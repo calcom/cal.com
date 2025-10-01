@@ -11,7 +11,10 @@ interface PhoneFieldPurpose {
   label: string;
 }
 
-export const getUnifiedPhoneField = (workflows: WorkflowDataForBookingField[]): BookingFieldType | null => {
+export const getUnifiedPhoneField = (
+  workflows: WorkflowDataForBookingField[], 
+  existingFields?: Fields
+): BookingFieldType | null => {
   const phoneFieldPurposes: PhoneFieldPurpose[] = [];
   
   workflows.forEach((workflow) => {
@@ -43,7 +46,34 @@ export const getUnifiedPhoneField = (workflows: WorkflowDataForBookingField[]): 
 
   if (phoneFieldPurposes.length === 0) return null;
 
+  // Check if attendeePhoneNumber is already visible for phone-based bookings
+  const attendeePhoneField = existingFields?.find(f => f.name === "attendeePhoneNumber");
+  const isPhoneBasedBooking = attendeePhoneField && !attendeePhoneField.hidden && attendeePhoneField.required;
+
   const purposeLabels = [...new Set(phoneFieldPurposes.map(p => p.label))];
+  
+  if (isPhoneBasedBooking) {
+    // Enhance existing attendeePhoneNumber field for dual purpose
+    const labelSuffix = purposeLabels.length > 0 
+      ? ` (Contact & ${purposeLabels.join(", ")})`
+      : " (Contact)";
+
+    return {
+      ...attendeePhoneField,
+      defaultLabel: `phone_number${labelSuffix}`,
+      sources: [
+        ...attendeePhoneField.sources,
+        ...phoneFieldPurposes.map(purpose => ({
+          label: purpose.label,
+          id: `workflow-${purpose.workflowId}`,
+          type: purpose.type,
+        }))
+      ],
+      required: true, // Always required in phone-based bookings
+    } as const;
+  }
+
+  // Return regular unified field for non-phone-based bookings
   const labelSuffix = purposeLabels.length > 1 
     ? ` (${purposeLabels.join(", ")})`
     : purposeLabels.length === 1 
@@ -67,15 +97,30 @@ export const getUnifiedPhoneField = (workflows: WorkflowDataForBookingField[]): 
 
 type BookingResponses = Record<string, unknown>;
 
+/**
+ * Detects if this is a phone-based booking scenario
+ */
+export const isPhoneBasedBooking = (bookingFields: Fields): boolean => {
+  const attendeePhoneField = bookingFields.find(f => f.name === "attendeePhoneNumber");
+  return !!(attendeePhoneField && !attendeePhoneField.hidden && attendeePhoneField.required);
+};
+
 export const mapUnifiedPhoneToLegacyFields = (responses: BookingResponses): BookingResponses => {
   const unifiedPhone = responses[UNIFIED_PHONE_NUMBER_FIELD];
-  if (!unifiedPhone) return responses;
+  const attendeePhone = responses.attendeePhoneNumber;
+  
+  // For phone-based bookings, attendeePhoneNumber is the primary field
+  // For workflow-only scenarios, unifiedPhoneNumber is primary
+  const primaryPhoneValue = attendeePhone || unifiedPhone;
+  
+  if (!primaryPhoneValue) return responses;
   
   return {
     ...responses,
-    [SystemField.Enum.smsReminderNumber]: unifiedPhone,
-    aiAgentCallPhoneNumber: unifiedPhone,
-    attendeePhoneNumber: responses.attendeePhoneNumber || unifiedPhone,
+    [SystemField.Enum.smsReminderNumber]: primaryPhoneValue,
+    aiAgentCallPhoneNumber: primaryPhoneValue,
+    attendeePhoneNumber: primaryPhoneValue,
+    [UNIFIED_PHONE_NUMBER_FIELD]: primaryPhoneValue,
   };
 };
 
@@ -112,4 +157,34 @@ export const removeLegacyPhoneFields = (bookingFields: Fields): Fields => {
     field => field.name !== SystemField.Enum.smsReminderNumber && 
              field.name !== SystemField.Enum.aiAgentCallPhoneNumber
   );
+};
+
+/**
+ * Gets the primary phone number from responses with enhanced priority logic
+ */
+export const getPrimaryPhoneNumber = (responses: BookingResponses): string | undefined => {
+  // Priority 1: attendeePhoneNumber (for phone-based bookings or dual-purpose fields)
+  const attendeePhone = responses.attendeePhoneNumber;
+  if (typeof attendeePhone === 'string' && attendeePhone.trim()) {
+    return attendeePhone;
+  }
+  
+  // Priority 2: unifiedPhoneNumber (for workflow-only scenarios)
+  const unifiedPhone = responses[UNIFIED_PHONE_NUMBER_FIELD];
+  if (typeof unifiedPhone === 'string' && unifiedPhone.trim()) {
+    return unifiedPhone;
+  }
+  
+  // Priority 3: Legacy fields (for backward compatibility)
+  const smsReminder = responses[SystemField.Enum.smsReminderNumber];
+  if (typeof smsReminder === 'string' && smsReminder.trim()) {
+    return smsReminder;
+  }
+  
+  const aiPhone = responses.aiAgentCallPhoneNumber;
+  if (typeof aiPhone === 'string' && aiPhone.trim()) {
+    return aiPhone;
+  }
+  
+  return undefined;
 };

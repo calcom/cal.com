@@ -2,7 +2,7 @@ import type z from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { mapUnifiedPhoneToLegacyFields } from "@calcom/features/bookings/lib/phoneFieldManager";
+import { phoneFieldService } from "@calcom/features/bookings/lib/phone-fields";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { EventTypeCustomInput } from "@calcom/prisma/client";
@@ -69,7 +69,7 @@ const _getBookingData = async <T extends z.ZodType>({
   let responses = parsedBody.responses;
 
   // Map unified phone field to legacy fields for backward compatibility
-  responses = mapUnifiedPhoneToLegacyFields(responses);
+  responses = phoneFieldService.mapPhoneResponses(responses);
 
   const { userFieldsResponses: calEventUserFieldsResponses, responses: calEventResponses } =
     getCalEventResponses({

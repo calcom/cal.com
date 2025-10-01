@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
-import { CAL_AI_AGENT_PHONE_NUMBER_FIELD, UNIFIED_PHONE_NUMBER_FIELD } from "@calcom/features/bookings/lib/SystemField";
+import { PhoneNumber } from "@calcom/features/bookings/lib/phone-fields";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import tasker from "@calcom/features/tasker";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
@@ -18,29 +18,8 @@ type timeUnitLowerCase = "day" | "hour" | "minute";
 function extractPhoneNumber(responses: BookingInfo["responses"]): string | undefined {
   if (!responses) return undefined;
 
-  // Priority 1: Unified phone number field (if present)
-  const unifiedPhoneResponse = responses[UNIFIED_PHONE_NUMBER_FIELD];
-  if (unifiedPhoneResponse && typeof unifiedPhoneResponse === "object" && "value" in unifiedPhoneResponse) {
-    return unifiedPhoneResponse.value as string;
-  }
-
-  // Priority 2: CAL_AI_AGENT_PHONE_NUMBER_FIELD
-  const aiAgentPhoneResponse = responses[CAL_AI_AGENT_PHONE_NUMBER_FIELD];
-  if (aiAgentPhoneResponse && typeof aiAgentPhoneResponse === "object" && "value" in aiAgentPhoneResponse) {
-    return aiAgentPhoneResponse.value as string;
-  }
-
-  // Priority 3: attendeePhoneNumber as fallback
-  const attendeePhoneResponse = responses.attendeePhoneNumber;
-  if (
-    attendeePhoneResponse &&
-    typeof attendeePhoneResponse === "object" &&
-    "value" in attendeePhoneResponse
-  ) {
-    return attendeePhoneResponse.value as string;
-  }
-
-  return undefined;
+  const phoneNumber = PhoneNumber.fromResponses(responses);
+  return phoneNumber?.getValue();
 }
 
 interface CreateWorkflowReminderAndExtractPhoneArgs {
