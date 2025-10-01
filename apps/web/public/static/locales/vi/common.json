@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "Bị khoá bởi quản trị viên của nhóm",
   "app_not_connected": "Bạn không có tài khoản {{appName}} đã được kết nối.",
   "connect_now": "Kết nối ngay",
-  "connect_now_unavailable_tooltip": "Kết nối ngay hiện không khả dụng. Vui lòng đặt lịch từ các khung giờ phía trên hoặc thử lại sau.",
   "managed_event_dialog_confirm_button_one": "Thay thế & thông báo cho {{count}} thành viên",
   "managed_event_dialog_confirm_button_other": "Thay thế & thông báo cho {{count}} thành viên",
   "managed_event_dialog_title_one": "URL / {{slug}} đã có sẵn cho {{count}} thành viên. Bạn có muốn thay thế nó?",

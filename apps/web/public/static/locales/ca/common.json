@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "Bloquejat per l'administrador de l'equip",
   "app_not_connected": "No has connectat cap compte de {{appName}}.",
   "connect_now": "Connecta ara",
-  "connect_now_unavailable_tooltip": "Connectar ara no està disponible actualment. Si us plau, reserva des dels espais disponibles anteriors o torna-ho a provar més tard.",
   "managed_event_dialog_confirm_button_one": "Reemplaça i notifica {{count}} membre",
   "managed_event_dialog_confirm_button_other": "Reemplaça i notifica {{count}} membres",
   "managed_event_dialog_title_one": "L'URL /{{slug}} ja existeix per a {{count}} membre. Vols reemplaçar-la?",

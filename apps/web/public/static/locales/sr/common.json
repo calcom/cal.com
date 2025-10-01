@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "Zaključao administrator tima",
   "app_not_connected": "Niste povezali {{appName}} nalog.",
   "connect_now": "Povežite odmah",
-  "connect_now_unavailable_tooltip": "Povezivanje odmah trenutno nije dostupno. Molimo rezervišite iz gornjih termina ili pokušajte kasnije.",
   "managed_event_dialog_confirm_button_one": "Zameni i obavesti {{count}} člana",
   "managed_event_dialog_confirm_button_other": "Zameni i obavesti {{count}} članova",
   "managed_event_dialog_title_one": "URL /{{slug}} već postoji za {{count}} člana. Da li želite da ga zamenite?",

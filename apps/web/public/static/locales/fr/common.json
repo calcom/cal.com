@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "Verrouillé par l'administrateur de l'équipe",
   "app_not_connected": "Vous n'avez pas connecté de compte {{appName}}.",
   "connect_now": "Connecter maintenant",
-  "connect_now_unavailable_tooltip": "La connexion immédiate n'est pas disponible actuellement. Veuillez réserver parmi les créneaux ci-dessus ou réessayer plus tard.",
   "managed_event_dialog_confirm_button_one": "Remplacer et notifier {{count}} membre",
   "managed_event_dialog_confirm_button_other": "Remplacer et notifier {{count}} membres",
   "managed_event_dialog_title_one": "Le lien /{{slug}} existe déjà pour {{count}} membre. Voulez-vous le remplacer ?",
