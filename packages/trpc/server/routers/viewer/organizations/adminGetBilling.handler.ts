@@ -1,5 +1,4 @@
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
-import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -17,41 +16,54 @@ export const adminGetBillingHandler = async ({ input }: AdminGetBillingOptions) 
   const org = await OrganizationRepository.adminFindById({ id: input.id });
   const parsedMetadata = teamMetadataSchema.parse(org.metadata);
 
-  // Get organization onboarding data which contains Stripe customer ID
-  const onboarding = await OrganizationOnboardingRepository.findByOrganizationId(input.id);
-
   let subscriptionDetails = null;
   let invoices: any[] = [];
+  let stripeCustomerId: string | null = null;
+  let stripeSubscriptionId: string | null = null;
+  let stripeSubscriptionItemId: string | null = null;
 
-  if (onboarding?.stripeCustomerId) {
-    const billingService = new StripeBillingService();
+  // Get subscription ID from team metadata
+  stripeSubscriptionId = parsedMetadata?.subscriptionId || null;
+  stripeSubscriptionItemId = parsedMetadata?.subscriptionItemId || null;
 
-    // Get subscription details if subscription ID exists
-    if (onboarding.stripeSubscriptionId) {
-      try {
-        subscriptionDetails = await billingService.getSubscription(onboarding.stripeSubscriptionId);
-      } catch (error) {
-        console.error("Error fetching subscription:", error);
-      }
-    }
+  const billingService = new StripeBillingService();
 
-    // Get recent invoices
+  // If we have a subscription ID but no customer ID, fetch the subscription to get the customer ID
+  if (stripeSubscriptionId && !stripeCustomerId) {
     try {
-      invoices = await billingService.getInvoices(onboarding.stripeCustomerId, 10);
+      const subscription = await billingService.getSubscription(stripeSubscriptionId);
+      stripeCustomerId = typeof subscription.customer === "string" ? subscription.customer : subscription.customer.id;
+      subscriptionDetails = subscription;
+    } catch (error) {
+      console.error("Error fetching subscription:", error);
+    }
+  } else if (stripeSubscriptionId && stripeCustomerId) {
+    // We have both, just fetch subscription details
+    try {
+      subscriptionDetails = await billingService.getSubscription(stripeSubscriptionId);
+    } catch (error) {
+      console.error("Error fetching subscription:", error);
+    }
+  }
+
+  // If we have a customer ID, fetch invoices
+  if (stripeCustomerId) {
+    try {
+      invoices = await billingService.getInvoices(stripeCustomerId, 10);
     } catch (error) {
       console.error("Error fetching invoices:", error);
     }
   }
 
   return {
-    stripeCustomerId: onboarding?.stripeCustomerId || null,
-    stripeSubscriptionId: onboarding?.stripeSubscriptionId || null,
-    stripeSubscriptionItemId: onboarding?.stripeSubscriptionItemId || null,
+    stripeCustomerId,
+    stripeSubscriptionId,
+    stripeSubscriptionItemId,
     subscriptionId: parsedMetadata?.subscriptionId || null,
     subscriptionItemId: parsedMetadata?.subscriptionItemId || null,
-    billingPeriod: onboarding?.billingPeriod || null,
-    seats: onboarding?.seats || parsedMetadata?.orgSeats || null,
-    pricePerSeat: onboarding?.pricePerSeat || parsedMetadata?.orgPricePerSeat || null,
+    billingPeriod: parsedMetadata?.billingPeriod || null,
+    seats: parsedMetadata?.orgSeats || null,
+    pricePerSeat: parsedMetadata?.orgPricePerSeat || null,
     subscriptionDetails: subscriptionDetails
       ? {
           status: subscriptionDetails.status,
