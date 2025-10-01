@@ -4,14 +4,10 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
-import {
-  OrgBillingInfo,
-  OrgMetadata,
-  OrgPaymentHistory,
-} from "@calcom/features/ee/organizations/components";
+import { OrgBillingInfo, OrgMetadata, OrgPaymentHistory } from "@calcom/features/ee/organizations/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Team } from "@calcom/prisma/client";
-import type { orgSettingsSchema } from "@calcom/prisma/zod-utils";
+import type { orgSettingsSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { PanelCard } from "@calcom/ui/components/card";
@@ -23,6 +19,7 @@ type FormValues = {
   name: Team["name"];
   slug: Team["slug"];
   organizationSettings: z.infer<typeof orgSettingsSchema>;
+  metadata: z.infer<typeof teamMetadataSchema>;
 };
 
 export const OrgForm = ({
@@ -70,7 +67,7 @@ export const OrgForm = ({
     <div className="flex flex-col gap-4">
       {/* Basic Information Section */}
       <PanelCard title="Basic Information" subtitle="Organization name, slug, and settings">
-        <Form form={form} className="p-4 space-y-4" handleSubmit={onSubmit}>
+        <Form form={form} className="space-y-4 p-4" handleSubmit={onSubmit}>
           <TextField label="Name" placeholder="example" required {...form.register("name")} />
           <TextField label="Slug" placeholder="example" required {...form.register("slug")} />
           <p className="text-default mt-2 text-sm">
