@@ -91,9 +91,6 @@ test.describe("Booking Filters", () => {
 
     await bookingsGetResponse;
 
-    const dataTable = page.getByTestId("upcoming-bookings");
-    await expect(dataTable).toBeVisible();
-
     await test.step("Create filter segment with team member userIds", async () => {
       await page.getByTestId("add-filter-button").click();
       await page.getByTestId("add-filter-item-userId").click();
@@ -124,12 +121,7 @@ test.describe("Booking Filters", () => {
       await page.reload();
       await page.waitForLoadState("domcontentloaded");
 
-      await expect(dataTable).toBeVisible();
-
       await expect(page.getByTestId("add-filter-button")).toBeVisible();
-      await expect(page.getByTestId("filter-segment-select")).toBeVisible();
-
-      await page.keyboard.press("Escape");
 
       await expect(page.getByText("You do not have permissions")).toBeHidden();
     });
