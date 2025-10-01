@@ -369,6 +369,152 @@ describe("Event types Endpoints", () => {
         .expect(404);
     });
 
+    it("should create an event type with Date booking field", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Date Field Test Event",
+        slug: "date-field-test-event",
+        description: "Testing Date field functionality.",
+        lengthInMinutes: 30,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        bookingFields: [
+          {
+            type: "date",
+            label: "Appointment Date",
+            slug: "appointment-date",
+            required: true,
+            placeholder: "Select your appointment date",
+            disableOnPrefill: false,
+            hidden: false,
+          },
+          {
+            type: "date",
+            label: "Optional Follow-up Date",
+            slug: "followup-date",
+            required: false,
+            placeholder: "Select follow-up date (optional)",
+            disableOnPrefill: true,
+            hidden: false,
+          },
+        ],
+      };
+
+      return request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .send(body)
+        .expect(201)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+          const createdEventType = responseBody.data;
+          
+          expect(createdEventType).toHaveProperty("id");
+          expect(createdEventType.title).toEqual(body.title);
+          expect(createdEventType.description).toEqual(body.description);
+          expect(createdEventType.lengthInMinutes).toEqual(body.lengthInMinutes);
+          expect(createdEventType.locations).toEqual(body.locations);
+          expect(createdEventType.ownerId).toEqual(user.id);
+
+          // Verify Date fields are correctly created
+          const dateFields = createdEventType.bookingFields.filter(field => field.type === "date");
+          expect(dateFields).toHaveLength(2);
+
+          const appointmentDateField = dateFields.find(field => field.slug === "appointment-date");
+          expect(appointmentDateField).toMatchObject({
+            type: "date",
+            label: "Appointment Date",
+            slug: "appointment-date",
+            required: true,
+            placeholder: "Select your appointment date",
+            disableOnPrefill: false,
+            hidden: false,
+            isDefault: false,
+          });
+
+          const followupDateField = dateFields.find(field => field.slug === "followup-date");
+          expect(followupDateField).toMatchObject({
+            type: "date",
+            label: "Optional Follow-up Date",
+            slug: "followup-date",
+            required: false,
+            placeholder: "Select follow-up date (optional)",
+            disableOnPrefill: true,
+            hidden: false,
+            isDefault: false,
+          });
+        });
+    });
+
+    it("should update an event type with Date booking fields", async () => {
+      const updateBody: UpdateEventTypeInput_2024_06_14 = {
+        bookingFields: [
+          {
+            type: "date",
+            label: "Updated Appointment Date",
+            slug: "updated-appointment-date",
+            required: false,
+            placeholder: "Choose your updated date",
+            disableOnPrefill: true,
+            hidden: false,
+          },
+        ],
+      };
+
+      return request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${eventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .send(updateBody)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+          const updatedEventType = responseBody.data;
+
+          // Find the date field in the response
+          const dateField = updatedEventType.bookingFields.find(field => 
+            field.type === "date" && field.slug === "updated-appointment-date"
+          );
+          
+          expect(dateField).toMatchObject({
+            type: "date",
+            label: "Updated Appointment Date",
+            slug: "updated-appointment-date",
+            required: false,
+            placeholder: "Choose your updated date",
+            disableOnPrefill: true,
+            hidden: false,
+            isDefault: false,
+          });
+        });
+    });
+
+    it("should validate Date field requirements", async () => {
+      const invalidBody: CreateEventTypeInput_2024_06_14 = {
+        title: "Invalid Date Field Test",
+        slug: "invalid-date-field-test",
+        lengthInMinutes: 30,
+        bookingFields: [
+          {
+            type: "date",
+            slug: "invalid-date",
+            required: true,
+          } as any,
+        ],
+      };
+
+      return request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .send(invalidBody)
+        .expect(400);
+    });
+
     it("should not be able to create phone-only event type", async () => {
       const body: CreateEventTypeInput_2024_06_14 = {
         title: "Phone coding consultation",
@@ -505,6 +651,15 @@ describe("Event types Endpoints", () => {
             disableOnPrefill: true,
             hidden: false,
           },
+          {
+            type: "date",
+            label: "Preferred Date",
+            slug: "preferred-date",
+            required: false,
+            placeholder: "Select your preferred date",
+            disableOnPrefill: false,
+            hidden: false,
+          },
         ],
         scheduleId: firstSchedule.id,
         bookingLimitsCount: {
@@ -625,6 +780,16 @@ describe("Event types Endpoints", () => {
               required: true,
               placeholder: "add video url",
               disableOnPrefill: true,
+              hidden: false,
+              isDefault: false,
+            },
+            {
+              type: "date",
+              label: "Preferred Date",
+              slug: "preferred-date",
+              required: false,
+              placeholder: "Select your preferred date",
+              disableOnPrefill: false,
               hidden: false,
               isDefault: false,
             },
@@ -2491,6 +2656,81 @@ describe("Event types Endpoints", () => {
         });
     });
 
+    it("should return event type with Date booking fields", async () => {
+      const dateBookingField = {
+        name: "appointment-date",
+        type: "date",
+        label: "Appointment Date",
+        sources: [
+          {
+            id: "user",
+            type: "user",
+            label: "User",
+            fieldRequired: true,
+          },
+        ],
+        editable: "user",
+        required: true,
+        placeholder: "Select your appointment date",
+      };
+
+      const eventTypeInput = {
+        title: "date field event type",
+        description: "date field event type description",
+        length: 40,
+        hidden: false,
+        slug: `date-field-event-type-${randomString()}`,
+        locations: [],
+        schedulingType: SchedulingType.ROUND_ROBIN,
+        bookingFields: [
+          dateBookingField,
+          {
+            name: "name",
+            type: "name",
+            sources: [{ id: "default", type: "default", label: "Default" }],
+            editable: "system",
+            required: true,
+            defaultLabel: "your_name",
+          },
+          {
+            name: "email",
+            type: "email",
+            sources: [{ id: "default", type: "default", label: "Default" }],
+            editable: "system",
+            required: true,
+            defaultLabel: "email_address",
+          },
+        ],
+      };
+      const eventType = await eventTypesRepositoryFixture.create(eventTypeInput, user.id);
+
+      return request(app.getHttpServer())
+        .get(`/api/v2/event-types/${eventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+          const fetchedEventType = responseBody.data;
+
+          const dateField = fetchedEventType.bookingFields.find(field => field.type === "date");
+          expect(dateField).toMatchObject({
+            isDefault: false,
+            type: "date",
+            slug: "appointment-date",
+            label: "Appointment Date",
+            required: true,
+            placeholder: "Select your appointment date",
+            disableOnPrefill: false,
+            hidden: false,
+          });
+
+          const nameField = fetchedEventType.bookingFields.find(field => field.type === "name");
+          const emailField = fetchedEventType.bookingFields.find(field => field.type === "email");
+          expect(nameField).toBeDefined();
+          expect(emailField).toBeDefined();
+        });
+    });
+
     it("should return event type with unknown bookingField", async () => {
       const unknownSystemField = {
         name: "unknown-whatever",
@@ -2684,6 +2924,88 @@ describe("Event types Endpoints", () => {
             expect(id2).not.toEqual(id);
             expect(title2).not.toEqual(title);
             expect(slug2).not.toEqual(slug);
+          });
+      });
+
+      it("should handle Date field edge cases", async () => {
+        const body: CreateEventTypeInput_2024_06_14 = {
+          title: "Date Field Edge Cases",
+          slug: "date-field-edge-cases",
+          lengthInMinutes: 30,
+          bookingFields: [
+            {
+              type: "date",
+              label: "Required Date Field",
+              slug: "required-date",
+              required: true,
+              disableOnPrefill: false,
+              hidden: false,
+            },
+            {
+              type: "date",
+              label: "Hidden Date Field",
+              slug: "hidden-date",
+              required: false,
+              disableOnPrefill: true,
+              hidden: true,
+            },
+            {
+              type: "date",
+              label: "Prefill Disabled Date",
+              slug: "no-prefill-date",
+              required: false,
+              placeholder: "Manual selection only",
+              disableOnPrefill: true,
+              hidden: false,
+            },
+          ],
+        };
+
+        return request(app.getHttpServer())
+          .post("/api/v2/event-types")
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+          .send(body)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+            const createdEventType = responseBody.data;
+
+            const dateFields = createdEventType.bookingFields.filter(field => field.type === "date");
+            expect(dateFields).toHaveLength(3);
+
+            const requiredDateField = dateFields.find(field => field.slug === "required-date");
+            expect(requiredDateField).toMatchObject({
+              type: "date",
+              label: "Required Date Field",
+              slug: "required-date",
+              required: true,
+              disableOnPrefill: false,
+              hidden: false,
+              isDefault: false,
+            });
+
+            const hiddenDateField = dateFields.find(field => field.slug === "hidden-date");
+            expect(hiddenDateField).toMatchObject({
+              type: "date",
+              label: "Hidden Date Field",
+              slug: "hidden-date",
+              required: false,
+              disableOnPrefill: true,
+              hidden: true,
+              isDefault: false,
+            });
+
+            const noPrefillDateField = dateFields.find(field => field.slug === "no-prefill-date");
+            expect(noPrefillDateField).toMatchObject({
+              type: "date",
+              label: "Prefill Disabled Date",
+              slug: "no-prefill-date",
+              required: false,
+              placeholder: "Manual selection only",
+              disableOnPrefill: true,
+              hidden: false,
+              isDefault: false,
+            });
           });
       });
 
