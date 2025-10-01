@@ -662,15 +662,17 @@ export async function getCredentialForSelectedCalendar({
   userId,
 }: Partial<SelectedCalendar>) {
   if (credentialId) {
-    const credential = await CredentialRepository.findByIdIncludeDelegationCredential(credentialId);
-    if (credential.delegationCredentialId) {
+    const credentialRepository = new CredentialRepository(prisma);
+    const credential = await credentialRepository.findByIdWithDelegationCredential(credentialId);
+    if (credential?.delegationCredential?.id && credential.userId) {
       return findUniqueDelegationCalendarCredential({
         userId: credential.userId,
         delegationCredentialId: credential.delegationCredential.id,
       });
     }
-    return buildNonDelegationCredential(credential);
-  } else if (delegationCredentialId && userId) {
+    return credential && buildNonDelegationCredential(credential);
+  }
+  if (delegationCredentialId && userId) {
     return findUniqueDelegationCalendarCredential({
       userId,
       delegationCredentialId,
