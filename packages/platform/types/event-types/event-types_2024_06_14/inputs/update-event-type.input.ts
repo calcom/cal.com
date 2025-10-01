@@ -455,14 +455,16 @@ export class UpdateTeamEventTypeInput_2024_06_14 extends BaseUpdateEventTypeInpu
   @Type(() => Host)
   @IsArray()
   @IsOptional()
-  @DocsPropertyOptional({ type: [Host] })
+  @DocsPropertyOptional({ type: [Host],
+    description:
+      "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users. Provide either hosts or assignAllTeamMembers but not both",
+   })
   hosts?: Host[];
 
   @IsOptional()
   @IsBoolean()
-  @DocsProperty()
   @DocsPropertyOptional({
-    description: "If true, all current and future team members will be assigned to this event type",
+    description: "If true, all current and future team members will be assigned to this event type. Provide either assignAllTeamMembers or hosts but not both",
   })
   assignAllTeamMembers?: boolean;
 

@@ -1,5 +1,6 @@
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { addPermissionsToWorkflows } from "@calcom/lib/server/repository/workflow-permissions";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -69,5 +70,9 @@ export const getAllActiveWorkflowsHandler = async ({ input, ctx }: GetAllActiveW
     eventType.userId
   );
 
-  return allActiveWorkflows;
+  const workflowsWithPermissions = await addPermissionsToWorkflows(allActiveWorkflows, ctx.user.id);
+
+  const filteredWorkflows = workflowsWithPermissions.filter((workflow) => workflow.permissions.canView);
+
+  return filteredWorkflows;
 };
