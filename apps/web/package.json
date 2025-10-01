@@ -87,7 +87,7 @@
     "async": "^3.2.4",
     "bcp-47-match": "^2.0.3",
     "bcryptjs": "^2.4.3",
-    "botid": "^1.5.6",
+    "botid": "^1.5.7",
     "classnames": "^2.3.1",
     "dompurify": "^3.1.7",
     "dotenv-cli": "^6.0.0",

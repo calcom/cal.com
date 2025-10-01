@@ -23,8 +23,8 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
   if (process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER === "1") {
     const verification = await checkBotId({
-      developmentOptions: {
-        bypass: "HUMAN", // default: 'HUMAN'
+      advancedOptions: {
+        headers: req.headers,
       },
     });
 
