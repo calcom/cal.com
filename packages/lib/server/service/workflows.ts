@@ -4,7 +4,7 @@ import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/re
 import type { Workflow } from "@calcom/ee/workflows/lib/types";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { prisma } from "@calcom/prisma";
-import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { WorkflowTriggerEvents, WorkflowType } from "@calcom/prisma/enums";
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/lib/formSubmissionUtils";
 
 import { getHideBranding } from "../../hideBranding";
@@ -55,12 +55,12 @@ export class WorkflowService {
     const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
 
     const allWorkflows = await getAllWorkflows({
-      entityWorkflows: routingFormWorkflows as any, // Temporary cast until Prisma client is regenerated
+      entityWorkflows: routingFormWorkflows,
       userId,
       teamId,
       orgId,
       workflowsLockedForUser: false,
-      triggerType: "routingForm",
+      type: WorkflowType.ROUTING_FORM,
     });
 
     return allWorkflows;
@@ -129,12 +129,10 @@ export class WorkflowService {
   static async scheduleFormWorkflows({
     workflows,
     responses,
-    responseId,
     form,
   }: {
     workflows: Workflow[];
     responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
-    responseId: number;
     form: {
       id: string;
       userId: number;
@@ -152,7 +150,7 @@ export class WorkflowService {
     const workflowsToTrigger: Workflow[] = [];
 
     workflowsToTrigger.push(
-      ...workflows.filter((workflow) => workflow.trigger === ("FORM_SUBMITTED" as any))
+      ...workflows.filter((workflow) => workflow.trigger === WorkflowTriggerEvents.FORM_SUBMITTED)
     );
 
     let smsReminderNumber: string | null = null;
