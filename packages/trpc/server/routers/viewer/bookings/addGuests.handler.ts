@@ -1,11 +1,13 @@
 import dayjs from "@calcom/dayjs";
 import { sendAddGuestsEmails } from "@calcom/emails";
-import EventManager from "@calcom/lib/EventManager";
+import EventManager from "@calcom/features/bookings/lib/EventManager";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
+import type { BookingResponses } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -43,15 +45,21 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
 
   if (!booking) throw new TRPCError({ code: "NOT_FOUND", message: "booking_not_found" });
 
-  const isTeamAdminOrOwner =
-    (await isTeamAdmin(user.id, booking.eventType?.teamId ?? 0)) ||
-    (await isTeamOwner(user.id, booking.eventType?.teamId ?? 0));
-
   const isOrganizer = booking.userId === user.id;
-
   const isAttendee = !!booking.attendees.find((attendee) => attendee.email === user.email);
 
-  if (!isTeamAdminOrOwner && !isOrganizer && !isAttendee) {
+  let hasBookingUpdatePermission = false;
+  if (booking.eventType?.teamId) {
+    const permissionCheckService = new PermissionCheckService();
+    hasBookingUpdatePermission = await permissionCheckService.checkPermission({
+      userId: user.id,
+      teamId: booking.eventType.teamId,
+      permission: "booking.update",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+    });
+  }
+
+  if (!hasBookingUpdatePermission && !isOrganizer && !isAttendee) {
     throw new TRPCError({ code: "FORBIDDEN", message: "you_do_not_have_permission" });
   }
 
@@ -89,6 +97,8 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     };
   });
 
+  const bookingResponses = booking.responses as BookingResponses;
+
   const bookingAttendees = await prisma.booking.update({
     where: {
       id: bookingId,
@@ -101,6 +111,10 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
         createMany: {
           data: guestsFullDetails,
         },
+      },
+      responses: {
+        ...bookingResponses,
+        guests: [...(bookingResponses?.guests || []), ...uniqueGuests],
       },
     },
   });

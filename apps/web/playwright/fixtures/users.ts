@@ -1,8 +1,5 @@
 import type { Browser, Page, WorkerInfo } from "@playwright/test";
 import { expect } from "@playwright/test";
-import type Prisma from "@prisma/client";
-import type { Team } from "@prisma/client";
-import { Prisma as PrismaType } from "@prisma/client";
 import { hashSync as hash } from "bcryptjs";
 import { uuid } from "short-uuid";
 import { v4 } from "uuid";
@@ -13,6 +10,9 @@ import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/avail
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
+import type Prisma from "@calcom/prisma/client";
+import type { Team } from "@calcom/prisma/client";
+import type { Prisma as PrismaType } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType, TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { Schedule } from "@calcom/types/schedule";
@@ -32,12 +32,12 @@ type UserFixture = ReturnType<typeof createUserFixture>;
 
 export type CreateUsersFixture = ReturnType<typeof createUsersFixture>;
 
-const userIncludes = PrismaType.validator<PrismaType.UserInclude>()({
+const userIncludes = {
   eventTypes: true,
   workflows: true,
   credentials: true,
   routingForms: true,
-});
+} satisfies PrismaType.UserInclude;
 
 type InstallStripeParamsSkipTrue = {
   eventTypeIds?: number[];
@@ -63,9 +63,9 @@ type InstallStripeParams = InstallStripeParamsUnion & {
   page: Page;
 };
 
-const userWithEventTypes = PrismaType.validator<PrismaType.UserArgs>()({
+const userWithEventTypes = {
   include: userIncludes,
-});
+} satisfies PrismaType.UserDefaultArgs;
 
 const seededForm = {
   id: "948ae412-d995-4865-875a-48302588de03",
@@ -584,6 +584,10 @@ export const createUsersFixture = (
     get: () => store.users,
     logout: async () => {
       await page.goto("/auth/logout");
+      const logoutBtn = page.getByTestId("logout-btn");
+      await expect(logoutBtn).toHaveText("Go back to the login page");
+      await page.reload();
+      await expect(logoutBtn).toHaveText("Go back to the login page");
     },
     deleteAll: async () => {
       const ids = store.users.map((u) => u.id);
@@ -680,6 +684,10 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     },
     logout: async () => {
       await page.goto("/auth/logout");
+      const logoutBtn = page.getByTestId("logout-btn");
+      await expect(logoutBtn).toHaveText("Go back to the login page");
+      await page.reload();
+      await expect(logoutBtn).toHaveText("Go back to the login page");
     },
     getFirstTeamMembership: async () => {
       const memberships = await prisma.membership.findMany({

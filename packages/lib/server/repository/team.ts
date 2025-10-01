@@ -1,10 +1,10 @@
-import type { Prisma } from "@prisma/client";
 import type { z } from "zod";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -176,6 +176,19 @@ export class TeamRepository {
         id,
       },
       select: teamSelect,
+    });
+    if (!team) {
+      return null;
+    }
+    return getParsedTeam(team);
+  }
+
+  async findByIdIncludePlatformBilling({ id }: { id: number }) {
+    const team = await this.prismaClient.team.findUnique({
+      where: {
+        id,
+      },
+      select: { ...teamSelect, platformBilling: true },
     });
     if (!team) {
       return null;
