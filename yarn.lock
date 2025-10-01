@@ -3849,6 +3849,7 @@ __metadata:
     "@prisma/client": ^6.7.0
     "@prisma/extension-accelerate": ^1.3.0
     "@prisma/generator-helper": ^6.7.0
+    npm-run-all: ^4.1.5
     prisma: ^6.7.0
     prisma-kysely: 2.2.0
     ts-node: ^10.9.1
@@ -4363,7 +4364,7 @@ __metadata:
     react-select: ^5.7.0
     react-timezone-select: ^1.4.0
     react-turnstile: ^1.1.3
-    react-use-intercom: 1.5.1
+    react-use-intercom: ^5.5.0
     recoil: ^0.7.7
     remove-markdown: ^0.5.0
     retell-client-js-sdk: ^2.0.0
@@ -41237,13 +41238,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-use-intercom@npm:1.5.1":
-  version: 1.5.1
-  resolution: "react-use-intercom@npm:1.5.1"
+"react-use-intercom@npm:^5.5.0":
+  version: 5.5.0
+  resolution: "react-use-intercom@npm:5.5.0"
   peerDependencies:
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: 34f502f037bf93a3b1a9ead9d4380e7bfebd36d85e79ee2f92f14bdcea0b6d709f74e1344ef39d50016ec29c9414075fdb93efb1ad736ede91fa435f83aa3156
+  checksum: 2f81068f6ff414aca7afc83d03a4b99bebcb446b970a558d4fad174420371aad2cdb801e246896f37156a6266c6a34c01dde83a3ae80c761aa1f46eaedf763af
   languageName: node
   linkType: hard
 
