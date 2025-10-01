@@ -102,6 +102,8 @@ type WorkflowStepProps = {
     isOrganization: boolean;
     isCalAi: boolean;
   }[];
+  updateTemplate?: boolean;
+  setUpdateTemplate?: Dispatch<SetStateAction<boolean>>;
 };
 
 const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
@@ -169,6 +171,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     setIsDeleteStepDialogOpen,
     onSaveWorkflow,
     actionOptions,
+    updateTemplate,
+    setUpdateTemplate,
   } = props;
   const { data: _verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
     { teamId },
@@ -259,7 +263,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     WorkflowActions.SMS_NUMBER === action || WorkflowActions.WHATSAPP_NUMBER === action;
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(requirePhoneNumber);
 
-  const [updateTemplate, setUpdateTemplate] = useState(false);
   const [firstRender, setFirstRender] = useState(true);
 
   const senderNeeded =

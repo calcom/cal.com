@@ -44,6 +44,7 @@ export default function WorkflowDetailsPage(props: Props) {
   const [isDeleteStepDialogOpen, setIsDeleteStepDialogOpen] = useState(false);
 
   const [reload, setReload] = useState(false);
+  const [updateTemplate, setUpdateTemplate] = useState(false);
 
   const searchParams = useSearchParams();
   const eventTypeId = searchParams?.get("eventTypeId");
@@ -93,7 +94,6 @@ export default function WorkflowDetailsPage(props: Props) {
       setSelectedOptions(newOptions);
       form.setValue("activeOn", newOptions);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventTypeId]);
 
   const steps = form.getValues("steps") || [];
@@ -174,6 +174,8 @@ export default function WorkflowDetailsPage(props: Props) {
               allOptions={allOptions}
               onSaveWorkflow={props.onSaveWorkflow}
               actionOptions={transformedActionOptions}
+              updateTemplate={updateTemplate}
+              setUpdateTemplate={setUpdateTemplate}
             />
           </FormCardBody>
         </FormCard>
@@ -247,6 +249,8 @@ export default function WorkflowDetailsPage(props: Props) {
                         isAgentLoading={isAgentLoading}
                         agentData={agentData}
                         actionOptions={transformedActionOptions}
+                        updateTemplate={updateTemplate}
+                        setUpdateTemplate={setUpdateTemplate}
                       />
                     </FormCardBody>
                   </FormCard>
