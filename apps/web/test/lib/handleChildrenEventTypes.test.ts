@@ -451,7 +451,6 @@ describe("handleChildrenEventTypes", () => {
         requiresBookerEmailVerification: false,
         lockTimeZoneToggleOnBookingPage: false,
         useEventTypeDestinationCalendarEmail: false,
-        showOptimizedSlots: false,
         workflows: [],
         parentId: 1,
         locations: [],
