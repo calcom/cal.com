@@ -43,6 +43,13 @@ const getEventTypesFromDBSelect = {
       id: true,
       name: true,
       parentId: true,
+      // Needed for branding control on bookings
+      hideBranding: true,
+      parent: {
+        select: {
+          hideBranding: true,
+        },
+      },
       bookingLimits: true,
       includeManagedEventsInLimits: true,
       rrResetInterval: true,

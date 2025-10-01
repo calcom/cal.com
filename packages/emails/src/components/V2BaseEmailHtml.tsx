@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-head-element */
 import BaseTable from "./BaseTable";
 import EmailBodyLogo from "./EmailBodyLogo";
 import EmailHead from "./EmailHead";
@@ -22,6 +21,7 @@ export const V2BaseEmailHtml = (props: {
   title?: string;
   subtitle?: React.ReactNode;
   headerType?: BodyHeadType;
+  hideLogo?: boolean;
 }) => {
   return (
     <Html>
@@ -182,7 +182,7 @@ export const V2BaseEmailHtml = (props: {
               </td>
             </Row>
           </div>
-          <EmailBodyLogo />
+          {!props.hideLogo && <EmailBodyLogo />}
           <RawHtml html="<!--[if mso | IE]></td></tr></table><![endif]-->" />
         </div>
       </body>
