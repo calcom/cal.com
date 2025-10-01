@@ -738,7 +738,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         .set({ Authorization: `Bearer cal_test_${teammateTwoApiKeyString}` })
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04);
 
-      expect(reserveResponseTwo.status).toEqual(400);
+      expect(reserveResponseTwo.status).toEqual(422);
       expect(reserveResponseTwo.body.status).toEqual(ERROR_STATUS);
 
       await selectedSlotRepositoryFixture.deleteByUId(responseReservedSlotOne.reservationUid);

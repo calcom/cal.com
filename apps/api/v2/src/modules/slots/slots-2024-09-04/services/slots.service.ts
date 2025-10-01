@@ -156,7 +156,14 @@ export class SlotsService_2024_09_04 {
     }
 
     if (isRoundRobinEvent) {
-      await validateRoundRobinSlotAvailability(input.eventTypeId, startDate, endDate, eventType.hosts);
+      try {
+        await validateRoundRobinSlotAvailability(input.eventTypeId, startDate, endDate, eventType.hosts);
+      } catch (error) {
+        if (error instanceof Error) {
+          throw new UnprocessableEntityException(error?.message);
+        }
+        throw error;
+      }
     } else {
       await this.checkSlotOverlap(input.eventTypeId, startDate.toISO(), endDate.toISO());
     }
