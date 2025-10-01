@@ -11,7 +11,11 @@ import type {
 } from "../interfaces/IWatchlistRepositories";
 import { auditServiceModule } from "../modules/audit";
 import { blockingServiceModule } from "../modules/booking";
+import { globalServicesModule } from "../modules/global";
+import { organizationServicesModule } from "../modules/organization";
 import { watchlistRepositoryModule } from "../modules/watchlist";
+import type { GlobalBlockingService } from "../services/GlobalBlockingService";
+import type { OrganizationBlockingService } from "../services/OrganizationBlockingService";
 import { WATCHLIST_DI_TOKENS } from "../tokens";
 
 const container = createContainer();
@@ -23,6 +27,10 @@ container.load(DI_TOKENS.PRISMA_MODULE, prismaModule);
 container.load(WATCHLIST_DI_TOKENS.WATCHLIST_REPOSITORY_MODULE, watchlistRepositoryModule);
 container.load(WATCHLIST_DI_TOKENS.AUDIT_SERVICE_MODULE, auditServiceModule);
 container.load(WATCHLIST_DI_TOKENS.BLOCKING_SERVICE_MODULE, blockingServiceModule);
+
+// Load new separated service modules
+container.load(WATCHLIST_DI_TOKENS.GLOBAL_SERVICES_MODULE, globalServicesModule);
+container.load(WATCHLIST_DI_TOKENS.ORGANIZATION_SERVICES_MODULE, organizationServicesModule);
 
 export function getBlockingService(): IBlockingService {
   return container.get<IBlockingService>(WATCHLIST_DI_TOKENS.BLOCKING_SERVICE);
@@ -38,4 +46,13 @@ export function getWatchlistReadRepository(): IWatchlistReadRepository {
 
 export function getWatchlistWriteRepository(): IWatchlistWriteRepository {
   return container.get<IWatchlistWriteRepository>(WATCHLIST_DI_TOKENS.WATCHLIST_WRITE_REPOSITORY);
+}
+
+// New separated service getters
+export function getGlobalBlockingService(): GlobalBlockingService {
+  return container.get<GlobalBlockingService>(WATCHLIST_DI_TOKENS.GLOBAL_BLOCKING_SERVICE);
+}
+
+export function getOrganizationBlockingService(): OrganizationBlockingService {
+  return container.get<OrganizationBlockingService>(WATCHLIST_DI_TOKENS.ORGANIZATION_BLOCKING_SERVICE);
 }

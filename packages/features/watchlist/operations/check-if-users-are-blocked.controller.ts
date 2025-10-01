@@ -2,15 +2,17 @@ import { startSpan } from "@sentry/nextjs";
 
 import { getWatchlistReadRepository } from "@calcom/lib/di/watchlist/containers/watchlist";
 
-function presenter(containsBlockedUser: boolean) {
+import type { UsersBlockedCheckResponseDTO } from "../lib/dto";
+
+function presenter(containsBlockedUser: boolean): UsersBlockedCheckResponseDTO {
   return startSpan({ name: "checkIfUsersAreBlocked Presenter", op: "serialize" }, () => {
-    return !!containsBlockedUser;
+    return { containsBlockedUser };
   });
 }
 
 export async function checkIfUsersAreBlocked(
   users: { email: string; username: string | null; locked: boolean }[]
-): Promise<ReturnType<typeof presenter>> {
+): Promise<UsersBlockedCheckResponseDTO> {
   const usernamesToCheck = [],
     emailsToCheck = [],
     domainsToCheck = [];
