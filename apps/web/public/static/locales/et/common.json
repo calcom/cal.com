@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "Meeskonna administraatori poolt lukustatud",
   "app_not_connected": "Te pole rakenduse {{appName}} kontot ühendanud.",
   "connect_now": "Ühenda kohe",
-  "connect_now_unavailable_tooltip": "Funktsioon 'Ühenda kohe' ei ole praegu saadaval. Palun broneerige ülaltoodud ajavahemikest või proovige hiljem uuesti.",
   "managed_event_dialog_confirm_button_one": "Asenda ja teavita {{count}} liiget",
   "managed_event_dialog_confirm_button_other": "Asenda ja teavitage {{count}} liiget",
   "managed_event_dialog_title_one": "URL /{{slug}} on {{count}} liikme jaoks juba olemas. Kas soovite selle asendada?",

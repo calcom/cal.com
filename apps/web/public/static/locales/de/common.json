@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "Vom Team-Admin gesperrt",
   "app_not_connected": "Sie haben kein {{appName}}-Konto verbunden.",
   "connect_now": "Jetzt verbinden",
-  "connect_now_unavailable_tooltip": "Sofortige Verbindung ist derzeit nicht verfügbar. Bitte buchen Sie aus den obigen Zeitfenstern oder versuchen Sie es später erneut.",
   "managed_event_dialog_confirm_button_one": "{{count}} Mitglied ersetzen & benachrichtigen",
   "managed_event_dialog_confirm_button_other": "{{count}} Mitglieder ersetzen & benachrichtigen",
   "managed_event_dialog_title_one": "Die URL /{{slug}} wird bereits von {{count}} Mitglied genutzt. Möchten Sie sie ersetzen?",

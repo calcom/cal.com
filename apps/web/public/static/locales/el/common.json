@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "Κλειδωμένο από τον διαχειριστή ομάδας",
   "app_not_connected": "Δεν έχετε συνδέσει λογαριασμό {{appName}}.",
   "connect_now": "Σύνδεση τώρα",
-  "connect_now_unavailable_tooltip": "Η άμεση σύνδεση δεν είναι διαθέσιμη αυτή τη στιγμή. Παρακαλώ κάντε κράτηση από τις παραπάνω διαθέσιμες ώρες ή δοκιμάστε αργότερα.",
   "managed_event_dialog_confirm_button_one": "Αντικατάσταση & ειδοποίηση {{count}} μέλους",
   "managed_event_dialog_confirm_button_other": "Αντικατάσταση & ειδοποίηση {{count}} μελών",
   "managed_event_dialog_title_one": "Το url /{{slug}} υπάρχει ήδη για {{count}} μέλος. Θέλετε να το αντικαταστήσετε;",
