@@ -123,7 +123,7 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
               selectedCategory === cat ? "bg-emphasis text-default" : "bg-muted text-emphasis",
               "hover:bg-emphasis rounded-md px-4 py-2.5 text-sm font-medium transition hover:cursor-pointer"
             )}>
-            {cat[0].toUpperCase() + cat.slice(1)}
+            {cat === "crm" ? cat.toUpperCase() : cat[0].toUpperCase() + cat.slice(1)}
           </li>
         ))}
       </ul>
