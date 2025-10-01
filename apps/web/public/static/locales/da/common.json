@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "Låst af teamadministrator",
   "app_not_connected": "Du har ikke forbundet en {{appName}}-konto.",
   "connect_now": "Forbind nu",
-  "connect_now_unavailable_tooltip": "Forbind nu er i øjeblikket ikke tilgængelig. Book venligst fra ovenstående tidsrum eller prøv igen senere.",
   "managed_event_dialog_confirm_button_one": "Erstat og underret {{count}} medlem",
   "managed_event_dialog_confirm_button_other": "Erstat og underret {{count}} medlemmer",
   "managed_event_dialog_title_one": "URL'en /{{slug}} findes allerede for {{count}} medlem. Vil du erstatte den?",

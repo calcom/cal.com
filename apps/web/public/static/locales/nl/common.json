@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "Vergrendeld door teambeheerder",
   "app_not_connected": "U hebt geen {{appName}}-account gekoppeld.",
   "connect_now": "Nu koppelen",
-  "connect_now_unavailable_tooltip": "Direct verbinden is momenteel niet beschikbaar. Boek alstublieft via bovenstaande tijdslots of probeer het later opnieuw.",
   "managed_event_dialog_confirm_button_one": "{{count}} lid vervangen en informeren",
   "managed_event_dialog_confirm_button_other": "{{count}} leden vervangen en informeren",
   "managed_event_dialog_title_one": "De URL /{{slug}} bestaat al voor {{count}} lid. Wilt u deze vervangen?",

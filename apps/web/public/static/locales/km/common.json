@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "បានចាក់សោដោយអ្នកគ្រប់គ្រងក្រុម",
   "app_not_connected": "អ្នកមិនបានភ្ជាប់គណនី {{appName}} ទេ។",
   "connect_now": "ភ្ជាប់ឥឡូវនេះ",
-  "connect_now_unavailable_tooltip": "ការភ្ជាប់ឥឡូវនេះមិនអាចប្រើបានទេ។ សូមកក់ពីពេលវេលាខាងលើ ឬព្យាយាមម្តងទៀតនៅពេលក្រោយ។",
   "managed_event_dialog_confirm_button_one": "ជំនួស និងជូនដំណឹងសមាជិក {{count}}",
   "managed_event_dialog_confirm_button_other": "ជំនួស និងជូនដំណឹងសមាជិក {{count}} នាក់",
   "managed_event_dialog_title_one": "URL /{{slug}} មានស្រាប់សម្រាប់សមាជិក {{count}}។ តើអ្នកចង់ជំនួសវាឬ?",

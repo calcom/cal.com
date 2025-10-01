@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "টিম অ্যাডমিন দ্বারা লক",
   "app_not_connected": "আপনি সংযুক্ত না একটি {{appName}} অ্যাকাউন্ট।",
   "connect_now": "এখনই সংযুক্ত করুন",
-  "connect_now_unavailable_tooltip": "এখন সংযোগ করা বর্তমানে অনুপলব্ধ। অনুগ্রহ করে উপরের স্লট থেকে বুক করুন অথবা পরে আবার চেষ্টা করুন।",
   "managed_event_dialog_confirm_button_one": "প্রতিস্থাপন এবং অবহিত {{count}} সদস্য",
   "managed_event_dialog_confirm_button_other": "প্রতিস্থাপন এবং অবহিত {{count}} সদস্য",
   "managed_event_dialog_title_one": "ইউআরএল /{{slug}} ইতিমধ্যে বিদ্যমান {{count}} সদস্য ",

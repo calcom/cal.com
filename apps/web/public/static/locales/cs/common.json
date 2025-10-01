@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "Uzamčeno správcem týmu",
   "app_not_connected": "Nemáte připojený účet {{appName}}.",
   "connect_now": "Připojte se",
-  "connect_now_unavailable_tooltip": "Připojit nyní je momentálně nedostupné. Prosím rezervujte si z výše uvedených termínů nebo to zkuste později.",
   "managed_event_dialog_confirm_button_one": "Nahradit a upozornit {{count}} člena",
   "managed_event_dialog_confirm_button_other": "Nahradit a upozornit členy {{count}}",
   "managed_event_dialog_title_one": "Adresa URL /{{slug}} již existuje pro {{count}} člena. Chcete ji nahradit?",

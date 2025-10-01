@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "Låst av teamadministratör",
   "app_not_connected": "Du har inte anslutit ett {{appName}}-konto.",
   "connect_now": "Anslut nu",
-  "connect_now_unavailable_tooltip": "Anslut nu är för närvarande inte tillgängligt. Boka från ovanstående tider eller försök igen senare.",
   "managed_event_dialog_confirm_button_one": "Ersätt och meddela {{count}} medlem",
   "managed_event_dialog_confirm_button_other": "Ersätt och meddela {{count}} medlemmar",
   "managed_event_dialog_title_one": "Webbadressen/{{slug}} finns redan för {{count}} medlem. Vill du ersätta den?",

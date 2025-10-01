@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "Låst av teamadministrator",
   "app_not_connected": "Du har ikke koblet til en {{appName}}-konto.",
   "connect_now": "Koble til nå",
-  "connect_now_unavailable_tooltip": "Koble til nå er for øyeblikket utilgjengelig. Vennligst bestill fra tilgjengelige tider ovenfor eller prøv igjen senere.",
   "managed_event_dialog_confirm_button_one": "Erstatt og varsle {{count}} medlem",
   "managed_event_dialog_confirm_button_other": "Erstatt og varsle {{count}} medlemmer",
   "managed_event_dialog_title_one": "URL-en /{{slug}} eksisterer allerede for {{count}} medlem. Vil du erstatte den?",

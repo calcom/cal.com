@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "Tiimin ylläpitäjän lukitsema",
   "app_not_connected": "Et ole yhdistänyt {{appName}}-tiliä.",
   "connect_now": "Yhdistä nyt",
-  "connect_now_unavailable_tooltip": "Yhdistä nyt -toiminto ei ole tällä hetkellä käytettävissä. Varaa yllä olevista ajoista tai yritä myöhemmin uudelleen.",
   "managed_event_dialog_confirm_button_one": "Korvaa ja ilmoita {{count}} jäsenelle",
   "managed_event_dialog_confirm_button_other": "Korvaa ja ilmoita {{count}} jäsenelle",
   "managed_event_dialog_title_one": "URL-osoite /{{slug}} on jo käytössä {{count}} jäsenellä. Haluatko korvata sen?",

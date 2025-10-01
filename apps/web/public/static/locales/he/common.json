@@ -2304,7 +2304,6 @@
   "locked_by_team_admin": "ננעל על ידי מנהל/ת הצוות",
   "app_not_connected": "לא קישרת חשבון {{appName}}.",
   "connect_now": "להתחבר עכשיו",
-  "connect_now_unavailable_tooltip": "התחברות מיידית אינה זמינה כרגע. אנא הזמן מהמשבצות למעלה או נסה שוב מאוחר יותר.",
   "managed_event_dialog_confirm_button_one": "החלפה ועדכון של חבר/ה {{count}}",
   "managed_event_dialog_confirm_button_other": "החלפה ועדכון של {{count}} חברים",
   "managed_event_dialog_title_one": "כתובת ה-URL /‏{{slug}} כבר קיימת עבור חבר/ה {{count}}. האם ברצונך להחליף אותה?",
