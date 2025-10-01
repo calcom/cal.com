@@ -426,7 +426,7 @@ export const FormBuilder = function FormBuilder({
 function Options({
   label = "Options",
   value,
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+
   onChange = () => {},
   className = "",
   readOnly = false,
@@ -606,7 +606,6 @@ function FieldEditDialog({
   const variantsConfig = fieldForm.watch("variantsConfig");
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
-  const fieldName = fieldForm.getValues("name");
 
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
@@ -698,7 +697,7 @@ function FieldEditDialog({
                       />
                     ) : null}
 
-                    {!!fieldType?.supportsLengthCheck ? (
+                    {fieldType?.supportsLengthCheck ? (
                       <FieldWithLengthCheckSupport containerClassName="mt-6" fieldForm={fieldForm} />
                     ) : null}
 
@@ -881,7 +880,6 @@ function FieldLabel({ field }: { field: RhfFormField }) {
     if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
       return (
         <span
-          // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{
             // Derive from field.label because label might change in b/w and field.labelAsSafeHtml will not be updated.
             __html: markdownToSafeHTMLClient(field.label || t(field.defaultLabel || "") || ""),
@@ -900,6 +898,15 @@ function FieldLabel({ field }: { field: RhfFormField }) {
   }
   const label =
     variantsConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants]?.fields?.[0]?.label || "";
+
+  // If no custom label is set, fall back to the defaultLabel from field config
+  if (!label) {
+    const fieldName =
+      variantsConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants]?.fields?.[0]?.name;
+    const defaultLabel = fieldTypeConfigVariants?.[variant]?.fieldsMap?.[fieldName as string]?.defaultLabel;
+    return <span>{t(defaultLabel || field.defaultLabel || "")}</span>;
+  }
+
   return <span>{t(label)}</span>;
 }
 
