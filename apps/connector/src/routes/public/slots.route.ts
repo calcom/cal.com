@@ -13,12 +13,14 @@ import { _SelectedSlotsModel } from "@calcom/prisma/zod";
 export async function slotsRoutes(fastify: FastifyInstance) {
   const slotsService = new SlotsService(prisma);
   fastify.get(
-    "/get",
+    "/",
     {
+      preHandler: AuthGuards.authenticateFlexible(),
       schema: {
         description: "Get available slots for an event type or users",
         tags: ["Slots"],
-        querystring: zodToJsonSchema(slotsQuerySchema, { name: "SlotsQuery" }),
+        security: [{ bearerAuth: [] }],
+        querystring: zodToJsonSchema(slotsQuerySchema),
         response: {
           200: zodToJsonSchema(
             responseSchemas.success(slotsResponseSchema, "GetSlotsResponse"),
@@ -46,6 +48,7 @@ export async function slotsRoutes(fastify: FastifyInstance) {
       schema: {
         description: "Reserve a given slot",
         tags: ["Slots"],
+        security: [{ bearerAuth: [] }],
         body: zodToJsonSchema(reservationBodySchema),
         response: {
           200: zodToJsonSchema(
@@ -80,6 +83,7 @@ export async function slotsRoutes(fastify: FastifyInstance) {
       schema: {
         description: "Get slot by uid",
         tags: ["Slots"],
+        security: [{ bearerAuth: [] }],
         response: {
           200: zodToJsonSchema(
             responseSchemas.success(_SelectedSlotsModel, "Selected slot"),
@@ -115,6 +119,7 @@ export async function slotsRoutes(fastify: FastifyInstance) {
       schema: {
         description: "Delete slot by id",
         tags: ["Slots"],
+        security: [{ bearerAuth: [] }],
         response: {
           200: zodToJsonSchema(
             responseSchemas.successNoData("Deleted slot"),
@@ -151,6 +156,7 @@ export async function slotsRoutes(fastify: FastifyInstance) {
       schema: {
         description: "Update slot by id",
         tags: ["Slots"],
+        security: [{ bearerAuth: [] }],
         body: zodToJsonSchema(reservationBodySchema),
         response: {
           200: zodToJsonSchema(
