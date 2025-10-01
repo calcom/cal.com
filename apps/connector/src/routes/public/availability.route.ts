@@ -14,15 +14,12 @@ import prisma from "@calcom/prisma";
 export async function availabilityRoutes(fastify: FastifyInstance): Promise<void> {
   const availabilityService = new AvailabilityService(prisma);
   // Route with specific auth methods allowed
-  fastify.get('/my-availability', { 
+  fastify.get('/', { 
     preHandler: AuthGuards.authenticateFlexible(),
     schema: {
       description: 'Get current user availability',
-      tags: ['API Auth - Users'],
-      security: [
-        { bearerAuth: [] },
-        { apiKey: [] },
-      ],
+      tags: ['Availability'],
+      security: [{ bearerAuth: [] }],
       querystring: zodToJsonSchema(availabilityQueryStringSchema),
       response: {
         200: zodToJsonSchema(responseSchemas.success(availabilityQueryResponseSchema, 'Current user availability')),
@@ -51,11 +48,8 @@ export async function availabilityRoutes(fastify: FastifyInstance): Promise<void
     preHandler: AuthGuards.authenticateFlexible(),
     schema: {
       description: 'Create availability for the current user and given schedule',
-      tags: ['API Auth - Users'],
-      security: [
-        { bearerAuth: [] },
-        { apiKey: [] },
-      ],
+      tags: ['Availability'],
+      security: [{ bearerAuth: [] }],
       body: zodToJsonSchema(availabilityCreationBodySchema),
       response: {
         200: zodToJsonSchema(responseSchemas.success(availabilityWithScheduleSchema, 'Created availability')),
@@ -74,11 +68,8 @@ export async function availabilityRoutes(fastify: FastifyInstance): Promise<void
     preHandler: AuthGuards.authenticateFlexible(),
     schema: {
       description: 'Delete an availability',
-      tags: ['API Auth - Users'],
-      security: [
-        { bearerAuth: [] },
-        { apiKey: [] },
-      ],
+      tags: ['Availability'],
+      security: [{ bearerAuth: [] }],
       response: {
         200: zodToJsonSchema(responseSchemas.successNoData('Availability deleted')),
         401: zodToJsonSchema(responseSchemas.unauthorized()),
@@ -103,11 +94,8 @@ export async function availabilityRoutes(fastify: FastifyInstance): Promise<void
     preHandler: AuthGuards.authenticateFlexible(),
     schema: {
       description: 'Update an availability',
-      tags: ['API Auth - Users'],
-      security: [
-        { bearerAuth: [] },
-        { apiKey: [] },
-      ],
+      tags: ['Availability'],
+      security: [{ bearerAuth: [] }],
       body: zodToJsonSchema(availabilityCreationBodySchema),
       response: {
         200: zodToJsonSchema(responseSchemas.success(availabilityWithScheduleSchema, 'Created availability')),
