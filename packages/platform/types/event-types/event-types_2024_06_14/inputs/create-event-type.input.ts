@@ -19,6 +19,7 @@ import {
   ArrayUnique,
 } from "class-validator";
 
+
 import { SchedulingType } from "@calcom/platform-enums";
 
 import { BookerActiveBookingsLimit_2024_06_14 } from "./booker-active-booking-limit.input";
@@ -586,14 +587,14 @@ export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInpu
   @DocsPropertyOptional({
     type: [Host],
     description:
-      "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users.",
+      "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users. Provide either hosts or assignAllTeamMembers but not both",
   })
   hosts?: Host[];
 
   @IsBoolean()
   @IsOptional()
   @DocsPropertyOptional({
-    description: "If true, all current and future team members will be assigned to this event type",
+    description: "If true, all current and future team members will be assigned to this event type. Provide either assignAllTeamMembers or hosts but not both",
   })
   assignAllTeamMembers?: boolean;
 
