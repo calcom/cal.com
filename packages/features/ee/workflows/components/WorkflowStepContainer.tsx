@@ -377,7 +377,26 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     (option) => !(isFormTrigger(option.value) && disallowFormTriggers)
   );
 
-  if (step && !form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
+  // Watch for changes in reminderBody to update the Editor UI
+  const currentStepReminderBody = step
+    ? useWatch({
+        control: form.control,
+        name: `steps.${step.stepNumber - 1}.reminderBody`,
+      })
+    : null;
+
+  const currentStepEmailSubject = step
+    ? useWatch({
+        control: form.control,
+        name: `steps.${step.stepNumber - 1}.emailSubject`,
+      })
+    : null;
+
+  useEffect(() => {
+    setUpdateTemplate((prev) => !prev);
+  }, [currentStepReminderBody, currentStepEmailSubject]);
+
+  if (step && !currentStepReminderBody) {
     const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
 
     // Skip setting reminderBody for CAL_AI actions since they don't need email templates
@@ -393,7 +412,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     }
   }
 
-  if (step && !form.getValues(`steps.${step.stepNumber - 1}.emailSubject`)) {
+  if (step && !currentStepEmailSubject) {
     const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
     // Skip setting emailSubject for CAL_AI actions since they don't need email subjects
     if (!isCalAIAction(action)) {
@@ -427,9 +446,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [numberVerified, setNumberVerified] = useState(getNumberVerificationStatus());
   const [emailVerified, setEmailVerified] = useState(getEmailVerificationStatus());
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => setNumberVerified(getNumberVerificationStatus()), [verifiedNumbers.length]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => setEmailVerified(getEmailVerificationStatus()), [verifiedEmails.length]);
 
   const addVariableEmailSubject = (variable: string) => {
@@ -1302,7 +1319,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           option.needsTeamsUpgrade &&
                           !isSMSAction(form.getValues(`steps.${step.stepNumber - 1}.action`)),
                       }))}
-                      //eslint-disable-next-line @typescript-eslint/no-explicit-any
                       isOptionDisabled={(option: {
                         label: string;
                         value: string;
@@ -1361,7 +1377,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               </div>
               <Editor
                 getText={() => {
-                  return props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
+                  return currentStepReminderBody || "";
                 }}
                 setText={(text: string) => {
                   props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
