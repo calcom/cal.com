@@ -1,4 +1,4 @@
-import { DI_TOKENS } from "@calcom/lib/di/tokens";
+import { DI_TOKENS } from "@calcom/features/di/tokens";
 import { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
 import { moduleLoader as prismaModuleLoader } from "@calcom/prisma/prisma.module";
 

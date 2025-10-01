@@ -1,4 +1,4 @@
-import { DI_TOKENS } from "@calcom/lib/di/tokens";
+import { DI_TOKENS } from "@calcom/features/di/tokens";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 
 import type { BusyTimesService } from "../../getBusyTimes";

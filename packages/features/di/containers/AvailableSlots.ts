@@ -1,5 +1,5 @@
 import { redisModule } from "@calcom/features/redis/di/redisModule";
-import { DI_TOKENS } from "@calcom/lib/di/tokens";
+import { DI_TOKENS } from "@calcom/features/di/tokens";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 import type { AvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
 

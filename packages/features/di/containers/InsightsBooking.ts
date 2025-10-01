@@ -1,4 +1,4 @@
-import { DI_TOKENS } from "@calcom/lib/di/tokens";
+import { DI_TOKENS } from "@calcom/features/di/tokens";
 import type {
   InsightsBookingServicePublicOptions,
   InsightsBookingServiceFilterOptions,

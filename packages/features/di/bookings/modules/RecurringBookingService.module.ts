@@ -1,5 +1,5 @@
 import { RecurringBookingService } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
-import { DI_TOKENS } from "@calcom/lib/di/tokens";
+import { DI_TOKENS } from "@calcom/features/di/tokens";
 
 import { createModule } from "../../di";
 

@@ -1,9 +1,9 @@
-import { bookingRepositoryModule } from "@calcom/lib/di/modules/Booking";
-import { cacheModule } from "@calcom/lib/di/modules/Cache";
-import { checkBookingAndDurationLimitsModule } from "@calcom/lib/di/modules/CheckBookingAndDurationLimits";
-import { checkBookingLimitsModule } from "@calcom/lib/di/modules/CheckBookingLimits";
-import { featuresRepositoryModule } from "@calcom/lib/di/modules/Features";
-import { DI_TOKENS } from "@calcom/lib/di/tokens";
+import { bookingRepositoryModule } from "@calcom/features/di/modules/Booking";
+import { cacheModule } from "@calcom/features/di/modules/Cache";
+import { checkBookingAndDurationLimitsModule } from "@calcom/features/di/modules/CheckBookingAndDurationLimits";
+import { checkBookingLimitsModule } from "@calcom/features/di/modules/CheckBookingLimits";
+import { featuresRepositoryModule } from "@calcom/features/di/modules/Features";
+import { DI_TOKENS } from "@calcom/features/di/tokens";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 
 import { createContainer } from "../../di";

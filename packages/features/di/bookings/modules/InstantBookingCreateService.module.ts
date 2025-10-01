@@ -1,5 +1,5 @@
 import { InstantBookingCreateService } from "@calcom/features/instant-meeting/handleInstantMeeting";
-import { DI_TOKENS } from "@calcom/lib/di/tokens";
+import { DI_TOKENS } from "@calcom/features/di/tokens";
 
 import { createModule } from "../../di";
 

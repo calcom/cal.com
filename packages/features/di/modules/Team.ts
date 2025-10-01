@@ -1,4 +1,4 @@
-import { DI_TOKENS } from "@calcom/lib/di/tokens";
+import { DI_TOKENS } from "@calcom/features/di/tokens";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 
 import { createModule } from "../di";
