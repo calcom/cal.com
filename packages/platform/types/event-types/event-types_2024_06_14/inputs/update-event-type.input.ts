@@ -19,7 +19,6 @@ import {
   Validate,
 } from "class-validator";
 
-import { HostsOrAssignAllValidator } from "./hosts-validator.input";
 import { BookerLayouts_2024_06_14 } from "./booker-layouts.input";
 import type { InputBookingField_2024_06_14 } from "./booking-fields.input";
 import {
@@ -461,13 +460,10 @@ export class UpdateTeamEventTypeInput_2024_06_14 extends BaseUpdateEventTypeInpu
     description:
       "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users. Note: Provide either hosts or assignAllTeamMembers but not both",
    })
-  @Validate(HostsOrAssignAllValidator)
   hosts?: Host[];
 
   @IsOptional()
   @IsBoolean()
-  @DocsProperty()
-  @Validate(HostsOrAssignAllValidator)
   @DocsPropertyOptional({
     description: "If true, all current and future team members will be assigned to this event type. Note: Provide either hosts or assignAllTeamMembers but not both",
   })
