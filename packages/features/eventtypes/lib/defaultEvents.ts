@@ -149,6 +149,8 @@ const commons = {
   eventTypeColor: null,
   hostGroups: [],
   bookingRequiresAuthentication: false,
+  createdAt: null,
+  updatedAt: null,
 };
 
 export const dynamicEvent = {
