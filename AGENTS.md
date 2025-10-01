@@ -13,6 +13,16 @@
 - `yarn test <filename> -- --integrationTestsOnly` - Run integration tests
 - `yarn e2e <filename> --grep "<testName>"` - Run specific E2E test
 
+## Tool Preferences
+
+### Search Tools Priority
+
+Use tools in this order of preference:
+
+1. **ast-grep** - For AST-based code searches (if available)
+2. **rg (ripgrep)** - For fast text searches
+3. **grep** - As fallback for text searches
+
 ## 📚 Detailed Documentation
 
 - **[.agents/README.md](.agents/README.md)** - Complete development guide

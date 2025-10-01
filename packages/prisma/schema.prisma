@@ -244,6 +244,9 @@ model EventType {
 
   bookingRequiresAuthentication Boolean @default(false)
 
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+
   @@unique([userId, slug])
   @@unique([teamId, slug])
   @@unique([userId, parentId])
@@ -901,21 +904,44 @@ model Availability {
 }
 
 model SelectedCalendar {
-  id                       String      @id @default(uuid())
-  user                     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId                   Int
-  integration              String
-  externalId               String
-  credential               Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
-  credentialId             Int?
-  createdAt                DateTime?   @default(now())
-  updatedAt                DateTime?   @updatedAt
+  id              String      @id @default(uuid())
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          Int
+  integration     String
+  externalId      String
+  credential      Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  credentialId    Int?
+  createdAt       DateTime?   @default(now())
+  updatedAt       DateTime?   @updatedAt
   // Used to identify a watched calendar channel in Google Calendar
-  googleChannelId          String?
-  googleChannelKind        String?
-  googleChannelResourceId  String?
+  // @deprecated use channelId instead
+  googleChannelId String?
+
+  // @deprecated use channelKind instead
+  googleChannelKind String?
+
+  // @deprecated use channelResourceId instead
+  googleChannelResourceId String?
+
+  // @deprecated use channelResourceUri instead
   googleChannelResourceUri String?
-  googleChannelExpiration  String?
+
+  // @deprecated use channelExpoiration instead
+  googleChannelExpiration String?
+
+  // Used to identify a watched calendar
+  channelId          String?
+  channelKind        String?
+  channelResourceId  String?
+  channelResourceUri String?
+  channelExpiration  DateTime? @db.Timestamp(3)
+
+  // Used to calendar cache and sync
+  syncSubscribedAt DateTime? @db.Timestamp(3)
+  syncToken        String?
+  syncedAt         DateTime?
+  syncErrorAt      DateTime?
+  syncErrorCount   Int?      @default(0)
 
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   delegationCredentialId String?
@@ -931,6 +957,8 @@ model SelectedCalendar {
 
   eventTypeId Int?
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])
+
+  calendarCacheEvents CalendarCacheEvent[]
 
   // It could still allow multiple user-level(eventTypeId is null) selected calendars for same userId, integration, externalId because NULL is not equal to NULL
   // We currently ensure uniqueness by checking for the existence of the record before creating a new one
@@ -1743,10 +1771,11 @@ model BookingDenormalized {
   @@index([status])
   @@index([teamId, isTeamBooking])
   @@index([userId, isTeamBooking])
+  @@index([startTime, endTime])
 }
 
 view BookingTimeStatusDenormalized {
-  id             Int           @id @unique
+  id             Int           @unique
   uid            String
   eventTypeId    Int?
   title          String
@@ -2247,22 +2276,47 @@ enum WatchlistSeverity {
   CRITICAL
 }
 
+enum WatchlistAction {
+  REPORT
+  BLOCK
+}
+
 model Watchlist {
-  id          String            @id @unique @default(cuid())
-  type        WatchlistType
-  // The identifier of the Watchlisted entity (email or domain)
+  id   String        @id @unique @default(cuid())
+  type WatchlistType
+
   value       String
   description String?
+
+  organizationId Int?
+
+  action      WatchlistAction   @default(REPORT)
+  severity    WatchlistSeverity @default(LOW)
   createdAt   DateTime          @default(now())
-  createdBy   User              @relation("CreatedWatchlists", onDelete: Cascade, fields: [createdById], references: [id])
-  createdById Int
+  createdBy   User?             @relation("CreatedWatchlists", onDelete: SetNull, fields: [createdById], references: [id])
+  createdById Int?
   updatedAt   DateTime          @updatedAt
   updatedBy   User?             @relation("UpdatedWatchlists", onDelete: SetNull, fields: [updatedById], references: [id])
   updatedById Int?
-  severity    WatchlistSeverity @default(LOW)
 
-  @@unique([type, value])
-  @@index([type, value])
+  @@unique([type, value, organizationId])
+  @@index([type, value, organizationId, action])
+}
+
+model BlockedBookingLog {
+  id          String @id @default(uuid())
+  email       String
+  eventTypeId Int?
+
+  organizationId Int?
+
+  bookingData Json?
+  createdAt   DateTime @default(now())
+  watchlistId String?
+
+  @@index([organizationId, createdAt])
+  @@index([email])
+  @@index([watchlistId])
 }
 
 enum BillingPeriod {
@@ -2588,4 +2642,42 @@ model CalAiPhoneNumber {
   @@index([inboundAgentId])
   @@index([outboundAgentId])
 
+}
+
+enum CalendarCacheEventStatus {
+  confirmed @map("confirmed")
+  tentative @map("tentative")
+  cancelled @map("cancelled")
+}
+
+model CalendarCacheEvent {
+  id                 String  @id @default(uuid())
+  selectedCalendarId String
+  externalId         String
+  externalEtag       String
+  iCalUID            String?
+  iCalSequence       Int     @default(0)
+
+  // Event details
+  summary           String?
+  description       String?
+  location          String?
+  start             DateTime
+  end               DateTime
+  isAllDay          Boolean                  @default(false)
+  timeZone          String?
+  status            CalendarCacheEventStatus @default(confirmed)
+  recurringEventId  String?
+  originalStartTime DateTime?
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  externalCreatedAt DateTime?
+  externalUpdatedAt DateTime?
+
+  selectedCalendar SelectedCalendar @relation(fields: [selectedCalendarId], references: [id], onDelete: Cascade)
+
+  @@unique([selectedCalendarId, externalId])
+  @@index([start, end, status])
+  @@index([selectedCalendarId, iCalUID])
 }
