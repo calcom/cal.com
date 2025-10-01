@@ -155,7 +155,7 @@ export async function getBookings({
   const bookingQueries: { query: BookingsUnionQuery; tables: (keyof DB)[] }[] = [];
 
   // If userIds filter is provided
-  if (!!filters?.userIds && filters?.userIds?.length) {
+  if (!!filters?.userIds && filters.userIds.length > 0) {
     // 1. Booking created by one of the filtered users
     bookingQueries.push({
       query: kysely
