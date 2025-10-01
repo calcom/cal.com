@@ -6,14 +6,14 @@ import { Injectable } from "@nestjs/common";
 
 import type { Prisma } from "@calcom/prisma/client";
 
-export const MembershipUserSelect: Prisma.UserSelect = {
+export const MembershipUserSelect = {
   username: true,
   email: true,
   avatarUrl: true,
   name: true,
   metadata: true,
   bio: true,
-};
+} satisfies Prisma.UserSelect;
 
 @Injectable()
 export class TeamsMembershipsRepository {
