@@ -1,5 +1,6 @@
-import type { IFilterHostsService } from "../../bookings/filterHostsBySameRoundRobinHost";
-import { FilterHostsService } from "../../bookings/filterHostsBySameRoundRobinHost";
+import type { IFilterHostsService } from "@calcom/lib/bookings/filterHostsBySameRoundRobinHost";
+import { FilterHostsService } from "@calcom/lib/bookings/filterHostsBySameRoundRobinHost";
+
 import { createModule } from "../di";
 import { DI_TOKENS } from "../tokens";
 
