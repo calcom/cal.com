@@ -115,15 +115,15 @@ export const BookingFields = ({
           readOnly = false;
         }
 
-        if (field.name === SystemField.Enum.smsReminderNumber) {
-          // `smsReminderNumber` and location.optionValue when location.value===phone are the same data point. We should solve it in a better way in the Form Builder itself.
+        if (field.name === SystemField.Enum.smsReminderNumber || field.name === SystemField.Enum.unifiedPhoneNumber) {
+          // Phone fields and location.optionValue when location.value===phone are the same data point. We should solve it in a better way in the Form Builder itself.
           // I think we should have a way to connect 2 fields together and have them share the same value in Form Builder
           if (locationResponse?.value === "phone") {
-            setValue(`responses.${SystemField.Enum.smsReminderNumber}`, locationResponse?.optionValue);
+            setValue(`responses.${field.name}`, locationResponse?.optionValue);
             // Just don't render the field now, as the value is already connected to attendee phone location
             return null;
           }
-          // `smsReminderNumber` can be edited during reschedule even though it's a system field
+          // Phone fields can be edited during reschedule even though they're system fields
           readOnly = false;
         }
 

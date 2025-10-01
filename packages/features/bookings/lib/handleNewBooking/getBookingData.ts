@@ -2,6 +2,7 @@ import type z from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { mapUnifiedPhoneToLegacyFields } from "@calcom/features/bookings/lib/phoneFieldManager";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { EventTypeCustomInput } from "@calcom/prisma/client";
@@ -39,13 +40,20 @@ const _getBookingData = async <T extends z.ZodType>({
     // Check if required custom inputs exist
     handleCustomInputs(eventType.customInputs as EventTypeCustomInput[], parsedBody.customInputs);
     const reqBodyWithLegacyProps = bookingCreateSchemaLegacyPropsForApi.parse(parsedBody);
+    
+    // For legacy API compatibility, also check for unifiedPhoneNumber
+    const unifiedPhone = (parsedBody as Record<string, unknown>).unifiedPhoneNumber;
+    const smsReminderNumber = reqBodyWithLegacyProps.smsReminderNumber || 
+                              (typeof unifiedPhone === 'string' ? unifiedPhone : undefined) || 
+                              undefined;
+    
     return {
       ...parsedBody,
       name: reqBodyWithLegacyProps.name,
       email: reqBodyWithLegacyProps.email,
       guests: reqBodyWithLegacyProps.guests,
       location: reqBodyWithLegacyProps.location || "",
-      smsReminderNumber: reqBodyWithLegacyProps.smsReminderNumber,
+      smsReminderNumber,
       notes: reqBodyWithLegacyProps.notes,
       rescheduleReason: reqBodyWithLegacyProps.rescheduleReason,
       // So TS doesn't complain about unknown properties
@@ -58,7 +66,10 @@ const _getBookingData = async <T extends z.ZodType>({
   if (!parsedBody.responses) {
     throw new Error("`responses` must not be nullish");
   }
-  const responses = parsedBody.responses;
+  let responses = parsedBody.responses;
+
+  // Map unified phone field to legacy fields for backward compatibility
+  responses = mapUnifiedPhoneToLegacyFields(responses);
 
   const { userFieldsResponses: calEventUserFieldsResponses, responses: calEventResponses } =
     getCalEventResponses({

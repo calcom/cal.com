@@ -4,6 +4,7 @@ import {
   SMS_REMINDER_NUMBER_FIELD,
   CAL_AI_AGENT_PHONE_NUMBER_FIELD,
 } from "@calcom/features/bookings/lib/SystemField";
+import { getUnifiedPhoneField } from "@calcom/features/bookings/lib/phoneFieldManager";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
 import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
@@ -146,20 +147,8 @@ export const ensureBookingInputsHaveSystemFields = ({
     [EventTypeCustomInputType.PHONE]: BookingFieldTypeEnum.phone,
   };
 
-  const smsNumberSources = [] as NonNullable<(typeof bookingFields)[number]["sources"]>;
-  workflows.forEach((workflow) => {
-    workflow.workflow.steps.forEach((step) => {
-      if (step.action === "SMS_ATTENDEE" || step.action === "WHATSAPP_ATTENDEE") {
-        const workflowId = workflow.workflow.id;
-        smsNumberSources.push(
-          getSmsReminderNumberSource({
-            workflowId,
-            isSmsReminderNumberRequired: !!step.numberRequired,
-          })
-        );
-      }
-    });
-  });
+  // Use unified phone field instead of separate fields for each workflow type
+  const unifiedPhoneField = getUnifiedPhoneField(workflows);
 
   const isEmailFieldOptional = !!bookingFields.find((field) => field.name === "email" && !field.required);
 
@@ -336,21 +325,36 @@ export const ensureBookingInputsHaveSystemFields = ({
 
   bookingFields = missingSystemBeforeFields.concat(bookingFields);
 
-  // Backward Compatibility for SMS Reminder Number
-  // Note: We still need workflows in `getBookingFields` due to Backward Compatibility. If we do a one time entry for all event-types, we can remove workflows from `getBookingFields`
-  // Also, note that even if Workflows don't explicitly add smsReminderNumber field to bookingFields, it would be added as a side effect of this backward compatibility logic
-  if (
-    smsNumberSources.length &&
-    !bookingFields.find((f) => getFieldIdentifier(f.name) !== getFieldIdentifier(SMS_REMINDER_NUMBER_FIELD))
-  ) {
-    const indexForLocation = bookingFields.findIndex(
-      (f) => getFieldIdentifier(f.name) === getFieldIdentifier("location")
+  // Check if we have any workflows that need phone numbers
+  const hasPhoneWorkflows = workflows.some((workflow) => 
+    workflow.workflow.steps.some((step) => 
+      step.action === "SMS_ATTENDEE" || 
+      step.action === "WHATSAPP_ATTENDEE" || 
+      step.action === "CAL_AI_PHONE_CALL"
+    )
+  );
+
+  if (hasPhoneWorkflows) {
+    // Remove any existing workflow phone fields (they might be from old data)
+    bookingFields = bookingFields.filter(
+      (f) => f.name !== SMS_REMINDER_NUMBER_FIELD && f.name !== CAL_AI_AGENT_PHONE_NUMBER_FIELD
     );
-    // Add the SMS Reminder Number field after `location` field always
-    bookingFields.splice(indexForLocation + 1, 0, {
-      ...getSmsReminderNumberField(),
-      sources: smsNumberSources,
-    });
+    
+    // Add unified phone field if we generated one
+    if (unifiedPhoneField) {
+      const indexForLocation = bookingFields.findIndex(
+        (f) => getFieldIdentifier(f.name) === getFieldIdentifier("location")
+      );
+      // Add the unified phone field after `location` field always
+      bookingFields.splice(indexForLocation + 1, 0, unifiedPhoneField);
+    }
+  } else {
+    // No phone workflows active - remove all workflow phone fields including unified
+    bookingFields = bookingFields.filter(
+      (f) => f.name !== SMS_REMINDER_NUMBER_FIELD && 
+             f.name !== CAL_AI_AGENT_PHONE_NUMBER_FIELD &&
+             f.name !== "unifiedPhoneNumber"
+    );
   }
 
   // Backward Compatibility: If we are migrating from old system, we need to map `customInputs` to `bookingFields`
