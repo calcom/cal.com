@@ -34,6 +34,7 @@ export type CreateBookingMeta = {
   // These used to come from headers but now we're passing them as params
   hostname?: string;
   forcedSlug?: string;
+  clientIP?: string;
   noEmail?: boolean;
 } & PlatformParams;
 

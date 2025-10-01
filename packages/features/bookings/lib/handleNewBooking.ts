@@ -1,4 +1,3 @@
- 
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -89,6 +88,7 @@ import type {
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
+import { validateBookingEmail } from "../../emailValidation/lib/validateBookingEmail";
 import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/sendPayload";
 import { BookingActionMap, BookingEmailSmsHandler } from "./BookingEmailSmsHandler";
 import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
@@ -496,6 +496,15 @@ async function handler(
   const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger: loggerWithEventDetails });
 
   await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
+
+  // TODO: We might want to merge other booker email related validations into this flow
+  await validateBookingEmail({
+    email: bookerEmail,
+    teamId: eventType.teamId ?? eventType.parent?.teamId ?? null,
+    logger: loggerWithEventDetails,
+    // Commented out till we can get the client IP address here
+    // clientIP,
+  });
 
   if (!rawBookingData.rescheduleUid) {
     await checkActiveBookingsLimitForBooker({

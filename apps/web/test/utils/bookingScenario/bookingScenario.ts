@@ -50,6 +50,7 @@ vi.mock("@calcom/app-store/calendar.services.generated", () => ({
   },
 }));
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockVideoAdapterRegistry: Record<string, any> = {};
 
 vi.mock("@calcom/app-store/video.adapters.generated", () => ({
@@ -74,6 +75,7 @@ vi.mock("@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic", () => ({
 vi.mock("@calcom/lib/crypto", async (importOriginal) => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const actual = await importOriginal<any>();
   return {
     ...actual,
@@ -126,6 +128,7 @@ type InputPayment = {
   currency: string;
   success: boolean;
   refunded: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: Record<string, any>;
   externalId: string;
   paymentOption?: PaymentOption;
@@ -258,6 +261,7 @@ export type InputEventType = {
   bookingLimits?: IntervalLimit;
   durationLimits?: IntervalLimit;
   owner?: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   metadata?: any;
   rescheduleWithSameRoundRobinHost?: boolean;
   restrictionSchedule?: {
@@ -370,12 +374,18 @@ export async function addEventTypesToDb(
     "users" | "workflows" | "destinationCalendar" | "schedule"
   > & {
     id?: number;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     users?: any[];
     userId?: number;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     hosts?: any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     workflows?: any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     destinationCalendar?: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     schedule?: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     metadata?: any;
     team?: { id?: number | null; bookingLimits?: IntervalLimit; includeManagedEventsInLimits?: boolean };
     restrictionSchedule?: {
@@ -941,7 +951,6 @@ export async function addUsers(users: InputUser[]) {
     }
     if (user.profiles) {
       newUser.profiles = {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error Not sure why this is not working
         createMany: {
           data: user.profiles,
@@ -1062,6 +1071,7 @@ export async function createOrganization(orgData: {
 export async function createCredentials(
   credentialData: {
     type: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     key: any;
     id?: number;
     userId?: number | null;
@@ -1575,7 +1585,7 @@ export function getOrganizer({
     completedOnboarding,
     locked,
     emailVerified,
-    };
+  };
 }
 
 export function getScenarioData(
@@ -1672,6 +1682,38 @@ export function enableEmailFeature() {
       slug: "emails",
       enabled: false,
       type: "KILL_SWITCH",
+    },
+  });
+}
+
+// Helper function to enable email validation feature for a team
+export async function enableEmailValidationForTeam(teamId: number) {
+  // Create the feature if it doesn't exist
+  await prismock.feature.upsert({
+    where: { slug: "booking-email-validation" },
+    update: {},
+    create: {
+      slug: "booking-email-validation",
+      enabled: true,
+      type: "OPERATIONAL",
+      description:
+        "Enable email validation during booking process using ZeroBounce API - Prevents bookings with invalid, spam, or abusive email addresses.",
+    },
+  });
+
+  // Associate the feature with the team
+  await prismock.teamFeatures.upsert({
+    where: {
+      teamId_featureId: {
+        teamId,
+        featureId: "booking-email-validation",
+      },
+    },
+    update: {},
+    create: {
+      teamId,
+      featureId: "booking-email-validation",
+      assignedBy: "test-setup",
     },
   });
 }
@@ -1800,7 +1842,9 @@ export async function mockCalendar(
   const calendarServicePromise = CalendarServiceMap[calendarServiceKey];
   if (calendarServicePromise) {
     const resolvedService = await calendarServicePromise;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.mocked(resolvedService.default as any).mockImplementation(function MockCalendarService(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       credential: any
     ) {
       return {
@@ -1883,7 +1927,7 @@ export async function mockCalendar(
           }
           const [uid, event, externalCalendarId] = rest;
           log.silly("mockCalendar.updateEvent", JSON.stringify({ uid, event, externalCalendarId }));
-          // eslint-disable-next-line prefer-rest-params
+
           updateEventCalls.push({
             args: {
               uid,
@@ -1900,7 +1944,7 @@ export async function mockCalendar(
             additionalInfo: {},
             uid: "PROBABLY_UNUSED_UID",
             iCalUID: normalizedCalendarData.update?.iCalUID,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
             id: normalizedCalendarData.update?.uid || "FALLBACK_MOCK_ID",
             // Password and URL seems useless for CalendarService, plan to remove them if that's the case
             password: "MOCK_PASSWORD",
@@ -1916,7 +1960,7 @@ export async function mockCalendar(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         deleteEvent: async (...rest: any[]) => {
           log.silly("mockCalendar.deleteEvent", JSON.stringify({ rest }));
-          // eslint-disable-next-line prefer-rest-params
+
           deleteEventCalls.push({
             args: {
               uid: rest[0],
@@ -1928,6 +1972,7 @@ export async function mockCalendar(
             },
           });
         },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         getAvailability: async (...rest: any[]): Promise<EventBusyDate[]> => {
           if (calendarData?.getAvailabilityCrash) {
             throw new Error("MockCalendarService.getAvailability fake error");
@@ -2014,6 +2059,7 @@ export function mockVideoApp({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const deleteMeetingCalls: any[] = [];
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mockVideoAdapter = (credential: any) => {
     return {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -2109,14 +2155,8 @@ export function mockVideoAppToCrashOnCreateMeeting({
   });
 }
 
-export function mockPaymentApp({
-  metadataLookupKey,
-  appStoreLookupKey,
-}: {
-  metadataLookupKey: string;
-  appStoreLookupKey?: string;
-}) {
-  appStoreLookupKey = appStoreLookupKey || metadataLookupKey;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function mockPaymentApp(data: { metadataLookupKey: string; appStoreLookupKey?: string }) {
   const { paymentUid, externalId } = getMockPaymentService();
 
   return {
@@ -2366,7 +2406,7 @@ export const getDefaultBookingFields = ({
       required: true,
       defaultLabel: "your_name",
     },
-    !!emailField
+    emailField
       ? emailField
       : {
           name: "email",
