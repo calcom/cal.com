@@ -119,7 +119,7 @@ if (process.env.ANALYZE === "true") {
 
 plugins.push(withAxiom);
 
-if (process.env.VERCEL_URL) {
+if (process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER === "1") {
   plugins.push(withBotId);
 }
 
