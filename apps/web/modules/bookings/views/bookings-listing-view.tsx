@@ -426,50 +426,46 @@ function BookingsContent({ status, permissions }: BookingsProps) {
           {query.status === "error" && (
             <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
           )}
-          {query.status !== "error" && (
-            <>
-              {!!bookingsToday.length && status === "upcoming" && (
-                <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
-              )}
-              <DataTableWrapper
-                className="mb-6"
-                tableContainerRef={tableContainerRef}
-                table={table}
-                testId={`${status}-bookings`}
-                bodyTestId="bookings"
-                headerClassName="hidden"
-                isPending={query.isPending}
-                totalRowCount={query.data?.totalCount}
-                variant="compact"
-                paginationMode="standard"
-                ToolbarLeft={
-                  <>
-                    <DataTableFilters.FilterBar table={table} />
-                  </>
-                }
-                ToolbarRight={
-                  <>
-                    <DataTableFilters.ClearFiltersButton />
-                    <DataTableSegment.SaveButton />
-                    <DataTableSegment.Select />
-                  </>
-                }
-                LoaderView={<SkeletonLoader />}
-                EmptyView={
-                  <div className="flex items-center justify-center pt-2 xl:pt-0">
-                    <EmptyScreen
-                      Icon="calendar"
-                      headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
-                      description={t("no_status_bookings_yet_description", {
-                        status: t(status).toLowerCase(),
-                        description: t(descriptionByStatus[status]),
-                      })}
-                    />
-                  </div>
-                }
-              />
-            </>
+          {!!bookingsToday.length && status === "upcoming" && query.status !== "error" && (
+            <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
           )}
+          <DataTableWrapper
+            className="mb-6"
+            tableContainerRef={tableContainerRef}
+            table={table}
+            testId={`${status}-bookings`}
+            bodyTestId="bookings"
+            headerClassName="hidden"
+            isPending={query.isPending}
+            totalRowCount={query.data?.totalCount}
+            variant="compact"
+            paginationMode="standard"
+            ToolbarLeft={
+              <>
+                <DataTableFilters.FilterBar table={table} />
+              </>
+            }
+            ToolbarRight={
+              <>
+                <DataTableFilters.ClearFiltersButton />
+                <DataTableSegment.SaveButton />
+                <DataTableSegment.Select />
+              </>
+            }
+            LoaderView={<SkeletonLoader />}
+            EmptyView={
+              <div className="flex items-center justify-center pt-2 xl:pt-0">
+                <EmptyScreen
+                  Icon="calendar"
+                  headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
+                  description={t("no_status_bookings_yet_description", {
+                    status: t(status).toLowerCase(),
+                    description: t(descriptionByStatus[status]),
+                  })}
+                />
+              </div>
+            }
+          />
         </div>
       </main>
     </div>
