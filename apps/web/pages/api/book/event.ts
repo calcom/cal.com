@@ -5,6 +5,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
+import { HttpError } from "@calcom/lib/http-error";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
@@ -23,12 +24,12 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   if (process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER === "1") {
     const verification = await checkBotId({
       developmentOptions: {
-        bypass: "BAD-BOT", // default: 'HUMAN'
+        bypass: "HUMAN", // default: 'HUMAN'
       },
     });
 
     if (verification.isBot) {
-      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+      throw new HttpError({ statusCode: 403, message: "Access denied" });
     }
   }
 
