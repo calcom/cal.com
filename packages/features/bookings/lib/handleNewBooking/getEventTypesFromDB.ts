@@ -43,7 +43,6 @@ const getEventTypesFromDBSelect = {
       id: true,
       name: true,
       parentId: true,
-      // Needed for branding control on bookings
       hideBranding: true,
       parent: {
         select: {
@@ -113,6 +112,7 @@ const getEventTypesFromDBSelect = {
   useEventTypeDestinationCalendarEmail: true,
   owner: {
     select: {
+      id: true,
       hideBranding: true,
     },
   },

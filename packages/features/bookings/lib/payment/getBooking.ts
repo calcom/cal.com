@@ -3,6 +3,7 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { enrichUserWithDelegationCredentials } from "@calcom/lib/delegationCredential/server";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
+import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -37,6 +38,7 @@ export async function getBooking(bookingId: number) {
         select: {
           owner: {
             select: {
+              id: true,
               hideBranding: true,
             },
           },
@@ -85,6 +87,12 @@ export async function getBooking(bookingId: number) {
               id: true,
               name: true,
               parentId: true,
+              hideBranding: true,
+              parent: {
+                select: {
+                  hideBranding: true,
+                },
+              },
             },
           },
         },
@@ -153,6 +161,29 @@ export async function getBooking(bookingId: number) {
 
   const organizerOrganizationId = organizerOrganizationProfile?.organizationId;
 
+  const hideBranding = booking.eventType?.id
+    ? await shouldHideBrandingForEvent({
+        eventTypeId: booking.eventType.id,
+        team: booking.eventType.team
+          ? {
+              hideBranding: booking.eventType.team.hideBranding,
+              parent: booking.eventType.team.parent
+                ? {
+                    hideBranding: booking.eventType.team.parent.hideBranding,
+                  }
+                : null,
+            }
+          : null,
+        owner: booking.eventType.owner
+          ? {
+              id: booking.eventType.owner.id,
+              hideBranding: booking.eventType.owner.hideBranding,
+            }
+          : null,
+        organizationId: organizerOrganizationId ?? booking.eventType.team?.parentId ?? null,
+      }).catch(() => !!booking.eventType?.owner?.hideBranding)
+    : false;
+
   const bookerUrl = await getBookerBaseUrl(
     booking.eventType?.team?.parentId ?? organizerOrganizationId ?? null
   );
@@ -194,7 +225,7 @@ export async function getBooking(bookingId: number) {
     destinationCalendar: selectedDestinationCalendar ? [selectedDestinationCalendar] : [],
     recurringEvent: parseRecurringEvent(eventType?.recurringEvent),
     customReplyToEmail: booking.eventType?.customReplyToEmail,
-    hideBranding: !!booking.eventType?.owner?.hideBranding,
+    hideBranding,
   };
 
   return {

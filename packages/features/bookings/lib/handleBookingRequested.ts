@@ -28,10 +28,15 @@ export async function handleBookingRequested(args: {
         workflow: Workflow;
       }[];
       owner: {
+        id: number;
         hideBranding: boolean;
       } | null;
       team?: {
         parentId: number | null;
+        hideBranding: boolean | null;
+        parent?: {
+          hideBranding: boolean | null;
+        } | null;
       } | null;
       currency: string;
       hosts?: {
@@ -62,8 +67,22 @@ export async function handleBookingRequested(args: {
   const hideBranding = booking?.eventType?.id
     ? await shouldHideBrandingForEvent({
         eventTypeId: booking.eventType.id,
-        team: null, // Limited team data available in this context
-        owner: null, // Limited owner data available in this context
+        team: booking.eventType.team
+          ? {
+              hideBranding: booking.eventType.team.hideBranding,
+              parent: booking.eventType.team.parent
+                ? {
+                    hideBranding: booking.eventType.team.parent.hideBranding,
+                  }
+                : null,
+            }
+          : null,
+        owner: booking.eventType.owner
+          ? {
+              id: booking.eventType.owner.id,
+              hideBranding: booking.eventType.owner.hideBranding,
+            }
+          : null,
         organizationId: booking.eventType.team?.parentId || null,
       }).catch(() => {
         // Fallback to simple logic if comprehensive check fails

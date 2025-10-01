@@ -69,6 +69,12 @@ type BookingsUnionQuery = SelectQueryBuilder<
   Pick<Booking, "id" | "createdAt" | "updatedAt" | "startTime" | "endTime">
 >;
 
+type BookingField = {
+  name: string;
+  hidden?: boolean;
+  [key: string]: unknown;
+};
+
 export async function getBookings({
   user,
   prisma,
@@ -536,7 +542,7 @@ export async function getBookings({
                 jsonObjectFrom(
                   eb
                     .selectFrom("Team")
-                    .select(["Team.id", "Team.name", "Team.slug"])
+                    .select(["Team.id", "Team.name", "Team.slug", "Team.parentId"])
                     .whereRef("EventType.teamId", "=", "Team.id")
                 ).as("team"),
                 jsonArrayFrom(
@@ -694,7 +700,7 @@ export async function getBookings({
     new Set(plainBookings.map((booking) => booking.eventType?.id).filter(Boolean))
   ) as number[];
 
-  const eventTypeFieldsMap = new Map<number, any[]>();
+  const eventTypeFieldsMap = new Map<number, BookingField[]>();
   if (uniqueEventTypeIds.length > 0) {
     const eventTypesWithFields = await prisma.eventType.findMany({
       where: { id: { in: uniqueEventTypeIds } },
@@ -704,8 +710,23 @@ export async function getBookings({
       },
     });
 
+    const normalizeBookingFields = (value: unknown): BookingField[] => {
+      if (!value) return [];
+      if (Array.isArray(value)) return value as BookingField[];
+      // If stored as JSON string, try parse
+      if (typeof value === "string") {
+        try {
+          const parsed = JSON.parse(value);
+          return Array.isArray(parsed) ? (parsed as BookingField[]) : [];
+        } catch {
+          return [];
+        }
+      }
+      return [];
+    };
+
     eventTypesWithFields.forEach((eventType) => {
-      eventTypeFieldsMap.set(eventType.id, eventType.bookingFields);
+      eventTypeFieldsMap.set(eventType.id, normalizeBookingFields(eventType.bookingFields));
     });
   }
 
@@ -753,13 +774,13 @@ export async function getBookings({
           const filteredResponses = { ...booking.responses };
 
           for (const key in filteredResponses) {
-            const field = bookingFields.find((field: any) => field.name === key);
+            const field = bookingFields.find((field) => field.name === key);
             if (field && field.hidden) {
               delete filteredResponses[key];
             }
           }
 
-          processedResponses = filteredResponses;
+          processedResponses = filteredResponses as Prisma.JsonValue;
         }
       }
 
