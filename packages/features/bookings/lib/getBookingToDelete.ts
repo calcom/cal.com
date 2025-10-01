@@ -40,6 +40,7 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
       paid: true,
       eventType: {
         select: {
+          id: true,
           slug: true,
           owner: {
             select: {

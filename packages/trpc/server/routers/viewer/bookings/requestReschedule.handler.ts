@@ -16,6 +16,7 @@ import { getDelegationCredentialOrRegularCredential } from "@calcom/lib/delegati
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
+import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
@@ -59,12 +60,31 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       eventTypeId: true,
       userPrimaryEmail: true,
       eventType: {
-        include: {
+        select: {
+          id: true,
+          teamId: true,
+          parentId: true,
+          bookingFields: true,
+          hideOrganizerEmail: true,
+          customReplyToEmail: true,
+          metadata: true,
+          owner: {
+            select: {
+              id: true,
+              hideBranding: true,
+            },
+          },
           team: {
             select: {
               id: true,
               name: true,
               parentId: true,
+              hideBranding: true,
+              parent: {
+                select: {
+                  hideBranding: true,
+                },
+              },
             },
           },
         },
@@ -271,6 +291,32 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   );
 
   log.debug("builder.calendarEvent", safeStringify(builder.calendarEvent));
+
+  const hideBranding = bookingToReschedule.eventType?.id
+    ? await shouldHideBrandingForEvent({
+        eventTypeId: bookingToReschedule.eventType.id,
+        team: bookingToReschedule.eventType.team
+          ? {
+              hideBranding: bookingToReschedule.eventType.team.hideBranding,
+              parent: bookingToReschedule.eventType.team.parent
+                ? {
+                    hideBranding: bookingToReschedule.eventType.team.parent.hideBranding,
+                  }
+                : null,
+            }
+          : null,
+        owner: bookingToReschedule.eventType.owner
+          ? {
+              id: bookingToReschedule.eventType.owner.id,
+              hideBranding: bookingToReschedule.eventType.owner.hideBranding,
+            }
+          : null,
+        organizationId: bookingToReschedule.eventType.team?.parentId || null,
+      }).catch(() => !!bookingToReschedule.eventType?.owner?.hideBranding)
+    : false;
+
+  builder.calendarEvent.hideBranding = hideBranding;
+
   // Send emails
   await sendRequestRescheduleEmailAndSMS(
     builder.calendarEvent,
