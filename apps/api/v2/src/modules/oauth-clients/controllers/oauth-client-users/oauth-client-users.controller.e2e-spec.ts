@@ -734,6 +734,20 @@ describe("OAuth Client Users Endpoints", () => {
             .send(requestBody)
             .expect(400);
         });
+
+        it("should not allow 'invalid-timezone' time zone", async () => {
+          const requestBody = {
+            email: "whatever2@gmail.com",
+            timeZone: "invalid-timezone",
+            name: "Bob Smithson",
+          };
+
+          await request(app.getHttpServer())
+            .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
+            .set("x-cal-secret-key", oAuthClient.secret)
+            .send(requestBody)
+            .expect(400);
+        });
       });
 
       describe("positive tests", () => {
