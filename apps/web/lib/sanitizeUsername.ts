@@ -1,4 +1,3 @@
-// apps/web/lib/sanitizeUsername.ts
 export const sanitizeUsername = (username: string): string => {
   if (!username) return "";
 
