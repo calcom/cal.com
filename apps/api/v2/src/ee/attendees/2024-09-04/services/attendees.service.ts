@@ -11,6 +11,8 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 
+import { EventType } from "@calcom/prisma/client";
+
 @Injectable()
 export class AttendeesService_2024_09_04 {
   private readonly logger = new Logger("AttendeesService_2024_09_04");
@@ -20,13 +22,23 @@ export class AttendeesService_2024_09_04 {
     private readonly bookingsService: BookingsService_2024_08_13
   ) {}
 
-  async createAttendee(data: CreateAttendeeInput_2024_09_04, user: ApiAuthGuardUser) {
-    // Check if booking exists and user has permission
-    const booking = await this.attendeesRepository.getBookingWithEventType(data.bookingId);
-
-    if (!booking?.eventType || !this.bookingsService.userIsEventTypeAdminOrOwner(user, booking.eventType)) {
-      throw new NotFoundException("Booking not found or you don't have permission to modify it");
+  async checkEventTypeOwnership(eventType: EventType, user: ApiAuthGuardUser) {
+    const isAdminOrOwner = await this.bookingsService.userIsEventTypeAdminOrOwner(user, eventType);
+    if (!isAdminOrOwner) {
+      throw new ForbiddenException(
+        "checkEventTypeOwnership - user is not authorized to access this event type. User has to be either event type owner, host, team admin or owner or org admin or owner."
+      );
     }
+
+    return true;
+  }
+
+  async createAttendee(data: CreateAttendeeInput_2024_09_04, user: ApiAuthGuardUser) {
+    const booking = await this.attendeesRepository.getBookingWithEventType(data.bookingId);
+    if (!booking?.eventType) {
+      throw new NotFoundException(`Booking with id ${data.bookingId} not found`);
+    }
+    await this.checkEventTypeOwnership(booking.eventType, user);
 
     try {
       const createdAttendee = await this.attendeesRepository.createAttendee(data);
@@ -40,16 +52,13 @@ export class AttendeesService_2024_09_04 {
 
   async getAttendeeById(id: number, user: ApiAuthGuardUser) {
     const attendee = await this.attendeesRepository.getAttendeeWithBookingWithEventType(id);
-
     if (!attendee) {
-      throw new NotFoundException("Attendee not found");
+      throw new NotFoundException(`Attendee with id ${id} not found`);
     }
-    if (
-      !attendee.booking?.eventType ||
-      !this.bookingsService.userIsEventTypeAdminOrOwner(user, attendee.booking.eventType)
-    ) {
-      throw new ForbiddenException("You don't have permission to view this attendee");
+    if (!attendee.booking?.eventType) {
+      throw new NotFoundException(`Booking does not exist for attendee with id ${id}`);
     }
+    await this.checkEventTypeOwnership(attendee.booking.eventType, user);
 
     return attendee;
   }
@@ -58,15 +67,13 @@ export class AttendeesService_2024_09_04 {
     const attendee = await this.attendeesRepository.getAttendeeWithBookingWithEventType(id);
 
     if (!attendee) {
-      throw new NotFoundException("Attendee not found");
+      throw new NotFoundException(`Attendee with id ${id} not found`);
     }
 
-    if (
-      !attendee.booking?.eventType ||
-      !this.bookingsService.userIsEventTypeAdminOrOwner(user, attendee.booking.eventType)
-    ) {
-      throw new ForbiddenException("You don't have permission to update this attendee");
+    if (!attendee.booking?.eventType) {
+      throw new NotFoundException(`Booking does not exist for attendee with id ${id}`);
     }
+    await this.checkEventTypeOwnership(attendee.booking.eventType, user);
 
     try {
       const updatedAttendee = await this.attendeesRepository.updateAttendee(id, data);
@@ -82,18 +89,15 @@ export class AttendeesService_2024_09_04 {
     const attendee = await this.attendeesRepository.getAttendeeWithBookingWithEventType(id);
 
     if (!attendee) {
-      throw new NotFoundException("Attendee not found");
+      throw new NotFoundException(`Attendee with id ${id} not found`);
     }
 
-    if (
-      !attendee.booking?.eventType ||
-      !this.bookingsService.userIsEventTypeAdminOrOwner(user, attendee.booking.eventType)
-    ) {
-      throw new ForbiddenException("You don't have permission to delete this attendee");
+    if (!attendee.booking?.eventType) {
+      throw new NotFoundException(`Booking does not exist for attendee with id ${id}`);
     }
+    await this.checkEventTypeOwnership(attendee.booking.eventType, user);
 
     try {
-      // Store attendee data before deletion to return it
       const attendeeToDelete = await this.attendeesRepository.deleteAttendee(id);
 
       return attendeeToDelete;

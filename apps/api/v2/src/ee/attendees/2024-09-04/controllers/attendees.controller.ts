@@ -61,7 +61,7 @@ export class AttendeesController_2024_09_04 {
     const attendee = await this.attendeesService.createAttendee(body, user);
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(AttendeeOutput_2024_09_04, attendee),
+      data: plainToClass(AttendeeOutput_2024_09_04, attendee, { strategy: "excludeAll" }),
     };
   }
 
@@ -91,7 +91,7 @@ export class AttendeesController_2024_09_04 {
     const attendee = await this.attendeesService.getAttendeeById(id, user);
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(AttendeeOutput_2024_09_04, attendee),
+      data: plainToClass(AttendeeOutput_2024_09_04, attendee, { strategy: "excludeAll" }),
     };
   }
 
@@ -122,7 +122,7 @@ export class AttendeesController_2024_09_04 {
     const attendee = await this.attendeesService.updateAttendee(id, body, user);
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(AttendeeOutput_2024_09_04, attendee),
+      data: plainToClass(AttendeeOutput_2024_09_04, attendee, { strategy: "excludeAll" }),
     };
   }
 
@@ -152,7 +152,7 @@ export class AttendeesController_2024_09_04 {
     const attendee = await this.attendeesService.deleteAttendee(id, user);
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(AttendeeOutput_2024_09_04, attendee),
+      data: plainToClass(AttendeeOutput_2024_09_04, attendee, { strategy: "excludeAll" }),
     };
   }
 }

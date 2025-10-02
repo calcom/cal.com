@@ -3,11 +3,12 @@ import { AttendeesController_2024_09_04 } from "@/ee/attendees/2024-09-04/contro
 import { AttendeesService_2024_09_04 } from "@/ee/attendees/2024-09-04/services/attendees.service";
 import { BookingsModule_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { Module } from "@nestjs/common";
 
 @Module({
-  imports: [PrismaModule, UsersModule, BookingsModule_2024_08_13],
+  imports: [PrismaModule, TokensModule, UsersModule, BookingsModule_2024_08_13],
   providers: [AttendeesService_2024_09_04, AttendeesRepository_2024_09_04],
   controllers: [AttendeesController_2024_09_04],
   exports: [AttendeesService_2024_09_04, AttendeesRepository_2024_09_04],
