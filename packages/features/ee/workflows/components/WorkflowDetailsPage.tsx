@@ -6,6 +6,7 @@ import type { UseFormReturn } from "react-hook-form";
 import { SENDER_ID, SENDER_NAME, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WorkflowPermissions } from "@calcom/lib/server/repository/workflow-permissions";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { WorkflowActions } from "@calcom/prisma/enums";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -16,6 +17,7 @@ import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/compo
 import { Icon } from "@calcom/ui/components/icon";
 
 import { isCalAIAction, isFormTrigger, isSMSAction, isWhatsappAction } from "../lib/actionHelperFunctions";
+import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
 import WorkflowStepContainer from "./WorkflowStepContainer";
@@ -38,7 +40,7 @@ interface Props {
 export default function WorkflowDetailsPage(props: Props) {
   const { form, workflowId, selectedOptions, setSelectedOptions, teamId, isOrg, allOptions, permissions } =
     props;
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
 
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
   const [isDeleteStepDialogOpen, setIsDeleteStepDialogOpen] = useState(false);
@@ -113,6 +115,23 @@ export default function WorkflowDetailsPage(props: Props) {
           })[0].id - 1
         : 0;
 
+    const timeFormat = getTimeFormatStringFromUserTimeFormat(props.user.timeFormat);
+
+    const template = isFormTrigger(form.getValues("trigger"))
+      ? WorkflowTemplates.CUSTOM
+      : WorkflowTemplates.REMINDER;
+
+    const { emailBody: reminderBody, emailSubject } =
+      template !== WorkflowTemplates.CUSTOM
+        ? emailReminderTemplate({
+            isEditingMode: true,
+            locale: i18n.language,
+            t,
+            action,
+            timeFormat,
+          })
+        : { emailBody: null, emailSubject: null };
+
     const step = {
       id: id > 0 ? 0 : id, //id of new steps always <= 0
       action,
@@ -124,9 +143,9 @@ export default function WorkflowDetailsPage(props: Props) {
           : 1,
       sendTo: sendTo || null,
       workflowId: workflowId,
-      reminderBody: null,
-      emailSubject: null,
-      template: WorkflowTemplates.REMINDER,
+      reminderBody,
+      emailSubject,
+      template,
       numberRequired: numberRequired || false,
       sender: isSMSAction(action) ? sender || SENDER_ID : SENDER_ID,
       senderName: !isSMSAction(action) ? senderName || SENDER_NAME : SENDER_NAME,
