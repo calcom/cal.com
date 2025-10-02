@@ -62,16 +62,11 @@ type InstallStripeParams = InstallStripeParamsUnion & {
   page: Page;
 };
 
-const userWithEventTypes = {
+const _userWithEventTypes = {
   include: userIncludes,
 } satisfies Prisma.UserDefaultArgs;
 
-const seededForm = {
-  id: "948ae412-d995-4865-875a-48302588de03",
-  name: "Seeded Form - Pro",
-};
-
-type UserWithIncludes = Prisma.UserGetPayload<typeof userWithEventTypes>;
+type UserWithIncludes = Prisma.UserGetPayload<typeof _userWithEventTypes>;
 
 const createTeamWorkflow = async (user: { id: number }, team: { id: number }) => {
   return await prisma.workflow.create({
@@ -653,7 +648,6 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
 
   // self is a reflective method that return the Prisma object that references this fixture.
   const self = async () =>
-     
     (await prisma.user.findUnique({
       where: { id: store.user.id },
       include: { eventTypes: true },
@@ -996,7 +990,7 @@ export async function login(
   await page.waitForSelector("text=Welcome back");
 
   await emailLocator.fill(user.email ?? `${user.username}@example.com`);
-   
+
   await passwordLocator.fill(user.password ?? user.username!);
 
   // waiting for specific login request to resolve
@@ -1046,7 +1040,7 @@ export async function apiLogin(
   // Only wait if we're on a protected page that would trigger the session API call
   try {
     await page.waitForResponse("/api/auth/session", { timeout: 2000 });
-  } catch (error) {
+  } catch {
     // Session API call not made (likely on a public page), continue anyway
   }
 
