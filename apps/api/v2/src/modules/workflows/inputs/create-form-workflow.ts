@@ -41,7 +41,8 @@ export class WorkflowFormActivationDto {
   OnFormSubmittedTriggerDto,
   WorkflowEmailAddressStepDto,
   WorkflowEmailAttendeeStepDto,
-  BaseFormWorkflowTriggerDto
+  BaseFormWorkflowTriggerDto,
+  WorkflowFormActivationDto
 )
 export class CreateFormWorkflowDto {
   @ApiProperty({ description: "Name of the workflow", example: "Platform Test Workflow" })

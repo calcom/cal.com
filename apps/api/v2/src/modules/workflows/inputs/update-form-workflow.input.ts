@@ -32,7 +32,8 @@ import {
   UpdatePhoneWhatsAppNumberWorkflowStepDto,
   UpdateWhatsAppAttendeePhoneWorkflowStepDto,
   UpdatePhoneNumberWorkflowStepDto,
-  BaseFormWorkflowTriggerDto
+  BaseFormWorkflowTriggerDto,
+  WorkflowFormActivationDto
 )
 export class UpdateFormWorkflowDto {
   @ApiPropertyOptional({ description: "Name of the workflow", example: "Rounting-form Test Workflow" })

@@ -22192,7 +22192,7 @@
         },
         "required": ["type"]
       },
-      "EventTypeWorkflowActivationDto": {
+      "WorkflowActivationDto": {
         "type": "object",
         "properties": {
           "isActiveOnAllEventTypes": {
@@ -22225,7 +22225,7 @@
             "description": "Activation settings for the workflow",
             "allOf": [
               {
-                "$ref": "#/components/schemas/EventTypeWorkflowActivationDto"
+                "$ref": "#/components/schemas/WorkflowActivationDto"
               }
             ]
           },
@@ -22878,7 +22878,7 @@
             "description": "Activation settings for the workflow",
             "allOf": [
               {
-                "$ref": "#/components/schemas/EventTypeWorkflowActivationDto"
+                "$ref": "#/components/schemas/WorkflowActivationDto"
               }
             ]
           },

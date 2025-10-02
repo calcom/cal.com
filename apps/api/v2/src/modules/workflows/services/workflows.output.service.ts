@@ -1,4 +1,4 @@
-import { EventTypeWorkflowActivationDto } from "@/modules/workflows/inputs/create-event-type-workflow.input";
+import { WorkflowActivationDto } from "@/modules/workflows/inputs/create-event-type-workflow.input";
 import { WorkflowFormActivationDto } from "@/modules/workflows/inputs/create-form-workflow";
 import {
   EventTypeWorkflowStepOutputDto,
@@ -200,7 +200,7 @@ export class WorkflowsOutputService {
 
   toEventTypeOutputDto(workflow: WorkflowType): EventTypeWorkflowOutput | void {
     if (workflow.type === "EVENT_TYPE" && workflow.trigger !== WORKFLOW_TRIGGER_TO_ENUM[FORM_SUBMITTED]) {
-      const activation: EventTypeWorkflowActivationDto = {
+      const activation: WorkflowActivationDto = {
         isActiveOnAllEventTypes: workflow.isActiveOnAll,
         activeOnEventTypeIds: workflow.activeOn?.map((relation) => relation.eventTypeId) ?? [],
       };

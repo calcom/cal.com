@@ -2,7 +2,7 @@ import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from 
 import { Type } from "class-transformer";
 import { IsString, IsOptional, ValidateNested, ArrayMinSize } from "class-validator";
 
-import { EventTypeWorkflowActivationDto } from "./create-event-type-workflow.input";
+import { WorkflowActivationDto } from "./create-event-type-workflow.input";
 import {
   BaseWorkflowStepDto,
   EMAIL_ADDRESS,
@@ -70,7 +70,8 @@ import {
   UpdatePhoneWhatsAppNumberWorkflowStepDto,
   UpdateWhatsAppAttendeePhoneWorkflowStepDto,
   UpdatePhoneNumberWorkflowStepDto,
-  BaseWorkflowTriggerDto
+  BaseWorkflowTriggerDto,
+  WorkflowActivationDto
 )
 export class UpdateEventTypeWorkflowDto {
   @ApiPropertyOptional({ description: "Name of the workflow", example: "Platform Test Workflow" })
@@ -80,12 +81,12 @@ export class UpdateEventTypeWorkflowDto {
 
   @ApiProperty({
     description: "Activation settings for the workflow",
-    type: EventTypeWorkflowActivationDto,
+    type: WorkflowActivationDto,
   })
   @ValidateNested()
-  @Type(() => EventTypeWorkflowActivationDto)
+  @Type(() => WorkflowActivationDto)
   @IsOptional()
-  activation?: EventTypeWorkflowActivationDto;
+  activation?: WorkflowActivationDto;
 
   @ApiPropertyOptional({
     description: `Trigger configuration for the event-type workflow, allowed triggers are ${EVENT_TYPE_WORKFLOW_TRIGGER_TYPES.toString()}`,

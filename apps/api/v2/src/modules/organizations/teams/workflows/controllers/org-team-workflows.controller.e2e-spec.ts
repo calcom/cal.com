@@ -6,7 +6,7 @@ import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
 import {
   CreateEventTypeWorkflowDto,
-  EventTypeWorkflowActivationDto,
+  WorkflowActivationDto,
 } from "@/modules/workflows/inputs/create-event-type-workflow.input";
 import {
   CreateFormWorkflowDto,
@@ -336,7 +336,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
           expect(responseBody.data.activation).toBeDefined();
 
           expect(responseBody.data.name).toEqual(sampleCreateEventTypeWorkflowDto.name);
-          if (responseBody.data.activation instanceof EventTypeWorkflowActivationDto) {
+          if (responseBody.data.activation instanceof WorkflowActivationDto) {
             expect(responseBody.data.activation.isActiveOnAllEventTypes).toEqual(
               sampleCreateEventTypeWorkflowDto.activation.isActiveOnAllEventTypes
             );
@@ -482,7 +482,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(responseBody.data.name).toEqual(sampleCreateEventTypeWorkflowDto.name);
-          if (responseBody.data.activation instanceof EventTypeWorkflowActivationDto) {
+          if (responseBody.data.activation instanceof WorkflowActivationDto) {
             expect(responseBody.data.activation.isActiveOnAllEventTypes).toEqual(
               sampleCreateEventTypeWorkflowDto.activation.isActiveOnAllEventTypes
             );

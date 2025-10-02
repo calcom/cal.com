@@ -57,7 +57,7 @@ import {
   RESCHEDULE_EVENT,
 } from "./workflow-trigger.input";
 
-export class EventTypeWorkflowActivationDto {
+export class WorkflowActivationDto {
   @ApiProperty({
     description: "Whether the workflow is active for all the event-types",
     example: false,
@@ -98,7 +98,8 @@ export class EventTypeWorkflowActivationDto {
   WorkflowPhoneWhatsAppNumberStepDto,
   WorkflowPhoneNumberStepDto,
   WorkflowPhoneAttendeeStepDto,
-  BaseWorkflowTriggerDto
+  BaseWorkflowTriggerDto,
+  WorkflowActivationDto
 )
 export class CreateEventTypeWorkflowDto {
   @ApiProperty({ description: "Name of the workflow", example: "Platform Test Workflow" })
@@ -107,11 +108,11 @@ export class CreateEventTypeWorkflowDto {
 
   @ApiProperty({
     description: "Activation settings for the workflow",
-    type: EventTypeWorkflowActivationDto,
+    type: WorkflowActivationDto,
   })
   @ValidateNested()
-  @Type(() => EventTypeWorkflowActivationDto)
-  activation!: EventTypeWorkflowActivationDto;
+  @Type(() => WorkflowActivationDto)
+  activation!: WorkflowActivationDto;
 
   @ApiProperty({
     description: `Trigger configuration for the event-type workflow, allowed triggers are ${EVENT_TYPE_WORKFLOW_TRIGGER_TYPES.toString()}`,
