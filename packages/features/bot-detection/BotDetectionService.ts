@@ -71,7 +71,6 @@ export class BotDetectionService {
       classificationReason: verification.classificationReason,
       teamId: eventType.teamId,
       eventTypeId,
-      eventTypeSlug: eventType.slug,
     };
 
     if (verification.isBot) {
