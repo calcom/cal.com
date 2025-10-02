@@ -83,7 +83,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
 
   useEffect(() => {
     // Use the current username or if it's not set, use the one available from stripe
-    setInputUsernameValue(currentUsername || stripeCustomer?.username || "");
+    setInputUsernameValue(sanitizeUsername(currentUsername || stripeCustomer?.username || ""));
   }, [setInputUsernameValue, currentUsername, stripeCustomer?.username]);
 
   useEffect(() => {
