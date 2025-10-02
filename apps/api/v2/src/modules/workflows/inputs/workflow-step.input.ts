@@ -49,7 +49,6 @@ export const ENUM_TO_STEP_ACTIONS = {
 } as const;
 
 export type StepAction = (typeof STEP_ACTIONS)[number];
-export type StepActionsType = (typeof STEP_ACTIONS)[number];
 
 export const REMINDER = "reminder";
 export const CUSTOM = "custom";

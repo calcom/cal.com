@@ -46,8 +46,8 @@ import { OrganizationsStripeService } from "@/modules/organizations/stripe/servi
 import { OrganizationsTeamsController } from "@/modules/organizations/teams/index/organizations-teams.controller";
 import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import { OrganizationsTeamsService } from "@/modules/organizations/teams/index/services/organizations-teams.service";
-import { OrganizationsTeamsMembershipsController } from "@/modules/organizations/teams/memberships/organizations-teams-memberships.controller";
 import { OrganizationsTeamsInviteController } from "@/modules/organizations/teams/invite/organizations-teams-invite.controller";
+import { OrganizationsTeamsMembershipsController } from "@/modules/organizations/teams/memberships/organizations-teams-memberships.controller";
 import { OrganizationsTeamsMembershipsRepository } from "@/modules/organizations/teams/memberships/organizations-teams-memberships.repository";
 import { OrganizationsTeamsMembershipsService } from "@/modules/organizations/teams/memberships/services/organizations-teams-memberships.service";
 import { OrganizationsTeamsRoutingFormsModule } from "@/modules/organizations/teams/routing-forms/organizations-teams-routing-forms.module";
@@ -76,7 +76,8 @@ import { UsersModule } from "@/modules/users/users.module";
 import { TeamsVerifiedResourcesRepository } from "@/modules/verified-resources/teams-verified-resources.repository";
 import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 import { WebhooksRepository } from "@/modules/webhooks/webhooks.repository";
-import { TeamWorkflowsService } from "@/modules/workflows/services/team-workflows.service";
+import { TeamEventTypeWorkflowsService } from "@/modules/workflows/services/team-event-type-workflows.service";
+import { TeamRoutingFormWorkflowsService } from "@/modules/workflows/services/team-routing-form-workflows.service";
 import { WorkflowsInputService } from "@/modules/workflows/services/workflows.input.service";
 import { WorkflowsOutputService } from "@/modules/workflows/services/workflows.output.service";
 import { WorkflowsRepository } from "@/modules/workflows/workflows.repository";
@@ -145,7 +146,8 @@ import { Module } from "@nestjs/common";
     TokensRepository,
     TeamsVerifiedResourcesRepository,
     WorkflowsRepository,
-    TeamWorkflowsService,
+    TeamEventTypeWorkflowsService,
+    TeamRoutingFormWorkflowsService,
     WorkflowsInputService,
     WorkflowsOutputService,
     TeamsSchedulesService,

@@ -5705,7 +5705,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetWorkflowsOutput"
+                  "$ref": "#/components/schemas/GetEventTypeWorkflowsOutput"
                 }
               }
             }
@@ -5769,7 +5769,160 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetWorkflowOutput"
+                  "$ref": "#/components/schemas/GetEventTypeWorkflowOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Workflows"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/workflows/routing-form": {
+      "get": {
+        "operationId": "OrganizationTeamWorkflowsController_getRoutingFormWorkflows",
+        "summary": "Get organization team workflows",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return",
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
+              "example": 25,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetRoutingFormWorkflowsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Workflows"]
+      },
+      "post": {
+        "operationId": "OrganizationTeamWorkflowsController_createFormWorkflow",
+        "summary": "Create organization team workflow for routing-forms",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFormWorkflowDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetRoutingFormWorkflowOutput"
                 }
               }
             }
@@ -5833,7 +5986,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetWorkflowOutput"
+                  "$ref": "#/components/schemas/GetEventTypeWorkflowOutput"
                 }
               }
             }
@@ -5905,7 +6058,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetWorkflowOutput"
+                  "$ref": "#/components/schemas/GetEventTypeWorkflowOutput"
                 }
               }
             }
@@ -5969,10 +6122,10 @@
         "tags": ["Orgs / Teams / Workflows"]
       }
     },
-    "/v2/organizations/{orgId}/teams/{teamId}/workflows/routing-form": {
-      "post": {
-        "operationId": "OrganizationTeamWorkflowsController_createFormWorkflow",
-        "summary": "Create organization team workflow for routing-forms",
+    "/v2/organizations/{orgId}/teams/{teamId}/workflows/{workflowId}/routing-form": {
+      "get": {
+        "operationId": "OrganizationTeamWorkflowsController_getRoutingFormWorkflowById",
+        "summary": "Get organization team workflow",
         "parameters": [
           {
             "name": "Authorization",
@@ -6008,34 +6161,30 @@
             "schema": {
               "type": "number"
             }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateFormWorkflowDto"
-              }
+          },
+          {
+            "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
-        },
+        ],
         "responses": {
-          "201": {
+          "200": {
             "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetWorkflowOutput"
+                  "$ref": "#/components/schemas/GetRoutingFormWorkflowOutput"
                 }
               }
             }
           }
         },
         "tags": ["Orgs / Teams / Workflows"]
-      }
-    },
-    "/v2/organizations/{orgId}/teams/{teamId}/workflows/{workflowId}/routing-form": {
+      },
       "patch": {
         "operationId": "OrganizationTeamWorkflowsController_updateRoutingFormWorkflow",
         "summary": "Update organization routing form team workflow",
@@ -6100,10 +6249,65 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetWorkflowOutput"
+                  "$ref": "#/components/schemas/GetRoutingFormWorkflowOutput"
                 }
               }
             }
+          }
+        },
+        "tags": ["Orgs / Teams / Workflows"]
+      },
+      "delete": {
+        "operationId": "OrganizationTeamWorkflowsController_deleteRoutingFormWorkflow",
+        "summary": "Delete organization team routing-form workflow",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
           }
         },
         "tags": ["Orgs / Teams / Workflows"]
@@ -19160,7 +19364,7 @@
             "description": "The scheduling type for the team event - collective, roundRobin or managed."
           },
           "hosts": {
-            "description": "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users.",
+            "description": "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users. Provide either hosts or assignAllTeamMembers but not both",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Host"
@@ -19168,7 +19372,7 @@
           },
           "assignAllTeamMembers": {
             "type": "boolean",
-            "description": "If true, all current and future team members will be assigned to this event type"
+            "description": "If true, all current and future team members will be assigned to this event type. Provide either assignAllTeamMembers or hosts but not both"
           },
           "locations": {
             "type": "array",
@@ -19953,6 +20157,7 @@
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
           "hosts": {
+            "description": "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users. Provide either hosts or assignAllTeamMembers but not both",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Host"
@@ -19960,7 +20165,7 @@
           },
           "assignAllTeamMembers": {
             "type": "boolean",
-            "description": "If true, all current and future team members will be assigned to this event type"
+            "description": "If true, all current and future team members will be assigned to this event type. Provide either assignAllTeamMembers or hosts but not both"
           },
           "locations": {
             "type": "array",
@@ -20815,6 +21020,25 @@
           }
         }
       },
+      "EventTypeWorkflowActivationOutputDto": {
+        "type": "object",
+        "properties": {
+          "isActiveOnAllEventTypes": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether the workflow is active for all event types associated with the team/user",
+            "example": false
+          },
+          "activeOnEventTypeIds": {
+            "description": "List of Event Type IDs the workflow is specifically active on (if not active on all)",
+            "example": [698191, 698192],
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        }
+      },
       "WorkflowTriggerOffsetOutputDto": {
         "type": "object",
         "properties": {
@@ -20832,7 +21056,7 @@
         },
         "required": ["value", "unit"]
       },
-      "WorkflowTriggerOutputDto": {
+      "EventTypeWorkflowTriggerOutputDto": {
         "type": "object",
         "properties": {
           "type": {
@@ -20847,7 +21071,6 @@
               "rescheduleEvent",
               "afterHostsCalVideoNoShow",
               "afterGuestsCalVideoNoShow",
-              "formSubmitted",
               "bookingRejected",
               "bookingRequested",
               "bookingPaymentInitiated",
@@ -20887,7 +21110,7 @@
         },
         "required": ["subject"]
       },
-      "WorkflowStepOutputDto": {
+      "EventTypeWorkflowStepOutputDto": {
         "type": "object",
         "properties": {
           "id": {
@@ -20899,21 +21122,6 @@
             "type": "number",
             "description": "Step number in the workflow sequence",
             "example": 1
-          },
-          "action": {
-            "type": "string",
-            "description": "Action to perform",
-            "example": "email_host",
-            "enum": [
-              "email_host",
-              "email_attendee",
-              "email_address",
-              "sms_attendee",
-              "sms_number",
-              "whatsapp_attendee",
-              "whatsapp_number",
-              "cal_ai_phone_call"
-            ]
           },
           "recipient": {
             "type": "string",
@@ -20960,11 +21168,26 @@
                 "$ref": "#/components/schemas/WorkflowMessageOutputDto"
               }
             ]
+          },
+          "action": {
+            "type": "string",
+            "description": "Action to perform",
+            "example": "email_host",
+            "enum": [
+              "email_host",
+              "email_attendee",
+              "email_address",
+              "sms_attendee",
+              "sms_number",
+              "whatsapp_attendee",
+              "whatsapp_number",
+              "cal_ai_phone_call"
+            ]
           }
         },
-        "required": ["id", "stepNumber", "action", "recipient", "template", "sender", "message"]
+        "required": ["id", "stepNumber", "recipient", "template", "sender", "message", "action"]
       },
-      "WorkflowOutput": {
+      "EventTypeWorkflowOutput": {
         "type": "object",
         "properties": {
           "id": {
@@ -20977,13 +21200,6 @@
             "description": "Name of the workflow",
             "example": "Platform Test Workflow"
           },
-          "type": {
-            "type": "object",
-            "enum": ["form", "event-type"],
-            "description": "type of the workflow",
-            "example": "event-type",
-            "default": "event-type"
-          },
           "userId": {
             "type": "number",
             "description": "ID of the user who owns the workflow (if not team-owned)",
@@ -20994,32 +21210,6 @@
             "description": "ID of the team owning the workflow",
             "example": 4214321
           },
-          "activation": {
-            "description": "Activation settings for the workflow",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/WorkflowActivationDto"
-              },
-              {
-                "$ref": "#/components/schemas/WorkflowFormActivationDto"
-              }
-            ]
-          },
-          "trigger": {
-            "description": "Trigger configuration",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/WorkflowTriggerOutputDto"
-              }
-            ]
-          },
-          "steps": {
-            "description": "Steps comprising the workflow",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/WorkflowStepOutputDto"
-            }
-          },
           "createdAt": {
             "type": "object",
             "description": "Timestamp of creation",
@@ -21029,11 +21219,41 @@
             "type": "object",
             "description": "Timestamp of last update",
             "example": "2024-05-12T11:30:00.000Z"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["event-type"],
+            "description": "type of the workflow",
+            "example": "event-type",
+            "default": "event-type"
+          },
+          "activation": {
+            "description": "Activation settings for the workflow",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EventTypeWorkflowActivationOutputDto"
+              }
+            ]
+          },
+          "trigger": {
+            "description": "Trigger configuration",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EventTypeWorkflowTriggerOutputDto"
+              }
+            ]
+          },
+          "steps": {
+            "description": "Steps comprising the workflow",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventTypeWorkflowStepOutputDto"
+            }
           }
         },
         "required": ["id", "name", "type", "activation", "trigger", "steps"]
       },
-      "GetWorkflowsOutput": {
+      "GetEventTypeWorkflowsOutput": {
         "type": "object",
         "properties": {
           "status": {
@@ -21046,13 +21266,205 @@
             "description": "List of workflows",
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/WorkflowOutput"
+              "$ref": "#/components/schemas/EventTypeWorkflowOutput"
             }
           }
         },
         "required": ["status", "data"]
       },
-      "GetWorkflowOutput": {
+      "RoutingFormWorkflowActivationOutputDto": {
+        "type": "object",
+        "properties": {
+          "isActiveOnAllRoutingForms": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether the workflow is active for all routing forms associated with the team/user",
+            "example": false
+          },
+          "activeOnRoutingFormIds": {
+            "description": "List of Event Type IDs the workflow is specifically active on (if not active on all)",
+            "example": ["5cacdec7-1234-6e1b-78d9-7bcda8a1b332"],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "RoutingFormWorkflowTriggerOutputDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Trigger type for the workflow",
+            "example": "formSubmitted",
+            "enum": ["formSubmitted"]
+          },
+          "offset": {
+            "description": "Offset details (present for BEFORE_EVENT/AFTER_EVENT)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowTriggerOffsetOutputDto"
+              }
+            ]
+          }
+        },
+        "required": ["type"]
+      },
+      "RoutingFormWorkflowStepOutputDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Unique identifier of the step",
+            "example": 67244
+          },
+          "stepNumber": {
+            "type": "number",
+            "description": "Step number in the workflow sequence",
+            "example": 1
+          },
+          "recipient": {
+            "type": "string",
+            "description": "Intended recipient type",
+            "example": "const",
+            "enum": ["const", "attendee", "email", "phone_number"]
+          },
+          "email": {
+            "type": "string",
+            "description": "Verified Email  if action is EMAIL_ADDRESS",
+            "example": 31214
+          },
+          "phone": {
+            "type": "string",
+            "description": "Verified Phone if action is SMS_NUMBER or WHATSAPP_NUMBER"
+          },
+          "phoneRequired": {
+            "type": "boolean",
+            "description": "whether or not the attendees are required to provide their phone numbers when booking",
+            "example": true,
+            "default": false
+          },
+          "template": {
+            "type": "string",
+            "description": "Template type used",
+            "example": "reminder",
+            "enum": ["reminder", "custom", "rescheduled", "completed", "rating", "cancelled"]
+          },
+          "includeCalendarEvent": {
+            "type": "object",
+            "default": false,
+            "description": "Whether a calendar event (.ics) was included (for email actions)",
+            "example": true
+          },
+          "sender": {
+            "type": "string",
+            "description": "Displayed sender name used for this step",
+            "example": "Cal.com Notifications"
+          },
+          "message": {
+            "description": "Message content for this step",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowMessageOutputDto"
+              }
+            ]
+          },
+          "action": {
+            "type": "string",
+            "description": "Action to perform",
+            "example": "email_host",
+            "enum": ["email_attendee", "email_address"]
+          }
+        },
+        "required": ["id", "stepNumber", "recipient", "template", "sender", "message", "action"]
+      },
+      "RoutingFormWorkflowOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Unique identifier of the workflow",
+            "example": 101
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the workflow",
+            "example": "Platform Test Workflow"
+          },
+          "userId": {
+            "type": "number",
+            "description": "ID of the user who owns the workflow (if not team-owned)",
+            "example": 2313
+          },
+          "teamId": {
+            "type": "number",
+            "description": "ID of the team owning the workflow",
+            "example": 4214321
+          },
+          "createdAt": {
+            "type": "object",
+            "description": "Timestamp of creation",
+            "example": "2024-05-12T10:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "object",
+            "description": "Timestamp of last update",
+            "example": "2024-05-12T11:30:00.000Z"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["routing-form"],
+            "description": "type of the workflow",
+            "example": "routing-form",
+            "default": "routing-form"
+          },
+          "activation": {
+            "description": "Activation settings for the workflow",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RoutingFormWorkflowActivationOutputDto"
+              }
+            ]
+          },
+          "trigger": {
+            "description": "Trigger configuration",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RoutingFormWorkflowTriggerOutputDto"
+              }
+            ]
+          },
+          "steps": {
+            "description": "Steps comprising the workflow",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoutingFormWorkflowStepOutputDto"
+            }
+          }
+        },
+        "required": ["id", "name", "type", "activation", "trigger", "steps"]
+      },
+      "GetRoutingFormWorkflowsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Indicates the status of the response",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "description": "List of workflows",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoutingFormWorkflowOutput"
+            }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "GetEventTypeWorkflowOutput": {
         "type": "object",
         "properties": {
           "status": {
@@ -21065,7 +21477,26 @@
             "description": "workflow",
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/WorkflowOutput"
+              "$ref": "#/components/schemas/EventTypeWorkflowOutput"
+            }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "GetRoutingFormWorkflowOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Indicates the status of the response",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "description": "workflow",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoutingFormWorkflowOutput"
             }
           }
         },
@@ -21130,19 +21561,6 @@
         },
         "required": ["offset", "type"]
       },
-      "OnFormSubmittedTriggerDto": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "default": "formSubmitted",
-            "enum": ["formSubmitted"],
-            "description": "Trigger type for the workflow",
-            "example": "formSubmitted"
-          }
-        },
-        "required": ["type"]
-      },
       "OnCancelTriggerDto": {
         "type": "object",
         "properties": {
@@ -21185,7 +21603,6 @@
           "type": {
             "type": "string",
             "default": "bookingNoShowUpdated",
-            "enum": ["bookingNoShowUpdated"],
             "description": "Trigger type for the workflow"
           }
         },
@@ -21197,7 +21614,6 @@
           "type": {
             "type": "string",
             "default": "bookingRejected",
-            "enum": ["bookingRejected"],
             "description": "Trigger type for the workflow"
           }
         },
@@ -21209,7 +21625,6 @@
           "type": {
             "type": "string",
             "default": "bookingRequested",
-            "enum": ["bookingRequested"],
             "description": "Trigger type for the workflow"
           }
         },
@@ -21221,7 +21636,6 @@
           "type": {
             "type": "string",
             "default": "bookingPaymentInitiated",
-            "enum": ["bookingPaymentInitiated"],
             "description": "Trigger type for the workflow"
           }
         },
@@ -21233,7 +21647,6 @@
           "type": {
             "type": "string",
             "default": "bookingPaid",
-            "enum": ["bookingPaid"],
             "description": "Trigger type for the workflow"
           }
         },
@@ -21808,13 +22221,6 @@
             "description": "Name of the workflow",
             "example": "Platform Test Workflow"
           },
-          "type": {
-            "type": "string",
-            "default": "event-type",
-            "enum": ["form", "event-type"],
-            "description": "type of the workflow",
-            "example": "event-type"
-          },
           "activation": {
             "description": "Activation settings for the workflow",
             "allOf": [
@@ -21894,7 +22300,20 @@
             }
           }
         },
-        "required": ["name", "type", "activation", "trigger", "steps"]
+        "required": ["name", "activation", "trigger", "steps"]
+      },
+      "OnFormSubmittedTriggerDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "formSubmitted",
+            "enum": ["formSubmitted"],
+            "description": "Trigger type for the workflow",
+            "example": "formSubmitted"
+          }
+        },
+        "required": ["type"]
       },
       "BaseFormWorkflowTriggerDto": {
         "type": "object",

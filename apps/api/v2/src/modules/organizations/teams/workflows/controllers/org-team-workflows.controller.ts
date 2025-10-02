@@ -13,14 +13,23 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
-import { IsWorkflowInTeam } from "@/modules/auth/guards/workflows/is-workflow-in-team";
+import { IsEventTypeWorkflowInTeam } from "@/modules/auth/guards/workflows/is-event-type-workflow-in-team";
+import { IsRoutingFormWorkflowInTeam } from "@/modules/auth/guards/workflows/is-routing-form-workflow-in-team";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { CreateFormWorkflowDto } from "@/modules/workflows/inputs/create-form-workflow";
 import { CreateWorkflowDto } from "@/modules/workflows/inputs/create-workflow.input";
 import { UpdateFormWorkflowDto } from "@/modules/workflows/inputs/update-form-workflow.input";
 import { UpdateWorkflowDto } from "@/modules/workflows/inputs/update-workflow.input";
-import { GetWorkflowOutput, GetWorkflowsOutput } from "@/modules/workflows/outputs/workflow.output";
-import { TeamWorkflowsService } from "@/modules/workflows/services/team-workflows.service";
+import {
+  GetEventTypeWorkflowsOutput,
+  GetEventTypeWorkflowOutput,
+} from "@/modules/workflows/outputs/event-type-workflow.output";
+import {
+  GetRoutingFormWorkflowOutput,
+  GetRoutingFormWorkflowsOutput,
+} from "@/modules/workflows/outputs/routing-form-workflow.output";
+import { TeamEventTypeWorkflowsService } from "@/modules/workflows/services/team-event-type-workflows.service";
+import { TeamRoutingFormWorkflowsService } from "@/modules/workflows/services/team-routing-form-workflows.service";
 import {
   Controller,
   Get,
@@ -48,7 +57,10 @@ import { SkipTakePagination } from "@calcom/platform-types";
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
 @ApiHeader(OPTIONAL_API_KEY_HEADER)
 export class OrganizationTeamWorkflowsController {
-  constructor(private readonly workflowsService: TeamWorkflowsService) {}
+  constructor(
+    private readonly eventTypeWorkflowsService: TeamEventTypeWorkflowsService,
+    private readonly routingFormWorkflowsService: TeamRoutingFormWorkflowsService
+  ) {}
 
   @Get("/")
   @ApiOperation({ summary: "Get organization team workflows" })
@@ -58,24 +70,57 @@ export class OrganizationTeamWorkflowsController {
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
     @Query() queryParams: SkipTakePagination
-  ): Promise<GetWorkflowsOutput> {
+  ): Promise<GetEventTypeWorkflowsOutput> {
     const { skip, take } = queryParams;
 
-    const workflows = await this.workflowsService.getTeamWorkflows(teamId, skip, take);
+    const workflows = await this.eventTypeWorkflowsService.getEventTypeTeamWorkflows(teamId, skip, take);
+
+    return { data: workflows, status: SUCCESS_STATUS };
+  }
+
+  @Get("/routing-form")
+  @ApiOperation({ summary: "Get organization team workflows" })
+  @Roles("TEAM_ADMIN")
+  @PlatformPlan("SCALE")
+  async getRoutingFormWorkflows(
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Param("teamId", ParseIntPipe) teamId: number,
+    @Query() queryParams: SkipTakePagination
+  ): Promise<GetRoutingFormWorkflowsOutput> {
+    const { skip, take } = queryParams;
+
+    const workflows = await this.routingFormWorkflowsService.getRoutingFormTeamWorkflows(teamId, skip, take);
 
     return { data: workflows, status: SUCCESS_STATUS };
   }
 
   @Get("/:workflowId")
-  @UseGuards(IsWorkflowInTeam)
+  @UseGuards(IsEventTypeWorkflowInTeam)
   @ApiOperation({ summary: "Get organization team workflow" })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("SCALE")
   async getWorkflowById(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("workflowId", ParseIntPipe) workflowId: number
-  ): Promise<GetWorkflowOutput> {
-    const workflow = await this.workflowsService.getTeamWorkflowById(teamId, workflowId);
+  ): Promise<GetEventTypeWorkflowOutput> {
+    const workflow = await this.eventTypeWorkflowsService.getEventTypeTeamWorkflowById(teamId, workflowId);
+
+    return { data: workflow, status: SUCCESS_STATUS };
+  }
+
+  @Get("/:workflowId/routing-form")
+  @UseGuards(IsRoutingFormWorkflowInTeam)
+  @ApiOperation({ summary: "Get organization team workflow" })
+  @Roles("TEAM_ADMIN")
+  @PlatformPlan("SCALE")
+  async getRoutingFormWorkflowById(
+    @Param("teamId", ParseIntPipe) teamId: number,
+    @Param("workflowId", ParseIntPipe) workflowId: number
+  ): Promise<GetRoutingFormWorkflowOutput> {
+    const workflow = await this.routingFormWorkflowsService.getRoutingFormTeamWorkflowById(
+      teamId,
+      workflowId
+    );
 
     return { data: workflow, status: SUCCESS_STATUS };
   }
@@ -88,8 +133,8 @@ export class OrganizationTeamWorkflowsController {
     @GetUser() user: UserWithProfile,
     @Param("teamId", ParseIntPipe) teamId: number,
     @Body() data: CreateWorkflowDto
-  ): Promise<GetWorkflowOutput> {
-    const workflow = await this.workflowsService.createEventTypeTeamWorkflow(user, teamId, data);
+  ): Promise<GetEventTypeWorkflowOutput> {
+    const workflow = await this.eventTypeWorkflowsService.createEventTypeTeamWorkflow(user, teamId, data);
     return { data: workflow, status: SUCCESS_STATUS };
   }
 
@@ -101,13 +146,13 @@ export class OrganizationTeamWorkflowsController {
     @GetUser() user: UserWithProfile,
     @Param("teamId", ParseIntPipe) teamId: number,
     @Body() data: CreateFormWorkflowDto
-  ): Promise<GetWorkflowOutput> {
-    const workflow = await this.workflowsService.createFormTeamWorkflow(user, teamId, data);
+  ): Promise<GetRoutingFormWorkflowOutput> {
+    const workflow = await this.routingFormWorkflowsService.createFormTeamWorkflow(user, teamId, data);
     return { data: workflow, status: SUCCESS_STATUS };
   }
 
   @Patch("/:workflowId")
-  @UseGuards(IsWorkflowInTeam)
+  @UseGuards(IsEventTypeWorkflowInTeam)
   @ApiOperation({ summary: "Update organization team workflow" })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("SCALE")
@@ -116,13 +161,18 @@ export class OrganizationTeamWorkflowsController {
     @Param("workflowId", ParseIntPipe) workflowId: number,
     @GetUser() user: UserWithProfile,
     @Body() data: UpdateWorkflowDto
-  ): Promise<GetWorkflowOutput> {
-    const workflow = await this.workflowsService.updateEventTypeTeamWorkflow(user, teamId, workflowId, data);
+  ): Promise<GetEventTypeWorkflowOutput> {
+    const workflow = await this.eventTypeWorkflowsService.updateEventTypeTeamWorkflow(
+      user,
+      teamId,
+      workflowId,
+      data
+    );
     return { data: workflow, status: SUCCESS_STATUS };
   }
 
   @Patch("/:workflowId/routing-form")
-  @UseGuards(IsWorkflowInTeam)
+  @UseGuards(IsRoutingFormWorkflowInTeam)
   @ApiOperation({ summary: "Update organization routing form team workflow" })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("SCALE")
@@ -131,13 +181,18 @@ export class OrganizationTeamWorkflowsController {
     @Param("workflowId", ParseIntPipe) workflowId: number,
     @GetUser() user: UserWithProfile,
     @Body() data: UpdateFormWorkflowDto
-  ): Promise<GetWorkflowOutput> {
-    const workflow = await this.workflowsService.updateFormTeamWorkflow(user, teamId, workflowId, data);
+  ): Promise<GetRoutingFormWorkflowOutput> {
+    const workflow = await this.routingFormWorkflowsService.updateFormTeamWorkflow(
+      user,
+      teamId,
+      workflowId,
+      data
+    );
     return { data: workflow, status: SUCCESS_STATUS };
   }
 
   @Delete("/:workflowId")
-  @UseGuards(IsWorkflowInTeam)
+  @UseGuards(IsEventTypeWorkflowInTeam)
   @ApiOperation({ summary: "Delete organization team workflow" })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("SCALE")
@@ -145,7 +200,20 @@ export class OrganizationTeamWorkflowsController {
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("workflowId") workflowId: number
   ): Promise<{ status: typeof SUCCESS_STATUS }> {
-    await this.workflowsService.deleteTeamWorkflow(teamId, workflowId);
+    await this.eventTypeWorkflowsService.deleteTeamEventTypeWorkflow(teamId, workflowId);
+    return { status: SUCCESS_STATUS };
+  }
+
+  @Delete("/:workflowId/routing-form")
+  @UseGuards(IsRoutingFormWorkflowInTeam)
+  @ApiOperation({ summary: "Delete organization team routing-form workflow" })
+  @Roles("TEAM_ADMIN")
+  @PlatformPlan("SCALE")
+  async deleteRoutingFormWorkflow(
+    @Param("teamId", ParseIntPipe) teamId: number,
+    @Param("workflowId") workflowId: number
+  ): Promise<{ status: typeof SUCCESS_STATUS }> {
+    await this.routingFormWorkflowsService.deleteTeamRoutingFormWorkflow(teamId, workflowId);
     return { status: SUCCESS_STATUS };
   }
 }

@@ -28,8 +28,15 @@ import {
   OnBeforeEventTriggerDto,
   OnFormSubmittedTriggerDto,
 } from "@/modules/workflows/inputs/workflow-trigger.input";
+import {
+  GetEventTypeWorkflowOutput,
+  GetEventTypeWorkflowsOutput,
+} from "@/modules/workflows/outputs/event-type-workflow.output";
 // Adjust path if needed
-import { GetWorkflowOutput, GetWorkflowsOutput } from "@/modules/workflows/outputs/workflow.output";
+import {
+  GetRoutingFormWorkflowOutput,
+  GetRoutingFormWorkflowsOutput,
+} from "@/modules/workflows/outputs/routing-form-workflow.output";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -69,8 +76,8 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
   let verifiedPhoneId2: number;
   let verifiedEmailId: number;
   let verifiedEmailId2: number;
-  let createdWorkflow: GetWorkflowOutput["data"];
-  let createdFormWorkflow: GetWorkflowOutput["data"];
+  let createdWorkflow: GetEventTypeWorkflowOutput["data"];
+  let createdFormWorkflow: GetRoutingFormWorkflowOutput["data"];
 
   const emailToVerify = `org-teams-workflows-team-${randomString()}@example.com`;
   const phoneToVerify = `+37255556666`;
@@ -320,7 +327,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
         .send(sampleCreateWorkflowDto)
         .expect(201)
         .then((response) => {
-          const responseBody: GetWorkflowOutput = response.body;
+          const responseBody: GetEventTypeWorkflowOutput = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(responseBody.data.activation).toBeDefined();
@@ -434,7 +441,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
         .send(validWorkflow)
         .expect(201)
         .then((response) => {
-          const responseBody: GetWorkflowOutput = response.body;
+          const responseBody: GetRoutingFormWorkflowOutput = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(responseBody.data.name).toEqual(sampleCreateWorkflowRoutingFormDto.name);
@@ -468,7 +475,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
         .send({ ...sampleCreateWorkflowDto, type: undefined })
         .expect(201)
         .then((response) => {
-          const responseBody: GetWorkflowOutput = response.body;
+          const responseBody: GetEventTypeWorkflowOutput = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(responseBody.data.name).toEqual(sampleCreateWorkflowDto.name);
@@ -525,17 +532,33 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
   });
 
   describe(`GET ${basePath}`, () => {
-    it("should get a list of workflows for the team", async () => {
+    it("should get a list of event-type workflows for the team", async () => {
       return request(app.getHttpServer())
         .get(`${basePath}?skip=0&take=10`)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .expect(200)
         .then((response) => {
-          const responseBody: GetWorkflowsOutput = response.body;
+          const responseBody: GetEventTypeWorkflowsOutput = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeInstanceOf(Array);
           expect(responseBody.data.length).toBeGreaterThanOrEqual(1);
           expect(responseBody.data.some((wf) => wf.id === createdWorkflowId)).toBe(true);
+          expect(responseBody.data.every((wf) => wf.type === "event-type")).toBe(true);
+        });
+    });
+
+    it("should get a list of routing-form workflows for the team", async () => {
+      return request(app.getHttpServer())
+        .get(`${basePath}/routing-form?skip=0&take=10`)
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+        .expect(200)
+        .then((response) => {
+          const responseBody: GetRoutingFormWorkflowsOutput = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeInstanceOf(Array);
+          expect(responseBody.data.length).toBeGreaterThanOrEqual(1);
+          expect(responseBody.data.some((wf) => wf.id === createdFormWorkflowId)).toBe(true);
+          expect(responseBody.data.every((wf) => wf.type === "routing-form")).toBe(true);
         });
     });
 
@@ -552,7 +575,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .expect(200)
         .then((response) => {
-          const responseBody: GetWorkflowOutput = response.body;
+          const responseBody: GetEventTypeWorkflowOutput = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(responseBody.data.id).toEqual(createdWorkflowId);
@@ -560,14 +583,14 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
         });
     });
 
-    it("should get a specific workflow by ID", async () => {
+    it("should get a specific routing-form workflow by ID", async () => {
       expect(createdWorkflowId).toBeDefined();
       return request(app.getHttpServer())
-        .get(`${basePath}/${createdFormWorkflowId}`)
+        .get(`${basePath}/${createdFormWorkflowId}/routing-form`)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .expect(200)
         .then((response) => {
-          const responseBody: GetWorkflowOutput = response.body;
+          const responseBody: GetEventTypeWorkflowOutput = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(responseBody.data.id).toEqual(createdFormWorkflowId);
@@ -646,7 +669,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
         .send(partialUpdateDto)
         .expect(200)
         .then((response) => {
-          const responseBody: GetWorkflowOutput = response.body;
+          const responseBody: GetEventTypeWorkflowOutput = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(responseBody.data.id).toEqual(createdWorkflowId);
@@ -704,6 +727,20 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
         .expect(400);
     });
 
+    it("should not update an existing event-type workflow, trying to use routing-form workflow endpoint", async () => {
+      const partialUpdateDto = {
+        name: updatedName,
+      };
+
+      expect(createdWorkflowId).toBeDefined();
+      expect(createdWorkflow).toBeDefined();
+      return request(app.getHttpServer())
+        .patch(`${basePath}/${createdWorkflowId}/routing-form`)
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+        .send(partialUpdateDto)
+        .expect(404);
+    });
+
     it("should update an existing routing form workflow, update the first step and discard any other steps", async () => {
       const step1 = createdFormWorkflow.steps.find((step) => step.stepNumber === 1);
       expect(step1).toBeDefined();
@@ -740,7 +777,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
         .send(partialUpdateDto)
         .expect(200)
         .then((response) => {
-          const responseBody: GetWorkflowOutput = response.body;
+          const responseBody: GetRoutingFormWorkflowOutput = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(responseBody.data.id).toEqual(createdFormWorkflowId);
@@ -800,9 +837,19 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
       workflowToDeleteId = res.body.data.id;
     });
 
-    it("should delete an existing workflow", async () => {
+    it("should delete an existing event-type workflow", async () => {
       return request(app.getHttpServer())
         .delete(`${basePath}/${workflowToDeleteId}`)
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+        .expect(200)
+        .then((response) => {
+          expect(response.body.status).toEqual(SUCCESS_STATUS);
+        });
+    });
+
+    it("should delete an existing routing-form workflow", async () => {
+      return request(app.getHttpServer())
+        .delete(`${basePath}/${createdFormWorkflowId}/routing-form`)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .expect(200)
         .then((response) => {

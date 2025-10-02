@@ -83,6 +83,10 @@ export const ENUM_TO_WORKFLOW_TRIGGER = {
   [WorkflowTriggerEvents.BOOKING_NO_SHOW_UPDATED]: BOOKING_NO_SHOW_UPDATED,
 } as const;
 
+export const ENUM_TO_ROUNTING_FORM_WORKFLOW_TRIGGER = {
+  [WorkflowTriggerEvents.FORM_SUBMITTED]: FORM_SUBMITTED,
+} as const;
+
 export const HOUR = "hour";
 export const MINUTE = "minute";
 export const DAY = "day";
@@ -166,8 +170,6 @@ export class OnRejectedTriggerDto {
   @ApiProperty({
     description: "Trigger type for the workflow",
   })
-  @IsString()
-  @IsIn([BOOKING_REJECTED])
   type: typeof BOOKING_REJECTED = BOOKING_REJECTED;
 }
 
@@ -175,8 +177,6 @@ export class OnRequestedTriggerDto {
   @ApiProperty({
     description: "Trigger type for the workflow",
   })
-  @IsString()
-  @IsIn([BOOKING_REQUESTED])
   type: typeof BOOKING_REQUESTED = BOOKING_REQUESTED;
 }
 
@@ -184,8 +184,6 @@ export class OnPaymentInitiatedTriggerDto {
   @ApiProperty({
     description: "Trigger type for the workflow",
   })
-  @IsString()
-  @IsIn([BOOKING_PAYMENT_INITIATED])
   type: typeof BOOKING_PAYMENT_INITIATED = BOOKING_PAYMENT_INITIATED;
 }
 
@@ -193,8 +191,6 @@ export class OnPaidTriggerDto {
   @ApiProperty({
     description: "Trigger type for the workflow",
   })
-  @IsString()
-  @IsIn([BOOKING_PAID])
   type: typeof BOOKING_PAID = BOOKING_PAID;
 }
 
@@ -202,8 +198,6 @@ export class OnNoShowUpdateTriggerDto {
   @ApiProperty({
     description: "Trigger type for the workflow",
   })
-  @IsString()
-  @IsIn([BOOKING_NO_SHOW_UPDATED])
   type: typeof BOOKING_NO_SHOW_UPDATED = BOOKING_NO_SHOW_UPDATED;
 }
 
