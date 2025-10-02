@@ -127,6 +127,7 @@ export class InputEventTypesService_2024_06_14 {
       customName,
       useDestinationCalendarEmail,
       disableGuests,
+      bookerActiveBookingsLimit,
       ...rest
     } = inputEventType;
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
@@ -138,8 +139,8 @@ export class InputEventTypesService_2024_06_14 {
         ? this.getBookingFieldsWithGuestsToggled(bookingFields, disableGuests)
         : bookingFields;
 
-    const maxActiveBookingsPerBooker = inputEventType.bookerActiveBookingsLimit
-      ? this.transformInputBookerActiveBookingsLimit(inputEventType.bookerActiveBookingsLimit)
+    const maxActiveBookingsPerBooker = bookerActiveBookingsLimit
+      ? this.transformInputBookerActiveBookingsLimit(bookerActiveBookingsLimit)
       : {};
 
     const metadata: EventTypeMetadata = {
@@ -206,6 +207,7 @@ export class InputEventTypesService_2024_06_14 {
       customName,
       useDestinationCalendarEmail,
       disableGuests,
+      bookerActiveBookingsLimit,
       ...rest
     } = inputEventType;
     const eventTypeDb = await this.eventTypesRepository.getEventTypeWithMetaData(eventTypeId);
@@ -220,8 +222,8 @@ export class InputEventTypesService_2024_06_14 {
         ? this.getBookingFieldsWithGuestsToggled(bookingFields, disableGuests)
         : bookingFields;
 
-    const maxActiveBookingsPerBooker = inputEventType.bookerActiveBookingsLimit
-      ? this.transformInputBookerActiveBookingsLimit(inputEventType.bookerActiveBookingsLimit)
+    const maxActiveBookingsPerBooker = bookerActiveBookingsLimit
+      ? this.transformInputBookerActiveBookingsLimit(bookerActiveBookingsLimit)
       : {};
 
     const metadata: EventTypeMetadata = {
