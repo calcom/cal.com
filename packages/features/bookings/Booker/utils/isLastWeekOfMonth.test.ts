@@ -52,7 +52,7 @@ describe("isLastWeekOfMonth", () => {
 
     it("should handle invalid date strings", () => {
       const result = isLastWeekOfMonth("invalid-date");
-      expect(typeof result).toBe("boolean");
+      expect(result).toBe(true);
     });
   });
 });

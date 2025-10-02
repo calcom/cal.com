@@ -45,14 +45,14 @@ describe("isMonthViewPrefetchEnabled", () => {
       vi.setSystemTime(new Date("2024-01-20T12:00:00Z"));
 
       const result = isMonthViewPrefetchEnabled("2024-02-15", null);
-      expect(typeof result).toBe("boolean");
+      expect(result).toBe(false);
     });
 
     it("should handle exactly at 2 weeks threshold", () => {
       vi.setSystemTime(new Date("2024-01-15T00:00:00Z"));
 
       const result = isMonthViewPrefetchEnabled("invalid-date", "2024-01-01");
-      expect(typeof result).toBe("boolean");
+      expect(result).toBe(false);
     });
 
     it("should work with different months throughout the year", () => {
