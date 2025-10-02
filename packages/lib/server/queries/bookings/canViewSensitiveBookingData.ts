@@ -1,8 +1,5 @@
 import { prisma } from "@calcom/prisma";
-import type { Booking, EventType, User, Team } from "@calcom/prisma/client";
-import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
-
-import { isTeamMember } from "../teams";
+import { SchedulingType } from "@calcom/prisma/enums";
 
 export type BookingForPermissionCheck = {
   id: number;

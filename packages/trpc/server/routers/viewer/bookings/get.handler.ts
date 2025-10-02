@@ -770,15 +770,15 @@ export async function getBookings({
       ) {
         const bookingFields = eventTypeFieldsMap.get(booking.eventType.id);
 
-        if (bookingFields) {
-          const filteredResponses = { ...booking.responses };
+        if (bookingFields && typeof booking.responses === "object" && !Array.isArray(booking.responses)) {
+          const filteredResponses: Record<string, unknown> = { ...booking.responses };
 
-          for (const key in filteredResponses) {
+          Object.keys(filteredResponses).forEach((key) => {
             const field = bookingFields.find((field) => field.name === key);
             if (field && field.hidden) {
               delete filteredResponses[key];
             }
-          }
+          });
 
           processedResponses = filteredResponses as Prisma.JsonValue;
         }

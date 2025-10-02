@@ -358,7 +358,7 @@ const handleDeleteCredential = async ({
                         hideBranding: booking.eventType.owner.hideBranding ?? null,
                       }
                     : null,
-                  organizationId: orgId,
+                  organizationId: orgId ?? null,
                 }).catch(() => !!booking.eventType?.owner?.hideBranding)
               : false;
 
