@@ -98,6 +98,9 @@ export const IMMEDIATE_WORKFLOW_TRIGGER_EVENTS: WorkflowTriggerEvents[] = [
   WorkflowTriggerEvents.FORM_SUBMITTED,
 ];
 
-export const FORM_TRIGGER_WORKFLOW_EVENTS: WorkflowTriggerEvents[] = [
-  WorkflowTriggerEvents.FORM_SUBMITTED,
-];
+export const FORM_TRIGGER_WORKFLOW_EVENTS: WorkflowTriggerEvents[] = [WorkflowTriggerEvents.FORM_SUBMITTED];
+
+export const ALLOWED_FORM_WORKFLOW_ACTIONS = [
+  WorkflowActions.EMAIL_ATTENDEE,
+  WorkflowActions.EMAIL_ADDRESS,
+] as const;
