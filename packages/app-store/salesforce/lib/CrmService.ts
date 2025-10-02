@@ -482,27 +482,9 @@ export default class SalesforceCRMService implements CRM {
         appOptions?.roundRobinSkipFallbackToLeadOwner &&
         forRoundRobinSkip
       ) {
-        const searchResult = await conn.search(
-          `FIND {${emailArray[0]}} IN EMAIL FIELDS RETURNING Lead(Id, Email, OwnerId, Owner.Email), Contact(Id, Email, OwnerId, Owner.Email)`
-        );
-
-        if (searchResult.searchRecords.length > 0) {
-          // See if a contact was found first
-          const contactQuery = searchResult.searchRecords.filter(
-            (record) => record.attributes?.type === SalesforceRecordEnum.CONTACT
-          );
-
-          if (contactQuery.length > 0) {
-            records = contactQuery as ContactRecord[];
-          } else {
-            // If not fallback to lead
-            const leadQuery = searchResult.searchRecords.filter(
-              (record) => record.attributes?.type === SalesforceRecordEnum.LEAD
-            );
-            if (leadQuery.length > 0) {
-              records = leadQuery as ContactRecord[];
-            }
-          }
+        const record = await this.getContactOrLeadFromEmail({ email: emailArray[0], conn });
+        if (record) {
+          records.push(record);
         }
       }
 
@@ -512,22 +494,13 @@ export default class SalesforceCRMService implements CRM {
         appOptions.createEventOnLeadCheckForContact &&
         !forRoundRobinSkip
       ) {
-        // Get any matching contacts
-        const contactSearch = await conn.query(
-          `SELECT Id, Email, OwnerId, Owner.Email FROM ${
-            SalesforceRecordEnum.CONTACT
-          } WHERE Email IN ('${emailArray.join("','")}')`
-        );
-
-        if (contactSearch?.records?.length > 0) {
-          records = contactSearch.records as ContactRecord[];
-          this.setFallbackToContact(true);
-          log.info(
-            "Found matching contacts, falling back to contact",
-            safeStringify({
-              contactCount: records.length,
-            })
-          );
+        const record = await this.getContactOrLeadFromEmail({
+          email: emailArray[0],
+          setFallbackToContact: true,
+          conn,
+        });
+        if (record) {
+          records.push(record);
         }
       }
 
