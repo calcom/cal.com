@@ -8,11 +8,10 @@ import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 import type { JsonValue } from "@calcom/types/Json";
 
 export class BillingPlanService {
-  // This private static member is necessary to prevent webpack from tree-shaking the BillingPlan enum.
-  // With "sideEffects": false in package.json, webpack's static analysis fails to track enum usage
-  // through class methods across package boundaries. This creates a strong reference that webpack
-  // can see, preventing the enum initialization code from being incorrectly removed from the bundle.
-  // See: https://calendso.slack.com/archives/C08LT9BLEET/p1759420015428149
+  // This private static member is necessary to prevent webpack from tree-shaking the BillingPlan enum. (important-comment)
+  // With "sideEffects": false in package.json, webpack's static analysis fails to track enum usage (important-comment)
+  // through class methods across package boundaries. This creates a strong reference that webpack (important-comment)
+  // can see, preventing the enum initialization code from being incorrectly removed from the bundle. (important-comment)
   private static BillingPlan = BillingPlan;
 
   async getUserPlanByMemberships(
@@ -37,11 +36,12 @@ export class BillingPlanService {
       };
     }[]
   ) {
-    if (memberships.length === 0) return BillingPlan.INDIVIDUALS;
+    if (memberships.length === 0) return BillingPlanService.BillingPlan.INDIVIDUALS;
 
     for (const { team, user } of memberships) {
       if (team.isPlatform || user.isPlatformManaged) {
-        if (PLATFORM_ENTERPRISE_SLUGS.includes(team.slug ?? "")) return BillingPlan.PLATFORM_ENTERPRISE;
+        if (PLATFORM_ENTERPRISE_SLUGS.includes(team.slug ?? ""))
+          return BillingPlanService.BillingPlan.PLATFORM_ENTERPRISE;
         if (!team.platformBilling) continue;
 
         return PLATFORM_PLANS_MAP[team.platformBilling.plan] ?? team.platformBilling.plan;
@@ -67,20 +67,20 @@ export class BillingPlanService {
           !team.parent.isPlatform
         ) {
           return ENTERPRISE_SLUGS.includes(team.parent.slug ?? "")
-            ? BillingPlan.ENTERPRISE
-            : BillingPlan.ORGANIZATIONS;
+            ? BillingPlanService.BillingPlan.ENTERPRISE
+            : BillingPlanService.BillingPlan.ORGANIZATIONS;
         }
 
         if (!teamMetadata?.subscriptionId) continue;
         if (team.isOrganization) {
           return ENTERPRISE_SLUGS.includes(team.slug ?? "")
-            ? BillingPlan.ENTERPRISE
-            : BillingPlan.ORGANIZATIONS;
+            ? BillingPlanService.BillingPlan.ENTERPRISE
+            : BillingPlanService.BillingPlan.ORGANIZATIONS;
         } else {
-          return BillingPlan.TEAMS;
+          return BillingPlanService.BillingPlan.TEAMS;
         }
       }
     }
-    return BillingPlan.UNKNOWN;
+    return BillingPlanService.BillingPlan.UNKNOWN;
   }
 }
