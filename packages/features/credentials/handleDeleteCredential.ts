@@ -13,6 +13,8 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { deletePayment } from "@calcom/features/bookings/lib/payment/deletePayment";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { buildNonDelegationCredential } from "@calcom/lib/delegationCredential/server";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -250,6 +252,7 @@ const handleDeleteCredential = async ({
               paid: true,
               eventType: {
                 select: {
+                  id: true,
                   recurringEvent: true,
                   title: true,
                   bookingFields: true,
@@ -261,6 +264,19 @@ const handleDeleteCredential = async ({
                     select: {
                       id: true,
                       name: true,
+                      parentId: true,
+                      hideBranding: true,
+                      parent: {
+                        select: {
+                          hideBranding: true,
+                        },
+                      },
+                    },
+                  },
+                  owner: {
+                    select: {
+                      id: true,
+                      hideBranding: true,
                     },
                   },
                   metadata: true,
@@ -318,6 +334,34 @@ const handleDeleteCredential = async ({
 
             const attendeesList = await Promise.all(attendeesListPromises);
             const tOrganizer = await getTranslation(booking?.user?.locale ?? "en", "common");
+            const orgId = await getOrgIdFromMemberOrTeamId({
+              memberId: booking.userId ?? null,
+              teamId: booking.eventType?.team?.id ?? null,
+            });
+
+            const hideBranding = booking.eventType?.id
+              ? await shouldHideBrandingForEvent({
+                  eventTypeId: booking.eventType.id,
+                  team: booking.eventType.team
+                    ? {
+                        hideBranding: booking.eventType.team.hideBranding ?? null,
+                        parent: booking.eventType.team.parent
+                          ? {
+                              hideBranding: booking.eventType.team.parent.hideBranding ?? null,
+                            }
+                          : null,
+                      }
+                    : null,
+                  owner: booking.eventType.owner
+                    ? {
+                        id: booking.eventType.owner.id,
+                        hideBranding: booking.eventType.owner.hideBranding ?? null,
+                      }
+                    : null,
+                  organizationId: orgId,
+                }).catch(() => !!booking.eventType?.owner?.hideBranding)
+              : false;
+
             await sendCancelledEmailsAndSMS(
               {
                 type: booking?.eventType?.title as string,
@@ -356,6 +400,7 @@ const handleDeleteCredential = async ({
                       members: [],
                     }
                   : undefined,
+                hideBranding,
               },
               {
                 eventName: booking?.eventType?.eventName,
