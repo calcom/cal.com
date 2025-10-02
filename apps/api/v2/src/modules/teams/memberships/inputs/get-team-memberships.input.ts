@@ -1,17 +1,26 @@
 import { GetUsersInput } from "@/modules/users/inputs/get-users.input";
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { ArrayNotEmpty, IsEmail, IsOptional } from "class-validator";
+import { ArrayMaxSize, ArrayNotEmpty, IsEmail, IsOptional } from "class-validator";
 
 export class GetTeamMembershipsInput extends GetUsersInput {
   @IsOptional()
   @Transform(({ value }) => {
-    if (typeof value === "string") {
-      return value.split(",").map((email: string) => email.trim());
-    }
-    return value;
+    if (value == null) return undefined;
+    const rawValues = (Array.isArray(value) ? value : [value]).flatMap((entry) =>
+      typeof entry === "string" ? entry.split(",") : []
+    );
+    const normalized = rawValues
+      .map((email) => email.trim())
+      .filter((email) => email.length > 0)
+      .map((email) => email.toLowerCase());
+    const deduplicated = [...new Set(normalized)];
+    return deduplicated.length > 0 ? deduplicated : undefined;
   })
   @ArrayNotEmpty({ message: "emails cannot be empty." })
+  @ArrayMaxSize(20, {
+    message: "emails array cannot contain more than 20 email addresses for team membership filtering",
+  })
   @IsEmail({}, { each: true, message: "Each email must be a valid email address" })
   @ApiPropertyOptional({
     type: [String],
