@@ -38,8 +38,7 @@ export const InstantBooking = ({ onConnectNow, event, cooldownMs = 0 }: IInstant
       </div>
       <div className="mt-2 flex items-center gap-3 sm:mt-0">
         {disabled ? (
-          <Tooltip
-            content={t("connect_now_unavailable_tooltip") || "Connect now is not available right now."}>
+          <Tooltip content={t("just_connected_description")}>
             <span className="inline-flex">
               <Button
                 disabled={disabled}
