@@ -46,7 +46,7 @@ export class BotDetectionService {
     // Check if BotID feature is enabled for this team (also checks global scope - enabling on all teams)
     const isBotIDEnabled = await this.featuresRepository.checkIfTeamHasFeature(
       eventType.teamId,
-      "booker-botID"
+      "booker-botid"
     );
 
     if (!isBotIDEnabled) {
