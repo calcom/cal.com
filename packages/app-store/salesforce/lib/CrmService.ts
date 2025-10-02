@@ -569,6 +569,44 @@ export default class SalesforceCRMService implements CRM {
     }
   }
 
+  private async getContactOrLeadFromEmail({
+    email,
+    setFallbackToContact = false,
+    conn,
+  }: {
+    email: string;
+    setFallbackToContact?: boolean;
+    conn: Connection;
+  }) {
+    const searchResult = await conn.search(
+      `FIND {${email}} IN EMAIL FIELDS RETURNING Lead(Id, Email, OwnerId, Owner.Email), Contact(Id, Email, OwnerId, Owner.Email)`
+    );
+
+    if (searchResult.searchRecords.length === 0) {
+      return null;
+    }
+
+    // See if a contact was found first
+    const contactQuery = searchResult.searchRecords.filter(
+      (record) => record.attributes?.type === SalesforceRecordEnum.CONTACT
+    );
+
+    if (contactQuery.length > 0) {
+      this.setFallbackToContact(setFallbackToContact);
+      return contactQuery as ContactRecord[];
+    } else {
+      // If not fallback to lead
+      const leadQuery = searchResult.searchRecords.filter(
+        (record) => record.attributes?.type === SalesforceRecordEnum.LEAD
+      );
+      if (leadQuery.length > 0) {
+        return leadQuery as ContactRecord[];
+      }
+    }
+
+    return null;
+  }
+
   async createContacts(
     contactsToCreate: Attendee[],
     organizerEmail?: string,
