@@ -600,30 +600,18 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should return empty to get bookings by organizationId and Id of a user that does not exist", async () => {
+      it("should fail to get bookings by organizationId and Id of a user that does not exist", async () => {
         return request(app.getHttpServer())
           .get(`/v2/organizations/${organization.id}/bookings?userIds=972930`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(200)
-          .then(async (response) => {
-            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
-            expect(responseBody.status).toEqual(SUCCESS_STATUS);
-            const data = responseBody.data;
-            expect(data.length).toEqual(0);
-          });
+          .expect(400);
       });
 
-      it("should return empty to get bookings by organizationId and Id of a user that does not belong to the org", async () => {
+      it("should fail to get bookings by organizationId and Id of a user that does not belong to the org", async () => {
         return request(app.getHttpServer())
           .get(`/v2/organizations/${organization.id}/bookings?userIds=${nonOrgUser1.id}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(200)
-          .then(async (response) => {
-            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
-            expect(responseBody.status).toEqual(SUCCESS_STATUS);
-            const data = responseBody.data;
-            expect(data.length).toEqual(0);
-          });
+          .expect(403);
       });
 
       it("should get bookings by organizationId and non org event-type id", async () => {
