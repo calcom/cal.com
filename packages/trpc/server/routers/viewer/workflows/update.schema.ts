@@ -41,7 +41,9 @@ export const ZUpdateInputSchema = z
     (data) => {
       // For form triggers, validate that all steps use allowed actions
       if (isFormTrigger(data.trigger)) {
-        return data.steps.every((step) => ALLOWED_FORM_WORKFLOW_ACTIONS.includes(step.action));
+        return data.steps.every((step) =>
+          (ALLOWED_FORM_WORKFLOW_ACTIONS as readonly string[]).includes(step.action)
+        );
       }
       return true;
     },
