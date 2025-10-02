@@ -22,6 +22,22 @@ async function swaggerPlugin(fastify: FastifyInstance): Promise<void> {
     const serverUrl = getServerUrl();
     const apiDescription = getDescription();
 
+    // Define tags conditionally - only include Admin tag if local
+    const tags = [
+      { name: "Health", description: "Health check endpoints" },
+      ...(isLocal ? [{ name: "Admin", description: "Admin endpoints (requires admin role)" }] : []),
+      { name: "Users", description: "User management endpoints" },
+      { name: "Event Types", description: "Event type management endpoints" },
+      { name: "Teams", description: "Team management endpoints" },
+      { name: "Team Event Types", description: "Event type management endpoints for teams" },
+      { name: "Team Memberships", description: "Membership management endpoints for teams" },
+      { name: "Team Schedules", description: "Schedule management endpoints for teams" },
+      { name: "Availability", description: "User availability management endpoints" },
+      { name: "Schedule", description: "User schedule management endpoints" },
+      { name: "Slots", description: "Available slots retrieval endpoints" },
+      { name: "Booking", description: "Event booking endpoints" },
+    ];
+
     // Register Swagger with improved error handling
     await fastify.register(swagger, {
       openapi: {
@@ -93,30 +109,41 @@ Examples:
             },
           },
         },
-        tags: [
-          { name: "Health", description: "Health check endpoints" },
-          { name: "Admin", description: "Admin endpoints (requires admin role)" },
-          { name: "Users", description: "User management endpoints" },
-          { name: "Event Types", description: "Event type management endpoints" },
-          { name: "Teams", description: "Team management endpoints" },
-          { name: "Team Event Types", description: "Event type management endpoints for teams" },
-          { name: "Team Memberships", description: "Membership management endpoints for teams" },
-          { name: "Team Schedules", description: "Schedule management endpoints for teams" },
-          { name: "Availability", description: "User availability management endpoints" },
-          { name: "Schedule", description: "User schedule management endpoints" },
-          { name: "Slots", description: "Available slots retrieval endpoints" },
-          { name: "Booking", description: "Event booking endpoints" },
-        ],
+        tags,
       },
       hideUntagged: true,
       // Improved transform function with error handling
+      // Filter out Admin endpoints if not local
       transform: ({ schema, url }) => {
         try {
+          // Hide endpoints with 'Admin' tag when not in local environment
+          if (!isLocal && schema?.tags?.includes("Admin")) {
+            return null;
+          }
           return { schema, url };
         } catch (error) {
           console.error(`❌ Error transforming schema for ${url}:`, error);
           return { schema: {}, url };
         }
+      },
+      // Add transformObject to filter routes
+      transformObject: ({ swaggerObject }) => {
+        if (!isLocal && swaggerObject.paths) {
+          // Remove paths that have Admin tag
+          Object.keys(swaggerObject.paths).forEach((path) => {
+            Object.keys(swaggerObject.paths[path]).forEach((method) => {
+              const operation = swaggerObject.paths[path][method];
+              if (operation?.tags?.includes("Admin")) {
+                delete swaggerObject.paths[path][method];
+              }
+            });
+            // Remove the path entirely if all methods are deleted
+            if (Object.keys(swaggerObject.paths[path]).length === 0) {
+              delete swaggerObject.paths[path];
+            }
+          });
+        }
+        return swaggerObject;
       },
     });
 
