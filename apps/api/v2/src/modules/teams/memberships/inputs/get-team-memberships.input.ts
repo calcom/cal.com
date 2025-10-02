@@ -1,24 +1,18 @@
 import { GetUsersInput } from "@/modules/users/inputs/get-users.input";
-import { BadRequestException } from "@nestjs/common";
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { ArrayNotEmpty, isEmail, IsOptional } from "class-validator";
+import { ArrayNotEmpty, IsEmail, IsOptional } from "class-validator";
 
 export class GetTeamMembershipsInput extends GetUsersInput {
   @IsOptional()
   @Transform(({ value }) => {
     if (typeof value === "string") {
-      return value.split(",").map((email: string) => {
-        const trimmed = email.trim();
-        if (!isEmail(trimmed)) {
-          throw new BadRequestException(`Invalid email ${trimmed}`);
-        }
-        return trimmed;
-      });
+      return value.split(",").map((email: string) => email.trim());
     }
     return value;
   })
   @ArrayNotEmpty({ message: "emails cannot be empty." })
+  @IsEmail({}, { each: true, message: "Each email must be a valid email address" })
   @ApiPropertyOptional({
     type: [String],
     description:
