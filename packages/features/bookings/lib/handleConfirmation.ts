@@ -1,6 +1,8 @@
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
+import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
+import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
@@ -11,8 +13,6 @@ import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
-import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -34,6 +34,65 @@ import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTrigger
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 
+type BookingWithBranding = {
+  eventTypeId?: number | null;
+  eventType?: {
+    id?: number | null;
+    owner?: {
+      id?: number | null;
+      hideBranding?: boolean | null;
+    } | null;
+    team?: {
+      hideBranding?: boolean | null;
+      parentId?: number | null;
+      parent?: {
+        hideBranding?: boolean | null;
+      } | null;
+    } | null;
+  } | null;
+};
+
+async function calculateHideBrandingForBooking(
+  booking: BookingWithBranding,
+  fallbackOrganizationId: number | null
+) {
+  const eventTypeId = booking.eventType?.id ?? booking.eventTypeId ?? null;
+  if (!eventTypeId) {
+    return false;
+  }
+
+  const team = booking.eventType?.team
+    ? {
+        hideBranding: booking.eventType.team.hideBranding ?? null,
+        parent: booking.eventType.team.parent
+          ? {
+              hideBranding: booking.eventType.team.parent.hideBranding ?? null,
+            }
+          : null,
+      }
+    : null;
+
+  const owner = booking.eventType?.owner?.id
+    ? {
+        id: booking.eventType.owner.id,
+        hideBranding: booking.eventType.owner.hideBranding ?? null,
+      }
+    : null;
+
+  const organizationId = booking.eventType?.team?.parentId ?? fallbackOrganizationId;
+
+  try {
+    return await shouldHideBrandingForEvent({
+      eventTypeId,
+      team,
+      owner,
+      organizationId,
+    });
+  } catch (error) {
+    log.warn("Failed to calculate hideBranding for booking", safeStringify({ eventTypeId, error }));
+    return !!booking.eventType?.owner?.hideBranding;
+  }
+}
 
 export async function handleConfirmation(args: {
   user: EventManagerUser & { username: string | null };
@@ -179,8 +238,19 @@ export async function handleConfirmation(args: {
       }[];
       owner: {
         hideBranding?: boolean | null;
+        id?: number | null;
       } | null;
+      team?: {
+        hideBranding?: boolean | null;
+        parentId?: number | null;
+        parent?: {
+          hideBranding?: boolean | null;
+        } | null;
+      } | null;
+      parentId?: number | null;
+      id?: number | null;
     } | null;
+    eventTypeId: number | null;
   }[] = [];
 
   const videoCallUrl = metadata.hangoutLink ? metadata.hangoutLink : evt.videoCallData?.url || "";
@@ -215,6 +285,7 @@ export async function handleConfirmation(args: {
         select: {
           eventType: {
             select: {
+              id: true,
               slug: true,
               bookingFields: true,
               schedulingType: true,
@@ -232,8 +303,23 @@ export async function handleConfirmation(args: {
                   },
                 },
               },
+              team: {
+                select: {
+                  id: true,
+                  name: true,
+                  parentId: true,
+                  hideBranding: true,
+                  parent: {
+                    select: {
+                      hideBranding: true,
+                    },
+                  },
+                },
+              },
+              parentId: true,
               owner: {
                 select: {
+                  id: true,
                   hideBranding: true,
                 },
               },
@@ -252,6 +338,7 @@ export async function handleConfirmation(args: {
           smsReminderNumber: true,
           customInputs: true,
           id: true,
+          eventTypeId: true,
         },
       })
     );
@@ -281,8 +368,10 @@ export async function handleConfirmation(args: {
             slug: true,
             bookingFields: true,
             schedulingType: true,
+            id: true,
             owner: {
               select: {
+                id: true,
                 hideBranding: true,
               },
             },
@@ -300,8 +389,23 @@ export async function handleConfirmation(args: {
                 },
               },
             },
+            team: {
+              select: {
+                id: true,
+                name: true,
+                parentId: true,
+                hideBranding: true,
+                parent: {
+                  select: {
+                    hideBranding: true,
+                  },
+                },
+              },
+            },
+            parentId: true,
           },
         },
+        eventTypeId: true,
         uid: true,
         startTime: true,
         responses: true,
@@ -370,7 +474,7 @@ export async function handleConfirmation(args: {
         workflows,
         smsReminderNumber: updatedBookings[index].smsReminderNumber,
         calendarEvent: evtOfBooking,
-        hideBranding: await calculateHideBrandingForBooking(updatedBookings[index]),
+        hideBranding: await calculateHideBrandingForBooking(updatedBookings[index], orgId ?? null),
         isConfirmedByDefault: true,
         isNormalBookingOrFirstRecurringSlot: isFirstBooking,
         isRescheduleEvent: false,
