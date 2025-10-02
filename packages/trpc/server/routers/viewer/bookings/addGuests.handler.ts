@@ -3,6 +3,8 @@ import { sendAddGuestsEmails } from "@calcom/emails";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
+import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
@@ -31,7 +33,37 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     },
     include: {
       attendees: true,
-      eventType: true,
+      eventType: {
+        select: {
+          id: true,
+          title: true,
+          teamId: true,
+          hideOrganizerEmail: true,
+          customReplyToEmail: true,
+          seatsPerTimeSlot: true,
+          seatsShowAttendees: true,
+          recurringEvent: true,
+          owner: {
+            select: {
+              id: true,
+              hideBranding: true,
+            },
+          },
+          team: {
+            select: {
+              id: true,
+              name: true,
+              parentId: true,
+              hideBranding: true,
+              parent: {
+                select: {
+                  hideBranding: true,
+                },
+              },
+            },
+          },
+        },
+      },
       destinationCalendar: true,
       references: true,
       user: {
@@ -135,6 +167,35 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
   const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
   const videoCallReference = booking.references.find((reference) => reference.type.includes("_video"));
 
+  let hideBranding = false;
+  if (booking.eventType?.id) {
+    const orgId = await getOrgIdFromMemberOrTeamId({
+      memberId: booking.userId ?? null,
+      teamId: booking.eventType.team?.id ?? booking.eventType.teamId ?? null,
+    });
+
+    hideBranding = await shouldHideBrandingForEvent({
+      eventTypeId: booking.eventType.id,
+      team: booking.eventType.team
+        ? {
+            hideBranding: booking.eventType.team.hideBranding ?? null,
+            parent: booking.eventType.team.parent
+              ? {
+                  hideBranding: booking.eventType.team.parent.hideBranding ?? null,
+                }
+              : null,
+          }
+        : null,
+      owner: booking.eventType.owner
+        ? {
+            id: booking.eventType.owner.id,
+            hideBranding: booking.eventType.owner.hideBranding ?? null,
+          }
+        : null,
+      organizationId: orgId ?? null,
+    }).catch(() => !!booking.eventType?.owner?.hideBranding);
+  }
+
   const evt: CalendarEvent = {
     title: booking.title || "",
     type: (booking.eventType?.title as string) || booking?.title || "",
@@ -161,6 +222,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: booking.eventType?.seatsShowAttendees,
     customReplyToEmail: booking.eventType?.customReplyToEmail,
+    hideBranding,
   };
 
   if (videoCallReference) {

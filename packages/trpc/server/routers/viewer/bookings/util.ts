@@ -30,6 +30,18 @@ export const bookingsProcedure = authedProcedure
               id: true,
               name: true,
               parentId: true,
+              hideBranding: true,
+              parent: {
+                select: {
+                  hideBranding: true,
+                },
+              },
+            },
+          },
+          owner: {
+            select: {
+              id: true,
+              hideBranding: true,
             },
           },
         },
@@ -102,7 +114,14 @@ export type BookingsProcedureContext = {
   booking: Booking & {
     eventType:
       | (EventType & {
-          team?: { id: number; name: string; parentId?: number | null } | null;
+          team?: {
+            id: number;
+            name: string;
+            parentId?: number | null;
+            hideBranding?: boolean | null;
+            parent?: { hideBranding?: boolean | null } | null;
+          } | null;
+          owner?: { id: number; hideBranding?: boolean | null } | null;
         })
       | null;
     destinationCalendar: DestinationCalendar | null;
