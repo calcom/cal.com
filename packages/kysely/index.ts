@@ -12,11 +12,7 @@ const connectionString = process.env.DATABASE_URL ?? "postgresql://postgres:@loc
 
 const pool = new Pool({
   connectionString,
-  ssl: IS_DEV
-    ? false
-    : {
-        rejectUnauthorized: false, // or false if using self-signed certs
-      },
+  ssl: false,
 });
 
 // 3. Create the Dialect, passing the configured pool instance
