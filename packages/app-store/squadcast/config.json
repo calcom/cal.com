@@ -1,0 +1,16 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "SquadCast",
+  "slug": "squadcast",
+  "type": "squadcast_conferencing",
+  "logo": "icon.png",
+  "url": "https://example.com/link",
+  "variant": "conferencing",
+  "categories": ["conferencing"],
+  "publisher": "Gurneesh Budhiraja",
+  "email": "gurneeshbudhiraja@gmail.com",
+  "description": "SquadCast is a remote recording platform designed for podcasters and content creators who need high-quality audio and video recordings. The platform records each participant's audio and video separately, ensuring crystal-clear quality even when participants have poor internet connections. Perfect for podcasters, interviewers, and content creators who want studio-quality recordings without the complexity of traditional recording setups.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "basic"
+}
