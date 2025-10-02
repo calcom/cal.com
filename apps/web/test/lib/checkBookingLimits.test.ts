@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
-import { getCheckBookingLimitsService } from "@calcom/lib/di/containers/BookingLimits";
+import { getCheckBookingLimitsService } from "@calcom/features/di/containers/BookingLimits";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 
