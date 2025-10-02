@@ -166,7 +166,8 @@ async function getLogicResultForAllMembers(
         attributesQueryValue,
       });
       attributesDataPerUser.set(member.userId, attributesData);
-      const result = jsonLogic.apply(attributeJsonLogic as unknown, attributesData)
+      // @ts-expect-error - JsonLogicResult from RAQB is structurally compatible with json-logic-js input type
+      const result = jsonLogic.apply(attributeJsonLogic, attributesData)
         ? RaqbLogicResult.MATCH
         : RaqbLogicResult.NO_MATCH;
 

@@ -11,7 +11,7 @@ const { resolveQueryValue } = acrossQueryValueCompatiblity;
 
 // Mock the getFieldResponseValueAsLabel
 vi.mock("@calcom/app-store/routing-forms/lib/getFieldResponseValueAsLabel", () => ({
-  getFieldResponseValueAsLabel: ({ fieldResponseValue }: { field: any; fieldResponseValue: any }) => {
+  getFieldResponseValueAsLabel: ({ fieldResponseValue }: { field: unknown; fieldResponseValue: unknown }) => {
     // For testing, just return the value as-is
     return fieldResponseValue;
   },
@@ -35,7 +35,7 @@ const createAttributesQueryValue = (overrides?: {
   id?: string;
   type?: "group" | "switch_group";
   children1?: Record<string, RaqbChild>;
-  properties?: any;
+  properties?: unknown;
 }): AttributesQueryValue => ({
   id: overrides?.id || "test-id",
   type: overrides?.type || "group",
@@ -55,7 +55,7 @@ const createQueryValueWithRule = ({
   ruleId: string;
   field: string;
   operator: string;
-  value: any[];
+  value: unknown[];
   valueSrc?: string[];
   valueError?: (string | null)[];
   valueType?: string[];
@@ -86,14 +86,14 @@ const createComplexQueryValue = ({
     ruleId: string;
     field: string;
     operator: string;
-    value: any[];
+    value: unknown[];
     valueSrc?: string[];
     valueError?: (string | null)[];
     valueType?: string[];
   }>;
 }): AttributesQueryValue => {
   const children1: Record<string, RaqbChild> = {};
-  
+
   rules.forEach((rule) => {
     children1[rule.ruleId] = createQueryValueRule({
       type: "rule",
@@ -123,7 +123,7 @@ const createNestedGroupQueryValue = ({
       ruleId: string;
       field: string;
       operator?: string;
-      value: any[];
+      value: unknown[];
       valueSrc?: string[];
       valueError?: (string | null)[];
       valueType?: string[];
@@ -748,7 +748,7 @@ describe("resolveQueryValue", () => {
             properties: {
               field: "location",
               operator: "multiselect_some_in",
-              value: [["delhi", "Chennai"]], // Single value replaced
+              value: [["delhi", "chennai"]], // All values lowercased for RAQB v6 slug validation
             },
           },
         },
@@ -915,7 +915,7 @@ describe("resolveQueryValue", () => {
             type: "rule",
             properties: expect.objectContaining({
               field: "attr1",
-              value: [["delhi", "haryana", "Fixed-Value"]],
+              value: [["delhi", "haryana", "fixed-value"]],
               operator: "multiselect_some_in",
             }),
           },
@@ -1020,7 +1020,7 @@ describe("resolveQueryValue", () => {
             properties: {
               field: "location",
               operator: "multiselect_some_in",
-              value: [["delhi", "Chennai", "MUMBAI"]], // Only field template value is lowercased
+              value: [["delhi", "chennai", "mumbai"]], // All values lowercased for RAQB v6 slug validation
             },
           },
         },
@@ -1074,14 +1074,14 @@ describe("resolveQueryValue", () => {
                 type: "rule",
                 properties: expect.objectContaining({
                   field: "location",
-                  value: [["delhi", "mumbai", "Fixed1"]],
+                  value: [["delhi", "mumbai", "fixed1"]],
                 }),
               },
               rule2: {
                 type: "rule",
                 properties: expect.objectContaining({
                   field: "city",
-                  value: [["chennai", "Fixed2"]],
+                  value: [["chennai", "fixed2"]],
                 }),
               },
             },
@@ -1217,7 +1217,7 @@ describe("resolveQueryValue", () => {
         fields: mockFields,
         response: {
           location: { value: ["Delhi"], label: "Delhi" },
-          city: { value: null as any, label: "" }, // null value
+          city: { value: null as unknown, label: "" }, // null value
         },
       },
       attributes: mockAttributes,
@@ -1447,21 +1447,21 @@ describe("resolveQueryValue", () => {
             type: "rule",
             properties: {
               field: "mixed1",
-              value: [["delhi", "mumbai", "Fixed1", "chennai"]],
+              value: [["delhi", "mumbai", "fixed1", "chennai"]],
             },
           },
           group2: {
             type: "rule",
             properties: {
               field: "mixed2",
-              value: [["Fixed2", "delhi", "mumbai"]],
+              value: [["fixed2", "delhi", "mumbai"]],
             },
           },
           group3: {
             type: "rule",
             properties: {
               field: "mixed3",
-              value: [["chennai", "delhi", "mumbai", "Fixed3", "chennai"]],
+              value: [["chennai", "delhi", "mumbai", "fixed3", "chennai"]],
             },
           },
         },
@@ -1586,7 +1586,7 @@ describe("resolveQueryValue", () => {
             type: "rule",
             properties: {
               field: "location",
-              value: [["{field:location}", "Fixed"]], // Template unchanged
+              value: [["{field:location}", "fixed"]], // Template unchanged, fixed value lowercased
             },
           },
         },
@@ -1612,7 +1612,7 @@ describe("resolveQueryValue", () => {
       dynamicFieldValueOperands: {
         fields: mockFields,
         response: {
-          location: {} as any, // Empty object, no value property
+          location: {} as unknown, // Empty object, no value property
         },
       },
       attributes: mockAttributes,

@@ -182,7 +182,7 @@ export const resolveQueryValue = ({
   const processStringValue = (value: string): string | string[] => {
     const fieldId = extractFieldId(value);
     if (!fieldId) {
-      // Regular non-field template string - normalize to lowercase for consistent comparison
+      // Regular non-field template string - lowercase for RAQB slug validation
       return caseInsensitive(value);
     }
 

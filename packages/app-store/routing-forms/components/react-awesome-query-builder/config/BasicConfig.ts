@@ -212,9 +212,13 @@ const operators: Operators = {
     label: "Any in",
     cardinality: 1, // Expects 1 value (which is an array of selected items)
     jsonLogic: (field: JsonLogicValue, operator: JsonLogicValue, vals: JsonLogicValue) => {
+      // RAQB v6 with cardinality: 1 wraps multiselect values in an extra array layer (important-comment)
+      // Unwrap [[...]] to [...] for jsonLogic compatibility (important-comment)
+      const unwrappedVals =
+        Array.isArray(vals) && vals.length === 1 && Array.isArray(vals[0]) ? vals[0] : vals;
       return {
         // Tested in jsonLogic.test.ts
-        some: [field, { in: [{ var: "" }, vals] }],
+        some: [field, { in: [{ var: "" }, unwrappedVals] }],
       };
     },
   },
@@ -233,9 +237,13 @@ const operators: Operators = {
       vals: JsonLogicValue,
       ..._rest: JsonLogicValue[]
     ) => {
+      // RAQB v6 with cardinality: 1 wraps multiselect values in an extra array layer
+      // Unwrap [[...]] to [...] for jsonLogic compatibility
+      const unwrappedVals =
+        Array.isArray(vals) && vals.length === 1 && Array.isArray(vals[0]) ? vals[0] : vals;
       return {
         // This is wrongly implemented as "includes". This isn't "equals". Because if field is ["a" ] and vals is ["a", "b"], it still matches. Expectation would probably be that it should be a strict match(["a", "b"] or ["b", "a"])
-        all: [field, { in: [{ var: "" }, vals] }],
+        all: [field, { in: [{ var: "" }, unwrappedVals] }],
       };
     },
   },
