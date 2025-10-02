@@ -691,8 +691,6 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
           orgId,
         });
 
-        console.log("volnei", result1);
-
         // Should not match user 3
         expect(result1).toHaveLength(2);
         expect(result1).not.toContainEqual({ userId: 3, result: RaqbLogicResult.MATCH });
@@ -757,7 +755,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         rules: [
           {
             raqbFieldId: LocationAttribute.id,
-            value: [[`{field:${LocationFieldId}}`, "Chennai"]], // Mixed: field template + fixed value
+            value: [`{field:${LocationFieldId}}`, "Chennai"], // Mixed: field template + fixed value
             operator: "multiselect_some_in",
             valueType: ["multiselect"],
           },
@@ -790,7 +788,6 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
       // Should match both users:
       // User 1: matches because they service Chennai (the fixed value)
       // User 2: matches because they service Mumbai (the field value)
-      console.log("volnei2", result);
       expect(result).toEqual(
         expect.arrayContaining([
           { userId: 1, result: RaqbLogicResult.MATCH },

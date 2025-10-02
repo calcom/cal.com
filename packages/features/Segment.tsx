@@ -2,8 +2,8 @@
 
 import { Query, Builder, Utils as QbUtils } from "@react-awesome-query-builder/ui";
 import type { ImmutableTree, BuilderProps } from "@react-awesome-query-builder/ui";
+import type { JsonTree } from "@react-awesome-query-builder/ui";
 import { useCallback, useState } from "react";
-import type { JsonTree } from "react-awesome-query-builder";
 
 import {
   withRaqbSettingsAndWidgets,
