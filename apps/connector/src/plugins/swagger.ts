@@ -5,28 +5,22 @@ import type { FastifyInstance } from "fastify";
 import fp from "fastify-plugin";
 
 async function swaggerPlugin(fastify: FastifyInstance): Promise<void> {
-  const { NODE_ENV, PORT, HOST } = fastify.config;
-
-  console.log("🔍 Swagger Debug Info:");
-  console.log("NODE_ENV:", NODE_ENV);
-  console.log("HOST:", HOST);
-  console.log("PORT:", PORT);
+  const { NODE_ENV, PORT, HOST, DOMAIN } = fastify.config;
 
   try {
     // Determine the correct server URL
-    const getServerUrl = () => {
-      if (NODE_ENV === "production") {
-        // For production, use HTTPS and full domain
-        return `https://api.${HOST}/api`;
-      } else {
-        // For development, check if we're running on localhost with HTTP
-        const protocol =
-          HOST === "localhost" || HOST === "127.0.0.1" || HOST === "0.0.0.0" ? "http" : "https";
-        return `${protocol}://${HOST}:${PORT}/api`;
-      }
+    const isLocal = DOMAIN.includes("localhost") || DOMAIN.includes("127.0.0.1");
+
+    const getServerUrl = () => (isLocal ? `http://${DOMAIN}:${PORT}/api` : `https://api.${DOMAIN}`);
+
+    const getDescription = () => {
+      if (isLocal) return "Development server ";
+      if (DOMAIN.includes("calid.in")) return "Staging server ";
+      return "Production server ";
     };
 
     const serverUrl = getServerUrl();
+    const apiDescription = getDescription();
 
     // Register Swagger with improved error handling
     await fastify.register(swagger, {
@@ -49,11 +43,7 @@ async function swaggerPlugin(fastify: FastifyInstance): Promise<void> {
         servers: [
           {
             url: serverUrl,
-            description: NODE_ENV === "production" ? "Production server" : "Development server",
-          },
-          {
-            url: "/api",
-            description: "Relative URL (fallback)",
+            description: apiDescription,
           },
         ],
         components: {
@@ -182,34 +172,34 @@ export default fp(swaggerPlugin, {
   name: "swagger",
 });
 
-// Alternative minimal swagger configuration for debugging
-export const minimalSwaggerPlugin = fp(
-  async function minimalSwagger(fastify: FastifyInstance) {
-    const { NODE_ENV, PORT, HOST } = fastify.config;
+// // Alternative minimal swagger configuration for debugging
+// export const minimalSwaggerPlugin = fp(
+//   async function minimalSwagger(fastify: FastifyInstance) {
+//     const { NODE_ENV, PORT, HOST } = fastify.config;
 
-    await fastify.register(swagger, {
-      openapi: {
-        openapi: "3.0.0",
-        info: {
-          title: "Cal ID API",
-          version: "1.0.0",
-        },
-        servers: [
-          {
-            url: NODE_ENV === "production" ? `http://${HOST}/api` : `https://${HOST}:${PORT}/api`,
-            description: "Development server",
-          },
-        ],
-      },
-    });
+//     await fastify.register(swagger, {
+//       openapi: {
+//         openapi: "3.0.0",
+//         info: {
+//           title: "Cal ID API",
+//           version: "1.0.0",
+//         },
+//         servers: [
+//           {
+//             url: NODE_ENV === "production" ? `http://${HOST}/api` : `https://${HOST}:${PORT}/api`,
+//             description: "Development server",
+//           },
+//         ],
+//       },
+//     });
 
-    if (NODE_ENV === "development") {
-      await fastify.register(swaggerUi, {
-        routePrefix: "/docs",
-      });
-    }
-  },
-  {
-    name: "minimal-swagger",
-  }
-);
+//     if (NODE_ENV === "development") {
+//       await fastify.register(swaggerUi, {
+//         routePrefix: "/docs",
+//       });
+//     }
+//   },
+//   {
+//     name: "minimal-swagger",
+//   }
+// );
