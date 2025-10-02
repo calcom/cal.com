@@ -14,7 +14,8 @@ import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import type { ServiceAccountKey } from "@calcom/lib/server/repository/delegationCredential";
 import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
+import type { SelectedCalendar } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
@@ -674,7 +675,31 @@ export async function getUsersCredentialsIncludeServiceAccountKey(user: User) {
   return allCredentials;
 }
 
-export async function getUsersCredentials(user: User) {
-  const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
-  return credentials.map(({ delegatedTo: _1, ...rest }) => rest);
+/**
+ * Find the credential for a selected calendar
+ * @param selectedCalendar
+ */
+export async function getCredentialForSelectedCalendar({
+  credentialId,
+  delegationCredentialId,
+  userId,
+}: Partial<SelectedCalendar>) {
+  if (credentialId) {
+    const credentialRepository = new CredentialRepository(prisma);
+    const credential = await credentialRepository.findByIdWithDelegationCredential(credentialId);
+    if (credential?.delegationCredential?.id && credential.userId) {
+      return findUniqueDelegationCalendarCredential({
+        userId: credential.userId,
+        delegationCredentialId: credential.delegationCredential.id,
+      });
+    }
+    return credential ? buildNonDelegationCredential(credential) : undefined;
+  }
+  if (delegationCredentialId && userId) {
+    return findUniqueDelegationCalendarCredential({
+      userId,
+      delegationCredentialId,
+    });
+  }
+  return undefined;
 }
