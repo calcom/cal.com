@@ -372,9 +372,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const hasAiAction = hasCalAIAction(steps);
   const hasSMSAction = steps.some((s) => isSMSAction(s.action));
+  const hasWhatsappAction = steps.some((s) => isWhatsappAction(s.action));
   const hasEmailToHostAction = steps.some((s) => s.action === WorkflowActions.EMAIL_HOST);
 
-  const disallowFormTriggers = hasAiAction || hasSMSAction || hasEmailToHostAction;
+  const disallowFormTriggers = hasAiAction || hasSMSAction || hasEmailToHostAction || hasWhatsappAction;
 
   const filteredTriggerOptions = triggerOptions.filter(
     (option) => !(isFormTrigger(option.value) && disallowFormTriggers)
