@@ -1,4 +1,5 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
+
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 import { validateUserHasOrgAdmin } from "../../actions/validateUserHasOrgAdmin";
@@ -14,21 +15,13 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const t = await getTranslate();
   const session = await validateUserHasOrgAdmin();
 
   if (!session?.user?.org?.id) {
     throw new Error("Organization not found");
   }
 
-  return (
-    <SettingsHeader
-      title={t("roles_and_permissions")}
-      description={t("roles_and_permissions_opt_in_description")}
-      borderInShellHeader={false}>
-      <OptInContent organizationId={session.user.org.id} />
-    </SettingsHeader>
-  );
+  return <OptInContent organizationId={session.user.org.id} />;
 };
 
 export default Page;
