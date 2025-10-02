@@ -3031,7 +3031,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           it("should not allow booking more than maximumActiveBookings per attendee", async () => {
             const eventTypeIdWithMaxBookerBookings = await eventTypesRepositoryFixture.create(
               {
-                slug: "max-bookings-count-per-booker",
+                slug: `max-bookings-count-per-booker-${randomString(10)}`,
                 length: 60,
                 title: "Event Type with max bookings count per booker",
                 maxActiveBookingsPerBooker: 1,
@@ -3115,7 +3115,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           it("should not allow booking more than maximumActiveBookings per attendee and offer rescheduling", async () => {
             const eventTypeIdWithMaxBookerBookings = await eventTypesRepositoryFixture.create(
               {
-                slug: "max-bookings-count-per-booker-with-reschedule",
+                slug: `max-bookings-count-per-booker-with-reschedule-${randomString(10)}`,
                 length: 60,
                 title: "Event Type with max bookings count per booker with reschedule",
                 maxActiveBookingsPerBooker: 1,
