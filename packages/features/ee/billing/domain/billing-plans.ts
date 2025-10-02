@@ -7,6 +7,8 @@ import {
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 import type { JsonValue } from "@calcom/types/Json";
 
+export { BillingPlan, ENTERPRISE_SLUGS, PLATFORM_ENTERPRISE_SLUGS, PLATFORM_PLANS_MAP };
+
 export class BillingPlanService {
   async getUserPlanByMemberships(
     memberships: {
