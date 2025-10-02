@@ -123,7 +123,13 @@ function getJsonLogic({
   return { logic, warnings };
 }
 
-function buildTroubleshooterData({ type, data }: { type: TroubleshooterCase; data: Record<string, any> }) {
+function buildTroubleshooterData({
+  type,
+  data,
+}: {
+  type: TroubleshooterCase;
+  data: Record<string, unknown>;
+}) {
   return {
     troubleshooter: {
       type,
@@ -160,7 +166,7 @@ async function getLogicResultForAllMembers(
         attributesQueryValue,
       });
       attributesDataPerUser.set(member.userId, attributesData);
-      const result = jsonLogic.apply(attributeJsonLogic as any, attributesData)
+      const result = jsonLogic.apply(attributeJsonLogic as unknown, attributesData)
         ? RaqbLogicResult.MATCH
         : RaqbLogicResult.NO_MATCH;
 

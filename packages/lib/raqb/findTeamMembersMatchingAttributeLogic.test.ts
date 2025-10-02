@@ -157,7 +157,7 @@ function buildQueryValue({
         },
       };
       return acc;
-    }, {} as any),
+    }, {} as Record<string, unknown>),
   };
 
   return queryValue;
@@ -206,7 +206,7 @@ function buildRoute({
   };
 }
 
-function buildDefaultCustomPageRoute({
+function _buildDefaultCustomPageRoute({
   id,
   attributesQueryValue,
 }: {
@@ -755,7 +755,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         rules: [
           {
             raqbFieldId: LocationAttribute.id,
-            value: [`{field:${LocationFieldId}}`, "Chennai"], // Mixed: field template + fixed value
+            value: [[`{field:${LocationFieldId}}`, "Chennai"]], // Mixed: field template + fixed value (wrapped in array for RAQB v6)
             operator: "multiselect_some_in",
             valueType: ["multiselect"],
           },
@@ -851,7 +851,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
     });
 
     it("should return 0 matching members when main attribute logic and fallback attribute logic fail", async () => {
-      const { failingAttributesQueryValue, matchingAttributesQueryValue } =
+      const { failingAttributesQueryValue, matchingAttributesQueryValue: _matchingAttributesQueryValue } =
         buildScenarioWhereMainAttributeLogicFails();
       const {
         teamMembersMatchingAttributeLogic: result,

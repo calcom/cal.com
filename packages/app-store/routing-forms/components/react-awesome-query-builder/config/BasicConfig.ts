@@ -6,6 +6,7 @@ import type {
   Settings as RAQBSettings,
   Operator as RAQBOperator,
   ConfigContext,
+  JsonLogicValue,
 } from "@react-awesome-query-builder/ui";
 
 export type Conjunction = RAQBConjunction;
@@ -17,7 +18,7 @@ export type Operators = Record<string, Operator>;
 export type WidgetWithoutFactory = Omit<RAQBWidget, "factory"> & {
   type: string;
   jsType: string;
-  toJS: (val: any) => any;
+  toJS: (val: JsonLogicValue) => JsonLogicValue;
 };
 export type WidgetsWithoutFactory = Record<string, WidgetWithoutFactory>;
 export type Type = RAQBType;
@@ -86,7 +87,7 @@ const operators: Operators = {
     label: "Contains",
     labelForFormat: "Contains",
     reversedOp: "not_like",
-    jsonLogic: (field: any, op: any, val: any) => {
+    jsonLogic: (field: JsonLogicValue, op: JsonLogicValue, val: JsonLogicValue) => {
       return {
         in: [val, field],
       };
@@ -98,7 +99,7 @@ const operators: Operators = {
     label: "Not contains",
     reversedOp: "like",
     labelForFormat: "Not Contains",
-    jsonLogic: (field: any, op: any, val: any) => {
+    jsonLogic: (field: JsonLogicValue, op: JsonLogicValue, val: JsonLogicValue) => {
       return {
         "!": {
           in: [val, field],
@@ -126,7 +127,7 @@ const operators: Operators = {
     cardinality: 2,
     valueLabels: ["Value from", "Value to"],
     reversedOp: "not_between",
-    jsonLogic: (field: any, op: any, vals: [any, any]) => {
+    jsonLogic: (field: JsonLogicValue, op: JsonLogicValue, vals: [JsonLogicValue, JsonLogicValue]) => {
       const min = parseInt(vals[0], 10);
       const max = parseInt(vals[1], 10);
       return {
@@ -141,7 +142,7 @@ const operators: Operators = {
     cardinality: 2,
     valueLabels: ["Value from", "Value to"],
     reversedOp: "between",
-    jsonLogic: (field: any, op: any, vals: [any, any]) => {
+    jsonLogic: (field: JsonLogicValue, op: JsonLogicValue, vals: [JsonLogicValue, JsonLogicValue]) => {
       const min = parseInt(vals[0], 10);
       const max = parseInt(vals[1], 10);
       return {
@@ -209,7 +210,8 @@ const operators: Operators = {
   // We define this operator but use it conditionally for multiselect for Attributes only
   multiselect_some_in: {
     label: "Any in",
-    jsonLogic: (field: any, operator: any, vals: any) => {
+    cardinality: 1, // Expects 1 value (which is an array of selected items)
+    jsonLogic: (field: JsonLogicValue, operator: JsonLogicValue, vals: JsonLogicValue) => {
       return {
         // Tested in jsonLogic.test.ts
         some: [field, { in: [{ var: "" }, vals] }],
@@ -223,8 +225,14 @@ const operators: Operators = {
   multiselect_equals: {
     label: "All in",
     reversedOp: "multiselect_not_equals",
+    cardinality: 1, // Expects 1 value (which is an array of selected items)
     // jsonLogic2: "all-in",
-    jsonLogic: (field: any, op: any, vals: any, ...rest) => {
+    jsonLogic: (
+      field: JsonLogicValue,
+      op: JsonLogicValue,
+      vals: JsonLogicValue,
+      ..._rest: JsonLogicValue[]
+    ) => {
       return {
         // This is wrongly implemented as "includes". This isn't "equals". Because if field is ["a" ] and vals is ["a", "b"], it still matches. Expectation would probably be that it should be a strict match(["a", "b"] or ["b", "a"])
         all: [field, { in: [{ var: "" }, vals] }],
@@ -262,7 +270,7 @@ const widgets: WidgetsWithoutFactory = {
     valueSrc: "value" as const,
     valueLabel: "String",
     valuePlaceholder: "Enter string",
-    toJS: (val: any) => val,
+    toJS: (val: JsonLogicValue) => val,
   },
   textarea: {
     type: "text",
@@ -270,7 +278,7 @@ const widgets: WidgetsWithoutFactory = {
     valueSrc: "value" as const,
     valueLabel: "Text",
     valuePlaceholder: "Enter text",
-    toJS: (val: any) => val,
+    toJS: (val: JsonLogicValue) => val,
   },
   number: {
     type: "number",
@@ -278,7 +286,7 @@ const widgets: WidgetsWithoutFactory = {
     valueSrc: "value" as const,
     valueLabel: "Number",
     valuePlaceholder: "Enter number",
-    toJS: (val: any) => val,
+    toJS: (val: JsonLogicValue) => val,
   },
   select: {
     type: "select",
@@ -286,7 +294,7 @@ const widgets: WidgetsWithoutFactory = {
     valueSrc: "value" as const,
     valueLabel: "Value",
     valuePlaceholder: "Select value",
-    toJS: (val: any) => val,
+    toJS: (val: JsonLogicValue) => val,
   },
   multiselect: {
     type: "multiselect",
@@ -294,7 +302,7 @@ const widgets: WidgetsWithoutFactory = {
     valueSrc: "value" as const,
     valueLabel: "Values",
     valuePlaceholder: "Select values",
-    toJS: (val: any) => val,
+    toJS: (val: JsonLogicValue) => val,
   },
 };
 
@@ -471,7 +479,7 @@ const settings = {
 };
 
 const ctx: ConfigContext = {
-  utils: {} as any,
+  utils: {} as JsonLogicValue,
   W: {},
   O: {},
 };

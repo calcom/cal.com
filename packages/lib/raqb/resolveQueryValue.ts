@@ -182,8 +182,8 @@ export const resolveQueryValue = ({
   const processStringValue = (value: string): string | string[] => {
     const fieldId = extractFieldId(value);
     if (!fieldId) {
-      // Regular non-field template string
-      return value;
+      // Regular non-field template string - normalize to lowercase for consistent comparison
+      return caseInsensitive(value);
     }
 
     const resolvedValue = resolveFieldId(fieldId);
