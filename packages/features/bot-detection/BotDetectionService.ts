@@ -16,7 +16,13 @@ const log = logger.getSubLogger({ prefix: ["[BotDetectionService]"] });
 export class BotDetectionService {
   constructor(private prisma: PrismaClient, private featuresRepository: FeaturesRepository) {}
 
+  private instanceHasBotIdEnabled() {
+    return process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER === "1";
+  }
+
   async checkBotDetection(config: BotDetectionConfig): Promise<void> {
+    if (!this.instanceHasBotIdEnabled()) return;
+
     const { eventTypeId, headers } = config;
 
     // If no eventTypeId provided, skip bot detection
