@@ -707,20 +707,6 @@ describe("OAuth Client Users Endpoints", () => {
 
     describe("managed user time zone", () => {
       describe("negative tests", () => {
-        it("should not allow null time zone", async () => {
-          const requestBody = {
-            email: "whatever1@gmail.com",
-            timeZone: null,
-            name: "Bob Smithson",
-          };
-
-          await request(app.getHttpServer())
-            .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
-            .set("x-cal-secret-key", oAuthClient.secret)
-            .send(requestBody)
-            .expect(400);
-        });
-
         it("should not allow '' time zone", async () => {
           const requestBody = {
             email: "whatever2@gmail.com",
@@ -751,6 +737,23 @@ describe("OAuth Client Users Endpoints", () => {
       });
 
       describe("positive tests", () => {
+        it("should not allow null time zone", async () => {
+          const requestBody = {
+            email: "whatever1@gmail.com",
+            timeZone: null,
+            name: "Bob Smithson",
+          };
+
+          const response = await request(app.getHttpServer())
+            .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
+            .set("x-cal-secret-key", oAuthClient.secret)
+            .send(requestBody)
+            .expect(201);
+
+          const responseBody: CreateManagedUserOutput = response.body;
+          await userRepositoryFixture.delete(responseBody.data.user.id);
+        });
+
         it("should allow undefined time zone", async () => {
           const requestBody = {
             email: "whatever3@gmail.com",
