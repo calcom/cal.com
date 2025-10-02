@@ -5758,7 +5758,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateWorkflowDto"
+                "$ref": "#/components/schemas/CreateEventTypeWorkflowDto"
               }
             }
           }
@@ -6047,7 +6047,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateWorkflowDto"
+                "$ref": "#/components/schemas/UpdateEventTypeWorkflowDto"
               }
             }
           }
@@ -22192,7 +22192,7 @@
         },
         "required": ["type"]
       },
-      "WorkflowActivationDto": {
+      "EventTypeWorkflowActivationDto": {
         "type": "object",
         "properties": {
           "isActiveOnAllEventTypes": {
@@ -22213,7 +22213,7 @@
         },
         "required": ["isActiveOnAllEventTypes"]
       },
-      "CreateWorkflowDto": {
+      "CreateEventTypeWorkflowDto": {
         "type": "object",
         "properties": {
           "name": {
@@ -22225,7 +22225,7 @@
             "description": "Activation settings for the workflow",
             "allOf": [
               {
-                "$ref": "#/components/schemas/WorkflowActivationDto"
+                "$ref": "#/components/schemas/EventTypeWorkflowActivationDto"
               }
             ]
           },
@@ -22866,7 +22866,7 @@
         },
         "required": ["action", "stepNumber", "recipient", "template", "sender", "verifiedPhoneId", "message"]
       },
-      "UpdateWorkflowDto": {
+      "UpdateEventTypeWorkflowDto": {
         "type": "object",
         "properties": {
           "name": {
@@ -22878,7 +22878,7 @@
             "description": "Activation settings for the workflow",
             "allOf": [
               {
-                "$ref": "#/components/schemas/WorkflowActivationDto"
+                "$ref": "#/components/schemas/EventTypeWorkflowActivationDto"
               }
             ]
           },
@@ -22952,8 +22952,7 @@
               ]
             }
           }
-        },
-        "required": ["activation"]
+        }
       },
       "UpdateFormWorkflowDto": {
         "type": "object",
@@ -22993,8 +22992,7 @@
           "activation": {
             "$ref": "#/components/schemas/WorkflowFormActivationDto"
           }
-        },
-        "required": ["activation"]
+        }
       },
       "CreatePrivateLinkInput": {
         "type": "object",

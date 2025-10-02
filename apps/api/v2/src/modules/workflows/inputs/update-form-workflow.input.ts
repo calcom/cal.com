@@ -42,7 +42,8 @@ export class UpdateFormWorkflowDto {
 
   @ValidateNested()
   @Type(() => WorkflowFormActivationDto)
-  activation!: WorkflowFormActivationDto;
+  @IsOptional()
+  activation?: WorkflowFormActivationDto;
 
   @ApiPropertyOptional({
     description: `Trigger configuration for the routing-form workflow, allowed triggers are ${FORM_WORKFLOW_TRIGGER_TYPES}`,

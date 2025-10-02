@@ -16,10 +16,10 @@ import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { IsEventTypeWorkflowInTeam } from "@/modules/auth/guards/workflows/is-event-type-workflow-in-team";
 import { IsRoutingFormWorkflowInTeam } from "@/modules/auth/guards/workflows/is-routing-form-workflow-in-team";
 import { UserWithProfile } from "@/modules/users/users.repository";
+import { CreateEventTypeWorkflowDto } from "@/modules/workflows/inputs/create-event-type-workflow.input";
 import { CreateFormWorkflowDto } from "@/modules/workflows/inputs/create-form-workflow";
-import { CreateWorkflowDto } from "@/modules/workflows/inputs/create-workflow.input";
+import { UpdateEventTypeWorkflowDto } from "@/modules/workflows/inputs/update-event-type-workflow.input";
 import { UpdateFormWorkflowDto } from "@/modules/workflows/inputs/update-form-workflow.input";
-import { UpdateWorkflowDto } from "@/modules/workflows/inputs/update-workflow.input";
 import {
   GetEventTypeWorkflowsOutput,
   GetEventTypeWorkflowOutput,
@@ -132,7 +132,7 @@ export class OrganizationTeamWorkflowsController {
   async createEventTypeWorkflow(
     @GetUser() user: UserWithProfile,
     @Param("teamId", ParseIntPipe) teamId: number,
-    @Body() data: CreateWorkflowDto
+    @Body() data: CreateEventTypeWorkflowDto
   ): Promise<GetEventTypeWorkflowOutput> {
     const workflow = await this.eventTypeWorkflowsService.createEventTypeTeamWorkflow(user, teamId, data);
     return { data: workflow, status: SUCCESS_STATUS };
@@ -160,7 +160,7 @@ export class OrganizationTeamWorkflowsController {
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("workflowId", ParseIntPipe) workflowId: number,
     @GetUser() user: UserWithProfile,
-    @Body() data: UpdateWorkflowDto
+    @Body() data: UpdateEventTypeWorkflowDto
   ): Promise<GetEventTypeWorkflowOutput> {
     const workflow = await this.eventTypeWorkflowsService.updateEventTypeTeamWorkflow(
       user,

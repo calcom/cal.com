@@ -1,6 +1,6 @@
 import { TeamsVerifiedResourcesRepository } from "@/modules/verified-resources/teams-verified-resources.repository";
+import { UpdateEventTypeWorkflowDto } from "@/modules/workflows/inputs/update-event-type-workflow.input";
 import { UpdateFormWorkflowDto } from "@/modules/workflows/inputs/update-form-workflow.input";
-import { UpdateWorkflowDto } from "@/modules/workflows/inputs/update-workflow.input";
 import { WorkflowType } from "@/modules/workflows/workflows.repository";
 import { BadRequestException, Injectable } from "@nestjs/common";
 
@@ -118,7 +118,7 @@ export class WorkflowsInputService {
   }
 
   private async _mapCommonWorkflowProperties(
-    updateDto: UpdateWorkflowDto | UpdateFormWorkflowDto,
+    updateDto: UpdateEventTypeWorkflowDto | UpdateFormWorkflowDto,
     currentData: WorkflowType,
     teamId: number,
     workflowIdToUse: number
@@ -153,7 +153,7 @@ export class WorkflowsInputService {
   }
 
   async mapEventTypeUpdateDtoToZodSchema(
-    updateDto: UpdateWorkflowDto,
+    updateDto: UpdateEventTypeWorkflowDto,
     workflowIdToUse: number,
     teamId: number,
     currentData: WorkflowType

@@ -1,7 +1,7 @@
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { TeamsVerifiedResourcesRepository } from "@/modules/verified-resources/teams-verified-resources.repository";
-import { CreateWorkflowDto } from "@/modules/workflows/inputs/create-workflow.input";
-import { UpdateWorkflowDto } from "@/modules/workflows/inputs/update-workflow.input";
+import { CreateEventTypeWorkflowDto } from "@/modules/workflows/inputs/create-event-type-workflow.input";
+import { UpdateEventTypeWorkflowDto } from "@/modules/workflows/inputs/update-event-type-workflow.input";
 import { WorkflowsInputService } from "@/modules/workflows/services/workflows.input.service";
 import { WorkflowsOutputService } from "@/modules/workflows/services/workflows.output.service";
 import { WorkflowsRepository } from "@/modules/workflows/workflows.repository";
@@ -44,7 +44,7 @@ export class TeamEventTypeWorkflowsService {
     return output;
   }
 
-  async createEventTypeTeamWorkflow(user: UserWithProfile, teamId: number, data: CreateWorkflowDto) {
+  async createEventTypeTeamWorkflow(user: UserWithProfile, teamId: number, data: CreateEventTypeWorkflowDto) {
     const workflowHusk = await this.workflowsRepository.createTeamWorkflowHusk(teamId);
     const mappedData = await this.workflowInputService.mapEventTypeUpdateDtoToZodSchema(
       data,
@@ -75,7 +75,7 @@ export class TeamEventTypeWorkflowsService {
     user: UserWithProfile,
     teamId: number,
     workflowId: number,
-    data: UpdateWorkflowDto
+    data: UpdateEventTypeWorkflowDto
   ) {
     const currentWorkflow = await this.workflowsRepository.getEventTypeTeamWorkflowById(teamId, workflowId);
 

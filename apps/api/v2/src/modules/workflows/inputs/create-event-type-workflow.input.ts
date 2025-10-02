@@ -1,54 +1,82 @@
 import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsString, IsOptional, ValidateNested, ArrayMinSize } from "class-validator";
+import {
+  IsBoolean,
+  ArrayMinSize,
+  IsNumber,
+  IsOptional,
+  IsString,
+  ValidateNested,
+  ValidateIf,
+} from "class-validator";
 
-import { WorkflowActivationDto } from "./create-workflow.input";
 import {
   BaseWorkflowStepDto,
   EMAIL_ADDRESS,
   EMAIL_ATTENDEE,
   EMAIL_HOST,
+  SMS_ATTENDEE,
+  SMS_NUMBER,
+  STEP_ACTIONS,
   WHATSAPP_ATTENDEE,
   WHATSAPP_NUMBER,
-  SMS_NUMBER,
-  SMS_ATTENDEE,
-  UpdateEmailAddressWorkflowStepDto,
-  UpdateEmailAttendeeWorkflowStepDto,
-  UpdateEmailHostWorkflowStepDto,
-  UpdatePhoneAttendeeWorkflowStepDto,
-  UpdatePhoneNumberWorkflowStepDto,
-  UpdatePhoneWhatsAppNumberWorkflowStepDto,
-  UpdateWhatsAppAttendeePhoneWorkflowStepDto,
-  STEP_ACTIONS,
+  WorkflowEmailAddressStepDto,
+  WorkflowEmailAttendeeStepDto,
+  WorkflowEmailHostStepDto,
+  WorkflowPhoneAttendeeStepDto,
+  WorkflowPhoneNumberStepDto,
+  WorkflowPhoneWhatsAppAttendeeStepDto,
+  WorkflowPhoneWhatsAppNumberStepDto,
 } from "./workflow-step.input";
 import {
-  BaseWorkflowTriggerDto,
-  OnBeforeEventTriggerDto,
-  BEFORE_EVENT,
-  OnAfterEventTriggerDto,
   AFTER_EVENT,
-  OnCancelTriggerDto,
-  EVENT_CANCELLED,
-  OnCreationTriggerDto,
-  NEW_EVENT,
-  OnRescheduleTriggerDto,
-  RESCHEDULE_EVENT,
-  OnAfterCalVideoGuestsNoShowTriggerDto,
   AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
-  OnAfterCalVideoHostsNoShowTriggerDto,
   AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+  BaseWorkflowTriggerDto,
+  BEFORE_EVENT,
+  BOOKING_NO_SHOW_UPDATED,
+  BOOKING_PAID,
+  BOOKING_PAYMENT_INITIATED,
+  BOOKING_REJECTED,
+  BOOKING_REQUESTED,
+  EVENT_CANCELLED,
+  EVENT_TYPE_WORKFLOW_TRIGGER_TYPES,
+  NEW_EVENT,
+  OnAfterCalVideoGuestsNoShowTriggerDto,
+  OnAfterCalVideoHostsNoShowTriggerDto,
+  OnAfterEventTriggerDto,
+  OnBeforeEventTriggerDto,
+  OnCancelTriggerDto,
+  OnCreationTriggerDto,
   OnNoShowUpdateTriggerDto,
+  OnPaidTriggerDto,
+  OnPaymentInitiatedTriggerDto,
   OnRejectedTriggerDto,
   OnRequestedTriggerDto,
-  OnPaymentInitiatedTriggerDto,
-  OnPaidTriggerDto,
-  BOOKING_REQUESTED,
-  BOOKING_REJECTED,
-  BOOKING_PAYMENT_INITIATED,
-  BOOKING_PAID,
-  BOOKING_NO_SHOW_UPDATED,
-  EVENT_TYPE_WORKFLOW_TRIGGER_TYPES,
+  OnRescheduleTriggerDto,
+  RESCHEDULE_EVENT,
 } from "./workflow-trigger.input";
+
+export class EventTypeWorkflowActivationDto {
+  @ApiProperty({
+    description: "Whether the workflow is active for all the event-types",
+    example: false,
+    type: Boolean,
+  })
+  @IsBoolean()
+  isActiveOnAllEventTypes = false;
+
+  @ApiPropertyOptional({
+    description:
+      "List of event-types IDs the workflow applies to, required if isActiveOnAllEventTypes is false",
+    example: [698191],
+    type: [Number],
+  })
+  @ValidateIf((o) => !o.isActiveOnAllEventTypes)
+  @IsOptional()
+  @IsNumber({}, { each: true })
+  activeOnEventTypeIds: number[] = [];
+}
 
 @ApiExtraModels(
   OnBeforeEventTriggerDto,
@@ -63,30 +91,29 @@ import {
   OnPaidTriggerDto,
   OnAfterCalVideoGuestsNoShowTriggerDto,
   OnAfterCalVideoHostsNoShowTriggerDto,
-  UpdateEmailAddressWorkflowStepDto,
-  UpdateEmailAttendeeWorkflowStepDto,
-  UpdateEmailHostWorkflowStepDto,
-  UpdatePhoneAttendeeWorkflowStepDto,
-  UpdatePhoneWhatsAppNumberWorkflowStepDto,
-  UpdateWhatsAppAttendeePhoneWorkflowStepDto,
-  UpdatePhoneNumberWorkflowStepDto,
+  WorkflowEmailAddressStepDto,
+  WorkflowEmailAttendeeStepDto,
+  WorkflowEmailHostStepDto,
+  WorkflowPhoneWhatsAppAttendeeStepDto,
+  WorkflowPhoneWhatsAppNumberStepDto,
+  WorkflowPhoneNumberStepDto,
+  WorkflowPhoneAttendeeStepDto,
   BaseWorkflowTriggerDto
 )
-export class UpdateWorkflowDto {
-  @ApiPropertyOptional({ description: "Name of the workflow", example: "Platform Test Workflow" })
+export class CreateEventTypeWorkflowDto {
+  @ApiProperty({ description: "Name of the workflow", example: "Platform Test Workflow" })
   @IsString()
-  @IsOptional()
-  name?: string;
+  name!: string;
 
   @ApiProperty({
     description: "Activation settings for the workflow",
-    type: WorkflowActivationDto,
+    type: EventTypeWorkflowActivationDto,
   })
   @ValidateNested()
-  @Type(() => WorkflowActivationDto)
-  activation!: WorkflowActivationDto;
+  @Type(() => EventTypeWorkflowActivationDto)
+  activation!: EventTypeWorkflowActivationDto;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: `Trigger configuration for the event-type workflow, allowed triggers are ${EVENT_TYPE_WORKFLOW_TRIGGER_TYPES.toString()}`,
     oneOf: [
       { $ref: getSchemaPath(OnBeforeEventTriggerDto) },
@@ -103,7 +130,6 @@ export class UpdateWorkflowDto {
       { $ref: getSchemaPath(OnNoShowUpdateTriggerDto) },
     ],
   })
-  @IsOptional()
   @ValidateNested()
   @Type(() => BaseWorkflowTriggerDto, {
     keepDiscriminatorProperty: true,
@@ -125,7 +151,7 @@ export class UpdateWorkflowDto {
       ],
     },
   })
-  trigger?:
+  trigger!:
     | OnAfterEventTriggerDto
     | OnBeforeEventTriggerDto
     | OnCreationTriggerDto
@@ -136,19 +162,18 @@ export class UpdateWorkflowDto {
     | OnPaidTriggerDto
     | OnPaymentInitiatedTriggerDto
     | OnNoShowUpdateTriggerDto
-    | OnAfterCalVideoGuestsNoShowTriggerDto
-    | OnAfterCalVideoHostsNoShowTriggerDto;
+    | OnAfterCalVideoGuestsNoShowTriggerDto;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: `Steps to execute as part of the event-type workflow, allowed steps are ${STEP_ACTIONS.toString()}`,
     oneOf: [
-      { $ref: getSchemaPath(UpdateEmailAddressWorkflowStepDto) },
-      { $ref: getSchemaPath(UpdateEmailAttendeeWorkflowStepDto) },
-      { $ref: getSchemaPath(UpdateEmailHostWorkflowStepDto) },
-      { $ref: getSchemaPath(UpdatePhoneAttendeeWorkflowStepDto) },
-      { $ref: getSchemaPath(UpdatePhoneWhatsAppNumberWorkflowStepDto) },
-      { $ref: getSchemaPath(UpdateWhatsAppAttendeePhoneWorkflowStepDto) },
-      { $ref: getSchemaPath(UpdatePhoneNumberWorkflowStepDto) },
+      { $ref: getSchemaPath(WorkflowEmailAddressStepDto) },
+      { $ref: getSchemaPath(WorkflowEmailAttendeeStepDto) },
+      { $ref: getSchemaPath(WorkflowEmailHostStepDto) },
+      { $ref: getSchemaPath(WorkflowPhoneWhatsAppAttendeeStepDto) },
+      { $ref: getSchemaPath(WorkflowPhoneWhatsAppNumberStepDto) },
+      { $ref: getSchemaPath(WorkflowPhoneNumberStepDto) },
+      { $ref: getSchemaPath(WorkflowPhoneAttendeeStepDto) },
     ],
     type: "array",
   })
@@ -156,29 +181,28 @@ export class UpdateWorkflowDto {
   @ArrayMinSize(1, {
     message: `Your workflow must contain at least one allowed step. allowed steps are ${STEP_ACTIONS.toString()}`,
   })
-  @IsOptional()
   @Type(() => BaseWorkflowStepDto, {
     keepDiscriminatorProperty: true,
     discriminator: {
       property: "action",
       subTypes: [
-        { value: UpdateEmailAddressWorkflowStepDto, name: EMAIL_ADDRESS },
-        { value: UpdateEmailAttendeeWorkflowStepDto, name: EMAIL_ATTENDEE },
-        { value: UpdateEmailHostWorkflowStepDto, name: EMAIL_HOST },
-        { value: UpdateWhatsAppAttendeePhoneWorkflowStepDto, name: WHATSAPP_ATTENDEE },
-        { value: UpdatePhoneWhatsAppNumberWorkflowStepDto, name: WHATSAPP_NUMBER },
-        { value: UpdatePhoneNumberWorkflowStepDto, name: SMS_NUMBER },
-        { value: UpdatePhoneAttendeeWorkflowStepDto, name: SMS_ATTENDEE },
+        { value: WorkflowEmailAddressStepDto, name: EMAIL_ADDRESS },
+        { value: WorkflowEmailAttendeeStepDto, name: EMAIL_ATTENDEE },
+        { value: WorkflowEmailHostStepDto, name: EMAIL_HOST },
+        { value: WorkflowPhoneWhatsAppAttendeeStepDto, name: WHATSAPP_ATTENDEE },
+        { value: WorkflowPhoneWhatsAppNumberStepDto, name: WHATSAPP_NUMBER },
+        { value: WorkflowPhoneNumberStepDto, name: SMS_NUMBER },
+        { value: WorkflowPhoneAttendeeStepDto, name: SMS_ATTENDEE },
       ],
     },
   })
-  steps?: (
-    | UpdateEmailAddressWorkflowStepDto
-    | UpdateEmailAttendeeWorkflowStepDto
-    | UpdateEmailHostWorkflowStepDto
-    | UpdatePhoneAttendeeWorkflowStepDto
-    | UpdatePhoneWhatsAppNumberWorkflowStepDto
-    | UpdateWhatsAppAttendeePhoneWorkflowStepDto
-    | UpdatePhoneNumberWorkflowStepDto
+  steps!: (
+    | WorkflowEmailAddressStepDto
+    | WorkflowEmailAttendeeStepDto
+    | WorkflowEmailHostStepDto
+    | WorkflowPhoneWhatsAppAttendeeStepDto
+    | WorkflowPhoneWhatsAppNumberStepDto
+    | WorkflowPhoneNumberStepDto
+    | WorkflowPhoneAttendeeStepDto
   )[];
 }

@@ -5,10 +5,13 @@ import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
 import {
+  CreateEventTypeWorkflowDto,
+  EventTypeWorkflowActivationDto,
+} from "@/modules/workflows/inputs/create-event-type-workflow.input";
+import {
   CreateFormWorkflowDto,
   WorkflowFormActivationDto,
 } from "@/modules/workflows/inputs/create-form-workflow";
-import { CreateWorkflowDto, WorkflowActivationDto } from "@/modules/workflows/inputs/create-workflow.input";
 import {
   ATTENDEE,
   REMINDER,
@@ -82,7 +85,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
   const emailToVerify = `org-teams-workflows-team-${randomString()}@example.com`;
   const phoneToVerify = `+37255556666`;
 
-  let sampleCreateWorkflowDto = {
+  let sampleCreateEventTypeWorkflowDto = {
     name: `E2E Test Workflow ${randomString()}`,
     activation: {
       isActiveOnAllEventTypes: true,
@@ -96,7 +99,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
       },
     },
     steps: [],
-  } as unknown as CreateWorkflowDto;
+  } as unknown as CreateEventTypeWorkflowDto;
 
   let sampleCreateWorkflowRoutingFormDto: CreateFormWorkflowDto = {
     name: `E2E Test Workflow ${randomString()}`,
@@ -207,7 +210,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
     verifiedPhoneId = verifiedPhone.id;
     verifiedPhoneId2 = verifiedPhone2.id;
 
-    sampleCreateWorkflowDto = {
+    sampleCreateEventTypeWorkflowDto = {
       name: `E2E Test Workflow ${randomString()}`,
       activation: {
         isActiveOnAllEventTypes: true,
@@ -324,7 +327,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
       return request(app.getHttpServer())
         .post(basePath)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
-        .send(sampleCreateWorkflowDto)
+        .send(sampleCreateEventTypeWorkflowDto)
         .expect(201)
         .then((response) => {
           const responseBody: GetEventTypeWorkflowOutput = response.body;
@@ -332,23 +335,23 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
           expect(responseBody.data).toBeDefined();
           expect(responseBody.data.activation).toBeDefined();
 
-          expect(responseBody.data.name).toEqual(sampleCreateWorkflowDto.name);
-          if (responseBody.data.activation instanceof WorkflowActivationDto) {
+          expect(responseBody.data.name).toEqual(sampleCreateEventTypeWorkflowDto.name);
+          if (responseBody.data.activation instanceof EventTypeWorkflowActivationDto) {
             expect(responseBody.data.activation.isActiveOnAllEventTypes).toEqual(
-              sampleCreateWorkflowDto.activation.isActiveOnAllEventTypes
+              sampleCreateEventTypeWorkflowDto.activation.isActiveOnAllEventTypes
             );
           }
           if (
             responseBody.data.activation instanceof WorkflowFormActivationDto &&
-            sampleCreateWorkflowDto.activation instanceof WorkflowFormActivationDto
+            sampleCreateEventTypeWorkflowDto.activation instanceof WorkflowFormActivationDto
           ) {
             expect(responseBody.data.activation.isActiveOnAllRoutingForms).toEqual(
-              sampleCreateWorkflowDto.activation.isActiveOnAllRoutingForms
+              sampleCreateEventTypeWorkflowDto.activation.isActiveOnAllRoutingForms
             );
           }
 
-          expect(responseBody.data.trigger.type).toEqual(sampleCreateWorkflowDto.trigger.type);
-          expect(responseBody.data.steps).toHaveLength(sampleCreateWorkflowDto.steps.length);
+          expect(responseBody.data.trigger.type).toEqual(sampleCreateEventTypeWorkflowDto.trigger.type);
+          expect(responseBody.data.steps).toHaveLength(sampleCreateEventTypeWorkflowDto.steps.length);
           expect(responseBody.data.steps.find((step) => step.stepNumber === 1)?.id).toBeDefined();
           expect(responseBody.data.steps.find((step) => step.stepNumber === 2)?.id).toBeDefined();
           expect(responseBody.data.steps.find((step) => step.stepNumber === 3)?.id).toBeDefined();
@@ -369,7 +372,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
           expect(responseBody.data.steps.find((step) => step.stepNumber === 4)?.phoneRequired).toEqual(true);
 
           expect(responseBody.data.steps.find((step) => step.stepNumber === 3)?.email).toEqual(authEmail);
-          const trigger = sampleCreateWorkflowDto.trigger as OnBeforeEventTriggerDto;
+          const trigger = sampleCreateEventTypeWorkflowDto.trigger as OnBeforeEventTriggerDto;
           expect(responseBody.data.trigger?.offset?.value).toEqual(trigger.offset.value);
           expect(responseBody.data.trigger?.offset?.unit).toEqual(trigger.offset.unit);
 
@@ -382,7 +385,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
     it("should not create a new routing form workflow with trigger not FORM_SUBMITTED", async () => {
       const invalidWorkflow = structuredClone(
         sampleCreateWorkflowRoutingFormDto
-      ) as unknown as CreateWorkflowDto;
+      ) as unknown as CreateEventTypeWorkflowDto;
       invalidWorkflow.trigger.type = AFTER_EVENT;
       return request(app.getHttpServer())
         .post(`${basePath}/routing-form`)
@@ -395,7 +398,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
       // force impossible step to test validation, should fail with 400
       const invalidWorkflow = structuredClone(
         sampleCreateWorkflowRoutingFormDto
-      ) as unknown as CreateWorkflowDto;
+      ) as unknown as CreateEventTypeWorkflowDto;
       invalidWorkflow.steps = [
         {
           stepNumber: 1,
@@ -420,7 +423,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
     it("should create a new routing form workflow with  allowed actions", async () => {
       const validWorkflow = structuredClone(
         sampleCreateWorkflowRoutingFormDto
-      ) as unknown as CreateWorkflowDto;
+      ) as unknown as CreateEventTypeWorkflowDto;
       validWorkflow.steps = [
         {
           stepNumber: 1,
@@ -472,21 +475,21 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
       return request(app.getHttpServer())
         .post(basePath)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
-        .send({ ...sampleCreateWorkflowDto, type: undefined })
+        .send({ ...sampleCreateEventTypeWorkflowDto, type: undefined })
         .expect(201)
         .then((response) => {
           const responseBody: GetEventTypeWorkflowOutput = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
-          expect(responseBody.data.name).toEqual(sampleCreateWorkflowDto.name);
-          if (responseBody.data.activation instanceof WorkflowActivationDto) {
+          expect(responseBody.data.name).toEqual(sampleCreateEventTypeWorkflowDto.name);
+          if (responseBody.data.activation instanceof EventTypeWorkflowActivationDto) {
             expect(responseBody.data.activation.isActiveOnAllEventTypes).toEqual(
-              sampleCreateWorkflowDto.activation.isActiveOnAllEventTypes
+              sampleCreateEventTypeWorkflowDto.activation.isActiveOnAllEventTypes
             );
           }
 
-          expect(responseBody.data.trigger.type).toEqual(sampleCreateWorkflowDto.trigger.type);
-          expect(responseBody.data.steps).toHaveLength(sampleCreateWorkflowDto.steps.length);
+          expect(responseBody.data.trigger.type).toEqual(sampleCreateEventTypeWorkflowDto.trigger.type);
+          expect(responseBody.data.steps).toHaveLength(sampleCreateEventTypeWorkflowDto.steps.length);
           expect(responseBody.data.steps.find((step) => step.stepNumber === 1)?.id).toBeDefined();
           expect(responseBody.data.steps.find((step) => step.stepNumber === 2)?.id).toBeDefined();
           expect(responseBody.data.steps.find((step) => step.stepNumber === 3)?.id).toBeDefined();
@@ -500,7 +503,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
             "+37255555555"
           );
           expect(responseBody.data.steps.find((step) => step.stepNumber === 3)?.email).toEqual(authEmail);
-          const trigger = sampleCreateWorkflowDto.trigger as OnBeforeEventTriggerDto;
+          const trigger = sampleCreateEventTypeWorkflowDto.trigger as OnBeforeEventTriggerDto;
           expect(responseBody.data.trigger?.offset?.value).toEqual(trigger.offset.value);
           expect(responseBody.data.trigger?.offset?.unit).toEqual(trigger.offset.unit);
 
@@ -513,16 +516,19 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
       return request(app.getHttpServer())
         .post(basePath)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
-        .send({ ...sampleCreateWorkflowDto, trigger: { ...sampleCreateWorkflowDto, type: "formSubmitted" } })
+        .send({
+          ...sampleCreateEventTypeWorkflowDto,
+          trigger: { ...sampleCreateEventTypeWorkflowDto, type: "formSubmitted" },
+        })
         .expect(400);
     });
 
     it("should return 401 if not authenticated", async () => {
-      return request(app.getHttpServer()).post(basePath).send(sampleCreateWorkflowDto).expect(401);
+      return request(app.getHttpServer()).post(basePath).send(sampleCreateEventTypeWorkflowDto).expect(401);
     });
 
     it("should return 400 for invalid data (e.g. missing name)", async () => {
-      const invalidDto = { ...sampleCreateWorkflowDto, name: undefined };
+      const invalidDto = { ...sampleCreateEventTypeWorkflowDto, name: undefined };
       return request(app.getHttpServer())
         .post(basePath)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
@@ -619,7 +625,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
       expect(step2).toBeDefined();
       const step3 = createdWorkflow.steps.find((step) => step.stepNumber === 3);
       expect(step3).toBeDefined();
-      const partialUpdateDto: Partial<CreateWorkflowDto> = {
+      const partialUpdateDto: Partial<CreateEventTypeWorkflowDto> = {
         name: updatedName,
         trigger: {
           type: "afterEvent",
@@ -802,7 +808,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
     });
 
     it("should return 404 for updating a non-existent workflow ID", async () => {
-      const partialUpdateDto: Partial<CreateWorkflowDto> = {
+      const partialUpdateDto: Partial<CreateEventTypeWorkflowDto> = {
         name: updatedName,
         steps: [{ ...createdWorkflow.steps[0], sender: "updatedSender" } as WorkflowEmailAttendeeStepDto],
       };
@@ -814,7 +820,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
     });
 
     it("should return 401 if not authenticated", async () => {
-      const partialUpdateDto: Partial<CreateWorkflowDto> = {
+      const partialUpdateDto: Partial<CreateEventTypeWorkflowDto> = {
         name: updatedName,
         steps: [{ ...createdWorkflow.steps[0], sender: "updatedSender" } as WorkflowEmailAttendeeStepDto],
       };
@@ -833,7 +839,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
       const res = await request(app.getHttpServer())
         .post(basePath)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
-        .send({ ...sampleCreateWorkflowDto, name: `Workflow To Delete ${randomString()}` });
+        .send({ ...sampleCreateEventTypeWorkflowDto, name: `Workflow To Delete ${randomString()}` });
       workflowToDeleteId = res.body.data.id;
     });
 
