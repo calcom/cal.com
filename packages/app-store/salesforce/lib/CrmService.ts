@@ -529,7 +529,7 @@ export default class SalesforceCRMService implements CRM {
             : record?.Owner?.Email;
 
         return {
-          id: includeAccountRecordType ? record?.AccountId : record?.Id || "",
+          id: includeAccountRecordType ? record?.AccountId || "" : record?.Id || "",
           email: record?.Email || "",
           recordType: includeAccountRecordType ? SalesforceRecordEnum.ACCOUNT : record?.attributes?.type,
           ...(includeOwnerData && {
@@ -568,14 +568,14 @@ export default class SalesforceCRMService implements CRM {
 
     if (contactQuery.length > 0) {
       this.setFallbackToContact(setFallbackToContact);
-      return contactQuery as ContactRecord[];
+      return contactQuery[0] as ContactRecord;
     } else {
       // If not fallback to lead
       const leadQuery = searchResult.searchRecords.filter(
         (record) => record.attributes?.type === SalesforceRecordEnum.LEAD
       );
       if (leadQuery.length > 0) {
-        return leadQuery as ContactRecord[];
+        return leadQuery[0] as ContactRecord;
       }
     }
 
