@@ -1,14 +1,15 @@
-import { checkBotId } from "botid/server";
 import type { NextApiRequest } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
+import { BotDetectionService } from "@calcom/features/bot-detection";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
-import { HttpError } from "@calcom/lib/http-error";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import prisma from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
 
 async function handler(req: NextApiRequest & { userId?: number }) {
@@ -21,17 +22,14 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     });
   }
 
-  if (process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER === "1") {
-    const verification = await checkBotId({
-      advancedOptions: {
-        headers: req.headers,
-      },
-    });
+  // Check for bot detection using feature flag
+  const featuresRepository = new FeaturesRepository(prisma);
+  const botDetectionService = new BotDetectionService(prisma, featuresRepository);
 
-    if (verification.isBot) {
-      throw new HttpError({ statusCode: 403, message: "Access denied" });
-    }
-  }
+  await botDetectionService.checkBotDetection({
+    eventTypeId: req.body.eventTypeId,
+    headers: req.headers,
+  });
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
