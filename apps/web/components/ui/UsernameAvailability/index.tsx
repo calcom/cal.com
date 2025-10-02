@@ -10,7 +10,7 @@ import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 
 import useRouterQuery from "@lib/hooks/useRouterQuery";
-import { sanitizeUsername } from "@lib/sanitizeUsername";
+import slugify from "@calcom/lib/slugify";
 
 import type { TRPCClientErrorLike } from "@trpc/client";
 
@@ -57,7 +57,7 @@ export const UsernameAvailabilityField = ({
       : { username: currentUsernameState || "", setQuery: setCurrentUsernameState };
   const formMethods = useForm({
     defaultValues: {
-      username: sanitizeUsername(currentUsername || user.username || ""),
+      username: slugify(currentUsername || user.username || ""),
     },
   });
 
@@ -80,7 +80,7 @@ export const UsernameAvailabilityField = ({
           inputUsernameValue={value}
           usernameRef={ref}
           setInputUsernameValue={(val) => {
-            const sanitizedUsername = sanitizeUsername(val);
+            const sanitizedUsername = slugify(val);
             formMethods.setValue("username", sanitizedUsername, { shouldDirty: true });
             onChange?.(sanitizedUsername);
           }}

@@ -16,8 +16,7 @@ import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/
 import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
-import { sanitizeUsername } from "@lib/sanitizeUsername";
+import slugify from "@calcom/lib/slugify";
 
 import type { TRPCClientErrorLike } from "@trpc/client";
 
@@ -74,7 +73,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
 
   const updateUsernameMutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async () => {
-      const sanitizedUsername = sanitizeUsername(inputUsernameValue || "");
+      const sanitizedUsername = slugify(inputUsernameValue || "");
       onSuccessMutation && (await onSuccessMutation());
       setOpenDialogSaveUsername(false);
       setCurrentUsername(sanitizedUsername);
@@ -111,7 +110,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
   };
 
   const updateUsername = async () => {
-    const sanitizedUsername = sanitizeUsername(inputUsernameValue || "");
+    const sanitizedUsername = slugify(inputUsernameValue || "");
     updateUsernameMutation.mutate({
       username: sanitizedUsername,
     });
@@ -138,7 +137,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
             )}
             onChange={(event) => {
               event.preventDefault();
-              const sanitized = sanitizeUsername(event.target.value);
+              const sanitized = slugify(event.target.value);
               setInputUsernameValue(sanitized);
             }}
             data-testid="username-input"
