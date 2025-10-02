@@ -45,15 +45,6 @@ type ExtendedTokenResponse = TokenResponse & {
   instance_url: string;
 };
 
-type ContactSearchResult = {
-  attributes: {
-    type: string;
-    url: string;
-  };
-  Id: string;
-  Email: string;
-};
-
 const sfApiErrors = {
   INVALID_EVENTWHOIDS: "INVALID_FIELD: No such column 'EventWhoIds' on sobject of type Event",
 };
@@ -62,7 +53,31 @@ type ContactRecord = {
   Id?: string;
   Email?: string;
   OwnerId?: string;
-  [key: string]: any;
+  AccountId?: string;
+  attributes?: {
+    type?: string;
+  };
+  Account?: {
+    Owner?: {
+      Email?: string;
+    };
+    Website?: string;
+  };
+  Owner?: {
+    Email?: string;
+    Name?: string;
+  };
+};
+
+type SalesforceDuplicateError = {
+  name?: string;
+  duplicateResult?: {
+    matchResults?: Array<{
+      matchRecords?: Array<{
+        record: { Id: string };
+      }>;
+    }>;
+  };
 };
 
 type Attendee = { email: string; name: string };
@@ -674,9 +689,14 @@ export default class SalesforceCRMService implements CRM {
             if (result.success) {
               createdContacts.push({ id: result.id, email: attendee.email });
             }
-          } catch (error: any) {
-            if (error.name === "DUPLICATES_DETECTED") {
-              const existingId = this.getExistingIdFromDuplicateError(error);
+          } catch (error: unknown) {
+            if (
+              error &&
+              typeof error === "object" &&
+              "name" in error &&
+              error.name === "DUPLICATES_DETECTED"
+            ) {
+              const existingId = this.getExistingIdFromDuplicateError(error as SalesforceDuplicateError);
               if (existingId) {
                 log.info("Using existing record:", existingId);
                 createdContacts.push({ id: existingId, email: attendee.email });
@@ -770,7 +790,7 @@ export default class SalesforceCRMService implements CRM {
     }
   }
 
-  private getExistingIdFromDuplicateError(error: any): string | null {
+  private getExistingIdFromDuplicateError(error: SalesforceDuplicateError): string | null {
     if (error.duplicateResult && error.duplicateResult.matchResults) {
       for (const matchResult of error.duplicateResult.matchResults) {
         if (matchResult.matchRecords && matchResult.matchRecords.length > 0) {
@@ -1059,15 +1079,19 @@ export default class SalesforceCRMService implements CRM {
     recordId,
   }: {
     existingFields: Field[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     personRecord: Record<string, any>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     fieldsToWriteTo: Record<string, any>;
     startTime?: string;
     bookingUid?: string | null;
     organizerEmail?: string;
     calEventResponses?: CalEventResponses | null;
     recordId: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   }): Promise<Record<string, any>> {
     const log = logger.getSubLogger({ prefix: [`[buildRecordUpdatePayload] ${recordId}`] });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const writeOnRecordBody: Record<string, any> = {};
     let fieldTypeHandled = false;
 
@@ -1192,6 +1216,8 @@ export default class SalesforceCRMService implements CRM {
       : [];
 
     const confirmedCustomFieldInputs: {
+      // This is unique to each instance so we don't know the type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       [key: string]: any;
     } = {};
 
@@ -1439,6 +1465,7 @@ export default class SalesforceCRMService implements CRM {
     contactId: string,
     existingFields: Field[],
     personRecordType: SalesforceRecordEnum
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<Record<string, any> | null> {
     const conn = await this.conn;
     const existingFieldNames = existingFields.map((field) => field.name);
@@ -1452,6 +1479,7 @@ export default class SalesforceCRMService implements CRM {
       return null;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return query.records[0] as Record<string, any>;
   }
 
@@ -1512,6 +1540,8 @@ export default class SalesforceCRMService implements CRM {
       const accountQuery = (await conn.query(
         `SELECT ${lookupField.name} FROM ${SalesforceRecordEnum.ACCOUNT} WHERE Id = '${accountId}'`
       )) as {
+        // We do not know what fields are included in the account since it's unqiue to each instance
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         records: { [key: string]: any };
       };
 
