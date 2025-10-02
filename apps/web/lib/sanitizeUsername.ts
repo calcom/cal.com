@@ -1,15 +1,9 @@
 // apps/web/lib/sanitizeUsername.ts
-export const sanitizeUsername = (username: string) => {
+export const sanitizeUsername = (username: string): string => {
   if (!username) return "";
 
-  // Remove any URL scheme (http, https)
-  username = username.replace(/^https?:\/\//i, "");
-
-  // Remove any slashes, spaces, or other invalid characters
-  username = username.replace(/[^a-zA-Z0-9-_.+*]/g, "");
-
-  // Convert to lowercase
-  username = username.toLowerCase();
-
-  return username;
+  return username
+    .replace(/^https?:\/\//i, "") // Remove any URL scheme (http, https)
+    .replace(/[^a-zA-Z0-9-_.+*]/g, "") // Remove invalid characters
+    .toLowerCase(); // Convert to lowercase
 };

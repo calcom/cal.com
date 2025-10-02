@@ -21,8 +21,9 @@ import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/
 import { Label, Input } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
-import type { TRPCClientErrorLike } from "@trpc/client";
 import { sanitizeUsername } from "@lib/sanitizeUsername";
+
+import type { TRPCClientErrorLike } from "@trpc/client";
 
 export enum UsernameChangeStatusEnum {
   UPGRADE = "UPGRADE",
@@ -106,7 +107,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   const updateUsername = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async () => {
       onSuccessMutation && (await onSuccessMutation());
-      await update({ username: inputUsernameValue });
+      const sanitizedUsername = sanitizeUsername(inputUsernameValue || "");
+      await update({ username: sanitizedUsername });
       setOpenDialogSaveUsername(false);
     },
     onError: (error) => {
@@ -236,7 +238,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
               if (searchParams?.toString() !== _searchParams.toString()) {
                 router.replace(`${pathname}?${_searchParams.toString()}`);
               }
-              setInputUsernameValue(event.target.value);
+              const sanitized = sanitizeUsername(event.target.value);
+              setInputUsernameValue(sanitized);
             }}
             data-testid="username-input"
           />

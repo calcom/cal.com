@@ -17,8 +17,9 @@ import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import type { TRPCClientErrorLike } from "@trpc/client";
 import { sanitizeUsername } from "@lib/sanitizeUsername";
+
+import type { TRPCClientErrorLike } from "@trpc/client";
 
 interface ICustomUsernameProps {
   currentUsername: string | undefined;
@@ -110,8 +111,9 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
   };
 
   const updateUsername = async () => {
+    const sanitizedUsername = sanitizeUsername(inputUsernameValue || "");
     updateUsernameMutation.mutate({
-      username: inputUsernameValue,
+      username: sanitizedUsername,
     });
   };
 
@@ -136,7 +138,8 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
             )}
             onChange={(event) => {
               event.preventDefault();
-              setInputUsernameValue(event.target.value);
+              const sanitized = sanitizeUsername(event.target.value);
+              setInputUsernameValue(sanitized);
             }}
             data-testid="username-input"
             {...rest}
