@@ -1,7 +1,7 @@
 import type { Logger } from "tslog";
 
 import { enrichUsersWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
-import { getQualifiedHostsService } from "@calcom/features/qualifiedHosts/di/container";
+import { getQualifiedHostsService } from "@calcom/features/di/containers/QualifiedHosts";
 import { checkIfUsersAreBlocked } from "@calcom/features/watchlist/operations/check-if-users-are-blocked.controller";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
