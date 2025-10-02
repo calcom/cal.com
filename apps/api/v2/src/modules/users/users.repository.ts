@@ -1,3 +1,4 @@
+import { sanitizeUsername } from "@/lib/sanitizeUsername";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
@@ -27,7 +28,7 @@ export class UsersRepository {
     return this.dbWrite.prisma.user.create({
       data: {
         ...user,
-        username,
+        username: sanitizeUsername(username),
         platformOAuthClients: {
           connect: { id: oAuthClientId },
         },
@@ -229,6 +230,10 @@ export class UsersRepository {
   async update(userId: number, updateData: UpdateManagedUserInput) {
     this.formatInput(updateData);
 
+    if (updateData.username !== undefined) {
+      updateData.username = sanitizeUsername(updateData.username);
+    }
+
     return this.dbWrite.prisma.user.update({
       where: { id: userId },
       data: updateData,
@@ -246,7 +251,7 @@ export class UsersRepository {
     return this.dbWrite.prisma.user.update({
       where: { id: userId },
       data: {
-        username: newUsername,
+        username: sanitizeUsername(newUsername),
       },
     });
   }
@@ -257,11 +262,7 @@ export class UsersRepository {
     });
   }
 
-  formatInput(userInput: CreateManagedUserInput | UpdateManagedUserInput) {
-    if (userInput.weekStart) {
-      userInput.weekStart = userInput.weekStart;
-    }
-  }
+  formatInput(_userInput: CreateManagedUserInput | UpdateManagedUserInput) {}
 
   setDefaultSchedule(userId: number, scheduleId: number) {
     return this.dbWrite.prisma.user.update({

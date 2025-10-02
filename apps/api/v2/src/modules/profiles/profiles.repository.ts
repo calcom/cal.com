@@ -1,3 +1,4 @@
+import { sanitizeUsername } from "@/lib/sanitizeUsername";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { Injectable } from "@nestjs/common";
 import { v4 as uuidv4 } from "uuid";
@@ -27,12 +28,16 @@ export class ProfilesRepository {
         uid: uuidv4(),
         organizationId: orgId,
         userId,
-        username: userOrgUsername,
+        username: sanitizeUsername(userOrgUsername),
       },
     });
   }
 
   async updateProfile(orgId: number, userId: number, body: Prisma.ProfileUpdateInput) {
+    if (body.username !== undefined && typeof body.username === "string") {
+      body.username = sanitizeUsername(body.username);
+    }
+
     return this.dbRead.prisma.profile.update({
       where: {
         userId_organizationId: {

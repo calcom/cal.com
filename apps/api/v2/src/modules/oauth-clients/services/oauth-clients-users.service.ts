@@ -2,6 +2,7 @@ import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/event-types.service";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
 import { Locales } from "@/lib/enums/locales";
+import { sanitizeUsername } from "@/lib/sanitizeUsername";
 import { GetManagedUsersInput } from "@/modules/oauth-clients/controllers/oauth-client-users/inputs/get-managed-users.input";
 import { ProfilesRepository } from "@/modules/profiles/profiles.repository";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
@@ -95,7 +96,7 @@ export class OAuthClientUsersService {
     try {
       this.logger.log(`Setting default calendars in db for user with id ${user.id}`);
       await this.calendarsService.getCalendars(user.id);
-    } catch (err) {
+    } catch {
       this.logger.error(`Could not get calendars of new managed user with id ${user.id}`);
     }
 
@@ -143,7 +144,7 @@ export class OAuthClientUsersService {
       body.email = emailWithOAuthId;
       const [emailUser, emailDomain] = emailWithOAuthId.split("@");
       const [domainName, TLD] = emailDomain.split(".");
-      const newUsername = slugify(`${emailUser}-${domainName}-${TLD}`);
+      const newUsername = sanitizeUsername(slugify(`${emailUser}-${domainName}-${TLD}`));
       await this.userRepository.updateUsername(userId, newUsername);
       await this.profilesRepository.updateProfile(organizationId, userId, {
         username: newUsername,
