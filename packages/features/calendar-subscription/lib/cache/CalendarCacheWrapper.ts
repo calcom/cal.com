@@ -60,14 +60,10 @@ export class CalendarCacheWrapper implements Calendar {
   async getAvailability(
     dateFrom: string,
     dateTo: string,
-    selectedCalendars: IntegrationCalendar[],
-    shouldServeCache?: boolean
+    selectedCalendars: IntegrationCalendar[]
+    // _shouldServeCache?: boolean
     // _fallbackToPrimary?: boolean
   ): Promise<EventBusyDate[]> {
-    if (!shouldServeCache) {
-      return this.deps.originalCalendar.getAvailability(dateFrom, dateTo, selectedCalendars);
-    }
-
     log.debug("getAvailability from cache", { dateFrom, dateTo, selectedCalendars });
     const selectedCalendarIds = selectedCalendars.map((e) => e.id).filter((id): id is string => Boolean(id));
     if (!selectedCalendarIds.length) {
