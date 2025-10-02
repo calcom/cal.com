@@ -3460,6 +3460,7 @@
   "requires_credits_tooltip": "You need enough credits in your account to use this feature",
   "available_credits": "Available credits",
   "create_role": "Create role",
+  "roles": "Roles",
   "roles_and_permissions": "Roles & Permissions",
   "roles_and_permissions_description": "Manage roles and permissions for your organization",
   "learn_more_permissions": "Learn more about how Permissions work",
