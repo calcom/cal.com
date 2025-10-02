@@ -1,5 +1,6 @@
 import {
-  BillingPlan,
+  type BillingPlan,
+  BILLING_PLANS,
   ENTERPRISE_SLUGS,
   PLATFORM_ENTERPRISE_SLUGS,
   PLATFORM_PLANS_MAP,
@@ -8,12 +9,6 @@ import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 import type { JsonValue } from "@calcom/types/Json";
 
 export class BillingPlanService {
-  // This private static member is necessary to prevent webpack from tree-shaking the BillingPlan enum. (important-comment)
-  // With "sideEffects": false in package.json, webpack's static analysis fails to track enum usage (important-comment)
-  // through class methods across package boundaries. This creates a strong reference that webpack (important-comment)
-  // can see, preventing the enum initialization code from being incorrectly removed from the bundle. (important-comment)
-  private static BillingPlan = BillingPlan;
-
   async getUserPlanByMemberships(
     memberships: {
       team: {
@@ -35,52 +30,43 @@ export class BillingPlanService {
         isPlatformManaged: boolean;
       };
     }[]
-  ) {
-    if (memberships.length === 0) return BillingPlanService.BillingPlan.INDIVIDUALS;
+  ): Promise<BillingPlan> {
+    if (memberships.length === 0) return BILLING_PLANS.INDIVIDUALS;
 
     for (const { team, user } of memberships) {
       if (team.isPlatform || user.isPlatformManaged) {
-        if (PLATFORM_ENTERPRISE_SLUGS.includes(team.slug ?? ""))
-          return BillingPlanService.BillingPlan.PLATFORM_ENTERPRISE;
+        if (PLATFORM_ENTERPRISE_SLUGS.includes(team.slug ?? "")) return BILLING_PLANS.PLATFORM_ENTERPRISE;
         if (!team.platformBilling) continue;
 
         return PLATFORM_PLANS_MAP[team.platformBilling.plan] ?? team.platformBilling.plan;
-      } else {
-        let teamMetadata;
-        try {
-          teamMetadata = teamMetadataStrictSchema.parse(team.metadata ?? {});
-        } catch {
-          teamMetadata = null;
-        }
-
-        let parentTeamMetadata;
-        try {
-          parentTeamMetadata = teamMetadataStrictSchema.parse(team.parent?.metadata ?? {});
-        } catch {
-          parentTeamMetadata = null;
-        }
-
-        if (
-          team.parent &&
-          team.parent.isOrganization &&
-          parentTeamMetadata?.subscriptionId &&
-          !team.parent.isPlatform
-        ) {
-          return ENTERPRISE_SLUGS.includes(team.parent.slug ?? "")
-            ? BillingPlanService.BillingPlan.ENTERPRISE
-            : BillingPlanService.BillingPlan.ORGANIZATIONS;
-        }
-
-        if (!teamMetadata?.subscriptionId) continue;
-        if (team.isOrganization) {
-          return ENTERPRISE_SLUGS.includes(team.slug ?? "")
-            ? BillingPlanService.BillingPlan.ENTERPRISE
-            : BillingPlanService.BillingPlan.ORGANIZATIONS;
-        } else {
-          return BillingPlanService.BillingPlan.TEAMS;
-        }
       }
+      const parentTeamMetadataResult = teamMetadataStrictSchema.safeParse(team.parent?.metadata ?? {});
+      const parentTeamMetadata = parentTeamMetadataResult.success ? parentTeamMetadataResult.data : null;
+      if (
+        team.parent &&
+        team.parent.isOrganization &&
+        parentTeamMetadata?.subscriptionId &&
+        !team.parent.isPlatform
+      ) {
+        return ENTERPRISE_SLUGS.includes(team.parent.slug ?? "")
+          ? BILLING_PLANS.ENTERPRISE
+          : BILLING_PLANS.ORGANIZATIONS;
+      }
+      const teamMetadataResult = teamMetadataStrictSchema.safeParse(team.metadata ?? {});
+      const teamMetadata = teamMetadataResult.success ? teamMetadataResult.data : null;
+      // (emrysal) if we do an early return on !teamMetadata?.subscriptionId here, the bundler is not smart enough to infer
+      // that it shouldn't clear out the BILLING_PLANS before the for() scope finishes.
+      if (team.isOrganization && teamMetadata?.subscriptionId) {
+        return ENTERPRISE_SLUGS.includes(team.slug ?? "")
+          ? BILLING_PLANS.ENTERPRISE
+          : BILLING_PLANS.ORGANIZATIONS;
+      }
+      if (teamMetadata?.subscriptionId) {
+        return BILLING_PLANS.TEAMS;
+      }
+      // no subscriptionId or parent subscription id in this loop, so this membership hasn't got a plan.
+      // continue;
     }
-    return BillingPlanService.BillingPlan.UNKNOWN;
+    return BILLING_PLANS.UNKNOWN;
   }
 }
