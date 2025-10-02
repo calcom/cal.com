@@ -22,6 +22,7 @@ import { Label, Input } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
 import type { TRPCClientErrorLike } from "@trpc/client";
+import { sanitizeUsername } from "@lib/sanitizeUsername";
 
 export enum UsernameChangeStatusEnum {
   UPGRADE = "UPGRADE",
@@ -171,11 +172,12 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   };
 
   const saveUsername = () => {
+    const sanitizedUsername = sanitizeUsername(inputUsernameValue || "");
     if (usernameChangeCondition !== UsernameChangeStatusEnum.UPGRADE) {
       updateUsername.mutate({
-        username: inputUsernameValue,
+        username: sanitizedUsername,
       });
-      setCurrentUsername(inputUsernameValue);
+      setCurrentUsername(sanitizedUsername);
     }
   };
 

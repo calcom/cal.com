@@ -6,7 +6,7 @@ export const sanitizeUsername = (username: string) => {
   username = username.replace(/^https?:\/\//i, "");
 
   // Remove any slashes, spaces, or other invalid characters
-  username = username.replace(/[^a-zA-Z0-9-_.+]/g, "");
+  username = username.replace(/[^a-zA-Z0-9-_.+*]/g, "");
 
   // Convert to lowercase
   username = username.toLowerCase();

@@ -81,9 +81,8 @@ export const UsernameAvailabilityField = ({
           usernameRef={ref}
           setInputUsernameValue={(val) => {
             const sanitizedUsername = sanitizeUsername(val);
-            onChange(sanitizedUsername);
-            formMethods.setValue("username", sanitized, { shouldDirty: true });
-            setCurrentUsername(sanitizedUsername);
+            formMethods.setValue("username", sanitizedUsername, { shouldDirty: true });
+            onChange?.(sanitizedUsername);
           }}
           onSuccessMutation={onSuccessMutation}
           onErrorMutation={onErrorMutation}
