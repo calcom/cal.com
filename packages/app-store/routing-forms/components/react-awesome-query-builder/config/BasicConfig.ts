@@ -5,6 +5,7 @@ import type {
   Type as RAQBType,
   Settings as RAQBSettings,
   Operator as RAQBOperator,
+  ConfigContext,
 } from "@react-awesome-query-builder/ui";
 
 export type Conjunction = RAQBConjunction;
@@ -85,8 +86,11 @@ const operators: Operators = {
     label: "Contains",
     labelForFormat: "Contains",
     reversedOp: "not_like",
-    jsonLogic: "in",
-    _jsonLogicIsRevArgs: true,
+    jsonLogic: (field: any, op: any, val: any) => {
+      return {
+        in: [val, field],
+      };
+    },
     valueSources: ["value"],
   },
   not_like: {
@@ -94,6 +98,14 @@ const operators: Operators = {
     label: "Not contains",
     reversedOp: "like",
     labelForFormat: "Not Contains",
+    jsonLogic: (field: any, op: any, val: any) => {
+      return {
+        "!": {
+          in: [val, field],
+        },
+      };
+    },
+    _jsonLogicIsExclamationOp: true,
     valueSources: ["value"],
   },
   starts_with: {
@@ -449,8 +461,19 @@ const types: Types = {
   //   },
 };
 
-const settings: Settings = {
+const settings = {
   setOpOnChangeField: ["keep" as const, "default" as const], // 'default' (default if present), 'keep' (keep prev from last field), 'first', 'none'
+  jsonLogic: {
+    groupVarKey: "var",
+    altVarKey: "var",
+    lockedOp: "locked",
+  },
+};
+
+const ctx: ConfigContext = {
+  utils: {} as any,
+  W: {},
+  O: {},
 };
 
 const basicConfig = {
@@ -459,6 +482,7 @@ const basicConfig = {
   widgets,
   types,
   settings,
+  ctx,
 };
 
 export default basicConfig;

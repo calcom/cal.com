@@ -85,7 +85,7 @@ function getErrorsFromImmutableTree(tree: ImmutableTree) {
     const valueError = rule.properties.valueError;
     if (valueError) {
       // Sometimes there are null values in it.
-      errors.push(valueError.filter(Boolean));
+      errors.push(valueError.filter(Boolean) as string[]);
     }
   });
   return errors;
