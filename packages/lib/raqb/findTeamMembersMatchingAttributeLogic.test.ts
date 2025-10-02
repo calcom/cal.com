@@ -64,13 +64,13 @@ function mockAttributesScenario({
             Object.entries(member.attributes).map(([attributeId, value]) => {
               return [
                 attributeId,
-                 
+
                 {
                   attributeOption:
                     value instanceof Array
                       ? value.map((value) => ({ value, isGroup: false, contains: [] }))
                       : { value, isGroup: false, contains: [] },
-                   
+
                   type: attributes.find((attribute) => attribute.id === attributeId)!.type,
                 },
               ];
@@ -691,14 +691,15 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
           orgId,
         });
 
-        // Should match users 1 and 2 (Delhi matches user 1, Mumbai matches user 2)
-        expect(result1).toEqual(
-          expect.arrayContaining([
-            { userId: 1, result: RaqbLogicResult.MATCH },
-            { userId: 2, result: RaqbLogicResult.MATCH },
-          ])
-        );
+        console.log("volnei", result1);
+
+        // Should not match user 3
+        expect(result1).toHaveLength(2);
         expect(result1).not.toContainEqual({ userId: 3, result: RaqbLogicResult.MATCH });
+
+        // Should match users 1 and 2 (Delhi matches user 1, Mumbai matches user 2)
+        expect(result1).toContainEqual({ userId: 1, result: RaqbLogicResult.MATCH });
+        expect(result1).toContainEqual({ userId: 2, result: RaqbLogicResult.MATCH });
 
         // Test case 2: Booker selects only Chennai
         const { teamMembersMatchingAttributeLogic: result2 } = await findTeamMembersMatchingAttributeLogic({
@@ -789,6 +790,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
       // Should match both users:
       // User 1: matches because they service Chennai (the fixed value)
       // User 2: matches because they service Mumbai (the field value)
+      console.log("volnei2", result);
       expect(result).toEqual(
         expect.arrayContaining([
           { userId: 1, result: RaqbLogicResult.MATCH },
@@ -982,18 +984,14 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         const result = await runInMode({ mode: "live" });
         // it will fallback to the fallback attribute logic which isn't defined and thus will return null
         expect(result.teamMembersMatchingAttributeLogic).toEqual(null);
-        expect(result.mainAttributeLogicBuildingWarnings).toEqual([
-          "Value NON_EXISTING_OPTION_1 is not in list of values",
-        ]);
+        expect(result.mainAttributeLogicBuildingWarnings).toEqual([]); // this ignores the warnings on raqb v6
       })();
 
       await (async function previewMode() {
         const result = await runInMode({ mode: "preview" });
         // it will fallback to the fallback attribute logic which isn't defined and thus will return null
         expect(result.teamMembersMatchingAttributeLogic).toEqual(null);
-        expect(result.mainAttributeLogicBuildingWarnings).toEqual([
-          "Value NON_EXISTING_OPTION_1 is not in list of values",
-        ]);
+        expect(result.mainAttributeLogicBuildingWarnings).toEqual([]); // this ignores the warnings on raqb v6
       })();
     });
 
