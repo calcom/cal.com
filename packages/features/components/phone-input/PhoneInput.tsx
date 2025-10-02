@@ -58,12 +58,34 @@ function BasePhoneInput({
   }
 
   return (
+    <BasePhoneInputPlatform
+      name={name}
+      className={className}
+      onChange={onChange}
+      value={value}
+      {...rest}
+    />
+  );
+}
+
+function BasePhoneInputPlatform({
+  name,
+  className = "",
+  onChange,
+  value,
+  inputStyle,
+  flagButtonStyle,
+  ...rest
+}: Omit<PhoneInputProps, "defaultCountry">) {
+  const defaultCountry = useDefaultCountry();
+
+  return (
     <PhoneInput
       {...rest}
       value={value ? value.trim().replace(/^\+?/, "+") : undefined}
+      country={value ? undefined : defaultCountry}
       enableSearch
       disableSearchIcon
-      country={defaultCountry}
       inputProps={{
         name,
         required: rest.required,
@@ -78,9 +100,10 @@ function BasePhoneInput({
       )}
       inputClass="text-sm focus:ring-0 !bg-default text-default placeholder:text-muted"
       buttonClass="text-emphasis !bg-default hover:!bg-emphasis"
+      buttonStyle={{ ...flagButtonStyle }}
       searchClass="!text-default !bg-default hover:!bg-emphasis"
       dropdownClass="!text-default !bg-default"
-      inputStyle={{ width: "inherit", border: 0 }}
+      inputStyle={{ width: "inherit", border: 0, ...inputStyle }}
       searchStyle={{
         display: "flex",
         flexDirection: "row",
