@@ -31,11 +31,12 @@ import { useTeamEventType } from "../../hooks/event-types/public/useTeamEventTyp
 import { useAvailableSlots } from "../../hooks/useAvailableSlots";
 
 const CalendarViewPlatformWrapperComponent = (
-  props: BookerPlatformWrapperAtomPropsForIndividual | BookerPlatformWrapperAtomPropsForTeam
+  props:
+    | (BookerPlatformWrapperAtomPropsForIndividual & { teamId?: number })
+    | Omit<BookerPlatformWrapperAtomPropsForTeam, "isTeamEvent">
 ) => {
   const {
     eventSlug,
-    isTeamEvent,
     hostsLimit,
     allowUpdatingUrlParams = false,
     teamMemberEmail,
@@ -44,8 +45,8 @@ const CalendarViewPlatformWrapperComponent = (
     view = "MONTH_VIEW",
   } = props;
 
-  // TODO: for CalendarView v2 we can determine isTeamEvent automatically, aka if teamId is passed then we internally set isTeamEvent to true.
-  const teamId: number | undefined = props.isTeamEvent ? props.teamId : undefined;
+  const isTeamEvent = !!props.teamId;
+  const teamId: number | undefined = props.teamId ? props.teamId : undefined;
   const username = useMemo(() => {
     if (props.username) {
       return formatUsername(props.username);
@@ -62,7 +63,7 @@ const CalendarViewPlatformWrapperComponent = (
   const event = useAtomGetPublicEvent({
     username,
     eventSlug: props.eventSlug,
-    isTeamEvent: props.isTeamEvent,
+    isTeamEvent: isTeamEvent,
     teamId,
     selectedDuration,
   });
@@ -166,9 +167,9 @@ const CalendarViewPlatformWrapperComponent = (
     duration: selectedDuration ?? undefined,
     rescheduleUid: props.rescheduleUid,
     teamMemberEmail: props.teamMemberEmail ?? undefined,
-    ...(props.isTeamEvent
+    ...(isTeamEvent
       ? {
-          isTeamEvent: props.isTeamEvent,
+          isTeamEvent: isTeamEvent,
           teamId: teamId,
         }
       : {}),
@@ -176,7 +177,7 @@ const CalendarViewPlatformWrapperComponent = (
       Boolean(teamId || username) &&
       Boolean(month) &&
       Boolean(timezone) &&
-      (props.isTeamEvent ? !isTeamPending : !isPending) &&
+      (isTeamEvent ? !isTeamPending : !isPending) &&
       Boolean(event?.data?.id),
     orgSlug: props.entity?.orgSlug ?? undefined,
     eventTypeSlug: isDynamic ? "dynamic" : eventSlug || "",
@@ -208,7 +209,9 @@ const CalendarViewPlatformWrapperComponent = (
 };
 
 export const CalendarViewPlatformWrapper = (
-  props: BookerPlatformWrapperAtomPropsForIndividual | BookerPlatformWrapperAtomPropsForTeam
+  props:
+    | (BookerPlatformWrapperAtomPropsForIndividual & { teamId?: number })
+    | Omit<BookerPlatformWrapperAtomPropsForTeam, "isTeamEvent">
 ) => {
   return (
     <BookerStoreProvider>
