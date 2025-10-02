@@ -457,23 +457,6 @@ export default class SalesforceCRMService implements CRM {
         }
       }
 
-      // Handle Account record type
-      if (recordToSearch === SalesforceRecordEnum.ACCOUNT) {
-        // For an account let's assume that the first email is the one we should be querying against
-        const attendeeEmail = emailArray[0];
-        log.info("[recordToSearch=ACCOUNT] Searching contact for email", safeStringify({ attendeeEmail }));
-        soql = `SELECT Id, Email, OwnerId, AccountId, Account.Owner.Email, Account.Website FROM ${SalesforceRecordEnum.CONTACT} WHERE Email = '${attendeeEmail}' AND AccountId != null`;
-      } else {
-        // Handle Contact/Lead record types
-        soql = `SELECT Id, Email, OwnerId, Owner.Email FROM ${recordToSearch} WHERE Email IN ('${emailArray.join(
-          "','"
-        )}')`;
-      }
-
-      const results = await conn.query(soql);
-
-      log.info("Query results", safeStringify({ recordCount: results.records?.length }));
-
       let records: ContactRecord[] = [];
 
       // This combination is for searching for ownership via contacts
@@ -504,13 +487,32 @@ export default class SalesforceCRMService implements CRM {
         }
       }
 
-      if (!records.length && results?.records?.length) {
-        records = results.records as ContactRecord[];
-      }
+      if (records.length === 0) {
+        // Handle Account record type
+        if (recordToSearch === SalesforceRecordEnum.ACCOUNT) {
+          // For an account let's assume that the first email is the one we should be querying against
+          const attendeeEmail = emailArray[0];
+          log.info("[recordToSearch=ACCOUNT] Searching contact for email", safeStringify({ attendeeEmail }));
+          soql = `SELECT Id, Email, OwnerId, AccountId, Account.Owner.Email, Account.Website FROM ${SalesforceRecordEnum.CONTACT} WHERE Email = '${attendeeEmail}' AND AccountId != null`;
+        } else {
+          // Handle Contact/Lead record types
+          soql = `SELECT Id, Email, OwnerId, Owner.Email FROM ${recordToSearch} WHERE Email IN ('${emailArray.join(
+            "','"
+          )}')`;
+        }
 
-      if (!records.length) {
-        log.info("No records found");
-        return [];
+        const results = await conn.query(soql);
+
+        log.info("Query results", safeStringify({ recordCount: results.records?.length }));
+
+        if (results.records.length === 0) {
+          log.info("No records found");
+          return [];
+        }
+
+        if (!records.length && results?.records?.length) {
+          records = results.records as ContactRecord[];
+        }
       }
 
       const includeOwnerData =
