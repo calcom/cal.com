@@ -1,6 +1,5 @@
-import { _generateMetadata, getTranslate } from "app/_utils";
-
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { _generateMetadata } from "app/_utils";
+import { revalidatePath } from "next/cache";
 
 import { validateUserHasOrgAdmin } from "../../actions/validateUserHasOrgAdmin";
 import { OptInContent } from "./_components/OptInContent";
@@ -14,6 +13,11 @@ export const generateMetadata = async () =>
     "/settings/organizations/roles/opt-in"
   );
 
+async function revalidateRolesPath() {
+  "use server";
+  revalidatePath("/settings/organizations/roles");
+}
+
 const Page = async () => {
   const session = await validateUserHasOrgAdmin();
 
@@ -21,7 +25,7 @@ const Page = async () => {
     throw new Error("Organization not found");
   }
 
-  return <OptInContent organizationId={session.user.org.id} />;
+  return <OptInContent revalidateRolesPath={revalidateRolesPath} />;
 };
 
 export default Page;

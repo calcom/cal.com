@@ -5,7 +5,7 @@ import { isValidPermissionString } from "@calcom/features/pbac/domain/types/perm
 import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { RoleService } from "@calcom/features/pbac/services/role.service";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { RoleType, MembershipRole } from "@calcom/prisma/enums";
 
 import authedProcedure from "../../../procedures/authedProcedure";
@@ -203,4 +203,45 @@ export const permissionsRouter = router({
       const roleService = new RoleService();
       return roleService.getTeamRoles(input.teamId);
     }),
+
+  enablePbac: authedProcedure.mutation(async ({ ctx }) => {
+    if (!ctx.user?.id) {
+      throw new Error("Unauthorized");
+    }
+
+    // Check for organization ID
+    const orgId = ctx.user.organizationId;
+    if (!orgId) {
+      throw new Error("No organization found for user");
+    }
+
+    // Check if user is ADMIN or OWNER of the organization
+    const membership = await prisma.membership.findFirst({
+      where: {
+        userId: ctx.user.id,
+        teamId: orgId,
+        accepted: true,
+        role: {
+          in: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        },
+      },
+    });
+
+    if (!membership) {
+      throw new Error("You must be an ADMIN or OWNER to enable PBAC for this organization");
+    }
+
+    // Check if PBAC is already enabled for this org
+    const featureRepo = new FeaturesRepository(prisma);
+    const pbacAlreadyEnabled = await featureRepo.checkIfTeamHasFeature(orgId, "pbac");
+
+    if (pbacAlreadyEnabled) {
+      return { success: true, message: "PBAC is already enabled for this organization" };
+    }
+
+    // Enable PBAC feature for the organization
+    await featureRepo.enableFeatureForTeam(orgId, "pbac", "opt-in by user: " + ctx.user.id);
+
+    return { success: true, message: "PBAC enabled successfully" };
+  }),
 });

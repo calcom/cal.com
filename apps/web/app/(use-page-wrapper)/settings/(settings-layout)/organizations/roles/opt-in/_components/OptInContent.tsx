@@ -1,43 +1,39 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 
+import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
 
 interface OptInContentProps {
-  organizationId: number;
+  revalidateRolesPath: () => Promise<void>;
 }
 
-export function OptInContent({ organizationId }: OptInContentProps) {
+export function OptInContent({ revalidateRolesPath }: OptInContentProps) {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleOptIn = async () => {
-    setIsLoading(true);
-    try {
-      // TODO: Call API to enable PBAC feature flag for the organization
+  const enablePbacMutation = trpc.viewer.pbac.enablePbac.useMutation({
+    onSuccess: async () => {
       showToast("Successfully opted in to Roles & Permissions", "success");
+      await revalidateRolesPath();
       router.push("/settings/organizations/roles");
-      router.refresh();
-    } catch (error) {
-      showToast("Failed to opt in to Roles & Permissions", "error");
-    } finally {
-      setIsLoading(false);
-    }
+    },
+    onError: (error) => {
+      showToast(error.message || "Failed to opt in to Roles & Permissions", "error");
+    },
+  });
+
+  const handleOptIn = () => {
+    enablePbacMutation.mutate();
   };
 
   return (
     <div className="space-y-6">
       <div className="bg-subtle rounded-md p-6">
-        <h3 className="text-emphasis mb-2 text-lg font-semibold">
-          Introducing Roles & Permissions
-        </h3>
+        <h3 className="text-emphasis mb-2 text-lg font-semibold">Introducing Roles & Permissions</h3>
         <p className="text-default mb-4">
-          Take control of your organization's access management with our new Roles & Permissions
-          feature. Create custom roles, define granular permissions, and ensure the right people have
-          the right access.
+          Take control of your organization's access management with our new Roles & Permissions feature.
+          Create custom roles, define granular permissions, and ensure the right people have the right access.
         </p>
 
         <div className="mb-6 space-y-3">
@@ -50,7 +46,7 @@ export function OptInContent({ organizationId }: OptInContentProps) {
           </ul>
         </div>
 
-        <Button onClick={handleOptIn} loading={isLoading}>
+        <Button onClick={handleOptIn} loading={enablePbacMutation.isPending}>
           Enable Roles & Permissions
         </Button>
       </div>

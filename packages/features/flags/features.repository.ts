@@ -191,6 +191,38 @@ export class FeaturesRepository implements IFeaturesRepository {
   }
 
   /**
+   * Enables a feature for a specific team.
+   * @param teamId - The ID of the team to enable the feature for
+   * @param featureId - The feature identifier to enable
+   * @param assignedBy - The user or what assigned the feature
+   * @returns Promise<void>
+   * @throws Error if the feature enabling fails
+   */
+  async enableFeatureForTeam(teamId: number, featureId: keyof AppFlags, assignedBy: string): Promise<void> {
+    try {
+      await this.prismaClient.teamFeatures.upsert({
+        where: {
+          teamId_featureId: {
+            teamId,
+            featureId,
+          },
+        },
+        create: {
+          teamId,
+          featureId,
+          assignedBy,
+        },
+        update: {},
+      });
+      // Clear cache when features are modified
+      this.clearCache();
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
    * Checks if a team or any of its ancestors has access to a specific feature.
    * Uses a recursive CTE raw SQL query for performance.
    * @param teamId - The ID of the team to start the check from
