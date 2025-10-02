@@ -122,25 +122,6 @@ Examples:
           return { schema: {}, url };
         }
       },
-      // Add transformObject to filter routes
-      transformObject: ({ swaggerObject }) => {
-        if (!isLocal && swaggerObject.paths) {
-          // Remove paths that have Admin tag
-          Object.keys(swaggerObject.paths).forEach((path) => {
-            Object.keys(swaggerObject.paths[path]).forEach((method) => {
-              const operation = swaggerObject.paths[path][method];
-              if (operation?.tags?.includes("Admin")) {
-                delete swaggerObject.paths[path][method];
-              }
-            });
-            // Remove the path entirely if all methods are deleted
-            if (Object.keys(swaggerObject.paths[path]).length === 0) {
-              delete swaggerObject.paths[path];
-            }
-          });
-        }
-        return swaggerObject;
-      },
     });
 
     console.log("✅ Swagger core registered successfully");
