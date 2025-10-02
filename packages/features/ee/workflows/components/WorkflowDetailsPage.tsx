@@ -60,7 +60,7 @@ export default function WorkflowDetailsPage(props: Props) {
         .filter((option) => {
           if (
             (isFormTrigger(form.getValues("trigger")) &&
-              !ALLOWED_FORM_WORKFLOW_ACTIONS.includes(option.value)) ||
+              !ALLOWED_FORM_WORKFLOW_ACTIONS.some((action) => action === option.value)) ||
             (isCalAIAction(option.value) && form.watch("selectAll")) ||
             (isCalAIAction(option.value) && isOrg)
           ) {
