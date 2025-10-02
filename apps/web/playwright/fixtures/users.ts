@@ -181,7 +181,7 @@ const createTeamAndAddUser = async (
     teamSlug ??
     orgRequestedSlug ??
     `${isOrg ? "org" : "team"}-${workerInfo.workerIndex}-${Date.now()}${slugIndex}`;
-  const data: PrismaType.TeamCreateInput = {
+  const data: Prisma.TeamCreateInput = {
     name: `user-id-${user.id}'s ${isOrg ? "Org" : "Team"}`,
     isOrganization: isOrg,
   };
@@ -470,7 +470,7 @@ export const createUsersFixture = (
                 },
                 data: {
                   orgProfiles: _user.profiles.length
-                  ? {
+                    ? {
                         connect: _user.profiles.map((profile) => ({ id: profile.id })),
                       }
                     : {
@@ -653,7 +653,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
 
   // self is a reflective method that return the Prisma object that references this fixture.
   const self = async () =>
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+     
     (await prisma.user.findUnique({
       where: { id: store.user.id },
       include: { eventTypes: true },
@@ -996,7 +996,7 @@ export async function login(
   await page.waitForSelector("text=Welcome back");
 
   await emailLocator.fill(user.email ?? `${user.username}@example.com`);
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+   
   await passwordLocator.fill(user.password ?? user.username!);
 
   // waiting for specific login request to resolve
