@@ -4,7 +4,7 @@ import type { IncomingHttpHeaders } from "http";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-import type { PrismaClient } from "@calcom/prisma";
+import type { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 
 interface BotDetectionConfig {
   eventTypeId?: number;
@@ -14,7 +14,10 @@ interface BotDetectionConfig {
 const log = logger.getSubLogger({ prefix: ["[BotDetectionService]"] });
 
 export class BotDetectionService {
-  constructor(private prisma: PrismaClient, private featuresRepository: FeaturesRepository) {}
+  constructor(
+    private featuresRepository: FeaturesRepository,
+    private eventTypeRepository: EventTypeRepository
+  ) {}
 
   private instanceHasBotIdEnabled() {
     return process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER === "1";
@@ -31,9 +34,8 @@ export class BotDetectionService {
     }
 
     // Fetch only the teamId from the event type
-    const eventType = await this.prisma.eventType.findUnique({
-      where: { id: eventTypeId },
-      select: { teamId: true, slug: true },
+    const eventType = await this.eventTypeRepository.getTeamIdByEventTypeId({
+      id: eventTypeId,
     });
 
     // Only check for team events

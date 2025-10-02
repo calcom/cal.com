@@ -9,6 +9,7 @@ import getIP from "@calcom/lib/getIP";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import prisma from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
 
@@ -24,7 +25,8 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
   // Check for bot detection using feature flag
   const featuresRepository = new FeaturesRepository(prisma);
-  const botDetectionService = new BotDetectionService(prisma, featuresRepository);
+  const eventTypeRepository = new EventTypeRepository(prisma);
+  const botDetectionService = new BotDetectionService(featuresRepository, eventTypeRepository);
 
   await botDetectionService.checkBotDetection({
     eventTypeId: req.body.eventTypeId,
