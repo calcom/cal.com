@@ -268,6 +268,8 @@ export class UserAvailabilityService {
     });
 
     return bookings.map((booking) => {
+      const seatsCount = booking._count?.seatsReferences;
+
       const attendees = isTeamEvent
         ? booking.attendees.filter((attendee) => !hostEmails?.includes(attendee.email))
         : booking.attendees;
@@ -276,7 +278,7 @@ export class UserAvailabilityService {
         uid: booking.uid,
         startTime: booking.startTime,
         _count: {
-          attendees: attendees.length,
+          attendees: seatsCount !== undefined ? seatsCount : attendees.length,
         },
       };
     });
@@ -641,9 +643,9 @@ export class UserAvailabilityService {
           // you can obtain that from user availability defined outside of here
           fromUser: { id: user.id, displayName: user.name },
           // optional chaining destructuring toUser
-          toUser: !!toUser ? { id: toUser.id, displayName: toUser.name, username: toUser.username } : null,
-          reason: !!reason ? reason.reason : null,
-          emoji: !!reason ? reason.emoji : null,
+          toUser: toUser ? { id: toUser.id, displayName: toUser.name, username: toUser.username } : null,
+          reason: reason ? reason.reason : null,
+          emoji: reason ? reason.emoji : null,
         };
       }
 

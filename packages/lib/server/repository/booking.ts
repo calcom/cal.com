@@ -942,6 +942,11 @@ export class BookingRepository {
             email: true,
           },
         },
+        _count: {
+          select: {
+            seatsReferences: true,
+          },
+        },
       },
     });
   }

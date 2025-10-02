@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-restricted-imports
+ 
 import type { Logger } from "tslog";
 import { v4 as uuid } from "uuid";
 
@@ -8,6 +8,7 @@ import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import type { QualifiedHostsService } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
@@ -15,7 +16,6 @@ import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
-import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { getBusyTimesService } from "@calcom/lib/di/containers/BusyTimes";
 import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
 import type { BusyTimesService } from "@calcom/lib/getBusyTimes";
@@ -84,7 +84,7 @@ export interface IGetAvailableSlots {
       emoji?: string | undefined;
     }[]
   >;
-  troubleshooter?: any;
+  troubleshooter?: unknown;
 }
 
 export type GetAvailableSlotsResponse = Awaited<
@@ -253,7 +253,7 @@ export class AvailableSlotsService {
     );
     const eventTypeId =
       input.eventTypeId ||
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+       
       (await this.getEventTypeId({
         slug: usernameList?.[0],
         eventTypeSlug: eventTypeSlug,
@@ -462,7 +462,7 @@ export class AvailableSlotsService {
                   rescheduleUid,
                   timeZone,
                 });
-              } catch (_) {
+              } catch {
                 limitManager.addBusyTime(periodStart, unit, timeZone);
                 if (
                   periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit, timeZone))
@@ -663,7 +663,7 @@ export class AvailableSlotsService {
                 includeManagedEvents,
                 timeZone,
               });
-            } catch (_) {
+            } catch {
               limitManager.addBusyTime(periodStart, unit, timeZone);
               if (
                 periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit, timeZone))
@@ -1276,6 +1276,7 @@ export class AvailableSlotsService {
             !checkForConflicts({
               time: slot.time,
               busy: busySlotsFromReservedSlots,
+              seatsPerTimeSlot: eventType.seatsPerTimeSlot ?? undefined,
               ...availabilityCheckProps,
             })
           ) {
