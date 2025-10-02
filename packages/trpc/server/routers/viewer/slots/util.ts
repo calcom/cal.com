@@ -8,6 +8,7 @@ import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import type { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import type { QualifiedHostsService } from "@calcom/features/qualifiedHosts/services/findQualifiedHostsWithDelegationCredentials";
@@ -16,7 +17,6 @@ import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
-import type { getBusyTimesService } from "@calcom/lib/di/containers/BusyTimes";
 import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
 import type { BusyTimesService } from "@calcom/lib/getBusyTimes";
 import type {

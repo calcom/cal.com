@@ -6,10 +6,10 @@
 import type { ServerResponse } from "http";
 import type { NextApiResponse } from "next";
 
-import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
-import { getUrlSearchParamsToForwardForTestPreview } from "@calcom/features/routing-forms/lib/getUrlSearchParamsToForward";
 import { enrichHostsWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
-import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
+import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
+import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
+import { getUrlSearchParamsToForwardForTestPreview } from "@calcom/features/routing-forms/lib/getUrlSearchParamsToForward";
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils.server";
 import { fromEntriesWithDuplicateKeys } from "@calcom/lib/fromEntriesWithDuplicateKeys";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";

@@ -1,6 +1,6 @@
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
+import { getUserAvailabilityService } from "@calcom/features/di/containers/GetUserAvailability";
 import { isTeamMember } from "@calcom/features/ee/teams/lib/queries";
-import { getUserAvailabilityService } from "@calcom/lib/di/containers/GetUserAvailability";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
