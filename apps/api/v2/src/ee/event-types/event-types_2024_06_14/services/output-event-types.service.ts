@@ -92,6 +92,8 @@ type Input = Pick<
   | "calVideoSettings"
   | "hidden"
   | "bookingRequiresAuthentication"
+  | "maxActiveBookingsPerBooker"
+  | "maxActiveBookingPerBookerOfferReschedule"
 >;
 
 @Injectable()
@@ -165,6 +167,7 @@ export class OutputEventTypesService_2024_06_14 {
       periodEndDate: databaseEventType.periodEndDate,
     } as TransformFutureBookingsLimitSchema_2024_06_14);
     const destinationCalendar = this.transformDestinationCalendar(databaseEventType.destinationCalendar);
+    const bookerActiveBookingsLimit = this.transformBookerActiveBookingsLimit(databaseEventType);
 
     return {
       id,
@@ -210,9 +213,29 @@ export class OutputEventTypesService_2024_06_14 {
       calVideoSettings,
       hidden,
       bookingRequiresAuthentication,
+      bookerActiveBookingsLimit,
     };
   }
 
+  transformBookerActiveBookingsLimit(databaseEventType: Input) {
+    const noMaxActiveBookingsPerBooker =
+      !databaseEventType.maxActiveBookingsPerBooker && databaseEventType.maxActiveBookingsPerBooker !== 0;
+    const noMaxActiveBookingPerBookerOfferReschedule =
+      !databaseEventType.maxActiveBookingPerBookerOfferReschedule;
+
+    if (noMaxActiveBookingsPerBooker && noMaxActiveBookingPerBookerOfferReschedule) {
+      return {
+        disabled: true,
+      };
+    }
+
+    return {
+      maximumActiveBookings: databaseEventType.maxActiveBookingsPerBooker ?? undefined,
+      offerReschedule: databaseEventType.maxActiveBookingPerBookerOfferReschedule ?? undefined,
+    };
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transformLocations(locationDb: any) {
     if (!locationDb) return [];
 
@@ -239,6 +262,7 @@ export class OutputEventTypesService_2024_06_14 {
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transformBookingFields(bookingFields: any) {
     if (!bookingFields) return [];
 
@@ -273,6 +297,7 @@ export class OutputEventTypesService_2024_06_14 {
     return this.transformBookingFields(defaultBookingFields);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transformRecurringEvent(recurringEvent: any) {
     if (!recurringEvent) return null;
     const recurringEventParsed = parseRecurringEvent(recurringEvent);
@@ -280,6 +305,7 @@ export class OutputEventTypesService_2024_06_14 {
     return transformRecurrenceInternalToApi(recurringEventParsed);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transformMetadata(metadata: any) {
     if (!metadata) return {};
     return EventTypeMetaDataSchema.parse(metadata);
@@ -301,6 +327,7 @@ export class OutputEventTypesService_2024_06_14 {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transformIntervalLimits(bookingLimits: any) {
     const bookingLimitsParsed = parseBookingLimit(bookingLimits);
     return transformIntervalLimitsInternalToApi(bookingLimitsParsed);
@@ -327,6 +354,7 @@ export class OutputEventTypesService_2024_06_14 {
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transformEventTypeColor(eventTypeColor: any) {
     if (!eventTypeColor) return undefined;
     const parsedeventTypeColor = parseEventTypeColor(eventTypeColor);
