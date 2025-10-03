@@ -35,7 +35,24 @@ ALTER TABLE "Watchlist" RENAME COLUMN "uid" TO "id";
 -- 5) Add the new PK on `id` (UUID)
 ALTER TABLE "Watchlist" ADD CONSTRAINT "Watchlist_pkey" PRIMARY KEY ("id");
 
--- Create WatchlistAudit table BEFORE modifying Watchlist
+-- DropForeignKey - Do this before modifying Watchlist structure
+ALTER TABLE "Watchlist" DROP CONSTRAINT "Watchlist_createdById_fkey";
+
+-- DropForeignKey
+ALTER TABLE "Watchlist" DROP CONSTRAINT "Watchlist_updatedById_fkey";
+
+-- Modify Watchlist table structure FIRST
+-- AlterTable
+ALTER TABLE "Watchlist" DROP COLUMN "createdAt",
+DROP COLUMN "createdById",
+DROP COLUMN "severity",
+DROP COLUMN "updatedAt",
+DROP COLUMN "updatedById",
+ADD COLUMN     "isGlobal" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "lastUpdatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "source" "WatchlistSource" NOT NULL DEFAULT 'MANUAL';
+
+-- Create WatchlistAudit table AFTER Watchlist has UUID id
 -- CreateTable
 CREATE TABLE "WatchlistAudit" (
     "id" UUID NOT NULL,
@@ -49,23 +66,6 @@ CREATE TABLE "WatchlistAudit" (
 
     CONSTRAINT "WatchlistAudit_pkey" PRIMARY KEY ("id")
 );
-
--- DropForeignKey
-ALTER TABLE "Watchlist" DROP CONSTRAINT "Watchlist_createdById_fkey";
-
--- DropForeignKey
-ALTER TABLE "Watchlist" DROP CONSTRAINT "Watchlist_updatedById_fkey";
-
--- Modify Watchlist table structure
--- AlterTable
-ALTER TABLE "Watchlist" DROP COLUMN "createdAt",
-DROP COLUMN "createdById",
-DROP COLUMN "severity",
-DROP COLUMN "updatedAt",
-DROP COLUMN "updatedById",
-ADD COLUMN     "isGlobal" BOOLEAN NOT NULL DEFAULT false,
-ADD COLUMN     "lastUpdatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-ADD COLUMN     "source" "WatchlistSource" NOT NULL DEFAULT 'MANUAL';
 
 -- Drop the BlockedBookingLog table
 -- DropTable
