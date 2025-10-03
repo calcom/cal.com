@@ -86,7 +86,7 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
     const res = await fetch("/api/cancel", {
       body: JSON.stringify({
         uid: props.uid,
-        cancellationReason: cancelReason.trim() || null,
+        cancellationReason: cancelReason.trim() || undefined, //backend does not allow null
         allRemainingBookings: false,
         // @NOTE: very important this shouldn't cancel with number ID use uid instead
         // seatReferenceUid: props.seatReferenceUid, // REVIEW: do we need this?
@@ -218,7 +218,8 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
 
         <div className="mb-6">
           <label className="text-emphasis mb-3 block text-sm font-medium">
-            {t("cancellation_reason_host")}
+            {/* {t("cancellation_reason_host")} */}
+            {t("cancellation_reason")}
           </label>
           <TextArea
             data-testid="cancel_reason"
