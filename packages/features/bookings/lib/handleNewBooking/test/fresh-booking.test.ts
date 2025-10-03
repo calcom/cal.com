@@ -59,7 +59,7 @@ import { createWatchlistEntry } from "@calcom/features/watchlist/lib/testUtils";
 import { WEBSITE_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { resetTestEmails } from "@calcom/lib/testEmails";
-import { CreationSource, WatchlistSeverity, WatchlistType } from "@calcom/prisma/enums";
+import { CreationSource, WatchlistType } from "@calcom/prisma/enums";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
@@ -199,7 +199,7 @@ describe("handleNewBooking", () => {
 
         await expectBookingToBeInDatabase({
           description: "",
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+           
           uid: createdBooking.uid!,
           eventTypeId: mockBookingData.eventTypeId,
           status: BookingStatus.ACCEPTED,
@@ -263,7 +263,7 @@ describe("handleNewBooking", () => {
           3. Should fallback to creating the booking in the first connected Calendar when neither event nor organizer has a destination calendar - This doesn't practically happen because organizer is always required to have a schedule set
           3. Should trigger BOOKING_CREATED webhook
     `,
-        async ({ emails }) => {
+        async ({ emails: _emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
@@ -363,7 +363,7 @@ describe("handleNewBooking", () => {
 
           await expectBookingToBeInDatabase({
             description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.ACCEPTED,
@@ -423,7 +423,7 @@ describe("handleNewBooking", () => {
           3. Should fallback to create a booking in the Organizer Calendar if event doesn't have destination calendar
           3. Should trigger BOOKING_CREATED webhook
     `,
-        async ({ emails }) => {
+        async ({ emails: _emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
@@ -525,7 +525,7 @@ describe("handleNewBooking", () => {
 
           await expectBookingToBeInDatabase({
             description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.ACCEPTED,
@@ -578,7 +578,7 @@ describe("handleNewBooking", () => {
 
       test(
         `an error in creating a calendar event should not stop the booking creation - Current behaviour is wrong as the booking is created but no-one is notified of it`,
-        async ({ emails }) => {
+        async ({ emails: _emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
@@ -666,7 +666,7 @@ describe("handleNewBooking", () => {
 
           await expectBookingToBeInDatabase({
             description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.ACCEPTED,
@@ -699,7 +699,7 @@ describe("handleNewBooking", () => {
 
       test(
         "If destination calendar has no credential ID due to some reason, it should create the event in first connected calendar instead",
-        async ({ emails }) => {
+        async ({ emails: _emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
@@ -811,7 +811,7 @@ describe("handleNewBooking", () => {
 
           await expectBookingToBeInDatabase({
             description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.ACCEPTED,
@@ -865,7 +865,7 @@ describe("handleNewBooking", () => {
 
       test(
         "If destination calendar is there for Google Calendar but there are no Google Calendar credentials but there is an Apple Calendar credential connected, it should create the event in Apple Calendar",
-        async ({ emails }) => {
+        async ({ emails: _emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
@@ -970,7 +970,7 @@ describe("handleNewBooking", () => {
 
           await expectBookingToBeInDatabase({
             description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.ACCEPTED,
@@ -1022,7 +1022,7 @@ describe("handleNewBooking", () => {
     describe("Event's first location should be used when location is unspecied", () => {
       test(
         `should create a successful booking with right location app when event has location option as video client`,
-        async ({ emails }) => {
+        async ({ emails: _emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
@@ -1115,7 +1115,7 @@ describe("handleNewBooking", () => {
         `should create a successful booking with right location when event's location is not a conferencing app
         `,
         //test with inPerson event type
-        async ({ emails }) => {
+        async ({ emails: _emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
@@ -1198,7 +1198,7 @@ describe("handleNewBooking", () => {
       );
       test(
         `should create a successful booking with organizer default conferencing app when event's location is not set`,
-        async ({ emails }) => {
+        async ({ emails: _emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
@@ -1292,7 +1292,7 @@ describe("handleNewBooking", () => {
     describe("Video Meeting Creation", () => {
       test(
         `should create a successful booking with Zoom if used`,
-        async ({ emails }) => {
+        async ({ emails: _emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const subscriberUrl = "http://my-webhook.example.com";
           const booker = getBooker({
@@ -1380,7 +1380,7 @@ describe("handleNewBooking", () => {
 
       test(
         `Booking should still be created using calvideo, if error occurs with zoom`,
-        async ({ emails }) => {
+        async ({ emails: _emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const subscriberUrl = "http://my-webhook.example.com";
           const booker = getBooker({
@@ -1534,7 +1534,7 @@ describe("handleNewBooking", () => {
     describe("UTM tracking tests", () => {
       test(
         "should create a booking with UTM tracking",
-        async ({ emails }) => {
+        async ({ emails: _emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
@@ -1609,7 +1609,7 @@ describe("handleNewBooking", () => {
             bookingData: mockedBookingData,
           });
 
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+           
           expectBookingTrackingToBeInDatabase(tracking, createdBooking.uid!);
         },
         timeout
@@ -1619,7 +1619,7 @@ describe("handleNewBooking", () => {
     describe("Creation source tests", () => {
       test(
         `should create a booking with creation source as WEBAPP`,
-        async ({ emails }) => {
+        async ({ emails: _emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
@@ -1700,7 +1700,7 @@ describe("handleNewBooking", () => {
       () => {
         test(
           `should fail a booking if there is already a Cal.com booking overlapping the time`,
-          async ({}) => {
+          async () => {
             const handleNewBooking = getNewBookingHandler();
 
             const booker = getBooker({
@@ -1929,7 +1929,7 @@ describe("handleNewBooking", () => {
             });
             expectBookingToBeInDatabase({
               description: "",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -2098,7 +2098,7 @@ describe("handleNewBooking", () => {
               });
               expectBookingToBeInDatabase({
                 description: "",
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                 
                 uid: createdBooking.uid!,
                 eventTypeId: mockBookingData.eventTypeId,
                 status: BookingStatus.ACCEPTED,
@@ -2119,7 +2119,7 @@ describe("handleNewBooking", () => {
             3. Should trigger BOOKING_REQUESTED webhook
             4. Should trigger BOOKING_REQUESTED workflow
     `,
-        async ({ emails }) => {
+        async ({ emails: _emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const subscriberUrl = "http://my-webhook.example.com";
           const booker = getBooker({
@@ -2220,7 +2220,7 @@ describe("handleNewBooking", () => {
 
           await expectBookingToBeInDatabase({
             description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.PENDING,
@@ -2256,7 +2256,7 @@ describe("handleNewBooking", () => {
         3. Should trigger BOOKING_REQUESTED webhook
         4. Should trigger BOOKING_REQUESTED workflow
     `,
-        async ({ emails }) => {
+        async ({ emails: _emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const subscriberUrl = "http://my-webhook.example.com";
           const booker = getBooker({
@@ -2345,7 +2345,7 @@ describe("handleNewBooking", () => {
 
           await expectBookingToBeInDatabase({
             description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.PENDING,
@@ -2382,7 +2382,7 @@ describe("handleNewBooking", () => {
             2. Should send emails to the booker as well as organizer
             3. Should trigger BOOKING_CREATED webhook
     `,
-        async ({ emails }) => {
+        async ({ emails: _emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
@@ -2479,7 +2479,7 @@ describe("handleNewBooking", () => {
 
           await expectBookingToBeInDatabase({
             description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.ACCEPTED,
@@ -2518,7 +2518,7 @@ describe("handleNewBooking", () => {
             3. Should trigger BOOKING_REQUESTED webhook
             4. Should trigger BOOKING_REQUESTED workflows
     `,
-        async ({ emails }) => {
+        async ({ emails: _emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const subscriberUrl = "http://my-webhook.example.com";
           const booker = getBooker({
@@ -2621,7 +2621,7 @@ describe("handleNewBooking", () => {
 
           await expectBookingToBeInDatabase({
             description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.PENDING,
@@ -2648,7 +2648,7 @@ describe("handleNewBooking", () => {
     // FIXME: We shouldn't throw error here, the behaviour should be fixed.
     test(
       `if booking with Cal Video(Daily Video) fails, booking creation fails with uncaught error`,
-      async ({}) => {
+      async () => {
         const handleNewBooking = getNewBookingHandler();
         const booker = getBooker({
           email: "booker@example.org",
@@ -2716,7 +2716,7 @@ describe("handleNewBooking", () => {
       2. Should send emails to the booker as well as organizer
       3. Should trigger BOOKING_CREATED webhook
     `,
-      async ({ emails }) => {
+      async ({ emails: _emails }) => {
         const handleNewBooking = getNewBookingHandler();
         const booker = getBooker({
           email: "booker@example.com",
@@ -2801,7 +2801,7 @@ describe("handleNewBooking", () => {
 
         await expectBookingToBeInDatabase({
           description: "",
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+           
           uid: createdBooking.uid!,
           eventTypeId: mockBookingData.eventTypeId,
           status: BookingStatus.ACCEPTED,
@@ -2842,7 +2842,7 @@ describe("handleNewBooking", () => {
             6. Workflow should not trigger before payment is made
             7. Workflow triggers once payment is successful
       `,
-        async ({ emails }) => {
+        async ({ emails: _emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
@@ -2963,7 +2963,7 @@ describe("handleNewBooking", () => {
           await expectBookingToBeInDatabase({
             description: "",
             location: BookingLocations.CalVideo,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.PENDING,
@@ -2984,7 +2984,7 @@ describe("handleNewBooking", () => {
             organizer,
             location: BookingLocations.CalVideo,
             subscriberUrl: "http://my-webhook.example.com",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             paymentId: createdBooking.paymentId!,
           });
 
@@ -2993,7 +2993,7 @@ describe("handleNewBooking", () => {
           expect(webhookResponse?.statusCode).toBe(200);
           await expectBookingToBeInDatabase({
             description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.ACCEPTED,
@@ -3024,7 +3024,7 @@ describe("handleNewBooking", () => {
             6. Should trigger BOOKING_REQUESTED workflow
             7. Booking should still stay in pending state
       `,
-        async ({ emails }) => {
+        async ({ emails: _emails }) => {
           const bookingInitiatedEmail = "booking_initiated@workflow.com";
           const handleNewBooking = getNewBookingHandler();
           const subscriberUrl = "http://my-webhook.example.com";
@@ -3145,7 +3145,7 @@ describe("handleNewBooking", () => {
           );
           await expectBookingToBeInDatabase({
             description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.PENDING,
@@ -3165,7 +3165,7 @@ describe("handleNewBooking", () => {
             organizer,
             location: BookingLocations.CalVideo,
             subscriberUrl: "http://my-webhook.example.com",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             paymentId: createdBooking.paymentId!,
           });
           expectWorkflowToBeTriggered({ emailsToReceive: [bookingInitiatedEmail], emails });
@@ -3178,7 +3178,7 @@ describe("handleNewBooking", () => {
           expect(webhookResponse?.statusCode).toBe(200);
           await expectBookingToBeInDatabase({
             description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.PENDING,
@@ -3203,7 +3203,7 @@ describe("handleNewBooking", () => {
       );
       test(
         `cannot book same slot multiple times `,
-        async ({ emails }) => {
+        async ({ emails: _emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
@@ -3298,7 +3298,7 @@ describe("handleNewBooking", () => {
 
           await expectBookingToBeInDatabase({
             description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.ACCEPTED,
@@ -3351,7 +3351,7 @@ describe("handleNewBooking", () => {
 
       test(
         `Payment retry scenario - should return existing payment UID and prevent duplicate bookings when retrying canceled payment`,
-        async ({ emails }) => {
+        async ({ emails: _emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
@@ -3400,7 +3400,7 @@ describe("handleNewBooking", () => {
           mockSuccessfulVideoMeetingCreation({
             metadataLookupKey: "dailyvideo",
           });
-          const { paymentUid } = mockPaymentApp({
+          const { paymentUid: _paymentUid } = mockPaymentApp({
             metadataLookupKey: "stripe",
             appStoreLookupKey: "stripepayment",
           });
@@ -3693,7 +3693,6 @@ describe("handleNewBooking", () => {
 
       await createWatchlistEntry({
         type: WatchlistType.USERNAME,
-        severity: WatchlistSeverity.CRITICAL,
         value: organizer.username,
       });
 
@@ -3755,7 +3754,6 @@ describe("handleNewBooking", () => {
 
       await createWatchlistEntry({
         type: WatchlistType.DOMAIN,
-        severity: WatchlistSeverity.CRITICAL,
         value: "spammer.com",
       });
 
@@ -3817,7 +3815,6 @@ describe("handleNewBooking", () => {
 
       await createWatchlistEntry({
         type: WatchlistType.EMAIL,
-        severity: WatchlistSeverity.CRITICAL,
         value: "spam@spammer.com",
       });
 
