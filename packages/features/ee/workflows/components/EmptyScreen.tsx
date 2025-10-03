@@ -19,7 +19,7 @@ function WorkflowExample(props: WorkflowExampleType) {
   const { icon: iconName, title, description, iconWrapperClassName, image } = props;
 
   return (
-    <div className="bg-default border-subtle max-h-24 max-w-[600px] rounded-xl border border-solid p-2.5 mb-2">
+    <div className="bg-default border-subtle max-h-24 max-w-[600px] rounded-xl border border-solid p-2.5">
       <div className="flex">
         <div className="flex items-center justify-center">
           <div
@@ -148,7 +148,7 @@ const TemplateSection = ({ title, examples }: { title: string; examples: Workflo
     <div className="flex items-center justify-center">
       <div className="bg-muted flex max-w-5xl flex-col rounded-md p-2">
         <h2 className="text-emphasis mb-2 text-base font-semibold">{title}</h2>
-        <div className="grid-cols-none items-center gap-2 lg:grid lg:grid-cols-3">
+        <div className="grid grid-cols-1 items-center gap-2 lg:grid-cols-3">
           {examples.map((example: WorkflowExampleType, index: number) => (
             <WorkflowExample
               key={index}
