@@ -599,6 +599,7 @@ async function handler(
       throw new HttpError({
         statusCode: 400,
         message: "email_verification_required",
+        data: { traceId: traceContext.traceId },
       });
     }
 
@@ -608,6 +609,7 @@ async function handler(
       throw new HttpError({
         statusCode: 400,
         message: "invalid_verification_code",
+        data: { traceId: traceContext.traceId },
       });
     }
   }
