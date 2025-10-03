@@ -1,5 +1,5 @@
 import dynamic from "next/dynamic";
-import type { ChangeEvent } from "react";
+import { useMemo, useState, type ChangeEvent } from "react";
 import type {
   ButtonGroupProps,
   ButtonProps,
@@ -134,16 +134,51 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
 };
 
 function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentPropsRAQB) {
+  // Maintain a raw input value because Number() removes the dot (.) during parsing.
+  // Storing the raw input allows the user to type decimals and negative signs naturally.
+  const [rawValue, setRawValue] = useState(value || "");
+
+  const formattedValue = useMemo(() => {
+    // converted to Number because Intl.NumberFormat expect Number
+    const numberValue = Number(rawValue);
+
+    // Format the number if:
+    // - It's a valid number (!isNaN)
+    // - It doesn't end with a dot (.) (to allow typing decimals)
+    // - It's not just a minus sign (to allow typing negative numbers)
+    // - It's greater than 0 (to allow empty string input)
+    if (!isNaN(numberValue) && !rawValue.endsWith(".") && rawValue !== "-" && numberValue > 0) {
+      return new Intl.NumberFormat(undefined, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 14, // allow max 14 because Number only support max 15 decimal
+      }).format(numberValue);
+    }
+
+    // Return raw input if any of the conditions above fail
+    return rawValue;
+  }, [rawValue]);
+
   return (
     <TextField
       size="sm"
-      type="number"
+      type="text"
       labelSrOnly={remainingProps.noLabel}
       containerClassName="w-full"
       className="mb-2"
-      value={value}
+      value={formattedValue}
       onChange={(e) => {
-        setValue(e.target.value);
+        let val = e.target.value
+          .replace(/[^0-9.-]+/g, "") // remove all characters except digits, dot and minus
+          .replace(/(?!^)-/g, ""); // only allow leading minus
+
+        // Keep only first dot and remove others
+        const firstDot = val.indexOf(".");
+        if (firstDot !== -1) {
+          val = val.substring(0, firstDot + 1) + val.substring(firstDot + 1).replace(/\./g, "");
+        }
+
+        setRawValue(val); // preserve raw input for editing
+        setValue(val); // pass non formatted value to parent
       }}
       {...remainingProps}
     />
