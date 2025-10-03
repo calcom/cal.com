@@ -42,7 +42,6 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
   const { object: invoice } = invoicePaidSchema.parse(data);
   const subscriptionItemId = invoice.lines.data[0]?.subscription_item;
   const subscriptionId = invoice.subscription;
-  console.log("invoice", invoice);
   logger.debug(
     `Processing invoice paid webhook for customer ${invoice.customer} and subscription ${invoice.subscription}`
   );
