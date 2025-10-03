@@ -122,7 +122,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (!eventTypeRaw.users.length) {
     if (!eventTypeRaw.owner) {
       if (bookingInfoRaw.user) {
-        eventTypeRaw.users.push(bookingInfoRaw.user);
+        eventTypeRaw.users.push({
+          ...bookingInfoRaw.user,
+          hideBranding: false,
+          theme: null,
+          brandColor: null,
+          darkBrandColor: null,
+          isPlatformManaged: false,
+        });
       } else {
         return { notFound: true } as const;
       }
