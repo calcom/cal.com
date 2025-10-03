@@ -904,20 +904,20 @@ function addStatusesQueryFilters(query: BookingsUnionQuery, statuses: InputBySta
         statuses.map((status) => {
           if (status === "upcoming") {
             return and([
-              eb("Booking.endTime", ">=", new Date()),
-              or([
-                and([eb("Booking.recurringEventId", "is not", null), eb("Booking.status", "=", "accepted")]),
-                and([
+              eb(sql`"Booking"."endTime" AT TIME ZONE 'UTC'`, ">=", new Date()),
+              // or([
+              //   and([eb("Booking.recurringEventId", "is not", null), eb("Booking.status", "=", "accepted")]),
+              //   and([
                   eb("Booking.recurringEventId", "is", null),
-                  eb("Booking.status", "not in", ["cancelled", "rejected"]),
-                ]),
-              ]),
+                  eb("Booking.status", "not in", ["cancelled", "rejected","pending"]),
+              //   ]),
+              // ]),
             ]);
           }
 
           if (status === "recurring") {
             return and([
-              eb("Booking.endTime", ">=", new Date()),
+              eb(sql`"Booking"."endTime" AT TIME ZONE 'UTC'`, ">=", new Date()),
               eb("Booking.recurringEventId", "is not", null),
               eb("Booking.status", "not in", ["cancelled", "rejected"]),
             ]);
@@ -925,7 +925,7 @@ function addStatusesQueryFilters(query: BookingsUnionQuery, statuses: InputBySta
 
           if (status === "past") {
             return and([
-              eb("Booking.endTime", "<=", new Date()),
+              eb(sql`"Booking"."endTime" AT TIME ZONE 'UTC'`, "<=", new Date()),
               eb("Booking.status", "not in", ["cancelled", "rejected"]),
             ]);
           }
@@ -935,7 +935,7 @@ function addStatusesQueryFilters(query: BookingsUnionQuery, statuses: InputBySta
           }
 
           if (status === "unconfirmed") {
-            return and([eb("Booking.endTime", ">=", new Date()), eb("Booking.status", "=", "pending")]);
+            return and([eb(sql`"Booking"."endTime" AT TIME ZONE 'UTC'`, ">=", new Date()), eb("Booking.status", "=", "pending")]);
           }
           return and([]);
         })
