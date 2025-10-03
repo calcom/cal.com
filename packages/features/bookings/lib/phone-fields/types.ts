@@ -1,6 +1,11 @@
-import type { BookingFieldType } from "@calcom/features/form-builder/schema";
-import type { WorkflowDataForBookingField } from "@calcom/features/ee/workflows/lib/getWorkflowActionOptions";
 import type { Fields } from "@calcom/features/bookings/lib/getBookingFields";
+import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
+
+export type BookingFieldType = Fields[number];
+
+export type WorkflowDataForBookingField = {
+  readonly workflow: Workflow;
+};
 
 /**
  * Represents a phone number requirement from a workflow
@@ -37,8 +42,8 @@ export interface PhoneFieldResolution {
  */
 export enum PhoneFieldStrategy {
   NONE = "none",
-  ENHANCE_ATTENDEE_PHONE = "enhance_attendee_phone", 
-  CREATE_UNIFIED_FIELD = "create_unified_field"
+  ENHANCE_ATTENDEE_PHONE = "enhance_attendee_phone",
+  CREATE_UNIFIED_FIELD = "create_unified_field",
 }
 
 /**

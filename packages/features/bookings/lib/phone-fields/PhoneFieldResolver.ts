@@ -1,20 +1,20 @@
-import type { BookingFieldType } from "@calcom/features/form-builder/schema";
-import { WorkflowActions } from "@calcom/prisma/enums";
 import { UNIFIED_PHONE_NUMBER_FIELD } from "@calcom/features/bookings/lib/SystemField";
+import { WorkflowActions } from "@calcom/prisma/enums";
+
+import type { BookingFieldType } from "./types";
 import {
   PhoneFieldStrategy,
   type IPhoneFieldResolver,
   type PhoneFieldContext,
   type PhoneFieldResolution,
   type PhoneRequirement,
-  type PhoneRequirementType
+  type PhoneRequirementType,
 } from "./types";
 
 /**
  * Concrete implementation of phone field resolution logic
  */
 export class PhoneFieldResolver implements IPhoneFieldResolver {
-  
   resolvePhoneField(context: PhoneFieldContext): PhoneFieldResolution {
     const requirements = this.extractPhoneRequirements(context.workflows);
     const strategy = this.determineStrategy(context);
@@ -23,23 +23,28 @@ export class PhoneFieldResolver implements IPhoneFieldResolver {
     return {
       field,
       strategy,
-      requirements
+      requirements,
     };
   }
 
-  extractPhoneRequirements(workflows: readonly import("@calcom/features/ee/workflows/lib/getWorkflowActionOptions").WorkflowDataForBookingField[]): readonly PhoneRequirement[] {
+  extractPhoneRequirements(
+    workflows: readonly import("./types").WorkflowDataForBookingField[]
+  ): readonly PhoneRequirement[] {
     const requirements: PhoneRequirement[] = [];
     const seenWorkflows = new Set<number>();
 
     for (const workflow of workflows) {
       // Add null checks for workflow and its properties
       if (!workflow?.workflow?.id || !workflow.workflow.steps) continue;
-      
+
       if (seenWorkflows.has(workflow.workflow.id)) continue;
       seenWorkflows.add(workflow.workflow.id);
 
       for (const step of workflow.workflow.steps) {
-        const requirement = this.mapStepToRequirement(step, workflow.workflow.id);
+        const requirement = this.mapStepToRequirement(
+          step as import("@calcom/features/ee/workflows/lib/types").WorkflowStep,
+          workflow.workflow.id
+        );
         if (requirement) {
           requirements.push(requirement);
         }
@@ -51,7 +56,7 @@ export class PhoneFieldResolver implements IPhoneFieldResolver {
 
   determineStrategy(context: PhoneFieldContext): PhoneFieldStrategy {
     const requirements = this.extractPhoneRequirements(context.workflows);
-    
+
     if (requirements.length === 0) {
       return PhoneFieldStrategy.NONE;
     }
@@ -87,8 +92,8 @@ export class PhoneFieldResolver implements IPhoneFieldResolver {
     requirements: readonly PhoneRequirement[],
     context: PhoneFieldContext
   ): BookingFieldType {
-    const attendeeField = context.existingFields.find(f => f.name === "attendeePhoneNumber");
-    
+    const attendeeField = context.existingFields.find((f) => f.name === "attendeePhoneNumber");
+
     if (!attendeeField) {
       throw new Error("Cannot enhance attendee phone field: field not found");
     }
@@ -98,10 +103,7 @@ export class PhoneFieldResolver implements IPhoneFieldResolver {
     return {
       ...attendeeField,
       defaultLabel: "phone_number",
-      sources: [
-        ...attendeeField.sources,
-        ...this.createWorkflowSources(requirements)
-      ],
+      sources: [...attendeeField.sources, ...this.createWorkflowSources(requirements)],
       required: true,
     } as const;
   }
@@ -115,28 +117,31 @@ export class PhoneFieldResolver implements IPhoneFieldResolver {
       defaultLabel: "phone_number",
       defaultPlaceholder: "enter_phone_number",
       editable: "system",
-      required: requirements.some(req => req.required),
+      required: requirements.some((req) => req.required),
       sources: this.createWorkflowSources(requirements),
     } as const;
   }
 
-  private mapStepToRequirement(step: any, workflowId: number): PhoneRequirement | null {
+  private mapStepToRequirement(
+    step: import("@calcom/features/ee/workflows/lib/types").WorkflowStep,
+    workflowId: number
+  ): PhoneRequirement | null {
     const typeMap: Record<string, { type: PhoneRequirementType; label: string; required?: boolean }> = {
-      [WorkflowActions.SMS_ATTENDEE]: { 
-        type: "sms_reminder", 
+      [WorkflowActions.SMS_ATTENDEE]: {
+        type: "sms_reminder",
         label: "SMS Reminder",
-        required: !!step.numberRequired 
+        required: !!step.numberRequired,
       },
-      [WorkflowActions.WHATSAPP_ATTENDEE]: { 
-        type: "whatsapp_reminder", 
+      [WorkflowActions.WHATSAPP_ATTENDEE]: {
+        type: "whatsapp_reminder",
         label: "WhatsApp Reminder",
-        required: !!step.numberRequired 
+        required: !!step.numberRequired,
       },
-      [WorkflowActions.CAL_AI_PHONE_CALL]: { 
-        type: "ai_phone_call", 
+      [WorkflowActions.CAL_AI_PHONE_CALL]: {
+        type: "ai_phone_call",
         label: "AI Phone Call",
-        required: true 
-      }
+        required: true,
+      },
     };
 
     const mapping = typeMap[step.action];
@@ -146,12 +151,12 @@ export class PhoneFieldResolver implements IPhoneFieldResolver {
       workflowId,
       type: mapping.type,
       required: mapping.required ?? false,
-      label: mapping.label
+      label: mapping.label,
     };
   }
 
   private getUniquePurposeLabels(requirements: readonly PhoneRequirement[]): string[] {
-    return [...new Set(requirements.map(req => req.label))];
+    return Array.from(new Set(requirements.map((req) => req.label)));
   }
 
   private formatPurposeLabels(labels: string[]): string {
@@ -161,7 +166,7 @@ export class PhoneFieldResolver implements IPhoneFieldResolver {
   }
 
   private createWorkflowSources(requirements: readonly PhoneRequirement[]) {
-    return requirements.map(req => ({
+    return requirements.map((req) => ({
       label: req.label,
       id: `workflow-${req.workflowId}`,
       type: req.type,
