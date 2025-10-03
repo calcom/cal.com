@@ -38,7 +38,7 @@ ALTER TABLE "Watchlist" ADD CONSTRAINT "Watchlist_pkey" PRIMARY KEY ("id");
 -- Create WatchlistAudit table BEFORE modifying Watchlist
 -- CreateTable
 CREATE TABLE "WatchlistAudit" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "id" UUID NOT NULL,
     "type" "WatchlistType" NOT NULL,
     "value" TEXT NOT NULL,
     "description" TEXT,
@@ -50,30 +50,6 @@ CREATE TABLE "WatchlistAudit" (
     CONSTRAINT "WatchlistAudit_pkey" PRIMARY KEY ("id")
 );
 
--- Backfill WatchlistAudit with existing Watchlist data
-
-INSERT INTO "WatchlistAudit" (
-    "id",
-    "type", 
-    "value", 
-    "description", 
-    "action", 
-    "changedAt", 
-    "changedByUserId", 
-    "watchlistId"
-)
-SELECT 
-    gen_random_uuid() as "id",
-    "type",
-    "value",
-    "description",
-    "action",
-    "createdAt" as "changedAt",
-    "createdById" as "changedByUserId",
-    "id" as "watchlistId"
-FROM "Watchlist";
-
--- Now safely drop foreign key constraints
 -- DropForeignKey
 ALTER TABLE "Watchlist" DROP CONSTRAINT "Watchlist_createdById_fkey";
 
@@ -102,7 +78,7 @@ DROP TYPE "WatchlistSeverity";
 -- Create WatchlistEventAudit table
 -- CreateTable
 CREATE TABLE "WatchlistEventAudit" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "id" UUID NOT NULL,
     "watchlistId" UUID NOT NULL,
     "eventTypeId" INTEGER NOT NULL,
     "actionTaken" "WatchlistAction" NOT NULL,

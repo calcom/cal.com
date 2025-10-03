@@ -2304,14 +2304,14 @@ model WatchlistAudit {
   changedAt       DateTime @default(now())
   changedByUserId Int?
 
-  watchlistId String
+  watchlistId String @db.Uuid
 
   @@index([watchlistId, changedAt])
 }
 
 model WatchlistEventAudit {
   id          String          @id @default(uuid(7)) @db.Uuid
-  watchlistId String
+  watchlistId String          @db.Uuid
   eventTypeId Int
   actionTaken WatchlistAction
   timestamp   DateTime        @default(now())
