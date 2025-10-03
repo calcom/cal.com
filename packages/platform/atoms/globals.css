@@ -26215,9 +26215,8 @@ input:hover+.\[input\:hover_\+_\&\]\:border-l-default {
   background-position: -96px -154px
 }
 
-/* Mobile form field consistency fixes */
+
 @media (max-width: 768px) {
-  /* Ensure all form inputs have consistent height and border radius */
   .calcom-input-field input,
   .calcom-select-field .react-select__control,
   .calcom-multiselect-field .react-select__control {
