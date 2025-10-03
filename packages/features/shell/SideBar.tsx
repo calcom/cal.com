@@ -42,13 +42,21 @@ export type SideBarProps = {
 
 export function SideBarContainer({ bannersHeight, isPlatformUser = false }: SideBarContainerProps) {
   const { status, data } = useSession();
-
-  // Make sure that Sidebar is rendered optimistically so that a refresh of pages when logged in have SideBar from the beginning.
-  // This improves the experience of refresh on app store pages(when logged in) which are SSG.
-  // Though when logged out, app store pages would temporarily show SideBar until session status is confirmed.
   if (status !== "loading" && status !== "authenticated") return null;
   return <SideBar isPlatformUser={isPlatformUser} bannersHeight={bannersHeight} user={data?.user} />;
 }
+
+// Build a safe public page URL (absolute or empty if not resolvable).
+const buildPublicPageUrl = (user?: UserAuth | null): string => {
+  const base =
+    getBookerBaseUrlSync(user?.org?.slug ?? null) ||
+    process.env.NEXT_PUBLIC_WEBAPP_URL ||
+    process.env.NEXTAUTH_URL ||
+    "";
+  const username = user?.orgAwareUsername;
+  if (!base || !username) return "";
+  return `${String(base).replace(/\/+$/, "")}/${username}`;
+};
 
 export function SideBar({ bannersHeight, user }: SideBarProps) {
   const session = useSession();
@@ -57,7 +65,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
   const isPlatformPages = pathname?.startsWith("/settings/platform");
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
 
-  const publicPageUrl = `${getBookerBaseUrlSync(user?.org?.slug ?? null)}/${user?.orgAwareUsername}`;
+  const publicPageUrl = buildPublicPageUrl(user);
 
   const bottomNavItems = useBottomNavItems({
     publicPageUrl,
@@ -134,10 +142,12 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
               <KBarTrigger />
             </div>
           </header>
+
           {/* logo icon for tablet */}
           <Link href="/event-types" className="text-center md:inline lg:hidden">
             <Logo small icon />
           </Link>
+
           <Navigation isPlatformNavigation={isPlatformPages} />
         </div>
 
@@ -150,7 +160,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
               <Tooltip side="right" content={t(item.name)} className="lg:hidden" key={item.name}>
                 <ButtonOrLink
                   id={item.name}
-                  href={item.href || undefined}
+                  href={item.href || undefined} // undefined for action-only items
                   aria-label={t(item.name)}
                   target={item.target}
                   className={classNames(
