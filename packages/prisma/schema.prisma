@@ -2634,3 +2634,11 @@ model CalendarCacheEvent {
   @@index([start, end, status])
   @@index([selectedCalendarId, iCalUID])
 }
+
+model App_Salesforce_RecordFieldCache {
+  id          String   @id @default(uuid())
+  eventTypeId String   @unique
+  fields      Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
