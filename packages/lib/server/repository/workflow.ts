@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import type { WorkflowType } from "@calcom/ee/workflows/components/WorkflowListPage";
+import { FORM_TRIGGER_WORKFLOW_EVENTS } from "@calcom/ee/workflows/lib/constants";
 import { deleteScheduledAIPhoneCall } from "@calcom/ee/workflows/lib/reminders/aiPhoneCallManager";
 import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
 import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
@@ -21,7 +22,6 @@ import type { TGetVerifiedEmailsInputSchema } from "@calcom/trpc/server/routers/
 import type { TGetVerifiedNumbersInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/getVerifiedNumbers.schema";
 
 import logger from "../../logger";
-import { FORM_TRIGGER_WORKFLOW_EVENTS } from "@calcom/ee/workflows/lib/constants";
 
 export const ZGetInputSchema = z.object({
   id: z.number(),
@@ -36,7 +36,7 @@ const excludeFormTriggersWhereClause = {
 };
 
 const getWorkflowType = (trigger: WorkflowTriggerEvents): PrismaWorkflowType => {
-  if (trigger === WorkflowTriggerEvents.FORM_SUBMITTED) {
+  if (FORM_TRIGGER_WORKFLOW_EVENTS.includes(trigger)) {
     return PrismaWorkflowType.ROUTING_FORM;
   }
   return PrismaWorkflowType.EVENT_TYPE;
@@ -801,6 +801,60 @@ export class WorkflowRepository {
       },
       orderBy: {
         id: "asc",
+      },
+    });
+  }
+
+  static async findWorkflowsActiveOnRoutingForm({ routingFormId }: { routingFormId: string }) {
+    return await prisma.workflow.findMany({
+      where: {
+        activeOnRoutingForms: {
+          some: {
+            routingFormId,
+          },
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        trigger: true,
+        time: true,
+        timeUnit: true,
+        userId: true,
+        teamId: true,
+        steps: true,
+        team: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+      },
+    });
+  }
+
+  static async findActiveWorkflowsOnTeam({ parentTeamId, teamId }: { parentTeamId: number; teamId: number }) {
+    return await prisma.workflow.findMany({
+      where: {
+        teamId: parentTeamId,
+        OR: [
+          {
+            activeOnTeams: {
+              some: {
+                teamId: teamId,
+              },
+            },
+          },
+          {
+            isActiveOnAll: true,
+          },
+        ],
+      },
+      select: {
+        steps: true,
+        activeOnTeams: true,
+        isActiveOnAll: true,
       },
     });
   }

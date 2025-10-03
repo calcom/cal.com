@@ -58,12 +58,15 @@ export default function WorkflowDetailsPage(props: Props) {
   const transformedActionOptions = baseActionOptions
     ? baseActionOptions
         .filter((option) => {
-          if (
-            (isFormTrigger(form.getValues("trigger")) &&
-              !ALLOWED_FORM_WORKFLOW_ACTIONS.some((action) => action === option.value)) ||
-            (isCalAIAction(option.value) && form.watch("selectAll")) ||
-            (isCalAIAction(option.value) && isOrg)
-          ) {
+          const isFormWorkflowWithInvalidSteps =
+            isFormTrigger(form.getValues("trigger")) &&
+            !ALLOWED_FORM_WORKFLOW_ACTIONS.some((action) => action === option.value);
+
+          const isSelectAllCalAiAction = isCalAIAction(option.value) && form.watch("selectAll");
+
+          const isOrgCalAiAction = isCalAIAction(option.value) && isOrg;
+
+          if (isFormWorkflowWithInvalidSteps || isSelectAllCalAiAction || isOrgCalAiAction) {
             return false;
           }
           return true;

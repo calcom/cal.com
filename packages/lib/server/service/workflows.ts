@@ -1,5 +1,4 @@
 import dayjs from "@calcom/dayjs";
-import { FORM_TRIGGER_WORKFLOW_EVENTS } from "@calcom/ee/workflows/lib/constants";
 import { getAllWorkflows } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import type { ScheduleWorkflowRemindersArgs } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
@@ -12,6 +11,7 @@ import { WorkflowTriggerEvents, WorkflowType } from "@calcom/prisma/enums";
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/lib/formSubmissionUtils";
 
 import { getHideBranding } from "../../hideBranding";
+import { TeamRepository } from "../repository/team";
 import { WorkflowRepository } from "../repository/workflow";
 
 // TODO (Sean): Move most of the logic migrated in 16861 to this service
@@ -26,34 +26,8 @@ export class WorkflowService {
     userId: number | null;
     teamId: number | null;
   }) {
-    const routingFormWorkflows = await prisma.workflow.findMany({
-      where: {
-        activeOnRoutingForms: {
-          some: {
-            routingFormId: routingForm.id,
-          },
-        },
-        trigger: {
-          in: FORM_TRIGGER_WORKFLOW_EVENTS,
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        trigger: true,
-        time: true,
-        timeUnit: true,
-        userId: true,
-        teamId: true,
-        steps: true,
-        team: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-          },
-        },
-      },
+    const routingFormWorkflows = await WorkflowRepository.findWorkflowsActiveOnRoutingForm({
+      routingFormId: routingForm.id,
     });
 
     const teamId = routingForm.teamId;
@@ -73,34 +47,13 @@ export class WorkflowService {
   }
 
   static async deleteWorkflowRemindersOfRemovedTeam(teamId: number) {
-    const team = await prisma.team.findUnique({
-      where: {
-        id: teamId,
-      },
-    });
+    const teamRepository = new TeamRepository(prisma);
+    const team = await teamRepository.findById({ id: teamId });
 
     if (team?.parentId) {
-      const activeWorkflowsOnTeam = await prisma.workflow.findMany({
-        where: {
-          teamId: team.parentId,
-          OR: [
-            {
-              activeOnTeams: {
-                some: {
-                  teamId: team.id,
-                },
-              },
-            },
-            {
-              isActiveOnAll: true,
-            },
-          ],
-        },
-        select: {
-          steps: true,
-          activeOnTeams: true,
-          isActiveOnAll: true,
-        },
+      const activeWorkflowsOnTeam = await WorkflowRepository.findActiveWorkflowsOnTeam({
+        parentTeamId: team.parentId,
+        teamId: team.id,
       });
 
       for (const workflow of activeWorkflowsOnTeam) {
@@ -108,13 +61,10 @@ export class WorkflowService {
         let remainingActiveOnIds = [];
 
         if (workflow.isActiveOnAll) {
-          const allRemainingOrgTeams = await prisma.team.findMany({
-            where: {
-              parentId: team.parentId,
-              id: {
-                not: team.id,
-              },
-            },
+          const teamRepository = new TeamRepository(prisma);
+          const allRemainingOrgTeams = await teamRepository.findOrgTeamsExcludingTeam({
+            parentId: team.parentId,
+            excludeTeamId: team.id,
           });
           remainingActiveOnIds = allRemainingOrgTeams.map((team) => team.id);
         } else {

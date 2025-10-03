@@ -22,7 +22,7 @@ import {
   STEP_ACTIONS,
 } from "./workflow-step.input";
 import {
-  BaseWorkflowTriggerDto,
+  EventTypeWorkflowTriggerDto,
   OnBeforeEventTriggerDto,
   BEFORE_EVENT,
   OnAfterEventTriggerDto,
@@ -70,7 +70,7 @@ import {
   UpdatePhoneWhatsAppNumberWorkflowStepDto,
   UpdateWhatsAppAttendeePhoneWorkflowStepDto,
   UpdatePhoneNumberWorkflowStepDto,
-  BaseWorkflowTriggerDto,
+  EventTypeWorkflowTriggerDto,
   WorkflowActivationDto
 )
 export class UpdateEventTypeWorkflowDto {
@@ -107,7 +107,7 @@ export class UpdateEventTypeWorkflowDto {
   })
   @IsOptional()
   @ValidateNested()
-  @Type(() => BaseWorkflowTriggerDto, {
+  @Type(() => EventTypeWorkflowTriggerDto, {
     keepDiscriminatorProperty: true,
     discriminator: {
       property: "type",
