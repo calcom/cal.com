@@ -1,18 +1,16 @@
 import { startSpan } from "@sentry/nextjs";
 
-import { getWatchlistReadRepository } from "@calcom/lib/di/watchlist/containers/watchlist";
+import { getWatchlistRepository } from "@calcom/features/di/watchlist/containers/watchlist";
 
-import type { UsersBlockedCheckResponseDTO } from "../lib/dto";
-
-function presenter(containsBlockedUser: boolean): UsersBlockedCheckResponseDTO {
+function presenter(containsBlockedUser: boolean) {
   return startSpan({ name: "checkIfUsersAreBlocked Presenter", op: "serialize" }, () => {
-    return { containsBlockedUser };
+    return !!containsBlockedUser;
   });
 }
 
 export async function checkIfUsersAreBlocked(
   users: { email: string; username: string | null; locked: boolean }[]
-): Promise<UsersBlockedCheckResponseDTO> {
+): Promise<ReturnType<typeof presenter>> {
   const usernamesToCheck = [],
     emailsToCheck = [],
     domainsToCheck = [];
@@ -26,7 +24,7 @@ export async function checkIfUsersAreBlocked(
     domainsToCheck.push(emailDomain);
   }
 
-  const watchlistRepository = getWatchlistReadRepository();
+  const watchlistRepository = getWatchlistRepository();
   const blockedRecords = await watchlistRepository.searchForAllBlockedRecords({
     usernames: usernamesToCheck,
     emails: emailsToCheck,

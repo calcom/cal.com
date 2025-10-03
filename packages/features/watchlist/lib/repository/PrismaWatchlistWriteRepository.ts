@@ -1,13 +1,13 @@
 import { captureException } from "@sentry/nextjs";
 
 import type { PrismaClient } from "@calcom/prisma";
-import { WatchlistAction } from "@calcom/prisma/enums";
+import { WatchlistAction, WatchlistSource } from "@calcom/prisma/enums";
 
 import type {
   IWatchlistWriteRepository,
   CreateWatchlistInput,
   UpdateWatchlistInput,
-} from "../interfaces/IWatchlistRepositories";
+} from "../interface/IWatchlistRepositories";
 import type { Watchlist } from "../types";
 
 export class PrismaWatchlistWriteRepository implements IWatchlistWriteRepository {
@@ -20,9 +20,10 @@ export class PrismaWatchlistWriteRepository implements IWatchlistWriteRepository
           type: data.type,
           value: data.value.toLowerCase(),
           description: data.description,
+          isGlobal: data.isGlobal ?? false,
           organizationId: data.organizationId ?? null,
-          createdById: data.createdById,
-          action: data.action || WatchlistAction.BLOCK,
+          action: data.action || WatchlistAction.REPORT,
+          source: data.source || WatchlistSource.MANUAL,
         },
       });
     } catch (err) {
@@ -31,13 +32,10 @@ export class PrismaWatchlistWriteRepository implements IWatchlistWriteRepository
     }
   }
 
-  async deleteEntry(id: string, organizationId: number): Promise<void> {
+  async deleteEntry(id: string): Promise<void> {
     try {
       await this.prisma.watchlist.delete({
-        where: {
-          id,
-          organizationId,
-        },
+        where: { id },
       });
     } catch (err) {
       captureException(err);
@@ -52,7 +50,8 @@ export class PrismaWatchlistWriteRepository implements IWatchlistWriteRepository
         data: {
           ...(data.value && { value: data.value.toLowerCase() }),
           ...(data.description !== undefined && { description: data.description }),
-          updatedAt: new Date(),
+          ...(data.action && { action: data.action }),
+          ...(data.source && { source: data.source }),
         },
       });
     } catch (err) {

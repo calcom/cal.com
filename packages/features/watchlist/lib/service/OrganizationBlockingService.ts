@@ -1,5 +1,5 @@
-import type { IAuditService } from "../interfaces/IAuditService";
-import type { OrganizationWatchlistRepository } from "../repositories/OrganizationWatchlistRepository";
+import type { IAuditService } from "../interface/IAuditService";
+import type { OrganizationWatchlistRepository } from "../repository/OrganizationWatchlistRepository";
 import type { Watchlist, WatchlistType } from "../types";
 
 export interface OrganizationBlockingResult {

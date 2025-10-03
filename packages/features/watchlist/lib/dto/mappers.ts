@@ -1,6 +1,6 @@
-import type { BlockedBooking, Watchlist } from "@calcom/lib/di/watchlist/types";
 import type { User } from "@calcom/prisma/client";
 
+import type { BlockedBooking, Watchlist } from "../types";
 import type {
   WatchlistEntryDTO,
   BlockedBookingLogDTO,

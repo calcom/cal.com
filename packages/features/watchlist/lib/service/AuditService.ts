@@ -1,5 +1,5 @@
-import type { IAuditRepository } from "../interfaces/IAuditRepository";
-import type { IAuditService } from "../interfaces/IAuditService";
+import type { IAuditRepository } from "../interface/IAuditRepository";
+import type { IAuditService } from "../interface/IAuditService";
 
 export class AuditService implements IAuditService {
   constructor(private readonly auditRepository: IAuditRepository) {}
@@ -11,18 +11,16 @@ export class AuditService implements IAuditService {
     eventTypeId?: number;
     bookingData?: Record<string, unknown>;
   }): Promise<void> {
-    if (!data.organizationId) {
-      console.warn("Cannot log blocked booking attempt without organizationId");
+    if (!data.eventTypeId) {
+      console.warn("Cannot log blocked booking attempt without eventTypeId");
       return;
     }
 
     try {
-      await this.auditRepository.createBlockedBookingEntry({
-        email: data.email,
-        organizationId: data.organizationId,
+      await this.auditRepository.createEventAudit({
         watchlistId: data.watchlistId,
         eventTypeId: data.eventTypeId,
-        bookingData: data.bookingData,
+        actionTaken: "BLOCK",
       });
     } catch (err) {
       console.error("Failed to log blocked booking attempt:", err);
@@ -44,6 +42,29 @@ export class AuditService implements IAuditService {
         blockedByEmail: 0,
         blockedByDomain: 0,
       };
+    }
+  }
+
+  async logWatchlistChange(data: {
+    watchlistId: string;
+    type: string;
+    value: string;
+    description?: string;
+    action: string;
+    changedByUserId?: number;
+  }): Promise<void> {
+    try {
+      await this.auditRepository.createChangeAudit({
+        type: data.type,
+        value: data.value,
+        description: data.description,
+        action: data.action,
+        changedByUserId: data.changedByUserId,
+        watchlistId: data.watchlistId,
+      });
+    } catch (err) {
+      console.error("Failed to log watchlist change:", err);
+      // Don't throw - audit logging shouldn't break the main flow
     }
   }
 }

@@ -1,4 +1,4 @@
-import { getWatchlistRepository } from "@calcom/lib/di/watchlist/containers/watchlist";
+import { getWatchlistRepository } from "@calcom/features/di/watchlist/containers/watchlist";
 
 export const checkIfFreeEmailDomain = async (email: string) => {
   const emailDomain = email.split("@")[1].toLowerCase();

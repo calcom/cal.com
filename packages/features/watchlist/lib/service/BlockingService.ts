@@ -1,11 +1,11 @@
-import type { IAuditService } from "../interfaces/IAuditService";
+import type { IAuditService } from "../interface/IAuditService";
 import type {
   IBlockingService,
   BlockingResult,
   DecoyBookingResponse,
   BookingData,
-} from "../interfaces/IBlockingService";
-import type { IWatchlistReadRepository } from "../interfaces/IWatchlistRepositories";
+} from "../interface/IBlockingService";
+import type { IWatchlistReadRepository } from "../interface/IWatchlistRepositories";
 import { WatchlistType } from "../types";
 
 export class BlockingService implements IBlockingService {

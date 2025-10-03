@@ -1,9 +1,9 @@
 import { captureException } from "@sentry/nextjs";
 
 import type { PrismaClient } from "@calcom/prisma";
-import { WatchlistType, WatchlistSeverity, WatchlistAction } from "@calcom/prisma/enums";
+import { WatchlistType, WatchlistAction } from "@calcom/prisma/enums";
 
-import type { IWatchlistReadRepository } from "../interfaces/IWatchlistRepositories";
+import type { IWatchlistReadRepository } from "../interface/IWatchlistRepositories";
 import type { Watchlist } from "../types";
 
 export class PrismaWatchlistReadRepository implements IWatchlistReadRepository {
@@ -16,7 +16,7 @@ export class PrismaWatchlistReadRepository implements IWatchlistReadRepository {
           type: WatchlistType.EMAIL,
           value: email.toLowerCase(),
           action: WatchlistAction.BLOCK,
-          organizationId: organizationId ?? null,
+          OR: [{ isGlobal: true }, { organizationId: organizationId }],
         },
       });
     } catch (err) {
@@ -32,7 +32,7 @@ export class PrismaWatchlistReadRepository implements IWatchlistReadRepository {
           type: WatchlistType.DOMAIN,
           value: domain.toLowerCase(),
           action: WatchlistAction.BLOCK,
-          organizationId: organizationId ?? null,
+          OR: [{ isGlobal: true }, { organizationId: organizationId }],
         },
       });
     } catch (err) {
@@ -48,7 +48,40 @@ export class PrismaWatchlistReadRepository implements IWatchlistReadRepository {
           organizationId,
           action: WatchlistAction.BLOCK,
         },
-        orderBy: { createdAt: "desc" },
+        orderBy: { lastUpdatedAt: "desc" },
+      });
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  async findById(id: string): Promise<Watchlist | null> {
+    try {
+      return await this.prisma.watchlist.findUnique({
+        where: { id },
+      });
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  async findMany(params: { organizationId?: number; isGlobal?: boolean }): Promise<Watchlist[]> {
+    try {
+      const where: { organizationId?: number; isGlobal?: boolean } = {};
+
+      if (params.isGlobal !== undefined) {
+        where.isGlobal = params.isGlobal;
+      }
+
+      if (params.organizationId !== undefined) {
+        where.organizationId = params.organizationId;
+      }
+
+      return await this.prisma.watchlist.findMany({
+        where,
+        orderBy: { lastUpdatedAt: "desc" },
       });
     } catch (err) {
       captureException(err);

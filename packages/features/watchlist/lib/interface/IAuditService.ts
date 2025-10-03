@@ -1,12 +1,3 @@
-export interface BlockedBookingAttempt {
-  email: string;
-  organizationId?: number;
-  watchlistId: string;
-  eventTypeId?: number;
-  bookingData?: Record<string, unknown>; // Original booking attempt data
-  timestamp?: Date;
-}
-
 export interface BlockingStats {
   totalBlocked: number;
   blockedByEmail: number;
@@ -21,5 +12,15 @@ export interface IAuditService {
     eventTypeId?: number;
     bookingData?: Record<string, unknown>;
   }): Promise<void>;
+
   getBlockingStats(organizationId: number): Promise<BlockingStats>;
+
+  logWatchlistChange(data: {
+    watchlistId: string;
+    type: string;
+    value: string;
+    description?: string;
+    action: string;
+    changedByUserId?: number;
+  }): Promise<void>;
 }

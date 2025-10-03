@@ -4,7 +4,7 @@ import type {
   IWatchlistWriteRepository,
   CreateWatchlistInput,
   UpdateWatchlistInput,
-} from "../interfaces/IWatchlistRepositories";
+} from "../interface/IWatchlistRepositories";
 import type { Watchlist } from "../types";
 
 export class PrismaWatchlistRepository implements IWatchlistRepository {
@@ -24,6 +24,14 @@ export class PrismaWatchlistRepository implements IWatchlistRepository {
 
   async listByOrganization(organizationId: number): Promise<Watchlist[]> {
     return this.readRepo.listByOrganization(organizationId);
+  }
+
+  async findById(id: string): Promise<Watchlist | null> {
+    return this.readRepo.findById(id);
+  }
+
+  async findMany(params: { organizationId?: number; isGlobal?: boolean }): Promise<Watchlist[]> {
+    return this.readRepo.findMany(params);
   }
 
   async getBlockedEmailInWatchlist(email: string): Promise<Watchlist | null> {
@@ -47,11 +55,24 @@ export class PrismaWatchlistRepository implements IWatchlistRepository {
     return this.writeRepo.createEntry(data);
   }
 
-  async deleteEntry(id: string, organizationId: number): Promise<void> {
-    return this.writeRepo.deleteEntry(id, organizationId);
+  async deleteEntry(id: string): Promise<void> {
+    return this.writeRepo.deleteEntry(id);
   }
 
   async updateEntry(id: string, data: UpdateWatchlistInput): Promise<Watchlist> {
     return this.writeRepo.updateEntry(id, data);
+  }
+
+  // Additional methods for WatchlistService compatibility
+  async create(data: CreateWatchlistInput): Promise<Watchlist> {
+    return this.createEntry(data);
+  }
+
+  async update(id: string, data: UpdateWatchlistInput): Promise<Watchlist> {
+    return this.updateEntry(id, data);
+  }
+
+  async delete(id: string): Promise<void> {
+    return this.deleteEntry(id);
   }
 }

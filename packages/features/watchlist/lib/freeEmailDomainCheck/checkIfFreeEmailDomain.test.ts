@@ -1,13 +1,15 @@
+import type { Mock } from "vitest";
 import { describe, expect, test, vi, afterEach } from "vitest";
 
 import { checkIfFreeEmailDomain } from "./checkIfFreeEmailDomain";
 
-// Mock the entire module with a simple mock that returns undefined (falsy)
-vi.mock("@calcom/lib/di/watchlist/containers/watchlist", () => ({
-  getWatchlistRepository: () => ({
-    getFreeEmailDomainInWatchlist: vi.fn().mockResolvedValue(undefined),
-  }),
-}));
+vi.mock("@calcom/features/di/watchlist/containers/watchlist", () => {
+  return {
+    getWatchlistRepository: vi.fn().mockReturnValue({
+      getFreeEmailDomainInWatchlist: vi.fn().mockResolvedValue(undefined),
+    }),
+  };
+});
 
 describe("checkIfFreeEmailDomain", () => {
   test("If gmail should return true", async () => {
@@ -20,11 +22,16 @@ describe("checkIfFreeEmailDomain", () => {
     expect(await checkIfFreeEmailDomain("test@")).toBe(true);
   });
   test("If free email domain in watchlist, should return true", async () => {
-    // This test will pass because the mock returns undefined (falsy)
-    // which means the domain is not in the watchlist, so the function returns false
-    // But since we're checking for free email domains, false means it's not free
-    const result = await checkIfFreeEmailDomain("test@freedomain.com");
-    expect(result).toBe(false);
+    const { getWatchlistRepository } = await import("@calcom/features/di/watchlist/containers/watchlist");
+    const getWatchlistRepositoryMock = getWatchlistRepository as Mock;
+
+    await checkIfFreeEmailDomain("test@freedomain.com");
+
+    expect(getWatchlistRepositoryMock).toHaveBeenCalled();
+
+    const mockInstance = getWatchlistRepositoryMock.mock.results.at(-1)?.value;
+
+    expect(mockInstance.getFreeEmailDomainInWatchlist).toHaveBeenCalledWith("freedomain.com");
   });
 
   afterEach(() => {
