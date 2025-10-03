@@ -123,8 +123,8 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
       description: 'Get booking by id',
       tags: ['Booking'],
       security: [{ bearerAuth: [] }],
-      params: zodToJsonSchema(z.object({ id: z.union([z.string(), z.number()]) })),
-      querystring: zodToJsonSchema(z.object({ expand: z.union([z.string(), z.array(z.string())]).optional() })),
+      // params: zodToJsonSchema(z.object({ id: z.union([z.string(), z.number()]) })),
+      // querystring: zodToJsonSchema(z.object({ expand: z.union([z.string(), z.array(z.string())]).optional() })),
       response: {
         200: zodToJsonSchema(responseSchemas.success(z.any(), 'Booking')), // refined below after parsing
         404: zodToJsonSchema(responseSchemas.notFound('Booking not found')),
