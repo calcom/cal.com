@@ -89,25 +89,25 @@ CREATE TABLE "WatchlistEventAudit" (
 
 -- Create indexes for performance
 -- CreateIndex
-CREATE UNIQUE INDEX "WatchlistAudit_id_key" ON "WatchlistAudit"("id");
+CREATE UNIQUE INDEX IF NOT EXISTS "WatchlistAudit_id_key" ON "WatchlistAudit"("id");
 
 -- CreateIndex
-CREATE INDEX "WatchlistAudit_watchlistId_changedAt_idx" ON "WatchlistAudit"("watchlistId", "changedAt");
+CREATE INDEX IF NOT EXISTS "WatchlistAudit_watchlistId_changedAt_idx" ON "WatchlistAudit"("watchlistId", "changedAt");
 
 -- CreateIndex - Main composite index matching schema
-CREATE INDEX "Watchlist_type_value_organizationId_action_idx" ON "Watchlist"("type", "value", "organizationId", "action");
+CREATE INDEX IF NOT EXISTS "Watchlist_type_value_organizationId_action_idx" ON "Watchlist"("type", "value", "organizationId", "action");
 
 -- CreateIndex - For organization-specific and global queries
-CREATE INDEX "Watchlist_organizationId_isGlobal_idx" ON "Watchlist"("organizationId", "isGlobal");
+CREATE INDEX IF NOT EXISTS "Watchlist_organizationId_isGlobal_idx" ON "Watchlist"("organizationId", "isGlobal");
 
 -- CreateIndex - For source-based queries
-CREATE INDEX "Watchlist_source_idx" ON "Watchlist"("source");
+CREATE INDEX IF NOT EXISTS "Watchlist_source_idx" ON "Watchlist"("source");
 
 -- CreateIndex - Add unique constraint matching schema
-CREATE UNIQUE INDEX "Watchlist_type_value_organizationId_key" ON "Watchlist"("type", "value", "organizationId");
+CREATE UNIQUE INDEX IF NOT EXISTS "Watchlist_type_value_organizationId_key" ON "Watchlist"("type", "value", "organizationId");
 
 -- CreateIndex - Performance index for WatchlistEventAudit queries
-CREATE INDEX "WatchlistEventAudit_watchlistId_timestamp_idx" ON "WatchlistEventAudit"("watchlistId", "timestamp");
+CREATE INDEX IF NOT EXISTS "WatchlistEventAudit_watchlistId_timestamp_idx" ON "WatchlistEventAudit"("watchlistId", "timestamp");
 
 -- CreateIndex - For eventType-based queries
-CREATE INDEX "WatchlistEventAudit_eventTypeId_timestamp_idx" ON "WatchlistEventAudit"("eventTypeId", "timestamp");
+CREATE INDEX IF NOT EXISTS "WatchlistEventAudit_eventTypeId_timestamp_idx" ON "WatchlistEventAudit"("eventTypeId", "timestamp");
