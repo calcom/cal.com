@@ -180,7 +180,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             {...(type == "search" && {
               onChange: (e) => {
                 setInputValue(e.target.value);
-                props.onChange?.(e);
+                props.onChange && props.onChange(e);
               },
               value: inputValue,
             })}
@@ -202,7 +202,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
               className="text-subtle absolute top-2.5 h-4 w-4 cursor-pointer ltr:right-2 rtl:left-2"
               onClick={(e) => {
                 setInputValue("");
-                props.onChange?.(e as unknown as React.ChangeEvent<HTMLInputElement>);
+                props.onChange && props.onChange(e as unknown as React.ChangeEvent<HTMLInputElement>);
               }}
             />
           )}
