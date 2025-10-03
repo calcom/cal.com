@@ -45,8 +45,8 @@ async function swaggerPlugin(fastify: FastifyInstance): Promise<void> {
           version: "1.0.0",
           contact: {
             name: "API Support",
-            email: "support@onehash.com",
-            url: "https://support.onehash.com",
+            email: "support@onehash.ai",
+            url: "https://support.onehash.ai",
           },
           license: {
             name: "MIT",
