@@ -1,9 +1,9 @@
+import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import logger from "@calcom/lib/logger";
 import type { RRResetInterval, SelectedCalendar } from "@calcom/prisma/client";
 import { RRTimestampBasis } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
-import { getLuckyUserService } from "../di/containers/LuckyUser";
 import type { LuckyUserService, RoutingFormResponse } from "../server/getLuckyUser";
 
 export const errorCodes = {

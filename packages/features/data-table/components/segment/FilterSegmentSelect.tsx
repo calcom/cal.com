@@ -155,11 +155,11 @@ export function FilterSegmentSelect() {
             StartIcon="list-filter"
             EndIcon="chevron-down"
             data-testid="filter-segment-select">
-            {selectedSegment?.name || t("segment")}
+            {selectedSegment?.name || t("saved_filters")}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuPortal>
-          <DropdownMenuContent align="start" className="w-60" data-testid="filter-segment-select-content">
+          <DropdownMenuContent align="end" className="w-60" data-testid="filter-segment-select-content">
             {segmentGroups.length === 0 && <p className="text-subtle px-3 py-1">{t("no_segments")}</p>}
 
             {segmentGroups.map((group, index) => (

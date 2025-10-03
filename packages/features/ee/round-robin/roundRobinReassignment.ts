@@ -19,12 +19,12 @@ import AssignmentReasonRecorder, {
   RRReassignmentType,
 } from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
-import EventManager from "@calcom/lib/EventManager";
+import EventManager from "@calcom/features/bookings/lib/EventManager";
 import {
   enrichHostsWithDelegationCredentials,
   enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
 } from "@calcom/lib/delegationCredential/server";
-import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
+import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
@@ -483,6 +483,7 @@ export const roundRobinReassignment = async ({
       // send email with event updates to attendees
       await sendRoundRobinUpdatedEmailsAndSMS({
         calEvent: evtWithoutCancellationReason,
+        eventTypeMetadata: eventType?.metadata as EventTypeMetadata,
       });
     }
 
