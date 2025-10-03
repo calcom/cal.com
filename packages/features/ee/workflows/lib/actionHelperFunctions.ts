@@ -9,6 +9,7 @@ import {
   whatsappEventRescheduledTemplate,
   whatsappReminderTemplate,
 } from "../lib/reminders/templates/whatsapp";
+import { FORM_TRIGGER_WORKFLOW_EVENTS } from "./constants";
 import emailRatingTemplate from "./reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "./reminders/templates/emailReminderTemplate";
 import smsReminderTemplate from "./reminders/templates/smsReminderTemplate";
@@ -143,7 +144,7 @@ export function getTemplateBodyForAction({
 }
 
 export function isFormTrigger(trigger: WorkflowTriggerEvents) {
-  return trigger === WorkflowTriggerEvents.FORM_SUBMITTED;
+  return FORM_TRIGGER_WORKFLOW_EVENTS.includes(trigger);
 }
 
 export function hasCalAIAction(steps: WorkflowStep[]) {
