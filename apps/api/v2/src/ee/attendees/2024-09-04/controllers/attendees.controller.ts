@@ -26,6 +26,7 @@ import {
   HttpCode,
   HttpStatus,
   Logger,
+  BadRequestException,
 } from "@nestjs/common";
 import { ApiOperation, ApiTags as DocsTags, ApiParam } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
@@ -86,7 +87,7 @@ export class AttendeesController_2024_09_04 {
   ): Promise<GetAttendeeOutput_2024_09_04> {
     const id = parseInt(attendeeId, 10);
     if (isNaN(id)) {
-      throw new Error("Invalid attendee ID");
+      throw new BadRequestException("Invalid attendee ID");
     }
     const attendee = await this.attendeesService.getAttendeeById(id, user);
     return {
@@ -117,7 +118,7 @@ export class AttendeesController_2024_09_04 {
   ): Promise<UpdateAttendeeOutput_2024_09_04> {
     const id = parseInt(attendeeId, 10);
     if (isNaN(id)) {
-      throw new Error("Invalid attendee ID");
+      throw new BadRequestException("Invalid attendee ID");
     }
     const attendee = await this.attendeesService.updateAttendee(id, body, user);
     return {
@@ -147,7 +148,7 @@ export class AttendeesController_2024_09_04 {
   ): Promise<DeleteAttendeeOutput_2024_09_04> {
     const id = parseInt(attendeeId, 10);
     if (isNaN(id)) {
-      throw new Error("Invalid attendee ID");
+      throw new BadRequestException("Invalid attendee ID");
     }
     const attendee = await this.attendeesService.deleteAttendee(id, user);
     return {
