@@ -8,6 +8,8 @@ import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import type { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
+import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import type { QualifiedHostsService } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
@@ -15,10 +17,9 @@ import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
-import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
-import type { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
 import type { BusyTimesService } from "@calcom/lib/getBusyTimes";
+import { getInvalidCalendarCredentials } from "@calcom/lib/getInvalidCalendarCredentials";
 import type {
   CurrentSeats,
   EventType,
@@ -85,6 +86,11 @@ export interface IGetAvailableSlots {
     }[]
   >;
   troubleshooter?: any;
+  warnings?: Array<{
+    message: string;
+    credentialId: number;
+    appName: string;
+  }>;
 }
 
 export type GetAvailableSlotsResponse = Awaited<
@@ -1477,9 +1483,17 @@ export class AvailableSlotsService {
         }
       : null;
 
+    const hostUserIds = usersWithCredentials.map((user) => user.id);
+    const allInvalidCredentials = await Promise.all(
+      hostUserIds.map((userId) => getInvalidCalendarCredentials(userId))
+    );
+
+    const invalidCredentialWarnings = allInvalidCredentials.flat();
+
     return {
       slots: withinBoundsSlotsMappedToDate,
       ...troubleshooterData,
+      ...(invalidCredentialWarnings.length > 0 && { warnings: invalidCredentialWarnings }),
     };
   }
 }
