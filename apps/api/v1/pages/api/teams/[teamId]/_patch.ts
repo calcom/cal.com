@@ -63,7 +63,6 @@ export async function patchHandler(req: NextApiRequest) {
 
   /** Only OWNERS and ADMINS can edit teams */
   const team = await prisma.team.findFirst({
-    // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
     include: { members: true },
     where: { id: teamId, members: { some: { userId, role: { in: ["OWNER", "ADMIN"] } } } },
   });
@@ -100,7 +99,7 @@ export async function patchHandler(req: NextApiRequest) {
   }
 
   if (data.lockDefaultAvailability) {
-    if (!_team.parentId) {
+    if (!team.parentId) {
       throw new HttpError({
         statusCode: 400,
         message: "Lock default availability feature is only available for teams within organizations.",
