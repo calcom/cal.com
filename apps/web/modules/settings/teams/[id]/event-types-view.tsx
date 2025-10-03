@@ -12,7 +12,11 @@ import { Button } from "@calcom/ui/components/button";
 import { WizardLayout } from "@calcom/ui/components/layout";
 import { showToast } from "@calcom/ui/components/toast";
 
-export const CreateTeamEventType = () => {
+type CreateTeamEventTypeProps = {
+  permissions: { canCreateEventType: boolean };
+};
+
+export const CreateTeamEventType = ({ permissions }: CreateTeamEventTypeProps) => {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const router = useRouter();
@@ -53,7 +57,7 @@ export const CreateTeamEventType = () => {
     <TeamEventTypeForm
       teamSlug={team?.slug}
       teamId={teamId}
-      isTeamAdminOrOwner={true}
+      permissions={permissions}
       urlPrefix={urlPrefix}
       isPending={createMutation.isPending}
       form={form}
@@ -82,5 +86,3 @@ export const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
     </WizardLayout>
   );
 };
-
-export default CreateTeamEventType;
