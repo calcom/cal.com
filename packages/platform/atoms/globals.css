@@ -26215,6 +26215,29 @@ input:hover+.\[input\:hover_\+_\&\]\:border-l-default {
   background-position: -96px -154px
 }
 
+/* Mobile form field consistency fixes */
+@media (max-width: 768px) {
+  /* Ensure all form inputs have consistent height and border radius */
+  .calcom-input-field input,
+  .calcom-select-field .react-select__control,
+  .calcom-multiselect-field .react-select__control {
+    min-height: 35px !important;
+    height: 35px !important;
+    border-radius: 6px !important;
+  }
+
+  /* Improve radio button spacing on mobile */
+  .calcom-radio-field {
+    margin-bottom: 12px !important;
+    padding: 8px 0 !important;
+  }
+
+  .calcom-radio-field label {
+    line-height: 1.5 !important;
+    padding: 4px 0 !important;
+  }
+}
+
 .react-tel-input * {
   box-sizing: border-box;
   -moz-box-sizing: border-box

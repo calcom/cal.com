@@ -14,7 +14,7 @@ import type { InputFieldProps, InputProps } from "./types";
 export const inputStyles = cva(
   [
     // Base styles
-    "rounded-[10px] border",
+    "rounded-md border",
     "leading-none font-normal",
 
     // Colors
@@ -43,7 +43,7 @@ export const inputStyles = cva(
     variants: {
       size: {
         sm: "h-7 px-2 py-1 text-xs",
-        md: "h-8 px-3 py-2 text-sm",
+        md: "h-[35px] px-3 py-2 text-sm",
       },
     },
     defaultVariants: {
@@ -125,7 +125,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     readOnly,
     showAsteriskIndicator,
     onClickAddon,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     t: __t,
     dataTestid,
     size,
@@ -180,7 +180,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             {...(type == "search" && {
               onChange: (e) => {
                 setInputValue(e.target.value);
-                props.onChange && props.onChange(e);
+                props.onChange?.(e);
               },
               value: inputValue,
             })}
@@ -202,7 +202,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
               className="text-subtle absolute top-2.5 h-4 w-4 cursor-pointer ltr:right-2 rtl:left-2"
               onClick={(e) => {
                 setInputValue("");
-                props.onChange && props.onChange(e as unknown as React.ChangeEvent<HTMLInputElement>);
+                props.onChange?.(e as unknown as React.ChangeEvent<HTMLInputElement>);
               }}
             />
           )}

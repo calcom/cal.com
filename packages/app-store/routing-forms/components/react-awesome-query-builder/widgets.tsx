@@ -91,7 +91,7 @@ const TextAreaWidget = (props: TextLikeComponentPropsRAQB) => {
     <TextArea
       value={textValue}
       placeholder={placeholder}
-      className="mb-2"
+      className="calcom-input-field mb-2"
       disabled={readOnly}
       onChange={onChange}
       maxLength={maxLength}
@@ -119,8 +119,8 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
   const textValue = value || "";
   return (
     <TextField
-      size="sm"
-      containerClassName="w-full mb-2"
+      size="md"
+      containerClassName="w-full mb-2 calcom-input-field"
       type={type}
       value={textValue}
       noLabel={noLabel}
@@ -136,10 +136,10 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
 function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentPropsRAQB) {
   return (
     <TextField
-      size="sm"
+      size="md"
       type="number"
       labelSrOnly={remainingProps.noLabel}
-      containerClassName="w-full"
+      containerClassName="w-full calcom-input-field"
       className="mb-2"
       value={value}
       onChange={(e) => {
