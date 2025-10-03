@@ -257,9 +257,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
                 status,
               }) || "",
             filename: "event.ics",
-            type: "text/calendar; method=REQUEST",
-            disposition: "attachment",
-            contentId: uuidv4(),
+            method: "REQUEST",
           },
         ]
       : undefined;
