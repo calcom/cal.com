@@ -737,7 +737,7 @@ describe("OAuth Client Users Endpoints", () => {
       });
 
       describe("positive tests", () => {
-        it("should not allow null time zone", async () => {
+        it("should allow null timezone", async () => {
           const requestBody = {
             email: "whatever1@gmail.com",
             timeZone: null,
@@ -751,6 +751,7 @@ describe("OAuth Client Users Endpoints", () => {
             .expect(201);
 
           const responseBody: CreateManagedUserOutput = response.body;
+          expect(responseBody.data.user.timeZone).toEqual("Europe/London");
           await userRepositoryFixture.delete(responseBody.data.user.id);
         });
 
@@ -768,6 +769,7 @@ describe("OAuth Client Users Endpoints", () => {
             .expect(201);
 
           const responseBody: CreateManagedUserOutput = response.body;
+          expect(responseBody.data.user.timeZone).toEqual("Europe/London");
           await userRepositoryFixture.delete(responseBody.data.user.id);
         });
 
@@ -785,6 +787,7 @@ describe("OAuth Client Users Endpoints", () => {
             .expect(201);
 
           const responseBody: CreateManagedUserOutput = response.body;
+          expect(responseBody.data.user.timeZone).toBe("Europe/Rome");
           await userRepositoryFixture.delete(responseBody.data.user.id);
         });
 
@@ -801,6 +804,7 @@ describe("OAuth Client Users Endpoints", () => {
             .expect(201);
 
           const responseBody: CreateManagedUserOutput = response.body;
+          expect(responseBody.data.user.timeZone).toEqual("Europe/London");
           await userRepositoryFixture.delete(responseBody.data.user.id);
         });
       });
