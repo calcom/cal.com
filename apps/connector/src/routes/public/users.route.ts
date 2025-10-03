@@ -5,7 +5,7 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { z } from 'zod';
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { responseSchemas } from "@/schema/response";
-import { userProfileSchema, updateProfileBodySchema, userProfileUpdateResponseSchema, userProfileQueryResponse } from "@/schema/user.schema";
+import { userProfileSchema, updateProfileBodySchema, userProfileUpdateResponseSchema, userProfileQueryResponse, UserResponseSchema } from "@/schema/user.schema";
 import { UserService } from '@/services/public/user.service';
 import { AuthGuards, AuthRequest } from '@/auth/guards';
 import { validateQuery, validateParams } from '@/middlewares/validation';
@@ -51,7 +51,7 @@ export async function userRoutes(fastify: FastifyInstance): Promise<void> {
         { bearerAuth: [] },
       ],
       response: {
-        200: zodToJsonSchema(responseSchemas.success(userProfileQueryResponse, 'Current user profile')),
+        200: zodToJsonSchema(responseSchemas.success(UserResponseSchema, 'Current user profile')),
         401: zodToJsonSchema(responseSchemas.unauthorized()),
       },
     },

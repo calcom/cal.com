@@ -40,8 +40,6 @@ export interface UpdateUserInput {
   image?: string;
 }
 
-
-
 export class UserService extends BaseService {
   private userRepository: UserRepository;
   private secondaryEmailRepository: SecondaryEmailRepository;
@@ -228,8 +226,9 @@ export class UserService extends BaseService {
     return {
       id: user.id,
       email: user.email,
-      name: user.name,
+      name: user.name ?? "",
       role: user.role,
+      username: user.username ?? "",
       emailVerified: user.emailVerified,
       createdAt: user.createdDate,
     };
