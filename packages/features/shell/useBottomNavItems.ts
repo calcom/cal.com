@@ -38,7 +38,7 @@ export function useBottomNavItems({
     isTrial
       ? {
           name: "skip_trial",
-          href: publicPageUrl,
+          href: "",
           isLoading: skipTeamTrialsMutation.isPending,
           icon: "clock",
           onClick: (e: { preventDefault: () => void }) => {
@@ -55,7 +55,7 @@ export function useBottomNavItems({
     },
     {
       name: "copy_public_page_link",
-      href: publicPageUrl,
+      href: "",
       onClick: (e: { preventDefault: () => void }) => {
         e.preventDefault();
         navigator.clipboard.writeText(publicPageUrl);
