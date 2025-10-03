@@ -10,7 +10,9 @@ export class PrismaAppRepository {
       const appMetadata = appStoreMetadata[dirName as keyof typeof appStoreMetadata];
 
       if (!appMetadata) {
-        throw new Error(`App ${dirName} not found`);
+        const error = new Error(`App ${dirName} not found`);
+        captureException(error);
+        throw error;
       }
 
       await prisma.app.create({
