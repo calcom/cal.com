@@ -1,4 +1,5 @@
 import type { GetBookingsInput } from "@/schema/booking.schema";
+
 import kysely from "@calcom/kysely";
 import { getAllUserBookings } from "@calcom/platform-libraries";
 import type { PrismaClient } from "@calcom/prisma";
@@ -24,10 +25,10 @@ export class BookingRepository extends BaseRepository<User> {
     const limit = queryParams.limit ?? 100;
 
     const hasPageLimit = typeof queryParams.page !== "undefined" || typeof queryParams.limit !== "undefined";
-    const skip = Math.abs(((page - 1) * limit));
+    const skip = Math.abs((page - 1) * limit);
     const take = limit;
 
-    console.log("Skip and take are: ", skip, ", ",take);
+    console.log("Skip and take are: ", skip, ", ", take);
 
     const fetchedBookings: { bookings: { id: number }[]; totalCount: number } = await getAllUserBookings({
       bookingListingByStatus: queryParams.status || [],
@@ -36,7 +37,7 @@ export class BookingRepository extends BaseRepository<User> {
       filters: {
         ...queryParams,
         status: undefined,
-        userIds: []
+        userIds: [],
       },
       ctx: {
         user,
@@ -68,9 +69,7 @@ export class BookingRepository extends BaseRepository<User> {
   }
 
   async getBookingById(id: number, expand: string[] = []) {
-    const includeEventType = expand.includes("team")
-      ? { include: { team: true } }
-      : false;
+    const includeEventType = expand.includes("team") ? { include: { team: true } } : false;
 
     const booking = await this.prisma.booking.findUnique({
       where: { id },

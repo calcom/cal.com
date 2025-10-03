@@ -74,7 +74,7 @@ export const bookingsQueryRequestSchema = z.object({
 });
 
 // Type inference
-export type GetBookingsInput = z.infer<typeof bookingsQuerySchema>;
+export type GetBookingsInput = z.infer<typeof bookingsQueryRequestSchema>;
 
 // ---------------------------------------------
 // Create Booking (body & response) schemas
@@ -212,9 +212,6 @@ export const cancelBookingResponseSchema = z.object({
   bookingId: z.number().int(),
   bookingUid: z.string(),
 });
-
-
-import { z } from "zod";
 
 const attendeeSchema = z.object({
   id: z.number(),
