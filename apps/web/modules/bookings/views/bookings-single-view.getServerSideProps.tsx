@@ -121,7 +121,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   if (!eventTypeRaw.users.length) {
     if (!eventTypeRaw.owner) {
-      // Fall back to the booking's user data instead of 404
       if (bookingInfoRaw.user) {
         eventTypeRaw.users.push(bookingInfoRaw.user);
       } else {
