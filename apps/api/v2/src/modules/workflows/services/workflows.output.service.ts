@@ -39,6 +39,7 @@ import {
   ENUM_TO_TIME_UNIT,
   ENUM_TO_WORKFLOW_TRIGGER,
   FORM_SUBMITTED,
+  FORM_SUBMITTED_NO_EVENT,
   HOUR,
   OnAfterCalVideoGuestsNoShowTriggerDto,
   OnAfterCalVideoHostsNoShowTriggerDto,
@@ -47,6 +48,7 @@ import {
   OnCancelTriggerDto,
   OnCreationTriggerDto,
   OnFormSubmittedTriggerDto,
+  OnFormSubmittedNoEventTriggerDto,
   OnNoShowUpdateTriggerDto,
   OnPaidTriggerDto,
   OnPaymentInitiatedTriggerDto,
@@ -64,6 +66,7 @@ export type TriggerDtoType =
   | OnCancelTriggerDto
   | OnAfterCalVideoGuestsNoShowTriggerDto
   | OnFormSubmittedTriggerDto
+  | OnFormSubmittedNoEventTriggerDto
   | OnRejectedTriggerDto
   | OnRequestedTriggerDto
   | OnPaymentInitiatedTriggerDto
@@ -200,7 +203,11 @@ export class WorkflowsOutputService {
   }
 
   toRoutingFormOutputDto(workflow: WorkflowType): RoutingFormWorkflowOutput | void {
-    if (workflow.type === "ROUTING_FORM" && workflow.trigger === WORKFLOW_TRIGGER_TO_ENUM[FORM_SUBMITTED]) {
+    if (
+      workflow.type === "ROUTING_FORM" &&
+      (workflow.trigger === WORKFLOW_TRIGGER_TO_ENUM[FORM_SUBMITTED] ||
+        workflow.trigger === WORKFLOW_TRIGGER_TO_ENUM[FORM_SUBMITTED_NO_EVENT])
+    ) {
       const activation: WorkflowFormActivationDto = {
         isActiveOnAllRoutingForms: workflow.isActiveOnAll,
         activeOnRoutingFormIds:
@@ -225,7 +232,11 @@ export class WorkflowsOutputService {
   }
 
   toEventTypeOutputDto(workflow: WorkflowType): EventTypeWorkflowOutput | void {
-    if (workflow.type === "EVENT_TYPE" && workflow.trigger !== WORKFLOW_TRIGGER_TO_ENUM[FORM_SUBMITTED]) {
+    if (
+      workflow.type === "EVENT_TYPE" &&
+      workflow.trigger !== WORKFLOW_TRIGGER_TO_ENUM[FORM_SUBMITTED] &&
+      workflow.trigger !== WORKFLOW_TRIGGER_TO_ENUM[FORM_SUBMITTED_NO_EVENT]
+    ) {
       const activation: WorkflowActivationDto = {
         isActiveOnAllEventTypes: workflow.isActiveOnAll,
         activeOnEventTypeIds: workflow.activeOn?.map((relation) => relation.eventTypeId) ?? [],
