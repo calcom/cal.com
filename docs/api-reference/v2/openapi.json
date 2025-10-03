@@ -22166,28 +22166,27 @@
         },
         "required": ["action", "stepNumber", "recipient", "template", "sender", "message"]
       },
-      "BaseWorkflowTriggerDto": {
+      "EventTypeWorkflowTriggerDto": {
         "type": "object",
         "properties": {
           "type": {
             "type": "object",
             "enum": [
-              [
-                "beforeEvent",
-                "eventCancelled",
-                "newEvent",
-                "afterEvent",
-                "rescheduleEvent",
-                "afterHostsCalVideoNoShow",
-                "afterGuestsCalVideoNoShow",
-                "bookingRejected",
-                "bookingRequested",
-                "bookingPaymentInitiated",
-                "bookingPaid",
-                "bookingNoShowUpdated"
-              ]
+              "beforeEvent",
+              "eventCancelled",
+              "newEvent",
+              "afterEvent",
+              "rescheduleEvent",
+              "afterHostsCalVideoNoShow",
+              "afterGuestsCalVideoNoShow",
+              "bookingRejected",
+              "bookingRequested",
+              "bookingPaymentInitiated",
+              "bookingPaid",
+              "bookingNoShowUpdated"
             ],
-            "description": "Trigger type for the event-type workflow"
+            "description": "Trigger type for the event-type workflow",
+            "example": "beforeEvent"
           }
         },
         "required": ["type"]
@@ -22315,13 +22314,14 @@
         },
         "required": ["type"]
       },
-      "BaseFormWorkflowTriggerDto": {
+      "RoutingFormWorkflowTriggerDto": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
-            "enum": [["formSubmitted"]],
-            "description": "Trigger type for the routing-form workflow"
+            "enum": ["formSubmitted"],
+            "description": "Trigger type for the routing-form workflow",
+            "example": "formSubmitted"
           }
         },
         "required": ["type"]

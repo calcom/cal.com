@@ -122,21 +122,23 @@ export class WorkflowTriggerOffsetDto {
   unit!: TimeUnitType;
 }
 
-export class BaseWorkflowTriggerDto {
+export class EventTypeWorkflowTriggerDto {
   @ApiProperty({
     description: "Trigger type for the event-type workflow",
+    example: "beforeEvent",
   })
   @IsString()
-  @IsIn([EVENT_TYPE_WORKFLOW_TRIGGER_TYPES])
+  @IsIn(EVENT_TYPE_WORKFLOW_TRIGGER_TYPES)
   type!: WorkflowEventTypeTriggerType;
 }
 
-export class BaseFormWorkflowTriggerDto {
+export class RoutingFormWorkflowTriggerDto {
   @ApiProperty({
     description: "Trigger type for the routing-form workflow",
+    example: "formSubmitted",
   })
   @IsString()
-  @IsIn([FORM_WORKFLOW_TRIGGER_TYPES])
+  @IsIn(FORM_WORKFLOW_TRIGGER_TYPES)
   type!: WorkflowFormTriggerType;
 }
 

@@ -20,7 +20,7 @@ import {
   OnFormSubmittedTriggerDto,
   FORM_SUBMITTED,
   FORM_WORKFLOW_TRIGGER_TYPES,
-  BaseFormWorkflowTriggerDto,
+  RoutingFormWorkflowTriggerDto,
 } from "./workflow-trigger.input";
 
 @ApiExtraModels(
@@ -32,7 +32,7 @@ import {
   UpdatePhoneWhatsAppNumberWorkflowStepDto,
   UpdateWhatsAppAttendeePhoneWorkflowStepDto,
   UpdatePhoneNumberWorkflowStepDto,
-  BaseFormWorkflowTriggerDto,
+  RoutingFormWorkflowTriggerDto,
   WorkflowFormActivationDto
 )
 export class UpdateFormWorkflowDto {
@@ -52,7 +52,7 @@ export class UpdateFormWorkflowDto {
   })
   @IsOptional()
   @ValidateNested()
-  @Type(() => BaseFormWorkflowTriggerDto, {
+  @Type(() => RoutingFormWorkflowTriggerDto, {
     keepDiscriminatorProperty: true,
     discriminator: {
       property: "type",

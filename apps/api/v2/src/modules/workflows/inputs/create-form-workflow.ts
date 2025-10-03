@@ -11,7 +11,7 @@ import {
   WorkflowEmailAttendeeStepDto,
 } from "./workflow-step.input";
 import {
-  BaseFormWorkflowTriggerDto,
+  RoutingFormWorkflowTriggerDto,
   FORM_SUBMITTED,
   FORM_WORKFLOW_TRIGGER_TYPES,
   OnFormSubmittedTriggerDto,
@@ -41,7 +41,7 @@ export class WorkflowFormActivationDto {
   OnFormSubmittedTriggerDto,
   WorkflowEmailAddressStepDto,
   WorkflowEmailAttendeeStepDto,
-  BaseFormWorkflowTriggerDto,
+  RoutingFormWorkflowTriggerDto,
   WorkflowFormActivationDto
 )
 export class CreateFormWorkflowDto {
@@ -62,7 +62,7 @@ export class CreateFormWorkflowDto {
     oneOf: [{ $ref: getSchemaPath(OnFormSubmittedTriggerDto) }],
   })
   @ValidateNested()
-  @Type(() => BaseFormWorkflowTriggerDto, {
+  @Type(() => RoutingFormWorkflowTriggerDto, {
     keepDiscriminatorProperty: true,
     discriminator: {
       property: "type",

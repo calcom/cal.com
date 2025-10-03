@@ -32,7 +32,7 @@ import {
   AFTER_EVENT,
   AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
   AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
-  BaseWorkflowTriggerDto,
+  EventTypeWorkflowTriggerDto,
   BEFORE_EVENT,
   BOOKING_NO_SHOW_UPDATED,
   BOOKING_PAID,
@@ -98,7 +98,7 @@ export class WorkflowActivationDto {
   WorkflowPhoneWhatsAppNumberStepDto,
   WorkflowPhoneNumberStepDto,
   WorkflowPhoneAttendeeStepDto,
-  BaseWorkflowTriggerDto,
+  EventTypeWorkflowTriggerDto,
   WorkflowActivationDto
 )
 export class CreateEventTypeWorkflowDto {
@@ -132,7 +132,7 @@ export class CreateEventTypeWorkflowDto {
     ],
   })
   @ValidateNested()
-  @Type(() => BaseWorkflowTriggerDto, {
+  @Type(() => EventTypeWorkflowTriggerDto, {
     keepDiscriminatorProperty: true,
     discriminator: {
       property: "type",
