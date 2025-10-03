@@ -112,6 +112,15 @@ jobs:
       - name: Run E2E Atoms Tests
         working-directory: packages/platform/examples/base
         run: yarn test:e2e
+      - name: Upload Atoms dist (entire folder)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: atoms-dist-${{ github.sha }}
+          path: packages/platform/atoms/dist
+          retention-days: 7
+          if-no-files-found: warn
+
       - name: Stop API v2
         if: always()
         run: |
