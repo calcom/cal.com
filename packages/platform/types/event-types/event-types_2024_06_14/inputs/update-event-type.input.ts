@@ -1,9 +1,4 @@
-import {
-  ApiProperty as DocsProperty,
-  ApiPropertyOptional as DocsPropertyOptional,
-  getSchemaPath,
-  ApiExtraModels,
-} from "@nestjs/swagger";
+import { ApiPropertyOptional as DocsPropertyOptional, getSchemaPath, ApiExtraModels } from "@nestjs/swagger";
 import { Type, Transform } from "class-transformer";
 import {
   IsString,
@@ -85,6 +80,7 @@ import {
 import type { InputLocation_2024_06_14, InputTeamLocation_2024_06_14 } from "./locations.input";
 import { Recurrence_2024_06_14 } from "./recurrence.input";
 import { Seats_2024_06_14 } from "./seats.input";
+import { CantHaveRecurrenceAndBookerActiveBookingsLimit } from "./validators/CantHaveRecurrenceAndBookerActiveBookingsLimit";
 
 @ApiExtraModels(
   InputAddressLocation_2024_06_14,
@@ -124,6 +120,7 @@ import { Seats_2024_06_14 } from "./seats.input";
   BookerActiveBookingsLimit_2024_06_14,
   EmailSettings_2024_06_14
 )
+@CantHaveRecurrenceAndBookerActiveBookingsLimit()
 class BaseUpdateEventTypeInput {
   @IsOptional()
   @IsInt()
@@ -481,16 +478,18 @@ export class UpdateTeamEventTypeInput_2024_06_14 extends BaseUpdateEventTypeInpu
   @Type(() => Host)
   @IsArray()
   @IsOptional()
-  @DocsPropertyOptional({ type: [Host],
+  @DocsPropertyOptional({
+    type: [Host],
     description:
       "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users. Provide either hosts or assignAllTeamMembers but not both",
-   })
+  })
   hosts?: Host[];
 
   @IsOptional()
   @IsBoolean()
   @DocsPropertyOptional({
-    description: "If true, all current and future team members will be assigned to this event type. Provide either assignAllTeamMembers or hosts but not both",
+    description:
+      "If true, all current and future team members will be assigned to this event type. Provide either assignAllTeamMembers or hosts but not both",
   })
   assignAllTeamMembers?: boolean;
 

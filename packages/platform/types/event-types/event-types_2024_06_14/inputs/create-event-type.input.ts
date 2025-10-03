@@ -19,7 +19,6 @@ import {
   ArrayUnique,
 } from "class-validator";
 
-
 import { SchedulingType } from "@calcom/platform-enums";
 
 import { BookerActiveBookingsLimit_2024_06_14 } from "./booker-active-booking-limit.input";
@@ -82,6 +81,7 @@ import {
 import type { InputLocation_2024_06_14, InputTeamLocation_2024_06_14 } from "./locations.input";
 import { Recurrence_2024_06_14 } from "./recurrence.input";
 import { Seats_2024_06_14 } from "./seats.input";
+import { CantHaveRecurrenceAndBookerActiveBookingsLimit } from "./validators/CantHaveRecurrenceAndBookerActiveBookingsLimit";
 
 export const CREATE_EVENT_LENGTH_EXAMPLE = 60;
 export const CREATE_EVENT_TITLE_EXAMPLE = "Learn the secrets of masterchief!";
@@ -180,7 +180,8 @@ export class CalVideoSettings {
   disableTranscriptionForOrganizer?: boolean;
 }
 
-class BaseCreateEventTypeInput {
+@CantHaveRecurrenceAndBookerActiveBookingsLimit()
+export class BaseCreateEventTypeInput {
   @IsInt()
   @Min(1)
   @DocsProperty({ example: CREATE_EVENT_LENGTH_EXAMPLE })
@@ -594,7 +595,8 @@ export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInpu
   @IsBoolean()
   @IsOptional()
   @DocsPropertyOptional({
-    description: "If true, all current and future team members will be assigned to this event type. Provide either assignAllTeamMembers or hosts but not both",
+    description:
+      "If true, all current and future team members will be assigned to this event type. Provide either assignAllTeamMembers or hosts but not both",
   })
   assignAllTeamMembers?: boolean;
 
