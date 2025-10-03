@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 
 import { IS_VISUAL_REGRESSION_TESTING, ENABLE_PROFILE_SWITCHER } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
@@ -56,7 +57,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
   const isPlatformPages = pathname?.startsWith("/settings/platform");
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
 
-  const publicPageUrl = "https://app.cal.com/";
+  const publicPageUrl = `${getBookerBaseUrlSync(user?.org?.slug ?? null)}/${user?.orgAwareUsername}`;
 
   const bottomNavItems = useBottomNavItems({
     publicPageUrl,
