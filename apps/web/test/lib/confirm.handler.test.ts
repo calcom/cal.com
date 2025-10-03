@@ -12,6 +12,7 @@ import * as handleConfirmationModule from "@calcom/features/bookings/lib/handleC
 import { BookingStatus } from "@calcom/prisma/enums";
 import { confirmHandler } from "@calcom/trpc/server/routers/viewer/bookings/confirm.handler";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 
 describe("confirmHandler", () => {
   beforeEach(() => {
@@ -91,6 +92,9 @@ describe("confirmHandler", () => {
         timeZone: organizer.timeZone,
         username: organizer.username,
       } as NonNullable<TrpcSessionUser>,
+      traceContext: distributedTracing.createTrace("confirm_handler_test", {
+        meta: { userId: String(organizer.id) },
+      }),
     };
 
     const res = await confirmHandler({
