@@ -6,9 +6,14 @@ import dynamic from "next/dynamic";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+
+
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/components/AvailabilitySliderTable";
+
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/_router";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -92,8 +97,14 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
         orgId: organizationId,
       })
     : false;
-  const isOrgAdminOrOwner = checkAdminOrOwner(session?.user?.org?.role);
-  const canViewTeamAvailability = isOrgAdminOrOwner || !isOrgPrivate;
+
+  const permissionService = new PermissionCheckService();
+  const teamIdsWithPermission = await permissionService.getTeamIdsWithPermission({
+    userId: session.user.id,
+    permission: "availability.read",
+    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+  });
+  const canViewTeamAvailability = teamIdsWithPermission.length > 0 || !isOrgPrivate;
 
   return (
     <ShellMainAppDir
