@@ -71,7 +71,7 @@ export const AdminPaymentHistory = ({
                   <span className="text-sm font-medium text-emphasis">
                     {invoice.number || invoice.id}
                   </span>
-                  <Badge variant={getStatusColor(invoice.status)}>{invoice.status}</Badge>
+                  <Badge variant={getStatusColor(invoice.status || "draft")}>{invoice.status}</Badge>
                 </div>
                 <div className="text-xs text-subtle">
                   {new Date(invoice.created * 1000).toLocaleDateString("en-US", {

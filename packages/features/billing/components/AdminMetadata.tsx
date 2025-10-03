@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { z } from "zod";
 
 import type { Team } from "@calcom/prisma/client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -134,9 +135,9 @@ export const AdminMetadata = ({
 
   const getDisplayValue = (key: string, value: unknown): string => {
     if (isEditing && EDITABLE_KEYS.includes(key)) {
-      return editedValues[key] !== undefined ? editedValues[key] : value ?? "";
+      return editedValues[key] !== undefined ? editedValues[key] : String(value ?? "");
     }
-    return value ?? "";
+    return String(value ?? "");
   };
 
   const renderStaticValue = (value: unknown): React.ReactNode => {
@@ -187,7 +188,7 @@ export const AdminMetadata = ({
           />
           {hasError ? (
             <div className="flex items-center gap-1 text-xs text-red-600">
-              <Icon name="alert-circle" className="h-3 w-3" />
+              <Icon name="circle-alert" className="h-3 w-3" />
               <span>{hasError}</span>
             </div>
           ) : (

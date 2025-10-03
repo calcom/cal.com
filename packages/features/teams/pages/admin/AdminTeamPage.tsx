@@ -47,10 +47,17 @@ function AdminTeamTableContent() {
       limit,
       offset,
       searchTerm,
-      filters: columnFilters.map((filter) => ({
-        id: filter.id,
-        value: filter.value as string | string[] | boolean,
-      })),
+      filters: columnFilters
+        .filter(
+          (filter) =>
+            typeof filter.value === "string" ||
+            typeof filter.value === "boolean" ||
+            Array.isArray(filter.value)
+        )
+        .map((filter) => ({
+          id: filter.id,
+          value: filter.value as string | string[] | boolean,
+        })),
     },
     {
       placeholderData: keepPreviousData,

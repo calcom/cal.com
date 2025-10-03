@@ -22,7 +22,6 @@ export const OrgMetadata = ({ metadata, orgId }: { metadata: Team["metadata"]; o
   return (
     <AdminMetadata
       metadata={metadata}
-      entityId={orgId}
       entityType="organization"
       onUpdate={handleUpdate}
       canEdit={true}
