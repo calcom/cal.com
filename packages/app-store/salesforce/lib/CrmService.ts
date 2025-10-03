@@ -4,10 +4,10 @@ import { RRule } from "rrule";
 import { z } from "zod";
 
 import { RoutingFormResponseDataFactory } from "@calcom/app-store/routing-forms/lib/RoutingFormResponseDataFactory";
+import { checkIfFreeEmailDomain } from "@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { RetryableError } from "@calcom/lib/crmManager/errors";
-import { checkIfFreeEmailDomain } from "@calcom/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { PrismaAssignmentReasonRepository } from "@calcom/lib/server/repository/PrismaAssignmentReasonRepository";
@@ -45,7 +45,7 @@ type ExtendedTokenResponse = TokenResponse & {
   instance_url: string;
 };
 
-type ContactSearchResult = {
+type _ContactSearchResult = {
   attributes: {
     type: string;
     url: string;
@@ -62,7 +62,7 @@ type ContactRecord = {
   Id?: string;
   Email?: string;
   OwnerId?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 };
 
 type Attendee = { email: string; name: string };
@@ -674,7 +674,7 @@ export default class SalesforceCRMService implements CRM {
             if (result.success) {
               createdContacts.push({ id: result.id, email: attendee.email });
             }
-          } catch (error: any) {
+          } catch (error: unknown) {
             if (error.name === "DUPLICATES_DETECTED") {
               const existingId = this.getExistingIdFromDuplicateError(error);
               if (existingId) {
@@ -770,7 +770,7 @@ export default class SalesforceCRMService implements CRM {
     }
   }
 
-  private getExistingIdFromDuplicateError(error: any): string | null {
+  private getExistingIdFromDuplicateError(error: unknown): string | null {
     if (error.duplicateResult && error.duplicateResult.matchResults) {
       for (const matchResult of error.duplicateResult.matchResults) {
         if (matchResult.matchRecords && matchResult.matchRecords.length > 0) {
@@ -1059,16 +1059,16 @@ export default class SalesforceCRMService implements CRM {
     recordId,
   }: {
     existingFields: Field[];
-    personRecord: Record<string, any>;
-    fieldsToWriteTo: Record<string, any>;
+    personRecord: Record<string, unknown>;
+    fieldsToWriteTo: Record<string, unknown>;
     startTime?: string;
     bookingUid?: string | null;
     organizerEmail?: string;
     calEventResponses?: CalEventResponses | null;
     recordId: string;
-  }): Promise<Record<string, any>> {
+  }): Promise<Record<string, unknown>> {
     const log = logger.getSubLogger({ prefix: [`[buildRecordUpdatePayload] ${recordId}`] });
-    const writeOnRecordBody: Record<string, any> = {};
+    const writeOnRecordBody: Record<string, unknown> = {};
     let fieldTypeHandled = false;
 
     for (const field of existingFields) {
@@ -1192,7 +1192,7 @@ export default class SalesforceCRMService implements CRM {
       : [];
 
     const confirmedCustomFieldInputs: {
-      [key: string]: any;
+      [key: string]: unknown;
     } = {};
 
     for (const field of customFieldInputs) {
@@ -1439,7 +1439,7 @@ export default class SalesforceCRMService implements CRM {
     contactId: string,
     existingFields: Field[],
     personRecordType: SalesforceRecordEnum
-  ): Promise<Record<string, any> | null> {
+  ): Promise<Record<string, unknown> | null> {
     const conn = await this.conn;
     const existingFieldNames = existingFields.map((field) => field.name);
 
@@ -1452,7 +1452,7 @@ export default class SalesforceCRMService implements CRM {
       return null;
     }
 
-    return query.records[0] as Record<string, any>;
+    return query.records[0] as Record<string, unknown>;
   }
 
   private async createNewContactUnderAnAccount({
@@ -1512,7 +1512,7 @@ export default class SalesforceCRMService implements CRM {
       const accountQuery = (await conn.query(
         `SELECT ${lookupField.name} FROM ${SalesforceRecordEnum.ACCOUNT} WHERE Id = '${accountId}'`
       )) as {
-        records: { [key: string]: any };
+        records: { [key: string]: unknown };
       };
 
       if (!accountQuery.records.length) return;

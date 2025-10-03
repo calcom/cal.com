@@ -1,5 +1,6 @@
 import { createModule } from "@evyweb/ioctopus";
 
+import { DI_TOKENS } from "@calcom/features/di/tokens";
 import { GlobalWatchlistRepository } from "@calcom/features/watchlist/lib/repository/GlobalWatchlistRepository";
 import { OrganizationWatchlistRepository } from "@calcom/features/watchlist/lib/repository/OrganizationWatchlistRepository";
 import { PrismaAuditRepository } from "@calcom/features/watchlist/lib/repository/PrismaAuditRepository";
@@ -11,7 +12,6 @@ import { BlockingService } from "@calcom/features/watchlist/lib/service/Blocking
 import { OrganizationBlockingService } from "@calcom/features/watchlist/lib/service/OrganizationBlockingService";
 import { WatchlistService } from "@calcom/features/watchlist/lib/service/WatchlistService";
 import { SHARED_TOKENS } from "@calcom/lib/di/shared/shared.tokens";
-import { DI_TOKENS } from "@calcom/lib/di/tokens";
 
 import { WATCHLIST_DI_TOKENS } from "../tokens";
 
