@@ -5,9 +5,9 @@ import type { z } from "zod";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import type { Prisma } from "@calcom/prisma/client";
 import type { nameObjectSchema } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
+import type { Prisma } from "@calcom/prisma/client";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 
@@ -145,8 +145,9 @@ export const getCalendarLinks = ({
     endTime: Date;
     location: string | null;
     title: string;
-    responses: Prisma.JsonObject;
-    metadata: Prisma.JsonObject | null;
+    responses: Prisma.JsonValue;
+    metadata: Prisma.JsonValue;
+    attendees?: Array<{ bookingSeat?: { data: Prisma.JsonValue } | null }>;
   };
   eventType: {
     recurringEvent: RecurringEventOrPrismaJsonObject;
@@ -167,16 +168,20 @@ export const getCalendarLinks = ({
   let evtName = eventType.eventName;
   const videoCallUrl = bookingMetadataSchema.parse(booking?.metadata || {})?.videoCallUrl ?? null;
 
-  if (eventType.isDynamic && booking.responses.title) {
-    evtName = booking.responses.title as string;
+  // For seated events, get data from the first attendee's bookingSeat
+  const bookingData = (booking.attendees?.[0]?.bookingSeat?.data || booking.responses) as Prisma.JsonObject;
+
+  if (eventType.isDynamic && bookingData.title) {
+    evtName = bookingData.title as string;
   }
+
   const eventNameObject = {
-    attendeeName: booking.responses.name as z.infer<typeof nameObjectSchema> | string,
+    attendeeName: bookingData.name as z.infer<typeof nameObjectSchema> | string,
     eventType: eventType.title,
     eventName: evtName,
     host: eventType.team?.name || eventType.users[0]?.name || "Nameless",
     location: booking.location,
-    bookingFields: booking.responses,
+    bookingFields: bookingData,
     eventDuration: dayjs(booking.endTime).diff(booking.startTime, "minutes"),
     t,
   };
