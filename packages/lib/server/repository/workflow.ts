@@ -32,7 +32,6 @@ const excludeFormTriggersWhereClause = {
     not: {
       in: FORM_TRIGGER_WORKFLOW_EVENTS,
     },
-    Q,
   },
 };
 
