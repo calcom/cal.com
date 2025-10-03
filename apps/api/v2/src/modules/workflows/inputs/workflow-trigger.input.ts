@@ -19,7 +19,7 @@ export const BOOKING_PAYMENT_INITIATED = "bookingPaymentInitiated";
 export const BOOKING_PAID = "bookingPaid";
 export const BOOKING_NO_SHOW_UPDATED = "bookingNoShowUpdated";
 
-export const FORM_WORKFLOW_TRIGGER_TYPES = [FORM_SUBMITTED] as const;
+export const FORM_WORKFLOW_TRIGGER_TYPES = [FORM_SUBMITTED, FORM_SUBMITTED_NO_EVENT] as const;
 
 export const EVENT_TYPE_WORKFLOW_TRIGGER_TYPES = [
   BEFORE_EVENT,
