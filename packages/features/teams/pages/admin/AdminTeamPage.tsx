@@ -39,7 +39,6 @@ function AdminTeamTableContent() {
   const utils = trpc.useUtils();
   const [teamToDelete, setTeamToDelete] = useState<Team | null>(null);
 
-  const columnFilters = useColumnFilters();
   const { limit, offset, searchTerm } = useDataTable();
 
   const { data, isPending } = trpc.viewer.teams.adminGetAll.useQuery(
@@ -47,17 +46,6 @@ function AdminTeamTableContent() {
       limit,
       offset,
       searchTerm,
-      filters: columnFilters
-        .filter(
-          (filter) =>
-            typeof filter.value === "string" ||
-            typeof filter.value === "boolean" ||
-            Array.isArray(filter.value)
-        )
-        .map((filter) => ({
-          id: filter.id,
-          value: filter.value as string | string[] | boolean,
-        })),
     },
     {
       placeholderData: keepPreviousData,
@@ -92,9 +80,7 @@ function AdminTeamTableContent() {
           const team = row.original;
           return (
             <div className="text-subtle font-medium">
-              <Link
-                href={`/settings/admin/teams/${team.id}/edit`}
-                className="text-default hover:underline">
+              <Link href={`/settings/admin/teams/${team.id}/edit`} className="text-default hover:underline">
                 {team.name}
               </Link>
               {team.slug && (

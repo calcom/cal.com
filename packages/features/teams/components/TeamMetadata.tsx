@@ -1,8 +1,10 @@
-"use client";
+import { z } from "zod";
 
 import { AdminMetadata } from "@calcom/features/billing/components";
-import type { Team } from "@calcom/prisma/client";
+import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
-export const TeamMetadata = ({ metadata }: { metadata: Team["metadata"] }) => {
+type Metadata = z.infer<typeof teamMetadataSchema>;
+
+export const TeamMetadata = ({ metadata }: { metadata: Metadata }) => {
   return <AdminMetadata metadata={metadata} />;
 };

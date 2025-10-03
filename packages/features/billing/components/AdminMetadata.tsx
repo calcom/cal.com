@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import type { z } from "zod";
+import { z } from "zod";
 
-import type { Team } from "@calcom/prisma/client";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { PanelCard } from "@calcom/ui/components/card";

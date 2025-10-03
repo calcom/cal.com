@@ -1,10 +1,14 @@
 "use client";
 
+import { z } from "zod";
+
 import { AdminMetadata } from "@calcom/features/billing/components";
-import type { Team } from "@calcom/prisma/client";
+import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 
-export const OrgMetadata = ({ metadata, orgId }: { metadata: Team["metadata"]; orgId: number }) => {
+type Metadata = z.infer<typeof teamMetadataSchema>;
+
+export const OrgMetadata = ({ metadata, orgId }: { metadata: Metadata; orgId: number }) => {
   const utils = trpc.useUtils();
 
   const updateMetadataMutation = trpc.viewer.organizations.adminUpdateMetadata.useMutation();
@@ -20,11 +24,6 @@ export const OrgMetadata = ({ metadata, orgId }: { metadata: Team["metadata"]; o
   };
 
   return (
-    <AdminMetadata
-      metadata={metadata}
-      entityType="organization"
-      onUpdate={handleUpdate}
-      canEdit={true}
-    />
+    <AdminMetadata metadata={metadata} entityType="organization" onUpdate={handleUpdate} canEdit={true} />
   );
 };
