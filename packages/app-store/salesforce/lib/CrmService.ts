@@ -1,6 +1,5 @@
 import type { TokenResponse, Connection, Field } from "@jsforce/jsforce-node";
 import jsforce from "@jsforce/jsforce-node";
-import { DuplicateError } from "@jsforce/jsforce-node/lib/api/soap/schema";
 import { RRule } from "rrule";
 import { z } from "zod";
 
@@ -706,7 +705,7 @@ export default class SalesforceCRMService implements CRM {
           } catch (error: unknown) {
             if (error instanceof Error && error.name === "DUPLICATES_DETECTED") {
               // we know it's a DuplicateError now (DUPLICATES_DETECTED)
-              const existingId = this.getExistingIdFromDuplicateError(error as unknown as DuplicateError);
+              const existingId = this.getExistingIdFromDuplicateError(error as SalesforceDuplicateError);
               if (existingId) {
                 log.info("Using existing record:", existingId);
                 createdContacts.push({ id: existingId, email: attendee.email });
