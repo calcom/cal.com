@@ -13,7 +13,7 @@ export const Radio = (props: RadioGroupPrimitive.RadioGroupItemProps & { childre
   <RadioGroupPrimitive.Item
     {...props}
     className={classNames(
-      "hover:bg-subtle border-default dark:checked:bg-brand-default dark:hover:bg-subtle dark:checked:hover:bg-brand-default focus:ring-brand-default hover:border-emphasis me-1.5 mt-0.5 h-4 w-4 flex-shrink-0 rounded-full border text-[--cal-brand] transition focus:border-0 focus:ring-1",
+      "hover:bg-subtle border-default dark:checked:bg-brand-default dark:hover:bg-subtle dark:checked:hover:bg-brand-default focus:ring-brand-default hover:border-emphasis me-1.5 h-4 w-4 flex-shrink-0 rounded-full border text-[--cal-brand] transition focus:border-0 focus:ring-1",
       props.disabled && "opacity-60"
     )}>
     {props.children}
@@ -32,7 +32,7 @@ export const Label = (props: JSX.IntrinsicElements["label"] & { disabled?: boole
   <label
     {...props}
     className={classNames(
-      "text-emphasis ms-2 w-full text-sm font-medium leading-5",
+      "text-emphasis ms-3 w-full text-sm font-medium leading-6",
       props.disabled && "text-subtle"
     )}
   />
@@ -55,8 +55,8 @@ export const RadioField = ({
 }) => (
   <div
     className={classNames(
-      "flex items-start",
-      withPadding && "hover:bg-subtle cursor-pointer rounded-lg p-1.5",
+      "flex items-center py-1",
+      withPadding && "hover:bg-subtle cursor-pointer rounded-lg p-2",
       className
     )}>
     <Radio value={value} disabled={disabled} id={id}>

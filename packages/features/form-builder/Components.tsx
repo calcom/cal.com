@@ -339,10 +339,10 @@ export const Components: Record<FieldType, Component> = {
     factory: ({ options, readOnly, setValue, value }) => {
       value = value || [];
       return (
-        <div>
+        <div className="space-y-2">
           {options.map((option, i) => {
             return (
-              <label key={i} className="block">
+              <label key={i} className="flex items-start py-1.5">
                 <Checkbox
                   disabled={readOnly}
                   onCheckedChange={(checked) => {
@@ -355,7 +355,7 @@ export const Components: Record<FieldType, Component> = {
                   value={option.value}
                   checked={value.includes(option.value)}
                 />
-                <span className="text-emphasis me-2 ms-2 text-sm">{option.label ?? ""}</span>
+                <span className="text-emphasis ms-3 text-sm leading-6">{option.label ?? ""}</span>
               </label>
             );
           })}
@@ -373,7 +373,7 @@ export const Components: Record<FieldType, Component> = {
           onValueChange={(e) => {
             setValue(e);
           }}>
-          <>
+          <div className="space-y-1">
             {options.map((option, i) => (
               <RadioField
                 label={option.label}
@@ -382,7 +382,7 @@ export const Components: Record<FieldType, Component> = {
                 id={`${name}.option.${i}.radio`}
               />
             ))}
-          </>
+          </div>
         </RadioGroup>
       );
     },
@@ -423,7 +423,7 @@ export const Components: Record<FieldType, Component> = {
         }
 
         return label.search(/^https?:\/\//) !== -1 ? (
-          <a href={label} target="_blank">
+          <a href={label} target="_blank" rel="noreferrer">
             <span className="underline">{label}</span>
           </a>
         ) : (
@@ -438,12 +438,12 @@ export const Components: Record<FieldType, Component> = {
               {options.length > 1 ? (
                 options.map((option, i) => {
                   return (
-                    <label key={i} className="mb-1 flex items-center">
+                    <label key={i} className="mb-3 flex items-start py-2">
                       <input
                         type="radio"
                         disabled={readOnly}
                         name={name}
-                        className="bg-default after:bg-default border-emphasis focus:ring-brand-default hover:bg-subtle hover:after:bg-subtle dark:checked:after:bg-brand-accent flex h-4 w-4 cursor-pointer items-center justify-center text-[--cal-brand] transition after:h-[6px] after:w-[6px] after:rounded-full after:content-[''] after:hover:block focus:ring-2 focus:ring-offset-0 ltr:mr-2 rtl:ml-2 dark:checked:hover:text-[--cal-brand]"
+                        className="bg-default after:bg-default border-emphasis focus:ring-brand-default hover:bg-subtle hover:after:bg-subtle dark:checked:after:bg-brand-accent mt-0.5 flex h-4 w-4 cursor-pointer items-center justify-center text-[--cal-brand] transition after:h-[6px] after:w-[6px] after:rounded-full after:content-[''] after:hover:block focus:ring-2 focus:ring-offset-0 ltr:mr-3 rtl:ml-3 dark:checked:hover:text-[--cal-brand]"
                         value={option.value}
                         onChange={(e) => {
                           setValue({
@@ -453,12 +453,12 @@ export const Components: Record<FieldType, Component> = {
                         }}
                         checked={value?.value === option.value}
                       />
-                      <span className="text-emphasis me-2 ms-2 text-sm">
+                      <span className="text-emphasis text-sm leading-relaxed">
                         {option.value === "somewhereElse"
                           ? t("somewhere_else")
                           : getCleanLabel(option.label) ?? ""}
                       </span>
-                      <span>
+                      <span className="ml-2">
                         {option.value === "phone" && (
                           <InfoBadge content={t("number_in_international_format")} />
                         )}
