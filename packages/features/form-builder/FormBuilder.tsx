@@ -426,7 +426,7 @@ export const FormBuilder = function FormBuilder({
 function Options({
   label = "Options",
   value,
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+
   onChange = () => {},
   className = "",
   readOnly = false,
@@ -460,11 +460,11 @@ function Options({
     <div className={className}>
       <Label>{label}</Label>
       <div className="bg-muted rounded-md p-4" data-testid="options-container">
-        <ul ref={animationRef} className="flex flex-col gap-1">
+        <ul ref={animationRef} className="flex flex-col gap-3">
           {value?.map((option, index) => (
             <li key={index}>
               <div className="flex items-center gap-2">
-                <div className="flex-grow">
+                <div className="relative flex-grow">
                   <Input
                     required
                     value={option.label}
@@ -480,7 +480,23 @@ function Options({
                     }}
                     readOnly={readOnly}
                     placeholder={t("enter_option", { index: index + 1 })}
+                    className={value.length > 2 && !readOnly ? "pr-8" : ""}
                   />
+                  {value.length > 2 && !readOnly && (
+                    <Button
+                      type="button"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0"
+                      size="sm"
+                      color="minimal"
+                      StartIcon="x"
+                      onClick={() => {
+                        if (!value) return;
+                        const newOptions = [...(value || [])];
+                        newOptions.splice(index, 1);
+                        onChange(newOptions);
+                      }}
+                    />
+                  )}
                 </div>
                 {showPrice && (
                   <div className="w-24">
@@ -505,21 +521,6 @@ function Options({
                     />
                   </div>
                 )}
-                {value.length > 2 && !readOnly && (
-                  <Button
-                    type="button"
-                    className="-ml-8 mb-2 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0"
-                    size="sm"
-                    color="minimal"
-                    StartIcon="x"
-                    onClick={() => {
-                      if (!value) return;
-                      const newOptions = [...(value || [])];
-                      newOptions.splice(index, 1);
-                      onChange(newOptions);
-                    }}
-                  />
-                )}
               </div>
             </li>
           ))}
@@ -528,6 +529,7 @@ function Options({
           <Button
             color="minimal"
             data-testid="add-option"
+            className="mt-3"
             onClick={() => {
               const newOptions = [...(value || [])];
               newOptions.push({ label: "", value: "", price: 0 });
@@ -606,7 +608,7 @@ function FieldEditDialog({
   const variantsConfig = fieldForm.watch("variantsConfig");
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
-  const fieldName = fieldForm.getValues("name");
+  const _fieldName = fieldForm.getValues("name");
 
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
@@ -698,7 +700,7 @@ function FieldEditDialog({
                       />
                     ) : null}
 
-                    {!!fieldType?.supportsLengthCheck ? (
+                    {fieldType?.supportsLengthCheck ? (
                       <FieldWithLengthCheckSupport containerClassName="mt-6" fieldForm={fieldForm} />
                     ) : null}
 
@@ -881,7 +883,6 @@ function FieldLabel({ field }: { field: RhfFormField }) {
     if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
       return (
         <span
-          // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{
             // Derive from field.label because label might change in b/w and field.labelAsSafeHtml will not be updated.
             __html: markdownToSafeHTMLClient(field.label || t(field.defaultLabel || "") || ""),
