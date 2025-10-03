@@ -1109,7 +1109,9 @@ export class BookingsService_2024_08_13 {
   }
 
   async getCalendarLinks(bookingUid: string): Promise<CalendarLink[]> {
-    const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
+    const booking = await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEvent(
+      bookingUid
+    );
 
     if (!booking) {
       throw new NotFoundException(`Booking with uid ${bookingUid} not found`);
