@@ -102,19 +102,4 @@ describe("ZeroBounceEmailValidationProviderService", () => {
       );
     });
   });
-
-  describe("isEmailBlocked", () => {
-    it("should identify emails as blocked when status indicates undeliverable or risky address", () => {
-      expect(service.isEmailBlocked("invalid")).toBe(true);
-      expect(service.isEmailBlocked("spamtrap")).toBe(true);
-      expect(service.isEmailBlocked("abuse")).toBe(true);
-      expect(service.isEmailBlocked("do_not_mail")).toBe(true);
-    });
-
-    it("should identify emails as allowed when status indicates deliverable or acceptable address", () => {
-      expect(service.isEmailBlocked("valid")).toBe(false);
-      expect(service.isEmailBlocked("catch-all")).toBe(false);
-      expect(service.isEmailBlocked("unknown")).toBe(false);
-    });
-  });
 });

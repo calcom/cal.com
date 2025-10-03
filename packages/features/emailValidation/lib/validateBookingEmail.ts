@@ -7,10 +7,6 @@ import { prisma } from "@calcom/prisma";
 
 import { getEmailValidationService } from "../di/EmailValidation.container";
 
-function getPiiFreeEmail(email: string): string {
-  return email.toLowerCase().slice(0, 10);
-}
-
 interface ValidateBookingEmailParams {
   email: string;
   teamId: number | null;
@@ -18,25 +14,34 @@ interface ValidateBookingEmailParams {
   clientIP?: string;
 }
 
-export async function* validateBookingEmailGenerator({
+interface EmailValidationResult {
+  error: HttpError | null;
+  startProviderValidation(): Promise<void>;
+  waitForProviderValidation(promise: Promise<void> | null): Promise<void>;
+}
+
+const validationErrorMessage =
+  "This email address cannot be used for bookings. Please use a different email.";
+/**
+ * Performs fast email validation checks (cache + Cal.com DB).
+ * Returns immediately with methods to start/wait for provider validation.
+ *
+ * If shouldBlock from fast checks, throws HttpError immediately.
+ * Otherwise, returns methods to start slow provider validation and wait for it later.
+ */
+export async function validateBookingEmail({
   email,
   teamId,
   logger,
 }: // clientIP,
-ValidateBookingEmailParams): AsyncGenerator<null, void, unknown> {
+ValidateBookingEmailParams): Promise<EmailValidationResult | null> {
   // Check if email validation feature is enabled for this team/org
   const featuresRepository = new FeaturesRepository(prisma);
 
   // If no team, skip validation (individual users)
   if (!teamId) {
-    logger.info(
-      "Email validation skipped - no team associated with event type",
-      safeStringify({
-        email,
-        teamId,
-      })
-    );
-    return;
+    logger.debug("Email validation skipped - no team associated with event type", safeStringify({ teamId }));
+    return null;
   }
 
   const isEmailValidationEnabled = await featuresRepository.checkIfTeamHasFeature(
@@ -46,75 +51,68 @@ ValidateBookingEmailParams): AsyncGenerator<null, void, unknown> {
 
   if (!isEmailValidationEnabled) {
     logger.debug("Email validation feature not enabled for team", safeStringify({ teamId }));
-    return;
+    return null;
   }
 
   try {
     const emailValidationService = getEmailValidationService();
-    const emailValidationGenerator = emailValidationService.validateEmailGenerator({
-      email,
-      // Temporary commented out till we have confirmation that we have the client IP address here
-      // ipAddress: clientIP,
-    });
 
-    const { value: cachedResult } = await emailValidationGenerator.next();
+    // Fast check: cache + Cal.com DB lookup
+    const calcomResult = await emailValidationService.validateWithCalcom(email);
 
-    if (cachedResult) {
-      const result = cachedResult;
-      const isBlocked = emailValidationService.isEmailBlocked(result.status);
-
-      if (isBlocked) {
-        throw new HttpError({
-          statusCode: 400,
-          message: "Unable to create booking with this email address.",
-        });
-      }
-      return;
-    }
-
-    yield null;
-
-    const { value: resultFromProvider } = await emailValidationGenerator.next();
-
-    if (!resultFromProvider) {
-      logger.warn(
-        "No result from email validation provider",
-        safeStringify({ email: getPiiFreeEmail(email), teamId })
-      );
-      return;
-    }
-
-    const isBlocked = emailValidationService.isEmailBlocked(resultFromProvider.status);
-
-    if (isBlocked) {
+    // Found in cache or verified by Cal.com
+    if (calcomResult.shouldBlock) {
       throw new HttpError({
         statusCode: 400,
-        message: "Unable to create booking with this email address.",
+        message: validationErrorMessage,
       });
     }
 
-    logger.info(
-      "Email validation passed",
-      safeStringify({
-        email: getPiiFreeEmail(email),
-        status: resultFromProvider.status,
-        teamId,
-      })
-    );
-  } catch (error) {
-    if (error instanceof HttpError) {
-      // Re-throw HttpError (blocked emails)
-      throw error;
+    if (!calcomResult.continueWithProvider) {
+      return null; // No provider validation needed
     }
 
-    // Log service errors but don't block booking (fallback behavior)
-    logger.error(
-      "Email validation service error - allowing booking",
-      safeStringify({
-        email: getPiiFreeEmail(email),
-        error: error instanceof Error ? error.message : "Unknown error",
-        teamId,
-      })
-    );
+    const result: EmailValidationResult = {
+      error: null,
+      async startProviderValidation() {
+        try {
+          const providerResult = await emailValidationService.validateWithProvider({
+            request: { email },
+            skipCache: true,
+          });
+          if (providerResult.shouldBlock) {
+            throw new HttpError({
+              statusCode: 400,
+              message: validationErrorMessage,
+            });
+          }
+        } catch (error) {
+          if (error instanceof HttpError) {
+            // We catch and store the error because error could happen even before we await waitForProviderValidation
+            // This prevents unhandled promise rejection
+            result.error = error;
+            return;
+          }
+          logger.error("Provider email validation unhandled error - allowing booking", safeStringify(error));
+        }
+      },
+      async waitForProviderValidation(promise: Promise<void> | null) {
+        if (!promise) {
+          return;
+        }
+        await promise;
+        if (result.error) {
+          throw result.error;
+        }
+      },
+    };
+
+    return result;
+  } catch (error) {
+    if (error instanceof HttpError) {
+      throw error; // Re-throw blocking errors
+    }
+    logger.error("Email validation unhandled error - allowing booking", safeStringify(error));
+    return null;
   }
 }

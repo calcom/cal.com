@@ -54,12 +54,6 @@ export const DI_TOKENS = {
   HOST_REPOSITORY_MODULE: Symbol("HostRepositoryModule"),
   ATTRIBUTE_REPOSITORY: Symbol("AttributeRepository"),
   ATTRIBUTE_REPOSITORY_MODULE: Symbol("AttributeRepositoryModule"),
-  EMAIL_VALIDATION_SERVICE: Symbol("EmailValidationService"),
-  EMAIL_VALIDATION_SERVICE_MODULE: Symbol("EmailValidationServiceModule"),
-  EMAIL_VALIDATION_PROVIDER_SERVICE: Symbol("EmailValidationProviderService"),
-  EMAIL_VALIDATION_PROVIDER_SERVICE_MODULE: Symbol("EmailValidationProviderServiceModule"),
-  EMAIL_VALIDATION_CACHING_PROXY_SERVICE: Symbol("EmailValidationCachingProxyService"),
-  EMAIL_VALIDATION_CACHING_PROXY_SERVICE_MODULE: Symbol("EmailValidationCachingProxyServiceModule"),
   // Booking service tokens
   ...BOOKING_DI_TOKENS,
 };

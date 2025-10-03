@@ -1691,7 +1691,10 @@ export async function enableEmailValidationForTeam(teamId: number) {
   // Create the feature if it doesn't exist
   await prismock.feature.upsert({
     where: { slug: "booking-email-validation" },
-    update: {},
+    update: {
+      enabled: true,
+      type: "OPERATIONAL",
+    },
     create: {
       slug: "booking-email-validation",
       enabled: true,

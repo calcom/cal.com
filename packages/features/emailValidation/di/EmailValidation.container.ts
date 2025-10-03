@@ -1,12 +1,12 @@
 import { createContainer } from "@calcom/features/di/di";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
 
-import type { IEmailValidationCachingProxy } from "../lib/service/IEmailValidationService.interface";
-import { moduleLoader as emailValidationCachingProxyServiceModule } from "./EmailValidationCachingProxy.module";
+import type { IEmailValidationService } from "../lib/service/IEmailValidationService.interface";
+import { moduleLoader as emailValidationServiceModule } from "./EmailValidationService.module";
 
 const container = createContainer();
 
-export function getEmailValidationService(): IEmailValidationCachingProxy {
-  emailValidationCachingProxyServiceModule.loadModule(container);
-  return container.get<IEmailValidationCachingProxy>(DI_TOKENS.EMAIL_VALIDATION_CACHING_PROXY_SERVICE);
+export function getEmailValidationService(): IEmailValidationService {
+  emailValidationServiceModule.loadModule(container);
+  return container.get<IEmailValidationService>(DI_TOKENS.EMAIL_VALIDATION_SERVICE);
 }

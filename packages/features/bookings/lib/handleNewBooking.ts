@@ -24,6 +24,9 @@ import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import { getCheckBookingAndDurationLimitsService } from "@calcom/features/di/containers/BookingLimits";
+import { getCacheService } from "@calcom/features/di/containers/Cache";
+import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes/lib/eventNaming";
@@ -46,9 +49,6 @@ import {
   enrichHostsWithDelegationCredentials,
   getFirstDelegationConferencingCredentialAppLocation,
 } from "@calcom/lib/delegationCredential/server";
-import { getCheckBookingAndDurationLimitsService } from "@calcom/features/di/containers/BookingLimits";
-import { getCacheService } from "@calcom/features/di/containers/Cache";
-import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
@@ -88,7 +88,7 @@ import type {
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
-import { validateBookingEmailGenerator } from "../../emailValidation/lib/validateBookingEmail";
+import { validateBookingEmail } from "../../emailValidation/lib/validateBookingEmail";
 import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/sendPayload";
 import { BookingActionMap, BookingEmailSmsHandler } from "./BookingEmailSmsHandler";
 import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
@@ -497,22 +497,15 @@ async function handler(
 
   await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
 
-  // Generator-based email validation: cache check happens immediately, yields promise for parallel execution
-  const emailValidatorGenerator = validateBookingEmailGenerator({
+  // Email validation - Step 1: Fast checks (cache + Cal.com) - await immediately
+  const emailValidationResult = await validateBookingEmail({
     email: bookerEmail,
     teamId: eventType.teamId ?? eventType.parent?.teamId ?? null,
     logger: loggerWithEventDetails,
-    // Commented out till we can get the client IP address here
-    // clientIP,
   });
 
-  // First we await quick validation(done from cache only). Possible slowdown (~100ms)
-  await emailValidatorGenerator.next();
-
-  let fullEmailValidationError: Error | null = null;
-  const fullEmailValidationPromise = emailValidatorGenerator.next().catch((error) => {
-    fullEmailValidationError = error;
-  });
+  // We don't await fullValidation here as we want it to progress along with other slow parallel operations(like availability check)
+  const emailValidationProviderPromise = emailValidationResult?.startProviderValidation() ?? null;
 
   if (!rawBookingData.rescheduleUid) {
     await checkActiveBookingsLimitForBooker({
@@ -1412,6 +1405,9 @@ async function handler(
     organizerUser.id
   );
 
+  // This is a good place to wait as availability loading and other things happen in parallel before it and bookings are created only after it.
+  await emailValidationResult?.waitForProviderValidation(emailValidationProviderPromise);
+
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (eventType.seatsPerTimeSlot) {
     const newBooking = await handleSeats({
@@ -1497,7 +1493,8 @@ async function handler(
 
   const changedOrganizer =
     !!originalRescheduledBooking &&
-    (eventType.schedulingType === SchedulingType.ROUND_ROBIN || eventType.schedulingType === SchedulingType.COLLECTIVE) &&
+    (eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
+      eventType.schedulingType === SchedulingType.COLLECTIVE) &&
     originalRescheduledBooking.userId !== evt.organizer.id;
 
   const skipDeleteEventsAndMeetings = changedOrganizer;
@@ -1540,12 +1537,6 @@ async function handler(
 
   try {
     if (!isDryRun) {
-      // Await email validation result. By now it has likely completed running in parallel, specially for team event booking where loading availability of multiple members take time
-      await fullEmailValidationPromise;
-      if (fullEmailValidationError) {
-        throw fullEmailValidationError;
-      }
-
       booking = await createBooking({
         uid,
         rescheduledBy: reqBody.rescheduledBy,

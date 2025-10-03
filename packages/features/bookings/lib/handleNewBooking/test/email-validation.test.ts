@@ -15,8 +15,10 @@ import {
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
+import { createHash } from "crypto";
 import { vi, beforeEach, describe, expect } from "vitest";
 
+import { NoopRedisService } from "@calcom/features/redis/NoopRedisService";
 import { RedisService } from "@calcom/features/redis/RedisService";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
@@ -25,6 +27,7 @@ import { getNewBookingHandler } from "./getNewBookingHandler";
 
 // Mock Redis Service
 vi.mock("@calcom/features/redis/RedisService");
+vi.mock("@calcom/features/redis/NoopRedisService");
 
 const mockRedisService = {
   get: vi.fn(),
@@ -33,6 +36,9 @@ const mockRedisService = {
   expire: vi.fn(),
 };
 
+function getExpectedCacheKey(email: string): string {
+  return `email_validation:${createHash("sha256").update(email.toLowerCase().trim()).digest("hex")}`;
+}
 // Mock ZeroBounce API responses
 const mockZeroBounceResponses: Record<string, unknown> = {};
 const zeroBounceAPIKey = "test-api-key";
@@ -79,8 +85,10 @@ describe("Email Validation", () => {
     Object.keys(mockZeroBounceResponses).forEach((key) => delete mockZeroBounceResponses[key]);
     process.env.ZEROBOUNCE_API_KEY = zeroBounceAPIKey;
 
-    // Setup Redis mock implementation
+    // Setup Redis mock implementation for both RedisService and NoopRedisService
+    // This ensures the mock works regardless of which service the DI container chooses
     vi.mocked(RedisService).mockImplementation(() => mockRedisService as unknown as RedisService);
+    vi.mocked(NoopRedisService).mockImplementation(() => mockRedisService as unknown as NoopRedisService);
 
     // Configure Redis mock to return null by default (cache miss)
     mockRedisService.get.mockResolvedValue(null);
@@ -173,7 +181,7 @@ describe("Email Validation", () => {
     });
   });
 
-  test("should reject booking with invalid email from ZeroBounce, initiating validation request immediately in parallel to availability check", async () => {
+  test("should reject booking with invalid email from ZeroBounce", async () => {
     const handleNewBooking = getNewBookingHandler();
     const booker = getBooker({
       email: "invalid@nonexistent-domain.fake",
@@ -237,7 +245,9 @@ describe("Email Validation", () => {
     expect(fetch).toHaveBeenCalled();
 
     // Now with email validation feature enabled, invalid emails should be rejected
-    await expect(newBookingPromise).rejects.toThrow("Unable to create booking with this email address.");
+    await expect(newBookingPromise).rejects.toThrow(
+      "This email address cannot be used for bookings. Please use a different email."
+    );
   }, 7000);
 
   test("should fallback to allow booking when ZeroBounce API fails", async ({ emails }) => {
@@ -368,7 +378,6 @@ describe("Email Validation", () => {
     );
 
     const cachedResult = {
-      email: "cached-user@example.com",
       status: "invalid",
     };
 
@@ -393,8 +402,8 @@ describe("Email Validation", () => {
       handleNewBooking({
         bookingData: mockBookingData,
       })
-    ).rejects.toThrow("Unable to create booking with this email address.");
+    ).rejects.toThrow("This email address cannot be used for bookings. Please use a different email.");
 
-    expect(mockRedisService.get).toHaveBeenCalledWith("email_validation:cached-user@example.com");
+    expect(mockRedisService.get).toHaveBeenCalledWith(getExpectedCacheKey(booker.email));
   });
 });

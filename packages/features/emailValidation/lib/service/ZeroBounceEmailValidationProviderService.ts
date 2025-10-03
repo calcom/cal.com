@@ -18,12 +18,6 @@ export class ZeroBounceEmailValidationProviderService implements IEmailValidatio
   private readonly apiKey: string;
   private readonly apiBaseUrl = "https://api.zerobounce.net/v2";
   private readonly logger = logger.getSubLogger({ prefix: ["ZeroBounceEmailValidationProviderService"] });
-  private readonly blockedStatuses: Set<EmailValidationStatus> = new Set<EmailValidationStatus>([
-    "invalid",
-    "spamtrap",
-    "abuse",
-    "do_not_mail",
-  ]);
 
   constructor() {
     this.apiKey = process.env.ZEROBOUNCE_API_KEY || "";
@@ -33,7 +27,7 @@ export class ZeroBounceEmailValidationProviderService implements IEmailValidatio
     const { email, ipAddress } = request;
 
     if (!this.apiKey) {
-      this.logger.warn("ZeroBounce API key not configured");
+      this.logger.error("ZeroBounce API key not configured");
       throw new Error("ZeroBounce API key not configured");
     }
 
@@ -78,15 +72,6 @@ export class ZeroBounceEmailValidationProviderService implements IEmailValidatio
     const data = validationResult.data;
     const result = this.mapZeroBounceResponse(data);
 
-    this.logger.info(
-      "ZeroBounce API validation completed",
-      safeStringify({
-        email: email,
-        status: result.status,
-        blocked: this.isEmailBlocked(result.status),
-      })
-    );
-
     return result;
   }
 
@@ -97,10 +82,13 @@ export class ZeroBounceEmailValidationProviderService implements IEmailValidatio
     };
   }
 
+  /**
+   * Maps ZeroBounce API statuses to canonical format.
+   */
   private normalizeStatus(status: string): EmailValidationStatus {
     const normalizedStatus = status.toLowerCase();
 
-    // Map ZeroBounce statuses to our standardized statuses
+    // Map ZeroBounce statuses to canonical format
     switch (normalizedStatus) {
       case "valid":
         return "valid";
@@ -115,17 +103,11 @@ export class ZeroBounceEmailValidationProviderService implements IEmailValidatio
       case "abuse":
         return "abuse";
       case "do_not_mail":
-        return "do_not_mail";
+        return "do-not-mail";
       default:
         // For any unknown status, default to valid to avoid blocking legitimate users
         this.logger.warn("Unknown ZeroBounce status encountered", safeStringify({ status }));
         return "valid";
     }
-  }
-
-  public isEmailBlocked(status: EmailValidationStatus): boolean {
-    const isBlocked = this.blockedStatuses.has(status);
-    this.logger.info("Email is blocked", safeStringify({ status, isBlocked }));
-    return isBlocked;
   }
 }
