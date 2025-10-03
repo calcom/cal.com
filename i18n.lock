@@ -3461,6 +3461,7 @@ checksums:
     roles_and_permissions_description: b61be30059f6de6034d6acb588d3a495
     learn_more_permissions: 9be546d0622d5bcb5336c5b417c5f29f
     role_name: 6166d263954a8c5e41e988801c2cfb20
+    role_name_required: 5650dd108c357a78fec90aa755d78367
     role_name_placeholder: b138f0b244a5680d2986db2c99b11548
     role_description: 1eccd63fc1cb4d162ff7e5353fd72660
     role_description_placeholder: d732e6a22a3e3ae60c21ac390e5248f5
@@ -3499,7 +3500,7 @@ checksums:
     role_created_successfully: 0c5e659653544f4e549c49deee5da514
     role_updated_successfully: 70f6225b70f4bcd15af464da4c838096
     delete_role: 877641ea72960f194766086aceb53346
-    confirm_delete_role: 05f1b95d4506445819c1938c456e73b6
+    confirm_delete_role: 894b27127b5afeed7e143cf3eaac87cf
     role_deleted_successfully: 3e82866aca1a2461c2cfccbad71b2610
     error_creating_role: 4d3c36c243381aa68d671ae9c58265cd
     error_updating_role: bb0758044b466e260c9bb3704b4d115f
