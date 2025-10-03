@@ -1,7 +1,8 @@
 import { startSpan } from "@sentry/nextjs";
 
-import type { Watchlist } from "../watchlist.model";
-import { WatchlistRepository } from "../watchlist.repository";
+import { getWatchlistRepository } from "@calcom/features/di/watchlist/containers/watchlist";
+
+import type { EmailBlockedCheckResponseDTO } from "../lib/dto";
 
 /**
  * Controllers use Presenters to convert the data to a UI-friendly format just before
@@ -10,9 +11,9 @@ import { WatchlistRepository } from "../watchlist.repository";
  * emails or hashed passwords, and also helps us slim down the amount of data we're sending
  * back to the client.
  */
-function presenter(watchlistedEmail: Watchlist | null) {
+function presenter(isBlocked: boolean): EmailBlockedCheckResponseDTO {
   return startSpan({ name: "checkIfEmailInWatchlist Presenter", op: "serialize" }, () => {
-    return !!watchlistedEmail;
+    return { isBlocked };
   });
 }
 
@@ -23,11 +24,11 @@ function presenter(watchlistedEmail: Watchlist | null) {
  */
 export async function checkIfEmailIsBlockedInWatchlistController(
   email: string
-): Promise<ReturnType<typeof presenter>> {
+): Promise<EmailBlockedCheckResponseDTO> {
   return await startSpan({ name: "checkIfEmailInWatchlist Controller" }, async () => {
     const lowercasedEmail = email.toLowerCase();
-    const watchlistRepository = new WatchlistRepository();
+    const watchlistRepository = getWatchlistRepository();
     const watchlistedEmail = await watchlistRepository.getBlockedEmailInWatchlist(lowercasedEmail);
-    return presenter(watchlistedEmail);
+    return presenter(!!watchlistedEmail);
   });
 }
