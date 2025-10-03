@@ -9,7 +9,7 @@ import { IsArray, IsEnum, IsIn, IsString, ValidateNested } from "class-validator
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 
-import { EMAIL_HOST, FORM_ALLOWED_STEP_ACTIONS, StepAction } from "../inputs/workflow-step.input";
+import { EMAIL_HOST, FORM_ALLOWED_STEP_ACTIONS, FormAllowedStepAction } from "../inputs/workflow-step.input";
 import {
   FORM_SUBMITTED,
   FORM_WORKFLOW_TRIGGER_TYPES,
@@ -22,7 +22,7 @@ export const WORKFLOW_TYPE_EVENT_TYPE = "event-type";
 export class RoutingFormWorkflowStepOutputDto extends BaseWorkflowStepOutputDto {
   @ApiProperty({ description: "Action to perform", example: EMAIL_HOST, enum: FORM_ALLOWED_STEP_ACTIONS })
   @Expose()
-  action!: StepAction;
+  action!: FormAllowedStepAction;
 }
 
 export class RoutingFormWorkflowTriggerOutputDto {

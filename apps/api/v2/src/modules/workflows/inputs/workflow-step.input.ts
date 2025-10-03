@@ -49,6 +49,7 @@ export const ENUM_TO_STEP_ACTIONS = {
 } as const;
 
 export type StepAction = (typeof STEP_ACTIONS)[number];
+export type FormAllowedStepAction = (typeof FORM_ALLOWED_STEP_ACTIONS)[number];
 
 export const REMINDER = "reminder";
 export const CUSTOM = "custom";
@@ -139,7 +140,7 @@ export class BaseFormWorkflowStepDto extends BaseWorkflowStepDto {
   @ApiProperty({ description: "Action to perform", example: EMAIL_HOST, enum: STEP_ACTIONS })
   @IsString()
   @IsIn(FORM_ALLOWED_STEP_ACTIONS)
-  action!: StepAction;
+  action!: FormAllowedStepAction;
 }
 
 export class WorkflowEmailHostStepDto extends BaseWorkflowStepDto {

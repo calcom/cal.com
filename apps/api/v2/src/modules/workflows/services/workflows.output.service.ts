@@ -20,6 +20,8 @@ import {
   EMAIL_HOST,
   ENUM_TO_STEP_ACTIONS,
   ENUM_TO_TEMPLATES,
+  FORM_ALLOWED_STEP_ACTIONS,
+  FormAllowedStepAction,
   HOST,
   PHONE_NUMBER,
   RecipientType,
@@ -138,13 +140,26 @@ const ACTION_CONFIG_MAP = {
 
 @Injectable()
 export class WorkflowsOutputService {
+  _isFormAllowedStepAction(action: StepAction): action is FormAllowedStepAction {
+    if (FORM_ALLOWED_STEP_ACTIONS.some((formAction) => formAction === action)) {
+      return true;
+    }
+    return false;
+  }
+
   /**
    * Maps a single workflow step from the database entity to its DTO representation.
    * @param step The workflow step object from the database.
    * @returns An EventTypeWorkflowStepOutputDto.
    */
+  mapStep(step: WorkflowType["steps"][number], _discriminator: "event-type"): EventTypeWorkflowStepOutputDto;
   mapStep(
-    step: WorkflowType["steps"][number]
+    step: WorkflowType["steps"][number],
+    _discriminator: "routing-form"
+  ): RoutingFormWorkflowStepOutputDto;
+  mapStep(
+    step: WorkflowType["steps"][number],
+    _discriminator: "event-type" | "routing-form"
   ): EventTypeWorkflowStepOutputDto | RoutingFormWorkflowStepOutputDto {
     const action = ENUM_TO_STEP_ACTIONS[step.action];
     const config = ACTION_CONFIG_MAP[action] || {
@@ -156,10 +171,9 @@ export class WorkflowsOutputService {
     const customRecipient = step.sendTo ?? "";
     const reminderBody = step.reminderBody ?? "";
 
-    return {
+    const baseAction = {
       id: step.id,
       stepNumber: step.stepNumber,
-      action: action,
       template: ENUM_TO_TEMPLATES[step.template],
       recipient: config.recipient,
       sender: step.sender ?? "Default Sender",
@@ -173,6 +187,16 @@ export class WorkflowsOutputService {
         text: config.messageKey === "text" ? reminderBody : undefined,
       },
     };
+
+    return this._isFormAllowedStepAction(action)
+      ? ({
+          ...baseAction,
+          action: action,
+        } satisfies RoutingFormWorkflowStepOutputDto)
+      : ({
+          ...baseAction,
+          action: action,
+        } satisfies EventTypeWorkflowStepOutputDto);
   }
 
   toRoutingFormOutputDto(workflow: WorkflowType): RoutingFormWorkflowOutput | void {
@@ -185,7 +209,9 @@ export class WorkflowsOutputService {
 
       const trigger: TriggerDtoType = { type: ENUM_TO_WORKFLOW_TRIGGER[workflow.trigger] };
 
-      const steps: RoutingFormWorkflowStepOutputDto[] = workflow.steps.map(this.mapStep);
+      const steps: RoutingFormWorkflowStepOutputDto[] = workflow.steps.map((step) => {
+        return this.mapStep(step, "routing-form");
+      });
 
       return {
         id: workflow.id,
@@ -219,7 +245,9 @@ export class WorkflowsOutputService {
             }
           : { type: ENUM_TO_WORKFLOW_TRIGGER[workflow.trigger] };
 
-      const steps: EventTypeWorkflowStepOutputDto[] = workflow.steps.map(this.mapStep);
+      const steps: EventTypeWorkflowStepOutputDto[] = workflow.steps.map((step) => {
+        return this.mapStep(step, "event-type");
+      });
 
       return {
         id: workflow.id,
