@@ -11,6 +11,8 @@ export class WorkflowRelationsRepository {
   }
 
   async createActiveOnTeams(workflowId: number, teamIds: number[]) {
+    if (teamIds.length === 0) return;
+
     return await this.prismaClient.workflowsOnTeams.createMany({
       data: teamIds.map((teamId) => ({
         workflowId,
@@ -36,6 +38,8 @@ export class WorkflowRelationsRepository {
   }
 
   async createActiveOnRoutingForms(workflowId: number, routingFormIds: string[]) {
+    if (routingFormIds.length === 0) return;
+
     return await this.prismaClient.workflowsOnRoutingForms.createMany({
       data: routingFormIds.map((routingFormId) => ({
         workflowId,
@@ -52,6 +56,8 @@ export class WorkflowRelationsRepository {
   }
 
   async createActiveOnEventTypes(workflowId: number, eventTypeIds: number[]) {
+    if (eventTypeIds.length === 0) return;
+
     return await this.prismaClient.workflowsOnEventTypes.createMany({
       data: eventTypeIds.map((eventTypeId) => ({
         workflowId,
