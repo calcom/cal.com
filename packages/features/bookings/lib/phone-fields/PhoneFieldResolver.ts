@@ -103,7 +103,7 @@ export class PhoneFieldResolver implements IPhoneFieldResolver {
     return {
       ...attendeeField,
       defaultLabel: "phone_number",
-      sources: [...attendeeField.sources, ...this.createWorkflowSources(requirements)],
+      sources: [...(attendeeField.sources ?? []), ...this.createWorkflowSources(requirements)],
       required: true,
     } as const;
   }
