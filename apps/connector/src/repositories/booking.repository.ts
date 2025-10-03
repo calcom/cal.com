@@ -20,15 +20,12 @@ export class BookingRepository extends BaseRepository<User> {
     //   queryParams.attendeeEmail = await this.getAttendeeEmail(queryParams.attendeeEmail, user);
     // }
 
-    console.log("Query params are: ", queryParams);
     const page = queryParams.page ?? 1;
     const limit = queryParams.limit ?? 100;
 
     const hasPageLimit = typeof queryParams.page !== "undefined" || typeof queryParams.limit !== "undefined";
     const skip = Math.abs((page - 1) * limit);
     const take = limit;
-
-    console.log("Skip and take are: ", skip, ", ", take);
 
     const fetchedBookings: { bookings: { id: number }[]; totalCount: number } = await getAllUserBookings({
       bookingListingByStatus: queryParams.status || [],

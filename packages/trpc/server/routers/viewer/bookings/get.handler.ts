@@ -1,6 +1,5 @@
 import type { Booking, Prisma, Prisma as PrismaClientType } from "@prisma/client";
 import { sql } from "kysely";
-
 import type { Kysely } from "kysely";
 import { type SelectQueryBuilder } from "kysely";
 import { jsonObjectFrom, jsonArrayFrom } from "kysely/helpers/postgres";
@@ -95,7 +94,7 @@ export async function getBookings({
   skip: number;
 }) {
   const membershipIdsWhereUserIsAdminOwner = (
-    await prisma.membership.findMany({
+    await prisma.calIdMembership.findMany({
       where: {
         userId: user.id,
         role: {
@@ -432,8 +431,8 @@ export async function getBookings({
           "Booking.endTime",
           "Booking.metadata",
           "Booking.uid",
-          sql`${eb.ref("startTime")} AT TIME ZONE 'UTC'`.as('startTimeUtc'),
-          sql`${eb.ref("endTime")} AT TIME ZONE 'UTC'`.as('endTimeUtc'),
+          sql`${eb.ref("startTime")} AT TIME ZONE 'UTC'`.as("startTimeUtc"),
+          sql`${eb.ref("endTime")} AT TIME ZONE 'UTC'`.as("endTimeUtc"),
           eb
             .cast<Prisma.JsonValue>( // Target TypeScript type
               eb.ref("Booking.responses"), // Source column
@@ -579,7 +578,6 @@ export async function getBookings({
         .orderBy(orderBy.key, orderBy.order)
         .execute()
     : [];
-
 
   const [
     recurringInfoBasic,
@@ -728,7 +726,7 @@ async function getEventTypeIdsFromTeamIdsFilter(prisma: PrismaClient, teamIds?: 
     prisma.eventType
       .findMany({
         where: {
-          teamId: { in: teamIds },
+          calIdTeamId: { in: teamIds },
         },
         select: {
           id: true,
@@ -740,7 +738,7 @@ async function getEventTypeIdsFromTeamIdsFilter(prisma: PrismaClient, teamIds?: 
       .findMany({
         where: {
           parent: {
-            teamId: { in: teamIds },
+            calIdTeamId: { in: teamIds },
           },
         },
         select: {
@@ -831,13 +829,13 @@ async function getEventTypeIdsFromEventTypeIdsFilter(prisma: PrismaClient, event
 
 async function getEventTypeIdsWhereUserIsAdminOrOwner(
   prisma: PrismaClient,
-  membershipCondition: PrismaClientType.MembershipListRelationFilter
+  membershipCondition: PrismaClientType.CalIdMembershipListRelationFilter
 ) {
   const [directTeamEventTypeIds, parentTeamEventTypeIds] = await Promise.all([
     prisma.eventType
       .findMany({
         where: {
-          team: {
+          calIdTeam: {
             members: membershipCondition,
           },
         },
@@ -851,7 +849,7 @@ async function getEventTypeIdsWhereUserIsAdminOrOwner(
       .findMany({
         where: {
           parent: {
-            team: {
+            calIdTeam: {
               members: membershipCondition,
             },
           },
@@ -874,13 +872,13 @@ async function getEventTypeIdsWhereUserIsAdminOrOwner(
  */
 async function getUserIdsAndEmailsWhereUserIsAdminOrOwner(
   prisma: PrismaClient,
-  membershipCondition: PrismaClientType.MembershipListRelationFilter
+  membershipCondition: PrismaClientType.CalIdMembershipListRelationFilter
 ): Promise<[number[], string[]]> {
   const users = await prisma.user.findMany({
     where: {
-      teams: {
+      calIdTeams: {
         some: {
-          team: {
+          calIdTeam: {
             members: membershipCondition,
           },
         },
@@ -908,8 +906,8 @@ function addStatusesQueryFilters(query: BookingsUnionQuery, statuses: InputBySta
               // or([
               //   and([eb("Booking.recurringEventId", "is not", null), eb("Booking.status", "=", "accepted")]),
               //   and([
-                  eb("Booking.recurringEventId", "is", null),
-                  eb("Booking.status", "not in", ["cancelled", "rejected","pending"]),
+              eb("Booking.recurringEventId", "is", null),
+              eb("Booking.status", "not in", ["cancelled", "rejected", "pending"]),
               //   ]),
               // ]),
             ]);
@@ -935,7 +933,10 @@ function addStatusesQueryFilters(query: BookingsUnionQuery, statuses: InputBySta
           }
 
           if (status === "unconfirmed") {
-            return and([eb(sql`"Booking"."endTime" AT TIME ZONE 'UTC'`, ">=", new Date()), eb("Booking.status", "=", "pending")]);
+            return and([
+              eb(sql`"Booking"."endTime" AT TIME ZONE 'UTC'`, ">=", new Date()),
+              eb("Booking.status", "=", "pending"),
+            ]);
           }
           return and([]);
         })

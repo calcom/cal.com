@@ -43,11 +43,14 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
     },
   }, async (request: AuthRequest, reply: FastifyReply) => {
       const input = request.query as z.infer<typeof bookingsQueryRequestSchema>;
-
-      const result = await bookingService.getUserBookings(input, { id: Number.parseInt(request.user!.id), email: request.user!.email, orgId: request.organizationId });
-
       const page = input.page ?? 1;
       const limit = input.limit ?? 100;
+      const result = await bookingService.getUserBookings({
+        ...input,
+        page, limit
+      }, { id: Number.parseInt(request.user!.id), email: request.user!.email, orgId: request.organizationId ,});
+
+
 
       ResponseFormatter.paginated(
         reply,
