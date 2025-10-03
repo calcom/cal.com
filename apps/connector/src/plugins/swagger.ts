@@ -11,7 +11,7 @@ async function swaggerPlugin(fastify: FastifyInstance): Promise<void> {
     // Determine the correct server URL
     const isLocal = DOMAIN.includes("localhost") || DOMAIN.includes("127.0.0.1");
 
-    const getServerUrl = () => (isLocal ? `http://${DOMAIN}:${PORT}/api` : `https://api.${DOMAIN}`);
+    const getServerUrl = () => (isLocal ? `http://${DOMAIN}:${PORT}` : `https://api.${DOMAIN}`);
 
     const getDescription = () => {
       if (isLocal) return "Development server ";
@@ -45,8 +45,8 @@ async function swaggerPlugin(fastify: FastifyInstance): Promise<void> {
           version: "1.0.0",
           contact: {
             name: "API Support",
-            email: "support@onehash.com",
-            url: "https://support.onehash.com",
+            email: "support@onehash.ai",
+            url: "https://support.onehash.ai",
           },
           license: {
             name: "MIT",
