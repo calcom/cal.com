@@ -96,7 +96,7 @@ export class BookingEmailSmsHandler {
   private readonly log: Logger<unknown>;
 
   constructor(dependencies: IBookingEmailSmsHandler) {
-    this.log = dependencies.logger.getSubLogger({ prefix: ["BookingEmailSmsHandler"] });
+    this.log = dependencies.logger;
   }
 
   public async send(payload: EmailsAndSmsSideEffectsPayload) {

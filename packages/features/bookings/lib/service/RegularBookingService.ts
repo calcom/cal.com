@@ -1890,7 +1890,7 @@ async function handler(
   const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
   const eventManager =
     !isDryRun && !skipCalendarSyncTaskCreation
-      ? new EventManager({ ...organizerUser, credentials }, apps, traceContext)
+      ? new EventManager({ ...organizerUser, credentials }, apps)
       : buildDryRunEventManager();
 
   let videoCallUrl;

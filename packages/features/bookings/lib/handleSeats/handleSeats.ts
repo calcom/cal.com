@@ -156,6 +156,7 @@ const handleSeats = async (
         isConfirmedByDefault: !evt.requiresConfirmation,
         isRescheduleEvent: !!rescheduleUid,
         isNormalBookingOrFirstRecurringSlot: true,
+        traceContext: spanContext,
       });
     } catch (error) {
       tracingLogger.error("Error while scheduling workflow reminders", JSON.stringify({ error }));

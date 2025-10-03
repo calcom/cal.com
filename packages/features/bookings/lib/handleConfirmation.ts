@@ -70,7 +70,7 @@ export async function handleConfirmation(args: {
   paid?: boolean;
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
-  traceContext?: TraceContext;
+  traceContext: TraceContext;
 }) {
   const {
     user,
@@ -124,8 +124,6 @@ export async function handleConfirmation(args: {
       metadata.entryPoints = results[0].createdEvent?.entryPoints;
     }
     try {
-      const eventType = booking.eventType;
-
       let isHostConfirmationEmailsDisabled = false;
       let isAttendeeConfirmationEmailDisabled = false;
 
@@ -385,6 +383,7 @@ export async function handleConfirmation(args: {
         isConfirmedByDefault: true,
         isNormalBookingOrFirstRecurringSlot: isFirstBooking,
         isRescheduleEvent: false,
+        traceContext: spanContext,
       });
     }
   } catch (error) {
@@ -602,7 +601,7 @@ export async function handleConfirmation(args: {
           triggers: [WorkflowTriggerEvents.BOOKING_PAID],
         });
       } catch (error) {
-        log.error("Error while scheduling workflow reminders for booking paid", safeStringify(error));
+        tracingLogger.error("Error while scheduling workflow reminders for booking paid", { error });
       }
     }
   } catch (error) {

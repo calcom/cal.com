@@ -78,7 +78,6 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
       cause: prismaError.cause,
       data: traceId ? { ...tracedData, traceId } : prismaError.data,
     });
-    return getServerErrorFromPrismaError(cause);
   }
   const parsedStripeError = stripeInvalidRequestErrorSchema.safeParse(cause);
   if (parsedStripeError.success) {

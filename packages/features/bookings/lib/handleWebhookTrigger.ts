@@ -15,22 +15,23 @@ async function _handleWebhookTrigger(args: {
   isDryRun?: boolean;
   traceContext: TraceContext;
 }) {
+  const spanContext = args.traceContext
+  ? distributedTracing.createSpan(args.traceContext, "webhook_trigger", {
+      eventTrigger: args.eventTrigger || "unknown",
+      isDryRun: String(args.isDryRun),
+    })
+  : distributedTracing.createTrace("webhook_trigger_fallback", {
+      meta: {
+        eventTrigger: args.eventTrigger || "unknown",
+        isDryRun: String(args.isDryRun),
+      },
+    });
+
+const tracingLogger = distributedTracing.getTracingLogger(spanContext);
+
+
   try {
     if (args.isDryRun) return;
-
-    const spanContext = args.traceContext
-      ? distributedTracing.createSpan(args.traceContext, "webhook_trigger", {
-          eventTrigger: args.eventTrigger || "unknown",
-          isDryRun: String(args.isDryRun),
-        })
-      : distributedTracing.createTrace("webhook_trigger_fallback", {
-          meta: {
-            eventTrigger: args.eventTrigger || "unknown",
-            isDryRun: String(args.isDryRun),
-          },
-        });
-    const tracingLogger = distributedTracing.getTracingLogger(spanContext);
-
     const subscribers = await getWebhooks(args.subscriberOptions);
 
     const promises = subscribers.map((sub) =>
