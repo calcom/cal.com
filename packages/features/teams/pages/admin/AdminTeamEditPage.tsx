@@ -60,7 +60,7 @@ export const TeamForm = ({
     mutation.mutate({
       id: team.id,
       name: values.name,
-      slug: values.slug,
+      slug: values.slug || undefined,
     });
   };
 

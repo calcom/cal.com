@@ -1,3 +1,5 @@
+import type Stripe from "stripe";
+
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { prisma } from "@calcom/prisma";
@@ -19,7 +21,7 @@ export const adminGetTeamBillingHandler = async ({ input }: AdminGetTeamBillingO
   const parsedMetadata = teamMetadataSchema.parse(team.metadata);
 
   let subscriptionDetails = null;
-  let invoices: any[] = [];
+  let invoices: Stripe.Invoice[] = [];
   let stripeCustomerId: string | null = null;
   let stripeSubscriptionId: string | null = null;
   let stripeSubscriptionItemId: string | null = null;
