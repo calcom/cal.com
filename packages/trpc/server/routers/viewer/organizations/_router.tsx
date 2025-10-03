@@ -12,7 +12,6 @@ import { ZAddMembersToTeams } from "./addMembersToTeams.schema";
 import { ZAdminDeleteInput } from "./adminDelete.schema";
 import { ZAdminGet } from "./adminGet.schema";
 import { ZAdminGetAllInputSchema } from "./adminGetAll.schema";
-import { ZAdminGetBilling } from "./adminGetBilling.schema";
 import { ZAdminUpdate } from "./adminUpdate.schema";
 import { ZAdminUpdateMetadataSchema } from "./adminUpdateMetadata.schema";
 import { ZAdminVerifyInput } from "./adminVerify.schema";
@@ -144,10 +143,6 @@ export const viewerOrganizationsRouter = router({
   }),
   adminGet: authedAdminProcedure.input(ZAdminGet).query(async (opts) => {
     const { default: handler } = await import("./adminGet.handler");
-    return handler(opts);
-  }),
-  adminGetBilling: authedAdminProcedure.input(ZAdminGetBilling).query(async (opts) => {
-    const { default: handler } = await import("./adminGetBilling.handler");
     return handler(opts);
   }),
   adminUpdate: authedAdminProcedure.input(ZAdminUpdate).mutation(async (opts) => {

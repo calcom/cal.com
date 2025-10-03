@@ -1,20 +1,22 @@
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
+import { prisma } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TrpcSessionUser } from "../../../types";
-import type { TAdminGetBilling } from "./adminGetBilling.schema";
+import type { TAdminGetTeamBilling } from "./adminGetBilling.schema";
 
-type AdminGetBillingOptions = {
+type AdminGetTeamBillingOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
-  input: TAdminGetBilling;
+  input: TAdminGetTeamBilling;
 };
 
-export const adminGetBillingHandler = async ({ input }: AdminGetBillingOptions) => {
-  const org = await OrganizationRepository.adminFindById({ id: input.id });
-  const parsedMetadata = teamMetadataSchema.parse(org.metadata);
+export const adminGetTeamBillingHandler = async ({ input }: AdminGetTeamBillingOptions) => {
+  const teamRepository = new TeamRepository(prisma);
+  const team = await teamRepository.adminFindById({ id: input.id });
+  const parsedMetadata = teamMetadataSchema.parse(team.metadata);
 
   let subscriptionDetails = null;
   let invoices: any[] = [];
@@ -32,7 +34,8 @@ export const adminGetBillingHandler = async ({ input }: AdminGetBillingOptions) 
   if (stripeSubscriptionId && !stripeCustomerId) {
     try {
       const subscription = await billingService.getSubscription(stripeSubscriptionId);
-      stripeCustomerId = typeof subscription.customer === "string" ? subscription.customer : subscription.customer.id;
+      stripeCustomerId =
+        typeof subscription.customer === "string" ? subscription.customer : subscription.customer.id;
       subscriptionDetails = subscription;
     } catch (error) {
       console.error("Error fetching subscription:", error);
@@ -61,9 +64,10 @@ export const adminGetBillingHandler = async ({ input }: AdminGetBillingOptions) 
     stripeSubscriptionItemId,
     subscriptionId: parsedMetadata?.subscriptionId || null,
     subscriptionItemId: parsedMetadata?.subscriptionItemId || null,
-    billingPeriod: parsedMetadata?.billingPeriod || null,
+    // orgSeats and orgPricePerSeat are used for organizations (and potentially teams)
     seats: parsedMetadata?.orgSeats || null,
     pricePerSeat: parsedMetadata?.orgPricePerSeat || null,
+    billingPeriod: parsedMetadata?.billingPeriod || null,
     subscriptionDetails: subscriptionDetails
       ? {
           status: subscriptionDetails.status,
@@ -87,4 +91,4 @@ export const adminGetBillingHandler = async ({ input }: AdminGetBillingOptions) 
   };
 };
 
-export default adminGetBillingHandler;
+export default adminGetTeamBillingHandler;
