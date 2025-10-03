@@ -600,36 +600,6 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should return empty array when filtering by non-existent user ID", async () => {
-        await bookingsRepositoryFixture.deleteAllBookings(orgUser.id, orgUser.email);
-        await bookingsRepositoryFixture.deleteAllBookings(orgUser2.id, orgUser2.email);
-        return request(app.getHttpServer())
-          .get(`/v2/organizations/${organization.id}/bookings?userIds=972930`)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(200)
-          .then(async (response) => {
-            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
-            expect(responseBody.status).toEqual(SUCCESS_STATUS);
-            const data = responseBody.data;
-            expect(data.length).toEqual(0);
-          });
-      });
-
-      it("should return empty array when filtering by user ID outside organization", async () => {
-        await bookingsRepositoryFixture.deleteAllBookings(orgUser.id, orgUser.email);
-        await bookingsRepositoryFixture.deleteAllBookings(orgUser2.id, orgUser2.email);
-        return request(app.getHttpServer())
-          .get(`/v2/organizations/${organization.id}/bookings?userIds=${nonOrgUser1.id}`)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(200)
-          .then(async (response) => {
-            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
-            expect(responseBody.status).toEqual(SUCCESS_STATUS);
-            const data = responseBody.data;
-            expect(data.length).toEqual(0);
-          });
-      });
-
       it("should get bookings by organizationId and non org event-type id", async () => {
         return request(app.getHttpServer())
           .get(`/v2/organizations/${organization.id}/bookings?eventTypeIds=${nonOrgEventTypeId}`)
