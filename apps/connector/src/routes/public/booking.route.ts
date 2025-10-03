@@ -32,10 +32,10 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.get('/', { 
     preHandler: AuthGuards.authenticateFlexible(),
     schema: {
-      description: 'Get current user availability',
+      description: 'Get current user bookings',
       tags: ['Booking'],
       security: [{ bearerAuth: [] }],
-      querystring: zodToJsonSchema(bookingsQuerySchema),
+      querystring: zodToJsonSchema(bookingsQueryRequestSchema),
       response: {
         200: zodToJsonSchema(responseSchemas.paginated(bookingsQueryResponseSchema, 'User bookings retrieved')),
         401: zodToJsonSchema(responseSchemas.unauthorized()),
