@@ -19,7 +19,7 @@ function WorkflowExample(props: WorkflowExampleType) {
   const { icon: iconName, title, description, iconWrapperClassName, image } = props;
 
   return (
-    <div className="bg-default border-subtle max-h-24 max-w-[600px] rounded-xl border border-solid p-2.5">
+    <div className="bg-default border-subtle max-h-24 max-w-[600px] rounded-xl border border-solid p-2.5 mb-2">
       <div className="flex">
         <div className="flex items-center justify-center">
           <div
