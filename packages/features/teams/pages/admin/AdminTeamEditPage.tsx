@@ -34,7 +34,6 @@ export const TeamForm = ({
   };
 }) => {
   const { t } = useLocale();
-  const router = useRouter();
   const utils = trpc.useUtils();
 
   const form = useForm<FormValues>({
@@ -60,7 +59,7 @@ export const TeamForm = ({
     mutation.mutate({
       id: team.id,
       name: values.name,
-      slug: values.slug,
+      slug: values.slug || undefined,
     });
   };
 
@@ -73,8 +72,7 @@ export const TeamForm = ({
           <TextField label="Slug" placeholder="my-team" required {...form.register("slug")} />
           {team.parentId && (
             <p className="text-default mt-2 text-sm">
-              This team belongs to an organization. Some settings may be managed at the organization
-              level.
+              This team belongs to an organization. Some settings may be managed at the organization level.
             </p>
           )}
           <Button type="submit" color="primary" loading={mutation.isPending}>

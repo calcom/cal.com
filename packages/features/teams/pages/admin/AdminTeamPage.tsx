@@ -47,7 +47,10 @@ function AdminTeamTableContent() {
       limit,
       offset,
       searchTerm,
-      filters: columnFilters,
+      filters: columnFilters.map((filter) => ({
+        id: filter.id,
+        value: filter.value as string | string[] | boolean,
+      })),
     },
     {
       placeholderData: keepPreviousData,
@@ -237,7 +240,7 @@ function AdminTeamTableContent() {
           variety="danger"
           title={t("delete_team")}
           confirmBtnText={t("delete")}
-          isLoading={deleteMutation.isPending}
+          isPending={deleteMutation.isPending}
           onConfirm={() => {
             if (teamToDelete) {
               deleteMutation.mutate({ id: teamToDelete.id });
