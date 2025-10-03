@@ -42,11 +42,13 @@ export type SideBarProps = {
 
 export function SideBarContainer({ bannersHeight, isPlatformUser = false }: SideBarContainerProps) {
   const { status, data } = useSession();
+
+  // Render nothing once we know the user isn't authenticated.
   if (status !== "loading" && status !== "authenticated") return null;
   return <SideBar isPlatformUser={isPlatformUser} bannersHeight={bannersHeight} user={data?.user} />;
 }
 
-// Build a safe public page URL (absolute or empty if not resolvable).
+// Build a safe absolute public page URL, or empty string if we can't.
 const buildPublicPageUrl = (user?: UserAuth | null): string => {
   const base =
     getBookerBaseUrlSync(user?.org?.slug ?? null) ||
@@ -156,21 +158,13 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
             <div className="overflow-hidden">
               <Tips />
             </div>
-            {bottomNavItems.map((item, index) => (
-              <Tooltip side="right" content={t(item.name)} className="lg:hidden" key={item.name}>
-                <ButtonOrLink
-                  id={item.name}
-                  href={item.href || undefined} // undefined for action-only items
-                  aria-label={t(item.name)}
-                  target={item.target}
-                  className={classNames(
-                    "text-left",
-                    "[&[aria-current='page']]:bg-emphasis text-default justify-right group flex items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
-                    "[&[aria-current='page']]:text-emphasis mt-0.5 w-full text-sm",
-                    isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : "",
-                    index === 0 && "mt-3"
-                  )}
-                  onClick={item.onClick}>
+
+            {bottomNavItems.map((item, index) => {
+              const isActionOnly = !item.href;
+              const isInternal = !!item.href && item.href.startsWith("/");
+
+              const content = (
+                <>
                   {!!item.icon && (
                     <Icon
                       name={item.isLoading ? "rotate-cw" : item.icon}
@@ -189,9 +183,48 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
                   ) : (
                     <SkeletonText className="h-[20px] w-full" />
                   )}
-                </ButtonOrLink>
-              </Tooltip>
-            ))}
+                </>
+              );
+
+              const commonClassName = classNames(
+                "text-left",
+                "[&[aria-current='page']]:bg-emphasis text-default justify-right group flex items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
+                "[&[aria-current='page']]:text-emphasis mt-0.5 w-full text-sm",
+                isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : "",
+                index === 0 && "mt-3"
+              );
+
+              return (
+                <Tooltip side="right" content={t(item.name)} className="lg:hidden" key={item.name}>
+                  {isActionOnly ? (
+                    <button
+                      id={item.name}
+                      type="button"
+                      onClick={item.onClick}
+                      className={commonClassName}
+                      aria-label={t(item.name)}
+                      disabled={item.isLoading}>
+                      {content}
+                    </button>
+                  ) : isInternal ? (
+                    <Link href={item.href!} className={commonClassName} aria-label={t(item.name)}>
+                      {content}
+                    </Link>
+                  ) : (
+                    <ButtonOrLink
+                      id={item.name}
+                      href={item.href!} // external/absolute only
+                      target={item.target === "__blank" ? "_blank" : item.target}
+                      onClick={item.onClick}
+                      className={commonClassName}
+                      aria-label={t(item.name)}>
+                      {content}
+                    </ButtonOrLink>
+                  )}
+                </Tooltip>
+              );
+            })}
+
             {!IS_VISUAL_REGRESSION_TESTING && <Credits />}
           </div>
         )}
