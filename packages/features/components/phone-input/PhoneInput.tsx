@@ -72,10 +72,10 @@ function BasePhoneInput({
         onChange(`+${val}`);
       }}
       containerClass={classNames(
-        "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default rounded-[10px] border focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-default disabled:cursor-not-allowed h-10",
+        "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-default disabled:cursor-not-allowed",
         className
       )}
-      inputClass="text-sm focus:ring-0 !bg-default text-default placeholder:text-muted h-10"
+      inputClass="text-sm focus:ring-0 !bg-default text-default placeholder:text-muted"
       buttonClass="text-emphasis !bg-default hover:!bg-emphasis"
       searchClass="!text-default !bg-default hover:!bg-emphasis"
       dropdownClass="!text-default !bg-default"
@@ -84,10 +84,10 @@ function BasePhoneInput({
         display: "flex",
         flexDirection: "row",
         alignItems: "center",
-        padding: "8px 12px",
+        padding: "6px 12px",
         gap: "8px",
         width: "296px",
-        height: "40px",
+        height: "28px",
         marginLeft: "-4px",
       }}
       dropdownStyle={{ width: "max-content" }}
@@ -122,10 +122,10 @@ function BasePhoneInputWeb({
         onChange(`+${val}`);
       }}
       containerClass={classNames(
-        "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default rounded-[10px] border focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-default disabled:cursor-not-allowed h-10",
+        "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-default disabled:cursor-not-allowed",
         className
       )}
-      inputClass="text-sm focus:ring-0 !bg-default text-default placeholder:text-muted h-10"
+      inputClass="text-sm focus:ring-0 !bg-default text-default placeholder:text-muted"
       buttonClass="text-emphasis !bg-default hover:!bg-emphasis"
       buttonStyle={{ ...flagButtonStyle }}
       searchClass="!text-default !bg-default hover:!bg-emphasis"
@@ -135,10 +135,10 @@ function BasePhoneInputWeb({
         display: "flex",
         flexDirection: "row",
         alignItems: "center",
-        padding: "8px 12px",
+        padding: "6px 12px",
         gap: "8px",
         width: "296px",
-        height: "40px",
+        height: "28px",
         marginLeft: "-4px",
       }}
       dropdownStyle={{ width: "max-content" }}
