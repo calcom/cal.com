@@ -183,6 +183,7 @@ export async function executeAIPhoneCall(payload: string) {
       ATTENDEE_FIRST_NAME: attendeeFirstName,
       ATTENDEE_LAST_NAME: attendeeLastName,
       ATTENDEE_EMAIL: attendee?.email || "",
+      NUMBER_TO_CALL: numberToCall,
       ATTENDEE_TIMEZONE: attendee?.timeZone || "",
       ADDITIONAL_NOTES: booking.description || "",
       EVENT_START_TIME_IN_ATTENDEE_TIMEZONE: dayjs(booking.startTime)

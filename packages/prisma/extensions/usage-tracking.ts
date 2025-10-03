@@ -1,11 +1,11 @@
-import { Prisma } from "@prisma/client";
-import type { PrismaClient as PrismaClientWithoutExtensions } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 
 import { UsageEvent, LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
+import { Prisma } from "@calcom/prisma/client";
+import type { PrismaClient } from "@calcom/prisma/client";
 
-async function incrementUsage(prismaClient: PrismaClientWithoutExtensions, event?: UsageEvent) {
+async function incrementUsage(prismaClient: PrismaClient, event?: UsageEvent) {
   const deploymentRepo = new DeploymentRepository(prismaClient);
   try {
     const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
@@ -15,7 +15,7 @@ async function incrementUsage(prismaClient: PrismaClientWithoutExtensions, event
   }
 }
 
-export function usageTrackingExtention(prismaClient: PrismaClientWithoutExtensions) {
+export function usageTrackingExtention(prismaClient: PrismaClient) {
   return Prisma.defineExtension({
     query: {
       booking: {

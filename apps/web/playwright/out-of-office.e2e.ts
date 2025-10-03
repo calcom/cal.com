@@ -775,10 +775,10 @@ test.describe("Out of office", () => {
 
       //Default filter 'Last 7 Days' when DateRange Filter is selected
       await test.step("Default filter - 'Last 7 Days'", async () => {
-        await addFilter(page, "dateRange");
         const entriesListRespPromise = page.waitForResponse(
           (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
         );
+        await addFilter(page, "dateRange");
         await entriesListRespPromise;
 
         //1 OOO record should be visible for member3, end=currentDate-4days
@@ -836,10 +836,10 @@ test.describe("Out of office", () => {
 
       //Select 'Last 30 Days'
       await test.step("select 'Last 30 Days'", async () => {
-        await addFilter(page, "dateRange");
         const entriesListRespPromise1 = page.waitForResponse(
           (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
         );
+        await addFilter(page, "dateRange");
         await entriesListRespPromise1;
 
         const entriesListRespPromise2 = page.waitForResponse(

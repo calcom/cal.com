@@ -2,7 +2,6 @@ import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
 
 import type { InputEventType, getOrganizer, CalendarServiceMethodMock } from "./bookingScenario";
 
-import type { WebhookTriggerEvents, Booking, BookingReference, DestinationCalendar } from "@prisma/client";
 import { parse } from "node-html-parser";
 import type { VEvent } from "node-ical";
 import ical from "node-ical";
@@ -14,6 +13,12 @@ import type { Tracking } from "@calcom/features/bookings/lib/handleNewBooking/ty
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import type {
+  WebhookTriggerEvents,
+  Booking,
+  BookingReference,
+  DestinationCalendar,
+} from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { AppsStatus } from "@calcom/types/Calendar";
 import type { CalendarEvent } from "@calcom/types/Calendar";
