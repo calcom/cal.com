@@ -339,7 +339,7 @@ describe("SalesforceCRMService", () => {
 
         expect(querySpy).toHaveBeenNthCalledWith(
           1,
-          "SELECT Id, Email, OwnerId, AccountId, Account.Owner.Email, Account.Website FROM Contact WHERE Email = 'test@example.com' AND AccountId != null"
+          "SELECT Id, Email, OwnerId, AccountId, Account.OwnerId, Account.Owner.Email, Account.Website FROM Contact WHERE Email = 'test@example.com' AND AccountId != null"
         );
       });
     });
@@ -429,7 +429,7 @@ describe("SalesforceCRMService", () => {
 
         expect(querySpy).toHaveBeenNthCalledWith(
           1,
-          "SELECT Id, Email, OwnerId, AccountId, Account.Owner.Email, Account.Website FROM Contact WHERE Email = 'test@example.com' AND AccountId != null"
+          "SELECT Id, Email, OwnerId, AccountId, Account.OwnerId, Account.Owner.Email, Account.Website FROM Contact WHERE Email = 'test@example.com' AND AccountId != null"
         );
       });
     });
