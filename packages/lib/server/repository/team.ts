@@ -473,4 +473,16 @@ export class TeamRepository {
 
     return !conflictingTeam;
   }
+
+  async findOrgTeamsExcludingTeam({ parentId, excludeTeamId }: { parentId: number; excludeTeamId: number }) {
+    return await this.prismaClient.team.findMany({
+      where: {
+        parentId,
+        id: {
+          not: excludeTeamId,
+        },
+      },
+      select: { id: true },
+    });
+  }
 }

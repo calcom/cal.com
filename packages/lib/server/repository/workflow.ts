@@ -803,4 +803,58 @@ export class WorkflowRepository {
       },
     });
   }
+
+  static async findWorkflowsActiveOnRoutingForm({ routingFormId }: { routingFormId: string }) {
+    return await prisma.workflow.findMany({
+      where: {
+        activeOnRoutingForms: {
+          some: {
+            routingFormId,
+          },
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        trigger: true,
+        time: true,
+        timeUnit: true,
+        userId: true,
+        teamId: true,
+        steps: true,
+        team: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+      },
+    });
+  }
+
+  static async findActiveWorkflowsOnTeam({ parentTeamId, teamId }: { parentTeamId: number; teamId: number }) {
+    return await prisma.workflow.findMany({
+      where: {
+        teamId: parentTeamId,
+        OR: [
+          {
+            activeOnTeams: {
+              some: {
+                teamId: teamId,
+              },
+            },
+          },
+          {
+            isActiveOnAll: true,
+          },
+        ],
+      },
+      select: {
+        steps: true,
+        activeOnTeams: true,
+        isActiveOnAll: true,
+      },
+    });
+  }
 }
