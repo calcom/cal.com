@@ -64,10 +64,10 @@ export const adminGetTeamBillingHandler = async ({ input }: AdminGetTeamBillingO
     stripeSubscriptionItemId,
     subscriptionId: parsedMetadata?.subscriptionId || null,
     subscriptionItemId: parsedMetadata?.subscriptionItemId || null,
-    // Handle both organization fields (orgSeats, orgPricePerSeat) and team fields (paymentMetadata.seats)
-    seats: parsedMetadata?.orgSeats || parsedMetadata?.paymentMetadata?.seats || null,
+    // orgSeats and orgPricePerSeat are used for organizations (and potentially teams)
+    seats: parsedMetadata?.orgSeats || null,
     pricePerSeat: parsedMetadata?.orgPricePerSeat || null,
-    billingPeriod: parsedMetadata?.billingPeriod || parsedMetadata?.paymentMetadata?.billingCycleStart || null,
+    billingPeriod: parsedMetadata?.billingPeriod || null,
     subscriptionDetails: subscriptionDetails
       ? {
           status: subscriptionDetails.status,
