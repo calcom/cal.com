@@ -88,7 +88,9 @@ export async function handleWebhookScheduledTriggers(prisma: PrismaClient) {
       triggerEvent: parsedJobPayload.triggerEvent,
       subscriberUrl: job.subscriberUrl,
       originalTraceId: parsedJobPayload._traceContext?.traceId,
-      timeSinceScheduled: Date.now() - new Date(parsedJobPayload.endTime).getTime(),
+      timeSinceScheduled: parsedJobPayload?.endTime
+        ? Date.now() - new Date(parsedJobPayload.endTime).getTime()
+        : undefined,
     });
 
     // clean finished job

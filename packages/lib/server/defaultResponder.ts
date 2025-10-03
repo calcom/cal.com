@@ -26,7 +26,6 @@ export function defaultResponder<T>(
       meta: {
         method: req.method || "",
         url: req.url || "",
-        body: JSON.stringify(req.body),
       },
     });
     const tracingLogger = distributedTracing.getTracingLogger(traceContext);

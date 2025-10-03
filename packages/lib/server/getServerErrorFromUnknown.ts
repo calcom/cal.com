@@ -76,7 +76,7 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
       statusCode: prismaError.statusCode,
       message: prismaError.message,
       cause: prismaError.cause,
-      data: traceId ? { ...tracedData, traceId } : prismaError.data,
+      data: traceId ? { ...tracedData, ...prismaError.data, traceId } : prismaError.data,
     });
   }
   const parsedStripeError = stripeInvalidRequestErrorSchema.safeParse(cause);
@@ -88,7 +88,7 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
       statusCode: stripeError.statusCode,
       message: stripeError.message,
       cause: stripeError.cause,
-      data: traceId ? { ...tracedData, traceId } : stripeError.data,
+      data: traceId ? { ...tracedData, ...stripeError.data, traceId } : stripeError.data,
     });
   }
   if (cause instanceof ErrorWithCode) {
@@ -121,7 +121,7 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
       statusCode: error.statusCode,
       message: error.message,
       cause: error.cause,
-      data: traceId ? { ...tracedData, traceId } : error.data,
+      data: traceId ? { ...tracedData, ...error.data, traceId } : error.data,
     });
   }
   if (typeof cause === "string") {
@@ -132,7 +132,7 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
   return new HttpError({
     statusCode: 500,
     message: `Unhandled error of type '${typeof cause}'. Please reach out for our customer support.`,
-    data: traceId ? { ...tracedData, traceId } : undefined,
+    data: traceId ? { ...tracedData, traceId } : tracedData,
   });
 }
 

@@ -16,8 +16,6 @@ import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-c
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
-import logger from "@calcom/lib/logger";
-import { safeStringify } from "@calcom/lib/safeStringify";
 import type { TraceContext } from "@calcom/lib/tracing";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { prisma } from "@calcom/prisma";
@@ -64,8 +62,9 @@ export async function handleStripePaymentSuccess(event: Stripe.Event, traceConte
 
   if (!payment?.bookingId) {
     tracingLogger.error("Stripe: Payment Not Found", {
-      paymentIntent: safeStringify(paymentIntent),
-      payment: safeStringify(payment),
+      paymentIntentId: paymentIntent.id,
+      paymentId: payment?.id,
+      bookingId: payment?.bookingId,
     });
     throw new HttpCode({ statusCode: 204, message: "Payment not found" });
   }

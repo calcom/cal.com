@@ -498,18 +498,12 @@ async function handler(
         eventTypeId: rawBookingData.eventTypeId?.toString() || "null",
         userId: userId?.toString() || "null",
         eventTypeSlug: rawBookingData.eventTypeSlug || "unknown",
-        userInfo:
-          typeof rawBookingData.user === "string" ? rawBookingData.user : JSON.stringify(rawBookingData.user),
       })
     : distributedTracing.createTrace("booking_creation", {
         meta: {
           eventTypeId: rawBookingData.eventTypeId?.toString() || "null",
           userId: userId?.toString() || "null",
           eventTypeSlug: rawBookingData.eventTypeSlug || "unknown",
-          userInfo:
-            typeof rawBookingData.user === "string"
-              ? rawBookingData.user
-              : JSON.stringify(rawBookingData.user),
         },
       });
   const tracingLogger = distributedTracing.getTracingLogger(traceContext);
@@ -918,7 +912,7 @@ async function handler(
                   timeZone: reqBody.timeZone,
                   originalRescheduledBooking: originalRescheduledBooking ?? null,
                 },
-                loggerWithEventDetails,
+                traceContext,
                 shouldServeCache
               );
             }
