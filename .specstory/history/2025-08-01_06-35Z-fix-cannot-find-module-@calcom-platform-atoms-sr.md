@@ -10,8 +10,6 @@ _**User**_
 
 _**Assistant**_
 
-
-
 ---
 
 _**User**_
@@ -34,8 +32,6 @@ _**User**_
 
 _**Assistant**_
 
-
-
 ---
 
 _**User**_
@@ -46,7 +42,4 @@ _**User**_
 
 _**Assistant**_
 
-
-
 ---
-

@@ -51,7 +51,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     key={event.id}>
                     <h1 className="text-lg font-semibold">{formatEventSlug}</h1>
                     <p>{`/${event.slug}`}</p>
-                    <span className="border-none bg-gray-800 px-2 text-white">{event?.lengthInMinutes}</span>
+                    <span className="border-none bg-gray-800 px-2 text-default">{event?.lengthInMinutes}</span>
                   </div>
                 );
               }
@@ -80,7 +80,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     key={event.id}>
                     <h1 className="text-lg font-semibold">{formatEventSlug}</h1>
                     <p>{`/${event.slug}`}</p>
-                    <span className="border-none bg-gray-800 px-2 text-white">{event?.lengthInMinutes}</span>
+                    <span className="border-none bg-gray-800 px-2 text-default">{event?.lengthInMinutes}</span>
                   </div>
                 );
               }
@@ -124,7 +124,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                 },
                 confirmStep: {
                   confirmButton: "!bg-purple-700",
-                  backButton: "text-purple-700 hover:!bg-purple-700 hover:!text-white",
+                  backButton: "text-purple-700 hover:!bg-purple-700 hover:!text-default",
                 },
               }}
               {...(isTeamEvent

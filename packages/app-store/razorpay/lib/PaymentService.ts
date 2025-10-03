@@ -1,4 +1,4 @@
-import type { Booking, Payment, Prisma } from "@prisma/client";
+import type { Payment, Prisma, Booking, PaymentOption } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
@@ -41,23 +41,19 @@ export class PaymentService implements IAbstractPaymentService {
     }
   }
 
-  async create({
-    payment,
-    bookingId,
-    bookerName,
-    bookingUid,
-    bookerEmail,
-    eventTitle,
-    bookingTitle,
-  }: {
-    payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">;
-    bookingId: Booking["id"];
-    bookerName: string;
-    bookingUid: string;
-    bookerEmail: string;
-    eventTitle?: string;
-    bookingTitle?: string;
-  }) {
+  async create(
+    payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
+    bookingId: Booking["id"],
+    userId: Booking["userId"],
+    username: string | null,
+    bookerName: string | null,
+    paymentOption: PaymentOption,
+    bookerEmail: string,
+    bookingUid: string,
+    bookerPhoneNumber?: string | null,
+    eventTitle?: string,
+    bookingTitle?: string
+  ) {
     try {
       if (!this.credentials) {
         throw new Error("Razorpay: Credentials are not set for the payment service");
@@ -70,7 +66,7 @@ export class PaymentService implements IAbstractPaymentService {
         amount: payment.amount,
         currency: payment.currency,
         customer: {
-          name: bookerName,
+          name: bookerName ?? "No Name",
           email: bookerEmail,
         },
         eventTitle: eventTitle || bookingTitle || "",

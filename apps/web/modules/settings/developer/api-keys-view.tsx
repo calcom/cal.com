@@ -62,37 +62,37 @@ const ApiKeysView = ({ apiKeys: data }: Props) => {
     <SettingsHeader
       title={t("api_keys")}
       description={t("create_first_api_key_description", { appName: APP_NAME })}
-      // CTA={<NewApiKeyButton />}
-      borderInShellHeader={false}>
-      {/* <LicenseRequired> */}
-      <div>
-        {data?.length ? (
-          <>
-            <div className="border-subtle rounded-md border">
-              {data.map((apiKey, index) => (
-                <ApiKeyListItem
-                  key={apiKey.id}
-                  apiKey={apiKey}
-                  lastItem={data.length === index + 1}
-                  onEditClick={() => {
-                    setApiKeyToEdit(apiKey);
-                    setApiKeyModal(true);
-                  }}
-                />
-              ))}
-            </div>
-          </>
-        ) : (
-          <EmptyScreen
-            Icon="link"
-            headline={t("create_first_api_key")}
-            description={t("create_first_api_key_description", { appName: APP_NAME })}
-            className="rounded-b-lg rounded-t-none border-t-0"
-            buttonRaw={<NewApiKeyButton />}
-          />
-        )}
-      </div>
-      {/* </LicenseRequired> */}
+      CTA={<NewApiKeyButton />}
+      borderInShellHeader={true}>
+      <LicenseRequired>
+        <div>
+          {data?.length ? (
+            <>
+              <div className="border-subtle rounded-b-lg border border-t-0">
+                {data.map((apiKey, index) => (
+                  <ApiKeyListItem
+                    key={apiKey.id}
+                    apiKey={apiKey}
+                    lastItem={data.length === index + 1}
+                    onEditClick={() => {
+                      setApiKeyToEdit(apiKey);
+                      setApiKeyModal(true);
+                    }}
+                  />
+                ))}
+              </div>
+            </>
+          ) : (
+            <EmptyScreen
+              Icon="link"
+              headline={t("create_first_api_key")}
+              description={t("create_first_api_key_description", { appName: APP_NAME })}
+              className="rounded-b-lg rounded-t-none border-t-0"
+              buttonRaw={<NewApiKeyButton />}
+            />
+          )}
+        </div>
+      </LicenseRequired>
 
       <Dialog open={apiKeyModal} onOpenChange={setApiKeyModal}>
         <DialogContent type="creation">

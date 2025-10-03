@@ -8,9 +8,9 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { timeUnitLowerCase } from "../config/constants";
 import type {
-  AttendeeInBookingInfo,
-  ScheduleTextReminderAction,
-  ScheduleTextReminderArgs,
+  CalIdAttendeeInBookingInfo,
+  CalIdScheduleTextReminderAction,
+  CalIdScheduleTextReminderArgs,
 } from "../config/types";
 import * as twilio from "../providers/twilio";
 import type { VariablesType } from "../templates/customTemplate";
@@ -21,7 +21,7 @@ import { getSenderId } from "../utils/getSenderId";
 const moduleLogger = logger.getSubLogger({ prefix: ["[smsReminderManager]"] });
 
 const validateNumberVerification = async (
-  actionType: ScheduleTextReminderAction,
+  actionType: CalIdScheduleTextReminderAction,
   phoneNumber: string | null,
   userIdentifier?: number | null,
   teamIdentifier?: number | null,
@@ -40,10 +40,10 @@ const validateNumberVerification = async (
 };
 
 const determineTargetAttendee = (
-  actionType: ScheduleTextReminderAction,
+  actionType: CalIdScheduleTextReminderAction,
   eventData: any,
   phoneContact: string | null
-): AttendeeInBookingInfo => {
+): CalIdAttendeeInBookingInfo => {
   if (actionType !== WorkflowActions.SMS_ATTENDEE) {
     return eventData.attendees[0];
   }
@@ -51,7 +51,7 @@ const determineTargetAttendee = (
   const matchingAttendee =
     phoneContact &&
     eventData.attendees.find(
-      (participant: AttendeeInBookingInfo) => participant.email === eventData.responses?.email?.value
+      (participant: CalIdAttendeeInBookingInfo) => participant.email === eventData.responses?.email?.value
     );
 
   return matchingAttendee || eventData.attendees[0];
@@ -84,7 +84,10 @@ const calculateScheduledDateTime = (
   }
 };
 
-const buildMessageVariables = (eventInfo: any, targetAttendee: AttendeeInBookingInfo): VariablesType => ({
+const buildMessageVariables = (
+  eventInfo: any,
+  targetAttendee: CalIdAttendeeInBookingInfo
+): VariablesType => ({
   eventName: eventInfo.title,
   organizerName: eventInfo.organizer.name,
   attendeeName: targetAttendee.name,
@@ -109,8 +112,8 @@ const generateMessageContent = (
   messageTemplate: string,
   workflowTemplate: WorkflowTemplates | undefined,
   eventDetails: any,
-  actionType: ScheduleTextReminderAction,
-  targetParticipant: AttendeeInBookingInfo,
+  actionType: CalIdScheduleTextReminderAction,
+  targetParticipant: CalIdAttendeeInBookingInfo,
   recipientLocale: string,
   recipientTimezone: string
 ): string => {
@@ -200,7 +203,7 @@ const scheduleDelayedNotification = async (
     );
 
     if (scheduledMessage) {
-      await prisma.workflowReminder.create({
+      await prisma.calIdWorkflowReminder.create({
         data: {
           bookingUid: bookingReference,
           workflowStepId: stepReference,
@@ -223,7 +226,7 @@ const storeFutureReminder = async (
   dispatchTime: dayjs.Dayjs,
   seatReference?: string | null
 ): Promise<void> => {
-  await prisma.workflowReminder.create({
+  await prisma.calIdWorkflowReminder.create({
     data: {
       bookingUid: bookingReference,
       workflowStepId: stepReference,
@@ -270,8 +273,8 @@ const processScheduledReminder = async (
 };
 
 const determineRecipientDetails = (
-  actionType: ScheduleTextReminderAction,
-  targetAttendee: AttendeeInBookingInfo,
+  actionType: CalIdScheduleTextReminderAction,
+  targetAttendee: CalIdAttendeeInBookingInfo,
   organizerInfo: any
 ) => {
   const isAttendeeAction = actionType === WorkflowActions.SMS_ATTENDEE;
@@ -284,7 +287,7 @@ const determineRecipientDetails = (
   };
 };
 
-export const scheduleSMSReminder = async (parameters: ScheduleTextReminderArgs): Promise<void> => {
+export const scheduleSMSReminder = async (parameters: CalIdScheduleTextReminderArgs): Promise<void> => {
   const {
     evt: eventData,
     reminderPhone: phoneDestination,
@@ -296,7 +299,7 @@ export const scheduleSMSReminder = async (parameters: ScheduleTextReminderArgs):
     template: workflowTemplate,
     sender: senderOverride,
     userId: userReference,
-    teamId: teamReference,
+    calIdTeamId: teamReference,
     isVerificationPending: pendingVerification = false,
     seatReferenceUid: seatReference,
   } = parameters;
@@ -382,7 +385,7 @@ export const deleteScheduledSMSReminder = async (
   externalReference: string | null
 ): Promise<void> => {
   try {
-    await prisma.workflowReminder.update({
+    await prisma.calIdWorkflowReminder.update({
       where: { id: reminderIdentifier },
       data: { cancelled: true },
     });

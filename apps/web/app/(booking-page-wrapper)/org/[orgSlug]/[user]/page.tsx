@@ -1,16 +1,16 @@
+import { getDefaultAvatar } from "@calid/features/lib/defaultAvatar";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps } from "app/_types";
 import { generateMeetingMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/org/[orgSlug]/[user]/getServerSideProps";
 
-import type { PageProps as TeamPageProps } from "~/team/team-view";
 import TeamPage from "~/team/team-view";
+import type { PageProps as TeamPageProps } from "~/team/team-view";
 import UserPage from "~/users/views/users-public-view";
 import type { PageProps as UserPageProps } from "~/users/views/users-public-view";
 
@@ -28,7 +28,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
       title: markdownStrippedBio ?? "",
       profile: {
         name: `${team.name}`,
-        image: getOrgOrTeamAvatar(team),
+        image: getDefaultAvatar(team),
       },
     };
     return {

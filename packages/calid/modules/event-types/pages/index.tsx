@@ -1,15 +1,14 @@
 "use client";
 
+import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { z } from "zod";
 
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { trpc } from "@calcom/trpc/react";
 
@@ -32,9 +31,7 @@ const querySchema = z.object({
 
 export const EventTypes = () => {
   const router = useRouter();
-  const { t } = useLocale();
   const { copyToClipboard } = useCopy();
-  const orgBranding = useOrgBranding();
   const { data: sessionData } = useSession();
 
   // URL state management
@@ -57,14 +54,19 @@ export const EventTypes = () => {
   });
 
   const newDropdownRef = useRef<HTMLDivElement>(null);
+
   const debouncedSearchTerm = useDebounce(searchQuery, 500);
 
-  // Real data fetching - User event groups
-  const userEventGroupsQuery = trpc.viewer.eventTypes.getUserEventGroups.useQuery();
-  const eventTypeGroups = userEventGroupsQuery.data?.eventTypeGroups || [];
-  const profiles = userEventGroupsQuery.data?.profiles || [];
+  const userEventGroupsQuery = trpc.viewer.eventTypes.calid_getUserEventGroups.useQuery();
+  const eventTypeGroups = useMemo(
+    () => userEventGroupsQuery.data?.eventTypeGroups || [],
+    [userEventGroupsQuery.data?.eventTypeGroups]
+  );
+  const profiles = useMemo(
+    () => userEventGroupsQuery.data?.profiles || [],
+    [userEventGroupsQuery.data?.profiles]
+  );
 
-  // Find current team/group
   const currentTeam = useMemo(() => {
     if (selectedTeam === "personal") {
       return eventTypeGroups.find((group) => !group.teamId);
@@ -72,31 +74,39 @@ export const EventTypes = () => {
     return eventTypeGroups.find((group) => group.teamId?.toString() === selectedTeam);
   }, [eventTypeGroups, selectedTeam]);
 
-  // Real data fetching - Event types for current group
-  const eventTypesQuery = trpc.viewer.eventTypes.getEventTypesFromGroup.useInfiniteQuery(
+  const eventTypesQuery = trpc.viewer.eventTypes.calid_getEventTypesFromGroup.useInfiniteQuery(
     {
       limit: LIMIT,
       searchQuery: debouncedSearchTerm,
       group: {
-        teamId: currentTeam?.teamId || null,
+        calIdTeamId: currentTeam?.teamId || null,
         parentId: currentTeam?.parentId || null,
       },
     },
     {
-      enabled: !!currentTeam,
-      refetchOnWindowFocus: true,
-      refetchOnMount: true,
-      staleTime: 0,
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      getNextPageParam: (lastPage) => {
+        // Add logging to debug the response
+        console.log("Last page:", lastPage);
+        return lastPage.nextCursor;
+      },
+      initialCursor: 0, // Add initial cursor
     }
   );
 
-  // Custom hook for mutations and handlers
+  const buttonInView = useInViewObserver(() => {
+    if (!eventTypesQuery.isFetching && eventTypesQuery.hasNextPage && eventTypesQuery.status === "success") {
+      eventTypesQuery.fetchNextPage();
+    }
+  }, null);
+
+  console.log("Has next page:", eventTypesQuery.hasNextPage);
+  console.log("Pages:", eventTypesQuery.data?.pages);
+
   const { mutations, handlers } = useEventTypesMutations(currentTeam, debouncedSearchTerm);
 
-  // Get filtered events from pages
   const filteredEvents = useMemo(() => {
-    const allEvents = eventTypesQuery.data?.pages?.flatMap((page) => page.eventTypes) || [];
+    const allEvents = eventTypesQuery.data?.pages.flatMap((page) => page.eventTypes) || [];
+    if (!debouncedSearchTerm) return allEvents;
     return allEvents.filter(
       (event) =>
         event.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
@@ -132,14 +142,11 @@ export const EventTypes = () => {
 
   // Booker URL logic
   const bookerUrl = useMemo(() => {
-    if (orgBranding) {
-      return orgBranding.fullDomain;
-    }
     return process.env.NEXT_PUBLIC_WEBSITE_URL || "https://cal.id";
-  }, [orgBranding]);
+  }, []);
 
   // Event handlers
-  const handleCreateEvent = useCallback((eventData: any) => {
+  const handleCreateEvent = useCallback((_eventData: unknown) => {
     setIsCreateModalOpen(false);
   }, []);
 
@@ -171,7 +178,8 @@ export const EventTypes = () => {
 
   const handleReorderEvents = useCallback(
     (reorderedEvents: InfiniteEventType[]) => {
-      const allEvents = eventTypesQuery.data?.pages?.flatMap((page) => page.eventTypes) || [];
+      // Changed from eventTypesQuery.data?.eventTypes to get first page's events
+      const allEvents = eventTypesQuery.data?.pages[0]?.eventTypes || [];
       handlers.handleReorderEvents(reorderedEvents, allEvents);
     },
     [handlers, eventTypesQuery.data?.pages]
@@ -238,15 +246,6 @@ export const EventTypes = () => {
     [router]
   );
 
-  // // Loading state
-  // if (userEventGroupsQuery.isLoading || !currentTeam) {
-  //   return (
-  //     <div className="px-4 pb-8 sm:px-6 lg:px-8">
-  //       <div className="mx-auto max-w-7xl">{/* <EventCardListSkeleton count={2} /> */}</div>
-  //     </div>
-  //   );
-  // }
-
   // Error state
   if (userEventGroupsQuery.error) {
     return <div className="p-4">Error loading event types</div>;
@@ -258,51 +257,55 @@ export const EventTypes = () => {
 
   return (
     <div className="bg-background min-h-screen">
-      {/* Team Tabs */}
-      <TeamTabs
-        eventTypeGroups={eventTypeGroups}
-        profiles={profiles}
-        selectedTeam={selectedTeam}
-        onTeamChange={handleTeamChange}
-      />
+      {/* Responsive Container */}
+      <div className="mx-auto w-full ">
+        {/* Team Tabs */}
+        <TeamTabs
+          eventTypeGroups={eventTypeGroups}
+          profiles={profiles}
+          selectedTeam={selectedTeam}
+          onTeamChange={handleTeamChange}
+        />
 
-      {/* Header with Search and New Button */}
-      <EventTypesHeader
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        currentTeam={currentTeam}
-        bookerUrl={bookerUrl}
-        copiedPublicLink={copiedPublicLink}
-        onCopyPublicLink={handleCopyPublicLink}
-        showNewDropdown={showNewDropdown}
-        onToggleNewDropdown={() => setShowNewDropdown(!showNewDropdown)}
-        onNewSelection={handleNewSelection}
-        eventTypeGroups={eventTypeGroups}
-        newDropdownRef={newDropdownRef}
-      />
+        {/* Header with Search and New Button */}
+        <EventTypesHeader
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          currentTeam={currentTeam}
+          bookerUrl={bookerUrl}
+          copiedPublicLink={copiedPublicLink}
+          onCopyPublicLink={handleCopyPublicLink}
+          showNewDropdown={showNewDropdown}
+          onToggleNewDropdown={() => setShowNewDropdown(!showNewDropdown)}
+          onNewSelection={handleNewSelection}
+          eventTypeGroups={eventTypeGroups}
+          newDropdownRef={newDropdownRef}
+        />
 
-      {/* Main Content */}
-      <EventTypesContent
-        isLoading={eventTypesQuery.isLoading}
-        filteredEvents={filteredEvents}
-        selectedTeam={selectedTeam}
-        currentTeam={currentTeam}
-        eventStates={eventStates}
-        copiedLink={copiedLink}
-        bookerUrl={bookerUrl}
-        debouncedSearchTerm={debouncedSearchTerm}
-        hasNextPage={eventTypesQuery.hasNextPage}
-        isFetchingNextPage={eventTypesQuery.isFetchingNextPage}
-        onEventEdit={handlers.handleEventEdit}
-        onCopyLink={handleCopyLink}
-        onToggleEvent={handleToggleEvent}
-        onDuplicateEvent={handleDuplicateEvent}
-        onDeleteEvent={handleDeleteEvent}
-        onReorderEvents={handleReorderEvents}
-        onLoadMore={() => eventTypesQuery.fetchNextPage()}
-        onCreatePersonal={() => setIsCreateModalOpen(true)}
-        onCreateTeam={() => setIsCreateTeamModalOpen(true)}
-      />
+        {/* Main Content */}
+        <EventTypesContent
+          isLoading={eventTypesQuery.isLoading && !eventTypesQuery.data}
+          filteredEvents={filteredEvents}
+          selectedTeam={selectedTeam}
+          currentTeam={currentTeam}
+          eventStates={eventStates}
+          copiedLink={copiedLink}
+          bookerUrl={bookerUrl}
+          debouncedSearchTerm={debouncedSearchTerm}
+          hasNextPage={eventTypesQuery.hasNextPage ?? false}
+          isFetchingNextPage={eventTypesQuery.isFetchingNextPage}
+          onEventEdit={handlers.handleEventEdit}
+          onCopyLink={handleCopyLink}
+          onToggleEvent={handleToggleEvent}
+          onDuplicateEvent={handleDuplicateEvent}
+          onDeleteEvent={handleDeleteEvent}
+          onReorderEvents={handleReorderEvents}
+          onLoadMore={() => eventTypesQuery.fetchNextPage()}
+          onCreatePersonal={() => setIsCreateModalOpen(true)}
+          onCreateTeam={() => setIsCreateTeamModalOpen(true)}
+          buttonInViewRef={buttonInView}
+        />
+      </div>
 
       {/* Modals */}
       <CreateEventModal
@@ -320,7 +323,10 @@ export const EventTypes = () => {
         teamName={
           eventTypeGroups.find((g) => g.teamId?.toString() === selectedTeamForCreation)?.profile.name || ""
         }
-        teamSlug={currentTeam?.profile.slug ?? undefined}
+        teamSlug={
+          eventTypeGroups.find((g) => g.teamId?.toString() === selectedTeamForCreation)?.profile.slug ??
+          undefined
+        }
         isTeamAdminOrOwner={true}
       />
 

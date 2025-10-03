@@ -3,7 +3,8 @@ import { v5 as uuidv5 } from "uuid";
 
 import appStore from "@calcom/app-store";
 import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
-import { DailyLocationType } from "@calcom/app-store/locations";
+import { getJitsiAppKeys } from "@calcom/app-store/jitsivideo/lib/getJitsiAppKeys";
+import { JitsiLocationType } from "@calcom/app-store/locations";
 import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
@@ -116,15 +117,41 @@ const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEv
       safeStringify({ calEvent: getPiiFreeCalendarEvent(calEvent) })
     );
     // Default to calVideo
-    const defaultMeeting = await createMeetingWithCalVideo(calEvent);
+    // const defaultMeeting = await createMeetingWithCalVideo(calEvent);
+    // if (defaultMeeting) {
+    //   calEvent.location = DailyLocationType;
+    // }
+    const defaultMeeting = await createMeetingWithJitsiVideo(calEvent);
     if (defaultMeeting) {
-      calEvent.location = DailyLocationType;
+      calEvent.location = JitsiLocationType;
     }
 
     returnObject = { ...returnObject, originalEvent: calEvent, createdEvent: defaultMeeting };
   }
 
   return returnObject;
+};
+
+const createMeetingWithJitsiVideo = async (calEvent: CalendarEvent) => {
+  let jitsiAppKeys: Awaited<ReturnType<typeof getJitsiAppKeys>>;
+  try {
+    jitsiAppKeys = await getJitsiAppKeys();
+  } catch (e) {
+    return;
+  }
+  const [videoAdapter] = await getVideoAdapters([
+    {
+      id: 0,
+      appId: "jitsi",
+      type: "jitsi_video",
+      userId: null,
+      user: { email: "" },
+      teamId: null,
+      key: jitsiAppKeys,
+      invalid: false,
+    },
+  ]);
+  return videoAdapter?.createMeeting(calEvent);
 };
 
 const updateMeeting = async (
@@ -230,6 +257,27 @@ export const createInstantMeetingWithCalVideo = async (endTime: string) => {
     },
   ]);
   return videoAdapter?.createInstantCalVideoRoom?.(endTime);
+};
+export const createInstantMeetingWithJitsiVideo = async (title: string) => {
+  let jitsiAppKeys: Awaited<ReturnType<typeof getJitsiAppKeys>>;
+  try {
+    jitsiAppKeys = await getJitsiAppKeys();
+  } catch (e) {
+    return;
+  }
+  const [videoAdapter] = await getVideoAdapters([
+    {
+      id: 0,
+      appId: "jitsi",
+      type: "jitsi_video",
+      userId: null,
+      user: { email: "" },
+      teamId: null,
+      key: jitsiAppKeys,
+      invalid: false,
+    },
+  ]);
+  return videoAdapter?.createInstantJitsiVideoRoom?.(title);
 };
 
 const getRecordingsOfCalVideoByRoomName = async (

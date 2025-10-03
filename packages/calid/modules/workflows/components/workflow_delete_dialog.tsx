@@ -1,7 +1,15 @@
 import { Button } from "@calid/features/ui/components/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calid/features/ui/components/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from "@calid/features/ui/components/dialog";
 import { Icon } from "@calid/features/ui/components/icon";
-import { triggerToast } from "@calid/features/ui/components/toast/toast";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import type { Dispatch, SetStateAction } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -24,10 +32,10 @@ export const WorkflowDeleteDialog = ({
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const deleteMutation = trpc.viewer.workflows.delete.useMutation({
+  const deleteMutation = trpc.viewer.workflows.calid_delete.useMutation({
     onSuccess: async () => {
       try {
-        await utils.viewer.workflows.filteredList.invalidate();
+        await utils.viewer.workflows.calid_filteredList.invalidate();
         await additionalFunction();
         triggerToast(t("workflow_deleted_successfully"), "success");
       } catch (error) {
@@ -45,7 +53,7 @@ export const WorkflowDeleteDialog = ({
         message = `${err.data.code}: You are not authorized to delete this workflow`;
       }
 
-      triggerToast(message, "destructive");
+      triggerToast(message, "error");
 
       setIsOpenDialog(false);
     },
@@ -53,12 +61,6 @@ export const WorkflowDeleteDialog = ({
 
   const handleConfirm = () => {
     deleteMutation.mutate({ id: workflowId });
-  };
-
-  const handleCancel = () => {
-    if (!deleteMutation.isPending) {
-      setIsOpenDialog(false);
-    }
   };
 
   const handleOpenChange = (open: boolean) => {
@@ -69,21 +71,21 @@ export const WorkflowDeleteDialog = ({
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={handleOpenChange}>
-      <DialogContent className="border border-gray-200 bg-white sm:max-w-md dark:border-gray-700 dark:bg-gray-900">
-        <DialogHeader title={t("delete_workflow")} subtitle={t("delete_workflow_description")} />
-
-        <DialogFooter className="gap-2">
-          <Button color="secondary" onClick={handleCancel} disabled={deleteMutation.isPending}>
-            {t("cancel")}
-          </Button>
+      <DialogContent preventCloseOnOutsideClick>
+        <DialogHeader>
+          <DialogTitle>{t("delete_workflow")}</DialogTitle>
+          <DialogDescription>{t("delete_workflow_description")}</DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="mt-4 gap-2">
           <Button
             color="destructive"
             onClick={handleConfirm}
             disabled={deleteMutation.isPending}
             className="gap-2">
-            {deleteMutation.isPending && <Icon name="loader" className="h-4 w-4 animate-spin" />}
+            {deleteMutation.isPending && <Icon name="loader-circle" className="h-4 w-4 animate-spin" />}
             {t("confirm_delete_workflow")}
           </Button>
+          <DialogClose />
         </DialogFooter>
       </DialogContent>
     </Dialog>

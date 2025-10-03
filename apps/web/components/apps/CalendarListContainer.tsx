@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@calid/features/ui/components/button";
+import { BlankCard } from "@calid/features/ui/components/card";
 import { useEffect, Suspense } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
@@ -12,7 +13,6 @@ import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { ShellSubHeading } from "@calcom/ui/components/layout";
 import { List } from "@calcom/ui/components/list";
 import { showToast } from "@calcom/ui/components/toast";
@@ -32,7 +32,7 @@ type Props = {
 
 function CalendarList(props: Props) {
   const { t } = useLocale();
-  const query = trpc.viewer.apps.integrations.useQuery({ variant: "calendar", onlyInstalled: false });
+  const query = trpc.viewer.apps.calid_integrations.useQuery({ variant: "calendar", onlyInstalled: false });
 
   return (
     <QueryCell
@@ -77,20 +77,26 @@ const AddCalendarButton = () => {
   );
 };
 
-export const CalendarListContainerSkeletonLoader = () => {
+export const CalendarListContainerSkeletonLoader = ({ showHeader = true }: { showHeader?: boolean }) => {
   const { t } = useLocale();
-  return (
-    <SettingsHeader title={t("calendars")} description={t("calendars_description")}>
-      <SkeletonLoader />
-    </SettingsHeader>
-  );
+
+  if (showHeader) {
+    return (
+      <SettingsHeader title={t("calendars")} description={t("calendars_description")}>
+        <SkeletonLoader />
+      </SettingsHeader>
+    );
+  }
+
+  return <SkeletonLoader />;
 };
 
 type CalendarListContainerProps = {
   connectedCalendars: RouterOutputs["viewer"]["calendars"]["connectedCalendars"];
-  installedCalendars: RouterOutputs["viewer"]["apps"]["integrations"];
+  installedCalendars: RouterOutputs["viewer"]["apps"]["calid_integrations"];
   heading?: boolean;
   fromOnboarding?: boolean;
+  showHeader?: boolean;
 };
 
 export function CalendarListContainer({
@@ -98,6 +104,7 @@ export function CalendarListContainer({
   installedCalendars,
   heading = true,
   fromOnboarding,
+  showHeader = true,
 }: CalendarListContainerProps) {
   const { t } = useLocale();
   const { error, setQuery: setError } = useRouterQuery("error");
@@ -112,7 +119,7 @@ export function CalendarListContainer({
   const utils = trpc.useUtils();
   const onChanged = () =>
     Promise.allSettled([
-      utils.viewer.apps.integrations.invalidate(
+      utils.viewer.apps.calid_integrations.invalidate(
         { variant: "calendar", onlyInstalled: true },
         {
           exact: true,
@@ -129,16 +136,13 @@ export function CalendarListContainer({
     },
   });
 
-  return (
-    <SettingsHeader
-      title={t("calendars")}
-      description={t("calendars_description")}
-      borderInShellHeader={false}>
+  const content = (
+    <>
       {!!data.connectedCalendars.length || !!installedCalendars?.items.length ? (
         <>
           {heading && (
             <>
-              <div className="flex flex-row justify-end mt-8">
+              <div className="mt-8 flex flex-row justify-end">
                 <AddCalendarButton />
               </div>
               <DestinationCalendarSettingsWebWrapper />
@@ -164,7 +168,7 @@ export function CalendarListContainer({
           <CalendarList onChanged={onChanged} />
         </>
       ) : (
-        <EmptyScreen
+        <BlankCard
           Icon="calendar"
           headline={t("no_category_apps", {
             category: t("calendar").toLowerCase(),
@@ -177,6 +181,19 @@ export function CalendarListContainer({
           }
         />
       )}
-    </SettingsHeader>
+    </>
   );
+
+  if (showHeader) {
+    return (
+      <SettingsHeader
+        title={t("calendars")}
+        description={t("calendars_description")}
+        borderInShellHeader={false}>
+        {content}
+      </SettingsHeader>
+    );
+  }
+
+  return content;
 }

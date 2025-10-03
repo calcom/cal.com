@@ -1,10 +1,17 @@
 "use client";
 
 import { Button } from "@calid/features/ui/components/button";
-import { Dialog, DialogContent, DialogTrigger } from "@calid/features/ui/components/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@calid/features/ui/components/dialog";
 import { TextField } from "@calid/features/ui/components/input/input";
 import { TextArea } from "@calid/features/ui/components/input/text-area";
-import { triggerToast } from "@calid/features/ui/components/toast/toast";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
@@ -13,7 +20,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { CalIdMembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 
 const inviteMemberSchema = z
@@ -21,7 +28,7 @@ const inviteMemberSchema = z
     importType: z.enum(["individual", "bulk"]),
     email: z.string().optional(),
     emails: z.string().optional(),
-    role: z.nativeEnum(MembershipRole),
+    role: z.nativeEnum(CalIdMembershipRole),
   })
   .refine(
     (data) => {
@@ -61,19 +68,30 @@ interface AddTeamMemberModalProps {
   teamId: number;
   teamName?: string;
   onSuccess?: () => void;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export const AddTeamMemberModal = ({ teamId, teamName, onSuccess }: AddTeamMemberModalProps) => {
+export const AddTeamMemberModal = ({
+  teamId,
+  teamName,
+  onSuccess,
+  isOpen: externalIsOpen,
+  onOpenChange,
+}: AddTeamMemberModalProps) => {
   const { t, i18n } = useLocale();
   const { data: session } = useSession();
   const utils = trpc.useUtils();
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
+  const setIsOpen = onOpenChange || setInternalIsOpen;
 
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isValid, isSubmitting: formIsSubmitting },
     reset,
     watch,
   } = useForm<InviteMemberFormData>({
@@ -82,7 +100,7 @@ export const AddTeamMemberModal = ({ teamId, teamName, onSuccess }: AddTeamMembe
       importType: "individual",
       email: "",
       emails: "",
-      role: MembershipRole.MEMBER,
+      role: CalIdMembershipRole.MEMBER,
     },
   });
 
@@ -99,24 +117,25 @@ export const AddTeamMemberModal = ({ teamId, teamName, onSuccess }: AddTeamMembe
   const { data: teamData } = trpc.viewer.calidTeams.get.useQuery({ teamId }, { enabled: !!teamId });
 
   const currentUserRole = teamData?.membership?.role;
-  const canAssignOwnerRole = currentUserRole === MembershipRole.OWNER;
+  const canAssignOwnerRole = currentUserRole === CalIdMembershipRole.OWNER;
   const canAssignAdminRole =
-    currentUserRole === MembershipRole.OWNER || currentUserRole === MembershipRole.ADMIN;
+    currentUserRole === CalIdMembershipRole.OWNER || currentUserRole === CalIdMembershipRole.ADMIN;
 
   // Role options based on current user's permissions
+  // Since only admins/owners can access this modal, we can simplify the logic
   const roleOptions = [
     {
-      value: MembershipRole.MEMBER,
+      value: CalIdMembershipRole.MEMBER,
       label: t("member"),
       disabled: false,
     },
     {
-      value: MembershipRole.ADMIN,
+      value: CalIdMembershipRole.ADMIN,
       label: t("admin"),
       disabled: !canAssignAdminRole,
     },
     {
-      value: MembershipRole.OWNER,
+      value: CalIdMembershipRole.OWNER,
       label: t("owner"),
       disabled: !canAssignOwnerRole,
     },
@@ -129,7 +148,7 @@ export const AddTeamMemberModal = ({ teamId, teamName, onSuccess }: AddTeamMembe
       setIsOpen(false);
       reset();
 
-      triggerToast("team_invite_sent_successfully", "success");
+      triggerToast(t("team_invite_sent_successfully"), "success");
 
       utils.viewer.calidTeams.list.invalidate();
       utils.viewer.calidTeams.get.invalidate();
@@ -144,7 +163,16 @@ export const AddTeamMemberModal = ({ teamId, teamName, onSuccess }: AddTeamMembe
 
   const onSubmit = async (data: InviteMemberFormData) => {
     if (!session?.user) {
-      triggerToast("logged_in_to_invite_team_members", "error");
+      triggerToast(t("logged_in_to_invite_team_members"), "error");
+      return;
+    }
+
+    if (isSubmitting || inviteMemberMutation.isPending) {
+      return;
+    }
+
+    if (!isValid) {
+      triggerToast("Please fix the form errors before submitting", "error");
       return;
     }
 
@@ -165,6 +193,7 @@ export const AddTeamMemberModal = ({ teamId, teamName, onSuccess }: AddTeamMembe
       teamId,
       usernameOrEmail,
       role: data.role,
+      language: i18n.language,
     });
   };
 
@@ -177,26 +206,25 @@ export const AddTeamMemberModal = ({ teamId, teamName, onSuccess }: AddTeamMembe
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button StartIcon="plus" size="sm" variant="button" color="primary">
-          Add Member
-        </Button>
-      </DialogTrigger>
-
-      <DialogContent
-        size="md"
-        type="creation"
-        title="Invite Team Member"
-        description={
-          teamName ? `Invite a new member to join ${teamName}` : "Invite a new member to join your team"
-        }>
+      {externalIsOpen === undefined && (
+        <DialogTrigger asChild>
+          <Button StartIcon="plus" variant="button">
+            {t("add_team_member")}
+          </Button>
+        </DialogTrigger>
+      )}
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("invite_team_member")}</DialogTitle>
+          <DialogDescription>{t("invite_team_member_description")}</DialogDescription>
+        </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Import Type Selection */}
-          <div className="space-y-3">
+          <div className="">
             <label className="text-sm font-medium text-gray-700">{t("import_type")}</label>
             <div className="grid grid-cols-2 gap-3">
               <label
-                className={`flex cursor-pointer items-center space-x-3 rounded-lg border p-3 transition-colors ${
+                className={`flex cursor-pointer items-center space-x-3 rounded-md border p-3 transition-colors ${
                   selectedImportType === "individual"
                     ? "border-blue-500 bg-blue-50"
                     : "border-gray-200 hover:border-gray-300"
@@ -205,7 +233,7 @@ export const AddTeamMemberModal = ({ teamId, teamName, onSuccess }: AddTeamMembe
                   type="radio"
                   value="individual"
                   {...register("importType")}
-                  className="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="h-4 w-4 border-gray-300 text-blue-600"
                 />
                 <div className="flex-1">
                   <span className="text-sm font-medium text-gray-900">Individual Import</span>
@@ -213,7 +241,7 @@ export const AddTeamMemberModal = ({ teamId, teamName, onSuccess }: AddTeamMembe
               </label>
 
               <label
-                className={`flex cursor-pointer items-center space-x-3 rounded-lg border p-3 transition-colors ${
+                className={`flex cursor-pointer items-center space-x-3 rounded-md border p-3 transition-colors ${
                   selectedImportType === "bulk"
                     ? "border-blue-500 bg-blue-50"
                     : "border-gray-200 hover:border-gray-300"
@@ -222,7 +250,7 @@ export const AddTeamMemberModal = ({ teamId, teamName, onSuccess }: AddTeamMembe
                   type="radio"
                   value="bulk"
                   {...register("importType")}
-                  className="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="h-4 w-4 border-gray-300 text-blue-600"
                 />
                 <div className="flex-1">
                   <span className="text-sm font-medium text-gray-900">Bulk Import</span>
@@ -254,7 +282,7 @@ export const AddTeamMemberModal = ({ teamId, teamName, onSuccess }: AddTeamMembe
                 {...register("emails")}
                 name="emails"
                 placeholder={t("enter_email_addresses_separated_by_commas_semicolons_or_new_lines")}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                 rows={6}
                 required
               />
@@ -270,13 +298,13 @@ export const AddTeamMemberModal = ({ teamId, teamName, onSuccess }: AddTeamMembe
           )}
 
           {/* Role Selection */}
-          <div className="space-y-3">
+          <div className="">
             <label className="text-sm font-medium text-gray-700">{t("team_role")}</label>
             <div className="space-y-2">
               {roleOptions.map((role) => (
                 <label
                   key={role.value}
-                  className={`flex cursor-pointer items-center space-x-3 rounded-lg border p-3 transition-colors ${
+                  className={`flex cursor-pointer items-center space-x-3 rounded-md border p-3 transition-colors ${
                     selectedRole === role.value
                       ? "border-blue-500 bg-blue-50"
                       : "border-gray-200 hover:border-gray-300"
@@ -286,7 +314,7 @@ export const AddTeamMemberModal = ({ teamId, teamName, onSuccess }: AddTeamMembe
                     value={role.value}
                     {...register("role")}
                     disabled={role.disabled}
-                    className="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="h-4 w-4 border-gray-300 text-blue-600"
                   />
                   <div className="flex-1">
                     <div className="flex items-center justify-between">

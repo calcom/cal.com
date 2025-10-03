@@ -1,14 +1,14 @@
 "use client";
 
+import { Avatar } from "@calid/features/ui/components/avatar";
+import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-  TooltipProvider,
-} from "@calid/features/ui/components/tooltip";
+import { TextField } from "@calid/features/ui/components/input/input";
 import React from "react";
+
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
 
 import type { EventTypesHeaderProps } from "../types/event-types";
 
@@ -28,103 +28,90 @@ export const EventTypesHeader: React.FC<EventTypesHeaderProps> = ({
   const publicUrl = currentTeam?.teamId
     ? `${bookerUrl}/${currentTeam?.profile.slug}`
     : `${bookerUrl}/${currentTeam?.profile.slug}`;
+  const cleanPublicUrl = publicUrl.replace(/^https?:\/\//, "");
+  const { t } = useLocale();
+
+  // Find the personal profile (team without teamId)
+  const personalProfile = eventTypeGroups.find((group) => !group.teamId);
 
   return (
-    <div className="w-full max-w-full space-y-3 py-4 pt-3">
-      <div className="flex items-center justify-between space-x-3">
-        <div className="flex flex-1 items-center space-x-3">
+    <div className="mb-6 w-full">
+      <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+        {/* Search Bar and Public URL - Mobile: Stacked, Desktop: Inline */}
+        <div className="flex flex-1 flex-col space-y-3 sm:flex-row sm:items-center sm:space-x-3 sm:space-y-0">
           {/* Search Bar */}
-          <div className="relative w-72">
-            <Icon
-              name="search"
-              className="text-muted-foreground absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 transform"
-            />
-            <input
-              type="text"
-              placeholder="Search events..."
-              value={searchQuery}
+          <div className="w-full sm:max-w-md">
+            <TextField
+              addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
+              addOnClassname="!border-muted"
+              containerClassName={classNames("focus:!ring-offset-0 py-2")}
+              type="search"
+              autoComplete="false"
               onChange={(e) => onSearchChange(e.target.value)}
-              className="border-border bg-background w-full rounded-md border py-1.5 pl-8 pr-3 text-sm"
+              placeholder={t("search_events")}
             />
           </div>
 
-          {/* Public URL Display */}
-          <div className="bg-muted text-muted-foreground relative flex items-center space-x-1 rounded px-2 py-1 text-xs">
-            <span className="text-xs">
-              {currentTeam?.bookerUrl || bookerUrl}/{currentTeam?.profile.slug}
-            </span>
-
-            <TooltipProvider delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={onCopyPublicLink}
-                    className="hover:bg-muted flex items-center justify-center rounded p-0.5">
-                    <Icon name="copy" className="h-3 w-3" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent className="rounded-sm px-2 py-1 text-xs" side="bottom" sideOffset={4}>
-                  Copy
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <TooltipProvider delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={() => window.open(publicUrl, "_blank")}
-                    className="hover:bg-muted flex items-center justify-center rounded p-0.5">
-                    <Icon name="external-link" className="h-3 w-3" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent className="rounded-sm px-2 py-1 text-xs" side="bottom" sideOffset={4}>
-                  Preview
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            {copiedPublicLink && (
-              <div className="animate-fade-in absolute left-1/2 top-full z-50 ml-2 mt-1 whitespace-nowrap rounded border border-gray-200 bg-white px-2 py-1 text-xs text-black shadow-md">
-                Copied!
-              </div>
-            )}
+          {/* Public URL Display - Hidden on small mobile, shown on larger screens */}
+          <div className="hidden sm:block">
+            <Badge variant="secondary" publicUrl={cleanPublicUrl} className="rounded-md">
+              <span className="max-w-[200px] truncate lg:max-w-none">{cleanPublicUrl}</span>
+            </Badge>
           </div>
         </div>
 
         {/* New Button with Dropdown */}
-        <div className="relative" ref={newDropdownRef}>
-          <Button onClick={onToggleNewDropdown} size="sm" disabled={currentTeam?.metadata?.readOnly}>
-            <Icon name="plus" className="mr-1 h-3 w-3" />
-            New
+        <div className="relative flex-shrink-0" ref={newDropdownRef}>
+          <Button
+            StartIcon="plus"
+            onClick={onToggleNewDropdown}
+            disabled={currentTeam?.metadata?.readOnly}
+            className="w-full sm:w-auto">
+            {t("new")}
           </Button>
 
           {showNewDropdown && (
-            <div className="bg-default border-border animate-scale-in absolute right-0 top-full z-10 mt-1 w-44 rounded-md border shadow-lg">
+            <div className="bg-default border-border animate-scale-in absolute right-0 top-full z-10 mt-1 w-60 rounded-md border shadow-lg sm:w-44">
               <div className="py-1">
-                <button
-                  onClick={() => onNewSelection("personal")}
-                  className="hover:bg-muted flex w-full items-center px-3 py-1.5 text-sm transition-colors">
-                  <Icon name="user" className="mr-2 h-3 w-3" />
-                  Personal Event
-                </button>
+                {/* Personal option - always show if personal profile exists */}
+                {personalProfile && (
+                  <button
+                    onClick={() => onNewSelection("personal")}
+                    className="hover:bg-muted flex w-full items-center px-3 py-2 text-sm transition-colors">
+                    <Avatar
+                      imageSrc={personalProfile.profile.image}
+                      size="xs"
+                      alt={personalProfile.profile.name ?? ""}
+                      className="mr-3 flex-shrink-0"
+                    />
+                    <span className="truncate">{personalProfile.profile.name}</span>
+                  </button>
+                )}
+                {/* Team options - show all teams that are not read-only */}
                 {eventTypeGroups
                   .filter((group) => group.teamId && !group.metadata?.readOnly)
                   .map((group) => (
                     <button
                       key={group.teamId}
                       onClick={() => onNewSelection(group.teamId?.toString() || "")}
-                      className="hover:bg-muted flex w-full items-center px-3 py-1.5 text-sm transition-colors">
-                      <div className="bg-primary text-primary-foreground mr-2 flex h-3 w-3 items-center justify-center rounded-full text-xs font-medium">
-                        {group.profile.name?.[0] || "T"}
+                      className="hover:bg-muted flex w-full items-center px-3 py-2 text-sm transition-colors">
+                      <div className="bg-primary text-primary-foreground mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-medium">
+                        <Avatar imageSrc={group.profile.image} size="xs" alt={group.profile.name ?? ""} />
                       </div>
-                      {group.profile.name}
+                      <span className="truncate">{group.profile.name}</span>
                     </button>
                   ))}
               </div>
             </div>
           )}
         </div>
+      </div>
+
+      {/* Public URL Display for Mobile - Shows below on small screens */}
+      <div className="mt-3 sm:hidden">
+        <Badge variant="secondary" publicUrl={cleanPublicUrl} className="rounded-md">
+          <span className="truncate">{cleanPublicUrl}</span>
+        </Badge>
       </div>
     </div>
   );

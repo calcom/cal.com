@@ -3,7 +3,7 @@
 import { Button } from "@calid/features/ui/components/button";
 import { Form } from "@calid/features/ui/components/form";
 import { TextField } from "@calid/features/ui/components/input/input";
-import { triggerToast } from "@calid/features/ui/components/toast/toast";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { useRouter } from "next/navigation";
 import React from "react";
 import { useMemo } from "react";
@@ -55,13 +55,26 @@ const AddTeamMembers = () => {
 
   const members = useMemo(() => membersQuery.data?.members ?? [], [membersQuery.data]);
 
-  const inviteMutation = trpc.viewer.teams.inviteMember.useMutation({
+  const inviteMutation = trpc.viewer.calidTeams.inviteMember.useMutation({
     async onSuccess(data) {
-      await Promise.all([utils.viewer.teams.get.invalidate(), utils.viewer.teams.listMembers.invalidate()]);
-      if (Array.isArray(data.usernameOrEmail)) {
-        triggerToast(t("email_invite_team_buld", "success"));
-      } else {
-        triggerToast(t("email_invite_team", "success"));
+      await Promise.all([
+        utils.viewer.calidTeams.get.invalidate(),
+        utils.viewer.calidTeams.listMembers.invalidate(),
+      ]);
+      if (Array.isArray(data.results) && data.results.length > 1) {
+        triggerToast(
+          t("email_invite_team_bulk", {
+            userCount: data.results.length,
+          }),
+          "success"
+        );
+      } else if (data.results.length === 1) {
+        triggerToast(
+          t("email_invite_team", {
+            email: data.results[0].email,
+          }),
+          "success"
+        );
       }
       formMethods.reset({ email: "", role: MembershipRole.MEMBER });
     },
@@ -144,7 +157,7 @@ const AddTeamMembers = () => {
       <div>
         <h3 className="mb-4 text-base font-semibold">{t("add_team_member")}</h3>
         <Form<InviteFormValues>
-          {...formMethods}
+          form={formMethods}
           onSubmit={(values) => {
             if (!inviteMutation.isPending) {
               inviteMutation.mutate({

@@ -3,6 +3,12 @@ import { z } from "zod";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 
+import { ZCalIdDeleteFormInputSchema } from "./calid/deleteForm.schema";
+import { ZCalIdFormMutationInputSchema } from "./calid/formMutation.schema";
+import { ZCalIdFormQueryInputSchema } from "./calid/formQuery.schema";
+import { ZCalidFormsInputSchema } from "./calid/forms.schema";
+import { ZCalIdGetAttributesForTeamInputSchema } from "./calid/getAttributesForTeam.schema";
+import { ZCalIdGetIncompleteBookingSettingsInputSchema } from "./calid/getIncompleteBookingSettings.schema";
 import { ZDeleteFormInputSchema } from "./deleteForm.schema";
 import { ZFormMutationInputSchema } from "./formMutation.schema";
 import { ZFormQueryInputSchema } from "./formQuery.schema";
@@ -107,6 +113,58 @@ const appRoutingForms = router({
       const handler = await getHandler(
         "saveIncompleteBookingSettings",
         () => import("./saveIncompleteBookingSettings.handler")
+      );
+      return handler({ ctx, input });
+    }),
+
+  calid_forms: authedProcedure.input(ZCalidFormsInputSchema).query(async ({ ctx, input }) => {
+    const handler = await getHandler("calidForms", () => import("./calid/forms.handler"));
+    return handler({ ctx, input });
+  }),
+
+  calid_formQuery: authedProcedure.input(ZCalIdFormQueryInputSchema).query(async ({ ctx, input }) => {
+    const handler = await getHandler("calidFormQuery", () => import("./calid/formQuery.handler"));
+    return handler({ ctx, input });
+  }),
+
+  calid_getResponseWithFormFields: authedProcedure
+    .input(ZFormByResponseIdInputSchema)
+    .query(async ({ ctx, input }) => {
+      const handler = await getHandler(
+        "calidGetResponseWithFormFields",
+        () => import("./calid/getResponseWithFormFields.handler")
+      );
+      return handler({ ctx, input });
+    }),
+
+  calid_formMutation: authedProcedure
+    .input(ZCalIdFormMutationInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const handler = await getHandler("calidFormMutation", () => import("./calid/formMutation.handler"));
+      return handler({ ctx, input });
+    }),
+
+  calid_deleteForm: authedProcedure.input(ZCalIdDeleteFormInputSchema).mutation(async ({ ctx, input }) => {
+    const handler = await getHandler("calidDeleteForm", () => import("./calid/deleteForm.handler"));
+    return handler({ ctx, input });
+  }),
+
+  calid_getAttributesForTeam: authedProcedure
+    .input(ZCalIdGetAttributesForTeamInputSchema)
+    .query(async ({ ctx, input }) => {
+      const handler = await getHandler(
+        "calidGetAttributesForTeam",
+        () => import("./calid/getAttributesForTeam.handler")
+      );
+      return handler({ ctx, input });
+    }),
+
+  calid_getIncompleteBookingSettings: authedProcedure
+    .input(ZCalIdGetIncompleteBookingSettingsInputSchema)
+    .query(async ({ ctx, input }) => {
+      const handler = await getHandler(
+        "calidGetIncompleteBookingSettings",
+        () => import("./calid/getIncompleteBookingSettings.handler")
       );
       return handler({ ctx, input });
     }),

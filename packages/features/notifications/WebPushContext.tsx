@@ -1,9 +1,9 @@
 "use client";
 
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui/components/toast";
 
 interface WebPushContextProps {
   permission: NotificationPermission;
@@ -67,11 +67,11 @@ export function WebPushProvider({ children }: ProviderProps) {
             });
             addSubscription({ subscription: JSON.stringify(subscription) });
             setIsSubscribed(true);
-            showToast("Notifications enabled successfully", "success");
+            triggerToast("Notifications enabled successfully", "success");
           }
         } catch (error) {
           console.error("Failed to subscribe:", error);
-          showToast("Failed to enable notifications", "error");
+          triggerToast("Failed to enable notifications", "error");
         } finally {
           setIsLoading(false);
         }
@@ -86,11 +86,11 @@ export function WebPushProvider({ children }: ProviderProps) {
             await subscription.unsubscribe();
             removeSubscription({ subscription: subscriptionJson });
             setIsSubscribed(false);
-            showToast("Notifications disabled successfully", "success");
+            triggerToast("Notifications disabled successfully", "success");
           }
         } catch (error) {
           console.error("Failed to unsubscribe:", error);
-          showToast("Failed to disable notifications", "error");
+          triggerToast("Failed to disable notifications", "error");
         } finally {
           setIsLoading(false);
         }

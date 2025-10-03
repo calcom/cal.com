@@ -61,7 +61,7 @@ const DropdownMenuContent = React.forwardRef<
       ref={ref}
       sideOffset={sideOffset}
       className={cn(
-        "text-emphasis data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 min-w-[8rem] overflow-hidden rounded-lg border bg-white p-1 shadow-lg",
+        "text-default data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 bg-default z-50 min-w-[8rem] overflow-hidden rounded-lg border p-1 shadow-lg",
         className
       )}
       {...props}
@@ -76,15 +76,15 @@ const DropdownMenuItem = React.forwardRef<
     inset?: boolean;
     StartIcon?: React.ComponentProps<typeof Icon>["name"];
     href?: string;
-    color?: "default" | "destructive";
+    color?: "default" | "minimal" | "destructive";
   }
 >(({ className, inset, disabled, StartIcon, href, color = "default", children, ...props }, ref) => {
   const itemClasses = cn(
     "relative flex select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors",
     inset && "pl-8",
     disabled
-      ? "text-emphasis cursor-not-allowed opacity-50 hover:bg-transparent"
-      : "hover:bg-subtle focus:bg-muted focus:text-accent-foreground cursor-pointer",
+      ? "text-default cursor-not-allowed opacity-50 hover:bg-transparent"
+      : "hover:bg-emphasis focus:bg-muted focus:text-accent-foreground cursor-pointer",
     color === "destructive" && "text-destructive focus:bg-error hover:bg-error hover:border-semantic-error",
     className
   );
@@ -190,7 +190,7 @@ DropdownMenuShortcut.displayName = "DropdownMenuShortcut";
 
 type ButtonOrLinkProps = ComponentProps<"button"> & ComponentProps<"a">;
 
-const ButtonOrLink = ({ href, ...props }: ButtonOrLinkProps) => {
+const ButtonOrLink = ({ href, target, rel, ...props }: ButtonOrLinkProps) => {
   const isLink = typeof href !== "undefined";
   const ButtonOrLink = isLink ? "a" : "button";
 
@@ -198,7 +198,7 @@ const ButtonOrLink = ({ href, ...props }: ButtonOrLinkProps) => {
 
   if (isLink) {
     return (
-      <Link href={href} legacyBehavior>
+      <Link href={href} target={target} rel={rel} legacyBehavior>
         {content}
       </Link>
     );

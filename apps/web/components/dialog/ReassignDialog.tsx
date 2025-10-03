@@ -1,7 +1,19 @@
 import { Button } from "@calid/features/ui/components/button";
-import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calid/features/ui/components/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogClose,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@calid/features/ui/components/dialog";
 import { Form } from "@calid/features/ui/components/form";
 import { Icon } from "@calid/features/ui/components/icon";
+import { Input } from "@calid/features/ui/components/input/input";
+import { TextAreaField } from "@calid/features/ui/components/input/text-area";
+import { Label } from "@calid/features/ui/components/label";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Dispatch, SetStateAction } from "react";
@@ -15,9 +27,7 @@ import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
-import { TextAreaField, Label, Input } from "@calcom/ui/components/form";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
-import { showToast } from "@calcom/ui/components/toast";
 
 enum ReassignType {
   ROUND_ROBIN = "round_robin",
@@ -113,13 +123,13 @@ export const ReassignDialog = ({
     onSuccess: async (data) => {
       await utils.viewer.bookings.get.invalidate();
       setIsOpenDialog(false);
-      showToast(t("booking_reassigned_to_host", { host: data?.reassignedTo.name }), "success");
+      triggerToast(t("booking_reassigned_to_host", { host: data?.reassignedTo.name }), "success");
     },
     onError: async (error) => {
       if (error.message.includes(ErrorCode.NoAvailableUsersFound)) {
-        showToast(t("no_available_hosts"), "error");
+        triggerToast(t("no_available_hosts"), "error");
       } else {
-        showToast(t("unexpected_error_try_again"), "error");
+        triggerToast(t("unexpected_error_try_again"), "error");
       }
     },
   });
@@ -128,13 +138,13 @@ export const ReassignDialog = ({
     onSuccess: async () => {
       await utils.viewer.bookings.get.invalidate();
       setIsOpenDialog(false);
-      showToast(t("booking_reassigned"), "success");
+      triggerToast(t("booking_reassigned"), "success");
     },
     onError: async (error) => {
       if (error.message.includes(ErrorCode.NoAvailableUsersFound)) {
-        showToast(t("no_available_hosts"), "error");
+        triggerToast(t("no_available_hosts"), "error");
       } else {
-        showToast(t(error.message), "error");
+        triggerToast(t(error.message), "error");
       }
     },
   });
@@ -173,11 +183,12 @@ export const ReassignDialog = ({
         onOpenChange={(open) => {
           setIsOpenDialog(open);
         }}>
-        <DialogContent
-          title={t("reassign_round_robin_host")}
-          description={t("reassign_to_another_rr_host")}
-          enableOverflow>
-          <Form form={form} handleSubmit={handleSubmit} ref={animationParentRef}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("reassign_round_robin_host")}</DialogTitle>
+            <DialogDescription>{t("reassign_to_another_rr_host")}</DialogDescription>
+          </DialogHeader>
+          <Form form={form} onSubmit={handleSubmit} ref={animationParentRef}>
             <RadioArea.Group
               onValueChange={(val) => {
                 const reassignType: ReassignType = z.nativeEnum(ReassignType).parse(val);

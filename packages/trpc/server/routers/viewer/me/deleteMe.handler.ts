@@ -1,5 +1,5 @@
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
+import { verifyCalPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { deleteUser } from "@calcom/features/users/lib/userDeletionService";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { HttpError } from "@calcom/lib/http-error";
@@ -43,11 +43,16 @@ export const deleteMeHandler = async ({ ctx, input }: DeleteMeOptions) => {
     throw new HttpError({ statusCode: 400, message: ErrorCode.ThirdPartyIdentityProviderEnabled });
   }
 
-  if (!user.password?.hash) {
+  if (!user.password?.hash || !user.password?.salt) {
     throw new HttpError({ statusCode: 400, message: ErrorCode.UserMissingPassword });
   }
 
-  const isCorrectPassword = await verifyPassword(input.password, user.password.hash);
+  const isCorrectPassword = verifyCalPassword({
+    inputPassword: input.password,
+    storedHashBase64: user.password.hash,
+    saltBase64: user.password.salt,
+    iterations: 27500,
+  });
   if (!isCorrectPassword) {
     throw new HttpError({ statusCode: 403, message: ErrorCode.IncorrectPassword });
   }

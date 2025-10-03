@@ -1,7 +1,5 @@
 "use client";
 
-import { Button } from "@calid/features/ui/components/button";
-import { Icon } from "@calid/features/ui/components/icon";
 // This route is reachable by
 // 1. /team/[slug]
 // 2. / (when on org domain e.g. http://calcom.cal.com/. This is through a rewrite from next.config.js)
@@ -20,11 +18,11 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { UserAvatarGroup } from "@calcom/ui/components/avatar";
 import { Avatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
 import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
@@ -75,16 +73,16 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
   const { slug: _slug, orgSlug: _orgSlug, user: _user, ...queryParamsToForward } = routerQuery;
 
   const EventTypes = ({ eventTypes }: { eventTypes: NonNullable<(typeof team)["eventTypes"]> }) => (
-    <div>
+    <ul className="border-subtle rounded-md border">
       {eventTypes.map((type, index) => (
-        <div
+        <li
           key={index}
           className={classNames(
-            "bg-muted border-subtle dark:bg-muted dark:hover:bg-emphasis hover:bg-muted group relative mb-6 rounded-md border transition",
+            "bg-default hover:bg-muted border-subtle group relative border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0",
             !isEmbed && "bg-default"
           )}>
           <div className="px-6 py-4 ">
-            {/* <Link
+            <Link
               href={{
                 pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`,
                 query: queryParamsToForward,
@@ -95,78 +93,26 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
                 });
               }}
               data-testid="event-type-link"
-              className="flex justify-between"> */}
-            {/* <div className="flex-shrink">
+              className="flex justify-between">
+              <div className="flex-shrink">
                 <div className="flex flex-wrap items-center space-x-2 rtl:space-x-reverse">
                   <h2 className=" text-default text-sm font-semibold">{type.title}</h2>
                 </div>
                 <EventTypeDescription className="text-sm" eventType={type} />
-              </div> */}
-
-            <div className="flex flex-col">
-              <div className="flex flex-row items-center gap-2">
-                <div className="bg-default rounded-lg p-2">
-                  <Icon name="calendar" className="h-8 w-8" />
-                </div>
-                <div>
-                  <div className="flex flex-wrap items-center">
-                    <h2 className="text-default pr-2 text-base font-semibold">{type.title}</h2>
-                  </div>
-
-                  {type.description && (
-                    <div
-                      className={classNames(
-                        "text-subtle line-clamp-3 break-words text-sm sm:max-w-[650px] [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600",
-                        "line-clamp-4 [&>*:not(:first-child)]:hidden"
-                      )}
-                      // eslint-disable-next-line react/no-danger
-                      dangerouslySetInnerHTML={{
-                        __html: markdownToSafeHTML(type.descriptionAsSafeHTML || ""),
-                      }}
-                    />
-                  )}
-                </div>
               </div>
-
-              <div className="mt-1 flex w-full flex-row justify-between">
-                <EventTypeDescription
-                  eventType={type}
-                  isPublic={true}
-                  shortenDescription
-                  showDescription={false}
+              <div className="mt-1 self-center">
+                <UserAvatarGroup
+                  truncateAfter={4}
+                  className="flex flex-shrink-0"
+                  size="sm"
+                  users={type.users}
                 />
-                <Link
-                  key={type.id}
-                  // style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
-                  prefetch={false}
-                  href={{
-                    pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`,
-                    query: queryParamsToForward,
-                  }}
-                  passHref
-                  onClick={async () => {
-                    sdkActionManager?.fire("eventTypeSelected", {
-                      eventType: type,
-                    });
-                  }}>
-                  <Button variant="fab">{t("schedule")}</Button>
-                </Link>
               </div>
-            </div>
-
-            <div className="mt-1 self-center">
-              <UserAvatarGroup
-                truncateAfter={4}
-                className="flex flex-shrink-0"
-                size="sm"
-                users={type.users}
-              />
-            </div>
-            {/* </Link> */}
+            </Link>
           </div>
-        </div>
+        </li>
       ))}
-    </div>
+    </ul>
   );
 
   const SubTeams = () =>
@@ -215,15 +161,15 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
 
   return (
     <>
-      <main className="bg-default dark:bg-default h-full w-full rounded-md pb-12">
-        <div className="border-subtle text-default bg-cal-gradient mb-8  flex flex-col items-center py-4">
+      <main className="dark:bg-default bg-subtle mx-auto max-w-3xl rounded-md px-4 pb-12 pt-12">
+        <div className="mx-auto mb-8 max-w-3xl text-center">
           <div className="relative">
-            <Avatar alt={teamName} imageSrc={profileImageSrc} size="xl" />
+            <Avatar alt={teamName} imageSrc={profileImageSrc} size="lg" />
           </div>
-          <h1 className="font-cal text-emphasis mb-4 mt-4 text-3xl" data-testid="team-name">
+          <p className="font-cal  text-emphasis mb-2 text-2xl tracking-wider" data-testid="team-name">
             {team.parent && `${team.parent.name} `}
             {teamName}
-          </h1>
+          </p>
           {!isBioEmpty && (
             <>
               <div
@@ -255,7 +201,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
                 <Team members={team.members} teamName={team.name} />
               ))}
             {!showMembers.isOn && team.eventTypes && team.eventTypes.length > 0 && (
-              <div className="w-full p-4 px-[15%] py-[1%]">
+              <div className="mx-auto max-w-3xl ">
                 <EventTypes eventTypes={team.eventTypes} />
 
                 {/* Hide "Book a team member button when team is private or hideBookATeamMember is true" */}

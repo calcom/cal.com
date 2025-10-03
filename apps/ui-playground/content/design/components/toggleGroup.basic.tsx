@@ -1,12 +1,9 @@
 "use client";
 
 import { RenderComponentWithSnippet } from "@/app/components/render";
-
-import { ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calid/features/ui/components/icon";
 
-
-
+import { ToggleGroup } from "@calcom/ui/components/form";
 
 export const BasicExample = () => (
   <RenderComponentWithSnippet>

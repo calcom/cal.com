@@ -1,11 +1,7 @@
 import { Icon } from "@calid/features/ui/components/icon";
-
-
-
 import React, { useState, useCallback, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 
-import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type {
   EventTypeSetup,
   FormValues,
@@ -74,7 +70,7 @@ const Switch: React.FC<SwitchProps> = ({ id, checked, onCheckedChange, disabled,
         )}>
         <span
           className={classNames(
-            "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+            "bg-primary inline-block h-4 w-4 transform rounded-full transition-transform",
             checked ? "translate-x-6" : "translate-x-1"
           )}
         />
@@ -233,14 +229,6 @@ export const EventRecurring: React.FC<RecurringEventProps> = ({ eventType, custo
       }));
   }, [recurringEventState?.interval, t]);
 
-  // Locked fields management
-  const { shouldLockDisableProps } = useLockedFieldsManager({
-    eventType,
-    translate: t,
-    formMethods,
-  });
-  const recurringLocked = shouldLockDisableProps("recurringEvent");
-
   // Event handlers - matching old component exactly
   const handleRecurringToggle = useCallback(
     (enabled: boolean) => {
@@ -354,11 +342,7 @@ export const EventRecurring: React.FC<RecurringEventProps> = ({ eventType, custo
                   id="enable-recurring"
                   checked={!!recurringEventState}
                   onCheckedChange={handleRecurringToggle}
-                  disabled={
-                    recurringLocked.disabled ||
-                    (!recurringEventState && isSeatsOffered) ||
-                    hasBookingLimitPerBooker
-                  }
+                  disabled={(!recurringEventState && isSeatsOffered) || hasBookingLimitPerBooker}
                 />
               </div>
 
@@ -381,7 +365,6 @@ export const EventRecurring: React.FC<RecurringEventProps> = ({ eventType, custo
                       {t("repeats_every")}
                     </p>
                     <TextField
-                      disabled={recurringLocked.disabled}
                       type="number"
                       min="1"
                       max="20"
@@ -398,7 +381,6 @@ export const EventRecurring: React.FC<RecurringEventProps> = ({ eventType, custo
                         customClassNames?.frequencyUnitSelect?.select
                       )}
                       innerClassNames={customClassNames?.frequencyUnitSelect?.innerClassNames}
-                      disabled={recurringLocked.disabled}
                       onChange={handleFrequencyChange}
                     />
                   </div>
@@ -417,7 +399,6 @@ export const EventRecurring: React.FC<RecurringEventProps> = ({ eventType, custo
                       {t("for_a_maximum_of")}
                     </p>
                     <TextField
-                      disabled={recurringLocked.disabled}
                       type="number"
                       min="1"
                       max="24"

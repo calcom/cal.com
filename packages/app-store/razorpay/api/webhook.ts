@@ -133,7 +133,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     // Parse the request body
     const parsedBody = JSON.parse(rawBody);
-    console.log("razorpay_parsed_body", parsedBody);
     const { event, account_id } = parsedBody;
     switch (event) {
       case WebhookEvents.APP_REVOKED:

@@ -6,8 +6,12 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
+import { Button } from "./button";
+
 const dialogClasses = cva(
-  "fixed left-[50%] top-[50%] z-50 grid w-[95vw] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-md border bg-white shadow-lg duration-200",
+  "fixed left-[50%] top-[50%] z-50 grid w-[95vw] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-md border bg-default shadow-lg duration-200",
   {
     variants: {
       size: {
@@ -25,7 +29,33 @@ const dialogClasses = cva(
 );
 
 export type DialogProps = React.ComponentProps<(typeof DialogPrimitive)["Root"]>;
-export const DialogClose = DialogPrimitive.Close;
+
+export function DialogClose(props: {
+  "data-testid"?: string;
+  dialogCloseProps?: React.ComponentProps<(typeof DialogPrimitive)["Close"]>;
+  children?: React.ReactNode;
+  onClick?: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void;
+  disabled?: boolean;
+  color?: React.ComponentProps<typeof Button>["color"];
+  className?: string;
+}) {
+  const { t } = useLocale();
+  const { className, dialogCloseProps, children, color, disabled, onClick } = props;
+
+  return (
+    <DialogPrimitive.Close asChild {...dialogCloseProps}>
+      <Button
+        data-testid={props["data-testid"] || "dialog-close"}
+        color={color || "secondary"}
+        className={cn(className)}
+        disabled={disabled}
+        onClick={onClick}
+        type="button">
+        {children ? children : t("cancel")}
+      </Button>
+    </DialogPrimitive.Close>
+  );
+}
 
 export function Dialog(props: DialogProps) {
   const { children, ...dialogProps } = props;
@@ -49,7 +79,7 @@ export const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-black/50 backdrop-blur-sm",
+      "fixed inset-0 z-50 bg-black/30 backdrop-blur-sm",
       "data-[state=open]:animate-in data-[state=closed]:animate-out",
       "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className
@@ -109,7 +139,7 @@ export const DialogContent = React.forwardRef<
         {...props}>
         {type === "creation" && (
           <div>
-            <DialogHeader title={title} subtitle={description} />
+            <DialogHeader title={title} description={description} />
             <div data-testid="dialog-creation" className="flex flex-col">
               {children}
             </div>
@@ -124,7 +154,7 @@ export const DialogContent = React.forwardRef<
               </div>
             )}
             <div className={cn("flex-grow", icon && "ml-4")}>
-              <DialogHeader title={title} subtitle={description} />
+              <DialogHeader title={title} description={description} />
               <div data-testid="dialog-confirmation">{children}</div>
             </div>
           </div>
@@ -138,7 +168,7 @@ export const DialogContent = React.forwardRef<
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 export const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("flex flex-col space-y-2 text-left", className)} {...props} />
+  <div className={cn("flex flex-col text-left", className)} {...props} />
 );
 DialogHeader.displayName = "DialogHeader";
 
@@ -153,7 +183,7 @@ export const DialogTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
-    className={cn("text-lg font-semibold leading-none tracking-tight text-slate-900", className)}
+    className={cn("text-primary text-lg font-semibold leading-none tracking-tight", className)}
     {...props}
   />
 ));
@@ -163,6 +193,6 @@ export const DialogDescription = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Description>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
 >(({ className, ...props }, ref) => (
-  <DialogPrimitive.Description ref={ref} className={cn("text-sm text-slate-600", className)} {...props} />
+  <DialogPrimitive.Description ref={ref} className={cn("text-default text-sm", className)} {...props} />
 ));
 DialogDescription.displayName = DialogPrimitive.Description.displayName;

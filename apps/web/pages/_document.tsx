@@ -1,9 +1,11 @@
+/* eslint-disable react/no-danger */
 import type { IncomingMessage } from "http";
 import { dir } from "i18next";
 import type { DocumentContext, DocumentProps } from "next/document";
 import Document, { Head, Html, Main, NextScript } from "next/document";
+import { z } from "zod";
 
-import { IS_PRODUCTION } from "@calcom/lib/constants";
+import { csp } from "@lib/csp";
 
 import { applyTheme } from "./_applyThemeForDocument";
 
@@ -11,6 +13,23 @@ type Props = Record<string, unknown> & DocumentProps & { newLocale: string };
 
 class MyDocument extends Document<Props> {
   static async getInitialProps(ctx: DocumentContext) {
+    const { nonce } = csp(ctx.req || null, ctx.res || null);
+
+    // Set CSP headers
+    if (!process.env.CSP_POLICY) {
+      try {
+        ctx.res?.setHeader("x-csp", "not-opted-in");
+      } catch (e) {
+        console.log(`Error setting header x-csp for ${ctx.asPath || "unknown asPath"}`, e);
+      }
+    } else if (!ctx.res?.getHeader("x-csp")) {
+      try {
+        ctx.res?.setHeader("x-csp", "initialPropsOnly");
+      } catch (e) {
+        console.log(`Error setting header x-csp for ${ctx.asPath || "unknown asPath"}`, e);
+      }
+    }
+
     const getLocaleModule = ctx.req ? await import("@calcom/features/auth/lib/getLocale") : null;
 
     const newLocale =
@@ -20,16 +39,15 @@ class MyDocument extends Document<Props> {
         : "en";
 
     const asPath = ctx.asPath || "";
-    // Use a dummy URL as default so that URL parsing works for relative URLs as well. We care about searchParams and pathname only
     const parsedUrl = new URL(asPath, "https://dummyurl");
     const isEmbedSnippetGeneratorPath = parsedUrl.pathname.startsWith("/event-types");
-    // FIXME: Revisit this logic to remove embedType query param check completely. Ideally, /embed should always be there at the end of the URL. Test properly and then remove it.
     const isEmbed =
       (parsedUrl.pathname.endsWith("/embed") || parsedUrl.searchParams.get("embedType") !== null) &&
       !isEmbedSnippetGeneratorPath;
     const embedColorScheme = parsedUrl.searchParams.get("ui.color-scheme");
+
     const initialProps = await Document.getInitialProps(ctx);
-    return { isEmbed, embedColorScheme, ...initialProps, newLocale };
+    return { isEmbed, embedColorScheme, nonce, ...initialProps, newLocale };
   }
 
   render() {
@@ -37,15 +55,18 @@ class MyDocument extends Document<Props> {
     const newLocale = this.props.newLocale || "en";
     const newDir = dir(newLocale);
 
+    const nonceParsed = z.string().safeParse(this.props.nonce);
+    const nonce = nonceParsed.success ? nonceParsed.data : "";
+
     return (
       <Html
         lang={newLocale}
         dir={newDir}
         style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}>
-        <Head>
+        <Head nonce={nonce}>
           <script
+            nonce={nonce}
             id="newLocale"
-            // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{
               __html: `
               window.calNewLocale = "${newLocale}";
@@ -53,25 +74,10 @@ class MyDocument extends Document<Props> {
             `,
             }}
           />
-          <link rel="apple-touch-icon" sizes="180x180" href="/api/logo?type=apple-touch-icon" />
-          <link rel="icon" type="image/png" sizes="32x32" href="/api/logo?type=favicon-32" />
-          <link rel="icon" type="image/png" sizes="16x16" href="/api/logo?type=favicon-16" />
-          <link rel="manifest" href="/site.webmanifest" />
-          <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000" />
-          <meta name="msapplication-TileColor" content="#ff0000" />
-          <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F9FAFC" />
-          <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1F1F" />
-          {!IS_PRODUCTION && process.env.VERCEL_ENV === "preview" && (
-            // eslint-disable-next-line @next/next/no-sync-scripts
-            <script
-              data-project-id="KjpMrKTnXquJVKfeqmjdTffVPf1a6Unw2LZ58iE4"
-              src="https://snippet.meticulous.ai/v1/stagingMeticulousSnippet.js"
-            />
-          )}
         </Head>
 
         <body
-          className="dark:bg-default bg-subtle antialiased"
+          className="dark:bg-default bg-primary antialiased"
           style={
             isEmbed
               ? {
@@ -85,7 +91,7 @@ class MyDocument extends Document<Props> {
               : {}
           }>
           <Main />
-          <NextScript />
+          <NextScript nonce={nonce} />
         </body>
       </Html>
     );

@@ -3,7 +3,7 @@
 import { Button } from "@calid/features/ui/components/button";
 import { Form, FormField } from "@calid/features/ui/components/form";
 import { TextField } from "@calid/features/ui/components/input/input";
-import { triggerToast } from "@calid/features/ui/components/toast/toast";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -61,6 +61,7 @@ const CreateNewTeamPage = () => {
   return (
     <>
       <Form
+        form={formMethods.control}
         {...formMethods}
         onSubmit={(values) => {
           if (!createTeam.isPending) {

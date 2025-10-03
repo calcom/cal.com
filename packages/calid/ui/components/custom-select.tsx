@@ -1,11 +1,15 @@
 "use client";
 
 import { cn } from "@calid/features/lib/cn";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@calid/features/ui/components/dropdown-menu";
 import { Icon } from "@calid/features/ui/components/icon";
-
-
-
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 
 interface CustomSelectProps {
   value: string;
@@ -29,69 +33,47 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   className,
   disabled = false,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const selectRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
+  const [menuOpen, setMenuOpen] = useState(false);
   const selectedOption = options.find((opt) => opt.value === value);
 
   return (
-    <div className={cn("relative", className)} ref={selectRef}>
-      <button
-        type="button"
-        onClick={() => !disabled && setIsOpen(!isOpen)}
-        disabled={disabled}
-        className="border-border hover:border-border/60 focus:ring-ring bg-background flex h-10 w-full items-center justify-between rounded-lg border p-4 transition-colors focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50">
-        <div className="flex items-center">
-          {selectedOption?.icon && (
-            <div className="bg-primary mr-3 flex h-7 w-7 items-center justify-center rounded">
-              <span className="text-primary-foreground -space-x-1 text-xs">{selectedOption.icon}</span>
-            </div>
-          )}
-          <span className="text-sm text-gray-600">{selectedOption?.label || placeholder}</span>
-        </div>
-        {isOpen ? (
-          <Icon name="chevron-up" className="text-muted-foreground h-4 w-4 transition-transform" />
-        ) : (
-          <Icon name="chevron-down" className="text-muted-foreground h-4 w-4 transition-transform" />
-        )}
-      </button>
+    <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+      <DropdownMenuTrigger asChild>
+        <button
+          disabled={disabled}
+          className={cn(
+            "hover:border-emphasis border-default text-default focus:shadow-outline-gray-focused flex h-8 w-full min-w-0 items-center justify-between rounded-md border px-3 py-1 text-sm font-normal transition-colors",
+            disabled && "cursor-not-allowed opacity-50",
+            className
+          )}>
+          <span className="flex-1 truncate text-left">{selectedOption?.label || placeholder}</span>
+          <Icon
+            name="chevron-down"
+            className={`ml-auto h-4 w-4 transition-transform ${menuOpen ? "rotate-180" : ""}`}
+          />
+        </button>
+      </DropdownMenuTrigger>
 
-      {isOpen && (
-        <div className="bg-popover border-border animate-in fade-in-0 zoom-in-95 absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-y-auto rounded-lg border shadow-lg duration-200">
-          {options.map((option) => (
-            <div key={option.value}>
-              {option.type === "header" ? (
-                <div className="text-muted-foreground bg-default px-4 py-2 text-xs font-semibold uppercase tracking-wide">
-                  {option.label}
-                </div>
-              ) : (
-                <button
-                  onClick={() => {
-                    onValueChange(option.value);
-                    setIsOpen(false);
-                  }}
-                  className="hover:bg-muted bg-default flex w-full items-center px-4 py-3 text-left transition-colors">
-                  {option.icon && <span className="mr-3 text-sm">{option.icon}</span>}
-                  <span className="text-sm">{option.label}</span>
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+      <DropdownMenuContent
+        className="max-h-60 w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-auto"
+        align="start">
+        {options.map((option) => (
+          <div key={option.value}>
+            {option.type === "header" ? (
+              <DropdownMenuLabel className="text-muted text-xs font-semibold uppercase tracking-wide">
+                {option.label}
+              </DropdownMenuLabel>
+            ) : (
+              <DropdownMenuItem
+                onClick={() => onValueChange(option.value)}
+                className="cursor-pointer"
+                StartIcon={option.icon as any}>
+                {option.label}
+              </DropdownMenuItem>
+            )}
+          </div>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };

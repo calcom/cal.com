@@ -7,9 +7,7 @@ import { Controller, useFormContext, useWatch } from "react-hook-form";
 import type { Options } from "react-select";
 
 import type { AddMembersWithSwitchCustomClassNames } from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
-import AddMembersWithSwitch, {
-  mapUserToValue,
-} from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
+import { mapUserToValue } from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import AssignAllTeamMembers from "@calcom/features/eventtypes/components/AssignAllTeamMembers";
 import type { ChildrenEventTypeSelectCustomClassNames } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
@@ -26,13 +24,15 @@ import type {
 } from "@calcom/features/eventtypes/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RRTimestampBasis, SchedulingType } from "@calcom/prisma/enums";
+import { RoundRobinTimestampBasis, SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+
+import { AddMembersWithSwitchCalIdWrapper as AddMembersWithSwitch } from "../add-members-switch/AddMembersWithSwitchCalIdWrapper";
 
 export type EventTeamAssignmentTabCustomClassNames = {
   wrapper?: string;
@@ -132,7 +132,7 @@ const FixedHostHelper = ({ t }: { t: any }) => (
         key="fixed_host_helper"
         className="underline underline-offset-2"
         target="_blank"
-        href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#fixed-hosts">
+        href="https://cal.id">
         Learn more
       </Link>,
     ]}
@@ -145,6 +145,7 @@ type FixedHostsCustomClassNames = SettingsToggleClassNames & {
 
 const FixedHosts = ({
   teamId,
+  calIdTeamId,
   teamMembers,
   value,
   onChange,
@@ -154,6 +155,7 @@ const FixedHosts = ({
   customClassNames,
 }: {
   teamId: number;
+  calIdTeamId?: number;
   value: Host[];
   onChange: (hosts: Host[]) => void;
   teamMembers: TeamMember[];
@@ -183,6 +185,7 @@ const FixedHosts = ({
           <div className="rounded-lg border border-gray-200 p-4">
             <AddMembersWithSwitch
               teamId={teamId}
+              calIdTeamId={calIdTeamId}
               teamMembers={teamMembers}
               value={value}
               onChange={onChange}
@@ -243,6 +246,7 @@ const FixedHosts = ({
                   data-testid="fixed-hosts-select"
                   placeholder={t("add_a_member")}
                   teamId={teamId}
+                  calIdTeamId={calIdTeamId}
                   teamMembers={teamMembers}
                   customClassNames={customClassNames?.addMembers}
                   value={value}
@@ -297,6 +301,7 @@ const RoundRobinHosts = ({
   setAssignAllTeamMembers,
   customClassNames,
   teamId,
+  calIdTeamId,
   isSegmentApplicable,
 }: {
   orgId: number | null;
@@ -307,6 +312,7 @@ const RoundRobinHosts = ({
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   customClassNames?: RoundRobinHostsCustomClassNames;
   teamId: number;
+  calIdTeamId?: number;
   isSegmentApplicable: boolean;
 }) => {
   const { t } = useLocale();
@@ -331,7 +337,7 @@ const RoundRobinHosts = ({
           {t("round_robin_helper")}
         </p>
       </div>
-      <div className="space-y-4 rounded-lg border border-gray-200 p-4">
+      <div className="space-y-4 rounded-md border border-gray-200 p-4">
         <Controller<FormValues>
           name="isRRWeightsEnabled"
           render={({ field: { value: isRRWeightsEnabled, onChange } }) => (
@@ -368,6 +374,7 @@ const RoundRobinHosts = ({
         <AddMembersWithSwitch
           placeholder={t("add_a_member")}
           teamId={teamId}
+          calIdTeamId={calIdTeamId}
           teamMembers={teamMembers}
           value={value}
           onChange={onChange}
@@ -453,6 +460,7 @@ type HostsCustomClassNames = {
 const Hosts = ({
   orgId,
   teamId,
+  calIdTeamId,
   teamMembers,
   assignAllTeamMembers,
   setAssignAllTeamMembers,
@@ -461,6 +469,7 @@ const Hosts = ({
 }: {
   orgId: number | null;
   teamId: number;
+  calIdTeamId?: number;
   teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
@@ -516,6 +525,7 @@ const Hosts = ({
           COLLECTIVE: (
             <FixedHosts
               teamId={teamId}
+              calIdTeamId={calIdTeamId}
               teamMembers={teamMembers}
               value={value}
               onChange={(changeValue) => {
@@ -530,6 +540,7 @@ const Hosts = ({
             <div className="space-y-6">
               <FixedHosts
                 teamId={teamId}
+                calIdTeamId={calIdTeamId}
                 teamMembers={teamMembers}
                 value={value}
                 onChange={(changeValue) => {
@@ -543,6 +554,7 @@ const Hosts = ({
               <RoundRobinHosts
                 orgId={orgId}
                 teamId={teamId}
+                calIdTeamId={calIdTeamId}
                 teamMembers={teamMembers}
                 value={value}
                 onChange={(changeValue) => {
@@ -571,6 +583,7 @@ export const EventTeamAssignmentTab = ({
   orgId,
   isSegmentApplicable,
 }: EventTeamAssignmentTabBaseProps) => {
+  // console.log("teamMembers", teamMembers);
   const { t } = useLocale();
 
   const schedulingTypeOptions: {
@@ -587,20 +600,32 @@ export const EventTeamAssignmentTab = ({
     },
   ];
 
-  const pendingMembers = (member: (typeof teamMembers)[number]) =>
-    !!eventType.team?.parentId || !!member.username;
+  const pendingMembers = (member: (typeof teamMembers)[number]) => {
+    // Handle both flat and nested user data structures
+    const hasUsername = member.username || (member as any).user?.username;
+    return !!eventType.team?.parentId || !!hasUsername;
+  };
 
-  const teamMembersOptions = teamMembers
-    .filter(pendingMembers)
-    .map((member) => mapUserToValue(member, t("pending")));
+  const teamMembersOptions = teamMembers.filter(pendingMembers).map((member) => {
+    // Handle both flat and nested user data structures
+    const userData = (member as any).user ? (member as any).user : member;
+    return mapUserToValue(userData, t("pending"));
+  });
 
   const childrenEventTypeOptions = teamMembers.filter(pendingMembers).map((member) => {
+    // Handle both flat and nested user data structures
+    const userData = (member as any).user ? (member as any).user : member;
     return mapMemberToChildrenOption(
       {
-        ...member,
-        eventTypes: member.eventTypes.filter(
-          (et) => et !== eventType.slug || !eventType.children.some((c) => c.owner.id === member.id)
-        ),
+        ...userData,
+        eventTypes: (member as any).eventTypes || [],
+        id: userData.id,
+        name: userData.name,
+        email: userData.email,
+        username: userData.username,
+        avatar: userData.avatarUrl || userData.avatar,
+        membership: (member as any).role || "MEMBER",
+        profile: userData.profile || null,
       },
       eventType.slug,
       t("pending")
@@ -686,7 +711,7 @@ export const EventTeamAssignmentTab = ({
                   {t("rr_distribution_method_description")}
                 </p>
               </div>
-              <div className="space-y-4 rounded-lg border border-gray-200 p-4">
+              <div className="space-y-4 rounded-md border border-gray-200 p-4">
                 <Controller
                   name="maxLeadThreshold"
                   render={({ field: { value, onChange } }) => (
@@ -709,8 +734,8 @@ export const EventTeamAssignmentTab = ({
                         </div>
                       </RadioArea.Item>
                       {!!(
-                        eventType.team?.rrTimestampBasis &&
-                        eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT
+                        eventType.calIdTeam?.roundRobinTimestampBasis &&
+                        eventType.calIdTeam?.roundRobinTimestampBasis !== RoundRobinTimestampBasis.CREATED_AT
                       ) ? (
                         <Tooltip content={t("rr_load_balancing_disabled")}>
                           <div className="w-full">
@@ -768,7 +793,8 @@ export const EventTeamAssignmentTab = ({
           <Hosts
             orgId={orgId}
             isSegmentApplicable={isSegmentApplicable}
-            teamId={team.id}
+            teamId={team?.id || 0}
+            calIdTeamId={eventType.calIdTeamId}
             assignAllTeamMembers={assignAllTeamMembers}
             setAssignAllTeamMembers={setAssignAllTeamMembers}
             teamMembers={teamMembersOptions}

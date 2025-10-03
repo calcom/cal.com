@@ -28,7 +28,7 @@ export const getCalidTeamHandler = async ({ ctx, input }: GetTeamOptions) => {
   if (!calIdMembership) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
-      message: "not_a_member_of_this_team",
+      message: "You are not a member of this team",
     });
   }
 
@@ -41,7 +41,7 @@ export const getCalidTeamHandler = async ({ ctx, input }: GetTeamOptions) => {
   if (!calIdTeam) {
     throw new TRPCError({
       code: "NOT_FOUND",
-      message: "team_not_found",
+      message: "Team not found",
     });
   }
 

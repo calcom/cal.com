@@ -5,6 +5,7 @@ import dayjs from "@calcom/dayjs";
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { IS_STRIPE_ENABLED } from "@calcom/lib/constants";
+import { sendUserToMakeWebhook } from "@calcom/lib/sendUserToWebhook";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
@@ -171,6 +172,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const hasCompletedOnboarding = user.completedOnboarding;
 
   await moveUserToMatchingOrg({ email: user.email });
+  await sendUserToMakeWebhook({
+    id: user.id,
+    email: user.email,
+    name: user.name ?? "N/A",
+    username: user.username ?? "N/A",
+    identityProvider: user.identityProvider,
+  });
 
   return res.redirect(`${WEBAPP_URL}/${hasCompletedOnboarding ? "/event-types" : "/getting-started"}`);
 }

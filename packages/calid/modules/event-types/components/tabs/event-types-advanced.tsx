@@ -1,24 +1,34 @@
-// Workflow and notification utilities
 import {
   canDisableParticipantNotifications,
   canDisableOrganizerNotifications,
 } from "@calid/features/modules/workflows/utils/notificationDisableCheck";
-// UI components
 import { Alert } from "@calid/features/ui/components/alert";
-import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
-import { Checkbox } from "@calid/features/ui/components/checkbox";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@calid/features/ui/components/card";
+import { CustomSelect } from "@calid/features/ui/components/custom-select";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogClose,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@calid/features/ui/components/dialog";
 import { Icon } from "@calid/features/ui/components/icon";
+import { CheckboxField } from "@calid/features/ui/components/input/checkbox-field";
 import { Input } from "@calid/features/ui/components/input/input";
+import { TextField } from "@calid/features/ui/components/input/input";
 import { Label } from "@calid/features/ui/components/label";
 import { RadioGroup } from "@calid/features/ui/components/radio-group";
 import { RadioGroupItem } from "@calid/features/ui/components/radio-group";
-import { Select } from "@calid/features/ui/components/select";
-import { SelectTrigger } from "@calid/features/ui/components/select";
-import { SelectValue } from "@calid/features/ui/components/select";
-import { SelectContent } from "@calid/features/ui/components/select";
-import { SelectItem } from "@calid/features/ui/components/select";
-import { Switch } from "@calid/features/ui/components/switch/switch";
+import { Switch } from "@calid/features/ui/components/switch";
 import type { UnitTypeLongPlural } from "dayjs";
 import type { TFunction } from "i18next";
 import React, { useState, useCallback, useMemo, Suspense } from "react";
@@ -36,9 +46,7 @@ import {
 } from "@calcom/atoms/selected-calendars/wrappers/SelectedCalendarsSettingsWebWrapper";
 import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
-import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
-import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { MultiplePrivateLinksController } from "@calcom/features/eventtypes/components";
 // Types
 import type { FormValues, EventTypeSetup, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
@@ -48,36 +56,24 @@ import type { fieldSchema, EditableSchema } from "@calcom/features/form-builder/
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 // Constants and utilities
-import {
-  DEFAULT_LIGHT_BRAND_COLOR,
-  DEFAULT_DARK_BRAND_COLOR,
-  MAX_SEATS_PER_TIME_SLOT,
-} from "@calcom/lib/constants";
+import { MAX_SEATS_PER_TIME_SLOT } from "@calcom/lib/constants";
 import { getEventName, validateCustomEventName } from "@calcom/lib/event";
 import type { EventNameObjectType } from "@calcom/lib/event";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
-import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { extractHostTimezone } from "@calcom/lib/hashedLinksUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
-import { TextField, ColorPicker } from "@calcom/ui/components/form";
 
 type BookingField = z.infer<typeof fieldSchema>;
-
-/**
- * Props interface for the EventAdvanced component
- * Defines all required data and callback functions for advanced event type configuration
- */
 export interface EventAdvancedProps {
   eventType: EventTypeSetup;
   team?: EventTypeSetupProps["team"];
   user?: Partial<
     Pick<
-      RouterOutputs["viewer"]["me"]["get"],
+      RouterOutputs["viewer"]["me"]["calid_get"],
       "email" | "secondaryEmails" | "theme" | "defaultBookerLayouts" | "timeZone"
     >
   >;
@@ -91,10 +87,6 @@ export interface EventAdvancedProps {
   showBookerLayoutSelector: boolean;
 }
 
-/**
- * Reusable toggle component with consistent styling and behavior
- * Used throughout the form for boolean settings with optional child content
- */
 const SettingsToggle = ({
   title,
   description,
@@ -108,7 +100,6 @@ const SettingsToggle = ({
   childrenClassName = "",
   labelClassName = "",
   descriptionClassName = "",
-  toggleSwitchAtTheEnd = true,
   "data-testid": dataTestId,
 }: {
   title: string;
@@ -127,27 +118,24 @@ const SettingsToggle = ({
   "data-testid"?: string;
 }) => {
   return (
-    <div className={classNames("border-subtle bg-default rounded-lg border", switchContainerClassName)}>
-      <div className="flex items-start justify-between">
+    <Card className={classNames(switchContainerClassName)}>
+      <CardHeader className="flex flex-row items-start justify-between space-y-0 p-6">
         <div className="flex-1 pr-8">
-          <h3
-            className={classNames(
-              "mb-2 flex items-center text-sm font-medium text-gray-700",
-              labelClassName
-            )}>
+          <CardTitle
+            className={classNames("flex items-center text-sm font-medium text-gray-700", labelClassName)}>
             {title}
             {lockedIcon}
             {tooltip && (
               <button className="group relative ml-2 rounded-full p-1 hover:bg-gray-100" title={tooltip}>
                 <Icon name="info" className="h-4 w-4 text-gray-400" />
-                <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 transform whitespace-nowrap rounded bg-gray-800 px-3 py-2 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
+                <div className="text-default pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 transform whitespace-nowrap rounded bg-gray-800 px-3 py-2 text-xs opacity-0 transition-opacity group-hover:opacity-100">
                   {tooltip}
                 </div>
               </button>
             )}
-          </h3>
+          </CardTitle>
           {description && (
-            <p className={classNames("text-sm text-gray-600", descriptionClassName)}>{description}</p>
+            <CardDescription className={classNames(descriptionClassName)}>{description}</CardDescription>
           )}
         </div>
         <Switch
@@ -156,18 +144,16 @@ const SettingsToggle = ({
           disabled={disabled}
           data-testid={dataTestId}
         />
-      </div>
+      </CardHeader>
       {checked && children && (
-        <div className={classNames("border-muted border-t pt-6", childrenClassName)}>{children}</div>
+        <CardContent className={classNames("border-muted border-t pt-6", childrenClassName)}>
+          {children}
+        </CardContent>
       )}
-    </div>
+    </Card>
   );
 };
 
-/**
- * Modal for customizing event names with variable support
- * Allows users to create dynamic event names using predefined variables
- */
 const CustomEventNameModal = ({
   close,
   setValue,
@@ -224,11 +210,11 @@ const CustomEventNameModal = ({
 
   return (
     <Dialog open={true} onOpenChange={close}>
-      <DialogContent
-        title={t("custom_event_name")}
-        description={t("custom_event_name_description")}
-        type="creation"
-        enableOverflow>
+      <DialogContent size="default" enableOverflow>
+        <DialogHeader>
+          <DialogTitle>{t("custom_event_name")}</DialogTitle>
+          <DialogDescription>{t("custom_event_name_description")}</DialogDescription>
+        </DialogHeader>
         <form id="custom-event-name" onSubmit={handleSubmit}>
           <TextField
             label={t("event_name_in_calendar")}
@@ -240,15 +226,14 @@ const CustomEventNameModal = ({
               setValidationError(null);
             }}
             error={validationError ?? undefined}
-            className="mb-0"
           />
 
           <div className="pt-6 text-sm">
-            <div className="bg-subtle mb-6 rounded-md p-2">
-              <h1 className="text-emphasis mb-2 ml-1 font-medium">{t("available_variables")}</h1>
+            <h1 className="text-emphasis mb-1 font-medium">{t("available_variables")}</h1>
+            <div className="border-default mb-6 rounded-md border p-2">
               <div className="scroll-bar h-[216px] overflow-y-auto">
-                {variableDefinitions.map((variable, index) => (
-                  <div key={index} className="mb-2.5 flex font-normal">
+                {variableDefinitions.map((variable) => (
+                  <div key={variable.key} className="mb-2.5 flex font-normal">
                     <p className="text-subtle ml-1 mr-5 w-32">{variable.key}</p>
                     <p className="text-emphasis">{variable.description}</p>
                   </div>
@@ -259,8 +244,8 @@ const CustomEventNameModal = ({
                     <p className="text-subtle mb-2 ml-1 font-medium">
                       {t("booking_question_response_variables")}
                     </p>
-                    {Object.entries(event.bookingFields).map(([fieldName, fieldValue], index) => (
-                      <div key={index} className="mb-2.5 flex font-normal">
+                    {Object.entries(event.bookingFields).map(([fieldName, fieldValue]) => (
+                      <div key={fieldName} className="mb-2.5 flex font-normal">
                         <p className="text-subtle ml-1 mr-5 w-32">{`{${fieldName}}`}</p>
                         <p className="text-emphasis capitalize">{fieldValue?.toString()}</p>
                       </div>
@@ -271,7 +256,7 @@ const CustomEventNameModal = ({
             </div>
 
             {/* Calendar Preview */}
-            <h1 className="mb-2 text-[14px] font-medium leading-4">{t("preview")}</h1>
+            <h1 className="mb-1 text-sm font-medium">{t("preview")}</h1>
             <div
               className="flex h-[212px] w-full rounded-md border-y bg-cover bg-center dark:invert"
               style={{ backgroundImage: "url(/calendar-preview.svg)" }}>
@@ -286,9 +271,10 @@ const CustomEventNameModal = ({
             </div>
           </div>
         </form>
-
         <DialogFooter>
-          <DialogClose>{t("cancel")}</DialogClose>
+          <Button variant="button" color="minimal" onClick={close}>
+            {t("cancel")}
+          </Button>
           <Button form="custom-event-name" type="submit" color="primary">
             {t("create")}
           </Button>
@@ -305,7 +291,6 @@ const CustomEventNameModal = ({
 const DestinationCalendarSettings = ({
   showConnectedCalendarSettings,
   calendarsQuery,
-  eventNameLocked,
   eventNamePlaceholder,
   setShowEventNameTip,
   verifiedSecondaryEmails,
@@ -315,7 +300,6 @@ const DestinationCalendarSettings = ({
 }: {
   showConnectedCalendarSettings: boolean;
   calendarsQuery: any;
-  eventNameLocked: any;
   eventNamePlaceholder: string;
   setShowEventNameTip: React.Dispatch<React.SetStateAction<boolean>>;
   verifiedSecondaryEmails: { label: string; value: number }[];
@@ -340,8 +324,8 @@ const DestinationCalendarSettings = ({
   );
 
   return (
-    <div className="border-subtle space-y-6 rounded-lg border p-6">
-      <div className="space-y-2">
+    <Card className="space-y-6">
+      <CardContent className="space-y-2">
         {showConnectedCalendarSettings && (
           <div className="w-full">
             <Switch
@@ -361,41 +345,44 @@ const DestinationCalendarSettings = ({
           </div>
         )}
 
-        {/* Secondary email selector for non-team event types */}
         {!useEventTypeDestinationCalendarEmail && verifiedSecondaryEmails.length > 0 && !isTeamEventType && (
-          <div className={classNames("flex w-full flex-col", showConnectedCalendarSettings && "pl-11")}>
-            <Label className="text-foreground mb-1 text-sm">{t("add_to_calendar")}</Label>
-            <Select
-              value={selectedSecondaryEmailId !== -1 ? String(selectedSecondaryEmailId) : ""}
-              onValueChange={(val) =>
-                formMethods.setValue("secondaryEmailId", val ? Number(val) : -1, { shouldDirty: true })
-              }>
-              <SelectTrigger className="w-full">
-                <SelectValue
-                  placeholder={
-                    selectedSecondaryEmailId === -1 && (
-                      <span className="text-default min-w-0 overflow-hidden truncate whitespace-nowrap">
-                        <Badge variant="blue">{t("default")}</Badge> {userEmail}
-                      </span>
-                    )
-                  }
-                />
-              </SelectTrigger>
-              <SelectContent>
-                {verifiedSecondaryEmails.map((secondaryEmail) => (
-                  <SelectItem key={secondaryEmail.value} value={String(secondaryEmail.value)}>
-                    {secondaryEmail.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-subtle mt-2 text-sm">{t("display_email_as_organizer")}</p>
+          <div className="flex flex-row gap-2">
+            <div className="w-full">
+              <Label className="text-foreground mb-1 text-sm">{t("add_to_calendar")}</Label>
+              <CustomSelect
+                value={selectedSecondaryEmailId !== -1 ? String(selectedSecondaryEmailId) : ""}
+                onValueChange={(val) =>
+                  formMethods.setValue("secondaryEmailId", val ? Number(val) : -1, { shouldDirty: true })
+                }
+                options={verifiedSecondaryEmails.map((secondaryEmail) => ({
+                  value: String(secondaryEmail.value),
+                  label: secondaryEmail.label,
+                }))}
+                placeholder={selectedSecondaryEmailId === -1 ? `${t("default")} ${userEmail}` : undefined}
+                className="w-full"
+              />
+              <p className="text-subtle mt-1 text-sm">{t("select_which_cal")}</p>
+            </div>
+            <div className="w-full">
+              <TextField
+                label={t("event_name_in_calendar")}
+                type="text"
+                placeholder={eventNamePlaceholder}
+                {...formMethods.register("eventName")}
+                addOnSuffix={
+                  <Button
+                    EndIcon="pencil-line"
+                    size="sm"
+                    color="minimal"
+                    aria-label="edit custom name"
+                    onClick={() => setShowEventNameTip((old) => !old)}
+                  />
+                }
+              />
+            </div>
           </div>
         )}
-      </div>
 
-      {/* Calendar and Event Name Configuration */}
-      <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
         {showConnectedCalendarSettings && (
           <div className="flex w-full flex-col">
             <label className="text-emphasis mb-0 font-medium">{t("add_to_calendar")}</label>
@@ -414,43 +401,17 @@ const DestinationCalendarSettings = ({
             <p className="text-subtle text-sm">{t("select_which_cal")}</p>
           </div>
         )}
-
-        <div className="w-full">
-          <TextField
-            label={t("event_name_in_calendar")}
-            type="text"
-            {...eventNameLocked}
-            placeholder={eventNamePlaceholder}
-            {...formMethods.register("eventName")}
-            addOnSuffix={
-              <Button
-                color="minimal"
-                size="sm"
-                aria-label="edit custom name"
-                className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
-                onClick={() => setShowEventNameTip((old) => !old)}>
-                <Icon name="pencil" className="h-4 w-4" />
-              </Button>
-            }
-          />
-        </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
-/**
- * Calendar integration settings with loading states
- * Manages calendar connections and selected calendar scope
- */
 const CalendarSettings = ({
   eventType,
   calendarsQuery,
   verifiedSecondaryEmails,
   userEmail,
   isTeamEventType,
-  isChildrenManagedEventType,
-  eventNameLocked,
   eventNamePlaceholder,
   setShowEventNameTip,
   showToast,
@@ -458,7 +419,7 @@ const CalendarSettings = ({
   const formMethods = useFormContext<FormValues>();
   const isPlatform = useIsPlatform();
 
-  const isConnectedCalendarSettingsApplicable = !isTeamEventType || isChildrenManagedEventType;
+  const isConnectedCalendarSettingsApplicable = !isTeamEventType;
   const isConnectedCalendarSettingsLoading = calendarsQuery.isPending;
   const showConnectedCalendarSettings =
     !!calendarsQuery.data?.connectedCalendars.length && isConnectedCalendarSettingsApplicable;
@@ -472,8 +433,8 @@ const CalendarSettings = ({
   // Show loading skeleton while calendar data is being fetched
   if (isConnectedCalendarSettingsLoading && isConnectedCalendarSettingsApplicable) {
     return (
-      <div className="border-subtle space-y-6 rounded-lg border p-6">
-        <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
+      <Card className="space-y-6">
+        <CardContent className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
           <div className="flex w-full flex-col">
             <div className="bg-emphasis h-4 w-32 animate-pulse rounded-md" />
             <div className="bg-emphasis mt-2 h-10 w-full animate-pulse rounded-md" />
@@ -483,13 +444,13 @@ const CalendarSettings = ({
             <div className="bg-emphasis h-4 w-32 animate-pulse rounded-md" />
             <div className="bg-emphasis mt-2 h-10 w-full animate-pulse rounded-md" />
           </div>
-        </div>
-        <div className="space-y-2">
+        </CardContent>
+        <CardContent className="space-y-2">
           <div className="bg-emphasis h-6 w-64 animate-pulse rounded-md" />
           <div className="bg-emphasis h-10 w-full animate-pulse rounded-md" />
           <div className="bg-emphasis h-4 w-48 animate-pulse rounded-md" />
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -500,7 +461,6 @@ const CalendarSettings = ({
         userEmail={userEmail}
         isTeamEventType={isTeamEventType}
         calendarsQuery={calendarsQuery}
-        eventNameLocked={eventNameLocked}
         eventNamePlaceholder={eventNamePlaceholder}
         setShowEventNameTip={setShowEventNameTip}
         showToast={showToast}
@@ -538,14 +498,12 @@ const CalendarSettings = ({
  * Handles confirmation requirements and timing settings
  */
 const RequiresConfirmationController = ({
-  eventType,
   seatsEnabled,
   metadata,
   requiresConfirmation,
   requiresConfirmationWillBlockSlot,
   onRequiresConfirmation,
 }: {
-  eventType: any;
   seatsEnabled: boolean;
   metadata: any;
   requiresConfirmation: boolean;
@@ -559,14 +517,6 @@ const RequiresConfirmationController = ({
   );
 
   const defaultRequiresConfirmationSetup = { time: 30, unit: "minutes" as UnitTypeLongPlural };
-
-  const { shouldLockDisableProps } = useLockedFieldsManager({
-    eventType,
-    translate: t,
-    formMethods,
-  });
-
-  const requiresConfirmationLocked = shouldLockDisableProps("requiresConfirmation");
 
   // Memoize time unit options
   const timeUnitOptions = useMemo(
@@ -630,20 +580,16 @@ const RequiresConfirmationController = ({
           control={formMethods.control}
           render={() => (
             <SettingsToggle
-              labelClassName="text-sm"
+              labelClassName="text-sm text-default"
               toggleSwitchAtTheEnd={true}
-              switchContainerClassName={classNames(
-                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-                requiresConfirmation && "rounded-b-none"
-              )}
+              switchContainerClassName={classNames(requiresConfirmation && "rounded-b-none")}
               childrenClassName="lg:ml-0"
               title={t("requires_confirmation")}
               data-testid="requires-confirmation"
-              disabled={seatsEnabled || requiresConfirmationLocked.disabled}
+              disabled={seatsEnabled}
               tooltip={seatsEnabled ? t("seat_options_doesnt_support_confirmation") : undefined}
               description={t("requires_confirmation_description")}
               checked={requiresConfirmation}
-              lockedIcon={requiresConfirmationLocked.LockedIcon}
               onCheckedChange={handleConfirmationChange}>
               <div className="border-subtle">
                 <RadioGroup
@@ -674,112 +620,86 @@ const RequiresConfirmationController = ({
                   }}>
                   <div className="flex flex-col flex-wrap justify-start gap-y-2">
                     {/* Always require confirmation option */}
-                    {(requiresConfirmationSetup === undefined || !requiresConfirmationLocked.disabled) && (
-                      <div className="flex items-center">
-                        <RadioGroupItem
-                          value="always"
-                          id="always"
-                          disabled={requiresConfirmationLocked.disabled}
-                          className="mr-2"
-                        />
-                        <label htmlFor="always" className="text-sm">
-                          {t("always")}
-                        </label>
-                      </div>
-                    )}
+                    <div className="flex items-center">
+                      <RadioGroupItem value="always" id="always" className="mr-2" />
+                      <label htmlFor="always" className="text-sm">
+                        {t("always")}
+                      </label>
+                    </div>
 
                     {/* Conditional confirmation with time threshold */}
-                    {(requiresConfirmationSetup !== undefined || !requiresConfirmationLocked.disabled) && (
-                      <>
-                        <div className="flex items-center">
-                          <RadioGroupItem
-                            value="notice"
-                            id="notice"
-                            disabled={requiresConfirmationLocked.disabled}
-                            className="mr-2"
-                          />
-                          <label htmlFor="notice" className="flex items-center space-x-2 text-sm">
-                            <ServerTrans
-                              t={t}
-                              i18nKey="when_booked_with_less_than_notice"
-                              components={[
-                                <div
-                                  key="when_booked_with_less_than_notice"
-                                  className="mx-2 inline-flex items-center">
-                                  <Input
-                                    type="number"
-                                    min={1}
-                                    disabled={requiresConfirmationLocked.disabled}
-                                    onChange={(evt) => {
-                                      const val = Number(evt.target?.value);
-                                      handleTimeChange(val);
+                    <>
+                      <div className="flex items-center">
+                        <RadioGroupItem value="notice" id="notice" className="mr-2" />
+                        <label htmlFor="notice" className="flex items-center space-x-2 text-sm">
+                          <ServerTrans
+                            t={t}
+                            i18nKey="when_booked_with_less_than_notice"
+                            components={[
+                              <div
+                                key="when_booked_with_less_than_notice"
+                                className="mx-2 inline-flex items-center">
+                                <Input
+                                  type="number"
+                                  min={1}
+                                  onChange={(evt) => {
+                                    const val = Number(evt.target?.value);
+                                    handleTimeChange(val);
+                                  }}
+                                  className="border-default !m-0 block h-9 w-16 rounded-r-none border border-r-0 text-sm [appearance:textfield] focus:z-10"
+                                  defaultValue={metadata?.requiresConfirmationThreshold?.time || 30}
+                                />
+
+                                <label>
+                                  <CustomSelect
+                                    value={defaultValue?.value || ""}
+                                    onValueChange={(val) => {
+                                      if (val) {
+                                        handleUnitChange(val as UnitTypeLongPlural);
+                                      }
                                     }}
-                                    className="border-default !m-0 block h-9 w-16 rounded-r-none border border-r-0 text-sm [appearance:textfield] focus:z-10"
-                                    defaultValue={metadata?.requiresConfirmationThreshold?.time || 30}
+                                    options={timeUnitOptions.map((opt) => ({
+                                      value: opt.value,
+                                      label: opt.label,
+                                    }))}
+                                    className="border-default h-9 w-auto rounded-l-none border px-3 text-sm"
                                   />
+                                </label>
+                              </div>,
+                            ]}
+                          />
+                        </label>
+                      </div>
 
-                                  <label
-                                    className={classNames(
-                                      requiresConfirmationLocked.disabled && "cursor-not-allowed"
-                                    )}>
-                                    <Select
-                                      defaultValue={defaultValue?.value}
-                                      onValueChange={(val) => {
-                                        if (val) {
-                                          handleUnitChange(val as UnitTypeLongPlural);
-                                        }
-                                      }}
-                                      disabled={requiresConfirmationLocked.disabled}>
-                                      <SelectTrigger
-                                        id="notice"
-                                        className="border-default h-9 w-auto rounded-l-none border px-3 text-sm">
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {timeUnitOptions.map((opt) => (
-                                          <SelectItem key={opt.value} value={opt.value}>
-                                            {opt.label}
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  </label>
-                                </div>,
-                              ]}
+                      {/* Additional confirmation options */}
+                      <div className="flex items-center gap-2">
+                        <CheckboxField
+                          checked={requiresConfirmationWillBlockSlot}
+                          onCheckedChange={(checked) => {
+                            formMethods.setValue("requiresConfirmationWillBlockSlot", !!checked, {
+                              shouldDirty: true,
+                            });
+                          }}
+                        />
+                        <label className="text-foreground text-sm">
+                          {t("requires_confirmation_will_block_slot_description")}
+                        </label>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Controller
+                          name="requiresConfirmationForFreeEmail"
+                          render={({ field: { value, onChange } }) => (
+                            <CheckboxField
+                              checked={value}
+                              onCheckedChange={onChange}
+                              descriptionAsLabel
+                              description={t("require_confirmation_for_free_email")}
                             />
-                          </label>
-                        </div>
-
-                        {/* Additional confirmation options */}
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            checked={requiresConfirmationWillBlockSlot}
-                            onCheckedChange={(checked) => {
-                              formMethods.setValue("requiresConfirmationWillBlockSlot", !!checked, {
-                                shouldDirty: true,
-                              });
-                            }}
-                          />
-                          <label className="text-foreground text-sm">
-                            {t("requires_confirmation_will_block_slot_description")}
-                          </label>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            checked={formMethods.getValues("requiresConfirmationForFreeEmail")}
-                            onCheckedChange={(checked) => {
-                              formMethods.setValue("requiresConfirmationForFreeEmail", !!checked, {
-                                shouldDirty: true,
-                              });
-                            }}
-                          />
-                          <label className="text-foreground text-sm">
-                            {t("require_confirmation_for_free_email")}
-                          </label>
-                        </div>
-                      </>
-                    )}
+                          )}
+                        />
+                      </div>
+                    </>
                   </div>
                 </RadioGroup>
               </div>
@@ -840,7 +760,6 @@ const DisableAllEmailsSetting = ({
       <SettingsToggle
         labelClassName="text-sm"
         toggleSwitchAtTheEnd={true}
-        switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
         title={title}
         description={t("disable_all_emails_description")}
         checked={checked}
@@ -870,14 +789,12 @@ export const EventAdvanced = ({
   const formMethods = useFormContext<FormValues>();
 
   // Fetch verified emails for the team or user
-  const { data: verifiedEmails } = trpc.viewer.workflows.getVerifiedEmails.useQuery({
-    teamId: team?.id,
+  const { data: verifiedEmails } = trpc.viewer.workflows.calid_getVerifiedEmails.useQuery({
+    calIdTeamId: (eventType as any).calIdTeamId || undefined,
   });
 
   // UI state management
   const [showEventNameTip, setShowEventNameTip] = useState(false);
-  const [darkModeError, setDarkModeError] = useState(false);
-  const [lightModeError, setLightModeError] = useState(false);
 
   // Toggle visibility states for conditional sections
   const [multiplePrivateLinksVisible, setMultiplePrivateLinksVisible] = useState(
@@ -890,11 +807,11 @@ export const EventAdvanced = ({
 
   // Watch form values for reactive UI updates
   const requiresConfirmation = formMethods.watch("requiresConfirmation") || false;
-  const isEventTypeColorChecked = !!formMethods.watch("eventTypeColor");
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
 
   // Derived state from form values
-  const workflows = eventType.workflows.map((workflowOnEventType: any) => workflowOnEventType.workflow);
+  const workflows =
+    (eventType as any).calIdWorkflows?.map((workflowOnEventType: any) => workflowOnEventType.workflow) ?? [];
   const multiLocation = (formMethods.getValues("locations") || []).length > 1;
   const noShowFeeEnabled =
     formMethods.getValues("metadata")?.apps?.stripe?.enabled === true &&
@@ -902,48 +819,15 @@ export const EventAdvanced = ({
   const isRecurringEvent = !!formMethods.getValues("recurringEvent");
   const isRoundRobinEventType = eventType.schedulingType === SchedulingType.ROUND_ROBIN;
 
-  // Initialize locked fields manager for permission control
-  const { isChildrenManagedEventType, isManagedEventType, shouldLockDisableProps } = useLockedFieldsManager({
-    eventType,
-    translate: t,
-    formMethods,
-  });
-
-  // Memoize locked field states to prevent recalculation
-  const lockedFields = useMemo(
-    () => ({
-      successRedirectUrl: shouldLockDisableProps("successRedirectUrl"),
-      seats: shouldLockDisableProps("seatsPerTimeSlotEnabled"),
-      requiresBookerEmailVerification: shouldLockDisableProps("requiresBookerEmailVerification"),
-      sendCalVideoTranscriptionEmails: shouldLockDisableProps("canSendCalVideoTranscriptionEmails"),
-      hideCalendarNotes: shouldLockDisableProps("hideCalendarNotes"),
-      hideCalendarEventDetails: shouldLockDisableProps("hideCalendarEventDetails"),
-      eventTypeColor: shouldLockDisableProps("eventTypeColor"),
-      lockTimeZoneToggleOnBookingPage: shouldLockDisableProps("lockTimeZoneToggleOnBookingPage"),
-      multiplePrivateLinks: shouldLockDisableProps("multiplePrivateLinks"),
-      reschedulingPastBookings: shouldLockDisableProps("allowReschedulingPastBookings"),
-      hideOrganizerEmail: shouldLockDisableProps("hideOrganizerEmail"),
-      customReplyToEmail: shouldLockDisableProps("customReplyToEmail"),
-      disableCancelling: shouldLockDisableProps("disableCancelling"),
-      disableRescheduling: shouldLockDisableProps("disableRescheduling"),
-      allowReschedulingCancelledBookings: shouldLockDisableProps("allowReschedulingCancelledBookings"),
-      eventName: shouldLockDisableProps("eventName"),
-    }),
-    [shouldLockDisableProps]
-  );
-
-  // Apply managed event type restrictions
-  if (isManagedEventType) {
-    lockedFields.multiplePrivateLinks.disabled = true;
-  }
-
   // Process booking fields for event name object
   const bookingFields: any = {};
-  formMethods.getValues().bookingFields.forEach(({ name }: any) => {
+  (formMethods.getValues().bookingFields || []).forEach(({ name }: any) => {
     bookingFields[name] = `${name} input`;
   });
 
-  const nameBookingField = formMethods.getValues().bookingFields.find((field) => field.name === "name");
+  const nameBookingField = (formMethods.getValues().bookingFields || []).find(
+    (field) => field.name === "name"
+  );
   const isSplit = nameBookingField?.variant === "firstAndLastName";
 
   // Create event name object for preview and validation
@@ -951,7 +835,7 @@ export const EventAdvanced = ({
     attendeeName: t("scheduler"),
     eventType: formMethods.getValues("title"),
     eventName: formMethods.getValues("eventName"),
-    host: formMethods.getValues("users")[0]?.name || "Nameless",
+    host: formMethods.getValues("users")?.[0]?.name || "Nameless",
     bookingFields,
     eventDuration: formMethods.getValues("length"),
     t,
@@ -965,10 +849,10 @@ export const EventAdvanced = ({
   // Extract user timezone from event type configuration
   const userTimeZone = extractHostTimezone({
     userId: eventType.userId,
-    teamId: eventType.teamId,
+    teamId: (eventType as any).calIdTeamId,
     hosts: eventType.hosts,
     owner: eventType.owner,
-    team: eventType.team,
+    team: (eventType as any).calIdTeam,
   });
 
   // Platform-specific email processing
@@ -981,9 +865,9 @@ export const EventAdvanced = ({
   const verifiedSecondaryEmails = useMemo(() => {
     let emails = [
       { label: user?.email || "", value: -1 },
-      ...(user?.secondaryEmails || [])
+      ...((user?.secondaryEmails || [])
         .filter((secondaryEmail) => secondaryEmail.emailVerified)
-        .map((secondaryEmail) => ({ label: secondaryEmail.email, value: secondaryEmail.id })),
+        .map((secondaryEmail) => ({ label: secondaryEmail.email, value: secondaryEmail.id })) ?? []),
     ];
 
     // Apply platform-specific email processing if needed
@@ -1008,13 +892,6 @@ export const EventAdvanced = ({
     userEmail = removePlatformClientIdFromEmail(userEmail, platformContext.clientId);
   }
 
-  // Initialize event type color state
-  const currentEventTypeColor = formMethods.watch("eventTypeColor");
-  const eventTypeColorState = currentEventTypeColor || {
-    lightEventTypeColor: DEFAULT_LIGHT_BRAND_COLOR,
-    darkEventTypeColor: DEFAULT_DARK_BRAND_COLOR,
-  };
-
   // Detect user's theme preference
   const selectedThemeIsDark = useMemo(() => {
     return (
@@ -1029,7 +906,7 @@ export const EventAdvanced = ({
       const bookingFields = formMethods.getValues("bookingFields");
       formMethods.setValue(
         "bookingFields",
-        bookingFields.map((field: any) => {
+        (bookingFields || []).map((field: any) => {
           if (field.name === "guests") {
             return {
               ...field,
@@ -1055,8 +932,6 @@ export const EventAdvanced = ({
         userEmail={userEmail}
         calendarsQuery={calendarsQuery}
         isTeamEventType={!!team}
-        isChildrenManagedEventType={isChildrenManagedEventType}
-        eventNameLocked={lockedFields.eventName}
         eventNamePlaceholder={eventNamePlaceholder}
         setShowEventNameTip={setShowEventNameTip}
         showToast={showToast}
@@ -1075,24 +950,21 @@ export const EventAdvanced = ({
       )}
 
       {/* Booking Questions Form Builder */}
-      <div className="border-subtle rounded-lg border p-1">
-        <div className="p-5">
-          <div className="text-default text-sm font-semibold leading-none ltr:mr-1 rtl:ml-1">
-            {t("booking_questions_title")}
+      <Card>
+        <CardContent className="px-3 pb-3">
+          <div className="mb-5 px-3">
+            <h1 className="text-default text-sm font-medium">{t("booking_questions_title")}</h1>
+            <p className="text-subtle text-sm">{t("booking_questions_description")}</p>
           </div>
-          <p className="text-subtle mt-1 max-w-[280px] break-words text-sm sm:max-w-[500px]">
-            {t("booking_questions_description")}
-          </p>
-        </div>
-        <div className="px-3 pb-3">
-          <div className="border-subtle bg-default rounded-lg border p-5">
+          <Card className="p-5">
             <FormBuilder
               showPhoneAndEmailToggle
               title={t("confirmation")}
               description={t("what_booker_should_provide")}
               addFieldLabel={t("add_a_booking_question")}
               formProp="bookingFields"
-              {...shouldLockDisableProps("bookingFields")}
+              disabled={false}
+              LockedIcon={false as any}
               dataStore={{
                 options: {
                   locations: {
@@ -1105,13 +977,12 @@ export const EventAdvanced = ({
                 return field.name === "location" ? true : field.required;
               }}
             />
-          </div>
-        </div>
-      </div>
+          </Card>
+        </CardContent>
+      </Card>
 
       {/* Confirmation Requirements */}
       <RequiresConfirmationController
-        eventType={eventType}
         seatsEnabled={seatsEnabled}
         metadata={formMethods.getValues("metadata")}
         requiresConfirmation={requiresConfirmation}
@@ -1128,13 +999,10 @@ export const EventAdvanced = ({
             name="disableCancelling"
             render={({ field: { value, onChange } }) => (
               <SettingsToggle
-                labelClassName="text-sm"
+                labelClassName="text-sm text-default"
                 toggleSwitchAtTheEnd={true}
-                switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
                 title={t("disable_cancelling")}
                 data-testid="disable-cancelling-toggle"
-                disabled={lockedFields.disableCancelling.disabled}
-                lockedIcon={lockedFields.disableCancelling.LockedIcon}
                 description={t("description_disable_cancelling")}
                 checked={value || false}
                 onCheckedChange={onChange}
@@ -1146,13 +1014,10 @@ export const EventAdvanced = ({
             name="disableRescheduling"
             render={({ field: { value, onChange } }) => (
               <SettingsToggle
-                labelClassName="text-sm"
+                labelClassName="text-sm text-default"
                 toggleSwitchAtTheEnd={true}
-                switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
                 title={t("disable_rescheduling")}
                 data-testid="disable-rescheduling-toggle"
-                disabled={lockedFields.disableRescheduling.disabled}
-                lockedIcon={lockedFields.disableRescheduling.LockedIcon}
                 description={t("description_disable_rescheduling")}
                 checked={value || false}
                 onCheckedChange={onChange}
@@ -1162,37 +1027,15 @@ export const EventAdvanced = ({
         </>
       )}
 
-      {/* Video Transcription Emails */}
-      <Controller
-        name="canSendCalVideoTranscriptionEmails"
-        render={({ field: { value, onChange } }) => (
-          <SettingsToggle
-            labelClassName="text-sm"
-            toggleSwitchAtTheEnd={true}
-            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
-            title={t("send_cal_video_transcription_emails")}
-            data-testid="send-cal-video-transcription-emails"
-            disabled={lockedFields.sendCalVideoTranscriptionEmails.disabled}
-            lockedIcon={lockedFields.sendCalVideoTranscriptionEmails.LockedIcon}
-            description={t("description_send_cal_video_transcription_emails")}
-            checked={value}
-            onCheckedChange={onChange}
-          />
-        )}
-      />
-
       {/* Email Verification Requirement */}
       <Controller
         name="requiresBookerEmailVerification"
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
-            labelClassName="text-sm"
+            labelClassName="text-sm text-default"
             toggleSwitchAtTheEnd={true}
-            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
             title={t("requires_booker_email_verification")}
             data-testid="requires-booker-email-verification"
-            disabled={lockedFields.requiresBookerEmailVerification.disabled}
-            lockedIcon={lockedFields.requiresBookerEmailVerification.LockedIcon}
             description={t("description_requires_booker_email_verification")}
             checked={value}
             onCheckedChange={onChange}
@@ -1205,13 +1048,10 @@ export const EventAdvanced = ({
         name="hideCalendarNotes"
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
-            labelClassName="text-sm"
+            labelClassName="text-sm text-default"
             toggleSwitchAtTheEnd={true}
-            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
             data-testid="disable-notes"
             title={t("disable_notes")}
-            disabled={lockedFields.hideCalendarNotes.disabled}
-            lockedIcon={lockedFields.hideCalendarNotes.LockedIcon}
             description={t("disable_notes_description")}
             checked={value}
             onCheckedChange={onChange}
@@ -1223,12 +1063,9 @@ export const EventAdvanced = ({
         name="hideCalendarEventDetails"
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
-            labelClassName="text-sm"
+            labelClassName="text-sm text-default"
             toggleSwitchAtTheEnd={true}
-            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
             title={t("hide_calendar_event_details")}
-            disabled={lockedFields.hideCalendarEventDetails.disabled}
-            lockedIcon={lockedFields.hideCalendarEventDetails.LockedIcon}
             description={t("description_hide_calendar_event_details")}
             checked={value}
             onCheckedChange={onChange}
@@ -1251,29 +1088,23 @@ export const EventAdvanced = ({
         }}
         render={({ field, fieldState }) => (
           <SettingsToggle
-            labelClassName="text-sm"
+            labelClassName="text-sm text-default"
             toggleSwitchAtTheEnd={true}
-            switchContainerClassName={classNames(
-              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-              redirectUrlVisible && "rounded-b-none"
-            )}
+            switchContainerClassName={classNames(redirectUrlVisible && "rounded-b-none")}
             childrenClassName="lg:ml-0"
             title={t("redirect_success_booking")}
             data-testid="redirect-success-booking"
-            disabled={lockedFields.successRedirectUrl.disabled}
-            lockedIcon={lockedFields.successRedirectUrl.LockedIcon}
             description={t("redirect_url_description")}
             checked={redirectUrlVisible}
             onCheckedChange={(e) => {
               field.onChange(e ? field.value || "" : "");
               setRedirectUrlVisible(e);
             }}>
-            <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+            <CardContent className="border-subtle rounded-b-lg border border-t-0 p-6">
               <TextField
                 className="w-full"
                 label={t("redirect_success_booking")}
                 labelSrOnly
-                disabled={lockedFields.successRedirectUrl.disabled}
                 placeholder={t("external_redirect_url")}
                 data-testid="external-redirect-url"
                 required={redirectUrlVisible}
@@ -1291,11 +1122,7 @@ export const EventAdvanced = ({
                   name="forwardParamsSuccessRedirect"
                   render={({ field: { value: forwardValue, onChange: forwardOnChange } }) => (
                     <div className="flex items-center gap-2">
-                      <Checkbox
-                        checked={forwardValue}
-                        disabled={lockedFields.successRedirectUrl.disabled}
-                        onCheckedChange={forwardOnChange}
-                      />
+                      <CheckboxField checked={forwardValue} onCheckedChange={forwardOnChange} />
                       <Label className="text-foreground text-sm">{t("forward_params_redirect")}</Label>
                     </div>
                   )}
@@ -1310,7 +1137,7 @@ export const EventAdvanced = ({
                 data-testid="redirect-url-warning">
                 {t("redirect_url_warning")}
               </div>
-            </div>
+            </CardContent>
           </SettingsToggle>
         )}
       />
@@ -1321,19 +1148,13 @@ export const EventAdvanced = ({
           name="multiplePrivateLinks"
           render={({ field: { value, onChange } }) => (
             <SettingsToggle
-              labelClassName="text-sm"
+              labelClassName="text-sm text-default"
               toggleSwitchAtTheEnd={true}
-              switchContainerClassName={classNames(
-                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-                multiplePrivateLinksVisible && "rounded-b-none"
-              )}
+              switchContainerClassName={classNames(multiplePrivateLinksVisible && "rounded-b-none")}
               childrenClassName="lg:ml-0"
               data-testid="multiplePrivateLinksCheck"
               title={t("multiple_private_links_title")}
-              disabled={lockedFields.multiplePrivateLinks.disabled}
-              lockedIcon={lockedFields.multiplePrivateLinks.LockedIcon}
               description={t("multiple_private_links_description")}
-              tooltip={isManagedEventType ? t("managed_event_field_parent_control_disabled") : ""}
               checked={multiplePrivateLinksVisible}
               onCheckedChange={(e) => {
                 if (!e) {
@@ -1344,16 +1165,14 @@ export const EventAdvanced = ({
                 }
                 setMultiplePrivateLinksVisible(e);
               }}>
-              {!isManagedEventType && (
-                <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-                  <MultiplePrivateLinksController
-                    team={team ?? null}
-                    bookerUrl={eventType.bookerUrl}
-                    userTimeZone={userTimeZone}
-                    setMultiplePrivateLinksVisible={setMultiplePrivateLinksVisible}
-                  />
-                </div>
-              )}
+              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+                <MultiplePrivateLinksController
+                  team={team ?? null}
+                  bookerUrl={eventType.bookerUrl}
+                  userTimeZone={userTimeZone}
+                  setMultiplePrivateLinksVisible={setMultiplePrivateLinksVisible}
+                />
+              </div>
             </SettingsToggle>
           )}
         />
@@ -1365,22 +1184,13 @@ export const EventAdvanced = ({
         render={({ field: { value, onChange } }) => (
           <>
             <SettingsToggle
-              labelClassName="text-sm"
+              labelClassName="text-sm text-default"
               toggleSwitchAtTheEnd={true}
-              switchContainerClassName={classNames(
-                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-                value && "rounded-b-none"
-              )}
+              switchContainerClassName={classNames(value && "rounded-b-none")}
               childrenClassName="lg:ml-0"
               data-testid="offer-seats-toggle"
               title={t("offer_seats")}
-              disabled={
-                noShowFeeEnabled ||
-                multiLocation ||
-                (!seatsEnabled && isRecurringEvent) ||
-                lockedFields.seats.disabled
-              }
-              lockedIcon={lockedFields.seats.LockedIcon}
+              disabled={noShowFeeEnabled || multiLocation || (!seatsEnabled && isRecurringEvent)}
               description={t("offer_seats_description")}
               checked={value}
               tooltip={
@@ -1406,7 +1216,7 @@ export const EventAdvanced = ({
                 }
                 onChange(e);
               }}>
-              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+              <CardContent className="border-subtle rounded-b-lg border border-t-0 p-6">
                 <Controller
                   name="seatsPerTimeSlot"
                   render={({ field: { value: seatValue, onChange: seatOnChange } }) => (
@@ -1417,7 +1227,6 @@ export const EventAdvanced = ({
                         labelSrOnly
                         label={t("number_of_seats")}
                         type="number"
-                        disabled={lockedFields.seats.disabled}
                         value={seatValue > MAX_SEATS_PER_TIME_SLOT ? MAX_SEATS_PER_TIME_SLOT : seatValue ?? 1}
                         step={1}
                         placeholder="1"
@@ -1438,12 +1247,7 @@ export const EventAdvanced = ({
                           name="seatsShowAttendees"
                           render={({ field: { value: attendeeValue, onChange: attendeeOnChange } }) => (
                             <div className="flex items-center gap-2">
-                              <Checkbox
-                                data-testid="show-attendees"
-                                checked={attendeeValue}
-                                disabled={lockedFields.seats.disabled}
-                                onCheckedChange={attendeeOnChange}
-                              />
+                              <CheckboxField checked={attendeeValue} onCheckedChange={attendeeOnChange} />
                               <Label className="text-foreground text-sm">{t("show_attendees")}</Label>
                             </div>
                           )}
@@ -1453,11 +1257,7 @@ export const EventAdvanced = ({
                           name="seatsShowAvailabilityCount"
                           render={({ field: { value: availValue, onChange: availOnChange } }) => (
                             <div className="flex items-center gap-2">
-                              <Checkbox
-                                checked={availValue}
-                                disabled={lockedFields.seats.disabled}
-                                onCheckedChange={availOnChange}
-                              />
+                              <CheckboxField checked={availValue} onCheckedChange={availOnChange} />
                               <Label className="text-foreground text-sm">
                                 {t("show_available_seats_count")}
                               </Label>
@@ -1468,14 +1268,10 @@ export const EventAdvanced = ({
                     </div>
                   )}
                 />
-              </div>
+              </CardContent>
             </SettingsToggle>
 
-            {noShowFeeEnabled && (
-              <Alert variant="warning">
-                <AlertTitle>{t("seats_and_no_show_fee_error")}</AlertTitle>
-              </Alert>
-            )}
+            {noShowFeeEnabled && <Alert severity="warning" title={t("seats_and_no_show_fee_error")} />}
           </>
         )}
       />
@@ -1485,12 +1281,9 @@ export const EventAdvanced = ({
         name="hideOrganizerEmail"
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
-            labelClassName="text-sm"
+            labelClassName="text-sm text-default"
             toggleSwitchAtTheEnd={true}
-            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
             title={t("hide_organizer_email")}
-            disabled={lockedFields.hideOrganizerEmail.disabled}
-            lockedIcon={lockedFields.hideOrganizerEmail.LockedIcon}
             description={t("hide_organizer_email_description")}
             checked={value}
             onCheckedChange={onChange}
@@ -1511,15 +1304,10 @@ export const EventAdvanced = ({
 
           return (
             <SettingsToggle
-              labelClassName="text-sm"
+              labelClassName="text-sm text-default "
               toggleSwitchAtTheEnd={true}
-              switchContainerClassName={classNames(
-                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-                showSelector && "rounded-b-none"
-              )}
+              switchContainerClassName={classNames(showSelector && "rounded-b-none")}
               title={t("lock_timezone_toggle_on_booking_page")}
-              disabled={lockedFields.lockTimeZoneToggleOnBookingPage.disabled}
-              lockedIcon={lockedFields.lockTimeZoneToggleOnBookingPage.LockedIcon}
               description={t("description_lock_timezone_toggle_on_booking_page")}
               checked={value}
               onCheckedChange={(e) => {
@@ -1530,7 +1318,7 @@ export const EventAdvanced = ({
               data-testid="lock-timezone-toggle"
               childrenClassName="lg:ml-0">
               {showSelector && (
-                <div className="border-subtle flex flex-col gap-6 rounded-b-lg border border-t-0 p-6">
+                <CardContent className="border-subtle flex flex-col gap-6 rounded-b-lg border border-t-0 p-6">
                   <div>
                     <Controller
                       name="lockedTimeZone"
@@ -1552,7 +1340,7 @@ export const EventAdvanced = ({
                       )}
                     />
                   </div>
-                </div>
+                </CardContent>
               )}
             </SettingsToggle>
           );
@@ -1564,12 +1352,9 @@ export const EventAdvanced = ({
         name="allowReschedulingPastBookings"
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
-            labelClassName="text-sm"
+            labelClassName="text-sm text-default "
             toggleSwitchAtTheEnd={true}
-            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
             title={t("allow_rescheduling_past_events")}
-            disabled={lockedFields.reschedulingPastBookings.disabled}
-            lockedIcon={lockedFields.reschedulingPastBookings.LockedIcon}
             description={t("allow_rescheduling_past_events_description")}
             checked={value}
             onCheckedChange={onChange}
@@ -1581,13 +1366,10 @@ export const EventAdvanced = ({
         name="allowReschedulingCancelledBookings"
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
-            labelClassName="text-sm"
+            labelClassName="text-sm text-default"
             toggleSwitchAtTheEnd={true}
-            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
             title={t("allow_rescheduling_cancelled_bookings")}
             data-testid="allow-rescheduling-cancelled-bookings-toggle"
-            disabled={lockedFields.allowReschedulingCancelledBookings.disabled}
-            lockedIcon={lockedFields.allowReschedulingCancelledBookings.LockedIcon}
             description={t("description_allow_rescheduling_cancelled_bookings")}
             checked={value || false}
             onCheckedChange={onChange}
@@ -1601,16 +1383,11 @@ export const EventAdvanced = ({
           name="customReplyToEmail"
           render={({ field: { value, onChange } }) => (
             <SettingsToggle
-              labelClassName="text-sm"
+              labelClassName="text-sm text-default"
               toggleSwitchAtTheEnd={true}
-              switchContainerClassName={classNames(
-                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-                customReplyToEmailVisible && "rounded-b-none"
-              )}
+              switchContainerClassName={classNames(customReplyToEmailVisible && "rounded-b-none")}
               childrenClassName="lg:ml-0"
               title={t("custom_reply_to_email_title")}
-              disabled={lockedFields.customReplyToEmail.disabled}
-              lockedIcon={lockedFields.customReplyToEmail.LockedIcon}
               data-testid="custom-reply-to-email"
               description={t("custom_reply_to_email_description")}
               checked={customReplyToEmailVisible}
@@ -1625,23 +1402,20 @@ export const EventAdvanced = ({
               {verifiedEmails && verifiedEmails.length === 0 ? (
                 <p className="text-destructive text-sm">{t("custom_reply_to_email_no_verified_emails")}</p>
               ) : (
-                <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-                  <Select value={value || ""} onValueChange={(val) => onChange(val || null)}>
-                    <SelectTrigger
-                      className="w-full"
-                      data-testid="custom-reply-to-email-input"
-                      aria-label={t("custom_reply_to_email_title")}>
-                      <SelectValue placeholder={t("select_verified_email")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {verifiedEmails?.map((email) => (
-                        <SelectItem key={email} value={email}>
-                          {email}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <CardContent className="border-subtle rounded-b-lg border border-t-0 p-6">
+                  <CustomSelect
+                    value={value || ""}
+                    onValueChange={(val) => onChange(val || null)}
+                    options={
+                      verifiedEmails?.map((email) => ({
+                        value: email,
+                        label: email,
+                      })) ?? []
+                    }
+                    placeholder={t("select_verified_email")}
+                    className="w-full"
+                  />
+                </CardContent>
               )}
             </SettingsToggle>
           )}
@@ -1649,16 +1423,13 @@ export const EventAdvanced = ({
       )}
 
       {/* Event Type Color Configuration */}
-      <Controller
+      {/* <Controller
         name="eventTypeColor"
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
             labelClassName="text-sm"
             toggleSwitchAtTheEnd={true}
-            switchContainerClassName={classNames(
-              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-              isEventTypeColorChecked && "rounded-b-none"
-            )}
+            switchContainerClassName={classNames(isEventTypeColorChecked && "rounded-b-none")}
             title={t("event_type_color")}
             disabled={lockedFields.eventTypeColor.disabled}
             lockedIcon={lockedFields.eventTypeColor.LockedIcon}
@@ -1669,7 +1440,7 @@ export const EventAdvanced = ({
               onChange(newValue);
             }}
             childrenClassName="lg:ml-0">
-            <div className="border-subtle flex flex-col gap-6 rounded-b-lg border border-t-0 p-6">
+            <CardContent className="border-subtle flex flex-col gap-6 rounded-b-lg border border-t-0 p-6">
               <div>
                 <p className="text-default mb-2 block text-sm font-medium">{t("light_event_type_color")}</p>
                 <ColorPicker
@@ -1685,9 +1456,7 @@ export const EventAdvanced = ({
                 />
                 {lightModeError && (
                   <div className="mt-4">
-                    <Alert variant="warning">
-                      <AlertDescription>{t("event_type_color_light_theme_contrast_error")}</AlertDescription>
-                    </Alert>
+                    <Alert severity="warning" message={t("event_type_color_light_theme_contrast_error")} />
                   </div>
                 )}
               </div>
@@ -1707,16 +1476,14 @@ export const EventAdvanced = ({
                 />
                 {darkModeError && (
                   <div className="mt-4">
-                    <Alert variant="warning">
-                      <AlertDescription>{t("event_type_color_dark_theme_contrast_error")}</AlertDescription>
-                    </Alert>
+                    <Alert severity="warning" message={t("event_type_color_dark_theme_contrast_error")} />
                   </div>
                 )}
               </div>
-            </div>
+            </CardContent>
           </SettingsToggle>
         )}
-      />
+      /> */}
 
       {/* Round Robin Reschedule Setting */}
       {isRoundRobinEventType && (
@@ -1726,7 +1493,6 @@ export const EventAdvanced = ({
             <SettingsToggle
               labelClassName="text-sm"
               toggleSwitchAtTheEnd={true}
-              switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
               title={t("reschedule_with_same_round_robin_host_title")}
               description={t("reschedule_with_same_round_robin_host_description")}
               checked={value}
@@ -1742,9 +1508,8 @@ export const EventAdvanced = ({
           name="metadata.disableStandardEmails.confirmation.attendee"
           render={({ field: { value, onChange } }) => (
             <SettingsToggle
-              labelClassName="text-sm"
+              labelClassName="text-sm text-default"
               toggleSwitchAtTheEnd={true}
-              switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
               title={t("disable_attendees_confirmation_emails")}
               description={t("disable_attendees_confirmation_emails_description")}
               checked={value}
@@ -1762,7 +1527,6 @@ export const EventAdvanced = ({
             <SettingsToggle
               labelClassName="text-sm"
               toggleSwitchAtTheEnd={true}
-              switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
               title={t("disable_host_confirmation_emails")}
               description={t("disable_host_confirmation_emails_description")}
               checked={value}

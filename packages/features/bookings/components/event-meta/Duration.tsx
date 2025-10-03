@@ -1,7 +1,4 @@
 import { Icon } from "@calid/features/ui/components/icon";
-
-
-
 import type { TFunction } from "i18next";
 import { useEffect, useRef } from "react";
 
@@ -121,8 +118,10 @@ export const EventDuration = ({
               onClick={() => setSelectedDuration(duration)}
               ref={(el) => (itemRefs.current[duration] = el)}
               className={classNames(
-                selectedDuration === duration ? "bg-cal-active text-white" : "text-default border border-subtle hover:text-emphasis",
-                "cursor-pointer rounded-2xl px-2 mr-2 py-1 text-xs leading-tight transition"
+                selectedDuration === duration
+                  ? "bg-brand-default text-brand"
+                  : "text-default border-subtle hover:text-emphasis border",
+                "mr-2 cursor-pointer rounded-2xl px-2 py-1 text-xs leading-tight transition"
               )}>
               <div className="w-max">{getDurationFormatted(duration, t)}</div>
             </li>

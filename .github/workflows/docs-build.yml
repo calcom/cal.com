@@ -25,7 +25,8 @@ jobs:
         with:
           path: |
             **/docs/**
-          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-${{ env.key-4 }}
+          key:
+            ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-${{ env.key-4 }}
             # Log cache hit
       - name: Log Cache Hit
         if: steps.cache-docs-build.outputs.cache-hit == 'true'

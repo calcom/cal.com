@@ -3,9 +3,9 @@ import type { PageProps as ServerPageProps } from "app/_types";
 import { cookies, headers } from "next/headers";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
-import { getServerSideProps } from "@lib/team/[slug]/getServerSideProps";
+import { getCalIdServerSideProps } from "@lib/team/[slug]/getCalIdServerSideProps";
 
-import TeamPage, { type PageProps as ClientPageProps } from "~/team/team-view";
+import TeamPage, { type PageProps as ClientPageProps } from "~/team/calid-team-public-view";
 
 export const generateMetadata = async () => {
   return {
@@ -16,7 +16,7 @@ export const generateMetadata = async () => {
   };
 };
 
-const getData = withEmbedSsrAppDir<ClientPageProps>(getServerSideProps);
+const getData = withEmbedSsrAppDir<ClientPageProps>(getCalIdServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
   const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);

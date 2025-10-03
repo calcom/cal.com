@@ -10,13 +10,13 @@ import {
   DialogFooter,
   DialogClose,
 } from "@calid/features/ui/components/dialog";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { useRouter } from "next/navigation";
 import React from "react";
 
 import CreateEventTypeForm from "@calcom/features/eventtypes/components/CreateEventTypeForm";
-import { useCreateEventType } from "@calcom/lib/hooks/useCreateEventType";
+import { useCalIdCreateEventType } from "@calcom/lib/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { showToast } from "@calcom/ui/components/toast";
 
 import type { CreateEventModalProps } from "../types/event-types";
 
@@ -32,7 +32,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
 
   const onSuccessMutation = (eventType: any) => {
     router.push(`/event-types/${eventType.id}?tabName=setup`);
-    showToast(
+    triggerToast(
       t("event_type_created_successfully", {
         eventTypeTitle: eventType.title,
       }),
@@ -43,19 +43,18 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
   };
 
   const onErrorMutation = (err: string) => {
-    showToast(err, "error");
+    triggerToast(err, "error");
   };
 
-  const { form, createMutation, isManagedEventType } = useCreateEventType(onSuccessMutation, onErrorMutation);
+  const { form, createMutation, isManagedEventType } = useCalIdCreateEventType(
+    onSuccessMutation,
+    onErrorMutation
+  );
 
   const SubmitButton = (isPending: boolean) => {
     return (
       <DialogFooter>
-        <DialogClose asChild>
-          <Button color="secondary" onClick={onClose}>
-            Close
-          </Button>
-        </DialogClose>
+        <DialogClose />
         <Button type="submit" loading={isPending}>
           {t("continue")}
         </Button>

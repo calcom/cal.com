@@ -1,4 +1,5 @@
 const VERCEL_URL = process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : "";
+export const SIGNUP_URL = process.env.NEXT_PUBLIC_SIGNUP_URL;
 const RAILWAY_STATIC_URL = process.env.RAILWAY_STATIC_URL ? `https://${process.env.RAILWAY_STATIC_URL}` : "";
 const HEROKU_URL = process.env.HEROKU_APP_NAME ? `https://${process.env.HEROKU_APP_NAME}.herokuapp.com` : "";
 const RENDER_URL = process.env.RENDER_EXTERNAL_URL ? `https://${process.env.RENDER_EXTERNAL_URL}` : "";
@@ -23,10 +24,10 @@ export const WEBAPP_URL_FOR_OAUTH = IS_PRODUCTION || IS_DEV ? WEBAPP_URL : "http
 
 /** @deprecated use `WEBAPP_URL` */
 export const BASE_URL = WEBAPP_URL;
-export const WEBSITE_URL = process.env.NEXT_PUBLIC_WEBSITE_URL || "https://cal.com";
-export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Cal.com";
-export const SUPPORT_MAIL_ADDRESS = process.env.NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS || "help@cal.com";
-export const COMPANY_NAME = process.env.NEXT_PUBLIC_COMPANY_NAME || "Cal.com, Inc.";
+export const WEBSITE_URL = process.env.NEXT_PUBLIC_WEBSITE_URL || "https://cal.id";
+export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Cal ID";
+export const SUPPORT_MAIL_ADDRESS = process.env.NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS || "support@cal.id";
+export const COMPANY_NAME = process.env.NEXT_PUBLIC_COMPANY_NAME || "OneHash, Inc.";
 export const SENDER_ID = process.env.NEXT_PUBLIC_SENDER_ID || "Cal ID";
 export const SENDER_NAME = process.env.NEXT_PUBLIC_SENDGRID_SENDER_NAME || "Cal ID";
 export const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || APP_NAME;
@@ -40,12 +41,12 @@ export const CAL_URL = new URL(WEBAPP_URL).hostname.endsWith(".vercel.app")
   ? WEBAPP_URL
   : process.env.NEXT_PUBLIC_WEBSITE_URL || WEBAPP_URL;
 
-export const IS_CALCOM =
-  WEBAPP_URL &&
-  (new URL(WEBAPP_URL).hostname.endsWith("cal.com") ||
-    new URL(WEBAPP_URL).hostname.endsWith("cal.dev") ||
-    new URL(WEBAPP_URL).hostname.endsWith("cal.qa") ||
-    new URL(WEBAPP_URL).hostname.endsWith("cal-staging.com"));
+export const IS_CALCOM = true;
+// WEBAPP_URL &&
+// (new URL(WEBAPP_URL).hostname.endsWith("cal.com") ||
+//   new URL(WEBAPP_URL).hostname.endsWith("cal.dev") ||
+//   new URL(WEBAPP_URL).hostname.endsWith("cal.qa") ||
+//   new URL(WEBAPP_URL).hostname.endsWith("cal-staging.com"))
 
 export const CONSOLE_URL =
   new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") ||
@@ -89,24 +90,25 @@ export const NEXT_PUBLIC_BASE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL || `https
 export const LOGO = "/calid-logo-icon.svg";
 export const LOGO_ICON = "/calid-logo-icon.svg";
 export const AVATAR_FALLBACK = "/avatar.svg";
-export const FAVICON_16 = "/calid-favicon-16x16.png";
-export const FAVICON_32 = "/calid-favicon-32x32.png";
-export const APPLE_TOUCH_ICON = "/calid-apple-touch-icon.png";
+export const FAVICON_16 = "/favicon-16x16.png";
+export const FAVICON_32 = "/favicon-32x32.png";
+export const APPLE_TOUCH_ICON = "/apple-touch-icon.png";
 export const MSTILE_ICON = "/mstile-150x150.png";
-export const ANDROID_CHROME_ICON_192 = "/calid-android-chrome-192x192.png";
+export const ANDROID_CHROME_ICON_192 = "/android-chrome-192x192.png";
 export const ANDROID_CHROME_ICON_256 = "/android-chrome-256x256.png";
 export const ROADMAP = "https://roadmap.onehash.ai";
 export const DESKTOP_APP_LINK = "https://cal.com/download";
 export const JOIN_COMMUNITY = "https://github.com/calcom/cal.com/discussions";
-export const POWERED_BY_URL = "https://go.cal.com/booking";
-export const DOCS_URL = "https://cal.id/docs";
-export const DEVELOPER_DOCS = "https://cal.id/docs/developers";
+export const POWERED_BY_URL = "https://www.onehash.ai/cal";
+export const DOCS_URL = "https://cal.com/docs";
+export const DEVELOPER_DOCS = "https://cal.com/docs/developers";
 export const SEO_IMG_DEFAULT = `${CAL_URL}/og-image.png`;
 // The Dynamic OG Image is passed through Next's Image API to further optimize it.
 // This results in a 80% smaller image 🤯. It is however important that for the query
 // parameters you pass to the /api/social/og/image endpoint, you wrap them in encodeURIComponent
 // as well, otherwise the URL won't be valid.
 export const SEO_IMG_OGIMG = `${CAL_URL}/_next/image?w=1200&q=100&url=`;
+// export const SEO_IMG_OGIMG = `${CAL_URL}`;
 export const SEO_IMG_OGIMG_VIDEO = `${CAL_URL}/video-og-image.png`;
 export const IS_STRIPE_ENABLED = !!(
   process.env.STRIPE_CLIENT_ID &&
@@ -182,8 +184,8 @@ export const ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE_HELPER_DIALOGUE = 2;
 
 export const CALCOM_PRIVATE_API_ROUTE = process.env.CALCOM_PRIVATE_API_ROUTE || "https://goblin.cal.com";
 export const WEBSITE_PRIVACY_POLICY_URL =
-  process.env.NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL || "https://cal.com/privacy";
-export const WEBSITE_TERMS_URL = process.env.NEXT_PUBLIC_WEBSITE_TERMS_URL || "https://cal.com/terms";
+  process.env.NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL || "https://cal.id/info/privacy-policy";
+export const WEBSITE_TERMS_URL = process.env.NEXT_PUBLIC_WEBSITE_TERMS_URL || "https://cal.id/info/termofuse";
 export const LINGO_DOT_DEV_API_KEY = process.env.LINGO_DOT_DEV_API_KEY;
 
 /**
@@ -194,19 +196,19 @@ export const ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK = 30 + 31;
 
 export const TRANSCRIPTION_STARTED_ICON = IS_PRODUCTION
   ? `${WEBAPP_URL}/sparkles-red.svg`
-  : `https://app.cal.com/sparkles-red.svg`;
+  : `https://app.cal.id/sparkles-red.svg`;
 
 export const TRANSCRIPTION_STOPPED_ICON = IS_PRODUCTION
   ? `${WEBAPP_URL}/sparkles.svg`
-  : `https://app.cal.com/sparkles.svg`;
+  : `https://app.cal.id/sparkles.svg`;
 
 export const RECORDING_DEFAULT_ICON = IS_PRODUCTION
   ? `${WEBAPP_URL}/start-recording.svg`
-  : `https://app.cal.com/start-recording.svg`;
+  : `https://app.cal.id/start-recording.svg`;
 
 export const RECORDING_IN_PROGRESS_ICON = IS_PRODUCTION
   ? `${WEBAPP_URL}/stop-recording.svg`
-  : `https://app.cal.com/stop-recording.svg`;
+  : `https://app.cal.id/stop-recording.svg`;
 
 export const SCOPE_USERINFO_PROFILE = "https://www.googleapis.com/auth/userinfo.profile";
 export const SCOPE_USERINFO_EMAIL = "https://www.googleapis.com/auth/userinfo.email";
@@ -263,4 +265,9 @@ export const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_SECRET;
 export const RAZORPAY_REDIRECT_URL = `${WEBAPP_URL}/apps/razorpay/callback`;
 export const RAZORPAY_UPI_ENABLED = process.env.RAZORPAY_UPI_ENABLED === "true";
 
+export const PHONE_NUMBER_VERIFICATION_ENABLED =
+  process.env.NEXT_PUBLIC_PHONE_NUMBER_VERIFICATION_ENABLED === "1";
 export const INNGEST_ID = process.env.INNGEST_ID ?? "onehash-cal";
+export const DEMO_URL = "https://app.cal.id/manas/demo";
+
+export const IS_PROD_DOMAIN = WEBAPP_URL.includes("cal.id");

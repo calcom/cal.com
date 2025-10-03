@@ -1,3 +1,4 @@
+import { JitsiLocationType } from "@calcom/app-store/locations";
 import { getAppFromLocationValue } from "@calcom/app-store/utils";
 import { prisma } from "@calcom/prisma";
 import { eventTypeLocations as eventTypeLocationsSchema } from "@calcom/prisma/zod-utils";
@@ -14,7 +15,8 @@ const processEventTypes = (eventTypes: { id: number; title: string; locations: u
     const app = getAppFromLocationValue(
       locationParsed.success && locationParsed.data?.[0]?.type
         ? locationParsed.data[0].type
-        : "integrations:daily"
+        : // : "integrations:daily"
+          JitsiLocationType
     );
     return {
       ...eventType,

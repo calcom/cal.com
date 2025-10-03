@@ -18,7 +18,7 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { createInstantMeetingWithCalVideo } from "@calcom/lib/videoClient";
+import { createInstantMeetingWithJitsiVideo } from "@calcom/lib/videoClient";
 import prisma from "@calcom/prisma";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
@@ -214,7 +214,7 @@ async function handler(req: NextApiRequest) {
   }, [] as typeof invitee);
 
   const attendeesList = [...invitee, ...guests];
-  const calVideoMeeting = await createInstantMeetingWithCalVideo(dayjs.utc(reqBody.end).toISOString());
+  const calVideoMeeting = await createInstantMeetingWithJitsiVideo("Instant meeting");
 
   if (!calVideoMeeting) {
     throw new Error("Cal Video Meeting Creation Failed");

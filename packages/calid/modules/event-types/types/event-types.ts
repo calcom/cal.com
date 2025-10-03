@@ -2,8 +2,9 @@ import type { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 
 // Base types from TRPC responses
-export type GetUserEventGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
-export type GetEventTypesFromGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getEventTypesFromGroup"];
+export type GetUserEventGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["calid_getUserEventGroups"];
+export type GetEventTypesFromGroupsResponse =
+  RouterOutputs["viewer"]["eventTypes"]["calid_getEventTypesFromGroup"];
 
 export type InfiniteEventTypeGroup = GetUserEventGroupsResponse["eventTypeGroups"][number];
 export type InfiniteEventType = GetEventTypesFromGroupsResponse["eventTypes"][number];
@@ -85,7 +86,7 @@ export interface EventTypesContentProps {
   copiedLink: string | null;
   bookerUrl: string;
   debouncedSearchTerm: string;
-  hasNextPage?: boolean;
+  hasNextPage: boolean;
   isFetchingNextPage: boolean;
   onEventEdit: (eventId: number) => void;
   onCopyLink: (eventId: number, url: string) => void;
@@ -96,6 +97,7 @@ export interface EventTypesContentProps {
   onLoadMore: () => void;
   onCreatePersonal: () => void;
   onCreateTeam: () => void;
+  buttonInViewRef: any;
 }
 
 export interface DeleteDialogState {

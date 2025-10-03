@@ -1,6 +1,7 @@
 "use client";
 
-import { Checkbox, Button } from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
+import { Checkbox } from "@calid/features/ui/components/input/checkbox-field";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -10,7 +11,7 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
-  return <div></div>;
+  return <div />;
 };
 
 // Component responsible for importing data from Calendly if user has already authorized Calendly
@@ -75,7 +76,6 @@ const CalendlyImportComponent = ({ userId, code }: { userId: number; code?: stri
         return;
       }
       const data = await res.json();
-      console.log("Auth data: ", data);
       setIsAuthorized(data.authorized);
     } catch (e) {
       console.error("Authorization check failed:", e);
@@ -96,7 +96,6 @@ const CalendlyImportComponent = ({ userId, code }: { userId: number; code?: stri
 
       if (res.ok) {
         setIsAuthorized(true);
-        // Clean up URL
         router.replace(`/settings/others/import?code=${code}`);
       }
     } catch (e) {
@@ -123,21 +122,12 @@ const CalendlyImportComponent = ({ userId, code }: { userId: number; code?: stri
         console.error("Import failed:", data);
         return;
       }
-
-      // Show success message or redirect
-      console.log("Import started successfully");
     } catch (e) {
       console.error("Import failed:", e);
     } finally {
       setImporting(false);
     }
   };
-
-  // useEffect(() => {
-  //   console.log("Code: ", code);
-  //   if (code) importFromCalendly(); // .then(() => router.replace("/event-types"));
-  //   else checkIfAuthorized(userId);
-  // }, [userId, code]);
 
   const handleOnClickImport = () => {
     const queryParams = {
@@ -149,15 +139,8 @@ const CalendlyImportComponent = ({ userId, code }: { userId: number; code?: stri
     const location = `${process.env.NEXT_PUBLIC_CALENDLY_OAUTH_URL}/authorize?${new URLSearchParams(
       queryParams
     )}`;
-    console.log("Location: ", location);
     window.location.href = location;
   };
-
-  // useEffect(() => {
-  //   if (userId) {
-  //     checkIfAuthorized(userId);
-  //   }
-  // }, [userId]);
 
   useEffect(() => {
     if (code && userId && !isAuthorized) {
@@ -175,7 +158,7 @@ const CalendlyImportComponent = ({ userId, code }: { userId: number; code?: stri
         title={t("import")}
         description={t("import_configuration", { appName: APP_NAME })}
         borderInShellHeader={false}>
-        <div className="border-subtle my-6 flex flex-row items-center justify-between rounded-md border p-6">
+        <div className="border-default flex flex-row items-center justify-between rounded-md border px-4 py-6 sm:px-6">
           <div>
             <div className="text-base font-medium">{t("calendly_import")}</div>
 

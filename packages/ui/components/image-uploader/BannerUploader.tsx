@@ -1,13 +1,12 @@
 "use client";
 
+import { Button, type ButtonColor } from "@calid/features/ui/components/button";
 import { useCallback, useState, useEffect } from "react";
 import Cropper from "react-easy-crop";
 
 import checkIfItFallbackImage from "@calcom/lib/checkIfItFallbackImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import type { ButtonColor } from "../button";
-import { Button } from "../button";
 import { Dialog, DialogClose, DialogContent, DialogTrigger, DialogFooter } from "../dialog";
 import { showToast } from "../toast";
 import { useFileReader, createImage, Slider } from "./Common";
@@ -49,7 +48,7 @@ function CropContainer({
           image={imageSrc}
           crop={crop}
           zoom={zoom}
-          aspect={3}
+          aspect={4}
           onCropChange={setCrop}
           onCropComplete={(croppedArea, croppedAreaPixels) => onCropComplete(croppedAreaPixels)}
           onZoomChange={setZoom}

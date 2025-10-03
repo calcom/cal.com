@@ -26,6 +26,7 @@ type InstallationArgs = {
   slug: string;
   key?: Prisma.InputJsonValue;
   teamId?: number;
+  calIdTeamId?: number;
   subscriptionId?: string | null;
   paymentStatus?: string | null;
   billingCycleStart?: number | null;
@@ -37,6 +38,7 @@ export async function createDefaultInstallation({
   slug,
   key = {},
   teamId,
+  calIdTeamId,
   billingCycleStart,
   paymentStatus,
   subscriptionId,
@@ -45,7 +47,7 @@ export async function createDefaultInstallation({
     data: {
       type: appType,
       key,
-      ...(teamId ? { teamId } : { userId: user.id }),
+      ...(calIdTeamId ? { calIdTeamId } : teamId ? { teamId } : { userId: user.id }),
       appId: slug,
       subscriptionId,
       paymentStatus,

@@ -14,6 +14,7 @@ export interface MeetingImageProps {
   title: string;
   profile: { name: string; image?: string | null };
   users?: { name: string; username: string }[];
+  bannerUrl?: string | null;
 }
 
 export interface AppImageProps {
@@ -56,12 +57,20 @@ const makeAbsoluteUrl = (url: string) => (/^https?:\/\//.test(url) ? url : `${CA
  * 4. Team event (round robin) http://localhost:3000/api/social/og/image?type=meeting&title=Round%20Robin%20Seeded%20Team%20Event&meetingProfileName=Seeded%20Team
  * 5. Dynamic collective (2 persons) http://localhost:3000/api/social/og/image?type=meeting&title=15min&meetingProfileName=Team%20Pro%20Example,%20Pro%20Example&names=Team%20Pro%20Example&names=Pro%20Example&usernames=teampro&usernames=pro
  */
-export const constructMeetingImage = ({ title, users = [], profile }: MeetingImageProps): string => {
+export const constructMeetingImage = ({
+  title,
+  users = [],
+  profile,
+  bannerUrl,
+}: MeetingImageProps): string => {
   const params = new URLSearchParams({
     type: "meeting",
     title,
     meetingProfileName: profile.name,
   });
+  if (bannerUrl) {
+    params.set("bannerUrl", makeAbsoluteUrl(bannerUrl));
+  }
 
   if (profile.image) {
     params.set("meetingImage", makeAbsoluteUrl(profile.image));
@@ -73,6 +82,7 @@ export const constructMeetingImage = ({ title, users = [], profile }: MeetingIma
   });
 
   return encodeURIComponent(`/api/social/og/image?${params.toString()}`);
+  // return `/api/social/og/image?${params.toString()}`;
 };
 
 /**
@@ -112,7 +122,7 @@ const Wrapper = ({ children, variant = "light", rotateBackground }: WrapperProps
   </div>
 );
 
-export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
+export const Meeting = ({ bannerUrl, title, users = [], profile }: MeetingImageProps) => {
   // We filter attendees here based on whether they have an image and filter duplicates.
   // Users ALWAYS have an image (albeit a gray empty person avatar), so this mainly filters out
   // any non existing images for dynamic collectives, while at the same time removing them from
@@ -133,11 +143,12 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
   // that name back in here, since the event probably is a round robin event.
   const names = attendees.length > 0 ? attendees.map((user) => user.name) : [profile.name];
 
+  const logo = bannerUrl ?? `${WEBAPP_URL}/${LOGO}`;
   return (
     <Wrapper variant="dark">
       <div tw="h-full flex flex-col justify-start">
         <div tw="flex items-center justify-center" style={{ fontFamily: "cal", fontWeight: 300 }}>
-          <img src={`${WEBAPP_URL}/${LOGO}`} width="350" alt="Logo" />
+          <img src={`${logo}`} width="350" alt="Logo" />
           {avatars.length > 0 && (
             <div style={{ color: "#111827" }} tw="font-bold text-[92px] mx-8 bottom-2">
               /

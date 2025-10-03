@@ -12,9 +12,9 @@ jobs:
         run: echo "This workflow triggers a workflow_run; it's necessary because otherwise the repo secrets aren't available for 'pull_request_review' events from externally forked pull requests"
       - name: Save PR number to context.json
         run: |
-            printf '{
-              "pr_number": ${{ github.event.pull_request.number }}
-            }' >> context.json
+          printf '{
+            "pr_number": ${{ github.event.pull_request.number }}
+          }' >> context.json
       - uses: actions/upload-artifact@v4
         with:
           name: context.json

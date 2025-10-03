@@ -27,7 +27,7 @@ export const deleteCalidTeamHandler = async ({ ctx, input }: DeleteOptions) => {
   });
 
   if (!isTeamOwner) {
-    throw new TRPCError({ code: "UNAUTHORIZED", message: "not_the_owner_of_this_team" });
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not the owner of this team" });
   }
 
   // TODO: Delete the scheduledWorkflows for teams

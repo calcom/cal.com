@@ -1,8 +1,10 @@
 "use client";
 
+import { TeamSelectionDialog } from "@calid/features/modules/teams/components/TeamSelectionDialog";
+import { Button } from "@calid/features/ui/components/button";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
-import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 export const CreateNewWebhookButton = ({ isAdmin }: { isAdmin: boolean }) => {
@@ -16,15 +18,22 @@ export const CreateNewWebhookButton = ({ isAdmin }: { isAdmin: boolean }) => {
     }
   };
 
+  const [selectTeamDialogState, setSelectTeamDialogState] = useState<SelectTeamDialogState>(null);
+
   return (
-    <CreateButtonWithTeamsList
-      color="primary"
-      subtitle={t("create_for").toUpperCase()}
-      isAdmin={isAdmin}
-      createFunction={createFunction}
-      data-testid="new_webhook"
-      includeOrg={true}
-    />
+    <>
+      <TeamSelectionDialog
+        open={selectTeamDialogState}
+        openChange={(open: boolean) => !open && setSelectTeamDialogState(null)}
+        onTeamSelect={createFunction}
+      />
+      <Button
+        onClick={() => {
+          setSelectTeamDialogState({ target: null });
+        }}>
+        {t("create")}
+      </Button>
+    </>
   );
 };
 

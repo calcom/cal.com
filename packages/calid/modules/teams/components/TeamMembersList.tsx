@@ -10,6 +10,7 @@ import {
   DialogTitle,
   DialogHeader,
   DialogDescription,
+  DialogClose,
 } from "@calid/features/ui/components/dialog";
 import {
   DropdownMenu,
@@ -19,7 +20,7 @@ import {
 } from "@calid/features/ui/components/dropdown-menu";
 import { Icon } from "@calid/features/ui/components/icon";
 import { TextField } from "@calid/features/ui/components/input/input";
-import { triggerToast } from "@calid/features/ui/components/toast/toast";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { keepPreviousData } from "@tanstack/react-query";
 import {
   flexRender,
@@ -32,6 +33,7 @@ import {
 } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { useCallback, useMemo, useRef, useState, useEffect } from "react";
 import React from "react";
 
@@ -43,6 +45,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 
 import { Checkbox } from "../../../ui/components/input/checkbox-field";
 import { AddTeamMemberModal } from "./AddTeamMemberModal";
+import { EditTeamMemberRoleModal } from "./EditTeamMemberRoleModal";
 import { TeamMembersListSkeletonLoader } from "./TeamMembersListSkeletonLoader";
 
 export type TeamMemberData = RouterOutputs["viewer"]["calidTeams"]["listMembers"]["members"][number];
@@ -66,13 +69,14 @@ export function TeamMembersList({
   onInviteClick,
   enableBulkActions = true,
 }: TeamMembersListProps) {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const { data: session } = useSession();
   const utils = trpc.useUtils();
   const tableContainerRef = useRef<HTMLDivElement>(null);
 
   // Use the team member operations hook for member management
-  const { removeMember, isRemoving, updateMemberRole } = useTeamMemberOperations(team.id);
+  const { removeMember, isRemoving, updateMemberRole, isUpdating, resendInviteMutation } =
+    useTeamMemberOperations(team.id);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -85,6 +89,14 @@ export function TeamMembersList({
   const [membersToRemove, setMembersToRemove] = useState<TeamMemberData[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [allLoadedMembers, setAllLoadedMembers] = useState<TeamMemberData[]>([]);
+
+  // State for edit role modal
+  const [memberToEdit, setMemberToEdit] = useState<TeamMemberData | null>(null);
+  const [showEditRoleModal, setShowEditRoleModal] = useState(false);
+
+  // State for impersonation modal
+  const [memberToImpersonate, setMemberToImpersonate] = useState<TeamMemberData | null>(null);
+  const [showImpersonationDialog, setShowImpersonationDialog] = useState(false);
 
   const { data: membersData, isLoading } = trpc.viewer.calidTeams.listMembers.useQuery(
     { teamId: team.id, limit: 25, searchQuery, paging: currentPage },
@@ -118,7 +130,7 @@ export function TeamMembersList({
     filters: { teamIds: [team.id], schedulingTypes: [SchedulingType.ROUND_ROBIN] },
   });
 
-  const addMembersToEventTypesMutation = trpc.viewer.calidTeams.addMembersToEventTypes.useMutation({
+  const addMembersToEventTypesMutation = trpc.viewer.calidTeams.addMembersToEventType.useMutation({
     onSuccess: (_res, variables) => {
       const userCount = variables.userIds.length;
       const eventCount = variables.eventTypeIds.length;
@@ -157,10 +169,27 @@ export function TeamMembersList({
     });
   }
 
+  const handleRoleUpdate = (memberId: number, role: MembershipRole) => {
+    updateMemberRole(memberId, role);
+    setShowEditRoleModal(false);
+    setMemberToEdit(null);
+  };
+
   const canManageMembers = useMemo(() => {
     if (!team?.membership) return false;
     return team.membership.role === "OWNER" || team.membership.role === "ADMIN";
   }, [team]);
+
+  const canImpersonateMember = useCallback(
+    (member: TeamMemberData) => {
+      if (!canManageMembers) return false;
+      if (member.user.id === session?.user?.id) return false; // Can't impersonate self
+      if (member.user.disableImpersonation) return false; // User has disabled impersonation
+      if (!member.acceptedInvitation) return false; // User hasn't accepted invitation
+      return true;
+    },
+    [canManageMembers, session?.user?.id]
+  );
 
   const formatLastActive = useCallback((lastActiveAt: string | null) => {
     if (!lastActiveAt) return "Never";
@@ -299,7 +328,7 @@ export function TeamMembersList({
               <div className="flex w-full justify-end">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button StartIcon="ellipsis" variant="button" color="minimal" />
+                    <Button StartIcon="ellipsis" variant="icon" color="minimal" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     {member.acceptedInvitation && username && (
@@ -308,17 +337,44 @@ export function TeamMembersList({
                       </DropdownMenuItem>
                     )}
                     {canEditMember && (
-                      <DropdownMenuItem StartIcon="pencil-line" onClick={() => onMemberEdit?.(member)}>
+                      <DropdownMenuItem
+                        StartIcon="pencil-line"
+                        onClick={() => {
+                          if (onMemberEdit) {
+                            onMemberEdit(member);
+                          } else {
+                            setMemberToEdit(member);
+                            setShowEditRoleModal(true);
+                          }
+                        }}>
                         {t("edit_team_member")}
+                      </DropdownMenuItem>
+                    )}
+                    {canEditMember && canImpersonateMember(member) && (
+                      <DropdownMenuItem
+                        StartIcon="shield"
+                        onClick={() => {
+                          setMemberToImpersonate(member);
+                          setShowImpersonationDialog(true);
+                        }}>
+                        {t("impersonate")}
                       </DropdownMenuItem>
                     )}
                     {!member.acceptedInvitation && canEditMember && (
                       <DropdownMenuItem
                         StartIcon="mail"
                         onClick={() => {
-                          triggerToast("Invitation resent", "success");
-                        }}>
-                        {t("resend_invite_to_team_member")}
+                          resendInviteMutation.mutate({
+                            teamId: team.id,
+                            email: member.user.email as string,
+                            language: i18n.language,
+                          });
+                        }}
+                        disabled={resendInviteMutation.isPending}>
+                        {
+                          // resendInviteMutation.isPending ? t("sending") :
+                          t("resend_invite_to_team_member")
+                        }
                       </DropdownMenuItem>
                     )}
                     {canEditMember && (
@@ -350,6 +406,7 @@ export function TeamMembersList({
   }, [
     enableBulkActions,
     canManageMembers,
+    canImpersonateMember,
     session?.user?.id,
     team,
     onMemberSelect,
@@ -357,6 +414,9 @@ export function TeamMembersList({
     onMemberRemove,
     formatLastActive,
     t,
+    i18n.language,
+    isRemoving,
+    resendInviteMutation,
   ]);
 
   const table = useReactTable({
@@ -429,10 +489,10 @@ export function TeamMembersList({
       {/* Table container */}
       <div
         ref={tableContainerRef}
-        className="border-subtle overflow-auto rounded-lg border bg-white"
+        className="border-default bg-primary overflow-auto rounded-lg border"
         style={{ height: "600px" }}>
         {/* Table header */}
-        <div className="border-subtle sticky top-0 z-10 border-b bg-gray-50">
+        <div className="border-subtle bg-muted sticky top-0 z-10 border-b">
           {table.getHeaderGroups().map((headerGroup) => (
             <div key={headerGroup.id} className="flex">
               {headerGroup.headers.map((header) => (
@@ -472,7 +532,7 @@ export function TeamMembersList({
             return (
               <div
                 key={row.id}
-                className="absolute flex w-full items-center border-b border-gray-100 transition-colors"
+                className="border-default absolute flex w-full items-center border-b transition-colors"
                 style={{
                   height: `${virtualRow.size}px`,
                   transform: `translateY(${virtualRow.start}px)`,
@@ -493,16 +553,15 @@ export function TeamMembersList({
 
       {/* Bulk actions bar */}
       {enableBulkActions && selectedCount > 0 && (
-        <div className="border-subtle fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-4 rounded-md border bg-white px-4 py-2 shadow-md">
+        <div className="border-subtle bg-primary fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-4 rounded-md border px-4 py-2 shadow-md">
           <span className="text-brand-subtle text-sm font-medium">
             {selectedCount} member{selectedCount > 1 ? "s" : ""} selected
           </span>
           <div className="flex items-center gap-2">
             {selectedCount > 1 && (
               <Button
-                className="border-none"
                 StartIcon="users"
-                color="minimal"
+                color="secondary"
                 variant="button"
                 size="sm"
                 onClick={() => {
@@ -523,9 +582,8 @@ export function TeamMembersList({
               </Button>
             )}
             <Button
-              className="border-none"
               StartIcon="scroll-text"
-              color="minimal"
+              color="secondary"
               variant="button"
               size="sm"
               onClick={addMembersToEventTypes}>
@@ -533,7 +591,6 @@ export function TeamMembersList({
             </Button>
             {canManageMembers && (
               <Button
-                className="border-none"
                 StartIcon="ban"
                 color="destructive"
                 variant="button"
@@ -576,7 +633,7 @@ export function TeamMembersList({
               color="destructive"
               onClick={() => {
                 if (memberToRemove) {
-                  removeMember(memberToRemove.id);
+                  removeMember(memberToRemove.user.id);
                   setShowRemoveDialog(false);
                   setMemberToRemove(null);
                 }
@@ -620,7 +677,7 @@ export function TeamMembersList({
                 color="destructive"
                 onClick={() => {
                   membersToRemove.forEach((member) => {
-                    removeMember(member.id);
+                    removeMember(member.user.id);
                   });
                   setSelectedMembers({});
                   setShowBulkRemoveDialog(false);
@@ -630,6 +687,46 @@ export function TeamMembersList({
                 {isRemoving ? t("removing") : t("remove_members")}
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Team Member Role Modal */}
+      <EditTeamMemberRoleModal
+        isOpen={showEditRoleModal}
+        onClose={() => {
+          setShowEditRoleModal(false);
+          setMemberToEdit(null);
+        }}
+        member={memberToEdit}
+        currentUserRole={team?.membership?.role || MembershipRole.MEMBER}
+        onRoleUpdate={handleRoleUpdate}
+        isUpdating={isUpdating}
+      />
+
+      {/* Impersonation Confirmation Dialog */}
+      <Dialog open={showImpersonationDialog} onOpenChange={setShowImpersonationDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("impersonate")}</DialogTitle>
+            <DialogDescription>{t("impersonation_user_tip")}</DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center justify-end space-x-3">
+            <DialogClose />
+            <Button
+              variant="button"
+              onClick={async () => {
+                if (memberToImpersonate) {
+                  await signIn("impersonation-auth", {
+                    username: memberToImpersonate.user.email,
+                    teamId: team.id.toString(),
+                  });
+                  setShowImpersonationDialog(false);
+                  setMemberToImpersonate(null);
+                }
+              }}>
+              {t("impersonate")}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -646,17 +743,27 @@ export function useTeamMemberOperations(teamId: number) {
     onSuccess: () => {
       utils.viewer.calidTeams.listMembers.invalidate();
       utils.viewer.calidTeams.get.invalidate();
-      triggerToast(t("member_removed_successfully"), "success");
+      triggerToast(t("team_settings_updated_successfully"), "success");
     },
     onError: (error) => {
       triggerToast(error.message, "error");
     },
   });
 
-  const updateMemberMutation = trpc.viewer.calidTeams.updateMember.useMutation({
+  const changeMemberRoleMutation = trpc.viewer.calidTeams.changeMemberRole.useMutation({
     onSuccess: () => {
       utils.viewer.calidTeams.listMembers.invalidate();
-      triggerToast(t("member_updated_successfully"), "success");
+      triggerToast(t("team_settings_updated_successfully"), "success");
+    },
+    onError: (error) => {
+      triggerToast(error.message, "error");
+    },
+  });
+
+  const resendInviteMutation = trpc.viewer.calidTeams.resendInvitation.useMutation({
+    onSuccess: () => {
+      triggerToast(t("invitation_resent"), "success");
+      utils.viewer.calidTeams.listMembers.invalidate();
     },
     onError: (error) => {
       triggerToast(error.message, "error");
@@ -668,7 +775,6 @@ export function useTeamMemberOperations(teamId: number) {
       removeMemberMutation.mutate({
         teamIds: [teamId],
         memberIds: [memberId], // assumes `member.id` is the membership id
-        isOrg: false,
       });
     },
     [teamId, removeMemberMutation]
@@ -676,20 +782,21 @@ export function useTeamMemberOperations(teamId: number) {
 
   const updateMemberRole = useCallback(
     (memberId: number, role: MembershipRole) => {
-      updateMemberMutation.mutate({
+      changeMemberRoleMutation.mutate({
         teamId,
         memberId,
         role,
       });
     },
-    [teamId, updateMemberMutation]
+    [teamId, changeMemberRoleMutation]
   );
 
   return {
     removeMember,
     updateMemberRole,
     isRemoving: removeMemberMutation.isPending,
-    isUpdating: updateMemberMutation.isPending,
+    isUpdating: changeMemberRoleMutation.isPending,
+    resendInviteMutation,
   };
 }
 

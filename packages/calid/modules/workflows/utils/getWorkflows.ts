@@ -1,12 +1,12 @@
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
-import type { EventType, Prisma, User, WorkflowReminder } from "@calcom/prisma/client";
+import type { EventType, Prisma, User, CalIdWorkflowReminder } from "@calcom/prisma/client";
 import { WorkflowMethods } from "@calcom/prisma/enums";
 
-import type { Workflow, WorkflowStep } from "../config/types";
+import type { CalIdWorkflow, CalIdWorkflowStep } from "../config/types";
 
-type PartialWorkflowStep =
-  | (Partial<WorkflowStep> & { workflow: { userId?: number; teamId?: number } })
+type PartialCalIdWorkflowStep =
+  | (Partial<CalIdWorkflowStep> & { workflow: { userId?: number; calIdTeamId?: number } })
   | null;
 
 type Booking = Prisma.BookingGetPayload<{
@@ -44,25 +44,25 @@ type PartialBooking =
     })
   | null;
 
-export type PartialWorkflowReminder = Pick<
-  WorkflowReminder,
+export type PartialCalIdWorkflowReminder = Pick<
+  CalIdWorkflowReminder,
   "id" | "isMandatoryReminder" | "scheduledDate"
 > & {
   booking: PartialBooking | null;
   // attendee: Attendee | null;
-} & { workflowStep: PartialWorkflowStep };
+} & { workflowStep: PartialCalIdWorkflowStep };
 
 const BATCH_PROCESSING_SIZE = 90;
 
-async function fetchRemindersBatch<T extends Prisma.WorkflowReminderSelect>(
-  queryFilter: Prisma.WorkflowReminderWhereInput,
+async function fetchRemindersBatch<T extends Prisma.CalIdWorkflowReminderSelect>(
+  queryFilter: Prisma.CalIdWorkflowReminderWhereInput,
   selectionCriteria: T
-): Promise<Array<Prisma.WorkflowReminderGetPayload<{ select: T }>>> {
-  const collectedReminders: Array<Prisma.WorkflowReminderGetPayload<{ select: T }>> = [];
+): Promise<Array<Prisma.CalIdWorkflowReminderGetPayload<{ select: T }>>> {
+  const collectedReminders: Array<Prisma.CalIdWorkflowReminderGetPayload<{ select: T }>> = [];
   let batchIndex = 0;
 
   while (true) {
-    const currentBatch = await prisma.workflowReminder.findMany({
+    const currentBatch = await prisma.calIdWorkflowReminder.findMany({
       where: queryFilter,
       select: selectionCriteria,
       skip: batchIndex * BATCH_PROCESSING_SIZE,
@@ -73,7 +73,9 @@ async function fetchRemindersBatch<T extends Prisma.WorkflowReminderSelect>(
       break;
     }
 
-    collectedReminders.push(...(currentBatch as Array<Prisma.WorkflowReminderGetPayload<{ select: T }>>));
+    collectedReminders.push(
+      ...(currentBatch as Array<Prisma.CalIdWorkflowReminderGetPayload<{ select: T }>>)
+    );
     batchIndex++;
   }
 
@@ -83,7 +85,7 @@ async function fetchRemindersBatch<T extends Prisma.WorkflowReminderSelect>(
 type RemindersToDeleteType = { referenceId: string | null };
 
 export async function getAllRemindersToDelete(): Promise<RemindersToDeleteType[]> {
-  const deletionCriteria: Prisma.WorkflowReminderWhereInput = {
+  const deletionCriteria: Prisma.CalIdWorkflowReminderWhereInput = {
     method: WorkflowMethods.EMAIL,
     cancelled: true,
     scheduledDate: {
@@ -91,7 +93,7 @@ export async function getAllRemindersToDelete(): Promise<RemindersToDeleteType[]
     },
   };
 
-  const fieldSelection: Prisma.WorkflowReminderSelect = {
+  const fieldSelection: Prisma.CalIdWorkflowReminderSelect = {
     referenceId: true,
   };
 
@@ -103,7 +105,7 @@ export async function getAllRemindersToDelete(): Promise<RemindersToDeleteType[]
 type RemindersToCancelType = { referenceId: string | null; id: number };
 
 export async function getAllRemindersToCancel(): Promise<RemindersToCancelType[]> {
-  const cancellationCriteria: Prisma.WorkflowReminderWhereInput = {
+  const cancellationCriteria: Prisma.CalIdWorkflowReminderWhereInput = {
     method: WorkflowMethods.EMAIL,
     cancelled: true,
     scheduled: true,
@@ -112,7 +114,7 @@ export async function getAllRemindersToCancel(): Promise<RemindersToCancelType[]
     },
   };
 
-  const requiredFields: Prisma.WorkflowReminderSelect = {
+  const requiredFields: Prisma.CalIdWorkflowReminderSelect = {
     referenceId: true,
     id: true,
   };
@@ -122,7 +124,7 @@ export async function getAllRemindersToCancel(): Promise<RemindersToCancelType[]
   return candidatesForCancellation;
 }
 
-export const select: Prisma.WorkflowReminderSelect = {
+export const select: Prisma.CalIdWorkflowReminderSelect = {
   id: true,
   scheduledDate: true,
   isMandatoryReminder: true,
@@ -138,7 +140,7 @@ export const select: Prisma.WorkflowReminderSelect = {
       workflow: {
         select: {
           userId: true,
-          teamId: true,
+          calIdTeamId: true,
         },
       },
     },
@@ -199,8 +201,8 @@ export const select: Prisma.WorkflowReminderSelect = {
   },
 };
 
-export async function getAllUnscheduledReminders(): Promise<PartialWorkflowReminder[]> {
-  const unscheduledCriteria: Prisma.WorkflowReminderWhereInput = {
+export async function getAllUnscheduledReminders(): Promise<PartialCalIdWorkflowReminder[]> {
+  const unscheduledCriteria: Prisma.CalIdWorkflowReminderWhereInput = {
     method: WorkflowMethods.EMAIL,
     scheduled: false,
     scheduledDate: {
@@ -212,7 +214,7 @@ export async function getAllUnscheduledReminders(): Promise<PartialWorkflowRemin
   const pendingReminders = (await fetchRemindersBatch(
     unscheduledCriteria,
     select
-  )) as PartialWorkflowReminder[];
+  )) as PartialCalIdWorkflowReminder[];
 
   return pendingReminders;
 }
@@ -223,7 +225,6 @@ export const workflowSelect = {
   time: true,
   timeUnit: true,
   userId: true,
-  teamId: true,
   name: true,
   steps: {
     select: {
@@ -244,58 +245,58 @@ export const workflowSelect = {
   },
 };
 
-async function fetchOrganizationTeamWorkflows(targetTeamId: number): Promise<Workflow[]> {
-  const teamWorkflowRelations = await prisma.workflowsOnTeams.findMany({
-    where: { teamId: targetTeamId },
+async function fetchOrganizationTeamWorkflows(targetTeamId: number): Promise<CalIdWorkflow[]> {
+  const teamWorkflowRelations = await prisma.calIdWorkflowsOnTeams.findMany({
+    where: { calIdTeamId: targetTeamId },
     select: { workflow: { select: workflowSelect } },
   });
 
   return teamWorkflowRelations.map((relation) => relation.workflow);
 }
 
-async function fetchOrganizationUserWorkflows(targetUserId: number): Promise<Workflow[]> {
-  const userWorkflowRelations = await prisma.workflowsOnTeams.findMany({
+async function fetchOrganizationUserWorkflows(targetUserId: number): Promise<CalIdWorkflow[]> {
+  const userWorkflowRelations = await prisma.calIdWorkflowsOnTeams.findMany({
     where: {
-      team: {
+      calIdTeam: {
         members: {
           some: {
             userId: targetUserId,
-            accepted: true,
+            acceptedInvitation: true,
           },
         },
       },
     },
     select: {
       workflow: { select: workflowSelect },
-      team: true,
+      calIdTeam: true,
     },
   });
 
   return userWorkflowRelations.map((relation) => relation.workflow);
 }
 
-async function fetchUniversalActiveWorkflows(entityId: number): Promise<Workflow[]> {
-  return prisma.workflow.findMany({
+async function fetchUniversalActiveWorkflows(entityId: number): Promise<CalIdWorkflow[]> {
+  return prisma.calIdWorkflow.findMany({
     where: {
-      teamId: entityId,
+      calIdTeamId: entityId,
       isActiveOnAll: true,
     },
     select: workflowSelect,
   });
 }
 
-async function fetchPersonalActiveWorkflows(targetUserId: number): Promise<Workflow[]> {
-  return prisma.workflow.findMany({
+async function fetchPersonalActiveWorkflows(targetUserId: number): Promise<CalIdWorkflow[]> {
+  return prisma.calIdWorkflow.findMany({
     where: {
       userId: targetUserId,
-      teamId: null,
+      calIdTeamId: null,
       isActiveOnAll: true,
     },
     select: workflowSelect,
   });
 }
 
-function removeDuplicateWorkflows(workflowCollection: Workflow[]): Workflow[] {
+function removeDuplicateWorkflows(workflowCollection: CalIdWorkflow[]): CalIdWorkflow[] {
   const processedIds = new Set<number>();
 
   return workflowCollection.filter((workflowItem) => {
@@ -306,13 +307,13 @@ function removeDuplicateWorkflows(workflowCollection: Workflow[]): Workflow[] {
 }
 
 export const getAllWorkflows = async (
-  eventTypeWorkflows: Workflow[],
+  eventTypeWorkflows: CalIdWorkflow[],
   userId?: number | null,
   teamId?: number | null,
   orgId?: number | null,
   workflowsLockedForUser = true
 ) => {
-  const combinedWorkflows: Workflow[] = [...eventTypeWorkflows];
+  const combinedWorkflows: CalIdWorkflow[] = [...eventTypeWorkflows];
 
   if (orgId) {
     if (teamId) {

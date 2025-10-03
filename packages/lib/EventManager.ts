@@ -6,8 +6,9 @@ import type { z } from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
-import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
-import { getLocationFromApp, MeetLocationType } from "@calcom/app-store/locations";
+// import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
+import { appKeysSchema as JitsiVideoKeysSchema } from "@calcom/app-store/jitsivideo/zod";
+import { getLocationFromApp, JitsiLocationType, MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getUid } from "@calcom/lib/CalEventParser";
@@ -263,11 +264,29 @@ export default class EventManager {
     const evt = processLocation(event);
 
     // Fallback to cal video if no location is set
+    // if (!evt.location) {
+    //   // See if cal video is enabled & has keys
+    //   const calVideo = await prisma.app.findUnique({
+    //     where: {
+    //       slug: "daily-video",
+    //     },
+    //     select: {
+    //       keys: true,
+    //       enabled: true,
+    //     },
+    //   });
+
+    //   const calVideoKeys = calVideoKeysSchema.safeParse(calVideo?.keys);
+
+    //   if (calVideo?.enabled && calVideoKeys.success) evt["location"] = "integrations:daily";
+    //   log.warn("Falling back to cal video as no location is set");
+    // }
+
     if (!evt.location) {
-      // See if cal video is enabled & has keys
-      const calVideo = await prisma.app.findUnique({
+      // See if jitsi video is enabled & has keys
+      const jitsiVideo = await prisma.app.findFirst({
         where: {
-          slug: "daily-video",
+          slug: "jitsi",
         },
         select: {
           keys: true,
@@ -275,10 +294,9 @@ export default class EventManager {
         },
       });
 
-      const calVideoKeys = calVideoKeysSchema.safeParse(calVideo?.keys);
+      const jitsiVideoKeys = JitsiVideoKeysSchema.safeParse(jitsiVideo?.keys);
 
-      if (calVideo?.enabled && calVideoKeys.success) evt["location"] = "integrations:daily";
-      log.warn("Falling back to cal video as no location is set");
+      if (jitsiVideo?.enabled && jitsiVideoKeys.success) evt["location"] = JitsiLocationType;
     }
 
     const [mainHostDestinationCalendar] =

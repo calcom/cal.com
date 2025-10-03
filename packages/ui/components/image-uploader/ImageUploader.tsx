@@ -1,14 +1,20 @@
 "use client";
 
-import { Button, type ButtonProps } from "@calid/features/ui/components/button";
+import { Button, type ButtonProps, type ButtonColor } from "@calid/features/ui/components/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogTrigger,
+  DialogFooter,
+} from "@calid/features/ui/components/dialog";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { useCallback, useState } from "react";
 import Cropper from "react-easy-crop";
 
 import checkIfItFallbackImage from "@calcom/lib/checkIfItFallbackImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Dialog, DialogClose, DialogContent, DialogTrigger, DialogFooter } from "../dialog";
-import { showToast } from "../toast";
 import { useFileReader, createImage, Slider } from "./Common";
 import type { FileEvent, Area } from "./Common";
 
@@ -82,6 +88,7 @@ export default function ImageUploader({
 }: ImageUploaderProps) {
   const { t } = useLocale();
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
 
   const [{ result }, setFile] = useFileReader({
     method: "readAsDataURL",
@@ -96,7 +103,7 @@ export default function ImageUploader({
     const file = e.target.files[0];
 
     if (file.size > limit) {
-      showToast(t("image_size_limit_exceed"), "error");
+      triggerToast(t("image_size_limit_exceed"), "error");
     } else {
       setFile(file);
     }
@@ -120,7 +127,9 @@ export default function ImageUploader({
 
   return (
     <Dialog
+      open={isOpen}
       onOpenChange={(opened) => {
+        setIsOpen(opened);
         // unset file on close
         if (!opened) {
           setFile(null);
@@ -172,13 +181,15 @@ export default function ImageUploader({
           </div>
         </div>
         <DialogFooter className="relative">
-          <DialogClose color="minimal">{t("cancel")}</DialogClose>
-          <DialogClose
-            data-testid={testId ? `upload-${testId}` : "upload-avatar"}
+          <DialogClose />
+          <Button
             color="primary"
-            onClick={() => showCroppedImage(croppedAreaPixels)}>
+            onClick={() => {
+              showCroppedImage(croppedAreaPixels);
+              setIsOpen(false);
+            }}>
             {t("save")}
-          </DialogClose>
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -18,6 +18,8 @@ export const getEventTypesFromDB = async (id: number) => {
     darkBrandColor: true,
     email: true,
     timeZone: true,
+    bannerUrl: true,
+    faviconUrl: true,
   };
   const eventType = await prisma.eventType.findUnique({
     where: {
@@ -78,7 +80,7 @@ export const getEventTypesFromDB = async (id: number) => {
           },
         },
       },
-      workflows: {
+      calIdWorkflows: {
         select: {
           workflow: {
             select: workflowSelect,
@@ -108,10 +110,16 @@ export const getEventTypesFromDB = async (id: number) => {
   const { profile, ...restEventType } = eventType;
   const isOrgTeamEvent = !!eventType?.team && !!profile?.organizationId;
 
+
+  console.log("CalIdWorkflows: ", eventType.calIdWorkflows);
   return {
     isDynamic: false,
     ...restEventType,
-    bookingFields: getBookingFieldsWithSystemFields({ ...eventType, isOrgTeamEvent }),
+    bookingFields: getBookingFieldsWithSystemFields({
+      ...eventType,
+      workflows: eventType.calIdWorkflows,
+      isOrgTeamEvent,
+    }),
     metadata,
   };
 };

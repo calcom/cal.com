@@ -1,5 +1,4 @@
 "use client";
-import { Icon } from "@calid/features/ui";
 
 import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
@@ -9,7 +8,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calid/features/ui/components/dropdown-menu";
-import { triggerToast } from "@calid/features/ui/components/toast/toast";
+import { Icon } from "@calid/features/ui/components/icon";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import Link from "next/link";
 import { Fragment } from "react";
 
@@ -40,8 +40,8 @@ export function ScheduleListItem({
   const { t, i18n } = useLocale();
 
   return (
-    <li key={schedule.id}>
-      <div className="border-subtle flex items-center justify-between px-3 py-5 transition-shadow hover:shadow-lg sm:px-4">
+    <div key={schedule.id}>
+      <div className="flex items-center justify-between px-3 py-5 transition-shadow hover:shadow-md sm:px-4">
         <div className="group flex w-full items-center justify-between">
           <Link
             href={`/availability/${schedule.id}`}
@@ -91,7 +91,7 @@ export function ScheduleListItem({
               <Icon name="ellipsis" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="min-w-40 bg-white" align="end">
+          <DropdownMenuContent className="min-w-40" align="end">
             {!schedule.isDefault && (
               <DropdownMenuItem
                 onClick={() =>
@@ -130,6 +130,6 @@ export function ScheduleListItem({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-    </li>
+    </div>
   );
 }

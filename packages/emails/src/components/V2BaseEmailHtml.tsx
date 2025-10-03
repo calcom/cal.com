@@ -23,6 +23,8 @@ export const V2BaseEmailHtml = (props: {
   title?: string;
   subtitle?: React.ReactNode;
   headerType?: BodyHeadType;
+  hideBranding?: boolean;
+  bannerUrl?: string;
 }) => {
   return (
     <Html>
@@ -183,7 +185,7 @@ export const V2BaseEmailHtml = (props: {
               </td>
             </Row>
           </div>
-          <EmailBodyLogo />
+          <EmailBodyLogo disableLogo={props.hideBranding} bannerUrl={props.bannerUrl} />
           <RawHtml html="<!--[if mso | IE]></td></tr></table><![endif]-->" />
         </div>
       </body>

@@ -31,6 +31,7 @@ import { isENVDev } from "@calcom/lib/env";
 import { checkIfUserNameTaken, usernameSlugRandom } from "@calcom/lib/getName";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { sendUserToMakeWebhook } from "@calcom/lib/sendUserToWebhook";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
@@ -42,12 +43,11 @@ import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
-import { getOrgUsernameFromEmail } from "../signup/utils/getOrgUsernameFromEmail";
 import { ErrorCode } from "./ErrorCode";
 import { dub } from "./dub";
 import { isPasswordValid } from "./isPasswordValid";
 import CalComAdapter from "./next-auth-custom-adapter";
-import { verifyKeycloakPassword } from "./verifyPassword";
+import { verifyCalPassword } from "./verifyPassword";
 
 const log = logger.getSubLogger({ prefix: ["next-auth-options"] });
 const GOOGLE_API_CREDENTIALS = process.env.GOOGLE_API_CREDENTIALS || "{}";
@@ -144,8 +144,7 @@ const providers: Provider[] = [
         if (!user.password?.hash) {
           throw new Error(ErrorCode.IncorrectEmailPassword);
         }
-        // const isCorrectPassword = await verifyPassword(credentials.password, user.password.hash);
-        const isCorrectPassword = verifyKeycloakPassword({
+        const isCorrectPassword = verifyCalPassword({
           inputPassword: credentials.password,
           storedHashBase64: user.password.hash,
           saltBase64: user.password.salt || "",
@@ -262,7 +261,7 @@ if (IS_GOOGLE_LOGIN_ENABLED) {
         params: {
           scope: [...GOOGLE_OAUTH_SCOPES, ...GOOGLE_CALENDAR_SCOPES].join(" "),
           access_type: "offline",
-          prompt: "consent",
+          prompt: "select_account",
         },
       },
     })
@@ -913,6 +912,11 @@ export const getOptions = ({
             !existingUserWithEmail.emailVerified &&
             !existingUserWithEmail.username
           ) {
+            const { existingUserWithUsername, username: _username } = await checkIfUserNameTaken({
+              name: user.name,
+            });
+            const username = existingUserWithUsername ? usernameSlugRandom(user.name) : _username;
+            // const username = getOrgUsernameFromEmail(user.name, getDomainFromEmail(user.email));
             await prisma.user.update({
               where: {
                 email: existingUserWithEmail.email,
@@ -922,12 +926,22 @@ export const getOptions = ({
                 email: user.email,
                 // Slugify the incoming name and append a few random characters to
                 // prevent conflicts for users with the same name.
-                username: getOrgUsernameFromEmail(user.name, getDomainFromEmail(user.email)),
+                username,
                 emailVerified: new Date(Date.now()),
                 name: user.name,
                 identityProvider: idP,
                 identityProviderId: account.providerAccountId,
               },
+            });
+
+            // Send invited user data to Make webhook (now completing their signup)
+            await sendUserToMakeWebhook({
+              id: existingUserWithEmail.id,
+              email: user.email,
+              name: user.name,
+              username,
+              identityProvider: idP,
+              createdAt: existingUserWithEmail.createdDate,
             });
 
             if (existingUserWithEmail.twoFactorEnabled) {
@@ -982,22 +996,24 @@ export const getOptions = ({
           return `/auth/error?error=wrong-provider&provider=${existingUserWithEmail.identityProvider}`;
         }
 
-        // Associate with organization if enabled by flag and idP is Google (for now)
-        const { orgUsername, orgId } = await checkIfUserShouldBelongToOrg(idP, user.email);
-        //check if user with given username already exists
-        const { existingUserWithUsername, username } = await checkIfUserNameTaken({
-          name: user.name,
-        });
         try {
+          // Associate with organization if enabled by flag and idP is Google (for now)
+          const { orgUsername, orgId } = await checkIfUserShouldBelongToOrg(idP, user.email);
+          //check if user with given username already exists
+
+          const { existingUserWithUsername, username: _username } = await checkIfUserNameTaken({
+            name: user.name,
+          });
+          const username = orgId
+            ? slugify(orgUsername)
+            : existingUserWithUsername
+            ? usernameSlugRandom(user.name)
+            : _username;
           const newUser = await prisma.user.create({
             data: {
               // Slugify the incoming name and append a few random characters to
               // prevent conflicts for users with the same name.
-              username: orgId
-                ? slugify(orgUsername)
-                : existingUserWithUsername
-                ? usernameSlugRandom(user.name)
-                : username,
+              username,
               emailVerified: new Date(Date.now()),
               name: user.name,
               ...(user.image && { avatarUrl: user.image }),
@@ -1016,7 +1032,14 @@ export const getOptions = ({
           });
           const linkAccountNewUserData = { ...account, userId: newUser.id, providerEmail: user.email };
           await calcomAdapter.linkAccount(linkAccountNewUserData);
-
+          await sendUserToMakeWebhook({
+            id: newUser.id,
+            email: newUser.email,
+            name: newUser.name || "",
+            username: newUser.username || "",
+            identityProvider: idP,
+            createdAt: newUser.createdDate,
+          });
           if (account.twoFactorEnabled) {
             return loginWithTotp(newUser.email);
           } else {

@@ -1,4 +1,4 @@
-import type { Workflow } from "@calid/features/modules/workflows/config/types";
+import type { CalIdWorkflow } from "@calid/features/modules/workflows/config/types";
 import {
   canDisableParticipantNotifications,
   canDisableOrganizerNotifications,
@@ -58,11 +58,13 @@ export async function handleConfirmation(args: {
       parentId?: number | null;
       parent?: {
         teamId: number | null;
+        calIdTeamId?: number | null;
       } | null;
-      workflows?: {
-        workflow: Workflow;
+      calIdWorkflows?: {
+        workflow: CalIdWorkflow;
       }[];
     } | null;
+    calIdTeamId?: number | null;
     metadata?: Prisma.JsonValue;
     eventTypeId: number | null;
     smsReminderNumber: string | null;

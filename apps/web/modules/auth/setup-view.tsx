@@ -128,7 +128,7 @@ export function Setup(props: PageProps) {
   });
 
   return (
-    <main className="bg-subtle flex items-center print:h-full md:h-screen">
+    <main className="bg-subtle flex items-center md:h-screen print:h-full">
       <WizardForm
         defaultStep={defaultStep}
         steps={steps}

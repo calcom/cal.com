@@ -1,6 +1,6 @@
 "use client";
 
-import { Button} from "@calid/features/ui";
+import { Button} from "@calid/features/ui/components/button";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Dispatch, SetStateAction } from "react";
 import { useState, useMemo } from "react";
@@ -11,7 +11,6 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import type { Brand } from "@calcom/types/utils";
-// import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogHeader, DialogFooter } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 

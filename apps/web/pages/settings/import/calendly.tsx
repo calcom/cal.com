@@ -1,6 +1,5 @@
 import { CalendlyOAuthProvider } from "@onehash/calendly";
 // import { Meta, SkeletonContainer } from "@calcom/ui/components";
-import { _generateMetadata } from "app/_utils";
 import { useRouter } from "next/navigation";
 import type { GetServerSidePropsContext } from "next/types";
 import { useState, useEffect } from "react";
@@ -97,7 +96,6 @@ async function handleOAuthRedirect({ code, userId }: { code: string; userId: num
           },
         },
       });
-      console.log("Creating new integration account and linking to user");
     }
     // res.setHeader("Set-Cookie", [
     //   `calendlyAccessToken=${access_token}; HttpOnly; Path=/; Max-Age=${expires_in}; SameSite=Lax`,
@@ -120,7 +118,6 @@ const CalendlyImportComponent = ({ userId, code }: { userId: number; code?: stri
   const router = useRouter();
 
   useEffect(() => {
-    console.log("Hello world");
     if (code) importFromCalendly(); //.then(() => router.replace("/event-types"));
     else checkIfAuthorized(userId);
   }, [userId, code]);

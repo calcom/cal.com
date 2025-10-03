@@ -32,7 +32,7 @@ export function BlankCard({
     <div
       data-testid="blank-card"
       className={cn(
-        "border-border rounded-md border-2 border-dashed bg-gray-50 py-14 text-center",
+        "border-border bg-default rounded-md border-2 border-dashed px-4 py-14 text-center",
         className
       )}>
       {/* Avatar / Icon */}

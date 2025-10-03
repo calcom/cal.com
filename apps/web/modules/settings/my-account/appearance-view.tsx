@@ -1,26 +1,24 @@
 "use client";
 
 // import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calid/features/ui/components/icon";
-
-
-
-import { Avatar, Button } from "@calid/features/ui";
+import { Avatar } from "@calid/features/ui/components/avatar";
+import { Button } from "@calid/features/ui/components/button";
+import ThemeCard from "@calid/features/ui/components/card/theme-card";
+import { Label } from "@calid/features/ui/components/label";
+import { triggerToast } from "@calid/features/ui/components/toast";
+import { CustomBannerUploader, CustomImageUploader } from "@calid/features/ui/components/uploader";
 import { revalidateSettingsAppearance } from "app/(use-page-wrapper)/settings/(settings-layout)/my-account/appearance/actions";
-import { revalidateHasTeamPlan } from "app/cache/membership";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import type { z } from "zod";
 
-import { metadata } from "@calcom/app-store/dailyvideo";
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
-import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
-import ThemeLabel from "@calcom/features/settings/ThemeLabel";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME } from "@calcom/lib/constants";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
-import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getPlaceholderHeader } from "@calcom/lib/defaultHeaderImage";
+import { getBrandLogoUrl } from "@calcom/lib/getAvatarUrl";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -32,8 +30,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
 import { SettingsToggle, ColorPicker, Form } from "@calcom/ui/components/form";
-import { BannerUploader, ImageUploader } from "@calcom/ui/components/image-uploader";
-import { showToast } from "@calcom/ui/components/toast";
 import { useCalcomTheme } from "@calcom/ui/styles";
 
 const useBrandColors = (
@@ -107,6 +103,26 @@ const AppearanceView = ({
     reset: resetUserThemeReset,
   } = userThemeFormMethods;
 
+  const bannerFormMethods = useForm({
+    defaultValues: {
+      bannerUrl: user.bannerUrl,
+    },
+  });
+
+  const {
+    formState: { isSubmitting: isBannerFormSubmitting, isDirty: isBannerFormDirty },
+  } = bannerFormMethods;
+
+  const faviconFormMethods = useForm({
+    defaultValues: {
+      faviconUrl: user.faviconUrl,
+    },
+  });
+
+  const {
+    formState: { isSubmitting: isFaviconFormSubmitting, isDirty: isFaviconFormDirty },
+  } = faviconFormMethods;
+
   const bookerLayoutFormMethods = useForm({
     defaultValues: {
       metadata: user.metadata as z.infer<typeof userMetadata>,
@@ -146,8 +162,7 @@ const AppearanceView = ({
     onSuccess: async (data) => {
       await utils.viewer.me.invalidate();
       revalidateSettingsAppearance();
-      revalidateHasTeamPlan();
-      showToast(t("settings_updated_successfully"), "success");
+      triggerToast(t("settings_updated_successfully"), "success");
       resetBrandColorsThemeReset({ brandColor: data.brandColor, darkBrandColor: data.darkBrandColor });
       resetBookerLayoutThemeReset({ metadata: data.metadata });
       resetUserThemeReset({ theme: data.theme });
@@ -155,81 +170,90 @@ const AppearanceView = ({
     },
     onError: (error) => {
       if (error.message) {
-        showToast(error.message, "error");
+        triggerToast(error.message, "error");
       } else {
-        showToast(t("error_updating_settings"), "error");
+        triggerToast(t("error_updating_settings"), "error");
       }
     },
     onSettled: async () => {
       await utils.viewer.me.invalidate();
       revalidateSettingsAppearance();
-      revalidateHasTeamPlan();
     },
   });
+  const [orgBase64, setOrgBase64] = useState<string>(user.bannerUrl || "");
 
+  const [showPreview, setShowPreview] = useState<boolean>(false);
   return (
     <SettingsHeader
       title={t("appearance")}
       description={t("appearance_description")}
       borderInShellHeader={false}>
-      <div className="border-subtle mt-6 flex items-center rounded-b-none rounded-t-lg border-x border-t px-6 pt-6 text-sm">
+      <div className="border-default mt-6 flex items-center rounded-b-none rounded-t-lg border-x border-t px-6 pt-6 text-sm">
         <div>
-          <p className="text-default text-base font-semibold">{t("app_theme")}</p>
-          <p className="text-default">{t("app_theme_applies_note")}</p>
+          <p className="text-default text-sm font-semibold">{t("app_theme")}</p>
+          <p className="text-subtle tex-sm">{t("app_theme_applies_note")}</p>
         </div>
       </div>
       <Form
         form={userAppThemeFormMethods}
         handleSubmit={({ appTheme }) => {
-          if (appTheme === "system") appTheme = null;
+          if (appTheme === "system") {
+            appTheme = null;
+            localStorage.removeItem(`app-theme`);
+          }
           mutation.mutate({
             appTheme,
           });
         }}>
-        <div className="border-subtle flex flex-col justify-between border-x px-6 pb-4 pt-8 sm:flex-row">
-          <ThemeLabel
-            variant="system"
-            value="system"
-            label={t("theme_system")}
-            defaultChecked={user.appTheme === null}
-            register={userAppThemeFormMethods.register}
-            fieldName="appTheme"
-          />
-          <ThemeLabel
-            variant="light"
-            value="light"
-            label={t("light")}
-            defaultChecked={user.appTheme === "light"}
-            register={userAppThemeFormMethods.register}
-            fieldName="appTheme"
-          />
-          <ThemeLabel
-            variant="dark"
-            value="dark"
-            label={t("dark")}
-            defaultChecked={user.appTheme === "dark"}
-            register={userAppThemeFormMethods.register}
-            fieldName="appTheme"
-          />
-        </div>
-        <div className="border-subtle flex flex-row justify-start rounded-b-lg border-x border-b px-6 pb-4">
-          <Button
-            loading={mutation.isPending}
-            disabled={isUserAppThemeSubmitting || !isUserAppThemeDirty}
-            type="submit"
-            data-testid="update-app-theme-btn"
-            color="primary">
-            {t("update")}
-          </Button>
+        <div className="border-default rounded-b-lg border-x border-b">
+          <div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-3">
+            <ThemeCard
+              variant="system"
+              value="system"
+              label={t("theme_system")}
+              defaultChecked={user.appTheme === null}
+              register={userAppThemeFormMethods.register}
+              fieldName="appTheme"
+              currentValue={userAppThemeFormMethods.watch("appTheme")}
+            />
+            <ThemeCard
+              variant="light"
+              value="light"
+              label={t("light")}
+              defaultChecked={user.appTheme === "light"}
+              register={userAppThemeFormMethods.register}
+              fieldName="appTheme"
+              currentValue={userAppThemeFormMethods.watch("appTheme")}
+            />
+            <ThemeCard
+              variant="dark"
+              value="dark"
+              label={t("dark")}
+              defaultChecked={user.appTheme === "dark"}
+              register={userAppThemeFormMethods.register}
+              fieldName="appTheme"
+              currentValue={userAppThemeFormMethods.watch("appTheme")}
+            />
+          </div>
+          <div className="flex flex-row justify-start px-6 pb-4">
+            <Button
+              loading={mutation.isPending}
+              disabled={isUserAppThemeSubmitting || !isUserAppThemeDirty}
+              type="submit"
+              data-testid="update-app-theme-btn"
+              color="primary">
+              {t("update")}
+            </Button>
+          </div>
         </div>
       </Form>
 
       {isApartOfOrganization ? null : (
         <>
-          <div className="border-subtle mt-6 flex items-center rounded-b-none rounded-t-lg border-x border-t px-6 pt-6 text-sm">
+          <div className="border-default mt-6 flex items-center rounded-b-none rounded-t-lg border-x border-t px-6 pt-6 text-sm">
             <div>
-              <p className="text-default text-base font-semibold">{t("theme")}</p>
-              <p className="text-default">{t("theme_applies_note")}</p>
+              <p className="text-default text-sm font-semibold">{t("theme")}</p>
+              <p className="text-subtle text-sm">{t("theme_applies_note")}</p>
             </div>
           </div>
           <Form
@@ -245,39 +269,47 @@ const AppearanceView = ({
                 theme: null,
               });
             }}>
-            <div className="border-subtle flex flex-col justify-between border-x px-6 pb-4 pt-8 sm:flex-row">
-              <ThemeLabel
-                variant="system"
-                value="system"
-                label={t("theme_system")}
-                defaultChecked={user.theme === null}
-                register={userThemeFormMethods.register}
-              />
-              <ThemeLabel
-                variant="light"
-                value="light"
-                label={t("light")}
-                defaultChecked={user.theme === "light"}
-                register={userThemeFormMethods.register}
-              />
-              <ThemeLabel
-                variant="dark"
-                value="dark"
-                label={t("dark")}
-                defaultChecked={user.theme === "dark"}
-                register={userThemeFormMethods.register}
-              />
-            </div>
+            <div className="border-default rounded-b-lg border-x border-b">
+              <div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-3">
+                <ThemeCard
+                  variant="system"
+                  value="system"
+                  label={t("theme_system")}
+                  defaultChecked={user.theme === null}
+                  register={userThemeFormMethods.register}
+                  fieldName="theme"
+                  currentValue={userThemeFormMethods.watch("theme")}
+                />
+                <ThemeCard
+                  variant="light"
+                  value="light"
+                  label={t("light")}
+                  defaultChecked={user.theme === "light"}
+                  register={userThemeFormMethods.register}
+                  fieldName="theme"
+                  currentValue={userThemeFormMethods.watch("theme")}
+                />
+                <ThemeCard
+                  variant="dark"
+                  value="dark"
+                  label={t("dark")}
+                  defaultChecked={user.theme === "dark"}
+                  register={userThemeFormMethods.register}
+                  fieldName="theme"
+                  currentValue={userThemeFormMethods.watch("theme")}
+                />
+              </div>
 
-            <div className="border-subtle flex flex-row justify-start rounded-b-lg border-x border-b px-6 pb-4">
-              <Button
-                loading={mutation.isPending}
-                disabled={isUserThemeSubmitting || !isUserThemeDirty}
-                type="submit"
-                data-testid="update-theme-btn"
-                color="primary">
-                {t("update")}
-              </Button>
+              <div className="flex flex-row justify-start px-6 pb-4">
+                <Button
+                  loading={mutation.isPending}
+                  disabled={isUserThemeSubmitting || !isUserThemeDirty}
+                  type="submit"
+                  data-testid="update-theme-btn"
+                  color="primary">
+                  {t("update")}
+                </Button>
+              </div>
             </div>
           </Form>
           <Form
@@ -286,7 +318,7 @@ const AppearanceView = ({
             handleSubmit={(values) => {
               const layoutError = validateBookerLayouts(values?.metadata?.defaultBookerLayouts || null);
               if (layoutError) {
-                showToast(t(layoutError), "error");
+                triggerToast(t(layoutError), "error");
                 return;
               } else {
                 mutation.mutate(values);
@@ -401,7 +433,6 @@ const AppearanceView = ({
           <Form
             form={headerUrlFormMethods}
             handleSubmit={(values) => {
-              console.log("Submitting: ", values);
               mutation.mutate(values);
             }}>
             <div className="border-subtle mt-6 rounded-md border p-6">
@@ -411,66 +442,50 @@ const AppearanceView = ({
                 render={({ field: { value, onChange } }) => {
                   const showRemoveLogoButton = value !== null;
                   return (
-                    <div className="flex flex-col items-start gap-2">
-                      <p className="text-emphasis mb-2 block text-base font-medium">{t("header_svg")}</p>
-
-                      {/* {metadata.headerUrl } */}
-
-                      {/* <div className="bg-muted flex h-60 w-full items-center justify-start">
+                    <div className="flex flex-col items-start">
+                      <Label className="font-semibold">{t("booking_page_header_background")}</Label>
+                      <span className="text-subtle mb-8 text-sm">
+                        {t("booking_page_header_background_description")}
+                      </span>
+                      <div className="bg-muted mb-8 flex h-60 w-full items-center justify-start rounded-lg">
                         {!value ? (
-                          <p className="text-emphasis w-full text-center text-sm sm:text-xs">
-                            {t("no_target", { "Header" })}
-                          </p>
+                          <div className="bg-cal-gradient dark:bg-cal-gradient h-full w-full" />
                         ) : (
-                          // eslint-disable-next-line @next/next/no-img-element
                           <img className="h-full w-full" src={value} />
                         )}
-                      </div> */}
-                      {
-                        <div className="bg-muted flex h-60 w-full items-center justify-start rounded-sm">
-                          {!value ? (
-                            <p className="text-emphasis w-full text-center text-sm sm:text-xs">
-                              {t("no_target", { target: "Header" })}
-                            </p>
-                          ) : (
-                            <img className="h-full w-full" src={value} />
-                          )}
-                        </div>
-                      }
-
-                      {/* <Avatar
-                        data-testid="profile-upload-logo"
-                        alt={headerUrlFormMethods.getValues("name")}
-                        imageSrc={getPlaceholderAvatar(
-                          value,
-                          headerUrlFormMethods.getValues("metadata.headerUrl")
-                        )}
-                        size="lg"
-                      /> */}
+                      </div>
                       <div className="flex gap-2">
-                        <BannerUploader
+                        <CustomBannerUploader
                           target="metadata.headerUrl"
                           id="svg-upload"
                           buttonMsg={t("upload_image")}
                           mimeType="image/svg+xml"
                           height={600}
                           width={3200}
-                          handleAvatarChange={onChange}
-                          imageSrc={getPlaceholderAvatar(
-                            value,
-                            headerUrlFormMethods.getValues("metadata.headerUrl")
-                          )}
+                          handleAvatarChange={(newHeaderUrl) => {
+                            onChange(newHeaderUrl);
+                            mutation.mutate({
+                              metadata: { headerUrl: newHeaderUrl },
+                            });
+                          }}
+                          imageSrc={
+                            getPlaceholderHeader(
+                              value,
+                              headerUrlFormMethods.getValues("metadata.headerUrl")
+                            ) ?? undefined
+                          }
                           triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
                         />
                         {showRemoveLogoButton && (
-                          <Button color="secondary" onClick={() => onChange(null)}>
+                          <Button
+                            color="secondary"
+                            onClick={() => {
+                              onChange(null);
+                              mutation.mutate({ metadata: { headerUrl: null } });
+                            }}>
                             {t("remove")}
                           </Button>
                         )}
-
-                        <Button type="submit" color="secondary">
-                          {t("save")}
-                        </Button>
                       </div>
                     </div>
                   );
@@ -478,14 +493,7 @@ const AppearanceView = ({
               />
             </div>
           </Form>
-          {/* TODO future PR to preview brandColors */}
-          {/* <Button
-        color="secondary"
-        EndIcon="external-link"
-        className="mt-6"
-        onClick={() => window.open(`${WEBAPP_URL}/${user.username}/${user.eventTypes[0].title}`, "_blank")}>
-        Preview
-      </Button> */}
+
           <div className="border-subtle mt-6 rounded-md border p-6">
             <SettingsToggle
               toggleSwitchAtTheEnd={true}
@@ -496,43 +504,154 @@ const AppearanceView = ({
               Badge={<UpgradeTeamsBadge />}
               onCheckedChange={(checked) => {
                 setHideBrandingValue(checked);
-                mutation.mutate({ hideBranding: checked });
+                if (!checked) {
+                  // Clear custom branding when disabling
+                  bannerFormMethods.setValue("bannerUrl", null, { shouldDirty: false });
+                  faviconFormMethods.setValue("faviconUrl", null, { shouldDirty: false });
+                  setOrgBase64("");
+                  mutation.mutate({ hideBranding: checked, bannerUrl: "delete", faviconUrl: "delete" });
+                } else {
+                  mutation.mutate({ hideBranding: checked });
+                }
               }}
             />
-            <div className="mt-6 flex flex-row justify-between">
-              <div className="flex flex-col">
-                <div className="text-sm">{t("custom_brand_logo")}</div>
-                <div className="text-subtle text-xs">{t("custom_brand_logo_description")}</div>
-              </div>
-              <Button color="secondary" size="sm">
-                {t("preview")}
-              </Button>
-            </div>
 
-            <div className="mt-4 flex flex-row items-center gap-6">
-              <Avatar size="lg" />
+            {hasPaidPlan && hideBrandingValue && (
+              <Form
+                form={bannerFormMethods}
+                handleSubmit={(values) => {
+                  if (values.bannerUrl === null) {
+                    values.bannerUrl = "delete";
+                  }
+                  mutation.mutate(values);
+                }}>
+                <Controller
+                  control={bannerFormMethods.control}
+                  name="bannerUrl"
+                  render={({ field: { value, onChange } }) => {
+                    const showRemoveAvatarButton = !!value;
+                    return (
+                      <div>
+                        <div className="mt-6 flex flex-row justify-between">
+                          <div className="flex flex-col">
+                            <div className="text-sm">{t("custom_brand_logo")}</div>
+                            <div className="text-subtle text-xs">{t("custom_brand_logo_description")}</div>
+                          </div>
+                          <Button color="secondary" size="sm">
+                            {t("preview")}
+                          </Button>
+                        </div>
 
-              <Button color="secondary" size="base" className="h-[36px]">
-                <Icon name="upload" className="h-4 w-4" />
-                {t("upload_logo")}
-              </Button>
-            </div>
+                        <div className="mt-4 flex flex-row items-center gap-6">
+                          <Avatar imageSrc={getBrandLogoUrl({ bannerUrl: value })} size="lg" alt="" />
+                          <div className="flex items-center gap-3">
+                            <div className="w-[105px]">
+                              <CustomBannerUploader
+                                height={100}
+                                width={400}
+                                target="logo"
+                                // uploadInstruction={t("org_logo_instructions", { height: 100, width: 400 })}
+                                id="logo-upload"
+                                buttonMsg={t("upload_logo")}
+                                handleAvatarChange={(newAvatar) => {
+                                  onChange(newAvatar);
+                                  setOrgBase64(newAvatar);
+                                  mutation.mutate({ bannerUrl: newAvatar });
+                                }}
+                                imageSrc={getBrandLogoUrl({ bannerUrl: value })}
+                                mimeType="image/*"
+                              />
+                            </div>
+                            {showRemoveAvatarButton && (
+                              <Button
+                                color="secondary"
+                                onClick={() => {
+                                  onChange(null);
+                                  mutation.mutate({ bannerUrl: "delete" });
+                                }}>
+                                <p className="mx-auto">{t("remove")}</p>
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }}
+                />
+              </Form>
+            )}
 
-            <div className="mt-6 flex flex-row justify-between">
-              <div className="flex flex-col">
-                <div className="text-sm">{t("custom_brand_favicon")}</div>
-                <div className="text-subtle text-xs">{t("custom_brand_favicon_description")}</div>
-              </div>
-            </div>
+            {hasPaidPlan && hideBrandingValue && (
+              <Form
+                form={faviconFormMethods}
+                handleSubmit={(values) => {
+                  if (values.faviconUrl === null) {
+                    values.faviconUrl = "delete";
+                  }
+                  mutation.mutate(values);
+                }}>
+                {/* {showPreview && (
+                  <div className="flex flex-col justify-end gap-4">
+                    <UserFoundUI base64={orgBase64} />
+                    <LinkPreview base64={orgBase64} />
+                  </div>
+                )} */}
+                <Controller
+                  control={faviconFormMethods.control}
+                  name="faviconUrl"
+                  render={({ field: { value, onChange } }) => {
+                    const showRemoveFaviconButton = !!value;
 
-            <div className="mt-4 flex flex-row items-center gap-6">
-              <Avatar size="lg" />
+                    return (
+                      <div>
+                        <div className="mt-6 flex flex-row justify-between">
+                          <div className="flex flex-col">
+                            <div className="text-sm">{t("custom_brand_favicon")}</div>
+                            <div className="text-subtle text-xs">{t("custom_brand_favicon_description")}</div>
+                          </div>
+                        </div>
 
-              <Button color="secondary" size="base" className="h-[36px]">
-                <Icon name="upload" className="h-4 w-4" />
-                {t("upload_favicon")}
-              </Button>
-            </div>
+                        <div className="mt-3 flex gap-2">
+                          <div className="flex">
+                            <Avatar
+                              alt={user.name || "User Favicon"}
+                              imageSrc={getBrandLogoUrl({ faviconUrl: value }, true)}
+                              size="lg"
+                            />
+                            <div className="ms-4 flex items-center">
+                              <div className="flex  gap-2">
+                                <CustomImageUploader
+                                  target="avatar"
+                                  id="avatar-upload"
+                                  buttonMsg={t("upload_favicon")}
+                                  handleAvatarChange={(newAvatar) => {
+                                    setOrgBase64(newAvatar);
+                                    onChange(newAvatar);
+                                    mutation.mutate({ faviconUrl: newAvatar });
+                                  }}
+                                  imageSrc={getBrandLogoUrl({ bannerUrl: value }, true)}
+                                />
+
+                                {showRemoveFaviconButton && (
+                                  <Button
+                                    color="secondary"
+                                    onClick={() => {
+                                      onChange(null);
+                                      mutation.mutate({ faviconUrl: "delete" });
+                                    }}>
+                                    <p className="mx-auto">{t("remove")}</p>
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }}
+                />
+              </Form>
+            )}
           </div>
         </>
       )}

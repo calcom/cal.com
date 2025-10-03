@@ -1,6 +1,8 @@
 "use client";
 
 import { Button } from "@calid/features/ui/components/button";
+import { BlankCard } from "@calid/features/ui/components/card";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { useReducer, Suspense } from "react";
 
 import { AppList } from "@calcom/features/apps/components/AppList";
@@ -8,9 +10,7 @@ import DisconnectIntegrationModal from "@calcom/features/apps/components/Disconn
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
-import { showToast } from "@calcom/ui/components/toast";
 
 export type UpdateUsersDefaultConferencingAppParams = {
   appSlug: string;
@@ -50,13 +50,13 @@ const InstalledConferencingApps = ({
   const { data: eventTypesQueryData, isFetching: isEventTypesFetching } =
     trpc.viewer.eventTypes.bulkEventFetch.useQuery();
 
-  const [result] = trpc.viewer.apps.integrations.useSuspenseQuery({
+  const [result] = trpc.viewer.apps.calid_integrations.useSuspenseQuery({
     variant: "conferencing",
     onlyInstalled: true,
   });
 
   const handleConnectDisconnectIntegrationMenuToggle = () => {
-    utils.viewer.apps.integrations.invalidate();
+    utils.viewer.apps.calid_integrations.invalidate();
   };
 
   const handleBulkEditDialogToggle = () => {
@@ -73,12 +73,12 @@ const InstalledConferencingApps = ({
       { appSlug, appLink },
       {
         onSuccess: () => {
-          showToast("Default app updated successfully", "success");
+          triggerToast("Default app updated successfully", "success");
           utils.viewer.apps.getUsersDefaultConferencingApp.invalidate();
           onSuccessCallback();
         },
         onError: (error) => {
-          showToast(`Error: ${error.message}`, "error");
+          triggerToast(`Error: ${error.message}`, "error");
           onErrorCallback();
         },
       }
@@ -101,7 +101,7 @@ const InstalledConferencingApps = ({
 
   if (result.items.length === 0) {
     return (
-      <EmptyScreen
+      <BlankCard
         Icon="calendar"
         headline={t("no_category_apps", {
           category: t("conferencing").toLowerCase(),
@@ -185,20 +185,20 @@ export const ConferencingAppsViewWebWrapper = () => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const deleteCredentialMutation = trpc.viewer.credentials.delete.useMutation();
+  const deleteCredentialMutation = trpc.viewer.credentials.calid_delete.useMutation();
 
   const handleRemoveApp = ({ credentialId, teamId, callback }: RemoveAppParams) => {
     deleteCredentialMutation.mutate(
       { id: credentialId, teamId },
       {
         onSuccess: () => {
-          showToast(t("app_removed_successfully"), "success");
+          triggerToast(t("app_removed_successfully"), "success");
           callback();
-          utils.viewer.apps.integrations.invalidate();
+          utils.viewer.apps.calid_integrations.invalidate();
           utils.viewer.calendars.connectedCalendars.invalidate();
         },
         onError: () => {
-          showToast(t("error_removing_app"), "error");
+          triggerToast(t("error_removing_app"), "error");
           callback();
         },
       }
@@ -214,7 +214,7 @@ export const ConferencingAppsViewWebWrapper = () => {
       borderInShellHeader={false}>
       <>
         <AddConferencingButton />
-        <div className="bg-default w-full mt-4">
+        <div className="bg-default mt-4 w-full">
           <Suspense fallback={<SkeletonLoader />}>
             <InstalledConferencingApps disconnectIntegrationModalCtrl={disconnectIntegrationModalCtrl} />
           </Suspense>

@@ -1,20 +1,16 @@
 "use client";
 
-import { Icon } from "@calid/features/ui/components/icon";
-
-
-
+import { HorizontalTabs, type HorizontalTabItemProps } from "@calid/features/ui/components/navigation";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter as useAppRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 
 import { useEventTypeForm } from "@calcom/atoms/event-types/hooks/useEventTypeForm";
 import { useHandleRouteChange } from "@calcom/atoms/event-types/hooks/useHandleRouteChange";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
-import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import Shell from "@calcom/features/shell/Shell";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -26,19 +22,31 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import classNames from "@calcom/ui/classNames";
 import { Form } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/components/toast";
-import { revalidateTeamEventTypeCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
+import { revalidateCalIdTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 
 import { TRPCClientError } from "@trpc/react-query";
 
 // Import the new actions component
 import { EventTypeActions } from "../components/event-types-action";
+import { EventAdvanced } from "../components/tabs/event-types-advanced";
+import { EventApps } from "../components/tabs/event-types-apps";
+import { EventAvailability } from "../components/tabs/event-types-availability";
+import { EventEmbed } from "../components/tabs/event-types-embed";
+import { EventLimits } from "../components/tabs/event-types-limit";
+import { EventRecurring } from "../components/tabs/event-types-recurring";
+import { EventSetup } from "../components/tabs/event-types-setup";
 import { EventTeamAssignmentTab } from "../components/tabs/event-types-team-assignment";
+import { EventWebhooks } from "../components/tabs/event-types-webhook";
+import { EventWorkflows } from "../components/tabs/event-types-workflows";
+import { TabSkeleton } from "./tab-skeleton";
 
-// Dynamic imports for tab components
+// import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
+
+type CalIdEventTypeData = RouterOutputs["viewer"]["eventTypes"]["calid_get"];
+
+// Dynamic imports for dialogs only (these can remain dynamic as they're not frequently accessed)
 const ManagedEventTypeDialog = dynamic(
   () => import("@calcom/features/eventtypes/components/dialogs/ManagedEventDialog")
 );
@@ -51,90 +59,52 @@ const DeleteDialog = dynamic(() =>
   import("@calcom/features/eventtypes/components/dialogs/DeleteDialog").then((mod) => mod.DeleteDialog)
 );
 
-//Done
-const EventSetupTab = dynamic(() =>
-  import("../components/tabs/event-types-setup").then((mod) => mod.EventSetup)
-);
-//Done
-const EventAvailabilityTab = dynamic(() =>
-  import("../components/tabs/event-types-availability").then((mod) => mod.EventAvailability)
-);
-// const EventTeamAssignmentTab = dynamic(() =>
-//   import("../components/tabs/event-types-setup").then((mod) => mod.EventSetup)
-// );
-
-//Done
-const EventLimitsTab = dynamic(() =>
-  import("../components/tabs/event-types-limit").then((mod) => mod.EventLimits)
-);
-//Done
-const EventAdvancedTab = dynamic(() =>
-  import("../components/tabs/event-types-advanced").then((mod) => mod.EventAdvanced)
-);
-// const EventInstantTab = dynamic(() =>
-//   import("../components/tabs/event-types-setup").then((mod) => mod.EventSetup)
-// );
-//Done
-const EventRecurringTab = dynamic(() =>
-  import("../components/tabs/event-types-recurring").then((mod) => mod.EventRecurring)
-);
-//Done
-const EventAppsTab = dynamic(() =>
-  import("../components/tabs/event-types-apps").then((mod) => mod.EventApps)
-);
-//Done
-const EventWorkflowsTab = dynamic(() =>
-  import("../components/tabs/event-types-workflows").then((mod) => mod.EventWorkflows)
-);
-//Done
-const EventWebhooksTab = dynamic(() =>
-  import("../components/tabs/event-types-webhook").then((mod) => mod.EventWebhooks)
-);
-// const EventAITab = dynamic(() =>
-//   import("../components/tabs/event-types-setup").then((mod) => mod.EventSetup)
-// );
-
-const EventEmbedTab = dynamic(() =>
-  import("../components/tabs/event-types-embed").then((mod) => mod.EventEmbed)
-);
-
 // Tab configuration
-const tabs = [
-  { id: "setup", name: "Event Setup", icon: <Icon name="settings" /> },
-  { id: "availability", name: "Availability", icon: <Icon name="clock-2" /> },
-  { id: "team", name: "Team", icon: <Icon name="users" /> },
-  { id: "limits", name: "Limits", icon: <Icon name="shield" /> },
-  { id: "advanced", name: "Advanced", icon: <Icon name="zap" /> },
-  { id: "apps", name: "Apps", icon: <Icon name="blocks" /> },
-  { id: "workflows", name: "Workflows", icon: <Icon name="workflow" /> },
-  { id: "webhooks", name: "Webhooks", icon: <Icon name="webhook" /> },
-  // { id: "instant", name: "Instant", icon: <Icon name="bell" /> },
-  // { id: "recurring", name: "Recurring", icon: <Icon name="refresh-ccw" /> },
-  // { id: "ai", name: "AI", icon: <Icon name="sparkles" /> },
-  { id: "embed", name: "Embed", icon: <Icon name="clipboard" /> },
-] as const;
+const getTabs = (currentPath: string): HorizontalTabItemProps[] => [
+  { name: "Event Setup", icon: "settings", href: `${currentPath}?tabName=setup` },
+  { name: "Availability", icon: "clock-2", href: `${currentPath}?tabName=availability` },
+  { name: "Team", icon: "users", href: `${currentPath}?tabName=team` },
+  { name: "Limits", icon: "shield", href: `${currentPath}?tabName=limits` },
+  { name: "Advanced", icon: "zap", href: `${currentPath}?tabName=advanced` },
+  { name: "Apps", icon: "blocks", href: `${currentPath}?tabName=apps` },
+  { name: "Workflows", icon: "workflow", href: `${currentPath}?tabName=workflows` },
+  { name: "Webhooks", icon: "webhook", href: `${currentPath}?tabName=webhooks` },
+  // { name: "Instant", icon: "bell", href: `${currentPath}?tabName=instant` },
+  // { name: "Recurring", icon: "refresh-ccw", href: `${currentPath}?tabName=recurring` },
+  // { name: "AI", icon: "sparkles", href: `${currentPath}?tabName=ai` },
+  { name: "Embed", icon: "clipboard", href: `${currentPath}?tabName=embed` },
+];
 
 export type EventTypeWebWrapperProps = {
   id: number;
-  data: RouterOutputs["viewer"]["eventTypes"]["get"];
+  data: CalIdEventTypeData;
+  calIdTeamId?: number;
 };
 
-export const EventTypeWebWrapper = ({ id, data: serverFetchedData }: EventTypeWebWrapperProps) => {
-  const { data: eventTypeQueryData } = trpc.viewer.eventTypes.get.useQuery(
+export const EventTypeWebWrapper = ({
+  id,
+  data: serverFetchedData,
+  calIdTeamId,
+}: EventTypeWebWrapperProps) => {
+  const resolvedCalIdTeamId = calIdTeamId || (serverFetchedData as any)?.eventType?.calIdTeamId;
+
+  const { data: eventTypeQueryData } = trpc.viewer.eventTypes.calid_get.useQuery(
     { id },
-    { enabled: !serverFetchedData }
+    { enabled: !serverFetchedData && !!resolvedCalIdTeamId }
   );
 
   if (serverFetchedData) {
-    return <EventTypeWithNewUI {...serverFetchedData} id={id} />;
+    return <EventTypeWithNewUI {...(serverFetchedData as CalIdEventTypeData)} id={id} />;
   }
 
-  if (!eventTypeQueryData) return null;
+  if (!eventTypeQueryData) {
+    return null;
+  }
 
-  return <EventTypeWithNewUI {...eventTypeQueryData} id={id} />;
+  return <EventTypeWithNewUI {...(eventTypeQueryData as CalIdEventTypeData)} id={id} />;
 };
 
-const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => {
+const EventTypeWithNewUI = ({ id, ...rest }: any) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const pathname = usePathname();
@@ -158,10 +128,12 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
       .optional()
       .default("setup"),
   });
+
   const {
     data: { tabName: tab },
     setQuery,
   } = useTypedQuery(querySchema);
+
   const { data: user, isPending: isLoggedInUserPending } = useMeQuery();
   const isTeamEventTypeDeleted = useRef(false);
   const leaveWithoutAssigningHosts = useRef(false);
@@ -174,21 +146,66 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [pendingRoute, setPendingRoute] = useState("");
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isFormReady, setIsFormReady] = useState(false);
 
   const { eventType, locationOptions, team, teamMembers, destinationCalendar, currentUserMembership } = rest;
-  const eventTypesLockedByOrg = eventType.team?.parent?.organizationSettings?.lockEventTypeCreationForUsers;
+
+  // For CalId, use calIdTeam data if team is not available
+  const effectiveTeam = team || (eventType as any).calIdTeam;
+  const effectiveTeamMembers = useMemo(() => {
+    const members = teamMembers?.length > 0 ? teamMembers : (eventType as any).calIdTeam?.members || [];
+    return members.map((member: any) => {
+      if (member.user) {
+        return member;
+      }
+
+      return {
+        user: {
+          id: member.id,
+          name: member.name,
+          email: member.email,
+          avatar: member.avatar,
+          avatarUrl: member.avatarUrl,
+          username: member.username,
+          locale: member.locale,
+          defaultScheduleId: member.defaultScheduleId,
+          isPlatformManaged: member.isPlatformManaged,
+          timeZone: member.timeZone,
+          nonProfileUsername: member.nonProfileUsername,
+          profile: member.profile,
+          profileId: member.profileId,
+          eventTypes: member.eventTypes,
+        },
+        membership: member.membership,
+      };
+    });
+  }, [teamMembers, eventType]);
+
+  // Ensure users array exists and has at least one user
+  if (!eventType.users || eventType.users.length === 0) {
+    console.warn("EventType has no users, this may cause issues with URL generation");
+  }
+
+  // Helper function to safely get username
+  const getEventTypeUsername = () => {
+    return eventType.users?.[0]?.username || "unknown";
+  };
+
+  const eventTypesLockedByOrg = (eventType as any).team?.parent?.organizationSettings
+    ?.lockEventTypeCreationForUsers;
 
   // Data fetching
-  const { data: eventTypeApps } = trpc.viewer.apps.integrations.useQuery({
+  const { data: _eventTypeApps } = trpc.viewer.apps.calid_integrations.useQuery({
     extendsFeature: "EventType",
-    teamId: eventType.team?.id || eventType.parent?.teamId,
+    calIdTeamId: eventType.calIdTeamId || eventType.parent?.calIdTeamId,
     onlyInstalled: true,
   });
 
-  const { data: allActiveWorkflows } = trpc.viewer.workflows.getAllActiveWorkflows.useQuery({
+  const { data: allActiveWorkflows } = trpc.viewer.workflows.calid_getAllActiveWorkflows.useQuery({
     eventType: {
       id,
-      teamId: eventType.teamId,
+      calIdTeamId: eventType.calIdTeamId,
       userId: eventType.userId,
       parent: eventType.parent,
       metadata: eventType.metadata,
@@ -196,9 +213,10 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
   });
 
   // Mutations
-  const updateMutation = trpc.viewer.eventTypes.update.useMutation({
+  const updateMutation = trpc.viewer.eventTypes.calid_update.useMutation({
     onSuccess: async () => {
       const currentValues = form.getValues();
+
       currentValues.children = currentValues.children.map((child) => ({
         ...child,
         created: true,
@@ -207,20 +225,19 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
 
       form.reset(currentValues);
       revalidateEventTypeEditPage(eventType.id);
-      if (eventType.team?.slug) {
-        revalidateTeamEventTypeCache({
-          teamSlug: eventType.team.slug,
-          meetingSlug: eventType.slug,
-          orgSlug: eventType.team.parent?.slug ?? null,
+      if ((eventType as any).team?.slug) {
+        revalidateCalIdTeamDataCache({
+          teamSlug: (eventType as any).team.slug,
         });
       }
-      showToast(t("event_type_updated_successfully", { eventTypeTitle: eventType.title }), "success");
+      triggerToast(t("event_type_updated_successfully", { eventTypeTitle: eventType.title }), "success");
     },
     async onSettled() {
       await utils.viewer.eventTypes.get.invalidate();
       await utils.viewer.eventTypes.getByViewer.invalidate();
     },
     onError: (err) => {
+      console.log("Error occured during event type update:", err);
       let message = "";
       if (err instanceof HttpError) {
         message = `${err.statusCode}: ${err.message}`;
@@ -230,22 +247,24 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
         message = `${err.data.code}: ${t(err.message)}`;
       } else if (err.data?.code === "INTERNAL_SERVER_ERROR") {
         message = t("unexpected_error_try_again");
+      } else if (err.message?.includes("Cannot read properties of undefined")) {
+        message = t("form_initialization_error_try_again");
+      } else {
+        message = err.message || t("unexpected_error_try_again");
       }
-      showToast(message ? t(message) : t(err.message), "error");
+      triggerToast(message, "error");
     },
   });
 
-  const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
+  const deleteMutation = trpc.viewer.eventTypes.calid_delete.useMutation({
     onSuccess: async () => {
       await utils.viewer.eventTypes.invalidate();
       if (team?.slug) {
-        revalidateTeamEventTypeCache({
+        revalidateCalIdTeamDataCache({
           teamSlug: team.slug,
-          meetingSlug: eventType.slug,
-          orgSlug: team.parent?.slug ?? null,
         });
       }
-      showToast(t("event_type_deleted_successfully"), "success");
+      triggerToast(t("event_type_deleted_successfully"), "success");
       isTeamEventTypeDeleted.current = true;
       appRouter.push("/event-types");
       setSlugExistsChildrenDialogOpen([]);
@@ -254,68 +273,108 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
     onError: (err) => {
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
+        triggerToast(message, "error");
         setSlugExistsChildrenDialogOpen([]);
       } else if (err instanceof TRPCClientError) {
-        showToast(err.message, "error");
+        triggerToast(err.message, "error");
       }
     },
   });
 
-  // Form handling
-  const { form, handleSubmit } = useEventTypeForm({ eventType, onSubmit: updateMutation.mutate });
-  const slug = form.watch("slug") ?? eventType.slug;
+  // Form handling - only initialize when eventType is available
+  const { form, handleSubmit } = useEventTypeForm({
+    eventType,
+    onSubmit: (data) => {
+      try {
+        console.log("Submitting event type form with data:", data);
+        updateMutation.mutate(data);
+      } catch (error) {
+        throw error;
+      }
+    },
+  });
+
+  let slug;
+  try {
+    slug = form?.watch("slug") ?? eventType.slug;
+  } catch (error) {
+    slug = eventType.slug;
+  }
 
   // URL and branding
-  const orgBranding = useOrgBranding();
-  const bookerUrl = orgBranding ? orgBranding?.fullDomain : WEBSITE_URL;
-  const embedLink = `${team ? `team/${team.slug}` : eventType.users[0].username}/${eventType.slug}`;
-  const permalink = `${bookerUrl}/${embedLink}`;
+  const bookerUrl = WEBSITE_URL;
+
+  const permalink = `${bookerUrl}/${
+    effectiveTeam ? `team/${effectiveTeam.slug}` : getEventTypeUsername()
+  }/${slug}`;
+
+  let embedLink;
+  try {
+    const formUsers = form?.getValues("users");
+    const formSlug = form?.getValues("slug");
+
+    embedLink = `${
+      effectiveTeam ? `team/${effectiveTeam.slug}` : formUsers?.[0]?.username || getEventTypeUsername()
+    }/${formSlug || slug}`;
+  } catch (error) {
+    embedLink = `${
+      effectiveTeam ? `team/${effectiveTeam.slug}` : eventType.users?.[0]?.username || "unknown"
+    }/${slug}`;
+  }
 
   // Permissions
-  const hasPermsToDelete =
-    currentUserMembership?.role !== "MEMBER" ||
-    !currentUserMembership ||
-    form.getValues("schedulingType") === SchedulingType.MANAGED;
+  let hasPermsToDelete;
+  try {
+    const schedulingType = form?.getValues("schedulingType");
+
+    hasPermsToDelete =
+      currentUserMembership?.role !== "MEMBER" ||
+      !currentUserMembership ||
+      schedulingType === SchedulingType.MANAGED;
+  } catch (error) {
+    hasPermsToDelete = true; // Default to allowing delete if there's an error
+  }
   const connectedCalendarsQuery = trpc.viewer.calendars.connectedCalendars.useQuery();
 
   // Tab content mapping
   const tabMap = {
     setup: (
-      <EventSetupTab
+      <EventSetup
         eventType={eventType}
         locationOptions={locationOptions}
-        team={team}
-        teamMembers={teamMembers}
+        team={effectiveTeam}
+        teamMembers={effectiveTeamMembers}
         destinationCalendar={destinationCalendar}
       />
     ),
     availability: (
-      <EventAvailabilityTab
-        eventType={eventType}
-        isTeamEvent={!!team}
+      <EventAvailability
+        eventType={eventType as any}
+        isTeamEvent={!!effectiveTeam}
         user={user}
-        teamMembers={teamMembers}
+        teamMembers={effectiveTeamMembers}
       />
     ),
-    team: (
-      <EventTeamAssignmentTab
-        orgId={orgBranding?.id ?? null}
-        teamMembers={teamMembers}
-        team={team}
-        eventType={eventType}
-        isSegmentApplicable={!!orgBranding?.id}
-      />
-    ),
+    team: (() => {
+      return (
+        <EventTeamAssignmentTab
+          orgId={null}
+          teamMembers={effectiveTeamMembers}
+          team={effectiveTeam}
+          eventType={eventType}
+          isSegmentApplicable={false}
+        />
+      );
+    })(),
 
-    limits: <EventLimitsTab eventType={eventType} />,
+    limits: <EventLimits eventType={eventType as any} />,
     advanced: (
-      <EventAdvancedTab
-        eventType={eventType}
+      <EventAdvanced
+        eventType={eventType as any}
         team={team}
         user={user}
         isUserLoading={isLoggedInUserPending}
-        showToast={showToast}
+        showToast={triggerToast}
         calendarsQuery={{
           data: connectedCalendarsQuery.data,
           isPending: connectedCalendarsQuery.isPending,
@@ -326,17 +385,17 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
     ),
     instant: <div />,
     // <EventInstantTab eventType={eventType} isTeamEvent={!!team} />
-    recurring: <EventRecurringTab eventType={eventType} />,
-    apps: <EventAppsTab eventType={{ ...eventType, URL: permalink }} />,
+    recurring: <EventRecurring eventType={eventType as any} />,
+    apps: <EventApps eventType={eventType as any} />,
     workflows: allActiveWorkflows ? (
-      <EventWorkflowsTab eventType={eventType} workflows={allActiveWorkflows} />
+      <EventWorkflows eventType={eventType as any} workflows={allActiveWorkflows} />
     ) : (
       <></>
     ),
-    webhooks: <EventWebhooksTab eventType={eventType} />,
+    webhooks: <EventWebhooks eventType={eventType as any} />,
     ai: <div />,
     // <EventAITab eventType={eventType} isTeamEvent={!!team} />
-    embed: <EventEmbedTab calLink={embedLink} />,
+    embed: <EventEmbed eventId={eventType.id} calLink={embedLink} />,
   } as const;
 
   // Route change handling
@@ -360,20 +419,29 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
   });
 
   // Conflict handling
-  const onConflict = (conflicts: ChildrenEventType[]) => {
+  const _onConflict = (conflicts: ChildrenEventType[]) => {
     setSlugExistsChildrenDialogOpen(conflicts);
   };
 
   // Filter tabs based on event type
-  const availableTabs = tabs.filter((tabItem) => {
-    if (tabItem.id === "team" && !team) return false;
-    // if (tabItem.id === "instant" && eventType.schedulingType === SchedulingType.MANAGED) return false;
-    // Add more filtering logic as needed
+  const allTabs = getTabs(pathname);
+  const availableTabs = allTabs.filter((tabItem) => {
+    if (tabItem.name === "Team") {
+      const shouldShowTeamTab = !!effectiveTeam;
+      return shouldShowTeamTab;
+    }
     return true;
   });
 
+  // Loading skeleton component for initial load
+  const LoadingSkeleton = () => <TabSkeleton activeTab={activeTab} />;
+
   const renderTabContent = () => {
-    return tabMap[activeTab as keyof typeof tabMap] || tabMap.setup;
+    if (isInitialLoad) {
+      return <LoadingSkeleton />;
+    }
+    const validTab = activeTab as keyof typeof tabMap;
+    return tabMap[validTab] || tabMap.setup;
   };
 
   // Update active tab when URL changes
@@ -383,17 +451,42 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
     }
   }, [tab, activeTab]);
 
+  // Handle initial load state
+  useEffect(() => {
+    if (isInitialLoad) {
+      // Set a small delay to ensure all data is loaded
+      const timer = setTimeout(() => {
+        setIsInitialLoad(false);
+        setIsFormReady(true);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isInitialLoad]);
+
+  // Set form ready when eventType is available
+  useEffect(() => {
+    if (eventType && !isFormReady) {
+      setIsFormReady(true);
+    }
+  }, [eventType, isFormReady]);
+
   // Create the CTA component
   const cta = (
     <EventTypeActions
       form={form}
+      handleSubmit={handleSubmit}
       eventTypesLockedByOrg={eventTypesLockedByOrg}
       permalink={permalink}
       hasPermsToDelete={hasPermsToDelete}
-      isUpdatePending={updateMutation.isPending}
+      isUpdatePending={updateMutation.isPending || !isFormReady}
       onDeleteClick={() => setDeleteDialogOpen(true)}
     />
   );
+
+  // Add defensive check for eventType
+  if (!eventType) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <Shell
@@ -403,34 +496,40 @@ const EventTypeWithNewUI = ({ id, ...rest }: EventTypeSetupProps & { id: number 
       CTA={cta}>
       <div className="bg-background min-h-screen">
         {/* Horizontal tabs */}
-        <div className="bg-background ">
-          <nav className="flex" aria-label="Tabs">
-            {availableTabs.map((tabItem) => (
-              <button
-                key={tabItem.id}
-                onClick={() => {
-                  setQuery("tabName", tabItem.id);
-                  // setActiveTab(tabItem.id);
-                }}
-                className={classNames(
-                  "flex items-center space-x-2 whitespace-nowrap border-b-2 px-4 py-4 text-sm font-semibold  transition-colors",
-                  activeTab === tabItem.id
-                    ? "border-active text-active"
-                    : "text-muted hover:text-foreground hover:border-muted-foreground border-transparent"
-                )}
-                title={tabItem.name}>
-                {tabItem.icon}
-                <span>{tabItem.name}</span>
-              </button>
-            ))}
-          </nav>
-        </div>
+        <HorizontalTabs
+          tabs={availableTabs.map((tab) => ({
+            ...tab,
+            isActive: tab.href.includes(`tabName=${activeTab}`),
+            onClick: (name: string) => {
+              const tabId = availableTabs.find((t) => t.name === name)?.href.split("tabName=")[1];
+              if (tabId) {
+                setQuery("tabName", tabId as keyof typeof tabMap);
+              }
+            },
+          }))}
+          linkShallow={true}
+        />
 
         {/* Content */}
-        <div className="bg-background py-4">
+        <div className="bg-background pb-4">
           <div className="mx-auto max-w-none">
-            <Form form={form} id="event-type-form" handleSubmit={handleSubmit}>
-              <div ref={animationParentRef}>{renderTabContent()}</div>
+            <Form
+              form={form}
+              id="event-type-form"
+              handleSubmit={(values) => {
+                try {
+                  handleSubmit(values);
+                } catch (error) {
+                  throw error;
+                }
+              }}>
+              <div
+                ref={animationParentRef}
+                className="transition-all duration-200 ease-in-out"
+                key={activeTab} // Force re-render for smooth transitions
+              >
+                {renderTabContent()}
+              </div>
             </Form>
           </div>
         </div>

@@ -3,6 +3,7 @@ import z from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { JitsiLocationType } from "@calcom/app-store/locations";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
@@ -128,13 +129,19 @@ const handleDeleteCredential = async ({
       // To avoid type errors, need to stringify and parse JSON to use array methods
       const locations = locationsSchema.parse(eventType.locations);
 
-      const doesDailyVideoAlreadyExists = locations.some((location) =>
-        location.type.includes(DailyLocationType)
+      //CHANGE:JITSI
+      // const doesDailyVideoAlreadyExists = locations.some((location) =>
+      //   location.type.includes(DailyLocationType)
+      // );
+      //CHANGE:JITSI
+      const doesJitsiVideoAlreadyExists = locations.some((location) =>
+        location.type.includes(JitsiLocationType)
       );
 
       const updatedLocations: TlocationsSchema = locations.reduce((acc: TlocationsSchema, location) => {
         if (location.type.includes(integrationQuery)) {
-          if (!doesDailyVideoAlreadyExists) acc.push({ type: DailyLocationType });
+          // if (!doesDailyVideoAlreadyExists) acc.push({ type: DailyLocationType });
+          if (!doesJitsiVideoAlreadyExists) acc.push({ type: JitsiLocationType });
         } else {
           acc.push(location);
         }

@@ -28,7 +28,7 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersOptions) => 
   if (!calIdTeam || calIdTeam?.isTeamPrivate) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
-      message: "unauthorized_to_see_members",
+      message: "You are not authorized to see members of this team",
     });
   }
 
@@ -42,7 +42,7 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersOptions) => 
   if (!calIdMembership) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
-      message: "unauthorized_to_see_members",
+      message: "You are not authorized to see members of this team",
     });
   }
 
@@ -50,7 +50,7 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersOptions) => 
   if (!isMemberAdminOrOwner) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
-      message: "unauthorized_to_see_members",
+      message: "You are not authorized to see members of this team",
     });
   }
 

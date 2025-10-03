@@ -1,3 +1,5 @@
+import { Button } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon";
 import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -18,7 +20,17 @@ type MemberType = Pick<
   bookerUrl: string;
 };
 
-const Member = ({ member, teamName }: { member: MemberType; teamName: string | null }) => {
+const Member = ({
+  member,
+  teamName,
+  brandColor,
+  darkBrandColor,
+}: {
+  member: MemberType;
+  teamName: string | null;
+  brandColor: string | null;
+  darkBrandColor: string | null;
+}) => {
   const routerQuery = useRouterQuery();
   const { t } = useLocale();
   const isBioEmpty = !member.bio || !member.bio.replace("<p><br></p>", "").length;
@@ -27,33 +39,54 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
   const { slug: _slug, orgSlug: _orgSlug, user: _user, ...queryParamsToForward } = routerQuery;
 
   return (
-    <Link
-      key={member.id}
-      href={{ pathname: `${member.bookerUrl}/${member.username}`, query: queryParamsToForward }}>
-      <div className="bg-default hover:bg-muted border-subtle group flex min-h-full flex-col space-y-2 rounded-md border p-4 transition hover:cursor-pointer sm:w-80">
+    <div className="border-default hover:bg-muted bg-default w-full rounded-md border p-6 shadow-md transition-shadow hover:scale-[1.02]">
+      <div className="mb-4 flex items-center">
         <UserAvatar noOrganizationIndicator size="md" user={member} />
-        <section className="mt-2 line-clamp-4 w-full space-y-1">
-          <p className="text-default font-medium">{member.name}</p>
-          <div className="text-subtle line-clamp-3 overflow-ellipsis text-sm font-normal">
-            {!isBioEmpty ? (
-              <>
-                <div
-                  className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                  // eslint-disable-next-line react/no-danger
-                  dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(member.bio) }}
-                />
-              </>
-            ) : (
-              t("user_from_team", { user: member.name, team: teamName })
-            )}
-          </div>
-        </section>
+        <div className="ml-3">
+          <h3 className="text-default text-lg font-semibold">{member.name}</h3>
+        </div>
       </div>
-    </Link>
+
+      <div className="mb-4">
+        <p className="text-default text-sm">
+          {!isBioEmpty ? (
+            <div
+              className="text-default text-sm"
+              // eslint-disable-next-line react/no-danger
+              dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(member.bio) }}
+            />
+          ) : (
+            t("user_from_team", { user: member.name, team: teamName })
+          )}
+        </p>
+      </div>
+
+      <Link
+        href={{ pathname: `${member.bookerUrl}/${member.username}`, query: queryParamsToForward }}
+        className="block">
+        <Button
+          className="flex w-full items-center justify-center rounded px-4 py-2 font-medium"
+          brandColor={brandColor}
+          darkBrandColor={darkBrandColor}>
+          <Icon name="calendar" className="mr-2 h-4 w-4" />
+          Book with {member.name}
+        </Button>
+      </Link>
+    </div>
   );
 };
 
-const Members = ({ members, teamName }: { members: MemberType[]; teamName: string | null }) => {
+const Members = ({
+  members,
+  teamName,
+  brandColor,
+  darkBrandColor,
+}: {
+  members: MemberType[];
+  teamName: string | null;
+  brandColor: string | null;
+  darkBrandColor: string | null;
+}) => {
   if (!members || members.length === 0) {
     return null;
   }
@@ -61,18 +94,43 @@ const Members = ({ members, teamName }: { members: MemberType[]; teamName: strin
   return (
     <section
       data-testid="team-members-container"
-      className="flex flex-col flex-wrap justify-center gap-5 sm:flex-row">
+      className="grid w-full grid-cols-1 justify-items-center gap-6 p-6 md:grid-cols-2 lg:max-w-5xl lg:grid-cols-2">
       {members.map((member) => {
-        return member.username !== null && <Member key={member.id} member={member} teamName={teamName} />;
+        return (
+          member.username !== null && (
+            <Member
+              key={member.id}
+              member={member}
+              teamName={teamName}
+              brandColor={brandColor}
+              darkBrandColor={darkBrandColor}
+            />
+          )
+        );
       })}
     </section>
   );
 };
 
-const Team = ({ members, teamName }: { members: MemberType[]; teamName: string | null }) => {
+const Team = ({
+  members,
+  teamName,
+  brandColor,
+  darkBrandColor,
+}: {
+  members: MemberType[];
+  teamName: string | null;
+  brandColor: string | null;
+  darkBrandColor: string | null;
+}) => {
   return (
-    <div>
-      <Members members={members} teamName={teamName} />
+    <div className="mb-8 flex flex-col items-center">
+      <Members
+        members={members}
+        teamName={teamName}
+        brandColor={brandColor}
+        darkBrandColor={darkBrandColor}
+      />
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import { workflowTypeToText } from "@calid/features/insights/lib/workflowTypeToText";
+import { workflowTypeToText } from "@calid/features/modules/insights/lib/workflowTypeToText";
 import type { Table } from "@tanstack/react-table";
 import { useCallback } from "react";
 
@@ -107,7 +107,9 @@ export const useInsightsFacetedUniqueValues = ({
         return convertFacetedValuesToMap(
           eventTypes?.map((eventType) => ({
             value: eventType.id,
-            label: eventType.teamId ? `${eventType.title} (${eventType.team?.name})` : eventType.title,
+            label: eventType.calIdTeamId
+              ? `${eventType.title} (${eventType.calIdTeam?.name})`
+              : eventType.title,
           })) ?? []
         );
       } else if (columnId === "workflowType") {

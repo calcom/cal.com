@@ -1,5 +1,5 @@
-import type { IconName } from "@calid/features/ui/components/icon/Icon";
 import { Icon } from "@calid/features/ui/components/icon";
+import type { IconName } from "@calid/features/ui/components/icon/Icon";
 import type { ReactNode } from "react";
 import React from "react";
 
@@ -33,7 +33,7 @@ export function EmptyScreen({
     <div
       data-testid="empty-screen"
       className={classNames(
-        "rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 py-12 text-center",
+        "rounded-lg border-2 border-dashed border-gray-300 bg-default py-12 text-center",
         className
       )}>
       {/* Avatar / Icon */}
@@ -70,7 +70,7 @@ export function EmptyScreen({
           buttonText && (
             <button
               onClick={buttonOnClick}
-              className="bg-primary hover:bg-primary/90 rounded-lg px-4 py-2 font-medium text-white"
+              className="bg-primary hover:bg-primary/90 text-default rounded-lg px-4 py-2 font-medium"
               style={{ fontSize: "14px" }}>
               {buttonText}
             </button>

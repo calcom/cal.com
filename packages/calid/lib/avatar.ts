@@ -18,10 +18,12 @@ export const uploadTeamLogo = async ({ teamId, logo }: { teamId: number; logo: s
 
   await prisma.avatar.upsert({
     where: {
-      teamId_userId_isBanner: {
+      teamId_userId_isBanner_isFavicon_isHeader: {
         teamId,
         userId: 0,
         isBanner: false,
+        isFavicon: false,
+        isHeader: false,
       },
     },
     create: {

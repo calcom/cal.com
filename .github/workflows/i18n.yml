@@ -20,7 +20,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: "npm"
       - uses: lingodotdev/lingo.dev@main
         env:
           GH_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}

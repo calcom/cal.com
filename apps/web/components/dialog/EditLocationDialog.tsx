@@ -16,13 +16,12 @@ import {
   LocationType,
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
-import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { Dialog, DialogContent, DialogFooter } from "@calid/features/ui/components/dialog";
 import PhoneInput from "@calcom/features/components/phone-input";
 import type { LocationOption } from "@calcom/features/form/components/LocationSelect";
 import LocationSelect from "@calcom/features/form/components/LocationSelect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { Form } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
@@ -351,7 +350,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               {selectedLocation && SelectedLocationInput}
             </div>
           </div>
-          <DialogFooter showDivider className="mt-8">
+          <DialogFooter className="mt-8">
             <Button
               onClick={() => {
                 setShowLocationModal(false);
@@ -359,14 +358,12 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 setEditingLocationType?.("");
                 locationFormMethods.unregister(["locationType", "locationLink"]);
               }}
-              variant="outline"
               color="secondary">
               {t("cancel")}
             </Button>
             <Button
               data-testid="update-location"
               type="submit"
-              variant="secondary"
               disabled={isLocationUpdating}>
               {t("update")}
             </Button>

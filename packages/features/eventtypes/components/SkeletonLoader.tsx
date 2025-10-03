@@ -1,8 +1,5 @@
 import { Icon } from "@calid/features/ui/components/icon";
 
-
-
-
 import { SkeletonAvatar, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 
 function SkeletonLoader() {
@@ -57,12 +54,12 @@ function TabsSkeletonLoader() {
 
 export function SearchSkeletonLoader() {
   return (
-    <div className="max-w-64 mb-4">
+    <div className="mb-4 max-w-64">
       <div className="bg-default border-default flex h-8 items-center gap-1 rounded-[10px] border px-3 py-2">
         <div className="flex items-center justify-center">
           <Icon name="search" className="text-subtle h-4 w-4" />
         </div>
-        <SkeletonText className="max-w-56 h-4 w-full" />
+        <SkeletonText className="h-4 w-full max-w-56" />
       </div>
     </div>
   );

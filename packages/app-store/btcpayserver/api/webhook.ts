@@ -12,12 +12,10 @@ import { PrismaBookingPaymentRepository as BookingPaymentRepository } from "@cal
 import appConfig from "../config.json";
 import { btcpayCredentialKeysSchema } from "../lib/btcpayCredentialKeysSchema";
 
-// export const config = { api: { bodyParser: false } };
+export const config = { api: { bodyParser: false } };
 
-
-export const runtime = 'nodejs'; // runtime environment 
-export const dynamic = 'force-dynamic'; // to disable static optimization and allow dynamic body handling
-
+export const runtime = "nodejs"; // runtime environment
+export const dynamic = "force-dynamic"; // to disable static optimization and allow dynamic body handling
 
 function verifyBTCPaySignature(rawBody: Buffer, expectedSignature: string, webhookSecret: string): string {
   const hmac = crypto.createHmac("sha256", webhookSecret);

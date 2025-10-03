@@ -98,7 +98,11 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
       log.debug(`handling booking request for eventId ${eventType.id}`);
     }
   } else if (areEmailsEnabled) {
-    await sendScheduledEmailsAndSMS({ ...evt }, undefined, undefined, undefined, eventType.metadata);
+    try {
+      await sendScheduledEmailsAndSMS({ ...evt }, undefined, undefined, undefined, eventType.metadata);
+    } catch (e) {
+      log.error(`Error sending scheduled emails/SMS for bookingId ${booking.id}: ${e}`);
+    }
   }
 
   throw new HttpCode({

@@ -1,6 +1,8 @@
+import { Button } from "@calid/features/ui/components/button";
+import { BlankCard } from "@calid/features/ui/components/card";
 import type { TFunction } from "i18next";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { FieldError } from "react-hook-form";
 
 import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
@@ -12,8 +14,6 @@ import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import { Alert } from "@calcom/ui/components/alert";
-import { Button } from "@calcom/ui/components/button";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Form } from "@calcom/ui/components/form";
 
 import { useBookerStore } from "../../store";
@@ -62,12 +62,14 @@ export const BookEventForm = ({
   shouldRenderCaptcha,
   confirmButtonDisabled,
   classNames,
+  billingAddressRequired = false,
 }: Omit<BookEventFormProps, "event"> & {
   eventQuery: {
     isError: boolean;
     isPending: boolean;
     data?: Pick<BookerEvent, "price" | "currency" | "metadata" | "bookingFields" | "locations"> | null;
   };
+  billingAddressRequired: boolean;
 }) => {
   const eventType = eventQuery.data;
   const setFormValues = useBookerStore((state) => state.setFormValues);
@@ -82,6 +84,47 @@ export const BookEventForm = ({
   const [responseVercelIdHeader] = useState<string | null>(null);
   const { t, i18n } = useLocale();
 
+  console.log("Billing address required: ", billingAddressRequired);
+
+  useEffect(() => {
+    if (eventType && billingAddressRequired) {
+      const appended = eventType.bookingFields.some((field) => field.name === "_line1");
+      if (!appended)
+        eventType.bookingFields.push(
+          {
+            name: "_line1",
+            type: "address",
+            defaultLabel: "Address Line 1",
+            required: true,
+          },
+          {
+            name: "city",
+            type: "address",
+            defaultLabel: "City",
+            required: true,
+          },
+          {
+            name: "state",
+            type: "address",
+            defaultLabel: "State",
+            required: true,
+          },
+          {
+            name: "country",
+            type: "address",
+            defaultLabel: "Country",
+            required: true,
+          },
+          {
+            name: "postal_code",
+            type: "address",
+            defaultLabel: "Postal Code",
+            required: true,
+          }
+        );
+    }
+  }, [eventType]);
+
   const isPaidEvent = useMemo(() => {
     if (!eventType?.price) return false;
     const paymentAppData = getPaymentAppData(eventType);
@@ -92,10 +135,10 @@ export const BookEventForm = ({
   if (eventQuery.isPending || !eventQuery.data) return <FormSkeleton />;
   if (!timeslot)
     return (
-      <EmptyScreen
+      <BlankCard
+        Icon="calendar"
         headline={t("timeslot_missing_title")}
         description={t("timeslot_missing_description")}
-        Icon="calendar"
         buttonText={t("timeslot_missing_cta")}
         buttonOnClick={onCancel}
       />

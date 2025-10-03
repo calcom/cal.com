@@ -28,6 +28,9 @@ export const availabilityUserSelect = {
   availability: true,
   selectedCalendars: true,
   travelSchedules: true,
+
+  bannerUrl: true,
+  faviconUrl: true,
 } satisfies Prisma.UserSelect;
 
 export const baseUserSelect = {
@@ -39,6 +42,8 @@ export const baseUserSelect = {
   brandColor: true,
   darkBrandColor: true,
   ...availabilityUserSelect,
+  bannerUrl: true,
+  faviconUrl: true,
 } satisfies Prisma.UserSelect;
 
 export const userSelect = {
@@ -54,5 +59,7 @@ export const userSelect = {
     metadata: true,
     locked: true,
     ...availabilityUserSelect,
+    bannerUrl: true,
+    faviconUrl: true,
   },
 } satisfies Prisma.UserArgs;

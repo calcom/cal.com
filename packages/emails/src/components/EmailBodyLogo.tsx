@@ -1,4 +1,5 @@
 import React from "react";
+
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import RawHtml from "./RawHtml";
@@ -6,8 +7,19 @@ import Row from "./Row";
 
 const CommentIE = ({ html = "" }) => <RawHtml html={`<!--[if mso | IE]>${html}<![endif]-->`} />;
 
-const EmailBodyLogo = () => {
-  const image = `${WEBAPP_URL}/emails/logo.png`;
+const EmailBodyLogo = ({
+  disableLogo = false,
+  bannerUrl = "",
+}: {
+  disableLogo?: boolean;
+  bannerUrl?: string | null;
+}) => {
+  if (!bannerUrl && disableLogo) {
+    return null;
+  }
+
+  // const image = `${WEBAPP_URL}/emails/logo.png`;
+  const image = bannerUrl ? `${WEBAPP_URL}${bannerUrl}` : `${WEBAPP_URL}/emails/logo.png`;
 
   return (
     <>

@@ -1,18 +1,20 @@
 "use client";
 
+import { Badge, type BadgeProps } from "@calid/features/ui/components/badge";
+import { Button } from "@calid/features/ui/components/button";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@calid/features/ui/components/dropdown-menu";
+import { Icon } from "@calid/features/ui/components/icon";
+import type { IconName } from "@calid/features/ui/components/icon";
+import { Input } from "@calid/features/ui/components/input/input";
 import Link from "next/link";
 import { useState } from "react";
 
 import classNames from "@calcom/ui/classNames";
-
-import type { BadgeProps } from "../badge";
-import { Badge } from "../badge";
-import { Button } from "../button";
-import { Dropdown, DropdownMenuTrigger, DropdownMenuContent, DropdownItem } from "../dropdown";
-// import { Input } from "../form/inputs/TextField";
-import {Input} from "@calid/features/ui";
-import { Icon } from "../icon";
-import type { IconName } from "../icon";
 
 type Action = { check: () => boolean; fn: () => void };
 
@@ -63,7 +65,7 @@ const FormCardActions = ({ deleteField, duplicateField }: FormCardActionsProps) 
 
   // If multiple actions, show dropdown
   return (
-    <Dropdown>
+    <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button type="button" variant="icon" color="minimal" className="ml-2">
           <Icon name="ellipsis" className="text-default h-4 w-4" />
@@ -71,7 +73,7 @@ const FormCardActions = ({ deleteField, duplicateField }: FormCardActionsProps) 
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         {actions.map((action) => (
-          <DropdownItem
+          <DropdownMenuItem
             key={action.label}
             StartIcon={action.icon}
             onClick={(e) => {
@@ -80,10 +82,10 @@ const FormCardActions = ({ deleteField, duplicateField }: FormCardActionsProps) 
             }}
             color={action.color}>
             {action.label}
-          </DropdownItem>
+          </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
-    </Dropdown>
+    </DropdownMenu>
   );
 };
 
@@ -116,7 +118,7 @@ export default function FormCard({
   collapsible?: boolean;
 } & JSX.IntrinsicElements["div"]) {
   className = classNames(
-    "flex items-center group relative w-full rounded-2xl p-1 border border-subtle bg-default mb-2",
+    "flex items-center group relative w-full rounded-md p-2 border border-subtle bg-default mb-2",
     className
   );
 
@@ -156,7 +158,12 @@ export default function FormCard({
             )}
 
             {isLabelEditable ? (
-              <Input type="text" className="ml-2" value={label} onChange={(e) => onLabelChange?.(e.target.value)} />
+              <Input
+                type="text"
+                className="ml-2"
+                value={label}
+                onChange={(e) => onLabelChange?.(e.target.value)}
+              />
             ) : (
               <span className="text-emphasis text-sm font-semibold">{label}</span>
             )}

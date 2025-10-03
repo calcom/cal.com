@@ -1,5 +1,5 @@
 import { cn } from "@calid/features/lib/cn";
-import { Icon } from "@calid/features/ui/components/icon";
+import { Icon } from "../icon";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import * as React from "react";
 

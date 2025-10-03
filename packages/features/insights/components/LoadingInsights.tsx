@@ -9,7 +9,7 @@ export const LoadingInsight = () => {
       <SkeletonText className="w-32" />
       <div className="m-auto flex h-80 flex-col items-center justify-center">
         <svg
-          className={classNames("mx-4 h-8 w-8 animate-spin", "text-black dark:text-white")}
+          className={classNames("mx-4 h-8 w-8 animate-spin", "text-black dark:text-default")}
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24">

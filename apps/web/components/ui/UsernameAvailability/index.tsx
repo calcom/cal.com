@@ -1,4 +1,3 @@
-import { Label } from "@calid/features/ui/components/label";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -74,27 +73,18 @@ export const UsernameAvailabilityField = ({
       control={formMethods.control}
       name="username"
       render={({ field: { ref, onChange, value } }) => (
-        <div className="flex w-full flex-col">
-          <Label className="text-default mb-2">Username</Label>
-
-          <div className="flex w-full flex-row items-end">
-            <div className="bg-subtle border-emphasis rounded-y flex h-[40px] content-center  items-center justify-center rounded-l px-3 text-xs">
-              {usernamePrefix}/
-            </div>
-            <UsernameAvailability
-              currentUsername={currentUsername}
-              setCurrentUsername={setCurrentUsername}
-              inputUsernameValue={value}
-              usernameRef={ref}
-              setInputUsernameValue={onChange}
-              onSuccessMutation={onSuccessMutation}
-              onErrorMutation={onErrorMutation}
-              disabled={!!user.organization?.id}
-              // addOnLeading={}
-              isPremium={isPremium}
-            />
-          </div>
-        </div>
+        <UsernameAvailability
+          currentUsername={currentUsername}
+          setCurrentUsername={setCurrentUsername}
+          inputUsernameValue={value}
+          usernameRef={ref}
+          setInputUsernameValue={onChange}
+          onSuccessMutation={onSuccessMutation}
+          onErrorMutation={onErrorMutation}
+          disabled={!!user.organization?.id}
+          addOnLeading={`${usernamePrefix}/`}
+          isPremium={isPremium}
+        />
       )}
     />
   );

@@ -96,6 +96,7 @@ const sendEmail = (prepare: () => BaseEmail) => {
       const email = prepare();
       resolve(email.sendEmail());
     } catch (e) {
+      console.error(`${prepare.constructor.name}.sendEmail failed`, e);
       reject(console.error(`${prepare.constructor.name}.sendEmail failed`, e));
     }
   });

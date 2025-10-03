@@ -4,7 +4,7 @@ import { confirmHandler } from '@calcom/trpc/server/routers/viewer/bookings/conf
 import { bookingConfirmPatchBodySchema } from "@calcom/prisma/zod-utils";
 import getBookingDataSchemaForApi from "@calcom/features/bookings/lib/getBookingDataSchemaForApi";
 import { GetUserAvailabilityResult } from '@calcom/lib/getUserAvailability';
-import { bookingsQuerySchema, createBookingBodySchema, bookingResponseSchema, getBookingParamsSchema, deleteBookingParamsSchema, cancelBookingBodySchema, CancelBookingBody } from '@/schema/booking.schema';
+import { bookingsQueryRequestSchema, bookingsQueryResponseSchema, createBookingBodySchema, bookingResponseSchema, getBookingParamsSchema, deleteBookingParamsSchema, cancelBookingBodySchema, CancelBookingBody } from '@/schema/booking.schema';
 import { getUserAvailability } from "@calcom/lib/getUserAvailability";
 import { responseSchemas } from "@/schema/response";
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
@@ -32,22 +32,31 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.get('/', { 
     preHandler: AuthGuards.authenticateFlexible(),
     schema: {
-      description: 'Get current user availability',
+      description: 'Get current user bookings',
       tags: ['Booking'],
       security: [{ bearerAuth: [] }],
-      querystring: zodToJsonSchema(bookingsQuerySchema),
+      querystring: zodToJsonSchema(bookingsQueryRequestSchema),
       response: {
-        200: zodToJsonSchema(responseSchemas.success(z.any(), 'Current user availability')),
+        200: zodToJsonSchema(responseSchemas.paginated(bookingsQueryResponseSchema, 'User bookings retrieved')),
         401: zodToJsonSchema(responseSchemas.unauthorized()),
       },
     },
   }, async (request: AuthRequest, reply: FastifyReply) => {
-      const input = request.query as z.infer<typeof bookingsQuerySchema>;
+      const input = request.query as z.infer<typeof bookingsQueryRequestSchema>;
 
-      const bookings = await bookingService.getUserBookings(input, { id: Number.parseInt(request.user!.id), email: request.user!.email, orgId: request.organizationId });
+      const result = await bookingService.getUserBookings(input, { id: Number.parseInt(request.user!.id), email: request.user!.email, orgId: request.organizationId });
 
-      ResponseFormatter.success(reply, bookings, 'User availability retrieved');
-      // return {availability: data}
+      const page = input.page ?? 1;
+      const limit = input.limit ?? 100;
+
+      ResponseFormatter.paginated(
+        reply,
+        (result as any).bookings ?? [],
+        page,
+        limit,
+        (result as any).totalCount ?? 0,
+        'User bookings retrieved'
+      );
   })
 
   // Public route to create a new booking

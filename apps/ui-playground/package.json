@@ -26,6 +26,8 @@
   "devDependencies": {
     "@calcom/tsconfig": "*",
     "@eslint/eslintrc": "^3",
+    "@img/sharp-libvips-dev": "^1.0.6",
+    "@img/sharp-wasm32": "^0.33.5",
     "@types/mdx": "^2.0.13",
     "@types/node": "^20",
     "@types/react": "^18",

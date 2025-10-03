@@ -12,13 +12,15 @@ type TeamInvite = {
   to: string;
   teamName: string;
   joinLink: string;
-  isCalcomMember: boolean;
+  // isCalcomMember: boolean;
   isAutoJoin: boolean;
   isOrg: boolean;
   parentTeamName: string | undefined;
   isExistingUserMovedToOrg: boolean;
   prevLink: string | null;
   newLink: string | null;
+  hideBranding?: boolean;
+  bannerUrl?: string;
 };
 
 export const TeamInviteEmail = (
@@ -29,7 +31,10 @@ export const TeamInviteEmail = (
   const heading = getHeading();
   const content = getContent();
   return (
-    <V2BaseEmailHtml subject={getSubject(props)}>
+    <V2BaseEmailHtml
+      subject={getSubject(props)}
+      bannerUrl={props.bannerUrl}
+      hideBranding={props.hideBranding}>
       <p style={{ fontSize: "24px", marginBottom: "16px", textAlign: "center" }}>
         <>{heading}</>
       </p>
@@ -61,7 +66,9 @@ export const TeamInviteEmail = (
       <div style={{ display: "flex", justifyContent: "center" }}>
         <CallToAction
           label={props.language(
-            props.isCalcomMember ? (props.isAutoJoin ? "login" : "email_user_cta") : "create_your_account"
+            // props.isCalcomMember ?
+            props.isAutoJoin ? "login" : "email_user_cta"
+            //  : "create_your_account"
           )}
           href={props.joinLink}
           endIconName="linkIcon"

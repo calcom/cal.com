@@ -82,7 +82,7 @@ export function NotFound({ host }: { host: string }) {
    **/
   if (isInsights) {
     return (
-      <div className="min-h-screen bg-white px-4" data-testid="404-page">
+      <div className="min-h-screen bg-primary px-4" data-testid="404-page">
         <main className="mx-auto max-w-xl pb-6 pt-16 sm:pt-24">
           <div className="text-center">
             <p className="text-sm font-semibold uppercase tracking-wide text-black">{t("error_404")}</p>

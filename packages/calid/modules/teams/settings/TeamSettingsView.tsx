@@ -5,7 +5,7 @@ import { IntervalLimitsManager } from "@calid/features/modules/event-types/compo
 import { Button } from "@calid/features/ui/components/button";
 import { Form, FormField } from "@calid/features/ui/components/form";
 import { SettingsSwitch } from "@calid/features/ui/components/switch/settings-switch";
-import { triggerToast } from "@calid/features/ui/components/toast/toast";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -151,7 +151,7 @@ export default function TeamSettingsView({ teamId }: TeamSettingsViewProps) {
 
   return (
     <div className="space-y-6">
-      <div className="border-subtle space-y-6 rounded-md border p-4">
+      <div className="border-default space-y-6 rounded-md border p-4">
         <SettingsSwitch
           toggleSwitchAtTheEnd={true}
           title={t("team_settings_user_impersonation_title")}
@@ -163,7 +163,7 @@ export default function TeamSettingsView({ teamId }: TeamSettingsViewProps) {
           }}
         />
       </div>
-      <div className="border-subtle space-y-6 rounded-md border p-4">
+      <div className="border-default space-y-6 rounded-md border p-4">
         <SettingsSwitch
           toggleSwitchAtTheEnd={true}
           title={t("team_settings_private_team_title")}
@@ -176,8 +176,8 @@ export default function TeamSettingsView({ teamId }: TeamSettingsViewProps) {
         />
       </div>
       {isAdmin ? (
-        <div className="border-subtle space-y-6 rounded-md border p-4">
-          <Form {...bookingFrequencyForm} onSubmit={onBookingFrequencySubmit}>
+        <div className="border-default space-y-6 rounded-md border p-4">
+          <Form form={bookingFrequencyForm} onSubmit={onBookingFrequencySubmit}>
             <FormField
               control={bookingFrequencyForm.control}
               name="bookingFrequency"
@@ -217,7 +217,7 @@ export default function TeamSettingsView({ teamId }: TeamSettingsViewProps) {
         </div>
       ) : (
         <div className="border-subtle rounded-md border p-4">
-          <span className="text-default text-sm">{t("only_owner_change")}</span>
+          <span className="text-default text-sm">{t("only_owner_can_change")}</span>
         </div>
       )}
     </div>

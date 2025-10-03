@@ -17,5 +17,5 @@ export const useBrandColors = ({
   });
 
   useCalcomTheme(brandTheme);
-  useTheme(theme);
+  useTheme(theme, false, false);
 };

@@ -64,11 +64,13 @@ export const BookingFields = ({
           readOnly = false;
         }
 
-        if (field.name === SystemField.Enum.smsReminderNumber) {
+        // if (field.name === SystemField.Enum.smsReminderNumber) {
+        if (field.name === SystemField.Enum.attendeePhoneNumber) {
           // `smsReminderNumber` and location.optionValue when location.value===phone are the same data point. We should solve it in a better way in the Form Builder itself.
           // I think we should have a way to connect 2 fields together and have them share the same value in Form Builder
           if (locationResponse?.value === "phone") {
-            setValue(`responses.${SystemField.Enum.smsReminderNumber}`, locationResponse?.optionValue);
+            // setValue(`responses.${SystemField.Enum.smsReminderNumber}`, locationResponse?.optionValue);
+            setValue(`responses.${SystemField.Enum.attendeePhoneNumber}`, locationResponse?.optionValue);
             // Just don't render the field now, as the value is already connected to attendee phone location
             return null;
           }
@@ -79,7 +81,8 @@ export const BookingFields = ({
         if (field.name === SystemField.Enum.guests) {
           readOnly = false;
           // No matter what user configured for Guests field, we don't show it for dynamic group booking as that doesn't support guests
-          hidden = isDynamicGroupBooking ? true : !!field.hidden;
+          // hidden = isDynamicGroupBooking ? true : !!field.hidden;
+          hidden = !!field.hidden;
         }
 
         // We don't show `notes` field during reschedule but since it's a query param we better valid if rescheduleUid brought any bookingData

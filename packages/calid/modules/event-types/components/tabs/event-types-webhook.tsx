@@ -3,8 +3,14 @@
 import { Alert } from "@calid/features/ui/components/alert";
 import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
-import { Dialog } from "@calid/features/ui/components/dialog";
-import { DialogContent } from "@calid/features/ui/components/dialog";
+import { BlankCard } from "@calid/features/ui/components/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@calid/features/ui/components/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,9 +20,8 @@ import {
 } from "@calid/features/ui/components/dropdown-menu";
 import { Icon } from "@calid/features/ui/components/icon";
 import { Switch } from "@calid/features/ui/components/switch/switch";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { Tooltip } from "@calid/features/ui/components/tooltip";
-import { TooltipTrigger } from "@calid/features/ui/components/tooltip";
-import { TooltipContent } from "@calid/features/ui/components/tooltip";
 import type { Webhook } from "@prisma/client";
 import type { TFunction } from "i18next";
 import { default as get } from "lodash/get";
@@ -39,12 +44,10 @@ import type { _EventTypeModel } from "@calcom/prisma/zod/eventtype";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { showToast } from "@calcom/ui/components/toast";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 
 // Types from old components
-export type TWebhook = RouterOutputs["viewer"]["webhook"]["list"][number];
+export type TWebhook = RouterOutputs["viewer"]["webhook"]["calid_list"][number];
 
 export type WebhookFormData = {
   id?: string;
@@ -61,8 +64,6 @@ export type WebhookFormSubmitData = WebhookFormData & {
   changeSecret: boolean;
   newSecret: string;
 };
-
-type WebhookTriggerEventOptions = readonly { value: WebhookTriggerEvents; label: string }[];
 
 // Locked fields management
 const useLockedFieldsManager = ({
@@ -136,39 +137,36 @@ const useLockedFieldsManager = ({
     );
 
     const LockedIcon = (isManagedEventType || isChildrenManagedEventType) && (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className="inline">
-            <Badge
-              variant={isLocked ? "gray" : "green"}
-              className={classNames(
-                "ml-2 transform justify-between p-1",
-                isManagedEventType && !options?.simple && "w-28"
-              )}>
-              {!options?.simple && (
-                <span className="inline-flex">
-                  <Icon name={isLocked ? "lock" : "lock-open"} className="text-subtle h-3 w-3" />
-                  <span className="ml-1 font-medium">{stateText}</span>
-                </span>
-              )}
-              {isManagedEventType && (
-                <Switch
-                  data-testid={`locked-indicator-${fieldName}`}
-                  onCheckedChange={(enabled) => {
-                    setFieldStates({
-                      ...fieldStates,
-                      [fieldName]: enabled,
-                    });
-                    setUnlockedFields(fieldName, !enabled || undefined);
-                  }}
-                  checked={isLocked}
-                  size="sm"
-                />
-              )}
-            </Badge>
-          </div>
-        </TooltipTrigger>
-        <TooltipContent>{tooltipText}</TooltipContent>
+      <Tooltip content={tooltipText}>
+        <div className="inline">
+          <Badge
+            variant={isLocked ? "secondary" : "success"}
+            className={classNames(
+              "ml-2 transform justify-between p-1",
+              isManagedEventType && !options?.simple && "w-28"
+            )}>
+            {!options?.simple && (
+              <span className="inline-flex">
+                <Icon name={isLocked ? "lock" : "lock-open"} className="text-subtle h-3 w-3" />
+                <span className="ml-1 font-medium">{stateText}</span>
+              </span>
+            )}
+            {isManagedEventType && (
+              <Switch
+                data-testid={`locked-indicator-${fieldName}`}
+                onCheckedChange={(enabled) => {
+                  setFieldStates({
+                    ...fieldStates,
+                    [fieldName]: enabled,
+                  });
+                  setUnlockedFields(fieldName, !enabled || undefined);
+                }}
+                checked={isLocked}
+                size="sm"
+              />
+            )}
+          </Badge>
+        </div>
       </Tooltip>
     );
 
@@ -189,299 +187,17 @@ const useLockedFieldsManager = ({
   };
 };
 
-// // Webhook form component
-// const WebhookForm = (props: {
-//   webhook?: WebhookFormData;
-//   apps?: (keyof typeof WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2)[];
-//   overrideTriggerOptions?: (typeof WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2)["core"];
-//   onSubmit: (event: WebhookFormSubmitData) => void;
-//   onCancel?: () => void;
-//   noRoutingFormTriggers: boolean;
-//   selectOnlyInstantMeetingOption?: boolean;
-// }) => {
-//   const { apps = [], selectOnlyInstantMeetingOption = false, overrideTriggerOptions } = props;
-//   const { t } = useLocale();
-
-//   const triggerOptions = overrideTriggerOptions
-//     ? [...overrideTriggerOptions]
-//     : [...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2["core"]];
-
-//   if (apps) {
-//     for (const app of apps) {
-//       if (app === "routing-forms" && props.noRoutingFormTriggers) continue;
-//       if (WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2[app]) {
-//         triggerOptions.push(...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2[app]);
-//       }
-//     }
-//   }
-
-//   const translatedTriggerOptions = triggerOptions.map((option) => ({ ...option, label: t(option.label) }));
-
-//   const getEventTriggers = () => {
-//     if (props.webhook) return props.webhook.eventTriggers;
-
-//     return (
-//       selectOnlyInstantMeetingOption
-//         ? translatedTriggerOptions.filter((option) => option.value === WebhookTriggerEvents.INSTANT_MEETING)
-//         : translatedTriggerOptions.filter((option) => option.value !== WebhookTriggerEvents.INSTANT_MEETING)
-//     ).map((option) => option.value);
-//   };
-
-//   const formMethods = useForm<WebhookFormData>({
-//     defaultValues: {
-//       subscriberUrl: props.webhook?.subscriberUrl || "",
-//       active: props.webhook ? props.webhook.active : true,
-//       eventTriggers: getEventTriggers(),
-//       secret: props?.webhook?.secret || "",
-//       payloadTemplate: props?.webhook?.payloadTemplate || undefined,
-//       timeUnit: props?.webhook?.timeUnit || undefined,
-//       time: props?.webhook?.time || undefined,
-//     },
-//   });
-
-//   const showTimeSection = formMethods
-//     .watch("eventTriggers")
-//     ?.find(
-//       (trigger) =>
-//         trigger === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
-//         trigger === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
-//     );
-
-//   const [useCustomTemplate, setUseCustomTemplate] = useState(
-//     props?.webhook?.payloadTemplate !== undefined && props?.webhook?.payloadTemplate !== null
-//   );
-//   const [newSecret, setNewSecret] = useState("");
-//   const [changeSecret, setChangeSecret] = useState<boolean>(false);
-//   const hasSecretKey = !!props?.webhook?.secret;
-
-//   useEffect(() => {
-//     if (changeSecret) {
-//       formMethods.unregister("secret", { keepDefaultValue: false });
-//     }
-//   }, [changeSecret, formMethods]);
-
-//   return (
-//     <Form {...formMethods}>
-//       <form
-//         onSubmit={formMethods.handleSubmit((values) =>
-//           props.onSubmit({ ...values, changeSecret, newSecret })
-//         )}>
-//         <div className="border-subtle space-y-6 border p-6">
-//           <FormField
-//             control={formMethods.control}
-//             name="subscriberUrl"
-//             render={({ field }) => (
-//               <FormItem>
-//                 <FormLabel className="text-emphasis text-sm font-medium">{t("subscriber_url")}</FormLabel>
-//                 <FormControl>
-//                   <TextField
-//                     {...field}
-//                     required
-//                     type="url"
-//                     onChange={(e) => {
-//                       field.onChange(e.target.value);
-//                       if (hasTemplateIntegration({ url: e.target.value })) {
-//                         setUseCustomTemplate(true);
-//                         formMethods.setValue("payloadTemplate", customTemplate({ url: e.target.value }), {
-//                           shouldDirty: true,
-//                         });
-//                       }
-//                     }}
-//                   />
-//                 </FormControl>
-//                 <FormMessage />
-//               </FormItem>
-//             )}
-//           />
-
-//           <FormField
-//             control={formMethods.control}
-//             name="active"
-//             render={({ field }) => (
-//               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-//                 <div className="space-y-0.5">
-//                   <FormLabel className="text-base font-medium">{t("enable_webhook")}</FormLabel>
-//                 </div>
-//                 <FormControl>
-//                   <Switch checked={field.value} onCheckedChange={field.onChange} />
-//                 </FormControl>
-//               </FormItem>
-//             )}
-//           />
-
-//           <FormField
-//             control={formMethods.control}
-//             name="eventTriggers"
-//             render={({ field }) => (
-//               <FormItem>
-//                 <FormLabel className="text-emphasis text-sm font-medium">{t("event_triggers")}</FormLabel>
-//                 <FormControl>
-//                   <Select
-//                     value={field.value?.join(",")}
-//                     onValueChange={(value) => {
-//                       const triggers = value ? (value.split(",") as WebhookTriggerEvents[]) : [];
-//                       field.onChange(triggers);
-
-//                       const noShowWebhookTriggerExists = !!triggers.find(
-//                         (trigger) =>
-//                           trigger === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
-//                           trigger === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
-//                       );
-
-//                       if (noShowWebhookTriggerExists) {
-//                         formMethods.setValue("time", props.webhook?.time ?? 5, { shouldDirty: true });
-//                         formMethods.setValue("timeUnit", props.webhook?.timeUnit ?? TimeUnit.MINUTE, {
-//                           shouldDirty: true,
-//                         });
-//                       } else {
-//                         formMethods.setValue("time", undefined, { shouldDirty: true });
-//                         formMethods.setValue("timeUnit", undefined, { shouldDirty: true });
-//                       }
-//                     }}>
-//                     <SelectTrigger>
-//                       <SelectValue placeholder={t("select_triggers")} />
-//                     </SelectTrigger>
-//                     <SelectContent>
-//                       {translatedTriggerOptions.map((option) => (
-//                         <SelectItem key={option.value} value={option.value}>
-//                           {option.label}
-//                         </SelectItem>
-//                       ))}
-//                     </SelectContent>
-//                   </Select>
-//                 </FormControl>
-//                 <FormMessage />
-//               </FormItem>
-//             )}
-//           />
-
-//           {showTimeSection && (
-//             <div className="space-y-2">
-//               <Label>{t("how_long_after_user_no_show_minutes")}</Label>
-//               <TimeTimeUnitInput disabled={false} defaultTime={5} />
-//             </div>
-//           )}
-
-//           <div className="space-y-4">
-//             {!!hasSecretKey && !changeSecret && (
-//               <>
-//                 <Label className="text-emphasis text-sm font-medium">Secret</Label>
-//                 <div className="bg-default space-y-0 rounded-md border-0 border-neutral-200 sm:mx-0 md:border">
-//                   <div className="text-emphasis rounded-sm border-b p-2 text-sm">
-//                     {t("forgotten_secret_description")}
-//                   </div>
-//                   <div className="p-2">
-//                     <Button color="secondary" type="button" onClick={() => setChangeSecret(true)}>
-//                       {t("change_secret")}
-//                     </Button>
-//                   </div>
-//                 </div>
-//               </>
-//             )}
-//             {!!hasSecretKey && changeSecret && (
-//               <>
-//                 <div className="space-y-2">
-//                   <Label className="text-emphasis text-sm font-medium">{t("secret")}</Label>
-//                   <TextField
-//                     autoComplete="off"
-//                     value={newSecret}
-//                     onChange={(event) => setNewSecret(event.currentTarget.value)}
-//                     type="text"
-//                     placeholder={t("leave_blank_to_remove_secret")}
-//                   />
-//                 </div>
-//                 <Button color="secondary" type="button" size="sm" onClick={() => setChangeSecret(false)}>
-//                   {t("cancel")}
-//                 </Button>
-//               </>
-//             )}
-//             {!hasSecretKey && (
-//               <FormField
-//                 control={formMethods.control}
-//                 name="secret"
-//                 render={({ field }) => (
-//                   <FormItem>
-//                     <FormLabel className="text-emphasis text-sm font-medium">{t("secret")}</FormLabel>
-//                     <FormControl>
-//                       <TextField {...field} value={field.value || ""} />
-//                     </FormControl>
-//                     <FormMessage />
-//                   </FormItem>
-//                 )}
-//               />
-//             )}
-//           </div>
-
-//           <div className="space-y-4">
-//             <Label className="text-emphasis text-sm font-medium">{t("payload_template")}</Label>
-//             <ToggleGroup
-//               value={useCustomTemplate ? "custom" : "default"}
-//               onValueChange={(val) => {
-//                 if (val === "default") {
-//                   setUseCustomTemplate(false);
-//                   formMethods.setValue("payloadTemplate", undefined, { shouldDirty: true });
-//                 } else {
-//                   setUseCustomTemplate(true);
-//                 }
-//               }}
-//               type="single"
-//               className="grid w-full grid-cols-2">
-//               <ToggleGroupItem value="default" className="text-center">
-//                 {t("default")}
-//               </ToggleGroupItem>
-//               <ToggleGroupItem value="custom" className="text-center">
-//                 {t("custom")}
-//               </ToggleGroupItem>
-//             </ToggleGroup>
-//             {useCustomTemplate && (
-//               <FormField
-//                 control={formMethods.control}
-//                 name="payloadTemplate"
-//                 render={({ field }) => (
-//                   <FormItem>
-//                     <FormControl>
-//                       <Textarea {...field} rows={3} value={field.value || ""} />
-//                     </FormControl>
-//                     <FormMessage />
-//                   </FormItem>
-//                 )}
-//               />
-//             )}
-//           </div>
-//         </div>
-
-//         <SectionBottomActions align="end">
-//           <Button type="button" variant="outline" onClick={props.onCancel}>
-//             {t("cancel")}
-//           </Button>
-//           <Button
-//             type="submit"
-//             data-testid="create_webhook"
-//             disabled={!formMethods.formState.isDirty && !changeSecret}
-//             loading={formMethods.formState.isSubmitting}>
-//             {props?.webhook?.id ? t("save") : t("create_webhook")}
-//           </Button>
-//         </SectionBottomActions>
-
-//         <div className="mb-4 mt-6 rounded-md">
-//           <WebhookTestDisclosure />
-//         </div>
-//       </form>
-//     </Form>
-//   );
-// };
-
 export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const formMethods = useFormContext<FormValues>();
 
   // Data fetching
-  const { data: webhooks, isLoading: webhooksLoading } = trpc.viewer.webhook.list.useQuery({
+  const { data: webhooks, isLoading: webhooksLoading } = trpc.viewer.webhook.calid_list.useQuery({
     eventTypeId: eventType.id,
   });
 
-  const { data: installedApps, isLoading: appsLoading } = trpc.viewer.apps.integrations.useQuery({
+  const { data: installedApps, isLoading: appsLoading } = trpc.viewer.apps.calid_integrations.useQuery({
     variant: "other",
     onlyInstalled: true,
   });
@@ -502,55 +218,55 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
   const cannotEditWebhooks = isChildrenManagedEventType ? webhooksDisableProps.isLocked : false;
 
   // Mutations
-  const createWebhookMutation = trpc.viewer.webhook.create.useMutation({
+  const createWebhookMutation = trpc.viewer.webhook.calid_create.useMutation({
     async onSuccess() {
       setCreateModalOpen(false);
       revalidateEventTypeEditPage(eventType.id);
-      showToast(t("webhook_created_successfully"), "success");
+      triggerToast(t("webhook_created_successfully"), "success");
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
     },
     onError(error) {
-      showToast(`${error.message}`, "error");
+      triggerToast(`${error.message}`, "error");
     },
   });
 
-  const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
+  const editWebhookMutation = trpc.viewer.webhook.calid_edit.useMutation({
     async onSuccess() {
       setEditModalOpen(false);
       revalidateEventTypeEditPage(eventType.id);
-      showToast(t("webhook_updated_successfully"), "success");
+      triggerToast(t("webhook_updated_successfully"), "success");
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
     },
     onError(error) {
-      showToast(`${error.message}`, "error");
+      triggerToast(`${error.message}`, "error");
     },
   });
 
-  const deleteWebhookMutation = trpc.viewer.webhook.delete.useMutation({
+  const deleteWebhookMutation = trpc.viewer.webhook.calid_delete.useMutation({
     async onSuccess() {
       revalidateEventTypeEditPage(eventType.id);
-      showToast(t("webhook_removed_successfully"), "success");
+      triggerToast(t("webhook_removed_successfully"), "success");
       await utils.viewer.webhook.getByViewer.invalidate();
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
     },
     onError(error) {
-      showToast(`${error.message}`, "error");
+      triggerToast(`${error.message}`, "error");
     },
   });
 
-  const toggleWebhookMutation = trpc.viewer.webhook.edit.useMutation({
+  const toggleWebhookMutation = trpc.viewer.webhook.calid_edit.useMutation({
     async onSuccess(data) {
       revalidateEventTypeEditPage(eventType.id);
-      showToast(t(data?.active ? "enabled" : "disabled"), "success");
+      triggerToast(t(data?.active ? "enabled" : "disabled"), "success");
       await utils.viewer.webhook.getByViewer.invalidate();
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
     },
     onError(error) {
-      showToast(`${error.message}`, "error");
+      triggerToast(`${error.message}`, "error");
     },
   });
 
@@ -565,7 +281,7 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
           eventTypeId: eventType.id,
         })
       ) {
-        showToast(t("webhook_subscriber_url_reserved"), "error");
+        triggerToast(t("webhook_subscriber_url_reserved"), "error");
         return;
       }
 
@@ -597,7 +313,7 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
           eventTypeId: eventType.id,
         })
       ) {
-        showToast(t("webhook_subscriber_url_reserved"), "error");
+        triggerToast(t("webhook_subscriber_url_reserved"), "error");
         return;
       }
 
@@ -677,15 +393,16 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
               <>
                 {/* Locked fields alert */}
                 {(isManagedEventType || isChildrenManagedEventType) && (
-                  <Alert variant={webhooksDisableProps.isLocked ? "neutral" : "info"} className="mb-2">
-                    <AlertTitle>
+                  <Alert
+                    severity={webhooksDisableProps.isLocked ? "neutral" : "info"}
+                    className="mb-2"
+                    title={
                       <ServerTrans
                         t={t}
                         i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}
                       />
-                    </AlertTitle>
-
-                    <AlertDescription>
+                    }
+                    message={
                       <div className="flex items-center justify-between">
                         <ServerTrans
                           t={t}
@@ -695,8 +412,8 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
                         />
                         <div className="ml-2 flex h-full items-center">{webhooksDisableProps.LockedIcon}</div>
                       </div>
-                    </AlertDescription>
-                  </Alert>
+                    }
+                  />
                 )}
 
                 {webhooks.length ? (
@@ -728,7 +445,7 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
                             <div
                               key={webhook.id}
                               className={`rounded-lg border p-4 transition-colors ${
-                                webhook.active ? "border-green-200 bg-green-50" : "border-gray-200 bg-white"
+                                webhook.active ? "border-green-200 bg-green-50" : "bg-primary border-gray-200"
                               }`}
                               style={
                                 webhook.active
@@ -772,7 +489,7 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
                                       {webhook.subscriberUrl}
                                     </h4>
                                     {isReadOnly && (
-                                      <Badge variant="gray" className="mt-1">
+                                      <Badge variant="secondary" className="mt-1">
                                         {t("readonly")}
                                       </Badge>
                                     )}
@@ -814,25 +531,23 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
                                         </Button>
                                       </DropdownMenuTrigger>
 
-                                      <DropdownMenuContent>
+                                      <DropdownMenuContent side="bottom" align="end" className="w-48">
                                         <DropdownMenuItem
                                           onClick={() => {
                                             setEditModalOpen(true);
                                             setWebhookToEdit(webhook);
-                                          }}>
-                                          <span className="bg-default inline-flex items-center">
-                                            <Icon name="pencil" className="mr-2 h-4 w-4" />
-                                            {t("edit")}
-                                          </span>
+                                          }}
+                                          StartIcon="pencil">
+                                          {t("edit")}
                                         </DropdownMenuItem>
 
                                         <DropdownMenuSeparator />
 
-                                        <DropdownMenuItem onClick={() => deleteWebhook(webhook)}>
-                                          <span className="text-destructive inline-flex items-center">
-                                            <Icon name="trash" className="mr-2 h-4 w-4" />
-                                            {t("delete")}
-                                          </span>
+                                        <DropdownMenuItem
+                                          onClick={() => deleteWebhook(webhook)}
+                                          color="destructive"
+                                          StartIcon="trash">
+                                          {t("delete")}
                                         </DropdownMenuItem>
                                       </DropdownMenuContent>
                                     </DropdownMenu>
@@ -851,23 +566,12 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
                                   </span>
                                 ))}
                                 {webhook.eventTriggers.length > 3 && (
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <span
-                                        className="cursor-help rounded-full bg-gray-100 px-2 py-1 text-gray-700"
-                                        style={{ fontSize: "12px" }}>
-                                        +{webhook.eventTriggers.length - 3} more
-                                      </span>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <div className="space-y-1">
-                                        {webhook.eventTriggers.slice(3).map((trigger) => (
-                                          <div key={trigger} className="text-sm">
-                                            {t(`${trigger.toLowerCase()}`)}
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </TooltipContent>
+                                  <Tooltip content={t("triggers_when")}>
+                                    <span
+                                      className="cursor-help rounded-full bg-gray-100 px-2 py-1 text-gray-700"
+                                      style={{ fontSize: "12px" }}>
+                                      +{webhook.eventTriggers.length - 3} more
+                                    </span>
                                   </Tooltip>
                                 )}
                               </div>
@@ -893,7 +597,7 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
                     </div>
                   </>
                 ) : (
-                  <EmptyScreen
+                  <BlankCard
                     Icon="webhook"
                     headline={t("create_your_first_webhook")}
                     description={t("first_event_type_webhook_description")}
@@ -914,14 +618,11 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
           </div>
           {/* New webhook dialog */}
           <Dialog open={createModalOpen} onOpenChange={(isOpen) => !isOpen && setCreateModalOpen(false)}>
-            <DialogContent
-              size="sm"
-              type="creation"
-              title={t("create_webhook")}
-              description={t("create_webhook_team_event_type")}
-              className="h-[50vh]"
-              enableOverflow={true} // This enables scrolling for the content area
-            >
+            <DialogContent enableOverflow>
+              <DialogHeader>
+                <DialogTitle>{t("create_webhook")}</DialogTitle>
+                <DialogDescription>{t("create_webhook_team_event_type")}</DialogDescription>
+              </DialogHeader>
               <WebhookForm
                 noRoutingFormTriggers={true}
                 onSubmit={onCreateWebhook}
@@ -932,7 +633,7 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
           </Dialog>
           {/* Edit webhook dialog */}
           <Dialog open={editModalOpen} onOpenChange={(isOpen) => !isOpen && setEditModalOpen(false)}>
-            <DialogContent size="sm" type="creation" title={t("edit_webhook")} enableOverflow>
+            <DialogContent size="md" type="creation" title={t("edit_webhook")} enableOverflow>
               <WebhookForm
                 noRoutingFormTriggers={true}
                 webhook={webhookToEdit}

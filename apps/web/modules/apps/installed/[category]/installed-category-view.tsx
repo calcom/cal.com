@@ -1,6 +1,8 @@
 "use client";
 
 import { Button } from "@calid/features/ui/components/button";
+import { BlankCard } from "@calid/features/ui/components/card";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { useReducer } from "react";
 
 import getAppCategoryTitle from "@calcom/app-store/_utils/getAppCategoryTitle";
@@ -14,10 +16,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppCategories } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import type { Icon } from "@calcom/ui/components/icon";
 import { ShellSubHeading } from "@calcom/ui/components/layout";
-import { showToast } from "@calcom/ui/components/toast";
 
 import { QueryCell } from "@lib/QueryCell";
 
@@ -37,11 +37,11 @@ const IntegrationsContainer = ({
 }: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const query = trpc.viewer.apps.integrations.useQuery({
+  const query = trpc.viewer.apps.calid_integrations.useQuery({
     variant,
     exclude,
     onlyInstalled: true,
-    includeTeamInstalledApps: true,
+    includeCalIdTeamInstalledApps: true,
   });
 
   const { data: defaultConferencingApp } = trpc.viewer.apps.getUsersDefaultConferencingApp.useQuery();
@@ -63,12 +63,12 @@ const IntegrationsContainer = ({
       { appSlug, appLink },
       {
         onSuccess: () => {
-          showToast("Default app updated successfully", "success");
+          triggerToast("Default app updated successfully", "success");
           utils.viewer.apps.getUsersDefaultConferencingApp.invalidate();
           onSuccessCallback();
         },
         onError: (error) => {
-          showToast(`Error: ${error.message}`, "error");
+          triggerToast(`Error: ${error.message}`, "error");
           onErrorCallback();
         },
       }
@@ -90,7 +90,7 @@ const IntegrationsContainer = ({
   };
 
   const handleConnectDisconnectIntegrationMenuToggle = () => {
-    utils.viewer.apps.integrations.invalidate();
+    utils.viewer.apps.calid_integrations.invalidate();
   };
 
   const handleBulkEditDialogToggle = () => {
@@ -120,7 +120,7 @@ const IntegrationsContainer = ({
           const emptyHeaderCategory = getAppCategoryTitle(variant || "other", true);
 
           return (
-            <EmptyScreen
+            <BlankCard
               Icon={emptyIcon[variant || "other"]}
               headline={t("no_category_apps", {
                 category: emptyHeaderCategory,
@@ -183,7 +183,7 @@ type ModalState = {
 type PageProps = {
   category: AppCategories;
   connectedCalendars: RouterOutputs["viewer"]["calendars"]["connectedCalendars"];
-  installedCalendars: RouterOutputs["viewer"]["apps"]["integrations"];
+  installedCalendars: RouterOutputs["viewer"]["apps"]["calid_integrations"];
 };
 
 export default function InstalledApps({ category, connectedCalendars, installedCalendars }: PageProps) {
@@ -210,20 +210,20 @@ export default function InstalledApps({ category, connectedCalendars, installedC
     updateData({ isOpen: true, credentialId, teamId });
   };
 
-  const deleteCredentialMutation = trpc.viewer.credentials.delete.useMutation();
+  const deleteCredentialMutation = trpc.viewer.credentials.calid_delete.useMutation();
 
   const handleRemoveApp = ({ credentialId, teamId, callback }: RemoveAppParams) => {
     deleteCredentialMutation.mutate(
       { id: credentialId, teamId },
       {
         onSuccess: () => {
-          showToast(t("app_removed_successfully"), "success");
+          triggerToast(t("app_removed_successfully"), "success");
           callback();
-          utils.viewer.apps.integrations.invalidate();
+          utils.viewer.apps.calid_integrations.invalidate();
           utils.viewer.calendars.connectedCalendars.invalidate();
         },
         onError: () => {
-          showToast(t("error_removing_app"), "error");
+          triggerToast(t("error_removing_app"), "error");
           callback();
         },
       }
@@ -240,6 +240,7 @@ export default function InstalledApps({ category, connectedCalendars, installedC
           <CalendarListContainer
             connectedCalendars={connectedCalendars}
             installedCalendars={installedCalendars}
+            showHeader={false}
           />
         )}
         {category === "other" && (

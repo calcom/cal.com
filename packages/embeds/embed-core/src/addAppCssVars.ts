@@ -59,7 +59,6 @@ export const addAppCssVars = () => {
     --cal-bg-subtle: hsla(220, 14%, 94%, 1); /* gray.100 - hovering on items, subtle raising */
     --cal-bg-muted: hsla(210, 20%, 97%, 1); /* gray.50 - large items, sidebar, sections */
     --cal-bg-inverted: hsla(210, 30%, 4%, 1); /* gray.900 - tooltips */
-    --cal-id-bg-gradient: linear-gradient(#eff6ff,#eef2ff, #faf5ff);
   
     /* Background Primary */
     --cal-bg-primary: hsla(214, 30%, 16%, 1); /* stone-100 */

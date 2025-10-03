@@ -1,13 +1,28 @@
-import { type ButtonProps } from "@calid/features/ui/components/button";
-import { Button } from "@calid/features/ui/components/button";
-import { Dialog, DialogContent, DialogFooter } from "@calid/features/ui/components/dialog";
-import { Icon } from "@calid/features/ui/components/icon";
+import { TeamSelectionDialog } from "@calid/features/modules/teams/components/TeamSelectionDialog";
+import { Button, type ButtonProps } from "@calid/features/ui/components/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from "@calid/features/ui/components/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@calid/features/ui/components/dropdown-menu";
+import { Icon, type IconName } from "@calid/features/ui/components/icon";
 import { Input } from "@calid/features/ui/components/input/input";
 import { TextArea } from "@calid/features/ui/components/input/text-area";
 import { Switch } from "@calid/features/ui/components/switch/switch";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, createContext, forwardRef, useContext, useState } from "react";
+import { createContext, forwardRef, useContext, useState } from "react";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
@@ -23,15 +38,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
-// import type { ButtonProps } from "@calcom/ui/components/button";
-import {
-  Dropdown,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@calcom/ui/components/dropdown";
 import { Form } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/components/toast";
 
 import getFieldIdentifier from "../lib/getFieldIdentifier";
 
@@ -72,15 +79,15 @@ function NewFormDialog({
   const action = newFormDialogState?.action;
   const target = newFormDialogState?.target;
 
-  const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
+  const mutation = trpc.viewer.appRoutingForms.calid_formMutation.useMutation({
     onSuccess: (_data, variables) => {
       router.push(`${appUrl}/form-edit/${variables.id}`);
     },
     onError: (err) => {
-      showToast(err.message || t("something_went_wrong"), "error");
+      triggerToast(err.message || t("something_went_wrong"), "error");
     },
     onSettled: () => {
-      utils.viewer.appRoutingForms.forms.invalidate();
+      utils.viewer.appRoutingForms.calid_forms.invalidate();
     },
   });
 
@@ -97,16 +104,10 @@ function NewFormDialog({
   return (
     <Dialog open={newFormDialogState !== null} onOpenChange={(open) => !open && setNewFormDialogState(null)}>
       <DialogContent className="overflow-y-auto">
-        <div className="mb-1">
-          <h3
-            className="text-emphasis !font-cal text-semibold leading-20 text-base font-medium"
-            id="modal-title">
-            {teamId ? t("add_new_team_form") : t("add_new_form")}
-          </h3>
-          <div>
-            <p className="text-subtle text-xs">{t("form_description")}</p>
-          </div>
-        </div>
+        <DialogHeader>
+          <DialogTitle>{teamId ? t("add_new_team_form") : t("add_new_form")}</DialogTitle>
+          <DialogDescription>{t("form_description")}</DialogDescription>
+        </DialogHeader>
         <Form
           form={hookForm}
           handleSubmit={(values) => {
@@ -116,7 +117,7 @@ function NewFormDialog({
               id: formId,
               ...values,
               addFallback: true,
-              teamId,
+              calIdTeamId: teamId,
               duplicateFrom: formToDuplicate,
             });
           }}>
@@ -136,30 +137,13 @@ function NewFormDialog({
                 {...register("description")}
                 data-testid="description"
                 placeholder={t("form_description_placeholder")}
+                className="border-default text-default rounded-md border text-sm"
               />
             </div>
-            {/* Disable this feature for new forms till we get it fully working with Routing Form with Attributes. This isn't much used feature */}
-            {/* {action === "duplicate" && (
-              <Controller
-                name="shouldConnect"
-                render={({ field: { value, onChange } }) => {
-                  return (
-                    <SettingsToggle
-                      title={t("keep_me_connected_with_form")}
-                      description={t("fields_in_form_duplicated")}
-                      checked={value}
-                      onCheckedChange={(checked) => {
-                        onChange(checked);
-                      }}
-                    />
-                  );
-                }}
-              />
-            )} */}
           </div>
           <DialogFooter className="mt-12">
-            {/* <DialogClose /> */}
-            <Button loading={mutation.isPending} data-testid="add-form" type="submit" variant="default">
+            <DialogClose />
+            <Button loading={mutation.isPending} data-testid="add-form" type="submit" color="primary">
               {t("continue")}
             </Button>
           </DialogFooter>
@@ -179,19 +163,12 @@ export const FormActionsDropdown = ({
 }) => {
   return (
     <dropdownCtx.Provider value={{ dropdown: true }}>
-      <Dropdown>
+      <DropdownMenu>
         <DropdownMenuTrigger disabled={disabled} data-testid="form-dropdown" asChild>
-          <Button
-            type="button"
-            variant="icon"
-            size="sm"
-            color="minimal"
-            className={classNames(disabled && "opacity-30")}>
-            <Icon name="ellipsis" className="h-3 w-3" />
-          </Button>
+          <Button type="button" variant="icon" color="secondary" StartIcon="ellipsis" />
         </DropdownMenuTrigger>
-        <DropdownMenuContent>{children}</DropdownMenuContent>
-      </Dropdown>
+        <DropdownMenuContent align="end">{children}</DropdownMenuContent>
+      </DropdownMenu>
     </dropdownCtx.Provider>
   );
 };
@@ -219,13 +196,13 @@ function Dialogs({
   const router = useRouter();
   const { t } = useLocale();
 
-  const deleteMutation = trpc.viewer.appRoutingForms.deleteForm.useMutation({
+  const deleteMutation = trpc.viewer.appRoutingForms.calid_deleteForm.useMutation({
     onMutate: async ({ id: formId }) => {
-      await utils.viewer.appRoutingForms.forms.cancel();
-      const previousValue = utils.viewer.appRoutingForms.forms.getData();
+      await utils.viewer.appRoutingForms.calid_forms.cancel();
+      const previousValue = utils.viewer.appRoutingForms.calid_forms.getData();
       if (previousValue) {
         const filtered = previousValue.filtered.filter(({ form: { id } }) => id !== formId);
-        utils.viewer.appRoutingForms.forms.setData(
+        utils.viewer.appRoutingForms.calid_forms.setData(
           {},
           {
             ...previousValue,
@@ -236,65 +213,58 @@ function Dialogs({
       return { previousValue };
     },
     onSuccess: () => {
-      showToast(t("form_deleted"), "success");
+      triggerToast(t("form_deleted"), "success");
       setDeleteDialogOpen(false);
       router.push(`${appUrl}/forms`);
     },
     onSettled: () => {
-      utils.viewer.appRoutingForms.forms.invalidate();
+      utils.viewer.appRoutingForms.calid_forms.invalidate();
       setDeleteDialogOpen(false);
     },
     onError: (err, newTodo, context) => {
       if (context?.previousValue) {
-        utils.viewer.appRoutingForms.forms.setData({}, context.previousValue);
+        utils.viewer.appRoutingForms.calid_forms.setData({}, context.previousValue);
       }
-      showToast(err.message || t("something_went_wrong"), "error");
+      triggerToast(err.message || t("something_went_wrong"), "error");
     },
   });
 
-  useEffect(() => {
-    console.log("Select state: ", selectTeamDialogState);
-  });
   return (
     <div id="form-dialogs">
       <RoutingFormEmbedDialog />
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        {/* <ConfirmationDialogContent
-          isPending={deleteMutation.isPending}
-          variety="danger"
-          title={t("delete_form")}
-          confirmBtnText={t("delete_form_action")}
-          loadingText={t("delete_form_action")}
-          onConfirm={(e) => {
-            if (!deleteDialogFormId) {
-              return;
-            }
-            e.preventDefault();
-            deleteMutation.mutate({
-              id: deleteDialogFormId,
-            });
-          }}>
-          <ul className="list-disc pl-3">
-            <li> {t("delete_form_confirmation")}</li>
-            <li> {t("delete_form_confirmation_2")}</li>
-          </ul>
-        </ConfirmationDialogContent> */}
-      </Dialog>
-
-      {/* <TeamSelectionDialog
+      <TeamSelectionDialog
         open={selectTeamDialogState !== null}
         openChange={(open: boolean) => !open && setSelectTeamDialogState(null)}
         onTeamSelect={(teamId: string) => {
           setSelectTeamDialogState(null);
           setNewFormDialogState({ action: "new", target: teamId });
         }}
-      /> */}
-
+      />
       <NewFormDialog
         appUrl={appUrl}
         newFormDialogState={newFormDialogState}
         setNewFormDialogState={setNewFormDialogState}
       />
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("delete_form")}</DialogTitle>
+          </DialogHeader>
+          <DialogFooter className="mt-4">
+            <Button
+              color="destructive"
+              loading={deleteMutation.isPending}
+              onClick={() => {
+                if (deleteDialogFormId) {
+                  deleteMutation.mutate({ id: deleteDialogFormId });
+                }
+              }}>
+              {t("delete")}
+            </Button>
+            <DialogClose />
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -341,10 +311,10 @@ export function FormActionsProvider({
   const [deleteDialogFormId, setDeleteDialogFormId] = useState<string | null>(null);
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const toggleMutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
+  const toggleMutation = trpc.viewer.appRoutingForms.calid_formMutation.useMutation({
     onMutate: async ({ id: formId, disabled }) => {
-      await utils.viewer.appRoutingForms.forms.cancel();
-      const previousValue = utils.viewer.appRoutingForms.forms.getData();
+      await utils.viewer.appRoutingForms.calid_forms.cancel();
+      const previousValue = utils.viewer.appRoutingForms.calid_forms.getData();
       if (previousValue) {
         const formIndex = previousValue.filtered.findIndex(({ form: { id } }) => id === formId);
         const previousListOfForms = [...previousValue.filtered];
@@ -352,7 +322,7 @@ export function FormActionsProvider({
         if (formIndex !== -1 && previousListOfForms[formIndex] && disabled !== undefined) {
           previousListOfForms[formIndex].form.disabled = disabled;
         }
-        utils.viewer.appRoutingForms.forms.setData(
+        utils.viewer.appRoutingForms.calid_forms.setData(
           {},
           {
             filtered: previousListOfForms,
@@ -363,21 +333,21 @@ export function FormActionsProvider({
       return { previousValue };
     },
     onSuccess: () => {
-      showToast(t("form_updated_successfully"), "success");
+      triggerToast(t("form_updated_successfully"), "success");
     },
     onSettled: (routingForm) => {
-      utils.viewer.appRoutingForms.forms.invalidate();
+      utils.viewer.appRoutingForms.calid_forms.invalidate();
       if (routingForm) {
-        utils.viewer.appRoutingForms.formQuery.invalidate({
+        utils.viewer.appRoutingForms.calid_formQuery.invalidate({
           id: routingForm.id,
         });
       }
     },
     onError: (err, value, context) => {
       if (context?.previousValue) {
-        utils.viewer.appRoutingForms.forms.setData({}, context.previousValue);
+        utils.viewer.appRoutingForms.calid_forms.setData({}, context.previousValue);
       }
-      showToast(err.message || t("something_went_wrong"), "error");
+      triggerToast(err.message || t("something_went_wrong"), "error");
     },
   });
 
@@ -493,6 +463,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     extraClassNames,
     ...additionalProps
   } = props;
+
   const { appUrl, _delete, toggle, setNewFormDialogState } = useContext(actionsCtx);
   const dropdownCtxValue = useContext(dropdownCtx);
   const dropdown = dropdownCtxValue?.dropdown;
@@ -512,7 +483,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     ButtonProps & {
       href?: string;
       target?: string;
-      icon?: string;
+      icon?: IconName;
       as?: React.ElementType;
       render?: FormActionProps<unknown>["render"];
     }
@@ -522,16 +493,17 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
       target: "_blank",
     },
     copyLink: {
+      size: "sm",
+      icon: "link",
       onClick: () => {
-        showToast(t("link_copied"), "success");
-        navigator.clipboard.writeText(formLink);
+        const publicFormLink = `${orgBranding?.fullDomain ?? WEBSITE_URL}/forms/${routingForm?.id}`;
+        navigator.clipboard.writeText(publicFormLink);
       },
     },
     duplicate: {
       onClick: () => setNewFormDialogState?.({ action: "duplicate", target: routingForm?.id ?? null }),
-      variant: "button",
-      color: "minimal",
       icon: "copy",
+      size: "sm",
     },
     embed: {
       as: RoutingFormEmbedButton,
@@ -545,16 +517,20 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
       href: `${appUrl}/form-edit/${routingForm?.id}`,
       variant: "button",
       color: "minimal",
-      icon: "pencil",
+      size: "sm",
+      icon: "pencil-line",
     },
     incompleteBooking: {
       href: `${appUrl}/incomplete-booking/${routingForm?.id}`,
+      size: "sm",
+      icon: "calendar",
     },
     download: {
       href: `/api/integrations/routing-forms/responses/${routingForm?.id}`,
       target: "_blank",
       variant: "button",
       color: "minimal",
+      size: "sm",
       icon: "download",
     },
     _delete: {
@@ -562,12 +538,15 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
       loading: _delete.isPending,
       variant: "button",
       color: "minimal",
-      icon: "trash",
+      size: "sm",
+      icon: "trash-2",
     },
     create: {
       onClick: () => setNewFormDialogState?.({ action: "new", target: "" }),
     },
     viewResponses: {
+      size: "sm",
+      icon: "eye",
       href: `/insights/routing${
         routingForm?.id
           ? dataTableQueryParamsSerializer({
@@ -581,7 +560,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     copyRedirectUrl: {
       onClick: () => {
         navigator.clipboard.writeText(redirectUrl);
-        showToast(t("typeform_redirect_url_copied"), "success");
+        triggerToast(t("typeform_redirect_url_copied"), "success");
       },
     },
     toggle: {
@@ -598,7 +577,6 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
             )}>
             <Switch
               data-testid="toggle-form-switch"
-              size="sm"
               disabled={!!disabled}
               checked={!routingForm.disabled}
               label={label}
@@ -613,11 +591,13 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
   };
 
   const { as: asFromAction, icon, target, href, ...action } = actionData[actionName];
+  const iconName = icon as IconName;
   const as = asFromElement || asFromAction;
   const actionProps = {
     ...action,
     ...(additionalProps as ButtonProps),
   } as ButtonProps & { render?: FormActionProps<unknown>["render"] };
+
   if (actionProps.render) {
     return actionProps.render({
       routingForm,
@@ -626,29 +606,31 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
   }
 
   const Component = as || Button;
-  // for (const key in actionProps) {
 
   if (!dropdown) {
     return (
       <Wrapper href={href} target={target}>
         <Component data-testid={`form-action-${actionName}`} ref={forwardedRef} {...actionProps}>
+          {props.icon && <Icon name={icon} className="h-4 w-4" />}
           {children}
         </Component>
       </Wrapper>
     );
   }
   return (
-    <DropdownMenuItem className="hover:bg-[initial]">
+    <DropdownMenuItem>
       <Wrapper href={href} target={target}>
         <Component
           ref={forwardedRef}
           {...actionProps}
+          variant="fab"
           className={classNames(
             props.className,
-            "w-full p-2 transition-none",
+            "w-full justify-start transition-none",
             props.color === "destructive" && "border-0"
-          )}>
-          {icon && <Icon name={icon} className="h-4 w-4" />}
+          )}
+          color="minimal">
+          <Icon name={iconName} className="h-4 w-4" />
           {children}
         </Component>
       </Wrapper>

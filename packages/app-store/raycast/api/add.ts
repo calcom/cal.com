@@ -12,8 +12,8 @@ const handler: AppDeclarativeHandler = {
   redirect: {
     url: "raycast://extensions/eluce2/cal-com-share-meeting-links?source=webstore",
   },
-  createCredential: ({ appType, user, slug, teamId }) =>
-    createDefaultInstallation({ appType, user: user, slug, key: {}, teamId }),
+  createCredential: ({ appType, user, slug, teamId, calIdTeamId }) =>
+    createDefaultInstallation({ appType, user: user, slug, key: {}, teamId, calIdTeamId }),
 };
 
 export default handler;

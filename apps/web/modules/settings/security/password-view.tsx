@@ -1,7 +1,8 @@
 "use client";
 
-// import { Button } from "@calcom/ui/components/button";
-import { Button } from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
+import { PasswordField } from "@calid/features/ui/components/input/input";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { signOut, useSession } from "next-auth/react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -16,11 +17,9 @@ import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Form } from "@calcom/ui/components/form";
-import { PasswordField } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
-import { showToast } from "@calcom/ui/components/toast";
 
 type ChangePasswordSessionFormValues = {
   oldPassword: string;
@@ -59,9 +58,9 @@ const PasswordView = ({ user }: PasswordViewProps) => {
 
   const [sessionTimeout, setSessionTimeout] = useState<number | undefined>(initialSessionTimeout);
 
-  const sessionMutation = trpc.viewer.me.updateProfile.useMutation({
+  const sessionMutation = trpc.viewer.me.calid_updateProfile.useMutation({
     onSuccess: (data) => {
-      showToast(t("session_timeout_changed"), "success");
+      triggerToast(t("session_timeout_changed"), "success");
       formMethods.reset(formMethods.getValues());
       setSessionTimeout(data.metadata?.sessionTimeout);
     },
@@ -85,12 +84,12 @@ const PasswordView = ({ user }: PasswordViewProps) => {
       if (context?.previousValue) {
         utils.viewer.me.get.setData(undefined, context.previousValue);
       }
-      showToast(`${t("session_timeout_change_error")}, ${error.message}`, "error");
+      triggerToast(`${t("session_timeout_change_error")}, ${error.message}`, "error");
     },
   });
   const passwordMutation = trpc.viewer.auth.changePassword.useMutation({
     onSuccess: () => {
-      showToast(t("password_has_been_changed"), "success");
+      triggerToast(t("password_has_been_changed"), "success");
       formMethods.resetField("oldPassword");
       formMethods.resetField("newPassword");
 
@@ -105,7 +104,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
       }
     },
     onError: (error) => {
-      showToast(`${t("error_updating_password")}, ${t(error.message)}`, "error");
+      triggerToast(`${t("error_updating_password")}, ${t(error.message)}`, "error");
 
       formMethods.setError("apiError", {
         message: t(error.message),
@@ -116,10 +115,10 @@ const PasswordView = ({ user }: PasswordViewProps) => {
 
   const createAccountPasswordMutation = trpc.viewer.auth.createAccountPassword.useMutation({
     onSuccess: () => {
-      showToast(t("password_reset_email", { email: user.email }), "success");
+      triggerToast(t("password_reset_email", { email: user.email }), "success");
     },
     onError: (error) => {
-      showToast(`${t("error_creating_account_password")}, ${t(error.message)}`, "error");
+      triggerToast(`${t("error_creating_account_password")}, ${t(error.message)}`, "error");
     },
   });
 
@@ -169,7 +168,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
       {user && user.identityProvider !== IdentityProvider.CAL && !user.passwordAdded ? (
         <div className="border-subtle rounded-md border">
           <div className="flex flex-row items-center justify-between px-4 py-6 sm:px-6">
-            <div class="flex flex-col">
+            <div className="flex flex-col">
               <h2 className="font-cal text-emphasis text-lg font-medium leading-6">
                 {t("account_managed_by_identity_provider", {
                   provider: identityProviderNameMap[user.identityProvider],
@@ -192,7 +191,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
         </div>
       ) : (
         <Form form={formMethods} handleSubmit={handleSubmit}>
-          <div className="border-subtle rounded-md border px-4 py-6 sm:px-6">
+          <div className="border-default rounded-md border px-4 py-6 sm:px-6">
             {formMethods.formState.errors.apiError && (
               <div className="pb-6">
                 <Alert severity="error" message={formMethods.formState.errors.apiError?.message} />
@@ -254,7 +253,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
               }}
               childrenClassName="lg:ml-0"
               switchContainerClassName={classNames(
-                "py-6 px-4 sm:px-6 border-subtle rounded-xl border",
+                "py-6 px-4 sm:px-6 border-default rounded-md border",
                 !!sessionTimeout && "rounded-b-none"
               )}>
               <>
@@ -304,7 +303,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
 };
 
 const PasswordViewWrapper = () => {
-  const { data: user, isPending } = trpc.viewer.me.get.useQuery({ includePasswordAdded: true });
+  const { data: user, isPending } = trpc.viewer.me.calid_get.useQuery({ includePasswordAdded: true });
   const { t } = useLocale();
   if (isPending || !user) return <SkeletonLoader />;
 

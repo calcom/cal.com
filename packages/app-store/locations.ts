@@ -59,6 +59,8 @@ export type EventLocationType = DefaultEventLocationType | EventLocationTypeFrom
 
 export const DailyLocationType = "integrations:daily";
 
+export const JitsiLocationType = "integrations:jitsi";
+
 export const MeetLocationType = "integrations:google:meet";
 
 /**
@@ -316,7 +318,7 @@ export const getMessageForOrganizer = (location: string, t: TFunction) => {
     return t(defaultLocation.messageForOrganizer);
   }
   if (videoLocation && videoLocation.linkType !== "static" && videoLocation.type !== "integrations:zoom") {
-    return t(`Cal will provide a ${videoLocation.label} URL.`);
+    return t(`Cal ID will provide a ${videoLocation.label} URL.`);
   }
   return "";
 };
@@ -398,7 +400,7 @@ export const getLocationValueForDB = (
   });
 
   if (bookingLocation.trim().length === 0) {
-    bookingLocation = DailyLocationType;
+    bookingLocation = JitsiLocationType;
   }
 
   return { bookingLocation, conferenceCredentialId };

@@ -122,6 +122,15 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
         },
       },
     },
+    calIdWorkflows: {
+      include: {
+        workflow: {
+          include: {
+            steps: true,
+          },
+        },
+      },
+    },
     hosts: {
       select: {
         user: {
@@ -520,7 +529,16 @@ export const getPublicEvent = async (
     metadata: eventMetaData,
     customInputs: customInputSchema.array().parse(event.customInputs || []),
     locations: privacyFilteredLocations((eventWithUserProfiles.locations || []) as LocationObject[]),
-    bookingFields: getBookingFieldsWithSystemFields(event),
+    // bookingFields: getBookingFieldsWithSystemFields(event),
+    //for passing workflow to booking Page
+    bookingFields: getBookingFieldsWithSystemFields({
+      bookingFields: event.bookingFields,
+      disableGuests: event.disableGuests,
+      customInputs: event.customInputs || [],
+      metadata: event.metadata,
+      workflows: event.calIdWorkflows || [],
+      isOrgTeamEvent: !!event.teamId,
+    }),
     recurringEvent: isRecurringEvent(eventWithUserProfiles.recurringEvent)
       ? parseRecurringEvent(event.recurringEvent)
       : null,
@@ -1019,7 +1037,16 @@ export const processEventDataShared = async ({
     metadata,
     customInputs: customInputSchema.array().parse(eventData.customInputs || []),
     locations: privacyFilteredLocations((eventData.locations || []) as LocationObject[]),
-    bookingFields: getBookingFieldsWithSystemFields(eventData),
+    // bookingFields: getBookingFieldsWithSystemFields(eventData),
+    //for passing workflow to booking Page
+    bookingFields: getBookingFieldsWithSystemFields({
+      bookingFields: eventData.bookingFields,
+      disableGuests: eventData.disableGuests,
+      customInputs: eventData.customInputs || [],
+      metadata: eventData.metadata,
+      workflows: eventData.calIdWorkflows || [], // ← ADD THIS
+      isOrgTeamEvent: !!eventData.teamId,
+    }),
     recurringEvent: isRecurringEvent(eventData.recurringEvent)
       ? parseRecurringEvent(eventData.recurringEvent)
       : null,

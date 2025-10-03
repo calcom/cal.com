@@ -1,8 +1,7 @@
-import { Button } from "@calid/features/ui";
-import { Textarea as TextArea, Input } from "@calid/features/ui";
-// import { Button } from "@calcom/ui/components/button";
-// import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
-import { DialogTitle, DialogContent, DialogFooter, DialogHeader } from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
+import { DialogTitle, DialogContent, DialogFooter, DialogHeader } from "@calid/features/ui/components/dialog";
+import { Input } from "@calid/features/ui/components/input/input";
+import { TextArea } from "@calid/features/ui/components/input/text-area";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -94,31 +93,35 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
 
   const [searchRedirectMember, setSearchRedirectMember] = useState("");
   const debouncedSearchRedirect = useDebounce(searchRedirectMember, 500);
-  const redirectMembers = trpc.viewer.teams.legacyListMembers.useInfiniteQuery(
+  const redirectMembers = trpc.viewer.calidTeams.allTeamsListMembers.useQuery(
     {
       limit: 10,
-      searchText: debouncedSearchRedirect,
-      adminOrOwnedTeamsOnly: oooType === OutOfOfficeTab.TEAM,
-    },
-    {
-      enabled: true,
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      searchQuery: debouncedSearchRedirect,
+      paging: 0,
+      // adminOrOwnedTeamsOnly: oooType === OutOfOfficeTab.TEAM,
     }
+    // {
+    //   enabled: true,
+    //   getNextPageParam: (lastPage) => lastPage.nextCursor,
+    // }
   );
+
+  console.log("Redirect members: ", redirectMembers);
+
   const redirectToMemberListOptions: {
     value: number;
     label: string;
     avatarUrl: string | null;
   }[] =
-    redirectMembers?.data?.pages
-      .flatMap((page) => page.members)
+    redirectMembers?.data?.members // ?.pages
+      // .flatMap((page) => page.members)
       ?.filter((member) =>
         oooType === OutOfOfficeTab.MINE ? me?.data?.id !== member.id : oooType === OutOfOfficeTab.TEAM
       )
       .map((member) => ({
-        value: member.id,
-        label: member.name || member.username || "",
-        avatarUrl: member.avatarUrl,
+        value: member.user.id,
+        label: member.user.username || member.user.name || "",
+        avatarUrl: member.user.avatarUrl,
       })) || [];
   const { ref: observerRefRedirect } = useInViewObserver(() => {
     if (redirectMembers.hasNextPage && !redirectMembers.isFetching) {
@@ -328,7 +331,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                   name="reasonId"
                   render={({ field: { onChange, value } }) => (
                     <Select<Option>
-                      className="mb-0 mt-1 text-white"
+                      className="text-default mb-0 mt-1"
                       name="reason"
                       data-testid="reason_select"
                       value={reasonList.find((reason) => reason.value === value)}
@@ -366,11 +369,9 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                     <UpgradeTeamsBadge />
                   </div>
                 )}
-                <div className="text-sm">
-                  {hasTeamPlan ? t("redirect_team_enabled") : t("redirect_team_disabled")}
-                </div>
+                <div className="text-sm">{t("redirect_team")}</div>
                 <Switch
-                  disabled={!hasTeamPlan}
+                  // disabled={!hasTeamPlan}
                   data-testid="profile-redirect-switch"
                   checked={profileRedirect}
                   id="profile-redirect-switch"

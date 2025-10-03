@@ -13,8 +13,8 @@ const handler: AppDeclarativeHandler = {
     newTab: true,
     url: "https://pipedream.com/apps/cal-com",
   },
-  createCredential: ({ appType, user, slug, teamId }) =>
-    createDefaultInstallation({ appType, user: user, slug, key: {}, teamId }),
+  createCredential: ({ appType, user, slug, teamId, calIdTeamId }) =>
+    createDefaultInstallation({ appType, user: user, slug, key: {}, teamId, calIdTeamId }),
 };
 
 export default handler;

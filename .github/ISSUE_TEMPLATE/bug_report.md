@@ -1,9 +1,10 @@
 ---
 name: Bug report
 about: Report any issues with the platform
-title: ""
-labels: ["🐛 bug"]
-assignees: ""
+title: ''
+labels: ''
+assignees: ''
+
 ---
 
 Found a bug? Please fill out the sections below. 👍
@@ -14,9 +15,9 @@ A summary of the issue. This needs to be a clear detailed-rich summary.
 
 ### Steps to Reproduce
 
-1. (for example) Went to ...
-2. Clicked on...
-3. ...
+1. Go to ...
+2. Click...
+3. See the issue
 
 Any other relevant information. For example, why do you consider this a bug and what did you expect to happen instead?
 

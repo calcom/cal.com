@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
-import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToTeam";
+import { throwIfNotHaveAdminAccessToCalIdTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToCalIdTeam";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
@@ -40,7 +40,7 @@ async function getHandler(request: NextRequest) {
     const parsedState = stateSchema.parse(JSON.parse(state));
     const { teamId } = parsedState;
 
-    await throwIfNotHaveAdminAccessToTeam({
+    await throwIfNotHaveAdminAccessToCalIdTeam({
       teamId: Number(teamId) ?? null,
       userId: session.user.id,
     });

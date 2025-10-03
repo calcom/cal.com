@@ -5,9 +5,7 @@ import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useEmbedBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-// import { TextArea } from "@calcom/ui/components/form";
-import { Textarea as TextArea } from "@calid/features/ui";
-
+import { TextArea } from "@calid/features/ui/components/input/text-area";
 import type { EmbedFramework, EmbedType, PreviewState } from "../types";
 import { Codes } from "./EmbedCodes";
 import { buildCssVarsPerTheme } from "./buildCssVarsPerTheme";

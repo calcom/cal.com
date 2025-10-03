@@ -25,6 +25,7 @@ export const createEventTypeInput = z.object({
   length: z.number().int().min(MIN_EVENT_DURATION_MINUTES).max(MAX_EVENT_DURATION_MINUTES),
   hidden: z.boolean(),
   teamId: z.number().int().nullish(),
+  calIdTeamId: z.number().int().nullish(),
   schedulingType: z.nativeEnum(SchedulingType).nullish(),
   locations: imports.eventTypeLocations,
   metadata: imports.EventTypeMetaDataSchema.optional(),

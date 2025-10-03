@@ -10,7 +10,6 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
   return (
     <TeamEditLayout teamId={teamId}>
       <TeamMembersView teamId={teamId} />
-      {/* <MembersView /> */}
     </TeamEditLayout>
   );
 };

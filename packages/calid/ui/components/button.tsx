@@ -1,11 +1,6 @@
 import { Icon } from "@calid/features/ui/components/icon";
 import type { IconName } from "@calid/features/ui/components/icon/Icon";
-import {
-  Tooltip,
-  TooltipProvider,
-  TooltipContent,
-  TooltipTrigger,
-} from "@calid/features/ui/components/tooltip";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import type { LinkProps } from "next/link";
@@ -33,8 +28,13 @@ export type ButtonBaseProps = {
   tooltipClassName?: string;
   disabled?: boolean;
   flex?: boolean;
+  iconColor?: string;
 } & Omit<InferredVariantProps, "color"> & {
+    // If a string (e.g. hex/rgb/css var) is provided, it will be used as a custom
+    // color for primary-style buttons (background, border, and readable text color)
     color?: ButtonColor;
+    brandColor?: string | null;
+    darkBrandColor?: string | null;
   };
 
 export type ButtonProps = ButtonBaseProps &
@@ -48,37 +48,34 @@ export const buttonClasses = cva(
   {
     variants: {
       variant: {
-        button: "",
+        button: "border border-border",
         icon: "flex justify-center",
         fab: "min-w-14 min-h-14 md:min-w-min md:min-h-min rounded-md justify-center radix-state-open:rotate-45 md:radix-state-open:rotate-0 radix-state-open:shadown-none radix-state-open:ring-0",
       },
       color: {
         primary: [
           // Base colors
-          "bg-cal-active",
-          "text-white",
+          "bg-brand-default",
+          "text-brand",
+          // Hover state
+          // Focus state
+          "focus-visible:bg-subtle",
+          "focus-visible:outline-none",
+          "focus-visible:ring-0",
+          "focus-visible:shadow-outline-gray-focused",
+          // Border
+          "border border-brand-default",
           // Disabled
           "disabled:opacity-30",
           // Shadows and effects
-          "enabled:hover:shadow-button-solid-brand-hover",
-        ],
-
-        primary_dim: [
-          // Base colors
-          "bg-cal-active-dim",
-          "text-cal-active",
-          "border:bg-cal-active",
-          // Disabled
-          "disabled:opacity-30",
-          "hover:bg-cal-active/90",
-          "border",
-          "border-active",
-          // Shadows and effects
+          "transition-shadow",
+          "transition-transform",
+          "duration-100",
         ],
 
         secondary: [
           // Base colors and border
-          "bg-white",
+          "bg-default",
           "text-default",
           // Hover state
           "enabled:hover:bg-muted",
@@ -91,7 +88,6 @@ export const buttonClasses = cva(
           "focus-visible:ring-0",
           "focus-visible:shadow-outline-gray-focused",
           // Shadows and effects
-          "shadow-outline-gray-rested",
           "enabled:hover:shadow-outline-gray-hover",
           "enabled:active:shadow-outline-gray-active",
           "transition-shadow",
@@ -100,10 +96,9 @@ export const buttonClasses = cva(
 
         minimal: [
           // Base color
+          "text-subtle",
           // Hover
-          "enabled:hover:bg-subtle",
-          "enabled:hover:text-emphasis",
-          "enabled:hover:border-subtle hover:border",
+          "enabled:hover:border-emphasis",
           // Disabled
           "disabled:opacity-30",
           // Focus
@@ -121,6 +116,7 @@ export const buttonClasses = cva(
 
         destructive: [
           // Base colors
+          "text-default",
           // Hover state
           "dark:hover:text-red-600",
           "hover:border-semantic-error",
@@ -143,22 +139,6 @@ export const buttonClasses = cva(
           "enabled:active:shadow-outline-red-active",
           "transition-shadow",
           "duration-200",
-        ],
-
-        destructive_account: [
-          // Base colors
-          "bg-default",
-          "text-destructive",
-          // Hover state
-          "hover:bg-red-500",
-          "hover:text-white",
-          "hover:transform",
-          "!hover:scale-105", // Add transform class
-          // Transitions
-          "transition-all",
-          "duration-200",
-          // Disabled state
-          "disabled:opacity-30",
         ],
       },
       size: {
@@ -200,7 +180,7 @@ export const buttonClasses = cva(
       {
         variant: "icon",
         size: "base",
-        className: "min-h-[36px] min-w-[36px] !p-2 hover:border-default",
+        className: "!p-2 hover:border-default",
       },
       {
         variant: "icon",
@@ -210,7 +190,7 @@ export const buttonClasses = cva(
       {
         variant: "icon",
         size: "sm",
-        className: "h-5 w-5 !p-1 rounded-md",
+        className: "h-6 w-6 !p-1 rounded-md",
       },
       {
         variant: "icon",
@@ -248,6 +228,9 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     CustomStartIcon,
     EndIcon,
     shallow,
+    brandColor,
+    darkBrandColor,
+    iconColor,
     // attributes propagated from `HTMLAnchorProps` or `HTMLButtonProps`
     ...passThroughProps
   } = props;
@@ -255,7 +238,13 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
   const disabled = props.disabled || loading;
   // If pass an `href`-attr is passed it's `<a>`, otherwise it's a `<button />`
   const isLink = typeof props.href !== "undefined";
-  const elementType = isLink ? "a" : "button";
+  const elementType = "button";
+
+  // Detect if dark mode is active
+  const isDarkMode = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
+
+  // Determine which brand color to use based on theme
+  const effectiveBrandColor = isDarkMode && darkBrandColor ? darkBrandColor : brandColor;
   const element = React.createElement(
     elementType,
     {
@@ -268,6 +257,10 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         const classes = classNames(buttonClasses({ color, size, loading, variant }), props.className);
         return classes;
       })(),
+      style: {
+        backgroundColor: effectiveBrandColor,
+        border: effectiveBrandColor ? "none" : undefined,
+      },
       // if we click a disabled button, we prevent going through the click handler
       onClick: disabled
         ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
@@ -281,8 +274,17 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           <>
             {variant === "fab" ? (
               <>
-                <Icon name={StartIcon} className="hidden h-4 w-4 stroke-[1.5px]  md:inline-flex" />
-                <Icon name="plus" data-testid="plus" className="inline h-6 w-6 md:hidden" />
+                <Icon
+                  name={StartIcon}
+                  className="hidden h-4 w-4 stroke-[1.5px] md:inline-flex"
+                  style={{ color: iconColor }}
+                />
+                <Icon
+                  name="plus"
+                  data-testid="plus"
+                  className="inline h-6 w-6 md:hidden"
+                  style={{ color: iconColor }}
+                />
               </>
             ) : (
               <Icon
@@ -292,12 +294,14 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
                   loading ? "invisible" : "visible",
                   "button-icon group-active:translate-y-[0.5px]",
                   variant === "icon" && "h-4 w-4",
-                  variant === "button" && "h-4 w-4 stroke-[1.5px] "
+                  variant === "button" && "h-4 w-4 stroke-[1.5px]"
                 )}
+                style={{ color: iconColor }}
               />
             )}
           </>
         ))}
+
       <div
         className={classNames(
           "contents", // This makes the div behave like it doesn't exist in the layout
@@ -350,7 +354,12 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
   );
 
   return props.href ? (
-    <Link data-testid="link-component" passHref href={props.href} shallow={shallow && shallow} legacyBehavior>
+    <Link
+      data-testid="link-component"
+      href={props.href}
+      shallow={shallow && shallow}
+      target={props.target}
+      rel={props.rel}>
       {element}
     </Link>
   ) : (
@@ -383,19 +392,9 @@ const Wrapper = ({
   }
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>{children}</TooltipTrigger>
-
-        <TooltipContent
-          side={tooltipSide}
-          sideOffset={tooltipOffset}
-          className={tooltipClassName}
-          data-testid="tooltip">
-          {tooltip}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Tooltip content={tooltip} side={tooltipSide} sideOffset={tooltipOffset} className={tooltipClassName}>
+      {children}
+    </Tooltip>
   );
 };
 

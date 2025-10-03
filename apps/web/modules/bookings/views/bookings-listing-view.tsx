@@ -1,15 +1,19 @@
 "use client";
 
 import { Button } from "@calid/features/ui/components/button";
+import { BlankCard } from "@calid/features/ui/components/card";
 import type { HorizontalTabItemProps } from "@calid/features/ui/components/navigation";
 import { HorizontalTabs } from "@calid/features/ui/components/navigation";
 import type { VerticalTabItemProps } from "@calid/features/ui/components/navigation";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper } from "@tanstack/react-table";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState, useRef } from "react";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import dayjs from "@calcom/dayjs";
+import ExportBookingsButton from "@calcom/features/bookings/components/ExportBookingsButton";
+import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
 import {
   useDataTable,
   DataTableProvider,
@@ -28,8 +32,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/components/alert";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { Icon } from "@calcom/ui/components/icon";
 
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
@@ -84,6 +86,27 @@ function BookingsContent({ status }: BookingsProps) {
   const [expandedBooking, setExpandedBooking] = useState<number | null>(null);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
+
+  const { data: filterQuery } = useFilterQuery();
+
+  const { status: _status, ...filterQueryWithoutStatus } = filterQuery;
+
+  const { mutate: fetchAllBookingsMutation, isPending } = trpc.viewer.bookings.export.useMutation({
+    async onSuccess(response) {
+      triggerToast(response.message, "success");
+    },
+    onError() {
+      triggerToast(t("unexpected_error_try_again"), "error");
+    },
+  });
+  const handleOnClickExportBookings = async () => {
+    await fetchAllBookingsMutation({
+      filters: {
+        ...filterQueryWithoutStatus,
+      },
+    });
+    return;
+  };
 
   // Generate dynamic tabs that preserve query parameters
   const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = useMemo(() => {
@@ -381,14 +404,19 @@ function BookingsContent({ status }: BookingsProps) {
           }))}
         />
 
-        <div className="flex h-[32px] flex-row gap-4 ">
+        <div className="flex h-[32px] flex-row gap-4 overflow-auto ">
           <Button
             color="secondary"
+            StartIcon="filter"
             onClick={() => setShowFilters(!showFilters)}
             className="flex items-center space-x-2">
-            <Icon name="filter" className="h-4 w-4" />
             <span>{t("filter")}</span>
           </Button>
+
+          <ExportBookingsButton
+            handleOnClickExportBookings={handleOnClickExportBookings}
+            isLoading={isPending}
+          />
 
           <DataTableSegment.SaveButton />
           <DataTableSegment.Select />
@@ -418,7 +446,7 @@ function BookingsContent({ status }: BookingsProps) {
                 ToolbarLeft={
                   <>
                     {showFilters && (
-                      <div className="bg-muted flex flex-row gap-2 rounded-md p-4">
+                      <div className="bg-default flex flex-row gap-2 rounded-md">
                         <DataTableFilters.FilterBar table={table} />
                         <DataTableFilters.ClearFiltersButton />
                       </div>
@@ -427,8 +455,8 @@ function BookingsContent({ status }: BookingsProps) {
                 }
                 LoaderView={<SkeletonLoader />}
                 EmptyView={
-                  <div className="flex items-center justify-center pt-2 xl:pt-0">
-                    <EmptyScreen
+                  <div className="w-full pt-2">
+                    <BlankCard
                       Icon="calendar"
                       headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
                       description={t("no_status_bookings_yet_description", {

@@ -42,8 +42,6 @@ const useCalendlyImport = (userId: number) => {
         method: "GET",
       });
 
-      console.log("Response: ", response);
-
       if (response.ok) {
         showToast("Data will import within 24 hours!", "success");
       } else {

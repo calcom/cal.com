@@ -1,22 +1,29 @@
 "use client";
 
+import { Button } from "@calid/features/ui/components/button";
+import {
+  Dialog,
+  DialogTitle,
+  DialogDescription,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+} from "@calid/features/ui/components/dialog";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import type { ManipulateType as DayjsManipulateType } from "dayjs";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { trpc } from "@calcom/trpc/react";
-import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
-import { showToast } from "@calcom/ui/components/toast";
 
 function hideDialogFor(hideFor: [number, DayjsManipulateType], toastContent: string) {
   document.cookie = `calcom-timezone-dialog=1;max-age=${
     dayjs().add(hideFor[0], hideFor[1]).unix() - dayjs().unix()
   }`;
-  if (toastContent) showToast(toastContent, "success");
+  if (toastContent) triggerToast(toastContent, "success");
 }
 
 const TimezoneChangeDialogContent = () => {
@@ -28,7 +35,7 @@ const TimezoneChangeDialogContent = () => {
   const formattedCurrentTz = CURRENT_TIMEZONE.replace("_", " ");
 
   const onMutationSuccess = async () => {
-    showToast(
+    triggerToast(
       t("updated_timezone_to", { formattedCurrentTz, interpolation: { escapeValue: false } }),
       "success"
     );
@@ -36,7 +43,7 @@ const TimezoneChangeDialogContent = () => {
   };
 
   const onMutationError = () => {
-    showToast(t("couldnt_update_timezone"), "error");
+    triggerToast(t("couldnt_update_timezone"), "error");
   };
 
   // update timezone in db
@@ -53,24 +60,28 @@ const TimezoneChangeDialogContent = () => {
 
   return (
     <>
-      <DialogHeader
-        title={t("update_timezone_question")}
-        subtitle={t("update_timezone_description", {
-          formattedCurrentTz,
-          interpolation: { escapeValue: false },
-        })}
-      />
+      <DialogHeader>
+        <DialogTitle>{t("update_timezone_question")}</DialogTitle>
+        <DialogDescription>
+          {t("update_timezone_description", {
+            formattedCurrentTz,
+            interpolation: { escapeValue: false },
+          })}
+        </DialogDescription>
+      </DialogHeader>
+
       {/* todo: save this in db and auto-update when timezone changes (be able to disable??? if yes, /settings)
-        <Checkbox description="Always update timezone" />
-        */}
+    <Checkbox description="Always update timezone" />
+  */}
       <div className="mb-8" />
-      <DialogFooter showDivider>
-        <DialogClose onClick={() => hideDialogFor([3, "months"], t("we_wont_show_again"))} color="secondary">
+
+      <DialogFooter className="border-t">
+        <Button onClick={() => hideDialogFor([3, "months"], t("we_wont_show_again"))} color="secondary">
           {t("dont_update")}
-        </DialogClose>
-        <DialogClose onClick={() => updateTimezone()} color="primary">
+        </Button>
+        <Button onClick={() => updateTimezone()} color="primary">
           {t("update_timezone")}
-        </DialogClose>
+        </Button>
       </DialogFooter>
     </>
   );

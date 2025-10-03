@@ -10,7 +10,7 @@ import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
 import type { EventTypeAppCardComponentProps, CredentialOwner } from "../types";
 import { DynamicComponent } from "./DynamicComponent";
 
-export type EventTypeApp = RouterOutputs["viewer"]["apps"]["integrations"]["items"][number] & {
+export type EventTypeApp = RouterOutputs["viewer"]["apps"]["calid_integrations"]["items"][number] & {
   credentialOwner?: CredentialOwner;
 };
 

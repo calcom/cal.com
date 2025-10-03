@@ -2,9 +2,10 @@ import { z } from "zod";
 
 import { MAX_NB_INVITES } from "@calcom/lib/constants";
 import { emailSchema } from "@calcom/lib/emailSchema";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { CalIdMembershipRole } from "@calcom/prisma/enums";
 
 export const ZInviteMemberSchema = z.object({
+  language: z.string(),
   teamId: z.number(),
   token: z.string().optional(),
   usernameOrEmail: z
@@ -15,7 +16,7 @@ export const ZInviteMemberSchema = z.object({
           z.string(),
           z.object({
             email: emailSchema,
-            role: z.nativeEnum(MembershipRole),
+            role: z.nativeEnum(CalIdMembershipRole),
           }),
         ])
         .array(),
@@ -59,7 +60,7 @@ export const ZInviteMemberSchema = z.object({
       },
       { message: "Bulk invitations are restricted to email addresses only." }
     ),
-  role: z.nativeEnum(MembershipRole).optional(),
+  role: z.nativeEnum(CalIdMembershipRole).optional(),
 });
 
 export type ZInviteMemberInput = z.infer<typeof ZInviteMemberSchema>;

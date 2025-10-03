@@ -13,9 +13,10 @@ export const generateMetadata = async ({ params }: { params: { category: string 
   );
 };
 
-const InsightsWrapper = ({ params }: PageProps) => {
+const InsightsWrapper = async ({ params }: PageProps) => {
   const validTabs = ["bookings", "routing", "workflows"] as const;
-  const tab = validTabs.includes(params.tab as any) ? params.tab : "bookings";
+  const parsedTab = (await params).tab;
+  const tab = (validTabs.includes(parsedTab as any) ? parsedTab : "bookings") as (typeof validTabs)[number];
 
   return <Insights tab={tab} />;
 };

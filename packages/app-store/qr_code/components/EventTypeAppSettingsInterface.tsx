@@ -10,7 +10,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({ eventTyp
   const { t } = useLocale();
   const [additionalParameters, setAdditionalParameters] = useState("");
   const query = additionalParameters !== "" ? `?${additionalParameters}` : "";
-  const eventTypeURL = eventType.URL + query;
+  const eventTypeURL = eventType.bookerUrl + "/" + eventType.slug + query;
 
   function QRCode({ size, data }: { size: number; data: string }) {
     const QR_URL = `https://api.qrserver.com/v1/create-qr-code/?size=${size}&data=${data}`;

@@ -44,10 +44,10 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
       <aside
         style={!isPlatformPages ? sidebarStylingAttributes : {}}
         className={classNames(
-          "bg-cal-gradient border-muted fixed left-0 hidden h-full w-14 flex-col overflow-y-auto overflow-x-hidden border-r md:sticky md:flex lg:w-56 lg:px-4",
+          "bg-cal-gradient dark:bg-cal-gradient border-muted fixed left-0 hidden h-full w-14 flex-col overflow-y-auto overflow-x-hidden border-r md:sticky md:flex lg:w-56 lg:px-4",
           !isPlatformPages && "max-h-screen"
         )}>
-        <div className="flex h-full flex-col justify-between py-4 lg:pt-4">
+        <div className="flex h-full flex-col justify-between py-6">
           {/* logo icon for tablet */}
           <Link href="/event-types" className="px-2 text-center md:inline">
             <Logo small icon />

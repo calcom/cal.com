@@ -1,172 +1,77 @@
-import * as twilio from "@calid/features/modules/workflows/providers/twilio";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { z } from "zod";
+import { parse } from "querystring";
+import getRawBody from "raw-body";
 
-import { IS_SMS_CREDITS_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
-import { getPublishedOrgIdFromMemberOrTeamId } from "@calcom/lib/getOrgIdFromMemberOrTeamId";
-import { defaultHandler } from "@calcom/lib/server/defaultHandler";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
+import { WorkflowMethods, WorkflowStatus } from "@calcom/prisma/client";
 
-const InputSchema = z.object({
-  userId: z
-    .string()
-    .optional()
-    .transform((val) => {
-      const num = Number(val);
-      return isNaN(num) ? undefined : num;
-    }),
-  teamId: z
-    .string()
-    .optional()
-    .transform((val) => {
-      const num = Number(val);
-      return isNaN(num) ? undefined : num;
-    }),
-  bookingUid: z.string().optional(),
-});
+const log = logger.getSubLogger({ prefix: ["api/webhook/twilio"] });
 
-/*
-  Twilio status callback: creates expense log when sms is delivered or undelivered
-*/
-async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const signature = req.headers["x-twilio-signature"];
-  const baseUrl = `${WEBAPP_URL}/api/twilio/webhook`;
+// Map event statuses to workflow statuses
+const statusMap = {
+  delivered: WorkflowStatus.DELIVERED,
+  read: WorkflowStatus.READ,
+  undelivered: WorkflowStatus.FAILED,
+  failed: WorkflowStatus.FAILED,
+};
 
-  const queryParams = new URLSearchParams(req.query as Record<string, string>).toString();
-  const requestUrl = queryParams ? `${baseUrl}?${queryParams}` : baseUrl;
-
-  if (typeof signature !== "string") {
-    return res.status(401).send("Missing Twilio signature");
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
   }
 
-  const isSignatureValid = await twilio.validateWebhookRequest({
-    requestUrl,
-    signature,
-    params: req.body,
-  });
+  try {
+    const rawBody = await getRawBody(req);
+    const parsedBody = parse(rawBody.toString());
+    const { SmsStatus: event } = parsedBody;
+    const { msgId, eventTypeId, channel } = req.query as {
+      msgId: string;
+      eventTypeId: string;
+      channel: "SMS" | "WHATSAPP";
+    };
 
-  if (!isSignatureValid) {
-    return res.status(401).send("Invalid Twilio signature");
-  }
-
-  const messageStatus = req.body.MessageStatus;
-
-  if (messageStatus !== "delivered" && messageStatus !== "undelivered") {
-    return res.status(200).send(`SMS not yet delivered/undelivered`);
-  }
-
-  if (!IS_SMS_CREDITS_ENABLED) {
-    return res.status(200).send(`SMS credits are not enabled.`);
-  }
-
-  const countryCode = await twilio.getCountryCodeForNumber(req.body.To);
-
-  const smsSid = req.body.SmsSid;
-
-  const {
-    userId: parsedUserId,
-    teamId: parsedTeamId,
-    bookingUid: parsedBookingUid,
-  } = InputSchema.parse(req.query);
-
-  if (!parsedUserId && !parsedTeamId) {
-    return res.status(401).send("Team or user id is required");
-  }
-  const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
-  const creditService = new CreditService();
-
-  if (countryCode === "US" || countryCode === "CA") {
-    // SMS to US and CA are free for teams
-    let teamIdToCharge = parsedTeamId;
-
-    if (!teamIdToCharge && parsedUserId) {
-      const teamMembership = await prisma.membership.findFirst({
-        where: {
-          userId: parsedUserId,
-          accepted: true,
-          team: {
-            slug: { not: null },
-          },
-        },
-        select: {
-          teamId: true,
-        },
-      });
-      teamIdToCharge = teamMembership?.teamId;
+    if (!msgId || !event || !eventTypeId) {
+      log.warn(`Webhook fields not found: ${msgId}, ${event}, ${eventTypeId}`);
+      return res.status(400).json({ error: "Missing required fields" });
     }
 
-    if (teamIdToCharge) {
-      await creditService.chargeCredits({
-        teamId: teamIdToCharge,
-        bookingUid: parsedBookingUid,
-        smsSid,
-        credits: 0,
-      });
+    const eventType = await prisma.eventType.findUnique({
+      where: { id: Number(eventTypeId) },
+    });
 
-      return res.status(200).send(`SMS to US and CA are free for teams. Credits set to 0`);
+    if (!eventType) {
+      log.warn(`Event not found with ID ${eventTypeId} skipping operation`);
+      console.warn(`Event not found with ID ${eventTypeId} skipping operation`);
+      return res.status(200).json({ error: `EventType not found skipping operation` });
     }
-  }
 
-  let orgId;
+    const status = statusMap[event as keyof typeof statusMap];
+    if (!status) {
+      return res.status(200).json({ error: "Status not handled" });
+    }
 
-  if (parsedTeamId) {
-    const team = await prisma.team.findUnique({
-      where: {
-        id: parsedTeamId,
+    await prisma.calIdWorkflowInsights.upsert({
+      where: { msgId },
+      update: { status },
+      create: {
+        msgId,
+        eventTypeId: Number(eventTypeId),
+        type: channel === "SMS" ? WorkflowMethods.SMS : WorkflowMethods.WHATSAPP,
+        status,
       },
-      select: {
-        isOrganization: true,
-        id: true,
-      },
-    });
-    orgId = team?.isOrganization ? team.id : undefined;
-  }
-
-  if (!orgId) {
-    orgId = await getPublishedOrgIdFromMemberOrTeamId({
-      ...(!parsedTeamId ? { memberId: parsedUserId } : {}),
-      teamId: parsedTeamId,
-    });
-  }
-
-  if (orgId) {
-    await creditService.chargeCredits({
-      teamId: orgId,
-      bookingUid: parsedBookingUid,
-      smsSid,
-      credits: 0,
     });
 
-    return res.status(200).send(`SMS are free for organizations. Credits set to 0`);
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.error("Error in /api/webhook/twilio", err);
+    log.error("Error in / /api/webhook/twilio", err);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
-
-  const { price, numSegments } = await twilio.getMessageInfo(smsSid);
-
-  const credits = price ? creditService.calculateCreditsFromPrice(price) : null;
-
-  const chargedUserOrTeamId = await creditService.chargeCredits({
-    credits,
-    teamId: parsedTeamId,
-    userId: parsedUserId,
-    smsSid,
-    bookingUid: parsedBookingUid,
-    smsSegments: numSegments ?? undefined,
-  });
-
-  if (chargedUserOrTeamId) {
-    return res.status(200).send(
-      `Expense log with ${credits ? credits : "no"} credits created for
-             ${
-               chargedUserOrTeamId.teamId
-                 ? `teamId ${chargedUserOrTeamId.teamId}`
-                 : `userId ${chargedUserOrTeamId.userId}`
-             }`
-    );
-  }
-  // this should never happen - even when out of credits we still charge a team
-  return res.status(500).send("No team or users found to be charged");
 }
 
-export default defaultHandler({
-  POST: Promise.resolve({ default: handler }),
-});
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};

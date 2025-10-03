@@ -1,3 +1,4 @@
+import { Button } from "@calid/features/ui/components/button";
 import { useForm } from "react-hook-form";
 
 import Schedule from "@calcom/features/schedules/components/Schedule";
@@ -5,7 +6,6 @@ import { DEFAULT_SCHEDULE } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
-import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 
 import type { TRPCClientErrorLike } from "@trpc/client";
@@ -17,6 +17,23 @@ interface ISetupAvailabilityProps {
 
 const SetupAvailability = (props: ISetupAvailabilityProps) => {
   const { defaultScheduleId } = props;
+
+  const updateProfileMutation = trpc.viewer.me.updateProfile.useMutation({
+    onSuccess: async (_data, _context) => {
+      nextStep();
+    },
+    onError: () => {
+      showToast(t("problem_saving_user_profile"), "error");
+    },
+  });
+
+  const handleNextStep = () => {
+    updateProfileMutation.mutate({
+      metadata: {
+        currentOnboardingStep: "user-profile",
+      },
+    });
+  };
 
   const { t } = useLocale();
   const { nextStep } = props;
@@ -40,6 +57,7 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
       throw new Error(error.message);
     },
     onSuccess: () => {
+      handleNextStep();
       nextStep();
     },
   };
@@ -75,6 +93,7 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
 
       <div>
         <Button
+          color="primary"
           EndIcon="arrow-right"
           data-testid="save-availability"
           type="submit"

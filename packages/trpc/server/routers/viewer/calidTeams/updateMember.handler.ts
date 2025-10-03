@@ -19,7 +19,7 @@ export const updateMemberHandler = async ({ ctx, input }: UpdateMemberOptions) =
   if (userId !== memberId) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
-      message: "not_own_members",
+      message: "You cannot view/edit members that are not your own",
     });
   }
 

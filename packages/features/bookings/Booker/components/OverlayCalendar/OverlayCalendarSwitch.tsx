@@ -2,7 +2,7 @@ import { useEffect } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Switch } from "@calcom/ui/components/form";
-import { Button } from "@calcom/ui/components/button";
+import { Button } from "@calid/features/ui/components/button";
 import classNames from "@calcom/ui/classNames";
 
 import { useBookerStore } from "../../store";

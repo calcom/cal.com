@@ -42,6 +42,7 @@ export const useEventTypeForm = ({
     startDate: new Date(eventType.periodStartDate || Date.now()),
     endDate: new Date(eventType.periodEndDate || Date.now()),
   });
+
   // this is a nightmare to type, will do in follow up PR
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const defaultValues: any = useMemo(() => {
@@ -146,6 +147,7 @@ export const useEventTypeForm = ({
       maxActiveBookingPerBookerOfferReschedule: eventType.maxActiveBookingPerBookerOfferReschedule,
       disableCancelling: eventType.disableCancelling,
       disableRescheduling: eventType.disableRescheduling,
+      captchaType: eventType.captchaType,
     };
   }, [eventType, periodDates]);
 

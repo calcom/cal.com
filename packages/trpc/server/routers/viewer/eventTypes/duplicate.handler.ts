@@ -40,8 +40,8 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
           },
         },
         hosts: true,
-        team: true,
-        workflows: true,
+        // team: true,
+        // workflows: true,
         webhooks: true,
         hashedLink: true,
         destinationCalendar: true,
@@ -56,6 +56,8 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
             disableTranscriptionForOrganizer: true,
           },
         },
+        calIdTeam: true,
+        calIdWorkflows: true,
       },
     });
 
@@ -65,12 +67,12 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
 
     // Validate user is owner of event type or in the team
     if (eventType.userId !== ctx.user.id) {
-      if (eventType.teamId) {
-        const isMember = await prisma.membership.findUnique({
+      if (eventType.calIdTeamId) {
+        const isMember = await prisma.calIdMembership.findUnique({
           where: {
-            userId_teamId: {
+            userId_calIdTeamId: {
               userId: ctx.user.id,
-              teamId: eventType.teamId,
+              calIdTeamId: eventType.calIdTeamId,
             },
           },
         });
@@ -84,7 +86,9 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       customInputs,
       users,
       locations,
-      team,
+      calIdTeam,
+      teamId,
+      parentId,
       hosts,
       recurringEvent,
       bookingLimits,
@@ -92,7 +96,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       eventTypeColor,
       customReplyToEmail,
       metadata,
-      workflows,
+      calIdWorkflows,
       hashedLink,
       destinationCalendar,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -118,7 +122,8 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       description: newDescription,
       length: newLength,
       locations: locations ?? undefined,
-      team: team ? { connect: { id: team.id } } : undefined,
+      // team: undefined,
+      calIdTeam: calIdTeam ? { connect: { id: calIdTeam.id } } : undefined,
       users: users ? { connect: users.map((user) => ({ id: user.id })) } : undefined,
       hosts: hosts
         ? {
@@ -203,12 +208,12 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       });
     }
 
-    if (workflows.length > 0) {
-      const relationCreateData = workflows.map((workflow) => {
+    if (calIdWorkflows.length > 0) {
+      const relationCreateData = calIdWorkflows.map((workflow) => {
         return { eventTypeId: newEventType.id, workflowId: workflow.workflowId };
       });
 
-      await prisma.workflowsOnEventTypes.createMany({
+      await prisma.calIdWorkflowsOnEventTypes.createMany({
         data: relationCreateData,
       });
     }

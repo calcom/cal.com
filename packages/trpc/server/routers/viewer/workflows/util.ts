@@ -1,4 +1,4 @@
-import type { Workflow as WorkflowType } from "@calid/features/modules/workflows/config/types";
+import type { CalIdWorkflow, CalIdWorkflowType } from "@calid/features/modules/workflows/config/types";
 import { isSMSOrWhatsappAction } from "@calid/features/modules/workflows/config/utils";
 import { scheduleEmailReminder } from "@calid/features/modules/workflows/managers/emailManager";
 import { scheduleSMSReminder } from "@calid/features/modules/workflows/managers/smsManager";
@@ -11,7 +11,7 @@ import type { z } from "zod";
 
 import { SMS_REMINDER_NUMBER_FIELD } from "@calcom/features/bookings/lib/SystemField";
 import {
-  getSmsReminderNumberField,
+  //getSmsReminderNumberField,
   getSmsReminderNumberSource,
 } from "@calcom/features/bookings/lib/getBookingFields";
 import { removeBookingField, upsertBookingField } from "@calcom/features/eventtypes/lib/bookingFieldsManager";
@@ -23,7 +23,7 @@ import logger from "@calcom/lib/logger";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
-import type { Prisma, WorkflowStep } from "@calcom/prisma/client";
+import type { Prisma, CalIdWorkflowStep } from "@calcom/prisma/client";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -220,13 +220,16 @@ export const verifyEmailSender = async (email: string, userId: number, teamId: n
 };
 
 export function getSender(
-  step: Pick<WorkflowStep, "action" | "sender"> & { senderName: string | null | undefined }
+  step: Pick<CalIdWorkflowStep, "action" | "sender"> & { senderName: string | null | undefined }
 ) {
   return isSMSOrWhatsappAction(step.action) ? step.sender || SENDER_ID : step.senderName || SENDER_NAME;
 }
 
 export async function isAuthorized(
-  workflow: Pick<Workflow, "id" | "teamId" | "userId"> | null,
+  workflow:
+    | Pick<Workflow, "id" | "teamId" | "userId">
+    | Pick<CalIdWorkflow, "id" | "calIdTeamId" | "userId">
+    | null,
   currentUserId: number,
   isWriteOperation?: boolean
 ) {
@@ -234,18 +237,18 @@ export async function isAuthorized(
     return false;
   }
   if (!isWriteOperation) {
-    const userWorkflow = await prisma.workflow.findFirst({
+    const userWorkflow = await prisma.calIdWorkflow.findFirst({
       where: {
         id: workflow.id,
         OR: [
           { userId: currentUserId },
           {
             // for read operation every team member has access
-            team: {
+            calIdTeam: {
               members: {
                 some: {
                   userId: currentUserId,
-                  accepted: true,
+                  acceptedInvitation: true,
                 },
               },
             },
@@ -256,17 +259,17 @@ export async function isAuthorized(
     if (userWorkflow) return true;
   }
 
-  const userWorkflow = await prisma.workflow.findFirst({
+  const userWorkflow = await prisma.calIdWorkflow.findFirst({
     where: {
       id: workflow.id,
       OR: [
         { userId: currentUserId },
         {
-          team: {
+          calIdTeam: {
             members: {
               some: {
                 userId: currentUserId,
-                accepted: true,
+                acceptedInvitation: true,
                 //only admins can update team/org workflows
                 NOT: {
                   role: MembershipRole.MEMBER,
@@ -303,7 +306,7 @@ export async function upsertSmsReminderFieldForEventTypes({
 
   for (const eventTypeId of allEventTypeIds) {
     await upsertBookingField(
-      getSmsReminderNumberField(),
+      //getSmsReminderNumberField(),
       getSmsReminderNumberSource({
         workflowId,
         isSmsReminderNumberRequired,
@@ -460,7 +463,7 @@ export async function deleteRemindersOfActiveOnIds({
   activeOnIds,
 }: {
   removedActiveOnIds: number[];
-  workflowSteps: WorkflowStep[];
+  workflowSteps: CalIdWorkflowStep[];
   isOrg: boolean;
   activeOnIds?: number[];
 }) {
@@ -470,7 +473,10 @@ export async function deleteRemindersOfActiveOnIds({
   await WorkflowRepository.deleteAllWorkflowReminders(remindersToDelete);
 }
 
-async function getRemindersFromRemovedEventTypes(removedEventTypes: number[], workflowSteps: WorkflowStep[]) {
+async function getRemindersFromRemovedEventTypes(
+  removedEventTypes: number[],
+  workflowSteps: CalIdWorkflowStep[]
+) {
   const remindersToDeletePromise: Prisma.PrismaPromise<
     {
       id: number;
@@ -479,7 +485,7 @@ async function getRemindersFromRemovedEventTypes(removedEventTypes: number[], wo
     }[]
   >[] = [];
   removedEventTypes.forEach((eventTypeId) => {
-    const remindersToDelete = prisma.workflowReminder.findMany({
+    const remindersToDelete = prisma.calIdWorkflowReminder.findMany({
       where: {
         booking: {
           eventTypeId,
@@ -517,7 +523,7 @@ export async function scheduleWorkflowNotifications({
 }: {
   activeOn: number[];
   isOrg: boolean;
-  workflowSteps: Partial<WorkflowStep>[];
+  workflowSteps: Partial<CalIdWorkflowStep>[];
   time: number | null;
   timeUnit: TimeUnit | null;
   trigger: WorkflowTriggerEvents;
@@ -642,7 +648,7 @@ type Bookings = UnwrapPromise<ReturnType<typeof getBookings>>;
 // we should consider refactoring this to  reuse similar code snippets
 export async function scheduleBookingReminders(
   bookings: Bookings,
-  workflowSteps: Partial<WorkflowStep>[],
+  workflowSteps: Partial<CalIdWorkflowStep>[],
   time: number | null,
   timeUnit: TimeUnit | null,
   trigger: WorkflowTriggerEvents,
@@ -755,7 +761,7 @@ export async function scheduleBookingReminders(
           template: step.template,
           sender: step.sender,
           userId: userId,
-          teamId: teamId,
+          calIdTeamId: teamId,
           // verifiedAt: step?.verifiedAt ?? null,
         });
       } else if (step.action === WorkflowActions.WHATSAPP_NUMBER && step.sendTo) {
@@ -772,7 +778,7 @@ export async function scheduleBookingReminders(
           workflowStepId: step.id || 0,
           template: step.template,
           userId: userId,
-          teamId: teamId,
+          calIdTeamId: teamId,
           // verifiedAt: step?.verifiedAt ?? null,
         });
       } else if (booking.smsReminderNumber) {
@@ -791,7 +797,7 @@ export async function scheduleBookingReminders(
             template: step.template,
             sender: step.sender,
             userId: userId,
-            teamId: teamId,
+            calIdTeamId: teamId,
             // verifiedAt: step?.verifiedAt ?? null,
           });
         } else if (step.action === WorkflowActions.WHATSAPP_ATTENDEE) {
@@ -809,7 +815,7 @@ export async function scheduleBookingReminders(
             template: step.template,
             sender: step.sender,
             userId: userId,
-            teamId: teamId,
+            calIdTeamId: teamId,
             // verifiedAt: step?.verifiedAt ?? null,
           });
         }
@@ -820,7 +826,7 @@ export async function scheduleBookingReminders(
   return Promise.all(promiseSteps);
 }
 
-export function isStepEdited(oldStep: WorkflowStep, newStep: WorkflowStep) {
+export function isStepEdited(oldStep: CalIdWorkflowStep, newStep: CalIdWorkflowStep) {
   const oldStepKeys = Object.keys(oldStep);
   const newStepKeys = Object.keys(newStep);
 
@@ -829,7 +835,7 @@ export function isStepEdited(oldStep: WorkflowStep, newStep: WorkflowStep) {
   }
 
   for (const key of oldStepKeys) {
-    if (oldStep[key as keyof WorkflowStep] !== newStep[key as keyof WorkflowStep]) {
+    if (oldStep[key as keyof CalIdWorkflowStep] !== newStep[key as keyof CalIdWorkflowStep]) {
       return true;
     }
   }
@@ -839,26 +845,26 @@ export function isStepEdited(oldStep: WorkflowStep, newStep: WorkflowStep) {
 
 export async function getAllWorkflowsFromEventType(
   eventType: {
-    workflows?: {
-      workflow: WorkflowType;
+    calIdWorkflows?: {
+      workflow: CalIdWorkflowType;
     }[];
-    teamId?: number | null;
+    calIdTeamId?: number | null;
     parentId?: number | null;
     parent?: {
       id?: number | null;
-      teamId: number | null;
+      calIdTeamId?: number | null;
     } | null;
     metadata?: Prisma.JsonValue;
   } | null,
   userId?: number | null
-): Promise<WorkflowType[]> {
+): Promise<CalIdWorkflow[]> {
   if (!eventType) return [];
 
-  const eventTypeWorkflows = eventType?.workflows?.map((workflowRel) => workflowRel.workflow) ?? [];
+  const eventTypeWorkflows = eventType?.calIdWorkflows?.map((workflowRel) => workflowRel.workflow) ?? [];
 
   const teamId = await getTeamIdFromEventType({
     eventType: {
-      team: { id: eventType?.teamId ?? null },
+      team: { id: eventType?.calIdTeamId ?? null },
       parentId: eventType?.parentId || eventType?.parent?.id || null,
     },
   });
@@ -888,14 +894,14 @@ export const getEventTypeWorkflows = async (
   userId: number,
   eventTypeId: number
 ): Promise<z.infer<typeof ZWorkflows>> => {
-  const workflows = await prisma.workflow.findMany({
+  const workflows = await prisma.calIdWorkflow.findMany({
     where: {
       OR: [
         {
           userId: userId,
         },
         {
-          team: {
+          calIdTeam: {
             members: {
               some: {
                 userId: userId,
@@ -917,8 +923,8 @@ export const getEventTypeWorkflows = async (
       time: true,
       timeUnit: true,
       userId: true,
-      teamId: true,
-      team: {
+      calIdTeamId: true,
+      calIdTeam: {
         select: {
           id: true,
           slug: true,

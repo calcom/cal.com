@@ -101,7 +101,6 @@ class RazorpayWrapper {
           refresh_token: this.refresh_token,
         });
 
-      console.log("refreshAccessToken response", response.data);
       await this.handleUpdateToken(response.data);
     } catch (error) {
       console.error("Failed to refresh token:", error);
@@ -266,7 +265,9 @@ class RazorpayWrapper {
       throw new Error("Webhook secret is required");
     }
     const payload = {
+      // local env will give 404 for a webhook api registration
       url: `${WEBAPP_URL}/api/integrations/razorpay/webhook`,
+      // url: `https://onehash.serveo.net/api/integrations/razorpay/webhook`,
       alert_email: "engineering@onehash.ai",
       secret: RAZORPAY_WEBHOOK_SECRET,
       events: ["payment_link.paid", "account.app.authorization_revoked"],

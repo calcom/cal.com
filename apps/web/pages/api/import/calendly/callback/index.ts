@@ -1,5 +1,5 @@
 import { CalendlyOAuthProvider } from "@onehash/calendly";
-import { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
 import { IntegrationProvider } from "@calcom/prisma/client";
@@ -74,7 +74,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           },
         },
       });
-      console.log("Creating new integration account and linking to user");
     }
 
     return res.status(200).json({ success: true });

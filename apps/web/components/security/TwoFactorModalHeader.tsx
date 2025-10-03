@@ -1,8 +1,5 @@
 import { Icon } from "@calid/features/ui/components/icon";
 
-
-
-
 const TwoFactorModalHeader = ({ title, description }: { title: string; description: string }) => {
   return (
     <div className="mb-4 sm:flex sm:items-start">

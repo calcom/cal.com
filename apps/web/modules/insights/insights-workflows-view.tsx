@@ -1,8 +1,8 @@
 "use client";
 
-import { useInsightsWorkflows } from "@calid/features/insights/hooks/useInsightsWorkflows";
-import { WorkflowKPICards } from "@calid/features/insights/workflows/WorkflowKPICards";
-import { WorkflowStatusLineChart } from "@calid/features/insights/workflows/WorkflowStatusLineChart";
+import { useInsightsWorkflows } from "@calid/features/modules/insights/hooks/useInsightsWorkflows";
+import { WorkflowKPICards } from "@calid/features/modules/insights/workflows/WorkflowKPICards";
+import { WorkflowStatusLineChart } from "@calid/features/modules/insights/workflows/WorkflowStatusLineChart";
 
 import type { FilterableColumn } from "@calcom/features/data-table";
 import { ColumnFilterType, DataTableFilters, DateRangeFilter } from "@calcom/features/data-table";
@@ -55,7 +55,7 @@ function InsightsWorkflowPageContent() {
           {t("looking_for_more_insights")}{" "}
           <a
             className="text-blue-500 hover:underline"
-            href="mailto:support@onehash.ai?subject=Feature%20Request%3A%20More%20Analytics&body=Hey%20Cal.id%20Team%2C%20I%20love%20the%20analytics%20page%20but%20I%20am%20looking%20for%20...">
+            href="mailto:support@cal.id?subject=Feature%20Request%3A%20More%20Analytics&body=Hey%20Cal.id%20Team%2C%20I%20love%20the%20analytics%20page%20but%20I%20am%20looking%20for%20...">
             {" "}
             {t("contact_support")}
           </a>

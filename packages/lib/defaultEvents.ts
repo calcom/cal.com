@@ -1,6 +1,6 @@
 import type { Prisma, SelectedCalendar } from "@prisma/client";
 
-import { DailyLocationType } from "@calcom/app-store/locations";
+import { JitsiLocationType } from "@calcom/app-store/locations";
 import slugify from "@calcom/lib/slugify";
 import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { userSelect } from "@calcom/prisma/selects";
@@ -56,6 +56,8 @@ const user: User & { credentials: CredentialPayload[] } = {
   timeFormat: 12,
   travelSchedules: [],
   locked: false,
+  bannerUrl: null,
+  faviconUrl: null,
 };
 
 const customInputs: CustomInputSchema[] = [];
@@ -71,7 +73,7 @@ const commons = {
   periodDays: null,
   slotInterval: null,
   offsetStart: 0,
-  locations: [{ type: DailyLocationType }],
+  locations: [{ type: JitsiLocationType }],
   customInputs,
   disableGuests: true,
   minimumBookingNotice: 120,
@@ -145,6 +147,9 @@ const commons = {
   instantMeetingScheduleId: null,
   instantMeetingParameters: [],
   eventTypeColor: null,
+  calIdTeam: null,
+  calIdTeamMember: null,
+  calIdWorkflows: [],
 };
 
 export const dynamicEvent = {
@@ -157,6 +162,7 @@ export const dynamicEvent = {
   position: 0,
   ...commons,
   metadata: eventTypeMetaDataSchemaWithTypedApps.parse({ multipleDuration: [15, 30, 45, 60, 90] }),
+  disableGuests: false,
 };
 
 export const defaultEvents = [dynamicEvent];

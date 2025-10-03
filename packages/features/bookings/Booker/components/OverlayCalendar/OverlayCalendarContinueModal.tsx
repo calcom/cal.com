@@ -1,8 +1,13 @@
-import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { APP_NAME } from "@calcom/lib/constants";
+import { Button } from "@calid/features/ui/components/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@calid/features/ui/components/dialog";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 
 interface IOverlayCalendarContinueModalProps {
   open?: boolean;
@@ -15,10 +20,11 @@ export function OverlayCalendarContinueModal(props: IOverlayCalendarContinueModa
   return (
     <>
       <Dialog open={props.open} onOpenChange={props.onClose}>
-        <DialogContent
-          type="creation"
-          title={t("overlay_my_calendar")}
-          description={t("overlay_my_calendar_toc")}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("overlay_my_calendar")}</DialogTitle>
+            <DialogDescription>{t("overlay_my_calendar_toc")}</DialogDescription>
+          </DialogHeader>
           <div className="flex flex-col gap-2">
             <Button
               data-testid="overlay-calendar-continue-button"
@@ -26,14 +32,10 @@ export function OverlayCalendarContinueModal(props: IOverlayCalendarContinueModa
                 props.onContinue();
               }}
               className="gap w-full items-center justify-center font-semibold"
-              StartIcon="calendar-search">
-              {t("continue_with", { appName: APP_NAME })}
+              EndIcon="arrow-right">
+              {t("continue")}
             </Button>
           </div>
-          <DialogFooter>
-            {/* Agh modal hacks */}
-            <></>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>

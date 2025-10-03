@@ -29,7 +29,7 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
     <div className={classNames("relative h-full pb-5", className)}>
       <div
         className={classNames(
-          "flex h-full flex-col items-center justify-start rounded-md border bg-white px-4 py-4 font-normal dark:bg-transparent",
+          "bg-primary flex h-full flex-col items-center justify-start rounded-md border px-4 py-4 font-normal dark:bg-transparent",
           borderDashed && "border-dashed"
         )}>
         <div className="bg-emphasis flex h-14 w-14 flex-col items-center justify-center rounded-full">

@@ -145,5 +145,7 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     isPremium: userMetadataPrased?.isPremium,
     ...(passwordAdded ? { passwordAdded } : {}),
     isTeamAdminOrOwner,
+    bannerUrl: user.bannerUrl,
+    faviconUrl: user.faviconUrl,
   };
 };

@@ -91,7 +91,7 @@ const TextAreaWidget = (props: TextLikeComponentPropsRAQB) => {
     <TextArea
       value={textValue}
       placeholder={placeholder}
-      className="mb-2"
+      className="mb-2 rounded-md border border-default hover:border-emphasis text-sm"
       disabled={readOnly}
       onChange={onChange}
       maxLength={maxLength}

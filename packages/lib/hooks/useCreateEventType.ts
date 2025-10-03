@@ -49,9 +49,54 @@ export const useCreateEventType = (
   const createMutation = trpc.viewer.eventTypes.create.useMutation({
     onSuccess: async ({ eventType }) => {
       onSuccessMutation(eventType);
+      await utils.viewer.eventTypes.calid_get.invalidate();
 
       await utils.viewer.eventTypes.getEventTypesFromGroup.fetchInfinite({
         group: { teamId: eventType.teamId, parentId: eventType.parentId },
+        searchQuery: debouncedSearchTerm,
+        limit: 10,
+      });
+
+      form.reset();
+    },
+    onError: (err) => {
+      let error = err.message;
+      if (err instanceof HttpError) {
+        error = `${err.statusCode}: ${err.message}`;
+      }
+
+      if (err.data?.code === "BAD_REQUEST") {
+        error = `${err.data.code}: ${t("error_event_type_url_duplicate")}`;
+      }
+
+      if (err.data?.code === "UNAUTHORIZED") {
+        error = `${err.data.code}: ${t("error_event_type_unauthorized_create")}`;
+      }
+      onErrorMutation(error);
+    },
+  });
+
+  return { form, createMutation, isManagedEventType };
+};
+
+export const useCalIdCreateEventType = (
+  onSuccessMutation: (eventType: EventType) => void,
+  onErrorMutation: (message: string) => void
+) => {
+  const utils = trpc.useUtils();
+  const { t } = useLocale();
+  const { form, isManagedEventType } = useCreateEventTypeForm();
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  const createMutation = trpc.viewer.eventTypes.calid_create.useMutation({
+    onSuccess: async ({ eventType }) => {
+      onSuccessMutation(eventType);
+
+      await utils.viewer.eventTypes.invalidate();
+      
+      await utils.viewer.eventTypes.calid_getEventTypesFromGroup.fetchInfinite({
+        group: { calIdTeamId: eventType.calIdTeamId, parentId: eventType.parentId },
         searchQuery: debouncedSearchTerm,
         limit: 10,
       });

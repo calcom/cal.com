@@ -84,7 +84,7 @@ function CategoryTab({ selectedCategory, categories, onCategoryChange }: Categor
       {leftVisible && (
         <button onClick={handleLeft} className="absolute left-0 top-1/2 z-10 flex -translate-y-1/2">
           <div className="bg-default flex h-12 w-5 items-center justify-end">
-            <div className="flex h-5 w-5 items-center justify-center rounded-full border bg-white">
+            <div className="bg-primary flex h-5 w-5 items-center justify-center rounded-full border">
               <Icon name="chevron-left" className="text-subtle h-4 w-4" />
             </div>
           </div>
@@ -127,7 +127,7 @@ function CategoryTab({ selectedCategory, categories, onCategoryChange }: Categor
         <button onClick={handleRight} className="absolute right-0 top-1/2 z-10 flex -translate-y-1/2">
           <div className="to-default flex h-12 w-5 bg-gradient-to-r from-transparent" />
           <div className="bg-default flex h-12 w-5 items-center justify-end">
-            <div className="flex h-5 w-5 items-center justify-center rounded-full border bg-white">
+            <div className="bg-primary flex h-5 w-5 items-center justify-center rounded-full border">
               <Icon name="chevron-right" className="text-subtle h-4 w-4" />
             </div>
           </div>
@@ -173,6 +173,7 @@ export function AllApps({ apps, categories, userAdminTeams }: AllAppsPropsType) 
         : true
     )
     .filter((app) => (searchText ? app.name.toLowerCase().includes(searchText.toLowerCase()) : true))
+    .filter((app) => app.slug !== "daily-video")
     .sort(function (a, b) {
       if (a.name < b.name) return -1;
       else if (a.name > b.name) return 1;

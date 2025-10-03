@@ -85,42 +85,55 @@ export const validateAndGetCorrectedUsernameInTeam = async (
   isSignup: boolean
 ) => {
   try {
-    const team = await prisma.team.findUnique({
+    //CASE 1: if its the same user that was invited to the team, allow the username
+    const user = await prisma.user.findFirst({
       where: {
-        id: teamId,
-      },
-      select: {
-        metadata: true,
-        isOrganization: true,
-        parentId: true,
-        organizationSettings: true,
-        parent: {
-          select: {
-            organizationSettings: true,
-          },
-        },
-      },
-    });
-
-    console.log("validateAndGetCorrectedUsernameInTeam", {
-      teamId,
-      team,
-    });
-    const organization = team?.isOrganization ? team : team?.parent;
-    if (organization) {
-      // Organization context -> org-context username check
-      const orgId = team?.parentId || teamId;
-      return validateAndGetCorrectedUsernameAndEmail({
-        username,
         email,
-        organizationId: orgId,
-        orgAutoAcceptEmail: organization?.organizationSettings?.orgAutoAcceptEmail || "",
-        isSignup,
-      });
-    } else {
-      // Regular team context -> regular username check
-      return validateAndGetCorrectedUsernameAndEmail({ username, email, isSignup });
+        invitedTo: teamId,
+      },
+    });
+    if (user) {
+      return { isValid: true, username: user.username, email: user.email };
     }
+    //CASE 2: if its a different user, check if the username or email is taken in the team
+    return validateAndGetCorrectedUsernameAndEmail({ username, email, isSignup });
+
+    // const team = await prisma.team.findUnique({
+    //   where: {
+    //     id: teamId,
+    //   },
+    //   select: {
+    //     metadata: true,
+    //     isOrganization: true,
+    //     parentId: true,
+    //     organizationSettings: true,
+    //     parent: {
+    //       select: {
+    //         organizationSettings: true,
+    //       },
+    //     },
+    //   },
+    // });
+
+    // console.log("validateAndGetCorrectedUsernameInTeam", {
+    //   teamId,
+    //   team,
+    // });
+    // const organization = team?.isOrganization ? team : team?.parent;
+    // if (organization) {
+    //   // Organization context -> org-context username check
+    //   const orgId = team?.parentId || teamId;
+    //   return validateAndGetCorrectedUsernameAndEmail({
+    //     username,
+    //     email,
+    //     organizationId: orgId,
+    //     orgAutoAcceptEmail: organization?.organizationSettings?.orgAutoAcceptEmail || "",
+    //     isSignup,
+    //   });
+    // } else {
+    //   // Regular team context -> regular username check
+    //   return validateAndGetCorrectedUsernameAndEmail({ username, email, isSignup });
+    // }
   } catch (error) {
     console.error(error);
     return { isValid: false, username: undefined, email: undefined };

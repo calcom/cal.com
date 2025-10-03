@@ -117,13 +117,13 @@
 
   /* Borders */
   --cal-border-emphasis: hsla(218, 11%, 65%, 1); /* gray.400 - input:hover */
-  --cal-border: hsla(216, 12%, 84%, 1); /* gray.300 - inputs */
+  --cal-border: rgb(235, 239, 242); /* gray.300 - inputs */
   --cal-border-subtle: rgb(235, 239, 242); /* gray.200 - container borders */
   --cal-border-muted: hsla(220, 14%, 94%, 1); /* gray.100 */
   --cal-border-error: hsla(0, 96%, 89%, 1); /* Keeping existing error border */
   --cal-border-semantic-error: hsla(0, 96%, 89%, 1);
   --cal-border-booker: var(--cal-border-subtle);
-  --cal-border-active: hsla(207, 100%, 44.9%, 1); 
+  --cal-border-active: hsla(207, 100%, 44.9%, 1);
 
   /* Content/Text Standard */
   --cal-text-emphasis: hsla(210, 30%, 4%, 1); /* gray-900 */
@@ -167,14 +167,14 @@
 .dark {
   /* Background Standard */
   --cal-bg-emphasis: hsla(0, 0%, 25%, 1); /* stone-700 */
-  --cal-bg: hsla(0, 0%, 6%, 1); /* stone-950 */
+  --cal-bg: hsla(0, 0%, 15%, 1);
   --cal-bg-subtle: hsla(0, 0%, 15%, 1); /* stone-800 */
   --cal-bg-muted: hsla(0, 0%, 9%, 1); /* stone-900 */
   --cal-bg-inverted: hsla(0, 0%, 98%, 1); /* stone-50 */
-  --cal-id-bg-gradient: linear-gradient(
-    hsla(213, 100%, 97%, 1),
-    hsla(229, 100%, 97%, 1),
-    hsla(270, 100%, 98%, 1)
+  --cal-bg-gradient: linear-gradient(
+    hsla(0, 0%, 12%, 1),
+    hsla(0, 0%, 15%, 1),
+    hsla(0, 0%, 18%, 1)
   );
 
   /* Background Primary */
@@ -186,7 +186,7 @@
   --cal-bg-brand: hsla(0, 0%, 98%, 1); /* gray-50 */
   --cal-bg-brand-emphasis: hsla(0, 0%, 96%, 1); /* stone-100 */
   --cal-bg-brand-muted: hsla(0, 0%, 96%, 1); /* stone-100 */
-  --cal-bg-primary-active:hsla(207, 100%, 45%, 1);
+  --cal-bg-primary-active: hsla(207, 100%, 45%, 1);
 
   /* Background Semantic */
   --cal-bg-semantic-info-subtle: hsla(236, 80%, 8%, 1); /* blue-800 */
@@ -333,7 +333,7 @@ html.todesktop-platform-darwin aside {
 }
 
 html.todesktop-platform-darwin.dark main.bg-default {
-  background: rgba(0, 0, 0, 0.6) !important;
+  background: rgba(37, 37, 37, 0.6) !important;
 }
 
 html.todesktop-platform-darwin.light main.bg-default {
@@ -662,14 +662,9 @@ select:focus {
   border: none;
 }
 
-/* TODO remove all below and use directly*/
 .bg-cal-gradient {
   background-image: var(--cal-bg-gradient);
 }
-
-/* .bg-cal-gradient {
-  color: var(--cal-bg-gradient);
-} */
 
 .bg-cal-active {
   background-color: var(--cal-bg-active);
@@ -685,9 +680,6 @@ select:focus {
 
 .border-active {
   border-color: var(--cal-border-active);
-}
-.bg-cal-active-dim {
-  background-color: var(--cal-bg-active-dim);
 }
 
 .text-cal-active {
@@ -711,11 +703,11 @@ select:focus {
 }
 
 .border-active {
-  border-color: var(--cal-bg-active);;
+  border-color: var(--cal-bg-active);
 }
 
 .border-destructive {
-  border-color: var(--cal-bg-destructive);;
+  border-color: var(--cal-bg-destructive);
 }
 
 .data-\[state\=checked\]\:cal-bg-active[data-state="checked"] {

@@ -1,13 +1,12 @@
+import { Button } from "@calid/features/ui/components/button";
+import { Dialog, DialogContent, DialogFooter, DialogTitle } from "@calid/features/ui/components/dialog";
 import { useState } from "react";
 import type { UseFormSetValue } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
-import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { Label, SettingsToggle, DateRangePicker, DatePicker } from "@calcom/ui/components/form";
 
 import type { FormValues } from "~/settings/my-account/general-view";
@@ -84,14 +83,13 @@ const TravelScheduleModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        title={t("travel_schedule")}
-        description={t("travel_schedule_description")}
-        type="creation">
+      <DialogContent description={t("travel_schedule_description")} type="creation">
         <div>
+          <DialogTitle>{t("travel_schedule")}</DialogTitle>
+
           {!isNoEndDate ? (
             <>
-              <Label className="mt-2">{t("time_range")}</Label>
+              <Label className="mt-6">{t("time_range")}</Label>
               <DateRangePicker
                 dates={{
                   startDate,
@@ -141,7 +139,6 @@ const TravelScheduleModal = ({
           />
         </div>
         <DialogFooter showDivider className="relative">
-          <DialogClose />
           <Button
             disabled={isNoEndDate ? !startDate : !startDate || !endDate}
             onClick={() => {

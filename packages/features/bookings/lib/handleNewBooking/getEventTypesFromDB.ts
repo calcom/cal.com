@@ -54,6 +54,14 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
             rrTimestampBasis: true,
           },
         },
+        calIdTeam: {
+          select: {
+            id: true,
+            name: true,
+            roundRobinResetInterval: true,
+            roundRobinTimestampBasis: true,
+          },
+        },
         bookingFields: true,
         title: true,
         length: true,
@@ -106,6 +114,14 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
                 includeManagedEventsInLimits: true,
               },
             },
+            calIdTeamId: true,
+            calIdTeam: {
+              select: {
+                id: true,
+                bookingFrequency: true,
+                // includeManagedEventsInLimits: true,
+              },
+            },
           },
         },
         useEventTypeDestinationCalendarEmail: true,
@@ -114,7 +130,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
             hideBranding: true,
           },
         },
-        workflows: {
+        calIdWorkflows: {
           select: {
             workflow: {
               select: workflowSelect,
@@ -204,7 +220,11 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       recurringEvent: parseRecurringEvent(eventType?.recurringEvent),
       customInputs: customInputSchema.array().parse(eventType?.customInputs || []),
       locations: (eventType?.locations ?? []) as LocationObject[],
-      bookingFields: getBookingFieldsWithSystemFields({ ...restEventType, isOrgTeamEvent }),
+      bookingFields: getBookingFieldsWithSystemFields({
+        ...restEventType,
+        workflows: restEventType.calIdWorkflows,
+        isOrgTeamEvent,
+      }),
       rrSegmentQueryValue: rrSegmentQueryValueSchema.parse(eventType.rrSegmentQueryValue) ?? null,
       isDynamic: false,
     };

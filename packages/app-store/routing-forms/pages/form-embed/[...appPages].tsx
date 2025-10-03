@@ -1,14 +1,13 @@
 "use client";
 
-import { Dialog, DialogTrigger, DialogContent, DialogTitle } from "@calid/features/ui";
-import { HorizontalTabs } from "@calid/features/ui";
-// import { Button } from "@calcom/ui/components/button";
-import { Button, TextField } from "@calid/features/ui";
+import { Button } from "@calid/features/ui/components/button";
+import { Dialog, DialogTrigger, DialogContent, DialogTitle } from "@calid/features/ui/components/dialog";
+import { TextField } from "@calid/features/ui/components/input/input";
+import { HorizontalTabs } from "@calid/features/ui/components/navigation";
 import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
 import type { RefObject, Dispatch, SetStateAction } from "react";
 import { createRef, useRef, useState } from "react";
 import type { ControlProps } from "react-select";
@@ -23,8 +22,8 @@ import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import DatePicker from "@calcom/features/calendars/DatePicker";
-// import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { EmbedTabName } from "@calcom/features/embed/lib/EmbedTabs";
 import { tabs } from "@calcom/features/embed/lib/EmbedTabs";
 import { buildCssVarsPerTheme } from "@calcom/features/embed/lib/buildCssVarsPerTheme";
@@ -43,7 +42,7 @@ import type {
 import type { Slot } from "@calcom/features/schedules/lib/use-schedule/types";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
 import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
-import { APP_NAME, DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
+import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { weekdayToWeekIndex } from "@calcom/lib/dayjs";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -51,19 +50,18 @@ import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-// import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { Select, ColorPicker } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
-// import { TextField } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 import SingleForm from "../../components/SingleForm";
-import type { getServerSidePropsForSingleFormView as getServerSideProps } from "../../components/getServerSidePropsSingleForm";
+import type { getServerSidePropsForSingleFormViewCalId as getServerSideProps } from "../../components/getServerSidePropsSingleFormCalId";
 
 type EventType = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"] | undefined;
 type EmbedDialogProps = {
+  routingFormId: string;
   types: EmbedTypes;
   tabs: EmbedTabs;
   eventTypeHideOptionDisabled: boolean;
@@ -222,9 +220,9 @@ const ChooseEmbedTypesDialogContent = ({
         {types.map((embed, index) => (
           <Button
             type="button"
-            className="flex w-full justify-center text-xs py-2"
+            className="flex w-full justify-center py-2 text-xs"
             variant="button"
-            color={currentType === embed.type ? "primary_dim" : "secondary"}
+            color={currentType === embed.type ? "primary" : "secondary"}
             key={index}
             data-testid={embed.type}
             onClick={() => {
@@ -485,7 +483,7 @@ const EmailEmbedPreview = ({
   }
   return (
     <div className="flex h-full items-center justify-center border p-5 last:font-medium">
-      <div className="border bg-white p-4">
+      <div className="bg-primary border p-4">
         <div
           style={{
             paddingBottom: "3px",
@@ -713,7 +711,7 @@ export const EmbedTypeCodeAndPreviewDialogContent = ({
     shallow
   );
 
-  embedType = embedType ?? "inline"; // Default to inline if embedType is not provided
+  embedType = embedType ?? "button"; // Default to inline if embedType is not provided
 
   const embedParams = useEmbedParams(noQueryParamMode);
   const eventId = embedParams.eventId;
@@ -936,7 +934,7 @@ export const EmbedTypeCodeAndPreviewDialogContent = ({
     //   className="rounded-lg p-0.5 sm:max-w-[80rem]"
     //   type="creation">
     <div className="flex grid w-full grid-cols-1 justify-between gap-12 sm:grid-cols-2 md:grid-cols-2">
-      <div className="bg-muted flex h-[65vh] w-full flex-col overflow-y-auto rounded-md  p-8">
+      <div className="bg-muted dark:bg-default flex h-[65vh] w-full flex-col overflow-y-auto rounded-md  p-8">
         {/* <h3
           className="text-emphasis mb-2.5 flex items-center text-xl font-semibold leading-5"
           id="modal-title"> */}
@@ -1275,21 +1273,21 @@ export const EmbedTypeCodeAndPreviewDialogContent = ({
       <div className="flex flex-col gap-2">
         {embedType !== "email" && previewTab && (
           <div className="flex-1">
-            <iframe
+            {/* <iframe
               src={calLink}
               ref={iframeRef}
               className="h-full w-full rounded-md border"
               title="Example Iframe"
               frameBorder="0"
-              allowFullScreen>
-              <previewTab.Component
-                namespace={namespace}
-                embedType={embedType}
-                calLink={calLink}
-                previewState={previewState}
-                ref={iframeRef}
-              />
-            </iframe>
+              allowFullScreen> */}
+            <previewTab.Component
+              namespace={namespace}
+              embedType={embedType}
+              calLink={calLink}
+              previewState={previewState}
+              ref={iframeRef}
+            />
+            {/* </iframe> */}
           </div>
         )}
 
@@ -1425,6 +1423,7 @@ export const EmbedTypeCodeAndPreviewDialogContent = ({
 
 export const EmbedDialog = ({
   types,
+  routingFormId,
   tabs,
   eventTypeHideOptionDisabled,
   defaultBrandColor,
@@ -1432,6 +1431,9 @@ export const EmbedDialog = ({
 }: EmbedDialogProps) => {
   noQueryParamMode = true;
   const embedParams = useEmbedParams(noQueryParamMode);
+
+  const embedLink = `forms/${routingFormId}`;
+  const orgBranding = useOrgBranding();
 
   // const handleDialogClose = () => {
   //   if (noQueryParamMode) {
@@ -1456,20 +1458,18 @@ export const EmbedDialog = ({
         gotoState={(type) => setCurrentEmbedType(type)}
       />
       <div className="flex py-4">
-        {
-          <EmbedTypeCodeAndPreviewDialogContent
-            gotoState={setCurrentEmbedType}
-            embedType={currentEmbedType.embedType}
-            embedTabName={currentEmbedType.embedTabName}
-            embedUrl={embedParams.embedUrl}
-            namespace={embedParams.namespace}
-            tabs={tabs}
-            types={types}
-            eventTypeHideOptionDisabled={eventTypeHideOptionDisabled}
-            defaultBrandColor={defaultBrandColor}
-            noQueryParamMode={noQueryParamMode}
-          />
-        }
+        <EmbedTypeCodeAndPreviewDialogContent
+          gotoState={setCurrentEmbedType}
+          embedType={currentEmbedType.embedType}
+          embedTabName={currentEmbedType.embedTabName}
+          embedUrl={embedLink}
+          namespace={embedParams.namespace}
+          tabs={tabs}
+          types={types}
+          eventTypeHideOptionDisabled={eventTypeHideOptionDisabled}
+          defaultBrandColor={defaultBrandColor}
+          noQueryParamMode={noQueryParamMode}
+        />
       </div>
     </div>
   );
@@ -1501,6 +1501,7 @@ export default function FormEmbed({
         appUrl={appUrl}
         Page={({ hookForm, form, uptoDateForm }) => (
           <EmbedDialog
+            routingFormId={form?.id.toString()}
             types={routingFormTypes}
             tabs={tabs}
             eventTypeHideOptionDisabled={true}

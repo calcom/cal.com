@@ -12,6 +12,7 @@ import { Icon } from "@calid/features/ui/components/icon";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 
+import { SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 
@@ -33,10 +34,10 @@ export const Profile = ({ small }: ProfileProps) => {
   const handleHelpClick = (action: string) => {
     switch (action) {
       case "docs":
-        window.open("https://docs.cal.id", "_blank");
+        window.open("https://chat.onehash.ai/hc/onehash-help-center/en/categories/onehash-cal", "_blank");
         break;
       case "contact":
-        window.location.href = "mailto:support@onehash.ai";
+        window.location.href = `mailto:${SUPPORT_MAIL_ADDRESS}`;
         break;
     }
   };
@@ -52,7 +53,7 @@ export const Profile = ({ small }: ProfileProps) => {
         }
       }}>
       <DropdownMenuTrigger asChild>
-        <button className="hover:bg-muted flex hidden w-auto items-center space-x-3 rounded-lg p-2 transition-colors md:flex">
+        <button className="hover:bg-emphasis flex hidden w-auto items-center space-x-3 rounded-lg px-2 py-1.5 transition-colors md:flex">
           <div className="bg-primary flex h-6 w-6 items-center justify-center rounded-full">
             <span className="text-primary-foreground text-xs font-medium">
               <Avatar
@@ -97,7 +98,7 @@ export const Profile = ({ small }: ProfileProps) => {
             e.stopPropagation(); // <-- Prevent menu from closing
             setShowHelpOptions((prev) => !prev);
           }}
-          className="hover:bg-subtle flex w-full cursor-pointer items-center rounded-sm px-2 py-1.5 text-sm">
+          className="hover:bg-emphasis flex w-full cursor-pointer items-center rounded-sm px-2 py-1.5 text-sm">
           <Icon name="circle-help" className="mr-2 h-4 w-4" />
           {t("help")}
           <Icon

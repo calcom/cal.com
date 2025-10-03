@@ -1,7 +1,4 @@
 import { Icon } from "@calid/features/ui/components/icon";
-
-
-
 import type { InferGetServerSidePropsType } from "next";
 import Link from "next/link";
 import { useState } from "react";
@@ -24,7 +21,7 @@ export default function MakeSetup({ inviteLink }: InferGetServerSidePropsType<ty
 
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const integrations = trpc.viewer.apps.integrations.useQuery({ variant: "automation" });
+  const integrations = trpc.viewer.apps.calid_integrations.useQuery({ variant: "automation" });
   const oldApiKey = trpc.viewer.apiKeys.findKeyOfType.useQuery({ appId: MAKE });
   const teamsList = trpc.viewer.teams.listOwnedTeams.useQuery(undefined, {
     refetchOnWindowFocus: false,
@@ -38,6 +35,7 @@ export default function MakeSetup({ inviteLink }: InferGetServerSidePropsType<ty
   const makeCredentials: { userCredentialIds: number[] } | undefined = integrations.data?.items.find(
     (item: { type: string }) => item.type === "make_automation"
   );
+
   const [credentialId] = makeCredentials?.userCredentialIds || [false];
   const showContent = integrations.data && integrations.isSuccess && credentialId;
 
@@ -77,7 +75,7 @@ export default function MakeSetup({ inviteLink }: InferGetServerSidePropsType<ty
             <div className="invisible md:visible">
               <img className="h-11" src="/api/app-store/make/icon.svg" alt="Make Logo" />
             </div>
-            <div className="ml-2 ltr:mr-2 rtl:ml-2 md:ml-5">
+            <div className="ml-2 md:ml-5 ltr:mr-2 rtl:ml-2">
               <div className="text-default">{t("setting_up_make")}</div>
 
               <>

@@ -1,4 +1,5 @@
 import { Button } from "@calid/features/ui/components/button";
+import { CheckboxField } from "@calid/features/ui/components/input/checkbox-field";
 import { Switch } from "@calid/features/ui/components/switch";
 import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
@@ -25,7 +26,6 @@ import type { TimeRange } from "@calcom/types/schedule";
 import cn from "@calcom/ui/classNames";
 import { Dropdown, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/components/dropdown";
 import { Select } from "@calcom/ui/components/form";
-import { CheckboxField } from "@calcom/ui/components/form";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 export type { TimeRange };
@@ -95,7 +95,7 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
       <>
         {!watchDayRange && <SkeletonText className="ml-1 mt-2.5 h-6 w-48" />}
         {watchDayRange.length > 0 && (
-          <div className="flex sm:gap-2">
+          <div className="flex sm:gap-2 ">
             <DayRanges
               userTimeFormat={userTimeFormat}
               labels={labels}
@@ -107,7 +107,7 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
                 timeRangeField: classNames?.timeRangeField,
               }}
             />
-            {!disabled && <div className="block">{CopyButton}</div>}
+            {!disabled && <div className="block ">{CopyButton}</div>}
           </div>
         )}
       </>
@@ -133,7 +133,7 @@ const CopyButton = ({
       <DropdownMenuTrigger asChild>
         <Button
           className={cn(
-            "text-default",
+            "text-default h-8 w-8",
             open && "ring-brand-500 !bg-subtle outline-none ring-2 ring-offset-1"
           )}
           data-testid="copy-button"
@@ -269,7 +269,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 disabled={disabled}
                 data-testid="add-time-availability"
                 tooltip={labels?.addTime ?? t("add_time_availability")}
-                className="text-default"
+                className="text-default h-8 w-8"
                 type="button"
                 color="minimal"
                 variant="icon"
@@ -321,7 +321,7 @@ const RemoveTimeButton = ({
       color="destructive"
       StartIcon="trash-2"
       onClick={() => remove(index)}
-      className={className}
+      className={cn("h-8 w-8", className)}
       tooltip={labels?.deleteTime ?? t("delete")}
     />
   );
@@ -588,10 +588,10 @@ const CopyTimes = ({
               descriptionAsLabel
               value={t("select_all")}
               checked={selected.length === 7}
-              onChange={(e) => {
-                if (e.target.checked) {
+              onCheckedChange={(checked) => {
+                if (checked) {
                   setSelected([0, 1, 2, 3, 4, 5, 6]);
-                } else if (!e.target.checked) {
+                } else {
                   setSelected([]);
                 }
               }}
@@ -612,10 +612,10 @@ const CopyTimes = ({
                   value={weekdayIndex}
                   checked={selected.includes(weekdayIndex) || disabled === weekdayIndex}
                   disabled={disabled === weekdayIndex}
-                  onChange={(e) => {
-                    if (e.target.checked && !selected.includes(weekdayIndex)) {
+                  onCheckedChange={(checked) => {
+                    if (checked && !selected.includes(weekdayIndex)) {
                       setSelected(selected.concat([weekdayIndex]));
-                    } else if (!e.target.checked && selected.includes(weekdayIndex)) {
+                    } else if (!checked && selected.includes(weekdayIndex)) {
                       setSelected(selected.filter((item) => item !== weekdayIndex));
                     }
                   }}

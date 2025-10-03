@@ -3,27 +3,28 @@ import { Icon, type IconName } from "@calid/features/ui/components/icon/Icon";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
+import { IS_DEV } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Button } from "./button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip";
+import { Tooltip } from "./tooltip";
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-sm text-[12px] font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex items-center rounded-md text-[12px] font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
   {
     variants: {
       variant: {
-        default: "border bg-primary text-primary hover:bg-primary/80",
-        secondary: "bg-muted text-subtle hover:bg-subtle/80",
-        destructive: "border bg-destructive text-destructive-foreground hover:bg-destructive/80",
+        default: "bg-blue-100 text-blue-600",
+        secondary: "bg-muted dark:bg-default text-subtle",
+        destructive: "border bg-destructive text-destructive-foreground",
         outline: "text-default text-sm",
-        success: "border bg-white border-green-600 text-green-600",
-        attention: "border bg-yellow-50 rounded-md border-yellow-600 text-yellow-600",
+        success: "border bg-primary border-green-600 text-green-600",
+        attention: "bg-yellow-50 text-yellow-600",
       },
       size: {
-        sm: "h-4 px-2 text-[10px]",
-        md: "h-5 px-2 py-3 text-xs",
-        lg: "h-7 px-3 text-base",
+        sm: "h-5 px-1.5 text-xs",
+        md: "h-5 px-2 py-3",
+        lg: "h-7 px-3",
       },
     },
     defaultVariants: {
@@ -49,7 +50,7 @@ export type BadgeBaseProps = InferredBadgeStyles & {
   rounded?: boolean;
   customStartIcon?: React.ReactNode;
   customDot?: React.ReactNode;
-  isPublicUrl?: boolean;
+  publicUrl?: string;
 } & IconOrDot;
 
 export type BadgeProps =
@@ -72,25 +73,34 @@ export const Badge = function Badge(props: BadgeProps) {
     startIcon,
     withDot,
     children,
-    isPublicUrl,
+    publicUrl,
     ...passThroughProps
   } = props;
   const isButton = "onClick" in passThroughProps && passThroughProps.onClick !== undefined;
   const StartIcon = startIcon;
   const classes = cn(badgeVariants({ variant, size }), className);
+  const [isCopied, setIsCopied] = React.useState(false);
 
-  const handleCopyUrl = (e: React.MouseEvent) => {
+  const handleCopyUrl = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (typeof children === "string") {
-      navigator.clipboard.writeText(children);
-    }
+    if (publicUrl === undefined) return;
+    navigator.clipboard.writeText(publicUrl).then(() => {
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 1500);
+    });
   };
-
   const handleRedirectUrl = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (typeof children === "string") {
-      window.open(children, "_blank", "noopener,noreferrer");
+
+    if (publicUrl === undefined) return;
+    let url = publicUrl.trim();
+
+    // Check if it already starts with http:// or https://
+    if (!/^https?:\/\//i.test(url)) {
+      url = IS_DEV ? `http://${url}` : `https://${url}`;
     }
+
+    window.open(url, "_blank");
   };
 
   const Children = () => (
@@ -101,40 +111,32 @@ export const Badge = function Badge(props: BadgeProps) {
         </svg>
       ) : null}
       {customStartIcon ||
-        (StartIcon ? <Icon name={StartIcon} data-testid="start-icon" className="h-3 w-3" /> : null)}
+        (StartIcon ? <Icon name={StartIcon} data-testid="start-icon" className="mr-1 h-3 w-3" /> : null)}
       {children}
-      {isPublicUrl && (
+      {publicUrl && (
         <div className="ml-1 flex items-center">
-          <TooltipProvider delayDuration={0}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="icon"
-                  StartIcon="copy"
-                  color="minimal"
-                  size="sm"
-                  onClick={handleCopyUrl}
-                  data-testid="copy-url-button"
-                />
-              </TooltipTrigger>
-              <TooltipContent>{t("copy")}</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <TooltipProvider delayDuration={0}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="icon"
-                  StartIcon="external-link"
-                  color="minimal"
-                  size="sm"
-                  onClick={handleRedirectUrl}
-                  data-testid="redirect-url-button"
-                />
-              </TooltipTrigger>
-              <TooltipContent>{t("preview")}</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Tooltip content={isCopied ? t("copied") : t("copy")}>
+            <Button
+              variant="icon"
+              StartIcon="copy"
+              color="minimal"
+              className="border-none"
+              size="xs"
+              onClick={handleCopyUrl}
+              data-testid="copy-url-button"
+            />
+          </Tooltip>
+          <Tooltip content={t("preview")}>
+            <Button
+              variant="icon"
+              StartIcon="external-link"
+              color="minimal"
+              className="border-none"
+              size="xs"
+              onClick={handleRedirectUrl}
+              data-testid="redirect-url-button"
+            />
+          </Tooltip>
         </div>
       )}
     </>

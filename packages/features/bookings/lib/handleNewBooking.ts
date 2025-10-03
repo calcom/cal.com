@@ -1,4 +1,4 @@
-import type { Workflow } from "@calid/features/modules/workflows/config/types";
+import type { CalIdWorkflow } from "@calid/features/modules/workflows/config/types";
 import {
   canDisableParticipantNotifications,
   canDisableOrganizerNotifications,
@@ -15,6 +15,7 @@ import processExternalId from "@calcom/app-store/_utils/calendars/processExterna
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import {
   getLocationValueForDB,
+  JitsiLocationType,
   MeetLocationType,
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
@@ -70,7 +71,7 @@ import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import isPrismaObj from "@calcom/lib/isPrismaObj";
-import {  isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
@@ -999,7 +1000,7 @@ async function handler(
     } else if (organizationDefaultLocation) {
       locationBodyString = organizationDefaultLocation;
     } else {
-      locationBodyString = "integrations:daily";
+      locationBodyString = JitsiLocationType;
     }
   }
 
@@ -1248,7 +1249,7 @@ async function handler(
     oAuthClientId: platformClientId,
   };
 
-  const workflows: Workflow[] = await getAllWorkflowsFromEventType(
+  const workflows: CalIdWorkflow[] = await getAllWorkflowsFromEventType(
     {
       ...eventType,
       metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
@@ -1281,7 +1282,7 @@ async function handler(
       attendeeLanguage,
       paymentAppData,
       fullName,
-      smsReminderNumber,
+      smsReminderNumber: bookerPhoneNumber,
       eventTypeInfo,
       uid,
       eventTypeId,
@@ -1394,7 +1395,7 @@ async function handler(
         input: {
           bookerEmail,
           rescheduleReason,
-          smsReminderNumber,
+          smsReminderNumber: bookerPhoneNumber,
           responses,
         },
         evt,
@@ -1972,7 +1973,8 @@ async function handler(
     metadata: { ...metadata, ...reqBody.metadata },
     eventTypeId,
     status: "ACCEPTED",
-    smsReminderNumber: booking?.smsReminderNumber || undefined,
+    // smsReminderNumber: booking?.smsReminderNumber || undefined,
+    smsReminderNumber: bookerPhoneNumber || undefined,
     rescheduledBy: reqBody.rescheduledBy,
     ...(assignmentReason ? { assignmentReason: [assignmentReason] } : {}),
   };
@@ -2010,6 +2012,8 @@ async function handler(
 
     // Convert type of eventTypePaymentAppCredential to appId: EventTypeAppList
     if (!booking.user) booking.user = organizerUser;
+
+    console.log("Got here for payment", { bookerPhoneNumber });
     const payment = await handlePayment({
       evt,
       selectedEventType: eventType,
@@ -2060,6 +2064,7 @@ async function handler(
       paymentId: payment?.id,
       isDryRun,
       ...(isDryRun ? { troubleshooterData } : {}),
+      paymentLink: (isPrismaObjOrUndefined(payment?.data)?.paymentLink as string) || undefined,
     };
   }
 
@@ -2200,7 +2205,8 @@ async function handler(
   try {
     await scheduleWorkflowReminders({
       workflows,
-      smsReminderNumber: smsReminderNumber || null,
+      // smsReminderNumber: smsReminderNumber || null,
+      smsReminderNumber: bookerPhoneNumber || null,
       calendarEvent: evtWithMetadata,
       isNotConfirmed: rescheduleUid ? false : !isConfirmedByDefault,
       isRescheduleEvent: !!rescheduleUid,

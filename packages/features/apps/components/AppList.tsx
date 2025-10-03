@@ -5,7 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calid/features/ui/components/dropdown-menu";
-import {Icon} from "@calid/features/ui";
+import { Icon } from "@calid/features/ui/components/icon";
 import { useCallback, useState } from "react";
 
 import { AppSettings } from "@calcom/app-store/_components/AppSettings";
@@ -33,7 +33,7 @@ export type HandleDisconnect = (credentialId: number, app: App["slug"], teamId?:
 
 interface AppListProps {
   variant?: AppCategories;
-  data: RouterOutputs["viewer"]["apps"]["integrations"];
+  data: RouterOutputs["viewer"]["apps"]["calid_integrations"];
   handleDisconnect: HandleDisconnect;
   listClassName?: string;
   defaultConferencingApp: RouterOutputs["viewer"]["apps"]["getUsersDefaultConferencingApp"];
@@ -72,14 +72,16 @@ export const AppList = ({
   const ChildAppCard = ({
     item,
   }: {
-    item: RouterOutputs["viewer"]["apps"]["integrations"]["items"][number] & {
+    item: RouterOutputs["viewer"]["apps"]["calid_integrations"]["items"][number] & {
       credentialOwner?: CredentialOwner;
     };
   }) => {
     const appSlug = item?.slug;
+    if (appSlug === "daily-video") return null;
+
     const appIsDefault =
       appSlug === defaultConferencingApp?.appSlug ||
-      (appSlug === "daily-video" && !defaultConferencingApp?.appSlug);
+      (appSlug === "jitsi" && !defaultConferencingApp?.appSlug);
     return (
       <AppListCard
         key={item.name}
@@ -104,7 +106,7 @@ export const AppList = ({
                     <Icon name="ellipsis" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent>
+                <DropdownMenuContent align="end">
                   {!appIsDefault && variant === "conferencing" && (
                     <DropdownMenuItem
                       onClick={() => {
@@ -126,21 +128,19 @@ export const AppList = ({
                     </DropdownMenuItem>
                   )}
 
-                  <DropdownMenuItem asChild>
-                    <ConnectOrDisconnectIntegrationMenuItem
-                      credentialId={item.credentialOwner?.credentialId || item.userCredentialIds[0]}
-                      type={item.type}
-                      app={item.slug}
-                      isGlobal={item.isGlobal}
-                      installed
-                      invalidCredentialIds={item.invalidCredentialIds}
-                      handleDisconnect={handleDisconnect}
-                      teamId={item.credentialOwner ? item.credentialOwner?.teamId : undefined}
-                      handleConnectDisconnectIntegrationMenuToggle={
-                        handleConnectDisconnectIntegrationMenuToggle
-                      }
-                    />
-                  </DropdownMenuItem>
+                  <ConnectOrDisconnectIntegrationMenuItem
+                    credentialId={item.credentialOwner?.credentialId || item.userCredentialIds[0]}
+                    type={item.type}
+                    app={item.slug}
+                    isGlobal={item.isGlobal}
+                    installed
+                    invalidCredentialIds={item.invalidCredentialIds}
+                    handleDisconnect={handleDisconnect}
+                    teamId={item.credentialOwner ? item.credentialOwner?.teamId : undefined}
+                    handleConnectDisconnectIntegrationMenuToggle={
+                      handleConnectDisconnectIntegrationMenuToggle
+                    }
+                  />
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -151,23 +151,24 @@ export const AppList = ({
     );
   };
 
-  const appsWithTeamCredentials = data.items.filter((app) => app.teams.length);
+  const appsWithTeamCredentials = data.items.filter((app) => app.calIdTeams && app.calIdTeams.length > 0);
   const cardsForAppsWithTeams = appsWithTeamCredentials.map((app) => {
     const appCards = [];
 
     if (app.userCredentialIds.length) {
       appCards.push(<ChildAppCard item={app} />);
     }
-    for (const team of app.teams) {
+    for (const team of app.calIdTeams) {
       if (team) {
         appCards.push(
           <ChildAppCard
+            key={`${app.slug}-${team.calIdTeamId}`}
             item={{
               ...app,
               credentialOwner: {
                 name: team.name,
                 avatar: team.logoUrl,
-                teamId: team.teamId,
+                teamId: team.calIdTeamId,
                 credentialId: team.credentialId,
                 readOnly: !team.isAdmin,
               },
@@ -187,7 +188,7 @@ export const AppList = ({
         {data.items
           .filter((item) => item.invalidCredentialIds)
           .map((item, i) => {
-            if (!item.teams.length) return <ChildAppCard key={i} item={item} />;
+            if (!item.calIdTeams || !item.calIdTeams.length) return <ChildAppCard key={i} item={item} />;
           })}
       </List>
       {locationType && (

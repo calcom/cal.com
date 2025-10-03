@@ -9,7 +9,7 @@ import qrcode from "qrcode";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
+import { verifyCalPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { symmetricEncrypt } from "@calcom/lib/crypto";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
@@ -40,7 +40,7 @@ async function postHandler(req: NextRequest) {
     return NextResponse.json({ error: ErrorCode.ThirdPartyIdentityProviderEnabled }, { status: 400 });
   }
 
-  if (!user.password?.hash) {
+  if (!user.password?.hash || !user.password?.salt) {
     return NextResponse.json({ error: ErrorCode.UserMissingPassword }, { status: 400 });
   }
 
@@ -52,8 +52,12 @@ async function postHandler(req: NextRequest) {
     console.error("Missing encryption key; cannot proceed with two factor setup.");
     return NextResponse.json({ error: ErrorCode.InternalServerError }, { status: 500 });
   }
-
-  const isCorrectPassword = await verifyPassword(body.password, user.password.hash);
+  const isCorrectPassword = verifyCalPassword({
+    inputPassword: body.password,
+    storedHashBase64: user.password.hash,
+    saltBase64: user.password.salt,
+    iterations: 27500,
+  });
   if (!isCorrectPassword) {
     return NextResponse.json({ error: ErrorCode.IncorrectPassword }, { status: 400 });
   }

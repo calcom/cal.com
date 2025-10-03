@@ -1,4 +1,6 @@
+import { cn } from "@calid/features/lib/cn";
 import { Button } from "@calid/features/ui/components/button";
+import { BlankCard } from "@calid/features/ui/components/card";
 import {
   Dialog,
   DialogContent,
@@ -6,8 +8,11 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@calid/features/ui/components/dialog";
-import { Icon } from "@calid/features/ui/components/icon";
+import { Icon, type IconName } from "@calid/features/ui/components/icon";
+import { Input, TextField } from "@calid/features/ui/components/input/input";
 import React, { useState, useMemo, useEffect } from "react";
+
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import type { IconParams } from "./event-type-card-icon";
 
@@ -69,7 +74,7 @@ const iconCategories = {
     "code",
     "terminal",
     "git-branch",
-    "git-commit-horizontal",
+    "git-merge",
     "github",
     "globe",
     "cloud",
@@ -83,7 +88,7 @@ const iconCategories = {
     "book",
     "pen-tool",
     "pen",
-    "file-pen",
+    "file-text",
     "school",
     "award",
     "medal",
@@ -101,7 +106,6 @@ const iconCategories = {
   ],
   Health: [
     "heart",
-    "activity",
     "activity",
     "stethoscope",
     "pill",
@@ -152,13 +156,13 @@ const iconCategories = {
     "ship",
     "bike",
     "truck",
-    "car-taxi-front",
+    "car",
     "map-pin",
     "map",
     "navigation",
     "compass",
     "route",
-    "circle-parking",
+    "circle",
     "fuel",
     "car-front",
     "sailboat",
@@ -199,25 +203,24 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
   currentIconParams = { icon: "calendar", color: "#6B7280" },
   onSelectIcon,
 }) => {
+  const { t } = useLocale();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedColor, setSelectedColor] = useState(currentIconParams.color);
   const [selectedIcon, setSelectedIcon] = useState(currentIconParams.icon);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
-  // Get all available icons
   const allIcons = useMemo(() => {
     const iconList: string[] = [];
     Object.values(iconCategories).forEach((categoryIcons) => {
       iconList.push(...categoryIcons);
     });
-    return [...new Set(iconList)]; // Remove duplicates
+    return [...new Set(iconList)];
   }, []);
 
-  // Filter icons based on search and category
   const filteredIcons = useMemo(() => {
     let icons: string[] = [];
 
-    // First filter by category
     if (selectedCategory === "All") {
       icons = allIcons;
     } else {
@@ -225,7 +228,6 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
       icons = iconCategories[categoryKey] ? [...iconCategories[categoryKey]] : [];
     }
 
-    // Then filter by search query
     if (searchQuery.trim()) {
       icons = icons.filter((iconName) => iconName.toLowerCase().includes(searchQuery.toLowerCase().trim()));
     }
@@ -246,7 +248,15 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
   };
 
   const handleCategorySelect = (category: string) => {
-    setSelectedCategory(category);
+    if (category === selectedCategory) return;
+
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setSelectedCategory(category);
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 150);
+    }, 150);
   };
 
   const handleApply = () => {
@@ -258,13 +268,11 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
   };
 
   const handleClose = () => {
-    // Reset to current values when closing without applying
     setSelectedIcon(currentIconParams.icon);
     setSelectedColor(currentIconParams.color);
     onClose();
   };
 
-  // Reset when opening/currentIconParams changes
   useEffect(() => {
     if (isOpen) {
       setSelectedIcon(currentIconParams.icon);
@@ -276,173 +284,140 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
 
   const categories = ["All", ...Object.keys(iconCategories)];
 
-  // Predefined color palette
-  const colorPalette = [
-    "#6366f1", // Indigo
-    "#8b5cf6", // Purple
-    "#06b6d4", // Cyan
-    "#10b981", // Emerald
-    "#f59e0b", // Amber
-    "#ef4444", // Red
-    "#ec4899", // Pink
-    "#84cc16", // Lime
-    "#f97316", // Orange
-    "#6b7280", // Gray
-    "#1f2937", // Dark gray
-    "#000000", // Black
-  ];
+  // Check if any changes have been made from the original values
+  const hasChanges = useMemo(() => {
+    return selectedIcon !== currentIconParams.icon || selectedColor !== currentIconParams.color;
+  }, [selectedIcon, selectedColor, currentIconParams.icon, currentIconParams.color]);
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="flex max-h-[80vh] max-w-4xl flex-col">
-        <DialogHeader>
-          <DialogTitle>Choose Icon</DialogTitle>
-        </DialogHeader>
-
-        <div className="flex flex-1 flex-col space-y-4 overflow-hidden">
-          {/* Debug info */}
-
-          {/* Search bar */}
-          <div className="relative">
-            <Icon
-              name="search"
-              className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"
-            />
-            <input
-              type="text"
+    <>
+      <style jsx>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
+      <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+        <DialogContent className="bg-muted flex max-h-[80vh] max-w-4xl flex-col">
+          <DialogHeader>
+            <DialogTitle className="text-default">{t("choose_icon")}</DialogTitle>
+            <TextField
+              addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
+              addOnClassname="!border-muted"
+              containerClassName={cn("focus:!ring-offset-0 py-2")}
               placeholder="Search icons..."
+              type="search"
+              autoComplete="false"
               value={searchQuery}
               onChange={handleSearchChange}
-              className="border-border bg-background focus:ring-primary w-full rounded-lg border py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2"
             />
-          </div>
+          </DialogHeader>
 
-          {/* Category tabs */}
-          <div className="border-border flex flex-wrap gap-1 border-b pb-2">
-            {categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => handleCategorySelect(category)}
-                className={`rounded-md px-3 py-1 text-xs transition-colors ${
-                  selectedCategory === category
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground"
+          <div className="flex flex-1 flex-col space-y-4 overflow-hidden">
+            <div className="border-border flex flex-wrap gap-1 border-b pb-2">
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => handleCategorySelect(category)}
+                  disabled={isTransitioning}
+                  className={`relative transform rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-200 ease-in-out ${
+                    selectedCategory === category
+                      ? "bg-brand-default scale-105 text-white shadow-sm"
+                      : "bg-muted text-default hover:text-emphasis hover:bg-muted/80 hover:scale-102"
+                  } ${isTransitioning ? "opacity-70" : ""}`}>
+                  {category}
+                  {selectedCategory === category && (
+                    <div className="bg-brand-default/20 absolute inset-0 animate-pulse rounded-md" />
+                  )}
+                </button>
+              ))}
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <div
+                className={`transition-all duration-300 ease-in-out ${
+                  isTransitioning
+                    ? "translate-y-2 transform opacity-0"
+                    : "translate-y-0 transform opacity-100"
                 }`}>
-                {category}
-              </button>
-            ))}
-          </div>
+                {filteredIcons.length === 0 ? (
+                  <BlankCard
+                    Icon="search"
+                    headline={t("no_icons_found")}
+                    description={t("try_different_search_term")}
+                  />
+                ) : (
+                  <div className="lg:grid-cols-14 grid grid-cols-8 gap-2 py-2 sm:grid-cols-10 md:grid-cols-12">
+                    {filteredIcons.map((iconName, index) => {
+                      const isSelected = selectedIcon === iconName;
 
-          {/* Icon grid */}
-          <div className="flex-1 overflow-y-auto">
-            {filteredIcons.length === 0 ? (
-              <div className="text-muted-foreground flex h-32 items-center justify-center">
-                <div className="text-center">
-                  <Icon name="search" className="mx-auto mb-2 h-8 w-8" />
-                  <p>No icons found</p>
-                  {searchQuery && <p className="text-xs">Try a different search term</p>}
-                </div>
-              </div>
-            ) : (
-              <div className="lg:grid-cols-14 grid grid-cols-8 gap-2 p-1 sm:grid-cols-10 md:grid-cols-12">
-                {filteredIcons.map((iconName) => {
-                  const isSelected = selectedIcon === iconName;
-
-                  return (
-                    <button
-                      key={iconName}
-                      onClick={() => handleIconSelect(iconName)}
-                      className={`hover:bg-muted group relative flex h-12 w-12 items-center justify-center rounded-lg border-2 transition-all ${
-                        isSelected
-                          ? "border-primary bg-primary/10"
-                          : "hover:border-muted-foreground/20 border-transparent"
-                      }`}
-                      title={iconName}>
-                      <Icon
-                        name={iconName as IconName}
-                        className="h-5 w-5"
-                        style={{ color: isSelected ? selectedColor : undefined }}
-                      />
-                      {isSelected && (
-                        <div className="bg-primary absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full">
-                          <Icon name="check" className="text-primary-foreground h-2.5 w-2.5" />
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Color picker */}
-          <div className="border-border border-t pt-4">
-            <div className="space-y-3">
-              <h4 className="text-sm font-medium">Icon Color</h4>
-
-              {/* Predefined color palette */}
-              <div className="flex flex-wrap gap-2">
-                {colorPalette.map((color) => {
-                  const isSelected = selectedColor === color;
-
-                  return (
-                    <button
-                      key={color}
-                      onClick={() => handleColorChange(color)}
-                      className={`h-8 w-8 rounded-full border-2 transition-all ${
-                        isSelected ? "border-foreground scale-110" : "border-border hover:scale-105"
-                      }`}
-                      style={{ backgroundColor: color }}
-                      title={color}
-                    />
-                  );
-                })}
-              </div>
-
-              {/* Custom color input */}
-              <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium">Custom:</label>
-                <input
-                  type="color"
-                  value={selectedColor}
-                  onChange={(e) => handleColorChange(e.target.value)}
-                  className="border-border h-8 w-16 cursor-pointer rounded border"
-                />
-                <input
-                  type="text"
-                  value={selectedColor}
-                  onChange={(e) => handleColorChange(e.target.value)}
-                  placeholder="#6366f1"
-                  className="border-border bg-background focus:ring-primary flex-1 rounded border px-3 py-1 text-sm focus:outline-none focus:ring-2"
-                />
-              </div>
-
-              {/* Preview */}
-              {selectedIcon && (
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm font-medium">Preview:</span>
-                  <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-lg">
-                    <Icon
-                      name={selectedIcon as IconName}
-                      className="h-5 w-5"
-                      style={{ color: selectedColor }}
-                    />
+                      return (
+                        <button
+                          key={iconName}
+                          onClick={() => handleIconSelect(iconName)}
+                          className={`hover:bg-subtle group relative flex h-12 w-12 items-center justify-center rounded-lg border-2 transition-all duration-200 hover:scale-105 ${
+                            isSelected ? "border-active shadow-sm" : "hover:border-muted border-transparent"
+                          }`}
+                          style={{
+                            animationDelay: `${index * 20}ms`,
+                            animation: isTransitioning ? "none" : "fadeInUp 0.3s ease-out forwards",
+                          }}
+                          title={iconName}>
+                          <Icon
+                            name={iconName as IconName}
+                            className="h-5 w-5 transition-colors duration-200"
+                            style={{ color: isSelected ? selectedColor : undefined }}
+                          />
+                          {isSelected && (
+                            <div className="bg-brand-default absolute right-0 top-0 -translate-y-1/2 translate-x-1/2 rounded-full p-0.5">
+                              <Icon name="check" className="text-default h-2.5 w-2.5" />
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
+                )}
+              </div>
+            </div>
+
+            <div className="border-border border-t pt-4">
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium">{t("icon_color")}</h4>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    type="color"
+                    className="h-8 w-8 p-0"
+                    value={selectedColor}
+                    onChange={(e) => handleColorChange(e.target.value)}
+                  />
+                  <Input
+                    type="text"
+                    value={selectedColor}
+                    onChange={(e) => handleColorChange(e.target.value)}
+                    placeholder="#6366f1"
+                  />
                 </div>
-              )}
+              </div>
             </div>
           </div>
-        </div>
 
-        <DialogFooter>
-          <Button color="secondary" onClick={handleClose}>
-            Cancel
-          </Button>
-          <Button onClick={handleApply} disabled={!selectedIcon}>
-            Apply
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <DialogFooter>
+            <Button color="secondary" onClick={handleClose}>
+              {t("cancel")}
+            </Button>
+            <Button onClick={handleApply} disabled={!selectedIcon || !hasChanges}>
+              {t("apply")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };

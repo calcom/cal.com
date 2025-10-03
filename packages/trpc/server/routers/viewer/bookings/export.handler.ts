@@ -1,4 +1,5 @@
 import { NonRetriableError } from "inngest";
+import { formatInTimeZone } from "date-fns-tz";
 import type { createStepTools } from "inngest/components/InngestStepTools";
 import type { Logger } from "inngest/middleware/logger";
 
@@ -64,8 +65,8 @@ const getUniqueBookings = <T extends { uid: string }>(arr: T[]) => {
 };
 
 const getTypeAndStartDate = (booking: any, timeZone: string) => {
-  const endTime = new Date(booking.endTime);
-  const isUpcoming = endTime >= new Date();
+  const endTime = dayjs(booking.endTime).tz(timeZone);
+  const isUpcoming = endTime >= dayjs().tz(timeZone);
   let type;
   let startDate: string;
 
@@ -410,10 +411,6 @@ export async function handleBookingExportEvent({
         return bookings.map((booking) => {
           const { type, startDate } = getTypeAndStartDate(booking, user.timeZone);
 
-
-      return `${formatInTimeZone(start, "UTC", "h a")} - ${formatInTimeZone(end, "UTC", "h a")}`;
-
-
           const interval = `${formatTime(
             booking.startTime,
             user?.timeFormat,
@@ -460,14 +457,14 @@ export async function handleBookingExportEvent({
       booking.startDate,
       booking.interval,
       booking.location,
-      booking.attendees.map((attendee) => attendee.email).join(";"),
-      booking.paid.toString(),
-      booking.payment.map((pay) => pay.currency).join(";"),
-      booking.payment.map((pay) => pay.amount / 100).join(";"),
-      booking.payment.map((pay) => pay.success).join(";"),
+      booking.attendees?.map((attendee) => attendee.email).join(";"),
+      booking.paid?.toString(),
+      booking.payment?.map((pay) => pay.currency).join(";"),
+      booking.payment?.map((pay) => pay.amount / 100).join(";"),
+      booking.payment?.map((pay) => pay.success).join(";"),
       booking.rescheduled?.toString() ?? "",
       booking.recurringEventId ?? "",
-      booking.isRecorded.toString(),
+      booking.isRecorded?.toString(),
     ]);
 
     const csvContent = [header.join(","), ...csvData.map((row) => row.join(","))].join("\n");

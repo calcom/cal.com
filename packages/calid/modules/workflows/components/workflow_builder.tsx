@@ -1,29 +1,21 @@
 "use client";
 
 import { cn } from "@calid/features/lib/cn";
+import { Badge } from "@calid/features/ui/components/badge";
+import { Button } from "@calid/features/ui/components/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@calid/features/ui/components/card";
+import { Collapsible, CollapsibleContent } from "@calid/features/ui/components/collapsible";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
-  Input,
-  Label,
-  Collapsible,
-  CollapsibleContent,
-  Textarea,
-  Button,
-  Checkbox,
-  Badge,
-} from "@calid/features/ui";
+} from "@calid/features/ui/components/dropdown-menu";
 import { Icon } from "@calid/features/ui/components/icon";
-
-
-
-import { Card, CardContent, CardHeader, CardTitle } from "@calid/features/ui/";
+import { Checkbox } from "@calid/features/ui/components/input/checkbox-field";
+import { Input } from "@calid/features/ui/components/input/input";
+import { TextArea } from "@calid/features/ui/components/input/text-area";
+import { Label } from "@calid/features/ui/components/label";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -44,7 +36,7 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/components/alert";
 import { Editor } from "@calcom/ui/components/editor";
 import { AddVariablesDropdown } from "@calcom/ui/components/editor";
-import { showToast } from "@calcom/ui/components/toast";
+import { Select } from "@calcom/ui/components/form";
 
 import { DYNAMIC_TEXT_VARIABLES } from "../config/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../config/utils";
@@ -61,24 +53,10 @@ import { workflowFormSchema as formSchema } from "../config/validation";
 import emailRatingTemplate from "../templates/email/ratingTemplate";
 import emailReminderTemplate from "../templates/email/reminder";
 import emailThankYouTemplate from "../templates/email/thankYouTemplate";
+import { WorkflowBuilderSkeleton } from "./workflow_builder_skeleton";
+import { WorkflowDeleteDialog } from "./workflow_delete_dialog";
 
 // Types migrated from old implementation
-export type FormValues = {
-  name: string;
-  activeOn: Option[];
-  steps: (WorkflowStep & { senderName: string | null })[];
-  trigger: WorkflowTriggerEvents;
-  time?: number;
-  timeUnit?: TimeUnit;
-  selectAll: boolean;
-};
-
-type Option = {
-  value: string;
-  label: string;
-};
-
-type User = RouterOutputs["viewer"]["me"]["get"];
 
 type WorkflowStep = {
   id: number;
@@ -96,6 +74,23 @@ type WorkflowStep = {
   includeCalendarEvent: boolean;
   verifiedAt: Date | null;
 };
+
+export type FormValues = {
+  name: string;
+  activeOn: Option[];
+  steps: (WorkflowStep & { senderName: string | null })[];
+  trigger: WorkflowTriggerEvents;
+  time?: number;
+  timeUnit?: TimeUnit;
+  selectAll: boolean;
+};
+
+type Option = {
+  value: string;
+  label: string;
+};
+
+type User = RouterOutputs["viewer"]["me"]["get"];
 
 const VariableDropdown: React.FC<{
   onSelect: (variable: string) => void;
@@ -130,6 +125,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
   const [selectedOptions, setSelectedOptions] = useState<Option[]>([]);
   const [isAllDataLoaded, setIsAllDataLoaded] = useState(false);
   const [isMixedEventType, setIsMixedEventType] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   // Add ref to prevent infinite loops
   const dataLoadedRef = useRef(false);
@@ -141,40 +137,48 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
     isError,
     error,
     isPending: isPendingWorkflow,
-  } = trpc.viewer.workflows.get.useQuery(
-    { id: workflowId! },
-    {
-      enabled: !!workflowId,
-    }
-  );
+  } = trpc.viewer.workflows.calid_get.useQuery(workflowId ? { id: workflowId } : {}, {
+    enabled: !!workflowId,
+  });
 
   // Get verified numbers and emails
-  const { data: verifiedNumbersData } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
-    { teamId: workflowData?.team?.id },
+  let { data: verifiedNumbersData } = trpc.viewer.workflows.calid_getVerifiedNumbers.useQuery(
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    workflowData?.calIdTeamId ? { calIdTeamId: workflowData?.calIdTeamId } : {},
     {
-      enabled: !!workflowData?.id,
+      calIdTeamId: !!workflowData?.calIdTeamId,
     }
   );
 
-  const { data: verifiedEmailsData } = trpc.viewer.workflows.getVerifiedEmails.useQuery(
-    {
-      teamId: workflowData?.team?.id,
-    },
-    { enabled: !!workflowData?.id }
+  verifiedNumbersData ??= [];
+
+  console.log("Verified numbers", verifiedNumbersData);
+
+  let { data: verifiedEmailsData } = trpc.viewer.workflows.calid_getVerifiedEmails.useQuery(
+    workflowData?.calIdTeamId
+      ? {
+          calIdTeamId: workflowData?.calIdTeamId,
+        }
+      : {},
+    { calIdTeamId: !!workflowData?.calIdTeamId }
   );
 
+  verifiedEmailsData ??= [];
+
   // Get workflow action options
-  const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
+  const { data: actionOptions } = trpc.viewer.workflows.calid_getWorkflowActionOptions.useQuery();
 
   // Get time format
   const timeFormat = user ? getTimeFormatStringFromUserTimeFormat(user.timeFormat) : TimeFormat.TWELVE_HOUR;
 
   // Get event type options
-  const isOrg = workflowData?.team?.isOrganization ?? false;
-  const teamId = workflowData?.teamId ?? undefined;
+  // const isOrg = workflowData?.team?.isOrganization ?? false;
+  //TODO: TEAM_ORG
+  const isOrg = false;
+  const teamId = workflowData?.calIdTeamId ?? undefined;
 
   const { data: eventTypeData, isPending: isPendingEventTypes } =
-    trpc.viewer.eventTypes.getTeamAndEventTypeOptions.useQuery(
+    trpc.viewer.eventTypes.getCalIdTeamAndEventTypeOptions.useQuery(
       { teamId, isOrg },
       { enabled: !isPendingWorkflow }
     );
@@ -197,10 +201,10 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
   // Permission check
   const readOnly = useMemo(() => {
     return (
-      workflowData?.team?.members?.find((member) => member.userId === session.data?.user.id)?.role ===
+      workflowData?.calIdTeam?.members?.find((member) => member.userId === session.data?.user.id)?.role ===
       MembershipRole.MEMBER
     );
-  }, [workflowData?.team?.members, session.data?.user.id]);
+  }, [workflowData?.calIdTeam?.members, session.data?.user.id]);
 
   // UI state variables
   const [workflowName, setWorkflowName] = useState("");
@@ -231,9 +235,9 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
   const triggerOptions = getWorkflowTriggerOptions(t);
 
   // Verification mutations -  Added proper success handlers for verification status updates
-  const sendVerificationCodeMutation = trpc.viewer.workflows.sendVerificationCode.useMutation({
+  const sendVerificationCodeMutation = trpc.viewer.workflows.calid_sendVerificationCode.useMutation({
     onSuccess: async (data, variables) => {
-      showToast(t("verification_code_sent"), "success");
+      triggerToast(t("verification_code_sent"), "success");
       //  Track that OTP was sent for this phone number
       if (variables?.phoneNumber) {
         actions.forEach((step) => {
@@ -244,13 +248,13 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
       }
     },
     onError: async (error) => {
-      showToast(error.message, "error");
+      triggerToast(error.message, "error");
     },
   });
 
-  const verifyPhoneNumberMutation = trpc.viewer.workflows.verifyPhoneNumber.useMutation({
+  const verifyPhoneNumberMutation = trpc.viewer.workflows.calid_verifyPhoneNumber.useMutation({
     onSuccess: async (isVerified, variables) => {
-      showToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
+      triggerToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
 
       //  Update verification status immediately for UI feedback
       if (isVerified && variables?.phoneNumber) {
@@ -267,21 +271,22 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
           });
           return newStatus;
         });
+        console.log(numberVerificationStatus);
       }
 
-      utils.viewer.workflows.getVerifiedNumbers.invalidate();
+      utils.viewer.workflows.calid_getVerifiedNumbers.invalidate();
     },
     onError: (err) => {
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
+        triggerToast(message, "error");
       }
     },
   });
 
   const sendEmailVerificationCodeMutation = trpc.viewer.auth.sendVerifyEmailCode.useMutation({
     onSuccess(data, variables) {
-      showToast(t("email_sent"), "success");
+      triggerToast(t("email_sent"), "success");
       if (variables?.email) {
         actions.forEach((step) => {
           if (step.sendTo === variables.email) {
@@ -291,13 +296,13 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
       }
     },
     onError: () => {
-      showToast(t("email_not_sent"), "error");
+      triggerToast(t("email_not_sent"), "error");
     },
   });
 
-  const verifyEmailCodeMutation = trpc.viewer.workflows.verifyEmailCode.useMutation({
+  const verifyEmailCodeMutation = trpc.viewer.workflows.calid_verifyEmailCode.useMutation({
     onSuccess: (isVerified, variables) => {
-      showToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
+      triggerToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
 
       if (isVerified && variables?.email) {
         // Find the step with this email and update its verification status
@@ -315,21 +320,21 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
         });
       }
 
-      utils.viewer.workflows.getVerifiedEmails.invalidate();
+      utils.viewer.workflows.calid_getVerifiedEmails.invalidate();
     },
     onError: (err) => {
       if (err.message === "invalid_code") {
-        showToast(t("code_provided_invalid"), "error");
+        triggerToast(t("code_provided_invalid"), "error");
       }
     },
   });
 
   // Update mutation
-  const updateMutation = trpc.viewer.workflows.update.useMutation({
+  const updateMutation = trpc.viewer.workflows.calid_update.useMutation({
     onSuccess: async ({ workflow }) => {
       if (workflow) {
-        utils.viewer.workflows.get.setData({ id: workflow.id }, workflow);
-        showToast(
+        utils.viewer.workflows.calid_get.setData({ id: workflow.id }, workflow);
+        triggerToast(
           t("workflow_updated_successfully", {
             workflowName: workflow.name,
           }),
@@ -340,7 +345,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
     onError: (err) => {
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
+        triggerToast(message, "error");
       }
     },
   });
@@ -380,7 +385,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
 
   // Set form data function
   const setFormData = useCallback(
-    (workflowDataInput: RouterOutputs["viewer"]["workflows"]["get"] | undefined) => {
+    (workflowDataInput: RouterOutputs["viewer"]["workflows"]["calid_get"] | undefined) => {
       if (workflowDataInput && !dataLoadedRef.current) {
         dataLoadedRef.current = true;
 
@@ -398,13 +403,13 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
         } else {
           if (isOrg) {
             activeOn = workflowDataInput.activeOnTeams?.flatMap((active) => ({
-              value: String(active.team.id) || "",
-              label: active.team.slug || "",
+              value: String(active.calIdTeam.id) || "",
+              label: active.calIdTeam.slug || "",
             }));
           } else {
             activeOn = workflowDataInput.activeOn
               ? workflowDataInput.activeOn.flatMap((active) => {
-                  if (workflowDataInput.teamId && active.eventType.parentId) return [];
+                  if (workflowDataInput.calIdTeamId && active.eventType.parentId) return [];
                   return {
                     value: active.eventType.id.toString(),
                     label: active.eventType.title,
@@ -802,7 +807,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
 
       if (isBodyEmpty) {
         isEmpty = true;
-        showToast(t("fill_this_field"), "error");
+        triggerToast(t("fill_this_field"), "error");
       }
 
       // Translate variables back to English
@@ -822,10 +827,12 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
       // Check verification for SMS/WhatsApp actions
       if (
         (step.action === WorkflowActions.SMS_NUMBER || step.action === WorkflowActions.WHATSAPP_NUMBER) &&
-        !verifiedNumbersData?.find((verifiedNumber) => verifiedNumber.phoneNumber === step.sendTo)
+        (!numberVerificationStatus[step.id] &&
+          !verifiedNumbersData?.find((verifiedNumber) => verifiedNumber.phoneNumber === step.sendTo))
       ) {
         isVerified = false;
-        showToast(t("not_verified"), "error");
+        console.log("Verified number: ", verifiedNumbersData, "Send to: ", step.sendTo);
+        triggerToast(t("not_verified"), "error");
       }
 
       if (
@@ -833,7 +840,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
         !verifiedEmailsData?.find((verifiedEmail) => verifiedEmail === step.sendTo)
       ) {
         isVerified = false;
-        showToast(t("not_verified"), "error");
+        triggerToast(t("not_verified"), "error");
       }
 
       return step;
@@ -896,11 +903,11 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
         verifyPhoneNumberMutation.mutate({
           phoneNumber: step.sendTo,
           code,
-          teamId: workflowData?.team?.id,
+          calIdTeamId: workflowData?.calIdTeam?.id,
         });
       }
     },
-    [verificationCodes, verifyPhoneNumberMutation, workflowData?.team?.id]
+    [verificationCodes, verifyPhoneNumberMutation, workflowData?.calIdTeam?.id]
   );
 
   // Helper function to send email verification
@@ -926,15 +933,24 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
         verifyEmailCodeMutation.mutate({
           code,
           email: step.sendTo,
-          teamId: workflowData?.team?.id,
+          calIdTeamId: workflowData?.calIdTeam?.id,
         });
       }
     },
-    [verificationCodes, verifyEmailCodeMutation, workflowData?.team?.id]
+    [verificationCodes, verifyEmailCodeMutation, workflowData?.calIdTeam?.id]
   );
+
+  // Handle successful workflow deletion
+  const handleDeleteSuccess = useCallback(async () => {
+    await router.push("/workflows");
+  }, [router]);
 
   // Loading and error states
   const isPending = isPendingWorkflow || isPendingEventTypes;
+
+  if (isPending) {
+    return <WorkflowBuilderSkeleton />;
+  }
 
   return (
     <Shell withoutMain backPath="/workflows">
@@ -944,7 +960,16 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
         subtitle={t("workflows_edit_description")}
         CTA={
           !readOnly && (
-            <div>
+            <div className="flex gap-2">
+              {workflowId && (
+                <Button
+                  data-testid="delete-workflow"
+                  color="destructive"
+                  variant="icon"
+                  StartIcon="trash-2"
+                  onClick={() => setIsDeleteDialogOpen(true)}
+                />
+              )}
               <Button
                 data-testid="save-workflow"
                 onClick={handleSaveWorkflow}
@@ -960,9 +985,9 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
               <div className={cn(workflowData && !workflowData.name ? "text-muted" : "")}>
                 {workflowData && workflowData.name ? workflowData.name : "untitled"}
               </div>
-              {workflowData && workflowData.team && (
+              {workflowData && workflowData.calIdTeam && (
                 <Badge className="ml-4 mt-1" variant="default">
-                  {workflowData.team.name}
+                  {workflowData.calIdTeam.name}
                 </Badge>
               )}
               {readOnly && (
@@ -973,12 +998,8 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
             </div>
           )
         }>
-        {!session.data ? (
-          <div>Please log in to access this feature.</div>
-        ) : isError ? (
+        {isError ? (
           <Alert severity="error" title="Something went wrong" message={error?.message ?? ""} />
-        ) : isPending ? (
-          <div>Loading...</div>
         ) : (
           <div className="bg-card flex justify-center p-6 p-8">
             <div className="bg-card mx-auto w-full p-6">
@@ -1055,20 +1076,13 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
                       <CardContent className="space-y-4">
                         <div>
                           <Select
-                            value={trigger}
-                            onValueChange={(val: WorkflowTriggerEvents) => setTrigger(val)}
-                            disabled={readOnly}>
-                            <SelectTrigger className="mt-2">
-                              <SelectValue placeholder="Select an occurrence" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-default">
-                              {triggerOptions.map((option) => (
-                                <SelectItem key={option.value} value={option.value}>
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                            value={triggerOptions.find((option) => option.value === trigger) || null}
+                            onChange={(option) => setTrigger((option?.value as WorkflowTriggerEvents) || "")}
+                            options={triggerOptions}
+                            placeholder="Select an occurrence"
+                            isDisabled={readOnly}
+                            className="mt-2"
+                          />
                         </div>
 
                         {trigger && (
@@ -1129,17 +1143,22 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
                                       disabled={readOnly}
                                     />
                                     <Select
-                                      value={timeUnit}
-                                      onValueChange={(val: TimeUnit) => setTimeUnit(val)}
-                                      disabled={readOnly}>
-                                      <SelectTrigger className="w-24">
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                      <SelectContent className="bg-default">
-                                        <SelectItem value="MINUTE">minutes</SelectItem>
-                                        <SelectItem value="HOUR">hours</SelectItem>
-                                      </SelectContent>
-                                    </Select>
+                                      value={
+                                        [
+                                          { value: "MINUTE", label: "minutes" },
+                                          { value: "HOUR", label: "hours" },
+                                        ].find((option) => option.value === timeUnit) || null
+                                      }
+                                      onChange={(option) =>
+                                        setTimeUnit((option?.value as TimeUnit) || "HOUR")
+                                      }
+                                      options={[
+                                        { value: "MINUTE", label: "minutes" },
+                                        { value: "HOUR", label: "hours" },
+                                      ]}
+                                      isDisabled={readOnly}
+                                      className="w-24"
+                                    />
                                     <span className="text-muted-foreground text-sm">
                                       {trigger === "BEFORE_EVENT" ? "before" : "after"}{" "}
                                       {triggerOptions
@@ -1188,26 +1207,25 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
                                     <div className="flex flex-1 items-center space-x-3">
                                       <div className="flex h-8 w-8 items-center justify-center rounded bg-blue-100">
                                         <span className="text-xs font-medium">
-                                          {isEmailAction(step.action) ? "📧" : "📱"}
+                                          {isEmailAction(step.action) ? (
+                                            <Icon name="mail" />
+                                          ) : (
+                                            <Icon name="phone" />
+                                          )}
                                         </span>
                                       </div>
                                       <Select
-                                        value={step.action}
-                                        onValueChange={(value: WorkflowActions) =>
-                                          updateAction(step.id, "action", value)
+                                        value={
+                                          actionOptions?.find((option) => option.value === step.action) ||
+                                          null
                                         }
-                                        disabled={readOnly}>
-                                        <SelectTrigger className="w-fit">
-                                          <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent className="bg-default">
-                                          {actionOptions?.map((option) => (
-                                            <SelectItem key={option.value} value={option.value}>
-                                              {option.label}
-                                            </SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
+                                        onChange={(option) =>
+                                          updateAction(step.id, "action", option?.value as WorkflowActions)
+                                        }
+                                        options={actionOptions || []}
+                                        isDisabled={readOnly}
+                                        className="w-fit"
+                                      />
                                     </div>
                                     <div className="flex items-center space-x-2">
                                       {actions.length > 1 && !readOnly && (
@@ -1476,22 +1494,22 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
                                       <div className="mt-5">
                                         <Label>Message template</Label>
                                         <Select
-                                          value={step.template}
-                                          onValueChange={(value: WorkflowTemplates) =>
-                                            updateAction(step.id, "template", value)
+                                          value={
+                                            templateOptions.find(
+                                              (option) => option.value === step.template
+                                            ) || null
                                           }
-                                          disabled={readOnly}>
-                                          <SelectTrigger className="mt-1">
-                                            <SelectValue />
-                                          </SelectTrigger>
-                                          <SelectContent className="bg-default">
-                                            {templateOptions.map((option) => (
-                                              <SelectItem key={option.value} value={option.value}>
-                                                {option.label}
-                                              </SelectItem>
-                                            ))}
-                                          </SelectContent>
-                                        </Select>
+                                          onChange={(option) =>
+                                            updateAction(
+                                              step.id,
+                                              "template",
+                                              option?.value as WorkflowTemplates
+                                            )
+                                          }
+                                          options={templateOptions}
+                                          isDisabled={readOnly}
+                                          className="mt-1"
+                                        />
                                       </div>
 
                                       {/* Message Content */}
@@ -1513,10 +1531,10 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
                                                 </div>
                                               )}
                                             </div>
-                                            <Textarea
+                                            <TextArea
                                               rows={2}
                                               disabled={readOnly}
-                                              className="my-0 focus:ring-transparent"
+                                              className="border-default my-0 rounded-md focus:ring-transparent"
                                               required
                                               value={step.emailSubject || ""}
                                               onChange={(e) =>
@@ -1544,9 +1562,9 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
                                             variables={DYNAMIC_TEXT_VARIABLES}
                                             addVariableButtonTop={isSMSAction(step.action)}
                                             height="200px"
-                                            updateTemplate={!!stepTemplateUpdate}
-                                            firstRender={firstRender}
-                                            setFirstRender={setFirstRender}
+                                            // updateTemplate={!!stepTemplateUpdate}
+                                            // firstRender={firstRender}
+                                            // setFirstRender={setFirstRender}
                                             editable={
                                               !readOnly &&
                                               !isWhatsappAction(step.action) &&
@@ -1602,25 +1620,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
                             Add action
                           </Button>
                         )}
-
-                        <div className="flex justify-end pt-4">
-                          <div className="flex space-x-2">
-                            <Button
-                              color="secondary"
-                              onClick={() => router.push("/workflows")}
-                              disabled={updateMutation.isPending}>
-                              Cancel
-                            </Button>
-                            {!readOnly && (
-                              <Button
-                                onClick={handleSaveWorkflow}
-                                className="px-8"
-                                loading={updateMutation.isPending}>
-                                Save Workflow
-                              </Button>
-                            )}
-                          </div>
-                        </div>
                       </CardContent>
                     </Card>
                   </div>
@@ -1647,6 +1646,16 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
           </div>
         )}
       </ShellMain>
+
+      {/* Delete Dialog */}
+      {workflowId && (
+        <WorkflowDeleteDialog
+          isOpenDialog={isDeleteDialogOpen}
+          setIsOpenDialog={setIsDeleteDialogOpen}
+          workflowId={workflowId}
+          additionalFunction={handleDeleteSuccess}
+        />
+      )}
     </Shell>
   );
 };

@@ -7,21 +7,20 @@ import {
   ButtonOrLink,
 } from "@calid/features/ui/components/dropdown-menu";
 import { Icon } from "@calid/features/ui/components/icon";
-import { Label } from "@calid/features/ui/components/label";
-import { Switch } from "@calid/features/ui/components/switch/switch";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@calid/features/ui/components/tooltip";
+import { Switch } from "@calid/features/ui/components/switch";
 import type { UseFormReturn } from "react-hook-form";
 
+import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-import { showToast } from "@calcom/ui/components/toast";
 
 interface EventTypeActionsProps {
-  form: UseFormReturn<any>;
+  form: UseFormReturn<FormValues>;
   eventTypesLockedByOrg?: boolean;
   permalink: string;
   hasPermsToDelete: boolean;
   isUpdatePending: boolean;
+  handleSubmit: (values: FormValues) => Promise<void>;
   onDeleteClick: () => void;
 }
 
@@ -31,53 +30,57 @@ export const EventTypeActions = ({
   permalink,
   hasPermsToDelete,
   isUpdatePending,
+  handleSubmit,
   onDeleteClick,
 }: EventTypeActionsProps) => {
   const { t } = useLocale();
 
   return (
-    <div className="flex items-center justify-end space-x-4">
+    <div className="mr-2 flex items-center justify-end space-x-4">
       {/* Hidden toggle */}
-      {!form.getValues("metadata")?.managedEventConfig && (
+      {(() => {
+        try {
+          const metadata = form?.getValues("metadata");
+          return !metadata?.managedEventConfig;
+        } catch (error) {
+          return true;
+        }
+      })() && (
         <div className="flex items-center space-x-2">
-          {form.watch("hidden") && (
-            <Label htmlFor="hiddenSwitch" className="text-muted-foreground text-sm">
-              {t("hidden")}
-            </Label>
-          )}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Switch
-                id="hiddenSwitch"
-                disabled={eventTypesLockedByOrg}
-                checked={!form.watch("hidden")}
-                onCheckedChange={(e) => {
-                  form.setValue("hidden", !e, { shouldDirty: true });
-                }}
-              />
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              {form.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")}
-            </TooltipContent>
-          </Tooltip>
+          <Switch
+            id="hiddenSwitch"
+            disabled={eventTypesLockedByOrg}
+            tooltip={form.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")}
+            checked={(() => {
+              try {
+                const hidden = form?.watch("hidden");
+                return !hidden;
+              } catch (error) {
+                return true;
+              }
+            })()}
+            onCheckedChange={(e) => {
+              try {
+                form?.setValue("hidden", !e, { shouldDirty: true });
+              } catch (error) {
+                console.error("EventTypeActions - Error setting hidden value:", error);
+              }
+            }}
+          />
         </div>
       )}
 
       {/* Action buttons */}
       <ButtonGroup>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              color="secondary"
-              variant="icon"
-              href={permalink}
-              target="_blank"
-              rel="noreferrer"
-              StartIcon="external-link"
-            />
-          </TooltipTrigger>
-          <TooltipContent side="bottom">{t("preview")}</TooltipContent>
-        </Tooltip>
+        <Button
+          color="secondary"
+          tooltip={t("preview")}
+          variant="icon"
+          href={permalink}
+          target="_blank"
+          rel="noreferrer"
+          StartIcon="external-link"
+        />
 
         <Button
           color="secondary"
@@ -86,7 +89,6 @@ export const EventTypeActions = ({
           tooltip={t("copy_link")}
           onClick={() => {
             navigator.clipboard.writeText(permalink);
-            showToast("Link copied!", "success");
           }}
         />
 
@@ -107,7 +109,12 @@ export const EventTypeActions = ({
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem>
-            <ButtonOrLink target="_blank" type="button" href={permalink} className="flex w-full items-center">
+            <ButtonOrLink
+              target="_blank"
+              rel="noreferrer"
+              type="button"
+              href={permalink}
+              className="flex w-full items-center">
               <Icon name="external-link" className="mr-2 h-4 w-4" />
               {t("preview")}
             </ButtonOrLink>
@@ -117,7 +124,6 @@ export const EventTypeActions = ({
               type="button"
               onClick={() => {
                 navigator.clipboard.writeText(permalink);
-                showToast("Link copied!", "success");
               }}
               className="flex w-full items-center">
               <Icon name="link" className="mr-2 h-4 w-4" />
@@ -137,9 +143,17 @@ export const EventTypeActions = ({
       </DropdownMenu>
 
       <Button
-        type="submit"
+        type="button"
         loading={isUpdatePending}
-        disabled={!form.formState.isDirty}
+        onClick={() => handleSubmit(form.getValues())}
+        disabled={(() => {
+          try {
+            const isDirty = form?.formState?.isDirty;
+            return !isDirty || isUpdatePending;
+          } catch (error) {
+            return true;
+          }
+        })()}
         form="event-type-form">
         {t("save")}
       </Button>

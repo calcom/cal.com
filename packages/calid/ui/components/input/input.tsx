@@ -3,13 +3,15 @@
 import { cn } from "@calid/features/lib/cn";
 import { cva } from "class-variance-authority";
 import React, { forwardRef, useId, useState } from "react";
+import { useCallback } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Icon } from "../icon/Icon";
 import { Label } from "../label";
+import { Tooltip } from "../tooltip";
 import { HintsOrErrors } from "./hint-or-errors";
-import type { InputProps, InputFieldProps } from "./types";
+import type { InputProps, InputFieldProps, TextFieldProps } from "./types";
 
 export const inputStyles = cva(
   [
@@ -26,6 +28,7 @@ export const inputStyles = cva(
     // States
     "hover:border-emphasis",
     "focus:ring-0",
+    "focus:outline-none",
     "focus:shadow-outline-gray-focused",
 
     // Disabled state
@@ -142,8 +145,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           dir="ltr"
           className={cn(
             inputStyles({ size }),
-            "group relative mb-1 flex min-w-0 items-center gap-1",
-            "[&:focus-within]:border-subtle [&:focus-within]:ring-brand-default [&:focus-within]:ring-2",
+            "group relative flex min-w-0 items-center gap-1",
             "[&:has(:disabled)]:bg-subtle [&:has(:disabled)]:hover:border-default [&:has(:disabled)]:cursor-not-allowed",
             inputIsFullWidth && "w-full"
           )}>
@@ -188,7 +190,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           {type === "search" && inputValue?.toString().length > 0 && (
             <Icon
               name="x"
-              className="text-subtle absolute top-2.5 h-4 w-4 cursor-pointer ltr:right-2 rtl:left-2"
+              className="text-subtle absolute top-2 h-4 w-4 cursor-pointer ltr:right-2 rtl:left-2"
               onClick={(e) => {
                 setInputValue("");
                 props.onChange && props.onChange(e as unknown as React.ChangeEvent<HTMLInputElement>);
@@ -221,4 +223,76 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
 
 export const TextField = forwardRef<HTMLInputElement, InputFieldProps>(function TextField(props, ref) {
   return <InputField ref={ref} {...props} />;
+});
+
+export const EmailField = forwardRef<HTMLInputElement, TextFieldProps>(function EmailField(props, ref) {
+  return (
+    <TextField
+      ref={ref}
+      type="email"
+      autoCapitalize="none"
+      autoComplete="email"
+      autoCorrect="off"
+      inputMode="email"
+      {...props}
+    />
+  );
+});
+
+type PasswordFieldTranslations = {
+  showPasswordText?: string;
+  hidePasswordText?: string;
+};
+
+export const PasswordField = forwardRef<HTMLInputElement, TextFieldProps>(function PasswordField(props, ref) {
+  const { t } = useLocale();
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const toggleIsPasswordVisible = useCallback(
+    () => setIsPasswordVisible(!isPasswordVisible),
+    [isPasswordVisible, setIsPasswordVisible]
+  );
+  const textLabel = isPasswordVisible ? t("hide_password") : t("show_password");
+
+  return (
+    <TextField
+      type={isPasswordVisible ? "text" : "password"}
+      placeholder={props.placeholder || "•••••••••••••"}
+      ref={ref}
+      {...props}
+      className={cn(
+        "addon-wrapper focus-visible:ring-none mb-0 w-full rounded-r-none focus-visible:ring-0 ltr:border-r-0 rtl:border-l-0",
+        props.className
+      )}
+      addOnSuffix={
+        <Tooltip content={textLabel}>
+          <button
+            className="text-emphasis"
+            tabIndex={-1}
+            type="button"
+            onClick={() => toggleIsPasswordVisible()}>
+            {isPasswordVisible ? (
+              <Icon name="eye-off" className="h-4 w-4 stroke-[2.5px]" />
+            ) : (
+              <Icon name="eye" className="h-4 w-4 stroke-[2.5px]" />
+            )}
+            <span className="sr-only">{textLabel}</span>
+          </button>
+        </Tooltip>
+      }
+    />
+  );
+});
+
+export const NumberInput = forwardRef<HTMLInputElement, TextFieldProps>(function NumberInput(props, ref) {
+  return (
+    <Input
+      ref={ref}
+      type="number"
+      autoCapitalize="none"
+      autoComplete="numeric"
+      autoCorrect="off"
+      inputMode="numeric"
+      {...props}
+    />
+  );
 });

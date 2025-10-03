@@ -1,12 +1,9 @@
 "use client";
 
 import { cn } from "@calid/features/lib/cn";
-import { Icon } from "@calid/features/ui/components/icon";
-
-
-
 import { Button } from "@calid/features/ui/components/button";
-import { VerticalDivider } from "@calid/features/ui/components/divider";
+import { Icon } from "@calid/features/ui/components/icon";
+import { Label } from "@calid/features/ui/components/label";
 import { Switch } from "@calid/features/ui/components/switch";
 import { Tooltip } from "@calid/features/ui/components/tooltip";
 import type { SetStateAction, Dispatch } from "react";
@@ -44,7 +41,6 @@ import classNames from "@calcom/ui/classNames";
 import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { EditableHeading } from "@calcom/ui/components/editable-heading";
 import { Form } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
 import { SkeletonText, SelectSkeletonLoader, Skeleton } from "@calcom/ui/components/skeleton";
 
 import { Shell as PlatformShell } from "../src/components/ui/shell";
@@ -254,7 +250,7 @@ const SmallScreenSideBar = ({ open, children }: { open: boolean; children: JSX.E
     <div
       className={classNames(
         open
-          ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 sm:hidden"
+          ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity sm:hidden dark:bg-opacity-70"
           : ""
       )}>
       <div
@@ -387,7 +383,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
           )
         }
         CTA={
-          <div className={cn(customClassNames?.ctaClassName, "flex items-center justify-end")}>
+          <div className={cn(customClassNames?.ctaClassName, "mr-1 flex items-center justify-end")}>
             <div className="hidden items-center rounded-md px-2 transition sm:flex">
               {!openSidebar && allowSetToDefault ? (
                 <>
@@ -418,7 +414,6 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                       />
                     )}
                   />
-                  <VerticalDivider className="hidden sm:inline" />
                 </>
               ) : null}
             </div>
@@ -451,7 +446,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                 <div
                   className={classNames(
                     openSidebar
-                      ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 sm:hidden"
+                      ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity sm:hidden dark:bg-opacity-70"
                       : ""
                   )}>
                   <div
@@ -519,8 +514,8 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                       )}
                     </div>
 
-                    <div className="min-w-40 col-span-3 space-y-2 border px-2 py-4 lg:col-span-1">
-                      <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
+                    <div className="col-span-3 min-w-40 space-y-2 border px-2 py-4 lg:col-span-1">
+                      <div className="w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0 xl:max-w-80">
                         <div>
                           <Skeleton
                             as={Label}
@@ -586,7 +581,6 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
               loading={isSaving}>
               {t("save")}
             </Button>
-            <VerticalDivider className="hidden sm:inline" />
             <Button
               className="ml-3 sm:hidden"
               StartIcon="ellipsis-vertical"

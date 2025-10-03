@@ -13,18 +13,16 @@ import {
 import { Input } from "@calid/features/ui/components/input/input";
 import { Label } from "@calid/features/ui/components/label";
 import { RadioGroup, RadioGroupItem } from "@calid/features/ui/components/radio-group";
-import {
-  Tooltip,
-  TooltipProvider,
-  TooltipTrigger,
-  TooltipContent,
-} from "@calid/features/ui/components/tooltip";
+import { triggerToast } from "@calid/features/ui/components/toast";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
 import React from "react";
 
-import { useCreateEventType } from "@calcom/lib/hooks/useCreateEventType";
+import {
+  useCalIdCreateEventType,
+  type CreateEventTypeFormValues,
+} from "@calcom/lib/hooks/useCreateEventType";
 import slugify from "@calcom/lib/slugify";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { showToast } from "@calcom/ui/components/toast";
 
 import type { CreateTeamEventModalProps } from "../types/event-types";
 
@@ -34,28 +32,39 @@ export const CreateTeamEventModal: React.FC<CreateTeamEventModalProps> = ({
   teamId,
   teamName,
   teamSlug,
-  isTeamAdminOrOwner = true,
+  isTeamAdminOrOwner,
 }) => {
   const onSuccessMutation = () => {
     onClose();
-    showToast("Team event created successfully", "success");
+    triggerToast("Team event created successfully", "success");
   };
 
   const onErrorMutation = (err: string) => {
-    showToast(err, "error");
+    triggerToast(err, "error");
   };
 
-  const { form, createMutation, isManagedEventType } = useCreateEventType(onSuccessMutation, onErrorMutation);
+  const { form, createMutation, isManagedEventType } = useCalIdCreateEventType(
+    onSuccessMutation,
+    onErrorMutation
+  );
 
   const { register, setValue, formState, watch, handleSubmit } = form;
 
+  // Set default scheduling type for team events
+  React.useEffect(() => {
+    setValue("schedulingType", SchedulingType.COLLECTIVE);
+  }, [setValue]);
+
   // Watch form values for real-time updates
-  const watchedTitle = watch("title");
-  const watchedSlug = watch("slug");
   const watchedSchedulingType = watch("schedulingType");
 
-  const handleFormSubmit = (values: any) => {
-    createMutation.mutate(values);
+  const handleFormSubmit = (values: CreateEventTypeFormValues) => {
+    // Ensure schedulingType is set for team events
+    const formData = {
+      ...values,
+      schedulingType: values.schedulingType || SchedulingType.COLLECTIVE,
+    };
+    createMutation.mutate(formData);
   };
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,8 +96,8 @@ export const CreateTeamEventModal: React.FC<CreateTeamEventModalProps> = ({
         </DialogHeader>
 
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 py-2">
-          {/* Hidden teamId field */}
-          <input type="hidden" {...register("teamId", { valueAsNumber: true })} value={teamId} />
+          {/* Hidden calIdTeamId field */}
+          <input type="hidden" {...register("calIdTeamId", { valueAsNumber: true })} value={teamId} />
 
           {/* Title Field */}
           <div className="space-y-2">
@@ -113,18 +122,11 @@ export const CreateTeamEventModal: React.FC<CreateTeamEventModalProps> = ({
               URL
             </Label>
             <div className="flex">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="inline-flex max-w-32 items-center overflow-hidden rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 pr-8 text-xs text-gray-500">
-                      /{!isManagedEventType ? `${teamSlug || teamName.toLowerCase()}` : "username"}/
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{!isManagedEventType ? `${teamSlug || teamName.toLowerCase()}` : "username"}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Tooltip content={!isManagedEventType ? `${teamSlug || teamName.toLowerCase()}` : "username"}>
+                <span className="inline-flex max-w-32 items-center overflow-hidden rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 pr-8 text-xs text-gray-500">
+                  /{!isManagedEventType ? `${teamSlug || teamName.toLowerCase()}` : "username"}/
+                </span>
+              </Tooltip>
               <Input
                 id="slug"
                 {...register("slug", { required: "URL is required" })}
@@ -172,7 +174,7 @@ export const CreateTeamEventModal: React.FC<CreateTeamEventModalProps> = ({
                 </div>
               </div>
 
-              {isTeamAdminOrOwner && (
+              {/* {isTeamAdminOrOwner && (
                 <div className="flex items-start space-x-3 rounded-md border p-3 transition-colors hover:bg-gray-50">
                   <RadioGroupItem value={SchedulingType.MANAGED} id="managed" className="mt-0.5" />
                   <div className="flex-1">
@@ -184,16 +186,12 @@ export const CreateTeamEventModal: React.FC<CreateTeamEventModalProps> = ({
                     </p>
                   </div>
                 </div>
-              )}
+              )} */}
             </RadioGroup>
           </div>
 
           <DialogFooter className="flex justify-end space-x-2 pt-4">
-            <DialogClose asChild>
-              <Button type="button" color="secondary" size="sm" disabled={createMutation.isPending}>
-                Close
-              </Button>
-            </DialogClose>
+            <DialogClose />
             <Button type="submit" size="sm" disabled={createMutation.isPending}>
               {createMutation.isPending ? "Creating..." : "Create"}
             </Button>

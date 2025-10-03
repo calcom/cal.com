@@ -1,8 +1,8 @@
-import type { Workflow } from "@calid/features//workflows/config/types";
+import type { CalIdWorkflow } from "@calid/features/modules/workflows/config/types";
 import type { EventTypeCustomInput, EventType } from "@prisma/client";
 import type { z } from "zod";
 
-import { SMS_REMINDER_NUMBER_FIELD } from "@calcom/features/bookings/lib/SystemField";
+//import { SMS_REMINDER_NUMBER_FIELD } from "@calcom/features/bookings/lib/SystemField";
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
 import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -29,25 +29,25 @@ function upperCaseToCamelCase(upperCaseString: string) {
   return upperCaseString[0].toUpperCase() + upperCaseString.slice(1).toLowerCase();
 }
 
-export const getSmsReminderNumberField = () =>
-  ({
-    name: SMS_REMINDER_NUMBER_FIELD,
-    type: "phone",
-    defaultLabel: "number_text_notifications",
-    defaultPlaceholder: "enter_phone_number",
-    editable: "system",
-  } as const);
+// export const getSmsReminderNumberField = () =>
+//   ({
+//     name: SMS_REMINDER_NUMBER_FIELD,
+//     type: "phone",
+//     defaultLabel: "number_text_notifications",
+//     defaultPlaceholder: "enter_phone_number",
+//     editable: "system",
+//   } as const);
 
 export const getSmsReminderNumberSource = ({
   workflowId,
   isSmsReminderNumberRequired,
 }: {
-  workflowId: Workflow["id"];
+  workflowId: CalIdWorkflow["id"];
   isSmsReminderNumberRequired: boolean;
 }) => ({
   id: `${workflowId}`,
   type: "workflow",
-  label: "Workflow",
+  label: "CalIdWorkflow",
   fieldRequired: isSmsReminderNumberRequired,
   editUrl: `/workflows/${workflowId}`,
 });
@@ -71,7 +71,7 @@ export const getBookingFieldsWithSystemFields = ({
   customInputs: EventTypeCustomInput[] | z.infer<typeof customInputSchema>[];
   metadata: EventType["metadata"] | z.infer<typeof EventTypeMetaDataSchema>;
   workflows: {
-    workflow: Workflow;
+    workflow: CalIdWorkflow;
   }[];
 }) => {
   const parsedMetaData = EventTypeMetaDataSchema.parse(metadata || {});
@@ -105,7 +105,7 @@ export const ensureBookingInputsHaveSystemFields = ({
   additionalNotesRequired: boolean;
   customInputs: z.infer<typeof customInputSchema>[];
   workflows: {
-    workflow: Workflow;
+    workflow: CalIdWorkflow;
   }[];
 }) => {
   // If bookingFields is set already, the migration is done.
@@ -121,8 +121,9 @@ export const ensureBookingInputsHaveSystemFields = ({
   };
 
   const smsNumberSources = [] as NonNullable<(typeof bookingFields)[number]["sources"]>;
+  let phoneFieldRequired = false;
   workflows.forEach((workflow) => {
-    workflow.workflow.steps.forEach((step) => {
+    workflow.workflow?.steps?.forEach((step) => {
       if (step.action === "SMS_ATTENDEE" || step.action === "WHATSAPP_ATTENDEE") {
         const workflowId = workflow.workflow.id;
         smsNumberSources.push(
@@ -131,11 +132,15 @@ export const ensureBookingInputsHaveSystemFields = ({
             isSmsReminderNumberRequired: !!step.numberRequired,
           })
         );
+        if (step.numberRequired) {
+          phoneFieldRequired = true;
+        }
       }
     });
   });
 
   const isEmailFieldOptional = !!bookingFields.find((field) => field.name === "email" && !field.required);
+  const dynamicPhoneField = smsNumberSources.length >= 1 ? "number_text_notifications" : "phone_number";
 
   // These fields should be added before other user fields
   const systemBeforeFields: typeof bookingFields = [
@@ -170,10 +175,13 @@ export const ensureBookingInputsHaveSystemFields = ({
       ],
     },
     {
-      defaultLabel: "phone_number",
+      // defaultLabel: "phone_number",
+      defaultLabel: dynamicPhoneField,
       type: "phone",
       name: "attendeePhoneNumber",
-      required: false,
+      // required: false,
+      required: phoneFieldRequired,
+      defaultPlaceholder: "enter_phone_number",
       hidden: true,
       editable: "system-but-optional",
       sources: [
@@ -301,10 +309,55 @@ export const ensureBookingInputsHaveSystemFields = ({
       missingSystemBeforeFields.push(field);
     } else {
       // Adding the fields from Code first and then fields from DB. Allows, the code to push new properties to the field
-      bookingFields[existingBookingFieldIndex] = {
-        ...field,
-        ...bookingFields[existingBookingFieldIndex],
-      };
+      // bookingFields[existingBookingFieldIndex] = {
+      //   ...field,
+      //   ...bookingFields[existingBookingFieldIndex],
+      // };
+      if (getFieldIdentifier(field.name) === "attendeePhoneNumber") {
+        const existingField = bookingFields[existingBookingFieldIndex];
+        const mergeSource = [
+          ...(existingField.sources || []),
+          ...smsNumberSources.filter(
+            (smsSource) => !existingField.sources?.some((existing) => existing.id === smsSource.id)
+          ),
+        ];
+        bookingFields[existingBookingFieldIndex] = {
+          ...field,
+          ...existingField,
+          defaultLabel: dynamicPhoneField,
+          required: phoneFieldRequired || existingField.required,
+          sources: mergeSource,
+        };
+      }
+      // if (getFieldIdentifier(field.name) === "attendeePhoneNumber") {
+      //   const existingField = bookingFields[existingBookingFieldIndex];
+      //   const { label, ...existingFieldWithoutLabel } = existingField; // Remove label
+      //   console.log("existing field : ",existingField);
+      //   const mergeSource = [
+      //     ...(existingField.sources || []),
+      //     ...smsNumberSources.filter(
+      //       (smsSource) => !existingField.sources?.some((existing) => existing.id === smsSource.id)
+      //     ),
+      //   ];
+
+      //   bookingFields[existingBookingFieldIndex] = {
+      //     ...existingFieldWithoutLabel,
+      //     type: field.type,
+      //     name: field.name,
+      //     editable: field.editable,
+      //     defaultPlaceholder: field.defaultPlaceholder,
+      //     defaultLabel: dynamicPhoneField,
+      //     required: phoneFieldRequired || existingField.required,
+      //     hidden: smsNumberSources.length === 0,
+      //     sources: mergeSource,
+      //   };
+      // }
+      else {
+        bookingFields[existingBookingFieldIndex] = {
+          ...field,
+          ...bookingFields[existingBookingFieldIndex],
+        };
+      }
     }
   }
 
@@ -313,19 +366,19 @@ export const ensureBookingInputsHaveSystemFields = ({
   // Backward Compatibility for SMS Reminder Number
   // Note: We still need workflows in `getBookingFields` due to Backward Compatibility. If we do a one time entry for all event-types, we can remove workflows from `getBookingFields`
   // Also, note that even if Workflows don't explicitly add smsReminderNumber field to bookingFields, it would be added as a side effect of this backward compatibility logic
-  if (
-    smsNumberSources.length &&
-    !bookingFields.find((f) => getFieldIdentifier(f.name) !== getFieldIdentifier(SMS_REMINDER_NUMBER_FIELD))
-  ) {
-    const indexForLocation = bookingFields.findIndex(
-      (f) => getFieldIdentifier(f.name) === getFieldIdentifier("location")
-    );
-    // Add the SMS Reminder Number field after `location` field always
-    bookingFields.splice(indexForLocation + 1, 0, {
-      ...getSmsReminderNumberField(),
-      sources: smsNumberSources,
-    });
-  }
+  // if (
+  //   smsNumberSources.length &&
+  //   !bookingFields.find((f) => getFieldIdentifier(f.name) !== getFieldIdentifier(SMS_REMINDER_NUMBER_FIELD))
+  // ) {
+  //   const indexForLocation = bookingFields.findIndex(
+  //     (f) => getFieldIdentifier(f.name) === getFieldIdentifier("location")
+  //   );
+  //   // Add the SMS Reminder Number field after `location` field always
+  //   bookingFields.splice(indexForLocation + 1, 0, {
+  //     ...getSmsReminderNumberField(),
+  //     sources: smsNumberSources,
+  //   });
+  // }
 
   // Backward Compatibility: If we are migrating from old system, we need to map `customInputs` to `bookingFields`
   if (handleMigration) {
