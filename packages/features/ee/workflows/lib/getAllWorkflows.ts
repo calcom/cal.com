@@ -1,6 +1,5 @@
-import { FORM_TRIGGER_WORKFLOW_EVENTS } from "@calcom/ee/workflows/lib/constants";
 import prisma from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+import type { WorkflowType } from "@calcom/prisma/client";
 
 import type { Workflow } from "./types";
 
@@ -35,36 +34,16 @@ export const getAllWorkflows = async ({
   teamId,
   orgId,
   workflowsLockedForUser = true,
-  triggerType,
+  type,
 }: {
   entityWorkflows: Workflow[];
   userId?: number | null;
   teamId?: number | null;
   orgId?: number | null;
   workflowsLockedForUser?: boolean;
-  triggerType: "eventType" | "routingForm";
+  type: WorkflowType;
 }) => {
   const allWorkflows = entityWorkflows;
-
-  let triggerTypeWhereClause: Prisma.WorkflowWhereInput = {};
-
-  if (triggerType === "routingForm") {
-    triggerTypeWhereClause = {
-      trigger: {
-        in: FORM_TRIGGER_WORKFLOW_EVENTS,
-      },
-    };
-  }
-
-  if (triggerType === "eventType") {
-    triggerTypeWhereClause = {
-      trigger: {
-        not: {
-          in: FORM_TRIGGER_WORKFLOW_EVENTS,
-        },
-      },
-    };
-  }
 
   if (orgId) {
     if (teamId) {
@@ -72,7 +51,7 @@ export const getAllWorkflows = async ({
         where: {
           teamId: teamId,
           workflow: {
-            ...triggerTypeWhereClause,
+            type,
           },
         },
         select: {
@@ -88,7 +67,7 @@ export const getAllWorkflows = async ({
       const orgUserWorkflowsRel = await prisma.workflowsOnTeams.findMany({
         where: {
           workflow: {
-            ...triggerTypeWhereClause,
+            type,
           },
           team: {
             members: {
@@ -115,7 +94,7 @@ export const getAllWorkflows = async ({
       where: {
         teamId: orgId,
         isActiveOnAll: true,
-        ...triggerTypeWhereClause,
+        type,
       },
       select: workflowSelect,
     });
@@ -127,7 +106,7 @@ export const getAllWorkflows = async ({
       where: {
         teamId,
         isActiveOnAll: true,
-        ...triggerTypeWhereClause,
+        type,
       },
       select: workflowSelect,
     });
@@ -140,7 +119,7 @@ export const getAllWorkflows = async ({
         userId,
         teamId: null,
         isActiveOnAll: true,
-        ...triggerTypeWhereClause,
+        type,
       },
       select: workflowSelect,
     });

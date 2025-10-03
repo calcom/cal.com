@@ -9,17 +9,38 @@ import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { MembershipRole } from "@calcom/prisma/enums";
+import {
+  MembershipRole,
+  TimeUnit,
+  WorkflowTriggerEvents,
+  WorkflowType as PrismaWorkflowType,
+} from "@calcom/prisma/enums";
 import { WorkflowMethods } from "@calcom/prisma/enums";
 import type { TFilteredListInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/filteredList.schema";
 import type { TGetVerifiedEmailsInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/getVerifiedEmails.schema";
 import type { TGetVerifiedNumbersInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/getVerifiedNumbers.schema";
 
 import logger from "../../logger";
+import { FORM_TRIGGER_WORKFLOW_EVENTS } from "@calcom/ee/workflows/lib/constants";
 
 export const ZGetInputSchema = z.object({
   id: z.number(),
 });
+
+const excludeFormTriggersWhereClause = {
+  trigger: {
+    not: {
+      in: FORM_TRIGGER_WORKFLOW_EVENTS,
+    },
+  },
+};
+
+const getWorkflowType = (trigger: WorkflowTriggerEvents): PrismaWorkflowType => {
+  if (trigger === WorkflowTriggerEvents.FORM_SUBMITTED) {
+    return PrismaWorkflowType.ROUTING_FORM;
+  }
+  return PrismaWorkflowType.EVENT_TYPE;
+};
 
 export type TGetInputSchema = z.infer<typeof ZGetInputSchema>;
 
@@ -271,7 +292,7 @@ export class WorkflowRepository {
     };
 
     if (filtered) {
-      if (!!filters.teamIds) {
+      if (filters.teamIds) {
         where.OR.push({
           team: {
             id: {
@@ -287,7 +308,7 @@ export class WorkflowRepository {
         });
       }
 
-      if (!!filters.userIds) {
+      if (filters.userIds) {
         where.OR.push({
           userId: {
             in: filters.userIds,
@@ -440,7 +461,7 @@ export class WorkflowRepository {
     const reminderMethods: {
       [x: string]: (id: number, referenceId: string | null) => void;
     } = {
-      [WorkflowMethods.EMAIL]: (id, referenceId) => deleteScheduledEmailReminder(id),
+      [WorkflowMethods.EMAIL]: (id) => deleteScheduledEmailReminder(id),
       [WorkflowMethods.SMS]: (id, referenceId) => deleteScheduledSMSReminder(id, referenceId),
       [WorkflowMethods.WHATSAPP]: (id, referenceId) => deleteScheduledWhatsappReminder(id, referenceId),
       [WorkflowMethods.AI_PHONE_CALL]: (id, referenceId) => deleteScheduledAIPhoneCall(id, referenceId),
@@ -461,6 +482,326 @@ export class WorkflowRepository {
           result.reason
         );
       }
+    });
+  }
+
+  static async findUniqueForUpdate(id: number) {
+    return await prisma.workflow.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        userId: true,
+        isActiveOnAll: true,
+        trigger: true,
+        time: true,
+        timeUnit: true,
+        team: {
+          select: {
+            isOrganization: true,
+          },
+        },
+        teamId: true,
+        user: {
+          select: {
+            teams: true,
+          },
+        },
+        steps: true,
+        activeOn: true,
+        activeOnTeams: true,
+        activeOnRoutingForms: true,
+      },
+    });
+  }
+
+  static async updateWorkflow(
+    id: number,
+    data: {
+      name: string;
+      trigger: WorkflowTriggerEvents;
+      time: number | null;
+      timeUnit: TimeUnit | null;
+      isActiveOnAll?: boolean;
+    }
+  ) {
+    const type = getWorkflowType(data.trigger);
+    return await prisma.workflow.update({
+      where: { id },
+      data: {
+        ...data,
+        type,
+      },
+    });
+  }
+
+  static async findUniqueWithRelations(id: number) {
+    return await prisma.workflow.findUnique({
+      where: { id },
+      include: {
+        activeOn: {
+          select: {
+            eventType: true,
+          },
+        },
+        activeOnTeams: {
+          select: {
+            team: true,
+          },
+        },
+        activeOnRoutingForms: {
+          select: {
+            routingForm: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+        team: {
+          select: {
+            id: true,
+            slug: true,
+            members: true,
+            name: true,
+            isOrganization: true,
+          },
+        },
+        steps: {
+          orderBy: {
+            stepNumber: "asc",
+          },
+        },
+      },
+    });
+  }
+
+  static async findActiveOrgWorkflows({
+    orgId,
+    userId,
+    teamId,
+    excludeFormTriggers,
+  }: {
+    orgId: number;
+    userId: number;
+    teamId: number;
+    excludeFormTriggers: boolean;
+  }) {
+    return await prisma.workflow.findMany({
+      where: {
+        ...(excludeFormTriggers ? excludeFormTriggersWhereClause : {}),
+        team: {
+          id: orgId,
+          members: {
+            some: {
+              userId,
+              accepted: true,
+            },
+          },
+        },
+        OR: [
+          {
+            isActiveOnAll: true,
+          },
+          {
+            activeOnTeams: {
+              some: {
+                team: {
+                  OR: [
+                    { id: teamId },
+                    {
+                      members: {
+                        some: {
+                          userId,
+                          accepted: true,
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        ],
+      },
+      include: {
+        team: {
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+            members: true,
+          },
+        },
+        activeOnTeams: {
+          select: {
+            team: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+        steps: true,
+      },
+    });
+  }
+
+  static async findTeamWorkflows({
+    teamId,
+    userId,
+    excludeFormTriggers,
+  }: {
+    teamId: number;
+    userId: number;
+    excludeFormTriggers: boolean;
+  }) {
+    return await prisma.workflow.findMany({
+      where: {
+        ...(excludeFormTriggers ? excludeFormTriggersWhereClause : {}),
+        team: {
+          id: teamId,
+          members: {
+            some: {
+              userId,
+              accepted: true,
+            },
+          },
+        },
+      },
+      include: {
+        team: {
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+            members: true,
+          },
+        },
+        activeOn: {
+          select: {
+            eventType: {
+              select: {
+                id: true,
+                title: true,
+                parentId: true,
+                _count: {
+                  select: {
+                    children: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        steps: true,
+      },
+      orderBy: {
+        id: "asc",
+      },
+    });
+  }
+
+  static async findUserWorkflows({
+    userId,
+    excludeFormTriggers,
+  }: {
+    userId: number;
+    excludeFormTriggers: boolean;
+  }) {
+    return await prisma.workflow.findMany({
+      where: {
+        ...(excludeFormTriggers ? excludeFormTriggersWhereClause : {}),
+        userId,
+      },
+      include: {
+        activeOn: {
+          select: {
+            eventType: {
+              select: {
+                id: true,
+                title: true,
+                parentId: true,
+                _count: {
+                  select: {
+                    children: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        steps: true,
+        team: {
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+            members: true,
+          },
+        },
+      },
+      orderBy: {
+        id: "asc",
+      },
+    });
+  }
+
+  static async findAllWorkflows({
+    userId,
+    excludeFormTriggers,
+  }: {
+    userId: number;
+    excludeFormTriggers: boolean;
+  }) {
+    return await prisma.workflow.findMany({
+      where: {
+        ...(excludeFormTriggers ? excludeFormTriggersWhereClause : {}),
+        OR: [
+          { userId },
+          {
+            team: {
+              members: {
+                some: {
+                  userId,
+                  accepted: true,
+                },
+              },
+            },
+          },
+        ],
+      },
+      include: {
+        activeOn: {
+          select: {
+            eventType: {
+              select: {
+                id: true,
+                title: true,
+                parentId: true,
+                _count: {
+                  select: {
+                    children: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        steps: true,
+        team: {
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+            members: true,
+          },
+        },
+      },
+      orderBy: {
+        id: "asc",
+      },
     });
   }
 }

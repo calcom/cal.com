@@ -18,6 +18,24 @@ export const BOOKING_REQUESTED = "bookingRequested";
 export const BOOKING_PAYMENT_INITIATED = "bookingPaymentInitiated";
 export const BOOKING_PAID = "bookingPaid";
 export const BOOKING_NO_SHOW_UPDATED = "bookingNoShowUpdated";
+
+export const FORM_WORKFLOW_TRIGGER_TYPES = [FORM_SUBMITTED] as const;
+
+export const EVENT_TYPE_WORKFLOW_TRIGGER_TYPES = [
+  BEFORE_EVENT,
+  EVENT_CANCELLED,
+  NEW_EVENT,
+  AFTER_EVENT,
+  RESCHEDULE_EVENT,
+  AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+  AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+  BOOKING_REJECTED,
+  BOOKING_REQUESTED,
+  BOOKING_PAYMENT_INITIATED,
+  BOOKING_PAID,
+  BOOKING_NO_SHOW_UPDATED,
+] as const;
+
 export const WORKFLOW_TRIGGER_TYPES = [
   BEFORE_EVENT,
   EVENT_CANCELLED,
@@ -69,6 +87,10 @@ export const ENUM_TO_WORKFLOW_TRIGGER = {
   [WorkflowTriggerEvents.BOOKING_NO_SHOW_UPDATED]: BOOKING_NO_SHOW_UPDATED,
 } as const;
 
+export const ENUM_TO_ROUNTING_FORM_WORKFLOW_TRIGGER = {
+  [WorkflowTriggerEvents.FORM_SUBMITTED]: FORM_SUBMITTED,
+} as const;
+
 export const HOUR = "hour";
 export const MINUTE = "minute";
 export const DAY = "day";
@@ -90,6 +112,8 @@ export const ENUM_TO_TIME_UNIT = {
 } as const;
 
 export type WorkflowTriggerType = (typeof WORKFLOW_TRIGGER_TYPES)[number];
+export type WorkflowEventTypeTriggerType = (typeof EVENT_TYPE_WORKFLOW_TRIGGER_TYPES)[number];
+export type WorkflowFormTriggerType = (typeof FORM_WORKFLOW_TRIGGER_TYPES)[number];
 
 export class WorkflowTriggerOffsetDto {
   @ApiProperty({ description: "Time value for offset before/after event trigger", example: 24, type: Number })
@@ -104,11 +128,20 @@ export class WorkflowTriggerOffsetDto {
 
 export class BaseWorkflowTriggerDto {
   @ApiProperty({
-    description: "Trigger type for the workflow",
+    description: "Trigger type for the event-type workflow",
   })
   @IsString()
-  @IsIn([WORKFLOW_TRIGGER_TYPES])
-  type!: WorkflowTriggerType;
+  @IsIn([EVENT_TYPE_WORKFLOW_TRIGGER_TYPES])
+  type!: WorkflowEventTypeTriggerType;
+}
+
+export class BaseFormWorkflowTriggerDto {
+  @ApiProperty({
+    description: "Trigger type for the routing-form workflow",
+  })
+  @IsString()
+  @IsIn([FORM_WORKFLOW_TRIGGER_TYPES])
+  type!: WorkflowFormTriggerType;
 }
 
 export class OnCreationTriggerDto {
@@ -141,8 +174,6 @@ export class OnRejectedTriggerDto {
   @ApiProperty({
     description: "Trigger type for the workflow",
   })
-  @IsString()
-  @IsIn([BOOKING_REJECTED])
   type: typeof BOOKING_REJECTED = BOOKING_REJECTED;
 }
 
@@ -150,8 +181,6 @@ export class OnRequestedTriggerDto {
   @ApiProperty({
     description: "Trigger type for the workflow",
   })
-  @IsString()
-  @IsIn([BOOKING_REQUESTED])
   type: typeof BOOKING_REQUESTED = BOOKING_REQUESTED;
 }
 
@@ -159,8 +188,6 @@ export class OnPaymentInitiatedTriggerDto {
   @ApiProperty({
     description: "Trigger type for the workflow",
   })
-  @IsString()
-  @IsIn([BOOKING_PAYMENT_INITIATED])
   type: typeof BOOKING_PAYMENT_INITIATED = BOOKING_PAYMENT_INITIATED;
 }
 
@@ -168,8 +195,6 @@ export class OnPaidTriggerDto {
   @ApiProperty({
     description: "Trigger type for the workflow",
   })
-  @IsString()
-  @IsIn([BOOKING_PAID])
   type: typeof BOOKING_PAID = BOOKING_PAID;
 }
 
@@ -177,8 +202,6 @@ export class OnNoShowUpdateTriggerDto {
   @ApiProperty({
     description: "Trigger type for the workflow",
   })
-  @IsString()
-  @IsIn([BOOKING_NO_SHOW_UPDATED])
   type: typeof BOOKING_NO_SHOW_UPDATED = BOOKING_NO_SHOW_UPDATED;
 }
 

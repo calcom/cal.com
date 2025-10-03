@@ -9,7 +9,7 @@ import "react-phone-number-input/style.css";
 import type { RetellAgentWithDetails } from "@calcom/features/calAIPhone/providers/retellAI";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import PhoneInput from "@calcom/features/components/phone-input";
-import { SENDER_ID } from "@calcom/lib/constants";
+import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { formatPhoneNumber } from "@calcom/lib/formatPhoneNumber";
 import { useHasActiveTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -43,6 +43,7 @@ import { Editor } from "@calcom/ui/components/editor";
 import { CheckboxField } from "@calcom/ui/components/form";
 import { EmailField } from "@calcom/ui/components/form";
 import { TextArea } from "@calcom/ui/components/form";
+import { Input } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
@@ -101,6 +102,8 @@ type WorkflowStepProps = {
     isOrganization: boolean;
     isCalAi: boolean;
   }[];
+  updateTemplate: boolean;
+  setUpdateTemplate: Dispatch<SetStateAction<boolean>>;
 };
 
 const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
@@ -169,6 +172,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     setIsDeleteStepDialogOpen,
     onSaveWorkflow,
     actionOptions,
+    updateTemplate,
+    setUpdateTemplate,
   } = props;
   const { data: _verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
     { teamId },
@@ -259,7 +264,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     WorkflowActions.SMS_NUMBER === action || WorkflowActions.WHATSAPP_NUMBER === action;
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(requirePhoneNumber);
 
-  const [updateTemplate, setUpdateTemplate] = useState(false);
   const [firstRender, setFirstRender] = useState(true);
 
   const senderNeeded =
@@ -369,44 +373,14 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const hasAiAction = hasCalAIAction(steps);
   const hasSMSAction = steps.some((s) => isSMSAction(s.action));
+  const hasWhatsappAction = steps.some((s) => isWhatsappAction(s.action));
   const hasEmailToHostAction = steps.some((s) => s.action === WorkflowActions.EMAIL_HOST);
 
-  const disallowFormTriggers = hasAiAction || hasSMSAction || hasEmailToHostAction;
+  const disallowFormTriggers = hasAiAction || hasSMSAction || hasEmailToHostAction || hasWhatsappAction;
 
   const filteredTriggerOptions = triggerOptions.filter(
     (option) => !(isFormTrigger(option.value) && disallowFormTriggers)
   );
-
-  if (step && !form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
-    const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
-
-    // Skip setting reminderBody for CAL_AI actions since they don't need email templates
-    if (!isCalAIAction(action)) {
-      const template = getTemplateBodyForAction({
-        action,
-        locale: i18n.language,
-        t,
-        template: step.template ?? WorkflowTemplates.REMINDER,
-        timeFormat,
-      });
-      form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, template);
-    }
-  }
-
-  if (step && !form.getValues(`steps.${step.stepNumber - 1}.emailSubject`)) {
-    const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
-    // Skip setting emailSubject for CAL_AI actions since they don't need email subjects
-    if (!isCalAIAction(action)) {
-      const subjectTemplate = emailReminderTemplate({
-        isEditingMode: true,
-        locale: i18n.language,
-        t,
-        action: action,
-        timeFormat,
-      }).emailSubject;
-      form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectTemplate);
-    }
-  }
 
   const { ref: emailSubjectFormRef, ...restEmailSubjectForm } = step
     ? form.register(`steps.${step.stepNumber - 1}.emailSubject`)
@@ -427,9 +401,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [numberVerified, setNumberVerified] = useState(getNumberVerificationStatus());
   const [emailVerified, setEmailVerified] = useState(getEmailVerificationStatus());
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => setNumberVerified(getNumberVerificationStatus()), [verifiedNumbers.length]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => setEmailVerified(getEmailVerificationStatus()), [verifiedEmails.length]);
 
   const addVariableEmailSubject = (variable: string) => {
@@ -818,6 +790,47 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               }}
             />
           </div>
+          {!isWhatsappAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) &&
+            !isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
+              <div>
+                {_isSenderIsNeeded ? (
+                  <>
+                    <div className="pt-4">
+                      <div className="flex items-center">
+                        <Label>{t("sender_id")}</Label>
+                      </div>
+                      <Input
+                        type="text"
+                        placeholder={SENDER_ID}
+                        disabled={props.readOnly}
+                        maxLength={11}
+                        {...form.register(`steps.${step.stepNumber - 1}.sender`)}
+                      />
+                      <div className="mt-1.5 flex items-center gap-1">
+                        <Icon name="info" size="10" className="text-gray-500" />
+                        <div className="text-subtle text-xs">{t("sender_id_info")}</div>
+                      </div>
+                    </div>
+                    {form.formState.errors.steps &&
+                      form.formState?.errors?.steps[step.stepNumber - 1]?.sender && (
+                        <p className="text-error mt-1 text-xs">{t("sender_id_error_message")}</p>
+                      )}
+                  </>
+                ) : (
+                  <>
+                    <div className="pt-4">
+                      <Label>{t("sender_name")}</Label>
+                      <Input
+                        type="text"
+                        disabled={props.readOnly}
+                        placeholder={SENDER_NAME}
+                        {...form.register(`steps.${step.stepNumber - 1}.senderName`)}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           {isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && !stepAgentId && (
             <div className="bg-muted border-muted mt-2 rounded-2xl border p-3">
               <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center sm:gap-0">
@@ -1261,7 +1274,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           option.needsTeamsUpgrade &&
                           !isSMSAction(form.getValues(`steps.${step.stepNumber - 1}.action`)),
                       }))}
-                      //eslint-disable-next-line @typescript-eslint/no-explicit-any
                       isOptionDisabled={(option: {
                         label: string;
                         value: string;
@@ -1319,9 +1331,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </Label>
               </div>
               <Editor
-                getText={() => {
-                  return props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
-                }}
+                getText={() => props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || ""}
                 setText={(text: string) => {
                   props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
                   props.form.clearErrors();
