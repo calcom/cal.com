@@ -32,7 +32,7 @@ export const Label = (props: JSX.IntrinsicElements["label"] & { disabled?: boole
   <label
     {...props}
     className={classNames(
-      "text-emphasis ms-2 w-full text-sm font-medium leading-5",
+      "text-emphasis ms-3 w-full text-sm font-medium leading-6",
       props.disabled && "text-subtle"
     )}
   />
@@ -55,8 +55,8 @@ export const RadioField = ({
 }) => (
   <div
     className={classNames(
-      "flex items-start",
-      withPadding && "hover:bg-subtle cursor-pointer rounded-lg p-1.5",
+      "flex items-start py-1.5",
+      withPadding && "hover:bg-subtle cursor-pointer rounded-lg p-2",
       className
     )}>
     <Radio value={value} disabled={disabled} id={id}>

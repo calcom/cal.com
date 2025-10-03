@@ -119,7 +119,7 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
   const textValue = value || "";
   return (
     <TextField
-      size="sm"
+      size="md"
       containerClassName="w-full mb-2"
       type={type}
       value={textValue}
@@ -136,7 +136,7 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
 function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentPropsRAQB) {
   return (
     <TextField
-      size="sm"
+      size="md"
       type="number"
       labelSrOnly={remainingProps.noLabel}
       containerClassName="w-full"

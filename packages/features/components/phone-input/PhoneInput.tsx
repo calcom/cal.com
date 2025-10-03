@@ -48,8 +48,7 @@ function BasePhoneInput({
     if (value !== sanitized) {
       onChange(sanitized);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [value, onChange]);
 
   if (!isPlatform) {
     return (
@@ -73,10 +72,10 @@ function BasePhoneInput({
         onChange(`+${val}`);
       }}
       containerClass={classNames(
-        "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-default disabled:cursor-not-allowed",
+        "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default rounded-[10px] border focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-default disabled:cursor-not-allowed h-10",
         className
       )}
-      inputClass="text-sm focus:ring-0 !bg-default text-default placeholder:text-muted"
+      inputClass="text-sm focus:ring-0 !bg-default text-default placeholder:text-muted h-10"
       buttonClass="text-emphasis !bg-default hover:!bg-emphasis"
       searchClass="!text-default !bg-default hover:!bg-emphasis"
       dropdownClass="!text-default !bg-default"
@@ -85,10 +84,10 @@ function BasePhoneInput({
         display: "flex",
         flexDirection: "row",
         alignItems: "center",
-        padding: "6px 12px",
+        padding: "8px 12px",
         gap: "8px",
         width: "296px",
-        height: "28px",
+        height: "40px",
         marginLeft: "-4px",
       }}
       dropdownStyle={{ width: "max-content" }}
@@ -123,10 +122,10 @@ function BasePhoneInputWeb({
         onChange(`+${val}`);
       }}
       containerClass={classNames(
-        "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-default disabled:cursor-not-allowed",
+        "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default rounded-[10px] border focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-default disabled:cursor-not-allowed h-10",
         className
       )}
-      inputClass="text-sm focus:ring-0 !bg-default text-default placeholder:text-muted"
+      inputClass="text-sm focus:ring-0 !bg-default text-default placeholder:text-muted h-10"
       buttonClass="text-emphasis !bg-default hover:!bg-emphasis"
       buttonStyle={{ ...flagButtonStyle }}
       searchClass="!text-default !bg-default hover:!bg-emphasis"
@@ -136,10 +135,10 @@ function BasePhoneInputWeb({
         display: "flex",
         flexDirection: "row",
         alignItems: "center",
-        padding: "6px 12px",
+        padding: "8px 12px",
         gap: "8px",
         width: "296px",
-        height: "28px",
+        height: "40px",
         marginLeft: "-4px",
       }}
       dropdownStyle={{ width: "max-content" }}
@@ -162,9 +161,11 @@ const useDefaultCountry = () => {
         return;
       }
 
-      isSupportedCountry(data?.countryCode)
-        ? setDefaultCountry(data.countryCode.toLowerCase())
-        : setDefaultCountry(navigator.language.split("-")[1]?.toLowerCase() || "us");
+      if (isSupportedCountry(data?.countryCode)) {
+        setDefaultCountry(data.countryCode.toLowerCase());
+      } else {
+        setDefaultCountry(navigator.language.split("-")[1]?.toLowerCase() || "us");
+      }
     },
     [query.data]
   );
