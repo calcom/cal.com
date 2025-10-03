@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import type { Team } from "@calcom/prisma/client";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { PanelCard } from "@calcom/ui/components/card";
@@ -11,12 +12,12 @@ import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
-type Metadata = Record<string, any>;
-
 const EDITABLE_KEYS = ["paymentId", "subscriptionId", "subscriptionItemId"];
 
+type Metadata = z.infer<typeof teamMetadataSchema>;
+
 type AdminMetadataProps = {
-  metadata: Team["metadata"];
+  metadata: Metadata;
   entityType?: "team" | "organization";
   onUpdate?: (metadata: Record<string, string>) => Promise<void>;
   canEdit?: boolean;
@@ -131,14 +132,14 @@ export const AdminMetadata = ({
     }
   };
 
-  const getDisplayValue = (key: string, value: any): string => {
+  const getDisplayValue = (key: string, value: unknown): string => {
     if (isEditing && EDITABLE_KEYS.includes(key)) {
       return editedValues[key] !== undefined ? editedValues[key] : value ?? "";
     }
     return value ?? "";
   };
 
-  const renderStaticValue = (value: any): React.ReactNode => {
+  const renderStaticValue = (value: unknown): React.ReactNode => {
     if (value === null || value === undefined) {
       return <span className="text-subtle italic">null</span>;
     }

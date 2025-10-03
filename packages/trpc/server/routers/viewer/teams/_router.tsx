@@ -39,9 +39,6 @@ import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateInternalNotesPresetsInputSchema } from "./updateInternalNotesPresets.schema";
 import { ZUpdateMembershipInputSchema } from "./updateMembership.schema";
 
-const NAMESPACE = "teams";
-const namespaced = (s: string) => `${NAMESPACE}.${s}`;
-
 export const viewerTeamsRouter = router({
   // Retrieves team by id
   get: authedProcedure.input(ZGetSchema).query(async (opts) => {
