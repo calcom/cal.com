@@ -366,14 +366,16 @@ export default function ToolbarPlugin(props: TextEditorProps) {
     if (props.setFirstRender) {
       props.setFirstRender(false);
       editor.update(() => {
+        const currentContent = $getRoot().getTextContent().trim();
+        if (currentContent) {
+          return;
+        }
         const parser = new DOMParser();
         const dom = parser.parseFromString(props.getText(), "text/html");
 
         const nodes = $generateNodesFromDOM(editor, dom);
 
-        const root = $getRoot();
-        root.clear();
-        root.select();
+        $getRoot().select();
         try {
           $insertNodes(nodes);
         } catch {
@@ -398,7 +400,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
         });
       });
     }
-  }, [props.setFirstRender]);
+  }, []);
 
   useEffect(() => {
     return mergeRegister(
