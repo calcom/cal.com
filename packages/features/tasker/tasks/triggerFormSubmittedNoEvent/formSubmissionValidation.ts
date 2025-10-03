@@ -1,3 +1,5 @@
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import prisma from "@calcom/prisma";
 
 export interface ValidationOptions {
@@ -18,10 +20,12 @@ export interface ValidationResult {
 export async function shouldTriggerFormSubmittedNoEvent(options: ValidationOptions) {
   const { formId, responseId, responses, submittedAt } = options;
 
-  // Check if a booking was created from this form response
-  const bookingExists = await hasBooking(responseId);
+  const bookingRepository = new BookingRepository(prisma);
 
-  if (bookingExists) return false;
+  // Check if a booking was created from this form response
+  const bookingFromResponse = await bookingRepository.findFirstBookingFromResponse({ responseId });
+
+  if (bookingFromResponse) return false;
 
   // Check for duplicate form submissions
   const hasDuplicate = await hasDuplicateSubmission({ formId, responseId, responses, submittedAt });
@@ -30,24 +34,6 @@ export async function shouldTriggerFormSubmittedNoEvent(options: ValidationOptio
   }
 
   return true;
-}
-
-/**
- * Check if a booking was created from this form response
- */
-async function hasBooking(responseId: number): Promise<boolean> {
-  const bookingFromResponse = await prisma.booking.findFirst({
-    where: {
-      routedFromRoutingFormReponse: {
-        id: responseId,
-      },
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  return !!bookingFromResponse;
 }
 
 export function getSubmitterEmail(responses: any) {
@@ -80,27 +66,15 @@ async function hasDuplicateSubmission({
   if (!submitterEmail) return false;
 
   const date = submittedAt ?? new Date();
+  const formResponseRepository = new RoutingFormResponseRepository(prisma);
 
   const sixtyMinutesAgo = new Date(date.getTime() - 60 * 60 * 1000);
 
-  const recentResponses = await prisma.app_RoutingForms_FormResponse.findMany({
-    where: {
-      formId,
-      createdAt: {
-        gte: sixtyMinutesAgo,
-        lt: new Date(),
-      },
-      routedToBookingUid: {
-        not: null,
-      },
-      NOT: {
-        id: responseId,
-      },
-    },
-    select: {
-      id: true,
-      response: true,
-    },
+  const recentResponses = await formResponseRepository.findAllResponsesWithBooking({
+    formId,
+    responseId,
+    createdAfter: sixtyMinutesAgo,
+    createdBefore: new Date(),
   });
 
   // Check if there's a duplicate email in recent responses
