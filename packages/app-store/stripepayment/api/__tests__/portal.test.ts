@@ -54,7 +54,7 @@ describe("Portal API - Service-Based Architecture", () => {
           user: { id: 123 },
           hasValidLicense: true,
           upId: "test-upid",
-          expires: "2024-12-31T23:59:59.999Z"
+          expires: "2024-12-31T23:59:59.999Z",
         } as Session,
       } as RequestWithSession;
 
@@ -77,7 +77,7 @@ describe("Portal API - Service-Based Architecture", () => {
           user: {} as any,
           hasValidLicense: true,
           upId: "test-upid",
-          expires: "2024-12-31T23:59:59.999Z"
+          expires: "2024-12-31T23:59:59.999Z",
         } as Session,
       } as RequestWithSession;
 

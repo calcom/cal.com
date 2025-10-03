@@ -1,5 +1,9 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { OPTIONAL_API_KEY_HEADER, OPTIONAL_X_CAL_CLIENT_ID_HEADER, OPTIONAL_X_CAL_SECRET_KEY_HEADER } from "@/lib/docs/headers";
+import {
+  OPTIONAL_API_KEY_HEADER,
+  OPTIONAL_X_CAL_CLIENT_ID_HEADER,
+  OPTIONAL_X_CAL_SECRET_KEY_HEADER,
+} from "@/lib/docs/headers";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
@@ -11,9 +15,7 @@ import { Controller, UseGuards, Post, Param, ParseIntPipe, HttpCode, HttpStatus 
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-
 import { TeamService } from "@calcom/platform-libraries";
-
 
 import { CreateInviteOutputDto } from "./outputs/invite.output";
 
@@ -39,5 +41,3 @@ export class OrganizationsTeamsInviteController {
     return { status: SUCCESS_STATUS, data: result };
   }
 }
-
-

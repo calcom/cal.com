@@ -11,8 +11,8 @@ import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { prisma } from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
 import type { Membership } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -269,13 +269,7 @@ export class TeamService {
 
     await updateNewTeamMemberEventTypes(userId, teamId);
   }
-  static async leaveTeamMembership({
-    userId,
-    teamId,
-  }: {
-    userId: number;
-    teamId: number;
-  }) {
+  static async leaveTeamMembership({ userId, teamId }: { userId: number; teamId: number }) {
     try {
       const membership = await prisma.membership.delete({
         where: {

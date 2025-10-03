@@ -1,13 +1,21 @@
-import { PrismaClient, type Prisma } from "@calcom/prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 
 import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency-key";
+import { bookingReferenceExtension } from "./extensions/booking-reference";
 import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallow-undefined-delete-update-many";
 import { excludeLockedUsersExtension } from "./extensions/exclude-locked-users";
 import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-payment-teams";
 import { usageTrackingExtention } from "./extensions/usage-tracking";
-import { bookingReferenceMiddleware } from "./middleware";
+import { PrismaClient, type Prisma } from "./generated/prisma/client";
 
-const prismaOptions: Prisma.PrismaClientOptions = {};
+const connectionString = process.env.DATABASE_URL || "";
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+
+const prismaOptions: Prisma.PrismaClientOptions = {
+  adapter,
+};
 
 const globalForPrisma = global as unknown as {
   baseClient: PrismaClient;
@@ -36,17 +44,32 @@ if (!isNaN(loggerLevel)) {
 
 const baseClient = globalForPrisma.baseClient || new PrismaClient(prismaOptions);
 
-export const customPrisma = (options?: Prisma.PrismaClientOptions) =>
-  new PrismaClient({ ...prismaOptions, ...options })
+export const customPrisma = (options?: Prisma.PrismaClientOptions) => {
+  let finalOptions = { ...prismaOptions };
+
+  if (options?.datasources?.db?.url) {
+    const customConnectionString = options.datasources.db.url;
+    const customPool = new Pool({ connectionString: customConnectionString });
+    const customAdapter = new PrismaPg(customPool);
+
+    const { datasources: _datasources, ...restOptions } = options;
+    finalOptions = {
+      ...prismaOptions,
+      ...restOptions,
+      adapter: customAdapter,
+    };
+  } else if (options) {
+    finalOptions = { ...prismaOptions, ...options };
+  }
+
+  return new PrismaClient(finalOptions)
     .$extends(usageTrackingExtention(baseClient))
     .$extends(excludeLockedUsersExtension())
     .$extends(excludePendingPaymentsExtension())
     .$extends(bookingIdempotencyKeyExtension())
+    .$extends(bookingReferenceExtension())
     .$extends(disallowUndefinedDeleteUpdateManyExtension()) as unknown as PrismaClient;
-
-// If any changed on middleware server restart is required
-// TODO: Migrate it to $extends
-bookingReferenceMiddleware(baseClient);
+};
 
 // FIXME: Due to some reason, there are types failing in certain places due to the $extends. Fix it and then enable it
 // Specifically we get errors like `Type 'string | Date | null | undefined' is not assignable to type 'Exact<string | Date | null | undefined, string | Date | null | undefined>'`
@@ -58,6 +81,7 @@ export const prisma: PrismaClient = baseClient
   .$extends(excludeLockedUsersExtension())
   .$extends(excludePendingPaymentsExtension())
   .$extends(bookingIdempotencyKeyExtension())
+  .$extends(bookingReferenceExtension())
   .$extends(disallowUndefinedDeleteUpdateManyExtension()) as unknown as PrismaClient;
 
 // This prisma instance is meant to be used only for READ operations.

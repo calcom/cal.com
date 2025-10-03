@@ -517,7 +517,7 @@ export const getOptions = ({
       }
       const autoMergeIdentities = async () => {
         const existingUser = await prisma.user.findFirst({
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+           
           where: { email: token.email! },
           select: {
             id: true,

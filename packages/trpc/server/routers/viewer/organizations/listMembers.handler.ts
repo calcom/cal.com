@@ -25,7 +25,7 @@ const isAllString = (array: (string | number)[]): array is string[] => {
   return array.every((value) => typeof value === "string");
 };
 function getUserConditions(oAuthClientId?: string) {
-  if (!!oAuthClientId) {
+  if (oAuthClientId) {
     return {
       platformOAuthClients: {
         some: { id: oAuthClientId },

@@ -314,6 +314,7 @@
       "dependsOn": ["@calcom/prisma#db-up"]
     },
     "@calcom/trpc#build": {
+      "cache": false,
       "outputs": ["./types"]
     },
     "@calcom/web#build": {

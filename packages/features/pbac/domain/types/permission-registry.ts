@@ -120,7 +120,7 @@ export const isValidPermissionString = (val: unknown): val is PermissionString =
  * @returns A new object without the _resource property
  */
 export const filterResourceConfig = (config: ResourceConfig): Omit<ResourceConfig, "_resource"> => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   const { _resource, ...rest } = config;
   return rest;
 };
@@ -147,7 +147,8 @@ export const getPermissionsForScope = (scope: Scope, isPrivate?: boolean): Permi
       const scopeMatches = !permissionDetails.scope || permissionDetails.scope.includes(scope);
 
       // Check privacy visibility (only if isPrivate is provided)
-      const privacyMatches = teamPrivacy === undefined ||
+      const privacyMatches =
+        teamPrivacy === undefined ||
         !permissionDetails.visibleWhen?.teamPrivacy ||
         permissionDetails.visibleWhen.teamPrivacy === "both" ||
         permissionDetails.visibleWhen.teamPrivacy === teamPrivacy;

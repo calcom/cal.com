@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-restricted-imports
+ 
 import { orderBy } from "lodash";
 
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
@@ -123,7 +123,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
       ...eventType,
       safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
       users: await Promise.all(
-        (!!eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
+        (eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
           async (u) =>
             await userRepo.enrichUserWithItsProfile({
               user: u,

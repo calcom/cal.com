@@ -2,6 +2,8 @@ import { MembershipsRepository } from "@/modules/memberships/memberships.reposit
 import { Injectable } from "@nestjs/common";
 import { intersectionBy } from "lodash";
 
+import type { Membership } from "@calcom/prisma/client";
+
 @Injectable()
 export class MembershipsService {
   constructor(private readonly membershipsRepository: MembershipsRepository) {}
@@ -16,8 +18,8 @@ export class MembershipsService {
     const secondUserMemberships = await this.membershipsRepository.findUserMemberships(secondUserId);
 
     return intersectionBy(
-      firstUserMemberships.filter((m) => m.accepted),
-      secondUserMemberships.filter((m) => m.accepted),
+      firstUserMemberships.filter((m: Membership) => m.accepted),
+      secondUserMemberships.filter((m: Membership) => m.accepted),
       "teamId"
     );
   }
