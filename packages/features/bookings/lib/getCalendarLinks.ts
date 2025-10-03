@@ -168,7 +168,6 @@ export const getCalendarLinks = ({
   let evtName = eventType.eventName;
   const videoCallUrl = bookingMetadataSchema.parse(booking?.metadata || {})?.videoCallUrl ?? null;
 
-  // For seated events, get data from the first attendee's bookingSeat
   const bookingData = (booking.attendees?.[0]?.bookingSeat?.data || booking.responses) as Prisma.JsonObject;
 
   if (eventType.isDynamic && bookingData.title) {
