@@ -2279,7 +2279,7 @@ enum WatchlistSource {
 }
 
 model Watchlist {
-  id             String          @id @unique @default(cuid())
+  id             String          @id @default(uuid()) @db.Uuid
   type           WatchlistType
   value          String
   description    String?
@@ -2294,7 +2294,7 @@ model Watchlist {
 }
 
 model WatchlistAudit {
-  id          String        @id @unique @default(cuid())
+  id          String        @id @default(uuid(7)) @db.Uuid
   type        WatchlistType
   value       String
   description String?
@@ -2310,7 +2310,7 @@ model WatchlistAudit {
 }
 
 model WatchlistEventAudit {
-  id          String          @id @default(cuid())
+  id          String          @id @default(uuid(7)) @db.Uuid
   watchlistId String
   eventTypeId Int
   actionTaken WatchlistAction
