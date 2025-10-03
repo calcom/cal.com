@@ -1,12 +1,12 @@
 import type Stripe from "stripe";
 
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { prisma } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TAdminGetTeamBilling } from "./adminGetBilling.schema";
+import { adminFindTeamById } from "./adminUtils";
 
 type AdminGetTeamBillingOptions = {
   ctx: {
@@ -16,8 +16,7 @@ type AdminGetTeamBillingOptions = {
 };
 
 export const adminGetTeamBillingHandler = async ({ input }: AdminGetTeamBillingOptions) => {
-  const teamRepository = new TeamRepository(prisma);
-  const team = await teamRepository.adminFindById({ id: input.id });
+  const team = await adminFindTeamById(prisma, input.id);
   const parsedMetadata = teamMetadataSchema.parse(team.metadata);
 
   let subscriptionDetails = null;

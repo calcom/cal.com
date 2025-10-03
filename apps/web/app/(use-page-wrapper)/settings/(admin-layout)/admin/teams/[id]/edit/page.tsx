@@ -5,8 +5,8 @@ import { z } from "zod";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { AdminTeamEditPage } from "@calcom/features/teams/pages/admin/AdminTeamEditPage";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { prisma } from "@calcom/prisma";
+import { adminFindTeamById } from "@calcom/trpc/server/routers/viewer/teams/adminUtils";
 
 const teamIdSchema = z.object({ id: z.coerce.number() });
 
@@ -22,8 +22,7 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
     );
   }
 
-  const teamRepository = new TeamRepository(prisma);
-  const team = await teamRepository.adminFindById({ id: input.data.id });
+  const team = await adminFindTeamById(prisma, input.data.id);
 
   return await _generateMetadata(
     (t) => `${t("editing_team")}: ${team.name}`,
@@ -39,8 +38,7 @@ const Page = async ({ params }: { params: Params }) => {
 
   if (!input.success) throw new Error("Invalid access");
 
-  const teamRepository = new TeamRepository(prisma);
-  const team = await teamRepository.adminFindById({ id: input.data.id });
+  const team = await adminFindTeamById(prisma, input.data.id);
   const t = await getTranslate();
 
   return (

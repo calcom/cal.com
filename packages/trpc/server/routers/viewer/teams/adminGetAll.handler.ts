@@ -1,8 +1,8 @@
-import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { prisma } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TAdminGetAllTeamsInput } from "./adminGetAll.schema";
+import { adminFindAllTeams } from "./adminUtils";
 
 type AdminGetAllTeamsOptions = {
   ctx: {
@@ -12,9 +12,7 @@ type AdminGetAllTeamsOptions = {
 };
 
 export const adminGetAllTeamsHandler = async ({ input }: AdminGetAllTeamsOptions) => {
-  const teamRepository = new TeamRepository(prisma);
-
-  return await teamRepository.adminFindAll({
+  return await adminFindAllTeams(prisma, {
     limit: input.limit,
     offset: input.offset,
     searchTerm: input.searchTerm,
