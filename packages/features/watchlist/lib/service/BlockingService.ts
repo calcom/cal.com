@@ -5,12 +5,12 @@ import type {
   DecoyBookingResponse,
   BookingData,
 } from "../interface/IBlockingService";
-import type { IWatchlistReadRepository } from "../interface/IWatchlistRepositories";
+import type { IWatchlistRepository } from "../interface/IWatchlistRepositories";
 import { WatchlistType } from "../types";
 
 export class BlockingService implements IBlockingService {
   constructor(
-    private readonly watchlistRepository: IWatchlistReadRepository,
+    private readonly watchlistRepository: IWatchlistRepository,
     private readonly auditService: IAuditService
   ) {}
 

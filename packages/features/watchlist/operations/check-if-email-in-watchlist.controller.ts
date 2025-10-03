@@ -1,6 +1,6 @@
 import { startSpan } from "@sentry/nextjs";
 
-import { getWatchlistReadRepository } from "@calcom/lib/di/watchlist/containers/watchlist";
+import { getWatchlistRepository } from "@calcom/features/di/watchlist/containers/watchlist";
 
 import type { EmailBlockedCheckResponseDTO } from "../lib/dto";
 
@@ -27,7 +27,7 @@ export async function checkIfEmailIsBlockedInWatchlistController(
 ): Promise<EmailBlockedCheckResponseDTO> {
   return await startSpan({ name: "checkIfEmailInWatchlist Controller" }, async () => {
     const lowercasedEmail = email.toLowerCase();
-    const watchlistRepository = getWatchlistReadRepository();
+    const watchlistRepository = getWatchlistRepository();
     const watchlistedEmail = await watchlistRepository.getBlockedEmailInWatchlist(lowercasedEmail);
     return presenter(!!watchlistedEmail);
   });
