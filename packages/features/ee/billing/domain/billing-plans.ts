@@ -30,6 +30,8 @@ export class BillingPlanService {
       };
     }[]
   ) {
+    const localReferenceToBillingPlan = BillingPlan;
+
     if (memberships.length === 0) return BillingPlan.INDIVIDUALS;
 
     for (const { team, user } of memberships) {
@@ -74,6 +76,8 @@ export class BillingPlanService {
         }
       }
     }
-    return BillingPlan.UNKNOWN;
+    // Use a local reference because I don't know why Turbopack isn't able to correctly change the variable name for BillingPlan for this statement.
+    // Making a localReference avoids the need to do that change by turbopack and thus fixes the local run-time issue
+    return localReferenceToBillingPlan.UNKNOWN;
   }
 }
