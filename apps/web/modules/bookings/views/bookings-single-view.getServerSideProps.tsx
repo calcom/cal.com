@@ -115,18 +115,21 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   bookingInfo["startTime"] = (bookingInfo?.startTime as Date)?.toISOString() as unknown as Date;
   bookingInfo["endTime"] = (bookingInfo?.endTime as Date)?.toISOString() as unknown as Date;
 
-  eventTypeRaw.users = !!eventTypeRaw.hosts?.length
+  eventTypeRaw.users = eventTypeRaw.hosts?.length
     ? eventTypeRaw.hosts.map((host) => host.user)
     : eventTypeRaw.users;
 
   if (!eventTypeRaw.users.length) {
-    if (!eventTypeRaw.owner)
-      return {
-        notFound: true,
-      } as const;
-    eventTypeRaw.users.push({
-      ...eventTypeRaw.owner,
-    });
+    if (!eventTypeRaw.owner) {
+      // Fall back to the booking's user data instead of 404
+      if (bookingInfoRaw.user) {
+        eventTypeRaw.users.push(bookingInfoRaw.user);
+      } else {
+        return { notFound: true } as const;
+      }
+    } else {
+      eventTypeRaw.users.push({ ...eventTypeRaw.owner });
+    }
   }
 
   const eventType = {
