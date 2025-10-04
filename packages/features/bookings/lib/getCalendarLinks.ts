@@ -147,7 +147,7 @@ export const getCalendarLinks = ({
     title: string;
     responses: Prisma.JsonValue;
     metadata: Prisma.JsonValue;
-    attendees?: Array<{ bookingSeat?: { data: Prisma.JsonValue } | null }>;
+    attendees?: Array<{ bookingSeat?: { data: Prisma.JsonValue } | null } & Record<string, unknown>>;
   };
   eventType: {
     recurringEvent: RecurringEventOrPrismaJsonObject;
