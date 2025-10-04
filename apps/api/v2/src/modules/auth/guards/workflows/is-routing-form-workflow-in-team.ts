@@ -9,7 +9,7 @@ import {
 import { Request } from "express";
 
 @Injectable()
-export class IsWorkflowInTeam implements CanActivate {
+export class IsRoutingFormWorkflowInTeam implements CanActivate {
   constructor(private workflowsRepository: WorkflowsRepository) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -41,10 +41,13 @@ export class IsWorkflowInTeam implements CanActivate {
     teamId: string,
     workflowId: string
   ): Promise<{ canAccess: boolean; workflow?: WorkflowType }> {
-    const workflow = await this.workflowsRepository.getTeamWorkflowById(Number(teamId), Number(workflowId));
+    const workflow = await this.workflowsRepository.getRoutingFormTeamWorkflowById(
+      Number(teamId),
+      Number(workflowId)
+    );
 
     if (!workflow) {
-      throw new NotFoundException(`IsWorkflowInTeam - workflow (${workflowId}) not found.`);
+      throw new NotFoundException(`IsWorkflowInTeam - routing form workflow (${workflowId}) not found.`);
     }
 
     if (workflow.teamId === Number(teamId)) {

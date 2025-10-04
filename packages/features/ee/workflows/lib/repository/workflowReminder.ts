@@ -31,4 +31,20 @@ export class WorkflowReminderRepository {
       },
     });
   }
+
+  static async findWorkflowRemindersByStepId(workflowStepId: number) {
+    return await prisma.workflowReminder.findMany({
+      where: { workflowStepId },
+      select: {
+        id: true,
+        referenceId: true,
+        method: true,
+        booking: {
+          select: {
+            eventTypeId: true,
+          },
+        },
+      },
+    });
+  }
 }

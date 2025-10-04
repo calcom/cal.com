@@ -9,7 +9,11 @@ import { updateWorkflow } from "@calcom/platform-libraries/workflows";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Workflow, WorkflowStep } from "@calcom/prisma/client";
 
-export type WorkflowType = Workflow & { activeOn: { eventTypeId: number }[]; steps: WorkflowStep[] };
+export type WorkflowType = Workflow & {
+  activeOn: { eventTypeId: number }[];
+  steps: WorkflowStep[];
+  activeOnRoutingForms: { routingFormId: string }[];
+};
 
 @Injectable()
 export class WorkflowsRepository {
@@ -19,29 +23,68 @@ export class WorkflowsRepository {
     return await this.dbWrite.prisma.workflow.delete({ where: { id: workflowId, teamId } });
   }
 
-  async getTeamWorkflowById(teamId: number, id: number): Promise<WorkflowType | null> {
+  async getEventTypeTeamWorkflowById(teamId: number, id: number): Promise<WorkflowType | null> {
     const workflow = await this.dbRead.prisma.workflow.findUnique({
       where: {
         id: id,
         teamId: teamId,
+        type: "EVENT_TYPE",
       },
       include: {
         steps: true,
         activeOn: { select: { eventTypeId: true } },
+        activeOnRoutingForms: { select: { routingFormId: true } },
       },
     });
 
     return workflow;
   }
 
-  async getTeamWorkflows(teamId: number, skip: number, take: number): Promise<WorkflowType[]> {
-    const workflows = await this.dbRead.prisma.workflow.findMany({
+  async getRoutingFormTeamWorkflowById(teamId: number, id: number): Promise<WorkflowType | null> {
+    const workflow = await this.dbRead.prisma.workflow.findUnique({
       where: {
+        id: id,
         teamId: teamId,
+        type: "ROUTING_FORM",
       },
       include: {
         steps: true,
         activeOn: { select: { eventTypeId: true } },
+        activeOnRoutingForms: { select: { routingFormId: true } },
+      },
+    });
+
+    return workflow;
+  }
+
+  async getEventTypeTeamWorkflows(teamId: number, skip: number, take: number): Promise<WorkflowType[]> {
+    const workflows = await this.dbRead.prisma.workflow.findMany({
+      where: {
+        teamId: teamId,
+        type: "EVENT_TYPE",
+      },
+      include: {
+        steps: true,
+        activeOn: { select: { eventTypeId: true } },
+        activeOnRoutingForms: { select: { routingFormId: true } },
+      },
+      skip,
+      take,
+    });
+
+    return workflows;
+  }
+
+  async getRoutingFormTeamWorkflows(teamId: number, skip: number, take: number): Promise<WorkflowType[]> {
+    const workflows = await this.dbRead.prisma.workflow.findMany({
+      where: {
+        teamId: teamId,
+        type: "ROUTING_FORM",
+      },
+      include: {
+        steps: true,
+        activeOn: { select: { eventTypeId: true } },
+        activeOnRoutingForms: { select: { routingFormId: true } },
       },
       skip,
       take,
@@ -59,11 +102,11 @@ export class WorkflowsRepository {
         timeUnit: TimeUnit.HOUR,
         teamId,
       },
-      include: { activeOn: true, steps: true },
+      include: { activeOn: true, steps: true, activeOnRoutingForms: true },
     });
   }
 
-  async updateTeamWorkflow(
+  async updateRoutingFormTeamWorkflow(
     user: UserWithProfile,
     teamId: number,
     workflowId: number,
@@ -77,7 +120,25 @@ export class WorkflowsRepository {
       input: data,
     });
 
-    const workflow = await this.getTeamWorkflowById(teamId, workflowId);
+    const workflow = await this.getRoutingFormTeamWorkflowById(teamId, workflowId);
+    return workflow;
+  }
+
+  async updateEventTypeTeamWorkflow(
+    user: UserWithProfile,
+    teamId: number,
+    workflowId: number,
+    data: TUpdateInputSchema
+  ) {
+    await updateWorkflow({
+      ctx: {
+        user: { ...user, locale: user?.locale ?? "en" },
+        prisma: this.dbWrite.prisma as unknown as PrismaClient,
+      },
+      input: data,
+    });
+
+    const workflow = await this.getEventTypeTeamWorkflowById(teamId, workflowId);
     return workflow;
   }
 }
