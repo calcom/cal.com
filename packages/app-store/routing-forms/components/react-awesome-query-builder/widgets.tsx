@@ -134,29 +134,82 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
 };
 
 function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentPropsRAQB) {
-  // Maintain a raw input value because Number() removes the dot (.) during parsing.
-  // Storing the raw input allows the user to type decimals and negative signs naturally.
   const [rawValue, setRawValue] = useState(value || "");
 
-  const formattedValue = useMemo(() => {
-    // converted to Number because Intl.NumberFormat expect Number
-    const numberValue = Number(rawValue);
+  // Detect locale symbols
+  const language = navigator.language;
+  const nf = useMemo(() => new Intl.NumberFormat(language), [language]);
 
-    // Format the number if:
-    // - It's a valid number (!isNaN)
-    // - It doesn't end with a dot (.) (to allow typing decimals)
-    // - It's not just a minus sign (to allow typing negative numbers)
-    // - It's greater than 0 (to allow empty string input)
-    if (!isNaN(numberValue) && !rawValue.endsWith(".") && rawValue !== "-" && numberValue > 0) {
-      return new Intl.NumberFormat(undefined, {
+  const symbols = useMemo(() => {
+    const parts = nf.formatToParts(-1234567.89);
+    let decimal = ".";
+    let minus = "-";
+    let group: string | null = null;
+
+    for (const p of parts) {
+      if (p.type === "decimal") decimal = p.value;
+      if (p.type === "minusSign") minus = p.value;
+      if (p.type === "group" && !group) group = p.value;
+    }
+
+    return { decimal, minus, group };
+  }, [nf]);
+
+  const formattedValue = useMemo(() => {
+    const numberValue = Number(value);
+
+    if (
+      !isNaN(numberValue) &&
+      !rawValue.endsWith(symbols.decimal) &&
+      rawValue !== symbols.minus &&
+      numberValue > 0
+    ) {
+      return new Intl.NumberFormat(language, {
         minimumFractionDigits: 0,
-        maximumFractionDigits: 14, // allow max 14 because Number only support max 15 decimal
+        maximumFractionDigits: 14,
       }).format(numberValue);
     }
 
     // Return raw input if any of the conditions above fail
     return rawValue;
-  }, [rawValue]);
+  }, [rawValue, language, symbols]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value;
+
+    // Escape special regex characters
+    const escapeRegex = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    // Remove all except digits, decimal, minus, and group separator
+    const allowed = `0-9${escapeRegex(symbols.decimal)}${escapeRegex(symbols.minus)}${
+      symbols.group ? escapeRegex(symbols.group) : ""
+    }`;
+    val = val.replace(new RegExp(`[^${allowed}]`, "g"), "");
+
+    // Only allow leading minus
+    val = val.replace(new RegExp(`(?!^)${escapeRegex(symbols.minus)}`, "g"), "");
+
+    // Keep only first decimal
+    const firstDecimal = val.indexOf(symbols.decimal);
+    if (firstDecimal !== -1) {
+      val =
+        val.substring(0, firstDecimal + 1) +
+        val.substring(firstDecimal + 1).replace(new RegExp(escapeRegex(symbols.decimal), "g"), "");
+    }
+
+    setRawValue(val);
+    console.log(val, "raw val", symbols);
+
+    // Normalize for parent: remove group separators, then replace decimal and minus
+    let normalized = val;
+    if (symbols.group) {
+      normalized = normalized.replace(new RegExp(escapeRegex(symbols.group), "g"), "");
+    }
+    normalized = normalized
+      .replace(new RegExp(escapeRegex(symbols.decimal), "g"), ".")
+      .replace(new RegExp(escapeRegex(symbols.minus), "g"), "-");
+    setValue(normalized);
+  };
 
   return (
     <TextField
@@ -166,20 +219,7 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
       containerClassName="w-full"
       className="mb-2"
       value={formattedValue}
-      onChange={(e) => {
-        let val = e.target.value
-          .replace(/[^0-9.-]+/g, "") // remove all characters except digits, dot and minus
-          .replace(/(?!^)-/g, ""); // only allow leading minus
-
-        // Keep only first dot and remove others
-        const firstDot = val.indexOf(".");
-        if (firstDot !== -1) {
-          val = val.substring(0, firstDot + 1) + val.substring(firstDot + 1).replace(/\./g, "");
-        }
-
-        setRawValue(val); // preserve raw input for editing
-        setValue(val); // pass non formatted value to parent
-      }}
+      onChange={handleChange}
       {...remainingProps}
     />
   );
