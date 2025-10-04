@@ -1,11 +1,11 @@
-import type z from "zod";
-
+import type { z } from "zod";
+import { fieldTypeEnum } from "@calcom/prisma/zod-utils";
 import type { FieldType } from "@calcom/prisma/zod-utils";
 
 import { propsTypes } from "./propsTypes";
 import type { fieldTypeConfigSchema } from "./schema";
 
-const configMap: Record<FieldType, Omit<z.infer<typeof fieldTypeConfigSchema>, "propsType">> = {
+const configMap: Record<z.infer<typeof fieldTypeEnum>, Omit<z.infer<typeof fieldTypeConfigSchema>, "propsType">> = {
   // This won't be stored in DB. It allows UI to be configured from the codebase for all existing booking fields stored in DB as well
   // Candidates for this are:
   // - Anything that you want to show in App UI only.
@@ -165,9 +165,14 @@ const configMap: Record<FieldType, Omit<z.infer<typeof fieldTypeConfigSchema>, "
     value: "url",
     isTextType: true,
   },
+  date: {
+    label: "Date",
+    value: "date",
+    isTextType: true,
+  },
 };
 
-export const fieldTypesConfigMap = configMap as Record<FieldType, z.infer<typeof fieldTypeConfigSchema>>;
+export const fieldTypesConfigMap = configMap as Record<z.infer<typeof fieldTypeEnum>, z.infer<typeof fieldTypeConfigSchema>>;
 
 Object.entries(fieldTypesConfigMap).forEach(([fieldType, config]) => {
   config.propsType = propsTypes[fieldType as keyof typeof fieldTypesConfigMap];
