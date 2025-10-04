@@ -17,6 +17,7 @@ export const getCalEventResponses = ({
   booking,
   responses,
   seatsEnabled,
+  hideCalendarEventDetails = false,
 }: {
   // If the eventType has been deleted and a booking is Accepted later on, then bookingFields will be null and we can't know the label of fields. So, we should store the label as well in the DB
   // Also, it is no longer straightforward to identify if a field is system field or not
@@ -37,6 +38,7 @@ export const getCalEventResponses = ({
   }>;
   responses?: z.infer<typeof bookingResponsesDbSchema>;
   seatsEnabled?: boolean;
+  hideCalendarEventDetails?: boolean;
 }) => {
   const calEventUserFieldsResponses = {} as NonNullable<CalendarEvent["userFieldsResponses"]>;
   const calEventResponses = {} as NonNullable<CalendarEvent["responses"]>;
@@ -47,7 +49,7 @@ export const getCalEventResponses = ({
   if (!backwardCompatibleResponses) throw new Error("Couldn't get responses");
 
   // To set placeholder email for the booking
-  if (!!!backwardCompatibleResponses.email) {
+  if (!backwardCompatibleResponses.email) {
     if (typeof backwardCompatibleResponses["attendeePhoneNumber"] !== "string") {
       log.error(`backwardCompatibleResponses: ${JSON.stringify(backwardCompatibleResponses)}`, {
         responses,
@@ -75,18 +77,25 @@ export const getCalEventResponses = ({
         backwardCompatibleResponses[field.name] = [];
       }
 
+      const shouldHideField =
+        !!field.hidden ||
+        (hideCalendarEventDetails &&
+          (field.name === "email" ||
+            field.name === "attendeePhoneNumber" ||
+            field.name === "smsReminderNumber"));
+
       if (field.editable === "user" || field.editable === "user-readonly") {
         calEventUserFieldsResponses[field.name] = {
           label,
           value: backwardCompatibleResponses[field.name],
-          isHidden: !!field.hidden,
+          isHidden: shouldHideField,
         };
       }
 
       calEventResponses[field.name] = {
         label,
         value: backwardCompatibleResponses[field.name],
-        isHidden: !!field.hidden,
+        isHidden: shouldHideField,
       };
     });
   } else {

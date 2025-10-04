@@ -19,7 +19,7 @@ const _getBookingData = async <T extends z.ZodType>({
   eventType,
   schema,
 }: {
-  reqBody: Record<string, any>;
+  reqBody: Record<string, unknown>;
   eventType: getEventTypeResponse;
   schema: T;
 }) => {
@@ -65,6 +65,7 @@ const _getBookingData = async <T extends z.ZodType>({
       bookingFields: eventType.bookingFields,
       responses,
       seatsEnabled: !!eventType.seatsPerTimeSlot,
+      hideCalendarEventDetails: eventType.hideCalendarEventDetails,
     });
   return {
     ...parsedBody,

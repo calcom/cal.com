@@ -1,6 +1,8 @@
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
+import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
+import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
@@ -11,8 +13,6 @@ import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
-import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -110,8 +110,6 @@ export async function handleConfirmation(args: {
       metadata.entryPoints = results[0].createdEvent?.entryPoints;
     }
     try {
-      const eventType = booking.eventType;
-
       let isHostConfirmationEmailsDisabled = false;
       let isAttendeeConfirmationEmailDisabled = false;
 
@@ -165,6 +163,7 @@ export async function handleConfirmation(args: {
       bookingFields: Prisma.JsonValue | null;
       slug: string;
       schedulingType: SchedulingType | null;
+      hideCalendarEventDetails?: boolean | null;
       hosts: {
         user: {
           email: string;
@@ -214,6 +213,7 @@ export async function handleConfirmation(args: {
               slug: true,
               bookingFields: true,
               schedulingType: true,
+              hideCalendarEventDetails: true,
               hosts: {
                 select: {
                   user: {
@@ -277,6 +277,7 @@ export async function handleConfirmation(args: {
             slug: true,
             bookingFields: true,
             schedulingType: true,
+            hideCalendarEventDetails: true,
             owner: {
               select: {
                 hideBranding: true,
@@ -411,6 +412,7 @@ export async function handleConfirmation(args: {
         ...getCalEventResponses({
           bookingFields: booking.eventType?.bookingFields ?? null,
           booking,
+          hideCalendarEventDetails: booking.eventType?.hideCalendarEventDetails ?? undefined,
         }),
       };
     });

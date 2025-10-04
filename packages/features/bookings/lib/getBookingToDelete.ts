@@ -75,6 +75,7 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
           bookingFields: true,
           seatsShowAttendees: true,
           metadata: true,
+          hideCalendarEventDetails: true,
           hideOrganizerEmail: true,
           schedulingType: true,
           customReplyToEmail: true,

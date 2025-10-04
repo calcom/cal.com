@@ -60,6 +60,7 @@ export async function getBooking(bookingId: number) {
           length: true,
           price: true,
           requiresConfirmation: true,
+          hideCalendarEventDetails: true,
           hideOrganizerEmail: true,
           metadata: true,
           customReplyToEmail: true,
@@ -170,10 +171,11 @@ export async function getBooking(bookingId: number) {
     ...getCalEventResponses({
       booking: booking,
       bookingFields: booking.eventType?.bookingFields || null,
+      hideCalendarEventDetails: booking.eventType?.hideCalendarEventDetails,
     }),
     organizer: {
       email: booking?.userPrimaryEmail ?? user.email,
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+       
       name: user.name!,
       timeZone: user.timeZone,
       timeFormat: getTimeFormatStringFromUserTimeFormat(user.timeFormat),
@@ -181,7 +183,7 @@ export async function getBooking(bookingId: number) {
       id: user.id,
     },
     hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
-    team: !!booking.eventType?.team
+    team: booking.eventType?.team
       ? {
           name: booking.eventType.team.name,
           id: booking.eventType.team.id,

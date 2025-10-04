@@ -5,6 +5,7 @@ import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApi
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails";
+import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { processNoShowFeeOnCancellation } from "@calcom/features/bookings/lib/payment/processNoShowFeeOnCancellation";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
@@ -17,7 +18,6 @@ import {
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -251,6 +251,7 @@ async function handler(input: CancelBookingInput) {
     ...getCalEventResponses({
       bookingFields: bookingToDelete.eventType?.bookingFields ?? null,
       booking: bookingToDelete,
+      hideCalendarEventDetails: bookingToDelete.eventType?.hideCalendarEventDetails,
     }),
     startTime: bookingToDelete?.startTime ? dayjs(bookingToDelete.startTime).format() : "",
     endTime: bookingToDelete?.endTime ? dayjs(bookingToDelete.endTime).format() : "",
