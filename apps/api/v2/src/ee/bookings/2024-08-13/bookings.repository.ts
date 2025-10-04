@@ -83,20 +83,68 @@ export class BookingsRepository_2024_08_13 {
   }
 
   async getByIdWithAttendeesWithBookingSeatAndUserAndEvent(id: number) {
-    return this.dbRead.prisma.booking.findUnique({
+    const booking = await this.dbRead.prisma.booking.findUnique({
       where: {
         id,
       },
-      include: {
-        attendees: {
-          include: {
-            bookingSeat: true,
+      select: {
+        id: true,
+        uid: true,
+        title: true,
+        description: true,
+        startTime: true,
+        endTime: true,
+        location: true,
+        status: true,
+        cancellationReason: true,
+        fromReschedule: true,
+        eventTypeId: true,
+        recurringEventId: true,
+        noShowHost: true,
+        createdAt: true,
+        updatedAt: true,
+        rating: true,
+        iCalUID: true,
+        rescheduled: true,
+        rescheduledBy: true,
+        metadata: true,
+        responses: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            username: true,
           },
         },
-        user: true,
         eventType: true,
+        attendees: {
+          select: {
+            name: true,
+            email: true,
+            timeZone: true,
+            locale: true,
+            noShow: true,
+            bookingSeat: {
+              select: {
+                referenceUid: true,
+                data: true,
+                metadata: true,
+              },
+            },
+          },
+        },
       },
     });
+    if (!booking) {
+      return null;
+    }
+
+    return {
+      ...booking,
+      responses: booking.responses as Prisma.JsonObject,
+      metadata: booking.metadata as Prisma.JsonObject | null,
+    };
   }
 
   async getByUidWithAttendeesAndUserAndEvent(uid: string) {
@@ -122,20 +170,68 @@ export class BookingsRepository_2024_08_13 {
   }
 
   async getByUidWithAttendeesWithBookingSeatAndUserAndEvent(uid: string) {
-    return this.dbRead.prisma.booking.findUnique({
+    const booking = await this.dbRead.prisma.booking.findUnique({
       where: {
         uid,
       },
-      include: {
-        attendees: {
-          include: {
-            bookingSeat: true,
+      select: {
+        id: true,
+        uid: true,
+        title: true,
+        description: true,
+        startTime: true,
+        endTime: true,
+        location: true,
+        status: true,
+        cancellationReason: true,
+        fromReschedule: true,
+        eventTypeId: true,
+        recurringEventId: true,
+        noShowHost: true,
+        createdAt: true,
+        updatedAt: true,
+        rating: true,
+        iCalUID: true,
+        rescheduled: true,
+        rescheduledBy: true,
+        metadata: true,
+        responses: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            username: true,
           },
         },
-        user: true,
         eventType: true,
+        attendees: {
+          select: {
+            name: true,
+            email: true,
+            timeZone: true,
+            locale: true,
+            noShow: true,
+            bookingSeat: {
+              select: {
+                referenceUid: true,
+                data: true,
+                metadata: true,
+              },
+            },
+          },
+        },
       },
     });
+    if (!booking) {
+      return null;
+    }
+
+    return {
+      ...booking,
+      responses: booking.responses as Prisma.JsonObject,
+      metadata: booking.metadata as Prisma.JsonObject | null,
+    };
   }
 
   async getRecurringByUid(uid: string) {
