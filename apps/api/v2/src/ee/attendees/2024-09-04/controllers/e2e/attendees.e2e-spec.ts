@@ -474,14 +474,16 @@ describe("Attendees Endpoints 2024-09-04", () => {
 
       beforeAll(async () => {
         // Create a fresh attendee to delete
-        const body: CreateAttendeeInput_2024_09_04 = {
-          bookingId: createdBooking.id,
+        attendeeToDelete = await attendeeRepositoryFixture.create({
+          booking: {
+            connect: {
+              id: createdBooking.id,
+            },
+          },
           email: "to-delete@example.com",
           name: "To Delete",
           timeZone: "UTC",
-        };
-
-        attendeeToDelete = await attendeeRepositoryFixture.create(body);
+        });
       });
 
       it("should delete an attendee", async () => {

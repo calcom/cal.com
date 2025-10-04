@@ -46,9 +46,15 @@ export class AttendeesRepository_2024_09_04 {
   async getAttendeeWithBookingWithEventType(id: number) {
     return this.dbRead.prisma.attendee.findUnique({
       where: { id },
-      include: {
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        timeZone: true,
+        bookingId: true,
         booking: {
-          include: {
+          select: {
+            id: true,
             eventType: true,
           },
         },
@@ -59,7 +65,8 @@ export class AttendeesRepository_2024_09_04 {
   async getBookingWithEventType(bookingId: number) {
     return this.dbRead.prisma.booking.findUnique({
       where: { id: bookingId },
-      include: {
+      select: {
+        id: true,
         eventType: true,
       },
     });
