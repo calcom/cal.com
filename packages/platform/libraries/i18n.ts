@@ -8,6 +8,7 @@ import logger from "@calcom/lib/logger";
 const { i18n } = require("@calcom/config/next-i18next.config");
 
 const translationCache = new Map<string, Record<string, string>>();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const i18nInstanceCache = new Map<string, any>();
 const SUPPORTED_NAMESPACES = ["common"];
 
@@ -65,9 +66,9 @@ export const getTranslation = async (locale: string, ns: string) => {
   }
 
   const resources = await loadTranslations(locale, ns);
-
   const _i18n = createInstance();
-  _i18n.init({
+
+  await _i18n.init({
     lng: locale,
     resources: {
       [locale]: {
@@ -75,9 +76,11 @@ export const getTranslation = async (locale: string, ns: string) => {
       },
     },
     fallbackLng: "en",
+    interpolation: {
+      escapeValue: false,
+    },
   });
 
-  // Cache the i18n instance
   i18nInstanceCache.set(cacheKey, _i18n);
   return _i18n.getFixedT(locale, ns);
 };
