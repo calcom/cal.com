@@ -32,7 +32,13 @@ export const getWhen = (
 export const getWho = (
   calEvent: Pick<
     CalendarEvent,
-    "attendees" | "seatsPerTimeSlot" | "seatsShowAttendees" | "organizer" | "team" | "hideOrganizerEmail"
+    | "attendees"
+    | "seatsPerTimeSlot"
+    | "seatsShowAttendees"
+    | "organizer"
+    | "team"
+    | "hideOrganizerEmail"
+    | "schedulingType"
   >,
   t: TFunction
 ) => {
@@ -40,7 +46,14 @@ export const getWho = (
   if (calEvent.seatsPerTimeSlot && !calEvent.seatsShowAttendees) {
     attendeesFromCalEvent = [];
   }
+
+  const teamMemberEmails = new Set(calEvent.team?.members.map((m) => m.email));
+  const shouldHideTeamEmails =
+    !!calEvent.hideOrganizerEmail &&
+    (calEvent.schedulingType === "COLLECTIVE" || calEvent.schedulingType === "ROUND_ROBIN");
+
   const attendees = attendeesFromCalEvent
+    .filter((attendee) => !shouldHideTeamEmails || !teamMemberEmails.has(attendee.email))
     .map(
       (attendee) =>
         `${attendee?.name || t("guest")}${attendee.phoneNumber ? ` - ${attendee.phoneNumber}` : ""}\n${
@@ -55,7 +68,9 @@ export const getWho = (
 
   const teamMembers = calEvent.team?.members
     ? calEvent.team.members
-        .map((member) => `${member.name} - ${t("team_member")}\n${member.email}`)
+        .map(
+          (member) => `${member.name} - ${t("team_member")}${shouldHideTeamEmails ? "" : `\n${member.email}`}`
+        )
         .join("\n")
     : [];
 
