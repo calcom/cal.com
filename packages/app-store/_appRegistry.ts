@@ -1,4 +1,4 @@
-import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { getAppMetadata } from "@calcom/app-store/appStoreMetaData";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import { getAllDelegationCredentialsForUser } from "@calcom/lib/delegationCredential/server";
@@ -13,20 +13,29 @@ export type TDependencyData = {
   installed?: boolean;
 }[];
 
+// Use the centralized getAppMetadata function
+
 /**
  * Get App metadata either using dirName or slug
  */
 export async function getAppWithMetadata(app: { dirName: string } | { slug: string }) {
   let appMetadata: App | null;
+  let dirName: string;
 
   if ("dirName" in app) {
-    appMetadata = appStoreMetadata[app.dirName as keyof typeof appStoreMetadata] as App;
+    dirName = app.dirName;
+    appMetadata = await getAppMetadata(dirName);
   } else {
-    const foundEntry = Object.entries(appStoreMetadata).find(([, meta]) => {
-      return meta.slug === app.slug;
+    // For slug-based lookup, query the database to get the dirName
+    const dbApp = await prisma.app.findUnique({
+      where: { slug: app.slug },
+      select: { dirName: true },
     });
-    if (!foundEntry) return null;
-    appMetadata = foundEntry[1] as App;
+
+    if (!dbApp) return null;
+
+    dirName = dbApp.dirName;
+    appMetadata = await getAppMetadata(dirName);
   }
 
   if (!appMetadata) return null;

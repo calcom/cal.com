@@ -255,6 +255,7 @@ function generateFiles() {
           importName: "metadata",
         },
       ],
+      lazyImport: true,
     })
   );
 
