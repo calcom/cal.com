@@ -12,7 +12,7 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
-import type { Booking, Prisma, Prisma as PrismaClientType } from "@calcom/prisma/client";
+import type { Booking, Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -590,6 +590,20 @@ export async function getBookings({
               .orderBy("AssignmentReason.createdAt", "desc")
               .limit(1)
           ).as("assignmentReason"),
+          jsonArrayFrom(
+            eb
+              .selectFrom("BookingReport")
+              .select([
+                "BookingReport.id",
+                "BookingReport.reason",
+                "BookingReport.description",
+                "BookingReport.cancelled",
+                "BookingReport.createdAt",
+                "BookingReport.reportedById",
+              ])
+              .whereRef("BookingReport.bookingId", "=", "Booking.id")
+              .orderBy("BookingReport.createdAt", "desc")
+          ).as("reports"),
         ])
         .orderBy(orderBy.key, orderBy.order)
         .execute()
