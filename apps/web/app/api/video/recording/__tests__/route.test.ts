@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { describe, expect, test, vi, afterEach } from "vitest";
 
-import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/app-store/videoClient";
+import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/features/conferencing/lib/recordingService";
 import { verifyVideoToken } from "@calcom/lib/videoTokens";
 
 import { GET } from "../route";
 
-vi.mock("@calcom/app-store/videoClient", () => ({
+vi.mock("@calcom/features/conferencing/lib/recordingService", () => ({
   getDownloadLinkOfCalVideoByRecordingId: vi.fn(),
 }));
 

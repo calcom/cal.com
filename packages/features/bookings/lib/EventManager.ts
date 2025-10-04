@@ -37,7 +37,7 @@ import type {
 import { createEvent, updateEvent, deleteEvent } from "@calcom/features/calendars/lib/CalendarManager";
 import CrmManager from "@calcom/lib/crmManager/crmManager";
 import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
-import { createMeeting, updateMeeting, deleteMeeting } from "@calcom/app-store/videoClient";
+import { createMeeting, updateMeeting, deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
 
 const log = logger.getSubLogger({ prefix: ["EventManager"] });
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
