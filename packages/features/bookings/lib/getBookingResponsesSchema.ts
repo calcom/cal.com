@@ -344,15 +344,19 @@ function preprocess<T extends z.ZodType>({
         });
       }
 
-      if (eventMetadata?.requireEmailConfirmation && currentView !== "reschedule") {
+      if (
+        eventMetadata?.requireEmailConfirmation === true &&
+        currentView !== "reschedule" &&
+        !isEmailFieldHidden
+      ) {
         const email = responses["email"];
         const emailConfirmation = responses["emailConfirmation"];
-
+  
         // check if email confirmation field is required and empty
         if (!emailConfirmation) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "Invalid input",
+            message: "invalid_input",
             path: ["emailConfirmation"],
           });
         }
@@ -360,7 +364,7 @@ function preprocess<T extends z.ZodType>({
         else if (email && emailConfirmation && email !== emailConfirmation) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "Invalid input",
+            message: "invalid_input",
             path: ["emailConfirmation"],
           });
         }
