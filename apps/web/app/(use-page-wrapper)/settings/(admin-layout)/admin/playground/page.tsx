@@ -9,6 +9,10 @@ const LINKS = [
     title: "Bookings by Hour",
     href: "/settings/admin/playground/bookings-by-hour",
   },
+  {
+    title: "Booking Audit",
+    href: "/settings/admin/playground/booking-audit",
+  },
 ];
 
 export default function Page() {
