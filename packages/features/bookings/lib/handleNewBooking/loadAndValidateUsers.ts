@@ -1,8 +1,8 @@
 import type { Logger } from "tslog";
 
-import { checkIfUsersAreBlocked } from "@calcom/features/watchlist/operations/check-if-users-are-blocked.controller";
-import { enrichUsersWithDelegationCredentials } from "@calcom/lib/delegationCredential/server";
+import { enrichUsersWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
 import { getQualifiedHostsService } from "@calcom/features/di/containers/QualifiedHosts";
+import { checkIfUsersAreBlocked } from "@calcom/features/watchlist/operations/check-if-users-are-blocked.controller";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";

@@ -36,7 +36,7 @@ import type {
 
 import { createEvent, updateEvent, deleteEvent } from "@calcom/features/calendars/lib/CalendarManager";
 import CrmManager from "@calcom/lib/crmManager/crmManager";
-import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
+import { isDelegationCredential } from "@calcom/lib/delegationCredential";
 import { createMeeting, updateMeeting, deleteMeeting } from "@calcom/app-store/videoClient";
 
 const log = logger.getSubLogger({ prefix: ["EventManager"] });

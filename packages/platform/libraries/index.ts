@@ -51,7 +51,7 @@ export { handleCreatePhoneCall };
 
 export { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
 
-export { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/lib/getConnectedDestinationCalendars";
+export { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/features/calendars/lib/getConnectedDestinationCalendars";
 
 export { getBusyCalendarTimes } from "@calcom/features/calendars/lib/CalendarManager";
 

@@ -1,5 +1,5 @@
 import { uniqueBy } from "@calcom/lib/array";
-import { isInMemoryDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
+import { isInMemoryDelegationCredential } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
