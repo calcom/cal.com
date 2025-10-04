@@ -13,7 +13,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const { slug } = ctx.params || {};
   if (typeof slug !== "string") return { notFound: true } as const;
 
-  if (!(slug in AppSetupPageMap)) return { props: {} };
+  if (!(slug in AppSetupPageMap)) return { notFound: true } as const;
 
   const page = await AppSetupPageMap[slug as keyof typeof AppSetupPageMap];
 
