@@ -25,7 +25,7 @@ const createAttributesQueryValue = (overrides?: {
   id?: string;
   type?: "group" | "switch_group";
   children1?: Record<string, RaqbChild>;
-  properties?: any;
+  properties?: unknown;
 }): AttributesQueryValue => ({
   id: overrides?.id || "test-id",
   type: overrides?.type || "group",
@@ -45,7 +45,7 @@ const createQueryValueWithRule = ({
   ruleId: string;
   field: string;
   operator: string;
-  value: any[];
+  value: unknown[];
   valueSrc?: string[];
   valueError?: (string | null)[];
   valueType?: string[];
@@ -76,7 +76,7 @@ const createComplexQueryValue = ({
     ruleId: string;
     field: string;
     operator: string;
-    value: any[];
+    value: unknown[];
     valueSrc?: string[];
     valueError?: (string | null)[];
     valueType?: string[];
@@ -113,7 +113,7 @@ const createNestedGroupQueryValue = ({
       ruleId: string;
       field: string;
       operator?: string;
-      value: any[];
+      value: unknown[];
       valueSrc?: string[];
       valueError?: (string | null)[];
       valueType?: string[];
@@ -684,7 +684,7 @@ describe("resolveQueryValue", () => {
             properties: {
               field: "location",
               operator: "multiselect_some_in",
-              value: [["delhi", "Chennai"]], // Single value replaced
+              value: [["delhi", "chennai"]], // All values lowercased for RAQB v6 slug validation
             },
           },
         },
@@ -851,7 +851,7 @@ describe("resolveQueryValue", () => {
             type: "rule",
             properties: expect.objectContaining({
               field: "attr1",
-              value: [["delhi", "haryana", "Fixed-Value"]],
+              value: [["delhi", "haryana", "fixed-value"]],
               operator: "multiselect_some_in",
             }),
           },
@@ -956,7 +956,7 @@ describe("resolveQueryValue", () => {
             properties: {
               field: "location",
               operator: "multiselect_some_in",
-              value: [["delhi", "Chennai", "MUMBAI"]], // Only field template value is lowercased
+              value: [["delhi", "chennai", "mumbai"]], // All values lowercased for RAQB v6 slug validation
             },
           },
         },
@@ -1010,14 +1010,14 @@ describe("resolveQueryValue", () => {
                 type: "rule",
                 properties: expect.objectContaining({
                   field: "location",
-                  value: [["delhi", "mumbai", "Fixed1"]],
+                  value: [["delhi", "mumbai", "fixed1"]],
                 }),
               },
               rule2: {
                 type: "rule",
                 properties: expect.objectContaining({
                   field: "city",
-                  value: [["chennai", "Fixed2"]],
+                  value: [["chennai", "fixed2"]],
                 }),
               },
             },
@@ -1085,7 +1085,7 @@ describe("resolveQueryValue", () => {
         fields: mockFields,
         response: {
           location: { value: ["Delhi"], label: "Delhi" },
-          city: { value: null as any, label: "" }, // null value
+          city: { value: null as unknown, label: "" }, // null value
         },
       },
       attributes: mockAttributes,
@@ -1386,7 +1386,7 @@ describe("resolveQueryValue", () => {
             type: "rule",
             properties: {
               field: "location",
-              value: [["{field:location}", "Fixed"]], // Template unchanged
+              value: [["{field:location}", "fixed"]], // Template unchanged, fixed value lowercased
             },
           },
         },
@@ -1412,7 +1412,7 @@ describe("resolveQueryValue", () => {
       dynamicFieldValueOperands: {
         fields: mockFields,
         response: {
-          location: {} as any, // Empty object, no value property
+          location: {} as unknown, // Empty object, no value property
         },
       },
       attributes: mockAttributes,
@@ -1610,16 +1610,16 @@ describe("resolveQueryValue", () => {
     });
 
     // Verify all nested properties are preserved with templates resolved
-    const props = result.children1?.rule1.properties as any;
-    expect(props.metadata.level1.level2.level3.static).toBe("preserved");
-    expect(props.metadata.level1.value).toBe("mumbai");
-    expect(props.metadata.level1.level2.items).toEqual(["delhi", "chennai"]);
-    expect(props.metadata.level1.level2.level3.nested).toEqual([["mumbai"]]);
+    const props = result.children1?.rule1.properties as unknown as Record<string, unknown>;
+    expect((props.metadata as Record<string, unknown>).level1.level2.level3.static).toBe("preserved");
+    expect((props.metadata as Record<string, unknown>).level1.value).toBe("mumbai");
+    expect((props.metadata as Record<string, unknown>).level1.level2.items).toEqual(["delhi", "chennai"]);
+    expect((props.metadata as Record<string, unknown>).level1.level2.level3.nested).toEqual([["mumbai"]]);
     expect(props.value).toEqual(["test"]);
   });
 
   it("should handle extremely deep object nesting without stack overflow", () => {
-    let deepObj: any = { value: "{field:city}" };
+    let deepObj: Record<string, unknown> = { value: "{field:city}" };
     for (let i = 0; i < 100; i++) {
       deepObj = { nested: deepObj, level: i };
     }
@@ -1645,10 +1645,10 @@ describe("resolveQueryValue", () => {
     });
 
     // Navigate to deepest level to verify it was processed
-    let current = result.children1?.rule1.properties as any;
+    let current = result.children1?.rule1.properties as unknown as Record<string, unknown>;
     for (let i = 99; i >= 0; i--) {
       expect(current.level).toBe(i);
-      current = current.nested;
+      current = current.nested as Record<string, unknown>;
     }
     expect(current.value).toBe("mumbai");
   });
@@ -1689,18 +1689,18 @@ describe("resolveQueryValue", () => {
       attributes: mockAttributes,
     });
 
-    const props = result.children1?.rule1.properties as any;
+    const props = result.children1?.rule1.properties as unknown as Record<string, unknown>;
     expect(props.stringField).toBe("mumbai");
     expect(props.numberField).toBe(42);
     expect(props.bigintField).toBe(9007199254740991);
     expect(props.booleanField).toBe(true);
     expect(props.nullField).toBeNull();
-    expect(props.nested.array).toEqual(["delhi", 123, false, null]);
-    expect(props.nested.decimal).toBe(3.14159);
-    expect(props.nested.negative).toBe(-100);
-    expect(props.nested.zero).toBe(0);
-    expect(props.nested.emptyString).toBe("");
-    expect(props.nested.specialChars).toBe("!@#$%^&*()");
+    expect((props.nested as Record<string, unknown>).array).toEqual(["delhi", 123, false, null]);
+    expect((props.nested as Record<string, unknown>).decimal).toBe(3.14159);
+    expect((props.nested as Record<string, unknown>).negative).toBe(-100);
+    expect((props.nested as Record<string, unknown>).zero).toBe(0);
+    expect((props.nested as Record<string, unknown>).emptyString).toBe("");
+    expect((props.nested as Record<string, unknown>).specialChars).toBe("!@#$%^&*()");
   });
 
   it("should process field templates within objects inside arrays", () => {
@@ -1731,13 +1731,13 @@ describe("resolveQueryValue", () => {
       attributes: mockAttributes,
     });
 
-    const props = result.children1?.rule1.properties as any;
-    expect(props.value[0]).toEqual({ id: 1, city: "mumbai" });
-    expect(props.value[1]).toEqual({
+    const props = result.children1?.rule1.properties as unknown as Record<string, unknown>;
+    expect((props.value as unknown[])[0]).toEqual({ id: 1, city: "mumbai" });
+    expect((props.value as unknown[])[1]).toEqual({
       id: 2,
       locations: ["delhi", "chennai"],
     });
-    expect(props.value[2]).toEqual({
+    expect((props.value as unknown[])[2]).toEqual({
       id: 3,
       nested: { value: [["mumbai"]] },
     });

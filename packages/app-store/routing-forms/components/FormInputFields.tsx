@@ -46,7 +46,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
         if (!("factory" in widget)) {
           return null;
         }
-        const Component = widget.factory;
+        const Component = widget.factory as React.ComponentType<any>;
 
         const options = getUIOptionsForSelect(field);
         const fieldIdentifier = getFieldIdentifier(field);
