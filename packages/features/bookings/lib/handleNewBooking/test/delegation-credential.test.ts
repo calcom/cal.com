@@ -20,7 +20,7 @@ import {
   createDelegationCredential,
   createOrganization,
   buildDelegationCredential,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+} from "@calcom/lib/test/utils/bookingScenario/bookingScenario";
 import {
   expectWorkflowToBeTriggered,
   expectSuccessfulBookingCreationEmails,
@@ -30,12 +30,12 @@ import {
   expectICalUIDAsString,
   expectBookingToNotHaveReference,
   expectNoAttemptToCreateCalendarEvent,
-} from "@calcom/web/test/utils/bookingScenario/expects";
+} from "@calcom/lib/test/utils/bookingScenario/expects";
 import {
   getMockRequestDataForBooking,
   getMockRequestDataForDynamicGroupBooking,
-} from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+} from "@calcom/lib/test/utils/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/lib/test/utils/bookingScenario/setupAndTeardown";
 
 import { vi } from "vitest";
 import { describe, expect } from "vitest";

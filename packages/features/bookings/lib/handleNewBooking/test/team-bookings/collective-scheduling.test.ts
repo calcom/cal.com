@@ -14,7 +14,7 @@ import {
   BookingLocations,
   getZoomAppCredential,
   getDefaultBookingFields,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+} from "@calcom/lib/test/utils/bookingScenario/bookingScenario";
 import {
   // expectWorkflowToBeTriggered,
   expectSuccessfulBookingCreationEmails,
@@ -25,9 +25,9 @@ import {
   expectSMSToBeTriggered,
   expectBookingRequestedEmails,
   expectBookingRequestedWebhookToHaveBeenFired,
-} from "@calcom/web/test/utils/bookingScenario/expects";
-import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+} from "@calcom/lib/test/utils/bookingScenario/expects";
+import { getMockRequestDataForBooking } from "@calcom/lib/test/utils/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/lib/test/utils/bookingScenario/setupAndTeardown";
 
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";

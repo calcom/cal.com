@@ -9,16 +9,16 @@ import {
   mockSuccessfulVideoMeetingCreation,
   TestData,
   Timezones,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
+} from "@calcom/lib/test/utils/bookingScenario/bookingScenario";
+import { createMockNextJsRequest } from "@calcom/lib/test/utils/bookingScenario/createMockNextJsRequest";
 import {
   expectBookingCreatedWebhookToHaveBeenFired,
   expectBookingToBeInDatabase, // expectWorkflowToBeTriggered,
   expectSuccessfulBookingCreationEmails,
   expectSuccessfulCalendarEventCreationInCalendar,
-} from "@calcom/web/test/utils/bookingScenario/expects";
-import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+} from "@calcom/lib/test/utils/bookingScenario/expects";
+import { getMockRequestDataForBooking } from "@calcom/lib/test/utils/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/lib/test/utils/bookingScenario/setupAndTeardown";
 
 import { v4 as uuidv4 } from "uuid";
 import { describe, expect } from "vitest";

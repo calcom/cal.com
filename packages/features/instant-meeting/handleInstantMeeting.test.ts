@@ -9,7 +9,7 @@ import {
   mockSuccessfulVideoMeetingCreation,
   mockCalendarToHaveNoBusySlots,
   mockNoTranslations,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+} from "@calcom/lib/test/utils/bookingScenario/bookingScenario";
 
 import type { NextApiRequest } from "next";
 import { describe, it, expect, vi, beforeEach } from "vitest";
