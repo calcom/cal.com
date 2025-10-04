@@ -8,10 +8,12 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
 import { SchedulingType } from "@calcom/platform-libraries";
+import { EventTypeMetadata } from "@calcom/platform-libraries/event-types";
 import {
   CreateTeamEventTypeInput_2024_06_14,
   UpdateTeamEventTypeInput_2024_06_14,
   HostPriority,
+  EmailSettings_2024_06_14,
 } from "@calcom/platform-types";
 
 export type TransformedCreateTeamEventTypeInput = Awaited<
@@ -49,14 +51,16 @@ export class InputOrganizationsEventTypesService {
       eventName: transformedBody.eventName,
     });
 
-    transformedBody.destinationCalendar &&
-      (await this.inputEventTypesService.validateInputDestinationCalendar(
+    if (transformedBody.destinationCalendar) {
+      await this.inputEventTypesService.validateInputDestinationCalendar(
         userId,
         transformedBody.destinationCalendar
-      ));
+      );
+    }
 
-    transformedBody.useEventTypeDestinationCalendarEmail &&
-      (await this.inputEventTypesService.validateInputUseDestinationCalendarEmail(userId));
+    if (transformedBody.useEventTypeDestinationCalendarEmail) {
+      await this.inputEventTypesService.validateInputUseDestinationCalendarEmail(userId);
+    }
 
     return transformedBody;
   }
@@ -83,14 +87,16 @@ export class InputOrganizationsEventTypesService {
       eventName: transformedBody.eventName,
     });
 
-    transformedBody.destinationCalendar &&
-      (await this.inputEventTypesService.validateInputDestinationCalendar(
+    if (transformedBody.destinationCalendar) {
+      await this.inputEventTypesService.validateInputDestinationCalendar(
         userId,
         transformedBody.destinationCalendar
-      ));
+      );
+    }
 
-    transformedBody.useEventTypeDestinationCalendarEmail &&
-      (await this.inputEventTypesService.validateInputUseDestinationCalendarEmail(userId));
+    if (transformedBody.useEventTypeDestinationCalendarEmail) {
+      await this.inputEventTypesService.validateInputUseDestinationCalendarEmail(userId);
+    }
 
     return transformedBody;
   }
@@ -110,7 +116,7 @@ export class InputOrganizationsEventTypesService {
     teamId: number,
     inputEventType: CreateTeamEventTypeInput_2024_06_14
   ) {
-    const { hosts, assignAllTeamMembers, locations, ...rest } = inputEventType;
+    const { hosts, assignAllTeamMembers, locations, emailSettings, ...rest } = inputEventType;
 
     const eventType = this.inputEventTypesService.transformInputCreateEventType(rest);
 
@@ -123,10 +129,14 @@ export class InputOrganizationsEventTypesService {
 
     const children = await this.getChildEventTypesForManagedEventTypeCreate(inputEventType, teamId);
 
-    const metadata =
+    let metadata =
       rest.schedulingType === "MANAGED"
         ? { managedEventConfig: {}, ...eventType.metadata }
         : eventType.metadata;
+
+    if (emailSettings) {
+      metadata = this.addEmailSettingsToMetadata(emailSettings, metadata);
+    }
 
     const teamEventType = {
       ...eventType,
@@ -145,12 +155,42 @@ export class InputOrganizationsEventTypesService {
     return teamEventType;
   }
 
+  private addEmailSettingsToMetadata(
+    emailSettings: EmailSettings_2024_06_14,
+    metadata: NonNullable<EventTypeMetadata>
+  ) {
+    if (
+      emailSettings?.disableEmailsToAttendees === undefined &&
+      emailSettings?.disableEmailsToHosts === undefined
+    ) {
+      return metadata;
+    }
+
+    const clonedMetadata = structuredClone(metadata);
+
+    if (!clonedMetadata.disableStandardEmails) {
+      clonedMetadata.disableStandardEmails = {};
+    }
+    if (!clonedMetadata.disableStandardEmails.all) {
+      clonedMetadata.disableStandardEmails.all = {};
+    }
+
+    if (emailSettings?.disableEmailsToAttendees !== undefined) {
+      clonedMetadata.disableStandardEmails.all.attendee = emailSettings.disableEmailsToAttendees;
+    }
+    if (emailSettings?.disableEmailsToHosts !== undefined) {
+      clonedMetadata.disableStandardEmails.all.host = emailSettings.disableEmailsToHosts;
+    }
+
+    return clonedMetadata;
+  }
+
   async transformInputUpdateTeamEventType(
     eventTypeId: number,
     teamId: number,
     inputEventType: UpdateTeamEventTypeInput_2024_06_14
   ) {
-    const { hosts, assignAllTeamMembers, locations, ...rest } = inputEventType;
+    const { hosts, assignAllTeamMembers, locations, emailSettings, ...rest } = inputEventType;
 
     const eventType = await this.inputEventTypesService.transformInputUpdateEventType(rest, eventTypeId);
     const dbEventType = await this.teamsEventTypesRepository.getTeamEventType(teamId, eventTypeId);
@@ -164,6 +204,12 @@ export class InputOrganizationsEventTypesService {
         ? await this.getChildEventTypesForManagedEventTypeUpdate(eventTypeId, inputEventType, teamId)
         : undefined;
 
+    let metadata = eventType.metadata;
+
+    if (emailSettings) {
+      metadata = this.addEmailSettingsToMetadata(emailSettings, metadata);
+    }
+
     const teamEventType = {
       ...eventType,
       // note(Lauris): we don't populate hosts for managed event-types because they are handled by the children
@@ -175,6 +221,7 @@ export class InputOrganizationsEventTypesService {
       assignAllTeamMembers,
       children,
       locations: locations ? this.transformInputTeamLocations(locations) : undefined,
+      metadata,
     };
 
     return teamEventType;
