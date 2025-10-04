@@ -12,14 +12,14 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 vi.mock("@calcom/lib/server/repository/user", () => {
   return {
     UserRepository: vi.fn().mockImplementation(() => ({
-      enrichUserWithItsProfile: vi.fn(),
+      enrichUserWithItsProfileSkipPlatformCheck: vi.fn(),
     })),
   };
 });
 
 describe("getAllCredentialsIncludeServiceAccountKey", () => {
   test("Get an individual's credentials", async () => {
-    const mockEnrichUserWithItsProfile = vi.fn().mockReturnValue({
+    const mockEnrichUserWithItsProfileSkipPlatformCheck = vi.fn().mockReturnValue({
       profile: null,
     });
 
@@ -28,7 +28,7 @@ describe("getAllCredentialsIncludeServiceAccountKey", () => {
       mockUserRepository.mockImplementation(
         () =>
           ({
-            enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
+            enrichUserWithItsProfileSkipPlatformCheck: mockEnrichUserWithItsProfileSkipPlatformCheck,
           } as any)
       );
     }
@@ -74,7 +74,7 @@ describe("getAllCredentialsIncludeServiceAccountKey", () => {
     describe("If CRM is enabled on the event type", () => {
       describe("With _crm credentials", () => {
         test("For users", async () => {
-          const mockEnrichUserWithItsProfile = vi.fn().mockReturnValue({
+          const mockEnrichUserWithItsProfileSkipPlatformCheck = vi.fn().mockReturnValue({
             profile: null,
           });
 
@@ -83,7 +83,7 @@ describe("getAllCredentialsIncludeServiceAccountKey", () => {
             mockUserRepository.mockImplementation(
               () =>
                 ({
-                  enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
+                  enrichUserWithItsProfileSkipPlatformCheck: mockEnrichUserWithItsProfileSkipPlatformCheck,
                 } as any)
             );
           }
@@ -158,7 +158,7 @@ describe("getAllCredentialsIncludeServiceAccountKey", () => {
           expect(credentials).toContainEqual(expect.objectContaining({ userId: 1, type: "salesforce_crm" }));
         });
         test("For teams", async () => {
-          const mockEnrichUserWithItsProfile = vi.fn().mockReturnValue({
+          const mockEnrichUserWithItsProfileSkipPlatformCheck = vi.fn().mockReturnValue({
             profile: null,
           });
 
@@ -167,7 +167,7 @@ describe("getAllCredentialsIncludeServiceAccountKey", () => {
             mockUserRepository.mockImplementation(
               () =>
                 ({
-                  enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
+                  enrichUserWithItsProfileSkipPlatformCheck: mockEnrichUserWithItsProfileSkipPlatformCheck,
                 } as any)
             );
           }
@@ -235,7 +235,7 @@ describe("getAllCredentialsIncludeServiceAccountKey", () => {
           expect(credentials).toContainEqual(expect.objectContaining({ teamId: 1, type: "salesforce_crm" }));
         });
         test("For child of managed event type", async () => {
-          const mockEnrichUserWithItsProfile = vi.fn().mockReturnValue({
+          const mockEnrichUserWithItsProfileSkipPlatformCheck = vi.fn().mockReturnValue({
             profile: null,
           });
 
@@ -244,7 +244,7 @@ describe("getAllCredentialsIncludeServiceAccountKey", () => {
             mockUserRepository.mockImplementation(
               () =>
                 ({
-                  enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
+                  enrichUserWithItsProfileSkipPlatformCheck: mockEnrichUserWithItsProfileSkipPlatformCheck,
                 } as any)
             );
           }
@@ -340,7 +340,7 @@ describe("getAllCredentialsIncludeServiceAccountKey", () => {
           const getAllCredentialsIncludeServiceAccountKey = (await import("./getAllCredentials"))
             .getAllCredentialsIncludeServiceAccountKey;
           const orgId = 3;
-          const mockEnrichUserWithItsProfile = vi.fn().mockReturnValue({
+          const mockEnrichUserWithItsProfileSkipPlatformCheck = vi.fn().mockReturnValue({
             profile: { organizationId: orgId },
           });
 
@@ -349,7 +349,7 @@ describe("getAllCredentialsIncludeServiceAccountKey", () => {
             mockUserRepository.mockImplementation(
               () =>
                 ({
-                  enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
+                  enrichUserWithItsProfileSkipPlatformCheck: mockEnrichUserWithItsProfileSkipPlatformCheck,
                 } as any)
             );
           }
@@ -663,7 +663,7 @@ describe("getAllCredentialsIncludeServiceAccountKey", () => {
           const getAllCredentialsIncludeServiceAccountKey = (await import("./getAllCredentials"))
             .getAllCredentialsIncludeServiceAccountKey;
           const orgId = 3;
-          const mockEnrichUserWithItsProfile = vi.fn().mockReturnValue({
+          const mockEnrichUserWithItsProfileSkipPlatformCheck = vi.fn().mockReturnValue({
             profile: { organizationId: orgId },
           });
 
@@ -672,7 +672,7 @@ describe("getAllCredentialsIncludeServiceAccountKey", () => {
             mockUserRepository.mockImplementation(
               () =>
                 ({
-                  enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
+                  enrichUserWithItsProfileSkipPlatformCheck: mockEnrichUserWithItsProfileSkipPlatformCheck,
                 } as any)
             );
           }
