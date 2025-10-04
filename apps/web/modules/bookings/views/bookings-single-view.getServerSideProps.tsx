@@ -11,6 +11,7 @@ import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
+import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import { customInputSchema } from "@calcom/prisma/zod-utils";
@@ -176,6 +177,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const isLoggedInUserHost = checkIfUserIsHost(userId);
 
+  const isLoggedInUserTeamAdmin = !!(
+    userId &&
+    ((eventType.team?.id && (await isTeamAdmin(userId, eventType.team.id))) ||
+      (eventType.parent?.teamId && (await isTeamAdmin(userId, eventType.parent.teamId))))
+  );
+
+  const canViewHiddenData = isLoggedInUserHost || isLoggedInUserTeamAdmin;
+
   if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
     await handleSeatsEventTypeOnBooking(eventType, bookingInfo, seatReferenceUid, isLoggedInUserHost);
   }
@@ -194,8 +203,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
 
-  if (!isLoggedInUserHost) {
-    // Removing hidden fields from responses
+  if (!canViewHiddenData) {
     for (const key in bookingInfo.responses) {
       const field = eventTypeRaw.bookingFields.find((field) => field.name === key);
       if (field && !!field.hidden) {
@@ -207,7 +215,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { currentOrgDomain } = orgDomainConfig(context.req);
 
   async function getInternalNotePresets(teamId: number | null) {
-    if (!teamId || !isLoggedInUserHost) return [];
+    if (!teamId || !canViewHiddenData) return [];
     return await prisma.internalNotePreset.findMany({
       where: {
         teamId,
@@ -256,6 +264,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       requiresLoginToUpdate,
       rescheduledToUid,
       isLoggedInUserHost,
+      canViewHiddenData,
       internalNotePresets: internalNotes,
     },
   };
