@@ -186,7 +186,7 @@ async function createPlatformAndSetupUser({
 
     await prisma.platformOAuthClient.create({
       data: {
-        name: "Acme",
+        name: "examples-app",
         redirectUris: ["http://localhost:4321"],
         permissions: 1023,
         areEmailsEnabled: true,
@@ -194,6 +194,19 @@ async function createPlatformAndSetupUser({
         id: "clxyyy21o0003sbk7yw5z6tzg",
         secret:
           "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiQWNtZSAiLCJwZXJtaXNzaW9ucyI6MTAyMywicmVkaXJlY3RVcmlzIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDMyMSJdLCJib29raW5nUmVkaXJlY3RVcmkiOiIiLCJib29raW5nQ2FuY2VsUmVkaXJlY3RVcmkiOiIiLCJib29raW5nUmVzY2hlZHVsZVJlZGlyZWN0VXJpIjoiIiwiYXJlRW1haWxzRW5hYmxlZCI6dHJ1ZSwiaWF0IjoxNzE5NTk1ODA4fQ.L5_jSS14fcKLCD_9_DAOgtGd6lUSZlU5CEpCPaPt41I",
+      },
+    });
+
+    await prisma.platformOAuthClient.create({
+      data: {
+        name: "examples-app-e2e",
+        redirectUris: ["http://localhost:4322"],
+        permissions: 1023,
+        areEmailsEnabled: true,
+        organizationId: team.id,
+        id: "e2e8k9m3n0004p2q1r5s6t7u8",
+        secret:
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiZXhhbXBsZXMtYXBwLWUyZSIsInBlcm1pc3Npb25zIjoxMDIzLCJyZWRpcmVjdFVyaXMiOlsiaHR0cDovL2xvY2FsaG9zdDo0MzIyIl0sImJvb2tpbmdSZWRpcmVjdFVyaSI6IiIsImJvb2tpbmdDYW5jZWxSZWRpcmVjdFVyaSI6IiIsImJvb2tpbmdSZXNjaGVkdWxlUmVkaXJlY3RVcmkiOiIiLCJhcmVFbWFpbHNFbmFibGVkIjp0cnVlLCJpYXQiOjE3MjYwNDMyNTl9.kL8mN9pQ5rS7tU8vW0xY1zA2bC4dE6fG8hI0jK1lM3n",
       },
     });
     console.log(`\t👤 Added '${teamInput.name}' membership for '${username}' with role '${membershipRole}'`);

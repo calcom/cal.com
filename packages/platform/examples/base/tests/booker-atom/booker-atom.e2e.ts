@@ -10,6 +10,7 @@ async function selectOption(page: Page, optionNumber: number) {
 
 test("tweak availability  using AvailabilitySettings Atom", async ({ page }) => {
   await page.goto("/booking");
+  await page.reload();
 
   await expect(page).toHaveURL("/booking");
 

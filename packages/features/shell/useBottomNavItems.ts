@@ -9,9 +9,21 @@ import { showToast } from "@calcom/ui/components/toast";
 import { type NavigationItemType } from "./navigation/NavigationItem";
 
 type BottomNavItemsProps = {
-  publicPageUrl: string;
+  publicPageUrl: string; // can be empty/relative; we’ll normalize
   isAdmin: boolean;
   user: UserAuth | null | undefined;
+};
+
+// Resolve any href (absolute or relative) to an absolute URL for SSR safety.
+// Returns undefined if it can’t be resolved.
+const withBase = (u?: string): string | undefined => {
+  if (!u) return undefined;
+  const base = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_WEBAPP_URL || "http://localhost:3000";
+  try {
+    return new URL(u, base).toString();
+  } catch {
+    return undefined;
+  }
 };
 
 export function useBottomNavItems({
@@ -33,12 +45,18 @@ export function useBottomNavItems({
     },
   });
 
+  const safePublicHref = withBase(publicPageUrl);
+  const safeReferHref = withBase("/refer");
+  const safeImpersonationHref = withBase("/settings/admin/impersonation");
+  const safeSettingsHref = withBase(
+    user?.org ? "/settings/organizations/profile" : "/settings/my-account/profile"
+  );
+
   return [
-    // Render above to prevent layout shift as much as possible
+    // Action-only (no href)
     isTrial
       ? {
           name: "skip_trial",
-          href: "",
           isLoading: skipTeamTrialsMutation.isPending,
           icon: "clock",
           onClick: (e: { preventDefault: () => void }) => {
@@ -47,40 +65,53 @@ export function useBottomNavItems({
           },
         }
       : null,
-    {
-      name: "view_public_page",
-      href: publicPageUrl,
-      icon: "external-link",
-      target: "__blank",
-    },
+
+    // External public page link, only if we have a resolvable absolute URL
+    safePublicHref
+      ? {
+          name: "view_public_page",
+          href: safePublicHref,
+          icon: "external-link",
+          target: "_blank",
+        }
+      : null,
+
+    // Action-only (no href)
     {
       name: "copy_public_page_link",
-      href: "",
+      icon: "copy",
       onClick: (e: { preventDefault: () => void }) => {
         e.preventDefault();
-        navigator.clipboard.writeText(publicPageUrl);
-        showToast(t("link_copied"), "success");
+        // Prefer resolved; fall back to raw input if clipboard is allowed
+        const toCopy = safePublicHref ?? publicPageUrl ?? "";
+        if (typeof navigator !== "undefined" && navigator.clipboard?.writeText && toCopy) {
+          navigator.clipboard.writeText(toCopy);
+          showToast(t("link_copied"), "success");
+        } else {
+          showToast(t("something_went_wrong"), "error");
+        }
       },
-      icon: "copy",
     },
+
     IS_DUB_REFERRALS_ENABLED
-      ? {
+      ? safeReferHref && {
           name: "referral_text",
-          href: "/refer",
+          href: safeReferHref,
           icon: "gift",
         }
       : null,
 
     isAdmin
-      ? {
+      ? safeImpersonationHref && {
           name: "impersonation",
-          href: "/settings/admin/impersonation",
+          href: safeImpersonationHref,
           icon: "lock",
         }
       : null,
-    {
+
+    safeSettingsHref && {
       name: "settings",
-      href: user?.org ? `/settings/organizations/profile` : "/settings/my-account/profile",
+      href: safeSettingsHref,
       icon: "settings",
     },
   ].filter(Boolean) as NavigationItemType[];
