@@ -121,6 +121,7 @@ const _eventTypeMetaDataSchemaWithoutApps = z.object({
     })
     .optional(),
   bookerLayouts: bookerLayouts.optional(),
+  requireEmailConfirmation: z.boolean().optional(),
 });
 
 export const eventTypeMetaDataSchemaWithUntypedApps = _eventTypeMetaDataSchemaWithoutApps.merge(
