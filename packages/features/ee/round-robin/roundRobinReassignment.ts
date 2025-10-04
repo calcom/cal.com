@@ -24,7 +24,7 @@ import {
   enrichHostsWithDelegationCredentials,
   enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
 } from "@calcom/lib/delegationCredential/server";
-import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
+import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
