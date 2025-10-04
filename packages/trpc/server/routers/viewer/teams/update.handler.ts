@@ -66,6 +66,15 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       throw new TRPCError({ code: "BAD_REQUEST", message: "Booking limits must be in ascending order." });
   }
 
+  if (input.lockDefaultAvailability) {
+    if (!prevTeam.parentId) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Lock default availability feature is only available for teams within organizations.",
+      });
+    }
+  }
+
   const data: Prisma.TeamUpdateArgs["data"] = {
     name: input.name,
     bio: input.bio,
@@ -73,6 +82,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     isPrivate: input.isPrivate,
     hideBookATeamMember: input.hideBookATeamMember,
     hideTeamProfileLink: input.hideTeamProfileLink,
+    lockDefaultAvailability: input.lockDefaultAvailability,
     brandColor: input.brandColor,
     darkBrandColor: input.darkBrandColor,
     theme: input.theme,
@@ -183,6 +193,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     includeManagedEventsInLimits: updatedTeam.includeManagedEventsInLimits,
     rrResetInterval: updatedTeam.rrResetInterval,
     rrTimestampBasis: updatedTeam.rrTimestampBasis,
+    lockDefaultAvailability: updatedTeam.lockDefaultAvailability,
   };
 };
 

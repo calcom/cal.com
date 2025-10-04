@@ -52,6 +52,9 @@ export const AvailabilitySettingsWebWrapper = ({
           callback();
           showToast(t("success"), "success");
         },
+        onError: (err) => {
+          showToast(err.message, "error");
+        },
       }
     );
   };
@@ -87,6 +90,8 @@ export const AvailabilitySettingsWebWrapper = ({
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
+      } else {
+        showToast(err.message, "error");
       }
     },
   });
