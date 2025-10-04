@@ -20,6 +20,7 @@ export type PhoneInputProps = {
   disabled?: boolean;
   onChange: (value: string) => void;
   defaultCountry?: string;
+  allowedCountryCodes?: string[];
   inputStyle?: CSSProperties;
   flagButtonStyle?: CSSProperties;
 };
@@ -30,6 +31,7 @@ function BasePhoneInput({
   onChange,
   value,
   defaultCountry = "us",
+  allowedCountryCodes,
   ...rest
 }: PhoneInputProps) {
   const isPlatform = useIsPlatform();
@@ -53,9 +55,24 @@ function BasePhoneInput({
 
   if (!isPlatform) {
     return (
-      <BasePhoneInputWeb name={name} className={className} onChange={onChange} value={value} {...rest} />
+      <BasePhoneInputWeb
+        name={name}
+        className={className}
+        onChange={onChange}
+        value={value}
+        allowedCountryCodes={allowedCountryCodes}
+        {...rest}
+      />
     );
   }
+
+  const singleCountry = allowedCountryCodes?.length === 1;
+  const onlyCountries = allowedCountryCodes?.map((code) => code.toLowerCase());
+
+  // If country codes are restricted, use the first one as the default
+  const effectiveDefaultCountry = allowedCountryCodes?.length
+    ? allowedCountryCodes[0].toLowerCase()
+    : defaultCountry;
 
   return (
     <PhoneInput
@@ -63,7 +80,9 @@ function BasePhoneInput({
       value={value ? value.trim().replace(/^\+?/, "+") : undefined}
       enableSearch
       disableSearchIcon
-      country={defaultCountry}
+      country={effectiveDefaultCountry}
+      onlyCountries={onlyCountries && onlyCountries.length > 0 ? onlyCountries : undefined}
+      disableCountryCode={singleCountry}
       inputProps={{
         name,
         required: rest.required,
@@ -101,19 +120,29 @@ function BasePhoneInputWeb({
   className = "",
   onChange,
   value,
+  allowedCountryCodes,
   inputStyle,
   flagButtonStyle,
   ...rest
 }: Omit<PhoneInputProps, "defaultCountry">) {
   const defaultCountry = useDefaultCountry();
+  const onlyCountries = allowedCountryCodes?.map((code) => code.toLowerCase());
+  const singleCountry = allowedCountryCodes?.length === 1;
+
+  // If country codes are restricted, use the first one as the default
+  const effectiveDefaultCountry = allowedCountryCodes?.length
+    ? allowedCountryCodes[0].toLowerCase()
+    : defaultCountry;
 
   return (
     <PhoneInput
       {...rest}
       value={value ? value.trim().replace(/^\+?/, "+") : undefined}
-      country={value ? undefined : defaultCountry}
+      country={value ? undefined : effectiveDefaultCountry}
       enableSearch
       disableSearchIcon
+      onlyCountries={onlyCountries && onlyCountries.length > 0 ? onlyCountries : undefined}
+      disableCountryCode={singleCountry}
       inputProps={{
         name,
         required: rest.required,
@@ -162,9 +191,11 @@ const useDefaultCountry = () => {
         return;
       }
 
-      isSupportedCountry(data?.countryCode)
-        ? setDefaultCountry(data.countryCode.toLowerCase())
-        : setDefaultCountry(navigator.language.split("-")[1]?.toLowerCase() || "us");
+      if (isSupportedCountry(data?.countryCode)) {
+        setDefaultCountry(data.countryCode.toLowerCase());
+      } else {
+        setDefaultCountry(navigator.language.split("-")[1]?.toLowerCase() || "us");
+      }
     },
     [query.data]
   );
