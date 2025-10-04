@@ -7,7 +7,7 @@ import { vi } from "vitest";
 import "vitest-fetch-mock";
 import type { z } from "zod";
 
-import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
 import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
 import { weekdayToWeekIndex, type WeekDays } from "@calcom/lib/dayjs";
 import type { HttpError } from "@calcom/lib/http-error";

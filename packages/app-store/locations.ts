@@ -5,7 +5,6 @@ import type { TFunction } from "i18next";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { z } from "zod";
 
-import { appStoreMetadata } from "@calcom/app-store/bookerAppsMetaData";
 import logger from "@calcom/lib/logger";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { Ensure, Optional } from "@calcom/types/utils";
@@ -231,62 +230,95 @@ export type BookingLocationValue = string;
 
 export const AppStoreLocationType: Record<string, string> = {};
 
-const locationsFromApps: EventLocationTypeFromApp[] = [];
+// Lazy-loaded app locations
+let locationsFromApps: EventLocationTypeFromApp[] | null = null;
+let combinedLocations: EventLocationType[] | null = null;
 
-for (const [appName, meta] of Object.entries(appStoreMetadata)) {
-  const location = meta.appData?.location;
-  if (location) {
-    // TODO: This template variable replacement should happen once during app-store:build.
-    for (const [key, value] of Object.entries(location)) {
-      if (typeof value === "string") {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        location[key] = value.replace(/{SLUG}/g, meta.slug).replace(/{TITLE}/g, meta.name);
-      }
-    }
-    const newLocation = {
-      ...location,
-      messageForOrganizer: location.messageForOrganizer || `Set ${location.label} link`,
-      iconUrl: meta.logo,
-      // For All event location apps, locationLink is where we store the input
-      // TODO: locationLink and link seems redundant. We can modify the code to keep just one of them.
-      variable: location.variable || "locationLink",
-      defaultValueVariable: location.defaultValueVariable || "link",
-    };
-
-    // Static links always require organizer to input
-    if (newLocation.linkType === "static") {
-      newLocation.organizerInputType = location.organizerInputType || "text";
-      if (newLocation.organizerInputPlaceholder?.match(/https?:\/\//)) {
-        // HACK: Translation ends up removing https? if it's in the beginning :(
-        newLocation.organizerInputPlaceholder = ` ${newLocation.organizerInputPlaceholder}`;
-      }
-    } else {
-      newLocation.organizerInputType = null;
-    }
-
-    AppStoreLocationType[appName] = newLocation.type;
-
-    locationsFromApps.push({
-      ...newLocation,
-    });
+const loadAppLocations = (): EventLocationTypeFromApp[] => {
+  if (locationsFromApps !== null) {
+    return locationsFromApps;
   }
-}
 
-const locations = [...defaultLocations, ...locationsFromApps];
+  // Lazy import of app metadata - this will only load when first accessed
+  // Use dynamic import to avoid loading at startup
+  try {
+    // Since this is server-side and the module should be available, use require
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { appStoreMetadata } = require("@calcom/app-store/bookerAppsMetaData");
+    processAppMetadata(appStoreMetadata);
+  } catch (error) {
+    console.warn("Failed to load app metadata, app locations may not be available", error);
+    locationsFromApps = [];
+  }
+
+  return locationsFromApps;
+};
+
+const processAppMetadata = (appStoreMetadata: any) => {
+  locationsFromApps = [];
+
+  for (const [appName, meta] of Object.entries(appStoreMetadata)) {
+    const location = meta.appData?.location;
+    if (location) {
+      // TODO: This template variable replacement should happen once during app-store:build.
+      for (const [key, value] of Object.entries(location)) {
+        if (typeof value === "string") {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          location[key] = value.replace(/{SLUG}/g, meta.slug).replace(/{TITLE}/g, meta.name);
+        }
+      }
+      const newLocation = {
+        ...location,
+        messageForOrganizer: location.messageForOrganizer || `Set ${location.label} link`,
+        iconUrl: meta.logo,
+        // For All event location apps, locationLink is where we store the input
+        // TODO: locationLink and link seems redundant. We can modify the code to keep just one of them.
+        variable: location.variable || "locationLink",
+        defaultValueVariable: location.defaultValueVariable || "link",
+      };
+
+      // Static links always require organizer to input
+      if (newLocation.linkType === "static") {
+        newLocation.organizerInputType = location.organizerInputType || "text";
+        if (newLocation.organizerInputPlaceholder?.match(/https?:\/\//)) {
+          // HACK: Translation ends up removing https? if it's in the beginning :(
+          newLocation.organizerInputPlaceholder = ` ${newLocation.organizerInputPlaceholder}`;
+        }
+      } else {
+        newLocation.organizerInputType = null;
+      }
+
+      AppStoreLocationType[appName] = newLocation.type;
+
+      locationsFromApps.push({
+        ...newLocation,
+      });
+    }
+  }
+};
+
+const getCombinedLocations = (): EventLocationType[] => {
+  if (combinedLocations !== null) {
+    return combinedLocations;
+  }
+
+  const appLocations = loadAppLocations();
+  combinedLocations = [...defaultLocations, ...appLocations];
+  return combinedLocations;
+};
 
 export const getLocationFromApp = (locationType: string) =>
-  locationsFromApps.find((l) => l.type === locationType);
+  loadAppLocations().find((l) => l.type === locationType);
 
-// TODO: Rename this to getLocationByType()
 export const getEventLocationType = (locationType: string | undefined | null) =>
-  locations.find((l) => l.type === locationType);
+  getCombinedLocations().find((l) => l.type === locationType);
 
 const getStaticLinkLocationByValue = (value: string | undefined | null) => {
   if (!value) {
     return null;
   }
-  return locations.find((l) => {
+  return getCombinedLocations().find((l) => {
     if (l.default || l.linkType == "dynamic" || !l.urlRegExp) {
       return;
     }
@@ -489,14 +521,14 @@ export const getTranslatedLocation = (
 export const getOrganizerInputLocationTypes = () => {
   const result: DefaultEventLocationType["type"] | EventLocationTypeFromApp["type"][] = [];
 
-  const organizerInputTypeLocations = locations.filter((location) => !!location.organizerInputType);
+  const organizerInputTypeLocations = getCombinedLocations().filter((location) => !!location.organizerInputType);
   organizerInputTypeLocations?.forEach((l) => result.push(l.type));
 
   return result;
 };
 
 export const isAttendeeInputRequired = (locationType: string) => {
-  const location = locations.find((l) => l.type === locationType);
+  const location = getCombinedLocations().find((l) => l.type === locationType);
   if (!location) {
     // Consider throwing an error here. This shouldn't happen normally.
     return false;
