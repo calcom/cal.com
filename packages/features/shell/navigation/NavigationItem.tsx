@@ -2,6 +2,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { Fragment, useState, useEffect } from "react";
 
+import { IS_CALCOM } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import classNames from "@calcom/ui/classNames";
@@ -18,20 +19,22 @@ const usePersistedExpansionState = (itemName: string) => {
 
   useEffect(() => {
     try {
-      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       const stored = sessionStorage.getItem(`nav-expansion-${itemName}`);
       if (stored !== null) {
         setIsExpanded(JSON.parse(stored));
       }
-    } catch (_error) {}
+    } catch {
+      // Ignore sessionStorage errors (e.g., when storage is disabled)
+    }
   }, [itemName]);
 
   const setPersistedExpansion = (expanded: boolean) => {
     setIsExpanded(expanded);
     try {
-      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       sessionStorage.setItem(`nav-expansion-${itemName}`, JSON.stringify(expanded));
-    } catch (_error) {}
+    } catch {
+      // Ignore sessionStorage errors (e.g., when storage is disabled)
+    }
   };
 
   return [isExpanded, setPersistedExpansion] as const;
@@ -216,10 +219,27 @@ export const NavigationItem: React.FC<{
             ) : (
               <SkeletonText className="h-[20px] w-full" />
             )}
-            {item.name === "workflows" && (
-              <Badge startIcon="sparkles" variant="purple">
-                Cal.ai
-              </Badge>
+            {IS_CALCOM && item.name === "workflows" && (
+              <div
+                className="cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  window.location.href = "/workflow/new?action=calAi&templateWorkflowId=wf-11";
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.location.href = "/workflow/new?action=calAi&templateWorkflowId=wf-11";
+                  }
+                }}
+                role="button"
+                tabIndex={0}>
+                <Badge startIcon="sparkles" variant="purple">
+                  Cal.ai
+                </Badge>
+              </div>
             )}
           </Link>
         </Tooltip>
