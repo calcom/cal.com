@@ -315,6 +315,12 @@ const getError = ({
   return error?.message ? (
     <>
       {responseVercelIdHeader ?? ""} {t(error.message, { date })}
+      {error.data?.traceId && (
+        <div className="text-subtle mt-2 text-xs">
+          <span className="font-medium">{t("trace_reference_id")}:</span>
+          <code className="ml-1 select-all break-all font-mono">{error.data.traceId}</code>
+        </div>
+      )}
     </>
   ) : (
     <>{t("can_you_try_again")}</>
