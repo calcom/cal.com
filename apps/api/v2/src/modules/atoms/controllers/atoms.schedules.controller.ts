@@ -24,6 +24,7 @@ import {
 
 import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { FindDetailedScheduleByIdReturnType } from "@calcom/platform-libraries/schedules";
+import { getAvailabilityListHandler } from "@calcom/platform-libraries/schedules";
 import { ApiResponse, UpdateAtomScheduleDto } from "@calcom/platform-types";
 
 import { SchedulesAtomsService } from "../services/schedules-atom.service";
@@ -63,6 +64,22 @@ export class AtomsSchedulesController {
       data: schedule,
     };
   }
+
+  @Get("/schedules/all")
+  @Version(VERSION_NEUTRAL)
+  @UseGuards(ApiAuthGuard)
+  @Permissions([SCHEDULE_READ])
+  async getAllUserSchedules(
+    @GetUser() user: UserWithProfile
+  ): Promise<ApiResponse<Awaited<ReturnType<typeof getAvailabilityListHandler>>>> {
+    const userSchedules = await getAvailabilityListHandler({ ctx: { user } });
+
+    return {
+      status: SUCCESS_STATUS,
+      data: userSchedules,
+    };
+  }
+
   @Patch("schedules/:scheduleId")
   @Permissions([SCHEDULE_WRITE])
   @UseGuards(ApiAuthGuard)
@@ -71,7 +88,7 @@ export class AtomsSchedulesController {
     @GetUser() user: UserWithProfile,
     @Body() bodySchedule: UpdateAtomScheduleDto,
     @Param("scheduleId", ParseIntPipe) scheduleId: number
-  ): Promise<ApiResponse<any>> {
+  ): Promise<ApiResponse<Awaited<ReturnType<SchedulesAtomsService["updateUserSchedule"]>>>> {
     const updatedSchedule = await this.schedulesService.updateUserSchedule({
       user,
       input: bodySchedule,
@@ -81,6 +98,6 @@ export class AtomsSchedulesController {
     return {
       status: SUCCESS_STATUS,
       data: updatedSchedule,
-    };
+    } as ApiResponse<Awaited<ReturnType<SchedulesAtomsService["updateUserSchedule"]>>>;
   }
 }
