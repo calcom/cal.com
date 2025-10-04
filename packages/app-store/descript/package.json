@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/descript",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "dependencies": {
+    "@calcom/lib": "workspace:*"
+  },
+  "devDependencies": {
+    "@calcom/types": "workspace:*"
+  },
+  "description": "Descript is a video conferencing platform with built-in AI-powered recording, transcription, and editing capabilities. Schedule meetings that are automatically recorded and transcribed, then use AI tools to clean up audio, remove filler words, and create polished content from your conversations. Perfect for teams who want their meetings to become shareable content without extra work."
+}

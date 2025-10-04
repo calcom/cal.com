@@ -1,0 +1,16 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Descript",
+  "slug": "descript",
+  "type": "descript_conferencing",
+  "logo": "icon.svg",
+  "url": "https://example.com/link",
+  "variant": "conferencing",
+  "categories": ["conferencing"],
+  "publisher": "Gurneesh Budhiraja",
+  "email": "gurneeshbudhiraja@gmail.com",
+  "description": "Descript is a video conferencing platform with built-in AI-powered recording, transcription, and editing capabilities. Schedule meetings that are automatically recorded and transcribed, then use AI tools to clean up audio, remove filler words, and create polished content from your conversations. Perfect for teams who want their meetings to become shareable content without extra work.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "basic"
+}
