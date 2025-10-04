@@ -1,4 +1,5 @@
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
+import { AtomsSecondaryEmailsRepository } from "@/modules/atoms/atoms-secondary-emails.repository";
 import { AtomsRepository } from "@/modules/atoms/atoms.repository";
 import { AtomsConferencingAppsController } from "@/modules/atoms/controllers/atoms.conferencing-apps.controller";
 import { AtomsController } from "@/modules/atoms/controllers/atoms.controller";
@@ -17,6 +18,7 @@ import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/inde
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisService } from "@/modules/redis/redis.service";
 import { TeamsEventTypesModule } from "@/modules/teams/event-types/teams-event-types.module";
+import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { Module } from "@nestjs/common";
@@ -32,10 +34,12 @@ import { Module } from "@nestjs/common";
     CredentialsRepository,
     UsersRepository,
     AtomsRepository,
+    AtomsSecondaryEmailsRepository,
     UsersService,
     SchedulesAtomsService,
     VerificationAtomsService,
     RedisService,
+    TeamsRepository,
   ],
   exports: [EventTypesAtomService],
   controllers: [
