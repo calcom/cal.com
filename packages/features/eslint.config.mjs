@@ -7,4 +7,9 @@ export default [
     from: "../app-store/**",
     target: ".",
   }),
+  forbid({
+    from: "../../tests/libs/__mocks__/prismaMock.ts",
+    target: ".",
+    message: "Please don't use prismaMock",
+  }),
 ];

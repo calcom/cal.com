@@ -16,4 +16,7 @@ beforeEach(() => {
   mockReset(prisma);
 });
 
+/**
+ * @deprecated Please don't use prismaMock
+ */
 export default prisma;
