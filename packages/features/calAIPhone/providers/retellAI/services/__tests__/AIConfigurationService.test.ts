@@ -11,7 +11,9 @@ describe("AIConfigurationService", () => {
     vi.clearAllMocks();
     mocks = setupBasicMocks();
 
-    service = new AIConfigurationService(mocks.mockRetellRepository);
+    service = new AIConfigurationService({
+      retellRepository: mocks.mockRetellRepository,
+    });
   });
 
   afterEach(() => {
@@ -30,7 +32,7 @@ describe("AIConfigurationService", () => {
       const mockAgent = createMockAgent();
 
       mocks.mockRetellRepository.createLLM.mockResolvedValue(mockLLM);
-      mocks.mockRetellRepository.createAgent.mockResolvedValue(mockAgent);
+      mocks.mockRetellRepository.createOutboundAgent.mockResolvedValue(mockAgent);
 
       const result = await service.setupAIConfiguration(validConfig);
 
@@ -40,7 +42,7 @@ describe("AIConfigurationService", () => {
       });
 
       expect(mocks.mockRetellRepository.createLLM).toHaveBeenCalled();
-      expect(mocks.mockRetellRepository.createAgent).toHaveBeenCalled();
+      expect(mocks.mockRetellRepository.createOutboundAgent).toHaveBeenCalled();
     });
 
     it("should handle LLM creation failure", async () => {

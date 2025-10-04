@@ -20,10 +20,11 @@ const stripeErrorSchema = z.object({
 
 export class BillingService {
   private logger = logger.getSubLogger({ prefix: ["BillingService"] });
-
   constructor(
-    private phoneNumberRepository: PhoneNumberRepositoryInterface,
-    private retellRepository: RetellAIRepository
+    private deps: {
+      phoneNumberRepository: PhoneNumberRepositoryInterface;
+      retellRepository: RetellAIRepository;
+    }
   ) {}
 
   async generatePhoneNumberCheckoutSession({
@@ -112,12 +113,12 @@ export class BillingService {
   }) {
     // Find phone number with proper team authorization
     const phoneNumber = teamId
-      ? await this.phoneNumberRepository.findByIdWithTeamAccess({
+      ? await this.deps.phoneNumberRepository.findByIdWithTeamAccess({
           id: phoneNumberId,
           teamId,
           userId,
         })
-      : await this.phoneNumberRepository.findByIdAndUserId({
+      : await this.deps.phoneNumberRepository.findByIdAndUserId({
           id: phoneNumberId,
           userId,
         });
@@ -137,10 +138,10 @@ export class BillingService {
     }
 
     try {
-      await this.phoneNumberRepository.updateSubscriptionStatus({
+      await this.deps.phoneNumberRepository.updateSubscriptionStatus({
         id: phoneNumberId,
         subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
-        disconnectOutboundAgent: false,
+        disconnectAgents: false,
       });
 
       try {
@@ -154,7 +155,7 @@ export class BillingService {
             stripeMessage: "Subscription resource not found",
           });
         } else {
-          await this.phoneNumberRepository.updateSubscriptionStatus({
+          await this.deps.phoneNumberRepository.updateSubscriptionStatus({
             id: phoneNumberId,
             subscriptionStatus: PhoneNumberSubscriptionStatus.ACTIVE,
           });
@@ -163,15 +164,15 @@ export class BillingService {
       }
 
       // Disconnnect agent after cancelling from stripe
-      await this.phoneNumberRepository.updateSubscriptionStatus({
+      await this.deps.phoneNumberRepository.updateSubscriptionStatus({
         id: phoneNumberId,
         subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
-        disconnectOutboundAgent: true,
+        disconnectAgents: true,
       });
 
       // Delete the phone number from Retell, DB
       try {
-        await this.retellRepository.deletePhoneNumber(phoneNumber.phoneNumber);
+        await this.deps.retellRepository.deletePhoneNumber(phoneNumber.phoneNumber);
       } catch (error) {
         this.logger.error("Failed to delete phone number from AI service, but subscription was cancelled:", {
           error,

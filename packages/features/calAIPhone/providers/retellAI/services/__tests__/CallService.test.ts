@@ -36,7 +36,10 @@ describe("CallService", () => {
       updateToolsFromAgentId: vi.fn().mockResolvedValue(undefined),
     };
 
-    service = new CallService(mocks.mockRetellRepository, mocks.mockAgentRepository);
+    service = new CallService({
+      retellRepository: mocks.mockRetellRepository,
+      agentRepository: mocks.mockAgentRepository,
+    });
     service.setRetellAIService(mockRetellAIService);
   });
 
