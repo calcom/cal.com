@@ -42,7 +42,10 @@ export const useSlots = (
     shallow
   );
 
-  const [slotReservationId, setSlotReservationId] = useSlotReservationId();
+  const [slotReservationId, setSlotReservationId] = useBookerStoreContext(
+    (state) => [state.slotReservationId, state.setSlotReservationId],
+    shallow
+  );
 
   const reserveSlotMutation = useReserveSlot({
     onSuccess: (res) => {
