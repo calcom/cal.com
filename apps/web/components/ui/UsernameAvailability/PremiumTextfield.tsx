@@ -20,6 +20,7 @@ import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { Label, Input } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import slugify from "@calcom/lib/slugify";
 
 import type { TRPCClientErrorLike } from "@trpc/client";
 
@@ -81,7 +82,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
 
   useEffect(() => {
     // Use the current username or if it's not set, use the one available from stripe
-    setInputUsernameValue(currentUsername || stripeCustomer?.username || "");
+    setInputUsernameValue(slugify(currentUsername || stripeCustomer?.username || ""));
   }, [setInputUsernameValue, currentUsername, stripeCustomer?.username]);
 
   useEffect(() => {
@@ -105,7 +106,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   const updateUsername = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async () => {
       onSuccessMutation && (await onSuccessMutation());
-      await update({ username: inputUsernameValue });
+      const sanitizedUsername = slugify(inputUsernameValue || "");
+      await update({ username: sanitizedUsername });
       setOpenDialogSaveUsername(false);
     },
     onError: (error) => {
@@ -171,11 +173,12 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   };
 
   const saveUsername = () => {
+    const sanitizedUsername = slugify(inputUsernameValue || "");
     if (usernameChangeCondition !== UsernameChangeStatusEnum.UPGRADE) {
       updateUsername.mutate({
-        username: inputUsernameValue,
+        username: sanitizedUsername,
       });
-      setCurrentUsername(inputUsernameValue);
+      setCurrentUsername(sanitizedUsername);
     }
   };
 
@@ -234,7 +237,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
               if (searchParams?.toString() !== _searchParams.toString()) {
                 router.replace(`${pathname}?${_searchParams.toString()}`);
               }
-              setInputUsernameValue(event.target.value);
+              const sanitized = slugify(event.target.value);
+              setInputUsernameValue(sanitized);
             }}
             data-testid="username-input"
           />
