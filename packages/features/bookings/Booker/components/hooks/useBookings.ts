@@ -9,7 +9,6 @@ import { useHandleBookEvent } from "@calcom/atoms/hooks/bookings/useHandleBookEv
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { updateQueryParam, getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { createBooking, createRecurringBooking, createInstantBooking } from "@calcom/features/bookings/lib";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
@@ -181,6 +180,8 @@ export const useBookings = ({
   const rescheduledBy = useBookerStoreContext((state) => state.rescheduledBy);
   const bookingData = useBookerStoreContext((state) => state.bookingData);
   const timeslot = useBookerStoreContext((state) => state.selectedTimeslot);
+  const setBookingData = useBookerStoreContext((state) => state.setBookingData);
+  const setRescheduleUid = useBookerStoreContext((state) => state.setRescheduleUid);
   const { t } = useLocale();
   const bookingSuccessRedirect = useBookingSuccessRedirect();
   const bookerFormErrorRef = useRef<HTMLDivElement>(null);
@@ -383,16 +384,12 @@ export const useBookings = ({
       };
 
       if (error.message === ErrorCode.BookerLimitExceededReschedule && error.data?.rescheduleUid) {
-        useBookerStore.setState({
-          rescheduleUid: error.data?.rescheduleUid,
-        });
-        useBookerStore.setState({
-          bookingData: {
-            uid: error.data?.rescheduleUid,
-            startTime: error.data?.startTime,
-            attendees: error.data?.attendees,
-          } as unknown as GetBookingType,
-        });
+        setRescheduleUid(error.data?.rescheduleUid);
+        setBookingData({
+          uid: error.data?.rescheduleUid,
+          startTime: error.data?.startTime,
+          attendees: error.data?.attendees,
+        } as unknown as GetBookingType);
       }
     },
   });
