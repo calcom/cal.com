@@ -1874,8 +1874,6 @@
   "booker_booking_limit_description": "Limit the number of active bookings a booker can make for this event type",
   "ask_booker_to_confirm_email_twice": "Ask booker to confirm their email twice",
   "confirm_email_address": "Confirm email address",
-  "email_addresses_do_not_match": "Email addresses do not match",
-  "email_confirmation_required": "Email confirmation is required",
   "recurring_event_doesnt_support_booker_booking_limit": "Recurring events don't support booker booking limit",
   "add_limit": "Add Limit",
   "team_name_required": "Team name required",

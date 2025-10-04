@@ -64,7 +64,7 @@ export const useBookingForm = ({
         if (!emailConfirmation) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: t("email_confirmation_required"),
+            message: "Invalid input",
             path: ["responses", "emailConfirmation"],
           });
         }
@@ -72,7 +72,7 @@ export const useBookingForm = ({
         else if (email && emailConfirmation && email !== emailConfirmation) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: t("email_addresses_do_not_match"),
+            message: "Invalid input",
             path: ["responses", "emailConfirmation"],
           });
         }

@@ -352,7 +352,7 @@ function preprocess<T extends z.ZodType>({
         if (!emailConfirmation) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "{emailConfirmation}Email confirmation is required",
+            message: "Invalid input",
             path: ["emailConfirmation"],
           });
         }
@@ -360,7 +360,7 @@ function preprocess<T extends z.ZodType>({
         else if (email && emailConfirmation && email !== emailConfirmation) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "{emailConfirmation}Email addresses do not match",
+            message: "Invalid input",
             path: ["emailConfirmation"],
           });
         }
