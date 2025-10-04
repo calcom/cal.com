@@ -134,12 +134,16 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
 };
 
 function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentPropsRAQB) {
+  // Keep raw value to preserve the decimal separator.
+  // Intl.NumberFormat drops it if no digit follows,
+  // but we need it for correct formatting on every keystroke.
   const [rawValue, setRawValue] = useState(value || "");
 
-  // Detect locale symbols
+  // Detect locale and generate a number formatter
   const language = navigator.language;
   const nf = useMemo(() => new Intl.NumberFormat(language), [language]);
 
+  // use number formatter to find the minus symbol and decimal,group seperators
   const symbols = useMemo(() => {
     const parts = nf.formatToParts(-1234567.89);
     let decimal = ".";
@@ -155,14 +159,40 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
     return { decimal, minus, group };
   }, [nf]);
 
+  // generate the formatted value to display in input
+  // maximum significant digits allowed is 15 - because precision issue with Number()
+  // why need to use Number() - Intl.NumberFormat only accept Number
+  // since we are using Number() the no of decimal digits is varies based on total digits
   const formattedValue = useMemo(() => {
-    const numberValue = Number(value);
+    const significantDigits = (value || "").replace(/[^0-9]/g, "").replace(/^0+/, "").length;
 
+    let processedValue = value || "";
+
+    // Truncate to 15 significant digits if exceeded
+    if (significantDigits > 15) {
+      const isNegative = value.startsWith("-");
+      const [intPart, decPart] = value.replace("-", "").split(".");
+      const intTrimmed = intPart.replace(/^0+/, "") || "0";
+
+      // Take first 15 digits from integer part
+      const first15Int = intTrimmed.slice(0, 15);
+
+      // Join with decimal part (keep all decimals)
+      processedValue = (isNegative ? "-" : "") + first15Int + (decPart ? "." + decPart : "");
+    }
+
+    const numberValue = Number(processedValue);
+
+    // only do formatting if following condition
+    // - not NaN
+    // - not end with decimal Intl.NumberFormat drops decimal seperator if not followed by digit
+    // - not minus sign because it can also be dropped if not followed by digit
+    // - and number not equal to zero. because we want to allow ''
     if (
       !isNaN(numberValue) &&
       !rawValue.endsWith(symbols.decimal) &&
       rawValue !== symbols.minus &&
-      numberValue > 0
+      numberValue !== 0
     ) {
       return new Intl.NumberFormat(language, {
         minimumFractionDigits: 0,
@@ -170,26 +200,30 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
       }).format(numberValue);
     }
 
-    // Return raw input if any of the conditions above fail
     return rawValue;
-  }, [rawValue, language, symbols]);
+  }, [rawValue, language, symbols, value]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let val = e.target.value;
-
     // Escape special regex characters
     const escapeRegex = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-    // Remove all except digits, decimal, minus, and group separator
-    const allowed = `0-9${escapeRegex(symbols.decimal)}${escapeRegex(symbols.minus)}${
-      symbols.group ? escapeRegex(symbols.group) : ""
-    }`;
-    val = val.replace(new RegExp(`[^${allowed}]`, "g"), "");
+    // create regex for allowed characters - minus sign, decimal, group seperator
+    const allowedChars = [
+      "0-9",
+      escapeRegex(symbols.decimal),
+      symbols.group ? escapeRegex(symbols.group) : "",
+      escapeRegex(symbols.minus), // Put minus last
+    ]
+      .filter(Boolean)
+      .join("");
+
+    val = val.replace(new RegExp(`[^${allowedChars}]`, "g"), "");
 
     // Only allow leading minus
     val = val.replace(new RegExp(`(?!^)${escapeRegex(symbols.minus)}`, "g"), "");
 
-    // Keep only first decimal
+    // Keep only first decimal seperator
     const firstDecimal = val.indexOf(symbols.decimal);
     if (firstDecimal !== -1) {
       val =
@@ -198,7 +232,6 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
     }
 
     setRawValue(val);
-    console.log(val, "raw val", symbols);
 
     // Normalize for parent: remove group separators, then replace decimal and minus
     let normalized = val;
