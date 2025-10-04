@@ -987,6 +987,106 @@ describe("Attendees Endpoints 2024-09-04", () => {
       });
     });
 
+    describe("non-team user authorization", () => {
+      let nonTeamApp: INestApplication;
+
+      beforeAll(async () => {
+        const nonTeamModuleRef = await withApiAuth(
+          nonTeamUserEmail,
+          Test.createTestingModule({
+            imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
+          })
+        )
+          .overrideGuard(PermissionsGuard)
+          .useValue({
+            canActivate: () => true,
+          })
+          .compile();
+
+        nonTeamApp = nonTeamModuleRef.createNestApplication();
+        bootstrap(nonTeamApp as NestExpressApplication);
+        await nonTeamApp.init();
+      });
+
+      it("should not allow non-team user to create attendee for team booking", async () => {
+        const body: CreateAttendeeInput_2024_09_04 = {
+          bookingId: teamBooking.id,
+          email: "unauthorized@example.com",
+          name: "Unauthorized Attendee",
+          timeZone: "UTC",
+        };
+
+        return request(nonTeamApp.getHttpServer())
+          .post("/v2/attendees")
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+          .expect(403);
+      });
+
+      it("should not allow non-team user to get attendee for team booking", async () => {
+        const createdAttendee = await attendeeRepositoryFixture.create({
+          booking: {
+            connect: {
+              id: teamBooking.id,
+            },
+          },
+          email: "non-team-get-attendee@example.com",
+          name: "Non-Team Get Attendee",
+          timeZone: "UTC",
+        });
+
+        return request(nonTeamApp.getHttpServer())
+          .get(`/v2/attendees/${createdAttendee.id}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+          .expect(403);
+      });
+
+      it("should not allow non-team user to update attendee for team booking", async () => {
+        const updateBody: UpdateAttendeeInput_2024_09_04 = {
+          name: "Updated by Non-Team User",
+        };
+
+        const createdAttendee = await attendeeRepositoryFixture.create({
+          booking: {
+            connect: {
+              id: teamBooking.id,
+            },
+          },
+          email: "non-team-update-attendee@example.com",
+          name: "Non-Team Update Attendee",
+          timeZone: "UTC",
+        });
+
+        return request(nonTeamApp.getHttpServer())
+          .patch(`/v2/attendees/${createdAttendee.id}`)
+          .send(updateBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+          .expect(403);
+      });
+
+      it("should not allow non-team user to delete attendee for team booking", async () => {
+        const createdAttendee = await attendeeRepositoryFixture.create({
+          booking: {
+            connect: {
+              id: teamBooking.id,
+            },
+          },
+          email: "non-team-delete-attendee@example.com",
+          name: "Non-Team Delete Attendee",
+          timeZone: "UTC",
+        });
+
+        return request(nonTeamApp.getHttpServer())
+          .delete(`/v2/attendees/${createdAttendee.id}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+          .expect(403);
+      });
+
+      afterAll(async () => {
+        await nonTeamApp.close();
+      });
+    });
+
     afterAll(async () => {
       await userRepositoryFixture.delete(teamUser.id);
       await userRepositoryFixture.delete(teamUser2.id);
