@@ -196,4 +196,17 @@ export class StripeBillingService implements BillingService {
     const price = await this.stripe.prices.retrieve(priceId);
     return price;
   }
+
+  async getInvoices(customerId: string, limit: number = 10) {
+    const invoices = await this.stripe.invoices.list({
+      customer: customerId,
+      limit,
+    });
+    return invoices.data;
+  }
+
+  async getSubscription(subscriptionId: string) {
+    const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
+    return subscription;
+  }
 }
