@@ -16,10 +16,16 @@ jobs:
           pattern: blob-report-*
           merge-multiple: true
       - name: Merge into HTML Report
-        run: yarn playwright merge-reports --reporter html ./all-blob-reports
+        run: yarn playwright merge-reports --reporter html --reporter junit ./all-blob-reports
       - name: Upload HTML report
         uses: actions/upload-artifact@v4
         with:
           name: html-report--attempt-${{ github.run_number }}-${{ github.run_attempt }}
           path: playwright-report
+          retention-days: 14
+      - name: Upload junit XML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-report--attempt-${{ github.run_number }}-${{ github.run_attempt }}
+          path: results.xml
           retention-days: 14
