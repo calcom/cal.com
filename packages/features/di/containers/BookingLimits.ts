@@ -7,10 +7,12 @@ import { createContainer } from "../di";
 import { bookingRepositoryModule } from "../modules/Booking";
 import { checkBookingAndDurationLimitsModule } from "../modules/CheckBookingAndDurationLimits";
 import { checkBookingLimitsModule } from "../modules/CheckBookingLimits";
+import { membershipRepositoryModule } from "../modules/Membership";
 
 const container = createContainer();
 container.load(DI_TOKENS.PRISMA_MODULE, prismaModule);
 container.load(DI_TOKENS.BOOKING_REPOSITORY_MODULE, bookingRepositoryModule);
+container.load(DI_TOKENS.MEMBERSHIP_REPOSITORY_MODULE, membershipRepositoryModule);
 container.load(DI_TOKENS.CHECK_BOOKING_LIMITS_SERVICE_MODULE, checkBookingLimitsModule);
 container.load(
   DI_TOKENS.CHECK_BOOKING_AND_DURATION_LIMITS_SERVICE_MODULE,
