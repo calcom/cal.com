@@ -7608,6 +7608,136 @@
         "tags": ["Api Keys"]
       }
     },
+    "/v2/attendees": {
+      "post": {
+        "operationId": "AttendeesController_2024_09_04_createAttendee",
+        "summary": "Create an attendee",
+        "description": "\n      Creates a new attendee for an existing booking. The user must be the owner of the booking \n      or have appropriate permissions (team member for team bookings, or system admin).\n    ",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAttendeeInput_2024_09_04"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateAttendeeOutput_2024_09_04"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Attendees"]
+      }
+    },
+    "/v2/attendees/{attendeeId}": {
+      "get": {
+        "operationId": "AttendeesController_2024_09_04_getAttendee",
+        "summary": "Get an attendee by ID",
+        "description": "\n      Retrieves an attendee by their ID. The user must have permission to view the booking\n      that the attendee belongs to.\n    ",
+        "parameters": [
+          {
+            "name": "attendeeId",
+            "required": true,
+            "in": "path",
+            "description": "The ID of the attendee to retrieve",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAttendeeOutput_2024_09_04"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Attendees"]
+      },
+      "patch": {
+        "operationId": "AttendeesController_2024_09_04_updateAttendee",
+        "summary": "Update an attendee",
+        "description": "\n      Updates an existing attendee by their ID. The user must have permission to modify the booking\n      that the attendee belongs to. Only provided fields will be updated.\n    ",
+        "parameters": [
+          {
+            "name": "attendeeId",
+            "required": true,
+            "in": "path",
+            "description": "The ID of the attendee to update",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAttendeeInput_2024_09_04"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateAttendeeOutput_2024_09_04"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Attendees"]
+      },
+      "delete": {
+        "operationId": "AttendeesController_2024_09_04_deleteAttendee",
+        "summary": "Delete an attendee",
+        "description": "\n      Deletes an attendee by their ID. The user must have permission to modify the booking \n      that the attendee belongs to.\n    ",
+        "parameters": [
+          {
+            "name": "attendeeId",
+            "required": true,
+            "in": "path",
+            "description": "The ID of the attendee to delete",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteAttendeeOutput_2024_09_04"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Attendees"]
+      }
+    },
     "/v2/bookings": {
       "post": {
         "operationId": "BookingsController_2024_08_13_createBooking",
@@ -24069,63 +24199,64 @@
           }
         }
       },
-      "MeOrgOutput": {
+      "CreateAttendeeInput_2024_09_04": {
         "type": "object",
         "properties": {
-          "isPlatform": {
-            "type": "boolean"
-          },
-          "id": {
-            "type": "number"
-          }
-        },
-        "required": ["isPlatform", "id"]
-      },
-      "MeOutput": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number"
-          },
-          "username": {
-            "type": "string"
+          "bookingId": {
+            "type": "number",
+            "description": "The ID of the booking to add the attendee to",
+            "example": 123
           },
           "email": {
-            "type": "string"
+            "type": "string",
+            "description": "Email address of the attendee",
+            "example": "attendee@example.com"
           },
-          "timeFormat": {
-            "type": "number"
-          },
-          "defaultScheduleId": {
-            "type": "number",
-            "nullable": true
-          },
-          "weekStart": {
-            "type": "string"
+          "name": {
+            "type": "string",
+            "description": "Full name of the attendee",
+            "example": "John Doe"
           },
           "timeZone": {
-            "type": "string"
-          },
-          "organizationId": {
-            "type": "number",
-            "nullable": true
-          },
-          "organization": {
-            "$ref": "#/components/schemas/MeOrgOutput"
+            "type": "string",
+            "description": "Timezone of the attendee",
+            "example": "America/New_York"
           }
         },
-        "required": [
-          "id",
-          "username",
-          "email",
-          "timeFormat",
-          "defaultScheduleId",
-          "weekStart",
-          "timeZone",
-          "organizationId"
-        ]
+        "required": ["bookingId", "email", "name", "timeZone"]
       },
-      "GetMeOutput": {
+      "AttendeeOutput_2024_09_04": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Unique identifier for the attendee",
+            "example": 456
+          },
+          "bookingId": {
+            "type": "number",
+            "description": "The ID of the booking this attendee belongs to",
+            "example": 123
+          },
+          "email": {
+            "type": "string",
+            "description": "Email address of the attendee",
+            "example": "attendee@example.com"
+          },
+          "name": {
+            "type": "string",
+            "description": "Full name of the attendee",
+            "example": "John Doe"
+          },
+          "timeZone": {
+            "type": "string",
+            "description": "Timezone of the attendee",
+            "example": "America/New_York"
+          }
+        },
+        "required": ["id", "bookingId", "email", "name", "timeZone"]
+      },
+      "CreateAttendeeOutput_2024_09_04": {
         "type": "object",
         "properties": {
           "status": {
@@ -24134,12 +24265,17 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/MeOutput"
+            "description": "The created attendee",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AttendeeOutput_2024_09_04"
+              }
+            ]
           }
         },
         "required": ["status", "data"]
       },
-      "UpdateMeOutput": {
+      "GetAttendeeOutput_2024_09_04": {
         "type": "object",
         "properties": {
           "status": {
@@ -24148,7 +24284,70 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/MeOutput"
+            "description": "The attendee",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AttendeeOutput_2024_09_04"
+              }
+            ]
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "UpdateAttendeeInput_2024_09_04": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email address of the attendee",
+            "example": "attendee@example.com"
+          },
+          "name": {
+            "type": "string",
+            "description": "Full name of the attendee",
+            "example": "John Doe"
+          },
+          "timeZone": {
+            "type": "string",
+            "description": "Timezone of the attendee",
+            "example": "America/New_York"
+          }
+        }
+      },
+      "UpdateAttendeeOutput_2024_09_04": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "description": "The updated attendee",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AttendeeOutput_2024_09_04"
+              }
+            ]
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "DeleteAttendeeOutput_2024_09_04": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "description": "The deleted attendee",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AttendeeOutput_2024_09_04"
+              }
+            ]
           }
         },
         "required": ["status", "data"]
@@ -26372,6 +26571,90 @@
             "items": {
               "$ref": "#/components/schemas/BookingReference"
             }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "MeOrgOutput": {
+        "type": "object",
+        "properties": {
+          "isPlatform": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "number"
+          }
+        },
+        "required": ["isPlatform", "id"]
+      },
+      "MeOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "username": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "timeFormat": {
+            "type": "number"
+          },
+          "defaultScheduleId": {
+            "type": "number",
+            "nullable": true
+          },
+          "weekStart": {
+            "type": "string"
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "number",
+            "nullable": true
+          },
+          "organization": {
+            "$ref": "#/components/schemas/MeOrgOutput"
+          }
+        },
+        "required": [
+          "id",
+          "username",
+          "email",
+          "timeFormat",
+          "defaultScheduleId",
+          "weekStart",
+          "timeZone",
+          "organizationId"
+        ]
+      },
+      "GetMeOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/MeOutput"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "UpdateMeOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/MeOutput"
           }
         },
         "required": ["status", "data"]

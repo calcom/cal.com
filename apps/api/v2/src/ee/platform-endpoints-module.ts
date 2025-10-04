@@ -1,3 +1,4 @@
+import { AttendeesModule_2024_09_04 } from "@/ee/attendees/2024-09-04/attendees.module";
 import { BookingsModule_2024_04_15 } from "@/ee/bookings/2024-04-15/bookings.module";
 import { BookingsModule_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.module";
 import { CalendarsModule } from "@/ee/calendars/calendars.module";
@@ -20,6 +21,7 @@ import { Module } from "@nestjs/common";
 
 @Module({
   imports: [
+    AttendeesModule_2024_09_04,
     GcalModule,
     ProviderModule,
     SchedulesModule_2024_04_15,
