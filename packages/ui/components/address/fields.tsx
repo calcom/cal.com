@@ -19,7 +19,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
       {...props}
       ref={ref}
       className={classNames(
-        "border-default mt-1 block w-full rounded-sm border px-3 py-2 shadow-sm focus:border-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-800 sm:text-sm",
+        "border-default mt-1 block h-10 w-full rounded-[10px] border px-3 py-3 shadow-sm focus:border-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-800 sm:text-sm",
         props.className
       )}
     />
@@ -147,7 +147,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
       ref={ref}
       {...props}
       className={classNames(
-        "border-default block w-full rounded-sm shadow-sm focus:border-neutral-900 focus:ring-neutral-900 sm:text-sm",
+        "border-default block w-full rounded-[10px] px-3 py-3 shadow-sm focus:border-neutral-900 focus:ring-neutral-900 sm:text-sm",
         props.className
       )}
     />

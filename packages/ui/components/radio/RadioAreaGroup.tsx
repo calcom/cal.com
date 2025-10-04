@@ -33,7 +33,9 @@ const RadioArea = ({ children, className, classNames: innerClassNames, ...props 
           )}
         />
       </RadioGroupPrimitive.Item>
-      <label htmlFor={id} className={classNames("text-default p-4 pl-10 pt-3", innerClassNames?.container)}>
+      <label
+        htmlFor={id}
+        className={classNames("text-default p-4 pl-10 pt-4 leading-6", innerClassNames?.container)}>
         {children}
       </label>
     </div>

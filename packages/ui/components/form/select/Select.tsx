@@ -52,8 +52,8 @@ export const Select = <
       styles={{
         control: (base) => ({
           ...base,
-          minHeight: size === "sm" ? "28px" : "32px",
-          height: grow ? "auto" : size === "sm" ? "28px" : "32px",
+          minHeight: size === "sm" ? "32px" : "40px",
+          height: grow ? "auto" : size === "sm" ? "32px" : "40px",
         }),
       }}
       classNames={{
@@ -78,8 +78,8 @@ export const Select = <
                 ? "p-1 h-fit"
                 : "px-3 h-fit"
               : size === "sm"
-              ? "h-7 px-2 py-1"
-              : "h-8 px-3 py-2",
+              ? "h-8 px-2 py-2"
+              : "h-10 px-3 py-3",
             props.isDisabled && "bg-subtle",
             "rounded-[10px]",
             "[&:focus-within]:border-emphasis [&:focus-within]:shadow-outline-gray-focused [&:focus-within]:ring-0 !flex",
@@ -219,7 +219,6 @@ export function SelectWithValidation<
             position: "absolute",
           }}
           value={hiddenInputValue}
-          // eslint-disable-next-line @typescript-eslint/no-empty-function
           onChange={() => {}}
           // TODO:Not able to get focus to work
           // onFocus={() => selectRef.current?.focus()}
