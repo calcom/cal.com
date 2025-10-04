@@ -6,6 +6,8 @@ import { sendLocationChangeEmailsAndSMS } from "@calcom/emails";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
+import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
@@ -264,6 +266,40 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
     conferenceCredentialId,
   });
 
+  let hideBranding = false;
+  if (booking.eventType?.id) {
+    const orgId = await getOrgIdFromMemberOrTeamId({
+      memberId: booking.userId ?? null,
+      teamId: booking.eventType.team?.id ?? booking.eventType.teamId ?? null,
+    });
+
+    hideBranding = await shouldHideBrandingForEvent({
+      eventTypeId: booking.eventType.id,
+      team: booking.eventType.team
+        ? {
+            hideBranding: booking.eventType.team.hideBranding ?? null,
+            parent: booking.eventType.team.parent
+              ? {
+                  hideBranding: booking.eventType.team.parent.hideBranding ?? null,
+                }
+              : null,
+          }
+        : null,
+      owner: booking.eventType.owner
+        ? {
+            id: booking.eventType.owner.id,
+            hideBranding: booking.eventType.owner.hideBranding ?? null,
+          }
+        : null,
+      organizationId: orgId ?? null,
+    }).catch(() => !!booking.eventType?.owner?.hideBranding);
+  }
+
+  const evtWithBranding: CalendarEvent = {
+    ...evt,
+    hideBranding,
+  };
+
   const eventManager = new EventManager({
     ...ctx.user,
     credentials: await getAllCredentialsIncludeServiceAccountKey({ user: ctx.user, conferenceCredentialId }),
@@ -272,20 +308,30 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
   const updatedResult = await updateLocationInConnectedAppForBooking({
     booking,
     eventManager,
-    evt,
+    evt: evtWithBranding,
   });
 
   const additionalInformation = extractAdditionalInformation(updatedResult.results[0]);
 
+  const evtWithLocation: CalendarEvent = {
+    ...evtWithBranding,
+    location: newLocationInEvtFormat,
+  };
+
+  const evtForDb = {
+    ...evtWithLocation,
+    location: newLocationInEvtFormat,
+  } satisfies Ensure<CalendarEvent, "location">;
+
   await updateBookingLocationInDb({
     booking,
-    evt: { ...evt, additionalInformation },
+    evt: { ...evtForDb, additionalInformation },
     references: updatedResult.referencesToCreate,
   });
 
   try {
     await sendLocationChangeEmailsAndSMS(
-      { ...evt, additionalInformation },
+      { ...evtForDb, additionalInformation },
       booking?.eventType?.metadata as EventTypeMetadata
     );
   } catch (error) {

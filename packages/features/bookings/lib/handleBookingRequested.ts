@@ -4,6 +4,7 @@ import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
@@ -27,10 +28,15 @@ export async function handleBookingRequested(args: {
         workflow: Workflow;
       }[];
       owner: {
+        id: number;
         hideBranding: boolean;
       } | null;
       team?: {
         parentId: number | null;
+        hideBranding: boolean | null;
+        parent?: {
+          hideBranding: boolean | null;
+        } | null;
       } | null;
       currency: string;
       hosts?: {
@@ -56,6 +62,33 @@ export async function handleBookingRequested(args: {
   };
 }) {
   const { evt, booking } = args;
+
+  // Calculate hide branding setting using comprehensive logic
+  const hideBranding = booking?.eventType?.id
+    ? await shouldHideBrandingForEvent({
+        eventTypeId: booking.eventType.id,
+        team: booking.eventType.team
+          ? {
+              hideBranding: booking.eventType.team.hideBranding,
+              parent: booking.eventType.team.parent
+                ? {
+                    hideBranding: booking.eventType.team.parent.hideBranding,
+                  }
+                : null,
+            }
+          : null,
+        owner: booking.eventType.owner
+          ? {
+              id: booking.eventType.owner.id,
+              hideBranding: booking.eventType.owner.hideBranding,
+            }
+          : null,
+        organizationId: booking.eventType.team?.parentId || null,
+      }).catch(() => {
+        // Fallback to simple logic if comprehensive check fails
+        return !!booking.eventType?.owner?.hideBranding;
+      })
+    : false;
 
   log.debug("Emails: Sending booking requested emails");
 
@@ -106,7 +139,7 @@ export async function handleBookingRequested(args: {
       await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
         workflows,
         smsReminderNumber: booking.smsReminderNumber,
-        hideBranding: !!booking.eventType?.owner?.hideBranding,
+        hideBranding: hideBranding,
         calendarEvent: {
           ...evt,
           bookerUrl: evt.bookerUrl as string,

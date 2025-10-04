@@ -5,6 +5,7 @@ import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApi
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails";
+import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { processNoShowFeeOnCancellation } from "@calcom/features/bookings/lib/payment/processNoShowFeeOnCancellation";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
@@ -17,10 +18,10 @@ import {
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
+import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import { HttpError } from "@calcom/lib/http-error";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
@@ -81,6 +82,29 @@ async function handler(input: CancelBookingInput) {
     internalNote,
   } = bookingCancelInput.parse(body);
   const bookingToDelete = await getBookingToDelete(id, uid);
+
+  // Calculate hide branding setting using comprehensive logic that considers team and organization settings
+  const hideBranding = await shouldHideBrandingForEvent({
+    eventTypeId: bookingToDelete.eventType?.id || 0,
+    team: bookingToDelete.eventType?.team
+      ? {
+          hideBranding: bookingToDelete.eventType.team.hideBranding,
+          parent: bookingToDelete.eventType.team.parent
+            ? {
+                hideBranding: bookingToDelete.eventType.team.parent.hideBranding,
+              }
+            : null,
+        }
+      : null,
+    owner: bookingToDelete.eventType?.owner
+      ? {
+          id: bookingToDelete.eventType.owner.id,
+          hideBranding: bookingToDelete.eventType.owner.hideBranding,
+        }
+      : null,
+    organizationId: bookingToDelete.eventType?.team?.parentId || null,
+  });
+
   const {
     userId,
     platformBookingUrl,
@@ -295,6 +319,7 @@ async function handler(input: CancelBookingInput) {
     hideOrganizerEmail: bookingToDelete.eventType?.hideOrganizerEmail,
     platformBookingUrl,
     customReplyToEmail: bookingToDelete.eventType?.customReplyToEmail,
+    hideBranding,
   };
 
   const dataForWebhooks = { evt, webhooks, eventTypeInfo };
@@ -353,7 +378,7 @@ async function handler(input: CancelBookingInput) {
         },
       },
     },
-    hideBranding: !!bookingToDelete.eventType?.owner?.hideBranding,
+    hideBranding: hideBranding,
   });
 
   let updatedBookings: {

@@ -5,6 +5,7 @@ import type { ExtendedCalendarEvent } from "@calcom/features/ee/workflows/lib/re
 import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -182,6 +183,12 @@ const handleMarkNoShow = async ({
                   parentId: true,
                   name: true,
                   id: true,
+                  hideBranding: true,
+                  parent: {
+                    select: {
+                      hideBranding: true,
+                    },
+                  },
                 },
               },
             },
@@ -209,6 +216,30 @@ const handleMarkNoShow = async ({
           },
         },
       });
+
+      // Calculate hide branding setting using comprehensive logic that considers team and organization settings
+      const hideBranding = booking?.eventType?.id
+        ? await shouldHideBrandingForEvent({
+            eventTypeId: booking.eventType.id,
+            team: booking.eventType.team
+              ? {
+                  hideBranding: booking.eventType.team.hideBranding,
+                  parent: booking.eventType.team.parent
+                    ? {
+                        hideBranding: booking.eventType.team.parent.hideBranding,
+                      }
+                    : null,
+                }
+              : null,
+            owner: booking.eventType.owner
+              ? {
+                  id: 0, // Owner ID not available in this query
+                  hideBranding: booking.eventType.owner.hideBranding,
+                }
+              : null,
+            organizationId: booking.eventType.team?.parentId || null,
+          })
+        : false;
 
       if (booking?.eventType) {
         const workflows = await getAllWorkflowsFromEventType(booking.eventType, userId);
@@ -296,7 +327,7 @@ const handleMarkNoShow = async ({
             await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
               workflows,
               smsReminderNumber: booking.smsReminderNumber,
-              hideBranding: booking.eventType.owner?.hideBranding,
+              hideBranding: hideBranding,
               calendarEvent,
               triggers: [WorkflowTriggerEvents.BOOKING_NO_SHOW_UPDATED],
             });

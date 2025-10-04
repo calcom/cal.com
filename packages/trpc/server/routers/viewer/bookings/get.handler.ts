@@ -11,6 +11,7 @@ import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { canViewSensitiveBookingData } from "@calcom/lib/server/queries/bookings/canViewSensitiveBookingData";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Booking, Prisma, Prisma as PrismaClientType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -67,6 +68,12 @@ type BookingsUnionQuery = SelectQueryBuilder<
   "Booking",
   Pick<Booking, "id" | "createdAt" | "updatedAt" | "startTime" | "endTime">
 >;
+
+type BookingField = {
+  name: string;
+  hidden?: boolean;
+  [key: string]: unknown;
+};
 
 export async function getBookings({
   user,
@@ -535,7 +542,7 @@ export async function getBookings({
                 jsonObjectFrom(
                   eb
                     .selectFrom("Team")
-                    .select(["Team.id", "Team.name", "Team.slug"])
+                    .select(["Team.id", "Team.name", "Team.slug", "Team.parentId"])
                     .whereRef("EventType.teamId", "=", "Team.id")
                 ).as("team"),
                 jsonArrayFrom(
@@ -688,6 +695,41 @@ export async function getBookings({
       return hostUser?.id === userId && attendeeEmails.has(hostUser.email);
     });
   };
+  // Batch fetch event type booking fields for performance
+  const uniqueEventTypeIds = Array.from(
+    new Set(plainBookings.map((booking) => booking.eventType?.id).filter(Boolean))
+  ) as number[];
+
+  const eventTypeFieldsMap = new Map<number, BookingField[]>();
+  if (uniqueEventTypeIds.length > 0) {
+    const eventTypesWithFields = await prisma.eventType.findMany({
+      where: { id: { in: uniqueEventTypeIds } },
+      select: {
+        id: true,
+        bookingFields: true,
+      },
+    });
+
+    const normalizeBookingFields = (value: unknown): BookingField[] => {
+      if (!value) return [];
+      if (Array.isArray(value)) return value as BookingField[];
+      // If stored as JSON string, try parse
+      if (typeof value === "string") {
+        try {
+          const parsed = JSON.parse(value);
+          return Array.isArray(parsed) ? (parsed as BookingField[]) : [];
+        } catch {
+          return [];
+        }
+      }
+      return [];
+    };
+
+    eventTypesWithFields.forEach((eventType) => {
+      eventTypeFieldsMap.set(eventType.id, normalizeBookingFields(eventType.bookingFields));
+    });
+  }
+
   const bookings = await Promise.all(
     plainBookings.map(async (booking) => {
       // If seats are enabled, the event is not set to show attendees, and the current user is not the host, filter out attendees who are not the current user
@@ -697,6 +739,49 @@ export async function getBookings({
         !checkIfUserIsHost(user.id, booking)
       ) {
         booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
+      }
+
+      // Check if user can view sensitive booking data (hidden fields and UTM parameters)
+      const canViewSensitiveData = await canViewSensitiveBookingData(user.id, {
+        id: booking.id,
+        userId: booking.user?.id || null,
+        eventType: booking.eventType
+          ? {
+              id: booking.eventType.id,
+              teamId: booking.eventType.team?.id || null,
+              schedulingType: booking.eventType.schedulingType,
+              userId: null, // Not available in this context, but handled by other checks
+              hosts: booking.eventType.hosts || [],
+              team: booking.eventType.team,
+              parent: booking.eventType.team?.parentId ? { teamId: booking.eventType.team.parentId } : null,
+            }
+          : null,
+        attendees: booking.attendees,
+      });
+
+      let processedResponses = booking.responses;
+
+      // Filter hidden fields if user can't view sensitive data
+      if (
+        !canViewSensitiveData &&
+        booking.responses &&
+        typeof booking.responses === "object" &&
+        booking.eventType?.id
+      ) {
+        const bookingFields = eventTypeFieldsMap.get(booking.eventType.id);
+
+        if (bookingFields && typeof booking.responses === "object" && !Array.isArray(booking.responses)) {
+          const filteredResponses: Record<string, unknown> = { ...booking.responses };
+
+          Object.keys(filteredResponses).forEach((key) => {
+            const field = bookingFields.find((field) => field.name === key);
+            if (field && field.hidden) {
+              delete filteredResponses[key];
+            }
+          });
+
+          processedResponses = filteredResponses as Prisma.JsonValue;
+        }
       }
 
       let rescheduler = null;
@@ -717,6 +802,7 @@ export async function getBookings({
       return {
         ...booking,
         rescheduler,
+        responses: processedResponses,
         eventType: {
           ...booking.eventType,
           recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),

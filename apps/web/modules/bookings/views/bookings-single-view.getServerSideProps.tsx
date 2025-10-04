@@ -12,6 +12,7 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { canViewSensitiveBookingData } from "@calcom/lib/server/queries/bookings/canViewSensitiveBookingData";
 import prisma from "@calcom/prisma";
 import { customInputSchema } from "@calcom/prisma/zod-utils";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
@@ -194,7 +195,25 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
 
-  if (!isLoggedInUserHost) {
+  // Check if user can view sensitive booking data (hidden fields and UTM parameters)
+  const canViewSensitiveData = userId 
+    ? await canViewSensitiveBookingData(userId, {
+        id: bookingInfo.id,
+        userId: bookingInfo.user?.id || null,
+        eventType: {
+          id: eventType.id,
+          teamId: eventType.teamId,
+          schedulingType: eventType.schedulingType,
+          userId: eventType.userId,
+          hosts: eventType.hosts,
+          team: eventType.team,
+          parent: eventType.parent,
+        },
+        attendees: bookingInfo.attendees,
+      })
+    : false;
+
+  if (!canViewSensitiveData) {
     // Removing hidden fields from responses
     for (const key in bookingInfo.responses) {
       const field = eventTypeRaw.bookingFields.find((field) => field.name === key);
@@ -207,7 +226,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { currentOrgDomain } = orgDomainConfig(context.req);
 
   async function getInternalNotePresets(teamId: number | null) {
-    if (!teamId || !isLoggedInUserHost) return [];
+    if (!teamId || !canViewSensitiveData) return [];
     return await prisma.internalNotePreset.findMany({
       where: {
         teamId,
@@ -256,6 +275,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       requiresLoginToUpdate,
       rescheduledToUid,
       isLoggedInUserHost,
+      canViewSensitiveBookingData: canViewSensitiveData,
       internalNotePresets: internalNotes,
     },
   };
