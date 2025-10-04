@@ -6,8 +6,7 @@ import { dbReadResponseSchema, fieldTypesSchemaMap } from "@calcom/features/form
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { bookingResponses, emailSchemaRefinement } from "@calcom/prisma/zod-utils";
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-type View = ALL_VIEWS | (string & {});
+type View = ALL_VIEWS | string;
 type BookingFields = (z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">) | null;
 type CommonParams = { bookingFields: BookingFields; view: View };
 
@@ -31,9 +30,13 @@ export const getBookingResponsesPartialSchema = ({ bookingFields, view }: Common
 // Should be used when we know that not all fields responses are present
 // - Can happen when we are parsing the prefill query string
 // - Can happen when we are parsing a booking's responses (which was created before we added a new required field)
-export default function getBookingResponsesSchema({ bookingFields, view }: CommonParams) {
+export default function getBookingResponsesSchema({
+  bookingFields,
+  view,
+  eventMetadata,
+}: CommonParams & { eventMetadata?: Record<string, unknown> }) {
   const schema = bookingResponses.and(z.record(z.any()));
-  return preprocess({ schema, bookingFields, isPartialSchema: false, view });
+  return preprocess({ schema, bookingFields, isPartialSchema: false, view, eventMetadata });
 }
 
 // Should be used when we want to check if the optional fields are entered and valid as well
@@ -50,6 +53,7 @@ function preprocess<T extends z.ZodType>({
   isPartialSchema,
   view: currentView,
   checkOptional = false,
+  eventMetadata,
 }: CommonParams & {
   schema: T;
   // It is useful when we want to prefill the responses with the partial values. Partial can be in 2 ways
@@ -57,6 +61,7 @@ function preprocess<T extends z.ZodType>({
   // - Even a field response itself can be partial so the content isn't validated e.g. a field with type="phone" can be given a partial phone number(e.g. Specifying the country code like +91)
   isPartialSchema: boolean;
   checkOptional?: boolean;
+  eventMetadata?: Record<string, unknown>;
 }): z.ZodType<z.infer<T>, z.infer<T>, z.infer<T>> {
   const preprocessed = z.preprocess(
     (responses) => {
@@ -103,7 +108,9 @@ function preprocess<T extends z.ZodType>({
           };
           try {
             parsedValue = JSON.parse(value);
-          } catch (e) {}
+          } catch {
+            // If parsing fails, we don't add the field to newResponses
+          }
           const optionsInputs = field.optionsInputs;
           const optionInputField = optionsInputs?.[parsedValue.value];
           if (optionInputField && optionInputField.type === "phone") {
@@ -335,6 +342,28 @@ function preprocess<T extends z.ZodType>({
           code: z.ZodIssueCode.custom,
           message: `Can't parse unknown booking field type: ${bookingField.type}`,
         });
+      }
+
+      if (eventMetadata?.requireEmailConfirmation && currentView !== "reschedule") {
+        const email = responses["email"];
+        const emailConfirmation = responses["emailConfirmation"];
+
+        // check if email confirmation field is required and empty
+        if (!emailConfirmation) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "{emailConfirmation}Email confirmation is required",
+            path: ["emailConfirmation"],
+          });
+        }
+        // check if emails don't match
+        else if (email && emailConfirmation && email !== emailConfirmation) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "{emailConfirmation}Email addresses do not match",
+            path: ["emailConfirmation"],
+          });
+        }
       }
     })
   );

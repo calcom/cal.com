@@ -136,6 +136,7 @@ export const BookEventForm = ({
           bookingData={bookingData}
           isPaidEvent={isPaidEvent}
           paymentCurrency={paymentCurrency}
+          eventMetadata={eventType.metadata}
         />
         {errors.hasFormErrors || errors.hasDataErrors ? (
           <div data-testid="booking-fail">

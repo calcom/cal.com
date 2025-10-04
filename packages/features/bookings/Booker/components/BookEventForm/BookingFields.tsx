@@ -23,6 +23,7 @@ export const BookingFields = ({
   bookingData,
   isPaidEvent,
   paymentCurrency = "USD",
+  eventMetadata,
 }: {
   fields: Fields;
   locations: LocationObject[];
@@ -31,6 +32,7 @@ export const BookingFields = ({
   isDynamicGroupBooking: boolean;
   isPaidEvent?: boolean;
   paymentCurrency?: string;
+  eventMetadata?: Record<string, unknown>;
 }) => {
   const { t, i18n } = useLocale();
   const { watch, setValue } = useFormContext();
@@ -200,7 +202,7 @@ export const BookingFields = ({
           }
         }
 
-        return (
+        const fieldElement = (
           <FormBuilderField
             className="mb-4"
             field={{ ...fieldWithPrice, hidden }}
@@ -208,6 +210,35 @@ export const BookingFields = ({
             key={index}
           />
         );
+        const requireEmailConfirmation = eventMetadata?.requireEmailConfirmation;
+        if (field.name === "email" && requireEmailConfirmation && !rescheduleUid) {
+          return (
+            <div key={`email-section-${index}`}>
+              {fieldElement}
+              <FormBuilderField
+                className="mb-4"
+                field={{
+                  type: "email",
+                  name: "emailConfirmation",
+                  label: t("confirm_email_address"),
+                  required: true,
+                  editable: "user",
+                  sources: [
+                    {
+                      label: "Default",
+                      id: "default",
+                      type: "default",
+                    },
+                  ],
+                }}
+                readOnly={false}
+                key={`email-confirmation-${index}`}
+              />
+            </div>
+          );
+        }
+
+        return fieldElement;
       })}
     </div>
   );

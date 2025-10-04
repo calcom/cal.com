@@ -12,7 +12,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useInitialFormValues } from "./useInitialFormValues";
 
 export interface IUseBookingForm {
-  event?: Pick<BookerEvent, "bookingFields"> | null;
+  event?: Pick<BookerEvent, "bookingFields" | "metadata"> | null;
   sessionEmail?: string | null;
   sessionName?: string | null;
   sessionUsername?: string | null;
@@ -48,11 +48,36 @@ export const useBookingForm = ({
         ? getBookingResponsesSchema({
             bookingFields: event.bookingFields,
             view: rescheduleUid ? "reschedule" : "booking",
+            eventMetadata: event.metadata || undefined,
           })
         : // Fallback until event is loaded.
           z.object({}),
     })
-    .passthrough();
+    .passthrough()
+    .superRefine((data, ctx) => {
+      if (event?.metadata?.requireEmailConfirmation && !rescheduleUid) {
+        const responses = data.responses as Record<string, unknown>;
+        const email = responses?.email;
+        const emailConfirmation = responses?.emailConfirmation;
+
+        // check if email confirmation field is required and empty
+        if (!emailConfirmation) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: t("email_confirmation_required"),
+            path: ["responses", "emailConfirmation"],
+          });
+        }
+        // check if emails don't match
+        else if (email && emailConfirmation && email !== emailConfirmation) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: t("email_addresses_do_not_match"),
+            path: ["responses", "emailConfirmation"],
+          });
+        }
+      }
+    });
 
   type BookingFormValues = {
     locationType?: EventLocationType["type"];
@@ -94,8 +119,7 @@ export const useBookingForm = ({
     // initialValues would be null initially as the async schema parsing is happening. Let's show the form in first render without any prefill values
     // But ensure that when initialValues is available, the form is reset and rerendered with the prefill values
     bookingForm.reset(initialValues);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
+  }, [key, bookingForm, initialValues]);
 
   const email = bookingForm.watch("responses.email");
   const name = bookingForm.watch("responses.name");

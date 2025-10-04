@@ -70,7 +70,7 @@ export const EventSetupTab = (
   const { t } = useLocale();
   const isPlatform = useIsPlatform();
   const formMethods = useFormContext<FormValues>();
-  const { eventType, team, urlPrefix, hasOrgBranding, customClassNames, orgId } = props;
+  const { eventType, team, urlPrefix, hasOrgBranding, customClassNames } = props;
 
   const [multipleDuration, setMultipleDuration] = useState(
     formMethods.getValues("metadata")?.multipleDuration
@@ -373,6 +373,25 @@ export const EventSetupTab = (
                   customClassNames={customClassNames?.locationSection}
                 />
               )}
+            />
+          </div>
+        </div>
+        <div
+          className={classNames(
+            "border-subtle rounded-lg border p-6",
+            customClassNames?.locationSection?.container
+          )}>
+          <div className="[&_label]:my-1 [&_label]:font-normal">
+            <SettingsToggle
+              title={t("ask_booker_to_confirm_email_twice")}
+              checked={formMethods.watch("metadata.requireEmailConfirmation") || false}
+              labelClassName={customClassNames?.durationSection?.selectDurationToggle?.label}
+              descriptionClassName={customClassNames?.durationSection?.selectDurationToggle?.description}
+              switchContainerClassName={customClassNames?.durationSection?.selectDurationToggle?.container}
+              childrenClassName={customClassNames?.durationSection?.selectDurationToggle?.children}
+              onCheckedChange={(checked) => {
+                formMethods.setValue("metadata.requireEmailConfirmation", checked, { shouldDirty: true });
+              }}
             />
           </div>
         </div>
