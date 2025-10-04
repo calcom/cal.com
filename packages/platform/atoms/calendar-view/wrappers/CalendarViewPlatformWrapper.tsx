@@ -11,6 +11,7 @@ import {
 import { Header } from "@calcom/features/bookings/Booker/components/Header";
 import { BookerSection } from "@calcom/features/bookings/Booker/components/Section";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
+import { usePrefetch } from "@calcom/features/bookings/Booker/components/hooks/usePrefetch";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { LargeCalendar } from "@calcom/features/calendar-view/LargeCalendar";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
@@ -30,11 +31,12 @@ import { useTeamEventType } from "../../hooks/event-types/public/useTeamEventTyp
 import { useAvailableSlots } from "../../hooks/useAvailableSlots";
 
 const CalendarViewPlatformWrapperComponent = (
-  props: BookerPlatformWrapperAtomPropsForIndividual | BookerPlatformWrapperAtomPropsForTeam
+  props:
+    | (BookerPlatformWrapperAtomPropsForIndividual & { teamId?: number })
+    | Omit<BookerPlatformWrapperAtomPropsForTeam, "isTeamEvent">
 ) => {
   const {
     eventSlug,
-    isTeamEvent,
     hostsLimit,
     allowUpdatingUrlParams = false,
     teamMemberEmail,
@@ -43,7 +45,8 @@ const CalendarViewPlatformWrapperComponent = (
     view = "MONTH_VIEW",
   } = props;
 
-  const teamId: number | undefined = props.isTeamEvent ? props.teamId : undefined;
+  const isTeamEvent = !!props.teamId;
+  const teamId: number | undefined = props.teamId ? props.teamId : undefined;
   const username = useMemo(() => {
     if (props.username) {
       return formatUsername(props.username);
@@ -60,7 +63,7 @@ const CalendarViewPlatformWrapperComponent = (
   const event = useAtomGetPublicEvent({
     username,
     eventSlug: props.eventSlug,
-    isTeamEvent: props.isTeamEvent,
+    isTeamEvent: isTeamEvent,
     teamId,
     selectedDuration,
   });
@@ -73,22 +76,15 @@ const CalendarViewPlatformWrapperComponent = (
   );
   const selectedDate = useBookerStoreContext((state) => state.selectedDate);
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
-  const monthCount =
-    ((bookerLayout.layout !== BookerLayouts.WEEK_VIEW && bookerState === "selecting_time") ||
-      bookerLayout.layout === BookerLayouts.COLUMN_VIEW) &&
-    dayjs(date).add(1, "month").month() !==
-      dayjs(date).add(bookerLayout.columnViewExtraDays.current, "day").month()
-      ? 2
-      : undefined;
   const month = useBookerStoreContext((state) => state.month);
   const [dayCount] = useBookerStoreContext((state) => [state.dayCount, state.setDayCount], shallow);
 
-  const prefetchNextMonth =
-    (bookerLayout.layout === BookerLayouts.WEEK_VIEW &&
-      !!bookerLayout.extraDays &&
-      dayjs(date).month() !== dayjs(date).add(bookerLayout.extraDays, "day").month()) ||
-    (bookerLayout.layout === BookerLayouts.COLUMN_VIEW &&
-      dayjs(date).month() !== dayjs(date).add(bookerLayout.columnViewExtraDays.current, "day").month());
+  const { prefetchNextMonth, monthCount } = usePrefetch({
+    date,
+    month,
+    bookerLayout,
+    bookerState,
+  });
 
   const [startTime, endTime] = useTimesForSchedule({
     month,
@@ -171,9 +167,9 @@ const CalendarViewPlatformWrapperComponent = (
     duration: selectedDuration ?? undefined,
     rescheduleUid: props.rescheduleUid,
     teamMemberEmail: props.teamMemberEmail ?? undefined,
-    ...(props.isTeamEvent
+    ...(isTeamEvent
       ? {
-          isTeamEvent: props.isTeamEvent,
+          isTeamEvent: isTeamEvent,
           teamId: teamId,
         }
       : {}),
@@ -181,7 +177,7 @@ const CalendarViewPlatformWrapperComponent = (
       Boolean(teamId || username) &&
       Boolean(month) &&
       Boolean(timezone) &&
-      (props.isTeamEvent ? !isTeamPending : !isPending) &&
+      (isTeamEvent ? !isTeamPending : !isPending) &&
       Boolean(event?.data?.id),
     orgSlug: props.entity?.orgSlug ?? undefined,
     eventTypeSlug: isDynamic ? "dynamic" : eventSlug || "",
@@ -213,7 +209,9 @@ const CalendarViewPlatformWrapperComponent = (
 };
 
 export const CalendarViewPlatformWrapper = (
-  props: BookerPlatformWrapperAtomPropsForIndividual | BookerPlatformWrapperAtomPropsForTeam
+  props:
+    | (BookerPlatformWrapperAtomPropsForIndividual & { teamId?: number })
+    | Omit<BookerPlatformWrapperAtomPropsForTeam, "isTeamEvent">
 ) => {
   return (
     <BookerStoreProvider>
