@@ -34,6 +34,41 @@ type InputByStatus = "upcoming" | "recurring" | "past" | "cancelled" | "unconfir
 
 const log = logger.getSubLogger({ prefix: ["bookings.get"] });
 
+const getFilteredUserIds = (
+  userIdsWhereUserIsAdminOrOwner: number[],
+  rawUserIds: number[],
+  userId: number
+) => {
+  if (!Array.isArray(rawUserIds) || rawUserIds.length === 0 || !userId) {
+    return [];
+  }
+
+  const areUserIdsWithinUserOrgOrTeam =
+    Array.isArray(userIdsWhereUserIsAdminOrOwner) &&
+    rawUserIds.every((rawUserId) => userIdsWhereUserIsAdminOrOwner.includes(rawUserId));
+
+  const hasCurrentUser = rawUserIds.includes(userId);
+
+  let filteredUserIds = rawUserIds;
+
+  //  Scope depends on `user.orgId`:
+  // - Throw an error if trying to filter by usersIds that are not within your ORG
+  // - Throw an error if trying to filter by usersIds that are not within your TEAM
+  if (!areUserIdsWithinUserOrgOrTeam) {
+    if (!hasCurrentUser) {
+      filteredUserIds = [];
+      log.error({
+        code: "FORBIDDEN",
+        message: "You do not have permissions to fetch bookings for specified userIds",
+      });
+    } else {
+      filteredUserIds = [userId];
+    }
+  }
+
+  return filteredUserIds;
+};
+
 export const getHandler = async ({ ctx, input }: GetOptions) => {
   // using offset actually because cursor pagination requires a unique column
   // for orderBy, but we don't use a unique column in our orderBy
@@ -126,13 +161,11 @@ export async function getBookings({
 
   const [
     eventTypeIdsFromTeamIdsFilter,
-    attendeeEmailsFromUserIdsFilter,
     eventTypeIdsFromEventTypeIdsFilter,
     eventTypeIdsWhereUserIsAdminOrOwner,
     userIdsAndEmailsWhereUserIsAdminOrOwner,
   ] = await Promise.all([
     getEventTypeIdsFromTeamIdsFilter(prisma, filters?.teamIds),
-    getAttendeeEmailsFromUserIdsFilter(prisma, user.email, filters?.userIds),
     getEventTypeIdsFromEventTypeIdsFilter(prisma, filters?.eventTypeIds),
     getEventTypeIdsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
     getUserIdsAndEmailsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
@@ -147,34 +180,27 @@ export async function getBookings({
 
   // If userIds filter is provided
   if (!!filters?.userIds && filters.userIds.length > 0) {
-    const areUserIdsWithinUserOrgOrTeam = filters.userIds.every((userId) =>
-      userIdsWhereUserIsAdminOrOwner.includes(userId)
+    const userIds = getFilteredUserIds(userIdsWhereUserIsAdminOrOwner, filters.userIds, user.id);
+    const attendeeEmailsFromUserIdsFilter = await getAttendeeEmailsFromUserIdsFilter(
+      prisma,
+      user.email,
+      userIds
     );
 
-    const isCurrentUser = filters.userIds.length === 1 && user.id === filters.userIds[0];
-
-    //  Scope depends on `user.orgId`:
-    // - Throw an error if trying to filter by usersIds that are not within your ORG
-    // - Throw an error if trying to filter by usersIds that are not within your TEAM
-    if (!areUserIdsWithinUserOrgOrTeam && !isCurrentUser) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "You do not have permissions to fetch bookings for specified userIds",
+    // 1. Booking created by one of the filtered users
+    if (userIds.length > 0) {
+      bookingQueries.push({
+        query: kysely
+          .selectFrom("Booking")
+          .select("Booking.id")
+          .select("Booking.startTime")
+          .select("Booking.endTime")
+          .select("Booking.createdAt")
+          .select("Booking.updatedAt")
+          .where("userId", "in", userIds),
+        tables: ["Booking"],
       });
     }
-
-    // 1. Booking created by one of the filtered users
-    bookingQueries.push({
-      query: kysely
-        .selectFrom("Booking")
-        .select("Booking.id")
-        .select("Booking.startTime")
-        .select("Booking.endTime")
-        .select("Booking.createdAt")
-        .select("Booking.updatedAt")
-        .where("userId", "in", filters.userIds),
-      tables: ["Booking"],
-    });
 
     // 2. Attendee email matches one of the filtered users' emails
     if (attendeeEmailsFromUserIdsFilter?.length) {
@@ -251,7 +277,7 @@ export async function getBookings({
     // 4. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees
     // - If Current user is TEAM_OWNER/ADMIN so we get bookings where team members are attendees
-    userEmailsWhereUserIsAdminOrOwner?.length &&
+    if (userEmailsWhereUserIsAdminOrOwner?.length) {
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -264,10 +290,11 @@ export async function getBookings({
           .where("Attendee.email", "in", userEmailsWhereUserIsAdminOrOwner),
         tables: ["Booking", "Attendee"],
       });
+    }
     // 5. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees via seatsReference
     // - If Current user is TEAM_OWNER/ADMIN so we get bookings where team members are attendees via seatsReference
-    userEmailsWhereUserIsAdminOrOwner?.length &&
+    if (userEmailsWhereUserIsAdminOrOwner?.length) {
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -281,11 +308,12 @@ export async function getBookings({
           .where("Attendee.email", "in", userEmailsWhereUserIsAdminOrOwner),
         tables: ["Booking", "Attendee", "BookingSeat"],
       });
+    }
 
     // 6. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN, get booking created for an event type within the organization
     // - If Current user is TEAM_OWNER/ADMIN, get bookings created for an event type within the team
-    eventTypeIdsWhereUserIsAdminOrOwner?.length &&
+    if (eventTypeIdsWhereUserIsAdminOrOwner?.length) {
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -298,11 +326,12 @@ export async function getBookings({
           .where("Booking.eventTypeId", "in", eventTypeIdsWhereUserIsAdminOrOwner),
         tables: ["Booking", "EventType"],
       });
+    }
 
     // 7. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN, get bookings created by users within the same organization
     // - If Current user is TEAM_OWNER/ADMIN, get bookings created by users within the same organization
-    userIdsWhereUserIsAdminOrOwner?.length &&
+    if (userIdsWhereUserIsAdminOrOwner?.length) {
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -314,6 +343,7 @@ export async function getBookings({
           .where("Booking.userId", "in", userIdsWhereUserIsAdminOrOwner),
         tables: ["Booking"],
       });
+    }
   }
 
   const queriesWithFilters = bookingQueries.map(({ query, tables }) => {
