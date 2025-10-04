@@ -3712,6 +3712,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/nostrcalendar@workspace:packages/app-store/nostrcalendar":
+  version: 0.0.0-use.local
+  resolution: "@calcom/nostrcalendar@workspace:packages/app-store/nostrcalendar"
+  dependencies:
+    "@calcom/lib": "workspace:*"
+    "@calcom/types": "workspace:*"
+    nostr-tools: ^2.17.0
+  languageName: unknown
+  linkType: soft
+
 "@calcom/office365calendar@workspace:packages/app-store/office365calendar":
   version: 0.0.0-use.local
   resolution: "@calcom/office365calendar@workspace:packages/app-store/office365calendar"
@@ -37563,7 +37573,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nostr-wasm@npm:v0.1.0":
+"nostr-tools@npm:^2.17.0":
+  version: 2.17.0
+  resolution: "nostr-tools@npm:2.17.0"
+  dependencies:
+    "@noble/ciphers": ^0.5.1
+    "@noble/curves": 1.2.0
+    "@noble/hashes": 1.3.1
+    "@scure/base": 1.1.1
+    "@scure/bip32": 1.3.1
+    "@scure/bip39": 1.2.1
+    nostr-wasm: 0.1.0
+  peerDependencies:
+    typescript: ">=5.0.0"
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  checksum: 79d604d2b3431d122df605a56b3b5aba61db7d3f6721c907ac9ff32c7778976c7394e598f34416e66317d752eeceddf8978775f0a752931aab6afe4f7ab99a43
+  languageName: node
+  linkType: hard
+
+"nostr-wasm@npm:0.1.0, nostr-wasm@npm:v0.1.0":
   version: 0.1.0
   resolution: "nostr-wasm@npm:0.1.0"
   checksum: c0b404912d47c98efa69b4838a5bb7b2094c869b1aa2a96359c978c911878e9b37228296ef6432254815c9d15cdeebaa16b6d45106db4f3673bb5a6a00cc669c
