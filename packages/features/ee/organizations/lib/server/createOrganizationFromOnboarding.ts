@@ -50,6 +50,8 @@ type OrganizationData = {
   isPlatform: boolean;
   logoUrl: string | null;
   bio: string | null;
+  brandColor: string | null;
+  bannerUrl: string | null;
   billingPeriod?: "MONTHLY" | "ANNUALLY";
 };
 
@@ -82,6 +84,8 @@ type OrganizationOnboardingArg = Pick<
   | "isPlatform"
   | "logo"
   | "bio"
+  | "brandColor"
+  | "bannerUrl"
   | "stripeCustomerId"
   | "isDomainConfigured"
 >;
@@ -426,6 +430,8 @@ async function handleOrganizationCreation({
     billingPeriod: organizationOnboarding.billingPeriod,
     logoUrl: organizationOnboarding.logo,
     bio: organizationOnboarding.bio,
+    brandColor: organizationOnboarding.brandColor,
+    bannerUrl: organizationOnboarding.bannerUrl,
   };
 
   log.info(

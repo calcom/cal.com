@@ -25,6 +25,7 @@ import { ZGetUserInput } from "./getUser.schema";
 import { ZIntentToCreateOrgInputSchema } from "./intentToCreateOrg.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
 import { ZListOtherTeamMembersSchema } from "./listOtherTeamMembers.handler";
+import { ZOnboardInputSchema } from "./onboard.schema";
 import { ZRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
 import { ZSetPasswordSchema } from "./setPassword.schema";
 import { ZUpdateInputSchema } from "./update.schema";
@@ -50,6 +51,10 @@ export const viewerOrganizationsRouter = router({
       const { default: handler } = await import("./createWithPaymentIntent.handler");
       return handler(opts);
     }),
+  onboard: authedProcedure.input(ZOnboardInputSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./onboard.handler");
+    return handler(opts);
+  }),
   update: authedProcedure.input(ZUpdateInputSchema).mutation(async (opts) => {
     const { default: handler } = await import("./update.handler");
     return handler(opts);
