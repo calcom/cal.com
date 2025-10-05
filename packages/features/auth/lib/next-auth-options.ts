@@ -1065,11 +1065,38 @@ export const getOptions = ({
     // },
 
     async redirect({ url, baseUrl }) {
-      console.log("__url", url, "baseUrl", baseUrl);
-      if (url.includes("auth/login") || url === WEBAPP_URL || url === `${WEBAPP_URL}/`)
-        return `${baseUrl}/event-types`;
-      if (url.startsWith("/")) return `${baseUrl}${url}`;
-      return url;
+      try {
+        const parsedUrl = new URL(url);
+        const parsedBase = new URL(baseUrl);
+
+        // Normalize host by removing "app." prefix and ignoring protocol
+        interface NormalizeHost {
+          (host: string): string;
+        }
+        const normalizeHost: NormalizeHost = (host: string): string => host.replace(/^app\./, "");
+
+        const isSameDomain = normalizeHost(parsedUrl.hostname) === normalizeHost(parsedBase.hostname);
+
+        const isRootPath = ["/", ""].includes(parsedUrl.pathname);
+
+        const isLoginPath = parsedUrl.pathname.includes("/auth/login");
+
+        //   Root domain or login page → redirect to /event-types
+        if (isSameDomain && (isRootPath || isLoginPath)) {
+          return `${baseUrl}/event-types`;
+        }
+
+        //  Internal relative path → prefix with baseUrl
+        if (url.startsWith("/")) {
+          return `${baseUrl}${url}`;
+        }
+
+        //  Otherwise external or fully-qualified URL → use as-is
+        return url;
+      } catch (e) {
+        console.error("Redirect error:", e);
+        return baseUrl;
+      }
     },
   },
   events: {
