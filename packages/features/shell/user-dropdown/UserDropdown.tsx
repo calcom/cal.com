@@ -44,15 +44,19 @@ export function UserDropdown({ small }: UserDropdownProps) {
   const isPlatformPages = pathname?.startsWith("/settings/platform");
 
   useEffect(() => {
+    // guard added to make SSR safe
+    if (typeof window === "undefined") return;
+
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
     const Beacon = window.Beacon;
     // window.Beacon is defined when user actually opens up HelpScout and username is available here. On every re-render update session info, so that it is always latest.
-    Beacon &&
+    if (Beacon) {
       Beacon("session-data", {
         username: user?.username || "Unknown",
         screenResolution: `${screen.width}x${screen.height}`,
       });
+    }
   });
 
   const [menuOpen, setMenuOpen] = useState(false);
