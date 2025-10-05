@@ -1065,8 +1065,6 @@ export const getOptions = ({
     // },
 
     async redirect({ url, baseUrl }) {
-      console.log("__url", url, "baseUrl", baseUrl);
-
       try {
         const parsedUrl = new URL(url);
         const parsedBase = new URL(baseUrl);
