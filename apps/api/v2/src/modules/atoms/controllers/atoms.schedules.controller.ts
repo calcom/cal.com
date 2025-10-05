@@ -11,6 +11,7 @@ import {
   Param,
   ParseIntPipe,
   Patch,
+  Post,
   Query,
   UseGuards,
   Version,
@@ -24,7 +25,11 @@ import {
 
 import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { FindDetailedScheduleByIdReturnType } from "@calcom/platform-libraries/schedules";
-import { getAvailabilityListHandler } from "@calcom/platform-libraries/schedules";
+import { getAvailabilityListHandler, duplicateScheduleHandler } from "@calcom/platform-libraries/schedules";
+import type {
+  GetAvailabilityListHandlerReturn,
+  DuplicateScheduleHandlerReturn,
+} from "@calcom/platform-libraries/schedules";
 import { ApiResponse, UpdateAtomScheduleDto } from "@calcom/platform-types";
 
 import { SchedulesAtomsService } from "../services/schedules-atom.service";
@@ -71,7 +76,7 @@ export class AtomsSchedulesController {
   @Permissions([SCHEDULE_READ])
   async getAllUserSchedules(
     @GetUser() user: UserWithProfile
-  ): Promise<ApiResponse<Awaited<ReturnType<typeof getAvailabilityListHandler>>>> {
+  ): Promise<ApiResponse<Awaited<GetAvailabilityListHandlerReturn>>> {
     const userSchedules = await getAvailabilityListHandler({ ctx: { user } });
 
     return {
@@ -99,5 +104,21 @@ export class AtomsSchedulesController {
       status: SUCCESS_STATUS,
       data: updatedSchedule,
     } as ApiResponse<Awaited<ReturnType<SchedulesAtomsService["updateUserSchedule"]>>>;
+  }
+
+  @Post("schedules/:scheduleId/duplicate")
+  @Permissions([SCHEDULE_WRITE])
+  @UseGuards(ApiAuthGuard)
+  @ApiOperation({ summary: "Duplicate existing schedule" })
+  async duplicateExistingSchedule(
+    @GetUser() user: UserWithProfile,
+    @Param("scheduleId", ParseIntPipe) scheduleId: number
+  ): Promise<ApiResponse<Awaited<DuplicateScheduleHandlerReturn>>> {
+    const duplicatedSchedule = await duplicateScheduleHandler({ ctx: { user }, input: { scheduleId } });
+
+    return {
+      status: SUCCESS_STATUS,
+      data: duplicatedSchedule,
+    };
   }
 }
