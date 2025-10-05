@@ -24,8 +24,13 @@ import { membershipCreateBodySchema, schemaMembershipPublic } from "~/lib/valida
  */
 async function postHandler(req: NextApiRequest) {
   const data = membershipCreateBodySchema.parse(req.body);
+  // Ensure bookingLimits is undefined instead of null
+  const normalizedData = {
+    ...data,
+    bookingLimits: data.bookingLimits === null ? undefined : data.bookingLimits,
+  };
   const args: Prisma.MembershipCreateArgs = {
-    data,
+    data: normalizedData,
   };
 
   await checkPermissions(req);

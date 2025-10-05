@@ -1,5 +1,3 @@
-import type { Prisma } from "@prisma/client";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -20,7 +18,7 @@ export const updateMembershipBookingLimitsHandler = async ({
   input,
 }: UpdateMembershipBookingLimitsOptions) => {
   const { user } = ctx;
-  const { id: userId, organizationId } = user;
+  const { organizationId } = user;
 
   if (!organizationId) {
     throw new TRPCError({ code: "UNAUTHORIZED", message: "You must be a member of an organization" });
@@ -62,7 +60,7 @@ export const updateMembershipBookingLimitsHandler = async ({
       id: membership.id,
     },
     data: {
-      bookingLimits: input.bookingLimits as Prisma.InputJsonValue,
+      bookingLimits: input.bookingLimits ?? undefined,
     },
   });
 

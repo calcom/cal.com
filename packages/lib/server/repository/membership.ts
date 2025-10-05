@@ -350,6 +350,8 @@ export class MembershipRepository {
       select: {
         bookingLimits: true,
         role: true,
+        accepted: true,
+        id: true,
       },
     });
   }

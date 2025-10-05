@@ -47,6 +47,7 @@ export async function patchHandler(req: NextApiRequest) {
     where: { userId_teamId },
     data: {
       ...data,
+      bookingLimits: data.bookingLimits === null ? undefined : data.bookingLimits,
       updatedAt: new Date(),
     },
   };
