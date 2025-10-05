@@ -190,10 +190,16 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       hideBranding
     ).html;
   } else if (template === WorkflowTemplates.REMINDER) {
+    const isEmailAttendeeAction = action === WorkflowActions.EMAIL_ATTENDEE;
+    // Use the recipient's locale for proper date/time localization
+    // This ensures variables like {EVENT_DATE_ddd} are localized to the recipient's language
+    const reminderLocale = isEmailAttendeeAction
+      ? attendeeToBeUsedInMail.language?.locale
+      : evt.organizer.language.locale;
     emailContent = emailReminderTemplate({
       isEditingMode: false,
-      locale: evt.organizer.language.locale,
-      t: await getTranslation(evt.organizer.language.locale || "en", "common"),
+      locale: reminderLocale,
+      t: await getTranslation(reminderLocale || "en", "common"),
       action,
       timeFormat: evt.organizer.timeFormat,
       startTime,
