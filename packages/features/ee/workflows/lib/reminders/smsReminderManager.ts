@@ -162,10 +162,16 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
       if (smsMessage) {
         smsMessage = await getSMSMessageWithVariables(smsMessage, evt, attendeeToBeUsedInSMS, action);
       } else if (template === WorkflowTemplates.REMINDER) {
+        // Use the recipient's locale for proper date/time localization
+        // This ensures variables like {EVENT_DATE_ddd} are localized to the recipient's language
+        const locale =
+          action === WorkflowActions.SMS_ATTENDEE
+            ? attendeeToBeUsedInSMS.language?.locale
+            : evt.organizer.language.locale;
         smsMessage =
           smsReminderTemplate(
             false,
-            evt.organizer.language.locale,
+            locale,
             action,
             evt.organizer.timeFormat,
             evt.startTime,
