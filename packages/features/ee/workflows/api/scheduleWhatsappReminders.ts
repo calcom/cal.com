@@ -73,7 +73,12 @@ export async function handler(req: NextRequest) {
           : reminder.booking?.user?.timeZone;
 
       const startTime = reminder.booking?.startTime.toISOString();
-      const locale = reminder.booking.user?.locale || "en";
+      // Use the recipient's locale for proper date/time localization
+      // This ensures variables like {EVENT_DATE_ddd} are localized to the recipient's language
+      const locale =
+        reminder.workflowStep.action === WorkflowActions.WHATSAPP_ATTENDEE
+          ? reminder.booking.attendees[0].locale || "en"
+          : reminder.booking.user?.locale || "en";
       const timeFormat = getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat);
 
       const templateFunction = getWhatsappTemplateFunction(reminder.workflowStep.template);
@@ -91,7 +96,7 @@ export async function handler(req: NextRequest) {
       });
       const message = templateFunction(
         false,
-        reminder.booking.user?.locale || "en",
+        locale,
         reminder.workflowStep.action,
         timeFormat,
         startTime || "",
