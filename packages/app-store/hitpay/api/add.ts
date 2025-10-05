@@ -30,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!installation) {
-      throw new Error("Unable to create user credential for Alby");
+      throw new Error("Unable to create user credential for hitpay");
     }
   } catch (error: unknown) {
     const httpError = getServerErrorFromUnknown(error);
