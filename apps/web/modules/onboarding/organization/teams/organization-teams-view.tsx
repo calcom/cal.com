@@ -40,13 +40,14 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
   });
 
   const handleContinue = (data: FormValues) => {
-    // TODO: Save teams and navigate to next step
+    // TODO: Save teams
     console.log({ teams: data.teams });
+    router.push("/onboarding/organization/invite");
   };
 
   const handleSkip = () => {
-    // TODO: Navigate to next step without saving
-    console.log("Skipped teams setup");
+    // Skip teams and go to invite
+    router.push("/onboarding/organization/invite");
   };
 
   const hasValidTeams = fields.some((_, index) => {
