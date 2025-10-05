@@ -9,6 +9,8 @@ type ListOptions = {
   };
 };
 
+export type GetAvailabilityListHandlerReturn = Awaited<ReturnType<typeof listHandler>>;
+
 export const listHandler = async ({ ctx }: ListOptions) => {
   const { user } = ctx;
 
