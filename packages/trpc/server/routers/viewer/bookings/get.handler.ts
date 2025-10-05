@@ -258,7 +258,7 @@ export async function getBookings({
     // 4. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees
     // - If Current user is TEAM_OWNER/ADMIN so we get bookings where team members are attendees
-    userEmailsWhereUserIsAdminOrOwner?.length &&
+    if (userEmailsWhereUserIsAdminOrOwner?.length) {
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -271,10 +271,11 @@ export async function getBookings({
           .where("Attendee.email", "in", userEmailsWhereUserIsAdminOrOwner),
         tables: ["Booking", "Attendee"],
       });
+    }
     // 5. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees via seatsReference
     // - If Current user is TEAM_OWNER/ADMIN so we get bookings where team members are attendees via seatsReference
-    userEmailsWhereUserIsAdminOrOwner?.length &&
+    if (userEmailsWhereUserIsAdminOrOwner?.length) {
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -288,11 +289,12 @@ export async function getBookings({
           .where("Attendee.email", "in", userEmailsWhereUserIsAdminOrOwner),
         tables: ["Booking", "Attendee", "BookingSeat"],
       });
+    }
 
     // 6. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN, get booking created for an event type within the organization
     // - If Current user is TEAM_OWNER/ADMIN, get bookings created for an event type within the team
-    eventTypeIdsWhereUserIsAdminOrOwner?.length &&
+    if (eventTypeIdsWhereUserIsAdminOrOwner?.length) {
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -305,11 +307,12 @@ export async function getBookings({
           .where("Booking.eventTypeId", "in", eventTypeIdsWhereUserIsAdminOrOwner),
         tables: ["Booking", "EventType"],
       });
+    }
 
     // 7. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN, get bookings created by users within the same organization
     // - If Current user is TEAM_OWNER/ADMIN, get bookings created by users within the same organization
-    userIdsWhereUserIsAdminOrOwner?.length &&
+    if (userIdsWhereUserIsAdminOrOwner?.length) {
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -321,6 +324,7 @@ export async function getBookings({
           .where("Booking.userId", "in", userIdsWhereUserIsAdminOrOwner),
         tables: ["Booking"],
       });
+    }
   }
 
   const queriesWithFilters = bookingQueries.map(({ query, tables }) => {
@@ -762,25 +766,23 @@ export async function getBookings({
       let processedResponses = booking.responses;
 
       // Filter hidden fields if user can't view sensitive data
-      if (
-        !canViewSensitiveData &&
-        booking.responses &&
-        typeof booking.responses === "object" &&
-        booking.eventType?.id
-      ) {
-        const bookingFields = eventTypeFieldsMap.get(booking.eventType.id);
-
-        if (bookingFields && typeof booking.responses === "object" && !Array.isArray(booking.responses)) {
-          const filteredResponses: Record<string, unknown> = { ...booking.responses };
-
-          Object.keys(filteredResponses).forEach((key) => {
-            const field = bookingFields.find((field) => field.name === key);
-            if (field && field.hidden) {
-              delete filteredResponses[key];
-            }
-          });
-
-          processedResponses = filteredResponses as Prisma.JsonValue;
+      if (!canViewSensitiveData && booking.responses && typeof booking.responses === "object") {
+        if (!booking.eventType?.id) {
+          // If we cannot resolve the event type, conservatively drop responses
+          processedResponses = null;
+        } else {
+          const bookingFields = eventTypeFieldsMap.get(booking.eventType.id);
+          if (bookingFields && !Array.isArray(booking.responses)) {
+            const filteredResponses: Record<string, unknown> = { ...booking.responses };
+            Object.keys(filteredResponses).forEach((key) => {
+              const field = bookingFields.find((field) => field.name === key);
+              if (field && field.hidden) delete filteredResponses[key];
+            });
+            processedResponses = filteredResponses as Prisma.JsonValue;
+          } else {
+            // No field definitions or responses are not filterable → drop
+            processedResponses = null;
+          }
         }
       }
 
