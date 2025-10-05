@@ -80,7 +80,12 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
     action === WorkflowActions.WHATSAPP_ATTENDEE ? evt.organizer.name : evt.attendees[0].name;
   const timeZone =
     action === WorkflowActions.WHATSAPP_ATTENDEE ? evt.attendees[0].timeZone : evt.organizer.timeZone;
-  const locale = evt.organizer.language.locale;
+  // Use the recipient's locale for proper date/time localization
+  // This ensures variables like {EVENT_DATE_ddd} are localized to the recipient's language
+  const locale =
+    action === WorkflowActions.WHATSAPP_ATTENDEE
+      ? evt.attendees[0].language?.locale
+      : evt.organizer.language.locale;
   const timeFormat = evt.organizer.timeFormat;
 
   const contentSid = getContentSidForTemplate(template);
