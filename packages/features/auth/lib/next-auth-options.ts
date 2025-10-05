@@ -1065,8 +1065,9 @@ export const getOptions = ({
     // },
 
     async redirect({ url, baseUrl }) {
-      if (url.includes("auth/login") || url === baseUrl || url === `${baseUrl}/`)
+      if (url.includes("auth/login") || url === WEBAPP_URL || url === `${WEBAPP_URL}/`) {
         return `${baseUrl}/event-types`;
+      }
       if (url.startsWith("/")) return `${baseUrl}${url}`;
       return url;
     },
