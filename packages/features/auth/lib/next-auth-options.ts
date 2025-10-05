@@ -1066,9 +1066,10 @@ export const getOptions = ({
 
     async redirect({ url, baseUrl }) {
       try {
+        console.log("Redirecting to:", { url, baseUrl });
         const parsedUrl = new URL(url);
         const parsedBase = new URL(baseUrl);
-
+        console.log("baseUrl:", parsedBase, "url:", parsedUrl);
         // Normalize host by removing "app." prefix and ignoring protocol
         interface NormalizeHost {
           (host: string): string;
