@@ -16,6 +16,34 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
   const [brandColor, setBrandColor] = useState("#000000");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+
+  const handleLogoChange = (file: File | null) => {
+    setLogoFile(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setLogoPreview(null);
+    }
+  };
+
+  const handleBannerChange = (file: File | null) => {
+    setBannerFile(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBannerPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setBannerPreview(null);
+    }
+  };
 
   const handleContinue = () => {
     // TODO: Save brand details and navigate to next step
@@ -95,7 +123,15 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                         <div className="flex w-full flex-col gap-2">
                           <p className="text-emphasis text-sm font-medium leading-4">Logo</p>
                           <div className="flex items-center gap-2">
-                            <div className="bg-muted border-muted h-16 w-16 shrink-0 rounded-md border" />
+                            <div className="bg-muted border-muted relative h-16 w-16 shrink-0 overflow-hidden rounded-md border">
+                              {logoPreview && (
+                                <img
+                                  src={logoPreview}
+                                  alt="Logo preview"
+                                  className="h-full w-full object-cover"
+                                />
+                              )}
+                            </div>
                             <div className="flex flex-col gap-2">
                               <Button
                                 color="secondary"
@@ -108,7 +144,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                                 type="file"
                                 accept="image/*"
                                 className="hidden"
-                                onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
+                                onChange={(e) => handleLogoChange(e.target.files?.[0] || null)}
                               />
                             </div>
                           </div>
@@ -121,7 +157,15 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                         <div className="flex w-full flex-col gap-2">
                           <p className="text-emphasis text-sm font-medium leading-4">Banner</p>
                           <div className="flex w-full flex-col gap-2">
-                            <div className="bg-muted border-muted h-[92px] w-full rounded-md border" />
+                            <div className="bg-muted border-muted relative h-[92px] w-full overflow-hidden rounded-md border">
+                              {bannerPreview && (
+                                <img
+                                  src={bannerPreview}
+                                  alt="Banner preview"
+                                  className="h-full w-full object-cover"
+                                />
+                              )}
+                            </div>
                             <div className="flex flex-col gap-2">
                               <Button
                                 color="secondary"
@@ -135,7 +179,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                                 type="file"
                                 accept="image/*"
                                 className="hidden"
-                                onChange={(e) => setBannerFile(e.target.files?.[0] || null)}
+                                onChange={(e) => handleBannerChange(e.target.files?.[0] || null)}
                               />
                             </div>
                           </div>
@@ -150,20 +194,38 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                         <div className="flex flex-col gap-2.5">
                           <p className="text-subtle text-sm font-medium leading-4">Preview</p>
                           <div className="border-subtle relative flex w-[110%] flex-col gap-2.5 rounded-md border bg-white px-5 pb-5 pt-[74px]">
-                            {/* Banner placeholder */}
-                            <div className="bg-muted border-muted absolute left-1 top-1 h-[92px] w-[272px] rounded-[4px] border" />
+                            {/* Banner preview */}
+                            <div className="bg-muted border-muted absolute left-1 top-1 h-[92px] w-[272px] overflow-hidden rounded-[4px] border">
+                              {bannerPreview && (
+                                <img
+                                  src={bannerPreview}
+                                  alt="Banner preview"
+                                  className="h-full w-full object-cover"
+                                />
+                              )}
+                            </div>
 
                             {/* Content */}
                             <div className="flex flex-col gap-4">
                               <div className="flex flex-col gap-3 p-1">
                                 <div className="flex flex-col gap-3">
-                                  {/* Logo placeholder */}
-                                  <div className="bg-muted z-20 h-9 w-9 shrink-0 rounded-md border-2 border-white" />
+                                  {/* Logo preview */}
+                                  <div className="bg-muted z-20 h-9 w-9 shrink-0 overflow-hidden rounded-md border-2 border-white">
+                                    {logoPreview && (
+                                      <img
+                                        src={logoPreview}
+                                        alt="Logo preview"
+                                        className="h-full w-full object-cover"
+                                      />
+                                    )}
+                                  </div>
                                   <p className="text-subtle text-sm font-medium leading-4">Deel</p>
                                 </div>
                                 <div className="flex flex-col gap-3">
                                   <div className="flex flex-col gap-3">
-                                    <p className="font-cal text-emphasis text-xl leading-5 tracking-[0.2px]">
+                                    <p
+                                      className="font-cal text-xl leading-5 tracking-[0.2px]"
+                                      style={{ color: brandColor }}>
                                       Enterprise sales
                                     </p>
                                     <p className="text-sm font-medium leading-5 text-gray-700">
@@ -175,7 +237,10 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                               <div className="flex flex-col gap-1">
                                 {[134, 104, 84, 104].map((width, i) => (
                                   <div key={i} className="flex items-center gap-2 p-1">
-                                    <div className="h-5 w-5 shrink-0 rounded-full bg-gray-100" />
+                                    <div
+                                      className="h-5 w-5 shrink-0 rounded-full"
+                                      style={{ backgroundColor: brandColor }}
+                                    />
                                     <div
                                       className="h-2.5 rounded-full bg-gray-100"
                                       style={{ width: `${width}px` }}
