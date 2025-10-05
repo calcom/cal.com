@@ -15,7 +15,7 @@ type OrganizationBrandViewProps = {
 
 export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps) => {
   const router = useRouter();
-  const { organizationBrand, setOrganizationBrand } = useOnboardingStore();
+  const { organizationBrand, setOrganizationBrand, organizationDetails } = useOnboardingStore();
 
   const [brandColor, setBrandColor] = useState("#000000");
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -122,7 +122,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                             <p className="text-subtle w-[98px] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium leading-4">
                               Primary color
                             </p>
-                            <div className="border-default flex h-7 w-32 items-center gap-2 rounded-lg border bg-white px-2 py-1.5">
+                            <div className="border-default bg-default flex h-7 w-32 items-center gap-2 rounded-lg border px-2 py-1.5">
                               <div
                                 className="h-4 w-4 shrink-0 rounded-full border border-gray-200"
                                 style={{ backgroundColor: brandColor }}
@@ -214,7 +214,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                       <div className="bg-muted border-muted flex h-[328px] w-full grow overflow-hidden rounded-[10px] border p-5">
                         <div className="flex flex-col gap-2.5">
                           <p className="text-subtle text-sm font-medium leading-4">Preview</p>
-                          <div className="border-subtle relative flex w-[110%] flex-col gap-2.5 rounded-md border bg-white px-5 pb-5 pt-[74px]">
+                          <div className="border-subtle bg-default relative flex w-[110%] flex-col gap-2.5 rounded-md border px-5 pb-5 pt-[74px]">
                             {/* Banner preview */}
                             <div className="bg-muted border-muted absolute left-1 top-1 h-[92px] w-[272px] overflow-hidden rounded-[4px] border">
                               {bannerPreview && (
@@ -231,7 +231,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                               <div className="flex flex-col gap-3 p-1">
                                 <div className="flex flex-col gap-3">
                                   {/* Logo preview */}
-                                  <div className="bg-muted z-20 h-9 w-9 shrink-0 overflow-hidden rounded-md border-2 border-white">
+                                  <div className="bg-muted border-default z-20 h-9 w-9 shrink-0 overflow-hidden rounded-md border-2">
                                     {logoPreview && (
                                       <img
                                         src={logoPreview}
@@ -240,16 +240,16 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                                       />
                                     )}
                                   </div>
-                                  <p className="text-subtle text-sm font-medium leading-4">Deel</p>
+                                  <p className="text-subtle text-sm font-medium capitalize leading-4 ">
+                                    {organizationDetails.name || "Nameless"}
+                                  </p>
                                 </div>
                                 <div className="flex flex-col gap-3">
                                   <div className="flex flex-col gap-3">
-                                    <p
-                                      className="font-cal text-xl leading-5 tracking-[0.2px]"
-                                      style={{ color: brandColor }}>
+                                    <p className="font-cal text-xl leading-5 tracking-[0.2px]">
                                       Enterprise sales
                                     </p>
-                                    <p className="text-sm font-medium leading-5 text-gray-700">
+                                    <p className="text-subtle text-sm font-medium leading-5">
                                       Jump on a call with one of our sales reps to learn more
                                     </p>
                                   </div>
@@ -258,12 +258,9 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                               <div className="flex flex-col gap-1">
                                 {[134, 104, 84, 104].map((width, i) => (
                                   <div key={i} className="flex items-center gap-2 p-1">
+                                    <div className="bg-subtle h-5 w-5 shrink-0 rounded-full" />
                                     <div
-                                      className="h-5 w-5 shrink-0 rounded-full"
-                                      style={{ backgroundColor: brandColor }}
-                                    />
-                                    <div
-                                      className="h-2.5 rounded-full bg-gray-100"
+                                      className="bg-subtle h-2.5 rounded-full"
                                       style={{ width: `${width}px` }}
                                     />
                                   </div>
