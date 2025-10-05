@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Badge } from "@calcom/ui/components/badge";
@@ -15,7 +16,15 @@ type OnboardingViewProps = {
 };
 
 export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => {
+  const router = useRouter();
   const [selectedPlan, setSelectedPlan] = useState<PlanType>("organization");
+
+  const handleContinue = () => {
+    if (selectedPlan === "organization") {
+      router.push("/onboarding/organization/details");
+    }
+    // TODO: Handle other plan types
+  };
 
   const plans = [
     {
@@ -103,7 +112,7 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
 
               {/* Footer */}
               <div className="flex w-full items-center justify-end gap-1 px-5 py-4">
-                <Button color="primary" className="rounded-[10px]">
+                <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
                   Continue
                 </Button>
               </div>
