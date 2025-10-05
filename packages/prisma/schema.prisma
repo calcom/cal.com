@@ -2019,6 +2019,8 @@ model Task {
   lastError           String?
   lastFailedAttemptAt DateTime?
   referenceUid        String?
+  // The time at which the task was claimed by a worker (for atomic task claiming)
+  claimedAt           DateTime?
 
   // unique index on referenceUid,type to avoid duplicate tasks
   @@unique([referenceUid, type])
@@ -2026,6 +2028,8 @@ model Task {
   @@index([succeededAt])
   // for finding tasks that are scheduled to be executed
   @@index([scheduledAt, succeededAt])
+  // for finding unclaimed tasks
+  @@index([claimedAt, scheduledAt, succeededAt])
 }
 
 enum SMSLockState {

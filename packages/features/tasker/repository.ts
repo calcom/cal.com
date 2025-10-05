@@ -22,6 +22,8 @@ const whereMaxAttemptsReached: Prisma.TaskWhereInput = {
 const makeWhereUpcomingTasks = (): Prisma.TaskWhereInput => ({
   // Get only tasks that have not succeeded yet
   succeededAt: null,
+  // Get only tasks that have not been claimed or were claimed more than 5 minutes ago (stale claims)
+  OR: [{ claimedAt: null }, { claimedAt: { lt: new Date(Date.now() - 5 * 60 * 1000) } }],
   // Get only tasks that are scheduled to run now or in the past
   scheduledAt: {
     lt: new Date(),
@@ -58,12 +60,60 @@ export class Task {
 
   static async getNextBatch() {
     console.info("Getting next batch of tasks", makeWhereUpcomingTasks());
-    return db.task.findMany({
-      where: makeWhereUpcomingTasks(),
-      orderBy: {
-        scheduledAt: "asc",
-      },
-      take: 1000,
+
+    // Use atomic task claiming with SELECT FOR UPDATE SKIP LOCKED
+    // This ensures that concurrent workers cannot claim the same tasks
+    return db.$transaction(async (tx) => {
+      const now = new Date();
+      const staleClaimThreshold = new Date(Date.now() - 5 * 60 * 1000); // 5 minutes ago
+
+      // Select tasks atomically with row-level locking
+      // SKIP LOCKED ensures that rows locked by other transactions are skipped
+      const tasks = await tx.$queryRaw<
+        Array<{
+          id: string;
+          createdAt: Date;
+          updatedAt: Date;
+          scheduledAt: Date;
+          succeededAt: Date | null;
+          type: string;
+          payload: string;
+          attempts: number;
+          maxAttempts: number;
+          lastError: string | null;
+          lastFailedAttemptAt: Date | null;
+          referenceUid: string | null;
+          claimedAt: Date | null;
+        }>
+      >`
+        SELECT * FROM "Task"
+        WHERE "succeededAt" IS NULL
+          AND ("claimedAt" IS NULL OR "claimedAt" < ${staleClaimThreshold})
+          AND "scheduledAt" < ${now}
+          AND "attempts" < "maxAttempts"
+        ORDER BY "scheduledAt" ASC
+        LIMIT 1000
+        FOR UPDATE SKIP LOCKED
+      `;
+
+      if (tasks.length === 0) {
+        return [];
+      }
+
+      // Extract task IDs
+      const taskIds = tasks.map((task) => task.id);
+
+      // Atomically mark these tasks as claimed
+      await tx.task.updateMany({
+        where: {
+          id: { in: taskIds },
+        },
+        data: {
+          claimedAt: now,
+        },
+      });
+
+      return tasks;
     });
   }
 
@@ -123,6 +173,7 @@ export class Task {
         attempts: { increment: 1 },
         lastError,
         lastFailedAttemptAt: failedAttemptTime,
+        claimedAt: null, // Clear claim so task can be picked up again
         ...(updatedScheduledAt && {
           scheduledAt: updatedScheduledAt,
         }),
