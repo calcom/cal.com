@@ -51,17 +51,6 @@ export const getAllActiveWorkflowsHandler = async ({ input, ctx }: GetAllActiveW
     if (!hasPermissionToViewWorkflows) throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  if (eventType.parent?.teamId) {
-    const hasPermissionToViewWorkflows = await permissionCheckService.checkPermission({
-      userId: ctx.user.id,
-      teamId: eventType.parent?.teamId,
-      permission: "workflow.read",
-      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-    });
-
-    if (!hasPermissionToViewWorkflows) throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-
   const allActiveWorkflows = await getAllWorkflowsFromEventType(
     {
       ...completeEventType,
