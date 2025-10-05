@@ -1145,14 +1145,23 @@ export class AvailableSlotsService {
       eventType.schedulingType === SchedulingType.COLLECTIVE ||
       eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
       allUsersAvailability.length > 1;
+      const baseDuration = input.duration || eventType.length; // ← this is the actual meeting length we’re generating slots for
+      const beforeBuffer = eventType.beforeEventBuffer || 0;
+      const afterBuffer = eventType.afterEventBuffer || 0;
+      const frequency = 
+        eventType.slotInterval && eventType.slotInterval > 0
+        ? eventType.slotInterval
+        : baseDuration + afterBuffer;
 
+    const effectiveOffset = eventType.offsetStart || beforeBuffer;
+        
     const timeSlots = getSlots({
       inviteeDate: startTime,
       eventLength: input.duration || eventType.length,
-      offsetStart: eventType.offsetStart,
+      offsetStart: effectiveOffset,
       dateRanges: aggregatedAvailability,
       minimumBookingNotice: eventType.minimumBookingNotice,
-      frequency: eventType.slotInterval || input.duration || eventType.length,
+      frequency: frequency,
       datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
       showOptimizedSlots: eventType.showOptimizedSlots,
     });
