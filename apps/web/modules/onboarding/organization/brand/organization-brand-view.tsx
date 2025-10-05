@@ -46,13 +46,14 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
   };
 
   const handleContinue = () => {
-    // TODO: Save brand details and navigate to next step
+    // TODO: Save brand details
     console.log({ brandColor, logoFile, bannerFile });
+    router.push("/onboarding/organization/teams");
   };
 
   const handleSkip = () => {
-    // TODO: Navigate to next step without saving
-    console.log("Skipped brand setup");
+    // Skip brand setup and go to teams
+    router.push("/onboarding/organization/teams");
   };
 
   return (
