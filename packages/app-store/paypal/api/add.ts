@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToTeam";
+import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import prisma from "@calcom/prisma";
 
 import config from "../config.json";
@@ -12,7 +13,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { teamId } = req.query;
 
-  await throwIfNotHaveAdminAccessToTeam({ teamId: Number(teamId) ?? null, userId: req.session.user.id });
+  await throwIfNotHaveAdminAccessToTeam({
+    teamId: teamId ? Number(teamId) : null,
+    userId: req.session.user.id,
+  });
+
   const installForObject = teamId ? { teamId: Number(teamId) } : { userId: req.session.user.id };
 
   const appType = config.type;
@@ -39,10 +44,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new Error("Unable to create user credential for Paypal");
     }
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      return res.status(500).json({ message: error.message });
-    }
-    return res.status(500);
+    const httpError = getServerErrorFromUnknown(error);
+    return res.status(httpError.statusCode).json({ message: httpError.message });
   }
 
   return res.status(200).json({ url: "/apps/paypal/setup" });
