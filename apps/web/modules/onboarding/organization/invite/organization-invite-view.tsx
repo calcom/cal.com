@@ -11,6 +11,8 @@ import { Form, Label, TextField, Select, ToggleGroup } from "@calcom/ui/componen
 import { Icon } from "@calcom/ui/components/icon";
 import { Logo } from "@calcom/ui/components/logo";
 
+import { useOnboardingStore, type InviteRole } from "../../store/onboarding-store";
+
 type OrganizationInviteViewProps = {
   userEmail: string;
 };
@@ -32,13 +34,19 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
   const searchParams = useSearchParams();
   const isEmailMode = searchParams?.get("mode") === "email";
 
+  const store = useOnboardingStore();
+  const { invites: storedInvites, inviteRole, setInvites, setInviteRole, resetOnboarding } = store;
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      invites: [
-        { email: "", team: "", role: "member" },
-        { email: "", team: "", role: "member" },
-      ],
+      invites:
+        storedInvites.length > 0
+          ? storedInvites
+          : [
+              { email: "", team: "", role: "member" },
+              { email: "", team: "", role: "member" },
+            ],
     },
   });
 
@@ -47,16 +55,33 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
     name: "invites",
   });
 
-  const [inviteRole, setInviteRole] = React.useState<"member" | "admin">("admin");
+  const handleContinue = async (data: FormValues) => {
+    // Save invites to store
+    setInvites(data.invites);
 
-  const handleContinue = (data: FormValues) => {
-    // TODO: Send invites and complete onboarding
-    console.log({ invites: data.invites, inviteRole });
+    // Get all onboarding data from store
+    const onboardingData = {
+      plan: store.selectedPlan,
+      organization: store.organizationDetails,
+      brand: store.organizationBrand,
+      teams: store.teams,
+      invites: data.invites,
+      inviteRole: inviteRole,
+    };
+
+    // TODO: Submit to API
+
+    // Clear store after successful submission
+    resetOnboarding();
+
+    // TODO: Redirect to dashboard or next step
+    // router.push("/dashboard");
   };
 
   const handleSkip = () => {
     // TODO: Complete onboarding without invites
-    console.log("Skipped invites");
+    resetOnboarding();
+    // router.push("/dashboard");
   };
 
   const handleInviteViaEmail = () => {
@@ -69,12 +94,16 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
     return email && email.trim().length > 0 && team && team.trim().length > 0;
   });
 
-  // Mock teams data - in real app this would come from previous step
-  const teams = [
-    { value: "sales", label: "Sales" },
-    { value: "engineering", label: "Engineering" },
-    { value: "marketing", label: "Marketing" },
-  ];
+  // Get teams from store, filter out empty teams
+  const filteredTeams = store.teams.filter((team) => team.name && team.name.trim().length > 0);
+  const teams =
+    filteredTeams.length > 0
+      ? filteredTeams.map((team) => ({ value: team.name.toLowerCase(), label: team.name }))
+      : [
+          { value: "sales", label: "Sales" },
+          { value: "engineering", label: "Engineering" },
+          { value: "marketing", label: "Marketing" },
+        ];
 
   return (
     <div className="bg-default flex min-h-screen w-full flex-col items-start overflow-clip rounded-xl">
@@ -183,15 +212,15 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
                                 />
                                 <Select
                                   size="sm"
-                                  {...form.register(`invites.${index}.team`)}
-                                  className="h-7 rounded-[10px] text-sm">
-                                  <option value="">Select team</option>
-                                  {teams.map((team) => (
-                                    <option key={team.value} value={team.value}>
-                                      {team.label}
-                                    </option>
-                                  ))}
-                                </Select>
+                                  options={teams}
+                                  value={teams.find((t) => t.value === form.watch(`invites.${index}.team`))}
+                                  onChange={(option) => {
+                                    if (option) {
+                                      form.setValue(`invites.${index}.team`, option.value);
+                                    }
+                                  }}
+                                  placeholder="Select team"
+                                />
                               </div>
                               <Button
                                 type="button"

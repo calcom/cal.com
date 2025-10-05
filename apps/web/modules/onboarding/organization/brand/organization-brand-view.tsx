@@ -1,11 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@calcom/ui/components/button";
 import { Label } from "@calcom/ui/components/form";
 import { Logo } from "@calcom/ui/components/logo";
+
+import { useOnboardingStore } from "../../store/onboarding-store";
 
 type OrganizationBrandViewProps = {
   userEmail: string;
@@ -13,22 +15,34 @@ type OrganizationBrandViewProps = {
 
 export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps) => {
   const router = useRouter();
+  const { organizationBrand, setOrganizationBrand } = useOnboardingStore();
+
   const [brandColor, setBrandColor] = useState("#000000");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
 
+  // Load from store on mount
+  useEffect(() => {
+    setBrandColor(organizationBrand.color);
+    setLogoPreview(organizationBrand.logo);
+    setBannerPreview(organizationBrand.banner);
+  }, [organizationBrand]);
+
   const handleLogoChange = (file: File | null) => {
     setLogoFile(file);
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setLogoPreview(reader.result as string);
+        const base64 = reader.result as string;
+        setLogoPreview(base64);
+        setOrganizationBrand({ logo: base64 });
       };
       reader.readAsDataURL(file);
     } else {
       setLogoPreview(null);
+      setOrganizationBrand({ logo: null });
     }
   };
 
@@ -37,17 +51,20 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setBannerPreview(reader.result as string);
+        const base64 = reader.result as string;
+        setBannerPreview(base64);
+        setOrganizationBrand({ banner: base64 });
       };
       reader.readAsDataURL(file);
     } else {
       setBannerPreview(null);
+      setOrganizationBrand({ banner: null });
     }
   };
 
   const handleContinue = () => {
-    // TODO: Save brand details
-    console.log({ brandColor, logoFile, bannerFile });
+    // Save brand color to store
+    setOrganizationBrand({ color: brandColor });
     router.push("/onboarding/organization/teams");
   };
 
@@ -113,7 +130,10 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                               <input
                                 type="text"
                                 value={brandColor}
-                                onChange={(e) => setBrandColor(e.target.value)}
+                                onChange={(e) => {
+                                  setBrandColor(e.target.value);
+                                  setOrganizationBrand({ color: e.target.value });
+                                }}
                                 className="text-emphasis grow border-none bg-transparent text-sm font-medium leading-4"
                               />
                             </div>

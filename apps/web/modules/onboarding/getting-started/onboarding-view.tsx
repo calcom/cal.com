@@ -1,14 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Logo } from "@calcom/ui/components/logo";
 import { RadioAreaGroup } from "@calcom/ui/components/radio";
 
-type PlanType = "personal" | "team" | "organization";
+import { useOnboardingStore, type PlanType } from "../store/onboarding-store";
 
 type OnboardingViewProps = {
   userName: string;
@@ -17,7 +16,7 @@ type OnboardingViewProps = {
 
 export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => {
   const router = useRouter();
-  const [selectedPlan, setSelectedPlan] = useState<PlanType>("organization");
+  const { selectedPlan, setSelectedPlan } = useOnboardingStore();
 
   const handleContinue = () => {
     if (selectedPlan === "organization") {
@@ -85,7 +84,7 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
 
               {/* Plan options */}
               <RadioAreaGroup.Group
-                value={selectedPlan}
+                value={selectedPlan || "organization"}
                 onValueChange={(value) => setSelectedPlan(value as PlanType)}
                 className="flex w-full flex-col gap-1 rounded-[10px]">
                 {plans.map((plan) => (

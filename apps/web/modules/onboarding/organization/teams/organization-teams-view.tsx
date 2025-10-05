@@ -10,6 +10,8 @@ import { Form, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Logo } from "@calcom/ui/components/logo";
 
+import { useOnboardingStore } from "../../store/onboarding-store";
+
 type OrganizationTeamsViewProps = {
   userEmail: string;
 };
@@ -26,11 +28,12 @@ type FormValues = z.infer<typeof formSchema>;
 
 export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps) => {
   const router = useRouter();
+  const { teams: storedTeams, setTeams } = useOnboardingStore();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      teams: [{ name: "" }],
+      teams: storedTeams.length > 0 ? storedTeams : [{ name: "" }],
     },
   });
 
@@ -40,8 +43,8 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
   });
 
   const handleContinue = (data: FormValues) => {
-    // TODO: Save teams
-    console.log({ teams: data.teams });
+    // Save teams to store
+    setTeams(data.teams);
     router.push("/onboarding/organization/invite");
   };
 

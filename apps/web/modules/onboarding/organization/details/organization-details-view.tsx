@@ -1,11 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@calcom/ui/components/button";
 import { Label, TextField, TextAreaField, TextArea } from "@calcom/ui/components/form";
 import { Logo } from "@calcom/ui/components/logo";
+
+import { useOnboardingStore } from "../../store/onboarding-store";
 
 type OrganizationDetailsViewProps = {
   userEmail: string;
@@ -13,13 +15,26 @@ type OrganizationDetailsViewProps = {
 
 export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewProps) => {
   const router = useRouter();
+  const { organizationDetails, setOrganizationDetails } = useOnboardingStore();
+
   const [organizationName, setOrganizationName] = useState("");
   const [organizationLink, setOrganizationLink] = useState("");
   const [organizationBio, setOrganizationBio] = useState("");
 
+  // Load from store on mount
+  useEffect(() => {
+    setOrganizationName(organizationDetails.name);
+    setOrganizationLink(organizationDetails.link);
+    setOrganizationBio(organizationDetails.bio);
+  }, [organizationDetails]);
+
   const handleContinue = () => {
-    // TODO: Save organization details
-    console.log({ organizationName, organizationLink, organizationBio });
+    // Save to store
+    setOrganizationDetails({
+      name: organizationName,
+      link: organizationLink,
+      bio: organizationBio,
+    });
     router.push("/onboarding/organization/brand");
   };
 
