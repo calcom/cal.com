@@ -349,6 +349,7 @@ export class MembershipRepository {
       },
       select: {
         bookingLimits: true,
+        role: true,
       },
     });
   }
