@@ -1056,12 +1056,19 @@ export const getOptions = ({
     /**
      * Used to handle the navigation right after successful login or logout
      */
+    // async redirect({ url, baseUrl }) {
+    //   // Allows relative callback URLs
+    //   if (url.startsWith("/")) return `${baseUrl}${url}`;
+    //   // Allows callback URLs on the same domain
+    //   else if (new URL(url).hostname === new URL(WEBAPP_URL).hostname) return url;
+    //   return baseUrl;
+    // },
+
     async redirect({ url, baseUrl }) {
-      // Allows relative callback URLs
+      if (url.includes("auth/login") || url === baseUrl || url === `${baseUrl}/`)
+        return `${baseUrl}/event-types`;
       if (url.startsWith("/")) return `${baseUrl}${url}`;
-      // Allows callback URLs on the same domain
-      else if (new URL(url).hostname === new URL(WEBAPP_URL).hostname) return url;
-      return baseUrl;
+      return url;
     },
   },
   events: {
