@@ -370,7 +370,7 @@ const FieldSelect = function FieldSelect(props: FieldProps) {
 };
 
 function DateWidget({ value, setValue, ...remainingProps }: TextLikeComponentPropsRAQB) {
-  const dateValue = value ? new Date(value) : new Date();
+  const dateValue = value && value.trim() ? new Date(value) : (null as unknown as Date);
 
   const handleDateChange = (date: Date) => {
     const formattedDate = date.toISOString().split("T")[0];
