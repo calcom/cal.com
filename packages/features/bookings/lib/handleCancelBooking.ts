@@ -115,7 +115,11 @@ async function handler(input: CancelBookingInput) {
     if (disableCancellingThreshold) {
       const bookingStartTime = dayjs(bookingToDelete.startTime);
       const now = dayjs();
-      const timeDifference = bookingStartTime.diff(now, disableCancellingThreshold.unit);
+      const timeDifference = bookingStartTime.diff(
+        now,
+        disableCancellingThreshold.unit,
+        true
+      );
       
       // If we're less than the threshold time before the booking, disallow cancellation
       if (timeDifference <= disableCancellingThreshold.time) {
