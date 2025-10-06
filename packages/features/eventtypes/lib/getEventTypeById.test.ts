@@ -1,6 +1,6 @@
 import prismock from "../../../../tests/libs/__mocks__/prisma";
 
-import { mockNoTranslations } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+import { mockNoTranslations } from "@calcom/lib/test/utils/bookingScenario/bookingScenario";
 
 import { describe, test, expect, beforeEach, vi } from "vitest";
 

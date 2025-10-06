@@ -6,10 +6,10 @@ import {
   getScenarioData,
   getGoogleCalendarCredential,
   Timezones,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+} from "@calcom/lib/test/utils/bookingScenario/bookingScenario";
 // TODO: we should rename this - it doesnt get a mockRequestDataForBooking - it just gets mock booking data.
-import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+import { getMockRequestDataForBooking } from "@calcom/lib/test/utils/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/lib/test/utils/bookingScenario/setupAndTeardown";
 
 import { describe, expect, vi, beforeAll } from "vitest";
 

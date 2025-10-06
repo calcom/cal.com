@@ -9,12 +9,12 @@ import {
   mockSuccessfulVideoMeetingCreation,
   TestData,
   getDate,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+} from "@calcom/lib/test/utils/bookingScenario/bookingScenario";
 import {
   expectBookingCancelledWebhookToHaveBeenFired,
   expectWorkflowToBeTriggered,
-} from "@calcom/web/test/utils/bookingScenario/expects";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+} from "@calcom/lib/test/utils/bookingScenario/expects";
+import { setupAndTeardown } from "@calcom/lib/test/utils/bookingScenario/setupAndTeardown";
 
 import { describe, expect, vi } from "vitest";
 
