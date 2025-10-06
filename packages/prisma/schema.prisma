@@ -451,8 +451,6 @@ model User {
   updatedAttributeToUsers        AttributeToUser[]             @relation("updatedBy")
   createdTranslations            EventTypeTranslation[]        @relation("CreatedEventTypeTranslations")
   updatedTranslations            EventTypeTranslation[]        @relation("UpdatedEventTypeTranslations")
-  createdWatchlists              Watchlist[]                   @relation("CreatedWatchlists")
-  updatedWatchlists              Watchlist[]                   @relation("UpdatedWatchlists")
   BookingInternalNote            BookingInternalNote[]
   creationSource                 CreationSource?
   createdOrganizationOnboardings OrganizationOnboarding[]      @relation("CreatedOrganizationOnboardings")
@@ -2269,54 +2267,54 @@ enum WatchlistType {
   USERNAME
 }
 
-enum WatchlistSeverity {
-  LOW
-  MEDIUM
-  HIGH
-  CRITICAL
-}
-
 enum WatchlistAction {
   REPORT
   BLOCK
+  ALERT
+}
+
+enum WatchlistSource {
+  MANUAL
+  FREE_DOMAIN_POLICY
 }
 
 model Watchlist {
-  id   String        @id @unique @default(cuid())
-  type WatchlistType
-
-  value       String
-  description String?
-
+  id             String          @id @default(uuid()) @db.Uuid
+  type           WatchlistType
+  value          String
+  description    String?
+  isGlobal       Boolean         @default(false)
   organizationId Int?
-
-  action      WatchlistAction   @default(REPORT)
-  severity    WatchlistSeverity @default(LOW)
-  createdAt   DateTime          @default(now())
-  createdBy   User?             @relation("CreatedWatchlists", onDelete: SetNull, fields: [createdById], references: [id])
-  createdById Int?
-  updatedAt   DateTime          @updatedAt
-  updatedBy   User?             @relation("UpdatedWatchlists", onDelete: SetNull, fields: [updatedById], references: [id])
-  updatedById Int?
+  action         WatchlistAction @default(REPORT)
+  source         WatchlistSource @default(MANUAL)
+  lastUpdatedAt  DateTime        @default(now())
 
   @@unique([type, value, organizationId])
   @@index([type, value, organizationId, action])
 }
 
-model BlockedBookingLog {
-  id          String @id @default(uuid())
-  email       String
-  eventTypeId Int?
+model WatchlistAudit {
+  id          String        @id @default(uuid(7)) @db.Uuid
+  type        WatchlistType
+  value       String
+  description String?
 
-  organizationId Int?
+  action WatchlistAction @default(REPORT)
 
-  bookingData Json?
-  createdAt   DateTime @default(now())
-  watchlistId String?
+  changedAt       DateTime @default(now())
+  changedByUserId Int?
 
-  @@index([organizationId, createdAt])
-  @@index([email])
-  @@index([watchlistId])
+  watchlistId String @db.Uuid
+
+  @@index([watchlistId, changedAt])
+}
+
+model WatchlistEventAudit {
+  id          String          @id @default(uuid(7)) @db.Uuid
+  watchlistId String          @db.Uuid
+  eventTypeId Int
+  actionTaken WatchlistAction
+  timestamp   DateTime        @default(now())
 }
 
 enum BillingPeriod {
