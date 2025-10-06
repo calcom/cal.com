@@ -108,8 +108,7 @@ const customTemplate = (
       "{EVENT_END_TIME_IN_ATTENDEE_TIMEZONE}",
       variables.eventEndTimeInAttendeeTimezone?.format(currentTimeFormat) || ""
     )
-    .replaceAll("{BOOKING_TITLE}", variables.bookingTitle || ""
-    );
+    .replaceAll("{BOOKING_TITLE}", variables.bookingTitle || "");
 
   const customInputvariables = dynamicText.match(/\{(.+?)}/g)?.map((variable) => {
     return variable.replace("{", "").replace("}", "");
