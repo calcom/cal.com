@@ -1056,12 +1056,47 @@ export const getOptions = ({
     /**
      * Used to handle the navigation right after successful login or logout
      */
+    // async redirect({ url, baseUrl }) {
+    //   // Allows relative callback URLs
+    //   if (url.startsWith("/")) return `${baseUrl}${url}`;
+    //   // Allows callback URLs on the same domain
+    //   else if (new URL(url).hostname === new URL(WEBAPP_URL).hostname) return url;
+    //   return baseUrl;
+    // },
+
     async redirect({ url, baseUrl }) {
-      // Allows relative callback URLs
-      if (url.startsWith("/")) return `${baseUrl}${url}`;
-      // Allows callback URLs on the same domain
-      else if (new URL(url).hostname === new URL(WEBAPP_URL).hostname) return url;
-      return baseUrl;
+      try {
+        console.log("Redirecting to:", { url, baseUrl });
+        const parsedUrl = new URL(url);
+        const parsedBase = new URL(baseUrl);
+        // Normalize host by removing "app." prefix and ignoring protocol
+        interface NormalizeHost {
+          (host: string): string;
+        }
+        const normalizeHost: NormalizeHost = (host: string): string => host.replace(/^app\./, "");
+
+        const isSameDomain = normalizeHost(parsedUrl.hostname) === normalizeHost(parsedBase.hostname);
+
+        const isRootPath = ["/", ""].includes(parsedUrl.pathname);
+
+        const isLoginPath = parsedUrl.pathname.includes("/auth/login");
+
+        //   Root domain or login page → redirect to /event-types
+        if (isSameDomain && (isRootPath || isLoginPath)) {
+          return `${baseUrl}/event-types`;
+        }
+
+        //  Internal relative path → prefix with baseUrl
+        if (url.startsWith("/")) {
+          return `${baseUrl}${url}`;
+        }
+
+        //  Otherwise external or fully-qualified URL → use as-is
+        return url;
+      } catch (e) {
+        console.error("Redirect error:", e);
+        return baseUrl;
+      }
     },
   },
   events: {

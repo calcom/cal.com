@@ -83,7 +83,7 @@ export default function Login({
 
   const telemetry = useTelemetry();
 
-  let callbackUrl = searchParams?.get("callbackUrl") || "";
+  let callbackUrl = searchParams?.get("callbackUrl") || "/event-types";
 
   if (/"\//.test(callbackUrl)) callbackUrl = callbackUrl.substring(1);
 
@@ -170,7 +170,7 @@ export default function Login({
   );
 
   return (
-    <div className="bg-default flex flex-col min-h-screen items-center justify-center px-4 sm:px-6 lg:px-8">
+    <div className="bg-default flex min-h-screen flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
       <div className="border-default w-full max-w-lg rounded-2xl border p-8 shadow-xl">
         {/* Welcome Text */}
         <div className="mb-8 text-center">
@@ -253,7 +253,11 @@ export default function Login({
               {errorMessage && <Alert severity="error" title={errorMessage} />}
 
               {/* Sign In Button */}
-              <Button type="submit" disabled={formState.isSubmitting} className="w-full justify-center py-3 bg-active dark:bg-gray-200 border-active dark:border-default" data-testid="submit">
+              <Button
+                type="submit"
+                disabled={formState.isSubmitting}
+                className="bg-active border-active dark:border-default w-full justify-center py-3 dark:bg-gray-200"
+                data-testid="submit">
                 <span>{twoFactorRequired ? t("submit") : t("sign_in")}</span>
                 {lastUsed === "credentials" && !twoFactorRequired && <LastUsed />}
               </Button>
@@ -265,7 +269,9 @@ export default function Login({
             <div className="mt-2 text-center">
               <p className="text-subtle text-sm">
                 {t("dont_have_an_account")}{" "}
-                <Link href={`${WEBSITE_URL}/signup`} className="text-active dark:text-default font-medium hover:underline">
+                <Link
+                  href={`${WEBSITE_URL}/signup`}
+                  className="text-active dark:text-default font-medium hover:underline">
                   {t("sign_up")}
                 </Link>
               </p>
