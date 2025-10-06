@@ -65,7 +65,7 @@ export function RoleSheet({
   onOpenChange,
   teamId,
   scope = Scope.Organization,
-  isPrivate = false
+  isPrivate = false,
 }: RoleSheetProps) {
   const { t } = useLocale();
   const router = useRouter();
@@ -191,6 +191,7 @@ export function RoleSheet({
                   {...form.register("name")}
                   placeholder={t("role_name_placeholder")}
                   disabled={isSystemRole}
+                  maxLength={50}
                 />
               </div>
               <RoleColorPicker
@@ -208,10 +209,13 @@ export function RoleSheet({
                       <Label className="mb-0">{t("permissions")}</Label>
                       <div className="flex items-center gap-2">
                         <Checkbox
+                          id="advanced_mode_checkbox"
                           checked={form.watch("isAdvancedMode")}
                           onCheckedChange={(checked: boolean) => form.setValue("isAdvancedMode", checked)}
                         />
-                        <span className="text-sm">{t("advanced")}</span>
+                        <label htmlFor="advanced_mode_checkbox" className="text-sm">
+                          {t("advanced")}
+                        </label>
                       </div>
                     </div>
                     <TextField

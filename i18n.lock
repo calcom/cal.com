@@ -113,6 +113,7 @@ checksums:
     no_available_users_found_error: 12759d781387c445ba29ef601fb19ceb
     timeslot_unavailable_book_a_new_time: 7244550019d30a440f190659820cd2e9
     timeslot_unavailable_short: 7bc68111973c864f2003d51e2d08c3dd
+    just_connected_description: d55f8b4c29ea17356eadaaeb37e9ad83
     unavailable_timeslot_title: 5c0d248a46971ac0b6b51c63680740bf
     booking_time_out_of_bounds_error: a1f0eee998bad55bb2d339682e8ba0e3
     request_body_end_time_internal_error: c90ce14f6e59a9d9c516a5cb72df38cf
@@ -2301,7 +2302,6 @@ checksums:
     locked_by_team_admin: 539128c9579f340b95d58abbfa0880ef
     app_not_connected: 25c979da79e9f983e6f5e62dcd1c47bb
     connect_now: ca98ba0375aad91861c150bbc0fff9ec
-    connect_now_unavailable_tooltip: f259b61c574fd191048ddce748b87829
     managed_event_dialog_confirm_button_one: 57569c5943d7cf44f3373f763559a0d8
     managed_event_dialog_confirm_button_other: d665ecde0909425ff7433b417c45ada3
     managed_event_dialog_title_one: 11c192644024dffc351d11d9681a81f9
@@ -2383,6 +2383,7 @@ checksums:
     invite_link_copied: 4046f23a78e1cd5166671c3fb8a7ea6e
     invite_link_deleted: cbad4a7a211c04c6c860402068e89ede
     api_key_deleted: 6b63d1a15bea4b41acdd8432e680751a
+    delete_api_key_warning: c2aabd8e8c70562823de11c42d440f5b
     invite_link_updated: d1834e3d59a0a4ef7b1a008772e244e5
     link_expires_after: 398b822c0aca1c04947095bd9dbc47f6
     one_day: ef1826660893c89de442e0d0c4c327d7
@@ -3460,6 +3461,7 @@ checksums:
     roles_and_permissions_description: b61be30059f6de6034d6acb588d3a495
     learn_more_permissions: 9be546d0622d5bcb5336c5b417c5f29f
     role_name: 6166d263954a8c5e41e988801c2cfb20
+    role_name_required: 5650dd108c357a78fec90aa755d78367
     role_name_placeholder: b138f0b244a5680d2986db2c99b11548
     role_description: 1eccd63fc1cb4d162ff7e5353fd72660
     role_description_placeholder: d732e6a22a3e3ae60c21ac390e5248f5
@@ -3498,7 +3500,7 @@ checksums:
     role_created_successfully: 0c5e659653544f4e549c49deee5da514
     role_updated_successfully: 70f6225b70f4bcd15af464da4c838096
     delete_role: 877641ea72960f194766086aceb53346
-    confirm_delete_role: 05f1b95d4506445819c1938c456e73b6
+    confirm_delete_role: 894b27127b5afeed7e143cf3eaac87cf
     role_deleted_successfully: 3e82866aca1a2461c2cfccbad71b2610
     error_creating_role: 4d3c36c243381aa68d671ae9c58265cd
     error_updating_role: bb0758044b466e260c9bb3704b4d115f
