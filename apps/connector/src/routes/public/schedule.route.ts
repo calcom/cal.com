@@ -38,7 +38,6 @@ export async function scheduleRoutes(fastify: FastifyInstance): Promise<void> {
   const scheduleService = new ScheduleService(prisma);
   // Route with specific auth methods allowed
   fastify.get('/', { 
-    preHandler: AuthGuards.authenticateFlexible(),
     schema: {
       description: 'Get current user schedules',
       tags: ['Schedule'],
@@ -57,7 +56,6 @@ export async function scheduleRoutes(fastify: FastifyInstance): Promise<void> {
   }),
 
   fastify.post('/', { 
-    preHandler: AuthGuards.authenticateFlexible(),
     schema: {
       description: 'Create a schedule',
       tags: ['Schedule'],
@@ -80,7 +78,6 @@ export async function scheduleRoutes(fastify: FastifyInstance): Promise<void> {
   }),
 
   fastify.delete<{ Params: { schedule: string } }>('/:schedule', { 
-      preHandler: AuthGuards.authenticateFlexible(),
       schema: {
         description: 'Create a schedule for the current user',
         tags: ['Schedule'],
@@ -107,7 +104,6 @@ export async function scheduleRoutes(fastify: FastifyInstance): Promise<void> {
 
 
   fastify.patch<{ Params: { schedule: string } }>('/:schedule', { 
-      preHandler: AuthGuards.authenticateFlexible(),
       schema: {
         description: 'Update a schedule for the current user',
         tags: ['Schedule'],

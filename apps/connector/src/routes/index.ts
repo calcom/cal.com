@@ -35,8 +35,31 @@ export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
     async function (fastify: FastifyInstance) {
       console.log("🔍 Registering public routes with auth and rate limiting...");
 
-      // Apply authentication middleware
-      fastify.addHook("preHandler", AuthGuards.authenticateFlexible());
+      // Apply authentication middleware - skip for specific routes
+      fastify.addHook("preHandler", async (request, reply) => {
+        // Skip auth for POST /booking endpoint
+        console.log("Request URL:", request.url, "Method:", request.method);
+        if (
+          request.method === "POST" &&
+          (request.url === `${PATH_PREFIX}/booking/` || request.url === `${PATH_PREFIX}/booking`)
+        ) {
+          console.log("Skipping auth for POST /booking");
+          return;
+        }
+
+        //Skip auth for PATCH /booking/:id/reschedule
+        if (
+          request.method === "PATCH" &&
+          request.url.startsWith(`${PATH_PREFIX}/booking/`) &&
+          (request.url.endsWith("/reschedule") || request.url.endsWith("/reschedule/"))
+        ) {
+          console.log("Skipping auth for PATCH /booking/:id/reschedule");
+          return;
+        }
+
+        // Apply auth for all other routes
+        return AuthGuards.authenticateFlexible()(request, reply);
+      });
 
       // Apply API key-based rate limiting
       try {
