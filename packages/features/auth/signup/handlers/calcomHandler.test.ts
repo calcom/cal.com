@@ -10,26 +10,27 @@ import { IdentityProvider } from "@calcom/prisma/enums";
 import calcomHandler from "./calcomHandler";
 
 // Mock dependencies
-const mockPrismaObj = {
-  user: {
-    create: vi.fn(),
-    upsert: vi.fn(),
-    findFirst: vi.fn(),
-    findUnique: vi.fn(),
-  },
-  verificationToken: {
-    findFirst: vi.fn(),
-    delete: vi.fn(),
-  },
-  team: {
-    findUnique: vi.fn(),
-  },
-};
-
-vi.mock("@calcom/prisma", () => ({
-  prisma: mockPrismaObj,
-  default: mockPrismaObj,
-}));
+vi.mock("@calcom/prisma", () => {
+  const mockPrismaObj = {
+    user: {
+      create: vi.fn(),
+      upsert: vi.fn(),
+      findFirst: vi.fn(),
+      findUnique: vi.fn(),
+    },
+    verificationToken: {
+      findFirst: vi.fn(),
+      delete: vi.fn(),
+    },
+    team: {
+      findUnique: vi.fn(),
+    },
+  };
+  return {
+    prisma: mockPrismaObj,
+    default: mockPrismaObj,
+  };
+});
 
 vi.mock("@calcom/features/flags/features.repository");
 vi.mock("@calcom/features/auth/lib/verifyEmail");

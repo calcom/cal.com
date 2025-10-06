@@ -10,24 +10,25 @@ import prisma from "@calcom/prisma";
 import selfHostedHandler from "./selfHostedHandler";
 
 // Mock dependencies
-const mockPrismaObj = {
-  user: {
-    upsert: vi.fn(),
-    findFirst: vi.fn(),
-  },
-  verificationToken: {
-    findFirst: vi.fn(),
-    delete: vi.fn(),
-  },
-  team: {
-    findUnique: vi.fn(),
-  },
-};
-
-vi.mock("@calcom/prisma", () => ({
-  default: mockPrismaObj,
-  prisma: mockPrismaObj,
-}));
+vi.mock("@calcom/prisma", () => {
+  const mockPrismaObj = {
+    user: {
+      upsert: vi.fn(),
+      findFirst: vi.fn(),
+    },
+    verificationToken: {
+      findFirst: vi.fn(),
+      delete: vi.fn(),
+    },
+    team: {
+      findUnique: vi.fn(),
+    },
+  };
+  return {
+    default: mockPrismaObj,
+    prisma: mockPrismaObj,
+  };
+});
 
 vi.mock("@calcom/features/flags/features.repository");
 vi.mock("@calcom/features/auth/lib/verifyEmail");
