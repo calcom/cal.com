@@ -1,8 +1,7 @@
 import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 
+import type { NextApiRequest } from "next";
 import { describe, expect, it, beforeEach } from "vitest";
-
-import { WatchlistSeverity } from "@calcom/prisma/enums";
 
 import { isLockedOrBlocked } from "../../../lib/utils/isLockedOrBlocked";
 
@@ -18,7 +17,6 @@ describe("isLockedOrBlocked", () => {
         {
           type: "DOMAIN",
           value: "blocked.com",
-          severity: WatchlistSeverity.CRITICAL,
           createdById: 1,
         },
       ],
@@ -26,13 +24,13 @@ describe("isLockedOrBlocked", () => {
   });
 
   it("should return false if no user in request", async () => {
-    const req = { userId: null, user: null } as any;
+    const req = { userId: null, user: null } as unknown as NextApiRequest;
     const result = await isLockedOrBlocked(req);
     expect(result).toBe(false);
   });
 
   it("should return false if user has no email", async () => {
-    const req = { userId: 123, user: { email: null } } as any;
+    const req = { userId: 123, user: { email: null } } as unknown as NextApiRequest;
     const result = await isLockedOrBlocked(req);
     expect(result).toBe(false);
   });
@@ -44,7 +42,7 @@ describe("isLockedOrBlocked", () => {
         locked: true,
         email: "test@example.com",
       },
-    } as any;
+    } as unknown as NextApiRequest;
 
     const result = await isLockedOrBlocked(req);
     expect(result).toBe(true);
@@ -57,7 +55,7 @@ describe("isLockedOrBlocked", () => {
         locked: false,
         email: "test@blocked.com",
       },
-    } as any;
+    } as unknown as NextApiRequest;
 
     const result = await isLockedOrBlocked(req);
     expect(result).toBe(true);
@@ -70,7 +68,7 @@ describe("isLockedOrBlocked", () => {
         locked: false,
         email: "test@example.com",
       },
-    } as any;
+    } as unknown as NextApiRequest;
 
     const result = await isLockedOrBlocked(req);
     expect(result).toBe(false);
@@ -83,7 +81,7 @@ describe("isLockedOrBlocked", () => {
         locked: false,
         email: "test@BLOCKED.COM",
       },
-    } as any;
+    } as unknown as NextApiRequest;
 
     const result = await isLockedOrBlocked(req);
     expect(result).toBe(true);

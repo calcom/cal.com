@@ -425,6 +425,17 @@ export class BookingRepository {
     });
   }
 
+  async findBookingByUidWithEventType({ bookingUid }: { bookingUid: string }) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        uid: bookingUid,
+      },
+      include: {
+        eventType: true,
+      },
+    });
+  }
+
   async findByIdIncludeUserAndAttendees(bookingId: number) {
     return await this.prismaClient.booking.findUnique({
       where: {
