@@ -290,6 +290,13 @@ test.describe("Email Signup Flow Test", async () => {
     const newUser = await users.set(userToCreate.email);
     expect(newUser).not.toBeNull();
 
+    // Verify that emailVerified is null when flag is enabled
+    const dbUser = await prisma.user.findUnique({
+      where: { email: userToCreate.email },
+      select: { emailVerified: true },
+    });
+    expect(dbUser?.emailVerified).toBeNull();
+
     const receivedEmails = await getEmailsReceivedByUser({
       emails,
       userEmail: userToCreate.email,
@@ -303,6 +310,45 @@ test.describe("Email Signup Flow Test", async () => {
 
     const verifyEmail = receivedEmails?.items[0];
     expect(verifyEmail?.subject).toBe(`${APP_NAME}: Verify your account`);
+  });
+  test("Email auto-verified when flag disabled", async ({ page, prisma, users, features }) => {
+    // Ensure email verification is disabled for this test
+    await prisma.feature.update({
+      where: { slug: "email-verification" },
+      data: { enabled: false },
+    });
+
+    const userToCreate = users.buildForSignup({
+      email: `auto-verify-${Date.now()}@example.com`,
+      username: `auto-verify-${Date.now()}`,
+      password: "Password99!",
+    });
+
+    await page.goto("/signup");
+    await preventFlakyTest(page);
+    const continueWithEmailButton = page.getByTestId("continue-with-email-button");
+    await expect(continueWithEmailButton).toBeVisible();
+    await continueWithEmailButton.click();
+
+    // Fill form
+    await page.locator('input[name="username"]').fill(userToCreate.username);
+    await page.locator('input[name="email"]').fill(userToCreate.email);
+    await page.locator('input[name="password"]').fill(userToCreate.password);
+
+    // Submit form
+    const submitButton = page.getByTestId("signup-submit-button");
+    await submitButton.click();
+
+    // Should NOT redirect to verify-email when flag is disabled
+    await page.waitForURL((url) => !url.pathname.includes("/auth/verify-email"));
+
+    // Verify that emailVerified is set to a date when flag is disabled
+    const dbUser = await prisma.user.findUnique({
+      where: { email: userToCreate.email },
+      select: { emailVerified: true },
+    });
+    expect(dbUser?.emailVerified).not.toBeNull();
+    expect(dbUser?.emailVerified).toBeInstanceOf(Date);
   });
   test("If signup is disabled allow team invites", async ({ browser, page, users, emails }) => {
     // eslint-disable-next-line playwright/no-skipped-test
