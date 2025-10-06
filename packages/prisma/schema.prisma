@@ -2636,9 +2636,12 @@ model CalendarCacheEvent {
 }
 
 model App_Salesforce_RecordFieldCache {
-  id          String   @id @default(uuid())
-  eventTypeId String   @unique
-  fields      Json
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(uuid())
+  credentialId Int
+  recordType   String
+  fields       Json
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([credentialId, recordType])
 }
