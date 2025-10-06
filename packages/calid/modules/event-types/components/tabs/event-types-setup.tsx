@@ -2,8 +2,8 @@ import { Button } from "@calid/features/ui/components/button";
 import { InputField, TextField } from "@calid/features/ui/components/input/input";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import type { TFunction } from "i18next";
-import type { Dispatch, SetStateAction } from "react";
-import { useState, useCallback, useMemo } from "react";
+import { useSession } from "next-auth/react";
+import React, { type Dispatch, type SetStateAction, useState, useCallback, useMemo } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
 import type { MultiValue } from "react-select";
@@ -28,6 +28,9 @@ import classNames from "@calcom/ui/classNames";
 import { Editor } from "@calcom/ui/components/editor";
 import { Select, Label, SettingsToggle } from "@calcom/ui/components/form";
 import { Skeleton } from "@calcom/ui/components/skeleton";
+
+import { isManagedEventType } from "../../utils/event-types-utils";
+import { FieldPermissionIndicator, useFieldPermissions } from "./hooks/useFieldPermissions";
 
 export type EventSetupTabCustomClassNames = {
   wrapper?: string;
@@ -202,6 +205,7 @@ const TitleDescriptionSection = ({
   t,
   firstRender,
   setFirstRender,
+  fieldPermissions,
 }: {
   customClassNames?: EventSetupTabCustomClassNames["titleSection"];
   formMethods: ReturnType<typeof useFormContext<FormValues>>;
@@ -209,22 +213,34 @@ const TitleDescriptionSection = ({
   t: TFunction;
   firstRender: boolean;
   setFirstRender: Dispatch<SetStateAction<boolean>>;
-}) => (
-  <>
-    <TextField
-      required
-      containerClassName={classNames(customClassNames?.titleInput?.container)}
-      labelClassName={classNames(customClassNames?.titleInput?.label)}
-      className={classNames(customClassNames?.titleInput?.input)}
-      label={t("title")}
-      defaultValue={eventType.title}
-      data-testid="event-title"
-      {...formMethods.register("title")}
-    />
+  fieldPermissions: ReturnType<typeof useFieldPermissions>;
+}) => {
+  return (
+    <>
+      <div>
+        <TextField
+          required
+          containerClassName={classNames(customClassNames?.titleInput?.container)}
+          labelClassName={classNames(customClassNames?.titleInput?.label)}
+          className={classNames(customClassNames?.titleInput?.input)}
+          label={t("title")}
+          LockedIcon={
+            <FieldPermissionIndicator fieldName="title" fieldPermissions={fieldPermissions} t={t} />
+          }
+          defaultValue={eventType.title}
+          data-testid="event-title"
+          disabled={fieldPermissions.getFieldState("title").isDisabled}
+          {...formMethods.register("title")}
+        />
+      </div>
 
-    <div>
-      <>
-        <Label htmlFor="editor">{t("description")}</Label>
+      <div>
+        <Label htmlFor="editor">
+          <div className="flex items-center">
+            {t("description")}
+            <FieldPermissionIndicator fieldName="description" fieldPermissions={fieldPermissions} t={t} />
+          </div>
+        </Label>
         <Editor
           getText={() => md.render(formMethods.getValues("description") || "")}
           setText={(value: string) =>
@@ -234,15 +250,13 @@ const TitleDescriptionSection = ({
           placeholder={t("quick_video_meeting")}
           firstRender={firstRender}
           setFirstRender={setFirstRender}
+          editable={!fieldPermissions.getFieldState("description").isDisabled}
         />
-      </>
-    </div>
-  </>
-);
+      </div>
+    </>
+  );
+};
 
-/**
- * URL Input Section Component
- */
 const UrlSection = ({
   urlPrefix,
   team,
@@ -251,6 +265,8 @@ const UrlSection = ({
   t,
   handleCopyUrl,
   handlePreviewUrl,
+  fieldPermissions,
+  eventType,
 }: {
   urlPrefix: string;
   team: EventSetupTabProps["team"];
@@ -259,41 +275,55 @@ const UrlSection = ({
   t: TFunction;
   handleCopyUrl: () => void;
   handlePreviewUrl: () => void;
-}) => (
-  <div className="relative w-full">
-    <InputField
-      type="text"
-      addOnLeading={
-        <>
-          {urlPrefix}/
-          {team ? (hasOrgBranding ? "" : "team/") + team.slug : formMethods.getValues("users")[0]?.username}/
-        </>
-      }
-      addOnSuffix={
-        <>
-          <Button
-            color="minimal"
-            className="border-none"
-            StartIcon="copy"
-            onClick={handleCopyUrl}
-            tooltip={t("copy_url")}
-          />
-          <Button
-            color="minimal"
-            className="border-none"
-            StartIcon="external-link"
-            onClick={handlePreviewUrl}
-            tooltip={t("preview_url")}
-          />
-        </>
-      }
-      id="event-slug"
-      inputIsFullWidth={true}
-      containerClassName="w-full"
-      {...formMethods.register("slug", { setValueAs: (v) => slugify(v) })}
-    />
-  </div>
-);
+  fieldPermissions: ReturnType<typeof useFieldPermissions>;
+  eventType: EventSetupTabProps["eventType"];
+}) => {
+  return (
+    <div>
+      <InputField
+        type="text"
+        label={t("url")}
+        LockedIcon={<FieldPermissionIndicator fieldName="slug" fieldPermissions={fieldPermissions} t={t} />}
+        addOnLeading={
+          <>
+            {urlPrefix}/
+            {!isManagedEventType(eventType)
+              ? team
+                ? (hasOrgBranding ? "" : "team/") + team.slug
+                : formMethods.getValues("users")[0]?.username
+              : t("username_placeholder")}
+            /
+          </>
+        }
+        addOnSuffix={
+          !isManagedEventType(eventType) ? (
+            <>
+              <Button
+                color="minimal"
+                className="border-none"
+                StartIcon="copy"
+                onClick={handleCopyUrl}
+                tooltip={t("copy_url")}
+              />
+              <Button
+                color="minimal"
+                className="border-none"
+                StartIcon="external-link"
+                onClick={handlePreviewUrl}
+                tooltip={t("preview_url")}
+              />
+            </>
+          ) : null
+        }
+        id="event-slug"
+        inputIsFullWidth={true}
+        containerClassName="w-full"
+        disabled={fieldPermissions.getFieldState("slug").isDisabled}
+        {...formMethods.register("slug", { setValueAs: (v) => slugify(v) })}
+      />
+    </div>
+  );
+};
 
 /**
  * Duration Section Component
@@ -310,6 +340,7 @@ const DurationSection = ({
   handleDurationSelectionChange,
   handleDefaultDurationChange,
   toggleMultipleDuration,
+  fieldPermissions,
 }: {
   multipleDuration: number[] | undefined;
   multipleDurationOptions: DurationOption[];
@@ -322,129 +353,146 @@ const DurationSection = ({
   handleDurationSelectionChange: (options: MultiValue<DurationOption>) => void;
   handleDefaultDurationChange: (option: DurationOption | null) => void;
   toggleMultipleDuration: () => void;
-}) => (
-  <>
-    {/* Duration Inputs */}
-    {multipleDuration ? (
-      <div className={classNames("space-y-6", customClassNames?.multipleDuration?.container)}>
-        {/* Available Durations */}
+  fieldPermissions: ReturnType<typeof useFieldPermissions>;
+}) => {
+  return (
+    <>
+      {/* Duration Inputs */}
+      {multipleDuration ? (
+        <div className={classNames("space-y-6", customClassNames?.multipleDuration?.container)}>
+          {/* Available Durations */}
+          <div>
+            <Skeleton
+              as={Label}
+              loadingClassName="w-16"
+              className={customClassNames?.multipleDuration?.availableDurationsSelect?.label}>
+              <div className="flex items-center">
+                {t("available_durations")}
+                <FieldPermissionIndicator
+                  fieldName="metadata.multipleDuration"
+                  fieldPermissions={fieldPermissions}
+                  t={t}
+                />
+              </div>
+            </Skeleton>
+            <Select
+              isMulti
+              defaultValue={selectedMultipleDuration}
+              name="metadata.multipleDuration"
+              isSearchable={false}
+              className={classNames(
+                " text-sm",
+                customClassNames?.multipleDuration?.availableDurationsSelect?.select
+              )}
+              innerClassNames={customClassNames?.multipleDuration?.availableDurationsSelect?.innerClassNames}
+              options={multipleDurationOptions}
+              value={selectedMultipleDuration}
+              onChange={handleDurationSelectionChange}
+              isDisabled={fieldPermissions.getFieldState("metadata.multipleDuration").isDisabled}
+            />
+          </div>
+
+          {/* Default Duration */}
+          <div
+            className={classNames(
+              "space-y-2",
+              customClassNames?.multipleDuration?.defaultDurationSelect?.container
+            )}>
+            <Skeleton
+              as={Label}
+              loadingClassName="w-16"
+              className={customClassNames?.multipleDuration?.defaultDurationSelect?.label}>
+              <div className="flex items-center">
+                {t("default_duration")}
+                <FieldPermissionIndicator fieldName="length" fieldPermissions={fieldPermissions} t={t} />
+              </div>
+            </Skeleton>
+            <Select
+              value={defaultDuration}
+              isSearchable={false}
+              name="length"
+              className={classNames(
+                "text-sm",
+                customClassNames?.multipleDuration?.defaultDurationSelect?.select
+              )}
+              innerClassNames={customClassNames?.multipleDuration?.defaultDurationSelect?.innerClassNames}
+              noOptionsMessage={() => t("default_duration_no_options")}
+              options={selectedMultipleDuration}
+              onChange={handleDefaultDurationChange}
+              isDisabled={fieldPermissions.getFieldState("length").isDisabled}
+            />
+          </div>
+        </div>
+      ) : (
+        /* Single Duration Input */
         <div>
-          <Skeleton
-            as={Label}
-            loadingClassName="w-16"
-            className={customClassNames?.multipleDuration?.availableDurationsSelect?.label}>
-            {t("available_durations")}
-          </Skeleton>
-          <Select
-            isMulti
-            defaultValue={selectedMultipleDuration}
-            name="metadata.multipleDuration"
-            isSearchable={false}
-            className={classNames(
-              " text-sm",
-              customClassNames?.multipleDuration?.availableDurationsSelect?.select
-            )}
-            innerClassNames={customClassNames?.multipleDuration?.availableDurationsSelect?.innerClassNames}
-            options={multipleDurationOptions}
-            value={selectedMultipleDuration}
-            onChange={handleDurationSelectionChange}
+          <TextField
+            required
+            type="number"
+            containerClassName={classNames(customClassNames?.singleDurationInput?.container)}
+            labelClassName={classNames(customClassNames?.singleDurationInput?.label)}
+            className={classNames(customClassNames?.singleDurationInput?.input)}
+            data-testid="duration"
+            label={t("duration")}
+            LockedIcon={
+              <FieldPermissionIndicator fieldName="length" fieldPermissions={fieldPermissions} t={t} />
+            }
+            defaultValue={formMethods.getValues("length") ?? 15}
+            disabled={fieldPermissions.getFieldState("length").isDisabled}
+            {...formMethods.register("length", {
+              valueAsNumber: true,
+              min: {
+                value: MIN_EVENT_DURATION_MINUTES,
+                message: t("duration_min_error", { min: MIN_EVENT_DURATION_MINUTES }),
+              },
+              max: {
+                value: MAX_EVENT_DURATION_MINUTES,
+                message: t("duration_max_error", { max: MAX_EVENT_DURATION_MINUTES }),
+              },
+            })}
+            addOnSuffix={<>{t("minutes")}</>}
+            min={MIN_EVENT_DURATION_MINUTES}
+            max={MAX_EVENT_DURATION_MINUTES}
           />
         </div>
+      )}
 
-        {/* Default Duration */}
-        <div className={customClassNames?.multipleDuration?.defaultDurationSelect?.container}>
-          <Skeleton
-            as={Label}
-            loadingClassName="w-16"
-            className={customClassNames?.multipleDuration?.defaultDurationSelect?.label}>
-            {t("default_duration")}
-          </Skeleton>
-          <Select
-            value={defaultDuration}
-            isSearchable={false}
-            name="length"
-            className={classNames(
-              "text-sm",
-              customClassNames?.multipleDuration?.defaultDurationSelect?.select
-            )}
-            innerClassNames={customClassNames?.multipleDuration?.defaultDurationSelect?.innerClassNames}
-            noOptionsMessage={() => t("default_duration_no_options")}
-            options={selectedMultipleDuration}
-            onChange={handleDefaultDurationChange}
-          />
-        </div>
+      {/* Multiple Duration Toggle */}
+      <div className="[&_label]:my-1 [&_label]:font-normal">
+        <SettingsToggle
+          title={t("allow_booker_to_select_duration")}
+          LockedIcon={
+            <FieldPermissionIndicator
+              fieldName="metadata.multipleDuration"
+              fieldPermissions={fieldPermissions}
+              t={t}
+            />
+          }
+          checked={multipleDuration !== undefined}
+          disabled={seatsEnabled || fieldPermissions.getFieldState("metadata.multipleDuration").isDisabled}
+          tooltip={seatsEnabled ? t("seat_options_doesnt_multiple_durations") : undefined}
+          labelClassName={customClassNames?.selectDurationToggle?.label}
+          descriptionClassName={customClassNames?.selectDurationToggle?.description}
+          switchContainerClassName={customClassNames?.selectDurationToggle?.container}
+          childrenClassName={customClassNames?.selectDurationToggle?.children}
+          onCheckedChange={toggleMultipleDuration}
+        />
       </div>
-    ) : (
-      /* Single Duration Input */
-      <TextField
-        required
-        type="number"
-        containerClassName={classNames(customClassNames?.singleDurationInput?.container)}
-        labelClassName={classNames(customClassNames?.singleDurationInput?.label)}
-        className={classNames(customClassNames?.singleDurationInput?.input)}
-        data-testid="duration"
-        label={t("duration")}
-        defaultValue={formMethods.getValues("length") ?? 15}
-        {...formMethods.register("length", {
-          valueAsNumber: true,
-          min: {
-            value: MIN_EVENT_DURATION_MINUTES,
-            message: t("duration_min_error", { min: MIN_EVENT_DURATION_MINUTES }),
-          },
-          max: {
-            value: MAX_EVENT_DURATION_MINUTES,
-            message: t("duration_max_error", { max: MAX_EVENT_DURATION_MINUTES }),
-          },
-        })}
-        addOnSuffix={<>{t("minutes")}</>}
-        min={MIN_EVENT_DURATION_MINUTES}
-        max={MAX_EVENT_DURATION_MINUTES}
-      />
-    )}
+    </>
+  );
+};
 
-    {/* Multiple Duration Toggle */}
-    <div className="[&_label]:my-1 [&_label]:font-normal">
-      <SettingsToggle
-        title={t("allow_booker_to_select_duration")}
-        checked={multipleDuration !== undefined}
-        disabled={seatsEnabled}
-        tooltip={seatsEnabled ? t("seat_options_doesnt_multiple_durations") : undefined}
-        labelClassName={customClassNames?.selectDurationToggle?.label}
-        descriptionClassName={customClassNames?.selectDurationToggle?.description}
-        switchContainerClassName={customClassNames?.selectDurationToggle?.container}
-        childrenClassName={customClassNames?.selectDurationToggle?.children}
-        onCheckedChange={toggleMultipleDuration}
-      />
-    </div>
-  </>
-);
-
-// ============================================================================
-// MAIN COMPONENT
-// ============================================================================
-
-/**
- * Event Setup Component - Handles the setup tab for event types
- *
- * Features:
- * - Event title and description editing
- * - URL slug management with copy/preview functionality
- * - Duration configuration (single or multiple options)
- * - Location settings
- * - Interface language selection
- * - Locked field management for managed event types
- */
 export const EventSetup = (props: EventSetupTabProps) => {
   const { t } = useLocale();
+  const session = useSession();
   const formMethods = useFormContext<FormValues>();
 
-  const { eventType, team, customClassNames } = props;
+  const { eventType, team, customClassNames, teamMembers } = props;
+  const member = useMemo(() => {
+    const foundMember = teamMembers.find((mem) => mem.user?.id === session.data?.user.id);
+    return foundMember;
+  }, [teamMembers, session.data?.user.id]);
 
-  // ============================================================================
-  // COMPUTED VALUES
-  // ============================================================================
-
-  // URL and branding setup - use props first, fallback to calculated values
   const urlPrefix = useMemo(
     () => props.urlPrefix || `${WEBSITE_URL?.replace(/^(https?:|)\/\//, "")}`,
     [props.urlPrefix]
@@ -466,10 +514,6 @@ export const EventSetup = (props: EventSetupTabProps) => {
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
   const slugValue = formMethods.watch("slug") ?? eventType.slug;
 
-  // ============================================================================
-  // CUSTOM HOOKS
-  // ============================================================================
-
   const { handleCopyUrl, handlePreviewUrl } = useUrlManagement(team, formMethods, urlPrefix, slugValue);
 
   const {
@@ -482,6 +526,9 @@ export const EventSetup = (props: EventSetupTabProps) => {
     toggleMultipleDuration,
   } = useDurationManagement(formMethods, eventType, t);
 
+  // Field permissions management
+  const fieldPermissions = useFieldPermissions({ eventType, translate: t, formMethods });
+
   return (
     <div className={classNames("space-y-6", customClassNames?.wrapper)}>
       {/* Title and Description Section */}
@@ -492,6 +539,7 @@ export const EventSetup = (props: EventSetupTabProps) => {
         t={t}
         firstRender={firstRender}
         setFirstRender={setFirstRender}
+        fieldPermissions={fieldPermissions}
       />
 
       {/* Interface Language Selection */}
@@ -502,7 +550,14 @@ export const EventSetup = (props: EventSetupTabProps) => {
             loadingClassName="w-16"
             htmlFor="interfaceLanguage"
             className={customClassNames?.locationSection?.label}>
-            {t("interface_language")}
+            <div className="flex items-center">
+              {t("interface_language")}
+              <FieldPermissionIndicator
+                fieldName="interfaceLanguage"
+                fieldPermissions={fieldPermissions}
+                t={t}
+              />
+            </div>
           </Skeleton>
           <Controller
             name="interfaceLanguage"
@@ -515,6 +570,7 @@ export const EventSetup = (props: EventSetupTabProps) => {
                 options={interfaceLanguageOptions}
                 onChange={(option: { label: string; value: string } | null) => onChange(option?.value || "")}
                 value={interfaceLanguageOptions.find((option) => option.value === value)}
+                isDisabled={fieldPermissions.getFieldState("interfaceLanguage").isDisabled}
               />
             )}
           />
@@ -530,6 +586,8 @@ export const EventSetup = (props: EventSetupTabProps) => {
         t={t}
         handleCopyUrl={handleCopyUrl}
         handlePreviewUrl={handlePreviewUrl}
+        fieldPermissions={fieldPermissions}
+        eventType={eventType}
       />
 
       {/* Duration Section */}
@@ -545,6 +603,7 @@ export const EventSetup = (props: EventSetupTabProps) => {
         handleDurationSelectionChange={handleDurationSelectionChange}
         handleDefaultDurationChange={handleDefaultDurationChange}
         toggleMultipleDuration={toggleMultipleDuration}
+        fieldPermissions={fieldPermissions}
       />
 
       {/* Location Section */}
@@ -554,7 +613,10 @@ export const EventSetup = (props: EventSetupTabProps) => {
           loadingClassName="w-16"
           htmlFor="locations"
           className={customClassNames?.locationSection?.label}>
-          {t("location")}
+          <div className="flex items-center">
+            {t("location")}
+            <FieldPermissionIndicator fieldName="locations" fieldPermissions={fieldPermissions} t={t} />
+          </div>
         </Skeleton>
         <Controller
           name="locations"
@@ -563,6 +625,7 @@ export const EventSetup = (props: EventSetupTabProps) => {
           render={() => (
             <Locations
               showAppStoreLink={true}
+              disableLocationProp={fieldPermissions.getFieldState("locations").isDisabled}
               getValues={formMethods.getValues as unknown as UseFormGetValues<LocationFormValues>}
               setValue={formMethods.setValue as unknown as UseFormSetValue<LocationFormValues>}
               control={formMethods.control as unknown as Control<LocationFormValues>}

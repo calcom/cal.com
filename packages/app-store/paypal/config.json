@@ -8,7 +8,7 @@
   "categories": ["payment"],
   "publisher": "Cal.com",
   "email": "support@cal.com",
-  "description": "Paypal payment app by [Cal.com](https://cal.com)",
+  "description": "Paypal payment app by [Cal ID](https://cal.id)",
   "extendsFeature": "EventType",
   "isTemplate": false,
   "__createdUsingCli": true,
