@@ -95,7 +95,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                 {descriptionAsSafeHtml ? (
                   <span
                     className={classNames(
-                      "text-default ml-2 text-sm [&_a]:text-blue-500",
+                      "text-default ml-2 text-sm",
                       !label && "font-medium",
                       rest.descriptionClassName
                     )}
