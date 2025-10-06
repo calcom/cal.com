@@ -3677,6 +3677,8 @@
   "webhook_organizer_email": "Korraldaja e-post",
   "webhook_organizer_timezone": "Korraldaja ajavöönd (nt 'America/New_York', 'Asia/Kolkata')",
   "webhook_organizer_locale": "Korraldaja lokaad (nt 'en', 'fr')",
+  "webhook_organizer_username": "Korraldaja kasutajanimi (nt 'john.doe')",
+  "webhook_organizer_username_in_org": "Korraldaja kasutajanimi nende organisatsioonis (nt 'john.doe')",
   "webhook_attendee_name": "Esimese osaleja nimi",
   "webhook_attendee_email": "Esimese osaleja e-post",
   "webhook_attendee_timezone": "Esimese osaleja ajavöönd",

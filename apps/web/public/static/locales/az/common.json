@@ -3677,6 +3677,8 @@
   "webhook_organizer_email": "Təşkilatçının e-poçtu",
   "webhook_organizer_timezone": "Təşkilatçının saat qurşağı (məs., 'America/New_York', 'Asia/Kolkata')",
   "webhook_organizer_locale": "Təşkilatçının lokalı (məs., 'en', 'fr')",
+  "webhook_organizer_username": "Təşkilatçının istifadəçi adı (məsələn, 'john.doe')",
+  "webhook_organizer_username_in_org": "Təşkilatçının öz təşkilatındakı istifadəçi adı (məsələn, 'john.doe')",
   "webhook_attendee_name": "Birinci iştirakçının adı",
   "webhook_attendee_email": "Birinci iştirakçının e-poçtu",
   "webhook_attendee_timezone": "Birinci iştirakçının saat qurşağı",

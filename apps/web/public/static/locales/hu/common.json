@@ -3677,6 +3677,8 @@
   "webhook_organizer_email": "A szervező e-mail címe",
   "webhook_organizer_timezone": "A szervező időzónája (pl. 'America/New_York', 'Asia/Kolkata')",
   "webhook_organizer_locale": "A szervező területi beállítása (pl. 'en', 'fr')",
+  "webhook_organizer_username": "A szervező felhasználóneve (pl. 'john.doe')",
+  "webhook_organizer_username_in_org": "A szervező felhasználóneve a szervezetén belül (pl. 'john.doe')",
   "webhook_attendee_name": "Az első résztvevő neve",
   "webhook_attendee_email": "Az első résztvevő e-mail címe",
   "webhook_attendee_timezone": "Az első résztvevő időzónája",

@@ -3677,6 +3677,8 @@
   "webhook_organizer_email": "主催者のメール",
   "webhook_organizer_timezone": "主催者のタイムゾーン（例：'America/New_York'、'Asia/Kolkata'）",
   "webhook_organizer_locale": "主催者のロケール（例：'en'、'fr'）",
+  "webhook_organizer_username": "主催者のユーザー名（例：'john.doe'）",
+  "webhook_organizer_username_in_org": "組織内の主催者のユーザー名（例：'john.doe'）",
   "webhook_attendee_name": "最初の出席者の名前",
   "webhook_attendee_email": "最初の出席者のメール",
   "webhook_attendee_timezone": "最初の出席者のタイムゾーン",

@@ -3677,6 +3677,8 @@
   "webhook_organizer_email": "Email do organizador",
   "webhook_organizer_timezone": "Fuso horário do organizador (ex.: 'America/New_York', 'Asia/Kolkata')",
   "webhook_organizer_locale": "Idioma do organizador (ex.: 'en', 'fr')",
+  "webhook_organizer_username": "Nome de usuário do organizador (ex.: 'john.doe')",
+  "webhook_organizer_username_in_org": "Nome de usuário do organizador na organização (ex.: 'john.doe')",
   "webhook_attendee_name": "Nome do primeiro participante",
   "webhook_attendee_email": "Email do primeiro participante",
   "webhook_attendee_timezone": "Fuso horário do primeiro participante",
