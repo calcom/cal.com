@@ -1152,21 +1152,28 @@ export function expectBookingRescheduledWebhookToHaveBeenFired({
 }
 
 export function expectBookingCancelledWebhookToHaveBeenFired({
+  organizer,
   booker,
   location,
   subscriberUrl,
   payload,
 }: {
-  organizer: { email: string; name: string };
+  organizer: { email: string; name: string; username?: string; usernameInOrg?: string };
   booker: { email: string; name: string };
   subscriberUrl: string;
   location: string;
   payload?: Record<string, unknown>;
 }) {
+  const organizerPayload = {
+    username: organizer.username,
+    ...(organizer.usernameInOrg ? { usernameInOrg: organizer.usernameInOrg } : null),
+  };
+
   expectWebhookToHaveBeenCalledWith(subscriberUrl, {
     triggerEvent: "BOOKING_CANCELLED",
     payload: {
       ...payload,
+      organizer: organizerPayload,
       metadata: null,
       responses: {
         name: {
