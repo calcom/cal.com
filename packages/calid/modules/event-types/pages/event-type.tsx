@@ -285,25 +285,10 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
   // Form handling - only initialize when eventType is available
   const { form, handleSubmit } = useEventTypeForm({
     eventType,
-    onSubmit: async (data) => {
+    onSubmit: (data) => {
       try {
-        const conflicts = await checkForSlugConflicts(data);
-        if (conflicts) {
-          onConflict(conflicts);
-          return;
-        }
-
-        // Filter out fields that are not part of the update schema
-        const {
-          scheduleName: _scheduleName,
-          periodDates: _periodDates,
-          seatsPerTimeSlotEnabled: _seatsPerTimeSlotEnabled,
-          aiPhoneCallConfig: _aiPhoneCallConfig,
-          calVideoSettings: _calVideoSettings,
-          ...validData
-        } = data;
-
-        updateMutation.mutate(validData);
+        console.log("Submitting event type form with data:", data);
+        updateMutation.mutate(data);
       } catch (error) {
         throw error;
       }
@@ -446,37 +431,6 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
     setSlugExistsChildrenDialogOpen(conflicts);
   };
 
-  // Function to check for slug conflicts before submitting
-  const checkForSlugConflicts = async (formData: any) => {
-    if (!isManagedEventType(eventType) || !formData.children || formData.children.length === 0) {
-      return null;
-    }
-
-    const currentSlug = formData.slug || eventType.slug;
-    const conflicts: ChildrenEventType[] = [];
-
-    const teamMembers = (eventType as any).team?.members || (eventType as any).calIdTeam?.members || [];
-
-    for (const child of formData.children) {
-      const teamMember = teamMembers.find((mem: any) => mem.user.id === child.owner.id);
-      const memberEventTypes = teamMember?.user?.eventTypes || [];
-
-      const nonChildrenManagedEventTypes = memberEventTypes.filter((evTy: any) => {
-        const isChildrenManaged =
-          evTy.metadata?.managedEventConfig !== undefined && evTy.schedulingType !== SchedulingType.MANAGED;
-        return !isChildrenManaged;
-      });
-
-      const hasConflictingSlug = nonChildrenManagedEventTypes.some((evTy: any) => evTy.slug === currentSlug);
-
-      if (hasConflictingSlug) {
-        conflicts.push(child);
-      }
-    }
-
-    return conflicts.length > 0 ? conflicts : null;
-  };
-
   // Filter tabs based on event type
   const allTabs = getTabs(pathname);
   const availableTabs = allTabs.filter((tabItem) => {
@@ -598,13 +552,11 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
             isPending={form.formState.isSubmitting}
             onOpenChange={() => setSlugExistsChildrenDialogOpen([])}
             slug={slug}
-            onConfirm={async (e: { preventDefault: () => void }) => {
+            onConfirm={(e: { preventDefault: () => void }) => {
               e.preventDefault();
-              setSlugExistsChildrenDialogOpen([]);
+              handleSubmit(form.getValues());
               telemetry.event(telemetryEventTypes.slugReplacementAction);
-              // Submit the form after user confirms
-              const formData = form.getValues();
-              updateMutation.mutate(formData as any);
+              setSlugExistsChildrenDialogOpen([]);
             }}
           />
         )}
