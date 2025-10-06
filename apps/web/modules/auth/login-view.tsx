@@ -13,7 +13,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -89,7 +89,7 @@ export default function Login({
 
   // If not absolute URL, make it absolute
   if (!/^https?:\/\//.test(callbackUrl)) {
-    callbackUrl = `${WEBAPP_URL}/${callbackUrl}`;
+    callbackUrl = `${WEBSITE_URL}/${callbackUrl}`;
   }
 
   const safeCallbackUrl = getSafeRedirectUrl(callbackUrl);
