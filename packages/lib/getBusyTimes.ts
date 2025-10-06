@@ -150,7 +150,11 @@ export class BusyTimesService {
         eventType?.requiresConfirmation &&
         eventType?.requiresConfirmationWillBlockSlot
       ) {
-        bookingTitle = `unconfirmed but ${eventType.title} has this settings enabled`;
+        bookingTitle = `Blocking availability for unconfirmed bookings is enabled for ${eventType.title}`;
+      }
+
+      if (status === BookingStatus.ACCEPTED && eventType?.title) {
+        bookingTitle = `Confirmed: ${eventType.title}`;
       }
 
       if (rest._count?.seatsReferences) {
@@ -406,7 +410,11 @@ export class BusyTimesService {
     busyTimes = bookings.map(({ id, startTime, endTime, eventType, title, userId, status }) => {
       let bookingTitle = title;
       if (status === BookingStatus.PENDING && eventType?.requiresConfirmation) {
-        bookingTitle = `unconfirmed but ${eventType.title} has this settings enabled`;
+        bookingTitle = `Blocking availability for unconfirmed bookings is enabled for ${eventType.title}`;
+      }
+
+      if (status === BookingStatus.ACCEPTED && eventType?.title) {
+        bookingTitle = `Confirmed: ${eventType.title}`;
       }
 
       return {
