@@ -2,6 +2,7 @@ import { lookup } from "dns";
 import { type TFunction } from "i18next";
 
 import { sendAdminOrganizationNotification } from "@calcom/emails";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import {
   RESERVED_SUBDOMAINS,
   ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE,
@@ -185,7 +186,13 @@ export async function assertCanCreateOrg({
   restrictBasedOnMinimumPublishedTeams: boolean;
   errorOnUserAlreadyPartOfOrg?: boolean;
 }) {
-  const verifiedUser = orgOwner.completedOnboarding && !!orgOwner.emailVerified;
+  const featuresRepository = new FeaturesRepository(prisma);
+  const emailVerificationEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally(
+    "email-verification"
+  );
+
+  const verifiedUser =
+    orgOwner.completedOnboarding && (emailVerificationEnabled ? !!orgOwner.emailVerified : true);
   if (!verifiedUser) {
     log.warn(
       "you_need_to_complete_user_onboarding_before_creating_an_organization",
