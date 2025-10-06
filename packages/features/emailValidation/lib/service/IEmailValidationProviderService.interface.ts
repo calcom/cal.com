@@ -12,5 +12,5 @@ import type { EmailValidationRequest, EmailValidationResult } from "../dto/types
  * have universal meanings, and blocking decisions are centralized in EmailValidationService.
  */
 export interface IEmailValidationProviderService {
-  validateEmail(request: EmailValidationRequest): Promise<EmailValidationResult>;
+  validateEmail(request: EmailValidationRequest, signal?: AbortSignal): Promise<EmailValidationResult>;
 }
