@@ -1,6 +1,7 @@
 import type { Watchlist, CreateWatchlistInput, UpdateWatchlistInput } from "../types";
 
-export interface IWatchlistReadRepository {
+export interface IWatchlistRepository {
+  // Read operations
   findBlockedEntry(email: string, organizationId?: number): Promise<Watchlist | null>;
   findBlockedDomain(domain: string, organizationId?: number): Promise<Watchlist | null>;
   listByOrganization(organizationId: number): Promise<Watchlist[]>;
@@ -15,19 +16,14 @@ export interface IWatchlistReadRepository {
     emails: string[];
     domains: string[];
   }): Promise<Watchlist[]>;
-}
 
-export interface IWatchlistWriteRepository {
-  createEntry(data: CreateWatchlistInput): Promise<Watchlist>;
-  deleteEntry(id: string): Promise<void>;
-  updateEntry(id: string, data: UpdateWatchlistInput): Promise<Watchlist>;
-}
-
-export interface IWatchlistRepository extends IWatchlistReadRepository, IWatchlistWriteRepository {
-  // Combined interface that includes both read and write operations
+  // Write operations
   create(data: CreateWatchlistInput): Promise<Watchlist>;
+  createEntry(data: CreateWatchlistInput): Promise<Watchlist>;
   update(id: string, data: UpdateWatchlistInput): Promise<Watchlist>;
+  updateEntry(id: string, data: UpdateWatchlistInput): Promise<Watchlist>;
   delete(id: string): Promise<void>;
+  deleteEntry(id: string): Promise<void>;
 }
 
 // Export the input types for use in other files
