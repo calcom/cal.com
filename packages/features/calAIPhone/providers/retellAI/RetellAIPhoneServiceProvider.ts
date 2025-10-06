@@ -213,6 +213,7 @@ export class RetellAIPhoneServiceProvider
   async createAgent(params: {
     name?: string;
     userId: number;
+    userTimeZone: string;
     teamId?: number;
     workflowStepId?: number;
     generalPrompt?: string;

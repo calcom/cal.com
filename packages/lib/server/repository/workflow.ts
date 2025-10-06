@@ -261,7 +261,7 @@ export class WorkflowRepository {
     };
 
     if (filtered) {
-      if (!!filters.teamIds) {
+      if (filters.teamIds) {
         where.OR.push({
           team: {
             id: {
@@ -277,7 +277,7 @@ export class WorkflowRepository {
         });
       }
 
-      if (!!filters.userIds) {
+      if (filters.userIds) {
         where.OR.push({
           userId: {
             in: filters.userIds,
@@ -416,6 +416,18 @@ export class WorkflowRepository {
     }
 
     return workflow.activeOn.map((active) => active.eventTypeId);
+  }
+
+  static async getEventTypeIdsByWorkflowStepId({ workflowStepId }: { workflowStepId: number }) {
+    const workflowStep = await prisma.workflowStep.findUnique({
+      where: { id: workflowStepId },
+      select: { workflow: { select: { id: true, activeOn: { select: { eventTypeId: true } } } } },
+    });
+
+    return {
+      workflowId: workflowStep?.workflow?.id ?? null,
+      eventTypeIds: workflowStep?.workflow?.activeOn.map((activeOn) => activeOn.eventTypeId) ?? [],
+    };
   }
 
   static async deleteAllWorkflowReminders(

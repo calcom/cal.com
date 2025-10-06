@@ -1422,4 +1422,15 @@ export class EventTypeRepository {
       },
     });
   }
+
+  async isPersonalUserEventType({ userId, eventTypeId }: { userId: number; eventTypeId: number }) {
+    const count = await this.prismaClient.eventType.count({
+      where: {
+        id: eventTypeId,
+        userId,
+      },
+    });
+
+    return count > 0;
+  }
 }
