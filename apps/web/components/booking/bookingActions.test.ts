@@ -54,7 +54,7 @@ function createMockContext(overrides: Partial<BookingActionContext> = {}): Booki
           locale: "en",
           bookingId: 1,
           noShow: false,
-        } as any,
+        },
       ],
       user: {
         id: 1,
@@ -501,6 +501,16 @@ describe("Booking Actions", () => {
       });
 
       expect(isActionDisabled("cancel", futureContext)).toBe(false);
+    });
+
+    it("should allow hosts to cancel bookings even when cancellation is disabled", () => {
+      const context = createMockContext({
+        isHost: true,
+        isDisabledCancelling: true,
+        isBookingInPast: false,
+      });
+
+      expect(isActionDisabled("cancel", context)).toBe(false);
     });
 
     it("should disable video actions for non-past bookings", () => {
