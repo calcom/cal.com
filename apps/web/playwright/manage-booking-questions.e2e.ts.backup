@@ -105,35 +105,28 @@ test.describe("Manage Booking Questions", () => {
       users,
       context,
     }, testInfo) => {
-
       test.setTimeout(testInfo.timeout * 3);
       const user = await createAndLoginUserWithEventTypes({ users, page });
 
       const webhookReceiver = await addWebhook(user);
 
-      await test.step("Go to EventType Advanced Page ", async () => {
+      await test.step("Go to EventType Page ", async () => {
         const $eventTypes = page.locator("[data-testid=event-types] > li a");
         const firstEventTypeElement = $eventTypes.first();
 
         await firstEventTypeElement.click();
-        await expect(page.getByTestId("vertical-tab-basics")).toHaveAttribute("aria-current", "page");
-        await page.getByTestId("vertical-tab-event_advanced_tab_title").click();
       });
 
-      await test.step("Add Date Question and verify all properties", async () => {
-        await addQuestionAndSave({
-          page,
-          question: {
-            name: "appointment-date",
-            type: "Date",
-            label: "Preferred Appointment Date",
-            placeholder: "Select your preferred date",
-            required: true,
-          },
-        });
+      await runTestStepsCommonForTeamAndUserEventType(page, context, webhookReceiver);
+  });
 
-        await doOnFreshPreview(page, context, async (page) => {
-          await expectSystemFieldsToBeThereOnBookingPage({ page });
+  test.describe("For Team EventType", () => {
+    // eslint-disable-next-line playwright/no-skipped-test
+    test("Do a booking with a user added question and verify a few thing in b/w", async ({
+      page,
+      users,
+      context,
+    }, testInfo) => {
           const dateFieldLocator = page.locator('[data-fob-field-name="appointment-date"]');
 
           await expect(dateFieldLocator).toBeVisible();
@@ -182,20 +175,19 @@ test.describe("Manage Booking Questions", () => {
           const datePickerButton = dateFieldLocator.locator('[data-testid="pick-date"]');
 
           await datePickerButton.click();
-          const initialAllDayCells = page.locator('[role="grid"]').first().locator('[role="gridcell"]');
-          const initialDayCells = await initialAllDayCells.all();
+
           let initialDateClicked = false;
           
-          for (const dayCell of initialDayCells) {
-            try {
-              const dayText = await dayCell.textContent();
-              if (dayText && dayText.trim() && !isNaN(parseInt(dayText.trim())) && parseInt(dayText.trim()) > 0) {
+          for (const day of availableDays) {
+            const dayCell = page.locator('[role="grid"]').first().locator('[role="gridcell"]').filter({ hasText: new RegExp(`^${day}$`) }).first();
+            if (await dayCell.count() > 0) {
+              try {
                 await dayCell.click({ timeout: 5000 });
                 initialDateClicked = true;
                 break;
+              } catch (error) {
+                continue;
               }
-            } catch (error) {
-              continue;
             }
           }
           
@@ -203,24 +195,23 @@ test.describe("Manage Booking Questions", () => {
 
           await expect(datePickerButton).not.toContainText("Pick a date");
           const buttonText = await datePickerButton.textContent();
-          expect(buttonText).toMatch(/^[A-Z][a-z]{2} \d{1,2}, \d{4}$/);
+          expect(buttonText).toMatch(/^[A-Z][a-z]{2} \d{1,2}, \d{4}$/); // e.g., "Dec 15, 2024"
 
           await datePickerButton.click();
           
-          const secondAllDayCells = page.locator('[role="grid"]').first().locator('[role="gridcell"]');
-          const secondDayCells = await secondAllDayCells.all();
+          const reversedDays = ['25', '24', '23', '22', '21', '20', '19', '18', '17', '16'];
           let dateClicked = false;
           
-          for (const dayCell of secondDayCells) {
-            try {
-              const dayText = await dayCell.textContent();
-              if (dayText && dayText.trim() && !isNaN(parseInt(dayText.trim())) && parseInt(dayText.trim()) > 0) {
+          for (const day of reversedDays) {
+            const dayCell = page.locator('[role="grid"]').first().locator('[role="gridcell"]').filter({ hasText: new RegExp(`^${day}$`) }).first();
+            if (await dayCell.count() > 0) {
+              try {
                 await dayCell.click({ timeout: 5000 });
                 dateClicked = true;
                 break;
+              } catch (error) {
+                continue;
               }
-            } catch (error) {
-              continue;
             }
           }
           
@@ -238,20 +229,18 @@ test.describe("Manage Booking Questions", () => {
 
           await dateFieldLocator.locator('[data-testid="pick-date"]').click();
           
-          const bookingAllDayCells = page.locator('[role="grid"]').first().locator('[role="gridcell"]');
-          const bookingDayCells = await bookingAllDayCells.all();
           let bookingDateClicked = false;
           
-          for (const dayCell of bookingDayCells) {
-            try {
-              const dayText = await dayCell.textContent();
-              if (dayText && dayText.trim() && !isNaN(parseInt(dayText.trim())) && parseInt(dayText.trim()) > 0) {
+          for (const day of availableDays) {
+            const dayCell = page.locator('[role="grid"]').first().locator('[role="gridcell"]').filter({ hasText: new RegExp(`^${day}$`) }).first();
+            if (await dayCell.count() > 0) {
+              try {
                 await dayCell.click({ timeout: 5000 });
                 bookingDateClicked = true;
                 break;
+              } catch (error) {
+                continue;
               }
-            } catch (error) {
-              continue;
             }
           }
           
@@ -1014,15 +1003,12 @@ async function openBookingFormInPreviewTab(context: PlaywrightTestArgs["context"
   await page.locator('[data-testid="preview-button"]').click();
   const previewTabPage = await previewTabPromise;
   await previewTabPage.waitForLoadState();
-  await previewTabPage.waitForURL((url) => {
-    return url.searchParams.get("overlayCalendar") === "true";
-  });
   await selectFirstAvailableTimeSlotNextMonth(previewTabPage);
   return previewTabPage;
 }
 
 async function saveEventType(page: Page) {
-  await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
+  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/heavy/update?batch=1", {
     action: () => page.locator("[data-testid=update-eventtype]").click(),
   });
 }
