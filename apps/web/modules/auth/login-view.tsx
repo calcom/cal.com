@@ -13,7 +13,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import { WEBSITE_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -89,7 +89,7 @@ export default function Login({
 
   // If not absolute URL, make it absolute
   if (!/^https?:\/\//.test(callbackUrl)) {
-    callbackUrl = `${WEBSITE_URL}/${callbackUrl}`;
+    callbackUrl = `${WEBAPP_URL}/${callbackUrl}`;
   }
 
   const safeCallbackUrl = getSafeRedirectUrl(callbackUrl);
@@ -270,7 +270,7 @@ export default function Login({
               <p className="text-subtle text-sm">
                 {t("dont_have_an_account")}{" "}
                 <Link
-                  href={`${WEBSITE_URL}/signup`}
+                  href={`${WEBAPP_URL}/signup`}
                   className="text-active dark:text-default font-medium hover:underline">
                   {t("sign_up")}
                 </Link>
