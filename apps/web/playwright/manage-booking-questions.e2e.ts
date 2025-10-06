@@ -182,14 +182,48 @@ test.describe("Manage Booking Questions", () => {
           const datePickerButton = dateFieldLocator.locator('[data-testid="pick-date"]');
 
           await datePickerButton.click();
-          await page.locator('[role="gridcell"]').filter({ hasText: /^15$/ }).first().click();
+
+          const availableDays = ['15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25'];
+          let initialDateClicked = false;
+          
+          for (const day of availableDays) {
+            const dayCell = page.locator('[role="gridcell"]').filter({ hasText: new RegExp(`^${day}$`) }).first();
+            if (await dayCell.count() > 0) {
+              try {
+                await dayCell.click({ timeout: 5000 });
+                initialDateClicked = true;
+                break;
+              } catch (error) {
+                continue;
+              }
+            }
+          }
+          
+          expect(initialDateClicked).toBe(true);
 
           await expect(datePickerButton).not.toContainText("Pick a date");
           const buttonText = await datePickerButton.textContent();
           expect(buttonText).toMatch(/^[A-Z][a-z]{2} \d{1,2}, \d{4}$/); // e.g., "Dec 15, 2024"
 
           await datePickerButton.click();
-          await page.locator('[role="gridcell"]').filter({ hasText: /^20$/ }).first().click();
+          
+          const availableDays = ['25', '24', '23', '22', '21', '20', '19', '18', '17', '16'];
+          let dateClicked = false;
+          
+          for (const day of availableDays) {
+            const dayCell = page.locator('[role="gridcell"]').filter({ hasText: new RegExp(`^${day}$`) }).first();
+            if (await dayCell.count() > 0) {
+              try {
+                await dayCell.click({ timeout: 5000 });
+                dateClicked = true;
+                break;
+              } catch (error) {
+                continue;
+              }
+            }
+          }
+          
+          expect(dateClicked).toBe(true);
 
           const newButtonText = await datePickerButton.textContent();
           expect(newButtonText).not.toBe(buttonText);
@@ -202,7 +236,24 @@ test.describe("Manage Booking Questions", () => {
           const dateFieldLocator = page.locator('[data-fob-field-name="appointment-date"]');
 
           await dateFieldLocator.locator('[data-testid="pick-date"]').click();
-          await page.locator('[role="gridcell"]').filter({ hasText: /^15$/ }).first().click();
+          
+          const availableDays = ['15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25'];
+          let bookingDateClicked = false;
+          
+          for (const day of availableDays) {
+            const dayCell = page.locator('[role="gridcell"]').filter({ hasText: new RegExp(`^${day}$`) }).first();
+            if (await dayCell.count() > 0) {
+              try {
+                await dayCell.click({ timeout: 5000 });
+                bookingDateClicked = true;
+                break;
+              } catch (error) {
+                continue;
+              }
+            }
+          }
+          
+          expect(bookingDateClicked).toBe(true);
           
           await bookTimeSlot({ page, name: "Booker", email: "booker@example.com" });
           await expect(page.locator("[data-testid=success-page]")).toBeVisible();
@@ -238,8 +289,19 @@ test.describe("Manage Booking Questions", () => {
       });
 
       await test.step("Test date field prefill functionality", async () => {
+        const futureDate = new Date();
+        futureDate.setMonth(futureDate.getMonth() + 2);
+        futureDate.setDate(15);
+        
+        const prefillDate = futureDate.toISOString().split('T')[0];
+        const expectedDisplayDate = futureDate.toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric', 
+          year: 'numeric' 
+        });
+        
         const searchParams = new URLSearchParams();
-        searchParams.append("appointment-date", "2024-12-25");
+        searchParams.append("appointment-date", prefillDate);
         
         await doOnFreshPreviewWithSearchParams(searchParams, page, context, async (page) => {
           await selectFirstAvailableTimeSlotNextMonth(page);
@@ -248,7 +310,7 @@ test.describe("Manage Booking Questions", () => {
           const datePickerButton = dateFieldLocator.locator('[data-testid="pick-date"]');
           
           // Verify field is prefilled with provided date in display format
-          await expect(datePickerButton).toContainText("Dec 25, 2024");
+          await expect(datePickerButton).toContainText(expectedDisplayDate);
           await expect(datePickerButton).not.toContainText("Pick a date");
         });
       });
