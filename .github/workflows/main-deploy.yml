@@ -263,7 +263,8 @@ jobs:
             ${{ steps.login-ecr.outputs.registry }}/${{ steps.key_values.outputs.REPO_NAME }}:latest
           build-args: |
             CALENDSO_ENCRYPTION_KEY=${{ secrets.CALENDSO_ENCRYPTION_KEY }}
-            NEXT_PUBLIC_WEBAPP_URL=${{ format('https://app.{0}', steps.key_values.outputs.DOMAIN_NAME) }}
+            # NEXT_PUBLIC_WEBAPP_URL=${{ format('https://app.{0}', steps.key_values.outputs.DOMAIN_NAME) }}
+            NEXT_PUBLIC_WEBAPP_URL=${{ format('https://{0}', steps.key_values.outputs.DOMAIN_NAME) }}
             NEXT_PUBLIC_WEBSITE_URL=${{ format('https://{0}', steps.key_values.outputs.DOMAIN_NAME) }}
             NEXT_PUBLIC_API_V2_URL=${{ secrets.NEXT_PUBLIC_API_V2_URL }}
             NEXT_PUBLIC_EMBED_LIB_URL=${{ format('https://{0}/embed/embed.js', steps.key_values.outputs.DOMAIN_NAME) }}
