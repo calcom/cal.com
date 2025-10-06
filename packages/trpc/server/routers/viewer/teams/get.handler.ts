@@ -1,5 +1,7 @@
 import { getTeamWithoutMembers } from "@calcom/features/ee/teams/lib/queries";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { UserRepository } from "@calcom/lib/server/repository/user";
+import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -20,10 +22,18 @@ export const get = async ({ ctx, input }: GetDataOptions) => {
   });
 
   if (!teamMembership) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You are not a member of this team.",
+    const userRepo = new UserRepository(prisma);
+    const isAdminOfParentOrg = await userRepo.isAdminOfTeamOrParentOrg({
+      userId: ctx.user.id,
+      teamId: input.teamId,
     });
+
+    if (!isAdminOfParentOrg) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "You are not a member of this team.",
+      });
+    }
   }
 
   const team = await getTeamWithoutMembers({
@@ -39,10 +49,15 @@ export const get = async ({ ctx, input }: GetDataOptions) => {
     });
   }
 
-  const membership = {
-    role: teamMembership.role,
-    accepted: teamMembership.accepted,
-  };
+  const membership = teamMembership
+    ? {
+        role: teamMembership.role,
+        accepted: teamMembership.accepted,
+      }
+    : {
+        role: "ADMIN" as const,
+        accepted: true,
+      };
   return { ...team, membership };
 };
 
