@@ -121,30 +121,4 @@ export class TeamsRepository {
       },
     });
   }
-
-  async getTeamMemberEmails(teamId: number) {
-    return this.dbRead.prisma.user.findMany({
-      where: {
-        teams: {
-          some: {
-            teamId,
-          },
-        },
-      },
-      select: {
-        id: true,
-        email: true,
-        secondaryEmails: {
-          where: {
-            emailVerified: {
-              not: null,
-            },
-          },
-          select: {
-            email: true,
-          },
-        },
-      },
-    });
-  }
 }
