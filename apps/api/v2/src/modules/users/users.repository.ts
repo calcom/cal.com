@@ -297,11 +297,12 @@ export class UsersRepository {
   async setDefaultConferencingApp(userId: number, appSlug?: string, appLink?: string, credentialId?: number) {
     const user = await this.findById(userId);
 
-    const metadata = userMetadata.parse(user?.metadata);
-
     if (!user) {
       throw new NotFoundException("user not found");
     }
+
+    const metadata = userMetadata.parse(user?.metadata);
+
 
     return await this.dbWrite.prisma.user.update({
       data: {
