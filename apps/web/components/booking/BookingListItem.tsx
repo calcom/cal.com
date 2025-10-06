@@ -604,7 +604,7 @@ export default function BookingListItem(booking: BookingItemProps) {
                       <span className={isCancelled ? "line-through" : ""}>{booking.eventType?.title}</span>
                       <span className="align-center text-subtle text-xs font-medium">with</span>
                       <span className="align-center !decoration-none text-default text-sm font-medium">
-                        {attendeeList[0].name}
+                        {attendeeList[0]?.name}
                       </span>
                       {attendeeList.length > 1 && (
                         <span className="align-center text-default text-sm font-medium">

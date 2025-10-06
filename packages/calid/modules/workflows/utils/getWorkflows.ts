@@ -222,6 +222,8 @@ export async function getAllUnscheduledReminders(): Promise<PartialCalIdWorkflow
 export const workflowSelect = {
   id: true,
   trigger: true,
+  calIdTeamId: true,
+  calIdTeam: { select: { id: true, name: true, slug: true, logoUrl: true, members: true } },
   time: true,
   timeUnit: true,
   userId: true,

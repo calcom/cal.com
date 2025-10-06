@@ -147,14 +147,14 @@ async function handler(input: CancelBookingInput) {
 
   const teamId = await getTeamIdFromEventType({
     eventType: {
-      team: { id: bookingToDelete.eventType?.team?.id ?? null },
+      calIdTeam: { id: bookingToDelete.eventType?.calIdTeam?.id ?? null },
       parentId: bookingToDelete?.eventType?.parentId ?? null,
     },
   });
   const triggerForUser = !teamId || (teamId && bookingToDelete.eventType?.parentId);
   const organizerUserId = triggerForUser ? bookingToDelete.userId : null;
 
-  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUserId, teamId });
+  const orgId = null; // await getOrgIdFromMemberOrTeamId({ memberId: organizerUserId, teamId });
 
   const subscriberOptions: GetSubscriberOptions = {
     userId: organizerUserId,
@@ -236,7 +236,8 @@ async function handler(input: CancelBookingInput) {
   });
 
   const bookerUrl = await getBookerBaseUrl(
-    bookingToDelete.eventType?.team?.parentId ?? ownerProfile?.organizationId ?? null
+    // bookingToDelete.eventType?.team?.parentId ?? ownerProfile?.organizationId ?? null
+    null
   );
 
   const evt: CalendarEvent = {
@@ -334,6 +335,7 @@ async function handler(input: CancelBookingInput) {
   await Promise.all(promises);
 
   const workflows = await getAllWorkflowsFromEventType(bookingToDelete.eventType, bookingToDelete.userId);
+
   const parsedMetadata = bookingMetadataSchema.safeParse(bookingToDelete.metadata || {});
 
   await sendCancelledReminders({
@@ -466,7 +468,7 @@ async function handler(input: CancelBookingInput) {
   if (bookingToDelete.location === DailyLocationType) {
     bookingToDelete.user.credentials.push({
       ...FAKE_DAILY_CREDENTIAL,
-      teamId: bookingToDelete.eventType?.team?.id || null,
+      teamId: bookingToDelete.eventType?.calIdTeam?.id || null,
     });
   }
 
