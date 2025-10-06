@@ -220,6 +220,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       email: booking?.userPrimaryEmail || booking.user?.email || "Email-less",
       name: booking.user?.name || "Nameless",
       username: booking.user?.username || undefined,
+      usernameInOrg: organizerOrganizationProfile?.username || undefined,
       timeZone: booking.user?.timeZone || "Europe/London",
       timeFormat: getTimeFormatStringFromUserTimeFormat(booking.user?.timeFormat),
       language: { translate: tOrganizer, locale: booking.user?.locale ?? "en" },
