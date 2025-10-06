@@ -1,8 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { hashPassword } from "@calcom/lib/auth/hashPassword";
+import { isUsernameReservedDueToMigration } from "@calcom/lib/server/username";
+import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/lib/validateUsername";
 import prisma from "@calcom/prisma";
+
+import selfHostedHandler from "./selfHostedHandler";
 
 // Mock dependencies
 vi.mock("@calcom/prisma", () => ({
@@ -22,112 +27,209 @@ vi.mock("@calcom/prisma", () => ({
 }));
 
 vi.mock("@calcom/features/flags/features.repository");
-vi.mock("@calcom/features/auth/lib/verifyEmail", () => ({
-  sendEmailVerification: vi.fn(),
-}));
-vi.mock("@calcom/lib/auth/hashPassword", () => ({
-  hashPassword: vi.fn().mockResolvedValue("hashedPassword123"),
-}));
-vi.mock("@calcom/lib/validateUsername", () => ({
-  validateAndGetCorrectedUsernameAndEmail: vi.fn().mockResolvedValue({
-    isValid: true,
-    username: "testuser",
-  }),
-}));
-vi.mock("@calcom/lib/server/username", () => ({
-  isUsernameReservedDueToMigration: vi.fn().mockResolvedValue(false),
-}));
+vi.mock("@calcom/features/auth/lib/verifyEmail");
+vi.mock("@calcom/lib/auth/hashPassword");
+vi.mock("@calcom/lib/validateUsername");
+vi.mock("@calcom/lib/server/username");
 vi.mock("@calcom/features/auth/signup/utils/prefillAvatar", () => ({
   prefillAvatar: vi.fn(),
 }));
+vi.mock("@calcom/features/auth/signup/utils/createOrUpdateMemberships", () => ({
+  createOrUpdateMemberships: vi.fn().mockResolvedValue({ membership: {} }),
+}));
 
 describe("selfHostedHandler - email verification flag", () => {
-  const mockFeaturesRepository = FeaturesRepository as MockedFunction<typeof FeaturesRepository>;
+  const mockRequestBody = {
+    email: "test@example.com",
+    password: "Password123!",
+    username: "testuser",
+    language: "en",
+  };
 
   beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(hashPassword).mockResolvedValue("hashedPassword123");
+    vi.mocked(validateAndGetCorrectedUsernameAndEmail).mockResolvedValue({
+      isValid: true,
+      username: "testuser",
+    });
+    vi.mocked(isUsernameReservedDueToMigration).mockResolvedValue(false);
+  });
+
+  afterEach(() => {
     vi.clearAllMocks();
   });
 
   describe("when email-verification flag is enabled", () => {
     beforeEach(() => {
-      mockFeaturesRepository.prototype.checkIfFeatureIsEnabledGlobally = vi
-        .fn()
-        .mockResolvedValue(true);
+      vi.mocked(FeaturesRepository.prototype.checkIfFeatureIsEnabledGlobally).mockResolvedValue(true);
     });
 
     it("should set emailVerified to null for new user signup", async () => {
       const mockUpsert = vi.fn().mockResolvedValue({
         id: 1,
-        email: "test@example.com",
-        username: "testuser",
+        email: mockRequestBody.email.toLowerCase(),
+        username: mockRequestBody.username,
         emailVerified: null,
       });
-      (prisma.user.upsert as any) = mockUpsert;
+      vi.mocked(prisma.user.upsert).mockImplementation(mockUpsert);
 
-      expect(mockFeaturesRepository.prototype.checkIfFeatureIsEnabledGlobally).toBeDefined();
+      await selfHostedHandler(mockRequestBody);
+
+      expect(mockUpsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          update: expect.objectContaining({
+            emailVerified: null,
+          }),
+          create: expect.objectContaining({
+            emailVerified: null,
+          }),
+        })
+      );
     });
 
     it("should send verification email when flag is enabled", async () => {
-      const mockSendEmail = vi.mocked(sendEmailVerification);
+      const mockUpsert = vi.fn().mockResolvedValue({
+        id: 1,
+        email: mockRequestBody.email.toLowerCase(),
+        username: mockRequestBody.username,
+      });
+      vi.mocked(prisma.user.upsert).mockImplementation(mockUpsert);
 
-      // Verify that sendEmailVerification should be called when flag is enabled
-      // This would be tested in the full handler invocation
-      expect(mockSendEmail).toBeDefined();
+      await selfHostedHandler(mockRequestBody);
 
-      // Note: In a complete test, after calling the handler with flag enabled,
-      // we would verify: expect(mockSendEmail).toHaveBeenCalledWith({ email, username, language })
+      expect(sendEmailVerification).toHaveBeenCalledWith({
+        email: mockRequestBody.email.toLowerCase(),
+        username: mockRequestBody.username,
+        language: mockRequestBody.language,
+      });
     });
   });
 
   describe("when email-verification flag is disabled", () => {
     beforeEach(() => {
-      mockFeaturesRepository.prototype.checkIfFeatureIsEnabledGlobally = vi
-        .fn()
-        .mockResolvedValue(false);
+      vi.mocked(FeaturesRepository.prototype.checkIfFeatureIsEnabledGlobally).mockResolvedValue(false);
     });
 
     it("should set emailVerified to current date for new user signup", async () => {
-      const mockUpsert = vi.fn((data) => {
-        // Verify that emailVerified is a Date object (not null) in both create and update
-        if (data.create) {
-          expect(data.create.emailVerified).toBeInstanceOf(Date);
-          expect(data.create.emailVerified).not.toBeNull();
-        }
-        if (data.update) {
-          expect(data.update.emailVerified).toBeInstanceOf(Date);
-          expect(data.update.emailVerified).not.toBeNull();
-        }
-        return Promise.resolve({
-          id: 1,
-          email: "test@example.com",
-          username: "testuser",
-          emailVerified: new Date(),
-        });
+      const mockUpsert = vi.fn().mockResolvedValue({
+        id: 1,
+        email: mockRequestBody.email.toLowerCase(),
+        username: mockRequestBody.username,
+        emailVerified: new Date(),
       });
-      (prisma.user.upsert as any) = mockUpsert;
+      vi.mocked(prisma.user.upsert).mockImplementation(mockUpsert);
 
-      // The test verifies the mock was set up correctly
-      // In a full integration test, we would call the handler here
-      expect(mockFeaturesRepository.prototype.checkIfFeatureIsEnabledGlobally).toBeDefined();
+      await selfHostedHandler(mockRequestBody);
+
+      expect(mockUpsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          update: expect.objectContaining({
+            emailVerified: expect.any(Date),
+          }),
+          create: expect.objectContaining({
+            emailVerified: expect.any(Date),
+          }),
+        })
+      );
+
+      // Verify it's actually a Date and not null
+      const callArgs = mockUpsert.mock.calls[0][0];
+      expect(callArgs.update.emailVerified).toBeInstanceOf(Date);
+      expect(callArgs.update.emailVerified).not.toBeNull();
+      expect(callArgs.create.emailVerified).toBeInstanceOf(Date);
+      expect(callArgs.create.emailVerified).not.toBeNull();
     });
 
     it("should not send verification email when flag is disabled", async () => {
-      const mockSendEmail = vi.mocked(sendEmailVerification);
+      const mockUpsert = vi.fn().mockResolvedValue({
+        id: 1,
+        email: mockRequestBody.email.toLowerCase(),
+        username: mockRequestBody.username,
+        emailVerified: new Date(),
+      });
+      vi.mocked(prisma.user.upsert).mockImplementation(mockUpsert);
 
-      // Verify that sendEmailVerification should NOT be called when flag is disabled
-      expect(mockSendEmail).toBeDefined();
+      await selfHostedHandler(mockRequestBody);
 
-      // Note: In a complete test, after calling the handler with flag disabled,
-      // we would verify: expect(mockSendEmail).not.toHaveBeenCalled()
+      expect(sendEmailVerification).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("team invite flow with token", () => {
+    const mockToken = "test-token-123";
+    const mockTeamId = 1;
+
+    beforeEach(() => {
+      vi.mocked(prisma.verificationToken.findFirst).mockResolvedValue({
+        id: 1,
+        identifier: mockRequestBody.email,
+        token: mockToken,
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        teamId: mockTeamId,
+      });
+      vi.mocked(prisma.team.findUnique).mockResolvedValue({
+        id: mockTeamId,
+        name: "Test Team",
+        slug: "test-team",
+        parentId: null,
+        organizationSettings: null,
+        parent: null,
+        isOrganization: false,
+      } as any);
+    });
+
+    it("should set emailVerified to null when flag is enabled", async () => {
+      vi.mocked(FeaturesRepository.prototype.checkIfFeatureIsEnabledGlobally).mockResolvedValue(true);
+      const mockUpsert = vi.fn().mockResolvedValue({
+        id: 1,
+        email: mockRequestBody.email.toLowerCase(),
+        username: mockRequestBody.username,
+        emailVerified: null,
+      });
+      vi.mocked(prisma.user.upsert).mockImplementation(mockUpsert);
+
+      await selfHostedHandler({ ...mockRequestBody, token: mockToken });
+
+      expect(mockUpsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          update: expect.objectContaining({
+            emailVerified: null,
+          }),
+          create: expect.objectContaining({
+            emailVerified: null,
+          }),
+        })
+      );
+    });
+
+    it("should set emailVerified to date when flag is disabled", async () => {
+      vi.mocked(FeaturesRepository.prototype.checkIfFeatureIsEnabledGlobally).mockResolvedValue(false);
+      const mockUpsert = vi.fn().mockResolvedValue({
+        id: 1,
+        email: mockRequestBody.email.toLowerCase(),
+        username: mockRequestBody.username,
+        emailVerified: new Date(),
+      });
+      vi.mocked(prisma.user.upsert).mockImplementation(mockUpsert);
+
+      await selfHostedHandler({ ...mockRequestBody, token: mockToken });
+
+      expect(mockUpsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          update: expect.objectContaining({
+            emailVerified: expect.any(Date),
+          }),
+          create: expect.objectContaining({
+            emailVerified: expect.any(Date),
+          }),
+        })
+      );
+
+      // Verify both paths have Date objects
+      const callArgs = mockUpsert.mock.calls[0][0];
+      expect(callArgs.update.emailVerified).toBeInstanceOf(Date);
+      expect(callArgs.create.emailVerified).toBeInstanceOf(Date);
     });
   });
 });
-
-/**
- * Note: These tests are scaffolded to demonstrate the testing strategy.
- * For full integration tests, you would:
- * 1. Import the actual handler
- * 2. Call it with test data
- * 3. Verify the prisma.user.upsert was called with correct emailVerified value
- * 4. Verify sendEmailVerification was called (or not) based on flag state
- */
