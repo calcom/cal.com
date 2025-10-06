@@ -83,7 +83,7 @@ export default function Login({
 
   const telemetry = useTelemetry();
 
-  let callbackUrl = searchParams?.get("callbackUrl") || "";
+  let callbackUrl = searchParams?.get("callbackUrl") || "/event-types";
 
   if (/"\//.test(callbackUrl)) callbackUrl = callbackUrl.substring(1);
 
@@ -144,6 +144,7 @@ export default function Login({
     const res = await signIn<"credentials">("credentials", {
       ...values,
       callbackUrl,
+      redirect: false,
     });
     if (!res) setErrorMessage(errorMessages[ErrorCode.InternalServerError]);
     // we're logged in! let's do a hard refresh to the desired url
