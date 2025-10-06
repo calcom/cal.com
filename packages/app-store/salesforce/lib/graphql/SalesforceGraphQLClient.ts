@@ -68,8 +68,6 @@ export class SalesforceGraphQLClient {
       emailDomain: `%@${emailDomain}`,
     });
 
-    console.log(query);
-
     const queryData = query?.data;
 
     if (query?.error) {
