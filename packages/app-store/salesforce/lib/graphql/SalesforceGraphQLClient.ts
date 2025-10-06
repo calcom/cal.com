@@ -10,14 +10,6 @@ import getAllPossibleWebsiteValuesFromEmailDomain from "../utils/getAllPossibleW
 import getDominantAccountId from "../utils/getDominantAccountId";
 import { GetAccountRecordsForRRSkip } from "./documents/queries";
 
-const retryOptions = {
-  maxRetries: 3,
-  initialDelayMs: Number(process.env.SALESFORCE_GRAPHQL_DELAY_MS) || 500,
-  maxDelayMs: Number(process.env.SALESFORCE_GRAPHQL_MAX_DELAY_MS) || 2000,
-  randomDelay: true,
-  maxNumberAttempts: Number(process.env.SALESFORCE_GRAPHQL_MAX_RETRIES) || 3,
-};
-
 export class SalesforceGraphQLClient {
   private log: typeof logger;
   private version = "v63.0";
@@ -26,9 +18,27 @@ export class SalesforceGraphQLClient {
 
   constructor({ accessToken, instanceUrl }: { accessToken: string; instanceUrl: string }) {
     this.accessToken = accessToken;
+
+    const exchanges = [cacheExchange, fetchExchange];
+
+    if (
+      process.env.SALESFORCE_GRAPHQL_DELAY_MS &&
+      process.env.SALESFORCE_GRAPHQL_MAX_DELAY_MS &&
+      process.env.SALESFORCE_GRAPHQL_MAX_RETRIES
+    ) {
+      const retryOptions = {
+        maxRetries: 3,
+        initialDelayMs: Number(process.env.SALESFORCE_GRAPHQL_DELAY_MS),
+        maxDelayMs: Number(process.env.SALESFORCE_GRAPHQL_MAX_DELAY_MS),
+        randomDelay: true,
+        maxNumberAttempts: Number(process.env.SALESFORCE_GRAPHQL_MAX_RETRIES),
+      };
+      exchanges.push(retryExchange(retryOptions));
+    }
+
     this.client = new Client({
       url: `${instanceUrl}/services/data/${this.version}/graphql`,
-      exchanges: [cacheExchange, fetchExchange, retryExchange(retryOptions)],
+      exchanges,
       fetchOptions: () => {
         return {
           headers: { authorization: `Bearer ${this.accessToken}` },
