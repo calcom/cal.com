@@ -111,6 +111,8 @@ test.describe("Manage Booking Questions", () => {
 
       const webhookReceiver = await addWebhook(user);
 
+      const availableDays = ['15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25'];
+
       await test.step("Go to EventType Advanced Page ", async () => {
         const $eventTypes = page.locator("[data-testid=event-types] > li a");
         const firstEventTypeElement = $eventTypes.first();
@@ -183,11 +185,10 @@ test.describe("Manage Booking Questions", () => {
 
           await datePickerButton.click();
 
-          const availableDays = ['15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25'];
           let initialDateClicked = false;
           
           for (const day of availableDays) {
-            const dayCell = page.locator('[role="gridcell"]').filter({ hasText: new RegExp(`^${day}$`) }).first();
+            const dayCell = page.locator('[role="grid"]').first().locator('[role="gridcell"]').filter({ hasText: new RegExp(`^${day}$`) }).first();
             if (await dayCell.count() > 0) {
               try {
                 await dayCell.click({ timeout: 5000 });
@@ -207,11 +208,11 @@ test.describe("Manage Booking Questions", () => {
 
           await datePickerButton.click();
           
-          const availableDays = ['25', '24', '23', '22', '21', '20', '19', '18', '17', '16'];
+          const reversedDays = ['25', '24', '23', '22', '21', '20', '19', '18', '17', '16'];
           let dateClicked = false;
           
-          for (const day of availableDays) {
-            const dayCell = page.locator('[role="gridcell"]').filter({ hasText: new RegExp(`^${day}$`) }).first();
+          for (const day of reversedDays) {
+            const dayCell = page.locator('[role="grid"]').first().locator('[role="gridcell"]').filter({ hasText: new RegExp(`^${day}$`) }).first();
             if (await dayCell.count() > 0) {
               try {
                 await dayCell.click({ timeout: 5000 });
@@ -237,11 +238,10 @@ test.describe("Manage Booking Questions", () => {
 
           await dateFieldLocator.locator('[data-testid="pick-date"]').click();
           
-          const availableDays = ['15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25'];
           let bookingDateClicked = false;
           
           for (const day of availableDays) {
-            const dayCell = page.locator('[role="gridcell"]').filter({ hasText: new RegExp(`^${day}$`) }).first();
+            const dayCell = page.locator('[role="grid"]').first().locator('[role="gridcell"]').filter({ hasText: new RegExp(`^${day}$`) }).first();
             if (await dayCell.count() > 0) {
               try {
                 await dayCell.click({ timeout: 5000 });
