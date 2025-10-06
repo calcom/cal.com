@@ -1,7 +1,6 @@
 import { describe, it, vi, expect } from "vitest";
 
-import { isTeamAdmin } from "@calcom/features/ee/teams/lib/queries";
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -25,12 +24,6 @@ vi.mock("@calcom/prisma", () => {
   };
 });
 
-vi.mock("@calcom/features/ee/teams/lib/queries", () => {
-  return {
-    isTeamAdmin: vi.fn(),
-  };
-});
-
 vi.mock("@calcom/lib/server/queries/organisations", () => {
   return {
     isOrganisationAdmin: vi.fn(),
@@ -38,42 +31,11 @@ vi.mock("@calcom/lib/server/queries/organisations", () => {
   };
 });
 
-const mockedReturnSuccessCheckPerms = {
-  accepted: true,
-  disableImpersonation: false,
-  id: 1,
-  role: MembershipRole.ADMIN,
-  userId: 1,
-  teamId: 1,
-  createdAt: null,
-  updatedAt: null,
-  customRoleId: null,
-  team: {
-    id: 1,
-    name: "Team A",
-    slug: null,
-    logo: null,
-    appLogo: null,
-    appIconLogo: null,
-    bio: null,
-    hideBranding: false,
-    hideBookATeamMember: false,
-    createdAt: new Date(),
-    brandColor: "#292929",
-    darkBrandColor: "#fafafa",
-    timeZone: "Europe/London",
-    weekStart: "Sunday",
-    theme: null,
-    timeFormat: null,
-    metadata: null,
-    parentId: null,
-    parent: null,
-    isPrivate: false,
-    logoUrl: "",
-    calVideoLogo: "",
-    isOrganization: false,
-  },
-};
+vi.mock("@calcom/features/pbac/services/permission-check.service", () => {
+  return {
+    PermissionCheckService: vi.fn(),
+  };
+});
 
 const mockedRegularTeam: TeamWithParent = {
   id: 1,
@@ -142,27 +104,45 @@ const userInTeamNotAccepted: UserWithMembership = {
 describe("Invite Member Utils", () => {
   describe("ensureAtleastAdminPermissions", () => {
     it("It should throw an error if the user is not an admin of the ORG", async () => {
-      vi.mocked(isOrganisationAdmin).mockResolvedValue(false);
+      const mockCheckPermission = vi.fn().mockResolvedValue(false);
+      vi.mocked(PermissionCheckService).mockImplementation(
+        () =>
+          ({
+            checkPermission: mockCheckPermission,
+          } as any)
+      );
+
       await expect(ensureAtleastAdminPermissions({ userId: 1, teamId: 1, isOrg: true })).rejects.toThrow(
         "UNAUTHORIZED"
       );
+
+      expect(mockCheckPermission).toHaveBeenCalledWith({
+        userId: 1,
+        teamId: 1,
+        permission: "organization.invite",
+        fallbackRoles: ["OWNER", "ADMIN"],
+      });
     });
 
     it("It should NOT throw an error if the user is an admin of the ORG", async () => {
-      vi.mocked(isOrganisationAdmin).mockResolvedValue(mockedReturnSuccessCheckPerms);
+      const mockCheckPermission = vi.fn().mockResolvedValue(true);
+      vi.mocked(PermissionCheckService).mockImplementation(
+        () =>
+          ({
+            checkPermission: mockCheckPermission,
+          } as any)
+      );
+
       await expect(
         ensureAtleastAdminPermissions({ userId: 1, teamId: 1, isOrg: true })
       ).resolves.not.toThrow();
-    });
 
-    it("It should throw an error if the user is not an admin of the team", async () => {
-      vi.mocked(isTeamAdmin).mockResolvedValue(false);
-      await expect(ensureAtleastAdminPermissions({ userId: 1, teamId: 1 })).rejects.toThrow("UNAUTHORIZED");
-    });
-
-    it("It should NOT throw an error if the user is an admin of a team", async () => {
-      vi.mocked(isTeamAdmin).mockResolvedValue(mockedReturnSuccessCheckPerms);
-      await expect(ensureAtleastAdminPermissions({ userId: 1, teamId: 1 })).resolves.not.toThrow();
+      expect(mockCheckPermission).toHaveBeenCalledWith({
+        userId: 1,
+        teamId: 1,
+        permission: "organization.invite",
+        fallbackRoles: ["OWNER", "ADMIN"],
+      });
     });
   });
 

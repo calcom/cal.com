@@ -466,7 +466,12 @@ const TeamProfileForm = ({ team, teamId }: TeamProfileFormProps) => {
         <p className="text-default mt-2 text-sm">{t("team_description")}</p>
       </div>
       <SectionBottomActions align="end">
-        <Button color="primary" type="submit" loading={mutation.isPending} disabled={isDisabled}>
+        <Button
+          color="primary"
+          type="submit"
+          loading={mutation.isPending}
+          disabled={isDisabled}
+          data-testid="update-team-profile">
           {t("update")}
         </Button>
         {IS_TEAM_BILLING_ENABLED &&
