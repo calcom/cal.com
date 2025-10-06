@@ -29,6 +29,7 @@ export type AppFlags = {
   "calendar-subscription-cache": boolean;
   "calendar-subscription-sync": boolean;
   "onboarding-v3": boolean;
+  "booker-botid": boolean;
 };
 
 export type TeamFeatures = Record<keyof AppFlags, boolean>;
