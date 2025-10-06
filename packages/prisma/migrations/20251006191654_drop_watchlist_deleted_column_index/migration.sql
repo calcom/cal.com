@@ -1,14 +1,14 @@
 -- DropIndex
-DROP INDEX "Watchlist_organizationId_isGlobal_idx";
+DROP INDEX IF EXISTS "Watchlist_organizationId_isGlobal_idx";
 
 -- DropIndex
-DROP INDEX "Watchlist_source_idx";
+DROP INDEX IF EXISTS "Watchlist_source_idx";
 
 -- DropIndex
-DROP INDEX "WatchlistAudit_id_key";
+DROP INDEX IF EXISTS "WatchlistAudit_id_key";
 
 -- DropIndex
-DROP INDEX "WatchlistEventAudit_eventTypeId_timestamp_idx";
+DROP INDEX IF EXISTS "WatchlistEventAudit_eventTypeId_timestamp_idx";
 
 -- DropIndex
-DROP INDEX "WatchlistEventAudit_watchlistId_timestamp_idx";
+DROP INDEX IF EXISTS "WatchlistEventAudit_watchlistId_timestamp_idx";
