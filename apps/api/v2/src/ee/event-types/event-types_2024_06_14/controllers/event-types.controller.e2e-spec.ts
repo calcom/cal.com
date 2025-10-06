@@ -447,6 +447,7 @@ describe("Event types Endpoints", () => {
             hidden: false,
             isDefault: false,
           });
+          await eventTypesRepositoryFixture.delete(createdEventType.id);
         });
     });
 
@@ -2728,6 +2729,8 @@ describe("Event types Endpoints", () => {
           const emailField = fetchedEventType.bookingFields.find(field => field.type === "email");
           expect(nameField).toBeDefined();
           expect(emailField).toBeDefined();
+
+          await eventTypesRepositoryFixture.delete(eventType.id);
         });
     });
 
@@ -3006,6 +3009,8 @@ describe("Event types Endpoints", () => {
               hidden: false,
               isDefault: false,
             });
+            
+            await eventTypesRepositoryFixture.delete(createdEventType.id);
           });
       });
 
