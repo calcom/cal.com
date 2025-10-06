@@ -10,21 +10,25 @@ import { IdentityProvider } from "@calcom/prisma/enums";
 import calcomHandler from "./calcomHandler";
 
 // Mock dependencies
-vi.mock("@calcom/prisma", () => ({
-  prisma: {
-    user: {
-      create: vi.fn(),
-      upsert: vi.fn(),
-      findFirst: vi.fn(),
-    },
-    verificationToken: {
-      findFirst: vi.fn(),
-      delete: vi.fn(),
-    },
-    team: {
-      findUnique: vi.fn(),
-    },
+const mockPrismaObj = {
+  user: {
+    create: vi.fn(),
+    upsert: vi.fn(),
+    findFirst: vi.fn(),
+    findUnique: vi.fn(),
   },
+  verificationToken: {
+    findFirst: vi.fn(),
+    delete: vi.fn(),
+  },
+  team: {
+    findUnique: vi.fn(),
+  },
+};
+
+vi.mock("@calcom/prisma", () => ({
+  prisma: mockPrismaObj,
+  default: mockPrismaObj,
 }));
 
 vi.mock("@calcom/features/flags/features.repository");
@@ -48,6 +52,17 @@ vi.mock("@calcom/lib/getLocaleFromRequest", () => ({
 }));
 vi.mock("@calcom/features/auth/signup/utils/prefillAvatar", () => ({
   prefillAvatar: vi.fn(),
+}));
+vi.mock("@calcom/features/auth/signup/utils/createOrUpdateMemberships", () => ({
+  createOrUpdateMemberships: vi.fn().mockResolvedValue({}),
+}));
+vi.mock("@calcom/features/auth/signup/utils/token", () => ({
+  findTokenByToken: vi.fn(),
+  throwIfTokenExpired: vi.fn(),
+  validateAndGetCorrectedUsernameForTeam: vi.fn().mockResolvedValue("testuser"),
+}));
+vi.mock("@calcom/features/auth/signup/utils/organization", () => ({
+  joinAnyChildTeamOnOrgInvite: vi.fn(),
 }));
 
 describe("calcomHandler - email verification flag", () => {
@@ -82,17 +97,16 @@ describe("calcomHandler - email verification flag", () => {
     });
 
     it("should set emailVerified to null for new user signup", async () => {
-      const mockCreate = vi.fn().mockResolvedValue({
+      vi.mocked(prisma.user.create).mockResolvedValue({
         id: 1,
         email: mockRequestBody.email,
         username: mockRequestBody.username,
         emailVerified: null,
-      });
-      vi.mocked(prisma.user.create).mockImplementation(mockCreate);
+      } as any);
 
       await calcomHandler(mockRequestBody, mockUsernameStatus);
 
-      expect(mockCreate).toHaveBeenCalledWith(
+      expect(prisma.user.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
             email: mockRequestBody.email.toLowerCase(),
@@ -104,12 +118,11 @@ describe("calcomHandler - email verification flag", () => {
     });
 
     it("should send verification email when flag is enabled", async () => {
-      const mockCreate = vi.fn().mockResolvedValue({
+      prisma.user.create.mockResolvedValue({
         id: 1,
         email: mockRequestBody.email,
         username: mockRequestBody.username,
-      });
-      vi.mocked(prisma.user.create).mockImplementation(mockCreate);
+      } as any);
 
       await calcomHandler(mockRequestBody, mockUsernameStatus);
 
@@ -128,17 +141,16 @@ describe("calcomHandler - email verification flag", () => {
     });
 
     it("should set emailVerified to current date for new user signup", async () => {
-      const mockCreate = vi.fn().mockResolvedValue({
+      prisma.user.create.mockResolvedValue({
         id: 1,
         email: mockRequestBody.email,
         username: mockRequestBody.username,
         emailVerified: new Date(),
-      });
-      vi.mocked(prisma.user.create).mockImplementation(mockCreate);
+      } as any);
 
       await calcomHandler(mockRequestBody, mockUsernameStatus);
 
-      expect(mockCreate).toHaveBeenCalledWith(
+      expect(prisma.user.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
             email: mockRequestBody.email.toLowerCase(),
@@ -149,19 +161,18 @@ describe("calcomHandler - email verification flag", () => {
       );
 
       // Verify it's actually a Date and not null
-      const callArgs = mockCreate.mock.calls[0][0];
+      const callArgs = prisma.user.create.mock.calls[0][0];
       expect(callArgs.data.emailVerified).toBeInstanceOf(Date);
       expect(callArgs.data.emailVerified).not.toBeNull();
     });
 
     it("should not send verification email when flag is disabled", async () => {
-      const mockCreate = vi.fn().mockResolvedValue({
+      prisma.user.create.mockResolvedValue({
         id: 1,
         email: mockRequestBody.email,
         username: mockRequestBody.username,
         emailVerified: new Date(),
-      });
-      vi.mocked(prisma.user.create).mockImplementation(mockCreate);
+      } as any);
 
       await calcomHandler(mockRequestBody, mockUsernameStatus);
 
@@ -174,14 +185,14 @@ describe("calcomHandler - email verification flag", () => {
     const mockTeamId = 1;
 
     beforeEach(() => {
-      vi.mocked(prisma.verificationToken.findFirst).mockResolvedValue({
+      prisma.verificationToken.findFirst.mockResolvedValue({
         id: 1,
         identifier: mockRequestBody.email,
         token: mockToken,
         expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         teamId: mockTeamId,
-      });
-      vi.mocked(prisma.team.findUnique).mockResolvedValue({
+      } as any);
+      prisma.team.findUnique.mockResolvedValue({
         id: mockTeamId,
         name: "Test Team",
         slug: "test-team",
@@ -193,17 +204,16 @@ describe("calcomHandler - email verification flag", () => {
 
     it("should set emailVerified to null when flag is enabled", async () => {
       vi.mocked(FeaturesRepository.prototype.checkIfFeatureIsEnabledGlobally).mockResolvedValue(true);
-      const mockUpsert = vi.fn().mockResolvedValue({
+      prisma.user.upsert.mockResolvedValue({
         id: 1,
         email: mockRequestBody.email,
         username: mockRequestBody.username,
         emailVerified: null,
-      });
-      vi.mocked(prisma.user.upsert).mockImplementation(mockUpsert);
+      } as any);
 
       await calcomHandler({ ...mockRequestBody, token: mockToken }, mockUsernameStatus);
 
-      expect(mockUpsert).toHaveBeenCalledWith(
+      expect(prisma.user.upsert).toHaveBeenCalledWith(
         expect.objectContaining({
           update: expect.objectContaining({
             emailVerified: null,
@@ -217,17 +227,16 @@ describe("calcomHandler - email verification flag", () => {
 
     it("should set emailVerified to date when flag is disabled", async () => {
       vi.mocked(FeaturesRepository.prototype.checkIfFeatureIsEnabledGlobally).mockResolvedValue(false);
-      const mockUpsert = vi.fn().mockResolvedValue({
+      prisma.user.upsert.mockResolvedValue({
         id: 1,
         email: mockRequestBody.email,
         username: mockRequestBody.username,
         emailVerified: new Date(),
-      });
-      vi.mocked(prisma.user.upsert).mockImplementation(mockUpsert);
+      } as any);
 
       await calcomHandler({ ...mockRequestBody, token: mockToken }, mockUsernameStatus);
 
-      expect(mockUpsert).toHaveBeenCalledWith(
+      expect(prisma.user.upsert).toHaveBeenCalledWith(
         expect.objectContaining({
           update: expect.objectContaining({
             emailVerified: expect.any(Date),
