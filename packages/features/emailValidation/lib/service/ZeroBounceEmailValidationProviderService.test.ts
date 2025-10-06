@@ -39,7 +39,7 @@ describe("ZeroBounceEmailValidationProviderService", () => {
 
       mockFetch.mockResolvedValue(mockResponse);
 
-      const result = await service.validateEmail({ email: "test@example.com" });
+      const result = await service.validateEmail({ request: { email: "test@example.com" } });
 
       expect(result).toEqual({
         status: "valid",
@@ -52,9 +52,9 @@ describe("ZeroBounceEmailValidationProviderService", () => {
       delete process.env.ZEROBOUNCE_API_KEY;
       const serviceWithoutKey = new ZeroBounceEmailValidationProviderService();
 
-      await expect(serviceWithoutKey.validateEmail({ email: "test@example.com" })).rejects.toThrow(
-        "ZeroBounce API key not configured"
-      );
+      await expect(
+        serviceWithoutKey.validateEmail({ request: { email: "test@example.com" } })
+      ).rejects.toThrow("ZeroBounce API key not configured");
 
       expect(mockFetch).not.toHaveBeenCalled();
     });
@@ -62,7 +62,9 @@ describe("ZeroBounceEmailValidationProviderService", () => {
     it("should propagate error when ZeroBounce API is unreachable or returns network error", async () => {
       mockFetch.mockRejectedValue(new Error("Network error"));
 
-      await expect(service.validateEmail({ email: "test@example.com" })).rejects.toThrow("Network error");
+      await expect(service.validateEmail({ request: { email: "test@example.com" } })).rejects.toThrow(
+        "Network error"
+      );
     });
 
     it("should reject validation request when ZeroBounce API returns server error", async () => {
@@ -74,7 +76,7 @@ describe("ZeroBounceEmailValidationProviderService", () => {
 
       mockFetch.mockResolvedValue(mockResponse);
 
-      await expect(service.validateEmail({ email: "test@example.com" })).rejects.toThrow(
+      await expect(service.validateEmail({ request: { email: "test@example.com" } })).rejects.toThrow(
         "ZeroBounce API returned 500: Internal Server Error"
       );
     });
@@ -92,8 +94,10 @@ describe("ZeroBounceEmailValidationProviderService", () => {
       mockFetch.mockResolvedValue(mockResponse);
 
       await service.validateEmail({
-        email: "test@example.com",
-        ipAddress: "192.168.1.1",
+        request: {
+          email: "test@example.com",
+          ipAddress: "192.168.1.1",
+        },
       });
 
       expect(mockFetch).toHaveBeenCalledWith(

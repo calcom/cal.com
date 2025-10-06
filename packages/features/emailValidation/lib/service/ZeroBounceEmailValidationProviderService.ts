@@ -23,7 +23,13 @@ export class ZeroBounceEmailValidationProviderService implements IEmailValidatio
     this.apiKey = process.env.ZEROBOUNCE_API_KEY || "";
   }
 
-  async validateEmail(request: EmailValidationRequest, signal?: AbortSignal): Promise<EmailValidationResult> {
+  async validateEmail({
+    request,
+    abortSignal,
+  }: {
+    request: EmailValidationRequest;
+    abortSignal?: AbortSignal;
+  }): Promise<EmailValidationResult> {
     const { email, ipAddress } = request;
 
     if (!this.apiKey) {
@@ -46,7 +52,7 @@ export class ZeroBounceEmailValidationProviderService implements IEmailValidatio
         Accept: "application/json",
         "User-Agent": "Cal.com",
       },
-      signal,
+      signal: abortSignal,
     });
 
     if (!response.ok) {

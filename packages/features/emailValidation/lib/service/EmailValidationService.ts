@@ -230,7 +230,7 @@ export class EmailValidationService implements IEmailValidationService {
       try {
         // Race between provider validation and timeout
         const result = await Promise.race([
-          this.deps.emailValidationProvider.validateEmail(request, controller.signal),
+          this.deps.emailValidationProvider.validateEmail({ request, abortSignal: controller.signal }),
           new Promise<never>((_, reject) => {
             controller.signal.addEventListener("abort", () => {
               reject(new Error(`Email validation provider timeout after ${this.providerTimeout}ms`));
