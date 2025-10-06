@@ -244,9 +244,6 @@ model EventType {
 
   bookingRequiresAuthentication Boolean @default(false)
 
-  // Inbound agents for this event type
-  inboundAgents Agent[] @relation("inboundAgentEventType")
-
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
 
@@ -2561,7 +2558,6 @@ model Agent {
 
   // Event type association for inbound agents
   inboundEventTypeId Int?
-  eventType          EventType? @relation("inboundAgentEventType", fields: [inboundEventTypeId], references: [id], onDelete: SetNull)
 
   enabled   Boolean  @default(true)
   createdAt DateTime @default(now())
