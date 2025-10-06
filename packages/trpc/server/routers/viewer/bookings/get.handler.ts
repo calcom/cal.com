@@ -523,10 +523,10 @@ export async function getBookings({
                 "EventType.length",
                 jsonObjectFrom(
                   eb
-                    .selectFrom("Team")
-                    .select(["Team.id", "Team.name", "Team.slug"])
-                    .whereRef("EventType.teamId", "=", "Team.id")
-                ).as("team"),
+                    .selectFrom("CalIdTeam")
+                    .select(["CalIdTeam.id", "CalIdTeam.name", "CalIdTeam.slug"])
+                    .whereRef("EventType.calIdTeamId", "=", "CalIdTeam.id")
+                ).as("calIdTeam"),
               ])
               .whereRef("EventType.id", "=", "Booking.eventTypeId")
           ).as("eventType"),
@@ -621,20 +621,33 @@ export async function getBookings({
       count: number;
       firstDate: Date | null;
       bookings: {
-        [key: string]: Date[];
+        CANCELLED: Date[];
+        ACCEPTED: Date[];
+        REJECTED: Date[];
+        PENDING: Date[];
+        AWAITING_HOST: Date[];
       };
     } => {
-      const bookings = recurringInfoExtended.reduce(
-        (prev, curr) => {
-          if (curr.recurringEventId === info.recurringEventId) {
-            prev[curr.status].push(curr.startTime);
-          }
-          return prev;
-        },
-        { ACCEPTED: [], CANCELLED: [], REJECTED: [], PENDING: [], AWAITING_HOST: [] } as {
-          [key in BookingStatus]: Date[];
+      // Initialize all required BookingStatus keys
+      const bookings: {
+        CANCELLED: Date[];
+        ACCEPTED: Date[];
+        REJECTED: Date[];
+        PENDING: Date[];
+        AWAITING_HOST: Date[];
+      } = {
+        CANCELLED: [],
+        ACCEPTED: [],
+        REJECTED: [],
+        PENDING: [],
+        AWAITING_HOST: [],
+      };
+      recurringInfoExtended.forEach((curr) => {
+        if (curr.recurringEventId === info.recurringEventId && bookings.hasOwnProperty(curr.status)) {
+          // @ts-expect-error: curr.status is a BookingStatus, which matches the keys
+          bookings[curr.status].push(curr.startTime);
         }
-      );
+      });
       return {
         recurringEventId: info.recurringEventId,
         count: info._count.recurringEventId,
@@ -700,6 +713,7 @@ export async function getBookings({
 
       return {
         ...booking,
+        customInputs: booking.customInputs as Record<string, any> | null,
         rescheduler,
         eventType: {
           ...booking.eventType,
@@ -707,10 +721,11 @@ export async function getBookings({
           eventTypeColor: parseEventTypeColor(booking.eventType?.eventTypeColor),
           price: booking.eventType?.price || 0,
           currency: booking.eventType?.currency || "usd",
-          metadata: EventTypeMetaDataSchema.parse(booking.eventType?.metadata || {}),
+          metadata: EventTypeMetaDataSchema.parse(booking.eventType?.metadata || {}) as Record<string, any>,
         },
         startTime: booking.startTimeUtc.toISOString(),
         endTime: booking.endTimeUtc.toISOString(),
+        metadata: (booking.metadata ?? null) as Record<string, any> | null,
       };
     })
   );
