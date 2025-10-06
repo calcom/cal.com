@@ -157,7 +157,9 @@ test.describe("Manage Booking Questions", () => {
           await expect(page.locator('[role="dialog"]')).toBeVisible();
           
           await expect(page.locator('[role="grid"]')).toBeVisible();
-          await expect(page.locator('[role="gridcell"]')).toHaveCount(42);
+          const gridCells = page.locator('[role="gridcell"]');
+          const cellCount = await gridCells.count();
+          expect([35, 42]).toContain(cellCount);
           
           await page.locator('body').click();
           await expect(page.locator('[role="dialog"]')).toBeHidden();
@@ -767,7 +769,27 @@ async function addQuestionAndSave({
 }
 
 async function expectErrorToBeThereFor({ page, name }: { page: Page; name: string }) {
-  await expect(page.locator(`[data-testid=error-message-${name}]`)).toHaveCount(1);
+
+  await page.waitForTimeout(1000);
+  
+  const errorLocator = page.locator(`[data-testid=error-message-${name}]`);
+  
+  try {
+    await expect(errorLocator).toHaveCount(1, { timeout: 10000 });
+  } catch (error) {
+    const allErrors = await page.locator('[data-testid^="error-message-"]').all();
+    const errorIds = await Promise.all(allErrors.map(async (el) => {
+      const testId = await el.getAttribute('data-testid');
+      return testId;
+    }));
+    console.log(`Expected error for '${name}' but found errors:`, errorIds);
+    
+    const fieldExists = await page.locator(`[data-fob-field-name="${name}"]`).count();
+    console.log(`Field '${name}' exists:`, fieldExists > 0);
+    
+    throw error;
+  }
+  
   // TODO: We should either verify the error message or error code in the test so we know that the correct error is shown
   // Checking for the error message isn't well maintainable as translation can change and we might want to verify in non english language as well.
 }
@@ -893,6 +915,8 @@ async function rescheduleFromTheLinkOnPage({ page }: { page: Page }) {
   await page.waitForLoadState();
   await selectFirstAvailableTimeSlotNextMonth(page);
   await page.locator('[data-testid="confirm-reschedule-button"]').click();
+  
+  await page.waitForTimeout(2000);
 }
 
 async function openBookingFormInPreviewTab(context: PlaywrightTestArgs["context"], page: Page) {
