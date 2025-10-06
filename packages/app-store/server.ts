@@ -145,10 +145,7 @@ export async function getLocationGroupedOptions(
           ...(app.credential ? { credentialId: credentialId, teamName: teamName ?? null } : {}),
         };
         if (apps[groupByCategory]) {
-          // const existingOption = apps[groupByCategory].find((o) => o.value === option.value);
-          // if (!existingOption) {
           apps[groupByCategory] = [...apps[groupByCategory], option];
-          // }
         } else {
           apps[groupByCategory] = [option];
         }
