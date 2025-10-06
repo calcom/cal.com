@@ -259,7 +259,7 @@ export const fieldTypesSchemaMap: Partial<
   },
   date: {
     preprocess: ({ response }) => {
-      return response?.trim() || "";
+      return response.trim();
     },
     superRefine: ({ response, ctx, m, field, isPartialSchema }) => {
       const value = response ?? "";
