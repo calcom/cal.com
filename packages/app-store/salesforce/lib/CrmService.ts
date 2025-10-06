@@ -4,10 +4,10 @@ import { RRule } from "rrule";
 import { z } from "zod";
 
 import { RoutingFormResponseDataFactory } from "@calcom/app-store/routing-forms/lib/RoutingFormResponseDataFactory";
-import { checkIfFreeEmailDomain } from "@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { RetryableError } from "@calcom/lib/crmManager/errors";
+import { checkIfFreeEmailDomain } from "@calcom/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { PrismaAssignmentReasonRepository } from "@calcom/lib/server/repository/PrismaAssignmentReasonRepository";
@@ -45,15 +45,6 @@ type ExtendedTokenResponse = TokenResponse & {
   instance_url: string;
 };
 
-type _ContactSearchResult = {
-  attributes: {
-    type: string;
-    url: string;
-  };
-  Id: string;
-  Email: string;
-};
-
 const sfApiErrors = {
   INVALID_EVENTWHOIDS: "INVALID_FIELD: No such column 'EventWhoIds' on sobject of type Event",
 };
@@ -62,7 +53,31 @@ type ContactRecord = {
   Id?: string;
   Email?: string;
   OwnerId?: string;
-  [key: string]: unknown;
+  AccountId?: string;
+  attributes?: {
+    type?: string;
+  };
+  Account?: {
+    Owner?: {
+      Email?: string;
+    };
+    Website?: string;
+  };
+  Owner?: {
+    Email?: string;
+    Name?: string;
+  };
+};
+
+type SalesforceDuplicateError = {
+  name?: string;
+  duplicateResult?: {
+    matchResults?: Array<{
+      matchRecords?: Array<{
+        record: { Id: string };
+      }>;
+    }>;
+  };
 };
 
 type Attendee = { email: string; name: string };
@@ -442,23 +457,6 @@ export default class SalesforceCRMService implements CRM {
         }
       }
 
-      // Handle Account record type
-      if (recordToSearch === SalesforceRecordEnum.ACCOUNT) {
-        // For an account let's assume that the first email is the one we should be querying against
-        const attendeeEmail = emailArray[0];
-        log.info("[recordToSearch=ACCOUNT] Searching contact for email", safeStringify({ attendeeEmail }));
-        soql = `SELECT Id, Email, OwnerId, AccountId, Account.Owner.Email, Account.Website FROM ${SalesforceRecordEnum.CONTACT} WHERE Email = '${attendeeEmail}' AND AccountId != null`;
-      } else {
-        // Handle Contact/Lead record types
-        soql = `SELECT Id, Email, OwnerId, Owner.Email FROM ${recordToSearch} WHERE Email IN ('${emailArray.join(
-          "','"
-        )}')`;
-      }
-
-      const results = await conn.query(soql);
-
-      log.info("Query results", safeStringify({ recordCount: results.records?.length }));
-
       let records: ContactRecord[] = [];
 
       // This combination is for searching for ownership via contacts
@@ -467,27 +465,9 @@ export default class SalesforceCRMService implements CRM {
         appOptions?.roundRobinSkipFallbackToLeadOwner &&
         forRoundRobinSkip
       ) {
-        const searchResult = await conn.search(
-          `FIND {${emailArray[0]}} IN EMAIL FIELDS RETURNING Lead(Id, Email, OwnerId, Owner.Email), Contact(Id, Email, OwnerId, Owner.Email)`
-        );
-
-        if (searchResult.searchRecords.length > 0) {
-          // See if a contact was found first
-          const contactQuery = searchResult.searchRecords.filter(
-            (record) => record.attributes?.type === SalesforceRecordEnum.CONTACT
-          );
-
-          if (contactQuery.length > 0) {
-            records = contactQuery as ContactRecord[];
-          } else {
-            // If not fallback to lead
-            const leadQuery = searchResult.searchRecords.filter(
-              (record) => record.attributes?.type === SalesforceRecordEnum.LEAD
-            );
-            if (leadQuery.length > 0) {
-              records = leadQuery as ContactRecord[];
-            }
-          }
+        const record = await this.getContactOrLeadFromEmail({ email: emailArray[0], conn });
+        if (record) {
+          records.push(record);
         }
       }
 
@@ -497,32 +477,42 @@ export default class SalesforceCRMService implements CRM {
         appOptions.createEventOnLeadCheckForContact &&
         !forRoundRobinSkip
       ) {
-        // Get any matching contacts
-        const contactSearch = await conn.query(
-          `SELECT Id, Email, OwnerId, Owner.Email FROM ${
-            SalesforceRecordEnum.CONTACT
-          } WHERE Email IN ('${emailArray.join("','")}')`
-        );
-
-        if (contactSearch?.records?.length > 0) {
-          records = contactSearch.records as ContactRecord[];
-          this.setFallbackToContact(true);
-          log.info(
-            "Found matching contacts, falling back to contact",
-            safeStringify({
-              contactCount: records.length,
-            })
-          );
+        const record = await this.getContactOrLeadFromEmail({
+          email: emailArray[0],
+          setFallbackToContact: true,
+          conn,
+        });
+        if (record) {
+          records.push(record);
         }
       }
 
-      if (!records.length && results?.records?.length) {
-        records = results.records as ContactRecord[];
-      }
+      if (records.length === 0) {
+        // Handle Account record type
+        if (recordToSearch === SalesforceRecordEnum.ACCOUNT) {
+          // For an account let's assume that the first email is the one we should be querying against
+          const attendeeEmail = emailArray[0];
+          log.info("[recordToSearch=ACCOUNT] Searching contact for email", safeStringify({ attendeeEmail }));
+          soql = `SELECT Id, Email, OwnerId, AccountId, Account.OwnerId, Account.Owner.Email, Account.Website FROM ${SalesforceRecordEnum.CONTACT} WHERE Email = '${attendeeEmail}' AND AccountId != null`;
+        } else {
+          // Handle Contact/Lead record types
+          soql = `SELECT Id, Email, OwnerId, Owner.Email FROM ${recordToSearch} WHERE Email IN ('${emailArray.join(
+            "','"
+          )}')`;
+        }
 
-      if (!records.length) {
-        log.info("No records found");
-        return [];
+        const results = await conn.query(soql);
+
+        log.info("Query results", safeStringify({ recordCount: results.records?.length }));
+
+        if (results.records.length === 0) {
+          log.info("No records found");
+          return [];
+        }
+
+        if (!records.length && results?.records?.length) {
+          records = results.records as ContactRecord[];
+        }
       }
 
       const includeOwnerData =
@@ -539,7 +529,7 @@ export default class SalesforceCRMService implements CRM {
             : record?.Owner?.Email;
 
         return {
-          id: includeAccountRecordType ? record?.AccountId : record?.Id || "",
+          id: includeAccountRecordType ? record?.AccountId || "" : record?.Id || "",
           email: record?.Email || "",
           recordType: includeAccountRecordType ? SalesforceRecordEnum.ACCOUNT : record?.attributes?.type,
           ...(includeOwnerData && {
@@ -552,6 +542,44 @@ export default class SalesforceCRMService implements CRM {
       log.error("Error in getContacts", safeStringify(error));
       return [];
     }
+  }
+
+  private async getContactOrLeadFromEmail({
+    email,
+    setFallbackToContact = false,
+    conn,
+  }: {
+    email: string;
+    setFallbackToContact?: boolean;
+    conn: Connection;
+  }) {
+    const searchResult = await conn.search(
+      `FIND {${email}} IN EMAIL FIELDS RETURNING Lead(Id, Email, OwnerId, Owner.Email), Contact(Id, Email, OwnerId, Owner.Email)`
+    );
+
+    if (searchResult.searchRecords.length === 0) {
+      return null;
+    }
+
+    // See if a contact was found first
+    const contactQuery = searchResult.searchRecords.filter(
+      (record) => record.attributes?.type === SalesforceRecordEnum.CONTACT
+    );
+
+    if (contactQuery.length > 0) {
+      this.setFallbackToContact(setFallbackToContact);
+      return contactQuery[0] as ContactRecord;
+    } else {
+      // If not fallback to lead
+      const leadQuery = searchResult.searchRecords.filter(
+        (record) => record.attributes?.type === SalesforceRecordEnum.LEAD
+      );
+      if (leadQuery.length > 0) {
+        return leadQuery[0] as ContactRecord;
+      }
+    }
+
+    return null;
   }
 
   async createContacts(
@@ -675,8 +703,9 @@ export default class SalesforceCRMService implements CRM {
               createdContacts.push({ id: result.id, email: attendee.email });
             }
           } catch (error: unknown) {
-            if (error.name === "DUPLICATES_DETECTED") {
-              const existingId = this.getExistingIdFromDuplicateError(error);
+            if (error instanceof Error && error.name === "DUPLICATES_DETECTED") {
+              // we know it's a DuplicateError now (DUPLICATES_DETECTED)
+              const existingId = this.getExistingIdFromDuplicateError(error as SalesforceDuplicateError);
               if (existingId) {
                 log.info("Using existing record:", existingId);
                 createdContacts.push({ id: existingId, email: attendee.email });
@@ -770,7 +799,7 @@ export default class SalesforceCRMService implements CRM {
     }
   }
 
-  private getExistingIdFromDuplicateError(error: unknown): string | null {
+  private getExistingIdFromDuplicateError(error: SalesforceDuplicateError): string | null {
     if (error.duplicateResult && error.duplicateResult.matchResults) {
       for (const matchResult of error.duplicateResult.matchResults) {
         if (matchResult.matchRecords && matchResult.matchRecords.length > 0) {
@@ -1059,16 +1088,20 @@ export default class SalesforceCRMService implements CRM {
     recordId,
   }: {
     existingFields: Field[];
-    personRecord: Record<string, unknown>;
-    fieldsToWriteTo: Record<string, unknown>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    personRecord: Record<string, any>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    fieldsToWriteTo: Record<string, any>;
     startTime?: string;
     bookingUid?: string | null;
     organizerEmail?: string;
     calEventResponses?: CalEventResponses | null;
     recordId: string;
-  }): Promise<Record<string, unknown>> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  }): Promise<Record<string, any>> {
     const log = logger.getSubLogger({ prefix: [`[buildRecordUpdatePayload] ${recordId}`] });
-    const writeOnRecordBody: Record<string, unknown> = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const writeOnRecordBody: Record<string, any> = {};
     let fieldTypeHandled = false;
 
     for (const field of existingFields) {
@@ -1192,7 +1225,9 @@ export default class SalesforceCRMService implements CRM {
       : [];
 
     const confirmedCustomFieldInputs: {
-      [key: string]: unknown;
+      // This is unique to each instance so we don't know the type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      [key: string]: any;
     } = {};
 
     for (const field of customFieldInputs) {
@@ -1439,7 +1474,8 @@ export default class SalesforceCRMService implements CRM {
     contactId: string,
     existingFields: Field[],
     personRecordType: SalesforceRecordEnum
-  ): Promise<Record<string, unknown> | null> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): Promise<Record<string, any> | null> {
     const conn = await this.conn;
     const existingFieldNames = existingFields.map((field) => field.name);
 
@@ -1452,7 +1488,8 @@ export default class SalesforceCRMService implements CRM {
       return null;
     }
 
-    return query.records[0] as Record<string, unknown>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return query.records[0] as Record<string, any>;
   }
 
   private async createNewContactUnderAnAccount({
@@ -1512,7 +1549,9 @@ export default class SalesforceCRMService implements CRM {
       const accountQuery = (await conn.query(
         `SELECT ${lookupField.name} FROM ${SalesforceRecordEnum.ACCOUNT} WHERE Id = '${accountId}'`
       )) as {
-        records: { [key: string]: unknown };
+        // We do not know what fields are included in the account since it's unqiue to each instance
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        records: { [key: string]: any };
       };
 
       if (!accountQuery.records.length) return;
