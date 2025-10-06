@@ -151,6 +151,7 @@ const commons = {
   bookingRequiresAuthentication: false,
   createdAt: null,
   updatedAt: null,
+  organizationId: null,
 };
 
 export const dynamicEvent = {

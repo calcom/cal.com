@@ -10,7 +10,11 @@ const _getEventType = async ({
 }: {
   eventTypeId: number;
   eventTypeSlug?: string;
-}) => {
+}): Promise<
+  ReturnType<typeof getEventTypesFromDB> & {
+    bookingFields: ReturnType<typeof getBookingFieldsWithSystemFields>;
+  }
+> => {
   // handle dynamic user
   const eventType =
     !eventTypeId && !!eventTypeSlug ? getDefaultEvent(eventTypeSlug) : await getEventTypesFromDB(eventTypeId);

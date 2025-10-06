@@ -30,7 +30,7 @@ export function getWatchlistRepository() {
   return watchlistContainer.get(WATCHLIST_DI_TOKENS.WATCHLIST_REPOSITORY);
 }
 
-export function getBlockingService() {
+export function getBlockingService(): import("@calcom/features/watchlist/lib/interface/IBlockingService").IBlockingService {
   return watchlistContainer.get(WATCHLIST_DI_TOKENS.BLOCKING_SERVICE);
 }
 

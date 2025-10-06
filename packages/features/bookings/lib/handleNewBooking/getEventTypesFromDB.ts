@@ -217,6 +217,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
     rrSegmentQueryValue: rrSegmentQueryValueSchema.parse(eventType.rrSegmentQueryValue) ?? null,
     isDynamic: false,
     hostGroups: eventType.hostGroups || [],
+    organizationId: profile?.organizationId ?? null,
   };
 };
 

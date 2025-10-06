@@ -1,4 +1,3 @@
- 
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -25,6 +24,10 @@ import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import { getCheckBookingAndDurationLimitsService } from "@calcom/features/di/containers/BookingLimits";
+import { getCacheService } from "@calcom/features/di/containers/Cache";
+import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
+import { getBlockingService } from "@calcom/features/di/watchlist/containers/watchlist";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes/lib/eventNaming";
@@ -32,6 +35,7 @@ import type { FeaturesRepository } from "@calcom/features/flags/features.reposit
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { handleAnalyticsEvents } from "@calcom/features/tasker/tasks/analytics/handleAnalyticsEvents";
 import { UsersRepository } from "@calcom/features/users/users.repository";
+import type { IBlockingService } from "@calcom/features/watchlist/lib/interface/IBlockingService";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
@@ -47,9 +51,6 @@ import {
   enrichHostsWithDelegationCredentials,
   getFirstDelegationConferencingCredentialAppLocation,
 } from "@calcom/lib/delegationCredential/server";
-import { getCheckBookingAndDurationLimitsService } from "@calcom/features/di/containers/BookingLimits";
-import { getCacheService } from "@calcom/features/di/containers/Cache";
-import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
@@ -253,6 +254,124 @@ const buildDryRunEventManager = () => {
   return {
     create: async () => ({ results: [], referencesToCreate: [] }),
     reschedule: async () => ({ results: [], referencesToCreate: [] }),
+  };
+};
+
+export const buildDecoyBooking = async ({
+  eventTypeId,
+  organizerUser,
+  eventName,
+  startTime,
+  endTime,
+  bookerName,
+  bookerEmail,
+  _location,
+  blockingService,
+}: {
+  eventTypeId: number;
+  organizerUser: {
+    id: number;
+    name: string | null;
+    username: string | null;
+    email: string;
+    timeZone: string;
+  };
+  eventName: string;
+  startTime: string;
+  endTime: string;
+  bookerName: string;
+  bookerEmail: string;
+  _location: string | null;
+  blockingService: IBlockingService;
+}) => {
+  const sanitizeEmail = (email: string): string => {
+    const [localPart, domain] = email.split("@");
+    if (!domain) return "***@***.com";
+    const sanitizedLocal =
+      localPart.length > 2
+        ? `${localPart[0]}${"*".repeat(localPart.length - 2)}${localPart[localPart.length - 1]}`
+        : "***";
+    const domainParts = domain.split(".");
+    const sanitizedDomain =
+      domainParts.length > 1
+        ? `${"*".repeat(domainParts[0].length)}.${domainParts[domainParts.length - 1]}`
+        : "***";
+    return `${sanitizedLocal}@${sanitizedDomain}`;
+  };
+
+  const decoyResponse = await blockingService.createDecoyResponse({
+    email: bookerEmail,
+    eventTypeId,
+  });
+
+  const sanitizedOrganizerUser = {
+    id: organizerUser.id,
+    name: organizerUser.name,
+    username: organizerUser.username,
+    email: sanitizeEmail(organizerUser.email),
+    timeZone: organizerUser.timeZone,
+  };
+
+  const booking = {
+    id: -1,
+    uid: decoyResponse.uid,
+    iCalUID: `DECOY_${decoyResponse.uid}`,
+    status: BookingStatus.ACCEPTED,
+    eventTypeId: eventTypeId,
+    user: sanitizedOrganizerUser,
+    userId: sanitizedOrganizerUser.id,
+    title: eventName,
+    startTime: new Date(startTime),
+    endTime: new Date(endTime),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    attendees: [
+      {
+        id: -1,
+        email: sanitizeEmail(bookerEmail),
+        name: bookerName,
+        timeZone: "UTC",
+        locale: "en",
+        bookingId: -1,
+        phoneNumber: "***-***-****",
+        noShow: false,
+      },
+    ],
+    oneTimePassword: null,
+    smsReminderNumber: null,
+    metadata: {},
+    idempotencyKey: null,
+    userPrimaryEmail: null,
+    description: null,
+    customInputs: null,
+    responses: null,
+    location: "Online Meeting",
+    paid: false,
+    cancellationReason: null,
+    rejectionReason: null,
+    dynamicEventSlugRef: null,
+    dynamicGroupSlugRef: null,
+    fromReschedule: null,
+    recurringEventId: null,
+    scheduledJobs: [],
+    rescheduledBy: null,
+    destinationCalendarId: null,
+    reassignReason: null,
+    reassignById: null,
+    rescheduled: false,
+    isRecorded: false,
+    iCalSequence: 0,
+    rating: null,
+    ratingFeedback: null,
+    noShowHost: null,
+    cancelledBy: null,
+    creationSource: CreationSource.WEBAPP,
+    references: [],
+    payment: [],
+  } satisfies ReturnTypeCreateBooking;
+
+  return {
+    booking,
   };
 };
 
@@ -496,6 +615,63 @@ async function handler(
   const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger: loggerWithEventDetails });
 
   await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
+
+  const blockingService = getBlockingService();
+  const organizationId = "organizationId" in eventType ? eventType.organizationId ?? undefined : undefined;
+  const blockingResult = await blockingService.isBlocked(bookerEmail, organizationId);
+
+  if (blockingResult.isBlocked) {
+    loggerWithEventDetails.info(
+      `Booking blocked due to spam detection`,
+      safeStringify({
+        bookerEmail,
+        organizationId,
+        reason: blockingResult.reason,
+        eventTypeId,
+      })
+    );
+
+    const firstUser = eventType.users[0];
+    if (!firstUser) {
+      throw new HttpError({ statusCode: 500, message: "No user found for event type" });
+    }
+
+    const organizerUser = {
+      id: firstUser.id,
+      name: firstUser.name,
+      username: firstUser.username,
+      email: firstUser.email,
+      timeZone: firstUser.timeZone,
+    };
+
+    const fullNameForDecoy = getFullName(bookerName);
+
+    const { booking } = await buildDecoyBooking({
+      eventTypeId,
+      organizerUser,
+      eventName: eventType.title,
+      startTime: reqBody.start,
+      endTime: reqBody.end,
+      bookerName: fullNameForDecoy,
+      bookerEmail,
+      _location: location,
+      blockingService,
+    });
+
+    return {
+      ...booking,
+      user: {
+        ...booking.user,
+        email: null,
+      },
+      isDecoyBooking: true,
+      isDryRun: false,
+      paymentRequired: false,
+      paymentUid: undefined,
+      references: [],
+      seatReferenceUid: undefined,
+    };
+  }
 
   if (!rawBookingData.rescheduleUid) {
     await checkActiveBookingsLimitForBooker({
@@ -1480,7 +1656,8 @@ async function handler(
 
   const changedOrganizer =
     !!originalRescheduledBooking &&
-    (eventType.schedulingType === SchedulingType.ROUND_ROBIN || eventType.schedulingType === SchedulingType.COLLECTIVE) &&
+    (eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
+      eventType.schedulingType === SchedulingType.COLLECTIVE) &&
     originalRescheduledBooking.userId !== evt.organizer.id;
 
   const skipDeleteEventsAndMeetings = changedOrganizer;
