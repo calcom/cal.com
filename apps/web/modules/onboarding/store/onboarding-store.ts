@@ -38,8 +38,6 @@ export interface OnboardingState {
   invites: Invite[];
   inviteRole: InviteRole;
 
-  onboardingId: string | null;
-
   // Actions
   setSelectedPlan: (plan: PlanType) => void;
   setOrganizationDetails: (details: Partial<OrganizationDetails>) => void;
@@ -47,7 +45,6 @@ export interface OnboardingState {
   setTeams: (teams: Team[]) => void;
   setInvites: (invites: Invite[]) => void;
   setInviteRole: (role: InviteRole) => void;
-  setOnboardingId: (id: string) => void;
 
   // Reset
   resetOnboarding: () => void;
@@ -68,7 +65,6 @@ const initialState = {
   teams: [],
   invites: [],
   inviteRole: "member" as InviteRole,
-  onboardingId: null,
 };
 
 export const useOnboardingStore = create<OnboardingState>()(
@@ -94,8 +90,6 @@ export const useOnboardingStore = create<OnboardingState>()(
 
       setInviteRole: (role) => set({ inviteRole: role }),
 
-      setOnboardingId: (id) => set({ onboardingId: id }),
-
       resetOnboarding: () => set(initialState),
     }),
     {
@@ -108,7 +102,6 @@ export const useOnboardingStore = create<OnboardingState>()(
         teams: state.teams,
         invites: state.invites,
         inviteRole: state.inviteRole,
-        onboardingId: state.onboardingId,
       }),
     }
   )

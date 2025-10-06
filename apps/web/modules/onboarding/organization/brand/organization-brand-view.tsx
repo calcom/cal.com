@@ -1,10 +1,11 @@
 "use client";
 
+import * as Popover from "@radix-ui/react-popover";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { HexColorPicker } from "react-colorful";
 
 import { Button } from "@calcom/ui/components/button";
-import { Label } from "@calcom/ui/components/form";
 import { Logo } from "@calcom/ui/components/logo";
 
 import { useOnboardingStore } from "../../store/onboarding-store";
@@ -13,13 +14,44 @@ type OrganizationBrandViewProps = {
   userEmail: string;
 };
 
+const BrandColorPicker = ({ value, onChange }: { value: string; onChange: (value: string) => void }) => {
+  return (
+    <div className="border-default bg-default flex h-7 w-32 items-center gap-2 rounded-lg border px-2 py-1.5">
+      <Popover.Root>
+        <Popover.Trigger asChild>
+          <button
+            className="h-4 w-4 shrink-0 rounded-full border border-gray-200"
+            style={{ backgroundColor: value }}
+            aria-label="Pick color"
+          />
+        </Popover.Trigger>
+        <Popover.Portal>
+          <Popover.Content align="start" sideOffset={5}>
+            <HexColorPicker color={value} onChange={onChange} className="!h-32 !w-32" />
+          </Popover.Content>
+        </Popover.Portal>
+      </Popover.Root>
+      <input
+        type="text"
+        value={value.replace("#", "")}
+        onChange={(e) => {
+          const newValue = e.target.value.startsWith("#") ? e.target.value : `#${e.target.value}`;
+          onChange(newValue);
+        }}
+        className="text-emphasis grow border-none bg-transparent text-sm font-medium leading-4 outline-none"
+        maxLength={6}
+      />
+    </div>
+  );
+};
+
 export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps) => {
   const router = useRouter();
   const { organizationBrand, setOrganizationBrand, organizationDetails } = useOnboardingStore();
 
   const [brandColor, setBrandColor] = useState("#000000");
-  const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [_logoFile, setLogoFile] = useState<File | null>(null);
+  const [_bannerFile, setBannerFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
 
@@ -122,21 +154,13 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                             <p className="text-subtle w-[98px] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium leading-4">
                               Primary color
                             </p>
-                            <div className="border-default bg-default flex h-7 w-32 items-center gap-2 rounded-lg border px-2 py-1.5">
-                              <div
-                                className="h-4 w-4 shrink-0 rounded-full border border-gray-200"
-                                style={{ backgroundColor: brandColor }}
-                              />
-                              <input
-                                type="text"
-                                value={brandColor}
-                                onChange={(e) => {
-                                  setBrandColor(e.target.value);
-                                  setOrganizationBrand({ color: e.target.value });
-                                }}
-                                className="text-emphasis grow border-none bg-transparent text-sm font-medium leading-4"
-                              />
-                            </div>
+                            <BrandColorPicker
+                              value={brandColor}
+                              onChange={(value) => {
+                                setBrandColor(value);
+                                setOrganizationBrand({ color: value });
+                              }}
+                            />
                           </div>
                         </div>
 
@@ -231,7 +255,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                               <div className="flex flex-col gap-3 p-1">
                                 <div className="flex flex-col gap-3">
                                   {/* Logo preview */}
-                                  <div className="bg-muted border-default z-20 h-9 w-9 shrink-0 overflow-hidden rounded-md border-2">
+                                  <div className="bg-muted z-20 h-9 w-9 shrink-0 overflow-hidden rounded-md border-2 border-[var(--cal-bg)]">
                                     {logoPreview && (
                                       <img
                                         src={logoPreview}
@@ -277,19 +301,15 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
 
               {/* Footer */}
               <div className="flex w-full items-center justify-end gap-1 px-5 py-4">
+                <Button color="minimal" className="rounded-[10px]" onClick={handleSkip}>
+                  I'll do this later
+                </Button>
                 <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
                   Continue
                 </Button>
               </div>
             </div>
           </div>
-
-          {/* Skip button - positioned absolutely */}
-          <button
-            onClick={handleSkip}
-            className="text-subtle hover:bg-subtle absolute left-[370px] top-[458px] rounded-[10px] px-2 py-1.5 text-sm font-medium leading-4">
-            I'll do this later
-          </button>
         </div>
       </div>
     </div>

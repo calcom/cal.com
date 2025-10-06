@@ -51,10 +51,6 @@ export const viewerOrganizationsRouter = router({
       const { default: handler } = await import("./createWithPaymentIntent.handler");
       return handler(opts);
     }),
-  onboard: authedProcedure.input(ZOnboardInputSchema).mutation(async (opts) => {
-    const { default: handler } = await import("./onboard.handler");
-    return handler(opts);
-  }),
   update: authedProcedure.input(ZUpdateInputSchema).mutation(async (opts) => {
     const { default: handler } = await import("./update.handler");
     return handler(opts);

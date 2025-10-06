@@ -33,14 +33,12 @@ type FormValues = z.infer<typeof formSchema>;
 
 export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProps) => {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const isEmailMode = searchParams?.get("mode") === "email";
+  // We are using email mode for now until we implement the other invite methods, csv, workspace - invite link
+  const isEmailMode = true;
 
   const store = useOnboardingStore();
   const { invites: storedInvites, inviteRole, setInvites, setInviteRole, resetOnboarding } = store;
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const onboardMutation = trpc.viewer.organizations.onboard.useMutation();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -61,12 +59,6 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
   });
 
   const submitOnboarding = async (invitesData: FormValues["invites"]) => {
-    if (!store.onboardingId) {
-      showToast("Onboarding session not found. Please start over.", "error");
-      router.push("/onboarding/organization/details");
-      return;
-    }
-
     // Get all onboarding data from store
     const onboardingData = {
       plan: store.selectedPlan,
@@ -80,35 +72,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
       })),
       invites: invitesData,
       inviteRole: inviteRole,
-      onboardingId: store.onboardingId,
     };
-
-    try {
-      setIsSubmitting(true);
-      const result = await onboardMutation.mutateAsync(onboardingData);
-
-      if (result.requiresPayment) {
-        // Redirect to checkout
-        if (result.checkoutUrl) {
-          window.location.href = result.checkoutUrl;
-        } else {
-          showToast("Failed to create checkout session. Please try again.", "error");
-        }
-      } else {
-        // Organization created successfully (self-hosted)
-        showToast("Organization created successfully!", "success");
-        resetOnboarding();
-        router.push("/event-types");
-      }
-    } catch (error) {
-      console.error("Error submitting onboarding:", error);
-      showToast(
-        error instanceof Error ? error.message : "Failed to submit onboarding. Please try again.",
-        "error"
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   const handleContinue = async (data?: FormValues) => {
@@ -189,6 +153,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
               <div className="bg-default border-subtle w-full rounded-md border">
                 <div className="flex w-full flex-col gap-8 px-5 py-5">
                   {!isEmailMode ? (
+                    // Coming soon
                     // Initial invite options view
                     <div className="flex w-full flex-col gap-4">
                       <Button color="secondary" className="w-full justify-center" StartIcon="mail">
