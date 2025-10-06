@@ -59,6 +59,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           allowReschedulingPastBookings: true,
           disableRescheduling: true,
           allowReschedulingCancelledBookings: true,
+          metadata: true,
           team: {
             select: {
               id: true,
@@ -122,6 +123,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     booking: {
       uid,
       status: booking.status,
+      startTime: booking.startTime,
       endTime: booking.endTime,
       responses: booking.responses,
       eventType: {
@@ -129,6 +131,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         allowReschedulingPastBookings: eventType.allowReschedulingPastBookings,
         allowBookingFromCancelledBookingReschedule: !!eventType.allowReschedulingCancelledBookings,
         teamId: eventType.team?.id ?? null,
+        metadata: eventType.metadata,
       },
     },
     eventUrl,

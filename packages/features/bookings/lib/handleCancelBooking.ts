@@ -107,11 +107,30 @@ async function handler(input: CancelBookingInput) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
 
+  // Check if cancelling is disabled
   if (bookingToDelete.eventType?.disableCancelling) {
-    throw new HttpError({
-      statusCode: 400,
-      message: "This event type does not allow cancellations",
-    });
+    const disableCancellingThreshold = bookingToDelete.eventType?.metadata?.disableCancellingThreshold;
+    
+    // If there's a threshold, check if we're within the time window
+    if (disableCancellingThreshold) {
+      const bookingStartTime = dayjs(bookingToDelete.startTime);
+      const now = dayjs();
+      const timeDifference = bookingStartTime.diff(now, disableCancellingThreshold.unit);
+      
+      // If we're less than the threshold time before the booking, disallow cancellation
+      if (timeDifference <= disableCancellingThreshold.time) {
+        throw new HttpError({
+          statusCode: 400,
+          message: "This event type does not allow cancellations within the specified time window",
+        });
+      }
+    } else {
+      // No threshold means always disabled
+      throw new HttpError({
+        statusCode: 400,
+        message: "This event type does not allow cancellations",
+      });
+    }
   }
 
   const isCancellationUserHost =

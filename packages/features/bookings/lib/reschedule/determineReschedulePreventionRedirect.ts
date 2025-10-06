@@ -1,15 +1,18 @@
 import { URLSearchParams } from "url";
 
 import { getFullName } from "@calcom/features/form-builder/utils";
+import dayjs from "@calcom/dayjs";
 import { ENV_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS } from "@calcom/lib/constants";
 import { getSafe } from "@calcom/lib/getSafe";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { JsonValue } from "@calcom/types/Json";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 
 export type ReschedulePreventionRedirectInput = {
   booking: {
     uid: string;
     status: BookingStatus;
+    startTime?: Date | null;
     endTime: Date | null;
     responses?: JsonValue;
     eventType: {
@@ -17,6 +20,7 @@ export type ReschedulePreventionRedirectInput = {
       allowReschedulingPastBookings: boolean;
       allowBookingFromCancelledBookingReschedule: boolean;
       teamId: number | null;
+      metadata?: EventTypeMetadata;
     };
   };
   eventUrl: string;
@@ -65,9 +69,26 @@ export function determineReschedulePreventionRedirect(
 ): ReschedulePreventionRedirectResult {
   const { booking, eventUrl, forceRescheduleForCancelledBooking, bookingSeat } = input;
 
+  // Check if rescheduling is disabled
   const isDisabledRescheduling = booking.eventType.disableRescheduling;
   if (isDisabledRescheduling) {
-    return `/booking/${booking.uid}`;
+    const disableReschedulingThreshold = booking.eventType.metadata?.disableReschedulingThreshold;
+    
+    // If there's a threshold, check if we're within the time window
+    if (disableReschedulingThreshold && booking.startTime) {
+      const bookingStartTime = dayjs(booking.startTime);
+      const now = dayjs();
+      const timeDifference = bookingStartTime.diff(now, disableReschedulingThreshold.unit);
+      
+      // If we're less than the threshold time before the booking, prevent reschedule
+      if (timeDifference <= disableReschedulingThreshold.time) {
+        return `/booking/${booking.uid}`;
+      }
+    } else if (!disableReschedulingThreshold) {
+      // No threshold means always disabled
+      return `/booking/${booking.uid}`;
+    }
+    // If threshold exists but we're outside the window, allow rescheduling to continue
   }
 
   const isNonRescheduleableBooking =
