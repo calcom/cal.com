@@ -4,10 +4,11 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { Button } from "@calcom/ui/components/button";
-import { Label, TextField, TextAreaField, TextArea } from "@calcom/ui/components/form";
+import { Label, TextField, TextArea } from "@calcom/ui/components/form";
 import { Logo } from "@calcom/ui/components/logo";
 
 import { useOnboardingStore } from "../../store/onboarding-store";
+import { ValidatedOrganizationSlug } from "./validated-organization-slug";
 
 type OrganizationDetailsViewProps = {
   userEmail: string;
@@ -20,6 +21,7 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
   const [organizationName, setOrganizationName] = useState("");
   const [organizationLink, setOrganizationLink] = useState("");
   const [organizationBio, setOrganizationBio] = useState("");
+  const [isSlugValid, setIsSlugValid] = useState(false);
 
   // Load from store on mount
   useEffect(() => {
@@ -29,6 +31,10 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
   }, [organizationDetails]);
 
   const handleContinue = () => {
+    if (!isSlugValid) {
+      return;
+    }
+
     // Save to store
     setOrganizationDetails({
       name: organizationName,
@@ -95,18 +101,11 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
                         </div>
 
                         {/* Organization Link */}
-                        <div className="flex w-full flex-col gap-1.5">
-                          <Label className="text-emphasis text-sm font-medium leading-4">
-                            Organization link
-                          </Label>
-                          <TextField
-                            value={organizationLink}
-                            onChange={(e) => setOrganizationLink(e.target.value)}
-                            placeholder="acme"
-                            addOnSuffix={<span className="text-subtle text-sm">.cal.com</span>}
-                            className="h-7 rounded-[10px] text-sm"
-                          />
-                        </div>
+                        <ValidatedOrganizationSlug
+                          value={organizationLink}
+                          onChange={setOrganizationLink}
+                          onValidationChange={setIsSlugValid}
+                        />
 
                         {/* Organization Bio */}
                         <div className="flex w-full flex-col gap-1.5">
@@ -129,7 +128,11 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
 
               {/* Footer */}
               <div className="flex w-full items-center justify-end gap-1 px-5 py-4">
-                <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
+                <Button
+                  color="primary"
+                  className="rounded-[10px]"
+                  onClick={handleContinue}
+                  disabled={!isSlugValid || !organizationName || !organizationLink}>
                   Continue
                 </Button>
               </div>

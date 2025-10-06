@@ -54,7 +54,7 @@ export interface OnboardingState {
 }
 
 const initialState = {
-  selectedPlan: null,
+  selectedPlan: "personal" as PlanType,
   organizationDetails: {
     name: "",
     link: "",

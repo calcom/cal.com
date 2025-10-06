@@ -84,7 +84,7 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
 
               {/* Plan options */}
               <RadioAreaGroup.Group
-                value={selectedPlan || "organization"}
+                value={selectedPlan}
                 onValueChange={(value) => setSelectedPlan(value as PlanType)}
                 className="flex w-full flex-col gap-1 rounded-[10px]">
                 {plans.map((plan) => (
