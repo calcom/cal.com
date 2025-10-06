@@ -1,5 +1,6 @@
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
-import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 
 export const checkIfBookerEmailIsBlocked = async ({
@@ -55,13 +56,14 @@ export const checkIfBookerEmailIsBlocked = async ({
   }
 
   if (!user) {
-    throw new HttpError({ statusCode: 403, message: "Cannot use this email to create the booking." });
+    throw new ErrorWithCode(ErrorCode.BookerEmailBlocked, "Cannot use this email to create the booking.");
   }
 
   if (user.id !== loggedInUserId) {
-    throw new HttpError({
-      statusCode: 403,
-      message: `Attendee email has been blocked. Make sure to login as ${bookerEmail} to use this email for creating a booking.`,
-    });
+    throw new ErrorWithCode(
+      ErrorCode.BookerEmailRequiresLogin,
+      `Attendee email has been blocked. Make sure to login as ${bookerEmail} to use this email for creating a booking.`,
+      { email: bookerEmail }
+    );
   }
 };
