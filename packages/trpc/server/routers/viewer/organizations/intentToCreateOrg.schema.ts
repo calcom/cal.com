@@ -19,6 +19,11 @@ export const ZIntentToCreateOrgInputSchema = z.object({
   isPlatform: z.boolean().default(false),
   billingPeriod: z.nativeEnum(BillingPeriod).default(BillingPeriod.MONTHLY),
   creationSource: z.nativeEnum(CreationSource),
+  // Brand fields
+  logo: z.string().nullish(),
+  bio: z.string().nullish(),
+  brandColor: z.string().nullish(),
+  bannerUrl: z.string().nullish(),
 });
 
 export type TIntentToCreateOrgInputSchema = z.infer<typeof ZIntentToCreateOrgInputSchema>;

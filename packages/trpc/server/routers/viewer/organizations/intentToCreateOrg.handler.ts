@@ -27,7 +27,7 @@ type CreateOptions = {
 };
 
 export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) => {
-  const { slug, name, orgOwnerEmail, seats, pricePerSeat, billingPeriod, isPlatform } = input;
+  const { slug, name, orgOwnerEmail, seats, pricePerSeat, billingPeriod, isPlatform, logo, bio, brandColor, bannerUrl } = input;
   log.debug(
     "Starting organization creation intent",
     safeStringify({ slug, name, orgOwnerEmail, isPlatform })

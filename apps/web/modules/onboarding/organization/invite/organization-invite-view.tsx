@@ -13,6 +13,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { Logo } from "@calcom/ui/components/logo";
 import { showToast } from "@calcom/ui/components/toast";
 
+import { useSubmitOnboarding } from "../../hooks/useSubmitOnboarding";
 import { useOnboardingStore, type InviteRole } from "../../store/onboarding-store";
 
 type OrganizationInviteViewProps = {
@@ -38,7 +39,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
 
   const store = useOnboardingStore();
   const { invites: storedInvites, inviteRole, setInvites, setInviteRole, resetOnboarding } = store;
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { submitOnboarding, isSubmitting, error: submissionError } = useSubmitOnboarding();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -58,37 +59,23 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
     name: "invites",
   });
 
-  const submitOnboarding = async (invitesData: FormValues["invites"]) => {
-    // Get all onboarding data from store
-    const onboardingData = {
-      plan: store.selectedPlan,
-      organization: store.organizationDetails,
-      brand: store.organizationBrand,
-      teams: store.teams.map((team) => ({
-        id: -1, // New team
-        name: team.name,
-        isBeingMigrated: false,
-        slug: null,
-      })),
-      invites: invitesData,
-      inviteRole: inviteRole,
-    };
+  const handleSubmitOnboarding = async (invitesData: FormValues["invites"]) => {
+    // Save invites to store before submitting
+    setInvites(invitesData);
+    await submitOnboarding(store, userEmail);
   };
 
   const handleContinue = async (data?: FormValues) => {
     if (data) {
-      // Save invites to store
-      setInvites(data.invites);
-      await submitOnboarding(data.invites);
+      await handleSubmitOnboarding(data.invites);
     } else {
-      // No invites, submit with empty array
-      await submitOnboarding([]);
+      await handleSubmitOnboarding([]);
     }
   };
 
   const handleSkip = async () => {
     // Complete onboarding without invites
-    await submitOnboarding([]);
+    await handleSubmitOnboarding([]);
   };
 
   const handleInviteViaEmail = () => {

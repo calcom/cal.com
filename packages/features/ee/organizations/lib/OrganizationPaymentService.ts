@@ -23,6 +23,8 @@ const log = logger.getSubLogger({ prefix: ["OrganizationPaymentService"] });
 type CreatePaymentIntentInput = {
   logo: string | null;
   bio: string | null;
+  brandColor?: string | null;
+  bannerUrl?: string | null;
   teams?: { id: number; isBeingMigrated: boolean; slug: string | null; name: string }[];
   invitedMembers?: { email: string }[];
 };
@@ -35,6 +37,10 @@ type CreateOnboardingInput = {
   seats?: number | null;
   pricePerSeat?: number | null;
   createdByUserId: number;
+  logo?: string | null;
+  bio?: string | null;
+  brandColor?: string | null;
+  bannerUrl?: string | null;
 };
 
 type PermissionCheckInput = {
@@ -191,6 +197,10 @@ export class OrganizationPaymentService {
       seats: config.seats,
       pricePerSeat: config.pricePerSeat,
       createdById: input.createdByUserId,
+      logo: input.logo ?? null,
+      bio: input.bio ?? null,
+      brandColor: input.brandColor ?? null,
+      bannerUrl: input.bannerUrl ?? null,
     });
   }
 
@@ -287,7 +297,7 @@ export class OrganizationPaymentService {
   ) {
     log.debug("createPaymentIntent", safeStringify(input));
 
-    const { teams: _teams, invitedMembers, logo, bio } = input;
+    const { teams: _teams, invitedMembers, logo, bio, brandColor, bannerUrl } = input;
 
     const teams = _teams?.filter((team) => team.id === -1 || team.isBeingMigrated) || [];
     const teamIds = teams.filter((team) => team.id > 0).map((team) => team.id);
@@ -367,6 +377,8 @@ export class OrganizationPaymentService {
     await OrganizationOnboardingRepository.update(organizationOnboarding.id, {
       bio: bio ?? null,
       logo: logo ?? null,
+      brandColor: brandColor ?? null,
+      bannerUrl: bannerUrl ?? null,
       invitedMembers: invitedMembers,
       teams,
       stripeCustomerId,

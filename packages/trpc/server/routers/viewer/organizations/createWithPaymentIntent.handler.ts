@@ -57,6 +57,8 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       ...input,
       logo: input.logo ?? null,
       bio: input.bio ?? null,
+      brandColor: input.brandColor ?? null,
+      bannerUrl: input.bannerUrl ?? null,
     },
     organizationOnboarding
   );
