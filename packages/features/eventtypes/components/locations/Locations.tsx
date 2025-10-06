@@ -2,35 +2,32 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { ErrorMessage } from "@hookform/error-message";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Controller, useFieldArray, useFormContext } from "react-hook-form";
+import { useFieldArray, useFormContext } from "react-hook-form";
 import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import PhoneInput from "@calcom/features/components/phone-input";
 import type {
   LocationFormValues,
   EventTypeSetupProps,
-  CheckboxClassNames,
   FormValues,
 } from "@calcom/features/eventtypes/lib/types";
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
-import type {
-  LocationSelectCustomClassNames,
-  SingleValueLocationOption,
-} from "@calcom/features/form/components/LocationSelect";
+import type { SingleValueLocationOption } from "@calcom/features/form/components/LocationSelect";
 import LocationSelect from "@calcom/features/form/components/LocationSelect";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { Input } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 import CalVideoSettings from "./CalVideoSettings";
+import DefaultLocationSettings from "./DefaultLocationSettings";
+import LocationInput from "./LocationInput";
+import type { LocationCustomClassNames } from "./types";
 
 export type TEventTypeLocation = Pick<EventTypeSetupProps["eventType"], "locations" | "calVideoSettings">;
 export type TLocationOptions = Pick<EventTypeSetupProps, "locationOptions">["locationOptions"];
@@ -40,19 +37,6 @@ export type TPrefillLocation = { credentialId?: number; type: string };
 type LocationInputCustomClassNames = {
   addressInput?: string;
   phoneInput?: string;
-};
-
-export type LocationCustomClassNames = {
-  container?: string;
-  locationSelect?: LocationSelectCustomClassNames;
-  removeLocationButton?: string;
-  removeLocationIcon?: string;
-  addLocationButton?: string;
-  organizerContactInput?: {
-    errorMessage?: string;
-    locationInput?: LocationInputCustomClassNames;
-    publicDisplayCheckbox?: CheckboxClassNames;
-  };
 };
 
 type LocationsProps = {
@@ -105,66 +89,6 @@ const getLocationInfo = ({
         .join(" "),
     };
   return { locationAvailable, locationDetails };
-};
-
-const LocationInput = (props: {
-  eventLocationType: EventLocationType;
-  defaultValue?: string;
-  index: number;
-  customClassNames?: LocationInputCustomClassNames;
-  disableLocationProp?: boolean;
-}) => {
-  const { t } = useLocale();
-  const { eventLocationType, index, customClassNames, disableLocationProp, ...remainingProps } = props;
-  if (eventLocationType?.organizerInputType === "text") {
-    const { defaultValue, ...rest } = remainingProps;
-
-    return (
-      <Controller
-        name={`locations.${index}.${eventLocationType.defaultValueVariable}`}
-        defaultValue={defaultValue}
-        render={({ field: { onChange, value } }) => {
-          return (
-            <Input
-              name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
-              placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
-              type="text"
-              required
-              onChange={onChange}
-              value={value}
-              {...(disableLocationProp ? { disabled: true } : {})}
-              className={classNames("my-0", customClassNames?.addressInput)}
-              {...rest}
-            />
-          );
-        }}
-      />
-    );
-  } else if (eventLocationType?.organizerInputType === "phone") {
-    const { defaultValue, ...rest } = remainingProps;
-
-    return (
-      <Controller
-        name={`locations.${index}.${eventLocationType.defaultValueVariable}`}
-        defaultValue={defaultValue}
-        render={({ field: { onChange, value } }) => {
-          return (
-            <PhoneInput
-              required
-              disabled={disableLocationProp}
-              placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
-              name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
-              className={customClassNames?.phoneInput}
-              value={value}
-              onChange={onChange}
-              {...rest}
-            />
-          );
-        }}
-      />
-    );
-  }
-  return null;
 };
 
 const Locations: React.FC<LocationsProps> = ({
@@ -343,7 +267,14 @@ const Locations: React.FC<LocationsProps> = ({
 
               {isCalVideo && !isPlatform && <CalVideoSettings />}
 
-              {eventLocationType?.organizerInputType && (
+              {eventLocationType?.supportsCustomLabel && eventLocationType?.type ? (
+                <DefaultLocationSettings
+                  field={field}
+                  index={index}
+                  disableLocationProp={disableLocationProp}
+                  customClassNames={customClassNames}
+                />
+              ) : eventLocationType?.organizerInputType ? (
                 <div className="mt-2 space-y-2">
                   <div className="w-full">
                     <div className="flex gap-2">
@@ -397,7 +328,7 @@ const Locations: React.FC<LocationsProps> = ({
                     />
                   </div>
                 </div>
-              )}
+              ) : null}
             </li>
           );
         })}

@@ -1,7 +1,8 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useQueryClient } from "@tanstack/react-query";
 // eslint-disable-next-line no-restricted-imports
 import debounce from "lodash/debounce";
-import { useMemo, useEffect, useCallback, useState, useRef } from "react";
+import { useMemo, useEffect, useCallback, useState, useRef, useContext } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
@@ -10,15 +11,17 @@ import {
   BookerStoreProvider,
   useInitializeBookerStoreContext,
   useBookerStoreContext,
+  BookerStoreContext,
 } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
 import { useBookingForm } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useLocalSet } from "@calcom/features/bookings/Booker/components/hooks/useLocalSet";
-import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
+import { usePrefetch } from "@calcom/features/bookings/Booker/components/hooks/usePrefetch";
+import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
-import { getUsernameList } from "@calcom/lib/defaultEvents";
+import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
@@ -38,6 +41,8 @@ import { useCalendarsBusyTimes } from "../hooks/useCalendarsBusyTimes";
 import { useConnectedCalendars } from "../hooks/useConnectedCalendars";
 import { useMe } from "../hooks/useMe";
 import { useSlots } from "../hooks/useSlots";
+import { useVerifyCode } from "../hooks/useVerifyCode";
+import { useVerifyEmail } from "../hooks/useVerifyEmail";
 import { AtomsWrapper } from "../src/components/atoms-wrapper";
 import type {
   BookerPlatformWrapperAtomPropsForIndividual,
@@ -65,6 +70,7 @@ const BookerPlatformWrapperComponent = (
     startTime: customStartTime,
     showNoAvailabilityDialog,
     silentlyHandleCalendarFailures = false,
+    hideEventMetadata = false,
   } = props;
   const layout = BookerLayouts[view];
 
@@ -87,14 +93,13 @@ const BookerPlatformWrapperComponent = (
     Boolean(localStorage?.getItem?.("overlayCalendarSwitchDefault"))
   );
   const prevStateRef = useRef<BookerStoreValues | null>(null);
-  const getStateValues = useCallback(
-    (state: ReturnType<typeof useBookerStore.getState>): BookerStoreValues => {
-      return Object.fromEntries(
-        Object.entries(state).filter(([_, value]) => typeof value !== "function")
-      ) as BookerStoreValues;
-    },
-    []
-  );
+  const bookerStoreContext = useContext(BookerStoreContext);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const getStateValues = useCallback((state: any): BookerStoreValues => {
+    return Object.fromEntries(
+      Object.entries(state).filter(([_, value]) => typeof value !== "function")
+    ) as BookerStoreValues;
+  }, []);
   const debouncedStateChange = useMemo(() => {
     return debounce(
       (currentStateValues: BookerStoreValues, callback: (values: BookerStoreValues) => void) => {
@@ -111,15 +116,15 @@ const BookerPlatformWrapperComponent = (
   }, []);
 
   useEffect(() => {
-    if (!onBookerStateChange) return;
+    if (!onBookerStateChange || !bookerStoreContext) return;
 
-    const unsubscribe = useBookerStore.subscribe((state) => {
+    const unsubscribe = bookerStoreContext.subscribe((state) => {
       const currentStateValues = getStateValues(state);
       debouncedStateChange(currentStateValues, onBookerStateChange);
     });
 
     // Initial call with current state
-    const initialState = getStateValues(useBookerStore.getState());
+    const initialState = getStateValues(bookerStoreContext.getState());
     onBookerStateChange(initialState);
     prevStateRef.current = initialState;
 
@@ -127,7 +132,7 @@ const BookerPlatformWrapperComponent = (
       unsubscribe();
       debouncedStateChange.cancel();
     };
-  }, [onBookerStateChange, getStateValues, debouncedStateChange]);
+  }, [onBookerStateChange, getStateValues, debouncedStateChange, bookerStoreContext]);
 
   useGetBookingForReschedule({
     uid: props.rescheduleUid ?? props.bookingUid ?? "",
@@ -145,10 +150,12 @@ const BookerPlatformWrapperComponent = (
 
   useEffect(() => {
     setSelectedDuration(props.duration ?? null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.duration]);
 
   useEffect(() => {
     setOrg(props.entity?.orgSlug ?? null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.entity?.orgSlug]);
 
   const isDynamic = useMemo(() => {
@@ -221,6 +228,7 @@ const BookerPlatformWrapperComponent = (
       name: prefillFormParamName,
       guests: defaultGuests ?? [],
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultName, defaultGuests]);
 
   const extraOptions = useMemo(() => {
@@ -228,23 +236,12 @@ const BookerPlatformWrapperComponent = (
   }, [restFormValues]);
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
 
-  const prefetchNextMonth =
-    (bookerLayout.layout === BookerLayouts.WEEK_VIEW &&
-      !!bookerLayout.extraDays &&
-      dayjs(date).month() !== dayjs(date).add(bookerLayout.extraDays, "day").month()) ||
-    (bookerLayout.layout === BookerLayouts.COLUMN_VIEW &&
-      dayjs(date).month() !== dayjs(date).add(bookerLayout.columnViewExtraDays.current, "day").month()) ||
-    ((bookerLayout.layout === BookerLayouts.MONTH_VIEW || bookerLayout.layout === "mobile") &&
-      (!dayjs(date).isValid() || dayjs().isSame(dayjs(month), "month")) &&
-      dayjs().isAfter(dayjs(month).startOf("month").add(2, "week")));
-
-  const monthCount =
-    ((bookerLayout.layout !== BookerLayouts.WEEK_VIEW && bookerState === "selecting_time") ||
-      bookerLayout.layout === BookerLayouts.COLUMN_VIEW) &&
-    dayjs(date).add(1, "month").month() !==
-      dayjs(date).add(bookerLayout.columnViewExtraDays.current, "day").month()
-      ? 2
-      : undefined;
+  const { prefetchNextMonth, monthCount } = usePrefetch({
+    date,
+    month,
+    bookerLayout,
+    bookerState,
+  });
   const { timezone } = useTimePreferences();
 
   const [calculatedStartTime, calculatedEndTime] = useTimesForSchedule({
@@ -395,6 +392,23 @@ const BookerPlatformWrapperComponent = (
     handleSlotReservation,
   });
 
+  const verifyEmail = useVerifyEmail({
+    email: bookerForm.formEmail,
+    name: bookerForm.formName,
+    requiresBookerEmailVerification: event?.data?.requiresBookerEmailVerification,
+    onVerifyEmail: bookerForm.beforeVerifyEmail,
+  });
+
+  const verifyCode = useVerifyCode({
+    onSuccess: () => {
+      if (!bookerForm.formEmail) return;
+
+      verifyEmail.setVerifiedEmail(bookerForm.formEmail);
+      verifyEmail.setEmailVerificationModalVisible(false);
+      handleBookEvent();
+    },
+  });
+
   const { data: connectedCalendars, isPending: fetchingConnectedCalendars } = useConnectedCalendars({
     enabled: hasSession,
   });
@@ -451,6 +465,7 @@ const BookerPlatformWrapperComponent = (
   );
   useEffect(() => {
     setSelectedDate({ date: selectedDateProp, omitUpdatingParams: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDateProp]);
 
   useEffect(() => {
@@ -553,26 +568,13 @@ const BookerPlatformWrapperComponent = (
             return;
           },
         }}
-        verifyEmail={{
-          isEmailVerificationModalVisible: false,
-          setEmailVerificationModalVisible: () => {
-            return;
-          },
-          setVerifiedEmail: () => {
-            return;
-          },
-          handleVerifyEmail: () => {
-            return;
-          },
-          renderConfirmNotVerifyEmailButtonCond: true,
-          isVerificationCodeSending: false,
-        }}
+        verifyEmail={verifyEmail}
         bookerForm={bookerForm}
         event={event}
         schedule={schedule}
         orgBannerUrl={bannerUrl ?? event.data?.bannerUrl}
-        bookerLayout={bookerLayout}
-        verifyCode={undefined}
+        bookerLayout={{ ...bookerLayout, hideEventTypeDetails: hideEventMetadata }}
+        verifyCode={verifyCode}
         isPlatform
         hasValidLicense={true}
         isBookingDryRun={isBookingDryRun ?? routingParams?.isBookingDryRun}
@@ -593,7 +595,7 @@ export const BookerPlatformWrapper = (
   );
 };
 
-function formatUsername(username: string | string[]): string {
+export function formatUsername(username: string | string[]): string {
   if (typeof username === "string") {
     return username;
   }

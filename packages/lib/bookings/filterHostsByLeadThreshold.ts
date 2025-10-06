@@ -1,10 +1,10 @@
+import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import logger from "@calcom/lib/logger";
 import type { RRResetInterval, SelectedCalendar } from "@calcom/prisma/client";
 import { RRTimestampBasis } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
-import type { RoutingFormResponse } from "../server/getLuckyUser";
-import { getOrderedListOfLuckyUsers } from "../server/getLuckyUser";
+import type { LuckyUserService, RoutingFormResponse } from "../server/getLuckyUser";
 
 export const errorCodes = {
   MAX_LEAD_THRESHOLD_FALSY: "Max lead threshold should be null or > 1, not 0.",
@@ -26,7 +26,9 @@ type BaseHost<User extends BaseUser> = {
   user: User;
 };
 
-type PerUserData = Awaited<ReturnType<typeof getOrderedListOfLuckyUsers>>["perUserData"];
+type PerUserData = Awaited<
+  ReturnType<(typeof LuckyUserService.prototype)["getOrderedListOfLuckyUsers"]>
+>["perUserData"];
 type WeightedPerUserData = Omit<PerUserData, "weights" | "calibrations" | "bookingShortfalls"> & {
   weights: NonNullable<PerUserData["weights"]>;
   calibrations: NonNullable<PerUserData["calibrations"]>;
@@ -116,7 +118,8 @@ export const filterHostsByLeadThreshold = async <T extends BaseHost<BaseUser>>({
   }
 
   // this needs the routing forms response too, because it needs to know what queue we are in
-  const orderedLuckyUsers = await getOrderedListOfLuckyUsers({
+  const luckyUserService = getLuckyUserService();
+  const orderedLuckyUsers = await luckyUserService.getOrderedListOfLuckyUsers({
     availableUsers: [
       {
         ...hosts[0].user,

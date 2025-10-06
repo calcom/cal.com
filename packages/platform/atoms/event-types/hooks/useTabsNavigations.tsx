@@ -5,6 +5,8 @@ import type { TFunction } from "i18next";
 import { useMemo } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
+import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import type {
@@ -13,9 +15,7 @@ import type {
   FormValues,
   EventTypeApps,
 } from "@calcom/features/eventtypes/lib/types";
-import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 
 type Props = {
@@ -24,6 +24,7 @@ type Props = {
   team: EventTypeSetupProps["team"];
   eventTypeApps?: EventTypeApps;
   allActiveWorkflows?: Workflow[];
+  canReadWorkflows?: boolean;
 };
 export const useTabsNavigations = ({
   formMethods,
@@ -31,6 +32,7 @@ export const useTabsNavigations = ({
   team,
   eventTypeApps,
   allActiveWorkflows,
+  canReadWorkflows = false,
 }: Props) => {
   const { t } = useLocale();
 
@@ -79,6 +81,7 @@ export const useTabsNavigations = ({
       installedAppsNumber,
       enabledWorkflowsNumber,
       availability,
+      canReadWorkflows,
     });
 
     if (!requirePayment) {
@@ -166,6 +169,7 @@ export const useTabsNavigations = ({
     watchSchedulingType,
     watchChildrenCount,
     activeWebhooksNumber,
+    canReadWorkflows,
   ]);
 
   return { tabsNavigation: EventTypeTabs };
@@ -180,6 +184,7 @@ type getNavigationProps = {
   enabledWorkflowsNumber: number;
   installedAppsNumber: number;
   availability: AvailabilityOption | undefined;
+  canReadWorkflows: boolean;
 };
 
 function getNavigation({
@@ -190,16 +195,17 @@ function getNavigation({
   enabledAppsNumber,
   installedAppsNumber,
   enabledWorkflowsNumber,
+  canReadWorkflows,
 }: getNavigationProps) {
   const duration = multipleDuration?.map((duration) => ` ${duration}`) || length;
 
-  return [
+  const baseNavigation: VerticalTabItemProps[] = [
     {
-      name: t("event_setup_tab_title"),
+      name: t("basics"),
       href: `/event-types/${id}?tabName=setup`,
       icon: "link",
       info: `${duration} ${t("minute_timeUnit")}`, // TODO: Get this from props
-      "data-testid": `event_setup_tab_title`,
+      "data-testid": `basics`,
     },
     {
       name: t("event_limit_tab_title"),
@@ -223,12 +229,18 @@ function getNavigation({
       info: `${installedAppsNumber} apps, ${enabledAppsNumber} ${t("active")}`,
       "data-testid": "apps",
     },
-    {
+  ];
+
+  // Only add workflows tab if user has permission to read workflows
+  if (canReadWorkflows) {
+    baseNavigation.push({
       name: t("workflows"),
       href: `/event-types/${id}?tabName=workflows`,
       icon: "zap",
       info: `${enabledWorkflowsNumber} ${t("active")}`,
       "data-testid": "workflows",
-    },
-  ] satisfies VerticalTabItemProps[];
+    });
+  }
+
+  return baseNavigation;
 }

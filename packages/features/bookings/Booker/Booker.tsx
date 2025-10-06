@@ -8,6 +8,7 @@ import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
 import dayjs from "@calcom/dayjs";
 import PoweredBy from "@calcom/ee/components/PoweredBy";
+import { useEmbedUiConfig } from "@calcom/embed-core/embed-iframe";
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
 import TurnstileCaptcha from "@calcom/features/auth/Turnstile";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
@@ -91,7 +92,6 @@ const BookerComponent = ({
   );
 
   const selectedDate = useBookerStoreContext((state) => state.selectedDate);
-  const setSelectedDate = useBookerStoreContext((state) => state.setSelectedDate);
 
   const {
     shouldShowFormInDialog,
@@ -144,7 +144,14 @@ const BookerComponent = ({
 
   const { bookerFormErrorRef, key, formEmail, bookingForm, errors: formErrors } = bookerForm;
 
-  const { handleBookEvent, errors, loadingStates, expiryTime, instantVideoMeetingUrl } = bookings;
+  const {
+    handleBookEvent,
+    errors,
+    loadingStates,
+    expiryTime,
+    instantVideoMeetingUrl,
+    instantConnectCooldownMs,
+  } = bookings;
 
   const watchedCfToken = bookingForm.watch("cfToken");
 
@@ -165,9 +172,14 @@ const BookerComponent = ({
   } = calendars;
 
   const scrolledToTimeslotsOnce = useRef(false);
-
+  const embedUiConfig = useEmbedUiConfig();
   const scrollToTimeSlots = () => {
-    if (isMobile && !scrolledToTimeslotsOnce.current && timeslotsRef.current) {
+    if (
+      isMobile &&
+      !scrolledToTimeslotsOnce.current &&
+      timeslotsRef.current &&
+      !embedUiConfig.disableAutoScroll
+    ) {
       // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- We are allowing it here because scrollToTimeSlots is called on explicit user action where it makes sense to scroll, remember that the goal is to not do auto-scroll on embed load because that ends up scrolling the embedding webpage too
       scrollIntoViewSmooth(timeslotsRef.current, isEmbed);
       scrolledToTimeslotsOnce.current = true;
@@ -224,9 +236,9 @@ const BookerComponent = ({
     setSelectedTimeslot(slot || null);
   }, [slot, setSelectedTimeslot]);
 
-  const onSubmit = (timeSlot?: string) => {
+  const onSubmit = (timeSlot?: string) =>
     renderConfirmNotVerifyEmailButtonCond ? handleBookEvent(timeSlot) : handleVerifyEmail();
-  };
+
 
   const EventBooker = useMemo(() => {
     return bookerState === "booking" ? (
@@ -404,23 +416,25 @@ const BookerComponent = ({
                     src={orgBannerUrl}
                   />
                 )}
-                <EventMeta
-                  selectedTimeslot={selectedTimeslot}
-                  classNames={{
-                    eventMetaContainer: customClassNames?.eventMetaCustomClassNames?.eventMetaContainer,
-                    eventMetaTitle: customClassNames?.eventMetaCustomClassNames?.eventMetaTitle,
-                    eventMetaTimezoneSelect:
-                      customClassNames?.eventMetaCustomClassNames?.eventMetaTimezoneSelect,
-                  }}
-                  event={event.data}
-                  isPending={event.isPending}
-                  isPlatform={isPlatform}
-                  isPrivateLink={!!hashedLink}
-                  locale={userLocale}
-                  timeZones={timeZones}
-                  roundRobinHideOrgAndTeam={roundRobinHideOrgAndTeam}>
-                  {eventMetaChildren}
-                </EventMeta>
+                {!hideEventTypeDetails && (
+                  <EventMeta
+                    selectedTimeslot={selectedTimeslot}
+                    classNames={{
+                      eventMetaContainer: customClassNames?.eventMetaCustomClassNames?.eventMetaContainer,
+                      eventMetaTitle: customClassNames?.eventMetaCustomClassNames?.eventMetaTitle,
+                      eventMetaTimezoneSelect:
+                        customClassNames?.eventMetaCustomClassNames?.eventMetaTimezoneSelect,
+                    }}
+                    event={event.data}
+                    isPending={event.isPending}
+                    isPlatform={isPlatform}
+                    isPrivateLink={!!hashedLink}
+                    locale={userLocale}
+                    timeZones={timeZones}
+                    roundRobinHideOrgAndTeam={roundRobinHideOrgAndTeam}>
+                    {eventMetaChildren}
+                  </EventMeta>
+                )}
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
                     <div className="mt-auto px-5 py-3">
@@ -535,6 +549,7 @@ const BookerComponent = ({
               style={{ animationDelay: "1s" }}>
               <InstantBooking
                 event={event.data}
+                cooldownMs={instantConnectCooldownMs}
                 onConnectNow={() => {
                   onConnectNowInstantMeeting();
                 }}

@@ -1,5 +1,5 @@
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries/teams";
+import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -17,9 +17,21 @@ interface AddBulkToTeamProps {
 export const addMembersToTeams = async ({ user, input }: AddBulkToTeamProps) => {
   if (!user.organizationId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  // check if user is admin of organization
-  if (!(await isOrganisationAdmin(user?.id, user.organizationId)))
-    throw new TRPCError({ code: "UNAUTHORIZED" });
+  // Check if user has permission to invite team members in the organization
+  const permissionCheckService = new PermissionCheckService();
+  const hasPermission = await permissionCheckService.checkPermission({
+    userId: user.id,
+    teamId: user.organizationId,
+    permission: "team.invite",
+    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+  });
+
+  if (!hasPermission) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You are not authorized to add members to teams in this organization",
+    });
+  }
 
   const usersInOrganization = await prisma.membership.findMany({
     where: {

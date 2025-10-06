@@ -24,6 +24,10 @@ export type AppFlags = {
   pbac: boolean;
   "restriction-schedule": boolean;
   "team-booking-page-cache": boolean;
+  "cal-ai-voice-agents": boolean;
+  "tiered-support-chat": boolean;
+  "calendar-subscription-cache": boolean;
+  "calendar-subscription-sync": boolean;
 };
 
 export type TeamFeatures = Record<keyof AppFlags, boolean>;

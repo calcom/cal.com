@@ -19,6 +19,7 @@ import {
   ArrayUnique,
 } from "class-validator";
 
+
 import { SchedulingType } from "@calcom/platform-enums";
 
 import { BookerLayouts_2024_06_14 } from "./booker-layouts.input";
@@ -152,6 +153,27 @@ export class CalVideoSettings {
     description: "If true, enables the automatic recording for the event when organizer joins the call",
   })
   enableAutomaticRecordingForOrganizer?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, enables the automatic transcription for the event whenever someone joins the call",
+  })
+  enableAutomaticTranscription?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, the guests will not be able to receive transcription of the meeting",
+  })
+  disableTranscriptionForGuests?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, the organizer will not be able to receive transcription of the meeting",
+  })
+  disableTranscriptionForOrganizer?: boolean;
 }
 
 class BaseCreateEventTypeInput {
@@ -451,6 +473,15 @@ class BaseCreateEventTypeInput {
   @IsBoolean()
   @DocsPropertyOptional()
   hidden?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    default: false,
+    description:
+      "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type.",
+  })
+  bookingRequiresAuthentication?: boolean;
 }
 export class CreateEventTypeInput_2024_06_14 extends BaseCreateEventTypeInput {
   @IsOptional()
@@ -530,14 +561,14 @@ export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInpu
   @DocsPropertyOptional({
     type: [Host],
     description:
-      "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users.",
+      "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users. Provide either hosts or assignAllTeamMembers but not both",
   })
   hosts?: Host[];
 
   @IsBoolean()
   @IsOptional()
   @DocsPropertyOptional({
-    description: "If true, all current and future team members will be assigned to this event type",
+    description: "If true, all current and future team members will be assigned to this event type. Provide either assignAllTeamMembers or hosts but not both",
   })
   assignAllTeamMembers?: boolean;
 

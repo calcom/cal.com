@@ -1,13 +1,19 @@
 import db from "@calcom/prisma";
 import type { PrismaClient as PrismaClientWithExtensions } from "@calcom/prisma";
+import type { MembershipRole } from "@calcom/prisma/enums";
 
 import { PermissionMapper } from "../../domain/mappers/PermissionMapper";
 import type { TeamPermissions } from "../../domain/models/Permission";
 import type { IPermissionRepository } from "../../domain/repositories/IPermissionRepository";
 import type { CrudAction, CustomAction } from "../../domain/types/permission-registry";
-import { Resource, type PermissionString } from "../../domain/types/permission-registry";
+import {
+  Resource,
+  type PermissionString,
+  parsePermissionString,
+} from "../../domain/types/permission-registry";
 
 export class PermissionRepository implements IPermissionRepository {
+  private readonly PBAC_FEATURE_FLAG = "pbac" as const;
   private client: PrismaClientWithExtensions;
 
   constructor(client: PrismaClientWithExtensions = db) {
@@ -90,8 +96,18 @@ export class PermissionRepository implements IPermissionRepository {
     });
   }
 
+  async getTeamById(teamId: number) {
+    return this.client.team.findUnique({
+      where: { id: teamId },
+      select: {
+        id: true,
+        parentId: true,
+      },
+    });
+  }
+
   async checkRolePermission(roleId: string, permission: PermissionString): Promise<boolean> {
-    const [resource, action] = permission.split(".");
+    const { resource, action } = parsePermissionString(permission);
     const hasPermission = await this.client.rolePermission.findFirst({
       where: {
         roleId,
@@ -113,7 +129,7 @@ export class PermissionRepository implements IPermissionRepository {
     }
 
     const permissionPairs = permissions.map((p) => {
-      const [resource, action] = p.split(".");
+      const { resource, action } = parsePermissionString(p);
       return { resource, action };
     });
     const resourceActions = permissionPairs.map((p) => [p.resource, p.action]);
@@ -196,22 +212,38 @@ export class PermissionRepository implements IPermissionRepository {
     return permissions.map((p) => p.action as CrudAction | CustomAction);
   }
 
-  async getTeamIdsWithPermission(userId: number, permission: PermissionString): Promise<number[]> {
-    return this.getTeamIdsWithPermissions(userId, [permission]);
+  async getTeamIdsWithPermission({
+    userId,
+    permission,
+    fallbackRoles,
+  }: {
+    userId: number;
+    permission: PermissionString;
+    fallbackRoles: MembershipRole[];
+  }): Promise<number[]> {
+    return this.getTeamIdsWithPermissions({ userId, permissions: [permission], fallbackRoles });
   }
 
-  async getTeamIdsWithPermissions(userId: number, permissions: PermissionString[]): Promise<number[]> {
+  async getTeamIdsWithPermissions({
+    userId,
+    permissions,
+    fallbackRoles,
+  }: {
+    userId: number;
+    permissions: PermissionString[];
+    fallbackRoles: MembershipRole[];
+  }): Promise<number[]> {
     // Validate that permissions array is not empty to prevent privilege escalation
     if (permissions.length === 0) {
       return [];
     }
 
     const permissionPairs = permissions.map((p) => {
-      const [resource, action] = p.split(".");
+      const { resource, action } = parsePermissionString(p);
       return { resource, action };
     });
 
-    const teamsWithPermission = await this.client.$queryRaw<{ teamId: number }[]>`
+    const teamsWithPermissionPromise = this.client.$queryRaw<{ teamId: number }[]>`
       SELECT DISTINCT m."teamId"
       FROM "Membership" m
       INNER JOIN "Role" r ON m."customRoleId" = r.id
@@ -235,6 +267,26 @@ export class PermissionRepository implements IPermissionRepository {
         ) = ${permissions.length}
     `;
 
-    return teamsWithPermission.map((team) => team.teamId);
+    const teamsWithFallbackRolesPromise = this.client.$queryRaw<{ teamId: number }[]>`
+      SELECT DISTINCT m."teamId"
+      FROM "Membership" m
+      INNER JOIN "Team" t ON m."teamId" = t.id
+      LEFT JOIN "TeamFeatures" f ON t.id = f."teamId" AND f."featureId" = ${this.PBAC_FEATURE_FLAG}
+      WHERE m."userId" = ${userId}
+        AND m."accepted" = true
+        AND m."role"::text = ANY(${fallbackRoles})
+        AND f."teamId" IS NULL
+    `;
+
+    const [teamsWithPermission, teamsWithFallbackRoles] = await Promise.all([
+      teamsWithPermissionPromise,
+      teamsWithFallbackRolesPromise,
+    ]);
+
+    const pbacTeamIds = teamsWithPermission.map((team) => team.teamId);
+    const fallbackTeamIds = teamsWithFallbackRoles.map((team) => team.teamId);
+
+    const allTeamIds = Array.from(new Set([...pbacTeamIds, ...fallbackTeamIds]));
+    return allTeamIds;
   }
 }

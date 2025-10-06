@@ -1,4 +1,4 @@
-import { getUserAvailabilityService } from "@calcom/lib/di/containers/GetUserAvailability";
+import { getUserAvailabilityService } from "@calcom/features/di/containers/GetUserAvailability";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TUserInputSchema } from "./user.schema";

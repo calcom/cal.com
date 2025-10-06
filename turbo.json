@@ -17,6 +17,7 @@
     "BLACKLISTED_GUEST_EMAILS",
     "AUTH_BEARER_TOKEN_VERCEL",
     "BUILD_ID",
+    "CAL_AI_CALL_RATE_PER_MINUTE",
     "CAL_SIGNATURE_TOKEN",
     "CALCOM_PRIVATE_API_ROUTE",
     "CALCOM_APP_CREDENTIAL_ENCRYPTION_KEY",
@@ -80,12 +81,12 @@
     "GOOGLE_API_CREDENTIALS",
     "GOOGLE_LOGIN_ENABLED",
     "GOOGLE_WEBHOOK_TOKEN",
+    "GOOGLE_WEBHOOK_URL",
     "HEROKU_APP_NAME",
     "HUBSPOT_CLIENT_ID",
     "HUBSPOT_CLIENT_SECRET",
     "IFFY_API_KEY",
     "INTEGRATION_TEST_MODE",
-    "IS_E2E",
     "INTERCOM_SECRET",
     "INTERCOM_SECRET",
     "INSIGHTS_DATABASE_URL",
@@ -108,16 +109,27 @@
     "NEXT_PUBLIC_FORMBRICKS_HOST_URL",
     "NEXT_PUBLIC_FORMBRICKS_ENVIRONMENT_ID",
     "NEXT_PUBLIC_HOSTED_CAL_FEATURES",
+    "NEXT_PUBLIC_IS_E2E",
     "NEXT_PUBLIC_MINUTES_TO_BOOK",
     "NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED",
     "NEXT_PUBLIC_SENDER_ID",
     "NEXT_PUBLIC_SENDGRID_SENDER_NAME",
+    "NEXT_PUBLIC_SENTRY_DSN",
+    "NEXT_PUBLIC_SENTRY_DSN_CLIENT",
     "NEXT_PUBLIC_STRIPE_PRICING_TABLE_ID",
+    "NEXT_PUBLIC_STRIPE_PUBLIC_KEY",
+    "NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE_MONTHLY",
     "NEXT_PUBLIC_STRIPE_PRICING_TABLE_PUBLISHABLE_KEY",
+    "NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID",
+    "ORG_MONTHLY_CREDITS",
+    "NEXT_PUBLIC_PLAIN_CHAT_ID",
+    "NEXT_PUBLIC_PLAIN_CHAT_EXCLUDED_PATHS",
+    "NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD",
     "NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS",
     "NEXT_PUBLIC_SWAGGER_DOCS_URL",
     "NEXT_PUBLIC_TEAM_IMPERSONATION",
     "NEXT_PUBLIC_VERCEL_URL",
+    "NEXT_PUBLIC_CAL_AI_PHONE_NUMBER_MONTHLY_PRICE",
     "NEXT_PUBLIC_CLOUDFLARE_SITEKEY",
     "NEXT_PUBLIC_CLOUDFLARE_USE_TURNSTILE_IN_BOOKER",
     "NEXT_PUBLIC_VERCEL_ENV",
@@ -127,6 +139,7 @@
     "NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE_NEW",
     "NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL",
     "NEXT_PUBLIC_WEBSITE_TERMS_URL",
+    "NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL",
     "NEXT_RUNTIME",
     "NEXTAUTH_COOKIE_DOMAIN",
     "NEXTAUTH_SECRET",
@@ -146,6 +159,9 @@
     "RENDER_EXTERNAL_URL",
     "RESERVED_SUBDOMAINS",
     "RETELL_AI_KEY",
+    "RETELL_AI_TEST_MODE",
+    "RETELL_AI_TEST_EVENT_TYPE_MAP",
+    "RETELL_AI_TEST_CAL_API_KEY",
     "SALESFORCE_CONSUMER_KEY",
     "SALESFORCE_CONSUMER_SECRET",
     "SAML_ADMINS",
@@ -155,6 +171,9 @@
     "SENDGRID_API_KEY",
     "SENDGRID_EMAIL",
     "SENDGRID_SYNC_API_KEY",
+    "SENTRY_SAMPLE_RATE",
+    "SENTRY_TRACES_SAMPLE_RATE",
+    "SENTRY_DEBUG",
     "SKIP_DB_MIGRATIONS",
     "SLACK_CLIENT_ID",
     "SLACK_CLIENT_SECRET",
@@ -168,6 +187,9 @@
     "STRIPE_WEBHOOK_SECRET_APPS",
     "STRIPE_WEBHOOK_SECRET_BILLING",
     "STRIPE_TEAM_MONTHLY_PRICE_ID",
+    "STRIPE_TEAM_PRODUCT_ID",
+    "STRIPE_ORG_MONTHLY_PRICE_ID",
+    "ORG_MONTHLY_CREDITS",
     "TANDEM_BASE_URL",
     "TANDEM_CLIENT_ID",
     "TANDEM_CLIENT_SECRET",
@@ -249,9 +271,28 @@
     "CALCOM_SERVICE_ACCOUNT_ENCRYPTION_KEY",
     "CAL_VIDEO_RECORDING_TOKEN_SECRET",
     "ORGANIZER_EMAIL_EXEMPT_DOMAINS",
-    "SLOTS_CACHE_TTL"
+    "SLOTS_CACHE_TTL",
+    "CSP_POLICY",
+    "NEXT_PUBLIC_API_V2_URL",
+    "NEXT_PUBLIC_WEBAPP_URL",
+    "NEXT_PUBLIC_WEBSITE_URL",
+    "BUILD_STANDALONE",
+    "ATOMS_E2E_APPLE_ID",
+    "ATOMS_E2E_APPLE_CONNECT_APP_SPECIFIC_PASSCODE",
+    "INTERCOM_API_TOKEN",
+    "NEXT_PUBLIC_INTERCOM_APP_ID",
+    "MICROSOFT_WEBHOOK_TOKEN",
+    "MICROSOFT_WEBHOOK_URL",
+    "_CAL_INTERNAL_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS",
+    "ENTERPRISE_SLUGS",
+    "PLATFORM_ENTERPRISE_SLUGS"
   ],
   "tasks": {
+    "@calcom/web#copy-app-store-static": {
+      "inputs": ["../../packages/app-store/**/static/**/*"],
+      "outputLogs": "new-only",
+      "outputs": ["public/app-store/**"]
+    },
     "@calcom/prisma#build": {
       "cache": false,
       "dependsOn": ["post-install"]
@@ -263,14 +304,14 @@
     },
     "@calcom/prisma#db-seed": {
       "cache": false,
-      "dependsOn": ["@calcom/prisma#db-migrate"]
+      "dependsOn": ["@calcom/prisma#db-deploy"]
     },
     "@calcom/prisma#db-up": {
       "cache": false
     },
     "@calcom/prisma#dx": {
       "cache": false,
-      "dependsOn": ["@calcom/prisma#db-migrate"]
+      "dependsOn": ["@calcom/prisma#db-up"]
     },
     "@calcom/trpc#build": {
       "outputs": ["./types"]
@@ -281,6 +322,7 @@
       "env": [
         "NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL",
         "NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD",
+        "NEXT_PUBLIC_CAL_AI_PHONE_NUMBER_MONTHLY_PRICE",
         "NEXT_PUBLIC_IS_E2E",
         "NEXT_PUBLIC_SENTRY_DSN",
         "NEXT_PUBLIC_SENTRY_DSN_CLIENT",
@@ -288,6 +330,7 @@
         "NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRODUCT_ID",
         "NEXT_PUBLIC_STRIPE_PUBLIC_KEY",
         "NEXT_PUBLIC_STRIPE_TEAM_MONTHLY_PRICE_ID",
+        "STRIPE_PHONE_NUMBER_MONTHLY_PRICE_ID",
         "NEXT_PUBLIC_WEBAPP_URL",
         "NEXT_PUBLIC_WEBSITE_URL",
         "SENTRY_AUTH_TOKEN",
@@ -303,13 +346,16 @@
         "STRIPE_TEAM_MONTHLY_PRICE_ID",
         "NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID",
         "STRIPE_TEAM_PRODUCT_ID",
+        "ORG_MONTHLY_CREDITS",
         "STRIPE_ORG_MONTHLY_PRICE_ID",
         "STRIPE_ORG_PRODUCT_ID",
         "NEXT_PUBLIC_API_V2_URL",
         "NEXT_PUBLIC_VAPID_PUBLIC_KEY",
+        "NEXT_PUBLIC_SENTRY_DSN_CLIENT",
         "BUILD_STANDALONE",
         "NEXT_PUBLIC_API_HITPAY_PRODUCTION",
-        "NEXT_PUBLIC_API_HITPAY_SANDBOX"
+        "NEXT_PUBLIC_API_HITPAY_SANDBOX",
+        "NEXT_PUBLIC_PLAIN_CHAT_EXCLUDED_PATHS"
       ]
     },
     "@calcom/web#dx": {
@@ -379,13 +425,7 @@
         "STRIPE_SUPPORT_TABLE",
         "MOTIFLAND_REST_ENDPOINT",
         "MOTIFLAND_DOCS_API_KEY",
-        "MOTIFLAND_DOCS_PROJECT_ID",
-        "PLAIN_HMAC_SECRET_KEY",
-        "PLAIN_API_KEY",
-        "PLAIN_API_URL",
-        "NEXT_PUBLIC_PLAIN_CHAT_ID",
-        "PLAIN_CHAT_HMAC_SECRET_KEY",
-        "NEXT_PUBLIC_PLAIN_CHAT_EXCLUDED_PATHS"
+        "MOTIFLAND_DOCS_PROJECT_ID"
       ]
     },
     "build": {
@@ -414,13 +454,12 @@
       "cache": false
     },
     "lint": {
-      "cache": false
+      "dependsOn": ["^lint"]
     },
     "lint:fix": {
       "cache": false
     },
     "lint:report": {
-      "cache": false,
       "outputs": ["lint-results"]
     },
     "post-install": {
@@ -457,9 +496,16 @@
       "outputs": ["dist/**", "build/**"]
     },
     "@calcom/app-store-cli#build": {
-      "cache": false,
-      "inputs": ["../../app-store/**"],
-      "outputs": ["../../app-store/apps.server.generated.ts", "../../app-store/apps.browser.generated.tsx"]
+      "inputs": [
+        "../../packages/app-store/**/package.json",
+        "../../packages/app-store/**/config.json",
+        "../../packages/app-store/**/api/**",
+        "../../packages/app-store/**/components/**",
+        "../../packages/app-store/**/lib/**",
+        "../../packages/app-store/**/pages/**",
+        "../../packages/app-store-cli/src/**"
+      ],
+      "outputs": ["../../packages/app-store/*.generated.ts", "../../packages/app-store/*.generated.tsx"]
     },
     "@calcom/embed-react#type-check": {
       "dependsOn": ["@calcom/embed-core#build", "@calcom/embed-snippet#build"],

@@ -7,13 +7,13 @@ import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
-import { getUsernameList } from "@calcom/lib/defaultEvents";
+import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
 import { EventRepository } from "@calcom/lib/server/repository/event";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
-import prisma from "@calcom/prisma";
-import { BookingStatus, RedirectType } from "@calcom/prisma/client";
+import { prisma } from "@calcom/prisma";
+import { BookingStatus, RedirectType } from "@calcom/prisma/enums";
 
 import { handleOrgRedirect } from "@lib/handleOrgRedirect";
 

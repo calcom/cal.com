@@ -2,7 +2,7 @@ import type { Browser, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 import { test } from "../lib/fixtures";
@@ -304,6 +304,9 @@ test.describe("Organization", () => {
       });
 
       await test.step("Signing up with the previous username of the migrated user - shouldn't be allowed", async () => {
+        await orgOwner.logout();
+        await page.goto("/");
+        await page.waitForLoadState();
         await page.goto("/signup");
         await expect(page.locator("text=Create your account")).toBeVisible();
         await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
@@ -458,7 +461,7 @@ test.describe("Organization", () => {
       await page.locator('[data-testid="fixed-hosts-select"]').click();
       await page.locator(`text="${invitedUserEmail}"`).click();
       await page.locator('[data-testid="update-eventtype"]').click();
-      await page.waitForResponse("/api/trpc/eventTypes/update?batch=1");
+      await page.waitForResponse("/api/trpc/eventTypes/heavy/update?batch=1");
 
       await expectPageToBeNotFound({ page, url: `/team/${team.slug}/${teamEvent.slug}` });
       await doOnOrgDomain(

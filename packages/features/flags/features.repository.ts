@@ -1,7 +1,7 @@
-import { Prisma } from "@prisma/client";
 import { captureException } from "@sentry/nextjs";
 
 import type { PrismaClient } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 
 import type { AppFlags, TeamFeatures } from "./config";
 import type { IFeaturesRepository } from "./features.repository.interface";
@@ -16,6 +16,7 @@ interface CacheOptions {
  * for users, teams, and global application features.
  */
 export class FeaturesRepository implements IFeaturesRepository {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private static featuresCache: { data: any[]; expiry: number } | null = null;
 
   constructor(private prismaClient: PrismaClient) {}
@@ -36,7 +37,6 @@ export class FeaturesRepository implements IFeaturesRepository {
 
     const features = await this.prismaClient.feature.findMany({
       orderBy: { slug: "asc" },
-      cacheStrategy: { swr: 300, ttl: 300 },
     });
 
     FeaturesRepository.featuresCache = {

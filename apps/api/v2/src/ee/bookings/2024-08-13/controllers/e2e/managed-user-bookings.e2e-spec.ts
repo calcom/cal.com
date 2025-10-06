@@ -3,6 +3,7 @@ import { AppModule } from "@/app.module";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { Locales } from "@/lib/enums/locales";
+import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import {
   CreateManagedUserData,
   CreateManagedUserOutput,
@@ -13,7 +14,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { PlatformOAuthClient, Team, User } from "@prisma/client";
 import * as request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
@@ -39,6 +39,7 @@ import {
   GetBookingOutput_2024_08_13,
   GetBookingsOutput_2024_08_13,
 } from "@calcom/platform-types";
+import type { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 
 const CLIENT_REDIRECT_URI = "http://localhost:4321";
 
@@ -80,7 +81,7 @@ describe("Managed user bookings 2024-08-13", () => {
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       providers: [PrismaExceptionFilter, HttpExceptionFilter],
-      imports: [AppModule, UsersModule],
+      imports: [AppModule, UsersModule, MembershipsModule],
     }).compile();
 
     app = moduleRef.createNestApplication();
@@ -769,6 +770,77 @@ describe("Managed user bookings 2024-08-13", () => {
         .expect(401);
 
       await userRepositoryFixture.delete(regularUser.id);
+    });
+  });
+
+  describe("event type booking requires authentication", () => {
+    let eventTypeRequiringAuthenticationId: number;
+
+    let body: CreateBookingInput_2024_08_13;
+
+    beforeAll(async () => {
+      const eventTypeRequiringAuthentication = await eventTypesRepositoryFixture.create(
+        {
+          title: `event-type-requiring-authentication-${randomString()}`,
+          slug: `event-type-requiring-authentication-${randomString()}`,
+          length: 60,
+          requiresConfirmation: true,
+          bookingRequiresAuthentication: true,
+        },
+        secondManagedUser.user.id
+      );
+      eventTypeRequiringAuthenticationId = eventTypeRequiringAuthentication.id;
+
+      body = {
+        start: new Date(Date.UTC(2030, 0, 9, 15, 0, 0)).toISOString(),
+        eventTypeId: eventTypeRequiringAuthenticationId,
+        attendee: {
+          email: "external@example.com",
+          name: "External Attendee",
+          timeZone: "Europe/Rome",
+        },
+      };
+    });
+
+    it("can't be booked without credentials", async () => {
+      await request(app.getHttpServer())
+        .post(`/v2/bookings`)
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(401);
+    });
+
+    it("can't be booked with managed user credentials who is not admin and not event type owner", async () => {
+      await request(app.getHttpServer())
+        .post(`/v2/bookings`)
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${firstManagedUser.accessToken}`)
+        .expect(403);
+    });
+
+    it("can be booked with managed user credentials who is event type owner", async () => {
+      const response = await request(app.getHttpServer())
+        .post(`/v2/bookings`)
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${secondManagedUser.accessToken}`)
+        .expect(201);
+
+      const bookingId = response.body.data.id;
+      await bookingsRepositoryFixture.deleteById(bookingId);
+    });
+
+    it("can be booked with managed user credentials who is admin", async () => {
+      const response = await request(app.getHttpServer())
+        .post(`/v2/bookings`)
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${orgAdminManagedUser.accessToken}`)
+        .expect(201);
+
+      const bookingId = response.body.data.id;
+      await bookingsRepositoryFixture.deleteById(bookingId);
     });
   });
 
