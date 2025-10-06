@@ -39,7 +39,7 @@ export const useSubmitOnboarding = () => {
         seats: null,
         pricePerSeat: null,
         isPlatform: false,
-        creationSource: CreationSource.ONBOARDING,
+        creationSource: CreationSource.WEBAPP,
       });
 
       const onboardingId = intentResult.organizationOnboardingId;
@@ -89,7 +89,7 @@ export const useSubmitOnboarding = () => {
             teamNames: teamsData.map((t) => t.name),
             orgId: parseInt(orgId, 10),
             moveTeams: [],
-            creationSource: CreationSource.ONBOARDING,
+            creationSource: CreationSource.WEBAPP,
           });
         }
       }
