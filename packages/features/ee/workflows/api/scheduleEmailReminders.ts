@@ -199,6 +199,7 @@ export async function handler(req: NextRequest) {
 
           const variables: VariablesType = {
             eventName: reminder.booking.eventType?.title || "",
+            bookingTitle: reminder.booking.title,
             organizerName: reminder.booking.user?.name || "",
             attendeeName: reminder.booking.attendees[0].name,
             attendeeEmail: reminder.booking.attendees[0].email,

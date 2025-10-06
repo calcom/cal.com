@@ -28,6 +28,7 @@ export type VariablesType = {
   attendeeTimezone?: string;
   eventTimeInAttendeeTimezone?: Dayjs;
   eventEndTimeInAttendeeTimezone?: Dayjs;
+  bookingTitle?: string;
 };
 
 // Replaces placeholders like {EVENT_NAME_VARIABLE} with {EVENT_NAME}
@@ -106,6 +107,8 @@ const customTemplate = (
     .replaceAll(
       "{EVENT_END_TIME_IN_ATTENDEE_TIMEZONE}",
       variables.eventEndTimeInAttendeeTimezone?.format(currentTimeFormat) || ""
+    )
+    .replaceAll("{BOOKING_TITLE}", variables.bookingTitle || ""
     );
 
   const customInputvariables = dynamicText.match(/\{(.+?)}/g)?.map((variable) => {

@@ -140,6 +140,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
     });
     const variables: VariablesType = {
       eventName: evt.title || "",
+      bookingTitle: evt.title || "",
       organizerName: evt.organizer.name,
       attendeeName: attendeeToBeUsedInMail.name,
       attendeeFirstName: attendeeToBeUsedInMail.firstName,
