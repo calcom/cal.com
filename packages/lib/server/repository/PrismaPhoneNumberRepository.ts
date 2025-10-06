@@ -522,53 +522,28 @@ export class PrismaPhoneNumberRepository {
     });
   }
 
-  async setInboundProviderAgentIdIfUnset({
+  async updateInboundAgentId({
     id,
-    inboundProviderAgentId,
+    agentId,
   }: {
     id: number;
-    inboundProviderAgentId: string;
-  }): Promise<{ success: boolean; conflictingAgentId?: string }> {
+    agentId: string;
+  }) {
+    // Atomic update: only set if inboundAgentId is currently null
+    return await this.prismaClient.calAiPhoneNumber.updateMany({
+      where: {
+        id,
+        inboundAgentId: null,
+      },
+      data: { inboundAgentId: agentId },
+    });
+  }
 
-      const agent = await this.prismaClient.agent.findFirst({
-        where: {
-          providerAgentId: inboundProviderAgentId,
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      if (!agent) {
-        throw new Error(`Agent with providerAgentId ${inboundProviderAgentId} not found`);
-      }
-
-      // Atomic update: only set if inboundAgentId is currently null
-      const result = await this.prismaClient.calAiPhoneNumber.updateMany({
-        where: {
-          id,
-          inboundAgentId: null,
-        },
-        data: {
-          inboundAgentId: agent.id,
-        },
-      });
-
-      // Check if the update was successful (count === 1 means the record was found and updated)
-      if (result.count === 1) {
-        return { success: true };
-      }
-
-      // If count === 0, it means the record either doesn't exist or inboundAgentId is not null
-      // Get the current agent to provide context
-      const current = await this.prismaClient.calAiPhoneNumber.findUnique({
-        where: { id },
-        select: { inboundAgentId: true },
-      });
-      return {
-        success: false,
-        conflictingAgentId: current?.inboundAgentId || undefined,
-      };
+  async findInboundAgentIdByPhoneNumberId({ phoneNumberId }: { phoneNumberId: number }) {
+    return await this.prismaClient.calAiPhoneNumber.findUnique({
+      where: { id: phoneNumberId },
+      select: { inboundAgentId: true },
+    });
   }
 
   async findByPhoneNumber({ phoneNumber }: { phoneNumber: string }) {

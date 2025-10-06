@@ -88,11 +88,15 @@ export class PrismaPhoneNumberRepositoryAdapter implements PhoneNumberRepository
     });
   }
 
-  async setInboundProviderAgentIdIfUnset(params: {
-    id: number;
-    inboundProviderAgentId: string;
-  }): Promise<{ success: boolean; conflictingAgentId?: string }> {
+  async updateInboundAgentId(params: { id: number; agentId: string }): Promise<{ count: number }> {
     const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
-    return await phoneNumberRepo.setInboundProviderAgentIdIfUnset(params);
+    return await phoneNumberRepo.updateInboundAgentId(params);
+  }
+
+  async findInboundAgentIdByPhoneNumberId(params: {
+    phoneNumberId: number;
+  }): Promise<{ inboundAgentId: string | null } | null> {
+    const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
+    return await phoneNumberRepo.findInboundAgentIdByPhoneNumberId(params);
   }
 }

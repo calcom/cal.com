@@ -590,15 +590,19 @@ export class AgentService {
       inbound_agent_id: llmConfig.agentId,
     });
 
-    const updateResult = await this.deps.phoneNumberRepository.setInboundProviderAgentIdIfUnset({
+    const updateInboundAgentIdResult = await this.deps.phoneNumberRepository.updateInboundAgentId({
       id: phoneNumberRecord.id,
-      inboundProviderAgentId: agent.providerAgentId,
+      agentId: agent.id,
     });
 
-    if (!updateResult.success) {
+    if (updateInboundAgentIdResult.count === 0) {
+      const conflictingAgentId = await this.deps.phoneNumberRepository.findInboundAgentIdByPhoneNumberId({
+        phoneNumberId: phoneNumberRecord.id,
+      });
+
       throw new HttpError({
         statusCode: 409,
-        message: `Inbound agent was configured by another request. Conflicting agent: ${updateResult.conflictingAgentId}`,
+        message: `Inbound agent was configured by another request. Conflicting agent: ${conflictingAgentId}`,
       });
     }
 
