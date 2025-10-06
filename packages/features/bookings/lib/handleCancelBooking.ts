@@ -259,6 +259,7 @@ async function handler(input: CancelBookingInput) {
     organizer: {
       id: organizer.id,
       username: organizer.username || undefined,
+      usernameInOrg: ownerProfile?.username || undefined,
       email: bookingToDelete?.userPrimaryEmail ?? organizer.email,
       name: organizer.name ?? "Nameless",
       timeZone: organizer.timeZone,

@@ -709,7 +709,7 @@ export const emailSchema = emailRegexSchema;
 // I introduced this refinement(to be used with z.email()) as a short term solution until we upgrade to a zod
 // version that will include updates in the above PR.
 export const emailSchemaRefinement = (value: string) => {
-  return emailRegex.test(value);
+  return emailSchema.safeParse(value).success;
 };
 
 export const signupSchema = z.object({

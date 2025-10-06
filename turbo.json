@@ -50,6 +50,7 @@
     "DEBUG",
     "DUB_API_KEY",
     "NEXT_PUBLIC_DUB_PROGRAM_ID",
+    "NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER",
     "E2E_TEST_APPLE_CALENDAR_EMAIL",
     "E2E_TEST_APPLE_CALENDAR_PASSWORD",
     "E2E_TEST_CALCOM_QA_EMAIL",
@@ -81,6 +82,7 @@
     "GOOGLE_API_CREDENTIALS",
     "GOOGLE_LOGIN_ENABLED",
     "GOOGLE_WEBHOOK_TOKEN",
+    "GOOGLE_WEBHOOK_URL",
     "HEROKU_APP_NAME",
     "HUBSPOT_CLIENT_ID",
     "HUBSPOT_CLIENT_SECRET",
@@ -280,7 +282,11 @@
     "ATOMS_E2E_APPLE_CONNECT_APP_SPECIFIC_PASSCODE",
     "INTERCOM_API_TOKEN",
     "NEXT_PUBLIC_INTERCOM_APP_ID",
-    "_CAL_INTERNAL_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS"
+    "MICROSOFT_WEBHOOK_TOKEN",
+    "MICROSOFT_WEBHOOK_URL",
+    "_CAL_INTERNAL_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS",
+    "ENTERPRISE_SLUGS",
+    "PLATFORM_ENTERPRISE_SLUGS"
   ],
   "tasks": {
     "@calcom/web#copy-app-store-static": {
@@ -449,13 +455,12 @@
       "cache": false
     },
     "lint": {
-      "cache": false
+      "dependsOn": ["^lint"]
     },
     "lint:fix": {
       "cache": false
     },
     "lint:report": {
-      "cache": false,
       "outputs": ["lint-results"]
     },
     "post-install": {

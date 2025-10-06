@@ -21,6 +21,7 @@ export interface BookingActionContext {
   isDisabledRescheduling: boolean;
   isCalVideoLocation: boolean;
   showPendingPayment: boolean;
+  isAttendee: boolean;
   cardCharged: boolean;
   checkIfUserIsAuthorizedToCancelSeats: () => boolean;
   attendeeList: Array<{
@@ -103,6 +104,7 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
     isDisabledRescheduling,
     isBookingFromRoutingForm,
     getSeatReferenceUid,
+    isAttendee,
     checkIfUserIsAuthorizedToCancelSeats,
     t,
   } = context;
@@ -113,7 +115,7 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
       icon: "clock",
       label: t("reschedule_booking"),
       href: `/reschedule/${booking.uid}${
-        booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
+        booking.seatsReferences.length && isAttendee ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
       }`,
       disabled:
         (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
