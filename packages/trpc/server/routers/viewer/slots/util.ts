@@ -955,6 +955,104 @@ export class AvailableSlotsService {
     "getAvailableSlots"
   );
 
+  /**
+   * When a booking is being rescheduled, this function checks if the original booker
+   * is a Cal.com user. If they are, it fetches their complete availability data
+   * and returns them in the same format as event hosts.
+   *
+   * This ensures that during rescheduling, only times when BOTH the host AND the original
+   * booker are available will be shown, preventing double-bookings. This works regardless
+   * of whether the host or booker initiates the reschedule, since we check for the
+   * rescheduleUid presence rather than who is performing the action.
+   *
+   * By setting `isFixed: true`, we ensure that scheduleType is COLLECTIVE for the booker
+   **/
+  private async getBookerAsHostForReschedule({ rescheduleUid }: { rescheduleUid: string }): Promise<{
+    isFixed: boolean;
+    createdAt: null;
+    user: GetAvailabilityUserWithDelegationCredentials & {
+      schedules: Array<{
+        id: number;
+        timeZone: string | null;
+        availability: Array<{
+          date: Date | null;
+          startTime: Date;
+          endTime: Date;
+          days: number[];
+        }>;
+      }>;
+      travelSchedules: Array<{
+        id: number;
+        userId: number;
+        startDate: Date;
+        endDate: Date | null;
+        timeZone: string;
+        prevTimeZone: string | null;
+      }>;
+      email: string;
+      username: string | null;
+      bufferTime: number;
+      startTime: number;
+      endTime: number;
+      timeFormat: number;
+      defaultScheduleId: number | null;
+      isPlatformManaged: boolean;
+      availability: never[];
+    };
+  } | null> {
+    const rescheduleBooking = await this.dependencies.bookingRepo.findBookingByUid({
+      bookingUid: rescheduleUid,
+    });
+
+    const bookerEmail = rescheduleBooking?.attendees[0]?.email;
+    if (!bookerEmail) return null;
+
+    const bookerUser = await this.dependencies.userRepo.findByEmail({
+      email: bookerEmail,
+    });
+    if (!bookerUser) return null;
+
+    const bookerWithCredentials = await this.dependencies.userRepo.findUserWithCredentials({
+      id: bookerUser.id,
+    });
+    if (!bookerWithCredentials) return null;
+
+    const [bookerSchedules, bookerTravelSchedule] = await Promise.all([
+      ScheduleRepository.findScheduleByUserId({ userId: bookerUser.id }),
+      TravelScheduleRepository.findTravelSchedulesByUserId(bookerUser.id),
+    ]);
+
+    const transformedBookerSchedules = bookerSchedules.map((schedule) => ({
+      id: schedule.id,
+      timeZone: schedule.timeZone,
+      availability: schedule.availability.map((avail) => ({
+        date: avail.date,
+        startTime: avail.startTime,
+        endTime: avail.endTime,
+        days: avail.days,
+      })),
+    }));
+
+    return {
+      isFixed: true,
+      createdAt: null,
+      user: {
+        ...bookerWithCredentials,
+        schedules: transformedBookerSchedules,
+        travelSchedules: bookerTravelSchedule,
+        email: bookerUser.email,
+        username: bookerUser.username,
+        bufferTime: bookerUser.bufferTime || 0,
+        startTime: bookerUser.startTime || 0,
+        endTime: bookerUser.endTime || 1440,
+        timeFormat: bookerUser.timeFormat || 12,
+        defaultScheduleId: bookerUser.defaultScheduleId,
+        isPlatformManaged: bookerUser.isPlatformManaged || false,
+        availability: [],
+      },
+    };
+  }
+
   async _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
     const {
       _enableTroubleshooter: enableTroubleshooter = false,
@@ -1053,161 +1151,16 @@ export class AvailableSlotsService {
 
     const hasFallbackRRHosts = allFallbackRRHosts && allFallbackRRHosts.length > qualifiedRRHosts.length;
 
-    // In _getAvailableSlots, after getting qualifiedRRHosts
-
-    let bookerAsHost = null;
-
-    if (input.rescheduleUid) {
-      const rescheduleBooking = await this.dependencies.bookingRepo.findBookingByUid({
-        bookingUid: input.rescheduleUid,
-      });
-
-      const bookerEmail = rescheduleBooking?.attendees[0]?.email;
-
-      if (bookerEmail) {
-        const bookerUser = await this.dependencies.userRepo.findByEmail({
-          email: bookerEmail,
-        });
-
-        if (bookerUser) {
-          // Fetch booker with credentials (has credentials + selectedCalendars)
-          const bookerWithCredentials = await this.dependencies.userRepo.findUserWithCredentials({
-            id: bookerUser.id,
-          });
-
-          // console.log("Booker User");
-          // console.dir(bookerUser , {depth : null});
-
-          // console.dir(bookerWithCredentials  , {depth : null});
-
-          if (bookerWithCredentials) {
-            // Now fetch schedules separately since findUserWithCredentials doesn't include them
-            // const bookerSchedules = await this.dependencies.scheduleRepo.findAllSchedulesByUserId({
-            //   userId: bookerUser.id
-            // });
-
-            // Also fetch travel schedules if needed
-            // const bookerTravelSchedules = await this.dependencies.userRepo.findTravelSchedules?.({
-            //   userId: bookerUser.id
-            // }) || [];
-
-            const bookerSchedules = await ScheduleRepository.findScheduleByUserId({ userId: bookerUser.id });
-            // console.log("\n \n \n You \n \n \n");
-            // console.log("Booker Schedules :  - ");
-            // console.dir(bookerSchedules, { depth: null });
-            // WE HAVE
-            // Booker Scheddule : -  {
-            //   id: 44,
-            //   userId: 37,
-            //   name: 'Working Hours',
-            //   availability: [
-            //     {
-            //       id: 44,
-            //       userId: null,
-            //       eventTypeId: null,
-            //       days: [Array],
-            //       startTime: 1970-01-01T09:00:00.000Z,
-            //       endTime: 1970-01-01T17:00:00.000Z,
-            //       date: null,
-            //       scheduleId: 44
-            //     }
-            //   ],
-            //   timeZone: null
-            // }
-            // WE NEED
-            // schedules: [
-            //      {
-            //        availability: [
-            //          {
-            //            date: null,
-            //            startTime: 1970-01-01T09:00:00.000Z,
-            //            endTime: 1970-01-01T17:00:00.000Z,
-            //            days: [ 1, 2, 3, 4, 5 ]
-            //          }
-            //        ],
-            //        timeZone: 'Asia/Kolkata',
-            //        id: 50
-            //      }
-            //    ],
-            const bookerTravelSchedule = await TravelScheduleRepository.findTravelSchedulesByUserId(
-              bookerUser.id
-            );
-            // console.log("Travel Schedule : - ", bookerTravelSchedule);
-            // WE HAVE
-            // Travel Schedule : -  [
-            //   {
-            //     id: 2,
-            //     userId: 44,
-            //     startDate: 2025-10-07T18:30:00.000Z,
-            //     endDate: 2025-10-09T18:30:00.000Z,
-            //     timeZone: 'Asia/Kolkata',
-            //     prevTimeZone: null
-            //   }
-            // ]
-            // WE NEED
-            //          travelSchedules: [
-            //          {
-            //            id: 1,
-            //            userId: 43,
-            //            timeZone: 'Asia/Yakutsk',
-            //            startDate: 2025-10-07T18:30:00.000Z,
-            //            endDate: 2025-10-09T18:30:00.000Z,
-            //            prevTimeZone: null
-            //          }
-            //        ],
-            //
-            //
-            //
-            // Transform bookerSchedules to match expected format
-            const transformedBookerSchedules = bookerSchedules.map((schedule) => ({
-              id: schedule.id,
-              timeZone: schedule.timeZone,
-              availability: schedule.availability.map((avail) => ({
-                date: avail.date,
-                startTime: avail.startTime,
-                endTime: avail.endTime,
-                days: avail.days,
-              })),
-            }));
-
-            // travelSchedules are already in the correct format, no transformation needed
-            const transformedTravelSchedules = bookerTravelSchedule;
-
-            bookerAsHost = {
-              isFixed: true,
-              createdAt: null,
-              user: {
-                ...bookerWithCredentials,
-                schedules: transformedBookerSchedules,
-                travelSchedules: transformedTravelSchedules,
-                email: bookerUser.email,
-                username: bookerUser.username,
-                bufferTime: bookerUser.bufferTime || 0,
-                startTime: bookerUser.startTime || 0,
-                endTime: bookerUser.endTime || 1440,
-                timeFormat: bookerUser.timeFormat || 12,
-                defaultScheduleId: bookerUser.defaultScheduleId,
-                isPlatformManaged: bookerUser.isPlatformManaged || false,
-                availability: [],
-              },
-            };
-            // console.dir(bookerAsHost, { depth: null });
-          }
-        }
-      }
-    }
+    // Checking if booker is available.
+    const bookerAsHost = input.rescheduleUid
+      ? await this.getBookerAsHostForReschedule({ rescheduleUid: input.rescheduleUid })
+      : null;
 
     if (bookerAsHost) {
       allHosts.push(bookerAsHost);
     }
 
-    console.dir(bookerAsHost, { depth: null });
-
-    // console.log("Allhosts : - " , allHosts);
-    console.log("\n \n \n You 2 \n \n \n");
-    console.dir(allHosts, { depth: null });
-    // console.dir(eventType , {depth : null});
-
+    // In _getAvailableSlots, after getting qualifiedRRHosts
     let { allUsersAvailability, usersWithCredentials, currentSeats } =
       await this.calculateHostsAndAvailabilities({
         input,
