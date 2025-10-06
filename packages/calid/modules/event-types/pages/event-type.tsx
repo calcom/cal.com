@@ -40,6 +40,7 @@ import { EventSetup } from "../components/tabs/event-types-setup";
 import { EventTeamAssignmentTab } from "../components/tabs/event-types-team-assignment";
 import { EventWebhooks } from "../components/tabs/event-types-webhook";
 import { EventWorkflows } from "../components/tabs/event-types-workflows";
+import { isManagedEventType } from "../utils/event-types-utils";
 import { TabSkeleton } from "./tab-skeleton";
 
 // import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
@@ -305,7 +306,9 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
   const bookerUrl = WEBSITE_URL;
 
   const permalink = `${bookerUrl}/${
-    effectiveTeam ? `team/${effectiveTeam.slug}` : getEventTypeUsername()
+    effectiveTeam && form?.getValues("schedulingType") !== SchedulingType.MANAGED
+      ? `team/${effectiveTeam.slug}`
+      : getEventTypeUsername()
   }/${slug}`;
 
   let embedLink;
@@ -314,11 +317,15 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
     const formSlug = form?.getValues("slug");
 
     embedLink = `${
-      effectiveTeam ? `team/${effectiveTeam.slug}` : formUsers?.[0]?.username || getEventTypeUsername()
+      effectiveTeam && form?.getValues("schedulingType") !== SchedulingType.MANAGED
+        ? `team/${effectiveTeam.slug}`
+        : formUsers?.[0]?.username || getEventTypeUsername()
     }/${formSlug || slug}`;
   } catch (error) {
     embedLink = `${
-      effectiveTeam ? `team/${effectiveTeam.slug}` : eventType.users?.[0]?.username || "unknown"
+      effectiveTeam && eventType.schedulingType !== SchedulingType.MANAGED
+        ? `team/${effectiveTeam.slug}`
+        : eventType.users?.[0]?.username || "unknown"
     }/${slug}`;
   }
 
@@ -334,6 +341,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
   } catch (error) {
     hasPermsToDelete = true; // Default to allowing delete if there's an error
   }
+
   const connectedCalendarsQuery = trpc.viewer.calendars.connectedCalendars.useQuery();
 
   // Tab content mapping
@@ -419,7 +427,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
   });
 
   // Conflict handling
-  const _onConflict = (conflicts: ChildrenEventType[]) => {
+  const onConflict = (conflicts: ChildrenEventType[]) => {
     setSlugExistsChildrenDialogOpen(conflicts);
   };
 
@@ -429,6 +437,9 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
     if (tabItem.name === "Team") {
       const shouldShowTeamTab = !!effectiveTeam;
       return shouldShowTeamTab;
+    }
+    if (tabItem.name === "Embed") {
+      return !isManagedEventType(eventType as any);
     }
     return true;
   });

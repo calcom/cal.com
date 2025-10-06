@@ -2,7 +2,6 @@ import SkeletonLoader from "@calid/features/modules/workflows/components/event_w
 import type { CalIdWorkflowType } from "@calid/features/modules/workflows/config/types";
 import { getActionIcon } from "@calid/features/modules/workflows/utils/getActionicon";
 import { Alert } from "@calid/features/ui/components/alert";
-import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
 import { BlankCard } from "@calid/features/ui/components/card/blank-card";
 import { Icon } from "@calid/features/ui/components/icon";
@@ -10,21 +9,21 @@ import { Switch } from "@calid/features/ui/components/switch/switch";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { Tooltip } from "@calid/features/ui/components/tooltip";
 import type { TFunction } from "i18next";
-import { default as get } from "lodash/get";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import type { Dispatch, SetStateAction } from "react";
+import React, { useCallback, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
-import { WorkflowActions, SchedulingType } from "@calcom/prisma/enums";
+import { WorkflowActions } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
+
+import { FieldPermissionIndicator, useFieldPermissions } from "./hooks/useFieldPermissions";
 
 // Type definitions for better type safety
 type PartialCalIdWorkflowType = Pick<CalIdWorkflowType, "name" | "activeOn" | "steps" | "id" | "readOnly">;
@@ -35,195 +34,27 @@ export interface EventWorkflowsProps {
   workflows: PartialCalIdWorkflowType[];
 }
 
-interface LockedIndicatorOptions {
-  simple?: boolean;
-}
-
-interface FieldLockState {
-  disabled: boolean;
-  LockedIcon: JSX.Element | null;
-  isLocked: boolean;
-}
-
 /**
- * Hook for managing locked field states in managed event types
- * Handles field locking/unlocking and state persistence
- */
-const useLockedFieldsManager = (eventType: EventTypeSetup, t: TFunction) => {
-  const formMethods = useFormContext<FormValues>();
-  const { setValue, getValues } = formMethods;
-
-  const [fieldStates, setFieldStates] = useState<Record<string, boolean>>({});
-
-  const unlockedFields = eventType.metadata?.managedEventConfig?.unlockedFields || {};
-  const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
-  const isChildrenManagedEventType =
-    eventType.metadata?.managedEventConfig !== undefined &&
-    eventType.schedulingType !== SchedulingType.MANAGED;
-
-  const setUnlockedFields = useCallback(
-    (fieldName: string, val: boolean | undefined) => {
-      const path = "metadata.managedEventConfig.unlockedFields";
-      const metaUnlockedFields = getValues(path);
-      if (!metaUnlockedFields) return;
-
-      if (val === undefined) {
-        delete metaUnlockedFields[fieldName as keyof typeof metaUnlockedFields];
-        setValue(path, { ...metaUnlockedFields }, { shouldDirty: true });
-      } else {
-        setValue(path, { ...metaUnlockedFields, [fieldName]: val }, { shouldDirty: true });
-      }
-    },
-    [getValues, setValue]
-  );
-
-  const getLockedInitState = useCallback(
-    (fieldName: string): boolean => {
-      let locked = isManagedEventType || isChildrenManagedEventType;
-
-      if (fieldName.includes(".")) {
-        locked = locked && get(unlockedFields, fieldName) === undefined;
-      } else {
-        const unlockedFieldList = getValues("metadata")?.managedEventConfig?.unlockedFields as
-          | Record<string, boolean>
-          | undefined;
-        const fieldIsUnlocked = !!unlockedFieldList?.[fieldName];
-        locked = locked && !fieldIsUnlocked;
-      }
-      return locked;
-    },
-    [isManagedEventType, isChildrenManagedEventType, unlockedFields, getValues]
-  );
-
-  return {
-    fieldStates,
-    setFieldStates,
-    isManagedEventType,
-    isChildrenManagedEventType,
-    setUnlockedFields,
-    getLockedInitState,
-  };
-};
-
-/**
- * Component for rendering locked field indicators with toggle functionality
- * Displays lock status and allows admins to toggle field locks
- */
-const LockedIndicator = ({
-  isChildrenManagedEventType,
-  isManagedEventType,
-  fieldStates,
-  setFieldStates,
-  t,
-  fieldName,
-  setUnlockedFields,
-  options = { simple: false },
-}: {
-  isChildrenManagedEventType: boolean;
-  isManagedEventType: boolean;
-  fieldStates: Record<string, boolean>;
-  setFieldStates: Dispatch<SetStateAction<Record<string, boolean>>>;
-  t: TFunction;
-  fieldName: string;
-  setUnlockedFields: (fieldName: string, val: boolean | undefined) => void;
-  options?: LockedIndicatorOptions;
-}) => {
-  const isLocked = fieldStates[fieldName];
-  const stateText = t(isLocked ? "locked" : "unlocked");
-  const tooltipText = t(
-    `${isLocked ? "locked" : "unlocked"}_fields_${isManagedEventType ? "admin" : "member"}_description`
-  );
-
-  const handleToggle = useCallback(
-    (enabled: boolean) => {
-      setFieldStates((prev) => ({ ...prev, [fieldName]: enabled }));
-      setUnlockedFields(fieldName, !enabled || undefined);
-    },
-    [fieldName, setFieldStates, setUnlockedFields]
-  );
-
-  if (!(isManagedEventType || isChildrenManagedEventType)) {
-    return null;
-  }
-
-  return (
-    <Tooltip content={tooltipText}>
-      <div className="inline">
-        <Badge
-          color={isLocked ? "gray" : "green"}
-          className={classNames(
-            "ml-2 transform justify-between p-1",
-            isManagedEventType && !options.simple && "w-28"
-          )}>
-          {!options.simple && (
-            <span className="inline-flex">
-              <Icon name={isLocked ? "lock" : "lock-open"} className="text-subtle h-3 w-3" />
-              <span className="ml-1 font-medium">{stateText}</span>
-            </span>
-          )}
-          {isManagedEventType && (
-            <Switch
-              data-testid={`locked-indicator-${fieldName}`}
-              onCheckedChange={handleToggle}
-              checked={isLocked}
-              size="sm"
-            />
-          )}
-        </Badge>
-      </div>
-    </Tooltip>
-  );
-};
-
-/**
- * Hook for managing field locking properties
+ * Hook for managing field locking properties using useFieldPermissions
  * Returns disabled state, lock icon, and lock status for a given field
  */
 const useFieldLockProps = (
   fieldName: string,
-  lockedFieldsManager: ReturnType<typeof useLockedFieldsManager>,
-  t: TFunction,
-  options?: LockedIndicatorOptions
-): FieldLockState => {
-  const {
-    fieldStates,
-    setFieldStates,
-    isManagedEventType,
-    isChildrenManagedEventType,
-    setUnlockedFields,
-    getLockedInitState,
-  } = lockedFieldsManager;
-
-  // Initialize field state if not exists
-  useEffect(() => {
-    if (typeof fieldStates[fieldName] === "undefined") {
-      setFieldStates((prev) => ({
-        ...prev,
-        [fieldName]: getLockedInitState(fieldName),
-      }));
-    }
-  }, [fieldName, fieldStates, setFieldStates, getLockedInitState]);
-
-  const LockedIcon = (
-    <LockedIndicator
-      isChildrenManagedEventType={isChildrenManagedEventType}
-      isManagedEventType={isManagedEventType}
-      fieldStates={fieldStates}
-      setFieldStates={setFieldStates}
-      t={t}
-      fieldName={fieldName}
-      setUnlockedFields={setUnlockedFields}
-      options={options}
-    />
-  );
+  fieldPermissions: ReturnType<typeof useFieldPermissions>,
+  t: TFunction
+) => {
+  const { getFieldState } = fieldPermissions;
+  const fieldState = getFieldState(fieldName);
 
   return useMemo(
     () => ({
-      disabled: !isManagedEventType && isChildrenManagedEventType && !fieldStates[fieldName],
-      LockedIcon,
-      isLocked: fieldStates[fieldName] || false,
+      disabled: fieldState.isDisabled,
+      LockedIcon: (
+        <FieldPermissionIndicator fieldName={fieldName} fieldPermissions={fieldPermissions} t={t} />
+      ),
+      isLocked: fieldState.isLocked,
     }),
-    [isManagedEventType, isChildrenManagedEventType, fieldStates, fieldName, LockedIcon]
+    [fieldState.isDisabled, fieldState.isLocked, fieldName, fieldPermissions, t]
   );
 };
 
@@ -237,11 +68,13 @@ const WorkflowListItem = React.memo(
     eventType,
     isChildrenManagedEventType,
     isActive,
+    fieldPermissions,
   }: {
     workflow: PartialCalIdWorkflowType;
     eventType: EventTypeSetup;
     isChildrenManagedEventType: boolean;
     isActive: boolean;
+    fieldPermissions: ReturnType<typeof useFieldPermissions>;
   }) => {
     const { t } = useLocale();
     const utils = trpc.useUtils();
@@ -376,17 +209,21 @@ const WorkflowListItem = React.memo(
           {/* Toggle switch */}
           <Tooltip
             content={
-              workflow.readOnly && isChildrenManagedEventType
-                ? t("locked_by_team_admin")
+              isChildrenManagedEventType && fieldPermissions.isFieldLocked("workflows")
+                ? t("locked_by_team_admins")
                 : isActive
                 ? t("turn_off")
                 : t("turn_on")
             }>
             <div className="flex items-center ltr:mr-2 rtl:ml-2">
-              {workflow.readOnly && isChildrenManagedEventType && (
+              {isChildrenManagedEventType && fieldPermissions.isFieldLocked("workflows") && (
                 <Icon name="lock" className="text-subtle h-4 w-4 ltr:mr-2 rtl:ml-2" />
               )}
-              <Switch checked={isActive} disabled={workflow.readOnly} onCheckedChange={handleToggle} />
+              <Switch
+                checked={isActive}
+                disabled={isChildrenManagedEventType && fieldPermissions.isFieldLocked("workflows")}
+                onCheckedChange={handleToggle}
+              />
             </div>
           </Tooltip>
         </div>
@@ -402,28 +239,35 @@ WorkflowListItem.displayName = "WorkflowListItem";
  * Combines active and available workflows with proper permissions
  */
 const useProcessedWorkflows = (
-  data: any,
+  data: { workflows?: CalIdWorkflowType[] } | undefined,
   workflows: PartialCalIdWorkflowType[],
   eventType: EventTypeSetup,
   isChildrenManagedEventType: boolean,
   isLocked: boolean,
-  isManagedEventType: boolean
-) => {
+  isManagedEventType: boolean,
+  fieldPermissions: ReturnType<typeof useFieldPermissions>
+): CalIdWorkflowType[] => {
   return useMemo(() => {
     if (!data?.workflows) return [];
 
     // Process active workflows with enhanced properties
-    const activeWorkflows = workflows.map((workflowOnEventType) => {
-      const dataWf = data.workflows.find((wf: any) => wf.id === workflowOnEventType.id);
+    const activeWorkflows: CalIdWorkflowType[] = workflows.map((workflowOnEventType) => {
+      const dataWf = data.workflows?.find((wf) => wf.id === workflowOnEventType.id);
+
+      // For child managed event types, respect the unlocked state
+      // If the field is unlocked, workflows should be editable
+      const isFieldUnlocked = !fieldPermissions.isFieldLocked("workflows");
+      const shouldBeReadOnly = isChildrenManagedEventType && dataWf?.calIdTeamId && !isFieldUnlocked;
+
       return {
         ...workflowOnEventType,
-        readOnly: isChildrenManagedEventType && dataWf?.teamId ? true : dataWf?.readOnly ?? false,
+        readOnly: shouldBeReadOnly || (dataWf?.readOnly ?? false),
       } as CalIdWorkflowType;
     });
 
     // Get available but inactive workflows
-    const inactiveWorkflows = data.workflows.filter(
-      (workflow: any) =>
+    const inactiveWorkflows: CalIdWorkflowType[] = data.workflows.filter(
+      (workflow) =>
         (!workflow.calIdTeamId || eventType.calIdTeamId === workflow.calIdTeamId) &&
         !workflows.some((activeWf) => activeWf.id === workflow.id)
     );
@@ -437,6 +281,7 @@ const useProcessedWorkflows = (
     isChildrenManagedEventType,
     isLocked,
     isManagedEventType,
+    fieldPermissions,
   ]);
 };
 
@@ -447,13 +292,18 @@ const useProcessedWorkflows = (
 export const EventWorkflows = ({ eventType, workflows }: EventWorkflowsProps) => {
   const { t } = useLocale();
   const router = useRouter();
+  const formMethods = useFormContext<FormValues>();
 
-  // Initialize locked fields manager
-  const lockedFieldsManager = useLockedFieldsManager(eventType, t);
-  const { isManagedEventType, isChildrenManagedEventType } = lockedFieldsManager;
+  // Initialize field permissions
+  const fieldPermissions = useFieldPermissions({
+    eventType,
+    translate: t,
+    formMethods,
+  });
+  const { isManagedEventType, isChildrenManagedEventType } = fieldPermissions;
 
   // Get workflow field lock properties
-  const workflowsLockProps = useFieldLockProps("workflows", lockedFieldsManager, t, { simple: true });
+  const workflowsLockProps = useFieldLockProps("workflows", fieldPermissions, t);
   const lockedText = workflowsLockProps.isLocked ? "locked" : "unlocked";
 
   // Fetch available workflows
@@ -469,7 +319,8 @@ export const EventWorkflows = ({ eventType, workflows }: EventWorkflowsProps) =>
     eventType,
     isChildrenManagedEventType,
     workflowsLockProps.isLocked,
-    isManagedEventType
+    isManagedEventType,
+    fieldPermissions
   );
 
   // Calculate active workflow count
@@ -511,16 +362,18 @@ export const EventWorkflows = ({ eventType, workflows }: EventWorkflowsProps) =>
               i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}
             />
           }
-          message={
-            <div className="flex items-center">
-              <ServerTrans
-                t={t}
-                i18nKey={`workflows_${lockedText}_${
-                  isManagedEventType ? "for_members" : "by_team_admins"
-                }_description`}
-              />
-              <div className="ml-2 flex h-full items-center">{workflowsLockProps.LockedIcon}</div>
+          actions={
+            <div className="flex h-full items-center">
+              <FieldPermissionIndicator fieldName="workflows" fieldPermissions={fieldPermissions} t={t} />
             </div>
+          }
+          message={
+            <ServerTrans
+              t={t}
+              i18nKey={`workflows_${lockedText}_${
+                isManagedEventType ? "for_members" : "by_team_admins"
+              }_description`}
+            />
           }
         />
       )}
@@ -550,6 +403,7 @@ export const EventWorkflows = ({ eventType, workflows }: EventWorkflowsProps) =>
                 eventType={eventType}
                 isChildrenManagedEventType={isChildrenManagedEventType}
                 isActive={workflows.some((activeWorkflow) => activeWorkflow.id === workflow.id)}
+                fieldPermissions={fieldPermissions}
               />
             ))}
           </div>

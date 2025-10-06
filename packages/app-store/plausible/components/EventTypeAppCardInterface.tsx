@@ -19,7 +19,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
         updateEnabled(e);
       }}
       switchChecked={enabled}
-      teamId={eventType.team?.id || undefined}>
+      teamId={eventType.team?.id || undefined}
+      calIdTeamId={(eventType as any).calIdTeamId || undefined}>
       <EventTypeAppSettingsInterface
         eventType={eventType}
         slug={app.slug}

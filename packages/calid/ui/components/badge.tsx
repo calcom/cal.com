@@ -50,7 +50,7 @@ export type BadgeBaseProps = InferredBadgeStyles & {
   rounded?: boolean;
   customStartIcon?: React.ReactNode;
   customDot?: React.ReactNode;
-  publicUrl?: string;
+  publicUrl?: string | null;
 } & IconOrDot;
 
 export type BadgeProps =
@@ -83,7 +83,7 @@ export const Badge = function Badge(props: BadgeProps) {
 
   const handleCopyUrl = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (publicUrl === undefined) return;
+    if (publicUrl === null) return;
     navigator.clipboard.writeText(publicUrl).then(() => {
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 1500);
@@ -92,7 +92,7 @@ export const Badge = function Badge(props: BadgeProps) {
   const handleRedirectUrl = (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    if (publicUrl === undefined) return;
+    if (publicUrl === null) return;
     let url = publicUrl.trim();
 
     // Check if it already starts with http:// or https://

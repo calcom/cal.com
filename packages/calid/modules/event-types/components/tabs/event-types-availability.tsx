@@ -1,6 +1,5 @@
 import { Button } from "@calid/features/ui/components/button";
 import { Card, CardContent } from "@calid/features/ui/components/card";
-import { CustomSelect } from "@calid/features/ui/components/custom-select";
 import { Icon } from "@calid/features/ui/components/icon";
 import { Label } from "@calid/features/ui/components/label";
 import { Separator } from "@calid/features/ui/components/separator";
@@ -28,9 +27,10 @@ import { weekStartNum } from "@calcom/lib/weekstart";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { Select } from "@calcom/ui/components/form";
 
 import { AvailabilityTabSkeleton } from "../../pages/tab-skeleton";
-import useFieldPermissions from "./hooks/useFieldPermissions";
+import useFieldPermissions, { FieldPermissionIndicator } from "./hooks/useFieldPermissions";
 
 export type GetAllSchedulesByUserIdQueryType =
   | typeof trpc.viewer.availability.schedule.calid_getAllSchedulesByUserId.useQuery
@@ -152,13 +152,6 @@ const createScheduleOptions = (
   return options;
 };
 
-// ============================================================================
-// CUSTOM HOOKS
-// ============================================================================
-
-/**
- * Manages common schedule state for team events (host schedules vs common schedule)
- */
 const useCommonScheduleState = (initialScheduleId: number | null) => {
   const { setValue } = useFormContext<FormValues>();
   const [useHostSchedulesForTeamEvent, setUseHostSchedulesForTeamEvent] = useState(!initialScheduleId);
@@ -179,9 +172,6 @@ const useCommonScheduleState = (initialScheduleId: number | null) => {
   return { useHostSchedulesForTeamEvent, toggleScheduleState };
 };
 
-/**
- * Manages restriction schedule state and related form fields
- */
 const useRestrictionScheduleState = (initialRestrictionScheduleId: number | null) => {
   const { setValue } = useFormContext<FormValues>();
   const [restrictScheduleForHosts, setRestrictScheduleForHosts] = useState(!!initialRestrictionScheduleId);
@@ -200,9 +190,6 @@ const useRestrictionScheduleState = (initialRestrictionScheduleId: number | null
   return { restrictScheduleForHosts, toggleRestrictScheduleState };
 };
 
-/**
- * Manages default schedule initialization and updates
- */
 const useScheduleDefaults = (
   schedulesData: any,
   scheduleId: number | null,
@@ -236,13 +223,6 @@ const useScheduleDefaults = (
   }, [restrictionScheduleId, schedulesData?.schedules, eventType.restrictionScheduleId, formMethods]);
 };
 
-// ============================================================================
-// SUB-COMPONENTS
-// ============================================================================
-
-/**
- * Individual team member schedule selector component
- */
 const TeamMemberSchedule = memo(
   ({
     host,
@@ -307,17 +287,22 @@ const TeamMemberSchedule = memo(
         <div className="min-w-[200px]">
           <Controller
             name={`hosts.${index}.scheduleId`}
-            render={({ field }) => (
-              <CustomSelect
-                value={field.value?.toString() || value?.value?.toString() || ""}
-                onValueChange={(selectedValue) => {
-                  field.onChange(selectedValue ? parseInt(selectedValue) : null);
-                }}
-                options={options}
-                placeholder={t("select")}
-                disabled={isPending}
-              />
-            )}
+            render={({ field }) => {
+              const currentValue = field.value?.toString() || value?.value?.toString() || "";
+              const selectedOption = options.find((opt) => opt.value === currentValue);
+              return (
+                <Select
+                  value={selectedOption || null}
+                  onChange={(selectedOption) => {
+                    field.onChange(selectedOption?.value ? parseInt(selectedOption.value) : null);
+                  }}
+                  options={options}
+                  placeholder={t("select")}
+                  isDisabled={isPending}
+                  isSearchable={false}
+                />
+              );
+            }}
           />
         </div>
       </div>
@@ -327,9 +312,6 @@ const TeamMemberSchedule = memo(
 
 TeamMemberSchedule.displayName = "TeamMemberSchedule";
 
-/**
- * Schedule display component showing weekly availability and timezone info
- */
 const ScheduleDisplay = memo(
   ({
     scheduleQueryData,
@@ -469,20 +451,17 @@ const ScheduleDisplay = memo(
 
 ScheduleDisplay.displayName = "ScheduleDisplay";
 
-/**
- * Schedule selector dropdown component with proper labeling and badges
- */
 const ScheduleSelector = memo(
   ({
     fieldName,
     options,
-    isFieldDisabled,
     isManagedEventType,
+    fieldPermissions,
   }: {
     fieldName: string;
     options: AvailabilityOption[];
-    isFieldDisabled: (field: string) => boolean;
     isManagedEventType: boolean;
+    fieldPermissions: ReturnType<typeof useFieldPermissions>;
   }) => {
     const { t } = useLocale();
     const formMethods = useFormContext<FormValues>();
@@ -490,7 +469,7 @@ const ScheduleSelector = memo(
     return (
       <div className="border-subtle border-b pb-4">
         <label htmlFor="availability" className="text-default mb-2 block text-sm font-medium leading-none">
-          {/* Label intentionally commented out as per original code */}
+          <FieldPermissionIndicator fieldName={fieldName} fieldPermissions={fieldPermissions} t={t} />
         </label>
         <Controller
           name={fieldName}
@@ -498,11 +477,25 @@ const ScheduleSelector = memo(
             // Extract the ID from the value if it's an object, otherwise use the value as is
             const scheduleId = typeof value === "object" && value !== null ? value.id : value;
 
+            // Convert options to the format expected by Select component
+            const selectOptions = options.map((opt) => ({
+              value: opt.value.toString(),
+              label: opt.isDefault
+                ? `${opt.label} (${t("default")})`
+                : opt.isManaged
+                ? `${opt.label} (${t("managed")})`
+                : opt.label,
+            }));
+
+            // Find the selected option
+            const selectedOption = selectOptions.find((opt) => opt.value === scheduleId?.toString());
+
             return (
               <div className="w-full md:w-1/5">
-                <CustomSelect
-                  value={scheduleId?.toString() || ""}
-                  onValueChange={(selectedValue) => {
+                <Select
+                  value={selectedOption || null}
+                  onChange={(selectedOption) => {
+                    const selectedValue = selectedOption?.value;
                     onChange(selectedValue ? parseInt(selectedValue) : null);
                     if (fieldName === "restrictionScheduleId" && selectedValue) {
                       formMethods.setValue("restrictionScheduleId", parseInt(selectedValue), {
@@ -515,17 +508,11 @@ const ScheduleSelector = memo(
                       });
                     }
                   }}
-                  options={options.map((opt) => ({
-                    value: opt.value.toString(),
-                    label: opt.isDefault
-                      ? `${opt.label} (${t("default")})`
-                      : opt.isManaged
-                      ? `${opt.label} (${t("managed")})`
-                      : opt.label,
-                  }))}
+                  options={selectOptions}
                   placeholder={t("select")}
-                  disabled={isFieldDisabled(fieldName)}
+                  isDisabled={fieldPermissions.getFieldState(fieldName).isDisabled}
                   className="bg-default"
+                  isSearchable={false}
                 />
               </div>
             );
@@ -538,9 +525,6 @@ const ScheduleSelector = memo(
 
 ScheduleSelector.displayName = "ScheduleSelector";
 
-/**
- * Team event specific UI with host schedules management
- */
 const TeamEventSchedules = memo(
   ({
     eventType: _eventType,
@@ -553,8 +537,8 @@ const TeamEventSchedules = memo(
     scheduleId,
     useHostSchedulesForTeamEvent,
     toggleScheduleState,
-    isFieldDisabled,
     isManagedEventType,
+    fieldPermissions,
     hostSchedulesQuery,
     t,
   }: {
@@ -568,8 +552,8 @@ const TeamEventSchedules = memo(
     scheduleId: number | null;
     useHostSchedulesForTeamEvent: boolean;
     toggleScheduleState: (checked: boolean) => void;
-    isFieldDisabled: (field: string) => boolean;
     isManagedEventType: boolean;
+    fieldPermissions: ReturnType<typeof useFieldPermissions>;
     hostSchedulesQuery: GetAllSchedulesByUserIdQueryType;
     t: TFunction;
   }) => {
@@ -590,8 +574,8 @@ const TeamEventSchedules = memo(
             <ScheduleSelector
               fieldName="schedule"
               options={scheduleOptions}
-              isFieldDisabled={isFieldDisabled}
               isManagedEventType={isManagedEventType}
+              fieldPermissions={fieldPermissions}
             />
 
             {/* Schedule Display or Managed Event Description */}
@@ -671,8 +655,8 @@ const RestrictionScheduleSection = memo(
     isRestrictionSchedulePending,
     user,
     eventType,
-    isFieldDisabled,
     isManagedEventType,
+    fieldPermissions,
     t,
   }: {
     restrictScheduleForHosts: boolean;
@@ -683,8 +667,8 @@ const RestrictionScheduleSection = memo(
     isRestrictionSchedulePending: boolean;
     user?: RouterOutputs["viewer"]["me"]["calid_get"];
     eventType: EventTypeSetup;
-    isFieldDisabled: (field: string) => boolean;
     isManagedEventType: boolean;
+    fieldPermissions: ReturnType<typeof useFieldPermissions>;
     t: TFunction;
   }) => (
     <div className="space-y-6">
@@ -700,8 +684,8 @@ const RestrictionScheduleSection = memo(
           <ScheduleSelector
             fieldName="restrictionScheduleId"
             options={restrictionScheduleOptions}
-            isFieldDisabled={isFieldDisabled}
             isManagedEventType={isManagedEventType}
+            fieldPermissions={fieldPermissions}
           />
 
           {restrictionScheduleId && (
@@ -722,14 +706,6 @@ const RestrictionScheduleSection = memo(
 
 RestrictionScheduleSection.displayName = "RestrictionScheduleSection";
 
-// ============================================================================
-// MAIN COMPONENT
-// ============================================================================
-
-/**
- * Main EventAvailability component that handles schedule management for events
- * Supports both individual and team events with restriction schedules
- */
 export const EventAvailability = (props: EventAvailabilityProps) => {
   const { eventType, isTeamEvent, user, teamMembers } = props;
   const { t } = useLocale();
@@ -746,7 +722,7 @@ export const EventAvailability = (props: EventAvailabilityProps) => {
     typeof scheduleValue === "object" && scheduleValue !== null ? scheduleValue.id : scheduleValue;
 
   // Get field permissions manager for form field permissions
-  const { isManagedEventType, isChildrenManagedEventType, isFieldDisabled } = useFieldPermissions({
+  const fieldPermissions = useFieldPermissions({
     eventType,
     translate: t,
     formMethods,
@@ -777,7 +753,8 @@ export const EventAvailability = (props: EventAvailabilityProps) => {
     trpc.viewer.availability.schedule.get.useQuery(
       {
         scheduleId: scheduleId || (!isTeamEvent ? user?.defaultScheduleId : undefined) || undefined,
-        isManagedEventType: isManagedEventType || isChildrenManagedEventType,
+        isManagedEventType:
+          fieldPermissions.isManagedEventType || fieldPermissions.isChildrenManagedEventType,
       },
       { enabled: !!scheduleId || (!isTeamEvent && !!user?.defaultScheduleId) }
     );
@@ -787,7 +764,8 @@ export const EventAvailability = (props: EventAvailabilityProps) => {
     trpc.viewer.availability.schedule.get.useQuery(
       {
         scheduleId: restrictionScheduleId || undefined,
-        isManagedEventType: isManagedEventType || isChildrenManagedEventType,
+        isManagedEventType:
+          fieldPermissions.isManagedEventType || fieldPermissions.isChildrenManagedEventType,
       },
       { enabled: !!restrictionScheduleId }
     );
@@ -805,16 +783,16 @@ export const EventAvailability = (props: EventAvailabilityProps) => {
     () =>
       createScheduleOptions(
         schedulesQueryData,
-        isManagedEventType,
-        isChildrenManagedEventType,
+        fieldPermissions.isManagedEventType,
+        fieldPermissions.isChildrenManagedEventType,
         scheduleId,
         eventType,
         t
       ),
     [
       schedulesQueryData,
-      isManagedEventType,
-      isChildrenManagedEventType,
+      fieldPermissions.isManagedEventType,
+      fieldPermissions.isChildrenManagedEventType,
       scheduleId,
       eventType.schedule,
       eventType.scheduleName,
@@ -858,7 +836,7 @@ export const EventAvailability = (props: EventAvailabilityProps) => {
     schedulesQueryData,
     scheduleId,
     restrictionScheduleId,
-    isManagedEventType,
+    fieldPermissions.isManagedEventType,
     eventType,
     formMethods
   );
@@ -884,8 +862,8 @@ export const EventAvailability = (props: EventAvailabilityProps) => {
             scheduleId={scheduleId}
             useHostSchedulesForTeamEvent={useHostSchedulesForTeamEvent}
             toggleScheduleState={toggleScheduleState}
-            isFieldDisabled={isFieldDisabled}
-            isManagedEventType={isManagedEventType}
+            isManagedEventType={fieldPermissions.isManagedEventType}
+            fieldPermissions={fieldPermissions}
             hostSchedulesQuery={hostSchedulesQuery}
             t={t}
           />
@@ -903,8 +881,8 @@ export const EventAvailability = (props: EventAvailabilityProps) => {
                 isRestrictionSchedulePending={isRestrictionSchedulePending}
                 user={user}
                 eventType={eventType}
-                isFieldDisabled={isFieldDisabled}
-                isManagedEventType={isManagedEventType}
+                isManagedEventType={fieldPermissions.isManagedEventType}
+                fieldPermissions={fieldPermissions}
                 t={t}
               />
             </>
@@ -925,8 +903,10 @@ export const EventAvailability = (props: EventAvailabilityProps) => {
           <ScheduleSelector
             fieldName="schedule"
             options={scheduleOptions}
-            isFieldDisabled={isFieldDisabled}
-            isManagedEventType={isManagedEventType || isChildrenManagedEventType}
+            isManagedEventType={
+              fieldPermissions.isManagedEventType || fieldPermissions.isChildrenManagedEventType
+            }
+            fieldPermissions={fieldPermissions}
           />
 
           {/* Schedule Display or Managed Event Description */}
@@ -938,7 +918,7 @@ export const EventAvailability = (props: EventAvailabilityProps) => {
               editAvailabilityRedirectUrl={`/availability/${scheduleQueryData?.id}`}
             />
           ) : (
-            (isManagedEventType || isChildrenManagedEventType) && (
+            (fieldPermissions.isManagedEventType || fieldPermissions.isChildrenManagedEventType) && (
               <p className="!mt-2 ml-1 text-sm text-gray-600">{t("members_default_schedule_description")}</p>
             )
           )}
@@ -957,8 +937,8 @@ export const EventAvailability = (props: EventAvailabilityProps) => {
               isRestrictionSchedulePending={isRestrictionSchedulePending}
               user={user}
               eventType={eventType}
-              isFieldDisabled={isFieldDisabled}
-              isManagedEventType={isManagedEventType}
+              isManagedEventType={fieldPermissions.isManagedEventType}
+              fieldPermissions={fieldPermissions}
               t={t}
             />
           </>
