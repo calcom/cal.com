@@ -38,6 +38,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
   const isEmailMode = true;
 
   const store = useOnboardingStore();
+  const usersEmailDomain = userEmail.split("@")[1];
   const { invites: storedInvites, inviteRole, setInvites, setInviteRole, resetOnboarding } = store;
   const { submitOnboarding, isSubmitting, error: submissionError } = useSubmitOnboarding();
 
@@ -201,7 +202,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
                                 <TextField
                                   labelSrOnly
                                   {...form.register(`invites.${index}.email`)}
-                                  placeholder="ann@deel.com"
+                                  placeholder={`dave@${usersEmailDomain}`}
                                   type="email"
                                   className="h-7 rounded-[10px] text-sm"
                                 />
