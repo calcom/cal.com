@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { checkPremiumUsername } from "@calcom/ee/common/lib/checkPremiumUsername";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
@@ -30,6 +31,11 @@ export default async function handler(body: Record<string, string>) {
   if (!username) {
     return NextResponse.json({ message: "Invalid username" }, { status: 422 });
   }
+
+  const featuresRepository = new FeaturesRepository(prisma);
+  const isEmailVerificationEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally(
+    "email-verification"
+  );
 
   let foundToken: { id: number; teamId: number | null; expires: Date } | null = null;
   let correctedUsername = username;
@@ -98,12 +104,13 @@ export default async function handler(body: Record<string, string>) {
               update: { hash: hashedPassword },
             },
           },
-          emailVerified: new Date(Date.now()),
+          emailVerified: isEmailVerificationEnabled ? null : new Date(Date.now()),
           identityProvider: IdentityProvider.CAL,
         },
         create: {
           username: correctedUsername,
           email: userEmail,
+          emailVerified: isEmailVerificationEnabled ? null : new Date(Date.now()),
           password: { create: { hash: hashedPassword } },
           identityProvider: IdentityProvider.CAL,
         },
@@ -153,12 +160,13 @@ export default async function handler(body: Record<string, string>) {
             update: { hash: hashedPassword },
           },
         },
-        emailVerified: new Date(Date.now()),
+        emailVerified: isEmailVerificationEnabled ? null : new Date(Date.now()),
         identityProvider: IdentityProvider.CAL,
       },
       create: {
         username: correctedUsername,
         email: userEmail,
+        emailVerified: isEmailVerificationEnabled ? null : new Date(Date.now()),
         password: { create: { hash: hashedPassword } },
         identityProvider: IdentityProvider.CAL,
       },
@@ -168,11 +176,14 @@ export default async function handler(body: Record<string, string>) {
       await prefillAvatar({ email: userEmail });
     }
 
-    await sendEmailVerification({
-      email: userEmail,
-      username: correctedUsername,
-      language,
-    });
+    // Only send verification email if the feature is enabled
+    if (isEmailVerificationEnabled) {
+      await sendEmailVerification({
+        email: userEmail,
+        username: correctedUsername,
+        language,
+      });
+    }
   }
 
   return NextResponse.json({ message: "Created user" }, { status: 201 });
