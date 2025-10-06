@@ -452,6 +452,29 @@ describe("Event types Endpoints", () => {
     });
 
     it("should update an event type with Date booking fields", async () => {
+
+      const createBody: CreateEventTypeInput_2024_06_14 = {
+        title: "Date Field Update Test Event",
+        slug: "date-field-update-test-event",
+        description: "Testing Date field update functionality.",
+        lengthInMinutes: 30,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .send(createBody)
+        .expect(201);
+
+      const createdEventType = createResponse.body.data;
+
       const updateBody: UpdateEventTypeInput_2024_06_14 = {
         bookingFields: [
           {
@@ -467,7 +490,7 @@ describe("Event types Endpoints", () => {
       };
 
       return request(app.getHttpServer())
-        .patch(`/api/v2/event-types/${eventType.id}`)
+        .patch(`/api/v2/event-types/${createdEventType.id}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
         .set("Authorization", `Bearer ${apiKeyString}`)
         .send(updateBody)
@@ -491,6 +514,8 @@ describe("Event types Endpoints", () => {
             hidden: false,
             isDefault: false,
           });
+
+          await eventTypesRepositoryFixture.delete(createdEventType.id);
         });
     });
 
