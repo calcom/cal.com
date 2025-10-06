@@ -1476,4 +1476,14 @@ export class EventTypeRepository {
       },
     });
   }
+  async getTeamIdByEventTypeId({ id }: { id: number }) {
+    return await this.prismaClient.eventType.findFirst({
+      where: {
+        id,
+      },
+      select: {
+        teamId: true,
+      },
+    });
+  }
 }
