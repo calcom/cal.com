@@ -81,6 +81,23 @@ export class ScheduleRepository {
     return schedule;
   }
 
+  static async findScheduleByUserId({ userId }: { userId: number }) {
+    const schedule = await prisma.schedule.findMany({
+      where: {
+        userId,
+      },
+      select: {
+        id: true,
+        userId: true,
+        name: true,
+        availability: true,
+        timeZone: true,
+      },
+    });
+
+    return schedule;
+  }
+
   static async findDetailedScheduleById({
     isManagedEventType,
     scheduleId,

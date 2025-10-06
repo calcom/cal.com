@@ -1075,6 +1075,9 @@ export class AvailableSlotsService {
             id: bookerUser.id,
           });
 
+          // console.log("Booker User");
+          // console.dir(bookerUser , {depth : null});
+
           // console.dir(bookerWithCredentials  , {depth : null});
 
           if (bookerWithCredentials) {
@@ -1088,9 +1091,10 @@ export class AvailableSlotsService {
             //   userId: bookerUser.id
             // }) || [];
 
-            const bookerSchedules = await ScheduleRepository.findScheduleById({ id: bookerUser.id });
-            console.log("\n \n \n You \n \n \n");
-            console.log("Booker Scheddule : - ", bookerSchedules);
+            const bookerSchedules = await ScheduleRepository.findScheduleByUserId({ userId: bookerUser.id });
+            // console.log("\n \n \n You \n \n \n");
+            // console.log("Booker Schedules :  - ");
+            // console.dir(bookerSchedules, { depth: null });
             // WE HAVE
             // Booker Scheddule : -  {
             //   id: 44,
@@ -1128,9 +1132,18 @@ export class AvailableSlotsService {
             const bookerTravelSchedule = await TravelScheduleRepository.findTravelSchedulesByUserId(
               bookerUser.id
             );
-            console.log("Travel Schedule : - ", bookerTravelSchedule);
+            // console.log("Travel Schedule : - ", bookerTravelSchedule);
             // WE HAVE
-
+            // Travel Schedule : -  [
+            //   {
+            //     id: 2,
+            //     userId: 44,
+            //     startDate: 2025-10-07T18:30:00.000Z,
+            //     endDate: 2025-10-09T18:30:00.000Z,
+            //     timeZone: 'Asia/Kolkata',
+            //     prevTimeZone: null
+            //   }
+            // ]
             // WE NEED
             //          travelSchedules: [
             //          {
@@ -1142,33 +1155,56 @@ export class AvailableSlotsService {
             //            prevTimeZone: null
             //          }
             //        ],
+            //
+            //
+            //
+            // Transform bookerSchedules to match expected format
+            const transformedBookerSchedules = bookerSchedules.map((schedule) => ({
+              id: schedule.id,
+              timeZone: schedule.timeZone,
+              availability: schedule.availability.map((avail) => ({
+                date: avail.date,
+                startTime: avail.startTime,
+                endTime: avail.endTime,
+                days: avail.days,
+              })),
+            }));
+
+            // travelSchedules are already in the correct format, no transformation needed
+            const transformedTravelSchedules = bookerTravelSchedule;
+
             bookerAsHost = {
               isFixed: true,
               createdAt: null,
               user: {
                 ...bookerWithCredentials,
-                // schedules: bookerSchedules,
-                // travelSchedules: bookerTravelSchedules,
-                // Add other fields from the bookerUser that aren't in bookerWithCredentials
+                schedules: transformedBookerSchedules,
+                travelSchedules: transformedTravelSchedules,
+                email: bookerUser.email,
                 username: bookerUser.username,
-                name: bookerUser.name,
                 bufferTime: bookerUser.bufferTime || 0,
                 startTime: bookerUser.startTime || 0,
                 endTime: bookerUser.endTime || 1440,
                 timeFormat: bookerUser.timeFormat || 12,
-                // defaultScheduleId: bookerUser.defaultScheduleId,
+                defaultScheduleId: bookerUser.defaultScheduleId,
                 isPlatformManaged: bookerUser.isPlatformManaged || false,
-                availability: [], // User-level availability overrides
+                availability: [],
               },
             };
-            console.dir(bookerAsHost, { depth: null });
+            // console.dir(bookerAsHost, { depth: null });
           }
         }
       }
     }
 
+    if (bookerAsHost) {
+      allHosts.push(bookerAsHost);
+    }
+
+    console.dir(bookerAsHost, { depth: null });
+
     // console.log("Allhosts : - " , allHosts);
-    // console.log("\n \n \n You 2 \n \n \n");
+    console.log("\n \n \n You 2 \n \n \n");
     console.dir(allHosts, { depth: null });
     // console.dir(eventType , {depth : null});
 

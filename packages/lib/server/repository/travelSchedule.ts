@@ -8,9 +8,11 @@ export class TravelScheduleRepository {
       },
       select: {
         id: true,
+        userId: true,
         startDate: true,
         endDate: true,
         timeZone: true,
+        prevTimeZone: true,
       },
     });
 

@@ -50,18 +50,18 @@ export type SessionUser = {
   darkBrandColor: string | null;
   movedToProfileId: number | null;
   completedOnboarding: boolean;
-  destinationCalendar: any;
+  destinationCalendar: unknown;
   locale: string;
   timeFormat: number | null;
   trialEndsAt: Date | null;
-  metadata: any;
+  metadata: never;
   role: string;
   allowDynamicBooking: boolean;
   allowSEOIndexing: boolean;
   receiveMonthlyDigestEmail: boolean;
-  profiles: any[];
-  allSelectedCalendars: any[];
-  userLevelSelectedCalendars: any[];
+  profiles: unknown[];
+  allSelectedCalendars: unknown[];
+  userLevelSelectedCalendars: unknown[];
 };
 
 const log = logger.getSubLogger({ prefix: ["[repository/user]"] });
@@ -110,6 +110,7 @@ const userSelect = {
   allowSEOIndexing: true,
   receiveMonthlyDigestEmail: true,
   verified: true,
+  defaultScheduleId: true,
   disableImpersonation: true,
   locked: true,
   movedToProfileId: true,
@@ -423,7 +424,7 @@ export class UserRepository {
     T extends {
       id: number;
       username: string | null;
-      [key: string]: any;
+      [key: string]: unknown;
     }
   >({
     user,
