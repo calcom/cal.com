@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-restricted-imports
 import type { Logger } from "tslog";
 import { v4 as uuid } from "uuid";
 
@@ -8,6 +7,7 @@ import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import type { QualifiedHostsService } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
@@ -15,7 +15,6 @@ import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
-import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { getBusyTimesService } from "@calcom/lib/di/containers/BusyTimes";
 import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
 import type { BusyTimesService } from "@calcom/lib/getBusyTimes";
@@ -44,12 +43,13 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { ISelectedSlotRepository } from "@calcom/lib/server/repository/ISelectedSlotRepository";
-import type { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import type { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import type { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
-import type { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
+import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 import type { TeamRepository } from "@calcom/lib/server/repository/team";
+import { TravelScheduleRepository } from "@calcom/lib/server/repository/travelSchedule";
 import type { UserRepository } from "@calcom/lib/server/repository/user";
 import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
@@ -84,7 +84,7 @@ export interface IGetAvailableSlots {
       emoji?: string | undefined;
     }[]
   >;
-  troubleshooter?: any;
+  troubleshooter?: unknown;
 }
 
 export type GetAvailableSlotsResponse = Awaited<
@@ -253,7 +253,6 @@ export class AvailableSlotsService {
     );
     const eventTypeId =
       input.eventTypeId ||
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       (await this.getEventTypeId({
         slug: usernameList?.[0],
         eventTypeSlug: eventTypeSlug,
@@ -462,7 +461,7 @@ export class AvailableSlotsService {
                   rescheduleUid,
                   timeZone,
                 });
-              } catch (_) {
+              } catch {
                 limitManager.addBusyTime(periodStart, unit, timeZone);
                 if (
                   periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit, timeZone))
@@ -663,7 +662,7 @@ export class AvailableSlotsService {
                 includeManagedEvents,
                 timeZone,
               });
-            } catch (_) {
+            } catch {
               limitManager.addBusyTime(periodStart, unit, timeZone);
               if (
                 periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit, timeZone))
@@ -760,7 +759,6 @@ export class AvailableSlotsService {
     const usersWithCredentials = this.getUsersWithCredentials({
       hosts,
     });
-
     loggerWithEventDetails.debug("Using users", {
       usersWithCredentials: usersWithCredentials.map((user) => user.email),
     });
@@ -1054,6 +1052,125 @@ export class AvailableSlotsService {
     const twoWeeksFromNow = dayjs().add(2, "week");
 
     const hasFallbackRRHosts = allFallbackRRHosts && allFallbackRRHosts.length > qualifiedRRHosts.length;
+
+    // In _getAvailableSlots, after getting qualifiedRRHosts
+
+    let bookerAsHost = null;
+
+    if (input.rescheduleUid) {
+      const rescheduleBooking = await this.dependencies.bookingRepo.findBookingByUid({
+        bookingUid: input.rescheduleUid,
+      });
+
+      const bookerEmail = rescheduleBooking?.attendees[0]?.email;
+
+      if (bookerEmail) {
+        const bookerUser = await this.dependencies.userRepo.findByEmail({
+          email: bookerEmail,
+        });
+
+        if (bookerUser) {
+          // Fetch booker with credentials (has credentials + selectedCalendars)
+          const bookerWithCredentials = await this.dependencies.userRepo.findUserWithCredentials({
+            id: bookerUser.id,
+          });
+
+          // console.dir(bookerWithCredentials  , {depth : null});
+
+          if (bookerWithCredentials) {
+            // Now fetch schedules separately since findUserWithCredentials doesn't include them
+            // const bookerSchedules = await this.dependencies.scheduleRepo.findAllSchedulesByUserId({
+            //   userId: bookerUser.id
+            // });
+
+            // Also fetch travel schedules if needed
+            // const bookerTravelSchedules = await this.dependencies.userRepo.findTravelSchedules?.({
+            //   userId: bookerUser.id
+            // }) || [];
+
+            const bookerSchedules = await ScheduleRepository.findScheduleById({ id: bookerUser.id });
+            console.log("\n \n \n You \n \n \n");
+            console.log("Booker Scheddule : - ", bookerSchedules);
+            // WE HAVE
+            // Booker Scheddule : -  {
+            //   id: 44,
+            //   userId: 37,
+            //   name: 'Working Hours',
+            //   availability: [
+            //     {
+            //       id: 44,
+            //       userId: null,
+            //       eventTypeId: null,
+            //       days: [Array],
+            //       startTime: 1970-01-01T09:00:00.000Z,
+            //       endTime: 1970-01-01T17:00:00.000Z,
+            //       date: null,
+            //       scheduleId: 44
+            //     }
+            //   ],
+            //   timeZone: null
+            // }
+            // WE NEED
+            // schedules: [
+            //      {
+            //        availability: [
+            //          {
+            //            date: null,
+            //            startTime: 1970-01-01T09:00:00.000Z,
+            //            endTime: 1970-01-01T17:00:00.000Z,
+            //            days: [ 1, 2, 3, 4, 5 ]
+            //          }
+            //        ],
+            //        timeZone: 'Asia/Kolkata',
+            //        id: 50
+            //      }
+            //    ],
+            const bookerTravelSchedule = await TravelScheduleRepository.findTravelSchedulesByUserId(
+              bookerUser.id
+            );
+            console.log("Travel Schedule : - ", bookerTravelSchedule);
+            // WE HAVE
+
+            // WE NEED
+            //          travelSchedules: [
+            //          {
+            //            id: 1,
+            //            userId: 43,
+            //            timeZone: 'Asia/Yakutsk',
+            //            startDate: 2025-10-07T18:30:00.000Z,
+            //            endDate: 2025-10-09T18:30:00.000Z,
+            //            prevTimeZone: null
+            //          }
+            //        ],
+            bookerAsHost = {
+              isFixed: true,
+              createdAt: null,
+              user: {
+                ...bookerWithCredentials,
+                // schedules: bookerSchedules,
+                // travelSchedules: bookerTravelSchedules,
+                // Add other fields from the bookerUser that aren't in bookerWithCredentials
+                username: bookerUser.username,
+                name: bookerUser.name,
+                bufferTime: bookerUser.bufferTime || 0,
+                startTime: bookerUser.startTime || 0,
+                endTime: bookerUser.endTime || 1440,
+                timeFormat: bookerUser.timeFormat || 12,
+                // defaultScheduleId: bookerUser.defaultScheduleId,
+                isPlatformManaged: bookerUser.isPlatformManaged || false,
+                availability: [], // User-level availability overrides
+              },
+            };
+            console.dir(bookerAsHost, { depth: null });
+          }
+        }
+      }
+    }
+
+    // console.log("Allhosts : - " , allHosts);
+    // console.log("\n \n \n You 2 \n \n \n");
+    console.dir(allHosts, { depth: null });
+    // console.dir(eventType , {depth : null});
 
     let { allUsersAvailability, usersWithCredentials, currentSeats } =
       await this.calculateHostsAndAvailabilities({
