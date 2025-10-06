@@ -1,4 +1,5 @@
 import { Client, cacheExchange, fetchExchange } from "@urql/core";
+import { retryExchange } from "@urql/exchange-retry";
 
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -8,6 +9,14 @@ import { SalesforceRecordEnum } from "../enums";
 import getAllPossibleWebsiteValuesFromEmailDomain from "../utils/getAllPossibleWebsiteValuesFromEmailDomain";
 import getDominantAccountId from "../utils/getDominantAccountId";
 import { GetAccountRecordsForRRSkip } from "./documents/queries";
+
+const retryOptions = {
+  maxRetries: 3,
+  initialDelayMs: Number(process.env.SALESFORCE_GRAPHQL_DELAY_MS) || 500,
+  maxDelayMs: Number(process.env.SALESFORCE_GRAPHQL_MAX_DELAY_MS) || 2000,
+  randomDelay: true,
+  maxNumberAttempts: Number(process.env.SALESFORCE_GRAPHQL_MAX_RETRIES) || 3,
+};
 
 export class SalesforceGraphQLClient {
   private log: typeof logger;
@@ -19,7 +28,7 @@ export class SalesforceGraphQLClient {
     this.accessToken = accessToken;
     this.client = new Client({
       url: `${instanceUrl}/services/data/${this.version}/graphql`,
-      exchanges: [cacheExchange, fetchExchange],
+      exchanges: [cacheExchange, fetchExchange, retryExchange(retryOptions)],
       fetchOptions: () => {
         return {
           headers: { authorization: `Bearer ${this.accessToken}` },
@@ -48,6 +57,8 @@ export class SalesforceGraphQLClient {
       websites,
       emailDomain: `%@${emailDomain}`,
     });
+
+    console.log(query);
 
     const queryData = query?.data;
 
