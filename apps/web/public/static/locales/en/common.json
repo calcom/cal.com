@@ -3589,6 +3589,8 @@
   "no_members_affected_by_disabling_delegation_credential": "No members affected by disabling delegation credential",
   "download_expense_log": "Download Expense Log",
   "error_downloading_expense_log": "Error downloading expense log",
+  "require_booker_email_verification": "Require Email Verification for Bookings",
+  "require_booker_email_verification_description": "When enabled, anyone trying to book your events using your email address must verify they own that email and be logged in to prevent impersonation",
   "offer_to_reschedule_last_booking": "Offer to reschedule last active booking to chosen time slot",
   "booker_limit_exceeded_error": "Booker maximum active booking limit exceeded",
   "booker_limit_exceeded_error_reschedule": "You already have a booking for this event on {{date}}. Would you like to reschedule to the new selected time?",

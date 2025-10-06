@@ -1,5 +1,6 @@
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import logger from "@calcom/lib/logger";
+import { prisma } from "@calcom/prisma";
 
 import type { TUserEmailVerificationRequiredSchema } from "./checkIfUserEmailVerificationRequired.schema";
 
@@ -30,6 +31,36 @@ export const checkEmailVerificationRequired = async ({
     log.warn(`blacklistedEmail: ${blacklistedEmail}`);
     return true;
   }
+
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [
+        {
+          email: baseEmail,
+          emailVerified: { not: null },
+        },
+        {
+          secondaryEmails: {
+            some: {
+              email: baseEmail,
+              emailVerified: { not: null },
+            },
+          },
+        },
+      ],
+    },
+    select: {
+      id: true,
+      email: true,
+      requiresBookerEmailVerification: true,
+    },
+  });
+
+  if (user?.requiresBookerEmailVerification && baseEmail.toLowerCase() !== userSessionEmail?.toLowerCase()) {
+    log.warn(`user email requiring verification: ${baseEmail}`);
+    return true;
+  }
+
   return false;
 };
 

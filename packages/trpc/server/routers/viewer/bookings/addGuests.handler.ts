@@ -2,6 +2,7 @@ import dayjs from "@calcom/dayjs";
 import { sendAddGuestsEmails } from "@calcom/emails";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -79,11 +80,54 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     ? process.env.BLACKLISTED_GUEST_EMAILS.split(",").map((email) => email.toLowerCase())
     : [];
 
-  const uniqueGuests = guests.filter(
-    (guest) =>
+  const guestEmails = guests.map((email) => extractBaseEmail(email).toLowerCase());
+  const guestUsers =
+    (await prisma.user.findMany({
+      where: {
+        OR: [
+          {
+            email: { in: guestEmails },
+            emailVerified: { not: null },
+          },
+          {
+            secondaryEmails: {
+              some: {
+                email: { in: guestEmails },
+                emailVerified: { not: null },
+              },
+            },
+          },
+        ],
+      },
+      select: {
+        email: true,
+        requiresBookerEmailVerification: true,
+        secondaryEmails: {
+          where: { emailVerified: { not: null } },
+          select: { email: true },
+        },
+      },
+    })) ?? [];
+
+  const emailToRequiresVerification = new Map<string, boolean>();
+  for (const user of guestUsers) {
+    const baseEmail = extractBaseEmail(user.email).toLowerCase();
+    emailToRequiresVerification.set(baseEmail, user.requiresBookerEmailVerification ?? false);
+
+    for (const secondary of user.secondaryEmails) {
+      const baseSecondary = extractBaseEmail(secondary.email).toLowerCase();
+      emailToRequiresVerification.set(baseSecondary, user.requiresBookerEmailVerification ?? false);
+    }
+  }
+
+  const uniqueGuests = guests.filter((guest) => {
+    const baseGuestEmail = extractBaseEmail(guest).toLowerCase();
+    return (
       !booking.attendees.some((attendee) => guest === attendee.email) &&
-      !blacklistedGuestEmails.includes(guest)
-  );
+      !blacklistedGuestEmails.includes(baseGuestEmail) &&
+      !emailToRequiresVerification.get(baseGuestEmail)
+    );
+  });
 
   if (uniqueGuests.length === 0)
     throw new TRPCError({ code: "BAD_REQUEST", message: "emails_must_be_unique_valid" });
@@ -183,7 +227,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
 
   try {
     await sendAddGuestsEmails(evt, guests);
-  } catch (err) {
+  } catch {
     console.log("Error sending AddGuestsEmails");
   }
 
