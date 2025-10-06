@@ -12,6 +12,9 @@ import { CalendarServiceMap } from "../calendar.services.generated";
 
 const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 
+// Cache for resolved calendar services to avoid repeated dynamic imports
+const calendarServiceCache = new Map<string, new (...args: unknown[]) => Calendar>();
+
 export const getCalendar = async (
   credential: CredentialForCalendarService | null
 ): Promise<Calendar | null> => {
@@ -25,17 +28,35 @@ export const getCalendar = async (
     calendarType = calendarType.split("_crm")[0];
   }
 
-  const calendarAppImportFn =
-    CalendarServiceMap[calendarType.split("_").join("") as keyof typeof CalendarServiceMap];
+  const calendarAppKey = calendarType.split("_").join("") as keyof typeof CalendarServiceMap;
+  const calendarAppImportFn = CalendarServiceMap[calendarAppKey];
 
   if (!calendarAppImportFn) {
     log.warn(`calendar of type ${calendarType} is not implemented`);
     return null;
   }
 
-  const calendarApp = await calendarAppImportFn;
+  // Check cache first for better performance
+  let CalendarService = calendarServiceCache.get(calendarAppKey);
 
-  const CalendarService = calendarApp.default;
+  if (!CalendarService) {
+    // Handle both static imports (direct class) and dynamic imports (Promise)
+    if (typeof calendarAppImportFn === "function") {
+      // Static import - direct class
+      CalendarService = calendarAppImportFn;
+    } else {
+      // Dynamic import - Promise that resolves to module
+      const calendarApp = await (calendarAppImportFn as Promise<{
+        default: new (...args: unknown[]) => Calendar;
+      }>);
+      CalendarService = calendarApp.default;
+    }
+
+    // Cache the resolved service for future use
+    if (CalendarService) {
+      calendarServiceCache.set(calendarAppKey, CalendarService);
+    }
+  }
 
   if (!CalendarService || typeof CalendarService !== "function") {
     log.warn(`calendar of type ${calendarType} is not implemented`);

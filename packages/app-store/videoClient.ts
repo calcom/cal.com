@@ -20,6 +20,9 @@ const log = logger.getSubLogger({ prefix: ["[lib] videoClient"] });
 
 const translator = short();
 
+// this is cache for resolved video adapters to avoid repeated dynamic imports
+const videoAdapterCache = new Map<string, VideoApiAdapterFactory>();
+
 // factory
 const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<VideoApiAdapter[]> => {
   const videoAdapters: VideoApiAdapter[] = [];
@@ -43,8 +46,25 @@ const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<V
       continue;
     }
 
-    const videoAdapterModule = await videoAdapterImport;
-    const makeVideoApiAdapter = videoAdapterModule.default as VideoApiAdapterFactory;
+    // Check cache first for better performance
+    let makeVideoApiAdapter = videoAdapterCache.get(appName);
+
+    if (!makeVideoApiAdapter) {
+      // Handle both static imports (direct factory function) and dynamic imports (Promise)
+      if (typeof videoAdapterImport === "function") {
+        // Static import - direct factory function
+        makeVideoApiAdapter = videoAdapterImport;
+      } else {
+        // Dynamic import - Promise that resolves to module
+        const videoAdapterModule = await (videoAdapterImport as Promise<{ default: VideoApiAdapterFactory }>);
+        makeVideoApiAdapter = videoAdapterModule.default as VideoApiAdapterFactory;
+      }
+
+      // Cache the resolved adapter factory for future use
+      if (makeVideoApiAdapter) {
+        videoAdapterCache.set(appName, makeVideoApiAdapter);
+      }
+    }
 
     if (makeVideoApiAdapter) {
       const videoAdapter = makeVideoApiAdapter(cred);
@@ -198,7 +218,7 @@ const createMeetingWithCalVideo = async (calEvent: CalendarEvent) => {
   let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
   try {
     dailyAppKeys = await getDailyAppKeys();
-  } catch (e) {
+  } catch {
     return;
   }
   const [videoAdapter] = await getVideoAdapters([
@@ -221,7 +241,7 @@ export const createInstantMeetingWithCalVideo = async (endTime: string) => {
   let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
   try {
     dailyAppKeys = await getDailyAppKeys();
-  } catch (e) {
+  } catch {
     return;
   }
   const [videoAdapter] = await getVideoAdapters([
@@ -246,7 +266,7 @@ const getRecordingsOfCalVideoByRoomName = async (
   let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
   try {
     dailyAppKeys = await getDailyAppKeys();
-  } catch (e) {
+  } catch {
     console.error("Error: Cal video provider is not installed.");
     return;
   }
@@ -272,7 +292,7 @@ const getDownloadLinkOfCalVideoByRecordingId = async (
   let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
   try {
     dailyAppKeys = await getDailyAppKeys();
-  } catch (e) {
+  } catch {
     console.error("Error: Cal video provider is not installed.");
     return;
   }
@@ -296,7 +316,7 @@ const getAllTranscriptsAccessLinkFromRoomName = async (roomName: string) => {
   let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
   try {
     dailyAppKeys = await getDailyAppKeys();
-  } catch (e) {
+  } catch {
     console.error("Error: Cal video provider is not installed.");
     return;
   }
@@ -320,7 +340,7 @@ const getAllTranscriptsAccessLinkFromMeetingId = async (meetingId: string) => {
   let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
   try {
     dailyAppKeys = await getDailyAppKeys();
-  } catch (e) {
+  } catch {
     console.error("Error: Cal video provider is not installed.");
     return;
   }
@@ -344,7 +364,7 @@ const submitBatchProcessorTranscriptionJob = async (recordingId: string) => {
   let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
   try {
     dailyAppKeys = await getDailyAppKeys();
-  } catch (e) {
+  } catch {
     console.error("Error: Cal video provider is not installed.");
     return;
   }
@@ -380,7 +400,7 @@ const getTranscriptsAccessLinkFromRecordingId = async (recordingId: string) => {
   let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
   try {
     dailyAppKeys = await getDailyAppKeys();
-  } catch (e) {
+  } catch {
     console.error("Error: Cal video provider is not installed.");
     return;
   }
@@ -405,7 +425,7 @@ const checkIfRoomNameMatchesInRecording = async (roomName: string, recordingId: 
   let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
   try {
     dailyAppKeys = await getDailyAppKeys();
-  } catch (e) {
+  } catch {
     console.error("Error: Cal video provider is not installed.");
     return;
   }

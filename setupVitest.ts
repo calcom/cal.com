@@ -152,11 +152,43 @@ vi.mock("@calcom/app-store/mock-payment-app/index", () => ({
 
 vi.mock("@calcom/app-store/payment.services.generated", () => ({
   PaymentServiceMap: {
-    stripepayment: Promise.resolve({ PaymentService: MockPaymentService }),
-    paypal: Promise.resolve({ PaymentService: MockPaymentService }),
-    alby: Promise.resolve({ PaymentService: MockPaymentService }),
-    hitpay: Promise.resolve({ PaymentService: MockPaymentService }),
-    btcpayserver: Promise.resolve({ PaymentService: MockPaymentService }),
-    "mock-payment-app": Promise.resolve({ PaymentService: MockPaymentService }),
+    stripepayment: MockPaymentService,
+    paypal: MockPaymentService,
+    alby: MockPaymentService,
+    hitpay: MockPaymentService,
+    btcpayserver: MockPaymentService,
+    "mock-payment-app": MockPaymentService,
+  },
+}));
+
+vi.mock("@calcom/app-store/calendar.services.generated", () => ({
+  CalendarServiceMap: {
+    applecalendar: MockExchangeCalendarService,
+    caldavcalendar: MockExchangeCalendarService,
+    exchange2013calendar: MockExchangeCalendarService,
+    exchange2016calendar: MockExchangeCalendarService,
+    exchangecalendar: MockExchangeCalendarService,
+    feishucalendar: MockExchangeCalendarService,
+    googlecalendar: MockExchangeCalendarService,
+    "ics-feedcalendar": MockExchangeCalendarService,
+    larkcalendar: MockExchangeCalendarService,
+    office365calendar: MockExchangeCalendarService,
+    zohocalendar: MockExchangeCalendarService,
+  },
+}));
+
+vi.mock("@calcom/app-store/video.adapters.generated", () => ({
+  VideoApiAdapterMap: {
+    dailyvideo: vi.fn(),
+    huddle01video: vi.fn(),
+    jelly: vi.fn(),
+    jitsivideo: vi.fn(),
+    nextcloudtalk: vi.fn(),
+    office365video: vi.fn(),
+    shimmervideo: vi.fn(),
+    sylapsvideo: vi.fn(),
+    tandemvideo: vi.fn(),
+    webex: vi.fn(),
+    zoomvideo: vi.fn(),
   },
 }));

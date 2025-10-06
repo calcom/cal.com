@@ -8,8 +8,12 @@ import type { AppCategories, Prisma, EventType } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
-const isPaymentService = (x: unknown): x is { PaymentService: any } =>
+const isPaymentService = (
+  x: unknown
+): x is { PaymentService: new (...args: unknown[]) => IAbstractPaymentService } =>
   !!x && typeof x === "object" && "PaymentService" in x && typeof x.PaymentService === "function";
+
+const paymentServiceCache = new Map<string, new (...args: unknown[]) => IAbstractPaymentService>();
 
 const handlePayment = async ({
   evt,
@@ -56,12 +60,32 @@ const handlePayment = async ({
     return null;
   }
 
-  const paymentAppModule = await paymentAppImportFn;
-  if (!isPaymentService(paymentAppModule)) {
-    console.warn(`payment App service not found for key: ${key}`);
-    return null;
+  // Check cache first for better performance
+  let PaymentService = paymentServiceCache.get(key as string);
+
+  if (!PaymentService) {
+    // Handle both static imports (direct class) and dynamic imports (Promise)
+    if (typeof paymentAppImportFn === "function") {
+      // Static import - direct class
+      PaymentService = paymentAppImportFn;
+    } else {
+      // Dynamic import - Promise that resolves to module
+      const paymentAppModule = await (paymentAppImportFn as Promise<{
+        PaymentService: new (...args: unknown[]) => IAbstractPaymentService;
+      }>);
+      if (!isPaymentService(paymentAppModule)) {
+        console.warn(`payment App service not found for key: ${key}`);
+        return null;
+      }
+      PaymentService = paymentAppModule.PaymentService;
+    }
+
+    // Cache the resolved service for future use
+    if (PaymentService && key) {
+      paymentServiceCache.set(key, PaymentService);
+    }
   }
-  const PaymentService = paymentAppModule.PaymentService;
+
   const paymentInstance = new PaymentService(paymentAppCredentials) as IAbstractPaymentService;
 
   const apps = eventTypeMetaDataSchemaWithTypedApps.parse(selectedEventType?.metadata)?.apps;
