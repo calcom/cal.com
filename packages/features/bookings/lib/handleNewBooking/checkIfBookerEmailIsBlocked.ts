@@ -10,17 +10,14 @@ export const checkIfBookerEmailIsBlocked = async ({
   loggedInUserId?: number;
 }) => {
   const baseEmail = extractBaseEmail(bookerEmail);
+
   const blacklistedGuestEmails = process.env.BLACKLISTED_GUEST_EMAILS
     ? process.env.BLACKLISTED_GUEST_EMAILS.split(",")
     : [];
 
-  const blacklistedEmail = blacklistedGuestEmails.find(
+  const blacklistedByEnv = blacklistedGuestEmails.find(
     (guestEmail: string) => guestEmail.toLowerCase() === baseEmail.toLowerCase()
   );
-
-  if (!blacklistedEmail) {
-    return false;
-  }
 
   const user = await prisma.user.findFirst({
     where: {
@@ -46,8 +43,16 @@ export const checkIfBookerEmailIsBlocked = async ({
     select: {
       id: true,
       email: true,
+      requiresBookerEmailVerification: true,
     },
   });
+
+  const blockedByUserSetting = user?.requiresBookerEmailVerification ?? false;
+  const shouldBlock = !!blacklistedByEnv || blockedByUserSetting;
+
+  if (!shouldBlock) {
+    return false;
+  }
 
   if (!user) {
     throw new HttpError({ statusCode: 403, message: "Cannot use this email to create the booking." });

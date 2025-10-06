@@ -11,7 +11,7 @@ import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import { withSelectedCalendars } from "@calcom/lib/server/withSelectedCalendars";
 import type { PrismaClient } from "@calcom/prisma";
 import { availabilityUserSelect } from "@calcom/prisma";
-import type { User as UserType } from "@calcom/prisma/client";
+import type { User as UserType, DestinationCalendar, SelectedCalendar } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole, BookingStatus } from "@calcom/prisma/enums";
@@ -49,18 +49,19 @@ export type SessionUser = {
   darkBrandColor: string | null;
   movedToProfileId: number | null;
   completedOnboarding: boolean;
-  destinationCalendar: any;
+  destinationCalendar: DestinationCalendar | null;
   locale: string;
   timeFormat: number | null;
   trialEndsAt: Date | null;
-  metadata: any;
+  metadata: z.infer<typeof userMetadata>;
   role: string;
   allowDynamicBooking: boolean;
   allowSEOIndexing: boolean;
   receiveMonthlyDigestEmail: boolean;
-  profiles: any[];
-  allSelectedCalendars: any[];
-  userLevelSelectedCalendars: any[];
+  requiresBookerEmailVerification: boolean;
+  profiles: UserProfile[];
+  allSelectedCalendars: SelectedCalendar[];
+  userLevelSelectedCalendars: SelectedCalendar[];
 };
 
 const log = logger.getSubLogger({ prefix: ["[repository/user]"] });
@@ -108,6 +109,7 @@ const userSelect = {
   allowDynamicBooking: true,
   allowSEOIndexing: true,
   receiveMonthlyDigestEmail: true,
+  requiresBookerEmailVerification: true,
   verified: true,
   disableImpersonation: true,
   locked: true,
@@ -422,7 +424,6 @@ export class UserRepository {
     T extends {
       id: number;
       username: string | null;
-      [key: string]: any;
     }
   >({
     user,
@@ -923,6 +924,7 @@ export class UserRepository {
         allowDynamicBooking: true,
         allowSEOIndexing: true,
         receiveMonthlyDigestEmail: true,
+        requiresBookerEmailVerification: true,
         profiles: true,
       },
     });

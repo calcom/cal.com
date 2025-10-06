@@ -402,7 +402,9 @@ model User {
   allowSEOIndexing Boolean? @default(true)
 
   // receive monthly digest email for teams or not
-  receiveMonthlyDigestEmail Boolean? @default(true)
+  receiveMonthlyDigestEmail       Boolean? @default(true)
+  // require email verification when someone books using your email
+  requiresBookerEmailVerification Boolean? @default(false)
 
   /// @zod.import(["import { userMetadata } from '../../zod-utils'"]).custom.use(userMetadata)
   metadata             Json?
