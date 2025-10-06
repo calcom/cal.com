@@ -15,7 +15,7 @@ import type {
  */
 export function mapWatchlistToDTO(
   watchlist: Watchlist & {
-    createdBy: User;
+    createdBy?: User | null;
     updatedBy?: User | null;
   }
 ): WatchlistEntryDTO {
@@ -25,16 +25,18 @@ export function mapWatchlistToDTO(
     value: watchlist.value,
     description: watchlist.description,
     action: watchlist.action,
-    severity: watchlist.severity,
-    createdAt: watchlist.createdAt.toISOString(),
-    updatedAt: watchlist.updatedAt.toISOString(),
+    source: watchlist.source,
+    isGlobal: watchlist.isGlobal,
+    lastUpdatedAt: watchlist.lastUpdatedAt.toISOString(),
     organizationId: watchlist.organizationId,
-    createdBy: {
-      id: watchlist.createdBy.id,
-      name: watchlist.createdBy.name,
-      email: watchlist.createdBy.email,
-      avatarUrl: watchlist.createdBy.avatarUrl,
-    },
+    createdBy: watchlist.createdBy
+      ? {
+          id: watchlist.createdBy.id,
+          name: watchlist.createdBy.name,
+          email: watchlist.createdBy.email,
+          avatarUrl: watchlist.createdBy.avatarUrl,
+        }
+      : null,
     updatedBy: watchlist.updatedBy
       ? {
           id: watchlist.updatedBy.id,
@@ -59,7 +61,7 @@ export function mapBlockedBookingToDTO(
     email: blockedBooking.email,
     eventTypeId: blockedBooking.eventTypeId,
     organizationId: blockedBooking.organizationId,
-    createdAt: blockedBooking.createdAt.toISOString(),
+    createdAt: blockedBooking.timestamp.toISOString(),
     watchlistId: blockedBooking.watchlistId,
     bookingData: blockedBooking.bookingData as Record<string, unknown> | null,
     watchlistEntry: blockedBooking.watchlistEntry
@@ -79,7 +81,7 @@ export function mapBlockedBookingToDTO(
 export function mapWatchlistListToDTO(
   watchlists: Array<
     Watchlist & {
-      createdBy: User;
+      createdBy?: User | null;
       updatedBy?: User | null;
     }
   >,
@@ -178,12 +180,14 @@ export function sanitizeWatchlistEntryDTO(dto: WatchlistEntryDTO): WatchlistEntr
   // Remove sensitive user information for public APIs
   return {
     ...dto,
-    createdBy: {
-      id: dto.createdBy.id,
-      name: dto.createdBy.name,
-      email: "", // Hide email in public responses
-      avatarUrl: dto.createdBy.avatarUrl,
-    },
+    createdBy: dto.createdBy
+      ? {
+          id: dto.createdBy.id,
+          name: dto.createdBy.name,
+          email: "", // Hide email in public responses
+          avatarUrl: dto.createdBy.avatarUrl,
+        }
+      : null,
     updatedBy: dto.updatedBy
       ? {
           id: dto.updatedBy.id,
@@ -203,9 +207,7 @@ export function sanitizeWatchlistValue(type: string, value: string): string {
     case "EMAIL":
       return value.toLowerCase().trim();
     case "DOMAIN":
-      // Ensure domain starts with @ and is lowercase
-      const domain = value.toLowerCase().trim();
-      return domain.startsWith("@") ? domain : `@${domain}`;
+      return value.toLowerCase().trim().startsWith("@") ? value : `@${value}`;
     case "USERNAME":
       return value.toLowerCase().trim();
     default:

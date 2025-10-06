@@ -1,7 +1,7 @@
 import { captureException } from "@sentry/nextjs";
 
 import type { PrismaClient } from "@calcom/prisma/client";
-import { WatchlistAction, WatchlistSeverity, WatchlistType } from "@calcom/prisma/enums";
+import { WatchlistAction, WatchlistType } from "@calcom/prisma/enums";
 
 import type { Watchlist } from "../types";
 
@@ -132,7 +132,7 @@ export class OrganizationWatchlistRepository {
       return await this.prisma.watchlist.findMany({
         where: {
           organizationId, // Organization-specific only
-          severity: WatchlistSeverity.CRITICAL,
+          action: WatchlistAction.BLOCK,
           OR: [
             ...(params.usernames.length > 0
               ? [

@@ -20,14 +20,16 @@ export class WatchlistRepository implements IWatchlistRepository {
   // Read operations
   async findBlockedEntry(email: string, organizationId?: number): Promise<Watchlist | null> {
     try {
-      return await this.prisma.watchlist.findFirst({
-        where: {
-          type: WatchlistType.EMAIL,
-          value: email.toLowerCase(),
-          action: WatchlistAction.BLOCK,
-          OR: [{ isGlobal: true }, { organizationId: organizationId }],
-        },
-      });
+      const whereClause = {
+        type: WatchlistType.EMAIL,
+        value: email.toLowerCase(),
+        action: WatchlistAction.BLOCK,
+        ...(organizationId !== undefined
+          ? { OR: [{ isGlobal: true }, { organizationId }] }
+          : { isGlobal: true }),
+      };
+
+      return await this.prisma.watchlist.findFirst({ where: whereClause });
     } catch (err) {
       captureException(err);
       throw err;
@@ -36,14 +38,16 @@ export class WatchlistRepository implements IWatchlistRepository {
 
   async findBlockedDomain(domain: string, organizationId?: number): Promise<Watchlist | null> {
     try {
-      return await this.prisma.watchlist.findFirst({
-        where: {
-          type: WatchlistType.DOMAIN,
-          value: domain.toLowerCase(),
-          action: WatchlistAction.BLOCK,
-          OR: [{ isGlobal: true }, { organizationId: organizationId }],
-        },
-      });
+      const whereClause = {
+        type: WatchlistType.DOMAIN,
+        value: domain.toLowerCase(),
+        action: WatchlistAction.BLOCK,
+        ...(organizationId !== undefined
+          ? { OR: [{ isGlobal: true }, { organizationId }] }
+          : { isGlobal: true }),
+      };
+
+      return await this.prisma.watchlist.findFirst({ where: whereClause });
     } catch (err) {
       captureException(err);
       throw err;
@@ -54,7 +58,7 @@ export class WatchlistRepository implements IWatchlistRepository {
     try {
       return await this.prisma.watchlist.findMany({
         where: {
-          OR: [{ organizationId: organizationId }, { isGlobal: true }],
+          OR: [{ organizationId }, { isGlobal: true }],
         },
         orderBy: { lastUpdatedAt: "desc" },
       });

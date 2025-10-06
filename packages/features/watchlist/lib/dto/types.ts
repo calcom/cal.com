@@ -1,4 +1,4 @@
-import type { WatchlistAction, WatchlistSeverity, WatchlistType } from "@calcom/prisma/enums";
+import type { WatchlistAction, WatchlistType, WatchlistSource } from "@calcom/prisma/enums";
 
 // Base DTOs for API responses
 export interface WatchlistEntryDTO {
@@ -7,16 +7,16 @@ export interface WatchlistEntryDTO {
   value: string;
   description?: string | null;
   action: WatchlistAction;
-  severity: WatchlistSeverity;
-  createdAt: string;
-  updatedAt: string;
+  source: WatchlistSource;
+  isGlobal: boolean;
+  lastUpdatedAt: string;
   organizationId?: number | null;
-  createdBy: {
+  createdBy?: {
     id: number;
     name: string | null;
     email: string;
     avatarUrl?: string | null;
-  };
+  } | null;
   updatedBy?: {
     id: number;
     name: string | null;
@@ -91,7 +91,8 @@ export interface WatchlistSearchDTO {
   query?: string;
   type?: WatchlistType;
   action?: WatchlistAction;
-  severity?: WatchlistSeverity;
+  source?: WatchlistSource;
+  isGlobal?: boolean;
   organizationId?: number;
   page?: number;
   limit?: number;
