@@ -4,6 +4,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
+import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
 import { schemaAttendeeCreateBodyParams, schemaAttendeeReadPublic } from "~/lib/validations/attendee";
 
 /**
@@ -52,16 +53,95 @@ import { schemaAttendeeCreateBodyParams, schemaAttendeeReadPublic } from "~/lib/
  *        description: Authorization information is missing or invalid.
  */
 async function postHandler(req: NextApiRequest) {
-  const { userId, isSystemWideAdmin } = req;
+  const { userId, isSystemWideAdmin, isOrganizationOwnerOrAdmin } = req;
   const body = schemaAttendeeCreateBodyParams.parse(req.body);
 
   if (!isSystemWideAdmin) {
-    const userBooking = await prisma.booking.findFirst({
+    if (isOrganizationOwnerOrAdmin) {
+      const booking = await prisma.booking.findUnique({
+        where: { id: body.bookingId },
+        select: { userId: true },
+      });
+      if (booking) {
+        const bookingUserId = booking.userId;
+        if (bookingUserId) {
+          const accessibleUsersIds = await getAccessibleUsers({
+            adminUserId: userId,
+            memberUserIds: [bookingUserId],
+          });
+          if (accessibleUsersIds.length > 0) {
+            const data = await prisma.attendee.create({
+              data: {
+                email: body.email,
+                name: body.name,
+                timeZone: body.timeZone,
+                booking: { connect: { id: body.bookingId } },
+              },
+            });
+
+            return {
+              attendee: schemaAttendeeReadPublic.parse(data),
+              message: "Attendee created successfully",
+            };
+          }
+        }
+      }
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+
+    if (!user) throw new HttpError({ statusCode: 404, message: "User not found" });
+
+    const bookingAsOwner = prisma.booking.findFirst({
       where: { userId, id: body.bookingId },
       select: { id: true },
     });
-    // Here we make sure to only return attendee's of the user's own bookings.
-    if (!userBooking) throw new HttpError({ statusCode: 403, message: "Forbidden" });
+
+    const bookingAsAttendee = prisma.booking.findMany({
+      where: {
+        id: body.bookingId,
+        attendees: { some: { email: user.email } },
+      },
+    });
+
+    const bookingAsEventTypeOwner = prisma.booking.findMany({
+      where: {
+        id: body.bookingId,
+        eventType: {
+          owner: { id: userId },
+        },
+      },
+    });
+
+    const bookingAsTeamOwnerOrAdmin = prisma.booking.findMany({
+      where: {
+        id: body.bookingId,
+        eventType: {
+          team: {
+            members: {
+              some: { userId, role: { in: ["ADMIN", "OWNER"] }, accepted: true },
+            },
+          },
+        },
+      },
+    });
+
+    const [ownerResult, attendeeResult, eventTypeOwnerResult, teamOwnerResult] = await Promise.all([
+      bookingAsOwner,
+      bookingAsAttendee,
+      bookingAsEventTypeOwner,
+      bookingAsTeamOwnerOrAdmin,
+    ]);
+
+    const hasAccess =
+      !!ownerResult || !!attendeeResult.length || !!eventTypeOwnerResult.length || !!teamOwnerResult.length;
+
+    if (!hasAccess) {
+      throw new HttpError({ statusCode: 403, message: "Forbidden" });
+    }
   }
 
   const data = await prisma.attendee.create({
