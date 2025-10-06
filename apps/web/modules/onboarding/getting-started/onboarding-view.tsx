@@ -7,6 +7,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Logo } from "@calcom/ui/components/logo";
 import { RadioAreaGroup } from "@calcom/ui/components/radio";
 
+import { OnboardingContinuationPrompt } from "../components/onboarding-continuation-prompt";
 import { useOnboardingStore, type PlanType } from "../store/onboarding-store";
 
 type OnboardingViewProps = {
@@ -49,6 +50,7 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
 
   return (
     <div className="bg-default flex min-h-screen w-full flex-col items-start overflow-clip rounded-xl">
+      <OnboardingContinuationPrompt />
       {/* Header */}
       <div className="flex w-full items-center justify-between px-6 py-4">
         <Logo className="h-5 w-auto" />
