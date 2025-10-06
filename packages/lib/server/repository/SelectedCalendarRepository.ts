@@ -5,16 +5,9 @@ import type { Prisma } from "@calcom/prisma/client";
 export class SelectedCalendarRepository implements ISelectedCalendarRepository {
   constructor(private prismaClient: PrismaClient) {}
 
-  async findByIdWithCredentials(id: string) {
+  async findById(id: string) {
     return this.prismaClient.selectedCalendar.findUnique({
       where: { id },
-      include: {
-        credential: {
-          select: {
-            delegationCredential: true,
-          },
-        },
-      },
     });
   }
 

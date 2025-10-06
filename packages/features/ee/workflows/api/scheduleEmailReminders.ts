@@ -346,9 +346,7 @@ export async function handler(req: NextRequest) {
                   {
                     content: generateIcsString({ event, status: "CONFIRMED" }) || "",
                     filename: "event.ics",
-                    type: "text/calendar; method=REQUEST",
-                    disposition: "attachment",
-                    contentId: uuidv4(),
+                    method: "REQUEST",
                   },
                 ]
               : undefined,

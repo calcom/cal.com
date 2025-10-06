@@ -55,7 +55,7 @@ describe("SelectedCalendarRepository", () => {
     vi.clearAllMocks();
   });
 
-  describe("findByIdWithCredentials", () => {
+  describe("findById", () => {
     test("should find selected calendar by id with credential delegation", async () => {
       const mockCalendarWithCredential = {
         ...mockSelectedCalendar,
@@ -69,17 +69,10 @@ describe("SelectedCalendarRepository", () => {
 
       vi.mocked(mockPrismaClient.selectedCalendar.findUnique).mockResolvedValue(mockCalendarWithCredential);
 
-      const result = await repository.findByIdWithCredentials("test-calendar-id");
+      const result = await repository.findById("test-calendar-id");
 
       expect(mockPrismaClient.selectedCalendar.findUnique).toHaveBeenCalledWith({
         where: { id: "test-calendar-id" },
-        include: {
-          credential: {
-            select: {
-              delegationCredential: true,
-            },
-          },
-        },
       });
 
       expect(result).toEqual(mockCalendarWithCredential);
@@ -88,7 +81,7 @@ describe("SelectedCalendarRepository", () => {
     test("should return null when calendar not found", async () => {
       vi.mocked(mockPrismaClient.selectedCalendar.findUnique).mockResolvedValue(null);
 
-      const result = await repository.findByIdWithCredentials("non-existent-id");
+      const result = await repository.findById("non-existent-id");
 
       expect(result).toBeNull();
     });

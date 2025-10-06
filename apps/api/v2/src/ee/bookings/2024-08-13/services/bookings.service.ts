@@ -29,6 +29,7 @@ import {
   Logger,
   NotFoundException,
   UnauthorizedException,
+  UnprocessableEntityException,
 } from "@nestjs/common";
 import { BadRequestException } from "@nestjs/common";
 import { Request } from "express";
@@ -132,6 +133,10 @@ export class BookingsService_2024_08_13 {
         );
       }
 
+      if (eventType.schedulingType === "COLLECTIVE" || eventType.schedulingType === "ROUND_ROBIN") {
+        await this.checkEventTypeHasHosts(eventType.id);
+      }
+
       body.eventTypeId = eventType.id;
 
       if ("instant" in body && body.instant) {
@@ -156,6 +161,15 @@ export class BookingsService_2024_08_13 {
       return await this.createRegularBooking(request, body, eventType);
     } catch (error) {
       this.errorsBookingsService.handleBookingError(error, bookingTeamEventType);
+    }
+  }
+
+  async checkEventTypeHasHosts(eventTypeId: number) {
+    const eventType = await this.eventTypesRepository.getEventTypeWithHosts(eventTypeId);
+    if (!eventType?.hosts?.length) {
+      throw new UnprocessableEntityException(
+        `Can't book this team event type because it has no hosts. Please, add at least 1 host to event type with id=${eventTypeId} belonging to team with id=${eventType?.teamId} and try again.`
+      );
     }
   }
 

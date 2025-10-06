@@ -19,7 +19,7 @@ const permissionStringSchema = z.custom<PermissionString>((val) => {
 // Schema for creating/updating roles
 const roleInputSchema = z.object({
   teamId: z.number(),
-  name: z.string().min(1),
+  name: z.string().min(1).max(50),
   description: z.string().optional(),
   color: z.string().optional(),
   permissions: z.array(permissionStringSchema),

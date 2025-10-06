@@ -6,7 +6,7 @@ import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permi
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { validateUserHasOrgAdmin } from "../../actions/validateUserHasOrgAdmin";
+import { validateUserHasOrg } from "../../actions/validateUserHasOrg";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -19,7 +19,7 @@ export const generateMetadata = async () =>
 
 const Page = async () => {
   const t = await getTranslate();
-  const session = await validateUserHasOrgAdmin();
+  const session = await validateUserHasOrg();
 
   const { canEdit } = await getResourcePermissions({
     userId: session.user.id,

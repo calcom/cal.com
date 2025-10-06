@@ -5,7 +5,7 @@ import { v4 as uuid } from "uuid";
 import { expect, it, describe, vi, beforeAll } from "vitest";
 
 import dayjs from "@calcom/dayjs";
-import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
+import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import { buildUser, buildBooking } from "@calcom/lib/test/builder";
 import { AttributeType, RRResetInterval, RRTimestampBasis } from "@calcom/prisma/enums";
 

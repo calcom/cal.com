@@ -266,7 +266,7 @@ export default function CancelBooking(props: Props) {
 
                   telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
 
-                  const response = await fetch("/api/csrf", { cache: "no-store" });
+                  const response = await fetch("/api/csrf?sameSite=none", { cache: "no-store" });
                   const { csrfToken } = await response.json();
 
                   const res = await fetch("/api/cancel", {

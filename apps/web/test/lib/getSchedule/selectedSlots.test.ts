@@ -11,7 +11,7 @@ import type { IncomingMessage } from "http";
 import { describe, test, beforeEach, vi } from "vitest";
 import type { z } from "zod";
 
-import { getAvailableSlotsService } from "@calcom/lib/di/containers/AvailableSlots";
+import { getAvailableSlotsService } from "@calcom/features/di/containers/AvailableSlots";
 import { prisma } from "@calcom/prisma";
 import type { getScheduleSchema, GetScheduleOptions } from "@calcom/trpc/server/routers/viewer/slots/types";
 

@@ -1,5 +1,5 @@
-import { type Container, createModule } from "@calcom/lib/di/di";
-import { DI_TOKENS } from "@calcom/lib/di/tokens";
+import { type Container, createModule } from "@calcom/features/di/di";
+import { DI_TOKENS } from "@calcom/features/di/tokens";
 
 import { prisma, readonlyPrisma } from "./index";
 
