@@ -5,50 +5,86 @@ import type {
   DecoyBookingResponse,
   BookingData,
 } from "../interface/IBlockingService";
-import type { IWatchlistRepository } from "../interface/IWatchlistRepositories";
+import type { GlobalWatchlistRepository } from "../repository/GlobalWatchlistRepository";
+import type { OrganizationWatchlistRepository } from "../repository/OrganizationWatchlistRepository";
 import { WatchlistType } from "../types";
 
 export class BlockingService implements IBlockingService {
   constructor(
-    private readonly watchlistRepository: IWatchlistRepository,
+    private readonly globalRepo: GlobalWatchlistRepository,
+    private readonly orgRepo: OrganizationWatchlistRepository,
     private readonly auditService: IAuditService
   ) {}
 
   async isBlocked(email: string, organizationId?: number): Promise<BlockingResult> {
-    // Check for exact email match first
-    const emailEntry = await this.watchlistRepository.findBlockedEntry(email, organizationId);
-    if (emailEntry) {
-      // Log the blocking attempt
+    // Check global entries first (highest priority)
+    const globalEmailEntry = await this.globalRepo.findBlockedEmail(email);
+    if (globalEmailEntry) {
       await this.auditService.logBlockedBookingAttempt({
         email,
         organizationId,
-        watchlistId: emailEntry.id,
+        watchlistId: globalEmailEntry.id,
       });
 
       return {
         isBlocked: true,
         reason: WatchlistType.EMAIL,
-        watchlistEntry: emailEntry,
+        watchlistEntry: globalEmailEntry,
       };
     }
 
-    // Check for domain match
+    // Check global domain entries
     const domain = email.split("@")[1];
     if (domain) {
-      const domainEntry = await this.watchlistRepository.findBlockedDomain(`@${domain}`, organizationId);
-      if (domainEntry) {
-        // Log the blocking attempt
+      const globalDomainEntry = await this.globalRepo.findBlockedDomain(`@${domain}`);
+      if (globalDomainEntry) {
         await this.auditService.logBlockedBookingAttempt({
           email,
           organizationId,
-          watchlistId: domainEntry.id,
+          watchlistId: globalDomainEntry.id,
         });
 
         return {
           isBlocked: true,
           reason: WatchlistType.DOMAIN,
-          watchlistEntry: domainEntry,
+          watchlistEntry: globalDomainEntry,
         };
+      }
+    }
+
+    // Check organization-specific entries if organizationId provided
+    if (organizationId) {
+      const orgEmailEntry = await this.orgRepo.findBlockedEmail(email, organizationId);
+      if (orgEmailEntry) {
+        await this.auditService.logBlockedBookingAttempt({
+          email,
+          organizationId,
+          watchlistId: orgEmailEntry.id,
+        });
+
+        return {
+          isBlocked: true,
+          reason: WatchlistType.EMAIL,
+          watchlistEntry: orgEmailEntry,
+        };
+      }
+
+      // Check organization domain entries
+      if (domain) {
+        const orgDomainEntry = await this.orgRepo.findBlockedDomain(`@${domain}`, organizationId);
+        if (orgDomainEntry) {
+          await this.auditService.logBlockedBookingAttempt({
+            email,
+            organizationId,
+            watchlistId: orgDomainEntry.id,
+          });
+
+          return {
+            isBlocked: true,
+            reason: WatchlistType.DOMAIN,
+            watchlistEntry: orgDomainEntry,
+          };
+        }
       }
     }
 

@@ -1,4 +1,4 @@
-import type { IWatchlistRepository } from "../interface/IWatchlistRepositories";
+import type { OrganizationWatchlistRepository } from "../repository/OrganizationWatchlistRepository";
 import type { Watchlist, WatchlistType } from "../types";
 
 export interface OrganizationBlockingResult {
@@ -12,11 +12,11 @@ export interface OrganizationBlockingResult {
  * Handles blocking rules that apply only to a specific organization
  */
 export class OrganizationBlockingService {
-  constructor(private readonly watchlistRepository: IWatchlistRepository) {}
+  constructor(private readonly orgRepo: OrganizationWatchlistRepository) {}
 
   async isEmailBlocked(email: string, organizationId: number): Promise<OrganizationBlockingResult> {
     // Check for exact email match
-    const emailEntry = await this.watchlistRepository.findBlockedEntry(email, organizationId);
+    const emailEntry = await this.orgRepo.findBlockedEmail(email, organizationId);
     if (emailEntry) {
       // Log the blocking attempt
       await this.auditService.logBlockedBookingAttempt({

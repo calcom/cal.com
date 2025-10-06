@@ -1,6 +1,9 @@
 import { startSpan } from "@sentry/nextjs";
 
-import { getWatchlistRepository } from "@calcom/features/di/watchlist/containers/watchlist";
+import {
+  getGlobalWatchlistRepository,
+  getOrganizationWatchlistRepository,
+} from "@calcom/features/di/watchlist/containers/watchlist";
 
 import type { EmailBlockedCheckResponseDTO } from "../lib/dto";
 
@@ -23,12 +26,28 @@ function presenter(isBlocked: boolean): EmailBlockedCheckResponseDTO {
  * logic, but define the whole operations using use cases.
  */
 export async function checkIfEmailIsBlockedInWatchlistController(
-  email: string
+  email: string,
+  organizationId?: number
 ): Promise<EmailBlockedCheckResponseDTO> {
   return await startSpan({ name: "checkIfEmailInWatchlist Controller" }, async () => {
     const lowercasedEmail = email.toLowerCase();
-    const watchlistRepository = getWatchlistRepository();
-    const watchlistedEmail = await watchlistRepository.getBlockedEmailInWatchlist(lowercasedEmail);
-    return presenter(!!watchlistedEmail);
+
+    // Check global entries first
+    const globalRepo = getGlobalWatchlistRepository();
+    const globalEntry = await globalRepo.findBlockedEmail(lowercasedEmail);
+    if (globalEntry) {
+      return presenter(true);
+    }
+
+    // Check organization entries if organizationId provided
+    if (organizationId) {
+      const orgRepo = getOrganizationWatchlistRepository();
+      const orgEntry = await orgRepo.findBlockedEmail(lowercasedEmail, organizationId);
+      if (orgEntry) {
+        return presenter(true);
+      }
+    }
+
+    return presenter(false);
   });
 }

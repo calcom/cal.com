@@ -14,7 +14,8 @@ watchlistContainer.load(SHARED_TOKENS.LOGGER, loggerServiceModule);
 watchlistContainer.load(SHARED_TOKENS.TASKER, taskerServiceModule);
 
 // Load watchlist module
-watchlistContainer.load(WATCHLIST_DI_TOKENS.WATCHLIST_REPOSITORY, watchlistModule);
+watchlistContainer.load(WATCHLIST_DI_TOKENS.GLOBAL_WATCHLIST_REPOSITORY, watchlistModule);
+watchlistContainer.load(WATCHLIST_DI_TOKENS.ORGANIZATION_WATCHLIST_REPOSITORY, watchlistModule);
 watchlistContainer.load(WATCHLIST_DI_TOKENS.AUDIT_REPOSITORY, watchlistModule);
 watchlistContainer.load(WATCHLIST_DI_TOKENS.WATCHLIST_SERVICE, watchlistModule);
 watchlistContainer.load(WATCHLIST_DI_TOKENS.AUDIT_SERVICE, watchlistModule);
@@ -26,9 +27,7 @@ export function getWatchlistService() {
   return watchlistContainer.get(WATCHLIST_DI_TOKENS.WATCHLIST_SERVICE);
 }
 
-export function getWatchlistRepository() {
-  return watchlistContainer.get(WATCHLIST_DI_TOKENS.WATCHLIST_REPOSITORY);
-}
+// Removed getWatchlistRepository() - use specialized repositories directly
 
 export function getBlockingService() {
   return watchlistContainer.get(WATCHLIST_DI_TOKENS.BLOCKING_SERVICE);
@@ -40,4 +39,12 @@ export function getAuditService() {
 
 export function getOrganizationBlockingService() {
   return watchlistContainer.get(WATCHLIST_DI_TOKENS.ORGANIZATION_BLOCKING_SERVICE);
+}
+
+export function getGlobalWatchlistRepository() {
+  return watchlistContainer.get(WATCHLIST_DI_TOKENS.GLOBAL_WATCHLIST_REPOSITORY);
+}
+
+export function getOrganizationWatchlistRepository() {
+  return watchlistContainer.get(WATCHLIST_DI_TOKENS.ORGANIZATION_WATCHLIST_REPOSITORY);
 }

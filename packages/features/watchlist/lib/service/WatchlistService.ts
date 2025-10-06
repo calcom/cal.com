@@ -1,13 +1,18 @@
 import type { ILogger } from "@calcom/features/webhooks/lib/interface/infrastructure";
 
-import type { IWatchlistRepository } from "../interface/IWatchlistRepositories";
 import type { IWatchlistService } from "../interface/IWatchlistService";
+import type { GlobalWatchlistRepository } from "../repository/GlobalWatchlistRepository";
+import type { OrganizationWatchlistRepository } from "../repository/OrganizationWatchlistRepository";
 import type { WatchlistEntry, CreateWatchlistEntryData, UpdateWatchlistEntryData } from "../types";
 
 export class WatchlistService implements IWatchlistService {
   private readonly log: ILogger;
 
-  constructor(private readonly repository: IWatchlistRepository, logger: ILogger) {
+  constructor(
+    private readonly globalRepo: GlobalWatchlistRepository,
+    private readonly orgRepo: OrganizationWatchlistRepository,
+    logger: ILogger
+  ) {
     this.log = logger.getSubLogger({ prefix: ["[WatchlistService]"] });
   }
 
@@ -16,13 +21,37 @@ export class WatchlistService implements IWatchlistService {
       this.log.debug("Creating watchlist entry", {
         type: data.type,
         organizationId: data.organizationId,
+        isGlobal: data.isGlobal,
       });
 
-      const entry = await this.repository.create(data);
+      const isGlobal = data.isGlobal ?? false;
+      let entry: WatchlistEntry;
+
+      if (isGlobal || !data.organizationId) {
+        // Create global entry
+        entry = await this.globalRepo.createEntry({
+          type: data.type,
+          value: data.value,
+          description: data.description,
+          action: data.action,
+          source: data.source,
+        });
+      } else {
+        // Create organization-specific entry
+        entry = await this.orgRepo.createEntry(data.organizationId, {
+          type: data.type,
+          value: data.value,
+          description: data.description,
+          action: data.action,
+          source: data.source,
+        });
+      }
 
       this.log.info("Watchlist entry created successfully", {
         id: entry.id,
         type: entry.type,
+        isGlobal: entry.isGlobal,
+        organizationId: entry.organizationId,
       });
 
       return entry;

@@ -1,7 +1,7 @@
 import { captureException } from "@sentry/nextjs";
 
 import type { PrismaClient } from "@calcom/prisma/client";
-import { WatchlistAction, WatchlistType } from "@calcom/prisma/enums";
+import { WatchlistAction, WatchlistType, WatchlistSource } from "@calcom/prisma/enums";
 
 import type { Watchlist } from "../types";
 
@@ -177,6 +177,74 @@ export class GlobalWatchlistRepository {
           type: WatchlistType.DOMAIN,
           value: emailDomain,
           organizationId: null, // Global entries only
+        },
+      });
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  // Write operations for global entries
+  async createEntry(data: {
+    type: WatchlistType;
+    value: string;
+    description?: string;
+    action: WatchlistAction;
+    source?: WatchlistSource;
+  }): Promise<Watchlist> {
+    try {
+      return await this.prisma.watchlist.create({
+        data: {
+          type: data.type,
+          value: data.value.toLowerCase(),
+          description: data.description,
+          isGlobal: true, // Always global
+          organizationId: null, // Always null for global
+          action: data.action,
+          source: data.source || WatchlistSource.MANUAL,
+        },
+      });
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  async updateEntry(
+    id: string,
+    data: {
+      value?: string;
+      description?: string;
+      action?: WatchlistAction;
+      source?: WatchlistSource;
+    }
+  ): Promise<Watchlist> {
+    try {
+      return await this.prisma.watchlist.update({
+        where: {
+          id,
+          organizationId: null, // Ensure we only update global entries
+        },
+        data: {
+          ...(data.value && { value: data.value.toLowerCase() }),
+          ...(data.description !== undefined && { description: data.description }),
+          ...(data.action && { action: data.action }),
+          ...(data.source && { source: data.source }),
+        },
+      });
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  async deleteEntry(id: string): Promise<void> {
+    try {
+      await this.prisma.watchlist.delete({
+        where: {
+          id,
+          organizationId: null, // Ensure we only delete global entries
         },
       });
     } catch (err) {

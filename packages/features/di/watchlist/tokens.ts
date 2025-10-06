@@ -6,6 +6,7 @@ export const WATCHLIST_DI_TOKENS = {
   ORGANIZATION_BLOCKING_SERVICE: Symbol("OrganizationBlockingService"),
 
   // Repositories
-  WATCHLIST_REPOSITORY: Symbol("WatchlistRepository"),
+  GLOBAL_WATCHLIST_REPOSITORY: Symbol("GlobalWatchlistRepository"),
+  ORGANIZATION_WATCHLIST_REPOSITORY: Symbol("OrganizationWatchlistRepository"),
   AUDIT_REPOSITORY: Symbol("AuditRepository"),
 };
