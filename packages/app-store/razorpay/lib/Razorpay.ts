@@ -3,6 +3,7 @@ import axios from "axios";
 import crypto from "crypto";
 
 import {
+  APP_NAME,
   RAZORPAY_CLIENT_ID,
   RAZORPAY_CLIENT_SECRET,
   RAZORPAY_WEBHOOK_SECRET,
@@ -208,6 +209,7 @@ class RazorpayWrapper {
     customer: {
       name: string;
       email: string;
+      contact?: string;
     };
     eventTitle?: string;
   }): Promise<CreatePaymentLinkResponse> {
@@ -219,7 +221,7 @@ class RazorpayWrapper {
       callback_url: `${WEBAPP_URL}/booking/${bookingUid}/razorpay`,
       callback_method: "get",
       upi_link: false,
-      description: `Payment for ${eventTitle} booking on OneHash Cal`,
+      description: `Payment for ${eventTitle} booking on ${APP_NAME}`,
       expire_by: Math.floor((Date.now() + 30 * 60 * 1000) / 1000),
     };
     return this.handleRequest(() =>
