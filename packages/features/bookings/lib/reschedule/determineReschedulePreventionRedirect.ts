@@ -78,10 +78,14 @@ export function determineReschedulePreventionRedirect(
     if (disableReschedulingThreshold && booking.startTime) {
       const bookingStartTime = dayjs(booking.startTime);
       const now = dayjs();
-      const timeDifference = bookingStartTime.diff(now, disableReschedulingThreshold.unit);
-      
+      const timeDifference = bookingStartTime.diff(
+        now,
+        disableReschedulingThreshold.unit,
+        true
+      );
+
       // If we're less than the threshold time before the booking, prevent reschedule
-      if (timeDifference <= disableReschedulingThreshold.time) {
+      if (timeDifference < disableReschedulingThreshold.time) {
         return `/booking/${booking.uid}`;
       }
     } else if (!disableReschedulingThreshold) {
