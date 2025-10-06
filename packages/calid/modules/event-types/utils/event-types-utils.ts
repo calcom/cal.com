@@ -1,3 +1,5 @@
+import { SchedulingType } from "@calcom/prisma/enums";
+
 import type { InfiniteEventType, InfiniteEventTypeGroup } from "../types/event-types";
 
 /**
@@ -61,14 +63,14 @@ export const getEventDisplayName = (event: InfiniteEventType): string => {
  * Check if event is managed type
  */
 export const isManagedEventType = (event: InfiniteEventType): boolean => {
-  return event.schedulingType === "MANAGED";
+  return event.schedulingType === SchedulingType.MANAGED;
 };
 
 /**
  * Check if event is children of managed type
  */
 export const isChildrenManagedEventType = (event: InfiniteEventType): boolean => {
-  return event.metadata?.managedEventConfig !== undefined && event.schedulingType !== "MANAGED";
+  return event.metadata?.managedEventConfig !== undefined && event.schedulingType !== SchedulingType.MANAGED;
 };
 
 /**

@@ -1,5 +1,4 @@
 import { Button } from "@calid/features/ui/components/button";
-import { CustomSelect } from "@calid/features/ui/components/custom-select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@calid/features/ui/components/dialog";
 import { Icon } from "@calid/features/ui/components/icon";
 import { Label } from "@calid/features/ui/components/label";
@@ -34,6 +33,7 @@ import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
+import { Select } from "@calcom/ui/components/form";
 import { ColorPicker, TextField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -525,10 +525,10 @@ const EmailEmbed = ({
       <div>
         <Label className="mb-2 block text-sm font-medium">{t("duration")}</Label>
         {durationsOptions.length > 0 && selectedDuration ? (
-          <CustomSelect
-            value={selectedDuration?.toString()}
-            onValueChange={(value) => {
-              setSelectedDuration(parseInt(value));
+          <Select
+            value={durationsOptions.find((opt) => opt.value === selectedDuration?.toString())}
+            onChange={(option) => {
+              setSelectedDuration(parseInt(option?.value || "0"));
               setSelectedDatesAndTimes({});
             }}
             options={durationsOptions}
@@ -1075,13 +1075,18 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
 
                             <div>
                               <Label className="mb-2 block text-sm font-medium">Position of button</Label>
-                              <CustomSelect
-                                value={previewState.floatingPopup.buttonPosition || "bottom-right"}
-                                onValueChange={(value) =>
+                              <Select
+                                value={positionOptions.find(
+                                  (opt) =>
+                                    opt.value ===
+                                    (previewState.floatingPopup.buttonPosition || "bottom-right")
+                                )}
+                                onChange={(option) =>
                                   updatePreviewState({
                                     floatingPopup: {
                                       ...previewState.floatingPopup,
-                                      buttonPosition: value as "bottom-right" | "bottom-left",
+                                      buttonPosition:
+                                        (option?.value as "bottom-right" | "bottom-left") || "bottom-right",
                                     },
                                   })
                                 }
@@ -1139,9 +1144,11 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
                     <CollapsibleContent className="mt-4 space-y-4">
                       <div>
                         <Label className="mb-2 block text-sm font-medium">Theme</Label>
-                        <CustomSelect
-                          value={previewState.theme}
-                          onValueChange={(value) => updatePreviewState({ theme: value as EmbedTheme })}
+                        <Select
+                          value={themeOptions.find((opt) => opt.value === previewState.theme)}
+                          onChange={(option) =>
+                            updatePreviewState({ theme: (option?.value as EmbedTheme) || "auto" })
+                          }
                           options={themeOptions}
                         />
                       </div>
@@ -1177,9 +1184,11 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
 
                       <div>
                         <Label className="mb-2 block text-sm font-medium">Layout</Label>
-                        <CustomSelect
-                          value={previewState.layout}
-                          onValueChange={(value) => updatePreviewState({ layout: value as BookerLayout })}
+                        <Select
+                          value={layoutOptions.find((opt) => opt.value === previewState.layout)}
+                          onChange={(option) =>
+                            updatePreviewState({ layout: (option?.value as BookerLayout) || "month_view" })
+                          }
                           options={layoutOptions}
                         />
                       </div>

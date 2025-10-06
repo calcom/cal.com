@@ -11,7 +11,6 @@ import {
   CardTitle,
   CardDescription,
 } from "@calid/features/ui/components/card";
-import { CustomSelect } from "@calid/features/ui/components/custom-select";
 import {
   Dialog,
   DialogContent,
@@ -66,6 +65,9 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
+import { Select } from "@calcom/ui/components/form";
+
+import { FieldPermissionIndicator, useFieldPermissions } from "./hooks/useFieldPermissions";
 
 type BookingField = z.infer<typeof fieldSchema>;
 export interface EventAdvancedProps {
@@ -101,6 +103,8 @@ const SettingsToggle = ({
   labelClassName = "",
   descriptionClassName = "",
   "data-testid": dataTestId,
+  fieldPermissions,
+  fieldName,
 }: {
   title: string;
   description?: string;
@@ -116,7 +120,12 @@ const SettingsToggle = ({
   descriptionClassName?: string;
   toggleSwitchAtTheEnd?: boolean;
   "data-testid"?: string;
+  fieldPermissions?: ReturnType<typeof useFieldPermissions>;
+  fieldName?: string;
 }) => {
+  const effectiveDisabled =
+    disabled ||
+    (fieldPermissions && fieldName ? fieldPermissions.getFieldState(fieldName).isDisabled : false);
   return (
     <Card className={classNames(switchContainerClassName)}>
       <CardHeader className="flex flex-row items-start justify-between space-y-0 p-6">
@@ -141,7 +150,7 @@ const SettingsToggle = ({
         <Switch
           checked={checked}
           onCheckedChange={onCheckedChange}
-          disabled={disabled}
+          disabled={effectiveDisabled}
           data-testid={dataTestId}
         />
       </CardHeader>
@@ -349,10 +358,14 @@ const DestinationCalendarSettings = ({
           <div className="flex flex-row gap-2">
             <div className="w-full">
               <Label className="text-foreground mb-1 text-sm">{t("add_to_calendar")}</Label>
-              <CustomSelect
-                value={selectedSecondaryEmailId !== -1 ? String(selectedSecondaryEmailId) : ""}
-                onValueChange={(val) =>
-                  formMethods.setValue("secondaryEmailId", val ? Number(val) : -1, { shouldDirty: true })
+              <Select
+                value={verifiedSecondaryEmails.find(
+                  (email) => String(email.value) === String(selectedSecondaryEmailId)
+                )}
+                onChange={(option) =>
+                  formMethods.setValue("secondaryEmailId", option ? Number(option.value) : -1, {
+                    shouldDirty: true,
+                  })
                 }
                 options={verifiedSecondaryEmails.map((secondaryEmail) => ({
                   value: String(secondaryEmail.value),
@@ -503,12 +516,14 @@ const RequiresConfirmationController = ({
   requiresConfirmation,
   requiresConfirmationWillBlockSlot,
   onRequiresConfirmation,
+  fieldPermissions,
 }: {
   seatsEnabled: boolean;
   metadata: any;
   requiresConfirmation: boolean;
   requiresConfirmationWillBlockSlot?: boolean;
   onRequiresConfirmation: (value: boolean) => void;
+  fieldPermissions: ReturnType<typeof useFieldPermissions>;
 }) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
@@ -590,7 +605,16 @@ const RequiresConfirmationController = ({
               tooltip={seatsEnabled ? t("seat_options_doesnt_support_confirmation") : undefined}
               description={t("requires_confirmation_description")}
               checked={requiresConfirmation}
-              onCheckedChange={handleConfirmationChange}>
+              onCheckedChange={handleConfirmationChange}
+              fieldPermissions={fieldPermissions}
+              fieldName="requiresConfirmation"
+              lockedIcon={
+                <FieldPermissionIndicator
+                  fieldName="requiresConfirmation"
+                  fieldPermissions={fieldPermissions}
+                  t={t}
+                />
+              }>
               <div className="border-subtle">
                 <RadioGroup
                   defaultValue={
@@ -651,11 +675,11 @@ const RequiresConfirmationController = ({
                                 />
 
                                 <label>
-                                  <CustomSelect
-                                    value={defaultValue?.value || ""}
-                                    onValueChange={(val) => {
-                                      if (val) {
-                                        handleUnitChange(val as UnitTypeLongPlural);
+                                  <Select
+                                    value={timeUnitOptions.find((opt) => opt.value === defaultValue?.value)}
+                                    onChange={(option) => {
+                                      if (option) {
+                                        handleUnitChange(option.value as UnitTypeLongPlural);
                                       }
                                     }}
                                     options={timeUnitOptions.map((opt) => ({
@@ -787,6 +811,9 @@ export const EventAdvanced = ({
   const isPlatform = useIsPlatform();
   const platformContext = useAtomsContext();
   const formMethods = useFormContext<FormValues>();
+
+  // Field permissions management
+  const fieldPermissions = useFieldPermissions({ eventType, translate: t, formMethods });
 
   // Fetch verified emails for the team or user
   const { data: verifiedEmails } = trpc.viewer.workflows.calid_getVerifiedEmails.useQuery({
@@ -990,6 +1017,7 @@ export const EventAdvanced = ({
         onRequiresConfirmation={(value) => {
           formMethods.setValue("requiresConfirmation", value, { shouldDirty: true });
         }}
+        fieldPermissions={fieldPermissions}
       />
 
       {/* Cancellation and Rescheduling Controls */}
@@ -1006,6 +1034,15 @@ export const EventAdvanced = ({
                 description={t("description_disable_cancelling")}
                 checked={value || false}
                 onCheckedChange={onChange}
+                fieldPermissions={fieldPermissions}
+                fieldName="disableCancelling"
+                lockedIcon={
+                  <FieldPermissionIndicator
+                    fieldName="disableCancelling"
+                    fieldPermissions={fieldPermissions}
+                    t={t}
+                  />
+                }
               />
             )}
           />
@@ -1021,6 +1058,15 @@ export const EventAdvanced = ({
                 description={t("description_disable_rescheduling")}
                 checked={value || false}
                 onCheckedChange={onChange}
+                fieldPermissions={fieldPermissions}
+                fieldName="disableRescheduling"
+                lockedIcon={
+                  <FieldPermissionIndicator
+                    fieldName="disableRescheduling"
+                    fieldPermissions={fieldPermissions}
+                    t={t}
+                  />
+                }
               />
             )}
           />
@@ -1039,6 +1085,15 @@ export const EventAdvanced = ({
             description={t("description_requires_booker_email_verification")}
             checked={value}
             onCheckedChange={onChange}
+            fieldPermissions={fieldPermissions}
+            fieldName="requiresBookerEmailVerification"
+            lockedIcon={
+              <FieldPermissionIndicator
+                fieldName="requiresBookerEmailVerification"
+                fieldPermissions={fieldPermissions}
+                t={t}
+              />
+            }
           />
         )}
       />
@@ -1055,6 +1110,15 @@ export const EventAdvanced = ({
             description={t("disable_notes_description")}
             checked={value}
             onCheckedChange={onChange}
+            fieldPermissions={fieldPermissions}
+            fieldName="hideCalendarNotes"
+            lockedIcon={
+              <FieldPermissionIndicator
+                fieldName="hideCalendarNotes"
+                fieldPermissions={fieldPermissions}
+                t={t}
+              />
+            }
           />
         )}
       />
@@ -1069,6 +1133,15 @@ export const EventAdvanced = ({
             description={t("description_hide_calendar_event_details")}
             checked={value}
             onCheckedChange={onChange}
+            fieldPermissions={fieldPermissions}
+            fieldName="hideCalendarEventDetails"
+            lockedIcon={
+              <FieldPermissionIndicator
+                fieldName="hideCalendarEventDetails"
+                fieldPermissions={fieldPermissions}
+                t={t}
+              />
+            }
           />
         )}
       />
@@ -1099,7 +1172,16 @@ export const EventAdvanced = ({
             onCheckedChange={(e) => {
               field.onChange(e ? field.value || "" : "");
               setRedirectUrlVisible(e);
-            }}>
+            }}
+            fieldPermissions={fieldPermissions}
+            fieldName="successRedirectUrl"
+            lockedIcon={
+              <FieldPermissionIndicator
+                fieldName="successRedirectUrl"
+                fieldPermissions={fieldPermissions}
+                t={t}
+              />
+            }>
             <CardContent className="border-subtle rounded-b-lg border border-t-0 p-6">
               <TextField
                 className="w-full"
@@ -1113,6 +1195,14 @@ export const EventAdvanced = ({
                 onChange={field.onChange}
                 onBlur={field.onBlur}
                 ref={field.ref}
+                disabled={fieldPermissions.getFieldState("successRedirectUrl").isDisabled}
+                LockedIcon={
+                  <FieldPermissionIndicator
+                    fieldName="successRedirectUrl"
+                    fieldPermissions={fieldPermissions}
+                    t={t}
+                  />
+                }
               />
 
               {fieldState.error && <p className="mt-2 text-sm text-red-600">{fieldState.error.message}</p>}
@@ -1164,7 +1254,16 @@ export const EventAdvanced = ({
                   onChange([newLink]);
                 }
                 setMultiplePrivateLinksVisible(e);
-              }}>
+              }}
+              fieldPermissions={fieldPermissions}
+              fieldName="multiplePrivateLinks"
+              lockedIcon={
+                <FieldPermissionIndicator
+                  fieldName="multiplePrivateLinks"
+                  fieldPermissions={fieldPermissions}
+                  t={t}
+                />
+              }>
               <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                 <MultiplePrivateLinksController
                   team={team ?? null}
@@ -1215,7 +1314,16 @@ export const EventAdvanced = ({
                   toggleGuests(true);
                 }
                 onChange(e);
-              }}>
+              }}
+              fieldPermissions={fieldPermissions}
+              fieldName="seatsPerTimeSlotEnabled"
+              lockedIcon={
+                <FieldPermissionIndicator
+                  fieldName="seatsPerTimeSlotEnabled"
+                  fieldPermissions={fieldPermissions}
+                  t={t}
+                />
+              }>
               <CardContent className="border-subtle rounded-b-lg border border-t-0 p-6">
                 <Controller
                   name="seatsPerTimeSlot"
@@ -1288,6 +1396,15 @@ export const EventAdvanced = ({
             checked={value}
             onCheckedChange={onChange}
             data-testid="hide-organizer-email"
+            fieldPermissions={fieldPermissions}
+            fieldName="hideOrganizerEmail"
+            lockedIcon={
+              <FieldPermissionIndicator
+                fieldName="hideOrganizerEmail"
+                fieldPermissions={fieldPermissions}
+                t={t}
+              />
+            }
           />
         )}
       />
@@ -1316,7 +1433,16 @@ export const EventAdvanced = ({
                 formMethods.setValue("lockedTimeZone", lockedTimeZone, { shouldDirty: true });
               }}
               data-testid="lock-timezone-toggle"
-              childrenClassName="lg:ml-0">
+              childrenClassName="lg:ml-0"
+              fieldPermissions={fieldPermissions}
+              fieldName="lockTimeZoneToggleOnBookingPage"
+              lockedIcon={
+                <FieldPermissionIndicator
+                  fieldName="lockTimeZoneToggleOnBookingPage"
+                  fieldPermissions={fieldPermissions}
+                  t={t}
+                />
+              }>
               {showSelector && (
                 <CardContent className="border-subtle flex flex-col gap-6 rounded-b-lg border border-t-0 p-6">
                   <div>
@@ -1358,6 +1484,15 @@ export const EventAdvanced = ({
             description={t("allow_rescheduling_past_events_description")}
             checked={value}
             onCheckedChange={onChange}
+            fieldPermissions={fieldPermissions}
+            fieldName="allowReschedulingPastBookings"
+            lockedIcon={
+              <FieldPermissionIndicator
+                fieldName="allowReschedulingPastBookings"
+                fieldPermissions={fieldPermissions}
+                t={t}
+              />
+            }
           />
         )}
       />
@@ -1373,6 +1508,15 @@ export const EventAdvanced = ({
             description={t("description_allow_rescheduling_cancelled_bookings")}
             checked={value || false}
             onCheckedChange={onChange}
+            fieldPermissions={fieldPermissions}
+            fieldName="allowReschedulingCancelledBookings"
+            lockedIcon={
+              <FieldPermissionIndicator
+                fieldName="allowReschedulingCancelledBookings"
+                fieldPermissions={fieldPermissions}
+                t={t}
+              />
+            }
           />
         )}
       />
@@ -1398,14 +1542,23 @@ export const EventAdvanced = ({
                   onChange(null);
                 }
                 setCustomReplyToEmailVisible(e);
-              }}>
+              }}
+              fieldPermissions={fieldPermissions}
+              fieldName="customReplyToEmail"
+              lockedIcon={
+                <FieldPermissionIndicator
+                  fieldName="customReplyToEmail"
+                  fieldPermissions={fieldPermissions}
+                  t={t}
+                />
+              }>
               {verifiedEmails && verifiedEmails.length === 0 ? (
                 <p className="text-destructive text-sm">{t("custom_reply_to_email_no_verified_emails")}</p>
               ) : (
                 <CardContent className="border-subtle rounded-b-lg border border-t-0 p-6">
-                  <CustomSelect
-                    value={value || ""}
-                    onValueChange={(val) => onChange(val || null)}
+                  <Select
+                    value={verifiedEmails?.find((email) => email === value)}
+                    onChange={(option) => onChange(option?.value || null)}
                     options={
                       verifiedEmails?.map((email) => ({
                         value: email,
@@ -1497,6 +1650,15 @@ export const EventAdvanced = ({
               description={t("reschedule_with_same_round_robin_host_description")}
               checked={value}
               onCheckedChange={onChange}
+              fieldPermissions={fieldPermissions}
+              fieldName="rescheduleWithSameRoundRobinHost"
+              lockedIcon={
+                <FieldPermissionIndicator
+                  fieldName="rescheduleWithSameRoundRobinHost"
+                  fieldPermissions={fieldPermissions}
+                  t={t}
+                />
+              }
             />
           )}
         />
@@ -1514,6 +1676,15 @@ export const EventAdvanced = ({
               description={t("disable_attendees_confirmation_emails_description")}
               checked={value}
               onCheckedChange={onChange}
+              fieldPermissions={fieldPermissions}
+              fieldName="metadata.disableStandardEmails.confirmation.attendee"
+              lockedIcon={
+                <FieldPermissionIndicator
+                  fieldName="metadata.disableStandardEmails.confirmation.attendee"
+                  fieldPermissions={fieldPermissions}
+                  t={t}
+                />
+              }
             />
           )}
         />
@@ -1531,6 +1702,15 @@ export const EventAdvanced = ({
               description={t("disable_host_confirmation_emails_description")}
               checked={value}
               onCheckedChange={onChange}
+              fieldPermissions={fieldPermissions}
+              fieldName="metadata.disableStandardEmails.confirmation.host"
+              lockedIcon={
+                <FieldPermissionIndicator
+                  fieldName="metadata.disableStandardEmails.confirmation.host"
+                  fieldPermissions={fieldPermissions}
+                  t={t}
+                />
+              }
             />
           )}
         />

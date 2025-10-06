@@ -22,6 +22,7 @@ export default function AppCard({
   children,
   returnTo,
   teamId,
+  calIdTeamId,
   disableSwitch,
   switchTooltip,
   hideSettingsIcon = false,
@@ -36,6 +37,7 @@ export default function AppCard({
   children?: React.ReactNode;
   returnTo?: string;
   teamId?: number;
+  calIdTeamId?: number;
   LockedIcon?: React.ReactNode;
   disableSwitch?: boolean;
   switchTooltip?: string;
@@ -114,6 +116,7 @@ export default function AppCard({
                 appId={app.slug}
                 returnTo={returnTo}
                 teamId={teamId}
+                calIdTeamId={calIdTeamId}
               />
             )}
           </div>
