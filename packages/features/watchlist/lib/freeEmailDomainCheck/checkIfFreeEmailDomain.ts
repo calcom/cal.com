@@ -1,4 +1,4 @@
-import { getGlobalBlockingService } from "@calcom/features/di/watchlist/containers/watchlist";
+import { getWatchlistFeature } from "@calcom/features/di/watchlist/containers/watchlist";
 
 export const checkIfFreeEmailDomain = async (email: string) => {
   const emailDomain = email.split("@")[1].toLowerCase();
@@ -8,7 +8,7 @@ export const checkIfFreeEmailDomain = async (email: string) => {
   // Gmail and Outlook are one of the most common email domains so we don't need to check the domains list
   if (emailDomain === "gmail.com" || emailDomain === "outlook.com") return true;
 
-  // Check if email domain is marked as a free email domain using the proper service
-  const globalBlockingService = getGlobalBlockingService();
-  return await globalBlockingService.isFreeEmailDomain(emailDomain);
+  // Check if email domain is marked as a free email domain using the façade
+  const watchlist = getWatchlistFeature();
+  return await watchlist.globalBlocking.isFreeEmailDomain(emailDomain);
 };

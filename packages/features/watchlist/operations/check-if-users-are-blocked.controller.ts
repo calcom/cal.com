@@ -1,6 +1,7 @@
 import { startSpan } from "@sentry/nextjs";
 
-import { getGlobalBlockingService } from "@calcom/features/di/watchlist/containers/watchlist";
+import { getWatchlistFeature } from "@calcom/features/di/watchlist/containers/watchlist";
+import { normalizeEmail } from "@calcom/features/watchlist/lib/utils/normalization";
 
 function presenter(containsBlockedUser: boolean) {
   return startSpan({ name: "checkIfUsersAreBlocked Presenter", op: "serialize" }, () => {
@@ -16,12 +17,13 @@ export async function checkIfUsersAreBlocked(
     return presenter(true);
   }
 
-  // Only check global blocking since we don't have organizationId context in this bulk check
-  const globalBlockingService = getGlobalBlockingService();
+  // Use façade for clean DX - only check global blocking since no organizationId context
+  const watchlist = getWatchlistFeature();
 
   // Check each user's email for global blocking
   for (const user of users) {
-    const result = await globalBlockingService.isBlocked(user.email.toLowerCase());
+    const normalizedEmail = normalizeEmail(user.email);
+    const result = await watchlist.globalBlocking.isBlocked(normalizedEmail);
     if (result.isBlocked) {
       return presenter(true);
     }

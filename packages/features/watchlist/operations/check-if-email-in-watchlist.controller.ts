@@ -1,11 +1,9 @@
 import { startSpan } from "@sentry/nextjs";
 
-import {
-  getGlobalBlockingService,
-  getOrganizationBlockingService,
-} from "@calcom/features/di/watchlist/containers/watchlist";
+import { getWatchlistFeature } from "@calcom/features/di/watchlist/containers/watchlist";
 
 import type { EmailBlockedCheckResponseDTO } from "../lib/dto";
+import { normalizeEmail } from "../lib/utils/normalization";
 
 /**
  * Controllers use Presenters to convert the data to a UI-friendly format just before
@@ -30,19 +28,21 @@ export async function checkIfEmailIsBlockedInWatchlistController(
   organizationId?: number
 ): Promise<EmailBlockedCheckResponseDTO> {
   return await startSpan({ name: "checkIfEmailInWatchlist Controller" }, async () => {
-    const lowercasedEmail = email.toLowerCase();
+    // Normalize email
+    const normalizedEmail = normalizeEmail(email);
 
-    // Check global entries first (highest priority)
-    const globalBlockingService = getGlobalBlockingService();
-    const globalResult = await globalBlockingService.isBlocked(lowercasedEmail, organizationId);
+    // Use façade for clean DX
+    const watchlist = getWatchlistFeature();
+
+    // Check global entries first
+    const globalResult = await watchlist.globalBlocking.isBlocked(normalizedEmail, organizationId);
     if (globalResult.isBlocked) {
       return presenter(true);
     }
 
-    // Check organization entries if organizationId provided
+    // Check organization entries
     if (organizationId) {
-      const orgBlockingService = getOrganizationBlockingService();
-      const orgResult = await orgBlockingService.isEmailBlocked(lowercasedEmail, organizationId);
+      const orgResult = await watchlist.orgBlocking.isEmailBlocked(normalizedEmail, organizationId);
       if (orgResult.isBlocked) {
         return presenter(true);
       }

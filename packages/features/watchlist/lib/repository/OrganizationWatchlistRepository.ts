@@ -1,15 +1,15 @@
 import { captureException } from "@sentry/nextjs";
 
-import type { PrismaClient } from "@calcom/prisma/client";
+import type { PrismaClient, Watchlist } from "@calcom/prisma/client";
 import { WatchlistAction, WatchlistType, WatchlistSource } from "@calcom/prisma/enums";
 
-import type { Watchlist } from "../types";
+import type { IOrganizationWatchlistRepository } from "../interface/IWatchlistRepositories";
 
 /**
  * Repository for organization-specific watchlist operations
  * Handles blocking rules that apply only to a specific organization
  */
-export class OrganizationWatchlistRepository {
+export class OrganizationWatchlistRepository implements IOrganizationWatchlistRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   async findBlockedEmail(email: string, organizationId: number): Promise<Watchlist | null> {

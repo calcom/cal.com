@@ -1,16 +1,18 @@
 import type { ILogger } from "@calcom/features/webhooks/lib/interface/infrastructure";
 
+import type {
+  IGlobalWatchlistRepository,
+  IOrganizationWatchlistRepository,
+} from "../interface/IWatchlistRepositories";
 import type { IWatchlistService } from "../interface/IWatchlistService";
-import type { GlobalWatchlistRepository } from "../repository/GlobalWatchlistRepository";
-import type { OrganizationWatchlistRepository } from "../repository/OrganizationWatchlistRepository";
 import type { WatchlistEntry, CreateWatchlistEntryData, UpdateWatchlistEntryData } from "../types";
 
 export class WatchlistService implements IWatchlistService {
   private readonly log: ILogger;
 
   constructor(
-    private readonly globalRepo: GlobalWatchlistRepository,
-    private readonly orgRepo: OrganizationWatchlistRepository,
+    private readonly globalRepo: IGlobalWatchlistRepository,
+    private readonly orgRepo: IOrganizationWatchlistRepository,
     logger: ILogger
   ) {
     this.log = logger.getSubLogger({ prefix: ["[WatchlistService]"] });

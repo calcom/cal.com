@@ -1,12 +1,8 @@
 import type { IAuditService } from "../interface/IAuditService";
-import type {
-  IBlockingService,
-  BlockingResult,
-  DecoyBookingResponse,
-  BookingData,
-} from "../interface/IBlockingService";
-import type { GlobalWatchlistRepository } from "../repository/GlobalWatchlistRepository";
+import type { IBlockingService, BlockingResult } from "../interface/IBlockingService";
+import type { IGlobalWatchlistRepository } from "../interface/IWatchlistRepositories";
 import { WatchlistType } from "../types";
+import { normalizeEmail, extractDomainFromEmail } from "../utils/normalization";
 
 /**
  * Global Blocking Service - handles only global watchlist entries
@@ -14,16 +10,17 @@ import { WatchlistType } from "../types";
  */
 export class GlobalBlockingService implements IBlockingService {
   constructor(
-    private readonly globalRepo: GlobalWatchlistRepository,
+    private readonly globalRepo: IGlobalWatchlistRepository,
     private readonly auditService: IAuditService
   ) {}
 
   async isBlocked(email: string, organizationId?: number): Promise<BlockingResult> {
-    // Check global email entries
-    const globalEmailEntry = await this.globalRepo.findBlockedEmail(email);
+    const normalizedEmail = normalizeEmail(email);
+
+    const globalEmailEntry = await this.globalRepo.findBlockedEmail(normalizedEmail);
     if (globalEmailEntry) {
       await this.auditService.logBlockedBookingAttempt({
-        email,
+        email: normalizedEmail,
         organizationId,
         watchlistId: globalEmailEntry.id,
       });
@@ -35,51 +32,27 @@ export class GlobalBlockingService implements IBlockingService {
       };
     }
 
-    // Check global domain entries
-    const domain = email.split("@")[1];
-    if (domain) {
-      const globalDomainEntry = await this.globalRepo.findBlockedDomain(`@${domain}`);
-      if (globalDomainEntry) {
-        await this.auditService.logBlockedBookingAttempt({
-          email,
-          organizationId,
-          watchlistId: globalDomainEntry.id,
-        });
+    const normalizedDomain = extractDomainFromEmail(normalizedEmail);
+    const globalDomainEntry = await this.globalRepo.findBlockedDomain(normalizedDomain);
+    if (globalDomainEntry) {
+      await this.auditService.logBlockedBookingAttempt({
+        email: normalizedEmail,
+        organizationId,
+        watchlistId: globalDomainEntry.id,
+      });
 
-        return {
-          isBlocked: true,
-          reason: WatchlistType.DOMAIN,
-          watchlistEntry: globalDomainEntry,
-        };
-      }
+      return {
+        isBlocked: true,
+        reason: WatchlistType.DOMAIN,
+        watchlistEntry: globalDomainEntry,
+      };
     }
-
     return { isBlocked: false };
   }
 
   async isFreeEmailDomain(domain: string): Promise<boolean> {
-    const entry = await this.globalRepo.findFreeEmailDomain(domain);
+    const normalizedDomain = domain.startsWith("@") ? domain : `@${domain}`;
+    const entry = await this.globalRepo.findFreeEmailDomain(normalizedDomain.toLowerCase());
     return !!entry;
-  }
-
-  async createDecoyResponse(_bookingData: BookingData): Promise<DecoyBookingResponse> {
-    // Generate a fake UID that looks realistic
-    const fakeUid = this.generateFakeUid();
-
-    return {
-      uid: fakeUid,
-      success: true,
-      message: "Booking confirmed successfully",
-    };
-  }
-
-  private generateFakeUid(): string {
-    // Generate a realistic-looking booking UID
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    let result = "";
-    for (let i = 0; i < 12; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
   }
 }
