@@ -1,7 +1,5 @@
-import Link from "next/link";
-
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 export const Branding = ({
@@ -9,13 +7,13 @@ export const Branding = ({
   showText = true,
   variant = "default",
   size = "sm",
-  faviconUrl,
+  bannerUrl,
 }: {
   showLogo?: boolean;
   showText?: boolean;
   variant?: "default" | "minimal" | "prominent";
   size?: "xs" | "sm" | "md";
-  faviconUrl?: string | null;
+  bannerUrl?: string | null;
 }) => {
   const { t } = useLocale();
   const isEmbed = useIsEmbed();
@@ -38,24 +36,26 @@ export const Branding = ({
     prominent: `p-4 text-center bg-subtle rounded-lg ${isEmbed ? "max-w-5xl" : ""}`,
   };
 
+  const signupUrl = `${WEBAPP_URL}/signup?utm_source=booking_page&utm_medium=banner&utm_campaign=signup_promo&utm_content=calid_booking_banner`;
+
   return (
     <div className={containerClasses[variant]}>
-      <div className={`${sizeClasses[size]} ${variantClasses[variant]}`}>
+      <a
+        href={signupUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`${sizeClasses[size]} ${variantClasses[variant]} inline-block`}>
         {showLogo && (
           <img
             className={`inline h-auto dark:invert ${
-              size === "xs" ? "h-[8px]" : 
-              size === "sm" ? "h-[12px]" : 
-              "h-[16px]"
+              size === "xs" ? "h-[8px]" : size === "sm" ? "h-[12px]" : "h-[16px]"
             }`}
-            src={faviconUrl || `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/logo`}
+            src={bannerUrl || `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/logo`}
             alt={`${APP_NAME} Logo`}
           />
         )}
-        {!showLogo && showText && (
-          <span className="font-medium">{APP_NAME}</span>
-        )}
-      </div>
+        {!showLogo && showText && <span className="font-medium">{APP_NAME}</span>}
+      </a>
     </div>
   );
 };

@@ -260,7 +260,7 @@ export function UserPage(props: PageProps) {
 
           {(!user.hideBranding || user?.bannerUrl) && (
             <div key="logo" className={classNames("mb-8 flex w-full justify-center [&_img]:h-[32px]")}>
-              <Branding faviconUrl={user?.bannerUrl} />
+              <Branding bannerUrl={user?.bannerUrl} />
             </div>
           )}
         </main>
