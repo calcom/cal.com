@@ -941,7 +941,7 @@ export async function addUsers(users: InputUser[]) {
     }
     if (user.profiles) {
       newUser.profiles = {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+         
         // @ts-expect-error Not sure why this is not working
         createMany: {
           data: user.profiles,
@@ -1603,7 +1603,7 @@ export function getScenarioData(
     bookings?: ScenarioData["bookings"];
     payment?: ScenarioData["payment"];
   },
-  org?: { id: number | null } | undefined | null
+  org?: { id: number | null; profileUsername?: string } | undefined | null
 ) {
   if (_users && (usersApartFromOrganizer.length || organizer)) {
     throw new Error("When users are provided, usersApartFromOrganizer and organizer should not be provided");
@@ -1617,11 +1617,13 @@ export function getScenarioData(
     if (!orgId) {
       throw new Error("If org is specified org.id is required");
     }
+        
     users.forEach((user) => {
+    const profileUsername = org.profileUsername ?? user.username ?? "";
       user.profiles = [
         {
           organizationId: orgId,
-          username: user.username || "",
+          username: profileUsername,
           uid: ProfileRepository.generateProfileUid(),
         },
       ];
@@ -1883,7 +1885,7 @@ export async function mockCalendar(
           }
           const [uid, event, externalCalendarId] = rest;
           log.silly("mockCalendar.updateEvent", JSON.stringify({ uid, event, externalCalendarId }));
-          // eslint-disable-next-line prefer-rest-params
+           
           updateEventCalls.push({
             args: {
               uid,
@@ -1900,7 +1902,7 @@ export async function mockCalendar(
             additionalInfo: {},
             uid: "PROBABLY_UNUSED_UID",
             iCalUID: normalizedCalendarData.update?.iCalUID,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             id: normalizedCalendarData.update?.uid || "FALLBACK_MOCK_ID",
             // Password and URL seems useless for CalendarService, plan to remove them if that's the case
             password: "MOCK_PASSWORD",
@@ -1916,7 +1918,7 @@ export async function mockCalendar(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         deleteEvent: async (...rest: any[]) => {
           log.silly("mockCalendar.deleteEvent", JSON.stringify({ rest }));
-          // eslint-disable-next-line prefer-rest-params
+           
           deleteEventCalls.push({
             args: {
               uid: rest[0],
@@ -2366,7 +2368,7 @@ export const getDefaultBookingFields = ({
       required: true,
       defaultLabel: "your_name",
     },
-    !!emailField
+    emailField
       ? emailField
       : {
           name: "email",

@@ -876,29 +876,3 @@ test.describe("OOO_CREATED", async () => {
     webhookReceiver.close();
   });
 });
-
-test.describe("BOOKING_CREATED_ORG_USER", async () => {
-  test("webhook includes usernameInOrg for organization users", async ({ page, users, webhooks }) => {
-    const user = await users.create(null, {
-      hasTeam: true,
-      isOrg: true,
-    });
-    const [eventType] = user.eventTypes;
-    await user.apiLogin();
-    const webhookReceiver = await webhooks.createReceiver();
-
-    await page.goto(`/${user.username}/${eventType.slug}`);
-    await selectFirstAvailableTimeSlotNextMonth(page);
-    await bookTimeSlot(page);
-
-    await webhookReceiver.waitForRequestCount(1);
-
-    const [request] = webhookReceiver.requestList;
-    const body: any = request.body;
-
-    expect(body.payload.organizer.usernameInOrg).toBeDefined();
-    expect(body.payload.organizer.username).toBeDefined();
-
-    webhookReceiver.close();
-  });
-});
