@@ -1,5 +1,6 @@
-import { BaseRepository } from "./base.repository";
 import type { PrismaClient } from "@calcom/prisma";
+
+import { BaseRepository } from "./base.repository";
 
 export interface SecondaryEmailRecord {
   id: number;
@@ -40,11 +41,12 @@ export class SecondaryEmailRepository extends BaseRepository<SecondaryEmailRecor
 
   async findUniqueByEmailAndUser(email: string, userId: number) {
     try {
-      return await this.prisma.secondaryEmail.findUnique({ where: { email, userId }, select: { id: true, emailVerified: true } });
+      return await this.prisma.secondaryEmail.findUnique({
+        where: { email, userId },
+        select: { id: true, emailVerified: true },
+      });
     } catch (error) {
       this.handleDatabaseError(error, "find secondary email by email and user");
     }
   }
 }
-
-

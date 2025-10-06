@@ -777,7 +777,7 @@ export class AvailableSlotsService {
     }
 
     const teamForBookingLimits =
-      eventType?.team ??
+      eventType?.calIdTeam ??
       (eventType?.parent?.team?.includeManagedEventsInLimits ? eventType?.parent?.team : null);
 
     const teamBookingLimits = parseBookingLimit(teamForBookingLimits?.bookingLimits);
@@ -910,7 +910,7 @@ export class AvailableSlotsService {
     }
 
     // TODO: DI getShouldServeCache
-    const shouldServeCache = await getShouldServeCache(_shouldServeCache, eventType.team?.id);
+    const shouldServeCache = await getShouldServeCache(_shouldServeCache, eventType.calIdTeam?.id);
     if (isEventTypeLoggingEnabled({ eventTypeId: eventType.id })) {
       logger.settings.minLevel = 2;
     }
@@ -1086,7 +1086,7 @@ export class AvailableSlotsService {
     let availableTimeSlots: typeof timeSlots = [];
     const bookerClientUid = ctx?.req?.cookies?.uid;
     // TODO: DI isRestrictionScheduleEnabled
-    const isRestrictionScheduleFeatureEnabled = await isRestrictionScheduleEnabled(eventType.team?.id);
+    const isRestrictionScheduleFeatureEnabled = await isRestrictionScheduleEnabled(eventType.calIdTeam?.id);
     if (eventType.restrictionScheduleId && isRestrictionScheduleFeatureEnabled) {
       const restrictionSchedule = await this.dependencies.scheduleRepo.findScheduleByIdForBuildDateRanges({
         scheduleId: eventType.restrictionScheduleId,
@@ -1374,7 +1374,7 @@ export class AvailableSlotsService {
             eventSlug: eventType.slug,
           },
           orgDetails,
-          teamId: eventType.team?.id,
+          teamId: eventType.calIdTeam?.id,
         });
       } catch (e) {
         loggerWithEventDetails.error(

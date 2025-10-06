@@ -2962,7 +2962,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/lib@*, @calcom/lib@workspace:packages/lib":
+"@calcom/lib@*, @calcom/lib@workspace:*, @calcom/lib@workspace:packages/lib":
   version: 0.0.0-use.local
   resolution: "@calcom/lib@workspace:packages/lib"
   dependencies:
@@ -3600,6 +3600,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/viasocket@workspace:packages/app-store/viasocket":
+  version: 0.0.0-use.local
+  resolution: "@calcom/viasocket@workspace:packages/app-store/viasocket"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/vimcal@workspace:packages/app-store/vimcal":
   version: 0.0.0-use.local
   resolution: "@calcom/vimcal@workspace:packages/app-store/vimcal"
@@ -3894,11 +3903,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calid/connector@workspace:apps/connector"
   dependencies:
+    "@calcom/lib": "workspace:*"
     "@calcom/prisma": "workspace:*"
     "@fastify/autoload": ^5.8.0
     "@fastify/cors": ^8.4.0
     "@fastify/env": 4.x
     "@fastify/jwt": ^10.0.0
+    "@fastify/multipart": 6
     "@fastify/swagger": ^8.12.0
     "@fastify/swagger-ui": ^2.1.0
     "@types/bcryptjs": ^2.4.6
@@ -3907,6 +3918,7 @@ __metadata:
     bcryptjs: ^2.4.3
     fastify: ^4.24.3
     rimraf: ^5.0.5
+    tsc-alias: ^1.8.16
     tsx: ^4.1.0
     typescript: ^5.2.2
     zod: ^3.22.4
@@ -5487,6 +5499,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fastify/busboy@npm:^1.0.0":
+  version: 1.2.1
+  resolution: "@fastify/busboy@npm:1.2.1"
+  dependencies:
+    text-decoding: ^1.0.0
+  checksum: 6e773a2929fd7732fd8ba8f9e1c1b9d622c6165b6e0bed9268e1785f8fd5e8b0a35d6adfe86f15a701bf7783d09c629f3437b3578d34c0246eb26f973ede20f0
+  languageName: node
+  linkType: hard
+
 "@fastify/busboy@npm:^3.0.0, @fastify/busboy@npm:^3.1.1":
   version: 3.2.0
   resolution: "@fastify/busboy@npm:3.2.0"
@@ -5511,6 +5532,13 @@ __metadata:
     env-schema: ^6.0.0
     fastify-plugin: ^4.0.0
   checksum: 62dc2ee1a72bef2453205e91e21a93168d846ff26cd7616b888a1315339631b090157101d3e78df11053630a798b0e7219dfbd6238949ae43f3eb3d627d8a922
+  languageName: node
+  linkType: hard
+
+"@fastify/error@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@fastify/error@npm:2.0.0"
+  checksum: ecf0834966b2bfb33ff834e3d55fe4dc04cbe9f822fda6c937b12cce4f162be4f8b0577ee665bc856d7012b1640c12472a1829a22ae38d287342c90b0f33a595
   languageName: node
   linkType: hard
 
@@ -5556,6 +5584,22 @@ __metadata:
   dependencies:
     fast-deep-equal: ^3.1.3
   checksum: d5b976f82e6d5d30a603345a29edb176a14866b98dd4d30aabe6e58a91dfc34fb1c2dd97289bdd7f4d1e11675c9dbb9382138968742d2ac8c6fdcc5f7bd08b97
+  languageName: node
+  linkType: hard
+
+"@fastify/multipart@npm:6":
+  version: 6.0.1
+  resolution: "@fastify/multipart@npm:6.0.1"
+  dependencies:
+    "@fastify/busboy": ^1.0.0
+    "@fastify/error": ^2.0.0
+    deepmerge: ^4.2.2
+    end-of-stream: ^1.4.4
+    fastify-plugin: ^3.0.0
+    hexoid: ^1.0.0
+    secure-json-parse: ^2.4.0
+    stream-wormhole: ^1.1.0
+  checksum: 716e3ab86f336235c99cf74cf59e192df69a79d054cfbb94fb1d35957bb92c8952ff9071fab51060d420d999f64fd3d74343b5452817a8c3fbc11d4af20a8aef
   languageName: node
   linkType: hard
 
@@ -22357,7 +22401,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"commander@npm:^9.3.0, commander@npm:^9.4.1":
+"commander@npm:^9.0.0, commander@npm:^9.3.0, commander@npm:^9.4.1":
   version: 9.5.0
   resolution: "commander@npm:9.5.0"
   checksum: c7a3e27aa59e913b54a1bafd366b88650bc41d6651f0cbe258d4ff09d43d6a7394232a4dadd0bf518b3e696fdf595db1028a0d82c785b88bd61f8a440cecfade
@@ -24348,7 +24392,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"end-of-stream@npm:^1.1.0, end-of-stream@npm:^1.4.1":
+"end-of-stream@npm:^1.1.0, end-of-stream@npm:^1.4.1, end-of-stream@npm:^1.4.4":
   version: 1.4.5
   resolution: "end-of-stream@npm:1.4.5"
   dependencies:
@@ -26144,6 +26188,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fastify-plugin@npm:^3.0.0":
+  version: 3.0.1
+  resolution: "fastify-plugin@npm:3.0.1"
+  checksum: 131ba0a388f777829c3fb0fd5b75cf057688ce6d0ca354fb1ebf829767a8c853b0825762b9185b5200097454df0ede2f3095da2efe1aa1b3736d07f194e6d374
+  languageName: node
+  linkType: hard
+
 "fastify-plugin@npm:^4.0.0":
   version: 4.5.1
   resolution: "fastify-plugin@npm:4.5.1"
@@ -27526,7 +27577,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"globby@npm:11.1.0, globby@npm:^11.0.0, globby@npm:^11.0.1, globby@npm:^11.0.3, globby@npm:^11.1.0":
+"globby@npm:11.1.0, globby@npm:^11.0.0, globby@npm:^11.0.1, globby@npm:^11.0.3, globby@npm:^11.0.4, globby@npm:^11.1.0":
   version: 11.1.0
   resolution: "globby@npm:11.1.0"
   dependencies:
@@ -28149,6 +28200,13 @@ __metadata:
   version: 4.3.0
   resolution: "hex-rgb@npm:4.3.0"
   checksum: e654648db8647446f0111c68690d9b340eb192a93c8b2c6789a2b8deb5c20e757515ae209c5ae67074acfddf8575f9fc645d4ffaa0596d859457b08e180d791d
+  languageName: node
+  linkType: hard
+
+"hexoid@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "hexoid@npm:1.0.0"
+  checksum: 27a148ca76a2358287f40445870116baaff4a0ed0acc99900bf167f0f708ffd82e044ff55e9949c71963852b580fc024146d3ac6d5d76b508b78d927fa48ae2d
   languageName: node
   linkType: hard
 
@@ -34000,6 +34058,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"mylas@npm:^2.1.9":
+  version: 2.1.13
+  resolution: "mylas@npm:2.1.13"
+  checksum: f861d092137a9ac268cba88042392a5dc2a290eed5c8543954eae849d85e5961332211161d2c08c3644ad893f20dbe9de89b07f5dc027f1f92f13f2d38f4b81f
+  languageName: node
+  linkType: hard
+
 "mysql2@npm:3.13.0":
   version: 3.13.0
   resolution: "mysql2@npm:3.13.0"
@@ -36671,6 +36736,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"plimit-lit@npm:^1.2.6":
+  version: 1.6.1
+  resolution: "plimit-lit@npm:1.6.1"
+  dependencies:
+    queue-lit: ^1.5.1
+  checksum: 5f18f1ea7254832bdc663c303420c804b5bc8070c670c88161171f0ebacaf46ce7ca12147ddf52bc22d927bb37bfbac6ed6fa478c93cb4be16b62c5fad16dd5f
+  languageName: node
+  linkType: hard
+
 "pluralize@npm:8.0.0":
   version: 8.0.0
   resolution: "pluralize@npm:8.0.0"
@@ -37718,6 +37792,13 @@ __metadata:
   version: 2.2.0
   resolution: "querystringify@npm:2.2.0"
   checksum: 5641ea231bad7ef6d64d9998faca95611ed4b11c2591a8cae741e178a974f6a8e0ebde008475259abe1621cb15e692404e6b6626e927f7b849d5c09392604b15
+  languageName: node
+  linkType: hard
+
+"queue-lit@npm:^1.5.1":
+  version: 1.5.2
+  resolution: "queue-lit@npm:1.5.2"
+  checksum: 8dd45c79bd25b33b0c7d587391eb0b4acc4deb797bf92fef62b2d8e7c03b64083f5304f09d52a18267d34d020cc67ccde97a88185b67590eeccb194938ff1f98
   languageName: node
   linkType: hard
 
@@ -39931,7 +40012,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"secure-json-parse@npm:^2.7.0":
+"secure-json-parse@npm:^2.4.0, secure-json-parse@npm:^2.7.0":
   version: 2.7.0
   resolution: "secure-json-parse@npm:2.7.0"
   checksum: d9d7d5a01fc6db6115744ba23cf9e67ecfe8c524d771537c062ee05ad5c11b64c730bc58c7f33f60bd6877f96b86f0ceb9ea29644e4040cb757f6912d4dd6737
@@ -41121,6 +41202,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"stream-wormhole@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "stream-wormhole@npm:1.1.0"
+  checksum: cc19e0235c5d031bd530fa83913c807d9525fa4ba33d51691dd822c0726b8b7ef138b34f289d063a3018cddba67d3ba7fd0ecedaa97242a0f1ed2eed3c6a2ab1
+  languageName: node
+  linkType: hard
+
 "streamsearch@npm:^1.1.0":
   version: 1.1.0
   resolution: "streamsearch@npm:1.1.0"
@@ -42105,6 +42193,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"text-decoding@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "text-decoding@npm:1.0.0"
+  checksum: 4b2359d8efdabea72ac470304e991913e9b82a55b1c33ab5204f115d11305ac5900add80aee5f7d22b2bcf0faebaf35b193d28a10b74adf175d9ac9d63604445
+  languageName: node
+  linkType: hard
+
 "text-hex@npm:1.0.x":
   version: 1.0.0
   resolution: "text-hex@npm:1.0.0"
@@ -42829,6 +42924,23 @@ __metadata:
   bin:
     tsc-absolute: dist/index.js
   checksum: b24eb01f93c36f72342b5634471df47b8e56bf566b75d0f22852803c8d79e2e6fc7bb14cc293d454df1ab572fc531626857073d6c83d8228b08cb7c7eb23f916
+  languageName: node
+  linkType: hard
+
+"tsc-alias@npm:^1.8.16":
+  version: 1.8.16
+  resolution: "tsc-alias@npm:1.8.16"
+  dependencies:
+    chokidar: ^3.5.3
+    commander: ^9.0.0
+    get-tsconfig: ^4.10.0
+    globby: ^11.0.4
+    mylas: ^2.1.9
+    normalize-path: ^3.0.0
+    plimit-lit: ^1.2.6
+  bin:
+    tsc-alias: dist/bin/index.js
+  checksum: 7bae356371fbd110768d0865d6740f670128f192a409901b698ea4d6787bb942282148faed4bb753c420cb94df016ac0d9da63b8bb28d7c83fcf83d658150616
   languageName: node
   linkType: hard
 

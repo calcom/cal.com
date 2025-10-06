@@ -142,22 +142,28 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
   });
 
   // Get verified numbers and emails
-  const { data: verifiedNumbersData } = trpc.viewer.workflows.calid_getVerifiedNumbers.useQuery(
+  let { data: verifiedNumbersData } = trpc.viewer.workflows.calid_getVerifiedNumbers.useQuery(
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     workflowData?.calIdTeamId ? { calIdTeamId: workflowData?.calIdTeamId } : {},
     {
-      enabled: !!workflowData?.calIdTeamId,
+      calIdTeamId: !!workflowData?.calIdTeamId,
     }
   );
 
-  const { data: verifiedEmailsData } = trpc.viewer.workflows.calid_getVerifiedEmails.useQuery(
+  verifiedNumbersData ??= [];
+
+  console.log("Verified numbers", verifiedNumbersData);
+
+  let { data: verifiedEmailsData } = trpc.viewer.workflows.calid_getVerifiedEmails.useQuery(
     workflowData?.calIdTeamId
       ? {
           calIdTeamId: workflowData?.calIdTeamId,
         }
       : {},
-    { enabled: !!workflowData?.calIdTeamId }
+    { calIdTeamId: !!workflowData?.calIdTeamId }
   );
+
+  verifiedEmailsData ??= [];
 
   // Get workflow action options
   const { data: actionOptions } = trpc.viewer.workflows.calid_getWorkflowActionOptions.useQuery();
@@ -265,6 +271,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
           });
           return newStatus;
         });
+        console.log(numberVerificationStatus);
       }
 
       utils.viewer.workflows.calid_getVerifiedNumbers.invalidate();
@@ -820,9 +827,11 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
       // Check verification for SMS/WhatsApp actions
       if (
         (step.action === WorkflowActions.SMS_NUMBER || step.action === WorkflowActions.WHATSAPP_NUMBER) &&
-        !verifiedNumbersData?.find((verifiedNumber) => verifiedNumber.phoneNumber === step.sendTo)
+        (!numberVerificationStatus[step.id] &&
+          !verifiedNumbersData?.find((verifiedNumber) => verifiedNumber.phoneNumber === step.sendTo))
       ) {
         isVerified = false;
+        console.log("Verified number: ", verifiedNumbersData, "Send to: ", step.sendTo);
         triggerToast(t("not_verified"), "error");
       }
 

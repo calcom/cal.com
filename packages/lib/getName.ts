@@ -42,13 +42,17 @@ export function getUserNameFromField(name: string): string {
 export const usernameSlugRandom = (username: string) =>
   `${slugify(username)}-${randomString(6).toLowerCase()}`;
 
-export async function checkIfUserNameTaken(user: { name: string }) {
-  const username = getUserNameFromField(user.name);
+export async function checkIfUserNameTaken(user: { name?: string; username?: string }) {
+  if (!user.username && !user.name) {
+    throw new Error("Name or username is required");
+  }
+
+  const _username = user.username ?? getUserNameFromField(user.name!);
   const existingUserWithUsername = await prisma.user.findFirst({
     where: {
-      username,
+      username: _username,
       organizationId: null,
     },
   });
-  return { existingUserWithUsername, username };
+  return { existingUserWithUsername, username: _username };
 }

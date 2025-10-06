@@ -5,29 +5,36 @@ import type { FastifyInstance } from "fastify";
 import fp from "fastify-plugin";
 
 async function swaggerPlugin(fastify: FastifyInstance): Promise<void> {
-  const { NODE_ENV, PORT, HOST } = fastify.config;
-
-  console.log("🔍 Swagger Debug Info:");
-  console.log("NODE_ENV:", NODE_ENV);
-  console.log("HOST:", HOST);
-  console.log("PORT:", PORT);
+  const { NODE_ENV, PORT, HOST, DOMAIN } = fastify.config;
 
   try {
     // Determine the correct server URL
-    const getServerUrl = () => {
-      if (NODE_ENV === "production") {
-        // For production, use HTTPS and full domain
-        return `https://api.${HOST}/api`;
-      } else {
-        // For development, check if we're running on localhost with HTTP
-        const protocol =
-          HOST === "localhost" || HOST === "127.0.0.1" || HOST === "0.0.0.0" ? "http" : "https";
-        return `${protocol}://${HOST}:${PORT}/api`;
-      }
+    const isLocal = DOMAIN.includes("localhost") || DOMAIN.includes("127.0.0.1");
+
+    const getServerUrl = () => (isLocal ? `http://${DOMAIN}:${PORT}` : `https://api.${DOMAIN}`);
+
+    const getDescription = () => {
+      if (isLocal) return "Development server ";
+      if (DOMAIN.includes("calid.in")) return "Staging server ";
+      return "Production server ";
     };
 
     const serverUrl = getServerUrl();
-
+    const apiDescription = getDescription();
+    const tags = [
+      { name: "Health", description: "Health check endpoints" },
+      ...(isLocal ? [{ name: "Admin", description: "Admin endpoints (requires admin role)" }] : []),
+      { name: "Users", description: "User management endpoints" },
+      { name: "Event Types", description: "Event type management endpoints" },
+      { name: "Teams", description: "Team management endpoints" },
+      { name: "Team Event Types", description: "Event type management endpoints for teams" },
+      { name: "Team Memberships", description: "Membership management endpoints for teams" },
+      { name: "Team Schedules", description: "Schedule management endpoints for teams" },
+      { name: "Availability", description: "User availability management endpoints" },
+      { name: "Schedule", description: "User schedule management endpoints" },
+      { name: "Slots", description: "Available slots retrieval endpoints" },
+      { name: "Booking", description: "Event booking endpoints" },
+    ];
     // Register Swagger with improved error handling
     await fastify.register(swagger, {
       openapi: {
@@ -38,8 +45,8 @@ async function swaggerPlugin(fastify: FastifyInstance): Promise<void> {
           version: "1.0.0",
           contact: {
             name: "API Support",
-            email: "support@onehash.com",
-            url: "https://support.onehash.com",
+            email: "support@onehash.ai",
+            url: "https://support.onehash.ai",
           },
           license: {
             name: "MIT",
@@ -49,11 +56,7 @@ async function swaggerPlugin(fastify: FastifyInstance): Promise<void> {
         servers: [
           {
             url: serverUrl,
-            description: NODE_ENV === "production" ? "Production server" : "Development server",
-          },
-          {
-            url: "/api",
-            description: "Relative URL (fallback)",
+            description: apiDescription,
           },
         ],
         components: {
@@ -103,21 +106,16 @@ Examples:
             },
           },
         },
-        tags: [
-          { name: "Health", description: "Health check endpoints" },
-          { name: "Admin", description: "Admin endpoints (requires admin role)" },
-          { name: "Users", description: "User management endpoints" },
-          { name: "Event Types", description: "Event type management endpoints" },
-          { name: "Teams", description: "Team management endpoints" },
-          { name: "Team Event Types", description: "Event type management endpoints for teams" },
-          { name: "Team Memberships", description: "Membership management endpoints for teams" },
-          { name: "Team Schedules", description: "Schedule management endpoints for teams" },
-        ],
+        tags,
       },
       hideUntagged: true,
-      // Improved transform function with error handling
+      // Improved transform function with error handling to filter Admin endpoints
       transform: ({ schema, url }) => {
         try {
+          // Hide Admin endpoints when not in local environment
+          if (!isLocal && schema?.tags?.includes("Admin")) {
+            return { schema: {}, url: "" };
+          }
           return { schema, url };
         } catch (error) {
           console.error(`❌ Error transforming schema for ${url}:`, error);
@@ -178,34 +176,34 @@ export default fp(swaggerPlugin, {
   name: "swagger",
 });
 
-// Alternative minimal swagger configuration for debugging
-export const minimalSwaggerPlugin = fp(
-  async function minimalSwagger(fastify: FastifyInstance) {
-    const { NODE_ENV, PORT, HOST } = fastify.config;
+// // Alternative minimal swagger configuration for debugging
+// export const minimalSwaggerPlugin = fp(
+//   async function minimalSwagger(fastify: FastifyInstance) {
+//     const { NODE_ENV, PORT, HOST } = fastify.config;
 
-    await fastify.register(swagger, {
-      openapi: {
-        openapi: "3.0.0",
-        info: {
-          title: "Cal ID API",
-          version: "1.0.0",
-        },
-        servers: [
-          {
-            url: NODE_ENV === "production" ? `http://${HOST}/api` : `https://${HOST}:${PORT}/api`,
-            description: "Development server",
-          },
-        ],
-      },
-    });
+//     await fastify.register(swagger, {
+//       openapi: {
+//         openapi: "3.0.0",
+//         info: {
+//           title: "Cal ID API",
+//           version: "1.0.0",
+//         },
+//         servers: [
+//           {
+//             url: NODE_ENV === "production" ? `http://${HOST}/api` : `https://${HOST}:${PORT}/api`,
+//             description: "Development server",
+//           },
+//         ],
+//       },
+//     });
 
-    if (NODE_ENV === "development") {
-      await fastify.register(swaggerUi, {
-        routePrefix: "/docs",
-      });
-    }
-  },
-  {
-    name: "minimal-swagger",
-  }
-);
+//     if (NODE_ENV === "development") {
+//       await fastify.register(swaggerUi, {
+//         routePrefix: "/docs",
+//       });
+//     }
+//   },
+//   {
+//     name: "minimal-swagger",
+//   }
+// );

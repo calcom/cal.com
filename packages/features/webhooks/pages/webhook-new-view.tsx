@@ -1,5 +1,6 @@
 "use client";
 
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
@@ -9,7 +10,6 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { triggerToast } from "@calid/features/ui/components/toast";
 import { revalidateWebhooksList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/webhooks/(with-loader)/actions";
 
 import type { WebhookFormSubmitData } from "../components/WebhookForm";

@@ -1,7 +1,4 @@
 import { Icon } from "@calid/features/ui/components/icon";
-
-
-
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useEffect, useState } from "react";
 import type { SubmitHandler, UseFormReturn } from "react-hook-form";
@@ -142,6 +139,9 @@ export const FormBuilder = function FormBuilder({
               value={(() => {
                 const phoneField = fields.find((field) => field.name === "attendeePhoneNumber");
                 const emailField = fields.find((field) => field.name === "email");
+                //check if sms/whatsapp workflow is enabled then disable the toggle
+                const hasWorkflow = phoneField?.sources?.some((s) => s.label === "CalIdWorkflow");
+                if (hasWorkflow) return "phone";
 
                 if (phoneField && !phoneField.hidden && phoneField.required && !emailField?.required) {
                   return "phone";
@@ -161,9 +161,21 @@ export const FormBuilder = function FormBuilder({
                   iconLeft: <Icon name="phone" className="h-4 w-4" />,
                 },
               ]}
+              disabled={(() => {
+                const phoneField = fields.find((field) => field.name === "attendeePhoneNumber");
+                const hasWorkflowSource = phoneField?.sources?.some((s) => s.label === "CalIdWorkflow");
+                return hasWorkflowSource || false;
+              })()}
               onValueChange={(value) => {
                 const phoneFieldIndex = fields.findIndex((field) => field.name === "attendeePhoneNumber");
                 const emailFieldIndex = fields.findIndex((field) => field.name === "email");
+
+                const phoneField = fields[phoneFieldIndex];
+                const hasWorkflowSource = phoneField?.sources?.some((s) => s.label === "CalIdWorkflow");
+
+                if (hasWorkflowSource) {
+                  return;
+                }
                 if (value === "email") {
                   update(emailFieldIndex, {
                     ...fields[emailFieldIndex],
@@ -306,7 +318,8 @@ export const FormBuilder = function FormBuilder({
                     {!isFieldEditableSystem && !isFieldEditableSystemButHidden && !disabled && (
                       <Switch
                         data-testid="toggle-field"
-                        disabled={isFieldEditableSystem}
+                        // disabled={isFieldEditableSystem}
+                        disabled={field.sources?.some((s) => s.label === "CalIdWorkflow")}
                         checked={!field.hidden}
                         onCheckedChange={(checked) => {
                           update(index, { ...field, hidden: !checked });

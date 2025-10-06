@@ -1,4 +1,5 @@
 import { Grid } from "@tremor/react";
+import { useInsightsOrgTeams } from "@calcom/features/insights/hooks/useInsightsOrgTeams";
 import { Flex, Text, Metric } from "@tremor/react";
 
 import { CardInsights } from "@calcom/features/insights/components/Card";
@@ -9,7 +10,13 @@ import { trpc } from "@calcom/trpc";
 
 export const WorkflowKPICards = () => {
   const { t } = useLocale();
-  const insightsWorkflowParams = useInsightsBookingParameters();
+  const {userId} = useInsightsOrgTeams();
+  const insightsWorkflowParams = {
+    ...useInsightsBookingParameters(),
+    memberUserId: userId
+  };
+
+  console.log("insightsWorkflowParams", insightsWorkflowParams);
 
   const { data, isSuccess, isPending } = trpc.viewer.insights.workflowsByStatus.useQuery(
     insightsWorkflowParams,

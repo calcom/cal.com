@@ -31,6 +31,7 @@ import { isENVDev } from "@calcom/lib/env";
 import { checkIfUserNameTaken, usernameSlugRandom } from "@calcom/lib/getName";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { sendUserToMakeWebhook } from "@calcom/lib/sendUserToWebhook";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
@@ -42,7 +43,6 @@ import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
-import { getOrgUsernameFromEmail } from "../signup/utils/getOrgUsernameFromEmail";
 import { ErrorCode } from "./ErrorCode";
 import { dub } from "./dub";
 import { isPasswordValid } from "./isPasswordValid";
@@ -912,6 +912,11 @@ export const getOptions = ({
             !existingUserWithEmail.emailVerified &&
             !existingUserWithEmail.username
           ) {
+            const { existingUserWithUsername, username: _username } = await checkIfUserNameTaken({
+              name: user.name,
+            });
+            const username = existingUserWithUsername ? usernameSlugRandom(user.name) : _username;
+            // const username = getOrgUsernameFromEmail(user.name, getDomainFromEmail(user.email));
             await prisma.user.update({
               where: {
                 email: existingUserWithEmail.email,
@@ -921,12 +926,22 @@ export const getOptions = ({
                 email: user.email,
                 // Slugify the incoming name and append a few random characters to
                 // prevent conflicts for users with the same name.
-                username: getOrgUsernameFromEmail(user.name, getDomainFromEmail(user.email)),
+                username,
                 emailVerified: new Date(Date.now()),
                 name: user.name,
                 identityProvider: idP,
                 identityProviderId: account.providerAccountId,
               },
+            });
+
+            // Send invited user data to Make webhook (now completing their signup)
+            await sendUserToMakeWebhook({
+              id: existingUserWithEmail.id,
+              email: user.email,
+              name: user.name,
+              username,
+              identityProvider: idP,
+              createdAt: existingUserWithEmail.createdDate,
             });
 
             if (existingUserWithEmail.twoFactorEnabled) {
@@ -981,22 +996,24 @@ export const getOptions = ({
           return `/auth/error?error=wrong-provider&provider=${existingUserWithEmail.identityProvider}`;
         }
 
-        // Associate with organization if enabled by flag and idP is Google (for now)
-        const { orgUsername, orgId } = await checkIfUserShouldBelongToOrg(idP, user.email);
-        //check if user with given username already exists
-        const { existingUserWithUsername, username } = await checkIfUserNameTaken({
-          name: user.name,
-        });
         try {
+          // Associate with organization if enabled by flag and idP is Google (for now)
+          const { orgUsername, orgId } = await checkIfUserShouldBelongToOrg(idP, user.email);
+          //check if user with given username already exists
+
+          const { existingUserWithUsername, username: _username } = await checkIfUserNameTaken({
+            name: user.name,
+          });
+          const username = orgId
+            ? slugify(orgUsername)
+            : existingUserWithUsername
+            ? usernameSlugRandom(user.name)
+            : _username;
           const newUser = await prisma.user.create({
             data: {
               // Slugify the incoming name and append a few random characters to
               // prevent conflicts for users with the same name.
-              username: orgId
-                ? slugify(orgUsername)
-                : existingUserWithUsername
-                ? usernameSlugRandom(user.name)
-                : username,
+              username,
               emailVerified: new Date(Date.now()),
               name: user.name,
               ...(user.image && { avatarUrl: user.image }),
@@ -1015,7 +1032,14 @@ export const getOptions = ({
           });
           const linkAccountNewUserData = { ...account, userId: newUser.id, providerEmail: user.email };
           await calcomAdapter.linkAccount(linkAccountNewUserData);
-
+          await sendUserToMakeWebhook({
+            id: newUser.id,
+            email: newUser.email,
+            name: newUser.name || "",
+            username: newUser.username || "",
+            identityProvider: idP,
+            createdAt: newUser.createdDate,
+          });
           if (account.twoFactorEnabled) {
             return loginWithTotp(newUser.email);
           } else {
@@ -1032,12 +1056,47 @@ export const getOptions = ({
     /**
      * Used to handle the navigation right after successful login or logout
      */
+    // async redirect({ url, baseUrl }) {
+    //   // Allows relative callback URLs
+    //   if (url.startsWith("/")) return `${baseUrl}${url}`;
+    //   // Allows callback URLs on the same domain
+    //   else if (new URL(url).hostname === new URL(WEBAPP_URL).hostname) return url;
+    //   return baseUrl;
+    // },
+
     async redirect({ url, baseUrl }) {
-      // Allows relative callback URLs
-      if (url.startsWith("/")) return `${baseUrl}${url}`;
-      // Allows callback URLs on the same domain
-      else if (new URL(url).hostname === new URL(WEBAPP_URL).hostname) return url;
-      return baseUrl;
+      try {
+        console.log("Redirecting to:", { url, baseUrl });
+        const parsedUrl = new URL(url);
+        const parsedBase = new URL(baseUrl);
+        // Normalize host by removing "app." prefix and ignoring protocol
+        interface NormalizeHost {
+          (host: string): string;
+        }
+        const normalizeHost: NormalizeHost = (host: string): string => host.replace(/^app\./, "");
+
+        const isSameDomain = normalizeHost(parsedUrl.hostname) === normalizeHost(parsedBase.hostname);
+
+        const isRootPath = ["/", ""].includes(parsedUrl.pathname);
+
+        const isLoginPath = parsedUrl.pathname.includes("/auth/login");
+
+        //   Root domain or login page → redirect to /event-types
+        if (isSameDomain && (isRootPath || isLoginPath)) {
+          return `${baseUrl}/event-types`;
+        }
+
+        //  Internal relative path → prefix with baseUrl
+        if (url.startsWith("/")) {
+          return `${baseUrl}${url}`;
+        }
+
+        //  Otherwise external or fully-qualified URL → use as-is
+        return url;
+      } catch (e) {
+        console.error("Redirect error:", e);
+        return baseUrl;
+      }
     },
   },
   events: {

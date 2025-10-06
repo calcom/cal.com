@@ -1,6 +1,6 @@
 import { Branding } from "@calid/features/ui/Branding";
 import { Button } from "@calid/features/ui/components/button";
-import { AnimatePresence, LazyMotion, m } from "framer-motion";
+import { AnimatePresence, LazyMotion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import StickyBox from "react-sticky-box";
 import { Toaster } from "sonner";
@@ -93,8 +93,6 @@ const BookerComponent = ({
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
-
-  console.log("Is branding hidden: ", hideBranding);
 
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const {
@@ -573,16 +571,24 @@ const BookerComponent = ({
             </div>
           )}
 
-          {(!hideBranding || orgBannerUrl) && (!isPlatform || isPlatformBookerEmbed) && !shouldRenderCaptcha && (
-            <m.span
-              key="logo"
-              className={classNames(
-                "mb-6 mt-auto pt-6 [&_img]:h-[15px]",
-                hasDarkBackground ? "dark" : "",
-                layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
-              )}>
-              <Branding faviconUrl={orgBannerUrl} />
-            </m.span>
+          {/* {(!hideBranding || orgBannerUrl) &&
+            (!isPlatform || isPlatformBookerEmbed) &&
+            !shouldRenderCaptcha && (
+              <m.span
+                key="logo"
+                className={classNames(
+                  "mb-6 mt-auto pt-6 [&_img]:h-[15px]",
+                  hasDarkBackground ? "dark" : "",
+                  layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
+                )}>
+                <Branding bannerUrl={orgBannerUrl} />
+              </m.span>
+            )} */}
+
+          {(!hideBranding || orgBannerUrl) && (
+            <div key="logo" className={classNames("my-8 flex w-full justify-center [&_img]:h-[32px]")}>
+              <Branding bannerUrl={orgBannerUrl} />
+            </div>
           )}
         </div>
       </div>

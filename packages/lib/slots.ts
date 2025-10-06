@@ -18,7 +18,14 @@ export type GetSlots = {
 export type TimeFrame = { userIds?: number[]; startTime: number; endTime: number };
 
 const minimumOfOne = (input: number) => (input < 1 ? 1 : input);
-
+function alignToNextQuarterHour(time: dayjs.Dayjs): dayjs.Dayjs {
+  const minute = time.minute();
+  const roundedMinute = Math.ceil(minute / 15) * 15;
+  //if already adjusted to quarter hour, return the time else adjust it to the next quarter hour
+  return minute % 15 === 0
+    ? time.second(0).millisecond(0)
+    : time.startOf("hour").add(roundedMinute, "minute").second(0).millisecond(0);
+}
 function buildSlotsWithDateRanges({
   dateRanges,
   frequency,
@@ -77,13 +84,13 @@ function buildSlotsWithDateRanges({
     let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
       ? range.start
       : startTimeWithMinNotice;
-
-    slotStartTime =
-      slotStartTime.minute() % interval !== 0
-        ? slotStartTime.startOf("hour").add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
-        : slotStartTime;
-
-    slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes").tz(timeZone);
+    //NOTE: not required as we only allow availability in the multiples of quarter hours ,i.e. 00, 15, 30, 45
+    // but still we are aligning the start time to the next quarter hour just to be sure.
+    // slotStartTime =
+    //   slotStartTime.minute() % interval !== 0
+    //     ? slotStartTime.startOf("hour").add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
+    //     : slotStartTime;
+    slotStartTime = alignToNextQuarterHour(slotStartTime);
 
     // Find the nearest appropriate slot boundary if this time falls within an existing slot
     const slotBoundariesValueArray = Array.from(slotBoundaries.keys());

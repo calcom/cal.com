@@ -20,7 +20,6 @@ import {
   ONEHASH_CHAT_SYNC_BASE_URL,
   MOBILE_NOTIFICATIONS_ENABLED,
 } from "@calcom/lib/constants";
-import { sendMobileNotification } from "@calcom/lib/notifications";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -28,6 +27,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
+import { sendMobileNotification } from "@calcom/lib/notifications";
 import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -121,13 +121,13 @@ async function handler(input: CancelBookingInput) {
       message: "This event type does not allow cancellations",
     });
   }
-
-  if (!platformClientId && !cancellationReason?.trim() && bookingToDelete.userId == userId) {
-    throw new HttpError({
-      statusCode: 400,
-      message: "Cancellation reason is required when you are the host",
-    });
-  }
+  //Commentted out this Block - To make Cancellation Reason optional when Host is cancelling the booking
+  // if (!platformClientId && !cancellationReason?.trim() && bookingToDelete.userId == userId) {
+  //   throw new HttpError({
+  //     statusCode: 400,
+  //     message: "Cancellation reason is required when you are the host",
+  //   });
+  // }
 
   // If the booking is a seated event and there is no seatReferenceUid we should validate that logged in user is host
   if (bookingToDelete.eventType?.seatsPerTimeSlot && !seatReferenceUid) {

@@ -86,7 +86,7 @@ export interface EventTypesContentProps {
   copiedLink: string | null;
   bookerUrl: string;
   debouncedSearchTerm: string;
-  hasNextPage?: boolean;
+  hasNextPage: boolean;
   isFetchingNextPage: boolean;
   onEventEdit: (eventId: number) => void;
   onCopyLink: (eventId: number, url: string) => void;
@@ -97,6 +97,7 @@ export interface EventTypesContentProps {
   onLoadMore: () => void;
   onCreatePersonal: () => void;
   onCreateTeam: () => void;
+  buttonInViewRef: any;
 }
 
 export interface DeleteDialogState {
