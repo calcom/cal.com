@@ -29,6 +29,7 @@ import type { BookingStatus } from "@calcom/prisma/enums";
 import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { userMetadataType } from "@calcom/prisma/zod-utils";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { AppMeta } from "@calcom/types/App";
 import type {
   CalendarEvent,
@@ -50,7 +51,7 @@ vi.mock("@calcom/app-store/calendar.services.generated", () => ({
   },
 }));
 
-const mockVideoAdapterRegistry: Record<string, any> = {};
+const mockVideoAdapterRegistry: Record<string, unknown> = {};
 
 vi.mock("@calcom/app-store/video.adapters.generated", () => ({
   VideoApiAdapterMap: new Proxy(
@@ -72,9 +73,7 @@ vi.mock("@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic", () => ({
 }));
 
 vi.mock("@calcom/lib/crypto", async (importOriginal) => {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  const actual = await importOriginal<any>();
+  const actual = await importOriginal<typeof import("@calcom/lib/crypto")>();
   return {
     ...actual,
     symmetricEncrypt: vi.fn((serviceAccountKey) => serviceAccountKey),
@@ -116,6 +115,17 @@ type InputWorkflow = {
   verifiedAt?: Date;
 };
 
+type PaymentData = {
+  // Common payment data fields based on Stripe and other payment providers
+  paymentIntent?: string;
+  paymentMethodId?: string;
+  clientSecret?: string;
+  customerId?: string;
+  subscriptionId?: string;
+  metadata?: Record<string, string>;
+  [key: string]: unknown; // Allow additional provider-specific fields
+};
+
 type InputPayment = {
   id?: number;
   uid: string;
@@ -126,7 +136,7 @@ type InputPayment = {
   currency: string;
   success: boolean;
   refunded: boolean;
-  data: Record<string, any>;
+  data: PaymentData;
   externalId: string;
   paymentOption?: PaymentOption;
 };
@@ -258,7 +268,7 @@ export type InputEventType = {
   bookingLimits?: IntervalLimit;
   durationLimits?: IntervalLimit;
   owner?: number;
-  metadata?: any;
+  metadata?: z.infer<typeof EventTypeMetaDataSchema>;
   rescheduleWithSameRoundRobinHost?: boolean;
   restrictionSchedule?: {
     create: {
@@ -370,13 +380,18 @@ export async function addEventTypesToDb(
     "users" | "workflows" | "destinationCalendar" | "schedule"
   > & {
     id?: number;
-    users?: any[];
+    users?: ({ id: number } | undefined)[];
     userId?: number;
-    hosts?: any[];
-    workflows?: any[];
-    destinationCalendar?: any;
-    schedule?: any;
-    metadata?: any;
+    hosts?: {
+      user: InputUser | undefined;
+      id: number;
+    }[];
+    workflows?: Prisma.WorkflowCreateInput[];
+    destinationCalendar?: {
+      create: Prisma.DestinationCalendarCreateInput;
+    };
+    schedule?: { create: Prisma.ScheduleCreateInput } | null | undefined;
+    metadata?: z.infer<typeof EventTypeMetaDataSchema>;
     team?: { id?: number | null; bookingLimits?: IntervalLimit; includeManagedEventsInLimits?: boolean };
     restrictionSchedule?: {
       create: {
@@ -559,7 +574,8 @@ export async function addEventTypes(eventTypes: InputEventType[], usersStore: In
     };
   });
   log.silly("TestData: Creating EventType", JSON.stringify(eventTypesWithUsers));
-  return await addEventTypesToDb(eventTypesWithUsers);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Pretty complex type here
+  return await addEventTypesToDb(eventTypesWithUsers as unknown as any);
 }
 
 function addBookingReferencesToDB(bookingReferences: Prisma.BookingReferenceCreateManyInput[]) {
@@ -941,7 +957,6 @@ export async function addUsers(users: InputUser[]) {
     }
     if (user.profiles) {
       newUser.profiles = {
-         
         // @ts-expect-error Not sure why this is not working
         createMany: {
           data: user.profiles,
@@ -1062,7 +1077,7 @@ export async function createOrganization(orgData: {
 export async function createCredentials(
   credentialData: {
     type: string;
-    key: any;
+    key: Prisma.JsonValue;
     id?: number;
     userId?: number | null;
     teamId?: number | null;
@@ -1575,7 +1590,7 @@ export function getOrganizer({
     completedOnboarding,
     locked,
     emailVerified,
-    };
+  };
 }
 
 export function getScenarioData(
@@ -1617,9 +1632,9 @@ export function getScenarioData(
     if (!orgId) {
       throw new Error("If org is specified org.id is required");
     }
-        
+
     users.forEach((user) => {
-    const profileUsername = org.profileUsername ?? user.username ?? "";
+      const profileUsername = org.profileUsername ?? user.username ?? "";
       user.profiles = [
         {
           organizationId: orgId,
@@ -1802,9 +1817,8 @@ export async function mockCalendar(
   const calendarServicePromise = CalendarServiceMap[calendarServiceKey];
   if (calendarServicePromise) {
     const resolvedService = await calendarServicePromise;
-    vi.mocked(resolvedService.default as any).mockImplementation(function MockCalendarService(
-      credential: any
-    ) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(resolvedService.default as any).mockImplementation(function MockCalendarService(credential: any) {
       return {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         createEvent: async function (...rest: any[]): Promise<NewCalendarEventType> {
@@ -1885,7 +1899,6 @@ export async function mockCalendar(
           }
           const [uid, event, externalCalendarId] = rest;
           log.silly("mockCalendar.updateEvent", JSON.stringify({ uid, event, externalCalendarId }));
-           
           updateEventCalls.push({
             args: {
               uid,
@@ -1902,7 +1915,6 @@ export async function mockCalendar(
             additionalInfo: {},
             uid: "PROBABLY_UNUSED_UID",
             iCalUID: normalizedCalendarData.update?.iCalUID,
-             
             id: normalizedCalendarData.update?.uid || "FALLBACK_MOCK_ID",
             // Password and URL seems useless for CalendarService, plan to remove them if that's the case
             password: "MOCK_PASSWORD",
@@ -1918,7 +1930,6 @@ export async function mockCalendar(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         deleteEvent: async (...rest: any[]) => {
           log.silly("mockCalendar.deleteEvent", JSON.stringify({ rest }));
-           
           deleteEventCalls.push({
             args: {
               uid: rest[0],
@@ -1930,11 +1941,15 @@ export async function mockCalendar(
             },
           });
         },
-        getAvailability: async (...rest: any[]): Promise<EventBusyDate[]> => {
+        getAvailability: async (
+          dateFrom: string,
+          dateTo: string,
+          selectedCalendars: IntegrationCalendar[],
+          shouldServeCache?: boolean
+        ): Promise<EventBusyDate[]> => {
           if (calendarData?.getAvailabilityCrash) {
             throw new Error("MockCalendarService.getAvailability fake error");
           }
-          const [dateFrom, dateTo, selectedCalendars, shouldServeCache] = rest;
           getAvailabilityCalls.push({
             args: {
               dateFrom,
@@ -2016,7 +2031,7 @@ export function mockVideoApp({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const deleteMeetingCalls: any[] = [];
 
-  const mockVideoAdapter = (credential: any) => {
+  const mockVideoAdapter = (credential: unknown) => {
     return {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       createMeeting: (...rest: any[]) => {
@@ -2118,7 +2133,7 @@ export function mockPaymentApp({
   metadataLookupKey: string;
   appStoreLookupKey?: string;
 }) {
-  appStoreLookupKey = appStoreLookupKey || metadataLookupKey;
+  const _appStoreLookupKey = appStoreLookupKey || metadataLookupKey;
   const { paymentUid, externalId } = getMockPaymentService();
 
   return {

@@ -1040,7 +1040,7 @@ export function expectBookingCreatedWebhookToHaveBeenFired({
   isEmailHidden = false,
   isAttendeePhoneNumberHidden = false,
 }: {
-  organizer: { email: string; name: string; username?: string; usernameInOrg?: string; };
+  organizer: { email: string; name: string; username?: string; usernameInOrg?: string };
   booker: { email: string; name: string; attendeePhoneNumber?: string };
   subscriberUrl: string;
   location: string;
@@ -1052,7 +1052,7 @@ export function expectBookingCreatedWebhookToHaveBeenFired({
   const organizerPayload = {
     username: organizer.username,
     ...(organizer.usernameInOrg ? { usernameInOrg: organizer.usernameInOrg } : null),
-  }
+  };
 
   if (!paidEvent) {
     expectWebhookToHaveBeenCalledWith(subscriberUrl, {
@@ -1395,14 +1395,12 @@ export function expectSuccessfulVideoMeetingDeletionInCalendar(
 export async function expectBookingInDBToBeRescheduledFromTo({ from, to }: { from: any; to: any }) {
   // Expect previous booking to be cancelled
   await expectBookingToBeInDatabase({
-     
     ...from,
     status: BookingStatus.CANCELLED,
   });
 
   // Expect new booking to be created but status would depend on whether the new booking requires confirmation or not.
   await expectBookingToBeInDatabase({
-     
     ...to,
   });
 }
