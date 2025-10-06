@@ -1,10 +1,9 @@
+import { Label } from "@calid/features/ui/components/label";
+import { Switch } from "@calid/features/ui/components/switch";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { ReactNode } from "react";
 
 import classNames from "@calcom/ui/classNames";
-
-import { Label } from "../inputs/Label";
-import { Switch } from "./Switch";
 
 type Props = {
   children?: ReactNode;
@@ -24,7 +23,6 @@ type Props = {
   descriptionClassName?: string;
   noIndentation?: boolean;
   hideSwitch?: boolean;
-  titleToggle?: boolean;
 };
 
 export function SettingsToggle({
@@ -38,7 +36,6 @@ export function SettingsToggle({
   disabled,
   tooltip,
   toggleSwitchAtTheEnd = false,
-  titleToggle = false,
   childrenClassName,
   switchContainerClassName,
   labelClassName,
@@ -95,7 +92,7 @@ export function SettingsToggle({
               )}
             </div>
           ) : (
-            <div className="flex space-x-3">
+            <div className="flex items-center space-x-3">
               <Switch
                 data-testid={rest["data-testid"]}
                 fitToHeight={true}

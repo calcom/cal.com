@@ -40,6 +40,7 @@ import { EventSetup } from "../components/tabs/event-types-setup";
 import { EventTeamAssignmentTab } from "../components/tabs/event-types-team-assignment";
 import { EventWebhooks } from "../components/tabs/event-types-webhook";
 import { EventWorkflows } from "../components/tabs/event-types-workflows";
+import { isManagedEventType } from "../utils/event-types-utils";
 import { TabSkeleton } from "./tab-skeleton";
 
 // import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
@@ -284,10 +285,25 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
   // Form handling - only initialize when eventType is available
   const { form, handleSubmit } = useEventTypeForm({
     eventType,
-    onSubmit: (data) => {
+    onSubmit: async (data) => {
       try {
-        console.log("Submitting event type form with data:", data);
-        updateMutation.mutate(data);
+        const conflicts = await checkForSlugConflicts(data);
+        if (conflicts) {
+          onConflict(conflicts);
+          return;
+        }
+
+        // Filter out fields that are not part of the update schema
+        const {
+          scheduleName: _scheduleName,
+          periodDates: _periodDates,
+          seatsPerTimeSlotEnabled: _seatsPerTimeSlotEnabled,
+          aiPhoneCallConfig: _aiPhoneCallConfig,
+          calVideoSettings: _calVideoSettings,
+          ...validData
+        } = data;
+
+        updateMutation.mutate(validData);
       } catch (error) {
         throw error;
       }
@@ -305,7 +321,9 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
   const bookerUrl = WEBSITE_URL;
 
   const permalink = `${bookerUrl}/${
-    effectiveTeam ? `team/${effectiveTeam.slug}` : getEventTypeUsername()
+    effectiveTeam && form?.getValues("schedulingType") !== SchedulingType.MANAGED
+      ? `team/${effectiveTeam.slug}`
+      : getEventTypeUsername()
   }/${slug}`;
 
   let embedLink;
@@ -314,11 +332,15 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
     const formSlug = form?.getValues("slug");
 
     embedLink = `${
-      effectiveTeam ? `team/${effectiveTeam.slug}` : formUsers?.[0]?.username || getEventTypeUsername()
+      effectiveTeam && form?.getValues("schedulingType") !== SchedulingType.MANAGED
+        ? `team/${effectiveTeam.slug}`
+        : formUsers?.[0]?.username || getEventTypeUsername()
     }/${formSlug || slug}`;
   } catch (error) {
     embedLink = `${
-      effectiveTeam ? `team/${effectiveTeam.slug}` : eventType.users?.[0]?.username || "unknown"
+      effectiveTeam && eventType.schedulingType !== SchedulingType.MANAGED
+        ? `team/${effectiveTeam.slug}`
+        : eventType.users?.[0]?.username || "unknown"
     }/${slug}`;
   }
 
@@ -334,6 +356,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
   } catch (error) {
     hasPermsToDelete = true; // Default to allowing delete if there's an error
   }
+
   const connectedCalendarsQuery = trpc.viewer.calendars.connectedCalendars.useQuery();
 
   // Tab content mapping
@@ -419,8 +442,39 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
   });
 
   // Conflict handling
-  const _onConflict = (conflicts: ChildrenEventType[]) => {
+  const onConflict = (conflicts: ChildrenEventType[]) => {
     setSlugExistsChildrenDialogOpen(conflicts);
+  };
+
+  // Function to check for slug conflicts before submitting
+  const checkForSlugConflicts = async (formData: any) => {
+    if (!isManagedEventType(eventType) || !formData.children || formData.children.length === 0) {
+      return null;
+    }
+
+    const currentSlug = formData.slug || eventType.slug;
+    const conflicts: ChildrenEventType[] = [];
+
+    const teamMembers = (eventType as any).team?.members || (eventType as any).calIdTeam?.members || [];
+
+    for (const child of formData.children) {
+      const teamMember = teamMembers.find((mem: any) => mem.user.id === child.owner.id);
+      const memberEventTypes = teamMember?.user?.eventTypes || [];
+
+      const nonChildrenManagedEventTypes = memberEventTypes.filter((evTy: any) => {
+        const isChildrenManaged =
+          evTy.metadata?.managedEventConfig !== undefined && evTy.schedulingType !== SchedulingType.MANAGED;
+        return !isChildrenManaged;
+      });
+
+      const hasConflictingSlug = nonChildrenManagedEventTypes.some((evTy: any) => evTy.slug === currentSlug);
+
+      if (hasConflictingSlug) {
+        conflicts.push(child);
+      }
+    }
+
+    return conflicts.length > 0 ? conflicts : null;
   };
 
   // Filter tabs based on event type
@@ -429,6 +483,9 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
     if (tabItem.name === "Team") {
       const shouldShowTeamTab = !!effectiveTeam;
       return shouldShowTeamTab;
+    }
+    if (tabItem.name === "Embed") {
+      return !isManagedEventType(eventType as any);
     }
     return true;
   });
@@ -541,11 +598,13 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
             isPending={form.formState.isSubmitting}
             onOpenChange={() => setSlugExistsChildrenDialogOpen([])}
             slug={slug}
-            onConfirm={(e: { preventDefault: () => void }) => {
+            onConfirm={async (e: { preventDefault: () => void }) => {
               e.preventDefault();
-              handleSubmit(form.getValues());
-              telemetry.event(telemetryEventTypes.slugReplacementAction);
               setSlugExistsChildrenDialogOpen([]);
+              telemetry.event(telemetryEventTypes.slugReplacementAction);
+              // Submit the form after user confirms
+              const formData = form.getValues();
+              updateMutation.mutate(formData as any);
             }}
           />
         )}
