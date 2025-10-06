@@ -1,6 +1,9 @@
 import { startSpan } from "@sentry/nextjs";
 
-import { getBlockingService } from "@calcom/features/di/watchlist/containers/watchlist";
+import {
+  getGlobalBlockingService,
+  getOrganizationBlockingService,
+} from "@calcom/features/di/watchlist/containers/watchlist";
 
 import type { EmailBlockedCheckResponseDTO } from "../lib/dto";
 
@@ -29,10 +32,22 @@ export async function checkIfEmailIsBlockedInWatchlistController(
   return await startSpan({ name: "checkIfEmailInWatchlist Controller" }, async () => {
     const lowercasedEmail = email.toLowerCase();
 
-    // Use unified blocking service (handles global → org priority automatically)
-    const blockingService = getBlockingService();
-    const result = await blockingService.isBlocked(lowercasedEmail, organizationId);
+    // Check global entries first (highest priority)
+    const globalBlockingService = getGlobalBlockingService();
+    const globalResult = await globalBlockingService.isBlocked(lowercasedEmail, organizationId);
+    if (globalResult.isBlocked) {
+      return presenter(true);
+    }
 
-    return presenter(result.isBlocked);
+    // Check organization entries if organizationId provided
+    if (organizationId) {
+      const orgBlockingService = getOrganizationBlockingService();
+      const orgResult = await orgBlockingService.isEmailBlocked(lowercasedEmail, organizationId);
+      if (orgResult.isBlocked) {
+        return presenter(true);
+      }
+    }
+
+    return presenter(false);
   });
 }

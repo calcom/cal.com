@@ -29,10 +29,6 @@ export function getWatchlistService() {
 
 // Removed getWatchlistRepository() - use specialized repositories directly
 
-export function getBlockingService() {
-  return watchlistContainer.get(WATCHLIST_DI_TOKENS.BLOCKING_SERVICE);
-}
-
 export function getGlobalBlockingService() {
   return watchlistContainer.get(WATCHLIST_DI_TOKENS.GLOBAL_BLOCKING_SERVICE);
 }

@@ -57,6 +57,11 @@ export class GlobalBlockingService implements IBlockingService {
     return { isBlocked: false };
   }
 
+  async isFreeEmailDomain(domain: string): Promise<boolean> {
+    const entry = await this.globalRepo.findFreeEmailDomain(domain);
+    return !!entry;
+  }
+
   async createDecoyResponse(_bookingData: BookingData): Promise<DecoyBookingResponse> {
     // Generate a fake UID that looks realistic
     const fakeUid = this.generateFakeUid();

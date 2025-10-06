@@ -44,6 +44,22 @@ export class GlobalWatchlistRepository {
     }
   }
 
+  async findFreeEmailDomain(domain: string): Promise<Watchlist | null> {
+    try {
+      return await this.prisma.watchlist.findFirst({
+        where: {
+          type: WatchlistType.DOMAIN,
+          value: domain.toLowerCase(),
+          source: WatchlistSource.FREE_DOMAIN_POLICY,
+          organizationId: null, // Global entries only
+        },
+      });
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
   async findReportedEmail(email: string): Promise<Watchlist | null> {
     try {
       return await this.prisma.watchlist.findFirst({
