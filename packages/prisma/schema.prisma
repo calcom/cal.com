@@ -2326,6 +2326,8 @@ model Watchlist {
 
   @@unique([type, value, organizationId])
   @@index([type, value, organizationId, action])
+  @@index([organizationId, isGlobal])
+  @@index([source])
 }
 
 model WatchlistAudit {
@@ -2341,6 +2343,7 @@ model WatchlistAudit {
 
   watchlistId String @db.Uuid
 
+  @@unique([id])
   @@index([watchlistId, changedAt])
 }
 
@@ -2350,6 +2353,9 @@ model WatchlistEventAudit {
   eventTypeId Int
   actionTaken WatchlistAction
   timestamp   DateTime        @default(now())
+
+  @@index([watchlistId, timestamp])
+  @@index([eventTypeId, timestamp])
 }
 
 enum BookingReportReason {
