@@ -203,6 +203,16 @@ export class BookingRepository {
             email: true,
           },
         },
+        seatsReferences: {
+          select: {
+            referenceUid: true,
+            attendee: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        },
         reports: {
           select: {
             id: true,

@@ -1,5 +1,4 @@
 import type { Dispatch, SetStateAction } from "react";
-import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -7,13 +6,11 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ReportReason } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { Checkbox } from "@calcom/ui/components/form";
 import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
-import { Icon } from "@calcom/ui/components/icon";
-import { Label } from "@calcom/ui/components/label";
-import { Select } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/components/toast";
+import { Checkbox } from "@calcom/ui/components/form";
+import { Select, Label } from "@calcom/ui/components/form";
 import { TextArea } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 interface IReportBookingDialog {
   isOpenDialog: boolean;
@@ -82,13 +79,8 @@ export const ReportBookingDialog = (props: IReportBookingDialog) => {
       <DialogContent enableOverflow>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="flex flex-row space-x-3">
-            <div className="bg-subtle flex h-10 w-10 flex-shrink-0 justify-center rounded-full">
-              <Icon name="flag" className="text-destructive m-auto h-6 w-6" />
-            </div>
-            <div className="w-full pt-1">
-              <DialogHeader title={t("report_booking")} />
-              <p className="text-subtle mb-6 text-sm">{t("report_booking_description")}</p>
-
+            <div className="w-full">
+              <DialogHeader title={t("report_booking")} subtitle={t("report_booking_description")} />
               <div className="mb-4">
                 <Label htmlFor="reason" className="text-emphasis mb-2 block text-sm font-medium">
                   {t("reason")} <span className="text-destructive">*</span>
@@ -108,9 +100,7 @@ export const ReportBookingDialog = (props: IReportBookingDialog) => {
                     />
                   )}
                 />
-                {errors.reason && (
-                  <p className="text-destructive mt-1 text-sm">{errors.reason.message}</p>
-                )}
+                {errors.reason && <p className="text-destructive mt-1 text-sm">{errors.reason.message}</p>}
               </div>
 
               <div className="mb-4">
@@ -121,11 +111,7 @@ export const ReportBookingDialog = (props: IReportBookingDialog) => {
                   name="description"
                   control={control}
                   render={({ field }) => (
-                    <TextArea
-                      {...field}
-                      placeholder={t("report_booking_description_placeholder")}
-                      rows={3}
-                    />
+                    <TextArea {...field} placeholder={t("report_booking_description_placeholder")} rows={3} />
                   )}
                 />
               </div>
@@ -139,6 +125,7 @@ export const ReportBookingDialog = (props: IReportBookingDialog) => {
                       <Checkbox
                         id="cancelBooking"
                         checked={field.value}
+                        className="mb-2"
                         onCheckedChange={field.onChange}
                       />
                       <Label htmlFor="cancelBooking" className="text-emphasis ml-2 text-sm">
@@ -180,7 +167,7 @@ export const ReportBookingDialog = (props: IReportBookingDialog) => {
               disabled={isPending}>
               {t("cancel")}
             </Button>
-            <Button type="submit" color="destructive" disabled={isPending} loading={isPending}>
+            <Button type="submit" color="primary" disabled={isPending} loading={isPending}>
               {t("submit_report")}
             </Button>
           </DialogFooter>

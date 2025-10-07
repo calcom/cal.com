@@ -689,6 +689,9 @@ export async function getBookings({
       return hostUser?.id === userId && attendeeEmails.has(hostUser.email);
     });
   };
+
+  const bookingReportRepo = new BookingReportRepository(prisma);
+
   const bookings = await Promise.all(
     plainBookings.map(async (booking) => {
       // If seats are enabled, the event is not set to show attendees, and the current user is not the host, filter out attendees who are not the current user
@@ -715,12 +718,10 @@ export async function getBookings({
         }
       }
 
-      // Fetch reports if exist
-      const bookingReportRepo = new BookingReportRepository(ctx.prisma);
       const reports = await bookingReportRepo.findAllReportsForBooking(booking.id);
 
       // Check if current user reported
-      const reportedByCurrentUser = reports.some((r) => r.reportedById === ctx.user.id);
+      const reportedByCurrentUser = reports.some((r) => r.reportedById === user.id);
 
       return {
         ...booking,

@@ -168,7 +168,6 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
 export function getReportAction(context: BookingActionContext): ActionType | null {
   const { booking, isCancelled, isRejected, t } = context;
 
-  // Don't show if current user already reported
   if (booking.reportedByCurrentUser) {
     return null;
   }
@@ -225,6 +224,11 @@ export function shouldShowEditActions(context: BookingActionContext): boolean {
 export function shouldShowRecurringCancelAction(context: BookingActionContext): boolean {
   const { isTabRecurring, isRecurring } = context;
   return isTabRecurring && isRecurring;
+}
+
+export function shouldShowIndividualReportButton(context: BookingActionContext): boolean {
+  const { isPending, isUpcoming, isCancelled } = context;
+  return isPending && isUpcoming && !isCancelled;
 }
 
 export function isActionDisabled(actionId: string, context: BookingActionContext): boolean {
