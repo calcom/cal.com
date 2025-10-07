@@ -62,7 +62,8 @@ import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { PrismaDecoyBookingRepository } from "@calcom/lib/server/repository/PrismaDecoyBookingRepository";
+import type { BookingIntentAttendee } from "@calcom/lib/server/repository/BookingIntentRepository.interface";
+import { PrismaBookingIntentRepository } from "@calcom/lib/server/repository/PrismaBookingIntentRepository";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
@@ -257,7 +258,7 @@ const buildDryRunEventManager = () => {
   };
 };
 
-export const buildDecoyBooking = async ({
+export const buildBookingIntent = async ({
   eventTypeId,
   organizerUser,
   eventName,
@@ -301,13 +302,13 @@ export const buildDecoyBooking = async ({
     return `${sanitizedLocal}@${sanitizedDomain}`;
   };
 
-  const decoyBookingRepo = new PrismaDecoyBookingRepository();
-  const decoyBooking = await decoyBookingRepo.create({
+  const bookingIntentRepo = new PrismaBookingIntentRepository();
+  const bookingIntent = await bookingIntentRepo.create({
     title: eventName,
     startTime: new Date(startTime),
     endTime: new Date(endTime),
     location: location || "Online Meeting",
-    status: BookingStatus.ACCEPTED,
+    status: "BLOCKED",
     organizerName: organizerUser.name || "Organizer",
     organizerEmail: sanitizeEmail(organizerUser.email),
     attendees: [
@@ -333,7 +334,7 @@ export const buildDecoyBooking = async ({
     }),
   });
 
-  return decoyBooking;
+  return bookingIntent;
 };
 
 export const buildEventForTeamEventType = async ({
@@ -636,7 +637,7 @@ async function handler(
       }
     }
 
-    const decoyBooking = await buildDecoyBooking({
+    const bookingIntent = await buildBookingIntent({
       eventTypeId,
       organizerUser,
       eventName: eventType.title,
@@ -649,16 +650,28 @@ async function handler(
       watchlistEventAuditId: auditEntryId,
     });
 
+    const attendees = Array.isArray(bookingIntent.attendees)
+      ? bookingIntent.attendees.map((attendee) => {
+          const typedAttendee = attendee as BookingIntentAttendee;
+          return {
+            name: typedAttendee.name || "",
+            email: typedAttendee.email || "",
+            timeZone: typedAttendee.timeZone || "UTC",
+            phoneNumber: typedAttendee.phoneNumber || null,
+          };
+        })
+      : [];
+
     return {
-      uid: decoyBooking.uid,
-      id: decoyBooking.id,
-      title: decoyBooking.title,
-      description: decoyBooking.description,
-      startTime: decoyBooking.startTime.toISOString(),
-      endTime: decoyBooking.endTime.toISOString(),
-      location: decoyBooking.location,
-      attendees: Array.isArray(decoyBooking.attendees) ? decoyBooking.attendees : [],
-      responses: decoyBooking.responses,
+      uid: bookingIntent.uid,
+      id: bookingIntent.id,
+      title: bookingIntent.title,
+      description: bookingIntent.description,
+      startTime: bookingIntent.startTime.toISOString(),
+      endTime: bookingIntent.endTime.toISOString(),
+      location: bookingIntent.location,
+      attendees: attendees,
+      responses: bookingIntent.responses,
       user: {
         email: null,
         name: organizerUser.name,
@@ -666,7 +679,7 @@ async function handler(
         timeZone: organizerUser.timeZone,
       },
       userPrimaryEmail: null,
-      status: decoyBooking.status,
+      status: BookingStatus.ACCEPTED,
       isDryRun: false,
       paymentRequired: false,
       paymentUid: undefined,

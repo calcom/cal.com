@@ -1,12 +1,13 @@
-import { PrismaDecoyBookingRepository } from "@calcom/lib/server/repository/PrismaDecoyBookingRepository";
+import { PrismaBookingIntentRepository } from "@calcom/lib/server/repository/PrismaBookingIntentRepository";
 import prisma from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
 
 /**
- * Fetches a booking by UID from either the Booking or DecoyBooking table.
+ * Fetches a booking by UID from either the Booking or BookingIntent table.
  * Returns a unified structure that matches the Booking type so the client
- * cannot distinguish between real and decoy bookings.
+ * cannot distinguish between real and blocked bookings.
  */
-export async function getBookingOrDecoyForViewing(uid: string) {
+export async function getBookingOrIntentForViewing(uid: string) {
   const regularBooking = await prisma.booking.findUnique({
     where: { uid },
     select: {
@@ -82,40 +83,35 @@ export async function getBookingOrDecoyForViewing(uid: string) {
     return regularBooking;
   }
 
-  const decoyBookingRepo = new PrismaDecoyBookingRepository(prisma);
-  const decoyBooking = await decoyBookingRepo.getByUidForViewing(uid);
+  const bookingIntentRepo = new PrismaBookingIntentRepository(prisma);
+  const bookingIntent = await bookingIntentRepo.getByUidForViewing(uid);
 
-  if (!decoyBooking) {
+  if (!bookingIntent) {
     return null;
   }
 
   return {
-    id: decoyBooking.id,
-    uid: decoyBooking.uid,
-    title: decoyBooking.title,
-    startTime: decoyBooking.startTime,
-    endTime: decoyBooking.endTime,
-    location: decoyBooking.location,
-    status: decoyBooking.status,
-    description: decoyBooking.description,
-    metadata: decoyBooking.metadata,
-    responses: decoyBooking.responses,
+    id: bookingIntent.id,
+    uid: bookingIntent.uid,
+    title: bookingIntent.title,
+    startTime: bookingIntent.startTime,
+    endTime: bookingIntent.endTime,
+    location: bookingIntent.location,
+    status: BookingStatus.ACCEPTED,
+    description: bookingIntent.description,
+    metadata: bookingIntent.metadata,
+    responses: bookingIntent.responses,
     user: {
       id: -1,
-      name: decoyBooking.organizerName,
-      email: decoyBooking.organizerEmail,
+      name: bookingIntent.organizerName,
+      email: bookingIntent.organizerEmail,
       username: null,
       timeZone: "UTC",
       avatarUrl: null,
     },
-    attendees: decoyBooking.attendees as Array<{
-      name: string;
-      email: string;
-      timeZone: string;
-      phoneNumber: string | null;
-    }>,
-    eventTypeId: decoyBooking.eventTypeId,
-    eventType: decoyBooking.eventType,
+    attendees: bookingIntent.attendees,
+    eventTypeId: bookingIntent.eventTypeId,
+    eventType: bookingIntent.eventType,
     customInputs: null,
     smsReminderNumber: null,
     recurringEventId: null,

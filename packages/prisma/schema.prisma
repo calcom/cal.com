@@ -244,7 +244,7 @@ model EventType {
 
   bookingRequiresAuthentication Boolean @default(false)
 
-  decoyBookings DecoyBooking[]
+  bookingIntents BookingIntent[]
 
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
@@ -857,14 +857,14 @@ model Booking {
   @@index([startTime, endTime, status])
 }
 
-model DecoyBooking {
+model BookingIntent {
   id                    Int                  @id @default(autoincrement())
   uid                   String               @unique
   title                 String
   startTime             DateTime
   endTime               DateTime
   location              String?
-  status                BookingStatus        @default(ACCEPTED)
+  status                BookingIntentStatus
   organizerName         String
   organizerEmail        String
   attendees             Json
@@ -2344,7 +2344,7 @@ model WatchlistEventAudit {
   actionTaken WatchlistAction
   timestamp   DateTime        @default(now())
 
-  decoyBookings DecoyBooking[]
+  bookingIntents BookingIntent[]
 }
 
 enum BillingPeriod {
@@ -2629,6 +2629,11 @@ enum CalendarCacheEventStatus {
   confirmed @map("confirmed")
   tentative @map("tentative")
   cancelled @map("cancelled")
+}
+
+enum BookingIntentStatus {
+  BLOCKED
+  PENDING
 }
 
 model CalendarCacheEvent {

@@ -3,13 +3,17 @@ import short from "short-uuid";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 
-import type { IDecoyBookingRepository, DecoyBookingForViewing } from "./DecoyBookingRepository.interface";
+import type {
+  IBookingIntentRepository,
+  BookingIntentForViewing,
+  BookingIntentAttendee,
+} from "./BookingIntentRepository.interface";
 
-export class PrismaDecoyBookingRepository implements IDecoyBookingRepository {
+export class PrismaBookingIntentRepository implements IBookingIntentRepository {
   constructor(private readonly prismaClient: PrismaClient = prisma) {}
 
-  async create(data: Parameters<IDecoyBookingRepository["create"]>[0]) {
-    return await this.prismaClient.decoyBooking.create({
+  async create(data: Parameters<IBookingIntentRepository["create"]>[0]) {
+    return await this.prismaClient.bookingIntent.create({
       data: {
         uid: short.uuid(),
         title: data.title,
@@ -30,13 +34,13 @@ export class PrismaDecoyBookingRepository implements IDecoyBookingRepository {
   }
 
   async getByUid(uid: string) {
-    return await this.prismaClient.decoyBooking.findUnique({
+    return await this.prismaClient.bookingIntent.findUnique({
       where: { uid },
     });
   }
 
-  async getByUidForViewing(uid: string): Promise<DecoyBookingForViewing | null> {
-    return await this.prismaClient.decoyBooking.findUnique({
+  async getByUidForViewing(uid: string): Promise<BookingIntentForViewing | null> {
+    const result = await this.prismaClient.bookingIntent.findUnique({
       where: { uid },
       select: {
         id: true,
@@ -64,5 +68,26 @@ export class PrismaDecoyBookingRepository implements IDecoyBookingRepository {
         },
       },
     });
+
+    if (!result) {
+      return null;
+    }
+
+    const attendees = Array.isArray(result.attendees) ? result.attendees : [];
+    const typedAttendees = attendees.map((attendee) => {
+      const typedAttendee = attendee as BookingIntentAttendee;
+      return {
+        name: typedAttendee.name || "",
+        email: typedAttendee.email || "",
+        timeZone: typedAttendee.timeZone || "UTC",
+        phoneNumber: typedAttendee.phoneNumber || null,
+      };
+    });
+
+    return {
+      ...result,
+      status: result.status.toString(),
+      attendees: typedAttendees,
+    };
   }
 }
