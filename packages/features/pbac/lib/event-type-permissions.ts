@@ -3,6 +3,7 @@ import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { Resource } from "../domain/types/permission-registry";
+import type { PermissionString } from "../domain/types/permission-registry";
 import { PermissionCheckService } from "../services/permission-check.service";
 
 export interface ResourcePermissions {
@@ -32,21 +33,25 @@ const createFullPermissions = (): EventTypePermissions => ({
   },
 });
 
-const mapPermissions = (pbacPermissions: {
-  canRead: boolean;
-  canCreate: boolean;
-  canEdit: boolean;
-  canDelete: boolean;
-}): ResourcePermissions => ({
-  canRead: pbacPermissions.canRead,
-  canCreate: pbacPermissions.canCreate,
-  canUpdate: pbacPermissions.canEdit,
-  canDelete: pbacPermissions.canDelete,
-});
+const permissionsArrayToObject = (
+  permissions: PermissionString[],
+  resource: Resource
+): ResourcePermissions => {
+  const resourcePrefix = `${resource}.`;
+  return {
+    canRead: permissions.some((p) => p === `${resourcePrefix}read` || p === "*.*"),
+    canCreate: permissions.some((p) => p === `${resourcePrefix}create` || p === "*.*"),
+    canUpdate: permissions.some((p) => p === `${resourcePrefix}update` || p === "*.*"),
+    canDelete: permissions.some((p) => p === `${resourcePrefix}delete` || p === "*.*"),
+  };
+};
 
 const getRoleBasedPermissions = (role: MembershipRole): ResourcePermissions => {
-  const canRead = [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER].includes(role);
-  const canModify = [MembershipRole.OWNER, MembershipRole.ADMIN].includes(role);
+  const roles: MembershipRole[] = [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER];
+  const modifyRoles: MembershipRole[] = [MembershipRole.OWNER, MembershipRole.ADMIN];
+
+  const canRead = roles.includes(role);
+  const canModify = modifyRoles.includes(role);
 
   return {
     canRead,
@@ -63,7 +68,7 @@ const getHighestRole = (
   if (!role1) return role2;
   if (!role2) return role1;
 
-  const roleHierarchy = {
+  const roleHierarchy: Record<MembershipRole, number> = {
     [MembershipRole.OWNER]: 3,
     [MembershipRole.ADMIN]: 2,
     [MembershipRole.MEMBER]: 1,
@@ -102,8 +107,8 @@ export async function getEventTypePermissions(
     ]);
 
     return {
-      eventTypes: mapPermissions(eventTypePermissions),
-      workflows: mapPermissions(workflowPermissions),
+      eventTypes: permissionsArrayToObject(eventTypePermissions, Resource.EventType),
+      workflows: permissionsArrayToObject(workflowPermissions, Resource.Workflow),
     };
   }
 
