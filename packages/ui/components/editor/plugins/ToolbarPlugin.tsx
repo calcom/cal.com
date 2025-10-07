@@ -35,8 +35,6 @@ import { AddVariablesDropdown } from "./AddVariablesDropdown";
 
 const LowPriority = 1;
 
-const _supportedBlockTypes = new Set(["paragraph", "h1", "h2", "ul", "ol"]);
-
 interface BlockType {
   [key: string]: string;
 }
