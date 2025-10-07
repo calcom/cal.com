@@ -728,12 +728,10 @@ export async function getBookings({
         }
       }
 
-      // Fetch reports if exist
-      const bookingReportRepo = new BookingReportRepository(ctx.prisma);
       const reports = await bookingReportRepo.findAllReportsForBooking(booking.id);
 
       // Check if current user reported
-      const reportedByCurrentUser = reports.some((r) => r.reportedById === ctx.user.id);
+      const reportedByCurrentUser = reports.some((r) => r.reportedById === user.id);
 
       return {
         ...booking,

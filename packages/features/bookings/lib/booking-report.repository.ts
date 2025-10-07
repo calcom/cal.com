@@ -54,6 +54,7 @@ export class BookingReportRepository implements IBookingReportRepository {
           id: true,
           reportedById: true,
           reason: true,
+          description: true,
           createdAt: true,
         },
       });
@@ -77,6 +78,7 @@ export class BookingReportRepository implements IBookingReportRepository {
           id: true,
           reportedById: true,
           reason: true,
+          description: true,
           createdAt: true,
         },
         orderBy: {
