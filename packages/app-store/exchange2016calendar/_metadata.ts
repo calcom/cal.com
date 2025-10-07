@@ -13,10 +13,10 @@ export const metadata = {
   categories: ["calendar"],
   label: "Exchange Calendar",
   logo: "icon.svg",
-  publisher: "Cal.com",
+  publisher: "Cal ID",
   slug: "exchange2016-calendar",
-  url: "https://cal.com/",
-  email: "help@cal.com",
+  url: "https://cal.id/",
+  email: "support@cal.id",
   dirName: "exchange2016calendar",
   isOAuth: false,
 } as AppMeta;

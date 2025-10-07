@@ -6,12 +6,12 @@
   "slug": "routing-forms",
   "type": "routing-forms_other",
   "logo": "icon-dark.svg",
-  "url": "https://cal.com/resources/feature/routing-forms",
+  "url": "https://cal.id/routing-forms",
   "variant": "other",
   "categories": ["automation"],
-  "publisher": "Cal.com, Inc.",
+  "publisher": "Cal ID",
   "simplePath": "/routing",
-  "email": "help@cal.com",
+  "email": "support@cal.id",
   "licenseRequired": true,
   "teamsPlanRequired": {
     "upgradeUrl": "/routing"
