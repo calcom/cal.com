@@ -55,7 +55,10 @@ export const useBookingForm = ({
     })
     .passthrough()
     .superRefine((data, ctx) => {
-      if (event?.metadata?.requireEmailConfirmation && !rescheduleUid) {
+      const emailFieldHidden =
+        event?.bookingFields?.find((field) => field.name === "email")?.hidden === true;
+
+      if (event?.metadata?.requireEmailConfirmation && !rescheduleUid && !emailFieldHidden) {
         const responses = data.responses as Record<string, unknown>;
         const email = responses?.email;
         const emailConfirmation = responses?.emailConfirmation;
