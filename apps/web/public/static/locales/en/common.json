@@ -771,6 +771,8 @@
   "report_booking_will_cancel_description": "Reporting this booking will automatically cancel it",
   "add_to_report": "Add to report",
   "reported": "Reported",
+  "reported_by_you": "Reported by you",
+  "reported_count": "Reported ({{count}})",
   "continue": "Continue",
   "confirm": "Confirm",
   "confirm_all": "Confirm all",

@@ -3,6 +3,7 @@ import { type SelectQueryBuilder } from "kysely";
 import { jsonObjectFrom, jsonArrayFrom } from "kysely/helpers/postgres";
 
 import dayjs from "@calcom/dayjs";
+import { BookingReportRepository } from "@calcom/features/bookings/lib/booking-report.repository";
 import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
 import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
@@ -727,9 +728,19 @@ export async function getBookings({
         }
       }
 
+      // Fetch reports if exist
+      const bookingReportRepo = new BookingReportRepository(ctx.prisma);
+      const reports = await bookingReportRepo.findAllReportsForBooking(booking.id);
+
+      // Check if current user reported
+      const reportedByCurrentUser = reports.some((r) => r.reportedById === ctx.user.id);
+
       return {
         ...booking,
         rescheduler,
+        reports,
+        reportedByCurrentUser,
+        reportCount: reports.length,
         eventType: {
           ...booking.eventType,
           recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
