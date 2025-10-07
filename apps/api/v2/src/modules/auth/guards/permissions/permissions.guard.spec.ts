@@ -24,7 +24,7 @@ describe("PermissionsGuard", () => {
       createMock<ConfigService>({
         get: jest.fn().mockImplementation((key: string) => {
           switch (key) {
-            case "api.apiKeyPrefix":
+            case "api.keyPrefix":
               return "cal_";
             default:
               return null;

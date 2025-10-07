@@ -88,7 +88,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
         if (apiKeyAllowed || accessTokenAllowed) {
           try {
             const requestOrigin = request.get("Origin");
-            request.authMethod = isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")
+            request.authMethod = isApiKey(bearerToken, this.config.get<string>("api.keyPrefix") ?? "cal_")
               ? AuthMethods["API_KEY"]
               : AuthMethods["ACCESS_TOKEN"];
             return await this.authenticateBearerToken(bearerToken, request, requestOrigin);
@@ -216,7 +216,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     requestOrigin: string | undefined
   ) {
     try {
-      const user = isApiKey(authString, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")
+      const user = isApiKey(authString, this.config.get<string>("api.keyPrefix") ?? "cal_")
         ? await this.apiKeyStrategy(authString, request)
         : await this.accessTokenStrategy(authString, request, requestOrigin);
 
