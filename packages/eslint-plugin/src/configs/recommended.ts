@@ -8,6 +8,7 @@ const recommended = {
     "@calcom/eslint/avoid-prisma-client-import-for-enums": "error",
     "@calcom/eslint/no-prisma-include-true": "warn",
     "@calcom/eslint/no-scroll-into-view-embed": "error",
+    "@calcom/eslint/no-direct-prisma-import": "error",
     "@calcom/eslint/no-this-in-static-method": "error",
   },
 };

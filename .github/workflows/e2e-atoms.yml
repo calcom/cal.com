@@ -1,0 +1,51 @@
+name: E2E Atoms
+
+on:
+  workflow_call:
+permissions:
+  actions: write
+  contents: read
+
+env:
+  NODE_OPTIONS: --max-old-space-size=8096
+  ATOMS_E2E_OAUTH_CLIENT_ID: ${{ secrets.ATOMS_E2E_OAUTH_CLIENT_ID }}
+  ATOMS_E2E_OAUTH_CLIENT_SECRET: ${{ secrets.ATOMS_E2E_OAUTH_CLIENT_SECRET }}
+  ATOMS_E2E_API_URL: ${{ secrets.ATOMS_E2E_API_URL }}
+  ATOMS_E2E_ORG_ID: ${{ secrets.ATOMS_E2E_ORG_ID }}
+  ATOMS_E2E_OAUTH_CLIENT_ID_BOOKER_EMBED: ${{ secrets.ATOMS_E2E_OAUTH_CLIENT_ID_BOOKER_EMBED }}
+  ATOMS_E2E_APPLE_ID: ${{ secrets.ATOMS_E2E_APPLE_ID }}
+  ATOMS_E2E_APPLE_CONNECT_APP_SPECIFIC_PASSCODE: ${{ secrets.ATOMS_E2E_APPLE_CONNECT_APP_SPECIFIC_PASSCODE }}
+  DATABASE_DIRECT_URL: ${{ secrets.CI_DATABASE_URL }}
+  DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
+
+jobs:
+  e2e-atoms:
+    timeout-minutes: 15
+    name: E2E Atoms
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    steps:
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/dangerous-git-checkout
+      - uses: ./.github/actions/yarn-install
+      - uses: ./.github/actions/yarn-playwright-install
+      - name: Run E2E Atoms Tests
+        working-directory: packages/platform/examples/base
+        run: yarn test:e2e
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-atoms-test-results
+          path: test-results
+          retention-days: 7
+      - name: Upload Playwright Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-atoms-playwright-report
+          path: playwright-report
+          retention-days: 7

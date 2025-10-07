@@ -1,6 +1,9 @@
 import { _generateMetadata } from "app/_utils";
 
 import OrgAttributesEditPage from "@calcom/ee/organizations/pages/settings/attributes/attributes-edit-view";
+import { MembershipRole } from "@calcom/prisma/enums";
+
+import { validateUserHasOrgPerms } from "../../../../actions/validateUserHasOrgPerms";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }) =>
   await _generateMetadata(
@@ -12,6 +15,11 @@ export const generateMetadata = async ({ params }: { params: Promise<{ id: strin
   );
 
 const OrgAttributesEditPageWrapper = async () => {
+  await validateUserHasOrgPerms({
+    permission: "organization.attributes.update",
+    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+  });
+
   return <OrgAttributesEditPage />;
 };
 

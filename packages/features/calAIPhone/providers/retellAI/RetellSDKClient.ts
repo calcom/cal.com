@@ -11,8 +11,12 @@ import type {
   UpdateAgentRequest,
   RetellAgent,
   CreatePhoneNumberParams,
-  RetellDynamicVariables,
+  CreatePhoneCallParams,
+  CreateWebCallParams,
   ImportPhoneNumberParams,
+  RetellCallListParams,
+  RetellCallListResponse,
+  RetellVoice,
 } from "./types";
 
 const RETELL_API_KEY = process.env.RETELL_AI_KEY;
@@ -221,20 +225,61 @@ export class RetellSDKClient implements RetellAIRepository {
     }
   }
 
-  async createPhoneCall(data: {
-    from_number: string;
-    to_number: string;
-    retell_llm_dynamic_variables?: RetellDynamicVariables;
-  }) {
+  async createPhoneCall(data: CreatePhoneCallParams) {
     try {
       const response = await this.client.call.createPhoneCall({
-        from_number: data.from_number,
-        to_number: data.to_number,
-        retell_llm_dynamic_variables: data.retell_llm_dynamic_variables,
+        from_number: data.fromNumber,
+        to_number: data.toNumber,
+        retell_llm_dynamic_variables: data.dynamicVariables,
       });
       return response;
     } catch (error) {
       this.logger.error("Failed to create phone call", { error });
+      throw error;
+    }
+  }
+
+  async listCalls(params: RetellCallListParams): Promise<RetellCallListResponse> {
+    try {
+      this.logger.info("Listing calls via SDK", {
+        limit: params.limit,
+        hasFilters: !!params.filter_criteria,
+      });
+
+      const response = await this.client.call.list(params);
+
+      this.logger.info("Calls listed successfully", {
+        count: response.length,
+      });
+
+      return response;
+    } catch (error) {
+      this.logger.error("Failed to list calls", { error });
+      throw error;
+    }
+  }
+
+  async createWebCall(data: CreateWebCallParams) {
+    try {
+      const response = await this.client.call.createWebCall({
+        agent_id: data.agentId,
+        retell_llm_dynamic_variables: data.dynamicVariables,
+      });
+      return response;
+    } catch (error) {
+      this.logger.error("Failed to create web call", { error });
+      throw error;
+    }
+  }
+
+  async listVoices(): Promise<RetellVoice[]> {
+
+    try {
+      const response = await this.client.voice.list();
+
+      return response;
+    } catch (error) {
+      this.logger.error("Failed to list voices", { error });
       throw error;
     }
   }

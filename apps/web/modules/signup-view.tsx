@@ -83,6 +83,17 @@ const FEATURES = [
   },
 ];
 
+function truncateDomain(domain: string) {
+  const maxLength = 25;
+  const cleanDomain = domain.replace(URL_PROTOCOL_REGEX, "");
+
+  if (cleanDomain.length <= maxLength) {
+    return cleanDomain;
+  }
+
+  return `${cleanDomain.substring(0, maxLength - 3)}.../`;
+}
+
 function UsernameField({
   username,
   setPremium,
@@ -197,6 +208,7 @@ export default function Signup({
 
   useEffect(() => {
     if (redirectUrl) {
+      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       localStorage.setItem("onBoardingRedirect", redirectUrl);
     }
   }, [redirectUrl]);
@@ -216,7 +228,6 @@ export default function Signup({
       if (err.checkoutSessionId) {
         const stripe = await getStripe();
         if (stripe) {
-          console.log("Redirecting to stripe checkout");
           const { error } = await stripe.redirectToCheckout({
             sessionId: err.checkoutSessionId,
           });
@@ -398,11 +409,15 @@ export default function Signup({
                       setPremium={(value) => setPremiumUsername(value)}
                       addOnLeading={
                         orgSlug
-                          ? `${getOrgFullOrigin(orgSlug, { protocol: true }).replace(
-                              URL_PROTOCOL_REGEX,
-                              ""
-                            )}/`
-                          : `${process.env.NEXT_PUBLIC_WEBSITE_URL.replace(URL_PROTOCOL_REGEX, "")}/`
+                          ? truncateDomain(
+                              `${getOrgFullOrigin(orgSlug, { protocol: true }).replace(
+                                URL_PROTOCOL_REGEX,
+                                ""
+                              )}/`
+                            )
+                          : truncateDomain(
+                              `${process.env.NEXT_PUBLIC_WEBSITE_URL.replace(URL_PROTOCOL_REGEX, "")}/`
+                            )
                       }
                     />
                   ) : null}
@@ -411,6 +426,7 @@ export default function Signup({
                     id="signup-email"
                     {...register("email")}
                     label={t("email")}
+                    placeholder="john@doe.com"
                     type="email"
                     autoComplete="email"
                     disabled={prepopulateFormValues?.email}
@@ -470,6 +486,7 @@ export default function Signup({
                           showToast("error", t("username_required"));
                           return;
                         }
+                        // eslint-disable-next-line @calcom/eslint/avoid-web-storage
                         localStorage.setItem("username", username);
                         const sp = new URLSearchParams();
                         // @NOTE: don't remove username query param as it's required right now for stripe payment page
@@ -506,8 +523,8 @@ export default function Signup({
                         usernameTaken
                       }>
                       {premiumUsername && !usernameTaken
-                        ? `${t("create_account")} (${getPremiumPlanPriceValue()})`
-                        : t("create_account")}
+                        ? `${t("get_started")} (${getPremiumPlanPriceValue()})`
+                        : t("get_started")}
                     </Button>
                   )}
                 </Form>
@@ -539,6 +556,7 @@ export default function Signup({
                         if (prepopulateFormValues?.username) {
                           // If username is present we save it in query params to check for premium
                           searchQueryParams.set("username", prepopulateFormValues.username);
+                          // eslint-disable-next-line @calcom/eslint/avoid-web-storage
                           localStorage.setItem("username", prepopulateFormValues.username);
                         }
                         if (token) {

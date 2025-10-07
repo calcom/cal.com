@@ -1,17 +1,10 @@
-import type {
-  Booking,
-  Prisma,
-  OutOfOfficeEntry,
-  OutOfOfficeReason,
-  User,
-  EventType as PrismaEventType,
-} from "@prisma/client";
 import * as Sentry from "@sentry/nextjs";
 import { z } from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import { getWorkingHours } from "@calcom/lib/availability";
 import type { DateOverride, WorkingHours } from "@calcom/lib/date-ranges";
@@ -31,12 +24,19 @@ import { findUsersForAvailabilityCheck } from "@calcom/lib/server/findUsersForAv
 import type { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
+import type {
+  Booking,
+  Prisma,
+  OutOfOfficeEntry,
+  OutOfOfficeReason,
+  User,
+  EventType as PrismaEventType,
+} from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar";
 import type { TimeRange } from "@calcom/types/schedule";
 
-import { getBusyTimesService } from "./di/containers/BusyTimes";
 import { getPeriodStartDatesBetween as getPeriodStartDatesBetweenUtil } from "./intervalLimits/utils/getPeriodStartDatesBetween";
 import { withReporting } from "./sentryWrapper";
 
@@ -54,6 +54,7 @@ const availabilitySchema = z
     withSource: z.boolean().optional(),
     returnDateOverrides: z.boolean(),
     bypassBusyCalendarTimes: z.boolean().optional(),
+    silentlyHandleCalendarFailures: z.boolean().optional(),
     shouldServeCache: z.boolean().optional(),
   })
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
@@ -110,6 +111,7 @@ type GetUserAvailabilityQuery = {
   duration?: number;
   returnDateOverrides: boolean;
   bypassBusyCalendarTimes: boolean;
+  silentlyHandleCalendarFailures?: boolean;
   shouldServeCache?: boolean;
 };
 
@@ -295,6 +297,7 @@ export class UserAvailabilityService {
       duration,
       returnDateOverrides,
       bypassBusyCalendarTimes = false,
+      silentlyHandleCalendarFailures = false,
       shouldServeCache,
     } = availabilitySchema.parse(query);
 
@@ -457,6 +460,7 @@ export class UserAvailabilityService {
         duration,
         currentBookings: initialData?.currentBookings,
         bypassBusyCalendarTimes,
+        silentlyHandleCalendarFailures,
         shouldServeCache,
       });
     } catch (error) {

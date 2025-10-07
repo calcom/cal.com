@@ -1,8 +1,7 @@
-import type { EventType as PrismaEventType } from "@prisma/client";
-
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma, availabilityUserSelect } from "@calcom/prisma";
+import type { EventType as PrismaEventType } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -577,6 +576,7 @@ export class EventTypeRepository {
       eventTypeColor: true,
       bookingLimits: true,
       onlyShowFirstAvailableSlot: true,
+      showOptimizedSlots: true,
       durationLimits: true,
       maxActiveBookingsPerBooker: true,
       maxActiveBookingPerBookerOfferReschedule: true,
@@ -873,6 +873,7 @@ export class EventTypeRepository {
       eventTypeColor: true,
       bookingLimits: true,
       onlyShowFirstAvailableSlot: true,
+      showOptimizedSlots: true,
       durationLimits: true,
       maxActiveBookingsPerBooker: true,
       maxActiveBookingPerBookerOfferReschedule: true,
@@ -1198,6 +1199,7 @@ export class EventTypeRepository {
         onlyShowFirstAvailableSlot: true,
         allowReschedulingPastBookings: true,
         hideOrganizerEmail: true,
+        showOptimizedSlots: true,
         periodCountCalendarDays: true,
         rescheduleWithSameRoundRobinHost: true,
         periodDays: true,
@@ -1407,5 +1409,28 @@ export class EventTypeRepository {
       ...eventType,
       metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
     };
+  }
+
+  async getFirstEventTypeByUserId({ userId }: { userId: number }) {
+    return await this.prismaClient.eventType.findFirst({
+      where: {
+        userId,
+        teamId: null,
+      },
+      select: {
+        id: true,
+      },
+    });
+  }
+
+  async getTeamIdByEventTypeId({ id }: { id: number }) {
+    return await this.prismaClient.eventType.findFirst({
+      where: {
+        id,
+      },
+      select: {
+        teamId: true,
+      },
+    });
   }
 }

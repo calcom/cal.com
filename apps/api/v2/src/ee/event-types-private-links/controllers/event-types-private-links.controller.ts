@@ -69,11 +69,10 @@ export class EventTypesPrivateLinksController {
   async updatePrivateLink(
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
     @Param("linkId") linkId: string,
-    @Body() body: UpdatePrivateLinkBody,
-    @GetUser("id") userId: number
+    @Body() body: UpdatePrivateLinkBody
   ): Promise<UpdatePrivateLinkOutput> {
     const updateInput = { ...body, linkId };
-    const privateLink = await this.privateLinksService.updatePrivateLink(eventTypeId, userId, updateInput);
+    const privateLink = await this.privateLinksService.updatePrivateLink(eventTypeId, updateInput);
 
     return {
       status: SUCCESS_STATUS,
@@ -88,10 +87,9 @@ export class EventTypesPrivateLinksController {
   @ApiOperation({ summary: "Delete a private link for an event type" })
   async deletePrivateLink(
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
-    @Param("linkId") linkId: string,
-    @GetUser("id") userId: number
+    @Param("linkId") linkId: string
   ): Promise<DeletePrivateLinkOutput> {
-    await this.privateLinksService.deletePrivateLink(eventTypeId, userId, linkId);
+    await this.privateLinksService.deletePrivateLink(eventTypeId, linkId);
 
     return {
       status: SUCCESS_STATUS,

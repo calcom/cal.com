@@ -2,9 +2,9 @@
 
 import type { Scope } from "@calcom/features/pbac/domain/types/permission-registry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Badge } from "@calcom/ui/badge";
-import { Button } from "@calcom/ui/button";
 import classNames from "@calcom/ui/classNames";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
 import {
   Dropdown,
   DropdownMenuContent,
@@ -48,6 +48,7 @@ interface RolesListProps {
   initialSheetOpen?: boolean;
   teamId: number;
   scope?: Scope;
+  isPrivate?: boolean;
 }
 
 export function RolesList({
@@ -57,6 +58,7 @@ export function RolesList({
   initialSheetOpen,
   teamId,
   scope,
+  isPrivate,
 }: RolesListProps) {
   const { t } = useLocale();
   const { isOpen, setIsOpen, selectedRoleId, setSelectedRoleId, handleSheetOpenChange } = useRoleStates(
@@ -113,6 +115,7 @@ export function RolesList({
         onOpenChange={handleSheetOpenChange}
         teamId={teamId}
         scope={scope}
+        isPrivate={isPrivate}
       />
     </>
   );

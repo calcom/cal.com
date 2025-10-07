@@ -9,6 +9,7 @@ import {
   DeletedCalendarCredentialsOutputDto,
 } from "@/ee/calendars/outputs/delete-calendar-credentials.output";
 import { AppleCalendarService } from "@/ee/calendars/services/apple-calendar.service";
+import { CalendarsCacheService } from "@/ee/calendars/services/calendars-cache.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { GoogleCalendarService } from "@/ee/calendars/services/gcal.service";
 import { IcsFeedService } from "@/ee/calendars/services/ics-feed.service";
@@ -38,7 +39,6 @@ import {
   ParseBoolPipe,
 } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiParam, ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
-import { User } from "@prisma/client";
 import { plainToClass } from "class-transformer";
 import { Request } from "express";
 import { z } from "zod";
@@ -53,6 +53,7 @@ import {
   CREDENTIAL_CALENDARS,
 } from "@calcom/platform-constants";
 import { ApiResponse, CalendarBusyTimesInput, CreateCalendarCredentialsInput } from "@calcom/platform-types";
+import type { User } from "@calcom/prisma/client";
 
 export interface CalendarState {
   accessToken: string;
@@ -79,6 +80,7 @@ const calendarStateSchema = z.object({
 export class CalendarsController {
   constructor(
     private readonly calendarsService: CalendarsService,
+    private readonly calendarsCacheService: CalendarsCacheService,
     private readonly outlookService: OutlookService,
     private readonly googleCalendarService: GoogleCalendarService,
     private readonly appleCalendarService: AppleCalendarService,
@@ -306,6 +308,8 @@ export class CalendarsController {
     const { id, type, userId, teamId, appId, invalid } = await this.calendarsRepository.deleteCredentials(
       credentialId
     );
+
+    this.calendarsCacheService.deleteConnectedAndDestinationCalendarsCache(user.id);
 
     return {
       status: SUCCESS_STATUS,

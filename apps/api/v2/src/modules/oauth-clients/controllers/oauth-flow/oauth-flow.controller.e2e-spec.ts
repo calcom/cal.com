@@ -13,17 +13,17 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test, TestingModule } from "@nestjs/testing";
-import { PlatformOAuthClient, Team, User } from "@prisma/client";
 import * as request from "supertest";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
-import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withNextAuth } from "test/utils/withNextAuth";
 
 import { X_CAL_SECRET_KEY } from "@calcom/platform-constants";
+import type { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 
 describe("OAuthFlow Endpoints", () => {
   describe("User Not Authenticated", () => {
@@ -63,6 +63,7 @@ describe("OAuthFlow Endpoints", () => {
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let oAuthClientsRepositoryFixture: OAuthClientRepositoryFixture;
     let profilesRepositoryFixture: ProfileRepositoryFixture;
+    let membershipRepositoryFixture: MembershipRepositoryFixture;
 
     let user: User;
     let organization: Team;
@@ -89,6 +90,7 @@ describe("OAuthFlow Endpoints", () => {
       organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       usersRepositoryFixtures = new UserRepositoryFixture(moduleRef);
       profilesRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
+      membershipRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
 
       user = await usersRepositoryFixtures.create({
         email: userEmail,
@@ -103,6 +105,13 @@ describe("OAuthFlow Endpoints", () => {
         user: { connect: { id: user.id } },
         movedFromUser: { connect: { id: user.id } },
         organization: { connect: { id: organization.id } },
+      });
+
+      await membershipRepositoryFixture.create({
+        user: { connect: { id: user.id } },
+        team: { connect: { id: organization.id } },
+        role: "OWNER",
+        accepted: true,
       });
       oAuthClient = await createOAuthClient(organization.id);
     });

@@ -13,6 +13,7 @@ import React, {
 import { Controller, useFieldArray, useForm, useFormContext, useWatch } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
+import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { TimezoneSelect as WebTimezoneSelect } from "@calcom/features/components/timezone-select";
 import type {
@@ -123,6 +124,7 @@ type AvailabilitySettingsProps = {
     isEventTypesFetching?: boolean;
     handleBulkEditDialogToggle: () => void;
   };
+  callbacksRef?: React.MutableRefObject<{ onSuccess?: () => void; onError?: (error: Error) => void }>;
 };
 
 const DeleteDialogButton = ({
@@ -305,6 +307,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
       bulkUpdateModalProps,
       allowSetToDefault = true,
       allowDelete = true,
+      callbacksRef,
     } = props;
     const [openSidebar, setOpenSidebar] = useState(false);
     const { t, i18n } = useLocale();
@@ -335,11 +338,9 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
 
     const saveButtonRef = useRef<HTMLButtonElement>(null);
 
-    const callbacksRef = useRef<{ onSuccess?: () => void; onError?: (error: Error) => void }>({});
-
     const handleFormSubmit = useCallback(
       (customCallbacks?: { onSuccess?: () => void; onError?: (error: Error) => void }) => {
-        if (customCallbacks) {
+        if (callbacksRef && customCallbacks) {
           callbacksRef.current = customCallbacks;
         }
 
@@ -349,14 +350,14 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
           form.handleSubmit(async (data) => {
             try {
               await handleSubmit(data);
-              callbacksRef.current?.onSuccess?.();
+              callbacksRef?.current?.onSuccess?.();
             } catch (error) {
-              callbacksRef.current?.onError?.(error as Error);
+              callbacksRef?.current?.onError?.(error as Error);
             }
           })();
         }
       },
-      [form, handleSubmit]
+      [form, handleSubmit, callbacksRef]
     );
 
     const validateForm = useCallback(async () => {
@@ -672,19 +673,21 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                 </div>
               </div>
               {enableOverrides && (
-                <DateOverride
-                  workingHours={schedule.workingHours}
-                  userTimeFormat={timeFormat}
-                  handleSubmit={handleSubmit}
-                  travelSchedules={travelSchedules}
-                  weekStart={
-                    ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
-                      weekStart
-                    ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
-                  }
-                  overridesModalClassNames={customClassNames?.overridesModalClassNames}
-                  classNames={customClassNames?.dateOverrideClassNames}
-                />
+                <BookerStoreProvider>
+                  <DateOverride
+                    workingHours={schedule.workingHours}
+                    userTimeFormat={timeFormat}
+                    handleSubmit={handleSubmit}
+                    travelSchedules={travelSchedules}
+                    weekStart={
+                      ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
+                        weekStart
+                      ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
+                    }
+                    overridesModalClassNames={customClassNames?.overridesModalClassNames}
+                    classNames={customClassNames?.dateOverrideClassNames}
+                  />
+                </BookerStoreProvider>
               )}
             </div>
             <div className="min-w-40 col-span-3 hidden space-y-2 md:block lg:col-span-1">
