@@ -210,8 +210,8 @@ export const BookingFields = ({
             key={index}
           />
         );
-        const requireEmailConfirmation = eventMetadata?.requireEmailConfirmation;
-        if (field.name === "email" && requireEmailConfirmation && !rescheduleUid) {
+        const requireEmailConfirmation = eventMetadata?.requireEmailConfirmation === true;
+        if (field.name === "email" && requireEmailConfirmation && !rescheduleUid && !hidden && !readOnly) {
           return (
             <div key={`email-section-${index}`}>
               {fieldElement}
@@ -225,13 +225,13 @@ export const BookingFields = ({
                   editable: "user",
                   sources: [
                     {
-                      label: "Default",
+                      label: t("default"),
                       id: "default",
                       type: "default",
                     },
                   ],
                 }}
-                readOnly={false}
+                readOnly={readOnly}
                 key={`email-confirmation-${index}`}
               />
             </div>
