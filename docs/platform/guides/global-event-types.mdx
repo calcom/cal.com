@@ -5,6 +5,25 @@ description: Event types that every managed user or a subset of managed users wi
 
 If you want all of your managed users or a subset of managed users to have the same event type set up automatically, then follow along.
 
+<Note>
+**Important: Understanding Global Event Types vs. Team Event Types**
+
+Global event types (managed team event types with `assignAllTeamMembers: true`) create individual event types for each managed user based on a template. This means:
+
+**What Global Event Types DO:**
+- Automatically create a separate event type for each managed user when they join the team
+- Allow users to be booked individually with their own availability
+- Each user gets their own unique booking URL (e.g., `/charlie-clxyyy21o0003sbk7yw5z6tzg-gmail-com/coffee-tasting`)
+- Updates to the parent template automatically propagate to all child event types
+
+**What Global Event Types DON'T DO:**
+- They are NOT the same as regular "team event types" for round-robin or collective scheduling
+- They do NOT create a single shared booking URL where customers can book with any team member
+- They do NOT allow booking a team event with a specific user through your custom app
+
+If you need round-robin or collective team scheduling where customers book "the team" rather than individual members, use regular [team event types](https://cal.com/docs/platform/guides/teams-setup) instead of global event types.
+</Note>
+
 ## Prerequisites
 
 1. You need to have an OAuth client set up, since we'll need the client id and client secret from the OAuth client to be included in the API requests. Here is the link for the [OAuth client setup guide](https://cal.com/docs/platform/quickstart)
@@ -159,3 +178,19 @@ Now with this setup you can:
 2. If you want that already existing managed users have the event type created, you have to create team and then membership within the team just like we saw above.
 3. You can create a team called "global" where you add all managed users so all managed users have the same event type or a subset of managed users have the same event type belonging to "subset-team"
 if you want to have a subset of managed users have the same event type.
+
+## Terminology Clarification
+
+<Tip>
+**Platform vs. Teams Terminology**
+
+When working with Cal.com's platform API:
+- **"Teams" in the Platform API context** refers to a grouping mechanism for managed users, primarily used for applying event type templates
+- **"Team Event Types" (round-robin/collective)** are a different feature for shared team scheduling
+
+The term "team" serves different purposes:
+1. In **Platform/managed users context**: Teams are containers to apply event type templates to multiple managed users
+2. In **regular Cal.com context**: Team event types enable round-robin or collective scheduling where one booking URL serves multiple team members
+
+This guide covers **Platform teams for managed users**, not traditional team event types for collaborative scheduling.
+</Tip>
