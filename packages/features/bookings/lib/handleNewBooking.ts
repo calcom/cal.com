@@ -27,7 +27,7 @@ import type { CacheService } from "@calcom/features/calendar-cache/lib/getShould
 import { getCheckBookingAndDurationLimitsService } from "@calcom/features/di/containers/BookingLimits";
 import { getCacheService } from "@calcom/features/di/containers/Cache";
 import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
-import { getBlockingService } from "@calcom/features/di/watchlist/containers/watchlist";
+import { getWatchlistFeature } from "@calcom/features/di/watchlist/containers/watchlist";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes/lib/eventNaming";
@@ -35,7 +35,6 @@ import type { FeaturesRepository } from "@calcom/features/flags/features.reposit
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { handleAnalyticsEvents } from "@calcom/features/tasker/tasks/analytics/handleAnalyticsEvents";
 import { UsersRepository } from "@calcom/features/users/users.repository";
-import type { IBlockingService } from "@calcom/features/watchlist/lib/interface/IBlockingService";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
@@ -267,7 +266,6 @@ export const buildDecoyBooking = async ({
   bookerEmail,
   location,
   responses,
-  blockingService,
 }: {
   eventTypeId: number;
   organizerUser: {
@@ -283,8 +281,7 @@ export const buildDecoyBooking = async ({
   bookerName: string;
   bookerEmail: string;
   location: string | null;
-  responses: Record<string, unknown>;
-  blockingService: IBlockingService;
+  responses: Prisma.InputJsonValue;
 }) => {
   const sanitizeEmail = (email: string): string => {
     const [localPart, domain] = email.split("@");
@@ -301,14 +298,9 @@ export const buildDecoyBooking = async ({
     return `${sanitizedLocal}@${sanitizedDomain}`;
   };
 
-  const decoyResponse = await blockingService.createDecoyResponse({
-    email: bookerEmail,
-    eventTypeId,
-  });
-
   const decoyBooking = await prisma.decoyBooking.create({
     data: {
-      uid: decoyResponse.uid,
+      uid: short.uuid(),
       title: eventName,
       startTime: new Date(startTime),
       endTime: new Date(endTime),
@@ -324,7 +316,7 @@ export const buildDecoyBooking = async ({
           phoneNumber: "***-***-****",
         },
       ],
-      responses: responses || {},
+      responses: responses,
       metadata: {},
       description: null,
       eventTypeId: eventTypeId,
@@ -575,9 +567,11 @@ async function handler(
 
   await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
 
-  const blockingService = getBlockingService();
+  const watchlistFeature = getWatchlistFeature();
   const organizationId = "organizationId" in eventType ? eventType.organizationId ?? undefined : undefined;
-  const blockingResult = await blockingService.isBlocked(bookerEmail, organizationId);
+  const blockingResult = organizationId
+    ? await watchlistFeature.orgBlocking.isEmailBlocked(bookerEmail, organizationId)
+    : await watchlistFeature.globalBlocking.isBlocked(bookerEmail);
 
   if (blockingResult.isBlocked) {
     loggerWithEventDetails.info(
@@ -615,16 +609,23 @@ async function handler(
       bookerEmail,
       location,
       responses: reqBody.responses,
-      blockingService,
     });
 
     return {
       uid: decoyBooking.uid,
       id: decoyBooking.id,
+      title: decoyBooking.title,
+      description: decoyBooking.description,
       startTime: decoyBooking.startTime.toISOString(),
       endTime: decoyBooking.endTime.toISOString(),
+      location: decoyBooking.location,
+      attendees: Array.isArray(decoyBooking.attendees) ? decoyBooking.attendees : [],
+      responses: decoyBooking.responses,
       user: {
         email: null,
+        name: organizerUser.name,
+        username: organizerUser.username,
+        timeZone: organizerUser.timeZone,
       },
       isDryRun: false,
       paymentRequired: false,
