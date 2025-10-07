@@ -73,4 +73,4 @@ sequenceDiagram
         end
     end
     
-    Note over Handler,FakePage: Architecture:<br/>✅ CombinedBlockingService (NEW) - Checks global + org<br/>✅ SpamCheckService.ts (NEW)<br/>✅ OrganizationBlockingService (ENHANCED) - Added audit logging<br/>✅ spamCheck.ts container (MODIFIED) - Uses Combined service<br/>✅ /booking-successful/page.tsx (NEW)<br/>📝 handleNewBooking.ts (MODIFIED) - Decoy creation<br/>📝 useBookings.ts (MODIFIED)
+    Note over Handler,FakePage: Architecture:<br/>✅ SpamCheckService.ts (NEW) - Async wrapper with startCheck/waitForCheck<br/>✅ CombinedBlockingService.ts (NEW) - Checks global + org blocking<br/>✅ spamCheck.ts container (NEW) - DI container for spam check<br/>✅ /booking-successful/page.tsx (NEW) - Fake success page<br/>📝 handleNewBooking.ts (MODIFIED) - Async spam check + fake booking<br/>📝 useBookings.ts (MODIFIED) - Redirect logic for isSpamDecoy<br/>📝 bookings/types.ts (MODIFIED) - Added isSpamDecoy flag
