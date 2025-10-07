@@ -342,7 +342,7 @@
   "dont_have_an_account": "Nie masz konta?",
   "2fa_code": "Kod dwuskładnikowy",
   "sign_in_account": "Zaloguj się na swoje konto",
-  "sign_in": "Zarejestruj",
+  "sign_in": "Zaloguj się",
   "go_back_login": "Wróć na stronę logowania",
   "error_during_login": "Wystąpił błąd podczas logowania. Wróć do ekranu logowania i spróbuj ponownie.",
   "request_password_reset": "Wyślij wiadomość e-mail umożliwiającą zresetowanie",
