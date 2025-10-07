@@ -13,8 +13,6 @@ export const useSubmitOnboarding = () => {
   const [error, setError] = useState<string | null>(null);
 
   const intentToCreateOrg = trpc.viewer.organizations.intentToCreateOrg.useMutation();
-  const createWithPaymentIntent = trpc.viewer.organizations.createWithPaymentIntent.useMutation();
-  const createTeams = trpc.viewer.organizations.createTeams.useMutation();
 
   const submitOnboarding = async (store: OnboardingState, userEmail: string) => {
     setIsSubmitting(true);
@@ -27,8 +25,25 @@ export const useSubmitOnboarding = () => {
         throw new Error("Only organization plan is currently supported");
       }
 
-      // Step 1: Create organization onboarding intent
-      const intentResult = await intentToCreateOrg.mutateAsync({
+      // Prepare teams data
+      const teamsData = teams
+        .filter((team) => team.name.trim().length > 0)
+        .map((team) => ({
+          id: -1, // New team
+          name: team.name,
+          isBeingMigrated: false,
+          slug: null,
+        }));
+
+      // Prepare invites data
+      const invitedMembersData = invites
+        .filter((invite) => invite.email.trim().length > 0)
+        .map((invite) => ({
+          email: invite.email,
+          name: undefined,
+        }));
+
+      const result = await intentToCreateOrg.mutateAsync({
         name: organizationDetails.name,
         slug: organizationDetails.link,
         bio: organizationDetails.bio || null,
@@ -40,62 +55,19 @@ export const useSubmitOnboarding = () => {
         pricePerSeat: null,
         isPlatform: false,
         creationSource: CreationSource.WEBAPP,
-      });
-
-      const onboardingId = intentResult.organizationOnboardingId;
-
-      if (!onboardingId) {
-        throw new Error("Failed to create organization onboarding");
-      }
-
-      // Step 2: Create payment intent with teams and invites
-      const teamsData = teams
-        .filter((team) => team.name.trim().length > 0)
-        .map((team) => ({
-          id: -1, // New team
-          name: team.name,
-          isBeingMigrated: false,
-          slug: null,
-        }));
-
-      const invitedMembersData = invites
-        .filter((invite) => invite.email.trim().length > 0)
-        .map((invite) => ({
-          email: invite.email,
-          name: undefined,
-        }));
-
-      const paymentResult = await createWithPaymentIntent.mutateAsync({
-        onboardingId,
-        logo: organizationBrand.logo,
-        bio: organizationDetails.bio || null,
-        brandColor: organizationBrand.color,
-        bannerUrl: organizationBrand.banner,
         teams: teamsData,
         invitedMembers: invitedMembersData,
       });
 
-      // Step 3: If there's a checkout URL, redirect to Stripe
-      if (paymentResult.checkoutUrl) {
-        window.location.href = paymentResult.checkoutUrl;
+      // If there's a checkout URL, redirect to Stripe
+      if (result.checkoutUrl) {
+        window.location.href = result.checkoutUrl;
         return;
       }
 
-      // Step 4: If no checkout (admin flow or self-hosted), create teams
-      if (teamsData.length > 0 && intentResult.userId) {
-        const orgId = intentResult.organizationOnboardingId;
-        if (orgId) {
-          await createTeams.mutateAsync({
-            teamNames: teamsData.map((t) => t.name),
-            orgId: parseInt(orgId, 10),
-            moveTeams: [],
-            creationSource: CreationSource.WEBAPP,
-          });
-        }
-      }
-
-      // Success!
+      // Success - no payment required (admin or self-hosted)
       showToast("Organization created successfully!", "success");
+      resetOnboarding();
       router.push("/settings/organizations");
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to create organization";

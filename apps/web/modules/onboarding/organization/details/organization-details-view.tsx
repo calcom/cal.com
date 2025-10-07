@@ -47,7 +47,6 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
 
   return (
     <div className="bg-default flex min-h-screen w-full flex-col items-start overflow-clip rounded-xl">
-      <OnboardingContinuationPrompt />
       {/* Header */}
       <div className="flex w-full items-center justify-between px-6 py-4">
         <Logo className="h-5 w-auto" />

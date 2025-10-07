@@ -1,20 +1,18 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter, useSearchParams } from "next/navigation";
-import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import React from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 
-import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Form, Label, TextField, Select, ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Logo } from "@calcom/ui/components/logo";
-import { showToast } from "@calcom/ui/components/toast";
 
 import { useSubmitOnboarding } from "../../hooks/useSubmitOnboarding";
-import { useOnboardingStore, type InviteRole } from "../../store/onboarding-store";
+import { useOnboardingStore } from "../../store/onboarding-store";
 
 type OrganizationInviteViewProps = {
   userEmail: string;
@@ -40,7 +38,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
   const store = useOnboardingStore();
   const usersEmailDomain = userEmail.split("@")[1];
   const { invites: storedInvites, inviteRole, setInvites, setInviteRole, resetOnboarding } = store;
-  const { submitOnboarding, isSubmitting, error: submissionError } = useSubmitOnboarding();
+  const { submitOnboarding, isSubmitting } = useSubmitOnboarding();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
