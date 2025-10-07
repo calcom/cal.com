@@ -266,6 +266,7 @@ export const buildDecoyBooking = async ({
   bookerEmail,
   location,
   responses,
+  watchlistEventAuditId,
 }: {
   eventTypeId: number;
   organizerUser: {
@@ -282,6 +283,7 @@ export const buildDecoyBooking = async ({
   bookerEmail: string;
   location: string | null;
   responses: Prisma.InputJsonValue;
+  watchlistEventAuditId?: string;
 }) => {
   const sanitizeEmail = (email: string): string => {
     const [localPart, domain] = email.split("@");
@@ -320,6 +322,7 @@ export const buildDecoyBooking = async ({
       metadata: {},
       description: null,
       eventTypeId: eventTypeId,
+      watchlistEventAuditId: watchlistEventAuditId,
     },
   });
 
@@ -599,6 +602,33 @@ async function handler(
 
     const fullNameForDecoy = getFullName(bookerName);
 
+    const auditService = watchlistFeature.audit;
+    let auditEntryId: string | undefined;
+
+    if (blockingResult.watchlistEntry?.id) {
+      try {
+        await auditService.logBlockedBookingAttempt({
+          email: bookerEmail,
+          organizationId,
+          watchlistId: blockingResult.watchlistEntry.id as string,
+          eventTypeId,
+        });
+
+        const recentAudit = await prisma.watchlistEventAudit.findFirst({
+          where: {
+            watchlistId: blockingResult.watchlistEntry.id as string,
+            eventTypeId,
+            actionTaken: "BLOCK",
+          },
+          orderBy: { timestamp: "desc" },
+        });
+
+        auditEntryId = recentAudit?.id;
+      } catch (err) {
+        loggerWithEventDetails.error("Failed to create audit entry for decoy booking", { error: err });
+      }
+    }
+
     const decoyBooking = await buildDecoyBooking({
       eventTypeId,
       organizerUser,
@@ -609,6 +639,7 @@ async function handler(
       bookerEmail,
       location,
       responses: reqBody.responses,
+      watchlistEventAuditId: auditEntryId,
     });
 
     return {
@@ -627,8 +658,11 @@ async function handler(
         username: organizerUser.username,
         timeZone: organizerUser.timeZone,
       },
+      userPrimaryEmail: null,
+      status: decoyBooking.status,
       isDryRun: false,
       paymentRequired: false,
+      paymentUid: undefined,
       references: [],
       seatReferenceUid: undefined,
     };
