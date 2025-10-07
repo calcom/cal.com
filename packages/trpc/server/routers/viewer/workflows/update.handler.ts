@@ -1,5 +1,5 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
-import { isCalAIAction, isEmailAction, isFormTrigger } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import { isEmailAction, isFormTrigger } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/lib/repository/workflowReminder";
 import tasker from "@calcom/features/tasker";
 import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
@@ -71,18 +71,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (steps.find((step) => step.workflowId != id)) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-
-  if (isFormTrigger(trigger)) {
-    const hasEmailHostStep = steps.some((step) => step.action === WorkflowActions.EMAIL_HOST);
-    const hasCalAIStep = steps.some((step) => isCalAIAction(step.action));
-
-    if (hasEmailHostStep || hasCalAIStep) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "This action is not allowed for form triggers",
-      });
-    }
   }
 
   const isCurrentUsernamePremium = hasKeyInMetadata(user, "isPremium") ? !!user.metadata.isPremium : false;
