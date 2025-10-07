@@ -17,10 +17,12 @@ const formatClientIdFromEmails = (calEvent: CalendarEvent | ExtendedCalendarEven
   const team = calEvent.team
     ? {
         ...calEvent.team,
-        members: calEvent.team.members.map((member) => ({
-          ...member,
-          email: member.email.replace(`+${clientId}`, ""),
-        })),
+        members: calEvent.team.members.map((member) => {
+          return {
+            ...member,
+            email: member.email.replace(`+${clientId}`, ""),
+          };
+        }),
       }
     : undefined;
   return [attendees, organizer, team];
@@ -39,8 +41,8 @@ export const formatCalEvent = (calEvent: CalendarEvent) => {
 export const formatCalEventExtended = (calEvent: ExtendedCalendarEvent) => {
   const clonedEvent = cloneDeep(calEvent);
   if (clonedEvent.platformClientId) {
-    const [attendees, organizer] = formatClientIdFromEmails(clonedEvent, clonedEvent.platformClientId);
-    Object.assign(clonedEvent, { attendees, organizer });
+    const [attendees, organizer, team] = formatClientIdFromEmails(clonedEvent, clonedEvent.platformClientId);
+    Object.assign(clonedEvent, { attendees, organizer, team });
   }
 
   return clonedEvent;
