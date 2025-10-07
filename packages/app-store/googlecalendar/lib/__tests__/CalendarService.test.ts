@@ -517,7 +517,10 @@ describe.skip("Calendar Cache", () => {
     });
 
     // Spy on cache method that should NOT be called
-    const tryGetAvailabilityFromCacheSpy = vi.spyOn(calendarService, "tryGetAvailabilityFromCache" as any);
+    const tryGetAvailabilityFromCacheSpy = vi.spyOn(
+      calendarService as unknown as { tryGetAvailabilityFromCache: () => unknown },
+      "tryGetAvailabilityFromCache"
+    );
 
     // Spy on Google API methods that SHOULD be called
     const authedCalendarSpy = vi.spyOn(calendarService, "authedCalendar");
@@ -559,7 +562,9 @@ describe.skip("Calendar Cache", () => {
     const mockCalendarCache = {
       getCachedAvailability: vi.fn().mockRejectedValueOnce(new Error("Cache error")),
     };
-    vi.spyOn(CalendarCache, "init").mockResolvedValueOnce(mockCalendarCache as any);
+    vi.spyOn(CalendarCache, "init").mockResolvedValueOnce(
+      mockCalendarCache as unknown as Awaited<ReturnType<typeof CalendarCache.init>>
+    );
 
     // Mock Google API response
     freebusyQueryMock.mockResolvedValueOnce({
@@ -609,7 +614,10 @@ describe.skip("Calendar Cache", () => {
     const dateTo = new Date().toISOString();
 
     // Spy on methods that should NOT be called
-    const tryGetAvailabilityFromCacheSpy = vi.spyOn(calendarService, "tryGetAvailabilityFromCache" as any);
+    const tryGetAvailabilityFromCacheSpy = vi.spyOn(
+      calendarService as unknown as { tryGetAvailabilityFromCache: () => unknown },
+      "tryGetAvailabilityFromCache"
+    );
     const authedCalendarSpy = vi.spyOn(calendarService, "authedCalendar");
 
     // Call getAvailability with only other integration calendars
@@ -691,8 +699,9 @@ describe.skip("Calendar Cache", () => {
 
     const mockAvailabilityData = { busy: [] };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vi.spyOn(calendarService, "fetchAvailability").mockResolvedValue(mockAvailabilityData as any);
+    vi.spyOn(calendarService, "fetchAvailability").mockResolvedValue(
+      mockAvailabilityData as unknown as Awaited<ReturnType<typeof calendarService.fetchAvailability>>
+    );
     const setAvailabilityInCacheSpy = vi.spyOn(calendarService, "setAvailabilityInCache");
 
     await calendarService.fetchAvailabilityAndSetCache(selectedCalendars);
@@ -1185,9 +1194,9 @@ describe("getAvailability", () => {
       };
     });
     // Mock Once so that the getAvailability call doesn't accidentally reuse this mock result
-    freebusyQueryMock.mockImplementation(({ requestBody }: { requestBody: any }) => {
-      const calendarsObject: any = {};
-      requestBody.items.forEach((item: any, index: number) => {
+    freebusyQueryMock.mockImplementation(({ requestBody }: { requestBody: { items: { id: string }[] } }) => {
+      const calendarsObject: Record<string, { busy: { start: string; end: string }[] }> = {};
+      requestBody.items.forEach((item, index: number) => {
         calendarsObject[item.id] = {
           busy: mockedBusyTimes[index],
         };
@@ -1218,6 +1227,104 @@ describe("getAvailability", () => {
     );
 
     expect(availabilityWithAllCalendarsAsFallback).toEqual([...mockedBusyTimes1, ...mockedBusyTimes2]);
+  });
+
+  test("batches calendars by delegationCredentialId for API calls", async () => {
+    const credential = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credential);
+    setFullMockOAuthManagerRequest();
+
+    const delegationCredentialId1 = "delegation-cred-1";
+    const delegationCredentialId2 = "delegation-cred-2";
+
+    const selectedCalendars = [
+      {
+        integration: "google_calendar",
+        externalId: "cal1@test.com",
+        delegationCredentialId: delegationCredentialId1,
+      },
+      {
+        integration: "google_calendar",
+        externalId: "cal2@test.com",
+        delegationCredentialId: delegationCredentialId1,
+      },
+      {
+        integration: "google_calendar",
+        externalId: "cal3@test.com",
+        delegationCredentialId: delegationCredentialId2,
+      },
+      {
+        integration: "google_calendar",
+        externalId: "cal4@test.com",
+        delegationCredentialId: null,
+      },
+    ];
+
+    const busyTimesGroup1 = [
+      { start: "2024-01-01T10:00:00Z", end: "2024-01-01T11:00:00Z" },
+      { start: "2024-01-01T14:00:00Z", end: "2024-01-01T15:00:00Z" },
+    ];
+
+    const busyTimesGroup2 = [{ start: "2024-01-01T12:00:00Z", end: "2024-01-01T13:00:00Z" }];
+
+    const busyTimesGroup3 = [{ start: "2024-01-01T16:00:00Z", end: "2024-01-01T17:00:00Z" }];
+
+    let apiCallCount = 0;
+    const calendarIdsPerCall: string[][] = [];
+
+    freebusyQueryMock.mockImplementation(({ requestBody }: { requestBody: { items: { id: string }[] } }) => {
+      apiCallCount++;
+      const requestedCalendarIds = requestBody.items.map((item) => item.id);
+      calendarIdsPerCall.push(requestedCalendarIds);
+
+      const calendarsObject: Record<string, { busy: { start: string; end: string }[] }> = {};
+
+      if (requestedCalendarIds.includes("cal1@test.com") && requestedCalendarIds.includes("cal2@test.com")) {
+        calendarsObject["cal1@test.com"] = { busy: [busyTimesGroup1[0]] };
+        calendarsObject["cal2@test.com"] = { busy: [busyTimesGroup1[1]] };
+      } else if (requestedCalendarIds.includes("cal3@test.com")) {
+        calendarsObject["cal3@test.com"] = { busy: busyTimesGroup2 };
+      } else if (requestedCalendarIds.includes("cal4@test.com")) {
+        calendarsObject["cal4@test.com"] = { busy: busyTimesGroup3 };
+      }
+
+      return {
+        data: {
+          calendars: calendarsObject,
+        },
+      };
+    });
+
+    const availability = await calendarService.getAvailability(
+      "2024-01-01T00:00:00Z",
+      "2024-01-02T00:00:00Z",
+      selectedCalendars,
+      false
+    );
+
+    expect(apiCallCount).toBe(3);
+
+    const allBusyTimes = [...busyTimesGroup1, ...busyTimesGroup2, ...busyTimesGroup3];
+    expect(availability).toHaveLength(allBusyTimes.length);
+
+    for (const busyTime of allBusyTimes) {
+      expect(availability).toContainEqual(expect.objectContaining(busyTime));
+    }
+
+    const group1Calls = calendarIdsPerCall.filter(
+      (ids) => ids.includes("cal1@test.com") || ids.includes("cal2@test.com")
+    );
+    expect(group1Calls).toHaveLength(1);
+    expect(group1Calls[0]).toContain("cal1@test.com");
+    expect(group1Calls[0]).toContain("cal2@test.com");
+
+    const group2Calls = calendarIdsPerCall.filter((ids) => ids.includes("cal3@test.com"));
+    expect(group2Calls).toHaveLength(1);
+    expect(group2Calls[0]).toContain("cal3@test.com");
+
+    const group3Calls = calendarIdsPerCall.filter((ids) => ids.includes("cal4@test.com"));
+    expect(group3Calls).toHaveLength(1);
+    expect(group3Calls[0]).toContain("cal4@test.com");
   });
 });
 
@@ -1290,7 +1397,7 @@ describe("Date Optimization Benchmarks", () => {
       for (let i = 0; i < iterations; i++) {
         const start = dayjs(testCase.dateFrom);
         const end = dayjs(testCase.dateTo);
-        const diff = end.diff(start, "days");
+        const _diff = end.diff(start, "days");
       }
       const dayjsTime = performance.now() - dayjsStart;
 
@@ -1299,7 +1406,7 @@ describe("Date Optimization Benchmarks", () => {
       for (let i = 0; i < iterations; i++) {
         const start = new Date(testCase.dateFrom);
         const end = new Date(testCase.dateTo);
-        const diff = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+        const _diff = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
       }
       const nativeTime = performance.now() - nativeStart;
 
@@ -1437,16 +1544,23 @@ describe("Date Optimization Benchmarks", () => {
 
     // Mock the getCacheOrFetchAvailability method to return consistent data
     const getCacheOrFetchAvailabilitySpy = vi
-      .spyOn(calendarService as any, "getCacheOrFetchAvailability")
+      .spyOn(
+        calendarService as unknown as { getCacheOrFetchAvailability: () => unknown },
+        "getCacheOrFetchAvailability"
+      )
       .mockResolvedValue(mockBusyData.map((item) => ({ ...item, id: "test@calendar.com" })));
 
     // Test single API call scenario (≤ 90 days)
-    const shortRangeResult = await (calendarService as any).fetchAvailabilityData(
-      ["test@calendar.com"],
-      "2024-01-01T00:00:00Z",
-      "2024-01-31T00:00:00Z", // 30 days
-      false
-    );
+    const shortRangeResult = await (
+      calendarService as unknown as {
+        fetchAvailabilityData: (
+          calendarIds: string[],
+          dateFrom: string,
+          dateTo: string,
+          shouldServeCache: boolean
+        ) => Promise<typeof mockBusyData>;
+      }
+    ).fetchAvailabilityData(["test@calendar.com"], "2024-01-01T00:00:00Z", "2024-01-31T00:00:00Z", false);
 
     expect(shortRangeResult).toEqual(mockBusyData);
     expect(getCacheOrFetchAvailabilitySpy).toHaveBeenCalledTimes(1);
@@ -1454,12 +1568,16 @@ describe("Date Optimization Benchmarks", () => {
     getCacheOrFetchAvailabilitySpy.mockClear();
 
     // Test chunked scenario (> 90 days)
-    const longRangeResult = await (calendarService as any).fetchAvailabilityData(
-      ["test@calendar.com"],
-      "2024-01-01T00:00:00Z",
-      "2024-07-01T00:00:00Z", // 182 days - should require chunking
-      false
-    );
+    const longRangeResult = await (
+      calendarService as unknown as {
+        fetchAvailabilityData: (
+          calendarIds: string[],
+          dateFrom: string,
+          dateTo: string,
+          shouldServeCache: boolean
+        ) => Promise<typeof mockBusyData>;
+      }
+    ).fetchAvailabilityData(["test@calendar.com"], "2024-01-01T00:00:00Z", "2024-07-01T00:00:00Z", false);
 
     // Should return concatenated results from multiple chunks
     expect(longRangeResult.length).toBeGreaterThan(0);
@@ -1526,7 +1644,7 @@ describe("createEvent", () => {
         email: "organizer@example.com",
         timeZone: "UTC",
         language: {
-          translate: (...args: any[]) => args[0], // Mock translate function
+          translate: (...args: string[]) => args[0], // Mock translate function
           locale: "en",
         },
       },
@@ -1537,7 +1655,7 @@ describe("createEvent", () => {
           email: "attendee@example.com",
           timeZone: "UTC",
           language: {
-            translate: (...args: any[]) => args[0], // Mock translate function
+            translate: (...args: string[]) => args[0], // Mock translate function
             locale: "en",
           },
         },
@@ -1709,7 +1827,7 @@ describe("createEvent", () => {
         email: "organizer@example.com",
         timeZone: "UTC",
         language: {
-          translate: (...args: any[]) => args[0], // Mock translate function
+          translate: (...args: string[]) => args[0], // Mock translate function
           locale: "en",
         },
       },
