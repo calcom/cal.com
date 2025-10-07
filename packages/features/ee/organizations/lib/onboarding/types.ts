@@ -47,4 +47,5 @@ export interface OnboardingUser {
   id: number;
   email: string;
   role: "ADMIN" | "USER";
+  name?: string;
 }

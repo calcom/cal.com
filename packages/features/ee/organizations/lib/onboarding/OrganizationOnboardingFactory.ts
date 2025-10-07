@@ -1,8 +1,7 @@
-import { IS_SELF_HOSTED } from "@calcom/lib/constants";
+import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { UserPermissionRole } from "@calcom/prisma/enums";
-import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { BillingEnabledOnboardingService } from "./BillingEnabledOnboardingService";
 import type { IOrganizationOnboardingService } from "./IOrganizationOnboardingService";
@@ -26,7 +25,7 @@ export class OrganizationOnboardingFactory {
       safeStringify({
         userId: user.id,
         role: user.role,
-        isSelfHosted: IS_SELF_HOSTED,
+        IS_TEAM_BILLING_ENABLED: IS_TEAM_BILLING_ENABLED,
         isBillingEnabled,
         serviceType: isBillingEnabled ? "BillingEnabled" : "SelfHosted",
       })
@@ -46,7 +45,7 @@ export class OrganizationOnboardingFactory {
     }
 
     // Self-hosted admins skip billing
-    if (IS_SELF_HOSTED && user.role === UserPermissionRole.ADMIN) {
+    if (IS_TEAM_BILLING_ENABLED && user.role === UserPermissionRole.ADMIN) {
       return false;
     }
 
