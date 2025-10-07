@@ -1,6 +1,7 @@
 import { createModule, bindModuleToClassOnToken } from "@calcom/features/di/di";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
-import { InstantBookingCreateService } from "@calcom/features/instant-meeting/handleInstantMeeting";
+import { InstantBookingCreateService } from "@calcom/features/bookings/lib/service/InstantBookingCreateService";
+import { moduleLoader as prismaModuleLoader } from "@calcom/prisma/prisma.module";
 
 export const instantBookingCreateServiceModule = createModule();
 const token = DI_TOKENS.INSTANT_BOOKING_CREATE_SERVICE;
@@ -10,7 +11,9 @@ const loadModule = bindModuleToClassOnToken({
   moduleToken,
   token,
   classs: InstantBookingCreateService,
-  depsMap: {},
+  depsMap: {
+    prismaClient: prismaModuleLoader,
+  },
 });
 
 export type { InstantBookingCreateService };
