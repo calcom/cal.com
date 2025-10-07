@@ -18,12 +18,7 @@ export class OrganizationBlockingService {
     // Check for exact email match
     const emailEntry = await this.orgRepo.findBlockedEmail(email, organizationId);
     if (emailEntry) {
-      // Log the blocking attempt
-      await this.auditService.logBlockedBookingAttempt({
-        email,
-        organizationId,
-        watchlistId: emailEntry.id,
-      });
+      // TODO: Add audit logging when audit service is injected
 
       return {
         isBlocked: true,
@@ -35,14 +30,9 @@ export class OrganizationBlockingService {
     // Check for domain match
     const domain = email.split("@")[1];
     if (domain) {
-      const domainEntry = await this.watchlistRepository.findBlockedDomain(`@${domain}`, organizationId);
+      const domainEntry = await this.orgRepo.findBlockedDomain(`@${domain}`, organizationId);
       if (domainEntry) {
-        // Log the blocking attempt
-        await this.auditService.logBlockedBookingAttempt({
-          email,
-          organizationId,
-          watchlistId: domainEntry.id,
-        });
+        // TODO: Add audit logging when audit service is injected
 
         return {
           isBlocked: true,
@@ -57,10 +47,7 @@ export class OrganizationBlockingService {
 
   async isDomainBlocked(domain: string, organizationId: number): Promise<OrganizationBlockingResult> {
     const normalizedDomain = domain.startsWith("@") ? domain : `@${domain}`;
-    const domainEntry = await this.organizationWatchlistRepository.findBlockedDomain(
-      normalizedDomain,
-      organizationId
-    );
+    const domainEntry = await this.orgRepo.findBlockedDomain(normalizedDomain, organizationId);
 
     if (domainEntry) {
       return {
@@ -76,7 +63,7 @@ export class OrganizationBlockingService {
   async isEmailReported(email: string, organizationId: number): Promise<OrganizationBlockingResult> {
     // Check for exact email match
     // Note: Using findBlockedEntry for now - may need to implement findReportedEntry
-    const emailEntry = await this.watchlistRepository.findBlockedEntry(email, organizationId);
+    const emailEntry = await this.orgRepo.findBlockedEntry(email, organizationId);
     if (emailEntry) {
       return {
         isBlocked: true,
@@ -89,7 +76,7 @@ export class OrganizationBlockingService {
     const domain = email.split("@")[1];
     if (domain) {
       // Note: Using findBlockedDomain for now - may need to implement findReportedDomain
-      const domainEntry = await this.watchlistRepository.findBlockedDomain(`@${domain}`, organizationId);
+      const domainEntry = await this.orgRepo.findBlockedDomain(`@${domain}`, organizationId);
       if (domainEntry) {
         return {
           isBlocked: true,
@@ -119,7 +106,7 @@ export class OrganizationBlockingService {
       domainsToCheck.push(emailDomain);
     }
 
-    const blockedRecords = await this.watchlistRepository.searchForAllBlockedRecords({
+    const blockedRecords = await this.orgRepo.searchForAllBlockedRecords({
       usernames: usernamesToCheck,
       emails: emailsToCheck,
       domains: domainsToCheck,
@@ -134,7 +121,7 @@ export class OrganizationBlockingService {
     reported: number;
   }> {
     // Note: Using findMany and counting - may need to implement countEntriesByOrganization
-    const entries = await this.watchlistRepository.findMany({ organizationId });
+    const entries = await this.orgRepo.findMany({ organizationId });
     const blocked = entries.filter((entry) => entry.action === "BLOCK").length;
     const reported = entries.filter((entry) => entry.action === "REPORT").length;
     return {

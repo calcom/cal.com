@@ -1,9 +1,9 @@
 import { createContainer } from "@evyweb/ioctopus";
 
+import { loggerServiceModule } from "@calcom/features/di/shared/logger.service";
+import { SHARED_TOKENS } from "@calcom/features/di/shared/shared.tokens";
+import { taskerServiceModule } from "@calcom/features/di/shared/tasker.service";
 import { createWatchlistFeature } from "@calcom/features/watchlist/lib/facade/WatchlistFeature";
-import { loggerServiceModule } from "@calcom/lib/di/shared/services/logger.service";
-import { taskerServiceModule } from "@calcom/lib/di/shared/services/tasker.service";
-import { SHARED_TOKENS } from "@calcom/lib/di/shared/shared.tokens";
 
 import { watchlistModule } from "../modules/Watchlist.module";
 import { WATCHLIST_DI_TOKENS } from "../tokens";

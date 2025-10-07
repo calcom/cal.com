@@ -82,7 +82,6 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
         where: {
           organizationId, // Organization-specific only
         },
-        orderBy: { createdAt: "desc" },
       });
     } catch (err) {
       captureException(err);
@@ -97,7 +96,6 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
           organizationId, // Organization-specific only
           action: WatchlistAction.BLOCK,
         },
-        orderBy: { createdAt: "desc" },
       });
     } catch (err) {
       captureException(err);
@@ -112,7 +110,6 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
           organizationId, // Organization-specific only
           action: WatchlistAction.REPORT,
         },
-        orderBy: { createdAt: "desc" },
       });
     } catch (err) {
       captureException(err);
@@ -263,6 +260,35 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
           id,
           organizationId, // Ensure we only delete entries for this org
         },
+      });
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  async listOrganizationEntries(organizationId: number): Promise<Watchlist[]> {
+    try {
+      return await this.prisma.watchlist.findMany({
+        where: {
+          organizationId,
+        },
+        orderBy: { lastUpdatedAt: "desc" },
+      });
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  async listOrganizationBlockedEntries(organizationId: number): Promise<Watchlist[]> {
+    try {
+      return await this.prisma.watchlist.findMany({
+        where: {
+          organizationId,
+          action: WatchlistAction.BLOCK,
+        },
+        orderBy: { lastUpdatedAt: "desc" },
       });
     } catch (err) {
       captureException(err);

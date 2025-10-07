@@ -70,7 +70,7 @@ export class WatchlistService implements IWatchlistService {
     try {
       this.log.debug("Updating watchlist entry", { id });
 
-      const entry = await this.repository.update(id, data);
+      const entry = await this.globalRepo.update(id, data);
 
       this.log.info("Watchlist entry updated successfully", {
         id: entry.id,
@@ -92,7 +92,7 @@ export class WatchlistService implements IWatchlistService {
     try {
       this.log.debug("Deleting watchlist entry", { id });
 
-      await this.repository.delete(id);
+      await this.globalRepo.delete(id);
 
       this.log.info("Watchlist entry deleted successfully", { id });
     } catch (error) {
@@ -108,7 +108,7 @@ export class WatchlistService implements IWatchlistService {
     try {
       this.log.debug("Fetching watchlist entry", { id });
 
-      const entry = await this.repository.findById(id);
+      const entry = await this.globalRepo.findById(id);
 
       if (entry) {
         this.log.debug("Watchlist entry found", { id, type: entry.type });
@@ -130,7 +130,7 @@ export class WatchlistService implements IWatchlistService {
     try {
       this.log.debug("Listing watchlist entries", { organizationId });
 
-      const entries = await this.repository.findMany({ organizationId });
+      const entries = await this.globalRepo.findMany({ organizationId });
 
       this.log.debug("Watchlist entries retrieved", {
         count: entries.length,
@@ -152,7 +152,7 @@ export class WatchlistService implements IWatchlistService {
       this.log.debug("Checking if email is blocked", { email, organizationId });
 
       // Check for exact email match
-      const emailEntry = await this.repository.findBlockedEntry(email, organizationId);
+      const emailEntry = await this.globalRepo.findBlockedEntry(email, organizationId);
       if (emailEntry) {
         this.log.info("Email blocked by exact match", {
           email,
@@ -165,7 +165,7 @@ export class WatchlistService implements IWatchlistService {
       // Check for domain match
       const domain = email.split("@")[1];
       if (domain) {
-        const domainEntry = await this.repository.findBlockedDomain(`@${domain}`, organizationId);
+        const domainEntry = await this.globalRepo.findBlockedDomain(`@${domain}`, organizationId);
         if (domainEntry) {
           this.log.info("Email blocked by domain match", {
             email,

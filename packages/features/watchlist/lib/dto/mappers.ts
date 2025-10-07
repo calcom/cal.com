@@ -58,12 +58,11 @@ export function mapBlockedBookingToDTO(
 ): BlockedBookingLogDTO {
   return {
     id: blockedBooking.id,
-    email: blockedBooking.email,
+    email: blockedBooking.watchlistEntry?.value,
     eventTypeId: blockedBooking.eventTypeId,
-    organizationId: blockedBooking.organizationId,
+    organizationId: blockedBooking.watchlistEntry?.organizationId,
     createdAt: blockedBooking.timestamp.toISOString(),
     watchlistId: blockedBooking.watchlistId,
-    bookingData: blockedBooking.bookingData as Record<string, unknown> | null,
     watchlistEntry: blockedBooking.watchlistEntry
       ? {
           id: blockedBooking.watchlistEntry.id,
@@ -156,7 +155,7 @@ export function mapBlockedBookingLogsToDTO(
  */
 export function mapBlockingResultToDTO(result: {
   isBlocked: boolean;
-  reason?: "email" | "domain";
+  reason?: WatchlistType;
   watchlistEntry?: Watchlist | null;
 }): BlockingCheckResultDTO {
   return {

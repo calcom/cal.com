@@ -98,7 +98,6 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
         where: {
           organizationId: null, // Global entries only
         },
-        orderBy: { createdAt: "desc" },
       });
     } catch (err) {
       captureException(err);
@@ -113,7 +112,6 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
           organizationId: null, // Global entries only
           action: WatchlistAction.BLOCK,
         },
-        orderBy: { createdAt: "desc" },
       });
     } catch (err) {
       captureException(err);
@@ -128,7 +126,6 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
           organizationId: null, // Global entries only
           action: WatchlistAction.REPORT,
         },
-        orderBy: { createdAt: "desc" },
       });
     } catch (err) {
       captureException(err);

@@ -1,6 +1,7 @@
 import type { Container } from "@evyweb/ioctopus";
 
-import { WATCHLIST_DI_TOKENS } from "../../di/tokens";
+import { WATCHLIST_DI_TOKENS } from "@calcom/features/di/watchlist/tokens";
+
 import type { AuditService } from "../service/AuditService";
 import type { GlobalBlockingService } from "../service/GlobalBlockingService";
 import type { OrganizationBlockingService } from "../service/OrganizationBlockingService";
