@@ -66,10 +66,8 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-lg">Add a new event type</DialogTitle>
-          <DialogDescription className="text-sm">
-            Create a new event type for people to book times with.
-          </DialogDescription>
+          <DialogTitle className="text-lg">{t("add_new_event_type")}</DialogTitle>
+          <DialogDescription className="text-sm">{t("new_event_type_to_book_description")}</DialogDescription>
         </DialogHeader>
 
         <CreateEventTypeForm

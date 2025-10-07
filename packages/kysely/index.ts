@@ -3,7 +3,6 @@ import { Pool } from "pg";
 
 import { IS_DEV } from "@calcom/lib/constants";
 
-// import { IS_DEV } from "@calcom/lib/constants";
 import type { DB, Booking } from "./types";
 
 export type { DB, Booking };

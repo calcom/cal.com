@@ -26,13 +26,9 @@ import {
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
-import {
-  SMS_REMINDER_NUMBER_FIELD,
-  SystemField,
-  TITLE_FIELD,
-} from "@calcom/features/bookings/lib/SystemField";
+import { SystemField, TITLE_FIELD } from "@calcom/features/bookings/lib/SystemField";
 import { getCalendarLinks, CalendarLinkType } from "@calcom/lib/bookings/getCalendarLinks";
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime, formatToLocalizedTimezone } from "@calcom/lib/dayjs";
 import type { nameObjectSchema } from "@calcom/lib/event";
 import { getEventName } from "@calcom/lib/event";
@@ -767,7 +763,7 @@ export default function Success(props: PageProps) {
                           // TITLE is also an identifier for booking question "What is this meeting about?"
                           if (
                             isSystemField.success &&
-                            field.name !== SMS_REMINDER_NUMBER_FIELD &&
+                            //field.name !== SMS_REMINDER_NUMBER_FIELD &&
                             field.name !== TITLE_FIELD
                           )
                             return null;
@@ -1027,7 +1023,7 @@ export default function Success(props: PageProps) {
                               const target = e.target as typeof e.target & {
                                 email: { value: string };
                               };
-                              router.push(`https://cal.com/signup?email=${target.email.value}`);
+                              router.push(`${WEBAPP_URL}/signup?email=${target.email.value}`);
                             }}
                             className="mt-4 flex">
                             <EmailInput
@@ -1161,9 +1157,7 @@ export default function Success(props: PageProps) {
                     <div>
                       <p className="font-semibold">{t("google_new_spam_policy")}</p>
                       <span className="underline">
-                        <a
-                          target="_blank"
-                          href="https://cal.id/blog/google-s-new-spam-policy-may-be-affecting-your-invitations">
+                        <a target="_blank" href="https://cal.id/info/google-spam-policy">
                           {t("resolve")}
                         </a>
                       </span>

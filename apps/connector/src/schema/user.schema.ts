@@ -53,8 +53,8 @@ export type UserPaginationQuery = PaginationQuery<Prisma.UserOrderByWithRelation
 export const UserResponseSchema = z.object({
   id: z.number(),
   email: z.string().email(),
-  name: z.string().nullable(),
-  username: z.string().nullable().optional(),
+  name: z.string(),
+  username: z.string(),
   role: z.string(),
   organizationId: z.number().nullable().optional(),
   createdAt: z.date().nullable(),

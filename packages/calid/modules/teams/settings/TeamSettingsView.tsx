@@ -151,7 +151,7 @@ export default function TeamSettingsView({ teamId }: TeamSettingsViewProps) {
 
   return (
     <div className="space-y-6">
-      <div className="border-subtle space-y-6 rounded-md border p-4">
+      <div className="border-default space-y-6 rounded-md border p-4">
         <SettingsSwitch
           toggleSwitchAtTheEnd={true}
           title={t("team_settings_user_impersonation_title")}
@@ -163,7 +163,7 @@ export default function TeamSettingsView({ teamId }: TeamSettingsViewProps) {
           }}
         />
       </div>
-      <div className="border-subtle space-y-6 rounded-md border p-4">
+      <div className="border-default space-y-6 rounded-md border p-4">
         <SettingsSwitch
           toggleSwitchAtTheEnd={true}
           title={t("team_settings_private_team_title")}
@@ -176,7 +176,7 @@ export default function TeamSettingsView({ teamId }: TeamSettingsViewProps) {
         />
       </div>
       {isAdmin ? (
-        <div className="border-subtle space-y-6 rounded-md border p-4">
+        <div className="border-default space-y-6 rounded-md border p-4">
           <Form form={bookingFrequencyForm} onSubmit={onBookingFrequencySubmit}>
             <FormField
               control={bookingFrequencyForm.control}

@@ -1,7 +1,14 @@
 "use client";
 
 import { Button } from "@calid/features/ui/components/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calid/features/ui/components/dialog";
+import {
+  Dialog,
+  DialogTitle,
+  DialogDescription,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+} from "@calid/features/ui/components/dialog";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import type { ManipulateType as DayjsManipulateType } from "dayjs";
 import { useSession } from "next-auth/react";
@@ -53,17 +60,21 @@ const TimezoneChangeDialogContent = () => {
 
   return (
     <>
-      <DialogHeader
-        title={t("update_timezone_question")}
-        subtitle={t("update_timezone_description", {
-          formattedCurrentTz,
-          interpolation: { escapeValue: false },
-        })}
-      />
+      <DialogHeader>
+        <DialogTitle>{t("update_timezone_question")}</DialogTitle>
+        <DialogDescription>
+          {t("update_timezone_description", {
+            formattedCurrentTz,
+            interpolation: { escapeValue: false },
+          })}
+        </DialogDescription>
+      </DialogHeader>
+
       {/* todo: save this in db and auto-update when timezone changes (be able to disable??? if yes, /settings)
-        <Checkbox description="Always update timezone" />
-        */}
+    <Checkbox description="Always update timezone" />
+  */}
       <div className="mb-8" />
+
       <DialogFooter className="border-t">
         <Button onClick={() => hideDialogFor([3, "months"], t("we_wont_show_again"))} color="secondary">
           {t("dont_update")}

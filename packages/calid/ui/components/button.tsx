@@ -28,11 +28,13 @@ export type ButtonBaseProps = {
   tooltipClassName?: string;
   disabled?: boolean;
   flex?: boolean;
+  iconColor?: string;
 } & Omit<InferredVariantProps, "color"> & {
     // If a string (e.g. hex/rgb/css var) is provided, it will be used as a custom
     // color for primary-style buttons (background, border, and readable text color)
     color?: ButtonColor;
-    brandColor?: string;
+    brandColor?: string | null;
+    darkBrandColor?: string | null;
   };
 
 export type ButtonProps = ButtonBaseProps &
@@ -53,8 +55,8 @@ export const buttonClasses = cva(
       color: {
         primary: [
           // Base colors
-          "bg-cal-active",
-          "text-white",
+          "bg-brand-default",
+          "text-brand",
           // Hover state
           // Focus state
           "focus-visible:bg-subtle",
@@ -62,26 +64,13 @@ export const buttonClasses = cva(
           "focus-visible:ring-0",
           "focus-visible:shadow-outline-gray-focused",
           // Border
-          "border border-active",
+          "border border-brand-default",
           // Disabled
           "disabled:opacity-30",
           // Shadows and effects
           "transition-shadow",
           "transition-transform",
           "duration-100",
-        ],
-
-        primary_dim: [
-          // Base colors
-          "bg-cal-active-dim",
-          "text-cal-active",
-          "border:bg-cal-active",
-          // Disabled
-          "disabled:opacity-30",
-          "hover:bg-cal-active/90",
-          "border",
-          "border-active",
-          // Shadows and effects
         ],
 
         secondary: [
@@ -240,6 +229,8 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     EndIcon,
     shallow,
     brandColor,
+    darkBrandColor,
+    iconColor,
     // attributes propagated from `HTMLAnchorProps` or `HTMLButtonProps`
     ...passThroughProps
   } = props;
@@ -248,6 +239,12 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
   // If pass an `href`-attr is passed it's `<a>`, otherwise it's a `<button />`
   const isLink = typeof props.href !== "undefined";
   const elementType = "button";
+
+  // Detect if dark mode is active
+  const isDarkMode = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
+
+  // Determine which brand color to use based on theme
+  const effectiveBrandColor = isDarkMode && darkBrandColor ? darkBrandColor : brandColor;
   const element = React.createElement(
     elementType,
     {
@@ -261,8 +258,8 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         return classes;
       })(),
       style: {
-        backgroundColor: brandColor,
-        border: brandColor ? "none" : undefined,
+        backgroundColor: effectiveBrandColor,
+        border: effectiveBrandColor ? "none" : undefined,
       },
       // if we click a disabled button, we prevent going through the click handler
       onClick: disabled
@@ -277,8 +274,17 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           <>
             {variant === "fab" ? (
               <>
-                <Icon name={StartIcon} className="hidden h-4 w-4 stroke-[1.5px]  md:inline-flex" />
-                <Icon name="plus" data-testid="plus" className="inline h-6 w-6 md:hidden" />
+                <Icon
+                  name={StartIcon}
+                  className="hidden h-4 w-4 stroke-[1.5px] md:inline-flex"
+                  style={{ color: iconColor }}
+                />
+                <Icon
+                  name="plus"
+                  data-testid="plus"
+                  className="inline h-6 w-6 md:hidden"
+                  style={{ color: iconColor }}
+                />
               </>
             ) : (
               <Icon
@@ -288,12 +294,14 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
                   loading ? "invisible" : "visible",
                   "button-icon group-active:translate-y-[0.5px]",
                   variant === "icon" && "h-4 w-4",
-                  variant === "button" && "h-4 w-4 stroke-[1.5px] "
+                  variant === "button" && "h-4 w-4 stroke-[1.5px]"
                 )}
+                style={{ color: iconColor }}
               />
             )}
           </>
         ))}
+
       <div
         className={classNames(
           "contents", // This makes the div behave like it doesn't exist in the layout

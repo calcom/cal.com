@@ -38,7 +38,9 @@ export const DeleteEventDialog: React.FC<DeleteEventDialogProps> = ({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {schedulingType === SchedulingType.MANAGED ? "Delete Managed Event Type" : "Delete Event Type"}
+            {schedulingType === SchedulingType.MANAGED
+              ? t("delete_managed_event_type")
+              : t("delete_event_type")}
           </DialogTitle>
           <DialogDescription>
             {schedulingType === SchedulingType.MANAGED ? (
@@ -47,7 +49,7 @@ export const DeleteEventDialog: React.FC<DeleteEventDialogProps> = ({
                 <li>All associated bookings will be cancelled</li>
               </ul>
             ) : (
-              "Are you sure you want to delete this event type? This action cannot be undone."
+              t("are_you_sure_you_want_to_delete_this_event_type")
             )}
           </DialogDescription>
         </DialogHeader>

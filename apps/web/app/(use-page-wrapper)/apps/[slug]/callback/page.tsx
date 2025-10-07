@@ -33,8 +33,6 @@ export default async function Page({ params, searchParams }: PageProps) {
 
   const { slug } = parsedQuery.data;
 
-  console.log("Handling OAuth callback for slug:", parsedQuery);
-
   try {
     switch (slug) {
       case "razorpay":

@@ -105,6 +105,7 @@ export function checkUserIdentifier(creds: Partial<Credentials>) {
 }
 
 export function checkGlobalPermission(session: Session | null) {
+  console.log("sessions is: ", JSON.stringify(session));
   if (
     (session?.user.role !== "ADMIN" && process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "false") ||
     !session?.user

@@ -88,7 +88,6 @@ const stepRouteSchema = z.object({
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 const OnboardingPage = (props: PageProps) => {
   const { country = "IN" } = props;
-  console.log("props", props);
   const pathname = usePathname();
   const params = useParamsWithFallback();
 

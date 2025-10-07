@@ -21,6 +21,7 @@ import {
   useCalIdCreateEventType,
   type CreateEventTypeFormValues,
 } from "@calcom/lib/hooks/useCreateEventType";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { SchedulingType } from "@calcom/prisma/enums";
 
@@ -32,11 +33,15 @@ export const CreateTeamEventModal: React.FC<CreateTeamEventModalProps> = ({
   teamId,
   teamName,
   teamSlug,
-  isTeamAdminOrOwner
+  isTeamAdminOrOwner,
 }) => {
+  const { t } = useLocale();
   const onSuccessMutation = () => {
     onClose();
-    triggerToast("Team event created successfully", "success");
+    triggerToast(
+      t("event_type_created_successfully", { eventTypeTitle: form.getValues("title") }),
+      "success"
+    );
   };
 
   const onErrorMutation = (err: string) => {
@@ -89,9 +94,9 @@ export const CreateTeamEventModal: React.FC<CreateTeamEventModalProps> = ({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="text-lg">Add a new team event type</DialogTitle>
+          <DialogTitle className="text-lg">{t("create_new_team_event_type")}</DialogTitle>
           <DialogDescription className="text-sm">
-            Create a new event type for people to book times with.
+            {t("create_new_team_event_type_description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -102,11 +107,11 @@ export const CreateTeamEventModal: React.FC<CreateTeamEventModalProps> = ({
           {/* Title Field */}
           <div className="space-y-2">
             <Label htmlFor="title" className="text-sm font-medium">
-              Title
+              {t("title")}
             </Label>
             <Input
               id="title"
-              placeholder="Quick Chat"
+              placeholder={t("quick_chat")}
               {...register("title", { required: "Title is required" })}
               onChange={handleTitleChange}
               className={formState.errors.title ? "border-red-500" : ""}
@@ -119,12 +124,13 @@ export const CreateTeamEventModal: React.FC<CreateTeamEventModalProps> = ({
           {/* URL/Slug Field */}
           <div className="space-y-2">
             <Label htmlFor="slug" className="text-sm font-medium">
-              URL
+              {t("url")}
             </Label>
             <div className="flex">
-              <Tooltip content={!isManagedEventType ? `${teamSlug || teamName.toLowerCase()}` : "username"}>
+              <Tooltip
+                content={!isManagedEventType ? `${teamSlug || teamName.toLowerCase()}` : t("username")}>
                 <span className="inline-flex max-w-32 items-center overflow-hidden rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 pr-8 text-xs text-gray-500">
-                  /{!isManagedEventType ? `${teamSlug || teamName.toLowerCase()}` : "username"}/
+                  /{!isManagedEventType ? `${teamSlug || teamName.toLowerCase()}` : t("username")}/
                 </span>
               </Tooltip>
               <Input
@@ -132,18 +138,16 @@ export const CreateTeamEventModal: React.FC<CreateTeamEventModalProps> = ({
                 {...register("slug", { required: "URL is required" })}
                 onChange={handleSlugChange}
                 className={`rounded-l-none ${formState.errors.slug ? "border-red-500" : ""}`}
-                placeholder="quick-chat"
+                placeholder={t("quick_chat")}
               />
             </div>
             {formState.errors.slug && <p className="text-xs text-red-500">{formState.errors.slug.message}</p>}
-            {isManagedEventType && (
-              <p className="text-xs text-gray-600">Managed event URLs will be distributed to team members</p>
-            )}
+            {isManagedEventType && <p className="text-xs text-gray-600">{t("managed_event_about")}</p>}
           </div>
 
           {/* Assignment/Scheduling Type */}
           <div className="space-y-3">
-            <Label className="text-sm font-medium">Assignment</Label>
+            <Label className="text-sm font-medium">{t("assignment")}</Label>
             {formState.errors.schedulingType && (
               <p className="text-xs text-red-500">{formState.errors.schedulingType.message}</p>
             )}
@@ -156,11 +160,9 @@ export const CreateTeamEventModal: React.FC<CreateTeamEventModalProps> = ({
                 <RadioGroupItem value={SchedulingType.COLLECTIVE} id="collective" className="mt-0.5" />
                 <div className="flex-1">
                   <Label htmlFor="collective" className="cursor-pointer text-sm font-medium">
-                    Collective
+                    {t("collective")}
                   </Label>
-                  <p className="mt-1 text-xs text-gray-600">
-                    Schedule meetings when all selected team members are available.
-                  </p>
+                  <p className="mt-1 text-xs text-gray-600">{t("collective_description")}</p>
                 </div>
               </div>
 
@@ -168,9 +170,9 @@ export const CreateTeamEventModal: React.FC<CreateTeamEventModalProps> = ({
                 <RadioGroupItem value={SchedulingType.ROUND_ROBIN} id="round-robin" className="mt-0.5" />
                 <div className="flex-1">
                   <Label htmlFor="round-robin" className="cursor-pointer text-sm font-medium">
-                    Round Robin
+                    {t("round_robin")}
                   </Label>
-                  <p className="mt-1 text-xs text-gray-600">Cycle meetings between multiple team members.</p>
+                  <p className="mt-1 text-xs text-gray-600">{t("round_robin_description")}</p>
                 </div>
               </div>
 
@@ -179,11 +181,9 @@ export const CreateTeamEventModal: React.FC<CreateTeamEventModalProps> = ({
                   <RadioGroupItem value={SchedulingType.MANAGED} id="managed" className="mt-0.5" />
                   <div className="flex-1">
                     <Label htmlFor="managed" className="cursor-pointer text-sm font-medium">
-                      Managed Event
+                      {t("managed_event")}
                     </Label>
-                    <p className="mt-1 text-xs text-gray-600">
-                      Create & distribute event types in bulk to team members
-                    </p>
+                    <p className="mt-1 text-xs text-gray-600">{t("managed_event_description")}</p>
                   </div>
                 </div>
               )}
@@ -193,7 +193,7 @@ export const CreateTeamEventModal: React.FC<CreateTeamEventModalProps> = ({
           <DialogFooter className="flex justify-end space-x-2 pt-4">
             <DialogClose />
             <Button type="submit" size="sm" disabled={createMutation.isPending}>
-              {createMutation.isPending ? "Creating..." : "Create"}
+              {t("create")}
             </Button>
           </DialogFooter>
         </form>

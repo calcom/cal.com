@@ -9,6 +9,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@calid/features/ui/components/dialog";
+import { TextArea } from "@calid/features/ui/components/input/text-area";
 import { Switch } from "@calid/features/ui/components/switch";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { useSession } from "next-auth/react";
@@ -85,7 +86,7 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
     const res = await fetch("/api/cancel", {
       body: JSON.stringify({
         uid: props.uid,
-        cancellationReason: cancelReason.trim() || null,
+        cancellationReason: cancelReason.trim() || undefined, //backend does not allow null
         allRemainingBookings: false,
         // @NOTE: very important this shouldn't cancel with number ID use uid instead
         // seatReferenceUid: props.seatReferenceUid, // REVIEW: do we need this?
@@ -217,9 +218,10 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
 
         <div className="mb-6">
           <label className="text-emphasis mb-3 block text-sm font-medium">
-            {t("cancellation_reason_host")}
+            {/* {t("cancellation_reason_host")} */}
+            {t("cancellation_reason")}
           </label>
-          <textarea
+          <TextArea
             data-testid="cancel_reason"
             value={cancelReason}
             onChange={(e) => setCancelReason(e.target.value)}

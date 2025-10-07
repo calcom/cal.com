@@ -6,7 +6,7 @@ import type { NextRequest } from "next/server";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
+import { verifyCalPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { totpAuthenticatorCheck } from "@calcom/lib/totp";
 import prisma from "@calcom/prisma";
@@ -34,7 +34,7 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
-  if (!user.password?.hash && user.identityProvider === IdentityProvider.CAL) {
+  if (!user.password?.hash && !user.password?.salt && user.identityProvider === IdentityProvider.CAL) {
     return NextResponse.json({ error: ErrorCode.UserMissingPassword }, { status: 400 });
   }
 
@@ -42,8 +42,13 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ message: "Two factor disabled" });
   }
 
-  if (user.password?.hash && user.identityProvider === IdentityProvider.CAL) {
-    const isCorrectPassword = await verifyPassword(body.password, user.password.hash);
+  if (user.password?.hash && user.password?.salt && user.identityProvider === IdentityProvider.CAL) {
+    const isCorrectPassword = verifyCalPassword({
+      inputPassword: body.password,
+      storedHashBase64: user.password.hash,
+      saltBase64: user.password.salt,
+      iterations: 27500,
+    });
     if (!isCorrectPassword) {
       return NextResponse.json({ error: ErrorCode.IncorrectPassword }, { status: 400 });
     }

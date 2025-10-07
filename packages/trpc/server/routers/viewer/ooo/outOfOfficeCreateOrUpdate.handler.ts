@@ -77,13 +77,13 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       where: {
         id: input.toTeamUserId,
         /** You can only redirect OOO for members of teams you belong to */
-        teams: {
+        calIdTeams: {
           some: {
-            team: {
+            calIdTeam: {
               members: {
                 some: {
                   userId: oooUserId,
-                  accepted: true,
+                  acceptedInvitation: true,
                 },
               },
             },
@@ -305,14 +305,14 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     }
   }
 
-  const memberships = await prisma.membership.findMany({
+  const memberships = await prisma.calidMembership.findMany({
     where: {
       userId: oooUserId,
       accepted: true,
     },
   });
 
-  const teamIds = memberships.map((membership) => membership.teamId);
+  const teamIds = memberships.map((membership) => membership.calIdTeamId);
 
   // Send webhook to notify other services
   const subscriberOptions: GetSubscriberOptions = {

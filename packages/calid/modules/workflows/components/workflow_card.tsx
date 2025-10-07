@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
 import {
   DropdownMenu,
@@ -14,7 +15,6 @@ import React, { useCallback, useMemo } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
-import { Badge } from "@calcom/ui/components/badge";
 
 import type { CalIdWorkflowType } from "../config/types";
 import {
@@ -30,8 +30,6 @@ interface WorkflowCardProps {
   onToggle: (workflowId: number, enabled: boolean) => void;
   onDuplicate: (workflowId: number) => void;
   onDelete: (workflowId: number) => void;
-  onCopyLink: (workflowId: number) => void;
-  copiedLink: number | null;
 }
 export const WorkflowCard: React.FC<WorkflowCardProps> = ({
   workflow,
@@ -39,8 +37,6 @@ export const WorkflowCard: React.FC<WorkflowCardProps> = ({
   onToggle,
   onDuplicate,
   onDelete,
-  onCopyLink,
-  copiedLink,
 }) => {
   const { t } = useLocale();
 
@@ -61,21 +57,21 @@ export const WorkflowCard: React.FC<WorkflowCardProps> = ({
 
   return (
     <div
-      className="bg-card border-border hover:border-border/60 cursor-pointer rounded-lg border p-4 transition-all hover:shadow-sm"
+      className="bg-card border-default cursor-pointer rounded-md border px-3 py-5 transition-all hover:shadow-md"
       onClick={handleCardClick}>
       <div className="flex items-start justify-between">
         <div className="min-w-0 flex-1">
-          <div className="mb-2 flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <h3
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <span
                 className={classNames(
-                  "text-base font-semibold",
+                  "text-default text-sm font-medium",
                   workflow.name ? "text-foreground" : "text-muted-foreground"
                 )}>
                 {workflowTitle}
-              </h3>
+              </span>
               {workflow.readOnly && (
-                <Badge variant="gray" className="ml-2">
+                <Badge variant="secondary" className="ml-2">
                   {t("readonly")}
                 </Badge>
               )}
@@ -93,11 +89,7 @@ export const WorkflowCard: React.FC<WorkflowCardProps> = ({
               {!workflow.readOnly && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button
-                      color="destructive"
-                      size="sm"
-                      className="p-2"
-                      onClick={(e) => e.stopPropagation()}>
+                    <Button color="secondary" variant="icon" onClick={(e) => e.stopPropagation()}>
                       <Icon name="ellipsis" className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -105,14 +97,16 @@ export const WorkflowCard: React.FC<WorkflowCardProps> = ({
                     align="end"
                     onClick={(e) => e.stopPropagation()}
                     className="border-default bg-default border shadow-lg backdrop-blur-none">
-                    <DropdownMenuItem onClick={() => onEdit(workflow.id)}>{t("edit")}</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onDuplicate(workflow.id)}>
+                    <DropdownMenuItem StartIcon="pencil-line" onClick={() => onEdit(workflow.id)}>
+                      {t("edit")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem StartIcon="copy" onClick={() => onDuplicate(workflow.id)}>
                       {t("duplicate")}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onCopyLink(workflow.id)}>
-                      {copiedLink === workflow.id ? t("copied") : t("copy_link")}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onDelete(workflow.id)} className="text-destructive">
+                    <DropdownMenuItem
+                      StartIcon="trash-2"
+                      onClick={() => onDelete(workflow.id)}
+                      className="text-destructive hover:bg-error">
                       {t("delete")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -121,18 +115,17 @@ export const WorkflowCard: React.FC<WorkflowCardProps> = ({
             </div>
           </div>
 
-          <p className="text-muted-foreground mb-3 text-sm">{triggerText}</p>
+          <p className="text-subtle mb-2 text-sm">{triggerText}</p>
 
           <div className="flex items-center justify-start space-x-2">
-            <span className="bg-muted text-foreground inline-flex items-center rounded px-2 py-1 text-xs">
-              <Icon name="link" className="mr-1 h-3 w-3" />
+            <Badge variant="secondary" className="inline-flex items-center" startIcon="link">
               {eventTypeInfo}
-            </span>
-            <span className="bg-muted text-foreground inline-flex items-center rounded px-2 py-1 text-xs">
-              <span className="mr-1">{actionText}</span>
-            </span>
+            </Badge>
+            <Badge variant="secondary" className="inline-flex items-center" startIcon="check">
+              {actionText}
+            </Badge>
             {workflow.calIdTeam?.name && (
-              <Badge variant="gray" className="inline-flex items-center">
+              <Badge variant="secondary" className="inline-flex items-center">
                 <Avatar alt={workflow.calIdTeam.name} size="xs" className="mr-1" />
                 {workflow.calIdTeam.name}
               </Badge>

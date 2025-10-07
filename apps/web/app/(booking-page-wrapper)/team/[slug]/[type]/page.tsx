@@ -39,8 +39,8 @@ export const generateMetadata = async ({ params, searchParams }: ServerPageProps
     (t) => `${booking?.uid ? t("reschedule") : ""} ${title}`,
     isBrandingHidden,
     getOrgFullOrigin(eventData.entity.orgSlug ?? null),
-    `/team/${decodedParams.slug}/${decodedParams.type}`,
-    eventData?.metadata?.billingAddressRequired
+    `/team/${decodedParams.slug}/${decodedParams.type}`
+    // eventData?.metadata?.billingAddressRequired
   );
 
   return {
@@ -62,7 +62,6 @@ const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
   );
 
   const eventLocale = props.eventData?.interfaceLanguage;
-  console.log("Props: ", props);
   if (eventLocale) {
     const ns = "common";
     const translations = await loadTranslations(eventLocale, ns);

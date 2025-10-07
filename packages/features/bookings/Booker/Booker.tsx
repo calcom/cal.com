@@ -1,6 +1,6 @@
 import { Branding } from "@calid/features/ui/Branding";
 import { Button } from "@calid/features/ui/components/button";
-import { AnimatePresence, LazyMotion, m } from "framer-motion";
+import { AnimatePresence, LazyMotion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import StickyBox from "react-sticky-box";
 import { Toaster } from "sonner";
@@ -421,21 +421,12 @@ const BookerComponent = ({
                   )}
                 </BookerSection>
               )}
-              <StickyOnDesktop key="meta" className={classNames("relative z-10 flex [grid-area:meta]")}>
+              <StickyOnDesktop
+                key="meta"
+                className={classNames("relative z-10 flex h-full [grid-area:meta]")}>
                 <BookerSection
                   area="meta"
                   className="bg-default max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
-                  {!hideEventTypeDetails && orgBannerUrl && (
-                    <div
-                      className="-mb-4 flex h-10 p-2 ltr:rounded-tl-md rtl:rounded-tr-md"
-                      style={{
-                        backgroundImage: `url("${orgBannerUrl}")`,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                        backgroundRepeat: "no-repeat",
-                      }}
-                    />
-                  )}
                   <EventMeta
                     classNames={{
                       eventMetaContainer: customClassNames?.eventMetaCustomClassNames?.eventMetaContainer,
@@ -580,16 +571,24 @@ const BookerComponent = ({
             </div>
           )}
 
-          {!hideBranding && (!isPlatform || isPlatformBookerEmbed) && !shouldRenderCaptcha && (
-            <m.span
-              key="logo"
-              className={classNames(
-                "mb-6 mt-auto pt-6 [&_img]:h-[15px]",
-                hasDarkBackground ? "dark" : "",
-                layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
-              )}>
-              <Branding faviconUrl={faviconUrl} />
-            </m.span>
+          {/* {(!hideBranding || orgBannerUrl) &&
+            (!isPlatform || isPlatformBookerEmbed) &&
+            !shouldRenderCaptcha && (
+              <m.span
+                key="logo"
+                className={classNames(
+                  "mb-6 mt-auto pt-6 [&_img]:h-[15px]",
+                  hasDarkBackground ? "dark" : "",
+                  layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
+                )}>
+                <Branding bannerUrl={orgBannerUrl} />
+              </m.span>
+            )} */}
+
+          {(!hideBranding || orgBannerUrl) && (
+            <div key="logo" className={classNames("my-8 flex w-full justify-center [&_img]:h-[32px]")}>
+              <Branding bannerUrl={orgBannerUrl} />
+            </div>
           )}
         </div>
       </div>

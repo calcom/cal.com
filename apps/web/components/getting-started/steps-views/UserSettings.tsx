@@ -5,14 +5,11 @@ import { PHONE_NUMBER_VERIFICATION_ENABLED } from "@calcom/lib/constants";
 import { Button } from "@calid/features/ui/components/button";
 import { Input } from "@calid/features/ui/components/input/input";
 import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@calid/features/ui/components/select";
+  usePhoneNumberField,
+  PhoneNumberField,
+  isStrictlyValidNumber,
+} from "@calid/features/ui/components/input/phone-number-field";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { isValidPhoneNumber } from "libphonenumber-js";
 import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
@@ -20,6 +17,7 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
+import { PHONE_NUMBER_VERIFICATION_ENABLED } from "@calcom/lib/constants";
 import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { designationTypes, professionTypeAndEventTypes, customEvents } from "@calcom/lib/customEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -27,6 +25,7 @@ import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
+import { Select } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/toast";
 
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
@@ -57,13 +56,15 @@ const UserSettings = (props: IUserSettingsProps) => {
             .min(1, { message: t("phone_number_required") })
             .refine(
               (val) => {
-                return isValidPhoneNumber(val);
+                //return isValidPhoneNumber(val);
+                return isStrictlyValidNumber(val);
               },
               { message: t("invalid_phone_number") }
             )
         : z.string().refine(
             (val) => {
-              return val === "" || isValidPhoneNumber(val);
+              // return val === "" || isValidPhoneNumber(val);
+              return val === "" || isStrictlyValidNumber(val);
             },
             { message: t("invalid_phone_number") }
           ),
@@ -99,7 +100,9 @@ const UserSettings = (props: IUserSettingsProps) => {
     telemetry.event(telemetryEventTypes.onboardingStarted);
   }, [telemetry]);
 
-  const [selectedBusiness, setSelectedBusiness] = useState<string | null>(null);
+  const [selectedBusiness, setSelectedBusiness] = useState<string | null>(
+    (isPrismaObjOrUndefined(user.metadata) as { designation?: string })?.designation || "recruiter"
+  );
 
   const designationTypeOptions: { value: string; label: string }[] = Object.keys(designationTypes).map(
     (key) => ({
@@ -140,8 +143,6 @@ const UserSettings = (props: IUserSettingsProps) => {
     defaultValues,
     "metadata.phoneNumber"
   );
-
-  console.log("isPhoneFieldMandatory: ", isPhoneFieldMandatory);
 
   const onSubmit = handleSubmit((data) => {
     if (
@@ -219,21 +220,14 @@ const UserSettings = (props: IUserSettingsProps) => {
           {t("business_type")}
         </label>
         <Select
-          onValueChange={(value) => {
-            setSelectedBusiness(value);
+          value={designationTypeOptions.find((option) => option.value === selectedBusiness) || null}
+          onChange={(option: { value: string; label: string } | null) => {
+            setSelectedBusiness(option?.value || "");
           }}
-          defaultValue={user?.metadata?.designation || designationTypeOptions[0].value}>
-          <SelectTrigger className="mt-2 w-full text-sm capitalize">
-            <SelectValue placeholder={t("business_type")} />
-          </SelectTrigger>
-          <SelectContent className="bg-default max-h-60 overflow-y-auto">
-            {designationTypeOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          options={designationTypeOptions}
+          placeholder={t("business_type")}
+          className="mt-2 w-full text-sm capitalize"
+        />
       </div>
 
       {/* Timezone select field */}

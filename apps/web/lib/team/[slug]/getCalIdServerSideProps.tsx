@@ -1,5 +1,6 @@
 import type { GetServerSidePropsContext } from "next";
 
+import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import logger from "@calcom/lib/logger";
@@ -33,7 +34,21 @@ export const getCalIdServerSideProps = async (context: GetServerSidePropsContext
     where: {
       slug: slugify(slug ?? ""),
     },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      bio: true,
+      logoUrl: true,
+      bannerUrl: true,
+      theme: true,
+      brandColor: true,
+      darkBrandColor: true,
+      isTeamPrivate: true,
+      hideTeamBranding: true,
+      hideTeamProfileLink: true,
+      hideBookATeamMember: true,
+      metadata: true,
       members: {
         include: {
           user: {
@@ -112,6 +127,8 @@ export const getCalIdServerSideProps = async (context: GetServerSidePropsContext
             hideBookATeamMember: unpublishedCalIdTeam.hideBookATeamMember,
             logoUrl: unpublishedCalIdTeam.logoUrl,
             theme: unpublishedCalIdTeam.theme,
+            brandColor: unpublishedCalIdTeam.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
+            darkBrandColor: unpublishedCalIdTeam.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
             members: [],
             eventTypes: [],
             isOrganization: false,
@@ -192,6 +209,8 @@ export const getCalIdServerSideProps = async (context: GetServerSidePropsContext
         hideBookATeamMember: calIdTeam.hideBookATeamMember,
         logoUrl: calIdTeam.logoUrl,
         theme: calIdTeam.theme,
+        brandColor: calIdTeam.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
+        darkBrandColor: calIdTeam.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
         members: processedMembers,
         eventTypes: processedEventTypes,
         safeBio,

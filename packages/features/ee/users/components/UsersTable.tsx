@@ -193,7 +193,7 @@ function UsersTableBare() {
             {flatData.map((user) => (
               <Row key={user.email}>
                 <Cell widthClassNames="w-auto">
-                  <div className="min-h-10 flex ">
+                  <div className="flex min-h-10 ">
                     <Avatar
                       size="md"
                       alt={`Avatar of ${user.username || "Nameless"}`}
@@ -360,3 +360,4 @@ const DeleteUserDialog = ({
 };
 
 export const UsersTable = withLicenseRequired(UsersTableBare);
+// export const UsersTable = UsersTableBare;

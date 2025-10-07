@@ -57,16 +57,24 @@ const AddTeamMembers = () => {
 
   const inviteMutation = trpc.viewer.calidTeams.inviteMember.useMutation({
     async onSuccess(data) {
-      console.log("Invite Mutation Success:", data);
-      await Promise.all([utils.viewer.calidTeams.get.invalidate(), utils.viewer.calidTeams.listMembers.invalidate()]);
+      await Promise.all([
+        utils.viewer.calidTeams.get.invalidate(),
+        utils.viewer.calidTeams.listMembers.invalidate(),
+      ]);
       if (Array.isArray(data.results) && data.results.length > 1) {
-        triggerToast(t("email_invite_team_bulk", {
-          userCount: data.results.length
-        }), "success");
+        triggerToast(
+          t("email_invite_team_bulk", {
+            userCount: data.results.length,
+          }),
+          "success"
+        );
       } else if (data.results.length === 1) {
-        triggerToast(t("email_invite_team", {
-          email: data.results[0].email,
-        }), "success");
+        triggerToast(
+          t("email_invite_team", {
+            email: data.results[0].email,
+          }),
+          "success"
+        );
       }
       formMethods.reset({ email: "", role: MembershipRole.MEMBER });
     },

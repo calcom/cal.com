@@ -2,6 +2,7 @@
 
 import { Button } from "@calid/features/ui/components/button";
 import { EmailField, PasswordField } from "@calid/features/ui/components/input/input";
+import { Logo } from "@calid/features/ui/components/logo";
 import { zodResolver } from "@hookform/resolvers/zod";
 import classNames from "classnames";
 import { signIn } from "next-auth/react";
@@ -12,7 +13,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -82,7 +83,7 @@ export default function Login({
 
   const telemetry = useTelemetry();
 
-  let callbackUrl = searchParams?.get("callbackUrl") || "";
+  let callbackUrl = searchParams?.get("callbackUrl") || "/event-types";
 
   if (/"\//.test(callbackUrl)) callbackUrl = callbackUrl.substring(1);
 
@@ -94,12 +95,6 @@ export default function Login({
   const safeCallbackUrl = getSafeRedirectUrl(callbackUrl);
 
   callbackUrl = safeCallbackUrl || "";
-
-  const LoginFooter = (
-    <Link href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
-      {t("dont_have_an_account")}
-    </Link>
-  );
 
   const TwoFactorFooter = (
     <>
@@ -176,15 +171,8 @@ export default function Login({
   );
 
   return (
-    <div className="bg-primary flex min-h-screen items-center justify-center px-4 sm:px-6 lg:px-8">
-      <div className="border-subtle w-full max-w-lg rounded-2xl border p-8 shadow-xl">
-        {/* Logo */}
-        <div className="mb-8 text-center">
-          <div className="mb-8 flex items-center justify-center space-x-2">
-            <span className="text-primary text-2xl font-bold">Cal ID</span>
-          </div>
-        </div>
-
+    <div className="bg-default flex min-h-screen flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
+      <div className="border-default w-full max-w-lg rounded-2xl border p-8 shadow-xl">
         {/* Welcome Text */}
         <div className="mb-8 text-center">
           <h1 className="text-emphasis text-3xl font-bold">
@@ -219,14 +207,13 @@ export default function Login({
 
               {/* Divider */}
               {isGoogleLoginEnabled && (
-                <div className="relative mb-8">
-                  <div className=" inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-300" />
-                  </div>
-                  <div className="mt-3 flex justify-center text-sm">
-                    <span className="text-subtle bg-primary px-2 font-medium">
+                <div className="mb-8">
+                  <div className="relative flex items-center">
+                    <div className="flex-grow border-t border-gray-300" />
+                    <span className="text-subtle mx-4 text-sm font-medium uppercase">
                       {t("or_continue_with_email")}
                     </span>
+                    <div className="flex-grow border-t border-gray-300" />
                   </div>
                 </div>
               )}
@@ -255,11 +242,7 @@ export default function Login({
                   required={!totpEmail}
                   {...register("password")}
                 />
-                <Link
-                  className="mt-4"
-                  href="/auth/forgot-password"
-                  tabIndex={-1}
-                  className="text-active text-sm hover:underline">
+                <Link href="/auth/forgot-password" tabIndex={-1} className="text-sm">
                   {t("forgot_password")}
                 </Link>
               </div>
@@ -273,11 +256,11 @@ export default function Login({
               {/* Sign In Button */}
               <Button
                 type="submit"
-                color="primary"
                 disabled={formState.isSubmitting}
-                className="w-full justify-center py-3">
+                className="bg-active border-active dark:border-default w-full justify-center py-3 dark:bg-gray-200"
+                data-testid="submit">
                 <span>{twoFactorRequired ? t("submit") : t("sign_in")}</span>
-                {lastUsed === "credentials" && !twoFactorRequired && <LastUsed className="text-default" />}
+                {lastUsed === "credentials" && !twoFactorRequired && <LastUsed />}
               </Button>
             </div>
           </form>
@@ -287,7 +270,9 @@ export default function Login({
             <div className="mt-2 text-center">
               <p className="text-subtle text-sm">
                 {t("dont_have_an_account")}{" "}
-                <Link href={`${WEBSITE_URL}/signup`} className="text-active font-medium hover:underline">
+                <Link
+                  href={`${WEBAPP_URL}/signup`}
+                  className="text-active dark:text-default font-medium hover:underline">
                   {t("sign_up")}
                 </Link>
               </p>
@@ -299,6 +284,11 @@ export default function Login({
             <div className="flex flex-col space-y-3">{!totpEmail ? TwoFactorFooter : ExternalTotpFooter}</div>
           )}
         </FormProvider>
+      </div>
+      <div className="mt-8">
+        <div className="mb-8 flex justify-center">
+          <Logo small icon />
+        </div>
       </div>
       <AddToHomescreen />
     </div>

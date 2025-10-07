@@ -57,8 +57,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
   const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
   const metadata = teamMetadataSchema.parse(team.metadata);
 
-  const teamOrOrgIsPrivate =
-    team.isPrivate || (team?.parent && team.parent.isOrganization && team.parent.isPrivate);
+  const teamOrOrgIsPrivate = team.isPrivate;
 
   useEffect(() => {
     telemetry.event(
@@ -69,16 +68,11 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
 
   if (considerUnpublished) {
     const teamSlug = team.slug || metadata?.requestedSlug;
-    const parentSlug = team.parent?.slug || team.parent?.requestedSlug;
-    // Show unpublished state for parent Organization itself, if the team is a subteam(team.parent is NOT NULL)
-    const slugPropertyName = team.parent || team.isOrganization ? "orgSlug" : "teamSlug";
+    // Show unpublished state for Organization itself if the team is an organization
+    const slugPropertyName = team.isOrganization ? "orgSlug" : "teamSlug";
     return (
       <div className="flex h-full min-h-[calc(100dvh)] items-center justify-center">
-        <UnpublishedEntity
-          {...{ [slugPropertyName]: team.parent ? parentSlug : teamSlug }}
-          logoUrl={team.parent?.logoUrl || team.logoUrl}
-          name={team.parent ? team.parent.name : team.name}
-        />
+        <UnpublishedEntity {...{ [slugPropertyName]: teamSlug }} logoUrl={team.logoUrl} name={team.name} />
       </div>
     );
   }
@@ -93,12 +87,16 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
         return (
           <div
             key={index}
-            className="dark:bg-muted dark:hover:bg-emphasis hover:bg-muted border-subtle bg-primary group relative rounded-md border shadow-md transition hover:scale-[1.02]"
+            className="dark:hover:bg-emphasis hover:bg-muted border-default bg-default group relative rounded-md border shadow-md transition hover:scale-[1.02]"
             data-testid="event-type-link">
             <div className="block w-full px-2 py-4">
               <div className="mb-2 flex flex-row items-center gap-2">
                 <div className="self-start p-2">
-                  <Icon name={iconParams.icon} className="h-6 w-6" style={{ color: iconParams.color }} />
+                  <Icon
+                    name={iconParams?.icon?.toLowerCase() as IconName}
+                    className="h-6 w-6"
+                    style={{ color: iconParams.color }}
+                  />
                 </div>
                 <div className="mr-20">
                   <h3 className="text-default text-base font-semibold">{type.title}</h3>
@@ -131,7 +129,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
                       eventType: type,
                     });
                   }}>
-                  <Button variant="button" type="button" size="base">
+                  <Button variant="button" brandColor={team.brandColor} darkBrandColor={team.darkBrandColor} type="button" size="base">
                     {t("schedule")}
                   </Button>
                 </Link>
@@ -198,7 +196,6 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
             title={teamName || "Team"}
           />
           <h1 className="text-default mt-2 text-2xl font-bold" data-testid="team-name">
-            {team.parent && `${team.parent.name} `}
             {teamName}
           </h1>
           {!isBioEmpty && (
@@ -232,7 +229,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
                   </h2>
                 </div>
               ) : (
-                <Team members={team.members} teamName={team.name} />
+                <Team members={team.members} teamName={team.name} brandColor={team.brandColor} darkBrandColor={team.darkBrandColor} />
               ))}
             {!showMembers.isOn && team.eventTypes && team.eventTypes.length > 0 && (
               <div

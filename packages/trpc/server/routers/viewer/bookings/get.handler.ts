@@ -1,6 +1,5 @@
 import type { Booking, Prisma, Prisma as PrismaClientType } from "@prisma/client";
 import { sql } from "kysely";
-
 import type { Kysely } from "kysely";
 import { type SelectQueryBuilder } from "kysely";
 import { jsonObjectFrom, jsonArrayFrom } from "kysely/helpers/postgres";
@@ -95,7 +94,7 @@ export async function getBookings({
   skip: number;
 }) {
   const membershipIdsWhereUserIsAdminOwner = (
-    await prisma.membership.findMany({
+    await prisma.calIdMembership.findMany({
       where: {
         userId: user.id,
         role: {
@@ -432,8 +431,8 @@ export async function getBookings({
           "Booking.endTime",
           "Booking.metadata",
           "Booking.uid",
-          sql`${eb.ref("startTime")} AT TIME ZONE 'UTC'`.as('startTimeUtc'),
-          sql`${eb.ref("endTime")} AT TIME ZONE 'UTC'`.as('endTimeUtc'),
+          sql`${eb.ref("startTime")} AT TIME ZONE 'UTC'`.as("startTimeUtc"),
+          sql`${eb.ref("endTime")} AT TIME ZONE 'UTC'`.as("endTimeUtc"),
           eb
             .cast<Prisma.JsonValue>( // Target TypeScript type
               eb.ref("Booking.responses"), // Source column
@@ -524,10 +523,10 @@ export async function getBookings({
                 "EventType.length",
                 jsonObjectFrom(
                   eb
-                    .selectFrom("Team")
-                    .select(["Team.id", "Team.name", "Team.slug"])
-                    .whereRef("EventType.teamId", "=", "Team.id")
-                ).as("team"),
+                    .selectFrom("CalIdTeam")
+                    .select(["CalIdTeam.id", "CalIdTeam.name", "CalIdTeam.slug"])
+                    .whereRef("EventType.calIdTeamId", "=", "CalIdTeam.id")
+                ).as("calIdTeam"),
               ])
               .whereRef("EventType.id", "=", "Booking.eventTypeId")
           ).as("eventType"),
@@ -580,8 +579,6 @@ export async function getBookings({
         .execute()
     : [];
 
-  console.log("Plain bookings: ", plainBookings);
-
   const [
     recurringInfoBasic,
     recurringInfoExtended,
@@ -624,20 +621,33 @@ export async function getBookings({
       count: number;
       firstDate: Date | null;
       bookings: {
-        [key: string]: Date[];
+        CANCELLED: Date[];
+        ACCEPTED: Date[];
+        REJECTED: Date[];
+        PENDING: Date[];
+        AWAITING_HOST: Date[];
       };
     } => {
-      const bookings = recurringInfoExtended.reduce(
-        (prev, curr) => {
-          if (curr.recurringEventId === info.recurringEventId) {
-            prev[curr.status].push(curr.startTime);
-          }
-          return prev;
-        },
-        { ACCEPTED: [], CANCELLED: [], REJECTED: [], PENDING: [], AWAITING_HOST: [] } as {
-          [key in BookingStatus]: Date[];
+      // Initialize all required BookingStatus keys
+      const bookings: {
+        CANCELLED: Date[];
+        ACCEPTED: Date[];
+        REJECTED: Date[];
+        PENDING: Date[];
+        AWAITING_HOST: Date[];
+      } = {
+        CANCELLED: [],
+        ACCEPTED: [],
+        REJECTED: [],
+        PENDING: [],
+        AWAITING_HOST: [],
+      };
+      recurringInfoExtended.forEach((curr) => {
+        if (curr.recurringEventId === info.recurringEventId && bookings.hasOwnProperty(curr.status)) {
+          // @ts-expect-error: curr.status is a BookingStatus, which matches the keys
+          bookings[curr.status].push(curr.startTime);
         }
-      );
+      });
       return {
         recurringEventId: info.recurringEventId,
         count: info._count.recurringEventId,
@@ -703,6 +713,7 @@ export async function getBookings({
 
       return {
         ...booking,
+        customInputs: booking.customInputs as Record<string, any> | null,
         rescheduler,
         eventType: {
           ...booking.eventType,
@@ -710,10 +721,11 @@ export async function getBookings({
           eventTypeColor: parseEventTypeColor(booking.eventType?.eventTypeColor),
           price: booking.eventType?.price || 0,
           currency: booking.eventType?.currency || "usd",
-          metadata: EventTypeMetaDataSchema.parse(booking.eventType?.metadata || {}),
+          metadata: EventTypeMetaDataSchema.parse(booking.eventType?.metadata || {}) as Record<string, any>,
         },
         startTime: booking.startTimeUtc.toISOString(),
         endTime: booking.endTimeUtc.toISOString(),
+        metadata: (booking.metadata ?? null) as Record<string, any> | null,
       };
     })
   );
@@ -729,7 +741,7 @@ async function getEventTypeIdsFromTeamIdsFilter(prisma: PrismaClient, teamIds?: 
     prisma.eventType
       .findMany({
         where: {
-          teamId: { in: teamIds },
+          calIdTeamId: { in: teamIds },
         },
         select: {
           id: true,
@@ -741,7 +753,7 @@ async function getEventTypeIdsFromTeamIdsFilter(prisma: PrismaClient, teamIds?: 
       .findMany({
         where: {
           parent: {
-            teamId: { in: teamIds },
+            calIdTeamId: { in: teamIds },
           },
         },
         select: {
@@ -832,13 +844,13 @@ async function getEventTypeIdsFromEventTypeIdsFilter(prisma: PrismaClient, event
 
 async function getEventTypeIdsWhereUserIsAdminOrOwner(
   prisma: PrismaClient,
-  membershipCondition: PrismaClientType.MembershipListRelationFilter
+  membershipCondition: PrismaClientType.CalIdMembershipListRelationFilter
 ) {
   const [directTeamEventTypeIds, parentTeamEventTypeIds] = await Promise.all([
     prisma.eventType
       .findMany({
         where: {
-          team: {
+          calIdTeam: {
             members: membershipCondition,
           },
         },
@@ -852,7 +864,7 @@ async function getEventTypeIdsWhereUserIsAdminOrOwner(
       .findMany({
         where: {
           parent: {
-            team: {
+            calIdTeam: {
               members: membershipCondition,
             },
           },
@@ -875,13 +887,13 @@ async function getEventTypeIdsWhereUserIsAdminOrOwner(
  */
 async function getUserIdsAndEmailsWhereUserIsAdminOrOwner(
   prisma: PrismaClient,
-  membershipCondition: PrismaClientType.MembershipListRelationFilter
+  membershipCondition: PrismaClientType.CalIdMembershipListRelationFilter
 ): Promise<[number[], string[]]> {
   const users = await prisma.user.findMany({
     where: {
-      teams: {
+      calIdTeams: {
         some: {
-          team: {
+          calIdTeam: {
             members: membershipCondition,
           },
         },
@@ -905,20 +917,20 @@ function addStatusesQueryFilters(query: BookingsUnionQuery, statuses: InputBySta
         statuses.map((status) => {
           if (status === "upcoming") {
             return and([
-              eb("Booking.endTime", ">=", new Date()),
-              or([
-                and([eb("Booking.recurringEventId", "is not", null), eb("Booking.status", "=", "accepted")]),
-                and([
-                  eb("Booking.recurringEventId", "is", null),
-                  eb("Booking.status", "not in", ["cancelled", "rejected"]),
-                ]),
-              ]),
+              eb(sql`"Booking"."endTime" AT TIME ZONE 'UTC'`, ">=", new Date()),
+              // or([
+              //   and([eb("Booking.recurringEventId", "is not", null), eb("Booking.status", "=", "accepted")]),
+              //   and([
+              eb("Booking.recurringEventId", "is", null),
+              eb("Booking.status", "not in", ["cancelled", "rejected", "pending"]),
+              //   ]),
+              // ]),
             ]);
           }
 
           if (status === "recurring") {
             return and([
-              eb("Booking.endTime", ">=", new Date()),
+              eb(sql`"Booking"."endTime" AT TIME ZONE 'UTC'`, ">=", new Date()),
               eb("Booking.recurringEventId", "is not", null),
               eb("Booking.status", "not in", ["cancelled", "rejected"]),
             ]);
@@ -926,7 +938,7 @@ function addStatusesQueryFilters(query: BookingsUnionQuery, statuses: InputBySta
 
           if (status === "past") {
             return and([
-              eb("Booking.endTime", "<=", new Date()),
+              eb(sql`"Booking"."endTime" AT TIME ZONE 'UTC'`, "<=", new Date()),
               eb("Booking.status", "not in", ["cancelled", "rejected"]),
             ]);
           }
@@ -936,7 +948,10 @@ function addStatusesQueryFilters(query: BookingsUnionQuery, statuses: InputBySta
           }
 
           if (status === "unconfirmed") {
-            return and([eb("Booking.endTime", ">=", new Date()), eb("Booking.status", "=", "pending")]);
+            return and([
+              eb(sql`"Booking"."endTime" AT TIME ZONE 'UTC'`, ">=", new Date()),
+              eb("Booking.status", "=", "pending"),
+            ]);
           }
           return and([]);
         })

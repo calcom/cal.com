@@ -9,7 +9,7 @@ export const DestinationCalendarSettings = (props: DestinationCalendarProps & { 
   const { t } = useLocale();
 
   return (
-    <div className={cn("border-subtle mb-6 mt-4 rounded-lg border", props?.classNames)}>
+    <div className={cn("border-default mb-6 mt-4 rounded-lg border", props?.classNames)}>
       <DestinationCalendarSettingsHeading />
       <div>
         <div className="border-subtle flex w-full flex-col space-y-3 border-y-0 px-6 pb-6">

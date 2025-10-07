@@ -219,8 +219,6 @@ const OnboardingPage = ({
       step: AppOnboardingSteps.EVENT_TYPES_STEP,
     });
 
-    console.log("Return url: ", { returnTo });
-    
     mutation.mutate({
       type: appMetadata.type,
       variant: appMetadata.variant,

@@ -3,6 +3,7 @@
 import { Button } from "@calid/features//ui/components/button";
 import { Badge } from "@calid/features/ui/components/badge";
 import type { ButtonProps } from "@calid/features/ui/components/button";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -17,7 +18,6 @@ import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 import classNames from "@calcom/ui/classNames";
-import { showToast } from "@calcom/ui/components/toast";
 
 interface AppCardProps {
   app: App;
@@ -42,10 +42,10 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
       if (data?.setupPending) return;
-      showToast(t("app_successfully_installed"), "success");
+      triggerToast(t("app_successfully_installed"), "success");
     },
     onError: (error) => {
-      if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
+      if (error instanceof Error) triggerToast(error.message || t("app_could_not_be_installed"), "error");
     },
   });
 
@@ -86,7 +86,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   };
 
   return (
-    <div className="border-subtle relative flex h-64 flex-col rounded-md border p-5">
+    <div className="border-default relative flex h-64 flex-col rounded-md border p-5">
       <div className="flex">
         <img
           src={app.logo}

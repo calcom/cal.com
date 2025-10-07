@@ -23,7 +23,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
         }
       }}
       switchChecked={enabled}
-      teamId={eventType.team?.id || undefined}>
+      teamId={eventType.team?.id || undefined}
+      calIdTeamId={(eventType as any).calIdTeamId || undefined}>
       <TextField
         name="Tracking ID"
         value={trackingId}

@@ -7,8 +7,8 @@
   "url": "https://nextcloud.com/talk",
   "variant": "conferencing",
   "categories": ["conferencing"],
-  "publisher": "Cal.com",
-  "email": "help@cal.com",
+  "publisher": "Cal ID",
+  "email": "support@cal.id",
   "appData": {
     "location": {
       "type": "integrations:{SLUG}_conferencing",

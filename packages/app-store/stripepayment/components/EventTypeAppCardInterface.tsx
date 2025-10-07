@@ -34,6 +34,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
         updateEnabled(e);
       }}
       teamId={eventType.team?.id || undefined}
+      calIdTeamId={(eventType as any).calIdTeamId || undefined}
       disableSwitch={shouldDisableSwitch}
       switchTooltip={shouldDisableSwitch ? t("other_payment_app_enabled") : undefined}>
       <EventTypeAppSettingsInterface

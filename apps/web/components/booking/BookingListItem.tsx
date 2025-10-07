@@ -209,11 +209,6 @@ export default function BookingListItem(booking: BookingItemProps) {
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
   const isBookingFromRoutingForm = isBookingReroutable(parsedBooking);
 
-  console.log("attendees", booking.attendees);
-  console.log("startTime", booking.startTime);
-  console.log("endTime", booking.endTime);
-  console.log("timezone", userTimeZone);
-
   const paymentAppData = getPaymentAppData(booking.eventType);
 
   const location = booking.location as ReturnType<typeof getEventLocationValue>;
@@ -542,7 +537,7 @@ export default function BookingListItem(booking: BookingItemProps) {
         </DialogContent>
       </Dialog>
 
-      <div className="bg-default my-1.5 flex w-full flex-col items-start justify-between rounded-lg border  border-dashed shadow-sm hover:shadow-md">
+      <div className="bg-default border-default my-1.5 flex w-full flex-col items-start justify-between rounded-md border shadow-sm hover:shadow-md">
         <div data-testid="booking-item" data-today={String(booking.isToday)} className="group w-full">
           <div className="cursor-pointer">
             <div className="flex flex-col pb-4">
@@ -673,8 +668,8 @@ export default function BookingListItem(booking: BookingItemProps) {
                 <div className="flex w-full flex-col lg:w-auto">
                   <div className="flex w-full flex-row flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium lg:flex-row lg:flex-nowrap lg:items-start lg:space-y-0 lg:pl-0 ltr:pr-4 rtl:pl-4">
                     {shouldShowPendingActions(actionContext) && <TableActions actions={pendingActions} />}
-
-                    {!isCancelled && (
+                    {/*Remove reschedule and cancel button from unconfirmed Booking*/}
+                    {!isCancelled && !isPending && !isRejected && (
                       <Button
                         color="secondary"
                         onClick={() => rescheduleBooking(rescheduleEventLink)}
@@ -683,7 +678,7 @@ export default function BookingListItem(booking: BookingItemProps) {
                       </Button>
                     )}
 
-                    {!isCancelled && (
+                    {!isCancelled && !isPending && !isRejected  && (
                       <Button
                         color="secondary"
                         onClick={() => setIsOpenCancellationDialog(true)}
@@ -692,7 +687,7 @@ export default function BookingListItem(booking: BookingItemProps) {
                       </Button>
                     )}
 
-                    {!isCancelled && (
+                    {!isCancelled && !isRejected && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button StartIcon="ellipsis" color="secondary" variant="icon" />

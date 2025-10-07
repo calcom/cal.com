@@ -111,7 +111,10 @@ const validateSendingPermissions = async (
 const buildWebhookCallback = (parameters?: Record<string, any>, useWhatsApp = false): string | undefined => {
   if (!parameters) return undefined;
 
-  const baseUrl = `${IS_DEV ? NGROK_URL : WEBAPP_URL}/api/webhook/twilio`;
+  console.log("Build twilio webhook params: ", parameters)
+
+  const baseUrl = `${IS_DEV ? NGROK_URL : WEBAPP_URL}/api/twilio/webhook`;
+
   const enhancedParams = {
     ...parameters,
     msgId: uuidv4(),
@@ -237,6 +240,7 @@ const executeScheduledDelivery = async (config: ScheduledMessageConfig) => {
     });
   }
 
+  console.log("Twilio config: ", config)
   const webhookCallback = buildWebhookCallback(config.additionalParams, config.isWhatsApp);
 
   const scheduledPayload: {

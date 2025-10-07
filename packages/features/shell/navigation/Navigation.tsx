@@ -80,7 +80,7 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     name: "insights",
     href: "/insights/bookings",
     icon: "chart-no-axes-column-increasing",
-    isCurrent: ({ pathname: path, item }) => path?.startsWith(item.href) ?? false,
+    isCurrent: ({ pathname: path }) => path?.startsWith("/insights") ?? false,
     moreOnMobile: true,
   },
   {
@@ -259,7 +259,7 @@ const IntegrationRequests = () => {
 export const Navigation = ({ isPlatformNavigation = false }: { isPlatformNavigation?: boolean }) => {
   const { desktopNavigationItems } = useNavigationItems(isPlatformNavigation);
   return (
-    <nav className="mt-2 flex-1 md:px-2 lg:mt-4 lg:px-0">
+    <nav className="mt-9 flex-1  md:px-2 lg:px-0">
       {desktopNavigationItems.map((item) => (
         <NavigationItem key={item.name} item={item} />
       ))}

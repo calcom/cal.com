@@ -3,6 +3,7 @@
 import { Button } from "@calid/features/ui/components/button";
 import { Form } from "@calid/features/ui/components/form";
 import { PasswordField } from "@calid/features/ui/components/input/input";
+import { Logo } from "@calid/features/ui/components/logo";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 
@@ -36,9 +37,6 @@ export default function Page({ requestId, isRequestExpired, csrfToken }: PagePro
   const Success = () => {
     return (
       <div className="text-center">
-        <div className="mb-8 flex justify-center">
-          <span className="text-2xl font-bold text-gray-900">Cal ID</span>
-        </div>
         <h1 className="text-emphasis mb-8 text-2xl font-bold">{t("password_updated")}</h1>
         <Button color="primary" className="w-full justify-center py-3" href="/auth/login">
           {t("login")}
@@ -50,9 +48,6 @@ export default function Page({ requestId, isRequestExpired, csrfToken }: PagePro
   const Expired = () => {
     return (
       <div className="text-center">
-        <div className="mb-8 flex justify-center">
-          <span className="text-2xl font-bold text-gray-900">Cal ID</span>
-        </div>
         <h1 className="text-emphasis text-3xl font-bold">{t("whoops")}</h1>
         <h2 className="text-emphasis mb-4 text-2xl font-bold">{t("request_is_expired")}</h2>
         <p className="text-subtle mb-8">{t("request_is_expired_instructions")}</p>
@@ -64,17 +59,14 @@ export default function Page({ requestId, isRequestExpired, csrfToken }: PagePro
   };
 
   return (
-    <div className="bg-primary flex min-h-screen items-center justify-center px-4 sm:px-6 lg:px-8">
-      <div className="border-subtle w-full max-w-lg rounded-2xl border p-8 shadow-xl">
+    <div className="bg-default flex flex-col min-h-screen items-center justify-center px-4 sm:px-6 lg:px-8">
+      <div className="border-default w-full max-w-lg rounded-2xl border p-8 shadow-xl">
         {isRequestExpired ? (
           <Expired />
         ) : success ? (
           <Success />
         ) : (
           <div className="text-center">
-            <div className="mb-8 flex justify-center">
-              <span className="text-2xl font-bold text-gray-900">Cal ID</span>
-            </div>
             <h1 className="text-emphasis mb-8 text-3xl font-bold">{t("reset_password")}</h1>
             <Form
               className="space-y-6"
@@ -107,7 +99,7 @@ export default function Page({ requestId, isRequestExpired, csrfToken }: PagePro
                 color="primary"
                 type="submit"
                 disabled={loading || isEmpty}
-                className="w-full justify-center py-3">
+                className="w-full justify-center py-3 bg-active dark:bg-gray-200 border-active dark:border-default">
                 {t("reset_password")}
               </Button>
             </Form>
@@ -118,6 +110,11 @@ export default function Page({ requestId, isRequestExpired, csrfToken }: PagePro
             </div>
           </div>
         )}
+      </div>
+      <div className="mt-8">
+        <div className="mb-8 flex justify-center">
+          <Logo small icon />
+        </div>
       </div>
     </div>
   );

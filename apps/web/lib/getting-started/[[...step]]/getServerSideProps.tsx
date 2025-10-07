@@ -24,7 +24,6 @@ async function getRequestCountryOrigin(
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req } = context;
-  const country = await getRequestCountryOrigin(req); // Default to IN if country not found
 
   const session = await getServerSession({ req });
 
@@ -42,15 +41,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   let currentOnboardingStep: string | undefined = undefined;
-
-  console.log(
-    "Can redirect: ",
-    user,
-    " and ",
-    context.params?.step == undefined && user.metadata
-    // isPrismaObj(user.metadata) &&
-    // user.metadata.hasOwnProperty("currentOnboardingStep")
-  );
 
   //to handle the case where the user has already reached a step in the onboarding process
   if (
@@ -72,6 +62,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     });
   }
 
+  const country = await getRequestCountryOrigin(req); // Default to IN if country not found
   return {
     props: {
       hasPendingInvites: user.teams.find((team) => team.accepted === false) ?? false,

@@ -5,12 +5,11 @@ import { triggerToast } from "@calid/features/ui/components/toast";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter as useAppRouter } from "next/navigation";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 
 import { useEventTypeForm } from "@calcom/atoms/event-types/hooks/useEventTypeForm";
 import { useHandleRouteChange } from "@calcom/atoms/event-types/hooks/useHandleRouteChange";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import Shell from "@calcom/features/shell/Shell";
 import { WEBSITE_URL } from "@calcom/lib/constants";
@@ -41,6 +40,7 @@ import { EventSetup } from "../components/tabs/event-types-setup";
 import { EventTeamAssignmentTab } from "../components/tabs/event-types-team-assignment";
 import { EventWebhooks } from "../components/tabs/event-types-webhook";
 import { EventWorkflows } from "../components/tabs/event-types-workflows";
+import { isManagedEventType } from "../utils/event-types-utils";
 import { TabSkeleton } from "./tab-skeleton";
 
 // import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
@@ -87,14 +87,9 @@ export const EventTypeWebWrapper = ({
   data: serverFetchedData,
   calIdTeamId,
 }: EventTypeWebWrapperProps) => {
-  const resolvedCalIdTeamId =
-    calIdTeamId || (serverFetchedData as CalIdEventTypeData)?.eventType?.calIdTeamId;
+  const resolvedCalIdTeamId = calIdTeamId || (serverFetchedData as any)?.eventType?.calIdTeamId;
 
-  const {
-    data: eventTypeQueryData,
-    error: eventTypeQueryError,
-    isPending,
-  } = trpc.viewer.eventTypes.calid_get.useQuery(
+  const { data: eventTypeQueryData } = trpc.viewer.eventTypes.calid_get.useQuery(
     { id },
     { enabled: !serverFetchedData && !!resolvedCalIdTeamId }
   );
@@ -159,8 +154,34 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
 
   // For CalId, use calIdTeam data if team is not available
   const effectiveTeam = team || (eventType as any).calIdTeam;
-  const effectiveTeamMembers =
-    teamMembers?.length > 0 ? teamMembers : (eventType as any).calIdTeam?.members || [];
+  const effectiveTeamMembers = useMemo(() => {
+    const members = teamMembers?.length > 0 ? teamMembers : (eventType as any).calIdTeam?.members || [];
+    return members.map((member: any) => {
+      if (member.user) {
+        return member;
+      }
+
+      return {
+        user: {
+          id: member.id,
+          name: member.name,
+          email: member.email,
+          avatar: member.avatar,
+          avatarUrl: member.avatarUrl,
+          username: member.username,
+          locale: member.locale,
+          defaultScheduleId: member.defaultScheduleId,
+          isPlatformManaged: member.isPlatformManaged,
+          timeZone: member.timeZone,
+          nonProfileUsername: member.nonProfileUsername,
+          profile: member.profile,
+          profileId: member.profileId,
+          eventTypes: member.eventTypes,
+        },
+        membership: member.membership,
+      };
+    });
+  }, [teamMembers, eventType]);
 
   // Ensure users array exists and has at least one user
   if (!eventType.users || eventType.users.length === 0) {
@@ -282,11 +303,12 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
   }
 
   // URL and branding
-  const orgBranding = useOrgBranding();
-  const bookerUrl = orgBranding ? orgBranding?.fullDomain : WEBSITE_URL;
+  const bookerUrl = WEBSITE_URL;
 
   const permalink = `${bookerUrl}/${
-    effectiveTeam ? `team/${effectiveTeam.slug}` : getEventTypeUsername()
+    effectiveTeam && form?.getValues("schedulingType") !== SchedulingType.MANAGED
+      ? `team/${effectiveTeam.slug}`
+      : getEventTypeUsername()
   }/${slug}`;
 
   let embedLink;
@@ -295,11 +317,15 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
     const formSlug = form?.getValues("slug");
 
     embedLink = `${
-      effectiveTeam ? `team/${effectiveTeam.slug}` : formUsers?.[0]?.username || getEventTypeUsername()
+      effectiveTeam && form?.getValues("schedulingType") !== SchedulingType.MANAGED
+        ? `team/${effectiveTeam.slug}`
+        : formUsers?.[0]?.username || getEventTypeUsername()
     }/${formSlug || slug}`;
   } catch (error) {
     embedLink = `${
-      effectiveTeam ? `team/${effectiveTeam.slug}` : eventType.users?.[0]?.username || "unknown"
+      effectiveTeam && eventType.schedulingType !== SchedulingType.MANAGED
+        ? `team/${effectiveTeam.slug}`
+        : eventType.users?.[0]?.username || "unknown"
     }/${slug}`;
   }
 
@@ -315,6 +341,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
   } catch (error) {
     hasPermsToDelete = true; // Default to allowing delete if there's an error
   }
+
   const connectedCalendarsQuery = trpc.viewer.calendars.connectedCalendars.useQuery();
 
   // Tab content mapping
@@ -339,11 +366,11 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
     team: (() => {
       return (
         <EventTeamAssignmentTab
-          orgId={orgBranding?.id ?? null}
+          orgId={null}
           teamMembers={effectiveTeamMembers}
           team={effectiveTeam}
           eventType={eventType}
-          isSegmentApplicable={!!orgBranding?.id}
+          isSegmentApplicable={false}
         />
       );
     })(),
@@ -376,7 +403,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
     webhooks: <EventWebhooks eventType={eventType as any} />,
     ai: <div />,
     // <EventAITab eventType={eventType} isTeamEvent={!!team} />
-    embed: <EventEmbed calLink={embedLink} />,
+    embed: <EventEmbed eventId={eventType.id} calLink={embedLink} />,
   } as const;
 
   // Route change handling
@@ -400,7 +427,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
   });
 
   // Conflict handling
-  const _onConflict = (conflicts: ChildrenEventType[]) => {
+  const onConflict = (conflicts: ChildrenEventType[]) => {
     setSlugExistsChildrenDialogOpen(conflicts);
   };
 
@@ -410,6 +437,9 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
     if (tabItem.name === "Team") {
       const shouldShowTeamTab = !!effectiveTeam;
       return shouldShowTeamTab;
+    }
+    if (tabItem.name === "Embed") {
+      return !isManagedEventType(eventType as any);
     }
     return true;
   });
@@ -492,7 +522,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
         />
 
         {/* Content */}
-        <div className="bg-background py-4">
+        <div className="bg-background pb-4">
           <div className="mx-auto max-w-none">
             <Form
               form={form}

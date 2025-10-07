@@ -31,7 +31,7 @@ export const EventTypeEditPageSkeleton = () => {
   const SetupTabSkeleton = () => (
     <div className="space-y-6">
       {/* Title and Description Section */}
-      <SkeletonContainer className="bg-primary rounded-lg border border-gray-200 p-6">
+      <SkeletonContainer className="bg-primary rounded-lg border border-default p-6">
         <div className="space-y-4">
           <SkeletonText className="h-6 w-48" />
           <SkeletonText className="h-4 w-96" />
@@ -43,7 +43,7 @@ export const EventTypeEditPageSkeleton = () => {
       </SkeletonContainer>
 
       {/* Duration Section */}
-      <SkeletonContainer className="bg-primary rounded-lg border border-gray-200 p-6">
+      <SkeletonContainer className="bg-primary rounded-lg border border-default p-6">
         <div className="space-y-4">
           <SkeletonText className="h-6 w-32" />
           <div className="flex space-x-4">
@@ -54,7 +54,7 @@ export const EventTypeEditPageSkeleton = () => {
       </SkeletonContainer>
 
       {/* Location Section */}
-      <SkeletonContainer className="bg-primary rounded-lg border border-gray-200 p-6">
+      <SkeletonContainer className="bg-primary rounded-lg border border-default p-6">
         <div className="space-y-4">
           <SkeletonText className="h-6 w-24" />
           <div className="space-y-2">
@@ -70,7 +70,7 @@ export const EventTypeEditPageSkeleton = () => {
     <Shell heading="Edit Event" subtitle="Edit your event type" backPath="/event-types" CTA={ctaSkeleton}>
       <div className="bg-background min-h-screen">
         {/* Horizontal tabs skeleton */}
-        <div className="bg-primary border-b border-gray-200">
+        <div className="bg-primary border-b border-default">
           <div className="flex space-x-8">
             {tabs.map((tab, index) => (
               <div

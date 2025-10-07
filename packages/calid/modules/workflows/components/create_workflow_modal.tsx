@@ -5,14 +5,9 @@ import { Dialog, DialogContent, DialogHeader } from "@calid/features/ui/componen
 import { Input } from "@calid/features/ui/components/input/input";
 import { Label } from "@calid/features/ui/components/label";
 import { RadioGroup, RadioGroupItem } from "@calid/features/ui/components/radio-group";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@calid/features/ui/components/select";
 import React, { useState } from "react";
+
+import { Select } from "@calcom/ui/components/form";
 
 interface CreateWorkflowModalProps {
   open: boolean;
@@ -95,18 +90,13 @@ export const CreateWorkflowModal: React.FC<CreateWorkflowModalProps> = ({
         <div className="space-y-6">
           <div>
             <Label className="text-base font-medium">Trigger workflow</Label>
-            <Select value={selectedTrigger} onValueChange={handleTriggerChange}>
-              <SelectTrigger className="mt-2">
-                <SelectValue placeholder="Select trigger..." />
-              </SelectTrigger>
-              <SelectContent className="bg-default border-default z-50 border shadow-lg  ">
-                {triggerOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Select
+              value={triggerOptions.find((option) => option.value === selectedTrigger) || null}
+              onChange={(option) => handleTriggerChange(option?.value || "")}
+              options={triggerOptions}
+              placeholder="Select trigger..."
+              className="mt-2"
+            />
           </div>
 
           {showTiming && (
@@ -138,16 +128,22 @@ export const CreateWorkflowModal: React.FC<CreateWorkflowModalProps> = ({
                     className="w-20"
                     min="1"
                   />
-                  <Select value={timingUnit} onValueChange={setTimingUnit}>
-                    <SelectTrigger className="w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-default border-default z-50 border shadow-lg  ">
-                      <SelectItem value="minutes">minutes</SelectItem>
-                      <SelectItem value="hours">hours</SelectItem>
-                      <SelectItem value="days">days</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Select
+                    value={
+                      [
+                        { value: "minutes", label: "minutes" },
+                        { value: "hours", label: "hours" },
+                        { value: "days", label: "days" },
+                      ].find((option) => option.value === timingUnit) || null
+                    }
+                    onChange={(option) => setTimingUnit(option?.value || "hours")}
+                    options={[
+                      { value: "minutes", label: "minutes" },
+                      { value: "hours", label: "hours" },
+                      { value: "days", label: "days" },
+                    ]}
+                    className="w-32"
+                  />
                 </div>
               )}
 
@@ -161,18 +157,12 @@ export const CreateWorkflowModal: React.FC<CreateWorkflowModalProps> = ({
           {showTiming && (
             <div className="animate-fade-in space-y-4">
               <Label className="text-base font-medium">Actions</Label>
-              <Select value={selectedAction} onValueChange={setSelectedAction}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select action..." />
-                </SelectTrigger>
-                <SelectContent className="bg-default border-default z-50 border shadow-lg ">
-                  {actionOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Select
+                value={actionOptions.find((option) => option.value === selectedAction) || null}
+                onChange={(option) => setSelectedAction(option?.value || "")}
+                options={actionOptions}
+                placeholder="Select action..."
+              />
             </div>
           )}
 

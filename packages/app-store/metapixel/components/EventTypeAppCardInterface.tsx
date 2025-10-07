@@ -16,7 +16,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       app={app}
       switchOnClick={updateEnabled}
       switchChecked={enabled}
-      teamId={eventType.team?.id || undefined}>
+      teamId={eventType.team?.id || undefined}
+      calIdTeamId={(eventType as any).calIdTeamId || undefined}>
       <EventTypeAppSettingsInterface
         eventType={eventType}
         slug={app.slug}

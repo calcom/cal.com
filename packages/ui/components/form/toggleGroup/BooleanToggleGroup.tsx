@@ -63,7 +63,7 @@ export const BooleanToggleGroup = function BooleanToggleGroup({
 
   const selectedClass = classNames(
     commonClass,
-    "bg-cal-active text-default shadow-[0px_2px_3px_0px_rgba(0,0,0,0.03),0px_2px_2px_-1px_rgba(0,0,0,0.03)]"
+    "bg-brand-default text-brand shadow-[0px_2px_3px_0px_rgba(0,0,0,0.03),0px_2px_2px_-1px_rgba(0,0,0,0.03)]"
   );
   const unselectedClass = classNames(
     commonClass,

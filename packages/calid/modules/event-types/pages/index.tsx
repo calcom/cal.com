@@ -1,15 +1,14 @@
 "use client";
 
+import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { z } from "zod";
 
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { trpc } from "@calcom/trpc/react";
 
@@ -32,9 +31,7 @@ const querySchema = z.object({
 
 export const EventTypes = () => {
   const router = useRouter();
-  const { t } = useLocale();
   const { copyToClipboard } = useCopy();
-  const orgBranding = useOrgBranding();
   const { data: sessionData } = useSession();
 
   // URL state management
@@ -57,6 +54,7 @@ export const EventTypes = () => {
   });
 
   const newDropdownRef = useRef<HTMLDivElement>(null);
+
   const debouncedSearchTerm = useDebounce(searchQuery, 500);
 
   const userEventGroupsQuery = trpc.viewer.eventTypes.calid_getUserEventGroups.useQuery();
@@ -76,25 +74,45 @@ export const EventTypes = () => {
     return eventTypeGroups.find((group) => group.teamId?.toString() === selectedTeam);
   }, [eventTypeGroups, selectedTeam]);
 
-  const eventTypesQuery = trpc.viewer.eventTypes.calid_getEventTypesFromGroup.useQuery({
-    limit: LIMIT,
-    searchQuery: debouncedSearchTerm,
-    group: {
-      calIdTeamId: currentTeam?.teamId || null,
-      parentId: currentTeam?.parentId || null,
+  const eventTypesQuery = trpc.viewer.eventTypes.calid_getEventTypesFromGroup.useInfiniteQuery(
+    {
+      limit: LIMIT,
+      searchQuery: debouncedSearchTerm,
+      group: {
+        calIdTeamId: currentTeam?.teamId || null,
+        parentId: currentTeam?.parentId || null,
+      },
     },
-  });
+    {
+      getNextPageParam: (lastPage) => {
+        // Add logging to debug the response
+        console.log("Last page:", lastPage);
+        return lastPage.nextCursor;
+      },
+      initialCursor: 0, // Add initial cursor
+    }
+  );
+
+  const buttonInView = useInViewObserver(() => {
+    if (!eventTypesQuery.isFetching && eventTypesQuery.hasNextPage && eventTypesQuery.status === "success") {
+      eventTypesQuery.fetchNextPage();
+    }
+  }, null);
+
+  console.log("Has next page:", eventTypesQuery.hasNextPage);
+  console.log("Pages:", eventTypesQuery.data?.pages);
 
   const { mutations, handlers } = useEventTypesMutations(currentTeam, debouncedSearchTerm);
 
   const filteredEvents = useMemo(() => {
-    const allEvents = eventTypesQuery.data?.eventTypes || [];
+    const allEvents = eventTypesQuery.data?.pages.flatMap((page) => page.eventTypes) || [];
+    if (!debouncedSearchTerm) return allEvents;
     return allEvents.filter(
       (event) =>
         event.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
         event.description?.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
     );
-  }, [eventTypesQuery.data?.eventTypes, debouncedSearchTerm]);
+  }, [eventTypesQuery.data?.pages, debouncedSearchTerm]);
 
   // Initialize event states from real data
   useEffect(() => {
@@ -124,11 +142,8 @@ export const EventTypes = () => {
 
   // Booker URL logic
   const bookerUrl = useMemo(() => {
-    if (orgBranding) {
-      return orgBranding.fullDomain;
-    }
     return process.env.NEXT_PUBLIC_WEBSITE_URL || "https://cal.id";
-  }, [orgBranding]);
+  }, []);
 
   // Event handlers
   const handleCreateEvent = useCallback((_eventData: unknown) => {
@@ -163,10 +178,11 @@ export const EventTypes = () => {
 
   const handleReorderEvents = useCallback(
     (reorderedEvents: InfiniteEventType[]) => {
-      const allEvents = eventTypesQuery.data?.eventTypes || [];
+      // Changed from eventTypesQuery.data?.eventTypes to get first page's events
+      const allEvents = eventTypesQuery.data?.pages[0]?.eventTypes || [];
       handlers.handleReorderEvents(reorderedEvents, allEvents);
     },
-    [handlers, eventTypesQuery.data?.eventTypes]
+    [handlers, eventTypesQuery.data?.pages]
   );
 
   const handleNewSelection = useCallback((teamId: string) => {
@@ -241,53 +257,55 @@ export const EventTypes = () => {
 
   return (
     <div className="bg-background min-h-screen">
-      {/* Team Tabs */}
-      <TeamTabs
-        eventTypeGroups={eventTypeGroups}
-        profiles={profiles}
-        selectedTeam={selectedTeam}
-        onTeamChange={handleTeamChange}
-      />
+      {/* Responsive Container */}
+      <div className="mx-auto w-full ">
+        {/* Team Tabs */}
+        <TeamTabs
+          eventTypeGroups={eventTypeGroups}
+          profiles={profiles}
+          selectedTeam={selectedTeam}
+          onTeamChange={handleTeamChange}
+        />
 
-      {/* Header with Search and New Button */}
-      <EventTypesHeader
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        currentTeam={currentTeam}
-        bookerUrl={bookerUrl}
-        copiedPublicLink={copiedPublicLink}
-        onCopyPublicLink={handleCopyPublicLink}
-        showNewDropdown={showNewDropdown}
-        onToggleNewDropdown={() => setShowNewDropdown(!showNewDropdown)}
-        onNewSelection={handleNewSelection}
-        eventTypeGroups={eventTypeGroups}
-        newDropdownRef={newDropdownRef}
-      />
+        {/* Header with Search and New Button */}
+        <EventTypesHeader
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          currentTeam={currentTeam}
+          bookerUrl={bookerUrl}
+          copiedPublicLink={copiedPublicLink}
+          onCopyPublicLink={handleCopyPublicLink}
+          showNewDropdown={showNewDropdown}
+          onToggleNewDropdown={() => setShowNewDropdown(!showNewDropdown)}
+          onNewSelection={handleNewSelection}
+          eventTypeGroups={eventTypeGroups}
+          newDropdownRef={newDropdownRef}
+        />
 
-      {/* Main Content */}
-      <EventTypesContent
-        isLoading={eventTypesQuery.isLoading && !eventTypesQuery.data}
-        filteredEvents={filteredEvents}
-        selectedTeam={selectedTeam}
-        currentTeam={currentTeam}
-        eventStates={eventStates}
-        copiedLink={copiedLink}
-        bookerUrl={bookerUrl}
-        debouncedSearchTerm={debouncedSearchTerm}
-        hasNextPage={false}
-        isFetchingNextPage={false}
-        onEventEdit={handlers.handleEventEdit}
-        onCopyLink={handleCopyLink}
-        onToggleEvent={handleToggleEvent}
-        onDuplicateEvent={handleDuplicateEvent}
-        onDeleteEvent={handleDeleteEvent}
-        onReorderEvents={handleReorderEvents}
-        onLoadMore={() => {
-          // No pagination needed for regular query
-        }}
-        onCreatePersonal={() => setIsCreateModalOpen(true)}
-        onCreateTeam={() => setIsCreateTeamModalOpen(true)}
-      />
+        {/* Main Content */}
+        <EventTypesContent
+          isLoading={eventTypesQuery.isLoading && !eventTypesQuery.data}
+          filteredEvents={filteredEvents}
+          selectedTeam={selectedTeam}
+          currentTeam={currentTeam}
+          eventStates={eventStates}
+          copiedLink={copiedLink}
+          bookerUrl={bookerUrl}
+          debouncedSearchTerm={debouncedSearchTerm}
+          hasNextPage={eventTypesQuery.hasNextPage ?? false}
+          isFetchingNextPage={eventTypesQuery.isFetchingNextPage}
+          onEventEdit={handlers.handleEventEdit}
+          onCopyLink={handleCopyLink}
+          onToggleEvent={handleToggleEvent}
+          onDuplicateEvent={handleDuplicateEvent}
+          onDeleteEvent={handleDeleteEvent}
+          onReorderEvents={handleReorderEvents}
+          onLoadMore={() => eventTypesQuery.fetchNextPage()}
+          onCreatePersonal={() => setIsCreateModalOpen(true)}
+          onCreateTeam={() => setIsCreateTeamModalOpen(true)}
+          buttonInViewRef={buttonInView}
+        />
+      </div>
 
       {/* Modals */}
       <CreateEventModal

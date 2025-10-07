@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@calid/features/ui/components/button";
+import { BlankCard } from "@calid/features/ui/components/card";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { useReducer, Suspense } from "react";
 
@@ -9,7 +10,6 @@ import DisconnectIntegrationModal from "@calcom/features/apps/components/Disconn
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
 
 export type UpdateUsersDefaultConferencingAppParams = {
@@ -101,7 +101,7 @@ const InstalledConferencingApps = ({
 
   if (result.items.length === 0) {
     return (
-      <EmptyScreen
+      <BlankCard
         Icon="calendar"
         headline={t("no_category_apps", {
           category: t("conferencing").toLowerCase(),

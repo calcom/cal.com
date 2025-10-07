@@ -1,10 +1,10 @@
+import { BlankCard } from "@calid/features/ui/components/card";
 import { useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
 import React from "react";
 
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 type AppsLayoutProps = {
   children: React.ReactNode;
@@ -22,7 +22,7 @@ export default function AppsLayout({ children, actions, emptyStore, isAdmin, ...
       <div className="flex flex-col xl:flex-row">
         <main className="w-full">
           {emptyStore ? (
-            <EmptyScreen
+            <BlankCard
               Icon="circle-alert"
               headline={isAdmin ? t("no_apps") : t("no_apps_configured")}
               description={isAdmin ? t("enable_in_settings") : t("please_contact_admin")}

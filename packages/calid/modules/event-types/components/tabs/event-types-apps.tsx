@@ -1,4 +1,3 @@
-import { Alert } from "@calid/features/ui/components/alert";
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
 import Link from "next/link";
@@ -11,7 +10,6 @@ import EventTypeAppContext from "@calcom/app-store/EventTypeAppContext";
 import { EventTypeAddonMap } from "@calcom/app-store/apps.browser.generated";
 import type { EventTypeAppCardComponentProps, CredentialOwner } from "@calcom/app-store/types";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
-import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { EventTypeSetupProps, FormValues } from "@calcom/features/eventtypes/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import useAppsData from "@calcom/lib/hooks/useAppsData";
@@ -20,7 +18,11 @@ import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
+import { Alert } from "@calcom/ui/components/alert";
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
+
+import { isChildrenManagedEventType, isManagedEventType } from "../../utils/event-types-utils";
+import { FieldPermissionIndicator, useFieldPermissions } from "./hooks/useFieldPermissions";
 
 export type EventTypeApp = RouterOutputs["viewer"]["apps"]["calid_integrations"]["items"][number] & {
   credentialOwner?: CredentialOwner;
@@ -135,22 +137,40 @@ const EventTypeAppCard = ({
   );
 };
 
-const useAppCategorization = (eventTypeApps: any) => {
+const useAppCategorization = (eventTypeApps: any, hasTeamContext = false, isChildrenManaged = false) => {
   const installedApps = useMemo(() => {
-    return (
-      eventTypeApps?.items.filter(
-        (app: any) => (app.userCredentialIds?.length || 0) > 0 || (app.calIdTeams?.length || 0) > 0
-      ) || []
-    );
-  }, [eventTypeApps]);
+    if (hasTeamContext) {
+      // For team events, show both user and team apps
+      return (
+        eventTypeApps?.items.filter(
+          (app: any) => (app.userCredentialIds?.length || 0) > 0 || (app.calIdTeams?.length || 0) > 0
+        ) || []
+      );
+    }
+    if (isChildrenManaged) {
+      // For children managed events, only show team apps (from the managed event)
+      return eventTypeApps?.items.filter((app: any) => (app.calIdTeams?.length || 0) > 0) || [];
+    }
+    // For regular personal events, only show user apps (not team apps)
+    return eventTypeApps?.items.filter((app: any) => (app.userCredentialIds?.length || 0) > 0) || [];
+  }, [eventTypeApps, hasTeamContext, isChildrenManaged]);
 
   const notInstalledApps = useMemo(() => {
-    return (
-      eventTypeApps?.items.filter(
-        (app: any) => (app.userCredentialIds?.length || 0) === 0 && (app.calIdTeams?.length || 0) === 0
-      ) || []
-    );
-  }, [eventTypeApps]);
+    if (hasTeamContext) {
+      // For team events, show available apps that can be installed
+      return (
+        eventTypeApps?.items.filter(
+          (app: any) => (app.userCredentialIds?.length || 0) === 0 && (app.calIdTeams?.length || 0) === 0
+        ) || []
+      );
+    }
+    if (isChildrenManaged) {
+      // For children managed events, show no available apps (they inherit from managed event)
+      return [];
+    }
+    // For regular personal events, only show apps that don't have user credentials
+    return eventTypeApps?.items.filter((app: any) => (app.userCredentialIds?.length || 0) === 0) || [];
+  }, [eventTypeApps, hasTeamContext, isChildrenManaged]);
 
   const appsWithTeamCredentials = useMemo(() => {
     return eventTypeApps?.items.filter((app: any) => (app.calIdTeams?.length || 0) > 0) || [];
@@ -169,12 +189,16 @@ const useTeamAppCards = (
   getAppDataSetter: any,
   eventType: EventType,
   eventTypeFormMetadata: any,
-  shouldLockDisableProps: any
+  disabled = false,
+  isChildrenManaged = false
 ) => {
   return useMemo(() => {
     return appsWithTeamCredentials.map((app) => {
       const appCards: JSX.Element[] = [];
-      if ((app.userCredentialIds?.length || 0) > 0) {
+
+      // For children managed events, only show team credentials (not user credentials)
+      // since they inherit from the managed event
+      if (!isChildrenManaged && (app.userCredentialIds?.length || 0) > 0) {
         appCards.push(
           <EventTypeAppCard
             key={`${app.slug}-user`}
@@ -187,6 +211,7 @@ const useTeamAppCards = (
             app={app}
             eventType={eventType}
             eventTypeFormMetadata={eventTypeFormMetadata}
+            disabled={disabled}
           />
         );
       }
@@ -209,7 +234,7 @@ const useTeamAppCards = (
               }}
               eventType={eventType}
               eventTypeFormMetadata={eventTypeFormMetadata}
-              disabled={shouldLockDisableProps("apps").disabled}
+              disabled={disabled}
             />
           );
         }
@@ -223,41 +248,41 @@ const useTeamAppCards = (
     getAppDataSetter,
     eventType,
     eventTypeFormMetadata,
-    shouldLockDisableProps,
+    disabled,
+    isChildrenManaged,
   ]);
 };
 
-/**
- * Main EventApps component
- * Manages the complete app integration interface for event types
- * Handles both installed apps and available apps from the app store
- * Includes permission management for managed event types
- */
 export const EventApps = ({ eventType, customClassNames = {} }: EventAppsTabProps) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
 
+  // Check if this is a children managed event type or team managed event type
+  const isChildrenManaged = isChildrenManagedEventType(eventType as any);
+  const isTeamManaged = isManagedEventType(eventType as any);
+
+  // Field permissions management for managed events
+  const fieldPermissions = useFieldPermissions({ eventType: eventType as any, translate: t, formMethods });
+  const appsDisableProps = fieldPermissions.getFieldState("apps");
+  const lockedText = appsDisableProps.isLocked ? "locked" : "unlocked";
+
   // Fetch app integrations data for the current team/user
+  const hasTeamContext = !!(eventType as any).calIdTeamId;
   const { data: eventTypeApps, isPending } = trpc.viewer.apps.calid_integrations.useQuery({
     extendsFeature: "EventType",
-    calIdTeamId: eventType.calIdTeamId || undefined,
+    calIdTeamId: (eventType as any).calIdTeamId || undefined,
+    includeCalIdTeamInstalledApps: hasTeamContext || isChildrenManaged,
   });
 
   // Categorize apps based on installation status
-  const { installedApps, notInstalledApps, appsWithTeamCredentials } = useAppCategorization(eventTypeApps);
+  const { installedApps, notInstalledApps, appsWithTeamCredentials } = useAppCategorization(
+    eventTypeApps,
+    hasTeamContext,
+    isChildrenManaged
+  );
 
   // Initialize app data management hooks
   const { getAppDataGetter, getAppDataSetter, eventTypeFormMetadata } = useAppsData();
-
-  // Handle locked field management for managed event types
-  const { shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager({
-    eventType,
-    translate: t,
-    formMethods,
-  });
-
-  const appsDisableProps = shouldLockDisableProps("apps", { simple: true });
-  const lockedText = appsDisableProps.isLocked ? "locked" : "unlocked";
 
   // Generate app cards for team credentials
   const teamAppCards = useTeamAppCards(
@@ -266,58 +291,51 @@ export const EventApps = ({ eventType, customClassNames = {} }: EventAppsTabProp
     getAppDataSetter,
     eventType,
     eventTypeFormMetadata,
-    shouldLockDisableProps
+    appsDisableProps.isDisabled,
+    isChildrenManaged
   );
 
-  // Render user-only apps (apps without team credentials)
   const userOnlyApps = useMemo(() => {
+    // Show user-only apps (apps without team credentials) for all event types (matching Cal.com behavior)
     return installedApps.filter((app: any) => (app.calIdTeams?.length || 0) === 0);
   }, [installedApps]);
 
   return (
     <div className={classNames("block items-start", customClassNames.container)}>
       <div className="flex flex-col gap-4 before:border-0">
-        {/* Managed Event Type Permission Alert */}
-        {(isManagedEventType || isChildrenManagedEventType) && (
+        {(isTeamManaged || isChildrenManaged) && (
           <Alert
             severity={appsDisableProps.isLocked ? "neutral" : "info"}
-            className={classNames("mb-2", customClassNames.alertContainer)}
+            className="mb-2"
             title={
               <ServerTrans
                 t={t}
-                i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}
+                i18nKey={`${lockedText}_${isTeamManaged ? "for_members" : "by_team_admins"}`}
               />
             }
-            message={
-              <div className="flex items-center">
-                <ServerTrans
-                  t={t}
-                  i18nKey={`apps_${lockedText}_${
-                    isManagedEventType ? "for_members" : "by_team_admins"
-                  }_description`}
-                />
-                <div className="ml-2 flex h-full items-center">{appsDisableProps.LockedIcon}</div>
+            actions={
+              <div className="flex h-full items-center">
+                <FieldPermissionIndicator fieldName="apps" fieldPermissions={fieldPermissions} t={t} />
               </div>
+            }
+            message={
+              <ServerTrans
+                t={t}
+                i18nKey={`apps_${lockedText}_${isTeamManaged ? "for_members" : "by_team_admins"}_description`}
+              />
             }
           />
         )}
 
-        {/* Empty State - No Installed Apps */}
         {!isPending && !installedApps.length && (
           <EmptyScreen
             headline={t("empty_installed_apps_headline")}
             description={t("empty_installed_apps_description")}
             className={customClassNames.emptyScreen}
             buttonRaw={
-              appsDisableProps.disabled ? (
-                <Button StartIcon="lock" color="primary" disabled>
-                  {t("locked_by_team_admin")}
-                </Button>
-              ) : (
-                <Button target="_blank" color="primary" href="/apps">
-                  {t("empty_installed_apps_button")}
-                </Button>
-              )
+              <Button target="_blank" color="primary" href="/apps">
+                {t("empty_installed_apps_button")}
+              </Button>
             }
           />
         )}
@@ -344,14 +362,15 @@ export const EventApps = ({ eventType, customClassNames = {} }: EventAppsTabProp
                 app={app}
                 eventType={eventType}
                 eventTypeFormMetadata={eventTypeFormMetadata}
+                disabled={false}
               />
             </div>
           ))}
         </div>
       </div>
 
-      {/* Available Apps Section - Apps from store not yet installed */}
-      {!appsDisableProps.disabled && (
+      {/* Hide available apps for children managed events (they inherit from managed event) */}
+      {!isChildrenManaged && !appsDisableProps.isDisabled && (
         <div className={classNames("mt-4 rounded-2xl", customClassNames.availableAppsContainer)}>
           {!isPending && notInstalledApps.length > 0 && (
             <>
@@ -363,7 +382,7 @@ export const EventApps = ({ eventType, customClassNames = {} }: EventAppsTabProp
                     i18nKey="available_apps_desc"
                     components={[
                       <Link key="app-store-link" className="cursor-pointer underline" href="/apps">
-                        App Store
+                        {t("app_store")}
                       </Link>,
                     ]}
                   />

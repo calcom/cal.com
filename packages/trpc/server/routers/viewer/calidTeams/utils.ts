@@ -3,16 +3,12 @@ import { z } from "zod";
 
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import { CalIdMembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
-const log = logger.getSubLogger({ prefix: ["calidTeams.utils"] });
-
-// Define types for our implementation
 interface CalIdTeamMember {
   email: string;
   role: CalIdMembershipRole;
@@ -110,26 +106,26 @@ async function processInvite(
       },
     });
 
-    // if (existingUser?.calIdTeams.length) {
-    //   return {
-    //     success: false,
-    //     email: invite.email,
-    //     error: "User is already a member of this team",
-    //   };
-    // }
+    if (existingUser?.calIdTeams.length) {
+      return {
+        success: false,
+        email: invite.email,
+        error: "User is already a member of this team",
+      };
+    }
 
-    // if (existingUser) {
-    //   await createCalIdMembershipForExistingUser(existingUser.id, team.id, invite.role);
-    // } else {
-    //   await createNewTokenForNewUser(invite.email, team, inviterName);
-    // }
+    let token: string | undefined;
+    if (existingUser) {
+      await createCalIdMembershipForExistingUser(existingUser.id, team.id, invite.role);
+    } else {
+      await createUserForInvitation(invite.email, team.id, invite.role);
+      token = await createNewTokenForNewUser(invite.email, team, inviterName);
+    }
 
-    console.log("Sending invite email to:", invite.email);
-    await sendInviteEmail(invite.email, team, inviterName, existingUser, language);
+    await sendInviteEmail(invite.email, team, inviterName, !!existingUser, language, token);
 
     return { success: true, email: invite.email };
   } catch (error) {
-    log.error("Failed to process invite", { error, email: invite.email });
     return {
       success: false,
       email: invite.email,
@@ -153,19 +149,39 @@ async function createCalIdMembershipForExistingUser(
   });
 }
 
-async function createNewTokenForNewUser(email: string, team: CalIdTeamInfo, inviterName: string) {
+export async function createUserForInvitation(email: string, calIdTeamId: number, role: CalIdMembershipRole) {
+  // Create a new user for the invitation
+  const newUser = await prisma.user.create({
+    data: {
+      email,
+      username: email.split("@")[0], // Use email prefix as username
+      verified: false, // User needs to verify their email
+      invitedTo: calIdTeamId,
+    },
+  });
+
+  // Create the membership for the new user
+  const membership = await prisma.calIdMembership.create({
+    data: {
+      userId: newUser.id,
+      calIdTeamId,
+      role,
+      acceptedInvitation: false,
+    },
+  });
+
+  return newUser;
+}
+
+async function createNewTokenForNewUser(email: string, team: CalIdTeamInfo, _inviterName: string) {
   const token = randomBytes(32).toString("hex");
 
-  await prisma.verificationToken.create({
+  const verificationToken = await prisma.verificationToken.create({
     data: {
       identifier: email,
       token,
       expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-      calIdTeam: {
-        connect: {
-          id: team.id,
-        },
-      },
+      calIdTeamId: team.id,
     },
   });
 
@@ -177,29 +193,36 @@ async function sendInviteEmail(
   team: CalIdTeamInfo,
   inviterName: string,
   existingUser: boolean,
-  language: string
+  language: string,
+  token?: string
 ) {
   const translation = await getTranslation(language, "common");
-
-  const token = await createNewTokenForNewUser(email, team, inviterName);
-  const tokenString = `token=${token}`;
 
   let joinLink = null;
   if (existingUser) {
     joinLink = `${WEBAPP_URL}/auth/login?token=${token}&callbackUrl=/settings/teams`;
   } else {
-    joinLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/teams/${team.id}`;
+    joinLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/teams`;
   }
 
-  await sendTeamInviteEmail({
-    to: email,
-    from: inviterName,
-    language: translation,
-    teamName: team.name,
-    joinLink: joinLink,
-    // isCalcomMember: false,
-    language: translation,
-  });
+  try {
+    await sendTeamInviteEmail({
+      to: email,
+      from: inviterName,
+      language: translation,
+      teamName: team.name,
+      joinLink: joinLink,
+      isCalcomMember: false,
+      isAutoJoin: false,
+      isOrg: false,
+      parentTeamName: undefined,
+      isExistingUserMovedToOrg: false,
+      prevLink: null,
+      newLink: null,
+    });
+  } catch (error) {
+    throw error;
+  }
 }
 
 function removeDuplicateInvites(invites: CalIdTeamMember[]): CalIdTeamMember[] {

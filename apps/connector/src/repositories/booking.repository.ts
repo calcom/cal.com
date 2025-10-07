@@ -1,4 +1,5 @@
 import type { GetBookingsInput } from "@/schema/booking.schema";
+
 import kysely from "@calcom/kysely";
 import { getAllUserBookings } from "@calcom/platform-libraries";
 import type { PrismaClient } from "@calcom/prisma";
@@ -15,31 +16,55 @@ export class BookingRepository extends BaseRepository<User> {
     queryParams: GetBookingsInput,
     user: { id: number; email: string; orgId?: number | null }
   ) {
+    // Optional attendee email normalization (uncomment if needed)
     // if (queryParams.attendeeEmail) {
     //   queryParams.attendeeEmail = await this.getAttendeeEmail(queryParams.attendeeEmail, user);
     // }
 
-    const skip = Math.abs(queryParams?.skip ?? 0);
-    const take = Math.abs(queryParams?.take ?? 100);
+    const page = queryParams.page ?? 1;
+    const limit = queryParams.limit ?? 100;
 
-    const fetchedBookings: { bookings: { id: number }[]; totalCount: number } = await getAllUserBookings({
-      bookingListingByStatus: queryParams.status || [],
+    const skip = Math.max(0, (page - 1) * limit);
+    const take = limit;
+
+    // Prepare filters for the internal query
+    const filters = {
+      ...queryParams,
+      status: undefined, // avoid redundancy since status is separately handled
+      userIds: queryParams.userIds?.length ? queryParams.userIds : [],
+    };
+
+    const params = {
+      bookingListingByStatus: Array.isArray(queryParams.status)
+        ? queryParams.status
+        : queryParams.status
+        ? [queryParams.status]
+        : [],
       skip,
       take,
-      filters: {
-        ...queryParams,
-        status: undefined,
-        userIds: []
-      },
+      filters,
       ctx: {
         user,
         prisma: this.prisma,
-        kysely: kysely,
+        kysely,
       },
       sort: this.transformGetBookingsSort(queryParams),
-    });
+    };
 
-    return fetchedBookings;
+    const {
+      bookings,
+      // recurringInfo,
+      totalCount,
+    } = await getAllUserBookings(params);
+
+    return {
+      page,
+      limit,
+      totalCount,
+      totalPages: Math.ceil(totalCount / limit),
+      bookings,
+      // recurringInfo,
+    };
   }
 
   transformGetBookingsSort(queryParams: GetBookingsInput) {
@@ -47,7 +72,7 @@ export class BookingRepository extends BaseRepository<User> {
       !queryParams.sortStart &&
       !queryParams.sortEnd &&
       !queryParams.sortCreated &&
-      !queryParams.sortUpdatedAt
+      !queryParams.sortUpdated
     ) {
       return undefined;
     }
@@ -56,22 +81,39 @@ export class BookingRepository extends BaseRepository<User> {
       sortStart: queryParams.sortStart,
       sortEnd: queryParams.sortEnd,
       sortCreated: queryParams.sortCreated,
-      sortUpdated: queryParams.sortUpdatedAt,
+      sortUpdated: queryParams.sortUpdated,
     };
   }
 
   async getBookingById(id: number, expand: string[] = []) {
-    const includeEventType = expand.includes("team")
-      ? { include: { team: true } }
-      : false;
-
     const booking = await this.prisma.booking.findUnique({
       where: { id },
       include: {
         attendees: true,
         user: true,
         payment: true,
-        eventType: includeEventType,
+        eventType: {
+          select: {
+            id: true,
+            title: true,
+            length: true,
+            slug: true,
+            schedulingType: true,
+            price: true,
+            currency: true,
+            calIdTeamId: true,
+            locations: true,
+            metadata: true,
+            calIdTeam: {
+              select: { id: true, name: true, slug: true },
+            },
+            hosts: {
+              select: {
+                user: { select: { id: true, name: true, email: true } },
+              },
+            },
+          },
+        },
       },
     });
 

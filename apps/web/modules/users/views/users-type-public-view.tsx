@@ -1,7 +1,9 @@
 "use client";
 
 import type { EmbedProps } from "app/WithEmbedSSR";
+import Head from "next/head";
 import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 
 import { BookerWebWrapper as Booker } from "@calcom/atoms/booker";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
@@ -27,42 +29,68 @@ export const getMultipleDurationValue = (
 function Type({
   slug,
   user,
+  userBannerUrl,
   isEmbed,
   booking,
-  userBannerUrl,
   isBrandingHidden,
   eventData,
   orgBannerUrl,
   eventTypes,
   brandColor,
+  faviconUrl,
 }: PageProps) {
   const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const defaultFavicons = document.querySelectorAll('link[rel="icon"]');
+    defaultFavicons.forEach((link) => {
+      link.rel = "icon";
+      // }
+      link.href = faviconUrl;
+      link.type = "image/png";
+    });
+    if (defaultFavicons.length === 0) {
+      const link: HTMLLinkElement = document.createElement("link");
+      link.rel = "icon";
+      link.href = faviconUrl ?? "/favicon.ico";
+      link.type = "image/png";
+      document.head.appendChild(link);
+    }
+  }, [faviconUrl]);
+
   return (
-    <BookingPageErrorBoundary>
-      <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
-        <Booker
-          username={user}
-          brandColor={brandColor}
-          eventSlug={slug}
-          bookingData={booking}
-          hideBranding={isBrandingHidden}
-          eventData={eventData}
-          entity={{ ...eventData.entity, eventTypeId: eventData?.id }}
-          durationConfig={eventData.metadata?.multipleDuration}
-          orgBannerUrl={orgBannerUrl || null}
-          eventTypes={eventTypes}
-          /* TODO: Currently unused, evaluate it is needed-
-           *       Possible alternative approach is to have onDurationChange.
-           */
-          billingAddressRequired={eventData.metadata?.billingAddressRequired}
-          duration={getMultipleDurationValue(
-            eventData.metadata?.multipleDuration,
-            searchParams?.get("duration"),
-            eventData.length
-          )}
-        />
-      </main>
-    </BookingPageErrorBoundary>
+    <>
+      {faviconUrl && (
+        <Head>
+          <link rel="icon" href={faviconUrl} type="image/x-icon" />
+        </Head>
+      )}
+      <BookingPageErrorBoundary>
+        <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
+          <Booker
+            username={user}
+            brandColor={brandColor}
+            eventSlug={slug}
+            bookingData={booking}
+            hideBranding={isBrandingHidden}
+            eventData={eventData}
+            entity={{ ...eventData.entity, eventTypeId: eventData?.id }}
+            durationConfig={eventData.metadata?.multipleDuration}
+            orgBannerUrl={orgBannerUrl || userBannerUrl}
+            eventTypes={eventTypes}
+            /* TODO: Currently unused, evaluate it is needed-
+             *       Possible alternative approach is to have onDurationChange.
+             */
+            billingAddressRequired={eventData.metadata?.billingAddressRequired}
+            duration={getMultipleDurationValue(
+              eventData.metadata?.multipleDuration,
+              searchParams?.get("duration"),
+              eventData.length
+            )}
+          />
+        </main>
+      </BookingPageErrorBoundary>
+    </>
   );
 }
 

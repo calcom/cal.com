@@ -1,5 +1,4 @@
 import type { GetServerSidePropsContext } from "next";
-import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -9,6 +8,7 @@ import { processEventDataShared } from "@calcom/features/eventtypes/lib/getPubli
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
@@ -359,8 +359,6 @@ const getCalIdTeamWithEventsData = async (teamSlug: string, meetingSlug: string)
       }
     }
 
-    console.log("Event Data:", result?.eventTypes);
-
     return result;
   } catch (error) {
     throw error;
@@ -370,7 +368,7 @@ const getCalIdTeamWithEventsData = async (teamSlug: string, meetingSlug: string)
 const getUsersData = async (
   isPrivateTeam: boolean,
   eventTypeId: number,
-  users: Pick<User, "username" | "name">[]
+  users: Pick<User, "username" | "name" | "avatarUrl" | "weekStart">[]
 ) => {
   if (!isPrivateTeam && users.length > 0) {
     return users
@@ -378,6 +376,8 @@ const getUsersData = async (
       .map((user) => ({
         username: user.username ?? "",
         name: user.name ?? "",
+        avatarUrl: user.avatarUrl ?? "",
+        weekStart: user.weekStart,
       }));
   }
   if (!isPrivateTeam && users.length === 0) {
@@ -407,6 +407,10 @@ const getUsersData = async (
           {
             username: data[0].username ?? "",
             name: data[0].name ?? "",
+            weekStart: data[0].weekStart,
+            avatarUrl: data[0].avatarUrl,
+            // profile:data[0].profile,
+            // bookerUrl:
           },
         ]
       : [];

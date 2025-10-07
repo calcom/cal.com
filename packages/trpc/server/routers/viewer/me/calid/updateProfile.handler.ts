@@ -170,14 +170,14 @@ export const calidUpdateProfileHandler = async ({ ctx, input }: CalIdUpdateProfi
         id: user.id,
       },
       select: {
-        calIdTeam: {
+        calIdTeams: {
           select: {
             id: true,
           },
         },
       },
     });
-    if (userCalIdTeams && userCalIdTeams.calIdTeam) {
+    if (userCalIdTeams && userCalIdTeams.calIdTeams) {
       // For calIdTeam, we need to handle event types differently
       // Since calIdTeam doesn't have the same assignAllTeamMembers concept,
       // we'll skip the event type assignment for now

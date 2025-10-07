@@ -1,0 +1,19 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "ViaSocket",
+  "slug": "viasocket",
+  "type": "viasocket_automation",
+  "logo": "icon.jpg",
+  "url": "https://viasocket.com/support",
+  "redirectUrl": "https://viasocket.com/integrations/OneHash_Cal",
+  "variant": "automation",
+  "categories": ["automation"],
+  "publisher": "Cal ID",
+  "email": "support@cal.id",
+  "description": "viaSocket is a no-code, AI-powered workflow automation platform that helps users connect their favorite tools and automate repetitive tasks. When integrated with Cal ID, viaSocket allows users to trigger workflows based on new or updated bookings in Cal ID. Automatically send booking confirmations, reminders, or follow-ups via email, SMS, or messaging apps. Sync scheduling data with tools like Google Sheets, Notion, or CRMs for centralized tracking. Create tasks or events in other platforms based on Cal ID activity, streamlining post-booking actions.This integration empowers users to build seamless, personalized scheduling workflows without writing a single line of code\nDemo : https://app.supademo.com/demo/cm9tl2l400o4h11m7di9ck3jx/edit#ai",
+  "isTemplate": false,
+  "privacyUrl": "https://viasocket.com/privacy",
+  "tosUrl": "https://viasocket.com/terms",
+  "__createdUsingCli": true,
+  "__template": "link-as-an-app"
+}

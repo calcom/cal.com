@@ -142,7 +142,7 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
           </div>
           <div className="space-y-2" data-testid="schedules" ref={animationParentRef}>
             {availabilities.schedules.map((schedule) => (
-              <div key={schedule.id} className="border-subtle bg-default rounded-md border">
+              <div key={schedule.id} className="border-default bg-default rounded-md border">
                 <ScheduleListItem
                   displayOptions={{
                     hour12: user?.timeFormat ? user.timeFormat === 12 : undefined,

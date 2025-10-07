@@ -100,7 +100,7 @@ export default function ThemeCard({
           )}>
           <div
             className={cn(
-              "bg-cal-active h-2.5 w-2.5 rounded-full transition-opacity",
+              "bg-brand-default h-2.5 w-2.5 rounded-full transition-opacity",
               isSelected ? "opacity-100" : "opacity-0"
             )}
           />

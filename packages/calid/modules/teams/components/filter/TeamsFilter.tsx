@@ -36,7 +36,7 @@ export const FilterCheckboxFieldsContainer = ({
   return (
     <div
       className={classNames(
-        "bg-muted flex flex-col gap-0.5 p-2 [&>*:first-child]:mt-1 [&>*:last-child]:mb-1",
+        "bg-default border-default flex flex-col gap-0.5 rounded-md border p-2 [&>*:first-child]:mt-1 [&>*:last-child]:mb-1",
         className
       )}>
       {children}

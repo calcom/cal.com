@@ -48,10 +48,17 @@ export const getCalEventResponses = ({
       backwardCompatibleResponses["attendeePhoneNumber"]
     );
   }
+  //for showing correct Parsed Phone field on Calendar Page
+  const phonefield: Record<string, string> = {
+    number_text_notifications: "Phone Number (text notification)",
+    phone: "Phone Number",
+    phone_number: "Phone Number",
+  };
 
   if (parsedBookingFields) {
     parsedBookingFields.forEach((field) => {
-      const label = field.label || field.defaultLabel;
+      const dynamicLabel = field.defaultLabel ? phonefield[field.defaultLabel] : undefined;
+      const label = dynamicLabel || field.label || field.defaultLabel;
       if (!label) {
         //TODO: This error must be thrown while saving event-type as well so that such an event-type can't be saved
         throw new Error(`Missing label for booking field "${field.name}"`);

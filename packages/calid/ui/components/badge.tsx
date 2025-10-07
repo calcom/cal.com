@@ -15,7 +15,7 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default: "bg-blue-100 text-blue-600",
-        secondary: "bg-muted text-subtle",
+        secondary: "bg-muted dark:bg-default text-subtle",
         destructive: "border bg-destructive text-destructive-foreground",
         outline: "text-default text-sm",
         success: "border bg-primary border-green-600 text-green-600",
@@ -50,7 +50,7 @@ export type BadgeBaseProps = InferredBadgeStyles & {
   rounded?: boolean;
   customStartIcon?: React.ReactNode;
   customDot?: React.ReactNode;
-  isPublicUrl?: boolean;
+  publicUrl?: string | null;
 } & IconOrDot;
 
 export type BadgeProps =
@@ -73,7 +73,7 @@ export const Badge = function Badge(props: BadgeProps) {
     startIcon,
     withDot,
     children,
-    isPublicUrl,
+    publicUrl,
     ...passThroughProps
   } = props;
   const isButton = "onClick" in passThroughProps && passThroughProps.onClick !== undefined;
@@ -83,26 +83,24 @@ export const Badge = function Badge(props: BadgeProps) {
 
   const handleCopyUrl = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (typeof children === "string") {
-      navigator.clipboard.writeText(children).then(() => {
-        setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 1500);
-      });
-    }
+    if (publicUrl === null) return;
+    navigator.clipboard.writeText(publicUrl).then(() => {
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 1500);
+    });
   };
   const handleRedirectUrl = (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    if (typeof children === "string") {
-      let url = children.trim();
+    if (publicUrl === null) return;
+    let url = publicUrl.trim();
 
-      // Check if it already starts with http:// or https://
-      if (!/^https?:\/\//i.test(url)) {
-        url = IS_DEV ? `http://${url}` : `https://${url}`;
-      }
-
-      window.open(url, "_blank");
+    // Check if it already starts with http:// or https://
+    if (!/^https?:\/\//i.test(url)) {
+      url = IS_DEV ? `http://${url}` : `https://${url}`;
     }
+
+    window.open(url, "_blank");
   };
 
   const Children = () => (
@@ -115,7 +113,7 @@ export const Badge = function Badge(props: BadgeProps) {
       {customStartIcon ||
         (StartIcon ? <Icon name={StartIcon} data-testid="start-icon" className="mr-1 h-3 w-3" /> : null)}
       {children}
-      {isPublicUrl && (
+      {publicUrl && (
         <div className="ml-1 flex items-center">
           <Tooltip content={isCopied ? t("copied") : t("copy")}>
             <Button

@@ -24,7 +24,8 @@ import type {
 } from "@calcom/features/eventtypes/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RoundRobinTimestampBasis, SchedulingType } from "@calcom/prisma/enums";
+import type { SchedulingType } from "@calcom/prisma/enums";
+import { RoundRobinTimestampBasis } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
@@ -32,6 +33,7 @@ import { SettingsToggle } from "@calcom/ui/components/form";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
+import { isManagedEventType } from "../../utils/event-types-utils";
 import { AddMembersWithSwitchCalIdWrapper as AddMembersWithSwitch } from "../add-members-switch/AddMembersWithSwitchCalIdWrapper";
 
 export type EventTeamAssignmentTabCustomClassNames = {
@@ -583,6 +585,7 @@ export const EventTeamAssignmentTab = ({
   orgId,
   isSegmentApplicable,
 }: EventTeamAssignmentTabBaseProps) => {
+  // console.log("teamMembers", teamMembers);
   const { t } = useLocale();
 
   const schedulingTypeOptions: {
@@ -631,7 +634,7 @@ export const EventTeamAssignmentTab = ({
     );
   });
 
-  const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
+  const isManagedEvent = isManagedEventType(eventType);
   const { getValues, setValue, control } = useFormContext<FormValues>();
   const [assignAllTeamMembers, setAssignAllTeamMembers] = useState<boolean>(
     getValues("assignAllTeamMembers") ?? false
@@ -650,7 +653,7 @@ export const EventTeamAssignmentTab = ({
 
   return (
     <div className={classNames("space-y-6", customClassNames?.wrapper)}>
-      {team && !isManagedEventType && (
+      {team && !isManagedEvent && (
         <>
           {/* Assignment Type Section */}
           <div className={classNames("space-y-4", customClassNames?.assignmentType?.container)}>
@@ -803,7 +806,7 @@ export const EventTeamAssignmentTab = ({
       )}
 
       {/* Children Event Types Section for Managed Events */}
-      {team && isManagedEventType && (
+      {team && isManagedEvent && (
         <ChildrenEventTypes
           assignAllTeamMembers={assignAllTeamMembers}
           setAssignAllTeamMembers={setAssignAllTeamMembers}

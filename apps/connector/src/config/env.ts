@@ -31,5 +31,6 @@ export const envSchema = {
     UNKEY_ROOT_KEY: { type: "string" },
     UNKEY_NAMESPACE: { type: "string" },
     PATH_PREFIX: { type: "string", default: "/" },
+    DOMAIN: { type: "string", default: "localhost" },
   },
 };

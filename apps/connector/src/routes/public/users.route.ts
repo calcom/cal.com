@@ -5,7 +5,7 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { z } from 'zod';
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { responseSchemas } from "@/schema/response";
-import { userProfileSchema, updateProfileBodySchema, userProfileUpdateResponseSchema, userProfileQueryResponse } from "@/schema/user.schema";
+import { userProfileSchema, updateProfileBodySchema, userProfileUpdateResponseSchema, userProfileQueryResponse, UserResponseSchema } from "@/schema/user.schema";
 import { UserService } from '@/services/public/user.service';
 import { AuthGuards, AuthRequest } from '@/auth/guards';
 import { validateQuery, validateParams } from '@/middlewares/validation';
@@ -43,7 +43,6 @@ export async function userRoutes(fastify: FastifyInstance): Promise<void> {
   const userService = new UserService(prisma);
   // Route with specific auth methods allowed
   fastify.get('/me', { 
-    preHandler: AuthGuards.authenticateFlexible(),
     schema: {
       description: 'Get current user profile',
       tags: ['Users'],
@@ -51,7 +50,7 @@ export async function userRoutes(fastify: FastifyInstance): Promise<void> {
         { bearerAuth: [] },
       ],
       response: {
-        200: zodToJsonSchema(responseSchemas.success(userProfileQueryResponse, 'Current user profile')),
+        200: zodToJsonSchema(responseSchemas.success(UserResponseSchema, 'Current user profile')),
         401: zodToJsonSchema(responseSchemas.unauthorized()),
       },
     },
@@ -70,14 +69,11 @@ export async function userRoutes(fastify: FastifyInstance): Promise<void> {
   });
 
   fastify.put('/edit-profile', { 
-    preHandler: AuthGuards.authenticateFlexible(),
     schema: {
       description: 'Edit user profile',
-      tags: ['API Auth - Users'],
+      tags: ['Users'],
       security: [
-        { bearerAuth: [] },
-        { apiKey: [] },
-      ],
+        { bearerAuth: [] },      ],
       body: zodToJsonSchema(updateProfileBodySchema.omit({avatarUrl: true})),
       response: {
         200: zodToJsonSchema(
@@ -108,15 +104,21 @@ export async function userRoutes(fastify: FastifyInstance): Promise<void> {
   });
 
   fastify.post('/edit-profile/avatar', {
-    preHandler: AuthGuards.authenticateFlexible(),
     schema: {
       description: 'Upload avatar via multipart/form-data',
-      tags: ['API Auth - Users'],
+      tags: ['Users'],
       consumes: ['multipart/form-data'],
-      security: [
-        { bearerAuth: [] },
-        { apiKey: [] },
-      ],
+      security: [ { bearerAuth: [] },],
+      body: {
+      type: 'object',
+      properties: {
+        avatar: {
+          type: 'string',
+          format: 'binary', // <-- important: tells OpenAPI this is a file upload
+        },
+      },
+      required: ['avatar'],
+    },
       response: {
         200: zodToJsonSchema(
           responseSchemas.success(
@@ -166,7 +168,8 @@ export async function userRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.get<{ Params: { user: string } }>('/:user', { 
     schema: {
       description: 'Get user public events',
-      tags: ['API Auth - Users'],
+      tags: ['Users'],
+      security: [ { bearerAuth: [] },],
       response: {
         200: zodToJsonSchema(responseSchemas.success(z.array(userProfileSchema), 'User public events')),
         401: zodToJsonSchema(responseSchemas.unauthorized()),

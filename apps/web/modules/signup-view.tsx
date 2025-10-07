@@ -3,6 +3,7 @@
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
 import { PasswordField, TextField } from "@calid/features/ui/components/input/input";
+import { Logo } from "@calid/features/ui/components/logo";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import dynamic from "next/dynamic";
@@ -181,6 +182,7 @@ export default function Signup({
 
   useEffect(() => {
     if (redirectUrl) {
+      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       localStorage.setItem("onBoardingRedirect", redirectUrl);
     }
   }, [redirectUrl]);
@@ -240,7 +242,10 @@ export default function Signup({
 
         telemetry.event(telemetryEventTypes.signup, collectPageParameters());
 
-        const verifyOrGettingStarted = emailVerificationEnabled ? "auth/verify-email" : "getting-started";
+        //if we have token, means user was invited through email
+        const verifyOrGettingStarted =
+          token || !emailVerificationEnabled ? "getting-started" : "auth/verify-email";
+
         const gettingStartedWithPlatform = "settings/platform/new";
 
         const constructCallBackIfUrlPresent = () => {
@@ -281,16 +286,11 @@ export default function Signup({
 
   return (
     <>
-      <div className="bg-primary flex min-h-screen items-center justify-center p-4">
-        <div className="border-subtle w-full max-w-7xl overflow-hidden rounded-2xl border shadow-xl">
+      <div className="bg-default flex min-h-screen flex-col items-center justify-center p-4">
+        <div className="border-default w-full max-w-7xl overflow-hidden rounded-2xl border shadow-xl">
           <div className="grid min-h-[600px] grid-cols-1 lg:grid-cols-2">
             {/* Left Column - Signup Form */}
             <div className="flex flex-col justify-center p-8 lg:p-12">
-              {/* Header with Logo */}
-              <div className="mb-4 flex items-center self-center lg:self-start">
-                <span className="text-2xl font-bold text-gray-900">Cal ID</span>
-              </div>
-
               <div className="mb-8 self-center lg:self-start">
                 <h1 className="text-emphasis text-2xl font-bold lg:text-3xl">{t("create_your_account")}</h1>
               </div>
@@ -333,12 +333,13 @@ export default function Signup({
                 )}
                 {/* Divider */}
                 {isGoogleLoginEnabled && (
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-gray-300" />
-                    </div>
-                    <div className="relative flex justify-center text-sm">
-                      <span className="text-subtle bg-primary px-2">{t("or_continue_with_email")}</span>
+                  <div className="mb-8">
+                    <div className="relative flex items-center">
+                      <div className="flex-grow border-t border-gray-300" />
+                      <span className="text-subtle mx-4 text-sm font-medium uppercase">
+                        {t("or_continue_with_email")}
+                      </span>
+                      <div className="flex-grow border-t border-gray-300" />
                     </div>
                   </div>
                 )}
@@ -412,7 +413,7 @@ export default function Signup({
                   <Button
                     type="submit"
                     data-testid="signup-submit-button"
-                    className="w-full justify-center py-3"
+                    className="bg-active border-active dark:border-default w-full justify-center py-3 dark:bg-gray-200"
                     loading={loadingSubmitState}
                     disabled={
                       !!formMethods.formState.errors.username ||
@@ -434,17 +435,21 @@ export default function Signup({
               <div className="mt-4">
                 <div className="text-center">
                   <span className="text-subtle">{t("already_have_account")} </span>
-                  <Link href="/auth/login" className="text-active font-medium hover:underline">
+                  <Link
+                    href="/auth/login"
+                    className="text-active dark:text-default font-medium hover:underline">
                     {t("sign_in")}
                   </Link>
                 </div>
                 <div className="text-subtle text-center text-xs">
                   By proceeding, you agree to our{" "}
-                  <Link href={WEBSITE_TERMS_URL} className="text-active hover:underline">
+                  <Link href={WEBSITE_TERMS_URL} className="text-active dark:text-default hover:underline">
                     {t("terms")}
                   </Link>{" "}
                   and{" "}
-                  <Link href={WEBSITE_PRIVACY_POLICY_URL} className="text-active hover:underline">
+                  <Link
+                    href={WEBSITE_PRIVACY_POLICY_URL}
+                    className="text-active dark:text-default hover:underline">
                     {t("privacy_policy")}
                   </Link>
                 </div>
@@ -452,11 +457,13 @@ export default function Signup({
             </div>
 
             {/* Right Column - Welcome Section */}
-            <div className="hidden flex-col justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-8 lg:flex lg:p-12">
+            <div
+              className="hidden flex-col justify-center p-8 lg:flex lg:p-12"
+              style={{ background: "var(--cal-bg-gradient)" }}>
               <div className="text-center lg:text-left">
                 {/* Welcome Title */}
                 <div className="mb-4 space-y-2">
-                  <h2 className="text-empahsis text-3xl font-bold">Welcome to Cal ID</h2>
+                  <h2 className="text-default text-3xl font-bold">Welcome to Cal ID</h2>
 
                   {/* Description */}
                   <span className="text-subtle text-lg leading-relaxed">
@@ -468,9 +475,9 @@ export default function Signup({
                 {/* Features List */}
                 <div className="space-y-2">
                   <div className="flex items-start space-x-2">
-                    <div className="bg-cal-active mt-2 h-2 w-2 flex-shrink-0 rounded-full" />
+                    <div className="bg-cal-active mt-2 h-2 w-2 flex-shrink-0 rounded-full dark:bg-gray-300" />
                     <div>
-                      <h3 className="font-semibold text-gray-900">Smart scheduling algorithms</h3>
+                      <h3 className="text-default font-semibold">Smart scheduling algorithms</h3>
                       <span className="text-subtle text-sm">
                         Automatically find the best meeting times for everyone
                       </span>
@@ -478,9 +485,9 @@ export default function Signup({
                   </div>
 
                   <div className="flex items-start space-x-2">
-                    <div className="bg-cal-active mt-2 h-2 w-2 flex-shrink-0 rounded-full" />
+                    <div className="bg-cal-active mt-2 h-2 w-2 flex-shrink-0 rounded-full dark:bg-gray-300" />
                     <div>
-                      <h3 className="font-semibold text-gray-900">Calendar integrations</h3>
+                      <h3 className="text-default font-semibold">Calendar integrations</h3>
                       <span className="text-subtle text-sm">
                         Connect with Google, Outlook, and other calendar services
                       </span>
@@ -488,9 +495,9 @@ export default function Signup({
                   </div>
 
                   <div className="flex items-start space-x-2">
-                    <div className="bg-cal-active mt-2 h-2 w-2 flex-shrink-0 rounded-full" />
+                    <div className="bg-cal-active mt-2 h-2 w-2 flex-shrink-0 rounded-full dark:bg-gray-300" />
                     <div>
-                      <h3 className="font-semibold text-gray-900">Team collaboration tools</h3>
+                      <h3 className="text-default font-semibold">Team collaboration tools</h3>
                       <span className="text-subtle text-sm">
                         Work together seamlessly with your team members
                       </span>
@@ -499,6 +506,11 @@ export default function Signup({
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+        <div className="mt-8">
+          <div className="mb-4 flex items-center self-center lg:self-start">
+            <Logo small icon />
           </div>
         </div>
         <Toaster position="bottom-center" />

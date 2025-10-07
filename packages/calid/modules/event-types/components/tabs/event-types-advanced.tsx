@@ -11,7 +11,6 @@ import {
   CardTitle,
   CardDescription,
 } from "@calid/features/ui/components/card";
-import { CustomSelect } from "@calid/features/ui/components/custom-select";
 import {
   Dialog,
   DialogContent,
@@ -47,7 +46,6 @@ import {
 import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
-import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { MultiplePrivateLinksController } from "@calcom/features/eventtypes/components";
 // Types
 import type { FormValues, EventTypeSetup, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
@@ -57,11 +55,7 @@ import type { fieldSchema, EditableSchema } from "@calcom/features/form-builder/
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 // Constants and utilities
-import {
-  DEFAULT_LIGHT_BRAND_COLOR,
-  DEFAULT_DARK_BRAND_COLOR,
-  MAX_SEATS_PER_TIME_SLOT,
-} from "@calcom/lib/constants";
+import { MAX_SEATS_PER_TIME_SLOT } from "@calcom/lib/constants";
 import { getEventName, validateCustomEventName } from "@calcom/lib/event";
 import type { EventNameObjectType } from "@calcom/lib/event";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
@@ -71,6 +65,9 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
+import { Select } from "@calcom/ui/components/form";
+
+import { FieldPermissionIndicator, useFieldPermissions } from "./hooks/useFieldPermissions";
 
 type BookingField = z.infer<typeof fieldSchema>;
 export interface EventAdvancedProps {
@@ -105,8 +102,9 @@ const SettingsToggle = ({
   childrenClassName = "",
   labelClassName = "",
   descriptionClassName = "",
-  toggleSwitchAtTheEnd = true,
   "data-testid": dataTestId,
+  fieldPermissions,
+  fieldName,
 }: {
   title: string;
   description?: string;
@@ -122,7 +120,12 @@ const SettingsToggle = ({
   descriptionClassName?: string;
   toggleSwitchAtTheEnd?: boolean;
   "data-testid"?: string;
+  fieldPermissions?: ReturnType<typeof useFieldPermissions>;
+  fieldName?: string;
 }) => {
+  const effectiveDisabled =
+    disabled ||
+    (fieldPermissions && fieldName ? fieldPermissions.getFieldState(fieldName).isDisabled : false);
   return (
     <Card className={classNames(switchContainerClassName)}>
       <CardHeader className="flex flex-row items-start justify-between space-y-0 p-6">
@@ -134,7 +137,7 @@ const SettingsToggle = ({
             {tooltip && (
               <button className="group relative ml-2 rounded-full p-1 hover:bg-gray-100" title={tooltip}>
                 <Icon name="info" className="h-4 w-4 text-gray-400" />
-                <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 transform whitespace-nowrap rounded bg-gray-800 px-3 py-2 text-xs text-default opacity-0 transition-opacity group-hover:opacity-100">
+                <div className="text-default pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 transform whitespace-nowrap rounded bg-gray-800 px-3 py-2 text-xs opacity-0 transition-opacity group-hover:opacity-100">
                   {tooltip}
                 </div>
               </button>
@@ -147,7 +150,7 @@ const SettingsToggle = ({
         <Switch
           checked={checked}
           onCheckedChange={onCheckedChange}
-          disabled={disabled}
+          disabled={effectiveDisabled}
           data-testid={dataTestId}
         />
       </CardHeader>
@@ -297,7 +300,6 @@ const CustomEventNameModal = ({
 const DestinationCalendarSettings = ({
   showConnectedCalendarSettings,
   calendarsQuery,
-  eventNameLocked,
   eventNamePlaceholder,
   setShowEventNameTip,
   verifiedSecondaryEmails,
@@ -307,7 +309,6 @@ const DestinationCalendarSettings = ({
 }: {
   showConnectedCalendarSettings: boolean;
   calendarsQuery: any;
-  eventNameLocked: any;
   eventNamePlaceholder: string;
   setShowEventNameTip: React.Dispatch<React.SetStateAction<boolean>>;
   verifiedSecondaryEmails: { label: string; value: number }[];
@@ -357,10 +358,14 @@ const DestinationCalendarSettings = ({
           <div className="flex flex-row gap-2">
             <div className="w-full">
               <Label className="text-foreground mb-1 text-sm">{t("add_to_calendar")}</Label>
-              <CustomSelect
-                value={selectedSecondaryEmailId !== -1 ? String(selectedSecondaryEmailId) : ""}
-                onValueChange={(val) =>
-                  formMethods.setValue("secondaryEmailId", val ? Number(val) : -1, { shouldDirty: true })
+              <Select
+                value={verifiedSecondaryEmails.find(
+                  (email) => String(email.value) === String(selectedSecondaryEmailId)
+                )}
+                onChange={(option) =>
+                  formMethods.setValue("secondaryEmailId", option ? Number(option.value) : -1, {
+                    shouldDirty: true,
+                  })
                 }
                 options={verifiedSecondaryEmails.map((secondaryEmail) => ({
                   value: String(secondaryEmail.value),
@@ -375,7 +380,6 @@ const DestinationCalendarSettings = ({
               <TextField
                 label={t("event_name_in_calendar")}
                 type="text"
-                {...eventNameLocked}
                 placeholder={eventNamePlaceholder}
                 {...formMethods.register("eventName")}
                 addOnSuffix={
@@ -421,8 +425,6 @@ const CalendarSettings = ({
   verifiedSecondaryEmails,
   userEmail,
   isTeamEventType,
-  isChildrenManagedEventType,
-  eventNameLocked,
   eventNamePlaceholder,
   setShowEventNameTip,
   showToast,
@@ -430,7 +432,7 @@ const CalendarSettings = ({
   const formMethods = useFormContext<FormValues>();
   const isPlatform = useIsPlatform();
 
-  const isConnectedCalendarSettingsApplicable = !isTeamEventType || isChildrenManagedEventType;
+  const isConnectedCalendarSettingsApplicable = !isTeamEventType;
   const isConnectedCalendarSettingsLoading = calendarsQuery.isPending;
   const showConnectedCalendarSettings =
     !!calendarsQuery.data?.connectedCalendars.length && isConnectedCalendarSettingsApplicable;
@@ -472,7 +474,6 @@ const CalendarSettings = ({
         userEmail={userEmail}
         isTeamEventType={isTeamEventType}
         calendarsQuery={calendarsQuery}
-        eventNameLocked={eventNameLocked}
         eventNamePlaceholder={eventNamePlaceholder}
         setShowEventNameTip={setShowEventNameTip}
         showToast={showToast}
@@ -510,19 +511,19 @@ const CalendarSettings = ({
  * Handles confirmation requirements and timing settings
  */
 const RequiresConfirmationController = ({
-  eventType,
   seatsEnabled,
   metadata,
   requiresConfirmation,
   requiresConfirmationWillBlockSlot,
   onRequiresConfirmation,
+  fieldPermissions,
 }: {
-  eventType: any;
   seatsEnabled: boolean;
   metadata: any;
   requiresConfirmation: boolean;
   requiresConfirmationWillBlockSlot?: boolean;
   onRequiresConfirmation: (value: boolean) => void;
+  fieldPermissions: ReturnType<typeof useFieldPermissions>;
 }) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
@@ -531,14 +532,6 @@ const RequiresConfirmationController = ({
   );
 
   const defaultRequiresConfirmationSetup = { time: 30, unit: "minutes" as UnitTypeLongPlural };
-
-  const { shouldLockDisableProps } = useLockedFieldsManager({
-    eventType,
-    translate: t,
-    formMethods,
-  });
-
-  const requiresConfirmationLocked = shouldLockDisableProps("requiresConfirmation");
 
   // Memoize time unit options
   const timeUnitOptions = useMemo(
@@ -602,18 +595,26 @@ const RequiresConfirmationController = ({
           control={formMethods.control}
           render={() => (
             <SettingsToggle
-              labelClassName="text-sm"
+              labelClassName="text-sm text-default"
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(requiresConfirmation && "rounded-b-none")}
               childrenClassName="lg:ml-0"
               title={t("requires_confirmation")}
               data-testid="requires-confirmation"
-              disabled={seatsEnabled || requiresConfirmationLocked.disabled}
+              disabled={seatsEnabled}
               tooltip={seatsEnabled ? t("seat_options_doesnt_support_confirmation") : undefined}
               description={t("requires_confirmation_description")}
               checked={requiresConfirmation}
-              lockedIcon={requiresConfirmationLocked.LockedIcon}
-              onCheckedChange={handleConfirmationChange}>
+              onCheckedChange={handleConfirmationChange}
+              fieldPermissions={fieldPermissions}
+              fieldName="requiresConfirmation"
+              lockedIcon={
+                <FieldPermissionIndicator
+                  fieldName="requiresConfirmation"
+                  fieldPermissions={fieldPermissions}
+                  t={t}
+                />
+              }>
               <div className="border-subtle">
                 <RadioGroup
                   defaultValue={
@@ -643,105 +644,86 @@ const RequiresConfirmationController = ({
                   }}>
                   <div className="flex flex-col flex-wrap justify-start gap-y-2">
                     {/* Always require confirmation option */}
-                    {(requiresConfirmationSetup === undefined || !requiresConfirmationLocked.disabled) && (
-                      <div className="flex items-center">
-                        <RadioGroupItem
-                          value="always"
-                          id="always"
-                          disabled={requiresConfirmationLocked.disabled}
-                          className="mr-2"
-                        />
-                        <label htmlFor="always" className="text-sm">
-                          {t("always")}
-                        </label>
-                      </div>
-                    )}
+                    <div className="flex items-center">
+                      <RadioGroupItem value="always" id="always" className="mr-2" />
+                      <label htmlFor="always" className="text-sm">
+                        {t("always")}
+                      </label>
+                    </div>
 
                     {/* Conditional confirmation with time threshold */}
-                    {(requiresConfirmationSetup !== undefined || !requiresConfirmationLocked.disabled) && (
-                      <>
-                        <div className="flex items-center">
-                          <RadioGroupItem
-                            value="notice"
-                            id="notice"
-                            disabled={requiresConfirmationLocked.disabled}
-                            className="mr-2"
-                          />
-                          <label htmlFor="notice" className="flex items-center space-x-2 text-sm">
-                            <ServerTrans
-                              t={t}
-                              i18nKey="when_booked_with_less_than_notice"
-                              components={[
-                                <div
-                                  key="when_booked_with_less_than_notice"
-                                  className="mx-2 inline-flex items-center">
-                                  <Input
-                                    type="number"
-                                    min={1}
-                                    disabled={requiresConfirmationLocked.disabled}
-                                    onChange={(evt) => {
-                                      const val = Number(evt.target?.value);
-                                      handleTimeChange(val);
+                    <>
+                      <div className="flex items-center">
+                        <RadioGroupItem value="notice" id="notice" className="mr-2" />
+                        <label htmlFor="notice" className="flex items-center space-x-2 text-sm">
+                          <ServerTrans
+                            t={t}
+                            i18nKey="when_booked_with_less_than_notice"
+                            components={[
+                              <div
+                                key="when_booked_with_less_than_notice"
+                                className="mx-2 inline-flex items-center">
+                                <Input
+                                  type="number"
+                                  min={1}
+                                  onChange={(evt) => {
+                                    const val = Number(evt.target?.value);
+                                    handleTimeChange(val);
+                                  }}
+                                  className="border-default !m-0 block h-9 w-16 rounded-r-none border border-r-0 text-sm [appearance:textfield] focus:z-10"
+                                  defaultValue={metadata?.requiresConfirmationThreshold?.time || 30}
+                                />
+
+                                <label>
+                                  <Select
+                                    value={timeUnitOptions.find((opt) => opt.value === defaultValue?.value)}
+                                    onChange={(option) => {
+                                      if (option) {
+                                        handleUnitChange(option.value as UnitTypeLongPlural);
+                                      }
                                     }}
-                                    className="border-default !m-0 block h-9 w-16 rounded-r-none border border-r-0 text-sm [appearance:textfield] focus:z-10"
-                                    defaultValue={metadata?.requiresConfirmationThreshold?.time || 30}
+                                    options={timeUnitOptions.map((opt) => ({
+                                      value: opt.value,
+                                      label: opt.label,
+                                    }))}
+                                    className="border-default h-9 w-auto rounded-l-none border px-3 text-sm"
                                   />
+                                </label>
+                              </div>,
+                            ]}
+                          />
+                        </label>
+                      </div>
 
-                                  <label
-                                    className={classNames(
-                                      requiresConfirmationLocked.disabled && "cursor-not-allowed"
-                                    )}>
-                                    <CustomSelect
-                                      value={defaultValue?.value || ""}
-                                      onValueChange={(val) => {
-                                        if (val) {
-                                          handleUnitChange(val as UnitTypeLongPlural);
-                                        }
-                                      }}
-                                      disabled={requiresConfirmationLocked.disabled}
-                                      options={timeUnitOptions.map((opt) => ({
-                                        value: opt.value,
-                                        label: opt.label,
-                                      }))}
-                                      className="border-default h-9 w-auto rounded-l-none border px-3 text-sm"
-                                    />
-                                  </label>
-                                </div>,
-                              ]}
+                      {/* Additional confirmation options */}
+                      <div className="flex items-center gap-2">
+                        <CheckboxField
+                          checked={requiresConfirmationWillBlockSlot}
+                          onCheckedChange={(checked) => {
+                            formMethods.setValue("requiresConfirmationWillBlockSlot", !!checked, {
+                              shouldDirty: true,
+                            });
+                          }}
+                        />
+                        <label className="text-foreground text-sm">
+                          {t("requires_confirmation_will_block_slot_description")}
+                        </label>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Controller
+                          name="requiresConfirmationForFreeEmail"
+                          render={({ field: { value, onChange } }) => (
+                            <CheckboxField
+                              checked={value}
+                              onCheckedChange={onChange}
+                              descriptionAsLabel
+                              description={t("require_confirmation_for_free_email")}
                             />
-                          </label>
-                        </div>
-
-                        {/* Additional confirmation options */}
-                        <div className="flex items-center gap-2">
-                          <CheckboxField
-                            checked={requiresConfirmationWillBlockSlot}
-                            onCheckedChange={(checked) => {
-                              formMethods.setValue("requiresConfirmationWillBlockSlot", !!checked, {
-                                shouldDirty: true,
-                              });
-                            }}
-                          />
-                          <label className="text-foreground text-sm">
-                            {t("requires_confirmation_will_block_slot_description")}
-                          </label>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <Controller
-                            name="requiresConfirmationForFreeEmail"
-                            render={({ field: { value, onChange } }) => (
-                              <CheckboxField
-                                checked={value}
-                                onCheckedChange={onChange}
-                                descriptionAsLabel
-                                description={t("require_confirmation_for_free_email")}
-                              />
-                            )}
-                          />
-                        </div>
-                      </>
-                    )}
+                          )}
+                        />
+                      </div>
+                    </>
                   </div>
                 </RadioGroup>
               </div>
@@ -830,15 +812,16 @@ export const EventAdvanced = ({
   const platformContext = useAtomsContext();
   const formMethods = useFormContext<FormValues>();
 
+  // Field permissions management
+  const fieldPermissions = useFieldPermissions({ eventType, translate: t, formMethods });
+
   // Fetch verified emails for the team or user
   const { data: verifiedEmails } = trpc.viewer.workflows.calid_getVerifiedEmails.useQuery({
-    calIdTeamId: eventType.calIdTeamId || undefined,
+    calIdTeamId: (eventType as any).calIdTeamId || undefined,
   });
 
   // UI state management
   const [showEventNameTip, setShowEventNameTip] = useState(false);
-  const [darkModeError, setDarkModeError] = useState(false);
-  const [lightModeError, setLightModeError] = useState(false);
 
   // Toggle visibility states for conditional sections
   const [multiplePrivateLinksVisible, setMultiplePrivateLinksVisible] = useState(
@@ -851,54 +834,17 @@ export const EventAdvanced = ({
 
   // Watch form values for reactive UI updates
   const requiresConfirmation = formMethods.watch("requiresConfirmation") || false;
-  const requiresConfirmationForFreeEmail = formMethods.watch("requiresConfirmationForFreeEmail") || false;
-  const isEventTypeColorChecked = !!formMethods.watch("eventTypeColor");
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
 
   // Derived state from form values
   const workflows =
-    eventType.calIdWorkflows?.map((workflowOnEventType: any) => workflowOnEventType.workflow) ?? [];
+    (eventType as any).calIdWorkflows?.map((workflowOnEventType: any) => workflowOnEventType.workflow) ?? [];
   const multiLocation = (formMethods.getValues("locations") || []).length > 1;
   const noShowFeeEnabled =
     formMethods.getValues("metadata")?.apps?.stripe?.enabled === true &&
     formMethods.getValues("metadata")?.apps?.stripe?.paymentOption === "HOLD";
   const isRecurringEvent = !!formMethods.getValues("recurringEvent");
   const isRoundRobinEventType = eventType.schedulingType === SchedulingType.ROUND_ROBIN;
-
-  // Initialize locked fields manager for permission control
-  const { isChildrenManagedEventType, isManagedEventType, shouldLockDisableProps } = useLockedFieldsManager({
-    eventType,
-    translate: t,
-    formMethods,
-  });
-
-  // Memoize locked field states to prevent recalculation
-  const lockedFields = useMemo(
-    () => ({
-      successRedirectUrl: shouldLockDisableProps("successRedirectUrl"),
-      seats: shouldLockDisableProps("seatsPerTimeSlotEnabled"),
-      requiresBookerEmailVerification: shouldLockDisableProps("requiresBookerEmailVerification"),
-      sendCalVideoTranscriptionEmails: shouldLockDisableProps("canSendCalVideoTranscriptionEmails"),
-      hideCalendarNotes: shouldLockDisableProps("hideCalendarNotes"),
-      hideCalendarEventDetails: shouldLockDisableProps("hideCalendarEventDetails"),
-      eventTypeColor: shouldLockDisableProps("eventTypeColor"),
-      lockTimeZoneToggleOnBookingPage: shouldLockDisableProps("lockTimeZoneToggleOnBookingPage"),
-      multiplePrivateLinks: shouldLockDisableProps("multiplePrivateLinks"),
-      reschedulingPastBookings: shouldLockDisableProps("allowReschedulingPastBookings"),
-      hideOrganizerEmail: shouldLockDisableProps("hideOrganizerEmail"),
-      customReplyToEmail: shouldLockDisableProps("customReplyToEmail"),
-      disableCancelling: shouldLockDisableProps("disableCancelling"),
-      disableRescheduling: shouldLockDisableProps("disableRescheduling"),
-      allowReschedulingCancelledBookings: shouldLockDisableProps("allowReschedulingCancelledBookings"),
-      eventName: shouldLockDisableProps("eventName"),
-    }),
-    [shouldLockDisableProps]
-  );
-
-  // Apply managed event type restrictions
-  if (isManagedEventType) {
-    lockedFields.multiplePrivateLinks.disabled = true;
-  }
 
   // Process booking fields for event name object
   const bookingFields: any = {};
@@ -930,10 +876,10 @@ export const EventAdvanced = ({
   // Extract user timezone from event type configuration
   const userTimeZone = extractHostTimezone({
     userId: eventType.userId,
-    teamId: eventType.calIdTeamId,
+    teamId: (eventType as any).calIdTeamId,
     hosts: eventType.hosts,
     owner: eventType.owner,
-    team: eventType.calIdTeam,
+    team: (eventType as any).calIdTeam,
   });
 
   // Platform-specific email processing
@@ -972,13 +918,6 @@ export const EventAdvanced = ({
   if (isPlatform && platformContext.clientId) {
     userEmail = removePlatformClientIdFromEmail(userEmail, platformContext.clientId);
   }
-
-  // Initialize event type color state
-  const currentEventTypeColor = formMethods.watch("eventTypeColor");
-  const eventTypeColorState = currentEventTypeColor || {
-    lightEventTypeColor: DEFAULT_LIGHT_BRAND_COLOR,
-    darkEventTypeColor: DEFAULT_DARK_BRAND_COLOR,
-  };
 
   // Detect user's theme preference
   const selectedThemeIsDark = useMemo(() => {
@@ -1020,8 +959,6 @@ export const EventAdvanced = ({
         userEmail={userEmail}
         calendarsQuery={calendarsQuery}
         isTeamEventType={!!team}
-        isChildrenManagedEventType={isChildrenManagedEventType}
-        eventNameLocked={lockedFields.eventName}
         eventNamePlaceholder={eventNamePlaceholder}
         setShowEventNameTip={setShowEventNameTip}
         showToast={showToast}
@@ -1053,7 +990,8 @@ export const EventAdvanced = ({
               description={t("what_booker_should_provide")}
               addFieldLabel={t("add_a_booking_question")}
               formProp="bookingFields"
-              {...shouldLockDisableProps("bookingFields")}
+              disabled={false}
+              LockedIcon={false as any}
               dataStore={{
                 options: {
                   locations: {
@@ -1072,7 +1010,6 @@ export const EventAdvanced = ({
 
       {/* Confirmation Requirements */}
       <RequiresConfirmationController
-        eventType={eventType}
         seatsEnabled={seatsEnabled}
         metadata={formMethods.getValues("metadata")}
         requiresConfirmation={requiresConfirmation}
@@ -1080,6 +1017,7 @@ export const EventAdvanced = ({
         onRequiresConfirmation={(value) => {
           formMethods.setValue("requiresConfirmation", value, { shouldDirty: true });
         }}
+        fieldPermissions={fieldPermissions}
       />
 
       {/* Cancellation and Rescheduling Controls */}
@@ -1089,15 +1027,22 @@ export const EventAdvanced = ({
             name="disableCancelling"
             render={({ field: { value, onChange } }) => (
               <SettingsToggle
-                labelClassName="text-sm"
+                labelClassName="text-sm text-default"
                 toggleSwitchAtTheEnd={true}
                 title={t("disable_cancelling")}
                 data-testid="disable-cancelling-toggle"
-                disabled={lockedFields.disableCancelling.disabled}
-                lockedIcon={lockedFields.disableCancelling.LockedIcon}
                 description={t("description_disable_cancelling")}
                 checked={value || false}
                 onCheckedChange={onChange}
+                fieldPermissions={fieldPermissions}
+                fieldName="disableCancelling"
+                lockedIcon={
+                  <FieldPermissionIndicator
+                    fieldName="disableCancelling"
+                    fieldPermissions={fieldPermissions}
+                    t={t}
+                  />
+                }
               />
             )}
           />
@@ -1106,15 +1051,22 @@ export const EventAdvanced = ({
             name="disableRescheduling"
             render={({ field: { value, onChange } }) => (
               <SettingsToggle
-                labelClassName="text-sm"
+                labelClassName="text-sm text-default"
                 toggleSwitchAtTheEnd={true}
                 title={t("disable_rescheduling")}
                 data-testid="disable-rescheduling-toggle"
-                disabled={lockedFields.disableRescheduling.disabled}
-                lockedIcon={lockedFields.disableRescheduling.LockedIcon}
                 description={t("description_disable_rescheduling")}
                 checked={value || false}
                 onCheckedChange={onChange}
+                fieldPermissions={fieldPermissions}
+                fieldName="disableRescheduling"
+                lockedIcon={
+                  <FieldPermissionIndicator
+                    fieldName="disableRescheduling"
+                    fieldPermissions={fieldPermissions}
+                    t={t}
+                  />
+                }
               />
             )}
           />
@@ -1126,15 +1078,22 @@ export const EventAdvanced = ({
         name="requiresBookerEmailVerification"
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
-            labelClassName="text-sm"
+            labelClassName="text-sm text-default"
             toggleSwitchAtTheEnd={true}
             title={t("requires_booker_email_verification")}
             data-testid="requires-booker-email-verification"
-            disabled={lockedFields.requiresBookerEmailVerification.disabled}
-            lockedIcon={lockedFields.requiresBookerEmailVerification.LockedIcon}
             description={t("description_requires_booker_email_verification")}
             checked={value}
             onCheckedChange={onChange}
+            fieldPermissions={fieldPermissions}
+            fieldName="requiresBookerEmailVerification"
+            lockedIcon={
+              <FieldPermissionIndicator
+                fieldName="requiresBookerEmailVerification"
+                fieldPermissions={fieldPermissions}
+                t={t}
+              />
+            }
           />
         )}
       />
@@ -1144,15 +1103,22 @@ export const EventAdvanced = ({
         name="hideCalendarNotes"
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
-            labelClassName="text-sm"
+            labelClassName="text-sm text-default"
             toggleSwitchAtTheEnd={true}
             data-testid="disable-notes"
             title={t("disable_notes")}
-            disabled={lockedFields.hideCalendarNotes.disabled}
-            lockedIcon={lockedFields.hideCalendarNotes.LockedIcon}
             description={t("disable_notes_description")}
             checked={value}
             onCheckedChange={onChange}
+            fieldPermissions={fieldPermissions}
+            fieldName="hideCalendarNotes"
+            lockedIcon={
+              <FieldPermissionIndicator
+                fieldName="hideCalendarNotes"
+                fieldPermissions={fieldPermissions}
+                t={t}
+              />
+            }
           />
         )}
       />
@@ -1161,14 +1127,21 @@ export const EventAdvanced = ({
         name="hideCalendarEventDetails"
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
-            labelClassName="text-sm"
+            labelClassName="text-sm text-default"
             toggleSwitchAtTheEnd={true}
             title={t("hide_calendar_event_details")}
-            disabled={lockedFields.hideCalendarEventDetails.disabled}
-            lockedIcon={lockedFields.hideCalendarEventDetails.LockedIcon}
             description={t("description_hide_calendar_event_details")}
             checked={value}
             onCheckedChange={onChange}
+            fieldPermissions={fieldPermissions}
+            fieldName="hideCalendarEventDetails"
+            lockedIcon={
+              <FieldPermissionIndicator
+                fieldName="hideCalendarEventDetails"
+                fieldPermissions={fieldPermissions}
+                t={t}
+              />
+            }
           />
         )}
       />
@@ -1188,26 +1161,32 @@ export const EventAdvanced = ({
         }}
         render={({ field, fieldState }) => (
           <SettingsToggle
-            labelClassName="text-sm"
+            labelClassName="text-sm text-default"
             toggleSwitchAtTheEnd={true}
             switchContainerClassName={classNames(redirectUrlVisible && "rounded-b-none")}
             childrenClassName="lg:ml-0"
             title={t("redirect_success_booking")}
             data-testid="redirect-success-booking"
-            disabled={lockedFields.successRedirectUrl.disabled}
-            lockedIcon={lockedFields.successRedirectUrl.LockedIcon}
             description={t("redirect_url_description")}
             checked={redirectUrlVisible}
             onCheckedChange={(e) => {
               field.onChange(e ? field.value || "" : "");
               setRedirectUrlVisible(e);
-            }}>
+            }}
+            fieldPermissions={fieldPermissions}
+            fieldName="successRedirectUrl"
+            lockedIcon={
+              <FieldPermissionIndicator
+                fieldName="successRedirectUrl"
+                fieldPermissions={fieldPermissions}
+                t={t}
+              />
+            }>
             <CardContent className="border-subtle rounded-b-lg border border-t-0 p-6">
               <TextField
                 className="w-full"
                 label={t("redirect_success_booking")}
                 labelSrOnly
-                disabled={lockedFields.successRedirectUrl.disabled}
                 placeholder={t("external_redirect_url")}
                 data-testid="external-redirect-url"
                 required={redirectUrlVisible}
@@ -1216,6 +1195,14 @@ export const EventAdvanced = ({
                 onChange={field.onChange}
                 onBlur={field.onBlur}
                 ref={field.ref}
+                disabled={fieldPermissions.getFieldState("successRedirectUrl").isDisabled}
+                LockedIcon={
+                  <FieldPermissionIndicator
+                    fieldName="successRedirectUrl"
+                    fieldPermissions={fieldPermissions}
+                    t={t}
+                  />
+                }
               />
 
               {fieldState.error && <p className="mt-2 text-sm text-red-600">{fieldState.error.message}</p>}
@@ -1225,11 +1212,7 @@ export const EventAdvanced = ({
                   name="forwardParamsSuccessRedirect"
                   render={({ field: { value: forwardValue, onChange: forwardOnChange } }) => (
                     <div className="flex items-center gap-2">
-                      <CheckboxField
-                        checked={forwardValue}
-                        disabled={lockedFields.successRedirectUrl.disabled}
-                        onCheckedChange={forwardOnChange}
-                      />
+                      <CheckboxField checked={forwardValue} onCheckedChange={forwardOnChange} />
                       <Label className="text-foreground text-sm">{t("forward_params_redirect")}</Label>
                     </div>
                   )}
@@ -1255,16 +1238,13 @@ export const EventAdvanced = ({
           name="multiplePrivateLinks"
           render={({ field: { value, onChange } }) => (
             <SettingsToggle
-              labelClassName="text-sm"
+              labelClassName="text-sm text-default"
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(multiplePrivateLinksVisible && "rounded-b-none")}
               childrenClassName="lg:ml-0"
               data-testid="multiplePrivateLinksCheck"
               title={t("multiple_private_links_title")}
-              disabled={lockedFields.multiplePrivateLinks.disabled}
-              lockedIcon={lockedFields.multiplePrivateLinks.LockedIcon}
               description={t("multiple_private_links_description")}
-              tooltip={isManagedEventType ? t("managed_event_field_parent_control_disabled") : ""}
               checked={multiplePrivateLinksVisible}
               onCheckedChange={(e) => {
                 if (!e) {
@@ -1274,17 +1254,24 @@ export const EventAdvanced = ({
                   onChange([newLink]);
                 }
                 setMultiplePrivateLinksVisible(e);
-              }}>
-              {!isManagedEventType && (
-                <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-                  <MultiplePrivateLinksController
-                    team={team ?? null}
-                    bookerUrl={eventType.bookerUrl}
-                    userTimeZone={userTimeZone}
-                    setMultiplePrivateLinksVisible={setMultiplePrivateLinksVisible}
-                  />
-                </div>
-              )}
+              }}
+              fieldPermissions={fieldPermissions}
+              fieldName="multiplePrivateLinks"
+              lockedIcon={
+                <FieldPermissionIndicator
+                  fieldName="multiplePrivateLinks"
+                  fieldPermissions={fieldPermissions}
+                  t={t}
+                />
+              }>
+              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+                <MultiplePrivateLinksController
+                  team={team ?? null}
+                  bookerUrl={eventType.bookerUrl}
+                  userTimeZone={userTimeZone}
+                  setMultiplePrivateLinksVisible={setMultiplePrivateLinksVisible}
+                />
+              </div>
             </SettingsToggle>
           )}
         />
@@ -1296,19 +1283,13 @@ export const EventAdvanced = ({
         render={({ field: { value, onChange } }) => (
           <>
             <SettingsToggle
-              labelClassName="text-sm"
+              labelClassName="text-sm text-default"
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(value && "rounded-b-none")}
               childrenClassName="lg:ml-0"
               data-testid="offer-seats-toggle"
               title={t("offer_seats")}
-              disabled={
-                noShowFeeEnabled ||
-                multiLocation ||
-                (!seatsEnabled && isRecurringEvent) ||
-                lockedFields.seats.disabled
-              }
-              lockedIcon={lockedFields.seats.LockedIcon}
+              disabled={noShowFeeEnabled || multiLocation || (!seatsEnabled && isRecurringEvent)}
               description={t("offer_seats_description")}
               checked={value}
               tooltip={
@@ -1333,7 +1314,16 @@ export const EventAdvanced = ({
                   toggleGuests(true);
                 }
                 onChange(e);
-              }}>
+              }}
+              fieldPermissions={fieldPermissions}
+              fieldName="seatsPerTimeSlotEnabled"
+              lockedIcon={
+                <FieldPermissionIndicator
+                  fieldName="seatsPerTimeSlotEnabled"
+                  fieldPermissions={fieldPermissions}
+                  t={t}
+                />
+              }>
               <CardContent className="border-subtle rounded-b-lg border border-t-0 p-6">
                 <Controller
                   name="seatsPerTimeSlot"
@@ -1345,7 +1335,6 @@ export const EventAdvanced = ({
                         labelSrOnly
                         label={t("number_of_seats")}
                         type="number"
-                        disabled={lockedFields.seats.disabled}
                         value={seatValue > MAX_SEATS_PER_TIME_SLOT ? MAX_SEATS_PER_TIME_SLOT : seatValue ?? 1}
                         step={1}
                         placeholder="1"
@@ -1366,11 +1355,7 @@ export const EventAdvanced = ({
                           name="seatsShowAttendees"
                           render={({ field: { value: attendeeValue, onChange: attendeeOnChange } }) => (
                             <div className="flex items-center gap-2">
-                              <CheckboxField
-                                checked={attendeeValue}
-                                disabled={lockedFields.seats.disabled}
-                                onCheckedChange={attendeeOnChange}
-                              />
+                              <CheckboxField checked={attendeeValue} onCheckedChange={attendeeOnChange} />
                               <Label className="text-foreground text-sm">{t("show_attendees")}</Label>
                             </div>
                           )}
@@ -1380,11 +1365,7 @@ export const EventAdvanced = ({
                           name="seatsShowAvailabilityCount"
                           render={({ field: { value: availValue, onChange: availOnChange } }) => (
                             <div className="flex items-center gap-2">
-                              <CheckboxField
-                                checked={availValue}
-                                disabled={lockedFields.seats.disabled}
-                                onCheckedChange={availOnChange}
-                              />
+                              <CheckboxField checked={availValue} onCheckedChange={availOnChange} />
                               <Label className="text-foreground text-sm">
                                 {t("show_available_seats_count")}
                               </Label>
@@ -1408,15 +1389,22 @@ export const EventAdvanced = ({
         name="hideOrganizerEmail"
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
-            labelClassName="text-sm"
+            labelClassName="text-sm text-default"
             toggleSwitchAtTheEnd={true}
             title={t("hide_organizer_email")}
-            disabled={lockedFields.hideOrganizerEmail.disabled}
-            lockedIcon={lockedFields.hideOrganizerEmail.LockedIcon}
             description={t("hide_organizer_email_description")}
             checked={value}
             onCheckedChange={onChange}
             data-testid="hide-organizer-email"
+            fieldPermissions={fieldPermissions}
+            fieldName="hideOrganizerEmail"
+            lockedIcon={
+              <FieldPermissionIndicator
+                fieldName="hideOrganizerEmail"
+                fieldPermissions={fieldPermissions}
+                t={t}
+              />
+            }
           />
         )}
       />
@@ -1433,12 +1421,10 @@ export const EventAdvanced = ({
 
           return (
             <SettingsToggle
-              labelClassName="text-sm"
+              labelClassName="text-sm text-default "
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(showSelector && "rounded-b-none")}
               title={t("lock_timezone_toggle_on_booking_page")}
-              disabled={lockedFields.lockTimeZoneToggleOnBookingPage.disabled}
-              lockedIcon={lockedFields.lockTimeZoneToggleOnBookingPage.LockedIcon}
               description={t("description_lock_timezone_toggle_on_booking_page")}
               checked={value}
               onCheckedChange={(e) => {
@@ -1447,7 +1433,16 @@ export const EventAdvanced = ({
                 formMethods.setValue("lockedTimeZone", lockedTimeZone, { shouldDirty: true });
               }}
               data-testid="lock-timezone-toggle"
-              childrenClassName="lg:ml-0">
+              childrenClassName="lg:ml-0"
+              fieldPermissions={fieldPermissions}
+              fieldName="lockTimeZoneToggleOnBookingPage"
+              lockedIcon={
+                <FieldPermissionIndicator
+                  fieldName="lockTimeZoneToggleOnBookingPage"
+                  fieldPermissions={fieldPermissions}
+                  t={t}
+                />
+              }>
               {showSelector && (
                 <CardContent className="border-subtle flex flex-col gap-6 rounded-b-lg border border-t-0 p-6">
                   <div>
@@ -1483,14 +1478,21 @@ export const EventAdvanced = ({
         name="allowReschedulingPastBookings"
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
-            labelClassName="text-sm"
+            labelClassName="text-sm text-default "
             toggleSwitchAtTheEnd={true}
             title={t("allow_rescheduling_past_events")}
-            disabled={lockedFields.reschedulingPastBookings.disabled}
-            lockedIcon={lockedFields.reschedulingPastBookings.LockedIcon}
             description={t("allow_rescheduling_past_events_description")}
             checked={value}
             onCheckedChange={onChange}
+            fieldPermissions={fieldPermissions}
+            fieldName="allowReschedulingPastBookings"
+            lockedIcon={
+              <FieldPermissionIndicator
+                fieldName="allowReschedulingPastBookings"
+                fieldPermissions={fieldPermissions}
+                t={t}
+              />
+            }
           />
         )}
       />
@@ -1499,15 +1501,22 @@ export const EventAdvanced = ({
         name="allowReschedulingCancelledBookings"
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
-            labelClassName="text-sm"
+            labelClassName="text-sm text-default"
             toggleSwitchAtTheEnd={true}
             title={t("allow_rescheduling_cancelled_bookings")}
             data-testid="allow-rescheduling-cancelled-bookings-toggle"
-            disabled={lockedFields.allowReschedulingCancelledBookings.disabled}
-            lockedIcon={lockedFields.allowReschedulingCancelledBookings.LockedIcon}
             description={t("description_allow_rescheduling_cancelled_bookings")}
             checked={value || false}
             onCheckedChange={onChange}
+            fieldPermissions={fieldPermissions}
+            fieldName="allowReschedulingCancelledBookings"
+            lockedIcon={
+              <FieldPermissionIndicator
+                fieldName="allowReschedulingCancelledBookings"
+                fieldPermissions={fieldPermissions}
+                t={t}
+              />
+            }
           />
         )}
       />
@@ -1518,13 +1527,11 @@ export const EventAdvanced = ({
           name="customReplyToEmail"
           render={({ field: { value, onChange } }) => (
             <SettingsToggle
-              labelClassName="text-sm"
+              labelClassName="text-sm text-default"
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(customReplyToEmailVisible && "rounded-b-none")}
               childrenClassName="lg:ml-0"
               title={t("custom_reply_to_email_title")}
-              disabled={lockedFields.customReplyToEmail.disabled}
-              lockedIcon={lockedFields.customReplyToEmail.LockedIcon}
               data-testid="custom-reply-to-email"
               description={t("custom_reply_to_email_description")}
               checked={customReplyToEmailVisible}
@@ -1535,14 +1542,23 @@ export const EventAdvanced = ({
                   onChange(null);
                 }
                 setCustomReplyToEmailVisible(e);
-              }}>
+              }}
+              fieldPermissions={fieldPermissions}
+              fieldName="customReplyToEmail"
+              lockedIcon={
+                <FieldPermissionIndicator
+                  fieldName="customReplyToEmail"
+                  fieldPermissions={fieldPermissions}
+                  t={t}
+                />
+              }>
               {verifiedEmails && verifiedEmails.length === 0 ? (
                 <p className="text-destructive text-sm">{t("custom_reply_to_email_no_verified_emails")}</p>
               ) : (
                 <CardContent className="border-subtle rounded-b-lg border border-t-0 p-6">
-                  <CustomSelect
-                    value={value || ""}
-                    onValueChange={(val) => onChange(val || null)}
+                  <Select
+                    value={verifiedEmails?.find((email) => email === value)}
+                    onChange={(option) => onChange(option?.value || null)}
                     options={
                       verifiedEmails?.map((email) => ({
                         value: email,
@@ -1634,6 +1650,15 @@ export const EventAdvanced = ({
               description={t("reschedule_with_same_round_robin_host_description")}
               checked={value}
               onCheckedChange={onChange}
+              fieldPermissions={fieldPermissions}
+              fieldName="rescheduleWithSameRoundRobinHost"
+              lockedIcon={
+                <FieldPermissionIndicator
+                  fieldName="rescheduleWithSameRoundRobinHost"
+                  fieldPermissions={fieldPermissions}
+                  t={t}
+                />
+              }
             />
           )}
         />
@@ -1645,12 +1670,21 @@ export const EventAdvanced = ({
           name="metadata.disableStandardEmails.confirmation.attendee"
           render={({ field: { value, onChange } }) => (
             <SettingsToggle
-              labelClassName="text-sm"
+              labelClassName="text-sm text-default"
               toggleSwitchAtTheEnd={true}
               title={t("disable_attendees_confirmation_emails")}
               description={t("disable_attendees_confirmation_emails_description")}
               checked={value}
               onCheckedChange={onChange}
+              fieldPermissions={fieldPermissions}
+              fieldName="metadata.disableStandardEmails.confirmation.attendee"
+              lockedIcon={
+                <FieldPermissionIndicator
+                  fieldName="metadata.disableStandardEmails.confirmation.attendee"
+                  fieldPermissions={fieldPermissions}
+                  t={t}
+                />
+              }
             />
           )}
         />
@@ -1668,6 +1702,15 @@ export const EventAdvanced = ({
               description={t("disable_host_confirmation_emails_description")}
               checked={value}
               onCheckedChange={onChange}
+              fieldPermissions={fieldPermissions}
+              fieldName="metadata.disableStandardEmails.confirmation.host"
+              lockedIcon={
+                <FieldPermissionIndicator
+                  fieldName="metadata.disableStandardEmails.confirmation.host"
+                  fieldPermissions={fieldPermissions}
+                  t={t}
+                />
+              }
             />
           )}
         />
