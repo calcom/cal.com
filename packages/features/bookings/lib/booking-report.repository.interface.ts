@@ -13,6 +13,7 @@ export interface BookingReportSummary {
   id: string;
   reportedById: number;
   reason: ReportReason;
+  description: string | null;
   createdAt: Date;
 }
 

@@ -65,6 +65,7 @@ import {
   shouldShowPendingActions,
   shouldShowEditActions,
   shouldShowRecurringCancelAction,
+  shouldShowIndividualReportButton,
   type BookingActionContext,
 } from "./bookingActions";
 
@@ -740,6 +741,21 @@ function BookingListItem(booking: BookingItemProps) {
               </Dropdown>
             )}
             {shouldShowRecurringCancelAction(actionContext) && <TableActions actions={[cancelEventAction]} />}
+            {shouldShowIndividualReportButton(actionContext) && reportActionWithHandler && (
+              <div className="flex items-center space-x-2">
+                <Button
+                  type="button"
+                  variant="icon"
+                  color="destructive"
+                  StartIcon={reportActionWithHandler.icon}
+                  onClick={reportActionWithHandler.onClick}
+                  disabled={reportActionWithHandler.disabled}
+                  data-testid={reportActionWithHandler.id}
+                  className="h-8 w-8"
+                  tooltip={reportActionWithHandler.label}
+                />
+              </div>
+            )}
             {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
             {isCancelled && booking.rescheduled && (
               <div className="hidden h-full items-center md:flex">
@@ -809,11 +825,27 @@ const BookingItemBadges = ({
         <AssignmentReasonTooltip assignmentReason={booking.assignmentReason[0]} />
       )}
       {booking.reports && booking.reports.length > 0 && (
-        <Badge className="ltr:mr-2 rtl:ml-2" variant="red">
-          {booking.reportedByCurrentUser
-            ? t("reported_by_you")
-            : t("reported_count", { count: booking.reports.length })}
-        </Badge>
+        <Tooltip
+          content={
+            <div className="space-y-1">
+              {booking.reports.map((report) => {
+                const reasonKey = `report_reason_${report.reason.toLowerCase()}`;
+                const reasonText = t(reasonKey);
+                const displayText = report.description ? `${reasonText}: ${report.description}` : reasonText;
+                return (
+                  <div key={report.id} className="text-xs">
+                    {displayText}
+                  </div>
+                );
+              })}
+            </div>
+          }>
+          <Badge className="ltr:mr-2 rtl:ml-2" variant="red">
+            {booking.reportedByCurrentUser
+              ? t("reported_by_you")
+              : t("reported_count", { count: booking.reports.length })}
+          </Badge>
+        </Tooltip>
       )}
       {booking.paid && !booking.payment[0] ? (
         <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">

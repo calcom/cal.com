@@ -1,6 +1,7 @@
-import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import { BookingReportRepository } from "@calcom/features/bookings/lib/booking-report.repository";
 import { extractBookerEmail } from "@calcom/features/bookings/lib/booking-report.utils";
+import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
+import logger from "@calcom/lib/logger";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -16,6 +17,8 @@ type ReportBookingOptions = {
   };
   input: TReportBookingInputSchema;
 };
+
+const log = logger.getSubLogger({ prefix: ["reportBookingHandler"] });
 
 export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions) => {
   const { user } = ctx;
@@ -69,17 +72,14 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
     }
   }
 
-  // Get the booker email (first attendee)
   const bookerEmail = extractBookerEmail(booking.attendees);
   if (!bookerEmail) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Booking has no attendees" });
   }
 
-  // Determine which bookings to report
   let reportedBookingIds: number[] = [bookingId];
 
   if (booking.recurringEventId && allRemainingBookings) {
-    // Get all remaining bookings in the series from the selected occurrence onward
     const remainingRecurringBookings = await prisma.booking.findMany({
       where: {
         recurringEventId: booking.recurringEventId,
@@ -91,7 +91,6 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
     reportedBookingIds = remainingRecurringBookings.map((b) => b.id);
   }
 
-  // Create reports for all relevant bookings
   let createdCount = 0;
   for (const id of reportedBookingIds) {
     try {
@@ -105,13 +104,12 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
       });
       createdCount++;
     } catch (error) {
-      console.warn(`Failed to create report for booking ${id}:`, error);
+      log.warn(`Failed to create report for booking ${id}:`, error);
     }
   }
 
   const reportedBooking = { id: reportedBookingIds[0] };
 
-  // Cancel booking if requested and conditions are met
   let cancellationError = null;
   if (
     cancelBooking &&
@@ -119,17 +117,26 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
     new Date(booking.startTime) > new Date()
   ) {
     try {
+      const userSeat = booking.seatsReferences.find((seat) => seat.attendee?.email === user.email);
+      const seatReferenceUid = userSeat?.referenceUid;
+
       await handleCancelBooking({
         bookingData: {
           uid: booking.uid,
           cancelledBy: user.email,
-          allRemainingBookings: booking.recurringEventId && allRemainingBookings ? true : undefined,
+          cancellationReason: description ?? reason,
+          // For recurring events: use cancelSubsequentBookings for proper cancellation
+          // allRemainingBookings cancels all future occurrences, cancelSubsequentBookings cancels from this one onward
+          ...(booking.recurringEventId && allRemainingBookings
+            ? { cancelSubsequentBookings: true }
+            : { allRemainingBookings: undefined }),
+          ...(seatReferenceUid ? { seatReferenceUid } : {}),
         },
         userId: user.id,
       });
     } catch (error) {
       cancellationError = error;
-      console.error("Failed to cancel booking after reporting:", error);
+      log.error("Failed to cancel booking after reporting:", error);
     }
   }
 
