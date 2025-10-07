@@ -27,10 +27,22 @@ command_exists() {
 echo -e "\n${YELLOW}📦 Checking Docker installation...${NC}"
 if ! command_exists docker; then
     echo "Installing Docker..."
-    curl -fsSL https://get.docker.com -o get-docker.sh
-    sudo sh get-docker.sh
-    sudo usermod -aG docker $USER
-    rm get-docker.sh
+    
+    # Check if Amazon Linux
+    if [ -f /etc/os-release ] && grep -q "Amazon Linux" /etc/os-release; then
+        echo "Detected Amazon Linux - using dnf installation"
+        sudo dnf install -y docker
+        sudo systemctl start docker
+        sudo systemctl enable docker
+        sudo usermod -aG docker $USER
+    else
+        # Use Docker's install script for other distros
+        curl -fsSL https://get.docker.com -o get-docker.sh
+        sudo sh get-docker.sh
+        sudo usermod -aG docker $USER
+        rm get-docker.sh
+    fi
+    
     echo -e "${GREEN}✅ Docker installed${NC}"
 else
     echo -e "${GREEN}✅ Docker already installed${NC}"
@@ -40,7 +52,18 @@ fi
 echo -e "\n${YELLOW}📦 Checking Docker Compose installation...${NC}"
 if ! docker compose version >/dev/null 2>&1; then
     echo "Installing Docker Compose plugin..."
-    sudo dnf install -y docker-compose-plugin
+    
+    # Check package manager
+    if command_exists dnf; then
+        sudo dnf install -y docker-compose-plugin
+    elif command_exists apt; then
+        sudo apt update
+        sudo apt install -y docker-compose-plugin
+    else
+        echo -e "${RED}❌ Unsupported package manager${NC}"
+        exit 1
+    fi
+    
     echo -e "${GREEN}✅ Docker Compose installed${NC}"
 else
     echo -e "${GREEN}✅ Docker Compose already installed${NC}"
