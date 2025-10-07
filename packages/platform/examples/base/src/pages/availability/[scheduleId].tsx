@@ -86,6 +86,7 @@ export default function Availability(props: { calUsername: string; calEmail: str
           onFormStateChange={handleFormStateChange}
           onUpdateSuccess={() => {
             console.log("Updated successfully");
+            router.push(`/availability`);
           }}
           onUpdateError={() => {
             console.log("update error");
