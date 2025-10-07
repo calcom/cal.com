@@ -68,6 +68,7 @@ export const useSubmitOnboarding = () => {
       // No checkout URL means billing is disabled (self-hosted flow)
       // Organization has already been created by the backend
       showToast("Organization created successfully!", "success");
+      // TODO: after this redirect we need to hard refresh the page to see org
       router.push("/settings/organizations");
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to create organization";
