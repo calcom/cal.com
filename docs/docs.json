@@ -210,6 +210,10 @@
       },
       {
         "tab": "API v1 Reference",
+        "banner": {
+            "content": "⚠️ **Deprecation Notice:** API V1 will be deprecated on Feb 15, 2026. Please migrate to V2 as soon as possible.",
+            "dismissible": false
+          },
         "openapi": {
           "source": "/api-reference/v1/openapi-v1.json",
           "directory": "api-reference/v1"
