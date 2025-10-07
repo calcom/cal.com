@@ -1,4 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
+import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -35,6 +36,7 @@ export const ReportBookingDialog = (props: IReportBookingDialog) => {
     control,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<FormValues>({
     defaultValues: {
@@ -46,6 +48,12 @@ export const ReportBookingDialog = (props: IReportBookingDialog) => {
   });
 
   const cancelBooking = watch("cancelBooking");
+
+  useEffect(() => {
+    if (!cancelBooking) {
+      setValue("allRemainingBookings", false);
+    }
+  }, [cancelBooking, setValue]);
 
   const { mutate: reportBooking, isPending } = trpc.viewer.bookings.reportBooking.useMutation({
     async onSuccess(data) {
