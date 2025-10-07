@@ -187,6 +187,32 @@ export class BookingRepository {
     });
   }
 
+  async getBookingForReporting({ bookingId }: { bookingId: number }) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        id: bookingId,
+      },
+      select: {
+        id: true,
+        uid: true,
+        startTime: true,
+        status: true,
+        recurringEventId: true,
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
+        reports: {
+          select: {
+            id: true,
+            reportedById: true,
+          },
+        },
+      },
+    });
+  }
+
   private async _findAllExistingBookingsForEventTypeBetween({
     eventTypeId,
     seatedEvent = false,

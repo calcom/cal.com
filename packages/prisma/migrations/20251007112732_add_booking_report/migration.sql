@@ -1,0 +1,44 @@
+-- CreateEnum
+CREATE TYPE "ReportReason" AS ENUM ('SPAM', 'dont_know_person', 'OTHER');
+
+-- CreateTable
+CREATE TABLE "BookingReport" (
+    "id" UUID NOT NULL,
+    "bookingId" INTEGER NOT NULL,
+    "bookerEmail" TEXT NOT NULL,
+    "reportedById" INTEGER NOT NULL,
+    "reason" "ReportReason" NOT NULL,
+    "description" TEXT,
+    "cancelled" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "watchlistId" UUID,
+
+    CONSTRAINT "BookingReport_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE INDEX "BookingReport_bookingId_idx" ON "BookingReport"("bookingId");
+
+-- CreateIndex
+CREATE INDEX "BookingReport_bookerEmail_idx" ON "BookingReport"("bookerEmail");
+
+-- CreateIndex
+CREATE INDEX "BookingReport_reportedById_idx" ON "BookingReport"("reportedById");
+
+-- CreateIndex
+CREATE INDEX "BookingReport_watchlistId_idx" ON "BookingReport"("watchlistId");
+
+-- CreateIndex
+CREATE INDEX "BookingReport_createdAt_idx" ON "BookingReport"("createdAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "BookingReport_bookingId_reportedById_key" ON "BookingReport"("bookingId", "reportedById");
+
+-- AddForeignKey
+ALTER TABLE "BookingReport" ADD CONSTRAINT "BookingReport_bookingId_fkey" FOREIGN KEY ("bookingId") REFERENCES "Booking"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "BookingReport" ADD CONSTRAINT "BookingReport_reportedById_fkey" FOREIGN KEY ("reportedById") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "BookingReport" ADD CONSTRAINT "BookingReport_watchlistId_fkey" FOREIGN KEY ("watchlistId") REFERENCES "Watchlist"("id") ON DELETE SET NULL ON UPDATE CASCADE;

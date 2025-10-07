@@ -165,6 +165,28 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
   return actions.filter(Boolean) as ActionType[];
 }
 
+export function getReportAction(context: BookingActionContext): ActionType | null {
+  const { booking, isCancelled, isRejected, t } = context;
+
+  // Don't show if current user already reported
+  if (booking.reportedByCurrentUser) {
+    return null;
+  }
+
+  // For cancelled/rejected: only show if others already reported
+  if ((isCancelled || isRejected) && (!booking.reports || booking.reports.length === 0)) {
+    return null;
+  }
+
+  return {
+    id: "report",
+    label: booking.reports && booking.reports.length > 0 ? t("add_to_report") : t("report_booking"),
+    icon: "flag",
+    color: "destructive",
+    disabled: false,
+  };
+}
+
 export function getAfterEventActions(context: BookingActionContext): ActionType[] {
   const { booking, cardCharged, attendeeList, t } = context;
 
