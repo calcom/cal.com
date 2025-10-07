@@ -1,0 +1,16 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Framer",
+  "slug": "framer",
+  "type": "framer_other",
+  "logo": "icon-dark.svg",
+  "url": "https://www.framer.com/updates/cal-com",
+  "variant": "other",
+  "categories": ["other"],
+  "publisher": "Framer B.V.",
+  "email": "benjamin@framer.com",
+  "description": "Add Cal.com to Framer, the design tool for websites. Design freely, publish fast, and scale with CMS, SEO, analytics, and more.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "link-as-an-app"
+}
