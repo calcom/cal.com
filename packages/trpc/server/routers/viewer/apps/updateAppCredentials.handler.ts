@@ -18,7 +18,6 @@ const validators = {
 };
 
 export const handleCustomValidations = async ({
-  ctx,
   input,
   appId,
 }: UpdateAppCredentialsOptions & { appId: string }) => {
@@ -28,7 +27,7 @@ export const handleCustomValidations = async ({
   if (!validatorGetter) return key;
   try {
     const validator = (await validatorGetter()).default;
-    return await validator({ input, ctx });
+    return await validator({ input });
   } catch (error) {
     throw new TRPCError({
       code: "BAD_REQUEST",

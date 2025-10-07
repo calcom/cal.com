@@ -63,6 +63,12 @@ export type BookerStore = {
   verifiedEmail: string | null;
   setVerifiedEmail: (email: string | null) => void;
   /**
+   * Verification code for email verification.
+   * Stored after successful verification to be included in booking request
+   */
+  verificationCode: string | null;
+  setVerificationCode: (code: string | null) => void;
+  /**
    * Current month being viewed. Format is YYYY-MM.
    */
   month: string | null;
@@ -255,6 +261,10 @@ export const createBookerStore = () =>
     verifiedEmail: null,
     setVerifiedEmail: (email: string | null) => {
       set({ verifiedEmail: email });
+    },
+    verificationCode: null,
+    setVerificationCode: (code: string | null) => {
+      set({ verificationCode: code });
     },
     month:
       getQueryParam("month") ||
