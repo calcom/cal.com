@@ -1,3 +1,4 @@
+import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
 import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 
@@ -76,7 +77,7 @@ describe("GET /api/payments", () => {
       userId: 1,
     });
 
-    await allPayments(req, res);
+    await allPayments(req as unknown as NextApiRequest, res as unknown as NextApiResponse);
 
     expect(res._getStatusCode()).toBe(200);
     const responseData = JSON.parse(res._getData());
@@ -123,7 +124,7 @@ describe("GET /api/payments", () => {
       userId: 1,
     });
 
-    await allPayments(req, res);
+    await allPayments(req as unknown as NextApiRequest, res as unknown as NextApiResponse);
 
     expect(res._getStatusCode()).toBe(200);
     const responseData = JSON.parse(res._getData());
@@ -141,7 +142,9 @@ describe("GET /api/payments", () => {
       userId: 1,
     });
 
-    await expect(allPayments(req, res)).rejects.toThrow("No user found");
+    await expect(
+      allPayments(req as unknown as NextApiRequest, res as unknown as NextApiResponse)
+    ).rejects.toThrow("No user found");
   });
 
   it("should include paymentUid (uid field) in response", async () => {
@@ -173,7 +176,7 @@ describe("GET /api/payments", () => {
       userId: 1,
     });
 
-    await allPayments(req, res);
+    await allPayments(req as unknown as NextApiRequest, res as unknown as NextApiResponse);
 
     expect(res._getStatusCode()).toBe(200);
     const responseData = JSON.parse(res._getData());

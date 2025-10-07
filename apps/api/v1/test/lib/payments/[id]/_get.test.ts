@@ -1,3 +1,4 @@
+import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
 import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 
@@ -81,7 +82,7 @@ describe("GET /api/payments/[id]", () => {
       userId: 1,
     });
 
-    await paymentById(req, res);
+    await paymentById(req as unknown as NextApiRequest, res as unknown as NextApiResponse);
 
     expect(res._getStatusCode()).toBe(200);
     const responseData = JSON.parse(res._getData());
@@ -120,7 +121,7 @@ describe("GET /api/payments/[id]", () => {
       userId: 1,
     });
 
-    await paymentById(req, res);
+    await paymentById(req as unknown as NextApiRequest, res as unknown as NextApiResponse);
 
     expect(res._getStatusCode()).toBe(404);
     const responseData = JSON.parse(res._getData());
@@ -161,7 +162,7 @@ describe("GET /api/payments/[id]", () => {
       userId: 1,
     });
 
-    await paymentById(req, res);
+    await paymentById(req as unknown as NextApiRequest, res as unknown as NextApiResponse);
 
     expect(res._getStatusCode()).toBe(401);
     const responseData = JSON.parse(res._getData());
@@ -181,7 +182,7 @@ describe("GET /api/payments/[id]", () => {
       userId: 1,
     });
 
-    await paymentById(req, res);
+    await paymentById(req as unknown as NextApiRequest, res as unknown as NextApiResponse);
 
     // When query parsing fails, the function returns early without setting status
     expect(res._getStatusCode()).toBe(200);
@@ -219,7 +220,7 @@ describe("GET /api/payments/[id]", () => {
       userId: 1,
     });
 
-    await paymentById(req, res);
+    await paymentById(req as unknown as NextApiRequest, res as unknown as NextApiResponse);
 
     expect(res._getStatusCode()).toBe(200);
     const responseData = JSON.parse(res._getData());
@@ -239,7 +240,7 @@ describe("GET /api/payments/[id]", () => {
       userId: 1,
     });
 
-    await paymentById(req, res);
+    await paymentById(req as unknown as NextApiRequest, res as unknown as NextApiResponse);
 
     // When method is not GET, the function returns early without setting status
     expect(res._getStatusCode()).toBe(200);
