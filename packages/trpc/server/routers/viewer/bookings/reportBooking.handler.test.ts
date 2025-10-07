@@ -44,6 +44,7 @@ describe("reportBookingHandler", () => {
   const mockBookingRepo = {
     doesUserIdHaveAccessToBooking: vi.fn(),
     getBookingForReporting: vi.fn(),
+    getActiveRecurringBookingsFromDate: vi.fn(),
   };
 
   const mockReportRepo = {
@@ -349,7 +350,7 @@ describe("reportBookingHandler", () => {
 
       expect(result.success).toBe(true);
       expect(result.message).toBe("Booking reported successfully, but cancellation failed");
-      expect(result.cancellationError).toBeDefined();
+      expect(result).not.toHaveProperty("cancellationError");
     });
 
     it("should use cancelSubsequentBookings for recurring events", async () => {
@@ -359,6 +360,11 @@ describe("reportBookingHandler", () => {
         recurringEventId: "recurring-123",
         startTime: new Date(Date.now() + 86400000),
       });
+      mockBookingRepo.getActiveRecurringBookingsFromDate.mockResolvedValue([
+        { id: 100 },
+        { id: 101 },
+        { id: 102 },
+      ]);
       mockReportRepo.createReport.mockResolvedValue({ id: "new-report" });
       mockReportRepo.hasUserReportedSeries.mockResolvedValue(false);
       vi.mocked(handleCancelBooking).mockResolvedValue({

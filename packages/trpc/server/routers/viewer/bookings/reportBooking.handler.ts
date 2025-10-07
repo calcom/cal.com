@@ -78,38 +78,16 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
   let reportedBookingIds: number[] = [bookingId];
 
   if (booking.recurringEventId && allRemainingBookings) {
-    const remainingRecurringBookings = await prisma.booking.findMany({
-      where: {
-        recurringEventId: booking.recurringEventId,
-        startTime: { gte: booking.startTime },
-      },
-      select: { id: true },
-      orderBy: { startTime: "asc" },
+    const remainingBookings = await bookingRepo.getActiveRecurringBookingsFromDate({
+      recurringEventId: booking.recurringEventId,
+      fromDate: booking.startTime,
     });
-    reportedBookingIds = remainingRecurringBookings.map((b) => b.id);
+    reportedBookingIds = remainingBookings.map((b) => b.id);
   }
 
-  let createdCount = 0;
-  for (const id of reportedBookingIds) {
-    try {
-      await bookingReportRepo.createReport({
-        bookingId: id,
-        bookerEmail: bookerEmail,
-        reportedById: user.id,
-        reason,
-        description,
-        cancelled: cancelBooking,
-      });
-      createdCount++;
-    } catch (error) {
-      log.warn(`Failed to create report for booking ${id}:`, error);
-    }
-  }
-
-  const reportedBooking = { id: reportedBookingIds[0] };
-
-  let cancellationError = null;
+  let cancellationError: unknown = null;
   let cancellationAttempted = false;
+  let didCancel = false;
   if (
     cancelBooking &&
     (booking.status === BookingStatus.ACCEPTED || booking.status === BookingStatus.PENDING) &&
@@ -125,8 +103,6 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
           uid: booking.uid,
           cancelledBy: user.email,
           cancellationReason: description ?? reason,
-          // For recurring events: use cancelSubsequentBookings for proper cancellation
-          // allRemainingBookings cancels all future occurrences, cancelSubsequentBookings cancels from this one onward
           ...(booking.recurringEventId && allRemainingBookings
             ? { cancelSubsequentBookings: true }
             : { allRemainingBookings: undefined }),
@@ -134,24 +110,46 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
         },
         userId: user.id,
       });
+      didCancel = true;
     } catch (error) {
       cancellationError = error;
       log.error("Failed to cancel booking after reporting:", error);
     }
   }
 
+  let createdCount = 0;
+  for (const id of reportedBookingIds) {
+    try {
+      await bookingReportRepo.createReport({
+        bookingId: id,
+        bookerEmail,
+        reportedById: user.id,
+        reason,
+        description,
+        cancelled: didCancel,
+      });
+      createdCount++;
+    } catch (error) {
+      log.warn(`Failed to create report for booking ${id}:`, error);
+    }
+  }
+
+  const reportedBooking = { id: reportedBookingIds[0] };
+
   const isRecurring = Boolean(booking.recurringEventId) && createdCount > 1;
   const baseMessage = isRecurring ? `${createdCount} recurring bookings reported` : "Booking reported";
+  const success = createdCount > 0;
 
   return {
-    success: true,
-    message: cancellationError
-      ? `${baseMessage} successfully, but cancellation failed`
-      : cancellationAttempted
-      ? `${baseMessage} and cancelled successfully`
-      : `${baseMessage} successfully`,
+    success,
+    message: success
+      ? cancellationAttempted
+        ? cancellationError
+          ? `${baseMessage} successfully, but cancellation failed`
+          : `${baseMessage} and cancelled successfully`
+        : `${baseMessage} successfully`
+      : "No reports created",
     bookingId: reportedBooking.id,
     reportedCount: createdCount,
-    cancellationError: cancellationError ? String(cancellationError) : undefined,
   };
 };

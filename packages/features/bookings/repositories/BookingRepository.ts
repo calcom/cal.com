@@ -223,6 +223,24 @@ export class BookingRepository {
     });
   }
 
+  async getActiveRecurringBookingsFromDate({
+    recurringEventId,
+    fromDate,
+  }: {
+    recurringEventId: string;
+    fromDate: Date;
+  }) {
+    return await this.prismaClient.booking.findMany({
+      where: {
+        recurringEventId,
+        startTime: { gte: fromDate },
+        status: { in: [BookingStatus.ACCEPTED, BookingStatus.PENDING] },
+      },
+      select: { id: true },
+      orderBy: { startTime: "asc" },
+    });
+  }
+
   private async _findAllExistingBookingsForEventTypeBetween({
     eventTypeId,
     seatedEvent = false,
