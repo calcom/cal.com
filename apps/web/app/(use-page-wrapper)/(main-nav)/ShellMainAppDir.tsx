@@ -3,8 +3,7 @@ import classNames from "classnames";
 
 import type { LayoutProps } from "@calcom/features/shell/Shell";
 
-// Copied from `ShellMain` but with a different `ShellMainAppDirBackButton` import
-// for client/server component separation
+// Fixed floating CTA positioning for mobile (avoids overlap with bottom nav)
 export function ShellMainAppDir(props: LayoutProps) {
   return (
     <>
@@ -40,24 +39,27 @@ export function ShellMainAppDir(props: LayoutProps) {
                 )}
               </div>
               {props.beforeCTAactions}
+
               {props.CTA && (
                 <div
                   className={classNames(
                     props.backPath
                       ? "relative"
-                      : "pwa:bottom-[max(7rem,_calc(5rem_+_env(safe-area-inset-bottom)))] fixed bottom-20 z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
-                    "flex-shrink-0 [-webkit-app-region:no-drag] md:relative md:bottom-auto md:right-auto"
+                      : // ✅ Adjusted bottom spacing for mobile
+                        "pwa:bottom-[max(7rem,_calc(5rem_+_env(safe-area-inset-bottom)))] fixed bottom-[6.5rem] z-40 ltr:right-4 rtl:left-4 sm:bottom-[7rem] md:bottom-auto md:z-auto md:ltr:right-0 md:rtl:left-0",
+                    "flex-shrink-0 [-webkit-app-region:no-drag] md:relative md:right-auto"
                   )}>
                   {props.CTA}
                 </div>
               )}
+
               {props.actions && props.actions}
             </header>
           )}
         </div>
       )}
-      {props.afterHeading && <>{props.afterHeading}</>}
 
+      {props.afterHeading && <>{props.afterHeading}</>}
       <div className={classNames(props.flexChildrenContainer && "flex flex-1 flex-col")}>
         {props.children}
       </div>
