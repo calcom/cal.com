@@ -51,22 +51,34 @@ fi
 # Step 2: Install Docker Compose if not installed
 echo -e "\n${YELLOW}📦 Checking Docker Compose installation...${NC}"
 if ! docker compose version >/dev/null 2>&1; then
-    echo "Installing Docker Compose plugin..."
+    echo "Installing Docker Compose..."
     
-    # Check package manager
-    if command_exists dnf; then
-        sudo dnf install -y docker-compose-plugin
+    # Amazon Linux 2023 includes compose with docker package
+    if [ -f /etc/os-release ] && grep -q "Amazon Linux" /etc/os-release; then
+        echo "Amazon Linux detected - Docker Compose should be included with Docker"
+        echo "If 'docker compose' still doesn't work, installing docker-buildx..."
+        sudo dnf install -y docker-buildx 2>/dev/null || true
     elif command_exists apt; then
         sudo apt update
         sudo apt install -y docker-compose-plugin
     else
-        echo -e "${RED}❌ Unsupported package manager${NC}"
-        exit 1
+        # Manual install for other systems
+        DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
+        mkdir -p $DOCKER_CONFIG/cli-plugins
+        curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
+        chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
     fi
     
-    echo -e "${GREEN}✅ Docker Compose installed${NC}"
+    echo -e "${GREEN}✅ Docker Compose setup complete${NC}"
 else
     echo -e "${GREEN}✅ Docker Compose already installed${NC}"
+fi
+
+# Ensure docker service is running
+if ! sudo systemctl is-active --quiet docker; then
+    echo "Starting Docker service..."
+    sudo systemctl start docker
+    sudo systemctl enable docker
 fi
 
 # Step 3: Generate environment file if it doesn't exist
