@@ -3677,6 +3677,8 @@
   "webhook_organizer_email": "Emailul organizatorului",
   "webhook_organizer_timezone": "Fusul orar al organizatorului (de exemplu, 'America/New_York', 'Asia/Kolkata')",
   "webhook_organizer_locale": "Limba organizatorului (de exemplu, 'en', 'fr')",
+  "webhook_organizer_username": "Numele de utilizator al organizatorului (de exemplu, 'john.doe')",
+  "webhook_organizer_username_in_org": "Numele de utilizator al organizatorului în organizația sa (de exemplu, 'john.doe')",
   "webhook_attendee_name": "Numele primului participant",
   "webhook_attendee_email": "Emailul primului participant",
   "webhook_attendee_timezone": "Fusul orar al primului participant",
