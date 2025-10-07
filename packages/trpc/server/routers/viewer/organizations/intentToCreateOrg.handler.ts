@@ -1,5 +1,5 @@
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
-import { OrganizationOnboardingService } from "@calcom/features/ee/organizations/lib/OrganizationOnboardingService";
+import { OrganizationOnboardingFactory } from "@calcom/features/ee/organizations/lib/onboarding";
 import {
   assertCanCreateOrg,
   findUserToBeOrgOwner,
@@ -86,8 +86,9 @@ export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) =>
     restrictBasedOnMinimumPublishedTeams: !IS_USER_ADMIN,
   });
 
-  // Use the new service to handle the entire onboarding flow
-  const onboardingService = new OrganizationOnboardingService(ctx.user);
+  // Use the factory to get the appropriate onboarding service
+  // Factory returns either BillingEnabledOnboardingService or SelfHostedOnboardingService
+  const onboardingService = OrganizationOnboardingFactory.create(ctx.user);
   const result = await onboardingService.createOnboardingIntent(input);
 
   log.debug("Organization creation intent successful", safeStringify({ slug, orgOwnerId: orgOwner.id }));

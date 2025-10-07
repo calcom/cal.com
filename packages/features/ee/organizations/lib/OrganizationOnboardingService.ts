@@ -1,3 +1,26 @@
+/**
+ * @deprecated This service has been refactored into a factory pattern for better separation of concerns.
+ *
+ * Please use the new factory-based approach:
+ * ```typescript
+ * import { OrganizationOnboardingFactory } from "@calcom/features/ee/organizations/lib/onboarding";
+ *
+ * const service = OrganizationOnboardingFactory.create(user);
+ * const result = await service.createOnboardingIntent(input);
+ * ```
+ *
+ * The factory returns either:
+ * - `BillingEnabledOnboardingService` (Stripe flow) for billing-enabled environments
+ * - `SelfHostedOnboardingService` (immediate creation) for self-hosted admins
+ *
+ * This class will be removed in a future release.
+ *
+ * Migration guide:
+ * - Replace: `new OrganizationOnboardingService(user)`
+ * - With: `OrganizationOnboardingFactory.create(user)`
+ * - The interface remains the same, just call `createOnboardingIntent(input)`
+ */
+
 import { createOrganizationFromOnboarding } from "@calcom/features/ee/organizations/lib/server/createOrganizationFromOnboarding";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
@@ -10,7 +33,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { OrganizationPaymentService } from "./OrganizationPaymentService";
 import { OrganizationPermissionService } from "./OrganizationPermissionService";
 
-const log = logger.getSubLogger({ prefix: ["OrganizationOnboardingService"] });
+const log = logger.getSubLogger({ prefix: ["OrganizationOnboardingService [DEPRECATED]"] });
 
 type TeamInput = {
   id: number;
@@ -55,6 +78,9 @@ export type OnboardingIntentResult = {
   organizationId?: number | null; // Set when organization is created immediately (self-hosted)
 };
 
+/**
+ * @deprecated Use OrganizationOnboardingFactory.create(user) instead
+ */
 export class OrganizationOnboardingService {
   protected paymentService: OrganizationPaymentService;
   protected permissionService: OrganizationPermissionService;
@@ -65,6 +91,7 @@ export class OrganizationOnboardingService {
     paymentService?: OrganizationPaymentService,
     permissionService?: OrganizationPermissionService
   ) {
+    log.warn("OrganizationOnboardingService is deprecated. Use OrganizationOnboardingFactory.create() instead.");
     this.user = user;
     this.paymentService = paymentService || new OrganizationPaymentService(user);
     this.permissionService = permissionService || new OrganizationPermissionService(user);
