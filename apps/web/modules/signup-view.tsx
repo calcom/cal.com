@@ -238,8 +238,6 @@ export default function Signup({
           email_address: data.email
         });
 
-        pushGTMEvent("email_signup", { email: , user: data.username, lang: data.language });
-
         telemetry.event(telemetryEventTypes.signup, collectPageParameters());
 
         //if we have token, means user was invited through email
