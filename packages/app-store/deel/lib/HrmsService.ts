@@ -252,17 +252,34 @@ class DeelHrmsService implements HrmsService {
     }
   }
 
-  async listOOOReasons(userEmail: string): Promise<{ id: number; name: string; externalId: string }[]> {
+  async listOOOReasons(
+    userEmail: string | null,
+    profileId?: string
+  ): Promise<{ id: number; name: string; externalId: string }[]> {
     try {
-      const recipientProfileId = await this.getRecipientProfileId(userEmail);
-      if (!recipientProfileId) {
-        this.log.warn("Recipient profile ID not found for user", { email: userEmail });
+      if (!userEmail && !profileId) {
+        this.log.warn("listOOOReasons: Missing both userEmail and hrisProfileId parameters");
+        return [];
+      }
+
+      let hrisProfileId: string | null | undefined = profileId;
+
+      if (!profileId && userEmail) {
+        hrisProfileId = await this.getRecipientProfileId(userEmail);
+        if (!hrisProfileId) {
+          this.log.warn("listOOOReasons: Recipient profile ID not found for user", { email: userEmail });
+          return [];
+        }
+      }
+
+      if (!hrisProfileId) {
+        this.log.warn("listOOOReasons: Unable to determine profile ID from provided parameters");
         return [];
       }
 
       const accessToken = await this.getAccessToken();
       const response = await fetch(
-        `${deelApiUrl}/rest/v2/time_offs/profile/${encodeURIComponent(recipientProfileId)}/policies`,
+        `${deelApiUrl}/rest/v2/time_offs/profile/${encodeURIComponent(hrisProfileId)}/policies`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -271,51 +288,64 @@ class DeelHrmsService implements HrmsService {
       );
 
       if (!response.ok) {
-        this.log.warn("Could not fetch Deel policies for OOO reasons", {
-          profileId: recipientProfileId,
+        this.log.warn("listOOOReasons: Failed to fetch Deel policies", {
+          profileId,
           status: response.status,
         });
         return [];
       }
 
       const data: DeelPoliciesResponse = await response.json();
-      const reasons: { id: number; name: string; externalId: string }[] = [];
 
-      for (const policy of data.policies || []) {
-        for (const timeOffType of policy.time_off_types || []) {
-          const reason = await prisma.outOfOfficeReason.upsert({
-            where: {
-              credentialId_externalId: {
+      if (!data.policies?.length) {
+        this.log.info("listOOOReasons: No policies found for profile", {
+          hrisProfileId,
+        });
+        return [];
+      }
+
+      const reasonsPromises = data.policies.flatMap((policy) =>
+        (policy.time_off_types || []).map((timeOffType) =>
+          prisma.outOfOfficeReason
+            .upsert({
+              where: {
+                credentialId_externalId: {
+                  credentialId: this.credential.id,
+                  externalId: timeOffType.id,
+                },
+              },
+              create: {
+                reason: timeOffType.name,
                 credentialId: this.credential.id,
                 externalId: timeOffType.id,
               },
-            },
-            create: {
-              reason: timeOffType.name,
-              credentialId: this.credential.id,
+              update: {
+                reason: timeOffType.name,
+              },
+            })
+            .then((reason) => ({
               externalId: timeOffType.id,
-            },
-            update: {
-              reason: timeOffType.name,
-            },
-          });
-          reasons.push({
-            externalId: timeOffType.id,
-            name: timeOffType.name,
-            id: reason.id,
-          });
-        }
-      }
+              name: timeOffType.name,
+              id: reason.id,
+            }))
+        )
+      );
 
-      this.log.info("Successfully fetched Deel OOO reasons", { count: reasons.length });
+      const reasons = await Promise.all(reasonsPromises);
+
+      this.log.info("Successfully fetched and upserted Deel OOO reasons", {
+        count: reasons.length,
+        profileId,
+      });
+
       return reasons;
     } catch (error) {
-      this.log.error("Error fetching Deel OOO reasons", error);
+      this.log.error("listOOOReasons: Error fetching Deel OOO reasons", error);
       return [];
     }
   }
 
-  private async getRecipientProfileId(userEmail: string): Promise<string | null> {
+  async getRecipientProfileId(userEmail: string): Promise<string | null> {
     try {
       const accessToken = await this.getAccessToken();
 

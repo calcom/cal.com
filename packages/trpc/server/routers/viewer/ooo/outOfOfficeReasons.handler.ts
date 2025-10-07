@@ -63,7 +63,7 @@ export const outOfOfficeReasonList = async (options?: OutOfOfficeReasonsHandlerO
     }
 
     if (hrmsReasons.length > 0) {
-      log.info("Returning HRMS reasons", { count: hrmsReasons.length });
+      log.info("Returning policies from HRMS", { count: hrmsReasons.length });
       return hrmsReasons;
     }
 

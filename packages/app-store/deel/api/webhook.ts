@@ -7,6 +7,7 @@ import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -28,8 +29,8 @@ export const config = {
 const deelRequesterSchema = z.object({
   id: z.string(),
   name: z.string(),
-  pic_url: z.string().nullable(),
   is_employee: z.boolean(),
+  work_email: z.string().nullable(),
 });
 
 const deelTimeOffResourceSchema = z.object({
@@ -40,12 +41,10 @@ const deelTimeOffResourceSchema = z.object({
   start_date: z.string(),
   end_date: z.string(),
   change_request: z.any().nullable(),
-  applied_changes: z.array(z.any()),
-  attachments: z.array(z.any()),
   reason: z.string().nullable(),
   type: z.string(),
   requested_at: z.string(),
-  status: z.enum(["REQUESTED", "APPROVED", "REJECTED"]),
+  status: z.enum(["REQUESTED", "APPROVED", "REJECTED", "CANCELED", "USED"]),
   requester: deelRequesterSchema,
   reviewer: z.any().nullable(),
   start_date_is_half_day: z.boolean(),
@@ -54,24 +53,23 @@ const deelTimeOffResourceSchema = z.object({
 });
 
 const deelWebhookMetaSchema = z.object({
-  event_type_id: z.number(),
-  public_id: z.string(),
+  event_type_id: z.string(),
   event_type: z.string(),
   tracking_id: z.string(),
-  organization_id: z.number(),
+  organization_id: z.string(),
   organization_name: z.string(),
-  organization_public_id: z.string(),
 });
 
 const deelWebhookPayloadSchema = z.object({
-  resource: deelTimeOffResourceSchema,
-  meta: deelWebhookMetaSchema,
+  data: z.object({
+    resource: deelTimeOffResourceSchema,
+    meta: deelWebhookMetaSchema,
+  }),
+  timestamp: z.string(),
 });
 
-type DeelWebhookPayload = z.infer<typeof deelWebhookPayloadSchema>;
-
 async function verifyWebhookSignature(
-  rawBody: string,
+  rawBody: Buffer<ArrayBufferLike>,
   signature: string,
   signingKey: string
 ): Promise<boolean> {
@@ -85,165 +83,172 @@ async function verifyWebhookSignature(
   }
 }
 
-async function findUserByDeelEmails(
-  deelEmails: { type: string | null; value: string | null }[]
-): Promise<{ id: number; email: string } | null> {
-  const userRepository = new UserRepository(prisma);
-
-  for (const emailObj of deelEmails) {
-    if (!emailObj.value) continue;
-
-    const user = await userRepository.findByEmailCaseInsensitive({ email: emailObj.value });
-
-    if (user) {
-      return user;
-    }
-  }
-
-  return null;
-}
-
-async function findPolicyIdByTypeName(
-  credential: any,
-  typeName: string,
-  userEmail: string
-): Promise<string | null> {
-  try {
-    const hrmsService = new DeelHrmsService(credential);
-    const reasons = await hrmsService.listOOOReasons(userEmail);
-
-    const matchingReason = reasons.find((reason) => reason.name.toLowerCase() === typeName.toLowerCase());
-
-    return matchingReason?.externalId || null;
-  } catch (error) {
-    log.error("Error finding policy ID by type name", { typeName, error });
-    return null;
-  }
-}
-
-async function handleTimeOffCreated(payload: DeelWebhookPayload): Promise<void> {
-  const { resource } = payload;
-
-  if (resource.status !== "APPROVED") {
-    log.info("Ignoring time-off request with status", { status: resource.status });
-    return;
-  }
-
-  const allCredentials = await CredentialRepository.findManyByCategoryAndAppSlug({
-    category: [AppCategories.hrms],
-    appSlug: "deel",
-  });
-
-  if (!allCredentials || allCredentials.length === 0) {
-    log.warn("No Deel HRMS credentials found for processing webhook");
-    return;
-  }
-
-  const deelCredential = allCredentials[0];
-
-  const hrmsService = new DeelHrmsService(deelCredential);
-  const userDetails = await hrmsService.getPersonById(resource.requester.id);
-
-  if (!userDetails) {
-    log.warn("Could not fetch user details from Deel", { requesterId: resource.requester.id });
-    return;
-  }
-
-  const calUser = await findUserByDeelEmails(userDetails.emails);
-  if (!calUser) {
-    log.warn("No matching Cal.com user found for Deel user", {
-      deelUserId: resource.requester.id,
-      emails: userDetails.emails.map((e) => e.value).filter(Boolean),
-    });
-    return;
-  }
-
-  const policyId = await findPolicyIdByTypeName(deelCredential, resource.type, calUser.email);
-  if (!policyId) {
-    log.warn("Could not find policy ID for time-off type", { type: resource.type });
-    return;
-  }
-
-  const oooRepository = new PrismaOOORepository(prisma);
-
-  const reason = await oooRepository.upsertOOOReason({
-    credentialId: deelCredential.id,
-    externalId: policyId,
-    reason: resource.type,
-    enabled: true,
-  });
-
-  const startDate = new Date(resource.start_date);
-  const endDate = new Date(resource.end_date);
-
-  await oooRepository.createOOOEntry({
-    uuid: crypto.randomUUID(),
-    start: startDate,
-    end: endDate,
-    notes: resource.reason || `Out of office: ${resource.type}`,
-    userId: calUser.id,
-    reasonId: reason.id,
-    externalId: resource.id,
-  });
-
-  log.info("Successfully created OOO entry from Deel webhook", {
-    deelTimeOffId: resource.id,
-    userId: calUser.id,
-    startDate: resource.start_date,
-    endDate: resource.end_date,
-  });
-}
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     if (req.method !== "POST") {
-      throw new HttpError({ statusCode: 405, message: "Method Not Allowed" });
+      return res.status(405).json({ message: "Method Not Allowed" });
     }
-
     const rawBody = await getRawBody(req);
     const bodyAsString = rawBody.toString();
-    const signature = req.headers["x-deel-signature"] as string;
 
+    const signature = req.headers["x-deel-signature"] as string;
     if (!signature) {
-      throw new HttpError({ statusCode: 400, message: "Missing webhook signature" });
+      return res.status(400).json({ message: "Missing webhook signature" });
     }
 
     const appKeys = await getAppKeysFromSlug("deel");
     const parsedKeys = appKeysSchema.safeParse(appKeys);
-
     if (!parsedKeys.success) {
-      throw new HttpError({ statusCode: 500, message: "Invalid app configuration" });
+      return res.status(500).json({ message: "Invalid app configuration" });
     }
 
     const { webhook_signing_key } = parsedKeys.data;
-
     if (!webhook_signing_key) {
-      throw new HttpError({ statusCode: 500, message: "Webhook signing key not configured" });
+      return res.status(500).json({ message: "Webhook signing key not configured" });
     }
 
-    const isValidSignature = await verifyWebhookSignature(bodyAsString, signature, webhook_signing_key);
+    const isValidSignature = await verifyWebhookSignature(rawBody, signature, webhook_signing_key);
     if (!isValidSignature) {
-      throw new HttpError({ statusCode: 401, message: "Invalid webhook signature" });
+      return res.status(400).json({ message: "Invalid webhook signature" });
     }
 
     const parseResult = deelWebhookPayloadSchema.safeParse(JSON.parse(bodyAsString));
     if (!parseResult.success) {
-      log.error("Invalid webhook payload", parseResult.error);
-      throw new HttpError({ statusCode: 400, message: "Invalid webhook payload" });
+      console.log(parseResult.error.errors);
+      log.error("Invalid webhook payload", safeStringify(parseResult.error));
+      return res.status(400).json({ statusCode: 400, message: "Invalid webhook payload" });
     }
 
-    const payload = parseResult.data;
+    const payload = parseResult.data.data;
+    if (payload.meta.event_type === "time-off.created" || payload.meta.event_type === "time-off.reviewed") {
+      if (payload.resource.status !== "APPROVED")
+        return res.status(200).json({ message: "Time-off not approved, skipping processing" });
 
-    if (payload.meta.event_type === "time-off.created") {
-      await handleTimeOffCreated(payload);
+      const email = payload.resource.requester.work_email;
+      if (!email) {
+        log.warn("No work email provided in Deel webhook payload", safeStringify(payload));
+        return res.status(200).json({ message: "No work email provided, skipping processing" });
+      }
+
+      const userRepo = new UserRepository(prisma);
+      const user = await userRepo.findByEmailCaseInsensitive({ email });
+      if (!user) {
+        log.warn("No matching Cal.com user found for Deel webhook", { email });
+        return res.status(200).json({ message: "No matching user found, skipping processing" });
+      }
+
+      const oooRepo = new PrismaOOORepository(prisma);
+      const existingOOO = await oooRepo.findUserOOODays({
+        userId: user.id,
+        dateFrom: payload.resource.start_date,
+        dateTo: payload.resource.end_date,
+      });
+      if (existingOOO && existingOOO.length > 0) {
+        log.info("OOO entry already exists for user and date range, skipping creation", {
+          userId: user.id,
+          dateFrom: payload.resource.start_date,
+          dateTo: payload.resource.end_date,
+          work_email: email,
+        });
+        return res.status(200).json({ message: "OOO entry already exists, skipping creation" });
+      }
+
+      const allCredentials = await CredentialRepository.findCredentialsByUserIdAndCategory({
+        category: [AppCategories.hrms],
+        userId: user.id,
+      });
+      if (!allCredentials || allCredentials.length === 0) {
+        log.warn("No Deel HRMS credentials found for processing webhook");
+        return res.status(200).json({ message: "No Deel HRMS credentials found, skipping processing" });
+      }
+
+      const deelCredential = allCredentials.find((cred) => cred.appId === "deel");
+      if (!deelCredential) {
+        log.warn("No Deel HRMS credential found for processing webhook");
+        return res.status(200).json({ message: "No Deel HRMS credential found, skipping processing" });
+      }
+
+      const deelService = new DeelHrmsService(deelCredential);
+      const policies = await deelService.listOOOReasons(email);
+      const matchingPolicy = policies.find(
+        (policy) => policy.name.toLowerCase() === payload.resource.type.toLowerCase()
+      );
+
+      if (!matchingPolicy) {
+        log.warn("No matching OOO policy found in Deel for type", { type: payload.resource.type, email });
+        return res.status(200).json({ message: "No matching OOO policy found, skipping processing" });
+      }
+
+      const reason = await oooRepo.upsertOOOReason({
+        credentialId: deelCredential.id,
+        externalId: matchingPolicy.externalId,
+        reason: matchingPolicy.name,
+        enabled: true,
+      });
+
+      await oooRepo.createOOOEntry({
+        end: new Date(payload.resource.end_date),
+        start: new Date(payload.resource.start_date),
+        externalId: payload.resource.id,
+        notes: payload.resource.reason || "Synced from Deel",
+        userId: user.id,
+        uuid: crypto.randomUUID(),
+        reasonId: reason.id,
+      });
+    } else if (payload.meta.event_type === "time-off.updated") {
+      if (payload.resource.status === "CANCELED") {
+        const oooRepo = new PrismaOOORepository(prisma);
+        await oooRepo.deleteOOOEntryByExternalId({ externalId: payload.resource.id });
+      } else if (payload.resource.status === "APPROVED") {
+        const oooRepo = new PrismaOOORepository(prisma);
+        const ooo = await oooRepo.findOOOEntryByExternalId(payload.resource.id);
+
+        if (!ooo || !ooo.reason?.credential) {
+          log.warn("No existing OOO entry found to update for external ID", {
+            externalId: payload.resource.id,
+          });
+          return res.status(200).json({ message: "No existing OOO entry found, skipping update" });
+        }
+
+        const deelService = new DeelHrmsService(ooo.reason.credential);
+        const policies = await deelService.listOOOReasons(
+          payload.resource.requester.work_email,
+          payload.resource.requester.id
+        );
+        const matchingPolicy = policies.find(
+          (policy) => policy.name.toLowerCase() === payload.resource.type.toLowerCase()
+        );
+
+        if (!matchingPolicy) {
+          log.warn("No matching OOO policy found in Deel for type", { type: payload.resource.type });
+          return res.status(200).json({ message: "No matching OOO policy found, skipping processing" });
+        }
+
+        const reason = await oooRepo.upsertOOOReason({
+          credentialId: ooo.reason.credential.id,
+          externalId: matchingPolicy.externalId,
+          reason: matchingPolicy.name,
+          enabled: true,
+        });
+
+        await oooRepo.updateOOOEntry({
+          uuid: ooo.uuid,
+          start: new Date(payload.resource.start_date),
+          end: new Date(payload.resource.end_date),
+          notes: payload.resource.reason || "Synced from Deel",
+          reasonId: reason.id,
+          userId: ooo.userId,
+          externalId: payload.resource.id,
+        });
+      }
     } else {
-      log.info("Ignoring webhook event type", { eventType: payload.meta.event_type });
+      log.info("Ignoring deel incoming webhook", safeStringify(payload));
     }
 
     res.status(200).json({ message: "Webhook processed successfully" });
   } catch (error) {
     const err = getErrorFromUnknown(error);
-    log.error("Webhook processing error", err);
+    log.error("Webhook processing error", safeStringify(err));
 
     res.status(err instanceof HttpError ? err.statusCode : 500).json({
       message: err.message,

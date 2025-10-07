@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import getParsedAppKeysFromSlug from "../../_utils/getParsedAppKeysFromSlug";
@@ -22,6 +24,7 @@ export interface DeelToken {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
   const state = decodeOAuthState(req);
+  const log = logger.getSubLogger({ prefix: [`[[lib] DeelHrmsService`] });
 
   if (code && typeof code !== "string") {
     res.status(400).json({ message: "`code` must be a string" });
@@ -49,13 +52,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }),
   });
 
+  if (!tokenResponse.ok) {
+    const data = await tokenResponse.json();
+    log.error("Invalid token response from Deel: ", safeStringify(data));
+    return res.status(400).json({ message: "There was an issue logging you in with Deel" });
+  }
+
   const deelToken: DeelToken = await tokenResponse.json();
 
   deelToken.expiryDate = Math.round(Date.now() + deelToken.expires_in * 1000);
 
   await createOAuthAppCredential({ appId: metadata.slug, type: metadata.type }, deelToken, req);
 
-  res.redirect(
-    getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: "other", slug: "deel" })
-  );
+  res.redirect(getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: "hrms", slug: "deel" }));
 }
