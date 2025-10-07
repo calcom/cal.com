@@ -38,7 +38,6 @@ test.describe("Manage Booking Questions", () => {
       users,
       context,
     }, testInfo) => {
-      // Considering there are many steps in it, it would need more than default test timeout
       test.setTimeout(testInfo.timeout * 3);
       const user = await createAndLoginUserWithEventTypes({ users, page });
 
@@ -59,11 +58,10 @@ test.describe("Manage Booking Questions", () => {
       users,
       context,
     }, testInfo) => {
-      // Considering there are many steps in it, it would need more than default test timeout
       test.setTimeout(testInfo.timeout * 2);
       const user = await createAndLoginUserWithEventTypes({ users, page });
 
-      // const webhookReceiver = await addWebhook(user);
+      
 
       await test.step("Go to EventType Advanced Page ", async () => {
         const $eventTypes = page.locator("[data-testid=event-types] > li a");
@@ -91,7 +89,6 @@ test.describe("Manage Booking Questions", () => {
 
           await expect(userFieldLocator.locator('[name="agree-to-terms"]')).toBeVisible();
           expect(await getLabelText(userFieldLocator)).toBe("Agree to terms");
-          // Verify that markdown is working
           expect(await getLabelLocator(userFieldLocator).locator("a").getAttribute("href")).toBe(
             "https://example.com/terms"
           );
@@ -182,36 +179,12 @@ test.describe("Manage Booking Questions", () => {
           const datePickerButton = dateFieldLocator.locator('[data-testid="pick-date"]');
 
           await datePickerButton.click();
-          // Ensure the date picker dialog and grid are visible before interacting
-          await expect(page.locator('[role="dialog"]').first()).toBeVisible();
-          await expect(page.locator('[role="grid"]').first()).toBeVisible();
-          const initialAllDayCells = page.locator('[role="grid"]').first().locator('[role="gridcell"]');
-          const initialDayCells = await initialAllDayCells.all();
-          let initialDateClicked = false;
-          
-          for (const dayCell of initialDayCells) {
-            try {
-              const isDisabled = await dayCell.getAttribute('aria-disabled');
-              const outside = await dayCell.getAttribute('data-outside');
-              const hidden = await dayCell.getAttribute('data-hidden');
-              if (isDisabled === 'true' || outside === 'true' || hidden === 'true') continue;
-              const dayText = await dayCell.textContent();
-              if (dayText && dayText.trim() && !isNaN(parseInt(dayText.trim())) && parseInt(dayText.trim()) > 0) {
-                await dayCell.click({ timeout: 5000 });
-                initialDateClicked = true;
-                break;
-              }
-            } catch (error) {
-              continue;
-            }
-          }
-          
+          const initialDateClicked = await pickAnyAvailableDateInCurrentGrid(page);
           expect(initialDateClicked).toBe(true);
 
           await expect(datePickerButton).not.toContainText("Pick a date");
           const buttonText = await datePickerButton.textContent();
           expect(buttonText).toMatch(/^[A-Z][a-z]{2} \d{1,2}, \d{4}$/);
-          // Close the popover to avoid any overlay
           await page.keyboard.press('Escape');
           await expect(page.locator('[role="dialog"]').first()).toBeHidden();
         });
@@ -223,27 +196,9 @@ test.describe("Manage Booking Questions", () => {
           const dateButton = dateFieldLocator.locator('[data-testid="pick-date"]');
           if ((await dateButton.textContent())?.includes('Pick a date')) {
             await dateButton.click();
-            await expect(page.locator('[role="dialog"]').first()).toBeVisible();
-            await expect(page.locator('[role="grid"]').first()).toBeVisible();
-            const bookingAllDayCells = page.locator('[role="grid"]').first().locator('[role="gridcell"]');
-            const bookingDayCells = await bookingAllDayCells.all();
-            for (const dayCell of bookingDayCells) {
-              try {
-                const isDisabled = await dayCell.getAttribute('aria-disabled');
-                const outside = await dayCell.getAttribute('data-outside');
-                const hidden = await dayCell.getAttribute('data-hidden');
-                if (isDisabled === 'true' || outside === 'true' || hidden === 'true') continue;
-                const dayText = await dayCell.textContent();
-                if (dayText && dayText.trim() && !isNaN(parseInt(dayText.trim())) && parseInt(dayText.trim()) > 0) {
-                  await dayCell.click({ timeout: 5000 });
-                  break;
-                }
-              } catch (error) {
-                continue;
-              }
-            }
+            await pickAnyAvailableDateInCurrentGrid(page);
             await page.keyboard.press('Escape');
-            await expect(page.locator('[role=\"dialog\"]').first()).toBeHidden();
+            await expect(page.locator('[role="dialog"]').first()).toBeHidden();
           }
           
           await bookTimeSlot({ page, name: "Booker", email: "booker@example.com" });
@@ -257,7 +212,6 @@ test.describe("Manage Booking Questions", () => {
           // @ts-expect-error body is unknown
           const payload = request.body.payload;
 
-          // Verify webhook payload has correct date format (YYYY-MM-DD)
           expect(payload.responses).toMatchObject({
             "appointment-date": {
               label: "Preferred Appointment Date",
@@ -272,7 +226,6 @@ test.describe("Manage Booking Questions", () => {
             },
           });
 
-          // Verify the date value is a valid date
           const dateValue = payload.responses["appointment-date"].value;
           const parsedDate = new Date(dateValue);
           expect(parsedDate.toISOString().split('T')[0]).toBe(dateValue);
@@ -285,8 +238,6 @@ test.describe("Manage Booking Questions", () => {
         futureDate.setDate(15);
         
         const prefillDate = futureDate.toISOString().split('T')[0];
-        // The button text uses DatePicker's format(date, "LLL dd, y"), which is equivalent to en-US short month
-        // but computed from new Date(prefillDate) (UTC midnight). Normalize expected using that parse path
         const expectedDisplayDate = new Date(prefillDate).toLocaleDateString('en-US', {
           month: 'short', day: 'numeric', year: 'numeric'
         });
@@ -300,7 +251,6 @@ test.describe("Manage Booking Questions", () => {
           const dateFieldLocator = page.locator('[data-fob-field-name="appointment-date"]');
           const datePickerButton = dateFieldLocator.locator('[data-testid="pick-date"]');
           
-          // Verify field is prefilled with provided date in display format
           await expect(datePickerButton).toContainText(expectedDisplayDate);
           await expect(datePickerButton).not.toContainText("Pick a date");
         });
@@ -325,7 +275,6 @@ test.describe("Manage Booking Questions", () => {
       users,
       context,
     }, testInfo) => {
-      // Considering there are many steps in it, it would need more than default test timeout
       test.setTimeout(testInfo.timeout * 3);
       const user = await createAndLoginUserWithEventTypes({ page, users });
       const webhookReceiver = await addWebhook(user);
@@ -505,8 +454,7 @@ async function runTestStepsCommonForTeamAndUserEventType(
     await page.locator("[data-testid=field-notes]").isVisible();
     await page.locator("[data-testid=field-guests]").isVisible();
     await page.locator("[data-testid=field-rescheduleReason]").isVisible();
-    // It is conditional
-    // await page.locator("data-testid=field-location").isVisible();
+    
   });
 
   await test.step("Add Question and see that it's shown on Booking Page at appropriate position", async () => {
@@ -629,6 +577,31 @@ async function runTestStepsCommonForTeamAndUserEventType(
   });
 }
 
+async function pickAnyAvailableDateInCurrentGrid(page: Page): Promise<boolean> {
+  await expect(page.locator('[role="dialog"]').first()).toBeVisible();
+  await expect(page.locator('[role="grid"]').first()).toBeVisible();
+  const grid = page.locator('[role="grid"]').first();
+  const cells = await grid.locator('[role="gridcell"]').all();
+  for (const cell of cells) {
+    try {
+      const isDisabled = await cell.getAttribute('aria-disabled');
+      const outside = await cell.getAttribute('data-outside');
+      const hidden = await cell.getAttribute('data-hidden');
+      const unavailable = await cell.getAttribute('data-unavailable');
+      if (isDisabled === 'true' || outside === 'true' || hidden === 'true' || unavailable === 'true') continue;
+      const txt = (await cell.textContent())?.trim() || "";
+      const num = txt ? parseInt(txt) : NaN;
+      if (!isNaN(num) && num > 0) {
+        await cell.click({ timeout: 5000 });
+        return true;
+      }
+    } catch {
+      // keep trying others
+    }
+  }
+  return false;
+}
+
 async function expectSystemFieldsToBeThereOnBookingPage({
   page,
   isFirstAndLastNameVariant,
@@ -649,8 +622,7 @@ async function expectSystemFieldsToBeThereOnBookingPage({
 }) {
   const nameLocator = page.locator('[data-fob-field-name="name"]');
   const emailLocator = page.locator('[data-fob-field-name="email"]');
-  // Location isn't rendered unless explicitly set which isn't the case here
-  // const locationLocator = allFieldsLocator.nth(2);
+  
   const additionalNotes = page.locator('[data-fob-field-name="notes"]');
   const guestsLocator = page.locator('[data-fob-field-name="guests"]');
 
