@@ -39,7 +39,7 @@ import { schemaPaymentPublic } from "~/lib/validations/payment";
 async function allPayments({ userId }: NextApiRequest, res: NextApiResponse<PaymentsResponse>) {
   const userWithBookings = await prisma.user.findUnique({
     where: { id: userId },
-    include: { bookings: true },
+    select: { bookings: true },
   });
   if (!userWithBookings) {
     return res.status(404).json({ message: "User not found" });
