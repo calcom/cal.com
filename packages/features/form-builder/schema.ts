@@ -34,6 +34,7 @@ export const fieldTypeConfigSchema = z
       "boolean",
       "objectiveWithInput",
       "variants",
+      "date",
     ]),
     // It is the config that can tweak what an existing or a new field shows in the App UI or booker UI.
     variantsConfig: z
