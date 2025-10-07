@@ -1,9 +1,9 @@
 import type { IBlockingService } from "@calcom/features/watchlist/lib/interface/IBlockingService";
 import { SpamCheckService } from "@calcom/features/watchlist/lib/service/SpamCheckService";
 
-import { getGlobalBlockingService } from "./watchlist";
+import { getCombinedBlockingService } from "./watchlist";
 
 export const getSpamCheckService = (): SpamCheckService => {
-  const blockingService = getGlobalBlockingService() as IBlockingService;
+  const blockingService = getCombinedBlockingService() as IBlockingService;
   return new SpamCheckService(blockingService);
 };

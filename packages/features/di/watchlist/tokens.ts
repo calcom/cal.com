@@ -3,6 +3,7 @@ export const WATCHLIST_DI_TOKENS = {
   WATCHLIST_SERVICE: Symbol("WatchlistService"),
   GLOBAL_BLOCKING_SERVICE: Symbol("GlobalBlockingService"),
   ORGANIZATION_BLOCKING_SERVICE: Symbol("OrganizationBlockingService"),
+  COMBINED_BLOCKING_SERVICE: Symbol("CombinedBlockingService"),
   AUDIT_SERVICE: Symbol("AuditService"),
 
   // Repositories
