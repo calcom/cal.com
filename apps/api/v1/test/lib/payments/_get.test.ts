@@ -133,7 +133,7 @@ describe("GET /api/payments", () => {
     });
   });
 
-  it("should throw error when user not found", async () => {
+  it("should return 404 when user not found", async () => {
     mockPrisma.user.findUnique.mockResolvedValue(null);
 
     const { req, res } = createMocks({
@@ -142,9 +142,13 @@ describe("GET /api/payments", () => {
       userId: 1,
     });
 
-    await expect(
-      allPayments(req as unknown as NextApiRequest, res as unknown as NextApiResponse)
-    ).rejects.toThrow("No user found");
+    await allPayments(req as unknown as NextApiRequest, res as unknown as NextApiResponse);
+
+    expect(res._getStatusCode()).toBe(404);
+    const responseData = JSON.parse(res._getData());
+    expect(responseData).toEqual({
+      message: "User not found",
+    });
   });
 
   it("should include paymentUid (uid field) in response", async () => {
