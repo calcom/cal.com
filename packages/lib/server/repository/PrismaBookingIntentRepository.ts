@@ -1,5 +1,3 @@
-import short from "short-uuid";
-
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 
@@ -15,7 +13,6 @@ export class PrismaBookingIntentRepository implements IBookingIntentRepository {
   async create(data: Parameters<IBookingIntentRepository["create"]>[0]) {
     return await this.prismaClient.bookingIntent.create({
       data: {
-        uid: short.uuid(),
         title: data.title,
         startTime: data.startTime,
         endTime: data.endTime,
@@ -27,24 +24,24 @@ export class PrismaBookingIntentRepository implements IBookingIntentRepository {
         responses: data.responses,
         metadata: data.metadata,
         description: data.description,
+        idempotencyKey: data.idempotencyKey,
+        creationSource: data.creationSource,
         ...(data.eventType && { eventType: data.eventType }),
-        ...(data.watchlistEventAudit && { watchlistEventAudit: data.watchlistEventAudit }),
       },
     });
   }
 
-  async getByUid(uid: string) {
+  async getById(id: string) {
     return await this.prismaClient.bookingIntent.findUnique({
-      where: { uid },
+      where: { id },
     });
   }
 
-  async getByUidForViewing(uid: string): Promise<BookingIntentForViewing | null> {
+  async getByIdForViewing(id: string): Promise<BookingIntentForViewing | null> {
     const result = await this.prismaClient.bookingIntent.findUnique({
-      where: { uid },
+      where: { id },
       select: {
         id: true,
-        uid: true,
         title: true,
         startTime: true,
         endTime: true,
@@ -75,7 +72,7 @@ export class PrismaBookingIntentRepository implements IBookingIntentRepository {
 
     const attendees = Array.isArray(result.attendees) ? result.attendees : [];
     const typedAttendees = attendees.map((attendee) => {
-      const typedAttendee = attendee as BookingIntentAttendee;
+      const typedAttendee = attendee as unknown as BookingIntentAttendee;
       return {
         name: typedAttendee.name || "",
         email: typedAttendee.email || "",

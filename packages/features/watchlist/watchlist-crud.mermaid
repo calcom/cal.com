@@ -1,0 +1,152 @@
+---
+id: crud-operations-watchlist
+---
+graph TB
+    subgraph "Database Models"
+        W[Watchlist<br/>---<br/>• id: UUID<br/>• type: EMAIL/DOMAIN/USERNAME<br/>• value: string<br/>• action: REPORT/BLOCK/ALERT<br/>• organizationId: int?<br/>• isGlobal: boolean<br/>• source: MANUAL/FREE_DOMAIN_POLICY<br/>• lastUpdatedAt: DateTime]
+        
+        WA[WatchlistAudit<br/>---<br/>• id: UUID<br/>• type: WatchlistType<br/>• value: string<br/>• action: WatchlistAction<br/>• changedAt: DateTime<br/>• changedByUserId: int?<br/>• watchlistId: UUID]
+        
+        WEA[WatchlistEventAudit<br/>---<br/>• id: UUID<br/>• watchlistId: UUID<br/>• eventTypeId: int<br/>• actionTaken: WatchlistAction<br/>• timestamp: DateTime]
+        
+        BI[BookingIntent<br/>---<br/>• id: int<br/>• uid: string<br/>• title: string<br/>• organizerEmail: string<br/>• attendees: JSON<br/>• status: BLOCKED/PENDING<br/>• watchlistEventAuditId: UUID?<br/>• startTime/endTime: DateTime<br/><br/>Created as PENDING first,<br/>updated to BLOCKED for decoy]
+        
+        W -->|"tracks changes"| WA
+        W -->|"tracks triggers"| WEA
+        WEA -->|"updates to BLOCKED"| BI
+    end
+    
+    subgraph "Create/Update Operations"
+        A1[Admin UI]
+        A2[Admin creates/updates<br/>watchlist entry]
+        A3{Is Global or<br/>Organization?}
+        A4[GlobalWatchlistRepository]
+        A5[OrganizationWatchlistRepository]
+        A6[WatchlistService]
+        A7[Create/Update Watchlist Entry]
+        A8[Create WatchlistAudit Record<br/>audit trail of change]
+        
+        A1 --> A2
+        A2 --> A6
+        A6 --> A3
+        A3 -->|Global| A4
+        A3 -->|Organization| A5
+        A4 --> A7
+        A5 --> A7
+        A7 --> W
+        A7 --> A8
+        A8 --> WA
+    end
+    
+    subgraph "Read Operations"
+        R1[Admin Dashboard]
+        R2[WatchlistService<br/>getWatchlistEntries]
+        R3{Scope}
+        R4[GlobalWatchlistRepository<br/>findAll/findById]
+        R5[OrganizationWatchlistRepository<br/>findByOrganization/findById]
+        R6[Return watchlist entries]
+        
+        R1 --> R2
+        R2 --> R3
+        R3 -->|Global| R4
+        R3 -->|Organization| R5
+        R4 --> R6
+        R5 --> R6
+        R4 --> W
+        R5 --> W
+    end
+    
+    subgraph "Delete Operations"
+        D1[Admin UI]
+        D2[Admin deletes<br/>watchlist entry]
+        D3{Is Global or<br/>Organization?}
+        D4[GlobalWatchlistRepository<br/>delete]
+        D5[OrganizationWatchlistRepository<br/>delete]
+        D6[WatchlistService]
+        D7[Delete Watchlist Entry]
+        D8[Create WatchlistAudit Record<br/>log deletion]
+        
+        D1 --> D2
+        D2 --> D6
+        D6 --> D3
+        D3 -->|Global| D4
+        D3 -->|Organization| D5
+        D4 --> D7
+        D5 --> D7
+        D7 --> W
+        D7 --> D8
+        D8 --> WA
+    end
+    
+    subgraph "Reporting & Analytics - Configuration Changes"
+        RP1[Admin Dashboard]
+        RP2[PrismaAuditRepository<br/>getChangeHistory]
+        RP3[Show audit trail<br/>for watchlist entry]
+        RP4[Filter by:<br/>• Time period<br/>• User<br/>• Action type]
+        RP5[Export reports]
+        
+        RP1 --> RP2
+        RP2 --> WA
+        RP2 --> RP3
+        RP3 --> RP4
+        RP4 --> RP5
+    end
+    
+    subgraph "Reporting & Analytics - Runtime Events"
+        EA1[Admin Dashboard]
+        EA2[PrismaAuditRepository<br/>getEventAuditsByOrganization]
+        EA3[PrismaAuditRepository<br/>getBlockingStats]
+        EA4[Show watchlist triggers:<br/>• Blocked bookings<br/>• Reported events<br/>• Alerts sent]
+        EA5[Filter by:<br/>• Time period<br/>• Email/Domain<br/>• Action type]
+        EA6[View booking intents<br/>with status=BLOCKED]
+        EA7[PrismaBookingIntentRepository<br/>getByUidForViewing]
+        
+        EA1 --> EA2
+        EA1 --> EA3
+        EA2 --> WEA
+        EA3 --> WEA
+        EA2 --> EA4
+        EA4 --> EA5
+        EA5 --> EA6
+        EA6 --> EA7
+        EA7 --> BI
+    end
+    
+    subgraph "Permissions & Access Control"
+        P1{User Role}
+        P2[Cal.com Admin<br/>Full access to global<br/>& all org watchlists]
+        P3[Organization Admin<br/>Access to their org<br/>watchlist only]
+        P4[Check permissions]
+        P5[Allow operation]
+        P6[Deny operation]
+        
+        A2 --> P1
+        D2 --> P1
+        P1 -->|Cal.com Admin| P2
+        P1 -->|Org Admin| P3
+        P2 --> P4
+        P3 --> P4
+        P4 -->|Authorized| P5
+        P4 -->|Unauthorized| P6
+        P5 --> A6
+        P5 --> D6
+    end
+    
+    subgraph "Key Components"
+        C1[WatchlistService<br/>orchestrates operations]
+        C2[GlobalWatchlistRepository<br/>handles global entries]
+        C3[OrganizationWatchlistRepository<br/>handles org-specific entries]
+        C4[PrismaAuditRepository<br/>handles audit logging]
+        
+        C1 --> C2
+        C1 --> C3
+        C1 --> C4
+    end
+    
+    style W fill:#0ea5e9,stroke:#fff,stroke-width:2px,color:#fff
+    style WA fill:#f59e0b,stroke:#fff,stroke-width:2px,color:#fff
+    style WEA fill:#10b981,stroke:#fff,stroke-width:2px,color:#fff
+    style BI fill:#a855f7,stroke:#fff,stroke-width:2px,color:#fff
+    style P5 fill:#16a34a,stroke:#fff,stroke-width:2px,color:#fff
+    style P6 fill:#dc2626,stroke:#fff,stroke-width:2px,color:#fff
+```

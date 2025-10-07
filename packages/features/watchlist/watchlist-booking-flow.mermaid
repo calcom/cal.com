@@ -1,0 +1,91 @@
+---
+id: booking-flow-watchlist
+---
+graph TB
+    subgraph "Database Models"
+        W[Watchlist<br/>---<br/>• id: UUID<br/>• type: EMAIL/DOMAIN/USERNAME<br/>• value: string<br/>• action: BLOCK<br/>• organizationId: int?<br/>• isGlobal: boolean<br/>• source: MANUAL/FREE_DOMAIN_POLICY<br/>• lastUpdatedAt: DateTime]
+        
+        WEA[WatchlistEventAudit<br/>---<br/>• id: UUID<br/>• watchlistId: UUID<br/>• eventTypeId: int<br/>• actionTaken: BLOCK<br/>• timestamp: DateTime<br/>• bookingIntentId: UUID?]
+        
+        BI[BookingIntent<br/>---<br/>• id: UUID<br/>• idempotencyKey: string<br/>• title: string<br/>• organizerEmail: string<br/>• organizerName: string<br/>• attendees: JSON<br/>• status: BLOCKED<br/>• responses: JSON<br/>• startTime/endTime: DateTime<br/><br/>Stores full PII for admin review]
+        
+        W -->|"triggers on BLOCK action"| WEA
+        WEA -->|"links via bookingIntentId"| BI
+    end
+    
+    subgraph "Booking Flow - Watchlist Check"
+        B1[User submits booking]
+        B2[handleNewBooking]
+        B3[loadAndValidateUsers]
+        B4[checkIfUsersAreBlocked<br/>checks if hosts are blocked]
+        B5[Check Booker Email<br/>for BLOCK action]
+        B6{BLOCK match<br/>found?}
+        B8[Continue Booking Normally]
+        B9[GlobalWatchlistRepository<br/>findBlockedEmail<br/>findBlockedEmail]
+        B10[OrganizationWatchlistRepository<br/>findBlockedEmail<br/>findBlockedDomain]
+        
+        B1 --> B2
+        B2 --> B3
+        B3 --> B4
+        B4 --> B5
+        B5 --> B6
+        B6 -->|No| B8
+        B5 --> B9
+        B5 --> B10
+        B9 --> W
+        B10 --> W
+    end
+    
+    subgraph "BLOCK Action Triggered"
+        R1[BLOCK Match Detected]
+        R2[Build BookingIntent data]
+        R3[PrismaBookingIntentRepository<br/>create with BLOCKED status]
+        R4[PrismaAuditRepository<br/>createEventAudit]
+        R5[Link audit to BookingIntent<br/>via bookingIntentId]
+        
+        B6 -->|Yes - BLOCK found| R1
+        R1 --> R2
+        R2 --> R3
+        R3 --> R4
+        R4 --> R5
+        R5 --> WEA
+    end
+    
+    subgraph "Decoy Booking Response"
+        D1[BookingIntent created<br/>with BLOCKED status]
+        D2[Return fake success<br/>response to user]
+        D3[User sees confirmation<br/>but booking is blocked]
+        D4[Admin can review<br/>BookingIntent later]
+        
+        R5 --> D1
+        D1 --> BI
+        D1 --> D2
+        D2 --> D3
+        D3 --> D4
+    end
+    
+    subgraph "Email Verification Flow"
+        E1[User signs up/<br/>verifies email]
+        E2[sendEmailVerification]
+        E3[checkIfEmailIsBlockedInWatchlistController]
+        E4{Email has<br/>BLOCK action?}
+        E5[Skip email verification<br/>Return error]
+        E6[Send verification email]
+        
+        E1 --> E2
+        E2 --> E3
+        E3 --> E4
+        E4 -->|Yes| E5
+        E4 -->|No| E6
+    end
+    
+    style W fill:#0ea5e9,stroke:#fff,stroke-width:2px,color:#fff
+    style WEA fill:#10b981,stroke:#fff,stroke-width:2px,color:#fff
+    style BI fill:#a855f7,stroke:#fff,stroke-width:2px,color:#fff
+    style R1 fill:#eab308,stroke:#fff,stroke-width:2px,color:#000
+    style E5 fill:#dc2626,stroke:#fff,stroke-width:2px,color:#fff
+    style D1 fill:#eab308,stroke:#fff,stroke-width:2px,color:#000
+    style D2 fill:#16a34a,stroke:#fff,stroke-width:2px,color:#fff
+    style D3 fill:#16a34a,stroke:#fff,stroke-width:2px,color:#fff
+    style B8 fill:#16a34a,stroke:#fff,stroke-width:2px,color:#fff
+```

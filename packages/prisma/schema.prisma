@@ -858,29 +858,39 @@ model Booking {
 }
 
 model BookingIntent {
-  id                    Int                  @id @default(autoincrement())
-  uid                   String               @unique
-  title                 String
-  startTime             DateTime
-  endTime               DateTime
-  location              String?
-  status                BookingIntentStatus
-  organizerName         String
-  organizerEmail        String
-  attendees             Json
-  responses             Json?
-  metadata              Json?
-  description           String?
-  eventTypeId           Int?
-  eventType             EventType?           @relation(fields: [eventTypeId], references: [id])
-  watchlistEventAuditId String?              @db.Uuid
-  watchlistEventAudit   WatchlistEventAudit? @relation(fields: [watchlistEventAuditId], references: [id])
-  createdAt             DateTime             @default(now())
-  updatedAt             DateTime?            @updatedAt
+  id                 String              @id @default(uuid(7)) @db.Uuid
+  // (optional) UID based on slot start/end time & email against duplicates
+  idempotencyKey     String?             @unique
+  eventType          EventType?          @relation(fields: [eventTypeId], references: [id])
+  eventTypeId        Int?
+  title              String
+  description        String?
+  responses          Json?
+  startTime          DateTime
+  endTime            DateTime
+  attendees          Json
+  location           String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime?           @updatedAt
+  status             BookingIntentStatus
+  organizerName      String
+  organizerEmail     String
+  metadata           Json?
+  creationSource     CreationSource?
+  // Future fields to be added:
+  // tracking            Tracking?
+  // routingFormResponses RoutingFormResponseDenormalized[]
+  // internalNote        BookingInternalNote[]
+  // assignmentReason    AssignmentReason[]
+  // userPrimaryEmail    String?
+  // paid                Boolean              @default(false)
+  // payment             Payment[]
+  // smsReminderNumber   String?
+  // ratingFeedback      String?
+  // noShowHost          Boolean?             @default(false)
 
-  @@index([uid])
   @@index([eventTypeId])
-  @@index([watchlistEventAuditId])
+  @@index([idempotencyKey])
 }
 
 model Tracking {
@@ -2338,13 +2348,14 @@ model WatchlistAudit {
 }
 
 model WatchlistEventAudit {
-  id          String          @id @default(uuid(7)) @db.Uuid
-  watchlistId String          @db.Uuid
-  eventTypeId Int
-  actionTaken WatchlistAction
-  timestamp   DateTime        @default(now())
+  id              String          @id @default(uuid(7)) @db.Uuid
+  watchlistId     String          @db.Uuid
+  eventTypeId     Int
+  actionTaken     WatchlistAction
+  timestamp       DateTime        @default(now())
+  bookingIntentId String?         @db.Uuid
 
-  bookingIntents BookingIntent[]
+  @@index([bookingIntentId])
 }
 
 enum BillingPeriod {

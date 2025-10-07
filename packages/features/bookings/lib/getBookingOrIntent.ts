@@ -84,7 +84,7 @@ export async function getBookingOrIntentForViewing(uid: string) {
   }
 
   const bookingIntentRepo = new PrismaBookingIntentRepository(prisma);
-  const bookingIntent = await bookingIntentRepo.getByUidForViewing(uid);
+  const bookingIntent = await bookingIntentRepo.getByIdForViewing(uid);
 
   if (!bookingIntent) {
     return null;
@@ -92,7 +92,7 @@ export async function getBookingOrIntentForViewing(uid: string) {
 
   return {
     id: bookingIntent.id,
-    uid: bookingIntent.uid,
+    uid: bookingIntent.id,
     title: bookingIntent.title,
     startTime: bookingIntent.startTime,
     endTime: bookingIntent.endTime,
@@ -124,5 +124,6 @@ export async function getBookingOrIntentForViewing(uid: string) {
     rescheduledBy: null,
     seatsReferences: [],
     tracking: null,
+    iCalUID: `booking-intent-${bookingIntent.id}`,
   };
 }

@@ -8,8 +8,7 @@ export interface BookingIntentAttendee {
 }
 
 export interface BookingIntentForViewing {
-  id: number;
-  uid: string;
+  id: string;
   title: string;
   startTime: Date;
   endTime: Date;
@@ -32,7 +31,7 @@ export interface BookingIntentForViewing {
 }
 
 export interface IBookingIntentRepository {
-  create(data: Omit<Prisma.BookingIntentCreateInput, "uid">): Promise<BookingIntent>;
-  getByUid(uid: string): Promise<BookingIntent | null>;
-  getByUidForViewing(uid: string): Promise<BookingIntentForViewing | null>;
+  create(data: Omit<Prisma.BookingIntentCreateInput, "id">): Promise<BookingIntent>;
+  getById(id: string): Promise<BookingIntent | null>;
+  getByIdForViewing(id: string): Promise<BookingIntentForViewing | null>;
 }

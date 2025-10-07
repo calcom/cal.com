@@ -266,9 +266,10 @@ export const buildBookingIntent = async ({
   endTime,
   bookerName,
   bookerEmail,
+  bookerPhoneNumber,
   location,
   responses,
-  watchlistEventAuditId,
+  idempotencyKey,
 }: {
   eventTypeId: number;
   organizerUser: {
@@ -283,25 +284,12 @@ export const buildBookingIntent = async ({
   endTime: string;
   bookerName: string;
   bookerEmail: string;
+  bookerPhoneNumber?: string | null;
   location: string | null;
   responses: Prisma.InputJsonValue;
-  watchlistEventAuditId?: string;
+  idempotencyKey?: string;
 }) => {
-  const sanitizeEmail = (email: string): string => {
-    const [localPart, domain] = email.split("@");
-    if (!domain) return "***@***.com";
-    const sanitizedLocal =
-      localPart.length > 2
-        ? `${localPart[0]}${"*".repeat(localPart.length - 2)}${localPart[localPart.length - 1]}`
-        : "***";
-    const domainParts = domain.split(".");
-    const sanitizedDomain =
-      domainParts.length > 1
-        ? `${"*".repeat(domainParts[0].length)}.${domainParts[domainParts.length - 1]}`
-        : "***";
-    return `${sanitizedLocal}@${sanitizedDomain}`;
-  };
-
+  // Store full PII without any sanitization for admin review
   const bookingIntentRepo = new PrismaBookingIntentRepository();
   const bookingIntent = await bookingIntentRepo.create({
     title: eventName,
@@ -310,26 +298,23 @@ export const buildBookingIntent = async ({
     location: location || "Online Meeting",
     status: "BLOCKED",
     organizerName: organizerUser.name || "Organizer",
-    organizerEmail: sanitizeEmail(organizerUser.email),
+    organizerEmail: organizerUser.email,
     attendees: [
       {
         name: bookerName,
-        email: sanitizeEmail(bookerEmail),
+        email: bookerEmail,
         timeZone: "UTC",
-        phoneNumber: "***-***-****",
+        phoneNumber: bookerPhoneNumber || null,
       },
     ],
     responses: responses,
     metadata: {},
     description: null,
+    idempotencyKey: idempotencyKey || null,
+    creationSource: "WEBAPP",
     ...(eventTypeId && {
       eventType: {
         connect: { id: eventTypeId },
-      },
-    }),
-    ...(watchlistEventAuditId && {
-      watchlistEventAudit: {
-        connect: { id: watchlistEventAuditId },
       },
     }),
   });
@@ -610,8 +595,25 @@ async function handler(
 
     const fullNameForDecoy = getFullName(bookerName);
 
+    // Generate idempotency key based on booking details
+    const idempotencyKey = `blocked_${eventTypeId}_${bookerEmail}_${reqBody.start}`;
+
+    const bookingIntent = await buildBookingIntent({
+      eventTypeId,
+      organizerUser,
+      eventName: eventType.title,
+      startTime: reqBody.start,
+      endTime: reqBody.end,
+      bookerName: fullNameForDecoy,
+      bookerEmail,
+      bookerPhoneNumber,
+      location,
+      responses: reqBody.responses,
+      idempotencyKey,
+    });
+
+    // Create audit entry and link it to the booking intent
     const auditService = watchlistFeature.audit;
-    let auditEntryId: string | undefined;
 
     if (blockingResult.watchlistEntry?.id) {
       try {
@@ -622,6 +624,7 @@ async function handler(
           eventTypeId,
         });
 
+        // Link the most recent audit entry to the booking intent
         const recentAudit = await prisma.watchlistEventAudit.findFirst({
           where: {
             watchlistId: blockingResult.watchlistEntry.id as string,
@@ -631,28 +634,22 @@ async function handler(
           orderBy: { timestamp: "desc" },
         });
 
-        auditEntryId = recentAudit?.id;
+        if (recentAudit) {
+          await prisma.watchlistEventAudit.update({
+            where: { id: recentAudit.id },
+            data: { bookingIntentId: bookingIntent.id },
+          });
+        }
       } catch (err) {
-        loggerWithEventDetails.error("Failed to create audit entry for decoy booking", { error: err });
+        loggerWithEventDetails.error("Failed to create or link audit entry for booking intent", {
+          error: err,
+        });
       }
     }
 
-    const bookingIntent = await buildBookingIntent({
-      eventTypeId,
-      organizerUser,
-      eventName: eventType.title,
-      startTime: reqBody.start,
-      endTime: reqBody.end,
-      bookerName: fullNameForDecoy,
-      bookerEmail,
-      location,
-      responses: reqBody.responses,
-      watchlistEventAuditId: auditEntryId,
-    });
-
     const attendees = Array.isArray(bookingIntent.attendees)
       ? bookingIntent.attendees.map((attendee) => {
-          const typedAttendee = attendee as BookingIntentAttendee;
+          const typedAttendee = attendee as unknown as BookingIntentAttendee;
           return {
             name: typedAttendee.name || "",
             email: typedAttendee.email || "",
@@ -663,7 +660,7 @@ async function handler(
       : [];
 
     return {
-      uid: bookingIntent.uid,
+      uid: bookingIntent.id, // Use id as uid for backward compatibility
       id: bookingIntent.id,
       title: bookingIntent.title,
       description: bookingIntent.description,
