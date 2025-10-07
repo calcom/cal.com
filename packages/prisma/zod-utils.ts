@@ -115,6 +115,18 @@ const _eventTypeMetaDataSchemaWithoutApps = z.object({
       unit: RequiresConfirmationThresholdUnits,
     })
     .optional(),
+  disableCancellingThreshold: z
+    .object({
+      time: z.number(),
+      unit: RequiresConfirmationThresholdUnits,
+    })
+    .optional(),
+  disableReschedulingThreshold: z
+    .object({
+      time: z.number(),
+      unit: RequiresConfirmationThresholdUnits,
+    })
+    .optional(),
   config: z
     .object({
       useHostSchedulesForTeamEvent: z.boolean().optional(),

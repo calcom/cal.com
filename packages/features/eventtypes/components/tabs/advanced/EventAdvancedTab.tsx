@@ -67,7 +67,9 @@ import { Icon } from "@calcom/ui/components/icon";
 import AddVerifiedEmail from "../../AddVerifiedEmail";
 import type { CustomEventTypeModalClassNames } from "./CustomEventTypeModal";
 import CustomEventTypeModal from "./CustomEventTypeModal";
+import DisableCancellingController from "./DisableCancellingController";
 import type { EmailNotificationToggleCustomClassNames } from "./DisableAllEmailsSetting";
+import DisableReschedulingController from "./DisableReschedulingController";
 import { DisableAllEmailsSetting } from "./DisableAllEmailsSetting";
 import type { RequiresConfirmationCustomClassNames } from "./RequiresConfirmationController";
 import RequiresConfirmationController from "./RequiresConfirmationController";
@@ -679,44 +681,18 @@ export const EventAdvancedTab = ({
 
       {!isPlatform && (
         <>
-          <Controller
-            name="disableCancelling"
-            render={({ field: { onChange } }) => (
-              <SettingsToggle
-                labelClassName="text-sm"
-                toggleSwitchAtTheEnd={true}
-                switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
-                title={t("disable_cancelling")}
-                data-testid="disable-cancelling-toggle"
-                {...disableCancellingLocked}
-                description={t("description_disable_cancelling")}
-                checked={disableCancelling}
-                onCheckedChange={(val) => {
-                  setDisableCancelling(val);
-                  onChange(val);
-                }}
-              />
-            )}
+          <DisableCancellingController
+            eventType={eventType}
+            metadata={formMethods.getValues("metadata")}
+            disableCancelling={disableCancelling}
+            onDisableCancelling={setDisableCancelling}
           />
 
-          <Controller
-            name="disableRescheduling"
-            render={({ field: { onChange } }) => (
-              <SettingsToggle
-                labelClassName="text-sm"
-                toggleSwitchAtTheEnd={true}
-                switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
-                title={t("disable_rescheduling")}
-                data-testid="disable-rescheduling-toggle"
-                {...disableReschedulingLocked}
-                description={t("description_disable_rescheduling")}
-                checked={disableRescheduling}
-                onCheckedChange={(val) => {
-                  setDisableRescheduling(val);
-                  onChange(val);
-                }}
-              />
-            )}
+          <DisableReschedulingController
+            eventType={eventType}
+            metadata={formMethods.getValues("metadata")}
+            disableRescheduling={disableRescheduling}
+            onDisableRescheduling={setDisableRescheduling}
           />
         </>
       )}
