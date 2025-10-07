@@ -4,7 +4,6 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { makeSqlCondition } from "@calcom/features/data-table/lib/server";
 import { ZColumnFilter } from "@calcom/features/data-table/lib/types";
-import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { type ColumnFilter } from "@calcom/features/data-table/lib/types";
 import {
   isSingleSelectFilterValue,
@@ -13,10 +12,7 @@ import {
   isNumberFilterValue,
   isDateRangeFilterValue,
 } from "@calcom/features/data-table/lib/utils";
-import {
-  extractDateRangeFromColumnFilters,
-  replaceDateRangeColumnFilter,
-} from "@calcom/features/insights/lib/bookingUtils";
+import { extractDateRangeFromColumnFilters } from "@calcom/features/insights/lib/bookingUtils";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { PrismaClient } from "@calcom/prisma";
@@ -1345,6 +1341,7 @@ export class InsightsBookingBaseService {
 
   async getOutOfOfficeTrends() {
     const oooAuthConditions = await this.buildOOOAuthorizationConditions();
+    const dateRange = extractDateRangeFromColumnFilters(this.filters?.columnFilters);
 
     const data = await this.prisma.$queryRaw<
       Array<{
@@ -1369,8 +1366,8 @@ export class InsightsBookingBaseService {
       LEFT JOIN "OutOfOfficeReason" r ON ooo."reasonId" = r.id
       LEFT JOIN "User" u ON ooo."userId" = u.id
       WHERE ${oooAuthConditions}
-        AND ooo."start" >= ${this.filters?.dateRange?.startDate || "1900-01-01"}::timestamp
-        AND ooo."start" <= ${this.filters?.dateRange?.endDate || "2100-01-01"}::timestamp
+        AND ooo."start" >= ${dateRange.startDate || "1900-01-01"}::timestamp
+        AND ooo."start" <= ${dateRange.endDate || "2100-01-01"}::timestamp
       GROUP BY DATE_TRUNC('month', ooo."start")
       ORDER BY DATE_TRUNC('month', ooo."start") ASC
     `;
@@ -1380,6 +1377,7 @@ export class InsightsBookingBaseService {
 
   async getMostOutOfOfficeTeamMembers() {
     const oooAuthConditions = await this.buildOOOAuthorizationConditions();
+    const dateRange = extractDateRangeFromColumnFilters(this.filters?.columnFilters);
 
     const data = await this.prisma.$queryRaw<
       Array<{
@@ -1401,8 +1399,8 @@ export class InsightsBookingBaseService {
       FROM "OutOfOfficeEntry" ooo
       LEFT JOIN "User" u ON ooo."userId" = u.id
       WHERE ${oooAuthConditions}
-        AND ooo."start" >= ${this.filters?.dateRange?.startDate || "1900-01-01"}::timestamp
-        AND ooo."start" <= ${this.filters?.dateRange?.endDate || "2100-01-01"}::timestamp
+        AND ooo."start" >= ${dateRange.startDate || "1900-01-01"}::timestamp
+        AND ooo."start" <= ${dateRange.endDate || "2100-01-01"}::timestamp
       GROUP BY u.id, u.name, u.username, u.email, u."emailMd5"
       ORDER BY COUNT(ooo.id) DESC
       LIMIT 10
@@ -1424,6 +1422,7 @@ export class InsightsBookingBaseService {
 
   async getLeastOutOfOfficeTeamMembers() {
     const oooAuthConditions = await this.buildOOOAuthorizationConditions();
+    const dateRange = extractDateRangeFromColumnFilters(this.filters?.columnFilters);
 
     const data = await this.prisma.$queryRaw<
       Array<{
@@ -1445,8 +1444,8 @@ export class InsightsBookingBaseService {
       FROM "OutOfOfficeEntry" ooo
       LEFT JOIN "User" u ON ooo."userId" = u.id
       WHERE ${oooAuthConditions}
-        AND ooo."start" >= ${this.filters?.dateRange?.startDate || "1900-01-01"}::timestamp
-        AND ooo."start" <= ${this.filters?.dateRange?.endDate || "2100-01-01"}::timestamp
+        AND ooo."start" >= ${dateRange.startDate || "1900-01-01"}::timestamp
+        AND ooo."start" <= ${dateRange.endDate || "2100-01-01"}::timestamp
       GROUP BY u.id, u.name, u.username, u.email, u."emailMd5"
       ORDER BY COUNT(ooo.id) ASC
       LIMIT 10
