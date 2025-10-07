@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import type { z } from "zod";
 
 import type {
@@ -13,6 +13,7 @@ import { AddressInput } from "@calcom/ui/components/address";
 import { InfoBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Label, CheckboxField, EmailField, InputField, Checkbox } from "@calcom/ui/components/form";
+import { EmailTypoSuggestion, useEmailTypoDetection } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { RadioGroup, RadioField } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
@@ -202,18 +203,37 @@ export const Components: Record<FieldType, Component> = {
   email: {
     propsType: propsTypes.email,
     factory: (props) => {
+      const [email, setEmail] = useState((props.value as string) || "");
+      const suggestion = useEmailTypoDetection(email);
+
       if (!props) {
         return <div />;
       }
 
       return (
-        <InputField
-          type="email"
-          id={props.name}
-          noLabel={true}
-          {...props}
-          onChange={(e) => props.setValue(e.target.value)}
-        />
+        <>
+          <InputField
+            type="email"
+            id={props.name}
+            noLabel={true}
+            {...props}
+            value={email}
+            onChange={(e) => {
+              const newEmail = e.target.value;
+              setEmail(newEmail);
+              props.setValue(newEmail);
+            }}
+          />
+          {suggestion && (
+            <EmailTypoSuggestion
+              suggestion={suggestion}
+              onAccept={(correctedEmail) => {
+                setEmail(correctedEmail);
+                props.setValue(correctedEmail);
+              }}
+            />
+          )}
+        </>
       );
     },
   },
@@ -239,41 +259,66 @@ export const Components: Record<FieldType, Component> = {
       const placeholder = props.placeholder;
       const { t } = useLocale();
       value = value || [];
+
+      // Component for individual email with typo detection
+      const EmailWithTypoCheck = ({ index, email }: { index: number; email: string }) => {
+        const [localEmail, setLocalEmail] = useState(email);
+        const suggestion = useEmailTypoDetection(localEmail);
+
+        return (
+          <div>
+            <EmailField
+              id={`${props.name}.${index}`}
+              disabled={readOnly}
+              value={localEmail}
+              onChange={(e) => {
+                const newValue = e.target.value.toLowerCase();
+                setLocalEmail(newValue);
+                value[index] = newValue;
+                setValue(value);
+              }}
+              placeholder={placeholder}
+              label={<></>}
+              required
+              onClickAddon={() => {
+                value.splice(index, 1);
+                setValue(value);
+              }}
+              addOnSuffix={
+                !readOnly ? (
+                  <Tooltip content="Remove email">
+                    <button className="m-1" type="button">
+                      <Icon name="x" width={12} className="text-default" />
+                    </button>
+                  </Tooltip>
+                ) : null
+              }
+            />
+            {suggestion && !readOnly && (
+              <EmailTypoSuggestion
+                suggestion={suggestion}
+                onAccept={(correctedEmail) => {
+                  setLocalEmail(correctedEmail);
+                  value[index] = correctedEmail;
+                  setValue(value);
+                }}
+              />
+            )}
+          </div>
+        );
+      };
+
       return (
         <>
           {value.length ? (
             <div>
-              <label htmlFor="guests" className="text-default  mb-1 block text-sm font-medium">
+              <label htmlFor="guests" className="text-default mb-1 block text-sm font-medium">
                 {label}
               </label>
               <ul>
-                {value.map((field, index) => (
+                {value.map((email, index) => (
                   <li key={index}>
-                    <EmailField
-                      id={`${props.name}.${index}`}
-                      disabled={readOnly}
-                      value={value[index]}
-                      onChange={(e) => {
-                        value[index] = e.target.value.toLowerCase();
-                        setValue(value);
-                      }}
-                      placeholder={placeholder}
-                      label={<></>}
-                      required
-                      onClickAddon={() => {
-                        value.splice(index, 1);
-                        setValue(value);
-                      }}
-                      addOnSuffix={
-                        !readOnly ? (
-                          <Tooltip content="Remove email">
-                            <button className="m-1" type="button">
-                              <Icon name="x" width={12} className="text-default" />
-                            </button>
-                          </Tooltip>
-                        ) : null
-                      }
-                    />
+                    <EmailWithTypoCheck index={index} email={email} />
                   </li>
                 ))}
               </ul>
