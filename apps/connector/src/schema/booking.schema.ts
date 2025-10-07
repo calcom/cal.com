@@ -76,8 +76,14 @@ export const createBookingBodySchema = z
     eventTypeSlug: z.string().min(1).optional().describe("URL-friendly slug for the event type"),
 
     // Booking time (required) - accepts timezone-aware format
-    start: z.string().describe("Booking start time (e.g., '2025-10-09T14:30:00+05:30' or ISO 8601)"),
-    end: z.string().describe("Booking end time (e.g., '2025-10-09T15:00:00+05:30' or ISO 8601)"),
+    start: z
+      .string()
+      .datetime({ offset: true })
+      .describe("Booking start time (ISO 8601, e.g., '2025-10-09T14:30:00+05:30')"),
+    end: z
+      .string()
+      .datetime({ offset: true })
+      .describe("Booking end time (ISO 8601, e.g., '2025-10-09T15:00:00+05:30')"),
     timeZone: z
       .string()
       .describe("IANA timezone identifier (e.g., 'Asia/Calcutta', 'America/New_York')")
@@ -88,6 +94,7 @@ export const createBookingBodySchema = z
       .object({
         name: z
           .union([z.string().min(1), nameObjectSchema])
+          .default("John Doe")
           .describe("Booker's full name or name object with firstName/lastName"),
         email: z.string().email().describe("Booker's email address"),
 
@@ -100,12 +107,16 @@ export const createBookingBodySchema = z
               optionValue: z.string(),
             }),
           ])
+          .default({
+            value: "integrations:google:meet",
+            optionValue: "",
+          })
           .describe(
             "Meeting location - string like 'integrations:google:meet' or object with value/optionValue"
           ),
 
         // Optional response fields
-        phone: z.string().optional().describe("Booker's phone number"),
+        phone: z.string().optional().describe("Booker's phone number").default("+91XXXXXXXXXX"),
         guests: z.array(z.string().email()).optional().default([]).describe("Array of guest email addresses"),
         notes: z.string().optional().describe("Additional notes or comments from the booker"),
       })
@@ -133,11 +144,11 @@ export const createBookingBodySchema = z
     // CreationSource: z.enum(["API"]).optional().default("API"),
 
     // Deprecated but still supported
-    guests: z
-      .array(z.string().email())
-      .optional()
-      .default([])
-      .describe("Deprecated: Use responses.guests instead"),
+    // guests: z
+    //   .array(z.string().email())
+    //   .optional()
+    //   .default([])
+    //   .describe("Deprecated: Use responses.guests instead"),
   })
   .strict()
   .refine((data) => Boolean(data.eventTypeId) || Boolean(data.eventTypeSlug), {
