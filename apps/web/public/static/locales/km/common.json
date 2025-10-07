@@ -3677,6 +3677,8 @@
   "webhook_organizer_email": "អ៊ីមែលរបស់អ្នករៀបចំ",
   "webhook_organizer_timezone": "តំបន់ពេលវេលារបស់អ្នករៀបចំ (ឧ. 'America/New_York', 'Asia/Kolkata')",
   "webhook_organizer_locale": "ភាសាតំបន់របស់អ្នករៀបចំ (ឧ. 'en', 'fr')",
+  "webhook_organizer_username": "ឈ្មោះអ្នកប្រើប្រាស់របស់អ្នករៀបចំ (ឧ. 'john.doe')",
+  "webhook_organizer_username_in_org": "ឈ្មោះអ្នកប្រើប្រាស់របស់អ្នករៀបចំនៅក្នុងអង្គភាពរបស់ពួកគេ (ឧ. 'john.doe')",
   "webhook_attendee_name": "ឈ្មោះរបស់អ្នកចូលរួមដំបូង",
   "webhook_attendee_email": "អ៊ីមែលរបស់អ្នកចូលរួមដំបូង",
   "webhook_attendee_timezone": "តំបន់ពេលវេលារបស់អ្នកចូលរួមដំបូង",
