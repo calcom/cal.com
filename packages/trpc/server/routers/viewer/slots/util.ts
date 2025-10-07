@@ -1004,6 +1004,8 @@ export class AvailableSlotsService {
       bookingUid: rescheduleUid,
     });
 
+    if (!rescheduleBooking?.attendees?.length) return null;
+
     const bookerEmail = rescheduleBooking?.attendees[0]?.email;
     if (!bookerEmail) return null;
 
@@ -1151,7 +1153,7 @@ export class AvailableSlotsService {
 
     const hasFallbackRRHosts = allFallbackRRHosts && allFallbackRRHosts.length > qualifiedRRHosts.length;
 
-    // Checking if booker is available.
+    // Checks if the booker is a Cal.com user and available.
     const bookerAsHost = input.rescheduleUid
       ? await this.getBookerAsHostForReschedule({ rescheduleUid: input.rescheduleUid })
       : null;
