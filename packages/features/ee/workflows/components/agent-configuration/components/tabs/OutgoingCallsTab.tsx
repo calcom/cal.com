@@ -28,6 +28,7 @@ export function OutgoingCallsTab({
         selectedVoiceId={outboundAgentForm.watch("voiceId")}
         onVoiceDialogOpen={() => setIsVoiceDialogOpen(true)}
         eventTypeOptions={eventTypeOptions}
+        callType="outgoing"
       />
 
       <VoiceSelectionDialog

@@ -18,6 +18,7 @@ interface AgentConfigFormProps {
   selectedVoiceId?: string;
   onVoiceDialogOpen: () => void;
   eventTypeOptions?: Option[];
+  callType: "incoming" | "outgoing";
 }
 
 export function AgentConfigForm({
@@ -26,6 +27,7 @@ export function AgentConfigForm({
   selectedVoiceId,
   onVoiceDialogOpen,
   eventTypeOptions = [],
+  callType,
 }: AgentConfigFormProps) {
   const { t } = useLocale();
   const generalPromptRef = useRef<HTMLTextAreaElement | null>(null);
@@ -56,14 +58,14 @@ export function AgentConfigForm({
 
   return (
     <div className="space-y-4">
-      <LanguageSelector control={form.control} name="language" disabled={readOnly} />
-
       <EventTypeSelector
         control={form.control}
         name="eventTypeId"
         disabled={readOnly}
         eventTypeOptions={eventTypeOptions}
+        callType={callType}
       />
+      <LanguageSelector control={form.control} name="language" disabled={readOnly} />
 
       <VoiceSelector
         selectedVoiceId={selectedVoiceId}
