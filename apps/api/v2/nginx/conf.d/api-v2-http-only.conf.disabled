@@ -1,0 +1,43 @@
+# HTTP Only Configuration (for testing before SSL setup)
+# To use this:
+# 1. Rename this file to remove .disabled extension
+# 2. Disable/remove the api-v2.conf file
+# 3. Restart nginx
+
+server {
+    listen 80;
+    server_name _;
+
+    # Security Headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+
+    # Rate limiting
+    limit_req zone=api_limit burst=20 nodelay;
+
+    # Proxy to API v2
+    location / {
+        proxy_pass http://api-v2:80;
+        proxy_http_version 1.1;
+        
+        # Proxy Headers
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # Timeouts
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+
+    # Health check endpoint
+    location /health {
+        limit_req off;
+        proxy_pass http://api-v2:80/health;
+        access_log off;
+    }
+}
+

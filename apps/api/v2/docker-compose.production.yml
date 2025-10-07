@@ -1,0 +1,133 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: calcom-api-v2-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: calcom
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-calcom_secure_password_change_me}
+      POSTGRES_DB: calcom
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U calcom"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - calcom-network
+
+  # Redis Cache & Queue
+  redis:
+    image: redis:7-alpine
+    container_name: calcom-api-v2-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_secure_password_change_me}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - calcom-network
+
+  # Cal.com API v2
+  api-v2:
+    build:
+      context: ../../..  # Build from repo root to include monorepo
+      dockerfile: apps/api/v2/Dockerfile
+      args:
+        DATABASE_URL: postgresql://calcom:${DB_PASSWORD:-calcom_secure_password_change_me}@postgres:5432/calcom
+        DATABASE_DIRECT_URL: postgresql://calcom:${DB_PASSWORD:-calcom_secure_password_change_me}@postgres:5432/calcom
+    container_name: calcom-api-v2
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      API_PORT: 5555
+      
+      # Database
+      DATABASE_URL: postgresql://calcom:${DB_PASSWORD:-calcom_secure_password_change_me}@postgres:5432/calcom
+      DATABASE_DIRECT_URL: postgresql://calcom:${DB_PASSWORD:-calcom_secure_password_change_me}@postgres:5432/calcom
+      DATABASE_READ_URL: postgresql://calcom:${DB_PASSWORD:-calcom_secure_password_change_me}@postgres:5432/calcom
+      DATABASE_WRITE_URL: postgresql://calcom:${DB_PASSWORD:-calcom_secure_password_change_me}@postgres:5432/calcom
+      
+      # Redis
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_secure_password_change_me}@redis:6379
+      
+      # Auth
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-generate_a_secure_random_32_char_string}
+      
+      # API Configuration
+      API_URL: ${API_URL:-https://api.yourdomain.com}
+      API_KEY_PREFIX: ${API_KEY_PREFIX:-cal_}
+      
+      # License (optional for self-hosted)
+      CALCOM_LICENSE_KEY: ${CALCOM_LICENSE_KEY:-}
+      
+      # Web App URL
+      WEB_APP_URL: ${WEB_APP_URL:-https://app.cal.com}
+      
+      # Stripe (optional)
+      STRIPE_API_KEY: ${STRIPE_API_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      
+      # Sentry (optional)
+      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN:-}
+      
+    ports:
+      - "127.0.0.1:5555:80"
+    networks:
+      - calcom-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Nginx Reverse Proxy (Cloudflare handles SSL)
+  nginx:
+    image: nginx:alpine
+    container_name: calcom-api-v2-nginx
+    restart: unless-stopped
+    depends_on:
+      - api-v2
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    networks:
+      - calcom-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Note: No Certbot needed - Cloudflare handles SSL/TLS termination
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  calcom-network:
+    driver: bridge
+

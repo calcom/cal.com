@@ -1,0 +1,58 @@
+coverage
+build
+dist
+node_modules
+*.log
+.git
+.agents
+.husky
+.snaplet
+.turbo
+
+
+# Test results and artifacts
+test-results/
+**/playwright/videos
+**/playwright/screenshots
+**/playwright/artifacts
+**/playwright/results
+**/playwright/reports
+
+# Checks and testing infrastructure
+__checks__/
+tests/performance/
+playwright/
+
+docs/
+*.md
+
+# IDE and editor files
+.vscode/
+.idea/
+.history/
+*.code-workspace
+.DS_Store
+.claude
+
+# CI/CD and deployment configs
+.github/
+.changeset/
+checkly.config.ts
+.vercel/
+vercel.json
+Procfile
+
+# Build artifacts
+.next/
+out/
+*.tsbuildinfo
+lint-results/
+
+# Yarn cache and non-essential yarn files
+.yarn/cache/
+.yarn/install-state.gz
+.pnp.*
+
+# Example and development apps
+example-apps/
+apps/ui-playground/

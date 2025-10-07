@@ -1,0 +1,104 @@
+version: '3.8'
+
+# Local Development Docker Compose
+# Simpler setup for testing on your Mac/local machine
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: calcom-api-v2-postgres-local
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: calcom
+      POSTGRES_PASSWORD: calcom_local_password
+      POSTGRES_DB: calcom
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"  # Exposed for local debugging
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U calcom"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - calcom-network
+
+  # Redis Cache & Queue
+  redis:
+    image: redis:7-alpine
+    container_name: calcom-api-v2-redis-local
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass redis_local_password
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"  # Exposed for local debugging
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - calcom-network
+
+  # Cal.com API v2
+  api-v2:
+    build:
+      context: ../../..
+      dockerfile: apps/api/v2/Dockerfile
+      args:
+        DATABASE_URL: postgresql://calcom:calcom_local_password@postgres:5432/calcom
+        DATABASE_DIRECT_URL: postgresql://calcom:calcom_local_password@postgres:5432/calcom
+    container_name: calcom-api-v2-local
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      API_PORT: 5555
+      
+      # Database
+      DATABASE_URL: postgresql://calcom:calcom_local_password@postgres:5432/calcom
+      DATABASE_DIRECT_URL: postgresql://calcom:calcom_local_password@postgres:5432/calcom
+      DATABASE_READ_URL: postgresql://calcom:calcom_local_password@postgres:5432/calcom
+      DATABASE_WRITE_URL: postgresql://calcom:calcom_local_password@postgres:5432/calcom
+      
+      # Redis
+      REDIS_URL: redis://:redis_local_password@redis:6379
+      
+      # Auth
+      NEXTAUTH_SECRET: local_testing_secret_change_in_production_12345
+      
+      # API Configuration
+      API_URL: http://localhost
+      API_KEY_PREFIX: cal_
+      
+      # Web App URL
+      WEB_APP_URL: http://localhost:3000
+      
+    ports:
+      - "5555:80"  # Direct access to API
+    networks:
+      - calcom-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  calcom-network:
+    driver: bridge
+
