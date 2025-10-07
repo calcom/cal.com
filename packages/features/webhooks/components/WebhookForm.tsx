@@ -189,8 +189,8 @@ function getWebhookVariables(t: (key: string) => string) {
           description: t("webhook_attendee_email"),
         },
         {
-          name: "attendees.0.timezone",
-          variable: "{{attendees.0.timezone}}",
+          name: "attendees.0.timeZone",
+          variable: "{{attendees.0.timeZone}}",
           type: "String",
           description: t("webhook_attendee_timezone"),
         },
