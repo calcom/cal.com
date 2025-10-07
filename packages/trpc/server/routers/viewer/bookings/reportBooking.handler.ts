@@ -3,7 +3,7 @@ import { extractBookerEmail } from "@calcom/features/bookings/lib/booking-report
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import logger from "@calcom/lib/logger";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
-import { prisma } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
