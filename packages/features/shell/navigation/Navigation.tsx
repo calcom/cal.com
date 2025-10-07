@@ -80,7 +80,7 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     name: "insights",
     href: "/insights/bookings",
     icon: "chart-no-axes-column-increasing",
-    isCurrent: ({ pathname: path, item }) => path?.startsWith(item.href) ?? false,
+    isCurrent: ({ pathname: path }) => path?.startsWith("/insights") ?? false,
     moreOnMobile: true,
   },
   {
