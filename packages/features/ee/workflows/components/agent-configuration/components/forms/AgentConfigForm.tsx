@@ -4,9 +4,11 @@ import type { UseFormReturn } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AddVariablesDropdown } from "@calcom/ui/components/editor";
 import { Input, Label, TextArea } from "@calcom/ui/components/form";
+import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 
 import { DYNAMIC_TEXT_VARIABLES } from "../../../../lib/constants";
 import type { AgentFormValues } from "../../types/schemas";
+import { EventTypeSelector } from "./EventTypeSelector";
 import { LanguageSelector } from "./LanguageSelector";
 import { VoiceSelector } from "./VoiceSelector";
 
@@ -15,6 +17,7 @@ interface AgentConfigFormProps {
   readOnly?: boolean;
   selectedVoiceId?: string;
   onVoiceDialogOpen: () => void;
+  eventTypeOptions?: Option[];
 }
 
 export function AgentConfigForm({
@@ -22,6 +25,7 @@ export function AgentConfigForm({
   readOnly = false,
   selectedVoiceId,
   onVoiceDialogOpen,
+  eventTypeOptions = [],
 }: AgentConfigFormProps) {
   const { t } = useLocale();
   const generalPromptRef = useRef<HTMLTextAreaElement | null>(null);
@@ -53,6 +57,13 @@ export function AgentConfigForm({
   return (
     <div className="space-y-4">
       <LanguageSelector control={form.control} name="language" disabled={readOnly} />
+
+      <EventTypeSelector
+        control={form.control}
+        name="eventTypeId"
+        disabled={readOnly}
+        eventTypeOptions={eventTypeOptions}
+      />
 
       <VoiceSelector
         selectedVoiceId={selectedVoiceId}

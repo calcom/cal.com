@@ -175,6 +175,7 @@ export function IncomingCallsTab({
         readOnly={readOnly}
         selectedVoiceId={inboundAgentForm.watch("voiceId")}
         onVoiceDialogOpen={() => setIsVoiceDialogOpen(true)}
+        eventTypeOptions={eventTypeOptions}
       />
 
       <VoiceSelectionDialog

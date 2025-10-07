@@ -146,7 +146,11 @@ export function AgentConfigurationSheet({
           </SheetHeader>
           <SheetBody className="px-0">
             {activeTab === "outgoingCalls" && (
-              <OutgoingCallsTab outboundAgentForm={outboundAgentForm} readOnly={readOnly} />
+              <OutgoingCallsTab
+                outboundAgentForm={outboundAgentForm}
+                readOnly={readOnly}
+                eventTypeOptions={eventTypeOptions}
+              />
             )}
 
             {activeTab === "phoneNumber" && (

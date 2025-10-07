@@ -7,6 +7,7 @@ export const agentSchema = z.object({
   numberToCall: z.string().optional(),
   language: z.string().optional(),
   voiceId: z.string().optional(),
+  eventTypeId: z.number().optional(),
   generalTools: z
     .array(
       z.object({
