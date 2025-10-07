@@ -1,4 +1,5 @@
 // This is taken from "react-awesome-query-builder/lib/config/basic";
+import { CoreConfig } from "@react-awesome-query-builder/core";
 import type {
   Conjunction as RAQBConjunction,
   Widget as RAQBWidget,
@@ -487,7 +488,7 @@ const settings = {
 };
 
 const ctx: ConfigContext = {
-  utils: {} as JsonLogicValue,
+  ...CoreConfig.ctx,
   W: {},
   O: {},
 };
