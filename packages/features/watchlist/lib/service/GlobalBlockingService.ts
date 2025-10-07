@@ -1,6 +1,8 @@
-import type { IAuditService } from "../interface/IAuditService";
 import type { IBlockingService, BlockingResult } from "../interface/IBlockingService";
-import type { IGlobalWatchlistRepository } from "../interface/IWatchlistRepositories";
+import type {
+  IGlobalWatchlistRepository,
+  IOrganizationWatchlistRepository,
+} from "../interface/IWatchlistRepositories";
 import { WatchlistType } from "../types";
 import { normalizeEmail, extractDomainFromEmail } from "../utils/normalization";
 
@@ -11,7 +13,7 @@ import { normalizeEmail, extractDomainFromEmail } from "../utils/normalization";
 export class GlobalBlockingService implements IBlockingService {
   constructor(
     private readonly globalRepo: IGlobalWatchlistRepository,
-    private readonly auditService: IAuditService
+    private readonly orgRepo: IOrganizationWatchlistRepository
   ) {}
 
   async isBlocked(email: string, organizationId?: number): Promise<BlockingResult> {
@@ -19,12 +21,6 @@ export class GlobalBlockingService implements IBlockingService {
 
     const globalEmailEntry = await this.globalRepo.findBlockedEmail(normalizedEmail);
     if (globalEmailEntry) {
-      await this.auditService.logBlockedBookingAttempt({
-        email: normalizedEmail,
-        organizationId,
-        watchlistId: globalEmailEntry.id,
-      });
-
       return {
         isBlocked: true,
         reason: WatchlistType.EMAIL,
@@ -35,17 +31,25 @@ export class GlobalBlockingService implements IBlockingService {
     const normalizedDomain = extractDomainFromEmail(normalizedEmail);
     const globalDomainEntry = await this.globalRepo.findBlockedDomain(normalizedDomain);
     if (globalDomainEntry) {
-      await this.auditService.logBlockedBookingAttempt({
-        email: normalizedEmail,
-        organizationId,
-        watchlistId: globalDomainEntry.id,
-      });
-
       return {
         isBlocked: true,
         reason: WatchlistType.DOMAIN,
         watchlistEntry: globalDomainEntry,
       };
+    }
+
+    // Add org specific check here
+    if (organizationId) {
+      const orgDomainEntry = await this.orgRepo.findBlockedDomain(normalizedDomain, organizationId);
+      if (orgDomainEntry) {
+        // TODO: Add audit logging when audit service is injected
+
+        return {
+          isBlocked: true,
+          reason: WatchlistType.DOMAIN,
+          watchlistEntry: orgDomainEntry,
+        };
+      }
     }
     return { isBlocked: false };
   }

@@ -40,7 +40,13 @@ export interface IGlobalWatchlistRepository {
  * Follows Dependency Inversion Principle
  */
 export interface IOrganizationWatchlistRepository {
-  findBlockedEmail(email: string, organizationId: number): Promise<Watchlist | null>;
+  findBlockedEmail({
+    email,
+    organizationId,
+  }: {
+    email: string;
+    organizationId: number;
+  }): Promise<Watchlist | null>;
   findBlockedDomain(domain: string, organizationId: number): Promise<Watchlist | null>;
   findReportedEmail(email: string, organizationId: number): Promise<Watchlist | null>;
   findReportedDomain(domain: string, organizationId: number): Promise<Watchlist | null>;

@@ -61,5 +61,5 @@ export type WatchlistEntry = Watchlist;
 export type CreateWatchlistEntryData = CreateWatchlistInput;
 export type UpdateWatchlistEntryData = UpdateWatchlistInput;
 
-// Legacy type alias for backward compatibility
-export type BlockedBooking = WatchlistEventAudit;
+// Type aliases for convenience
+export type WatchlistEvent = WatchlistEventAudit;

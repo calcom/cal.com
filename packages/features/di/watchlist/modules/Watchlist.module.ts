@@ -2,9 +2,9 @@ import { createModule } from "@evyweb/ioctopus";
 
 import { SHARED_TOKENS } from "@calcom/features/di/shared/shared.tokens";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
+import { AuditRepository } from "@calcom/features/watchlist/lib/repository/AuditRepository";
 import { GlobalWatchlistRepository } from "@calcom/features/watchlist/lib/repository/GlobalWatchlistRepository";
 import { OrganizationWatchlistRepository } from "@calcom/features/watchlist/lib/repository/OrganizationWatchlistRepository";
-import { PrismaAuditRepository } from "@calcom/features/watchlist/lib/repository/PrismaAuditRepository";
 import { AuditService } from "@calcom/features/watchlist/lib/service/AuditService";
 import { GlobalBlockingService } from "@calcom/features/watchlist/lib/service/GlobalBlockingService";
 import { OrganizationBlockingService } from "@calcom/features/watchlist/lib/service/OrganizationBlockingService";
@@ -26,7 +26,7 @@ watchlistModule
 // Bind remaining repositories
 watchlistModule
   .bind(WATCHLIST_DI_TOKENS.AUDIT_REPOSITORY)
-  .toClass(PrismaAuditRepository, [DI_TOKENS.PRISMA_CLIENT]);
+  .toClass(AuditRepository, [DI_TOKENS.PRISMA_CLIENT]);
 
 // Bind services
 watchlistModule
@@ -35,10 +35,7 @@ watchlistModule
 
 watchlistModule
   .bind(WATCHLIST_DI_TOKENS.GLOBAL_BLOCKING_SERVICE)
-  .toClass(GlobalBlockingService, [
-    WATCHLIST_DI_TOKENS.GLOBAL_WATCHLIST_REPOSITORY,
-    WATCHLIST_DI_TOKENS.AUDIT_SERVICE,
-  ]);
+  .toClass(GlobalBlockingService, [WATCHLIST_DI_TOKENS.GLOBAL_WATCHLIST_REPOSITORY]);
 
 watchlistModule
   .bind(WATCHLIST_DI_TOKENS.ORGANIZATION_BLOCKING_SERVICE)

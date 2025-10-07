@@ -62,8 +62,7 @@ export class OrganizationBlockingService {
 
   async isEmailReported(email: string, organizationId: number): Promise<OrganizationBlockingResult> {
     // Check for exact email match
-    // Note: Using findBlockedEntry for now - may need to implement findReportedEntry
-    const emailEntry = await this.orgRepo.findBlockedEntry(email, organizationId);
+    const emailEntry = await this.orgRepo.findReportedEmail(email, organizationId);
     if (emailEntry) {
       return {
         isBlocked: true,
@@ -120,7 +119,6 @@ export class OrganizationBlockingService {
     blocked: number;
     reported: number;
   }> {
-    // Note: Using findMany and counting - may need to implement countEntriesByOrganization
     const entries = await this.orgRepo.findMany({ organizationId });
     const blocked = entries.filter((entry) => entry.action === "BLOCK").length;
     const reported = entries.filter((entry) => entry.action === "REPORT").length;

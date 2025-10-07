@@ -25,22 +25,6 @@ export interface WatchlistEntryDTO {
   } | null;
 }
 
-export interface BlockedBookingLogDTO {
-  id: string;
-  email: string;
-  eventTypeId?: number | null;
-  organizationId?: number | null;
-  createdAt: string;
-  watchlistId?: string | null;
-  bookingData?: Record<string, unknown> | null;
-  watchlistEntry?: {
-    id: string;
-    type: WatchlistType;
-    value: string;
-    action: WatchlistAction;
-  } | null;
-}
-
 // Request DTOs for creating/updating entries
 export interface CreateWatchlistEntryDTO {
   type: WatchlistType;
@@ -59,25 +43,6 @@ export interface UpdateWatchlistEntryDTO {
 // Response DTOs for API operations
 export interface WatchlistListResponseDTO {
   entries: WatchlistEntryDTO[];
-  pagination?: {
-    total: number;
-    page: number;
-    limit: number;
-    hasMore: boolean;
-  };
-}
-
-export interface BlockingStatsDTO {
-  totalBlocked: number;
-  blockedByEmail: number;
-  blockedByDomain: number;
-  organizationId: number;
-  periodStart?: string;
-  periodEnd?: string;
-}
-
-export interface BlockedBookingLogsResponseDTO {
-  logs: BlockedBookingLogDTO[];
   pagination?: {
     total: number;
     page: number;

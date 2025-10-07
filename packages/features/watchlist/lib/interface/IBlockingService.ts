@@ -21,5 +21,4 @@ export interface BookingData {
 
 export interface IBlockingService {
   isBlocked(email: string, organizationId?: number): Promise<BlockingResult>;
-  createDecoyResponse(bookingData: BookingData): Promise<DecoyBookingResponse>;
 }
