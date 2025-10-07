@@ -1,10 +1,12 @@
+/**
+ * ShellMainAppDir layout wrapper
+ * Adjusted CTA (AI Assistant) positioning to prevent overlap with bottom navigation (#24276).
+ */
 import { ShellMainAppDirBackButton } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDirBackButton";
 import classNames from "classnames";
 
 import type { LayoutProps } from "@calcom/features/shell/Shell";
 
-// Copied from `ShellMain` but with a different `ShellMainAppDirBackButton` import
-// for client/server component separation
 export function ShellMainAppDir(props: LayoutProps) {
   return (
     <>
@@ -45,7 +47,8 @@ export function ShellMainAppDir(props: LayoutProps) {
                   className={classNames(
                     props.backPath
                       ? "relative"
-                      : "pwa:bottom-[max(7rem,_calc(5rem_+_env(safe-area-inset-bottom)))] fixed bottom-20 z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
+                      : // 🧩 Fix: Raised button to avoid overlap with bottom navigation (#24276)
+                        "pwa:bottom-[max(8rem,_calc(6rem_+_env(safe-area-inset-bottom)))] fixed bottom-24 right-4 z-40 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
                     "flex-shrink-0 [-webkit-app-region:no-drag] md:relative md:bottom-auto md:right-auto"
                   )}>
                   {props.CTA}
@@ -56,6 +59,7 @@ export function ShellMainAppDir(props: LayoutProps) {
           )}
         </div>
       )}
+
       {props.afterHeading && <>{props.afterHeading}</>}
 
       <div className={classNames(props.flexChildrenContainer && "flex flex-1 flex-col")}>
