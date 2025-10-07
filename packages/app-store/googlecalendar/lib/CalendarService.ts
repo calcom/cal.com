@@ -38,12 +38,12 @@ interface GoogleCalError extends Error {
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const ONE_MONTH_IN_MS = 30 * MS_PER_DAY;
-// eslint-disable-next-line turbo/no-undeclared-env-vars -- GOOGLE_WEBHOOK_URL only for local testing
+ 
 const GOOGLE_WEBHOOK_URL_BASE = process.env.GOOGLE_WEBHOOK_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
 const GOOGLE_WEBHOOK_URL = `${GOOGLE_WEBHOOK_URL_BASE}/api/integrations/googlecalendar/webhook`;
 
 const isGaxiosResponse = (error: unknown): error is GaxiosResponse<calendar_v3.Schema$Event> =>
-  typeof error === "object" && !!error && error.hasOwnProperty("config");
+  typeof error === "object" && !!error && Object.prototype.hasOwnProperty.call(error, "config");
 
 type GoogleChannelProps = {
   kind?: string | null;
@@ -181,6 +181,15 @@ export default class GoogleCalendarService implements Calendar {
   ): Promise<NewCalendarEventType> {
     this.log.debug("Creating event");
 
+    // Determine optional custom reminder minutes from event payload or destination calendar metadata
+    // We intentionally access via `any` to avoid widening Calendar types and to keep this change isolated.
+    const customReminderMinutes: number | undefined =
+      (calEvent as any)?.customReminderMinutes ??
+      (calEvent.destinationCalendar?.find((cal) => cal.credentialId === credentialId)
+        ? (calEvent.destinationCalendar.find((cal) => cal.credentialId === credentialId) as any)
+            ?.customReminderMinutes
+        : undefined);
+
     const payload: calendar_v3.Schema$Event = {
       summary: calEvent.title,
       description: calEvent.calendarDescription,
@@ -193,10 +202,21 @@ export default class GoogleCalendarService implements Calendar {
         timeZone: calEvent.organizer.timeZone,
       },
       attendees: this.getAttendees({ event: calEvent, hostExternalCalendarId: externalCalendarId }),
-      reminders: {
-        useDefault: true,
-      },
-      guestsCanSeeOtherGuests: !!calEvent.seatsPerTimeSlot ? calEvent.seatsShowAttendees : true,
+      reminders:
+        customReminderMinutes && Number.isFinite(customReminderMinutes)
+          ? {
+              useDefault: false,
+              overrides: [
+                {
+                  method: "popup",
+                  minutes: Math.max(0, Math.floor(customReminderMinutes as number)),
+                },
+              ],
+            }
+          : {
+              useDefault: true,
+            },
+      guestsCanSeeOtherGuests: calEvent.seatsPerTimeSlot ? calEvent.seatsShowAttendees : true,
       iCalUID: calEvent.iCalUID,
     };
     if (calEvent.hideCalendarEventDetails) {
@@ -340,6 +360,14 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   async updateEvent(uid: string, event: CalendarServiceEvent, externalCalendarId: string): Promise<any> {
+    // Determine optional custom reminder minutes from event payload or destination calendar metadata
+    const updateCustomReminderMinutes: number | undefined =
+      (event as any)?.customReminderMinutes ??
+      (event.destinationCalendar && externalCalendarId
+        ? ((event.destinationCalendar.find((cal) => cal.externalId === externalCalendarId) as any)
+            ?.customReminderMinutes as number | undefined)
+        : undefined);
+
     const payload: calendar_v3.Schema$Event = {
       summary: event.title,
       description: event.calendarDescription,
@@ -352,10 +380,21 @@ export default class GoogleCalendarService implements Calendar {
         timeZone: event.organizer.timeZone,
       },
       attendees: this.getAttendees({ event, hostExternalCalendarId: externalCalendarId }),
-      reminders: {
-        useDefault: true,
-      },
-      guestsCanSeeOtherGuests: !!event.seatsPerTimeSlot ? event.seatsShowAttendees : true,
+      reminders:
+        updateCustomReminderMinutes && Number.isFinite(updateCustomReminderMinutes)
+          ? {
+              useDefault: false,
+              overrides: [
+                {
+                  method: "popup",
+                  minutes: Math.max(0, Math.floor(updateCustomReminderMinutes as number)),
+                },
+              ],
+            }
+          : {
+              useDefault: true,
+            },
+      guestsCanSeeOtherGuests: event.seatsPerTimeSlot ? event.seatsShowAttendees : true,
     };
 
     if (event.location) {

@@ -5,6 +5,7 @@ import type { Time } from "ical.js";
 import type { Frequency } from "rrule";
 import type z from "zod";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { bookingResponse } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import type { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
@@ -210,6 +211,9 @@ export interface CalendarEvent {
   disableCancelling?: boolean;
   disableRescheduling?: boolean;
 
+  // Optional per-calendar reminder override in minutes for integrations that support it
+  customReminderMinutes?: number;
+
   // It has responses to all the fields(system + user)
   responses?: CalEventResponses | null;
 
@@ -260,6 +264,8 @@ export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, 
 export type SelectedCalendarEventTypeIds = (number | null)[];
 
 export interface CalendarServiceEvent extends CalendarEvent {
+  // Optional per-calendar reminder override in minutes for integrations that support it
+  customReminderMinutes?: number;
   calendarDescription: string;
 }
 
