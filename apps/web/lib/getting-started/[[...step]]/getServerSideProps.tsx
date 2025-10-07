@@ -65,10 +65,19 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
   }
 
+  if (session.user !== null && !session.user.metadata["google_signup_tracked"]) {
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { metadata: { ...session.user.metadata, google_signup_tracked: true } },
+    });
+  }
+
   return {
     props: {
       hasPendingInvites: user.teams.find((team) => team.accepted === false) ?? false,
       country,
+      email: user.email,
+      metadata: user.metadata,
     },
   };
 };

@@ -7,6 +7,7 @@ import { Icon } from "@calid/features/ui/components/icon";
 import type { TFunction } from "i18next";
 import { signOut } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { Suspense, useTransition } from "react";
 import { Toaster } from "sonner";
 import { z } from "zod";
@@ -91,6 +92,17 @@ const OnboardingPage = (props: PageProps) => {
   const pathname = usePathname();
   const params = useParamsWithFallback();
 
+  useEffect(() => {
+    if (!props.google_signup_tracked) {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "gmail_signup_success",
+        signup_method: "google",
+        email_address: props.email,
+      });
+    }
+  }, [props.google_signup_tracked, props.email]);
+
   const router = useRouter();
   const [user] = trpc.viewer.me.calid_get.useSuspenseQuery();
   const { t } = useLocale();
@@ -114,6 +126,7 @@ const OnboardingPage = (props: PageProps) => {
   //     }
   //   );
   // }
+
   const { steps, headers } = getStepsAndHeadersForUser(t);
   const stepTransform = (step: StepType) => {
     const stepIndex = steps.indexOf(step as (typeof steps)[number]);

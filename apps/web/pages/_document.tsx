@@ -189,7 +189,7 @@ class MyDocument extends Document<Props> {
           j.async=true;
           j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
           f.parentNode.insertBefore(j,f);
-        })(window,document,'script','dataLayer','GTM-MJWK3XXZ');
+        })(window,document,'script','dataLayer','GTM-N7JCMTN4');
       `,
               }}
             />
@@ -346,7 +346,7 @@ class MyDocument extends Document<Props> {
           {allowScript && (
             <noscript>
               <iframe
-                src="https://www.googletagmanager.com/ns.html?id=GTM-MJWK3XXZ"
+                src="https://www.googletagmanager.com/ns.html?id=GTM-N7JCMTN4"
                 height="0"
                 width="0"
                 style={{ display: "none", visibility: "hidden" }}
