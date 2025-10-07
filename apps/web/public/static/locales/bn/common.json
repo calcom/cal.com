@@ -3677,6 +3677,8 @@
   "webhook_organizer_email": "আয়োজকের ইমেইল",
   "webhook_organizer_timezone": "আয়োজকের টাইমজোন (যেমন, 'America/New_York', 'Asia/Kolkata')",
   "webhook_organizer_locale": "আয়োজকের লোকেল (যেমন, 'en', 'fr')",
+  "webhook_organizer_username": "আয়োজকের ইউজারনেম (যেমন, 'john.doe')",
+  "webhook_organizer_username_in_org": "তাদের সংগঠনে আয়োজকের ইউজারনেম (যেমন, 'john.doe')",
   "webhook_attendee_name": "প্রথম অংশগ্রহণকারীর নাম",
   "webhook_attendee_email": "প্রথম অংশগ্রহণকারীর ইমেইল",
   "webhook_attendee_timezone": "প্রথম অংশগ্রহণকারীর টাইমজোন",

@@ -3677,6 +3677,8 @@
   "webhook_organizer_email": "Email de l'organisateur",
   "webhook_organizer_timezone": "Fuseau horaire de l'organisateur (par ex., 'America/New_York', 'Asia/Kolkata')",
   "webhook_organizer_locale": "Locale de l'organisateur (par ex., 'en', 'fr')",
+  "webhook_organizer_username": "Nom d'utilisateur de l'organisateur (par ex., 'john.doe')",
+  "webhook_organizer_username_in_org": "Nom d'utilisateur de l'organisateur dans son organisation (par ex., 'john.doe')",
   "webhook_attendee_name": "Nom du premier participant",
   "webhook_attendee_email": "Email du premier participant",
   "webhook_attendee_timezone": "Fuseau horaire du premier participant",

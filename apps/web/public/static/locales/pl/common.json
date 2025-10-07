@@ -3677,6 +3677,8 @@
   "webhook_organizer_email": "Email organizatora",
   "webhook_organizer_timezone": "Strefa czasowa organizatora (np. 'America/New_York', 'Asia/Kolkata')",
   "webhook_organizer_locale": "Język organizatora (np. 'en', 'fr')",
+  "webhook_organizer_username": "Nazwa użytkownika organizatora (np. 'john.doe')",
+  "webhook_organizer_username_in_org": "Nazwa użytkownika organizatora w jego organizacji (np. 'john.doe')",
   "webhook_attendee_name": "Imię pierwszego uczestnika",
   "webhook_attendee_email": "Email pierwszego uczestnika",
   "webhook_attendee_timezone": "Strefa czasowa pierwszego uczestnika",

@@ -3674,6 +3674,8 @@ checksums:
     webhook_organizer_email: 59df32359598e24c3ad299005b4d70b9
     webhook_organizer_timezone: b239e17bc05498a8853715f2b714dbba
     webhook_organizer_locale: bec80c8ae6d494b9a0f02d156897b60e
+    webhook_organizer_username: 9432525b1ab89aefe655e4dfa5aad730
+    webhook_organizer_username_in_org: 3df45d86d16144002a6019f2db9760b6
     webhook_attendee_name: cf1b24a9065f0bddce45c1b9d73bbed4
     webhook_attendee_email: 84ba9a09117d2ee1b6ccb1c91dde5598
     webhook_attendee_timezone: 28b44fac88a7af5de712b4170d4e4920

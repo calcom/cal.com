@@ -12,15 +12,16 @@ import {
   getGoogleCalendarCredential,
   mockCalendarToHaveNoBusySlots,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+import { expectBookingCreatedWebhookToHaveBeenFired } from "@calcom/web/test/utils/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
 import { describe, test, vi, expect } from "vitest";
 
-import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import { getNewBookingHandler } from "../getNewBookingHandler";
 
@@ -34,23 +35,7 @@ describe("Round Robin handleNewBooking", () => {
         email: "booker@example.com",
         name: "Booker",
       });
-      const teamMemberOne = [
-        {
-          name: "Team Member One",
-          username: "other-team-member-1",
-          timeZone: Timezones["+5:30"],
-          defaultScheduleId: null,
-          email: "team-member-one@example.com",
-          id: 102,
-          schedule: TestData.schedules.IstMorningShift,
-          credentials: [getGoogleCalendarCredential()],
-          selectedCalendars: [TestData.selectedCalendars.google],
-          destinationCalendar: {
-            integration: TestData.apps["google-calendar"].type,
-            externalId: "other-team-member-1@google-calendar.com",
-          },
-        },
-      ];
+
       const organizer = getOrganizer({
         name: "Organizer",
         email: "organizer@example.com",
@@ -142,14 +127,14 @@ describe("Round Robin handleNewBooking", () => {
       );
 
       mockSuccessfulVideoMeetingCreation({
-        metadataLookupKey: appStoreMetadata.dailyvideo.dirName,
+        metadataLookupKey: "dailyvideo",
         videoMeetingData: {
           id: "MOCK_ID",
           password: "MOCK_PASS",
           url: `http://mock-dailyvideo.example.com/meeting-1`,
         },
       });
-      const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+      mockCalendarToHaveNoBusySlots("googlecalendar", {
         create: {
           id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
           iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
@@ -334,7 +319,7 @@ describe("Round Robin handleNewBooking", () => {
       );
 
       mockSuccessfulVideoMeetingCreation({
-        metadataLookupKey: appStoreMetadata.dailyvideo.dirName || "dailyvideo",
+        metadataLookupKey: "dailyvideo",
         videoMeetingData: {
           id: "MOCK_ID",
           password: "MOCK_PASS",
@@ -342,7 +327,7 @@ describe("Round Robin handleNewBooking", () => {
         },
       });
 
-      const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+      mockCalendarToHaveNoBusySlots("googlecalendar", {
         create: {
           id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
           iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
@@ -443,7 +428,7 @@ describe("Round Robin handleNewBooking", () => {
       );
 
       mockSuccessfulVideoMeetingCreation({
-        metadataLookupKey: appStoreMetadata.dailyvideo.dirName,
+        metadataLookupKey: "dailyvideo",
         videoMeetingData: {
           id: "MOCK_ID",
           password: "MOCK_PASS",
@@ -451,7 +436,7 @@ describe("Round Robin handleNewBooking", () => {
         },
       });
 
-      const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+      mockCalendarToHaveNoBusySlots("googlecalendar", {
         create: {
           id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
           iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
@@ -592,7 +577,7 @@ describe("Round Robin handleNewBooking", () => {
       );
 
       mockSuccessfulVideoMeetingCreation({
-        metadataLookupKey: appStoreMetadata.dailyvideo.dirName,
+        metadataLookupKey: "dailyvideo",
         videoMeetingData: {
           id: "MOCK_ID",
           password: "MOCK_PASS",
@@ -707,8 +692,8 @@ describe("Round Robin handleNewBooking", () => {
               users: [{ id: teamMembers[0].id }, { id: teamMembers[1].id }],
               hosts: [
                 // One host with explicit null groupId, one without groupId property
-                { userId: teamMembers[0].id, isFixed: false, groupId: null, weight: 100, priority: 1 },
-                { userId: teamMembers[1].id, isFixed: false, weight: 100, priority: 1 }, // No groupId property
+                { userId: teamMembers[0].id, isFixed: false, groupId: null },
+                { userId: teamMembers[1].id, isFixed: false }, // No groupId property
               ],
               hostGroups: [], // No explicit host groups defined
               schedule: TestData.schedules.IstWorkHours,
@@ -859,7 +844,7 @@ describe("Round Robin handleNewBooking", () => {
               },
               references: [
                 {
-                  type: appStoreMetadata.dailyvideo.type,
+                  type: "dailyvideo",
                   uid: "MOCK_ID",
                   meetingId: "MOCK_ID",
                   meetingPassword: "MOCK_PASS",
@@ -927,6 +912,178 @@ describe("Round Robin handleNewBooking", () => {
       const teamMemberEmails = calendarEvent.team?.members.map((member) => member.email);
       expect(teamMemberEmails).not.toContain(teamMembers[0].email);
       expect(teamMemberEmails).not.toContain(teamMembers[1].email);
+    });
+  });
+
+  describe("Organization Team Events", () => {
+    test("Organization team booking includes usernameInOrg in webhook payload", async () => {
+      const handleNewBooking = getNewBookingHandler();
+      const booker = getBooker({
+        email: "booker@example.com",
+        name: "Booker",
+      });
+
+      // Set up organization team members with profiles
+      const organizationId = 1;
+      const teamMembers = [
+        {
+          name: "Alice Johnson",
+          username: "alice",
+          email: "alice@example.com",
+          id: 102,
+          timeZone: Timezones["+5:30"],
+          defaultScheduleId: null,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+          profiles: [
+            {
+              uid: "profile-alice",
+              username: "alice-acme",
+              organizationId: organizationId,
+            },
+          ],
+        },
+        {
+          name: "Bob Smith",
+          username: "bob",
+          email: "bob@example.com",
+          id: 103,
+          timeZone: Timezones["+5:30"],
+          defaultScheduleId: null,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+          profiles: [
+            {
+              uid: "profile-bob",
+              username: "bob-acme",
+              organizationId: organizationId,
+            },
+          ],
+        },
+      ];
+
+      const organizer = getOrganizer({
+        name: "Team Lead",
+        email: "lead@example.com",
+        id: 101,
+        defaultScheduleId: null,
+        schedules: [TestData.schedules.IstWorkHours],
+        credentials: [getGoogleCalendarCredential()],
+        selectedCalendars: [TestData.selectedCalendars.google],
+        destinationCalendar: {
+          integration: TestData.apps["google-calendar"].type,
+          externalId: "lead@google-calendar.com",
+        },
+      });
+
+      const subscriberUrl = "http://test-webhook.example.com";
+      const webhooks = [
+        {
+          id: "WEBHOOK_TEST_ID",
+          appId: null,
+          userId: null,
+          teamId: 1,
+          eventTypeId: 1,
+          active: true,
+          eventTriggers: [WebhookTriggerEvents.BOOKING_CREATED],
+          subscriberUrl,
+        },
+      ];
+
+      await createBookingScenario(
+        getScenarioData({
+          eventTypes: [
+            {
+              id: 1,
+              slotInterval: 30,
+              schedulingType: SchedulingType.ROUND_ROBIN,
+              length: 30,
+              teamId: 1,
+              team: {
+                id: 1,
+                parentId: organizationId, // Organization team
+              },
+              users: [{ id: teamMembers[0].id }, { id: teamMembers[1].id }],
+              hosts: [
+                { userId: teamMembers[0].id, isFixed: false },
+                { userId: teamMembers[1].id, isFixed: false },
+              ],
+              schedule: TestData.schedules.IstWorkHours,
+              destinationCalendar: {
+                integration: TestData.apps["google-calendar"].type,
+                externalId: "team@google-calendar.com",
+              },
+            },
+          ],
+          organizer,
+          usersApartFromOrganizer: teamMembers,
+          apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+          webhooks,
+        })
+      );
+
+      mockSuccessfulVideoMeetingCreation({
+        metadataLookupKey: "dailyvideo",
+        videoMeetingData: {
+          id: "MOCK_ID",
+          password: "MOCK_PASS",
+          url: `http://mock-dailyvideo.example.com/meeting-1`,
+        },
+      });
+
+      mockCalendarToHaveNoBusySlots("googlecalendar", {
+        create: {
+          id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
+          iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+        },
+      });
+
+      const mockBookingData = getMockRequestDataForBooking({
+        data: {
+          start: `${getDate({ dateIncrement: 1 }).dateString}T10:00:00.000Z`,
+          end: `${getDate({ dateIncrement: 1 }).dateString}T10:30:00.000Z`,
+          eventTypeId: 1,
+          responses: {
+            email: booker.email,
+            name: booker.name,
+            location: { optionValue: "", value: BookingLocations.CalVideo },
+          },
+        },
+      });
+
+      const createdBooking = await handleNewBooking({
+        bookingData: mockBookingData,
+      });
+
+      // Verify booking was created successfully
+      expect(createdBooking).toBeDefined();
+      expect(createdBooking.responses).toEqual(
+        expect.objectContaining({
+          email: booker.email,
+          name: booker.name,
+        })
+      );
+
+      // Get the organizer for webhook verification
+      const organizerUserId = createdBooking.userId;
+      const organizerTeamMember = teamMembers.find((member) => member.id === organizerUserId);
+      const organizerProfile = organizerTeamMember?.profiles?.[0];
+
+      // Verify webhook includes usernameInOrg for organization team events
+      // This test will initially fail due to the bug
+      expectBookingCreatedWebhookToHaveBeenFired({
+        booker,
+        organizer: {
+          email: organizerTeamMember?.email || "unknown@example.com",
+          name: organizerTeamMember?.name || "Unknown",
+          username: organizerTeamMember?.username,
+          usernameInOrg: organizerProfile?.username, // This should be present but will be undefined due to the bug
+        },
+        location: BookingLocations.CalVideo,
+        subscriberUrl,
+      });
     });
   });
 });

@@ -3677,6 +3677,8 @@
   "webhook_organizer_email": "Järjestäjän sähköposti",
   "webhook_organizer_timezone": "Järjestäjän aikavyöhyke (esim. 'America/New_York', 'Asia/Kolkata')",
   "webhook_organizer_locale": "Järjestäjän maa-asetus (esim. 'en', 'fr')",
+  "webhook_organizer_username": "Järjestäjän käyttäjätunnus (esim. 'john.doe')",
+  "webhook_organizer_username_in_org": "Järjestäjän käyttäjätunnus organisaatiossa (esim. 'john.doe')",
   "webhook_attendee_name": "Ensimmäisen osallistujan nimi",
   "webhook_attendee_email": "Ensimmäisen osallistujan sähköposti",
   "webhook_attendee_timezone": "Ensimmäisen osallistujan aikavyöhyke",

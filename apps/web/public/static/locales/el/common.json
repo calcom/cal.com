@@ -3677,6 +3677,8 @@
   "webhook_organizer_email": "Email του διοργανωτή",
   "webhook_organizer_timezone": "Ζώνη ώρας του διοργανωτή (π.χ., 'America/New_York', 'Asia/Kolkata')",
   "webhook_organizer_locale": "Τοπικές ρυθμίσεις του διοργανωτή (π.χ., 'en', 'fr')",
+  "webhook_organizer_username": "Όνομα χρήστη του διοργανωτή (π.χ., 'john.doe')",
+  "webhook_organizer_username_in_org": "Όνομα χρήστη του διοργανωτή στον οργανισμό του (π.χ., 'john.doe')",
   "webhook_attendee_name": "Όνομα του πρώτου συμμετέχοντα",
   "webhook_attendee_email": "Email του πρώτου συμμετέχοντα",
   "webhook_attendee_timezone": "Ζώνη ώρας του πρώτου συμμετέχοντα",

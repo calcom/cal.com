@@ -3677,6 +3677,8 @@
   "webhook_organizer_email": "Antolatzailearen helbide elektronikoa",
   "webhook_organizer_timezone": "Antolatzailearen ordu-zona (adib., 'America/New_York', 'Asia/Kolkata')",
   "webhook_organizer_locale": "Antolatzailearen lokala (adib., 'en', 'fr')",
+  "webhook_organizer_username": "Antolatzailearen erabiltzaile-izena (adib., 'john.doe')",
+  "webhook_organizer_username_in_org": "Antolatzailearen erabiltzaile-izena bere erakundean (adib., 'john.doe')",
   "webhook_attendee_name": "Lehen parte-hartzailearen izena",
   "webhook_attendee_email": "Lehen parte-hartzailearen helbide elektronikoa",
   "webhook_attendee_timezone": "Lehen parte-hartzailearen ordu-zona",

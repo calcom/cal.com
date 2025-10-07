@@ -3677,6 +3677,8 @@
   "webhook_organizer_email": "Электронная почта организатора",
   "webhook_organizer_timezone": "Часовой пояс организатора (например, 'America/New_York', 'Asia/Kolkata')",
   "webhook_organizer_locale": "Локаль организатора (например, 'en', 'fr')",
+  "webhook_organizer_username": "Имя пользователя организатора (например, 'john.doe')",
+  "webhook_organizer_username_in_org": "Имя пользователя организатора в их организации (например, 'john.doe')",
   "webhook_attendee_name": "Имя первого участника",
   "webhook_attendee_email": "Электронная почта первого участника",
   "webhook_attendee_timezone": "Часовой пояс первого участника",
