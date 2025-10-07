@@ -133,6 +133,13 @@ function assertNonEmptyArray<T>(arr: T[]): asserts arr is [T, ...T[]] {
   }
 }
 
+function hasCalVideoSettings(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  eventType: any
+): eventType is getEventTypeResponse {
+  return eventType && typeof eventType === "object" && "calVideoSettings" in eventType;
+}
+
 function getICalSequence(originalRescheduledBooking: BookingType | null) {
   // If new booking set the sequence to 0
   if (!originalRescheduledBooking) {
@@ -452,14 +459,18 @@ async function handler(
     eventTypeSlug: rawBookingData.eventTypeSlug,
   });
 
+  const eventTypeForProcessing = hasCalVideoSettings(eventType)
+    ? eventType
+    : ({ ...(eventType as unknown as getEventTypeResponse), calVideoSettings: null } as getEventTypeResponse);
+
   const bookingDataSchema = bookingDataSchemaGetter({
     view: rawBookingData.rescheduleUid ? "reschedule" : "booking",
-    bookingFields: eventType.bookingFields,
+    bookingFields: eventTypeForProcessing.bookingFields,
   });
 
   const bookingData = await getBookingData({
     reqBody: rawBookingData,
-    eventType,
+    eventType: eventTypeForProcessing,
     schema: bookingDataSchema,
   });
 
@@ -778,6 +789,8 @@ async function handler(
       users: IsFixedAwareUserWithCredentials[];
     } = {
       ...eventType,
+      // Ensure presence of calVideoSettings for type compatibility
+      calVideoSettings: hasCalVideoSettings(eventType) ? eventType.calVideoSettings : null,
       users: users as IsFixedAwareUserWithCredentials[],
       ...(eventType.recurringEvent && {
         recurringEvent: {
@@ -1534,7 +1547,9 @@ async function handler(
           recurringEventId: reqBody.recurringEventId,
         },
         eventType: {
-          eventTypeData: eventType,
+          eventTypeData: hasCalVideoSettings(eventType)
+            ? eventType
+            : { ...(eventType as unknown as getEventTypeResponse), calVideoSettings: null },
           id: eventTypeId,
           slug: eventTypeSlug,
           organizerUser,
@@ -2393,6 +2408,7 @@ async function handler(
         teamId,
         orgId,
         isDryRun,
+        calVideoSettings: hasCalVideoSettings(eventType) ? eventType.calVideoSettings : null,
       });
     }
   } catch (error) {

@@ -110,7 +110,6 @@ export async function handleConfirmation(args: {
       metadata.entryPoints = results[0].createdEvent?.entryPoints;
     }
     try {
-      const eventType = booking.eventType;
 
       let isHostConfirmationEmailsDisabled = false;
       let isAttendeeConfirmationEmailDisabled = false;
@@ -442,6 +441,15 @@ export async function handleConfirmation(args: {
 
     await Promise.all(scheduleTriggerPromises);
 
+    let calVideoSettings = null;
+   if (booking.eventTypeId) {
+     const eventTypeWithSettings = await prisma.eventType.findUnique({
+       where: { id: booking.eventTypeId },
+       select: { calVideoSettings: true },
+     });
+     calVideoSettings = eventTypeWithSettings?.calVideoSettings;
+   }
+
     await scheduleNoShowTriggers({
       booking: {
         startTime: booking.startTime,
@@ -455,6 +463,7 @@ export async function handleConfirmation(args: {
       teamId,
       orgId,
       oAuthClientId: platformClientParams?.platformClientId,
+      calVideoSettings: calVideoSettings,
     });
 
     const eventTypeInfo: EventTypeInfo = {

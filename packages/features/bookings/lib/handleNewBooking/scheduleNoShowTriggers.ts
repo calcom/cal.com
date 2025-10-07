@@ -19,6 +19,10 @@ type ScheduleNoShowTriggersArgs = {
   orgId?: number | null;
   oAuthClientId?: string | null;
   isDryRun?: boolean;
+  calVideoSettings?: {
+    enableAutomaticNoShowTrackingForHosts?: boolean;
+    enableAutomaticNoShowTrackingForGuests?: boolean;
+  } | null;
 };
 
 const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
@@ -31,6 +35,7 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
     orgId,
     oAuthClientId,
     isDryRun = false,
+    calVideoSettings,
   } = args;
 
   const isCalVideoLocation = booking.location === DailyLocationType || booking.location?.trim() === "";
@@ -49,26 +54,58 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
     oAuthClientId,
   });
 
-  noShowPromises.push(
-    ...subscribersHostsNoShowStarted.map((webhook) => {
-      if (booking?.startTime && webhook.time && webhook.timeUnit) {
-        const scheduledAt = dayjs(booking.startTime)
-          .add(webhook.time, webhook.timeUnit.toLowerCase() as dayjs.ManipulateType)
-          .toDate();
-        return tasker.create(
+  // Check if we should track host no-show (webhooks exist OR toggle enabled)
+  const shouldTrackHostNoShow =
+    subscribersHostsNoShowStarted.length > 0 || calVideoSettings?.enableAutomaticNoShowTrackingForHosts;
+
+  if (shouldTrackHostNoShow) {
+    if (subscribersHostsNoShowStarted.length > 0) {
+      // Use webhook configuration
+      noShowPromises.push(
+        ...subscribersHostsNoShowStarted.map((webhook) => {
+          if (booking?.startTime && webhook.time && webhook.timeUnit) {
+            const scheduledAt = dayjs(booking.startTime)
+              .add(webhook.time, webhook.timeUnit.toLowerCase() as dayjs.ManipulateType)
+              .toDate();
+            return tasker.create(
+              "triggerHostNoShowWebhook",
+              {
+                triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+                bookingId: booking.id,
+                // Prevents null values from being serialized
+                webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit },
+              },
+              { scheduledAt, referenceUid: booking.uid }
+            );
+          }
+          return Promise.resolve();
+        })
+      );
+    } else {
+      // Use default 15 minutes when toggle is enabled but no webhooks
+      const scheduledAt = dayjs(booking.startTime).add(15, "minutes").toDate();
+      noShowPromises.push(
+        tasker.create(
           "triggerHostNoShowWebhook",
           {
             triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
             bookingId: booking.id,
-            // Prevents null values from being serialized
-            webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit },
+            webhook: {
+              id: "",
+              subscriberUrl: "",
+              payloadTemplate: null,
+              eventTriggers: [],
+              appId: null,
+              secret: null,
+              time: 15,
+              timeUnit: "MINUTE"
+            }
           },
           { scheduledAt, referenceUid: booking.uid }
-        );
-      }
-      return Promise.resolve();
-    })
-  );
+        )
+      );
+    }
+  }
 
   const subscribersGuestsNoShowStarted = await getWebhooks({
     userId: triggerForUser ? organizerUser.id : null,
@@ -79,28 +116,60 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
     oAuthClientId,
   });
 
-  noShowPromises.push(
-    ...subscribersGuestsNoShowStarted.map((webhook) => {
-      if (booking?.startTime && webhook.time && webhook.timeUnit) {
-        const scheduledAt = dayjs(booking.startTime)
-          .add(webhook.time, webhook.timeUnit.toLowerCase() as dayjs.ManipulateType)
-          .toDate();
+  // Check if we should track guest no-show (webhooks exist OR toggle enabled)
+  const shouldTrackGuestNoShow =
+    subscribersGuestsNoShowStarted.length > 0 || calVideoSettings?.enableAutomaticNoShowTrackingForGuests;
 
-        return tasker.create(
+  if (shouldTrackGuestNoShow) {
+    if (subscribersGuestsNoShowStarted.length > 0) {
+      // Use webhook configuration
+      noShowPromises.push(
+        ...subscribersGuestsNoShowStarted.map((webhook) => {
+          if (booking?.startTime && webhook.time && webhook.timeUnit) {
+            const scheduledAt = dayjs(booking.startTime)
+              .add(webhook.time, webhook.timeUnit.toLowerCase() as dayjs.ManipulateType)
+              .toDate();
+
+            return tasker.create(
+              "triggerGuestNoShowWebhook",
+              {
+                triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+                bookingId: booking.id,
+                // Prevents null values from being serialized
+                webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit },
+              },
+              { scheduledAt, referenceUid: booking.uid }
+            );
+          }
+
+          return Promise.resolve();
+        })
+      );
+    } else {
+      // Use default 15 minutes when toggle is enabled but no webhooks
+      const scheduledAt = dayjs(booking.startTime).add(15, "minutes").toDate();
+      noShowPromises.push(
+        tasker.create(
           "triggerGuestNoShowWebhook",
           {
             triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
             bookingId: booking.id,
-            // Prevents null values from being serialized
-            webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit },
+            webhook: {
+              id: "",
+              subscriberUrl: "",
+              payloadTemplate: null,
+              eventTriggers: [],
+              appId: null,
+              secret: null,
+              time: 15,
+              timeUnit: "MINUTE"
+            }
           },
           { scheduledAt, referenceUid: booking.uid }
-        );
-      }
-
-      return Promise.resolve();
-    })
-  );
+        )
+      );
+    }
+  }
 
   await Promise.all(noShowPromises);
 

@@ -3756,5 +3756,7 @@
   "voice_id": "Voice ID",
   "use_voice": "Use Voice",
   "current_voice": "Current Voice",
+  "enable_automatic_no_show_tracking_for_hosts": "Enable automatic no-show tracking for hosts",
+  "enable_automatic_no_show_tracking_for_guests": "Enable automatic no-show tracking for guests",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
