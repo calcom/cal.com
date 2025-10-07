@@ -15,6 +15,7 @@ import {
   calendarListMock,
 } from "../__mocks__/googleapis";
 
+import type { TFunction } from "i18next";
 import { expect, test, beforeEach, vi, describe } from "vitest";
 import "vitest-fetch-mock";
 
@@ -1326,6 +1327,51 @@ describe("getAvailability", () => {
     expect(group3Calls).toHaveLength(1);
     expect(group3Calls[0]).toContain("cal4@test.com");
   });
+
+  test("chunks delegation credential groups larger than 50 calendars", async () => {
+    const credential = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credential);
+    setFullMockOAuthManagerRequest();
+
+    const delegationCredentialId = "delegation-cred-large";
+
+    const selectedCalendars = Array.from({ length: 75 }, (_, i) => ({
+      integration: "google_calendar",
+      externalId: `cal${i + 1}@test.com`,
+      delegationCredentialId,
+    }));
+
+    let apiCallCount = 0;
+    const calendarCountsPerCall: number[] = [];
+
+    freebusyQueryMock.mockImplementation(({ requestBody }: { requestBody: { items: { id: string }[] } }) => {
+      apiCallCount++;
+      calendarCountsPerCall.push(requestBody.items.length);
+
+      const calendarsObject: Record<string, { busy: { start: string; end: string }[] }> = {};
+      requestBody.items.forEach((item) => {
+        calendarsObject[item.id] = { busy: [] };
+      });
+
+      return {
+        data: {
+          calendars: calendarsObject,
+        },
+      };
+    });
+
+    await calendarService.getAvailability(
+      "2024-01-01T00:00:00Z",
+      "2024-01-02T00:00:00Z",
+      selectedCalendars,
+      false
+    );
+
+    expect(apiCallCount).toBe(2);
+    expect(calendarCountsPerCall).toHaveLength(2);
+    expect(calendarCountsPerCall[0]).toBe(50);
+    expect(calendarCountsPerCall[1]).toBe(25);
+  });
 });
 
 describe("getPrimaryCalendar", () => {
@@ -1644,7 +1690,7 @@ describe("createEvent", () => {
         email: "organizer@example.com",
         timeZone: "UTC",
         language: {
-          translate: (...args: string[]) => args[0], // Mock translate function
+          translate: ((key: string) => key) as TFunction, // Mock translate function
           locale: "en",
         },
       },
@@ -1655,7 +1701,7 @@ describe("createEvent", () => {
           email: "attendee@example.com",
           timeZone: "UTC",
           language: {
-            translate: (...args: string[]) => args[0], // Mock translate function
+            translate: ((key: string) => key) as TFunction, // Mock translate function
             locale: "en",
           },
         },
@@ -1827,7 +1873,7 @@ describe("createEvent", () => {
         email: "organizer@example.com",
         timeZone: "UTC",
         language: {
-          translate: (...args: string[]) => args[0], // Mock translate function
+          translate: ((key: string) => key) as TFunction, // Mock translate function
           locale: "en",
         },
       },
