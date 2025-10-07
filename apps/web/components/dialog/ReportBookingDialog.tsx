@@ -1,4 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
+import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
