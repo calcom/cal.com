@@ -2,14 +2,13 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useContext } from "react";
 
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { useHandleBookEvent } from "@calcom/atoms/hooks/bookings/useHandleBookEvent";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
-import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import { useBookerStoreContext, BookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { updateQueryParam, getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { createBooking, createRecurringBooking, createInstantBooking } from "@calcom/features/bookings/lib";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
@@ -184,6 +183,7 @@ export const useBookings = ({
   const { t } = useLocale();
   const bookingSuccessRedirect = useBookingSuccessRedirect();
   const bookerFormErrorRef = useRef<HTMLDivElement>(null);
+  const bookerStore = useContext(BookerStoreContext);
 
   const [instantMeetingTokenExpiryTime, setExpiryTime] = useState<Date | undefined>();
   const [instantVideoMeetingUrl, setInstantVideoMeetingUrl] = useState<string | undefined>();
@@ -382,11 +382,15 @@ export const useBookings = ({
         data: { rescheduleUid: string; startTime: string; attendees: string[] };
       };
 
-      if (error.message === ErrorCode.BookerLimitExceededReschedule && error.data?.rescheduleUid) {
-        useBookerStore.setState({
+      if (
+        bookerStore &&
+        error.message === ErrorCode.BookerLimitExceededReschedule &&
+        error.data?.rescheduleUid
+      ) {
+        bookerStore.setState({
           rescheduleUid: error.data?.rescheduleUid,
         });
-        useBookerStore.setState({
+        bookerStore.setState({
           bookingData: {
             uid: error.data?.rescheduleUid,
             startTime: error.data?.startTime,
