@@ -86,6 +86,77 @@ type Component =
       ) => JSX.Element;
     };
 
+function EmailWithTypoCheck({
+  index,
+  email,
+  name,
+  placeholder,
+  readOnly,
+  value,
+  setValue,
+}: {
+  index: number;
+  email: string;
+  name?: string;
+  placeholder?: string;
+  readOnly?: boolean;
+  value: string[];
+  setValue: (value: string[]) => void;
+}) {
+  const [localEmail, setLocalEmail] = useState(email);
+  const suggestion = useEmailTypoDetection(localEmail);
+
+  // Sync with prop changes
+  useEffect(() => {
+    setLocalEmail(email);
+  }, [email]);
+
+  return (
+    <div>
+      <EmailField
+        id={`${name}.${index}`}
+        disabled={readOnly}
+        value={localEmail}
+        onChange={(e) => {
+          const newValue = e.target.value.toLowerCase();
+          setLocalEmail(newValue);
+          const newArray = [...value];
+          newArray[index] = newValue;
+          setValue(newArray);
+        }}
+        placeholder={placeholder}
+        label={<></>}
+        required
+        onClickAddon={() => {
+          const newArray = [...value];
+          newArray.splice(index, 1);
+          setValue(newArray);
+        }}
+        addOnSuffix={
+          !readOnly ? (
+            <Tooltip content="Remove email">
+              <button className="m-1" type="button">
+                <Icon name="x" width={12} className="text-default" />
+              </button>
+            </Tooltip>
+          ) : null
+        }
+      />
+      {suggestion && !readOnly && (
+        <EmailTypoSuggestion
+          suggestion={suggestion}
+          onAccept={(correctedEmail) => {
+            setLocalEmail(correctedEmail);
+            const newArray = [...value];
+            newArray[index] = correctedEmail;
+            setValue(newArray);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
 // TODO: Share FormBuilder components across react-query-awesome-builder(for Routing Forms) widgets.
 // There are certain differences b/w two. Routing Forms expect label to be provided by the widget itself and FormBuilder adds label itself and expect no label to be added by component.
 // Routing Form approach is better as it provides more flexibility to show the label in complex components. But that can't be done right now because labels are missing consistent asterisk required support across different components
@@ -254,59 +325,10 @@ export const Components: Record<FieldType, Component> = {
   },
   multiemail: {
     propsType: propsTypes.multiemail,
-    //TODO: Make it a ui component
     factory: function MultiEmail({ value, readOnly, label, setValue, ...props }) {
       const placeholder = props.placeholder;
       const { t } = useLocale();
       value = value || [];
-
-      // Component for individual email with typo detection
-      const EmailWithTypoCheck = ({ index, email }: { index: number; email: string }) => {
-        const [localEmail, setLocalEmail] = useState(email);
-        const suggestion = useEmailTypoDetection(localEmail);
-
-        return (
-          <div>
-            <EmailField
-              id={`${props.name}.${index}`}
-              disabled={readOnly}
-              value={localEmail}
-              onChange={(e) => {
-                const newValue = e.target.value.toLowerCase();
-                setLocalEmail(newValue);
-                value[index] = newValue;
-                setValue(value);
-              }}
-              placeholder={placeholder}
-              label={<></>}
-              required
-              onClickAddon={() => {
-                value.splice(index, 1);
-                setValue(value);
-              }}
-              addOnSuffix={
-                !readOnly ? (
-                  <Tooltip content="Remove email">
-                    <button className="m-1" type="button">
-                      <Icon name="x" width={12} className="text-default" />
-                    </button>
-                  </Tooltip>
-                ) : null
-              }
-            />
-            {suggestion && !readOnly && (
-              <EmailTypoSuggestion
-                suggestion={suggestion}
-                onAccept={(correctedEmail) => {
-                  setLocalEmail(correctedEmail);
-                  value[index] = correctedEmail;
-                  setValue(value);
-                }}
-              />
-            )}
-          </div>
-        );
-      };
 
       return (
         <>
@@ -318,7 +340,15 @@ export const Components: Record<FieldType, Component> = {
               <ul>
                 {value.map((email, index) => (
                   <li key={index}>
-                    <EmailWithTypoCheck index={index} email={email} />
+                    <EmailWithTypoCheck
+                      index={index}
+                      email={email}
+                      name={props.name}
+                      placeholder={placeholder}
+                      readOnly={readOnly}
+                      value={value}
+                      setValue={setValue}
+                    />
                   </li>
                 ))}
               </ul>
@@ -330,8 +360,8 @@ export const Components: Record<FieldType, Component> = {
                   StartIcon="user-plus"
                   className="my-2.5"
                   onClick={() => {
-                    value.push("");
-                    setValue(value);
+                    const newArray = [...value, ""];
+                    setValue(newArray);
                   }}>
                   {t("add_another")}
                 </Button>
@@ -348,8 +378,7 @@ export const Components: Record<FieldType, Component> = {
               variant="button"
               StartIcon="user-plus"
               onClick={() => {
-                value.push("");
-                setValue(value);
+                setValue([""]);
               }}
               className="mr-auto h-fit whitespace-normal text-left">
               <span className="flex-1">{label}</span>
