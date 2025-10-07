@@ -269,11 +269,6 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
         return;
       }
 
-      if ("isDecoyBooking" in booking && booking.isDecoyBooking) {
-        router.push("/booking/dry-run-successful");
-        return;
-      }
-
       const { uid, paymentUid } = booking;
       const fullName = getFullName(bookingForm.getValues("responses.name"));
 

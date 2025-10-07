@@ -265,7 +265,8 @@ export const buildDecoyBooking = async ({
   endTime,
   bookerName,
   bookerEmail,
-  _location,
+  location,
+  responses,
   blockingService,
 }: {
   eventTypeId: number;
@@ -281,7 +282,8 @@ export const buildDecoyBooking = async ({
   endTime: string;
   bookerName: string;
   bookerEmail: string;
-  _location: string | null;
+  location: string | null;
+  responses: Record<string, unknown>;
   blockingService: IBlockingService;
 }) => {
   const sanitizeEmail = (email: string): string => {
@@ -304,75 +306,32 @@ export const buildDecoyBooking = async ({
     eventTypeId,
   });
 
-  const sanitizedOrganizerUser = {
-    id: organizerUser.id,
-    name: organizerUser.name,
-    username: organizerUser.username,
-    email: sanitizeEmail(organizerUser.email),
-    timeZone: organizerUser.timeZone,
-  };
+  const decoyBooking = await prisma.decoyBooking.create({
+    data: {
+      uid: decoyResponse.uid,
+      title: eventName,
+      startTime: new Date(startTime),
+      endTime: new Date(endTime),
+      location: location || "Online Meeting",
+      status: BookingStatus.ACCEPTED,
+      organizerName: organizerUser.name || "Organizer",
+      organizerEmail: sanitizeEmail(organizerUser.email),
+      attendees: [
+        {
+          name: bookerName,
+          email: sanitizeEmail(bookerEmail),
+          timeZone: "UTC",
+          phoneNumber: "***-***-****",
+        },
+      ],
+      responses: responses || {},
+      metadata: {},
+      description: null,
+      eventTypeId: eventTypeId,
+    },
+  });
 
-  const booking = {
-    id: -1,
-    uid: decoyResponse.uid,
-    iCalUID: `DECOY_${decoyResponse.uid}`,
-    status: BookingStatus.ACCEPTED,
-    eventTypeId: eventTypeId,
-    user: sanitizedOrganizerUser,
-    userId: sanitizedOrganizerUser.id,
-    title: eventName,
-    startTime: new Date(startTime),
-    endTime: new Date(endTime),
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    attendees: [
-      {
-        id: -1,
-        email: sanitizeEmail(bookerEmail),
-        name: bookerName,
-        timeZone: "UTC",
-        locale: "en",
-        bookingId: -1,
-        phoneNumber: "***-***-****",
-        noShow: false,
-      },
-    ],
-    oneTimePassword: null,
-    smsReminderNumber: null,
-    metadata: {},
-    idempotencyKey: null,
-    userPrimaryEmail: null,
-    description: null,
-    customInputs: null,
-    responses: null,
-    location: "Online Meeting",
-    paid: false,
-    cancellationReason: null,
-    rejectionReason: null,
-    dynamicEventSlugRef: null,
-    dynamicGroupSlugRef: null,
-    fromReschedule: null,
-    recurringEventId: null,
-    scheduledJobs: [],
-    rescheduledBy: null,
-    destinationCalendarId: null,
-    reassignReason: null,
-    reassignById: null,
-    rescheduled: false,
-    isRecorded: false,
-    iCalSequence: 0,
-    rating: null,
-    ratingFeedback: null,
-    noShowHost: null,
-    cancelledBy: null,
-    creationSource: CreationSource.WEBAPP,
-    references: [],
-    payment: [],
-  } satisfies ReturnTypeCreateBooking;
-
-  return {
-    booking,
-  };
+  return decoyBooking;
 };
 
 export const buildEventForTeamEventType = async ({
@@ -646,7 +605,7 @@ async function handler(
 
     const fullNameForDecoy = getFullName(bookerName);
 
-    const { booking } = await buildDecoyBooking({
+    const decoyBooking = await buildDecoyBooking({
       eventTypeId,
       organizerUser,
       eventName: eventType.title,
@@ -654,20 +613,21 @@ async function handler(
       endTime: reqBody.end,
       bookerName: fullNameForDecoy,
       bookerEmail,
-      _location: location,
+      location,
+      responses: reqBody.responses,
       blockingService,
     });
 
     return {
-      ...booking,
+      uid: decoyBooking.uid,
+      id: decoyBooking.id,
+      startTime: decoyBooking.startTime.toISOString(),
+      endTime: decoyBooking.endTime.toISOString(),
       user: {
-        ...booking.user,
         email: null,
       },
-      isDecoyBooking: true,
       isDryRun: false,
       paymentRequired: false,
-      paymentUid: undefined,
       references: [],
       seatReferenceUid: undefined,
     };

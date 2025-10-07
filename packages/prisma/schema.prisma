@@ -244,6 +244,8 @@ model EventType {
 
   bookingRequiresAuthentication Boolean @default(false)
 
+  decoyBookings DecoyBooking[]
+
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
 
@@ -853,6 +855,29 @@ model Booking {
   @@index([uid])
   @@index([status])
   @@index([startTime, endTime, status])
+}
+
+model DecoyBooking {
+  id             Int           @id @default(autoincrement())
+  uid            String        @unique
+  title          String
+  startTime      DateTime
+  endTime        DateTime
+  location       String?
+  status         BookingStatus @default(ACCEPTED)
+  organizerName  String
+  organizerEmail String
+  attendees      Json
+  responses      Json?
+  metadata       Json?
+  description    String?
+  eventTypeId    Int?
+  eventType      EventType?    @relation(fields: [eventTypeId], references: [id])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime?     @updatedAt
+
+  @@index([uid])
+  @@index([eventTypeId])
 }
 
 model Tracking {
