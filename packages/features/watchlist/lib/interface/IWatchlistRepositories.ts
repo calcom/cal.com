@@ -8,9 +8,8 @@ export interface IGlobalWatchlistRepository {
   findBlockedEmail(email: string): Promise<Watchlist | null>;
   findBlockedDomain(domain: string): Promise<Watchlist | null>;
   findFreeEmailDomain(domain: string): Promise<Watchlist | null>;
-  findReportedEmail(email: string): Promise<Watchlist | null>;
-  findReportedDomain(domain: string): Promise<Watchlist | null>;
-  listAllGlobalEntries(): Promise<Watchlist[]>;
+  findById(id: string): Promise<Watchlist | null>;
+  listAllBlockedEntries(): Promise<Watchlist[]>;
   listGlobalBlockedEntries(): Promise<Watchlist[]>;
 
   // Write operations
@@ -48,10 +47,8 @@ export interface IOrganizationWatchlistRepository {
     organizationId: number;
   }): Promise<Watchlist | null>;
   findBlockedDomain(domain: string, organizationId: number): Promise<Watchlist | null>;
-  findReportedEmail(email: string, organizationId: number): Promise<Watchlist | null>;
-  findReportedDomain(domain: string, organizationId: number): Promise<Watchlist | null>;
-  listOrganizationEntries(organizationId: number): Promise<Watchlist[]>;
-  listOrganizationBlockedEntries(organizationId: number): Promise<Watchlist[]>;
+  findById(id: string, organizationId: number): Promise<Watchlist | null>;
+  listBlockedEntries(organizationId: number): Promise<Watchlist[]>;
 
   // Write operations
   createEntry(
