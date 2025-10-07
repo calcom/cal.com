@@ -78,10 +78,12 @@ export interface PhoneNumberRepositoryInterface {
   /**
    * Conditionally set inbound agent only if currently unset (atomic operation to prevent race conditions)
    */
-  setInboundProviderAgentIdIfUnset(params: {
-    id: number;
-    inboundProviderAgentId: string;
-  }): Promise<{ success: boolean; conflictingAgentId?: string }>;
+  updateInboundAgentId(params: { id: number; agentId: string }): Promise<{ count: number }>;
+
+  /**
+   * Find inbound agent by phone number ID
+   */
+  findInboundAgentIdByPhoneNumberId(params: { phoneNumberId: number }): Promise<{ inboundAgentId: string | null } | null>;
 }
 
 /**

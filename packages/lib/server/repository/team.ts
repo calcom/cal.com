@@ -183,6 +183,19 @@ export class TeamRepository {
     return getParsedTeam(team);
   }
 
+  async findByIdIncludePlatformBilling({ id }: { id: number }) {
+    const team = await this.prismaClient.team.findUnique({
+      where: {
+        id,
+      },
+      select: { ...teamSelect, platformBilling: true },
+    });
+    if (!team) {
+      return null;
+    }
+    return getParsedTeam(team);
+  }
+
   async findAllByParentId({
     parentId,
     select = teamSelect,
@@ -411,5 +424,31 @@ export class TeamRepository {
         },
       },
     });
+  }
+
+  async isSlugAvailableForUpdate({
+    slug,
+    teamId,
+    parentId,
+  }: {
+    slug: string;
+    teamId: number;
+    parentId?: number | null;
+  }) {
+    const whereClause: Prisma.TeamWhereInput = {
+      slug: {
+        equals: slug,
+        mode: "insensitive",
+      },
+      parentId: parentId ?? null,
+      NOT: { id: teamId },
+    };
+
+    const conflictingTeam = await this.prismaClient.team.findFirst({
+      where: whereClause,
+      select: { id: true },
+    });
+
+    return !conflictingTeam;
   }
 }

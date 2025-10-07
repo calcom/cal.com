@@ -2,7 +2,7 @@ import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone
 import { replaceEventTypePlaceholders } from "@calcom/features/ee/workflows/components/agent-configuration/utils/promptUtils";
 import logger from "@calcom/lib/logger";
 import { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
-
+import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "../../../types";
 import type { TUpdateInboundAgentEventTypeInputSchema } from "./updateInboundAgentEventType.schema";
 
@@ -54,7 +54,8 @@ export const updateInboundAgentEventTypeHandler = async ({
       generalPrompt: updatedPrompt,
     });
 
-    await PrismaAgentRepository.updateEventTypeId({
+    const agentRepo = new PrismaAgentRepository(prisma);
+    await agentRepo.updateEventTypeId({
       agentId,
       eventTypeId,
     });

@@ -103,7 +103,7 @@ export type CreateAgentRequest = Retell.AgentCreateParams;
 export type UpdateLLMRequest = Retell.LlmUpdateParams;
 export type UpdateAgentRequest = Retell.AgentUpdateParams;
 export type Agent = NonNullable<
-  Awaited<ReturnType<typeof PrismaAgentRepository.findByIdWithUserAccessAndDetails>>
+  Awaited<ReturnType<PrismaAgentRepository["findByIdWithUserAccessAndDetails"]>>
 >;
 
 export type RetellAgentWithDetails = {
@@ -113,7 +113,7 @@ export type RetellAgentWithDetails = {
   enabled: boolean;
   userId: number | null;
   teamId: number | null;
-  eventTypeId?: number | null;
+  inboundEventTypeId?: number | null;
   outboundPhoneNumbers: Array<{
     id: number;
     phoneNumber: string;

@@ -50,7 +50,7 @@ export function IncomingCallsTab({
       if (data.agentId && form && workflowStepId) {
         const stepIndex = form.getValues("steps")?.findIndex((s) => s.id === workflowStepId);
         if (stepIndex !== undefined && stepIndex !== -1) {
-          form.setValue(`steps.${stepIndex}.inboundAgentId`, data.agentId);
+          form.setValue(`steps.${stepIndex}.inboundAgentId`, data.agentId, { shouldDirty: true });
         }
       }
 
@@ -164,7 +164,7 @@ export function IncomingCallsTab({
               });
             }
           }}
-          value={eventTypeOptions.find((opt) => opt.value === inboundAgentData?.eventTypeId?.toString())}
+          value={eventTypeOptions.find((opt) => opt.value === inboundAgentData?.inboundEventTypeId?.toString())}
           options={eventTypeOptions}
           placeholder={t("select_event_type")}
         />

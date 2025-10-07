@@ -3,11 +3,16 @@ import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+import logger from "@calcom/lib/logger";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TDeleteInputSchema } from "./delete.schema";
-import { isAuthorized, removeSmsReminderFieldForEventTypes } from "./util";
+import {
+  isAuthorized,
+  removeSmsReminderFieldForEventTypes,
+  removeAIAgentCallPhoneNumberFieldForEventTypes,
+} from "./util";
 
 type DeleteOptions = {
   ctx: {
@@ -18,6 +23,7 @@ type DeleteOptions = {
 
 export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   const { id } = input;
+  const log = logger.getSubLogger({ prefix: ["workflows/deleteHandler"] });
 
   const workflowToDelete = await prisma.workflow.findUnique({
     where: {
@@ -101,7 +107,7 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
               });
             }
           } catch (error) {
-            console.error(`Failed to handle phone number ${phoneNumber.phoneNumber}:`, error);
+            log.error(`Failed to handle phone number ${phoneNumber.phoneNumber}:`, error);
           }
         }
       }
@@ -114,7 +120,7 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
             teamId: workflowToDelete.teamId ?? undefined,
           });
         } catch (error) {
-          console.error(`Failed to delete agent ${step.agent.id}:`, error);
+          log.error(`Failed to delete agent ${step.agent.id}:`, error);
         }
       }
 
@@ -126,7 +132,7 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
             teamId: workflowToDelete.teamId ?? undefined,
           });
         } catch (error) {
-          console.error(`Failed to delete inbound agent ${step.inboundAgent.id}:`, error);
+          log.error(`Failed to delete inbound agent ${step.inboundAgent.id}:`, error);
         }
       }
     }
@@ -154,6 +160,11 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
     : workflowToDelete.activeOn.map((activeOn) => activeOn.eventTypeId);
 
   await removeSmsReminderFieldForEventTypes({ activeOnToRemove, workflowId: workflowToDelete.id, isOrg });
+  await removeAIAgentCallPhoneNumberFieldForEventTypes({
+    activeOnToRemove,
+    workflowId: workflowToDelete.id,
+    isOrg,
+  });
 
   // automatically deletes all steps and reminders connected to this workflow
   await prisma.workflow.deleteMany({

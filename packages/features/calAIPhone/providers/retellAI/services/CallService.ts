@@ -16,22 +16,16 @@ interface RetellAIServiceInterface {
   ): Promise<void>;
 }
 
+type Dependencies = {
+  retellRepository: RetellAIRepository;
+  agentRepository: AgentRepositoryInterface;
+};
+
 export class CallService {
   private logger = logger.getSubLogger({ prefix: ["CallService"] });
   private retellAIService?: RetellAIServiceInterface;
-  private retellRepository: RetellAIRepository;
-  private agentRepository: AgentRepositoryInterface;
 
-  constructor({
-    retellRepository,
-    agentRepository,
-  }: {
-    retellRepository: RetellAIRepository;
-    agentRepository: AgentRepositoryInterface;
-  }) {
-    this.retellRepository = retellRepository;
-    this.agentRepository = agentRepository;
-  }
+  constructor(private deps: Dependencies) {}
 
   setRetellAIService(service: RetellAIServiceInterface): void {
     this.retellAIService = service;
@@ -59,7 +53,7 @@ export class CallService {
     const { fromNumber, toNumber, dynamicVariables } = data;
 
     try {
-      return await this.retellRepository.createPhoneCall({
+      return await this.deps.retellRepository.createPhoneCall({
         fromNumber,
         toNumber,
         dynamicVariables,
@@ -114,7 +108,7 @@ export class CallService {
       });
     }
 
-    const agent = await this.agentRepository.findByIdWithCallAccess({
+    const agent = await this.deps.agentRepository.findByIdWithCallAccess({
       id: agentId,
       userId,
     });
@@ -201,7 +195,7 @@ export class CallService {
       identifier: `web-call:${userId}`,
     });
 
-    const agent = await this.agentRepository.findByIdWithCallAccess({
+    const agent = await this.deps.agentRepository.findByIdWithCallAccess({
       id: agentId,
       userId,
     });
@@ -241,7 +235,7 @@ export class CallService {
     };
 
     try {
-      const webCall = await this.retellRepository.createWebCall({
+      const webCall = await this.deps.retellRepository.createWebCall({
         agentId: agent.providerAgentId,
         dynamicVariables,
       });
@@ -314,7 +308,7 @@ export class CallService {
         return [];
       }
 
-      const callsResponse = await this.retellRepository.listCalls({
+      const callsResponse = await this.deps.retellRepository.listCalls({
         filter_criteria: {
           from_number: filters.fromNumber,
           ...(filters?.toNumber && { to_number: filters.toNumber }),

@@ -21,25 +21,15 @@ import { RetellAIServiceMapper } from "../RetellAIServiceMapper";
 import type { RetellAIRepository, Language } from "../types";
 import { getLlmId } from "../types";
 
+type Dependencies = {
+  retellRepository: RetellAIRepository;
+  agentRepository: AgentRepositoryInterface;
+  phoneNumberRepository: PhoneNumberRepositoryInterface;
+};
+
 export class AgentService {
   private logger = logger.getSubLogger({ prefix: ["AgentService"] });
-  private retellRepository: RetellAIRepository;
-  private agentRepository: AgentRepositoryInterface;
-  private phoneNumberRepository: PhoneNumberRepositoryInterface;
-
-  constructor({
-    retellRepository,
-    agentRepository,
-    phoneNumberRepository,
-  }: {
-    retellRepository: RetellAIRepository;
-    agentRepository: AgentRepositoryInterface;
-    phoneNumberRepository: PhoneNumberRepositoryInterface;
-  }) {
-    this.retellRepository = retellRepository;
-    this.agentRepository = agentRepository;
-    this.phoneNumberRepository = phoneNumberRepository;
-  }
+  constructor(private deps: Dependencies) {}
 
   private async createApiKey({ userId, teamId }: { userId: number; teamId?: number }) {
     const apiKeyRepository = await PrismaApiKeyRepository.withGlobalPrisma();
@@ -60,7 +50,7 @@ export class AgentService {
     }
 
     try {
-      return await this.retellRepository.getAgent(agentId);
+      return await this.deps.retellRepository.getAgent(agentId);
     } catch (error) {
       this.logger.error("Failed to get agent from external AI service", {
         agentId,
@@ -115,7 +105,7 @@ export class AgentService {
           message: "Agent does not have an LLM configured.",
         });
       }
-      const llmDetails = await this.retellRepository.getLLM(llmId);
+      const llmDetails = await this.deps.retellRepository.getLLM(llmId);
 
       if (!llmDetails) {
         throw new HttpError({ statusCode: 404, message: "LLM details not found." });
@@ -175,7 +165,7 @@ export class AgentService {
 
       const updatedGeneralTools = [...existing, ...newEventTools];
 
-      await this.retellRepository.updateLLM(llmId, { general_tools: updatedGeneralTools });
+      await this.deps.retellRepository.updateLLM(llmId, { general_tools: updatedGeneralTools });
     } catch (error) {
       if (error instanceof HttpError) {
         throw error;
@@ -226,7 +216,7 @@ export class AgentService {
         });
       }
 
-      const llmDetails = await this.retellRepository.getLLM(llmId);
+      const llmDetails = await this.deps.retellRepository.getLLM(llmId);
 
       if (!llmDetails) {
         throw new HttpError({ statusCode: 404, message: "LLM details not found." });
@@ -242,7 +232,7 @@ export class AgentService {
       const filteredTools = existing.filter((tool) => !toolNamesToRemove.includes(tool.name));
 
       if (filteredTools.length !== existing.length) {
-        await this.retellRepository.updateLLM(llmId, { general_tools: filteredTools });
+        await this.deps.retellRepository.updateLLM(llmId, { general_tools: filteredTools });
         this.logger.info("Removed event-specific tools from agent", {
           agentId,
           llmId,
@@ -296,7 +286,7 @@ export class AgentService {
         });
       }
 
-      const llmDetails = await this.retellRepository.getLLM(llmId);
+      const llmDetails = await this.deps.retellRepository.getLLM(llmId);
 
       if (!llmDetails) {
         throw new HttpError({ statusCode: 404, message: "LLM details not found." });
@@ -321,7 +311,7 @@ export class AgentService {
         const toolNamesToRemove = toolsToRemove.map((tool) => tool.name);
         const filteredTools = existing.filter((tool) => !toolNamesToRemove.includes(tool.name));
 
-        await this.retellRepository.updateLLM(llmId, { general_tools: filteredTools });
+        await this.deps.retellRepository.updateLLM(llmId, { general_tools: filteredTools });
 
         this.logger.info("Cleaned up unused event-specific tools", {
           agentId,
@@ -378,7 +368,7 @@ export class AgentService {
 
     try {
       const updateRequest = RetellAIServiceMapper.mapToUpdateAgentRequest(data);
-      return await this.retellRepository.updateAgent(agentId, updateRequest);
+      return await this.deps.retellRepository.updateAgent(agentId, updateRequest);
     } catch (error) {
       this.logger.error("Failed to update agent in external AI service", {
         agentId,
@@ -401,7 +391,7 @@ export class AgentService {
     teamId?: number;
     scope?: "personal" | "team" | "all";
   }) {
-    const agents = await this.agentRepository.findManyWithUserAccess({
+    const agents = await this.deps.agentRepository.findManyWithUserAccess({
       userId,
       teamId,
       scope,
@@ -416,7 +406,7 @@ export class AgentService {
   }
 
   async getAgentWithDetails({ id, userId, teamId }: { id: string; userId: number; teamId?: number }) {
-    const agent = await this.agentRepository.findByIdWithUserAccessAndDetails({
+    const agent = await this.deps.agentRepository.findByIdWithUserAccessAndDetails({
       id,
       userId,
       teamId,
@@ -440,7 +430,7 @@ export class AgentService {
         });
       }
 
-      const llmDetails = await this.retellRepository.getLLM(llmId);
+      const llmDetails = await this.deps.retellRepository.getLLM(llmId);
 
       return RetellAIServiceMapper.formatAgentDetails(agent, retellAgent, llmDetails);
     } catch (error) {
@@ -478,7 +468,7 @@ export class AgentService {
     const agentName = _name || `Agent - ${userId} ${uuidv4()}`;
 
     if (teamId) {
-      const canManage = await this.agentRepository.canManageTeamResources({
+      const canManage = await this.deps.agentRepository.canManageTeamResources({
         userId,
         teamId,
       });
@@ -492,7 +482,7 @@ export class AgentService {
 
     const llmConfig = await setupAIConfiguration();
 
-    const agent = await this.agentRepository.create({
+    const agent = await this.deps.agentRepository.create({
       name: agentName,
       providerAgentId: llmConfig.agentId,
       userId,
@@ -500,7 +490,7 @@ export class AgentService {
     });
 
     if (workflowStepId) {
-      await this.agentRepository.linkOutboundAgentToWorkflow({
+      await this.deps.agentRepository.linkOutboundAgentToWorkflow({
         workflowStepId,
         agentId: agent.id,
       });
@@ -531,7 +521,7 @@ export class AgentService {
     };
   }) {
     if (teamId) {
-      const canManage = await this.agentRepository.canManageTeamResources({
+      const canManage = await this.deps.agentRepository.canManageTeamResources({
         userId,
         teamId,
       });
@@ -553,13 +543,13 @@ export class AgentService {
 
     let phoneNumberRecord;
     if (teamId) {
-      phoneNumberRecord = await this.phoneNumberRepository.findByPhoneNumberAndTeamId({
+      phoneNumberRecord = await this.deps.phoneNumberRepository.findByPhoneNumberAndTeamId({
         phoneNumber,
         teamId,
         userId,
       });
     } else {
-      phoneNumberRecord = await this.phoneNumberRepository.findByPhoneNumberAndUserId({
+      phoneNumberRecord = await this.deps.phoneNumberRepository.findByPhoneNumberAndUserId({
         phoneNumber,
         userId,
       });
@@ -583,32 +573,36 @@ export class AgentService {
 
     const llmConfig = await aiConfigurationService.setupInboundAIConfiguration();
 
-    const agent = await this.agentRepository.create({
+    const agent = await this.deps.agentRepository.create({
       name: agentName,
       providerAgentId: llmConfig.agentId,
       userId,
       teamId,
     });
 
-    await this.agentRepository.linkInboundAgentToWorkflow({
+    await this.deps.agentRepository.linkInboundAgentToWorkflow({
       workflowStepId,
       agentId: agent.id,
     });
 
     // Update the Retell phone number with the new inbound agent ID
-    await this.retellRepository.updatePhoneNumber(phoneNumber, {
+    await this.deps.retellRepository.updatePhoneNumber(phoneNumber, {
       inbound_agent_id: llmConfig.agentId,
     });
 
-    const updateResult = await this.phoneNumberRepository.setInboundProviderAgentIdIfUnset({
+    const updateInboundAgentIdResult = await this.deps.phoneNumberRepository.updateInboundAgentId({
       id: phoneNumberRecord.id,
-      inboundProviderAgentId: agent.providerAgentId,
+      agentId: agent.id,
     });
 
-    if (!updateResult.success) {
+    if (updateInboundAgentIdResult.count === 0) {
+      const conflictingAgentId = await this.deps.phoneNumberRepository.findInboundAgentIdByPhoneNumberId({
+        phoneNumberId: phoneNumberRecord.id,
+      });
+
       throw new HttpError({
         statusCode: 409,
-        message: `Inbound agent was configured by another request. Conflicting agent: ${updateResult.conflictingAgentId}`,
+        message: `Inbound agent was configured by another request. Conflicting agent: ${conflictingAgentId}`,
       });
     }
 
@@ -645,7 +639,7 @@ export class AgentService {
       data: AIPhoneServiceUpdateModelParams<AIPhoneServiceProviderType.RETELL_AI>
     ) => Promise<AIPhoneServiceModel<AIPhoneServiceProviderType.RETELL_AI>>;
   }) {
-    const agent = await this.agentRepository.findByIdWithAdminAccess({
+    const agent = await this.deps.agentRepository.findByIdWithAdminAccess({
       id,
       userId,
       teamId,
@@ -659,8 +653,8 @@ export class AgentService {
     }
 
     const updatedPrompt =
-      agent.eventTypeId && generalPrompt
-        ? replaceEventTypePlaceholders(generalPrompt, agent.eventTypeId)
+      agent.inboundEventTypeId && generalPrompt
+        ? replaceEventTypePlaceholders(generalPrompt, agent.inboundEventTypeId)
         : generalPrompt;
 
     const hasRetellUpdates =
@@ -732,7 +726,7 @@ export class AgentService {
     teamId?: number;
     deleteAIConfiguration: (config: { agentId: string; llmId?: string }) => Promise<void>;
   }) {
-    const agent = await this.agentRepository.findByIdWithAdminAccess({
+    const agent = await this.deps.agentRepository.findByIdWithAdminAccess({
       id,
       userId,
       teamId,
@@ -763,7 +757,7 @@ export class AgentService {
       });
     }
 
-    await this.agentRepository.delete({ id });
+    await this.deps.agentRepository.delete({ id });
 
     return { message: "Agent deleted successfully" };
   }
