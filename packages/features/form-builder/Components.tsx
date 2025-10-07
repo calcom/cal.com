@@ -260,53 +260,12 @@ export const Components: Record<FieldType, Component> = {
       const { t } = useLocale();
       value = value || [];
 
-      // Component for individual email with typo detection
-      const EmailWithTypoCheck = ({ index, email }: { index: number; email: string }) => {
-        const [localEmail, setLocalEmail] = useState(email);
-        const suggestion = useEmailTypoDetection(localEmail);
+      const [localEmails, setLocalEmails] = useState<string[]>(value);
+      const suggestions = localEmails.map((email) => useEmailTypoDetection(email));
 
-        return (
-          <div>
-            <EmailField
-              id={`${props.name}.${index}`}
-              disabled={readOnly}
-              value={localEmail}
-              onChange={(e) => {
-                const newValue = e.target.value.toLowerCase();
-                setLocalEmail(newValue);
-                value[index] = newValue;
-                setValue(value);
-              }}
-              placeholder={placeholder}
-              label={<></>}
-              required
-              onClickAddon={() => {
-                value.splice(index, 1);
-                setValue(value);
-              }}
-              addOnSuffix={
-                !readOnly ? (
-                  <Tooltip content="Remove email">
-                    <button className="m-1" type="button">
-                      <Icon name="x" width={12} className="text-default" />
-                    </button>
-                  </Tooltip>
-                ) : null
-              }
-            />
-            {suggestion && !readOnly && (
-              <EmailTypoSuggestion
-                suggestion={suggestion}
-                onAccept={(correctedEmail) => {
-                  setLocalEmail(correctedEmail);
-                  value[index] = correctedEmail;
-                  setValue(value);
-                }}
-              />
-            )}
-          </div>
-        );
-      };
+      useEffect(() => {
+        setLocalEmails(value);
+      }, [value.length]);
 
       return (
         <>
@@ -318,7 +277,49 @@ export const Components: Record<FieldType, Component> = {
               <ul>
                 {value.map((email, index) => (
                   <li key={index}>
-                    <EmailWithTypoCheck index={index} email={email} />
+                    <div>
+                      <EmailField
+                        id={`${props.name}.${index}`}
+                        disabled={readOnly}
+                        value={localEmails[index] || ""}
+                        onChange={(e) => {
+                          const newValue = e.target.value.toLowerCase();
+                          const newLocalEmails = [...localEmails];
+                          newLocalEmails[index] = newValue;
+                          setLocalEmails(newLocalEmails);
+                          value[index] = newValue;
+                          setValue(value);
+                        }}
+                        placeholder={placeholder}
+                        label={<></>}
+                        required
+                        onClickAddon={() => {
+                          value.splice(index, 1);
+                          setValue(value);
+                        }}
+                        addOnSuffix={
+                          !readOnly ? (
+                            <Tooltip content="Remove email">
+                              <button className="m-1" type="button">
+                                <Icon name="x" width={12} className="text-default" />
+                              </button>
+                            </Tooltip>
+                          ) : null
+                        }
+                      />
+                      {suggestions[index] && !readOnly && (
+                        <EmailTypoSuggestion
+                          suggestion={suggestions[index]!}
+                          onAccept={(correctedEmail) => {
+                            const newLocalEmails = [...localEmails];
+                            newLocalEmails[index] = correctedEmail;
+                            setLocalEmails(newLocalEmails);
+                            value[index] = correctedEmail;
+                            setValue(value);
+                          }}
+                        />
+                      )}
+                    </div>
                   </li>
                 ))}
               </ul>
