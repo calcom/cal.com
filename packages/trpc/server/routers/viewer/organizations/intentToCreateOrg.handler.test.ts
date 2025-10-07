@@ -101,6 +101,7 @@ describe("intentToCreateOrgHandler", () => {
         isPlatform: mockInput.isPlatform,
         organizationOnboardingId: expect.any(String),
         checkoutUrl: null, // Admin flow, no checkout required
+        organizationId: expect.any(Number), // Organization created immediately for self-hosted admin
       });
 
       // Verify organization onboarding was created
@@ -303,6 +304,7 @@ describe("intentToCreateOrgHandler", () => {
         isPlatform: mockInput.isPlatform,
         organizationOnboardingId: expect.any(String),
         checkoutUrl: null, // Admin flow, no checkout required
+        organizationId: expect.any(Number), // Organization created immediately for self-hosted admin
       });
 
       // Verify organization onboarding was created

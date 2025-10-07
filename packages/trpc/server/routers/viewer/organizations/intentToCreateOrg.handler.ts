@@ -74,7 +74,7 @@ export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) =>
   }
   log.debug("Found organization owner", safeStringify({ orgOwnerId: orgOwner.id, email: orgOwner.email }));
 
-  let organizationOnboarding = await OrganizationOnboardingRepository.findByOrgOwnerEmail(orgOwner.email);
+  const organizationOnboarding = await OrganizationOnboardingRepository.findByOrgOwnerEmail(orgOwner.email);
   if (organizationOnboarding) {
     throw new Error("organization_onboarding_already_exists");
   }

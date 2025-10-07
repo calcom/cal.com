@@ -1,7 +1,9 @@
+import { createOrganizationFromOnboarding } from "@calcom/features/ee/organizations/lib/server/createOrganizationFromOnboarding";
+import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
-import type { BillingPeriod, CreationSource } from "@calcom/prisma/enums";
+import { BillingPeriod, CreationSource } from "@calcom/prisma/enums";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -50,6 +52,7 @@ export type OnboardingIntentResult = {
   isPlatform: boolean;
   organizationOnboardingId: string;
   checkoutUrl: string | null;
+  organizationId?: number | null; // Set when organization is created immediately (self-hosted)
 };
 
 export class OrganizationOnboardingService {
@@ -132,17 +135,45 @@ export class OrganizationOnboardingService {
         name: invite.name,
       }));
 
-    // If admin user, skip payment flow
-    if (this.user.role === UserPermissionRole.ADMIN) {
-      log.debug("Admin flow, skipping payment", safeStringify({ onboardingId }));
+    // Determine if billing is enabled
+    // Billing is disabled for self-hosted admins (unless in E2E mode)
+    const isBillingEnabled = !(IS_SELF_HOSTED && this.user.role === UserPermissionRole.ADMIN);
 
-      // Store teams and invites in onboarding record for later processing
-      if (teamsData.length > 0 || invitedMembersData.length > 0) {
-        await OrganizationOnboardingRepository.update(onboardingId, {
-          teams: teamsData,
+    // If billing is disabled (self-hosted admin), create organization immediately
+    if (!isBillingEnabled) {
+      log.debug("Self-hosted admin flow, creating organization immediately", safeStringify({ onboardingId }));
+
+      // Store teams and invites in onboarding record
+      await OrganizationOnboardingRepository.update(onboardingId, {
+        teams: teamsData,
+        invitedMembers: invitedMembersData,
+      });
+
+      // Create the organization immediately
+      const { organization } = await createOrganizationFromOnboarding({
+        organizationOnboarding: {
+          id: onboardingId,
+          organizationId: null,
+          name,
+          slug,
+          orgOwnerEmail,
+          seats: seats ?? null,
+          pricePerSeat: pricePerSeat ?? null,
+          billingPeriod: billingPeriod ?? BillingPeriod.MONTHLY,
           invitedMembers: invitedMembersData,
-        });
-      }
+          teams: teamsData,
+          isPlatform,
+          logo: logo ?? null,
+          bio: bio ?? null,
+          brandColor: brandColor ?? null,
+          bannerUrl: bannerUrl ?? null,
+          stripeCustomerId: null,
+          isDomainConfigured: false,
+        },
+      });
+
+      // Mark onboarding as complete
+      await OrganizationOnboardingRepository.markAsComplete(onboardingId);
 
       return {
         userId: this.user.id,
@@ -155,6 +186,7 @@ export class OrganizationOnboardingService {
         isPlatform,
         organizationOnboardingId: onboardingId,
         checkoutUrl: null,
+        organizationId: organization.id,
       };
     }
 

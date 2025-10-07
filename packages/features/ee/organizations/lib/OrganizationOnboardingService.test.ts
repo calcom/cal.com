@@ -2,6 +2,7 @@ import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
+import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { UserPermissionRole, CreationSource } from "@calcom/prisma/enums";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 
@@ -12,6 +13,11 @@ import { OrganizationPermissionService } from "./OrganizationPermissionService";
 vi.mock("./OrganizationPaymentService");
 vi.mock("./OrganizationPermissionService");
 vi.mock("@calcom/lib/server/repository/organizationOnboarding");
+vi.mock("@calcom/ee/common/server/LicenseKeyService", () => ({
+  LicenseKeySingleton: {
+    getInstance: vi.fn(),
+  },
+}));
 
 const mockUser = {
   id: 1,
@@ -51,6 +57,11 @@ describe("OrganizationOnboardingService", () => {
     // @ts-expect-error reset is a method on Prismock
     await prismock.reset();
 
+    // Mock license check
+    vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
+      checkLicense: vi.fn().mockResolvedValue(true),
+    } as any);
+
     mockPaymentService = {
       createOrganizationOnboarding: vi.fn().mockResolvedValue({
         id: "onboarding-123",
@@ -87,6 +98,8 @@ describe("OrganizationOnboardingService", () => {
       teams: [],
       invitedMembers: [],
     } as any);
+
+    vi.mocked(OrganizationOnboardingRepository.markAsComplete).mockResolvedValue({} as any);
   });
 
   describe("createOnboardingIntent", () => {

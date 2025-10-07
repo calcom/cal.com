@@ -59,15 +59,15 @@ export const useSubmitOnboarding = () => {
         invitedMembers: invitedMembersData,
       });
 
-      // If there's a checkout URL, redirect to Stripe
+      // If there's a checkout URL, redirect to Stripe (billing enabled flow)
       if (result.checkoutUrl) {
         window.location.href = result.checkoutUrl;
         return;
       }
 
-      // Success - no payment required (admin or self-hosted)
+      // No checkout URL means billing is disabled (self-hosted flow)
+      // Organization has already been created by the backend
       showToast("Organization created successfully!", "success");
-      resetOnboarding();
       router.push("/settings/organizations");
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to create organization";
