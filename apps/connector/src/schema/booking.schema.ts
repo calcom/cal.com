@@ -277,6 +277,11 @@ const calIdTeamSchema = z
   })
   .nullable();
 
+const eventTypeColorSchema = z.object({
+  darkEventTypeColor: z.string().optional().nullable(),
+  lightEventTypeColor: z.string().optional().nullable(),
+})
+
 const eventTypeSchema = z.object({
   id: z.number().optional(),
   title: z.string().optional(),
@@ -296,7 +301,7 @@ const eventTypeSchema = z.object({
   hideOrganizerEmail: z.boolean().optional(),
   disableCancelling: z.boolean().optional(),
   disableRescheduling: z.boolean().optional(),
-  eventTypeColor: z.string().nullable().optional(),
+  eventTypeColor: eventTypeColorSchema.optional().nullable(),
 });
 
 const userSchema = z.object({
