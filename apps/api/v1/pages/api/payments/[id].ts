@@ -33,8 +33,15 @@ import {
  *     responses:
  *       200:
  *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 payment:
+ *                   $ref: "#/components/schemas/Payment"
  *       401:
- *        description: Authorization information is missing or invalid.
+ *         description: Authorization information is missing or invalid.
  *       404:
  *         description: Payment was not found
  */
@@ -58,7 +65,7 @@ export async function paymentById(
 
     const payment = schemaPaymentPublic.parse(data);
 
-    if (!userWithBookings?.bookings.map((b) => b.id).includes(payment.bookingId)) {
+    if (!userWithBookings || !userWithBookings?.bookings.map((b) => b.id).includes(payment.bookingId)) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 

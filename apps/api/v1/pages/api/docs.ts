@@ -33,6 +33,73 @@ const swaggerHandler = withSwagger({
             $ref: "#/components/schemas/Recording",
           },
         },
+        Payment: {
+          type: "object",
+          properties: {
+            id: {
+              type: "number",
+              example: 1,
+              description: "Payment ID",
+            },
+            uid: {
+              type: "string",
+              example: "payment_abc123",
+              description: "Payment UID used for abandoned-cart recovery",
+            },
+            amount: {
+              type: "number",
+              example: 5000,
+              description: "Payment amount in cents",
+            },
+            success: {
+              type: "boolean",
+              example: true,
+              description: "Whether the payment was successful",
+            },
+            refunded: {
+              type: "boolean",
+              example: false,
+              description: "Whether the payment was refunded",
+            },
+            fee: {
+              type: "number",
+              example: 150,
+              description: "Payment processing fee in cents",
+            },
+            paymentOption: {
+              type: "string",
+              example: "ON_BOOKING",
+              description: "Payment option type",
+            },
+            currency: {
+              type: "string",
+              example: "USD",
+              description: "Payment currency",
+            },
+            bookingId: {
+              type: "number",
+              example: 123,
+              description: "Associated booking ID",
+            },
+          },
+          required: [
+            "id",
+            "uid",
+            "amount",
+            "success",
+            "refunded",
+            "fee",
+            "paymentOption",
+            "currency",
+            "bookingId",
+          ],
+        },
+        ArrayOfPayments: {
+          type: "array",
+          items: {
+            $ref: "#/components/schemas/Payment",
+          },
+        },
         Recording: {
           properties: {
             id: {
@@ -135,23 +202,7 @@ const swaggerHandler = withSwagger({
               },
             },
             payment: {
-              type: Array,
-              items: {
-                properties: {
-                  id: {
-                    type: "number",
-                    example: 1,
-                  },
-                  success: {
-                    type: "boolean",
-                    example: true,
-                  },
-                  paymentOption: {
-                    type: "string",
-                    example: "ON_BOOKING",
-                  },
-                },
-              },
+              $ref: "#/components/schemas/ArrayOfPayments",
             },
           },
         },
