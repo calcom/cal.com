@@ -85,7 +85,7 @@ fi
 echo -e "\n${YELLOW}🔧 Configuring environment...${NC}"
 if [ ! -f .env.production ]; then
     echo "Creating .env.production from example..."
-    cp env.production.example .env.production
+    cp .env.example .env.production
     
     # Generate secure passwords
     DB_PASSWORD=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-32)
