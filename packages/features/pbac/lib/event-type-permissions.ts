@@ -42,10 +42,7 @@ const permissionsArrayToObject = (
   const has = (action: "read" | "create" | "update" | "delete") =>
     permissions.some(
       (p) =>
-        p === `${resourcePrefix}${action}` ||
-        p === `${resourcePrefix}*` ||
-        p === `*.${action}` ||
-        p === "*.*"
+        p === `${resourcePrefix}${action}` || p === `${resourcePrefix}*` || p === `*.${action}` || p === "*.*"
     );
 
   return {
@@ -54,7 +51,6 @@ const permissionsArrayToObject = (
     canUpdate: has("update"),
     canDelete: has("delete"),
   };
-};
 };
 
 const getRoleBasedPermissions = (role: MembershipRole): ResourcePermissions => {
