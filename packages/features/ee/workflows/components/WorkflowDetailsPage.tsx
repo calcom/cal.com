@@ -6,6 +6,7 @@ import type { UseFormReturn } from "react-hook-form";
 import { SENDER_ID, SENDER_NAME, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WorkflowPermissions } from "@calcom/lib/server/repository/workflow-permissions";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { WorkflowActions } from "@calcom/prisma/enums";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -15,7 +16,9 @@ import { FormCard, FormCardBody } from "@calcom/ui/components/card";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
-import { isCalAIAction, isFormTrigger, isSMSAction, isWhatsappAction } from "../lib/actionHelperFunctions";
+import { isCalAIAction, isFormTrigger, isSMSAction } from "../lib/actionHelperFunctions";
+import { ALLOWED_FORM_WORKFLOW_ACTIONS } from "../lib/constants";
+import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
 import WorkflowStepContainer from "./WorkflowStepContainer";
@@ -38,12 +41,13 @@ interface Props {
 export default function WorkflowDetailsPage(props: Props) {
   const { form, workflowId, selectedOptions, setSelectedOptions, teamId, isOrg, allOptions, permissions } =
     props;
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
 
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
   const [isDeleteStepDialogOpen, setIsDeleteStepDialogOpen] = useState(false);
 
   const [reload, setReload] = useState(false);
+  const [updateTemplate, setUpdateTemplate] = useState(false);
 
   const searchParams = useSearchParams();
   const eventTypeId = searchParams?.get("eventTypeId");
@@ -51,40 +55,43 @@ export default function WorkflowDetailsPage(props: Props) {
   // Get base action options and transform them for form triggers
   const { data: baseActionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
 
-  const transformedActionOptions =
-    baseActionOptions
-      ?.filter((option) => {
-        if (
-          (isFormTrigger(form.getValues("trigger")) &&
-            (option.value === WorkflowActions.EMAIL_HOST || isCalAIAction(option.value))) ||
-          isWhatsappAction(option.value) ||
-          (isCalAIAction(option.value) && form.watch("selectAll")) ||
-          (isCalAIAction(option.value) && isOrg)
-        ) {
-          return false;
-        }
-        return true;
-      })
-      .map((option) => {
-        let label = option.label;
+  const transformedActionOptions = baseActionOptions
+    ? baseActionOptions
+        .filter((option) => {
+          const isFormWorkflowWithInvalidSteps =
+            isFormTrigger(form.getValues("trigger")) &&
+            !ALLOWED_FORM_WORKFLOW_ACTIONS.some((action) => action === option.value);
 
-        // Transform labels for form triggers
-        if (isFormTrigger(form.getValues("trigger"))) {
-          if (option.value === WorkflowActions.EMAIL_ATTENDEE) {
-            label = t("email_attendee_action_form");
-          } else if (option.value === WorkflowActions.SMS_ATTENDEE) {
-            label = t("sms_attendee_action_form");
+          const isSelectAllCalAiAction = isCalAIAction(option.value) && form.watch("selectAll");
+
+          const isOrgCalAiAction = isCalAIAction(option.value) && isOrg;
+
+          if (isFormWorkflowWithInvalidSteps || isSelectAllCalAiAction || isOrgCalAiAction) {
+            return false;
           }
-        }
+          return true;
+        })
+        .map((option) => {
+          let label = option.label;
 
-        return {
-          ...option,
-          label,
-          creditsTeamId: teamId,
-          isOrganization: isOrg,
-          isCalAi: isCalAIAction(option.value),
-        };
-      }) ?? [];
+          // Transform labels for form triggers
+          if (isFormTrigger(form.getValues("trigger"))) {
+            if (option.value === WorkflowActions.EMAIL_ATTENDEE) {
+              label = t("email_attendee_action_form");
+            } else if (option.value === WorkflowActions.SMS_ATTENDEE) {
+              label = t("sms_attendee_action_form");
+            }
+          }
+
+          return {
+            ...option,
+            label,
+            creditsTeamId: teamId,
+            isOrganization: isOrg,
+            isCalAi: isCalAIAction(option.value),
+          };
+        })
+    : [];
 
   useEffect(() => {
     const matchingOption = allOptions.find((option) => option.value === eventTypeId);
@@ -93,7 +100,6 @@ export default function WorkflowDetailsPage(props: Props) {
       setSelectedOptions(newOptions);
       form.setValue("activeOn", newOptions);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventTypeId]);
 
   const steps = form.getValues("steps") || [];
@@ -113,6 +119,23 @@ export default function WorkflowDetailsPage(props: Props) {
           })[0].id - 1
         : 0;
 
+    const timeFormat = getTimeFormatStringFromUserTimeFormat(props.user.timeFormat);
+
+    const template = isFormTrigger(form.getValues("trigger"))
+      ? WorkflowTemplates.CUSTOM
+      : WorkflowTemplates.REMINDER;
+
+    const { emailBody: reminderBody, emailSubject } =
+      template !== WorkflowTemplates.CUSTOM
+        ? emailReminderTemplate({
+            isEditingMode: true,
+            locale: i18n.language,
+            t,
+            action,
+            timeFormat,
+          })
+        : { emailBody: null, emailSubject: null };
+
     const step = {
       id: id > 0 ? 0 : id, //id of new steps always <= 0
       action,
@@ -124,9 +147,9 @@ export default function WorkflowDetailsPage(props: Props) {
           : 1,
       sendTo: sendTo || null,
       workflowId: workflowId,
-      reminderBody: null,
-      emailSubject: null,
-      template: WorkflowTemplates.REMINDER,
+      reminderBody,
+      emailSubject,
+      template,
       numberRequired: numberRequired || false,
       sender: isSMSAction(action) ? sender || SENDER_ID : SENDER_ID,
       senderName: !isSMSAction(action) ? senderName || SENDER_NAME : SENDER_NAME,
@@ -152,11 +175,11 @@ export default function WorkflowDetailsPage(props: Props) {
     <>
       <div>
         <FormCard
-          className="border-muted mb-0"
+          className="mb-0 border-muted"
           collapsible={false}
           label={
-            <div className="flex items-center gap-2 pb-2 pt-1">
-              <div className="border-subtle text-subtle ml-1 rounded-lg border p-1">
+            <div className="flex gap-2 items-center pt-1 pb-2">
+              <div className="p-1 ml-1 rounded-lg border border-subtle text-subtle">
                 <Icon name="zap" size="16" />
               </div>
               <div className="text-sm font-medium leading-none">{t("trigger")}</div>
@@ -174,6 +197,8 @@ export default function WorkflowDetailsPage(props: Props) {
               allOptions={allOptions}
               onSaveWorkflow={props.onSaveWorkflow}
               actionOptions={transformedActionOptions}
+              updateTemplate={updateTemplate}
+              setUpdateTemplate={setUpdateTemplate}
             />
           </FormCardBody>
         </FormCard>
@@ -189,11 +214,11 @@ export default function WorkflowDetailsPage(props: Props) {
                 <div key={index}>
                   <FormCard
                     key={step.id}
-                    className="bg-muted border-muted mb-0"
+                    className="mb-0 bg-muted border-muted"
                     collapsible={false}
                     label={
-                      <div className="flex items-center gap-2 pb-2 pt-1">
-                        <div className="border-subtle text-subtle rounded-lg border p-1">
+                      <div className="flex gap-2 items-center pt-1 pb-2">
+                        <div className="p-1 rounded-lg border border-subtle text-subtle">
                           <Icon name="arrow-right" size="16" />
                         </div>
                         <div className="text-sm font-medium leading-none">{t("action")}</div>
@@ -247,6 +272,8 @@ export default function WorkflowDetailsPage(props: Props) {
                         isAgentLoading={isAgentLoading}
                         agentData={agentData}
                         actionOptions={transformedActionOptions}
+                        updateTemplate={updateTemplate}
+                        setUpdateTemplate={setUpdateTemplate}
                       />
                     </FormCardBody>
                   </FormCard>

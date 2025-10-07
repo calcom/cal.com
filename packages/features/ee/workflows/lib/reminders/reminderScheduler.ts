@@ -15,6 +15,7 @@ import { SENDER_NAME } from "@calcom/lib/constants";
 import { formatCalEventExtended } from "@calcom/lib/formatCalendarEvent";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
@@ -135,7 +136,7 @@ const processWorkflowStep = async (
       case WorkflowActions.EMAIL_ADDRESS:
         sendTo = [step.sendTo || ""];
         break;
-      case WorkflowActions.EMAIL_HOST:
+      case WorkflowActions.EMAIL_HOST: {
         if (!evt) {
           // EMAIL_HOST is not supported for form triggers
           return;
@@ -150,23 +151,18 @@ const processWorkflowStep = async (
           sendTo = sendTo.concat(evt.team.members.map((member) => member.email));
         }
         break;
+      }
       case WorkflowActions.EMAIL_ATTENDEE:
         if (evt) {
-          const attendees = !!emailAttendeeSendToOverride
+          const attendees = emailAttendeeSendToOverride
             ? [emailAttendeeSendToOverride]
             : evt.attendees?.map((attendee) => attendee.email);
 
           const limitGuestsDate = new Date("2025-01-13");
 
           if (workflow.userId) {
-            const user = await prisma.user.findUnique({
-              where: {
-                id: workflow.userId,
-              },
-              select: {
-                createdDate: true,
-              },
-            });
+            const userRepository = new UserRepository(prisma);
+            const user = await userRepository.findById({ id: workflow.userId });
             if (user?.createdDate && user.createdDate > limitGuestsDate) {
               sendTo = attendees.slice(0, 1);
             } else {

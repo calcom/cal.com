@@ -9,7 +9,7 @@ import "react-phone-number-input/style.css";
 import type { RetellAgentWithDetails } from "@calcom/features/calAIPhone/providers/retellAI";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import PhoneInput from "@calcom/features/components/phone-input";
-import { SENDER_ID } from "@calcom/lib/constants";
+import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { formatPhoneNumber } from "@calcom/lib/formatPhoneNumber";
 import { useHasActiveTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -43,6 +43,7 @@ import { Editor } from "@calcom/ui/components/editor";
 import { CheckboxField } from "@calcom/ui/components/form";
 import { EmailField } from "@calcom/ui/components/form";
 import { TextArea } from "@calcom/ui/components/form";
+import { Input } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
@@ -101,6 +102,8 @@ type WorkflowStepProps = {
     isOrganization: boolean;
     isCalAi: boolean;
   }[];
+  updateTemplate: boolean;
+  setUpdateTemplate: Dispatch<SetStateAction<boolean>>;
 };
 
 const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
@@ -116,19 +119,19 @@ const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
 
 const CalAIAgentDataSkeleton = () => {
   return (
-    <div className="bg-muted mt-4 rounded-lg p-4">
-      <div className="flex items-center justify-between">
+    <div className="p-4 mt-4 rounded-lg bg-muted">
+      <div className="flex justify-between items-center">
         <div>
-          <SkeletonText className="h-5 w-28" />
-          <div className="mt-2 flex items-center gap-2">
-            <SkeletonText className="h-4 w-4" />
-            <SkeletonText className="h-4 w-32" />
-            <SkeletonText className="h-5 w-12" />
+          <SkeletonText className="w-28 h-5" />
+          <div className="flex gap-2 items-center mt-2">
+            <SkeletonText className="w-4 h-4" />
+            <SkeletonText className="w-32 h-4" />
+            <SkeletonText className="w-12 h-5" />
           </div>
         </div>
-        <div className="flex items-center gap-1">
-          <SkeletonText className="h-8 w-24" />
-          <SkeletonText className="h-8 w-8" />
+        <div className="flex gap-1 items-center">
+          <SkeletonText className="w-24 h-8" />
+          <SkeletonText className="w-8 h-8" />
         </div>
       </div>
     </div>
@@ -169,6 +172,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     setIsDeleteStepDialogOpen,
     onSaveWorkflow,
     actionOptions,
+    updateTemplate,
+    setUpdateTemplate,
   } = props;
   const { data: _verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
     { teamId },
@@ -259,7 +264,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     WorkflowActions.SMS_NUMBER === action || WorkflowActions.WHATSAPP_NUMBER === action;
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(requirePhoneNumber);
 
-  const [updateTemplate, setUpdateTemplate] = useState(false);
   const [firstRender, setFirstRender] = useState(true);
 
   const senderNeeded =
@@ -369,43 +373,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const hasAiAction = hasCalAIAction(steps);
   const hasEmailToHostAction = steps.some((s) => s.action === WorkflowActions.EMAIL_HOST);
+  const hasWhatsappAction = steps.some((s) => isWhatsappAction(s.action));
 
-  const disallowFormTriggers = hasAiAction || hasEmailToHostAction;
+  const disallowFormTriggers = hasAiAction || hasEmailToHostAction || hasWhatsappAction;
 
   const filteredTriggerOptions = triggerOptions.filter(
     (option) => !(isFormTrigger(option.value) && disallowFormTriggers)
   );
-
-  if (step && !form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
-    const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
-
-    // Skip setting reminderBody for CAL_AI actions since they don't need email templates
-    if (!isCalAIAction(action)) {
-      const template = getTemplateBodyForAction({
-        action,
-        locale: i18n.language,
-        t,
-        template: step.template ?? WorkflowTemplates.REMINDER,
-        timeFormat,
-      });
-      form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, template);
-    }
-  }
-
-  if (step && !form.getValues(`steps.${step.stepNumber - 1}.emailSubject`)) {
-    const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
-    // Skip setting emailSubject for CAL_AI actions since they don't need email subjects
-    if (!isCalAIAction(action)) {
-      const subjectTemplate = emailReminderTemplate({
-        isEditingMode: true,
-        locale: i18n.language,
-        t,
-        action: action,
-        timeFormat,
-      }).emailSubject;
-      form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectTemplate);
-    }
-  }
 
   const { ref: emailSubjectFormRef, ...restEmailSubjectForm } = step
     ? form.register(`steps.${step.stepNumber - 1}.emailSubject`)
@@ -426,9 +400,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [numberVerified, setNumberVerified] = useState(getNumberVerificationStatus());
   const [emailVerified, setEmailVerified] = useState(getEmailVerificationStatus());
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => setNumberVerified(getNumberVerificationStatus()), [verifiedNumbers.length]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => setEmailVerified(getEmailVerificationStatus()), [verifiedEmails.length]);
 
   const addVariableEmailSubject = (variable: string) => {
@@ -537,7 +509,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     return (
       <>
         <div className="mb-3">
-          <Label className="text-default text-sm leading-none">{t("when")}</Label>
+          <Label className="text-sm leading-none text-default">{t("when")}</Label>
           <Controller
             name="trigger"
             control={form.control}
@@ -612,8 +584,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         </div>
         <div>
           {!!timeSectionText && (
-            <div className="mb-3 mt-3">
-              <Label className="text-default mb-0">{timeSectionText}</Label>
+            <div className="mt-3 mb-3">
+              <Label className="mb-0 text-default">{timeSectionText}</Label>
               <TimeTimeUnitInput disabled={props.readOnly} />
             </div>
           )}
@@ -621,7 +593,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           {selectedOptions && setSelectedOptions && allOptions && (
             <div className={classNames(!!timeSectionText && "mb-3")}>
               {isOrganization ? (
-                <div className="text-default flex items-center gap-2">
+                <div className="flex gap-2 items-center text-default">
                   <Label>{t("which_team_apply")}</Label>
                   <div className="mb-2">
                     <InfoBadge content={t("team_select_info")} />
@@ -688,7 +660,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             </div>
           )}
           {!!timeSectionText && (
-            <div className="mt-1 flex text-gray-500">
+            <div className="flex mt-1 text-gray-500">
               <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
               <p className="text-sm">{t("testing_sms_workflow_info_message")}</p>
             </div>
@@ -817,24 +789,65 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               }}
             />
           </div>
+          {!isWhatsappAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) &&
+            !isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
+              <div>
+                {_isSenderIsNeeded ? (
+                  <>
+                    <div className="pt-4">
+                      <div className="flex items-center">
+                        <Label>{t("sender_id")}</Label>
+                      </div>
+                      <Input
+                        type="text"
+                        placeholder={SENDER_ID}
+                        disabled={props.readOnly}
+                        maxLength={11}
+                        {...form.register(`steps.${step.stepNumber - 1}.sender`)}
+                      />
+                      <div className="mt-1.5 flex items-center gap-1">
+                        <Icon name="info" size="10" className="text-gray-500" />
+                        <div className="text-xs text-subtle">{t("sender_id_info")}</div>
+                      </div>
+                    </div>
+                    {form.formState.errors.steps &&
+                      form.formState?.errors?.steps[step.stepNumber - 1]?.sender && (
+                        <p className="mt-1 text-xs text-error">{t("sender_id_error_message")}</p>
+                      )}
+                  </>
+                ) : (
+                  <>
+                    <div className="pt-4">
+                      <Label>{t("sender_name")}</Label>
+                      <Input
+                        type="text"
+                        disabled={props.readOnly}
+                        placeholder={SENDER_NAME}
+                        {...form.register(`steps.${step.stepNumber - 1}.senderName`)}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           {isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && !stepAgentId && (
-            <div className="bg-muted border-muted mt-2 rounded-2xl border p-3">
-              <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center sm:gap-0">
+            <div className="p-3 mt-2 rounded-2xl border bg-muted border-muted">
+              <div className="flex flex-col gap-4 justify-between sm:flex-row sm:items-center sm:gap-0">
                 <div>
-                  <h2 className="text-emphasis text-sm font-medium leading-none">
+                  <h2 className="text-sm font-medium leading-none text-emphasis">
                     {t("cal_ai_agent")}
-                    <Badge startIcon="info" className="ms-2 rounded-md" variant="warning">
+                    <Badge startIcon="info" className="rounded-md ms-2" variant="warning">
                       {t("set_up_required")}
                     </Badge>
                   </h2>
-                  <p className="text-muted mt-1 text-sm font-medium leading-none">
+                  <p className="mt-1 text-sm font-medium leading-none text-muted">
                     {t("no_phone_number_connected")}.
                   </p>
                 </div>
                 <Button
                   color="primary"
                   disabled={props.readOnly || isCreatingAgent.current || hasAutoCreated.current}
-                  className="flex items-center justify-center"
+                  className="flex justify-center items-center"
                   onClick={() => handleCreateAgent()}
                   loading={createAgentMutation.isPending || isCreatingAgent.current}>
                   {t("set_up_agent")}
@@ -845,9 +858,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
           {stepAgentId && isAgentLoading && <CalAIAgentDataSkeleton />}
           {stepAgentId && agentData && (
-            <div className="bg-muted mt-4 rounded-lg p-4">
+            <div className="p-4 mt-4 rounded-lg bg-muted">
               <div
-                className="flex cursor-pointer items-center justify-between"
+                className="flex justify-between items-center cursor-pointer"
                 onClick={(e) => {
                   const target = e.target as HTMLElement;
                   if (
@@ -862,11 +875,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   }
                 }}>
                 <div>
-                  <h3 className="text-emphasis text-base font-medium">{t("cal_ai_agent")}</h3>
+                  <h3 className="text-base font-medium text-emphasis">{t("cal_ai_agent")}</h3>
                   {arePhoneNumbersActive.length > 0 ? (
-                    <div className="flex items-center gap-2">
-                      <Icon name="phone" className="text-emphasis h-4 w-4" />
-                      <span className="text-emphasis text-sm">
+                    <div className="flex gap-2 items-center">
+                      <Icon name="phone" className="w-4 h-4 text-emphasis" />
+                      <span className="text-sm text-emphasis">
                         {formatPhoneNumber(arePhoneNumbersActive[0].phoneNumber)}
                       </span>
                       <Badge variant="green" size="sm" withDot>
@@ -874,12 +887,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       </Badge>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-1">
-                      <span className="text-subtle text-sm">{t("no_phone_number_connected")}</span>
+                    <div className="flex gap-1 items-center">
+                      <span className="text-sm text-subtle">{t("no_phone_number_connected")}</span>
                     </div>
                   )}
                 </div>
-                <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                <div className="flex gap-1 items-center" onClick={(e) => e.stopPropagation()}>
                   {arePhoneNumbersActive.length > 0 ? (
                     <Dropdown>
                       <DropdownMenuTrigger asChild>
@@ -987,7 +1000,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             </div>
           )}
           {isPhoneNumberNeeded && (
-            <div className="bg-muted mt-2 rounded-md p-4 pt-0">
+            <div className="p-4 pt-0 mt-2 rounded-md bg-muted">
               <Label className="pt-4">{t("custom_phone_number")}</Label>
               <div className="block sm:flex">
                 <Controller
@@ -1027,7 +1040,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               </div>
 
               {form.formState.errors.steps && form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
-                <p className="text-error mt-1 text-xs">
+                <p className="mt-1 text-xs text-error">
                   {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
                 </p>
               )}
@@ -1038,9 +1051,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               ) : (
                 !props.readOnly && (
                   <>
-                    <div className="mt-6 flex w-full flex-col">
+                    <div className="flex flex-col mt-6 w-full">
                       <Label className="">{t("verification_code")}</Label>
-                      <div className="flex w-full items-center">
+                      <div className="flex items-center w-full">
                         <TextField
                           containerClassName="w-full"
                           className="h-8 rounded-xl"
@@ -1070,7 +1083,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     </div>
                     {form.formState.errors.steps &&
                       form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
-                        <p className="text-error mt-1 text-xs">
+                        <p className="mt-1 text-xs text-error">
                           {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
                         </p>
                       )}
@@ -1100,9 +1113,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               </div>
             )}
           {isEmailAddressNeeded && !isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
-            <div className="bg-muted border-muted mt-5 rounded-2xl border p-4">
+            <div className="p-4 mt-5 rounded-2xl border bg-muted border-muted">
               <Label>{t("email_address")}</Label>
-              <div className="block items-center gap-2 sm:flex">
+              <div className="block gap-2 items-center sm:flex">
                 <Controller
                   name={`steps.${step.stepNumber - 1}.sendTo`}
                   render={({ field: { value, onChange } }) => (
@@ -1128,7 +1141,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   size="sm"
                   disabled={emailVerified || props.readOnly || false}
                   className={classNames(
-                    "min-w-fit text-sm font-medium",
+                    "text-sm font-medium min-w-fit",
                     emailVerified ? "hidden" : "mt-3 sm:mt-0"
                   )}
                   onClick={() => {
@@ -1142,7 +1155,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </Button>
               </div>
               {form.formState.errors.steps && form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
-                <p className="text-error mt-1 text-xs">
+                <p className="mt-1 text-xs text-error">
                   {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
                 </p>
               )}
@@ -1153,9 +1166,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               ) : (
                 !props.readOnly && (
                   <>
-                    <div className="mt-3 flex w-full flex-col">
+                    <div className="flex flex-col mt-3 w-full">
                       <Label className="">{t("verification_code")}</Label>
-                      <div className="flex w-full items-center">
+                      <div className="flex items-center w-full">
                         <TextField
                           containerClassName="w-full"
                           className="h-8 rounded-xl"
@@ -1185,7 +1198,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     </div>
                     {form.formState.errors.steps &&
                       form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
-                        <p className="text-error mt-1 text-xs">
+                        <p className="mt-1 text-xs text-error">
                           {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
                         </p>
                       )}
@@ -1260,7 +1273,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           option.needsTeamsUpgrade &&
                           !isSMSAction(form.getValues(`steps.${step.stepNumber - 1}.action`)),
                       }))}
-                      //eslint-disable-next-line @typescript-eslint/no-explicit-any
                       isOptionDisabled={(option: {
                         label: string;
                         value: string;
@@ -1273,7 +1285,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             </div>
           )}
           {!isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
-            <div className="bg-muted border-muted mt-3 rounded-2xl border p-3">
+            <div className="p-3 mt-3 rounded-2xl border bg-muted border-muted">
               {isEmailSubjectNeeded && (
                 <div className="mb-6">
                   <div className="flex items-center">
@@ -1306,21 +1318,19 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   />
                   {form.formState.errors.steps &&
                     form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject && (
-                      <p className="text-error mt-1 text-xs">
+                      <p className="mt-1 text-xs text-error">
                         {form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject?.message || ""}
                       </p>
                     )}
                 </div>
               )}
-              <div className="mb-2 flex items-center pb-1">
-                <Label className="mb-0 flex-none">
+              <div className="flex items-center pb-1 mb-2">
+                <Label className="flex-none mb-0">
                   {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
                 </Label>
               </div>
               <Editor
-                getText={() => {
-                  return props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
-                }}
+                getText={() => props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || ""}
                 setText={(text: string) => {
                   props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
                   props.form.clearErrors();
@@ -1344,7 +1354,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
               {form.formState.errors.steps &&
                 form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody && (
-                  <p className="text-error mt-1 text-sm">
+                  <p className="mt-1 text-sm text-error">
                     {form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody?.message || ""}
                   </p>
                 )}
@@ -1370,11 +1380,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </div>
               )}
               {!props.readOnly && !isFormTrigger(trigger) && (
-                <div className="ml-1 mt-2">
+                <div className="mt-2 ml-1">
                   <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
-                    <div className="text-subtle ml-1 flex items-center gap-2">
-                      <Icon name="circle-help" className="h-3 w-3" />
-                      <p className="text-left text-xs">{t("using_booking_questions_as_variables")}</p>
+                    <div className="flex gap-2 items-center ml-1 text-subtle">
+                      <Icon name="circle-help" className="w-3 h-3" />
+                      <p className="text-xs text-left">{t("using_booking_questions_as_variables")}</p>
                     </div>
                   </button>
                 </div>
@@ -1483,23 +1493,23 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           <DialogContent enableOverflow type="creation" className="sm:max-w-[610px]">
             <div>
               <h1 className="w-full text-xl font-semibold">{t("how_booking_questions_as_variables")}</h1>
-              <div className="bg-muted-3 mb-6 rounded-md sm:p-4">
-                <p className="test-sm font-medium">{t("format")}</p>
-                <ul className="text-emphasis ml-5 mt-2 list-disc">
+              <div className="mb-6 rounded-md bg-muted-3 sm:p-4">
+                <p className="font-medium test-sm">{t("format")}</p>
+                <ul className="mt-2 ml-5 list-disc text-emphasis">
                   <li>{t("uppercase_for_letters")}</li>
                   <li>{t("replace_whitespaces_underscores")}</li>
                   <li>{t("ignore_special_characters_booking_questions")}</li>
                 </ul>
                 <div className="mt-4">
-                  <p className="test-sm w-full font-medium">{t("example_1")}</p>
-                  <div className="mt-2 grid grid-cols-12">
-                    <div className="test-sm text-default col-span-5 ltr:mr-2 rtl:ml-2">
+                  <p className="w-full font-medium test-sm">{t("example_1")}</p>
+                  <div className="grid grid-cols-12 mt-2">
+                    <div className="col-span-5 test-sm text-default ltr:mr-2 rtl:ml-2">
                       {t("booking_question_identifier")}
                     </div>
-                    <div className="test-sm text-emphasis col-span-7">{t("company_size")}</div>
-                    <div className="test-sm text-default col-span-5 w-full">{t("variable")}</div>
+                    <div className="col-span-7 test-sm text-emphasis">{t("company_size")}</div>
+                    <div className="col-span-5 w-full test-sm text-default">{t("variable")}</div>
 
-                    <div className="test-sm text-emphasis col-span-7 break-words">
+                    <div className="col-span-7 break-words test-sm text-emphasis">
                       {" "}
                       {`{${t("company_size")
                         .replace(/[^a-zA-Z0-9 ]/g, "")
@@ -1510,14 +1520,14 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   </div>
                 </div>
                 <div className="mt-4">
-                  <p className="test-sm w-full font-medium">{t("example_2")}</p>
-                  <div className="mt-2 grid grid-cols-12">
-                    <div className="test-sm text-default col-span-5 ltr:mr-2 rtl:ml-2">
+                  <p className="w-full font-medium test-sm">{t("example_2")}</p>
+                  <div className="grid grid-cols-12 mt-2">
+                    <div className="col-span-5 test-sm text-default ltr:mr-2 rtl:ml-2">
                       {t("booking_question_identifier")}
                     </div>
-                    <div className="test-sm text-emphasis col-span-7">{t("what_help_needed")}</div>
-                    <div className="test-sm text-default col-span-5">{t("variable")}</div>
-                    <div className="test-sm text-emphasis col-span-7 break-words">
+                    <div className="col-span-7 test-sm text-emphasis">{t("what_help_needed")}</div>
+                    <div className="col-span-5 test-sm text-default">{t("variable")}</div>
+                    <div className="col-span-7 break-words test-sm text-emphasis">
                       {" "}
                       {`{${t("what_help_needed")
                         .replace(/[^a-zA-Z0-9 ]/g, "")
@@ -1586,17 +1596,17 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         <Dialog open={isUnsubscribeDialogOpen} onOpenChange={setIsUnsubscribeDialogOpen}>
           <DialogContent type="creation" title={t("unsubscribe_phone_number")}>
             <div className="space-y-4">
-              <p className="text-default text-sm">{t("do_you_still_want_to_unsubscribe")}</p>
+              <p className="text-sm text-default">{t("do_you_still_want_to_unsubscribe")}</p>
               {getActivePhoneNumbers(
                 agentData?.outboundPhoneNumbers?.map((phone) => ({
                   ...phone,
                   subscriptionStatus: phone.subscriptionStatus ?? undefined,
                 }))
               ).length > 0 && (
-                <div className="bg-muted rounded-lg p-3">
-                  <div className="flex items-center gap-2">
-                    <Icon name="phone" className="text-emphasis h-4 w-4" />
-                    <span className="text-emphasis text-sm font-medium">
+                <div className="p-3 rounded-lg bg-muted">
+                  <div className="flex gap-2 items-center">
+                    <Icon name="phone" className="w-4 h-4 text-emphasis" />
+                    <span className="text-sm font-medium text-emphasis">
                       {formatPhoneNumber(
                         getActivePhoneNumbers(
                           agentData?.outboundPhoneNumbers?.map((phone) => ({
@@ -1609,7 +1619,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   </div>
                 </div>
               )}
-              <p className="text-subtle text-sm">{t("the_action_will_disconnect_phone_number")}</p>
+              <p className="text-sm text-subtle">{t("the_action_will_disconnect_phone_number")}</p>
             </div>
             <DialogFooter showDivider>
               <Button type="button" color="secondary" onClick={() => setIsUnsubscribeDialogOpen(false)}>
@@ -1644,7 +1654,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         <Dialog open={isDeleteStepDialogOpen} onOpenChange={setIsDeleteStepDialogOpen}>
           <DialogContent type="confirmation" title={t("delete_workflow_step")}>
             <div className="space-y-4">
-              <p className="text-default text-sm">{t("are_you_sure_you_want_to_delete_workflow_step")}</p>
+              <p className="text-sm text-default">{t("are_you_sure_you_want_to_delete_workflow_step")}</p>
               {(() => {
                 const relevantPhoneNumbers =
                   agentData?.outboundPhoneNumbers?.filter(
@@ -1654,12 +1664,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 return (
                   relevantPhoneNumbers.length > 0 && (
                     <>
-                      <div className="bg-attention rounded-lg p-3">
-                        <div className="flex items-start gap-2">
+                      <div className="p-3 rounded-lg bg-attention">
+                        <div className="flex gap-2 items-start">
                           <Icon name="info" className="text-attention mt-0.5 h-4 w-4" />
                           <div className="space-y-2">
-                            <p className="text-attention text-sm font-medium">{t("this_action_will_also")}</p>
-                            <ul className="text-attention list-inside list-disc space-y-1 text-sm">
+                            <p className="text-sm font-medium text-attention">{t("this_action_will_also")}</p>
+                            <ul className="space-y-1 text-sm list-disc list-inside text-attention">
                               {relevantPhoneNumbers.some(
                                 (phone) => phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE
                               ) && <li>{t("cancel_your_phone_number_subscription")}</li>}
@@ -1669,10 +1679,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         </div>
                       </div>
                       {relevantPhoneNumbers.map((phone) => (
-                        <div key={phone.phoneNumber} className="bg-muted rounded-lg p-3">
-                          <div className="flex items-center gap-2">
-                            <Icon name="phone" className="text-emphasis h-4 w-4" />
-                            <span className="text-emphasis text-sm font-medium">
+                        <div key={phone.phoneNumber} className="p-3 rounded-lg bg-muted">
+                          <div className="flex gap-2 items-center">
+                            <Icon name="phone" className="w-4 h-4 text-emphasis" />
+                            <span className="text-sm font-medium text-emphasis">
                               {formatPhoneNumber(phone.phoneNumber)}
                             </span>
                             {phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE && (

@@ -223,7 +223,6 @@ export async function _onFormSubmission(
       await WorkflowService.scheduleFormWorkflows({
         workflows,
         responses: fieldResponsesByIdentifier,
-        responseId,
         form: {
           ...form,
           fields: form.fields.map((field) => ({
