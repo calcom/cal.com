@@ -43,7 +43,6 @@ export async function userRoutes(fastify: FastifyInstance): Promise<void> {
   const userService = new UserService(prisma);
   // Route with specific auth methods allowed
   fastify.get('/me', { 
-    preHandler: AuthGuards.authenticateFlexible(),
     schema: {
       description: 'Get current user profile',
       tags: ['Users'],
@@ -70,7 +69,6 @@ export async function userRoutes(fastify: FastifyInstance): Promise<void> {
   });
 
   fastify.put('/edit-profile', { 
-    preHandler: AuthGuards.authenticateFlexible(),
     schema: {
       description: 'Edit user profile',
       tags: ['Users'],
@@ -106,7 +104,6 @@ export async function userRoutes(fastify: FastifyInstance): Promise<void> {
   });
 
   fastify.post('/edit-profile/avatar', {
-    preHandler: AuthGuards.authenticateFlexible(),
     schema: {
       description: 'Upload avatar via multipart/form-data',
       tags: ['Users'],
