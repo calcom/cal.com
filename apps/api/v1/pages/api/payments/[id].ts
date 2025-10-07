@@ -46,7 +46,7 @@ export async function paymentById(
   if (safeQuery.success && method === "GET") {
     const userWithBookings = await prisma.user.findUnique({
       where: { id: userId },
-      include: { bookings: true },
+      select: { bookings: true },
     });
     const data = await prisma.payment.findUnique({ where: { id: safeQuery.data.id } });
 
