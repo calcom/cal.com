@@ -74,18 +74,8 @@ describe("getEventTypePermissions", () => {
 
     it("should use PBAC permissions when enabled", async () => {
       mockPermissionCheckService.getResourcePermissions
-        .mockResolvedValueOnce({
-          canRead: true,
-          canCreate: true,
-          canEdit: true,
-          canDelete: false,
-        })
-        .mockResolvedValueOnce({
-          canRead: true,
-          canCreate: false,
-          canEdit: true,
-          canDelete: false,
-        });
+        .mockResolvedValueOnce(["eventType.read", "eventType.create", "eventType.update"])
+        .mockResolvedValueOnce(["workflow.read", "workflow.update"]);
 
       const result = await getEventTypePermissions(1, 2);
 
@@ -122,18 +112,8 @@ describe("getEventTypePermissions", () => {
 
     it("should map canEdit to canUpdate correctly", async () => {
       mockPermissionCheckService.getResourcePermissions
-        .mockResolvedValueOnce({
-          canRead: true,
-          canCreate: false,
-          canEdit: true,
-          canDelete: false,
-        })
-        .mockResolvedValueOnce({
-          canRead: false,
-          canCreate: false,
-          canEdit: false,
-          canDelete: false,
-        });
+        .mockResolvedValueOnce(["eventType.read", "eventType.update"])
+        .mockResolvedValueOnce([]);
 
       const result = await getEventTypePermissions(1, 2);
 
@@ -142,12 +122,7 @@ describe("getEventTypePermissions", () => {
     });
 
     it("should handle all permissions denied", async () => {
-      mockPermissionCheckService.getResourcePermissions.mockResolvedValue({
-        canRead: false,
-        canCreate: false,
-        canEdit: false,
-        canDelete: false,
-      });
+      mockPermissionCheckService.getResourcePermissions.mockResolvedValue([]);
 
       const result = await getEventTypePermissions(1, 2);
 
@@ -168,12 +143,16 @@ describe("getEventTypePermissions", () => {
     });
 
     it("should handle all permissions granted", async () => {
-      mockPermissionCheckService.getResourcePermissions.mockResolvedValue({
-        canRead: true,
-        canCreate: true,
-        canEdit: true,
-        canDelete: true,
-      });
+      mockPermissionCheckService.getResourcePermissions.mockResolvedValue([
+        "eventType.read",
+        "eventType.create",
+        "eventType.update",
+        "eventType.delete",
+        "workflow.read",
+        "workflow.create",
+        "workflow.update",
+        "workflow.delete",
+      ]);
 
       const result = await getEventTypePermissions(1, 2);
 
@@ -545,12 +524,10 @@ describe("getEventTypePermissions", () => {
   describe("permission mapping consistency", () => {
     it("should ensure both eventTypes and workflows use same permission structure", async () => {
       mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValue(true);
-      mockPermissionCheckService.getResourcePermissions.mockResolvedValue({
-        canRead: true,
-        canCreate: false,
-        canEdit: true,
-        canDelete: false,
-      });
+      mockPermissionCheckService.getResourcePermissions.mockResolvedValue([
+        "eventType.read",
+        "eventType.update",
+      ]);
 
       const result = await getEventTypePermissions(1, 2);
 
@@ -561,12 +538,12 @@ describe("getEventTypePermissions", () => {
     it("should maintain consistent permission types across PBAC and role-based modes", async () => {
       const pbacResult = await (async () => {
         mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValue(true);
-        mockPermissionCheckService.getResourcePermissions.mockResolvedValue({
-          canRead: true,
-          canCreate: true,
-          canEdit: true,
-          canDelete: true,
-        });
+        mockPermissionCheckService.getResourcePermissions.mockResolvedValue([
+          "eventType.read",
+          "eventType.create",
+          "eventType.update",
+          "eventType.delete",
+        ]);
         return await getEventTypePermissions(1, 2);
       })();
 
