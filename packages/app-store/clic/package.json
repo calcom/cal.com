@@ -10,5 +10,5 @@
   "devDependencies": {
     "@calcom/types": "*"
   },
-  "description": "Create, List and Interact with Your Cal.com links and connections easily."
+  "description": "Create, List and Interact with Your Cal ID links and connections easily."
 }

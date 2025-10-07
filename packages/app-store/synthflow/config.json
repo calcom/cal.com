@@ -4,7 +4,7 @@
   "slug": "synthflow",
   "type": "synthflow_automation",
   "logo": "icon.svg",
-  "url": "https://synthflow.ai/integrations/calcom",
+  "url": "https://synthflow.ai/integrations/calid",
   "variant": "automation",
   "categories": ["automation"],
   "publisher": "Synthflow.ai",
