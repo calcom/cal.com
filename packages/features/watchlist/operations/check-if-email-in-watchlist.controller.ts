@@ -1,8 +1,9 @@
 import { startSpan } from "@sentry/nextjs";
 
-import { getWatchlistRepository } from "@calcom/features/di/watchlist/containers/watchlist";
+import { getWatchlistFeature } from "@calcom/features/di/watchlist/containers/watchlist";
 
 import type { EmailBlockedCheckResponseDTO } from "../lib/dto";
+import { normalizeEmail } from "../lib/utils/normalization";
 
 /**
  * Controllers use Presenters to convert the data to a UI-friendly format just before
@@ -23,12 +24,30 @@ function presenter(isBlocked: boolean): EmailBlockedCheckResponseDTO {
  * logic, but define the whole operations using use cases.
  */
 export async function checkIfEmailIsBlockedInWatchlistController(
-  email: string
+  email: string,
+  organizationId?: number
 ): Promise<EmailBlockedCheckResponseDTO> {
   return await startSpan({ name: "checkIfEmailInWatchlist Controller" }, async () => {
-    const lowercasedEmail = email.toLowerCase();
-    const watchlistRepository = getWatchlistRepository();
-    const watchlistedEmail = await watchlistRepository.getBlockedEmailInWatchlist(lowercasedEmail);
-    return presenter(!!watchlistedEmail);
+    // Normalize email
+    const normalizedEmail = normalizeEmail(email);
+
+    // Use façade for clean DX
+    const watchlist = getWatchlistFeature();
+
+    // Check global entries first
+    const globalResult = await watchlist.globalBlocking.isBlocked(normalizedEmail, organizationId);
+    if (globalResult.isBlocked) {
+      return presenter(true);
+    }
+
+    // Check organization entries
+    if (organizationId) {
+      const orgResult = await watchlist.orgBlocking.isEmailBlocked(normalizedEmail, organizationId);
+      if (orgResult.isBlocked) {
+        return presenter(true);
+      }
+    }
+
+    return presenter(false);
   });
 }

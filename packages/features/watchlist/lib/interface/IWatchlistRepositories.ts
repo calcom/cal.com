@@ -1,30 +1,74 @@
-import type { Watchlist, CreateWatchlistInput, UpdateWatchlistInput } from "../types";
+import type { Watchlist } from "@calcom/prisma/client";
 
-export interface IWatchlistRepository {
-  // Read operations
-  findBlockedEntry(email: string, organizationId?: number): Promise<Watchlist | null>;
-  findBlockedDomain(domain: string, organizationId?: number): Promise<Watchlist | null>;
-  listByOrganization(organizationId: number): Promise<Watchlist[]>;
-  findById(id: string): Promise<Watchlist | null>;
-  findMany(params: { organizationId?: number; isGlobal?: boolean }): Promise<Watchlist[]>;
-
-  // Legacy methods for backward compatibility
-  getBlockedEmailInWatchlist(email: string): Promise<Watchlist | null>;
-  getFreeEmailDomainInWatchlist(emailDomain: string): Promise<Watchlist | null>;
-  searchForAllBlockedRecords(params: {
-    usernames: string[];
-    emails: string[];
-    domains: string[];
-  }): Promise<Watchlist[]>;
+/**
+ * Interface for Global Watchlist Repository
+ * Follows Dependency Inversion Principle
+ */
+export interface IGlobalWatchlistRepository {
+  findBlockedEmail(email: string): Promise<Watchlist | null>;
+  findBlockedDomain(domain: string): Promise<Watchlist | null>;
+  findFreeEmailDomain(domain: string): Promise<Watchlist | null>;
+  findReportedEmail(email: string): Promise<Watchlist | null>;
+  findReportedDomain(domain: string): Promise<Watchlist | null>;
+  listAllGlobalEntries(): Promise<Watchlist[]>;
+  listGlobalBlockedEntries(): Promise<Watchlist[]>;
 
   // Write operations
-  create(data: CreateWatchlistInput): Promise<Watchlist>;
-  createEntry(data: CreateWatchlistInput): Promise<Watchlist>;
-  update(id: string, data: UpdateWatchlistInput): Promise<Watchlist>;
-  updateEntry(id: string, data: UpdateWatchlistInput): Promise<Watchlist>;
-  delete(id: string): Promise<void>;
+  createEntry(data: {
+    type: import("../types").WatchlistType;
+    value: string;
+    description?: string;
+    action: import("../types").WatchlistAction;
+    source?: import("../types").WatchlistSource;
+  }): Promise<Watchlist>;
+
+  updateEntry(
+    id: string,
+    data: {
+      value?: string;
+      description?: string;
+      action?: import("../types").WatchlistAction;
+      source?: import("../types").WatchlistSource;
+    }
+  ): Promise<Watchlist>;
+
   deleteEntry(id: string): Promise<void>;
 }
 
-// Export the input types for use in other files
-export type { CreateWatchlistInput, UpdateWatchlistInput };
+/**
+ * Interface for Organization Watchlist Repository
+ * Follows Dependency Inversion Principle
+ */
+export interface IOrganizationWatchlistRepository {
+  findBlockedEmail(email: string, organizationId: number): Promise<Watchlist | null>;
+  findBlockedDomain(domain: string, organizationId: number): Promise<Watchlist | null>;
+  findReportedEmail(email: string, organizationId: number): Promise<Watchlist | null>;
+  findReportedDomain(domain: string, organizationId: number): Promise<Watchlist | null>;
+  listOrganizationEntries(organizationId: number): Promise<Watchlist[]>;
+  listOrganizationBlockedEntries(organizationId: number): Promise<Watchlist[]>;
+
+  // Write operations
+  createEntry(
+    organizationId: number,
+    data: {
+      type: import("../types").WatchlistType;
+      value: string;
+      description?: string;
+      action: import("../types").WatchlistAction;
+      source?: import("../types").WatchlistSource;
+    }
+  ): Promise<Watchlist>;
+
+  updateEntry(
+    id: string,
+    organizationId: number,
+    data: {
+      value?: string;
+      description?: string;
+      action?: import("../types").WatchlistAction;
+      source?: import("../types").WatchlistSource;
+    }
+  ): Promise<Watchlist>;
+
+  deleteEntry(id: string, organizationId: number): Promise<void>;
+}

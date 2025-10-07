@@ -1,15 +1,15 @@
 import { captureException } from "@sentry/nextjs";
 
-import type { PrismaClient } from "@calcom/prisma/client";
-import { WatchlistAction, WatchlistType } from "@calcom/prisma/enums";
+import type { PrismaClient, Watchlist } from "@calcom/prisma/client";
+import { WatchlistAction, WatchlistType, WatchlistSource } from "@calcom/prisma/enums";
 
-import type { Watchlist } from "../types";
+import type { IOrganizationWatchlistRepository } from "../interface/IWatchlistRepositories";
 
 /**
  * Repository for organization-specific watchlist operations
  * Handles blocking rules that apply only to a specific organization
  */
-export class OrganizationWatchlistRepository {
+export class OrganizationWatchlistRepository implements IOrganizationWatchlistRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   async findBlockedEmail(email: string, organizationId: number): Promise<Watchlist | null> {
@@ -192,6 +192,78 @@ export class OrganizationWatchlistRepository {
       ]);
 
       return { total, blocked, reported };
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  // Write operations for organization-specific entries
+  async createEntry(
+    organizationId: number,
+    data: {
+      type: WatchlistType;
+      value: string;
+      description?: string;
+      action: WatchlistAction;
+      source?: WatchlistSource;
+    }
+  ): Promise<Watchlist> {
+    try {
+      return await this.prisma.watchlist.create({
+        data: {
+          type: data.type,
+          value: data.value.toLowerCase(),
+          description: data.description,
+          isGlobal: false, // Always organization-specific
+          organizationId, // Set to specific organization
+          action: data.action,
+          source: data.source || WatchlistSource.MANUAL,
+        },
+      });
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  async updateEntry(
+    id: string,
+    organizationId: number,
+    data: {
+      value?: string;
+      description?: string;
+      action?: WatchlistAction;
+      source?: WatchlistSource;
+    }
+  ): Promise<Watchlist> {
+    try {
+      return await this.prisma.watchlist.update({
+        where: {
+          id,
+          organizationId, // Ensure we only update entries for this org
+        },
+        data: {
+          ...(data.value && { value: data.value.toLowerCase() }),
+          ...(data.description !== undefined && { description: data.description }),
+          ...(data.action && { action: data.action }),
+          ...(data.source && { source: data.source }),
+        },
+      });
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  async deleteEntry(id: string, organizationId: number): Promise<void> {
+    try {
+      await this.prisma.watchlist.delete({
+        where: {
+          id,
+          organizationId, // Ensure we only delete entries for this org
+        },
+      });
     } catch (err) {
       captureException(err);
       throw err;

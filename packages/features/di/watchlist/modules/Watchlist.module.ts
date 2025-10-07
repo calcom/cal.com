@@ -2,10 +2,11 @@ import { createModule } from "@evyweb/ioctopus";
 
 import { SHARED_TOKENS } from "@calcom/features/di/shared/shared.tokens";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
+import { GlobalWatchlistRepository } from "@calcom/features/watchlist/lib/repository/GlobalWatchlistRepository";
+import { OrganizationWatchlistRepository } from "@calcom/features/watchlist/lib/repository/OrganizationWatchlistRepository";
 import { PrismaAuditRepository } from "@calcom/features/watchlist/lib/repository/PrismaAuditRepository";
-import { WatchlistRepository } from "@calcom/features/watchlist/lib/repository/WatchlistRepository";
 import { AuditService } from "@calcom/features/watchlist/lib/service/AuditService";
-import { BlockingService } from "@calcom/features/watchlist/lib/service/BlockingService";
+import { GlobalBlockingService } from "@calcom/features/watchlist/lib/service/GlobalBlockingService";
 import { OrganizationBlockingService } from "@calcom/features/watchlist/lib/service/OrganizationBlockingService";
 import { WatchlistService } from "@calcom/features/watchlist/lib/service/WatchlistService";
 
@@ -13,11 +14,16 @@ import { WATCHLIST_DI_TOKENS } from "../tokens";
 
 export const watchlistModule = createModule();
 
-// Bind repositories
+// Bind specialized repositories
 watchlistModule
-  .bind(WATCHLIST_DI_TOKENS.WATCHLIST_REPOSITORY)
-  .toClass(WatchlistRepository, [DI_TOKENS.PRISMA_CLIENT]);
+  .bind(WATCHLIST_DI_TOKENS.GLOBAL_WATCHLIST_REPOSITORY)
+  .toClass(GlobalWatchlistRepository, [DI_TOKENS.PRISMA_CLIENT]);
 
+watchlistModule
+  .bind(WATCHLIST_DI_TOKENS.ORGANIZATION_WATCHLIST_REPOSITORY)
+  .toClass(OrganizationWatchlistRepository, [DI_TOKENS.PRISMA_CLIENT]);
+
+// Bind remaining repositories
 watchlistModule
   .bind(WATCHLIST_DI_TOKENS.AUDIT_REPOSITORY)
   .toClass(PrismaAuditRepository, [DI_TOKENS.PRISMA_CLIENT]);
@@ -28,13 +34,20 @@ watchlistModule
   .toClass(AuditService, [WATCHLIST_DI_TOKENS.AUDIT_REPOSITORY]);
 
 watchlistModule
-  .bind(WATCHLIST_DI_TOKENS.BLOCKING_SERVICE)
-  .toClass(BlockingService, [WATCHLIST_DI_TOKENS.WATCHLIST_REPOSITORY, WATCHLIST_DI_TOKENS.AUDIT_SERVICE]);
+  .bind(WATCHLIST_DI_TOKENS.GLOBAL_BLOCKING_SERVICE)
+  .toClass(GlobalBlockingService, [
+    WATCHLIST_DI_TOKENS.GLOBAL_WATCHLIST_REPOSITORY,
+    WATCHLIST_DI_TOKENS.AUDIT_SERVICE,
+  ]);
 
 watchlistModule
   .bind(WATCHLIST_DI_TOKENS.ORGANIZATION_BLOCKING_SERVICE)
-  .toClass(OrganizationBlockingService, [WATCHLIST_DI_TOKENS.WATCHLIST_REPOSITORY]);
+  .toClass(OrganizationBlockingService, [WATCHLIST_DI_TOKENS.ORGANIZATION_WATCHLIST_REPOSITORY]);
 
 watchlistModule
   .bind(WATCHLIST_DI_TOKENS.WATCHLIST_SERVICE)
-  .toClass(WatchlistService, [WATCHLIST_DI_TOKENS.WATCHLIST_REPOSITORY, SHARED_TOKENS.LOGGER]);
+  .toClass(WatchlistService, [
+    WATCHLIST_DI_TOKENS.GLOBAL_WATCHLIST_REPOSITORY,
+    WATCHLIST_DI_TOKENS.ORGANIZATION_WATCHLIST_REPOSITORY,
+    SHARED_TOKENS.LOGGER,
+  ]);
