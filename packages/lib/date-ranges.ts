@@ -172,6 +172,70 @@ export function processWorkingHours(
   return results;
 }
 
+//prevents merging of consecutive date ranges , to ensure that each slot is represented as a separate range
+function processWorkingHoursWithoutMerging({
+  item,
+  timeZone,
+  dateFrom,
+  dateTo,
+  travelSchedules,
+}: {
+  item: WorkingHours;
+  timeZone: string;
+  dateFrom: Dayjs;
+  dateTo: Dayjs;
+  travelSchedules: TravelSchedule[];
+}): DateRange[] {
+  const utcDateTo = dateTo.utc();
+  const results: DateRange[] = [];
+
+  for (let date = dateFrom.startOf("day"); utcDateTo.isAfter(date); date = date.add(1, "day")) {
+    const fromOffset = dateFrom.startOf("day").utcOffset();
+    const adjustedTimezone = getAdjustedTimezone(date, timeZone, travelSchedules);
+    const offset = date.tz(adjustedTimezone).utcOffset();
+
+    // it always has to be start of the day (midnight) even when DST changes
+    const dateInTz = date.add(fromOffset - offset, "minutes").tz(adjustedTimezone);
+    if (!item.days.includes(dateInTz.day())) {
+      continue;
+    }
+
+    let start = dateInTz
+      .add(item.startTime.getUTCHours(), "hours")
+      .add(item.startTime.getUTCMinutes(), "minutes");
+
+    let end = dateInTz.add(item.endTime.getUTCHours(), "hours").add(item.endTime.getUTCMinutes(), "minutes");
+
+    const offsetBeginningOfDay = dayjs(start.format("YYYY-MM-DD hh:mm")).tz(adjustedTimezone).utcOffset();
+    const offsetDiff = start.utcOffset() - offsetBeginningOfDay;
+
+    start = start.add(offsetDiff, "minute");
+    end = end.add(offsetDiff, "minute");
+
+    const startResult = dayjs.max(start, dateFrom);
+    let endResult = dayjs.min(end, dateTo.tz(adjustedTimezone));
+
+    // INFO: We only allow users to set availability up to 11:59PM which ends up not making them available
+    // up to midnight.
+    if (endResult.hour() === 23 && endResult.minute() === 59) {
+      endResult = endResult.add(1, "minute");
+    }
+
+    if (endResult.isBefore(startResult)) {
+      // if an event ends before start, it's not a result.
+      continue;
+    }
+
+    // Add each slot as a separate range without merging
+    results.push({
+      start: startResult,
+      end: endResult,
+    });
+  }
+
+  return results;
+}
+
 export function processDateOverride({
   item,
   itemDateAsUtc,
@@ -241,23 +305,17 @@ export function buildDateRanges({
   const dateFromOrganizerTZ = dateFrom.tz(timeZone);
 
   const groupedWorkingHours = groupByDate(
-    Object.values(
-      availability.reduce((processed: Record<number, DateRange>, item) => {
-        if (!("days" in item)) {
-          return processed;
-        }
-
-        processed = processWorkingHours(processed, {
+    availability
+      .filter((item) => "days" in item)
+      .flatMap((item) =>
+        processWorkingHoursWithoutMerging({
           item,
           timeZone,
           dateFrom: dateFromOrganizerTZ,
           dateTo,
           travelSchedules,
-        });
-
-        return processed;
-      }, {})
-    )
+        })
+      )
   );
 
   const groupedOOO = groupByDate(
